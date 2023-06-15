@@ -22,6 +22,7 @@ import (
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/gtsteffaniak/filebrowser/auth"
+	"github.com/gtsteffaniak/filebrowser/search"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	fbhttp "github.com/gtsteffaniak/filebrowser/http"
 	"github.com/gtsteffaniak/filebrowser/img"
@@ -45,10 +46,17 @@ func (d dirFS) Open(name string) (fs.File, error) {
 func init() {
 	cobra.OnInitialize(initConfig)
 	cobra.MousetrapHelpText = ""
-
 	rootCmd.SetVersionTemplate("File Browser version {{printf \"%s\" .Version}}\n")
 
 	flags := rootCmd.Flags()
+	// initialize indexing and schedule indexing ever n minutes
+	indexInterval, err := flags.GetUint32("indexing-interval") //nolint:govet
+	if err != nil {
+		log.Println(err)
+		indexInterval = 60
+	}
+	go search.InitializeIndex(indexInterval)
+
 	persistent := rootCmd.PersistentFlags()
 
 	persistent.StringVarP(&cfgFile, "config", "c", "", "config file path")
@@ -69,6 +77,7 @@ func addServerFlags(flags *pflag.FlagSet) {
 	flags.StringP("root", "r", ".", "root to prepend to relative paths")
 	flags.String("socket", "", "socket to listen to (cannot be used with address, port, cert nor key flags)")
 	flags.Uint32("socket-perm", 0666, "unix socket file permissions") //nolint:gomnd
+	flags.Uint32("indexing-interval", 60, "how frequently to index files, in minutes") //nolint:gomnd
 	flags.StringP("baseurl", "b", "", "base url")
 	flags.String("cache-dir", "", "file cache directory (disabled if empty)")
 	flags.Int("img-processors", 4, "image processors count") //nolint:gomnd
@@ -408,7 +417,6 @@ func initConfig() {
 	v.SetEnvPrefix("FB")
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(v.ConfigParseError); ok {
 			panic(err)

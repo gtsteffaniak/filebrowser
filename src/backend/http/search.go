@@ -2,8 +2,6 @@ package http
 
 import (
 	"net/http"
-	"os"
-
 	"github.com/gtsteffaniak/filebrowser/search"
 )
 
@@ -11,18 +9,27 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	response := []map[string]interface{}{}
 	query := r.URL.Query().Get("query")
 
-	err := search.Search(d.user.Fs, r.URL.Path, query, d, func(path string, f os.FileInfo) error {
+	files, dirs := search.IndexedSearch(query,r.URL.Path)
+	for _,v := range(files){
 		response = append(response, map[string]interface{}{
-			"dir":  f.IsDir(),
-			"path": path,
+			"dir":  false,
+			"path": v,
 		})
-
-		return nil
-	})
-
-	if err != nil {
-		return http.StatusInternalServerError, err
 	}
+	for _,v := range(dirs){
+		response = append(response, map[string]interface{}{
+			"dir":  true,
+			"path": v,
+		})
+	}
+//	err := search.Search(d.user.Fs, r.URL.Path, query, d, func(path string, f os.FileInfo) error {
+//		response = append(response, map[string]interface{}{
+//			"dir":  f.IsDir(),
+//			"path": path,
+//		})
+//
+//		return nil
+//	})
 
 	return renderJSON(w, r, response)
 })

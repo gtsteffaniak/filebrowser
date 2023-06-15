@@ -3,8 +3,6 @@ package search
 import (
 	"os"
 	"path"
-	"log"
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -18,16 +16,10 @@ type searchOptions struct {
 	Terms         []string
 }
 
-func IndexedSearch(query string, scope string) {
-	// Initialize the indexes map
-	indexes = make(map[string]PathInfo)
-	fmt.Println("Indexing files")
-	// Call the function to index files and directories
-	err := indexFiles(query, 1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	searchAllIndexes("new")
+func IndexedSearch(query string,scope string) (files []string, dirs []string) {
+	fileList := searchAllIndexes(query,false,scope)
+	dirList := searchAllIndexes(query,true,scope)
+	return fileList, dirList
 }
 
 // Search searches for a query in a fs.

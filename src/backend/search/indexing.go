@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,34 +9,36 @@ import (
 )
 
 type PathInfo struct {
-	PathNames   []string
+	DirPathNames   []string
+	FilePathNames   []string
 	LastIndexed time.Time
 }
-
+var rootPath = "/srv/"
 var indexes map[string]PathInfo
 
-func main() {
+func InitializeIndex(intervalMinutes uint32) {
 	// Initialize the indexes map
 	indexes = make(map[string]PathInfo)
-	fmt.Println("Indexing files")
+	log.Println("Indexing files...")
 	// Call the function to index files and directories
-	err := indexFiles("/Users/steffag/", 1)
+	err := indexFiles(rootPath, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
-	searchAllIndexes("new")
+	go indexingScheduler(intervalMinutes)
+	log.Println("Successfully indexed files.")
 }
 
-func InitializeIndex(dir string) {
-	// Initialize the indexes map
-	indexes = make(map[string]PathInfo)
-	fmt.Println("Indexing files")
-	// Call the function to index files and directories
-	err := indexFiles(dir, 1)
-	if err != nil {
-		log.Fatal(err)
+func indexingScheduler(intervalMinutes uint32) {
+	for {
+		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
+		err := indexFiles(rootPath, 1)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
+
 
 // Define a function to recursively index files and directories
 func indexFiles(path string, depth int) error {
@@ -77,7 +78,7 @@ func indexFiles(path string, depth int) error {
 			// Recursively index subdirectories
 			err = indexFiles(filePath, depth+1)
 		} else {
-			addToIndex(path, filePath, file.ModTime())
+			addToIndex(path, filePath, file.ModTime(),file.IsDir())
 		}
 	}
 	return nil
@@ -89,36 +90,60 @@ func indexEverythingFlattened(path string) error {
 		if err != nil {
 			return err
 		}
-		addToIndex(path, filePath, info.ModTime())
+		addToIndex(path, filePath, info.ModTime(),info.IsDir())
 		return nil
 	})
 	return err
 }
 
-func addToIndex(path string, filePath string, lastModified time.Time) {
+func addToIndex(path string, filePath string, lastModified time.Time, isDir bool) {
+	filePath = strings.TrimPrefix(filePath, rootPath)
 	currentTime := time.Now()
 	info, exists := indexes[path]
 	if !exists {
 		info = PathInfo{}
 	}
-	info.PathNames = append(info.PathNames, filePath)
+	if isDir {
+		info.DirPathNames = append(info.DirPathNames, filePath)
+	}else{
+		info.FilePathNames = append(info.FilePathNames, filePath)
+	}
 	info.LastIndexed = currentTime
 	indexes[path] = info
 }
 
-func searchAllIndexes(searchTerm string) []string {
+func searchAllIndexes(searchTerm string,isDir bool,scope string) []string {
 	var matchingResults []string
 	// Iterate over the indexes
 	for _, subFiles := range indexes {
+		searchItems := subFiles.FilePathNames
+		if isDir {
+			searchItems = subFiles.DirPathNames
+		}
 		// Iterate over the path names
-		for _, pathName := range subFiles.PathNames {
+		for _, pathName := range searchItems {
 			// Check if the path name contains the search term
-			if containsSearchTerm(pathName, searchTerm) {
-				matchingResults = append(matchingResults, pathName)
+			if !containsSearchTerm(pathName, searchTerm) {
+				continue
 			}
+			pathName = scopedPathNameFilter(pathName,scope)
+			if pathName == "" {
+				continue
+			}
+			matchingResults = append(matchingResults, pathName)
 		}
 	}
 	return matchingResults
+}
+
+func scopedPathNameFilter(pathName string, scope string) string {
+	scope = strings.TrimPrefix(scope, "/")
+	if strings.HasPrefix(pathName, scope) {
+		pathName = strings.TrimPrefix(pathName, scope)
+	} else {
+		pathName = ""
+	}
+	return pathName
 }
 
 func containsSearchTerm(pathName string, searchTerm string) bool {
