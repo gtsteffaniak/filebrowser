@@ -1,5 +1,5 @@
 {
-  "port": 80,
+  "port": 8080,
   "baseURL": "",
   "address": "",
   "log": "stdout",

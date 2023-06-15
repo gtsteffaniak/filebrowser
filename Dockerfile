@@ -23,7 +23,7 @@ EXPOSE 80
 
 WORKDIR /app
 
-COPY --from=base /app/docker_config.json /.filebrowser.json
+COPY --from=base /app/docker_config.json ./.filebrowser.json
 COPY --from=base /app/filebrowser ./filebrowser
 COPY --from=nbuild /app/dist/ ./frontend/dist/
 
