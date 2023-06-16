@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"strconv"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/afero"
@@ -21,13 +22,14 @@ import (
 	v "github.com/spf13/viper"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/filebrowser/filebrowser/v2/auth"
-	"github.com/filebrowser/filebrowser/v2/diskcache"
-	fbhttp "github.com/filebrowser/filebrowser/v2/http"
-	"github.com/filebrowser/filebrowser/v2/img"
-	"github.com/filebrowser/filebrowser/v2/settings"
-	"github.com/filebrowser/filebrowser/v2/storage"
-	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/gtsteffaniak/filebrowser/auth"
+	"github.com/gtsteffaniak/filebrowser/search"
+	"github.com/gtsteffaniak/filebrowser/diskcache"
+	fbhttp "github.com/gtsteffaniak/filebrowser/http"
+	"github.com/gtsteffaniak/filebrowser/img"
+	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/storage"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var (
@@ -45,10 +47,13 @@ func (d dirFS) Open(name string) (fs.File, error) {
 func init() {
 	cobra.OnInitialize(initConfig)
 	cobra.MousetrapHelpText = ""
-
 	rootCmd.SetVersionTemplate("File Browser version {{printf \"%s\" .Version}}\n")
 
 	flags := rootCmd.Flags()
+	// initialize indexing and schedule indexing ever n minutes (default 5)
+	indexingInterval := getEnvVariableAsUint32("INDEXING_INTERVAL")
+	go search.InitializeIndex(indexingInterval)
+
 	persistent := rootCmd.PersistentFlags()
 
 	persistent.StringVarP(&cfgFile, "config", "c", "", "config file path")
@@ -58,6 +63,15 @@ func init() {
 	flags.String("password", "", "hashed password for the first user when using quick config (default \"admin\")")
 
 	addServerFlags(flags)
+}
+
+func getEnvVariableAsUint32(key string) uint32 {
+	valueStr := os.Getenv(key)
+	value, err := strconv.ParseUint(valueStr, 10, 32)
+	if err != nil {
+		return 5 // default value every 5 minutes
+	}
+	return uint32(value)
 }
 
 func addServerFlags(flags *pflag.FlagSet) {
@@ -408,7 +422,6 @@ func initConfig() {
 	v.SetEnvPrefix("FB")
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(v.ConfigParseError); ok {
 			panic(err)

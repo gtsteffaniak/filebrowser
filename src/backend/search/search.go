@@ -7,14 +7,18 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-
-	"github.com/filebrowser/filebrowser/v2/rules"
+	"github.com/gtsteffaniak/filebrowser/rules"
 )
 
 type searchOptions struct {
 	CaseSensitive bool
 	Conditions    []condition
 	Terms         []string
+}
+
+func IndexedSearch(query string, scope string, files *[]string, dirs *[]string) ([]string, []string) {
+	*files, *dirs = SearchAllIndexes(query, scope, *files, *dirs)
+	return *files, *dirs
 }
 
 // Search searches for a query in a fs.

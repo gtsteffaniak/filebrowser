@@ -99,7 +99,7 @@
           v-else
           rel="noopener noreferrer"
           target="_blank"
-          href="https://github.com/filebrowser/filebrowser"
+          href="https://github.com/gtsteffaniak/filebrowser"
           >File Browser</a
         >
         <span> {{ version }}</span>
@@ -156,8 +156,8 @@ export default {
         try {
           let usage = await api.usage(path);
           usageStats = {
-            used: prettyBytes(usage.used, { binary: true }),
-            total: prettyBytes(usage.total, { binary: true }),
+            used: prettyBytes(usage.used/1024, { binary: true }),
+            total: prettyBytes(usage.total/1024, { binary: true }),
             usedPercentage: Math.round((usage.used / usage.total) * 100),
           };
         } catch (error) {

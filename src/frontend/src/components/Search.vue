@@ -14,7 +14,7 @@
       <input
         type="text"
         @keyup.exact="keyup"
-        @keyup.enter="submit"
+        @input="submit"
         ref="input"
         :autofocus="active"
         v-model.trim="value"
@@ -47,7 +47,7 @@
             </div>
           </template>
         </template>
-        <ul v-show="results.length > 0">
+        <ul v-show="filteredResults.length > 0">
           <li v-for="(s, k) in filteredResults" :key="k">
             <router-link @click.native="close" :to="s.url">
               <i v-if="s.dir" class="material-icons">folder</i>
@@ -163,7 +163,7 @@ export default {
         return;
       }
 
-      this.results.length = 0;
+      this.results.length === 0;
     },
     init(string) {
       this.value = `${string} `;
@@ -177,7 +177,7 @@ export default {
     async submit(event) {
       event.preventDefault();
 
-      if (this.value === "") {
+      if (this.value === "" || this.value.length < 3) {
         return;
       }
 
