@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"strconv"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/afero"
@@ -49,13 +50,9 @@ func init() {
 	rootCmd.SetVersionTemplate("File Browser version {{printf \"%s\" .Version}}\n")
 
 	flags := rootCmd.Flags()
-	// initialize indexing and schedule indexing ever n minutes
-	indexInterval, err := flags.GetUint32("indexing-interval") //nolint:govet
-	if err != nil {
-		log.Println(err)
-		indexInterval = 60
-	}
-	go search.InitializeIndex(indexInterval)
+	// initialize indexing and schedule indexing ever n minutes (default 5)
+	indexingInterval := getEnvVariableAsUint32("INDEXING_INTERVAL")
+	go search.InitializeIndex(indexingInterval)
 
 	persistent := rootCmd.PersistentFlags()
 
@@ -68,6 +65,15 @@ func init() {
 	addServerFlags(flags)
 }
 
+func getEnvVariableAsUint32(key string) uint32 {
+	valueStr := os.Getenv(key)
+	value, err := strconv.ParseUint(valueStr, 10, 32)
+	if err != nil {
+		return 5 // default value every 5 minutes
+	}
+	return uint32(value)
+}
+
 func addServerFlags(flags *pflag.FlagSet) {
 	flags.StringP("address", "a", "127.0.0.1", "address to listen on")
 	flags.StringP("log", "l", "stdout", "log output")
@@ -77,7 +83,6 @@ func addServerFlags(flags *pflag.FlagSet) {
 	flags.StringP("root", "r", ".", "root to prepend to relative paths")
 	flags.String("socket", "", "socket to listen to (cannot be used with address, port, cert nor key flags)")
 	flags.Uint32("socket-perm", 0666, "unix socket file permissions") //nolint:gomnd
-	flags.Uint32("indexing-interval", 60, "how frequently to index files, in minutes") //nolint:gomnd
 	flags.StringP("baseurl", "b", "", "base url")
 	flags.String("cache-dir", "", "file cache directory (disabled if empty)")
 	flags.Int("img-processors", 4, "image processors count") //nolint:gomnd

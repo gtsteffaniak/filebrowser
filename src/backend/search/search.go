@@ -16,10 +16,9 @@ type searchOptions struct {
 	Terms         []string
 }
 
-func IndexedSearch(query string,scope string) (files []string, dirs []string) {
-	fileList := searchAllIndexes(query,false,scope)
-	dirList := searchAllIndexes(query,true,scope)
-	return fileList, dirList
+func IndexedSearch(query string, scope string, files *[]string, dirs *[]string) ([]string, []string) {
+	*files, *dirs = SearchAllIndexes(query, scope, *files, *dirs)
+	return *files, *dirs
 }
 
 // Search searches for a query in a fs.

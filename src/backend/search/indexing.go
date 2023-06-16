@@ -5,43 +5,55 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sort"
 	"time"
 )
 
-type PathInfo struct {
-	DirPathNames   []string
-	FilePathNames   []string
-	LastIndexed time.Time
-}
-var rootPath = "/srv/"
-var indexes map[string]PathInfo
+var (
+	rootPath = "/srv" // DO NOT include trailing slash
+	indexes  map[string][]string
+	mutex    sync.RWMutex
+	lastIndexed time.Time
+)
 
 func InitializeIndex(intervalMinutes uint32) {
 	// Initialize the indexes map
-	indexes = make(map[string]PathInfo)
+	indexes = make(map[string][]string)
+	var numFiles, numDirs int
 	log.Println("Indexing files...")
+	lastIndexedStart := time.Now()
 	// Call the function to index files and directories
-	err := indexFiles(rootPath, 1)
+	totalNumFiles, totalNumDirs, err := indexFiles(rootPath,&numFiles,&numDirs)
 	if err != nil {
 		log.Fatal(err)
 	}
+	lastIndexed = lastIndexedStart
 	go indexingScheduler(intervalMinutes)
 	log.Println("Successfully indexed files.")
+	log.Println("Files found       :",totalNumFiles)
+	log.Println("Directories found :",totalNumDirs)
 }
 
 func indexingScheduler(intervalMinutes uint32) {
+	log.Printf("Indexing scheduler will run every %v minutes",intervalMinutes)
 	for {
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
-		err := indexFiles(rootPath, 1)
+		var numFiles, numDirs int
+		lastIndexedStart := time.Now()
+		totalNumFiles, totalNumDirs, err := indexFiles(rootPath,&numFiles,&numDirs)
 		if err != nil {
 			log.Fatal(err)
+		}
+		lastIndexed = lastIndexedStart
+		if totalNumFiles+totalNumDirs > 0 {
+			log.Println("re-indexing found changes and updated the index.")
 		}
 	}
 }
 
-
 // Define a function to recursively index files and directories
-func indexFiles(path string, depth int) error {
+func indexFiles(path string, numFiles *int, numDirs *int) (int,int,error) {
 	// Check if the current directory has been modified since last indexing
 	dir, err := os.Open(path)
 	if err != nil {
@@ -51,89 +63,99 @@ func indexFiles(path string, depth int) error {
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
 	if err != nil {
-		return err
+		return *numFiles,*numDirs,err
 	}
 	// Compare the last modified time of the directory with the last indexed time
-	if dirInfo.ModTime().Before(indexes[path].LastIndexed) {
-		return nil
-	}
-	// Check if the directory path is more than 3 levels deep
-	if depth > 3 {
-		// Index the directory and its subdirectories
-		err = indexEverythingFlattened(path)
-		if err != nil {
-			return err
-		}
-		return err
+	if dirInfo.ModTime().Before(lastIndexed) {
+		return *numFiles,*numDirs,nil
 	}
 	// Read the directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
-		return err
+		return *numFiles,*numDirs,err
 	}
 	// Iterate over the files and directories
 	for _, file := range files {
-		filePath := filepath.Join(path, file.Name())
 		if file.IsDir() {
-			// Recursively index subdirectories
-			err = indexFiles(filePath, depth+1)
-		} else {
-			addToIndex(path, filePath, file.ModTime(),file.IsDir())
+			*numDirs++
+			indexFiles(path+"/"+file.Name(),numFiles,numDirs)
 		}
+		*numFiles++
+		addToIndex(path, file.Name())
 	}
-	return nil
+	return *numFiles,*numDirs,nil
 }
 
-func indexEverythingFlattened(path string) error {
-	// Index the directory and its subdirectories
-	err := filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		addToIndex(path, filePath, info.ModTime(),info.IsDir())
-		return nil
-	})
-	return err
-}
-
-func addToIndex(path string, filePath string, lastModified time.Time, isDir bool) {
-	filePath = strings.TrimPrefix(filePath, rootPath)
-	currentTime := time.Now()
+func addToIndex(path string, fileName string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	path = strings.TrimPrefix(path,rootPath+"/")
+	path = strings.TrimSuffix(path,"/")
+	if path == rootPath {
+		path = "/"
+	}
 	info, exists := indexes[path]
 	if !exists {
-		info = PathInfo{}
+		info = []string{}
 	}
-	if isDir {
-		info.DirPathNames = append(info.DirPathNames, filePath)
-	}else{
-		info.FilePathNames = append(info.FilePathNames, filePath)
-	}
-	info.LastIndexed = currentTime
+	info = append(info, fileName)
 	indexes[path] = info
 }
 
-func searchAllIndexes(searchTerm string,isDir bool,scope string) []string {
-	var matchingResults []string
+func SearchAllIndexes(searchTerm string, scope string, files []string, dirs []string) ([]string, []string) {
+	mutex.RLock()
+	defer mutex.RUnlock()
+
+	var matchingFiles []string
+	var matchingDirs []string
+
 	// Iterate over the indexes
-	for _, subFiles := range indexes {
-		searchItems := subFiles.FilePathNames
-		if isDir {
-			searchItems = subFiles.DirPathNames
-		}
+	for dirName, v := range indexes {
+		searchItems := v
 		// Iterate over the path names
 		for _, pathName := range searchItems {
+			if dirName != "/" {
+				pathName = dirName+"/"+pathName
+			}
 			// Check if the path name contains the search term
 			if !containsSearchTerm(pathName, searchTerm) {
 				continue
 			}
-			pathName = scopedPathNameFilter(pathName,scope)
+			pathName = scopedPathNameFilter(pathName, scope)
 			if pathName == "" {
 				continue
 			}
-			matchingResults = append(matchingResults, pathName)
+			matchingFiles = append(matchingFiles, pathName)
 		}
+		// Check if the path name contains the search term
+		if !containsSearchTerm(dirName, searchTerm) {
+			continue
+		}
+		pathName := scopedPathNameFilter(dirName, scope)
+		if pathName == "" {
+			continue
+		}
+		matchingDirs = append(matchingDirs, pathName)
 	}
-	return matchingResults
+
+	// Sort the strings based on the number of elements after splitting by "/"
+	sort.Slice(matchingFiles, func(i, j int) bool {
+		parts1 := strings.Split(matchingFiles[i], "/")
+		parts2 := strings.Split(matchingFiles[j], "/")
+		return len(parts1) < len(parts2)
+	})
+	// Sort the strings based on the number of elements after splitting by "/"
+	sort.Slice(matchingDirs, func(i, j int) bool {
+		parts1 := strings.Split(matchingDirs[i], "/")
+		parts2 := strings.Split(matchingDirs[j], "/")
+		return len(parts1) < len(parts2)
+	})
+
+	// Copy the matching files and dirs to the final slices
+	files = append([]string{}, matchingFiles...)
+	dirs = append([]string{}, matchingDirs...)
+
+	return files, dirs
 }
 
 func scopedPathNameFilter(pathName string, scope string) string {
