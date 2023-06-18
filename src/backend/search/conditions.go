@@ -11,6 +11,12 @@ var (
 	typeRegexp = regexp.MustCompile(`type:(\w+)`)
 )
 
+type searchOptions struct {
+	CaseSensitive bool
+	Conditions    []condition
+	Terms         []string
+}
+
 type condition func(path string) bool
 
 func extensionCondition(extension string) condition {
@@ -40,7 +46,7 @@ func videoCondition(path string) bool {
 	return strings.HasPrefix(mimetype, "video")
 }
 
-func parseSearch(value string) *searchOptions {
+func ParseSearch(value string) *searchOptions {
 	opts := &searchOptions{
 		CaseSensitive: strings.Contains(value, "case:sensitive"),
 		Conditions:    []condition{},
