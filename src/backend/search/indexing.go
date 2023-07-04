@@ -8,10 +8,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"mime"
 )
 
 var (
-	rootPath    = "/srv" // DO NOT include trailing slash
+	rootPath 	string = "/srv"
 	indexes     map[string][]string
 	mutex       sync.RWMutex
 	lastIndexed time.Time
@@ -111,6 +112,9 @@ func SearchAllIndexes(search string, scope string) ([]string, []string) {
 	maximum := 100
 	count := 0
 	for _, searchTerm := range searchOptions.Terms {
+		if searchTerm == "" {
+			continue
+		}
 		// Iterate over the indexes
 		for dirName, v := range indexes {
 			if count > maximum {
@@ -126,7 +130,7 @@ func SearchAllIndexes(search string, scope string) ([]string, []string) {
 					pathName = dirName + "/" + pathName
 				}
 				// Check if the path name contains the search term
-				if !containsSearchTerm(pathName, searchTerm, searchOptions.conditions) {
+				if !containsSearchTerm(pathName, searchTerm, searchOptions.Conditions) {
 					continue
 				}
 				pathName = scopedPathNameFilter(pathName, scope)
@@ -137,7 +141,7 @@ func SearchAllIndexes(search string, scope string) ([]string, []string) {
 				matchingFiles = append(matchingFiles, pathName)
 			}
 			// Check if the path name contains the search term
-			if !containsSearchTerm(dirName, searchTerm, searchOptions.conditions) {
+			if !containsSearchTerm(dirName, searchTerm, searchOptions.Conditions) {
 				continue
 			}
 			pathName := scopedPathNameFilter(dirName, scope)
@@ -173,13 +177,51 @@ func scopedPathNameFilter(pathName string, scope string) string {
 	return pathName
 }
 
-func containsSearchTerm(pathName string, searchTerm string, conditions []string) bool {
-	path := getLastPathComponent(pathName)
-	// Perform case-insensitive search
-	pathNameLower := strings.ToLower(path)
-	searchTermLower := strings.ToLower(searchTerm)
-
-	return strings.Contains(pathNameLower, searchTermLower)
+func containsSearchTerm(pathName string, searchTerm string, conditions map[string]bool) bool {
+    path := getLastPathComponent(pathName)
+    if !conditions["exact"] {
+        path = strings.ToLower(path)
+        searchTerm = strings.ToLower(searchTerm)
+    }
+	matchesCondition := true
+    if conditions["audio"] {
+		extension := filepath.Ext(path)
+		mimetype := mime.TypeByExtension(extension)
+		matchesCondition = strings.HasPrefix(mimetype, "audio")
+    }
+    if conditions["video"] {
+		extension := filepath.Ext(path)
+		mimetype := mime.TypeByExtension(extension)
+		matchesCondition = strings.HasPrefix(mimetype, "video")
+    }
+    if conditions["image"] {
+		extension := filepath.Ext(path)
+		mimetype := mime.TypeByExtension(extension)
+		matchesCondition = strings.HasPrefix(mimetype, "image")
+    }
+    if conditions["doc"] {
+		extension := filepath.Ext(path)
+		for _, typefile := range documentTypes {
+			if extension == typefile {
+				matchesCondition = true
+				continue
+			} else {
+				matchesCondition = false
+			}
+		}
+    }
+	if conditions["zip"] {
+		extension := filepath.Ext(path)
+		for _, typefile := range compressedFile {
+			if extension == typefile {
+				matchesCondition = true
+				continue
+			} else {
+				matchesCondition = false
+			}
+		}
+    }
+    return strings.Contains(path, searchTerm) && matchesCondition
 }
 
 func getLastPathComponent(path string) string {

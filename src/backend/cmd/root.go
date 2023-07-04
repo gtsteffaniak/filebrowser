@@ -49,9 +49,6 @@ func init() {
 	rootCmd.SetVersionTemplate("File Browser version {{printf \"%s\" .Version}}\n")
 
 	flags := rootCmd.Flags()
-	// initialize indexing and schedule indexing ever n minutes (default 5)
-	indexingInterval := getEnvVariableAsUint32("INDEXING_INTERVAL")
-	go search.InitializeIndex(indexingInterval)
 
 	persistent := rootCmd.PersistentFlags()
 
@@ -153,6 +150,9 @@ user created with the credentials from options "username" and "password".`,
 			}
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
+		// initialize indexing and schedule indexing ever n minutes (default 5)
+		indexingInterval := getEnvVariableAsUint32("INDEXING_INTERVAL")
+		go search.InitializeIndex(indexingInterval)
 
 		server := getRunParams(cmd.Flags(), d.store)
 		setupLog(server.Log)
@@ -376,7 +376,6 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 		Address: getParam(flags, "address"),
 		Root:    getParam(flags, "root"),
 	}
-
 	err = d.store.Settings.SaveServer(ser)
 	checkErr(err)
 

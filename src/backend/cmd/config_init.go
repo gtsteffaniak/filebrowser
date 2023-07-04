@@ -52,7 +52,6 @@ override the options.`,
 			Port:    mustGetString(flags, "port"),
 			Log:     mustGetString(flags, "log"),
 		}
-
 		err := d.store.Settings.Save(s)
 		checkErr(err)
 		err = d.store.Settings.SaveServer(ser)
