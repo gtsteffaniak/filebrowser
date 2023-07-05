@@ -5,7 +5,6 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "find ./dist -maxdepth 1 -mindepth 1 ! -name '.gitignore' -exec rm -r {} + && vue-cli-service build --no-clean",
-    "lint": "npx vue-cli-service lint --no-fix --max-warnings=0",
     "fix": "npx vue-cli-service lint",
     "watch": "find ./dist -maxdepth 1 -mindepth 1 ! -name '.gitignore' -exec rm -r {} + && vue-cli-service build --watch --no-clean"
   },
@@ -23,6 +22,7 @@
     "noty": "^3.2.0-beta",
     "pretty-bytes": "^6.0.0",
     "qrcode.vue": "^1.7.0",
+    "semver": "^7.5.3",
     "utif": "^3.1.0",
     "vue": "^2.6.10",
     "vue-async-computed": "^3.9.0",
@@ -35,32 +35,13 @@
     "whatwg-fetch": "^3.6.2"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.1.2",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-service": "^4.1.2",
-    "@vue/eslint-config-prettier": "^6.0.0",
-    "babel-eslint": "^10.1.0",
-    "compression-webpack-plugin": "^6.0.3",
-    "eslint": "^6.7.2",
-    "eslint-plugin-prettier": "^3.3.1",
-    "eslint-plugin-vue": "^6.2.2",
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "compression-webpack-plugin": "^10.0.0",
+    "depcheck": "^1.4.3",
+    "file-loader": "^6.2.0",
     "prettier": "^2.2.1",
     "vue-template-compiler": "^2.6.10"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended",
-      "@vue/prettier"
-    ],
-    "rules": {},
-    "parserOptions": {
-      "parser": "babel-eslint"
-    }
   },
   "postcss": {
     "plugins": {

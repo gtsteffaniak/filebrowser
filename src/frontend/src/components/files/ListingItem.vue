@@ -37,7 +37,6 @@
 <script>
 import { enableThumbs } from "@/utils/constants";
 import { mapMutations, mapGetters, mapState } from "vuex";
-import filesize from "filesize";
 import moment from "moment";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
@@ -98,7 +97,7 @@ export default {
   methods: {
     ...mapMutations(["addSelected", "removeSelected", "resetSelected"]),
     humanSize: function () {
-      return this.type == "invalid_link" ? "invalid link" : filesize(this.size);
+      return this.type == "invalid_link" ? "invalid link" : this.size;
     },
     humanTime: function () {
       if (this.readOnly == undefined && this.user.dateFormat) {
