@@ -38,7 +38,6 @@
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-service": "^5.0.8",
     "compression-webpack-plugin": "^10.0.0",
-    "depcheck": "^1.4.3",
     "file-loader": "^6.2.0",
     "prettier": "^2.2.1",
     "vue-template-compiler": "^2.6.10"
