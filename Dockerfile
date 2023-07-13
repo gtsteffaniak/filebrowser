@@ -1,7 +1,8 @@
-FROM node:14.21-slim as nbuild
+FROM node:slim as nbuild
 WORKDIR /app
-COPY  ./src/frontend ./
+COPY  ./src/frontend/package*.json ./
 RUN npm i
+COPY  ./src/frontend/ ./
 RUN npm run build
 
 FROM golang:alpine as base

@@ -24,7 +24,9 @@
     </div>
 
     <div id="result" ref="result">
-      <div>
+      <div id="result-list">
+        <br>
+        <br>
         <template v-if="isEmpty">
           <p>{{ text }}</p>
 
@@ -48,11 +50,16 @@
           </template>
         </template>
         <ul v-show="filteredResults.length > 0">
-          <li v-for="(s, k) in filteredResults" :key="k">
-            <router-link @click.native="close" :to="s.url">
-              <i v-if="s.dir" class="material-icons">folder</i>
-              <i v-else class="material-icons">insert_drive_file</i>
-              <span>./{{ s.path }}</span>
+          <div>Searching Scope : {{ path }}</div>
+          <li v-for="(s, k) in filteredResults" :key="k" @click="navigate(s.url,$event)" style="cursor: pointer;">
+            <router-link :to="s.url">
+              <i v-if="s.dir"           class="material-icons folder-icons">  folder            </i>
+              <i v-else-if="s.audio"    class="material-icons audio-icons">   volume_up         </i>
+              <i v-else-if="s.image"    class="material-icons image-icons">   photo             </i>
+              <i v-else-if="s.video"    class="material-icons video-icons">   movie             </i>
+              <i v-else-if="s.archive"  class="material-icons archive-icons"> archive           </i>
+              <i v-else                 class="material-icons file-icons">    insert_drive_file </i>
+              {{ s.path }}
             </router-link>
           </li>
         </ul>
@@ -92,7 +99,6 @@ export default {
   watch: {
     show(val, old) {
       this.active = val === "search";
-
       if (old === "search" && !this.active) {
         if (this.reload) {
           this.setReload(true);
@@ -155,7 +161,12 @@ export default {
     close(event) {
       event.stopPropagation();
       event.preventDefault();
+      console.log("closing")
       this.closeHovers();
+    },
+    navigate(url, event) {
+      this.close(event); // pass the event object to the close method
+      this.$router.push(url);
     },
     keyup(event) {
       if (event.keyCode === 27) {
