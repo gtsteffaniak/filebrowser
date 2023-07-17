@@ -11,6 +11,8 @@ var documentTypes = []string{
 	".word",
 	".pdf",
 	".txt",
+	".doc",
+	".docx",
 }
 
 var compressedFile = []string{
@@ -45,7 +47,6 @@ func ParseSearch(value string) *searchOptions {
 		if len(filterType) == 1 {
 			continue
 		}
-		
 		switch filterType[1] {
 			case "image":
 				opts.Conditions["image"] = true
@@ -55,8 +56,12 @@ func ParseSearch(value string) *searchOptions {
 				opts.Conditions["video"] = true
 			case "doc":
 				opts.Conditions["doc"] = true
-			case "zip":
-				opts.Conditions["zip"] = true
+			case "archive":
+				opts.Conditions["archive"] = true
+			case "folder":
+				opts.Conditions["dir"] = true
+			case "file":
+				opts.Conditions["dir"] = false
 		}
 	}
 

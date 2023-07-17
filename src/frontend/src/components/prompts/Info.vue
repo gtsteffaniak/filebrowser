@@ -81,7 +81,6 @@
 
 <script>
 import { mapState, mapGetters } from "vuex";
-import filesize from "filesize";
 import moment from "moment";
 import { files as api } from "@/api";
 
@@ -92,7 +91,7 @@ export default {
     ...mapGetters(["selectedCount", "isListing"]),
     humanSize: function () {
       if (this.selectedCount === 0 || !this.isListing) {
-        return filesize(this.req.size);
+        return this.req.size;
       }
 
       let sum = 0;
@@ -101,7 +100,7 @@ export default {
         sum += this.req.items[selected].size;
       }
 
-      return filesize(sum);
+      return sum;
     },
     humanTime: function () {
       if (this.selectedCount === 0) {

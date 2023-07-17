@@ -1,65 +1,50 @@
 <template>
   <div id="search" @click="open" v-bind:class="{ active, ongoing }">
     <div id="input">
-      <button
-        v-if="active"
-        class="action"
-        @click="close"
-        :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')"
-      >
+      <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
         <i class="material-icons">arrow_back</i>
       </button>
       <i v-else class="material-icons">search</i>
-      <input
-        type="text"
-        @keyup.exact="keyup"
-        @input="submit"
-        ref="input"
-        :autofocus="active"
-        v-model.trim="value"
-        :aria-label="$t('search.search')"
-        :placeholder="$t('search.search')"
-      />
+      <input type="text" @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
+        :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
     </div>
 
     <div id="result" ref="result">
-      <div>
+      <div id="result-list">
+        <br>
+        <br>
+        <div class="button" style="width:100%">Search Context: {{ getContext(this.$route.path) }}</div>
         <template v-if="isEmpty">
           <p>{{ text }}</p>
-
           <template v-if="value.length === 0">
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
-                <div
-                  tabindex="0"
-                  v-for="(v, k) in boxes"
-                  :key="k"
-                  role="button"
-                  @click="init('type:' + k)"
-                  :aria-label="$t('search.' + v.label)"
-                >
+                <div tabindex="0" v-for="(v, k) in boxes" :key="k" role="button" @click="init('type:' + k)"
+                  :aria-label="(v.label)">
                   <i class="material-icons">{{ v.icon }}</i>
-                  <p>{{ $t("search." + v.label) }}</p>
+                  <p>{{ v.label }}</p>
                 </div>
               </div>
             </div>
           </template>
         </template>
-        <ul v-show="filteredResults.length > 0">
-          <li v-for="(s, k) in filteredResults" :key="k">
-            <router-link @click.native="close" :to="s.url">
-              <i v-if="s.dir" class="material-icons">folder</i>
-              <i v-else class="material-icons">insert_drive_file</i>
-              <span>./{{ s.path }}</span>
+        <ul v-show="results.length > 0">
+          <li v-for="(s, k) in results" :key="k" @click.stop.prevent="navigateTo(s.url)" style="cursor: pointer">
+            <router-link to="#" event="">
+              <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
+              <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
+              <i v-else-if="s.image" class="material-icons image-icons"> photo </i>
+              <i v-else-if="s.video" class="material-icons video-icons"> movie </i>
+              <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
+              <i v-else class="material-icons file-icons"> insert_drive_file </i>
+              <span class="text-container">
+                {{ basePath(s.path) }}<b>{{ baseName(s.path) }}</b>
+              </span>
             </router-link>
           </li>
         </ul>
       </div>
-      <p id="renew">
-        <i class="material-icons spin">autorenew</i>
-      </p>
     </div>
   </div>
 </template>
@@ -70,10 +55,13 @@ import url from "@/utils/url";
 import { search } from "@/api";
 
 var boxes = {
-  image: { label: "images", icon: "insert_photo" },
-  audio: { label: "music", icon: "volume_up" },
-  video: { label: "video", icon: "movie" },
-  pdf: { label: "pdf", icon: "picture_as_pdf" },
+  folder: { label: "folders", icon: "folder" },
+  file: { label: "files", icon: "insert_drive_file" },
+  archive: { label: "archives", icon: "archive" },
+  image: { label: "images", icon: "photo" },
+  audio: { label: "audio files", icon: "volume_up" },
+  video: { label: "videos", icon: "movie" },
+  doc: { label: "documents", icon: "picture_as_pdf" },
 };
 
 export default {
@@ -92,7 +80,6 @@ export default {
   watch: {
     show(val, old) {
       this.active = val === "search";
-
       if (old === "search" && !this.active) {
         if (this.reload) {
           this.setReload(true);
@@ -133,9 +120,6 @@ export default {
         ? this.$t("search.typeToSearch")
         : this.$t("search.pressToSearch");
     },
-    filteredResults() {
-      return this.results.slice(0, this.resultsCount);
-    },
   },
   mounted() {
     this.$refs.result.addEventListener("scroll", (event) => {
@@ -148,13 +132,31 @@ export default {
     });
   },
   methods: {
+    async navigateTo(url) {
+      this.closeHovers();
+      await this.$nextTick();
+      setTimeout(() => this.$router.push(url), 0);
+    },
+    getContext(url) {
+      url = url.slice(1)
+      let path = "./" + url.substring(url.indexOf('/') + 1);
+      return path.replace(/\/+$/, '') + "/"
+    },
+    basePath(str) {
+      let parts = str.replace(/\/$/, '').split("/")
+      parts.pop()
+      return parts.join("/") + "/"
+    },
+    baseName(str) {
+      let parts = str.replace(/\/$/, '').split("/")
+      return parts.pop();
+    },
     ...mapMutations(["showHover", "closeHovers", "setReload"]),
     open() {
       this.showHover("search");
     },
     close(event) {
       event.stopPropagation();
-      event.preventDefault();
       this.closeHovers();
     },
     keyup(event) {
@@ -162,7 +164,6 @@ export default {
         this.close(event);
         return;
       }
-
       this.results.length === 0;
     },
     init(string) {

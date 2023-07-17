@@ -1,6 +1,5 @@
 header {
   z-index: 1000;
-  background-color: #fff;
   border-bottom: 1px solid rgba(0, 0, 0, 0.075);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   position: fixed;
@@ -12,6 +11,7 @@ header {
   display: flex;
   padding: 0.5em 0.5em 0.5em 1em;
   align-items: center;
+  backdrop-filter: blur(6px);
 }
 
 header > * {
@@ -82,7 +82,7 @@ header .menu-button {
 }
 
 #search #input {
-  background-color: #f5f5f5;
+  background-color: rgba(100, 100, 100, 0.2);
   display: flex;
   height: 100%;
   padding: 0em 0.75em;
@@ -93,19 +93,14 @@ header .menu-button {
 }
 
 #search.active #input {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.075);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
+  border-bottom: 3px solid rgba(0, 0, 0, 0.075);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(6px);
   height: 4em;
 }
 
 #search.active>div {
   border-radius: 0 !important;
-}
-
-#search.active i,
-#search.active input {
-  color: #212121;
 }
 
 #search #input>.action,
@@ -121,18 +116,42 @@ header .menu-button {
   padding: 0;
 }
 
+#result-list {
+  width: 60em;
+  max-width: 100%;
+  padding-top: 3em;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.text-container {
+  white-space: nowrap;       /* Prevents the text from wrapping */
+  overflow: hidden;         /* Hides the content that exceeds the div size */
+  text-overflow: ellipsis;  /* Adds "..." when the text overflows */
+  width: 100%;              /* Ensures the content takes the full width available */
+  text-align: left;
+  direction: rtl;
+}
+
 #search #result {
-  visibility: visible;
-  max-height: none;
-  background-color: #f8f8f8;
+  overflow: hidden;
+  background: white;
+  display: flex;
+  top: -4em;
+  flex-direction: column;
+  align-items: center;
   text-align: left;
   padding: 0;
   color: rgba(0, 0, 0, 0.6);
   height: 0;
-  transition: .1s ease height, .1s ease padding;
-  overflow-x: hidden;
-  overflow-y: auto;
+  transition: .2s ease height, .2s ease padding;
   z-index: 1;
+}
+
+@media screen and (min-width: 800px) {
+  #search #result {
+    background: linear-gradient(to right, white 15%,lightgray 25%,lightgray 75%,white 85%);
+  }
 }
 
 body.rtl #search #result {
@@ -155,23 +174,17 @@ body.rtl #search #result ul>* {
 }
 
 #search.active #result {
-  padding: .5em;
-  height: calc(100% - 4em);
+  height: 100vh
 }
 
 #search ul {
+  margin-top: 1em;
   padding: 0;
-  margin: 0;
   list-style: none;
 }
 
 #search li {
-  margin-bottom: .5em;
-}
-
-#search #result>div {
-  max-width: 45em;
-  margin: 0 auto;
+  margin: .5em;
 }
 
 #search #result #renew {
@@ -186,8 +199,20 @@ body.rtl #search #result ul>* {
   display: block;
 }
 
-#search.active #result i {
-  color: #ccc;
+.folder-icons {
+  color: var(--icon-blue);
+}
+.video-icons {
+  color: lightskyblue;
+}
+.image-icons {
+  color: lightcoral;
+}
+.archive-icons {
+  color: tan;
+}
+.audio-icons {
+  color: plum;
 }
 
 #search.active #result>p>i {
