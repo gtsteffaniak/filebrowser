@@ -13,7 +13,6 @@ require (
 	github.com/maruel/natural v1.1.0
 	github.com/marusama/semaphore/v2 v2.5.0
 	github.com/mholt/archiver/v3 v3.5.1
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pelletier/go-toml/v2 v2.0.8
 	github.com/shirou/gopsutil/v3 v3.23.5
 	github.com/spf13/afero v1.9.5

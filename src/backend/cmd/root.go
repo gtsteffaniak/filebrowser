@@ -11,11 +11,10 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
-	"strconv"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -23,10 +22,10 @@ import (
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/gtsteffaniak/filebrowser/auth"
-	"github.com/gtsteffaniak/filebrowser/search"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	fbhttp "github.com/gtsteffaniak/filebrowser/http"
 	"github.com/gtsteffaniak/filebrowser/img"
+	"github.com/gtsteffaniak/filebrowser/search"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -50,9 +49,6 @@ func init() {
 	rootCmd.SetVersionTemplate("File Browser version {{printf \"%s\" .Version}}\n")
 
 	flags := rootCmd.Flags()
-	// initialize indexing and schedule indexing ever n minutes (default 5)
-	indexingInterval := getEnvVariableAsUint32("INDEXING_INTERVAL")
-	go search.InitializeIndex(indexingInterval)
 
 	persistent := rootCmd.PersistentFlags()
 
@@ -87,7 +83,7 @@ func addServerFlags(flags *pflag.FlagSet) {
 	flags.String("cache-dir", "", "file cache directory (disabled if empty)")
 	flags.Int("img-processors", 4, "image processors count") //nolint:gomnd
 	flags.Bool("disable-thumbnails", false, "disable image thumbnails")
-	flags.Bool("disable-preview-resize", false, "disable resize of image previews")
+	flags.Bool("disable-preview-resize", true, "disable resize of image previews")
 	flags.Bool("disable-exec", false, "disables Command Runner feature")
 	flags.Bool("disable-type-detection-by-header", false, "disables type detection by reading file headers")
 }
@@ -154,6 +150,9 @@ user created with the credentials from options "username" and "password".`,
 			}
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
+		// initialize indexing and schedule indexing ever n minutes (default 5)
+		indexingInterval := getEnvVariableAsUint32("INDEXING_INTERVAL")
+		go search.InitializeIndex(indexingInterval)
 
 		server := getRunParams(cmd.Flags(), d.store)
 		setupLog(server.Log)
@@ -365,7 +364,6 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 		err = d.store.Auth.Save(&auth.JSONAuth{})
 	}
 
-	checkErr(err)
 	err = d.store.Settings.Save(set)
 	checkErr(err)
 
@@ -378,7 +376,6 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 		Address: getParam(flags, "address"),
 		Root:    getParam(flags, "root"),
 	}
-
 	err = d.store.Settings.SaveServer(ser)
 	checkErr(err)
 
@@ -409,10 +406,7 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 
 func initConfig() {
 	if cfgFile == "" {
-		home, err := homedir.Dir()
-		checkErr(err)
 		v.AddConfigPath(".")
-		v.AddConfigPath(home)
 		v.AddConfigPath("/etc/filebrowser/")
 		v.SetConfigName(".filebrowser")
 	} else {

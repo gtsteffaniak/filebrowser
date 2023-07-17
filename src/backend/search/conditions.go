@@ -1,72 +1,67 @@
 package search
 
 import (
-	"mime"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-var (
-	typeRegexp = regexp.MustCompile(`type:(\w+)`)
-)
+var typeRegexp = regexp.MustCompile(`type:(\w+)`)
 
-type condition func(path string) bool
-
-func extensionCondition(extension string) condition {
-	return func(path string) bool {
-		return filepath.Ext(path) == "."+extension
-	}
+var documentTypes = []string{
+	".word",
+	".pdf",
+	".txt",
+	".doc",
+	".docx",
 }
 
-func imageCondition(path string) bool {
-	extension := filepath.Ext(path)
-	mimetype := mime.TypeByExtension(extension)
-
-	return strings.HasPrefix(mimetype, "image")
+var compressedFile = []string{
+	".7z",
+	".rar",
+	".zip",
+	".tar",
+	".tar.gz",
+	".tar.xz",
 }
 
-func audioCondition(path string) bool {
-	extension := filepath.Ext(path)
-	mimetype := mime.TypeByExtension(extension)
-
-	return strings.HasPrefix(mimetype, "audio")
+type searchOptions struct {
+	Conditions    map[string]bool
+	Terms         []string
 }
 
-func videoCondition(path string) bool {
-	extension := filepath.Ext(path)
-	mimetype := mime.TypeByExtension(extension)
-
-	return strings.HasPrefix(mimetype, "video")
-}
-
-func parseSearch(value string) *searchOptions {
+func ParseSearch(value string) *searchOptions {
 	opts := &searchOptions{
-		CaseSensitive: strings.Contains(value, "case:sensitive"),
-		Conditions:    []condition{},
+		Conditions:    map[string]bool{
+			"exact": strings.Contains(value, "case:exact"),
+		},
 		Terms:         []string{},
 	}
 
 	// removes the options from the value
-	value = strings.Replace(value, "case:insensitive", "", -1)
-	value = strings.Replace(value, "case:sensitive", "", -1)
+	value = strings.Replace(value, "case:exact", "", -1)
+	value = strings.Replace(value, "case:exact", "", -1)
 	value = strings.TrimSpace(value)
 
 	types := typeRegexp.FindAllStringSubmatch(value, -1)
-	for _, t := range types {
-		if len(t) == 1 {
+	for _, filterType := range types {
+		if len(filterType) == 1 {
 			continue
 		}
-
-		switch t[1] {
-		case "image":
-			opts.Conditions = append(opts.Conditions, imageCondition)
-		case "audio", "music":
-			opts.Conditions = append(opts.Conditions, audioCondition)
-		case "video":
-			opts.Conditions = append(opts.Conditions, videoCondition)
-		default:
-			opts.Conditions = append(opts.Conditions, extensionCondition(t[1]))
+		switch filterType[1] {
+			case "image":
+				opts.Conditions["image"] = true
+			case "audio", "music":
+				opts.Conditions["audio"] = true
+			case "video":
+				opts.Conditions["video"] = true
+			case "doc":
+				opts.Conditions["doc"] = true
+			case "archive":
+				opts.Conditions["archive"] = true
+			case "folder":
+				opts.Conditions["dir"] = true
+			case "file":
+				opts.Conditions["dir"] = false
 		}
 	}
 
@@ -74,14 +69,6 @@ func parseSearch(value string) *searchOptions {
 		// Remove the fields from the search value.
 		value = typeRegexp.ReplaceAllString(value, "")
 	}
-
-	// If it's case insensitive, put everything in lowercase.
-	if !opts.CaseSensitive {
-		value = strings.ToLower(value)
-	}
-
-	// Remove the spaces from the search value.
-	value = strings.TrimSpace(value)
 
 	if value == "" {
 		return opts

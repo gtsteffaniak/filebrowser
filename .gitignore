@@ -6,6 +6,7 @@ rice-box.go
 /filebrowser
 /filebrowser.exe
 /dist
+/src/backend/vendor
 
 .DS_Store
 node_modules

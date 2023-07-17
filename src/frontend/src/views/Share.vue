@@ -182,7 +182,6 @@
 <script>
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { pub as api } from "@/api";
-import filesize from "filesize";
 import moment from "moment";
 
 import HeaderBar from "@/components/header/HeaderBar";
@@ -255,8 +254,7 @@ export default {
       if (this.req.isDir) {
         return this.req.items.length;
       }
-
-      return filesize(this.req.size);
+      return this.req.size;
     },
     humanTime: function () {
       return moment(this.req.modified).fromNow();

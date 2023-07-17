@@ -1,7 +1,8 @@
-FROM node:14.21-slim as nbuild
+FROM node:slim as nbuild
 WORKDIR /app
-COPY  ./src/frontend ./
+COPY  ./src/frontend/package*.json ./
 RUN npm i
+COPY  ./src/frontend/ ./
 RUN npm run build
 
 FROM golang:alpine as base
@@ -15,8 +16,8 @@ RUN apk --no-cache add \
       mailcap
 VOLUME /srv
 EXPOSE 80
-WORKDIR /app
-COPY --from=base /app/docker_config.json ./.filebrowser.json
-COPY --from=base /app/filebrowser ./filebrowser
-COPY --from=nbuild /app/dist/ ./frontend/dist/
+WORKDIR /
+COPY --from=base /app/.filebrowser.json /.filebrowser.json
+COPY --from=base /app/filebrowser /filebrowser
+COPY --from=nbuild /app/dist/ /frontend/dist/
 ENTRYPOINT [ "./filebrowser" ]
