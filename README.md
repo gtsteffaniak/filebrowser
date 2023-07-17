@@ -7,13 +7,13 @@ This fork makes the following significant changes to filebrowser for origin:
  1. [x] Improves search to use index instead of filesystem.
     - [x] Lightning fast
     - [x] Realtime results as you type
-    - [ ] Works with file type filter
+    - [x] Works with file type filter
  1. [ ] Preview enhancements
     - preview default view is constrained to files subwindow,
     which can be toggled to fullscreen.
- 1. [ ] Updated version and dependencies
-    - [ ] uses latest npm and node version
-    - [ ] removes deprecated npm packages
+ 1. [x] Updated version and dependencies
+    - [x] uses latest npm and node version
+    - [x] removes deprecated npm packages
     - [x] Updates golang dependencies
  1. [ ] Added authentication type
     - [ ] Using bearer token with remote authentication server
