@@ -805,9 +805,7 @@ export default {
         prompt: "download",
         confirm: (format) => {
           this.$store.commit("closeHovers");
-
           let files = [];
-
           if (this.selectedCount > 0) {
             for (let i of this.selected) {
               files.push(this.req.items[i].url);
@@ -822,7 +820,6 @@ export default {
     },
     switchView: async function () {
       this.$store.commit("closeHovers");
-
       const modes = {
         list: "mosaic",
         mosaic: "mosaic gallery",

@@ -1,6 +1,5 @@
 header {
   z-index: 1000;
-  background-color: #fff;
   border-bottom: 1px solid rgba(0, 0, 0, 0.075);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   position: fixed;
@@ -12,6 +11,7 @@ header {
   display: flex;
   padding: 0.5em 0.5em 0.5em 1em;
   align-items: center;
+  backdrop-filter: blur(6px);
 }
 
 header > * {
@@ -119,9 +119,18 @@ header .menu-button {
 #result-list {
   width: 60em;
   max-width: 100%;
-  padding: 0.5em;
+  padding-top: 3em;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+.text-container {
+  white-space: nowrap;       /* Prevents the text from wrapping */
+  overflow: hidden;         /* Hides the content that exceeds the div size */
+  text-overflow: ellipsis;  /* Adds "..." when the text overflows */
+  width: 100%;              /* Ensures the content takes the full width available */
+  text-align: left;
+  direction: rtl;
 }
 
 #search #result {
@@ -165,8 +174,7 @@ body.rtl #search #result ul>* {
 }
 
 #search.active #result {
-  padding: .5em;
-  height: 100%
+  height: 100vh
 }
 
 #search ul {
@@ -176,7 +184,7 @@ body.rtl #search #result ul>* {
 }
 
 #search li {
-  margin-bottom: .5em;
+  margin: .5em;
 }
 
 #search #result #renew {

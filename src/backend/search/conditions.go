@@ -58,6 +58,10 @@ func ParseSearch(value string) *searchOptions {
 				opts.Conditions["doc"] = true
 			case "archive":
 				opts.Conditions["archive"] = true
+			case "folder":
+				opts.Conditions["dir"] = true
+			case "file":
+				opts.Conditions["dir"] = false
 		}
 	}
 

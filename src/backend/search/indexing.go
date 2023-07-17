@@ -14,7 +14,6 @@ import (
 var (
 	rootPath 	string = "/srv"
 	indexes =		map[string][]string{}
-	FilterableTypes = []string{"audio","image","video","doc","archive"}
 	mutex       sync.RWMutex
 	lastIndexed time.Time
 )
@@ -108,13 +107,12 @@ func addToIndex(path string, fileName string, isDir bool) {
 	}
 }
 
-func SearchAllIndexes(search string, scope string) ([]string, []string, map[string]map[string]bool) {
+func SearchAllIndexes(search string, scope string) ([]string, map[string]map[string]bool) {
 	searchOptions := ParseSearch(search)
 	mutex.RLock()
 	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
-	var matchingFiles []string
-	var matchingDirs []string
+	var matching []string
 	maximum := 125
 
 	for _, searchTerm := range searchOptions.Terms {
@@ -131,12 +129,13 @@ func SearchAllIndexes(search string, scope string) ([]string, []string, map[stri
 			if pathName == "" {
 				continue
 			}
-			matches, _ := containsSearchTerm(pathName, searchTerm, searchOptions.Conditions)
+			matches, fileType := containsSearchTerm(pathName, searchTerm, searchOptions.Conditions, true)
 			if !matches {
 				continue
 			}
 			count++
-			matchingDirs = append(matchingDirs, pathName)
+			matching = append(matching, pathName+"/")
+			fileListTypes[pathName+"/"] = fileType
 		}
 		count = 0
 		for _, fileName := range indexes["files"] {
@@ -148,28 +147,22 @@ func SearchAllIndexes(search string, scope string) ([]string, []string, map[stri
 				continue
 			}
 			// Check if the path name contains the search term
-			matches, fileType := containsSearchTerm(pathName, searchTerm, searchOptions.Conditions)
+			matches, fileType := containsSearchTerm(pathName, searchTerm, searchOptions.Conditions, false)
 			if !matches {
 				continue
 			}
-			matchingFiles = append(matchingFiles, pathName)
+			matching = append(matching, pathName)
 			fileListTypes[pathName] = fileType
 			count++
 		}
 	}
 	// Sort the strings based on the number of elements after splitting by "/"
-	sort.Slice(matchingFiles, func(i, j int) bool {
-		parts1 := strings.Split(matchingFiles[i], "/")
-		parts2 := strings.Split(matchingFiles[j], "/")
+	sort.Slice(matching, func(i, j int) bool {
+		parts1 := strings.Split(matching[i], "/")
+		parts2 := strings.Split(matching[j], "/")
 		return len(parts1) < len(parts2)
 	})
-	// Sort the strings based on the number of elements after splitting by "/"
-	sort.Slice(matchingDirs, func(i, j int) bool {
-		parts1 := strings.Split(matchingDirs[i], "/")
-		parts2 := strings.Split(matchingDirs[j], "/")
-		return len(parts1) < len(parts2)
-	})
-	return matchingFiles, matchingDirs, fileListTypes
+	return matching, fileListTypes
 }
 
 func scopedPathNameFilter(pathName string, scope string) string {
@@ -182,24 +175,25 @@ func scopedPathNameFilter(pathName string, scope string) string {
 	return pathName
 }
 
-func containsSearchTerm(pathName string, searchTerm string, conditions map[string]bool) (bool, map[string]bool) {
+func containsSearchTerm(pathName string, searchTerm string, conditions map[string]bool, isDir bool) (bool, map[string]bool) {
 	path 					:= getLastPathComponent(pathName)
 	fileTypes 				:= map[string]bool{}
 	matchesCondition 		:= false
 	extension 				:= filepath.Ext(strings.ToLower(path))
 	mimetype 				:= mime.TypeByExtension(extension)
-	filterTypes 			:= FilterableTypes
 	fileTypes["audio"] 		= strings.HasPrefix(mimetype, "audio")
 	fileTypes["image"]		= strings.HasPrefix(mimetype, "image")
 	fileTypes["video"] 		= strings.HasPrefix(mimetype, "video")
 	fileTypes["doc"] 		= isDoc(extension)
 	fileTypes["archive"] 	= isArchive(extension)
-	anyFilter := false
-	for _,t := range(filterTypes){
-		if conditions[t] {
-			anyFilter = true
-			matchesCondition = fileTypes[t]
+	fileTypes["dir"]		= isDir
+	anyFilter 				:= false
+	for t,v := range conditions {
+		if t == "exact" {
+			continue
 		}
+		matchesCondition = v == fileTypes[t]
+		anyFilter = true
 	}
 	if !anyFilter {
 		matchesCondition = true
