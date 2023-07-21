@@ -1,0 +1,19 @@
+language: go
+
+before_install:
+  - go get github.com/stretchr/testify
+
+env: GO111MODULE=on
+
+go:
+  - "1.13.x"
+  - "1.14.x"
+  - tip
+
+matrix:
+  allow_failures:
+    - go: tip
+
+script:
+  - go mod vendor
+  - go test -mod vendor -race -v ./...

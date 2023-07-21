@@ -1,0 +1,203 @@
+<template>
+  <div id="search" @click="open" v-bind:class="{ active, ongoing }">
+    <div id="input">
+      <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
+        <i class="material-icons">arrow_back</i>
+      </button>
+      <i v-else class="material-icons">search</i>
+      <input type="text" @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
+        :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
+    </div>
+
+    <div id="result" ref="result">
+      <div id="result-list">
+        <br>
+        <br>
+        <div class="button" style="width:100%">Search Context: {{ getContext(this.$route.path) }}</div>
+        <template v-if="isEmpty">
+          <p>{{ text }}</p>
+          <template v-if="value.length === 0">
+            <div class="boxes">
+              <h3>{{ $t("search.types") }}</h3>
+              <div>
+                <div tabindex="0" v-for="(v, k) in boxes" :key="k" role="button" @click="init('type:' + k)"
+                  :aria-label="(v.label)">
+                  <i class="material-icons">{{ v.icon }}</i>
+                  <p>{{ v.label }}</p>
+                </div>
+              </div>
+            </div>
+          </template>
+        </template>
+        <ul v-show="results.length > 0">
+          <li v-for="(s, k) in results" :key="k" @click.stop.prevent="navigateTo(s.url)" style="cursor: pointer">
+            <router-link to="#" event="">
+              <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
+              <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
+              <i v-else-if="s.image" class="material-icons image-icons"> photo </i>
+              <i v-else-if="s.video" class="material-icons video-icons"> movie </i>
+              <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
+              <i v-else class="material-icons file-icons"> insert_drive_file </i>
+              <span class="text-container">
+                {{ basePath(s.path) }}<b>{{ baseName(s.path) }}</b>
+              </span>
+            </router-link>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { mapState, mapGetters, mapMutations } from "vuex";
+import { search } from "@/api";
+
+var boxes = {
+  folder: { label: "folders", icon: "folder" },
+  file: { label: "files", icon: "insert_drive_file" },
+  archive: { label: "archives", icon: "archive" },
+  image: { label: "images", icon: "photo" },
+  audio: { label: "audio files", icon: "volume_up" },
+  video: { label: "videos", icon: "movie" },
+  doc: { label: "documents", icon: "picture_as_pdf" },
+  "larger=100": { label: "larger than 100MB", icon: "arrow_forward_ios" },
+  "smaller=100": { label: "smaller than 100MB ", icon: "arrow_back_ios" },
+};
+
+export default {
+  name: "search",
+  data: function () {
+    return {
+      value: "",
+      active: false,
+      ongoing: false,
+      results: [],
+      reload: false,
+      scrollable: null,
+    };
+  },
+  watch: {
+    show(val, old) {
+      this.active = val === "search";
+      if (old === "search" && !this.active) {
+        if (this.reload) {
+          this.setReload(true);
+        }
+
+        document.body.style.overflow = "auto";
+        this.reset();
+        this.value = "";
+        this.active = false;
+        this.$refs.input.blur();
+      } else if (this.active) {
+        this.reload = false;
+        this.$refs.input.focus();
+        document.body.style.overflow = "hidden";
+      }
+    },
+    value() {
+      if (this.results.length) {
+        this.reset();
+      }
+    },
+  },
+  computed: {
+    ...mapState(["user", "show"]),
+    ...mapGetters(["isListing"]),
+    boxes() {
+      return boxes;
+    },
+    isEmpty() {
+      return this.results.length === 0;
+    },
+    text() {
+      if (this.ongoing) {
+        return "";
+      }
+
+      return this.value === ""
+        ? this.$t("search.typeToSearch")
+        : this.$t("search.pressToSearch");
+    },
+  },
+  mounted() {
+    this.$refs.result.addEventListener("scroll", (event) => {
+      if (
+        event.target.offsetHeight + event.target.scrollTop >=
+        event.target.scrollHeight - 100
+      ) {
+        this.resultsCount += 50;
+      }
+    });
+  },
+  methods: {
+    async navigateTo(url) {
+      this.closeHovers();
+      await this.$nextTick();
+      setTimeout(() => this.$router.push(url), 0);
+    },
+    getContext(url) {
+      url = url.slice(1)
+      let path = "./" + url.substring(url.indexOf('/') + 1);
+      return path.replace(/\/+$/, '') + "/"
+    },
+    basePath(str) {
+      if (!str.includes("/")){
+        return ""
+      }
+      let parts = str.replace(/\/$/, '').split("/")
+      parts.pop()
+      return parts.join("/") + "/"
+    },
+    baseName(str) {
+      let parts = str.split("/")
+      if (str.endsWith("/")) {
+        return parts[parts.length - 2] + "/"
+      } else {
+        return parts[parts.length - 1]
+      }
+    },
+    ...mapMutations(["showHover", "closeHovers", "setReload"]),
+    open() {
+      this.showHover("search");
+    },
+    close(event) {
+      event.stopPropagation();
+      this.closeHovers();
+    },
+    keyup(event) {
+      if (event.keyCode === 27) {
+        this.close(event);
+        return;
+      }
+      this.results.length === 0;
+    },
+    init(string) {
+      this.value = `${string} `;
+      this.$refs.input.focus();
+    },
+    reset() {
+      this.ongoing = false;
+      this.resultsCount = 50;
+      this.results = [];
+    },
+    async submit(event) {
+      event.preventDefault();
+      const words = this.value.split(" ").filter(word => word.length < 3);
+      if (this.value === "" || words.length > 0) {
+        return;
+      }
+      let path = this.$route.path;
+      this.ongoing = true;
+      try {
+        this.results = await search(path, this.value);
+      } catch (error) {
+        this.$showError(error);
+      }
+
+      this.ongoing = false;
+    },
+  },
+};
+</script>

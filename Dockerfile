@@ -1,13 +1,13 @@
 FROM node:slim as nbuild
 WORKDIR /app
-COPY  ./src/frontend/package*.json ./
+COPY  ./frontend/package*.json ./
 RUN npm i
-COPY  ./src/frontend/ ./
+COPY  ./frontend/ ./
 RUN npm run build
 
 FROM golang:alpine as base
 WORKDIR /app
-COPY  ./src/backend ./
+COPY  ./backend ./
 RUN go build -ldflags="-w -s" -o filebrowser .
 
 FROM alpine:latest
