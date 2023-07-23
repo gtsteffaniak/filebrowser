@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. See [standa
    - search
    - toggle view
  - moved every config to the configfile
+   - rather than flag/binary operation
 ## v0.1.2
 
  - Updated UI to use search features better
