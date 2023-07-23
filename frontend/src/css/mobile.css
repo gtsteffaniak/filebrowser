@@ -1,16 +1,7 @@
 @media (max-width: 1024px) {
-  nav {
-    width: 10em
-  }
   /* Mobile Only fix div hidden by bottom navigation bar of mobile browser when using height: 100vh */
   #previewer .preview {
     height: calc(100% - 4em) !important;
-  }
-}
-
-@media (max-width: 1024px) {
-  main {
-    width: calc(100% - 13em)
   }
 }
 
@@ -27,23 +18,6 @@
   #more {
     display: inherit
   }
-  header .overlay {
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.1);
-  }
-  #dropdown {
-    position: fixed;
-    top: 1em;
-    right: 1em;
-    display: block;
-    background-color: #fff;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    transform: scale(0);
-    transition: .1s ease-in-out transform;
-    transform-origin: top right;
-    z-index: 99999;
-  }
 
   body.rtl #dropdown {
     right: unset;
@@ -51,25 +25,6 @@
     transform-origin: top left;
   }
 
-  #dropdown > div {
-    display: block;
-  }
-  #dropdown.active {
-    transform: scale(1);
-  }
-  #dropdown .action {
-    display: flex;
-    align-items: center;
-    border-radius: 0;
-    width: 100%;
-  }
-  #dropdown .action span:not(.counter) {
-    display: inline-block;
-    padding: .4em;
-  }
-  #dropdown .counter {
-    left: 2.25em;
-  }
   #file-selection {
     position: fixed;
     bottom: 1em;
@@ -96,34 +51,7 @@
   #file-selection .action span {
     display: none;
   }
-  nav {
-    top: 0;
-    z-index: 99999;
-    background: #fff;
-    height: 100%;
-    width: 16em;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    transition: .1s ease left;
-    left: -17em;
-  }
 
-  body.rtl nav {
-    left: unset;
-    right: -17em;
-  }
-  nav.active {
-    left: 0;
-  }
-
-  body.rtl nav.active {
-    left: unset;
-    right: 0;
-  }
-
-  header .search-button,
-  header .menu-button {
-    display: inherit;
-  }
   header img {
     display: none;
   }
@@ -142,17 +70,8 @@
   body.rtl #nav .wrapper {
     margin-right: unset;
   }
-  
   body.rtl .dashboard .row {
     margin-right: unset;
-  }
-
-  main {
-    margin: 0 1em;
-    width: calc(100% - 2em);
-  }
-  #search {
-    display: none;
   }
   #search.active {
     display: block;

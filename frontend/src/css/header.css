@@ -3,17 +3,23 @@ header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.075);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   position: fixed;
+  justify-content: space-between;
   top: 0;
   left: 0;
   height: 4em;
   width: 100%;
   padding: 0;
   display: flex;
-  padding: 0.5em 0.5em 0.5em 1em;
+  padding: 0.5em;
   align-items: center;
-  backdrop-filter: blur(6px);
+  background-color: white;
 }
-
+@supports (backdrop-filter: none) {
+  header {
+    background-color: transparent;
+    backdrop-filter: blur(16px) invert(0.1);
+  }
+}
 header > * {
   flex: 0 0 auto;
 }
@@ -25,11 +31,6 @@ header title {
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 1.2em;
-}
-
-header .overlay {
-  width: 0;
-  height: 0;
 }
 
 header a,
@@ -55,20 +56,17 @@ header>div div {
   position: relative;
 }
 
-header .search-button,
-header .menu-button {
-  display: none;
-}
-
 #more {
   display: none;
 }
 
 #search {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  max-width: 25em;
+  position: absolute;
+  height: 3em;
+  width: 50%;
+  max-width: 50em;
+  left: 50%;
+  transform: translate(-50%,0%);
 }
 
 #search.active {

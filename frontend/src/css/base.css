@@ -77,7 +77,28 @@ nav .action {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+nav {
+  z-index: 99999;
+  background: #fff;
+  height: 100%;
+  width: 16em;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  transition: .1s ease left;
+  left: -17em;
+}
 
+body.rtl nav {
+  left: unset;
+  right: -17em;
+}
+nav.active {
+  left: 0;
+}
+
+body.rtl nav.active {
+  left: unset;
+  right: 0;
+}
 body.rtl .action {
   direction: rtl;
   text-align: right;
@@ -92,9 +113,7 @@ nav .action > * {
 }
 
 main {
-  min-height: 1em;
-  margin: 0 1em 1em auto;
-  width: calc(100% - 19em);
+  margin: 1em;
 }
 
 .breadcrumbs {

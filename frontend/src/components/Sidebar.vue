@@ -1,6 +1,35 @@
 <template>
   <nav :class="{ active }">
     <template v-if="isLogged">
+      <!--
+        i want this here eventually
+        <action
+          v-if="headerButtons.download"
+          icon="file_download"
+          :label="$t('buttons.download')"
+          @action="download"
+          :counter="selectedCount"
+        />
+        <action
+          v-if="headerButtons.upload"
+          icon="file_upload"
+          id="upload-button"
+          :label="$t('buttons.upload')"
+          @action="upload"
+        />
+        <action
+          v-if="headerButtons.shell"
+          icon="code"
+          :label="$t('buttons.shell')"
+          @action="$store.commit('toggleShell')"
+        />
+        <action
+          :icon="viewIcon"
+          :label="$t('buttons.switchView')"
+          @action="switchView"
+        />
+      -->
+
       <button
         class="action"
         @click="toRoot"

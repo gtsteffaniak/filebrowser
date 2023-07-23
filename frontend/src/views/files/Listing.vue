@@ -1,16 +1,9 @@
 <template>
   <div>
     <header-bar showMenu showLogo>
-      <search /> <title />
-      <action
-        class="search-button"
-        icon="search"
-        :label="$t('buttons.search')"
-        @action="openSearch()"
-      />
-
+      <search />
       <template #actions>
-        <template v-if="!isMobile">
+        <template >
           <action
             v-if="headerButtons.share"
             icon="share"
@@ -44,38 +37,22 @@
             :label="$t('buttons.delete')"
             show="delete"
           />
+          <action
+            v-if="headerButtons.info"
+            icon="info"
+            :label="$t('buttons.info')"
+            show="info" />
+          <action
+            v-if="headerButtons.select"
+            icon="check_circle"
+            :label="$t('buttons.selectMultiple')"
+            @action="toggleMultipleSelection"
+          />
         </template>
-
-        <action
-          v-if="headerButtons.shell"
-          icon="code"
-          :label="$t('buttons.shell')"
-          @action="$store.commit('toggleShell')"
-        />
         <action
           :icon="viewIcon"
           :label="$t('buttons.switchView')"
           @action="switchView"
-        />
-        <action
-          v-if="headerButtons.download"
-          icon="file_download"
-          :label="$t('buttons.download')"
-          @action="download"
-          :counter="selectedCount"
-        />
-        <action
-          v-if="headerButtons.upload"
-          icon="file_upload"
-          id="upload-button"
-          :label="$t('buttons.upload')"
-          @action="upload"
-        />
-        <action icon="info" :label="$t('buttons.info')" show="info" />
-        <action
-          icon="check_circle"
-          :label="$t('buttons.selectMultiple')"
-          @action="toggleMultipleSelection"
         />
       </template>
     </header-bar>
@@ -374,6 +351,8 @@ export default {
     },
     headerButtons() {
       return {
+        info: this.selectedCount > 0,
+        select: this.selectedCount > 0,
         upload: this.user.perm.create,
         download: this.user.perm.download,
         shell: this.user.perm.execute && enableExec,

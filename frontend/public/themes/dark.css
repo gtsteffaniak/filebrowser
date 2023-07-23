@@ -28,6 +28,13 @@ header {
   background: var(--surfacePrimary);
 }
 
+@supports (backdrop-filter: none) {
+  header {
+    background: transparent;
+    backdrop-filter: blur(16px) invert(0.1);
+  }
+}
+
 #search #input {
   background: var(--surfaceSecondary);
   border-color: var(--surfacePrimary);
@@ -185,6 +192,9 @@ table th {
 #editor-container .bar {
   background: var(--surfacePrimary);
 }
+nav {
+  background: var(--surfaceSecondary) !important;
+}
 
 @media (max-width: 736px) {
   #file-selection {
@@ -192,9 +202,6 @@ table th {
   }
   #file-selection span {
     color: var(--textPrimary) !important;
-  }
-  nav {
-    background: var(--surfaceSecondary) !important;
   }
   #dropdown {
     background: var(--surfaceSecondary) !important;

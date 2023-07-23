@@ -1,12 +1,10 @@
 <template>
   <header>
-    <img v-if="showLogo !== undefined" :src="logoURL" />
     <action
-      v-if="showMenu !== undefined"
       class="menu-button"
       icon="menu"
       :label="$t('buttons.toggleSidebar')"
-      @action="openSidebar()"
+      @action="toggleSidebar()"
     />
 
     <slot />
@@ -15,25 +13,11 @@
       <slot name="actions" />
     </div>
 
-    <action
-      v-if="this.$slots.actions"
-      id="more"
-      icon="more_vert"
-      :label="$t('buttons.more')"
-      @action="$store.commit('showHover', 'more')"
-    />
-
-    <div
-      class="overlay"
-      v-show="this.$store.state.show == 'more'"
-      @click="$store.commit('closeHovers')"
-    />
   </header>
 </template>
 
 <script>
 import { logoURL } from "@/utils/constants";
-
 import Action from "@/components/header/Action";
 
 export default {
@@ -48,8 +32,12 @@ export default {
     };
   },
   methods: {
-    openSidebar() {
-      this.$store.commit("showHover", "sidebar");
+    toggleSidebar() {
+      if ( this.$store.state.show == "sidebar" ) {
+        this.$store.commit("closeHovers");
+      } else {
+        this.$store.commit("showHover", "sidebar");
+      }
     },
   },
 };
