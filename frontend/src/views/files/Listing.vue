@@ -13,6 +13,12 @@
 
     <div id="file-selection">
       <span v-if="selectedCount > 0">{{ selectedCount }} selected</span>
+      <template >
+      <action
+        v-if="headerButtons.info"
+        icon="info"
+        :label="$t('buttons.info')"
+        show="info" />
       <action
         v-if="headerButtons.share"
         icon="share"
