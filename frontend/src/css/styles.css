@@ -117,20 +117,6 @@ main .spinner .bounce2 {
   background-color: rgba(0, 0, 0, 0.04);
 }
 
-#click-overlay {
-  display: none;
-  position: fixed;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-}
-
-#click-overlay.active {
-  display: block;
-}
-
 .action .counter {
   display: block;
   position: absolute;

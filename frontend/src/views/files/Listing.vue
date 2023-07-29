@@ -323,9 +323,6 @@ export default {
         copy: this.selectedCount > 0 && this.user.perm.create,
       };
     },
-    isMobile() {
-      return this.width <= 736;
-    },
   },
   watch: {
     req: function () {

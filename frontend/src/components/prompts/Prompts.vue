@@ -1,7 +1,6 @@
 <template>
   <div>
     <component ref="currentComponent" :is="currentComponent"></component>
-    <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
   </div>
 </template>
 
@@ -103,16 +102,6 @@ export default {
         ].indexOf(this.show) >= 0;
 
       return (matched && this.show) || null;
-    },
-    showOverlay: function () {
-      return (
-        this.show !== null && this.show !== "search" && this.show !== "more"
-      );
-    },
-  },
-  methods: {
-    resetPrompts() {
-      this.$store.commit("closeHovers");
     },
   },
 };
