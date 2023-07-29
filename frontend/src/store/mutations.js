@@ -3,6 +3,7 @@ import moment from "moment";
 
 const mutations = {
   closeHovers: (state) => {
+    console.log("closing hovers")
     state.show = null;
     state.showConfirm = null;
   },
@@ -10,6 +11,7 @@ const mutations = {
     state.showShell = !state.showShell;
   },
   showHover: (state, value) => {
+    console.log("showing hovers")
     if (typeof value !== "object") {
       state.show = value;
       return;
