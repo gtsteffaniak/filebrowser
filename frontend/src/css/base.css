@@ -171,3 +171,30 @@ body.rtl .breadcrumbs a {
 .break-word {
   word-break: break-all;
 }
+
+#file-selection {
+  position: fixed;
+  bottom: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  background: #fff;
+  box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
+  width: 95%;
+  max-width: 25em;
+  z-index: 1;
+}
+#file-selection .action {
+  border-radius: 50%;
+  width: auto;
+}
+#file-selection > span {
+  display: inline-block;
+  margin-left: 1em;
+  color: #6f6f6f;
+  margin-right: auto;
+}
+#file-selection .action span {
+  display: none;
+}
