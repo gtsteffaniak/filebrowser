@@ -295,6 +295,17 @@ body.rtl .card .card-title>*:first-child {
   opacity: 0;
 }
 
+.overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  top: 4em;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 9999;
+  animation: .3s show ease-in;
+}
+
 .card#share .action.copy-clipboard.active::after {
   opacity: 1;
 }
@@ -310,10 +321,6 @@ body.rtl .card .card-title>*:first-child {
 .card#share .input-group input {
   flex: 1;
 }
-
-/* * * * * * * * * * * * * * * *
- *        PROMPT - MOVE        *
- * * * * * * * * * * * * * * * */
 
 .file-list {
   max-height: 50vh;

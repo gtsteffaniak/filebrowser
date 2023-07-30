@@ -48,7 +48,7 @@
           </li>
         </ul>
         <template v-if="isEmpty">
-          <p>{{ text }}</p>
+          <p >{{ text }}</p>
           <template v-if="value.length === 0">
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
@@ -278,7 +278,7 @@ export default {
       if (string == null || string == ""){
         return false
       }
-      this.value = this.value.replace(string, "");
+      this.value = this.value.replace(string+" ", "");
       if (this.isMobile){
         this.$refs.input.focus();
       }

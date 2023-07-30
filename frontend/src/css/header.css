@@ -2,6 +2,7 @@
 header {
   z-index: 1000;
   position: fixed;
+  z-index: 10000;
   top: 0;
   left: 0;
   width: 100%;
@@ -86,6 +87,9 @@ header>div div {
   padding: 0;
 }
 
+#result-list p {
+  margin: 1em;
+}
 #result-list {
   width: 60em;
   max-width: 100%;
@@ -241,7 +245,7 @@ body.rtl #search .boxes h3 {
   margin: 1em;
   margin-right: auto;
   margin-left: auto;
-  max-width: 30em;
+  max-width: 40em;
   justify-content: space-between;
 }
 
