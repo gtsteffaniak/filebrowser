@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## v0.1.2
 
+ - improved styling, colors, transparency, blur
+ - made sidebar hidden on desktop as well
+ - simplified navbar to be three buttons
+   - open menu
+   - search
+   - toggle view
+ - moved every config to the configfile
+   - rather than flag/binary operation
+## v0.1.2
+
  - Updated UI to use search features better
    - More filter options
    - Better icons with colors

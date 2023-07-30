@@ -3,7 +3,6 @@
   --surfacePrimary: #20292F;
   --surfaceSecondary: #3A4147;
   --divider: rgba(255, 255, 255, 0.12);
-  --icon: #ffffff;
   --textPrimary: rgba(255, 255, 255, 0.87);
   --textSecondary: rgba(255, 255, 255, 0.6);
 }
@@ -16,9 +15,6 @@ body {
 #loading {
   background: var(--background);
 }
-#loading .spinner div, main .spinner div {
-  background: var(--icon);
-}
 
 #login {
   background: var(--background);
@@ -26,6 +22,13 @@ body {
 
 header {
   background: var(--surfacePrimary);
+}
+
+@supports (backdrop-filter: none) {
+  header {
+    background: transparent;
+    backdrop-filter: blur(16px) invert(0.1);
+  }
 }
 
 #search #input {
@@ -58,9 +61,7 @@ header {
 .action:hover {
   background-color: rgba(255, 255, 255, .1);
 }
-.action i {
-  color: var(--icon) !important;
-}
+
 .action .counter {
   border-color: var(--surfacePrimary);
 }
@@ -85,9 +86,7 @@ nav > div {
   color: var(--textPrimary);
   border-color: var(--divider) !important;
 }
-#listing .item i {
-  color: var(--icon);
-}
+
 #listing .item .modified {
   color: var(--textSecondary);
 }
@@ -98,9 +97,7 @@ nav > div {
 #listing.list .header span {
   color: var(--textPrimary);
 }
-#listing.list .header i {
-  color: var(--icon);
-}
+
 #listing.list .item.header {
   background: var(--background);
 }
@@ -122,6 +119,9 @@ nav > div {
 }
 .dashboard #nav ul li:hover {
   background: var(--surfaceSecondary);
+}
+#result-list {
+  background-color:#292929;
 }
 
 .card h3,
@@ -166,9 +166,6 @@ table th {
 .file-list li:before {
   color: var(--textSecondary);
 }
-.file-list li[aria-selected=true]:before {
-  color: var(--icon);
-}
 
 .shell {
   background: var(--surfacePrimary);
@@ -185,20 +182,22 @@ table th {
 #editor-container .bar {
   background: var(--surfacePrimary);
 }
+nav {
+  background: var(--surfaceSecondary) !important;
+}
 
-@media (max-width: 736px) {
-  #file-selection {
-    background: var(--surfaceSecondary) !important;
-  }
-  #file-selection span {
-    color: var(--textPrimary) !important;
-  }
-  nav {
-    background: var(--surfaceSecondary) !important;
-  }
-  #dropdown {
-    background: var(--surfaceSecondary) !important;
-  }
+#file-selection {
+  background: var(--surfaceSecondary) !important;
+}
+#file-selection span {
+  color: var(--textPrimary) !important;
+}
+#dropdown {
+  background: var(--surfaceSecondary) !important;
+}
+
+.button-group button {
+  background-color:darkgray;
 }
 
 .share__box {

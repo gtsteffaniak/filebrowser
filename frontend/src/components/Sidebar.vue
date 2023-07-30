@@ -1,6 +1,7 @@
 <template>
   <nav :class="{ active }">
     <template v-if="isLogged">
+
       <button
         class="action"
         @click="toRoot"

@@ -1,117 +1,58 @@
 <template>
   <div>
     <header-bar showMenu showLogo>
-      <search /> <title />
-      <action
-        class="search-button"
-        icon="search"
-        :label="$t('buttons.search')"
-        @action="openSearch()"
-      />
-
+      <search />
       <template #actions>
-        <template v-if="!isMobile">
-          <action
-            v-if="headerButtons.share"
-            icon="share"
-            :label="$t('buttons.share')"
-            show="share"
-          />
-          <action
-            v-if="headerButtons.rename"
-            icon="mode_edit"
-            :label="$t('buttons.rename')"
-            show="rename"
-          />
-          <action
-            v-if="headerButtons.copy"
-            id="copy-button"
-            icon="content_copy"
-            :label="$t('buttons.copyFile')"
-            show="copy"
-          />
-          <action
-            v-if="headerButtons.move"
-            id="move-button"
-            icon="forward"
-            :label="$t('buttons.moveFile')"
-            show="move"
-          />
-          <action
-            v-if="headerButtons.delete"
-            id="delete-button"
-            icon="delete"
-            :label="$t('buttons.delete')"
-            show="delete"
-          />
-        </template>
+        <action :icon="viewIcon" :label="$t('buttons.switchView')" @action="switchView" />
+      </template>
+    </header-bar>
 
+    <div id="file-selection">
+      <span v-if="selectedCount > 0">{{ selectedCount }} selected</span>
+      <template>
         <action
-          v-if="headerButtons.shell"
-          icon="code"
-          :label="$t('buttons.shell')"
-          @action="$store.commit('toggleShell')"
+          v-if="headerButtons.select"
+          icon="info"
+          :label="$t('buttons.info')"
+          show="info"
         />
         <action
-          :icon="viewIcon"
-          :label="$t('buttons.switchView')"
-          @action="switchView"
-        />
-        <action
-          v-if="headerButtons.download"
-          icon="file_download"
-          :label="$t('buttons.download')"
-          @action="download"
-          :counter="selectedCount"
-        />
-        <action
-          v-if="headerButtons.upload"
-          icon="file_upload"
-          id="upload-button"
-          :label="$t('buttons.upload')"
-          @action="upload"
-        />
-        <action icon="info" :label="$t('buttons.info')" show="info" />
-        <action
+        v-if="headerButtons.select"
           icon="check_circle"
           :label="$t('buttons.selectMultiple')"
           @action="toggleMultipleSelection"
         />
+        <action
+          v-if="headerButtons.share"
+          icon="share"
+          :label="$t('buttons.share')"
+          show="share"
+        />
+        <action
+          v-if="headerButtons.rename"
+          icon="mode_edit"
+          :label="$t('buttons.rename')"
+          show="rename"
+        />
+        <action
+          v-if="headerButtons.copy"
+          icon="content_copy"
+          :label="$t('buttons.copyFile')"
+          show="copy"
+        />
+        <action
+          v-if="headerButtons.move"
+          icon="forward"
+          :label="$t('buttons.moveFile')"
+          show="move"
+        />
+        <action
+          v-if="headerButtons.delete"
+          icon="delete"
+          :label="$t('buttons.delete')"
+          show="delete"
+        />
       </template>
-    </header-bar>
-
-    <div v-if="isMobile" id="file-selection">
-      <span v-if="selectedCount > 0">{{ selectedCount }} selected</span>
-      <action
-        v-if="headerButtons.share"
-        icon="share"
-        :label="$t('buttons.share')"
-        show="share"
-      />
-      <action
-        v-if="headerButtons.rename"
-        icon="mode_edit"
-        :label="$t('buttons.rename')"
-        show="rename"
-      />
-      <action
-        v-if="headerButtons.copy"
-        icon="content_copy"
-        :label="$t('buttons.copyFile')"
-        show="copy"
-      />
-      <action
-        v-if="headerButtons.move"
-        icon="forward"
-        :label="$t('buttons.moveFile')"
-        show="move"
-      />
-      <action
-        v-if="headerButtons.delete"
-        icon="delete"
-        :label="$t('buttons.delete')"
-        show="delete"
-      />
     </div>
 
     <div v-if="loading">
@@ -146,12 +87,7 @@
           multiple
         />
       </div>
-      <div
-        v-else
-        id="listing"
-        ref="listing"
-        :class="user.viewMode + ' file-icons'"
-      >
+      <div v-else id="listing" ref="listing" :class="user.viewMode + ' file-icons'">
         <div>
           <div class="item header">
             <div></div>
@@ -297,15 +233,7 @@ export default {
     };
   },
   computed: {
-    ...mapState([
-      "req",
-      "selected",
-      "user",
-      "show",
-      "multiple",
-      "selected",
-      "loading",
-    ]),
+    ...mapState(["req", "selected", "user", "show", "multiple", "selected", "loading"]),
     ...mapGetters(["selectedCount"]),
     nameSorted() {
       return this.req.sorting.by === "name";
@@ -374,6 +302,7 @@ export default {
     },
     headerButtons() {
       return {
+        select: this.selectedCount > 0,
         upload: this.user.perm.create,
         download: this.user.perm.download,
         shell: this.user.perm.execute && enableExec,
@@ -383,9 +312,6 @@ export default {
         move: this.selectedCount > 0 && this.user.perm.rename,
         copy: this.selectedCount > 0 && this.user.perm.create,
       };
-    },
-    isMobile() {
-      return this.width <= 736;
     },
   },
   watch: {
@@ -543,9 +469,7 @@ export default {
       let items = [];
 
       for (let item of this.$store.state.clipboard.items) {
-        const from = item.from.endsWith("/")
-          ? item.from.slice(0, -1)
-          : item.from;
+        const from = item.from.endsWith("/") ? item.from.slice(0, -1) : item.from;
         const to = this.$route.path + encodeURIComponent(item.name);
         items.push({ from, to, name: item.name });
       }
@@ -626,9 +550,7 @@ export default {
 
       if (currentPos > triggerPos) {
         // Quantity of items needed to fill 2x of the window height
-        const showQuantity = Math.ceil(
-          (window.innerHeight * 2) / this.itemWeight
-        );
+        const showQuantity = Math.ceil((window.innerHeight * 2) / this.itemWeight);
 
         // Increase the number of displayed items
         this.showLimit += showQuantity;
@@ -674,11 +596,7 @@ export default {
         ? this.$route.path
         : this.$route.path + "/";
 
-      if (
-        el !== null &&
-        el.classList.contains("item") &&
-        el.dataset.dir === "true"
-      ) {
+      if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         // Get url from ListingItem instance
         path = el.__vue__.url;
 
@@ -711,8 +629,7 @@ export default {
 
       let files = event.currentTarget.files;
       let folder_upload =
-        files[0].webkitRelativePath !== undefined &&
-        files[0].webkitRelativePath !== "";
+        files[0].webkitRelativePath !== undefined && files[0].webkitRelativePath !== "";
 
       if (folder_upload) {
         for (let i = 0; i < files.length; i++) {
@@ -766,9 +683,7 @@ export default {
       }
 
       try {
-        await users.update({ id: this.user.id, sorting: { by, asc } }, [
-          "sorting",
-        ]);
+        await users.update({ id: this.user.id, sorting: { by, asc } }, ["sorting"]);
       } catch (e) {
         this.$showError(e);
       }
@@ -868,9 +783,7 @@ export default {
       const windowHeight = window.innerHeight;
 
       // Quantity of items needed to fill 2x of the window height
-      const showQuantity = Math.ceil(
-        (windowHeight + windowHeight * 2) / this.itemWeight
-      );
+      const showQuantity = Math.ceil((windowHeight + windowHeight * 2) / this.itemWeight);
 
       // Less items to display than current
       if (this.showLimit > showQuantity && !fit) return;

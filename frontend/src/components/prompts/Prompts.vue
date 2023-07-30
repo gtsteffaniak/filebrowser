@@ -1,7 +1,7 @@
 <template>
   <div>
     <component ref="currentComponent" :is="currentComponent"></component>
-    <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
+    <div v-if="showOverlay" @click="resetPrompts" class="overlay"></div>
   </div>
 </template>
 
@@ -106,7 +106,7 @@ export default {
     },
     showOverlay: function () {
       return (
-        this.show !== null && this.show !== "search" && this.show !== "more"
+        this.show !== null && this.show !== "more"
       );
     },
   },
