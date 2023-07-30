@@ -1,36 +1,39 @@
 <template>
   <div id="search" @click="open" v-bind:class="{ active, ongoing }">
     <div id="input">
-      <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
-        <i class="material-icons">arrow_back</i>
+      <button
+        v-if="active"
+        class="action"
+        @click="close"
+        :aria-label="$t('buttons.close')"
+        :title="$t('buttons.close')"
+      >
+        <i class="material-icons">close</i>
       </button>
       <i v-else class="material-icons">search</i>
-      <input type="text" @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
-        :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
+      <input
+        type="text"
+        @keyup.exact="keyup"
+        @input="submit"
+        ref="input"
+        :autofocus="active"
+        v-model.trim="value"
+        :aria-label="$t('search.search')"
+        :placeholder="$t('search.search')"
+      />
     </div>
-
-    <div id="result" ref="result">
+    <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
-        <br>
-        <br>
-        <div class="button" style="width:100%">Search Context: {{ getContext(this.$route.path) }}</div>
-        <template v-if="isEmpty">
-          <p>{{ text }}</p>
-          <template v-if="value.length === 0">
-            <div class="boxes">
-              <h3>{{ $t("search.types") }}</h3>
-              <div>
-                <div tabindex="0" v-for="(v, k) in boxes" :key="k" role="button" @click="init('type:' + k)"
-                  :aria-label="(v.label)">
-                  <i class="material-icons">{{ v.icon }}</i>
-                  <p>{{ v.label }}</p>
-                </div>
-              </div>
-            </div>
-          </template>
-        </template>
+        <div class="button" style="width: 100%">
+          Search Context: {{ getContext(this.$route.path) }}
+        </div>
         <ul v-show="results.length > 0">
-          <li v-for="(s, k) in results" :key="k" @click.stop.prevent="navigateTo(s.url)" style="cursor: pointer">
+          <li
+            v-for="(s, k) in results"
+            :key="k"
+            @click.stop.prevent="navigateTo(s.url)"
+            style="cursor: pointer"
+          >
             <router-link to="#" event="">
               <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
               <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
@@ -44,12 +47,83 @@
             </router-link>
           </li>
         </ul>
+        <template v-if="isEmpty">
+          <p>{{ text }}</p>
+          <template v-if="value.length === 0">
+            <div class="boxes">
+              <h3>{{ $t("search.types") }}</h3>
+              <div>
+                <div
+                  tabindex="0"
+                  v-for="(v, k) in boxes"
+                  :key="k"
+                  role="button"
+                  @click="init('type:' + k)"
+                  :aria-label="v.label"
+                >
+                  <i class="material-icons">{{ v.icon }}</i>
+                  <p>{{ v.label }}</p>
+                </div>
+              </div>
+            </div>
+          </template>
+        </template>
+      </div>
+    </div>
+    <div v-if="!isMobile && active" id="result-desktop" ref="result">
+      <div id="result-list">
+        <div class="button" style="width: 100%">
+          Search Context: {{ getContext(this.$route.path) }}
+        </div>
+        <ul v-show="results.length > 0">
+          <li
+            v-for="(s, k) in results"
+            :key="k"
+            @click.stop.prevent="navigateTo(s.url)"
+            style="cursor: pointer"
+          >
+            <router-link to="#" event="">
+              <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
+              <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
+              <i v-else-if="s.image" class="material-icons image-icons"> photo </i>
+              <i v-else-if="s.video" class="material-icons video-icons"> movie </i>
+              <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
+              <i v-else class="material-icons file-icons"> insert_drive_file </i>
+              <span class="text-container">
+                {{ basePath(s.path) }}<b>{{ baseName(s.path) }}</b>
+              </span>
+            </router-link>
+          </li>
+        </ul>
+        <template >
+          <p v-show="isEmpty" >{{ text }}</p>
+          <template >
+            <div v-show="results.length == 0" class="boxes">
+              <ButtonGroup
+                :buttons="folderSelect"
+                @button-clicked="init"
+                @remove-button-clicked="removeInit"
+              />
+              <ButtonGroup
+                :buttons="typeSelect"
+                @button-clicked="init"
+                @remove-button-clicked="removeInit"
+              />
+              <ButtonGroup
+                :buttons="sizeSelect"
+                @button-clicked="init"
+                @remove-button-clicked="removeInit"
+              />
+            </div>
+          </template>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import ButtonGroup from "./ButtonGroup.vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { search } from "@/api";
 
@@ -66,10 +140,28 @@ var boxes = {
 };
 
 export default {
+  components: {
+    ButtonGroup,
+  },
   name: "search",
   data: function () {
     return {
+      folderSelect: [
+        { label: "Only Folders", value: "type:folder" },
+        { label: "Only Files", value: "type:file" },
+      ],
+      typeSelect: [
+        { label: "Archives", value: "type:archive" },
+        { label: "Audio Files", value: "type:audio" },
+        { label: "Videos", value: "type:video" },
+        { label: "Documents", value: "type:docs" },
+      ],
+      sizeSelect: [
+        { label: "Smaller than 100MB", value: "type:smaller=100" },
+        { label: "Larger than 100MB", value: "type:larger=100" },
+      ],
       value: "",
+      width: window.innerWidth,
       active: false,
       ongoing: false,
       results: [],
@@ -120,42 +212,42 @@ export default {
         ? this.$t("search.typeToSearch")
         : this.$t("search.pressToSearch");
     },
+    isMobile() {
+      return this.width <= 800;
+    },
   },
   mounted() {
-    this.$refs.result.addEventListener("scroll", (event) => {
-      if (
-        event.target.offsetHeight + event.target.scrollTop >=
-        event.target.scrollHeight - 100
-      ) {
-        this.resultsCount += 50;
-      }
-    });
+    window.addEventListener("resize", this.handleResize);
+    this.handleResize(); // Call this once to set the initial width
   },
   methods: {
+    handleResize() {
+      this.width = window.innerWidth;
+    },
     async navigateTo(url) {
       this.closeHovers();
       await this.$nextTick();
       setTimeout(() => this.$router.push(url), 0);
     },
     getContext(url) {
-      url = url.slice(1)
-      let path = "./" + url.substring(url.indexOf('/') + 1);
-      return path.replace(/\/+$/, '') + "/"
+      url = url.slice(1);
+      let path = "./" + url.substring(url.indexOf("/") + 1);
+      return path.replace(/\/+$/, "") + "/";
     },
     basePath(str) {
-      if (!str.includes("/")){
-        return ""
+      if (!str.includes("/")) {
+        return "";
       }
-      let parts = str.replace(/\/$/, '').split("/")
-      parts.pop()
-      return parts.join("/") + "/"
+      let parts = str.replace(/\/$/, "").split("/");
+      parts.pop();
+      return parts.join("/") + "/";
     },
     baseName(str) {
-      let parts = str.split("/")
+      let parts = str.split("/");
       if (str.endsWith("/")) {
-        return parts[parts.length - 2] + "/"
+        return parts[parts.length - 2] + "/";
       } else {
-        return parts[parts.length - 1]
+        return parts[parts.length - 1];
       }
     },
     ...mapMutations(["showHover", "closeHovers", "setReload"]),
@@ -174,8 +266,22 @@ export default {
       this.results.length === 0;
     },
     init(string) {
-      this.value = `${string} `;
-      this.$refs.input.focus();
+      if (string == null || string == ""){
+        return false
+      }
+      this.value = `${string} ${this.value}`;
+      if (this.isMobile){
+        this.$refs.input.focus();
+      }
+    },
+    removeInit(string) {
+      if (string == null || string == ""){
+        return false
+      }
+      this.value = this.value.replace(string, "");
+      if (this.isMobile){
+        this.$refs.input.focus();
+      }
     },
     reset() {
       this.ongoing = false;
@@ -184,7 +290,7 @@ export default {
     },
     async submit(event) {
       event.preventDefault();
-      const words = this.value.split(" ").filter(word => word.length < 3);
+      const words = this.value.split(" ").filter((word) => word.length < 3);
       if (this.value === "" || words.length > 0) {
         return;
       }

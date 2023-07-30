@@ -196,7 +196,7 @@ nav {
   background: var(--surfaceSecondary) !important;
 }
 
-@media (max-width: 736px) {
+@media (max-width: 800px) {
   #file-selection {
     background: var(--surfaceSecondary) !important;
   }

@@ -49,6 +49,7 @@
         :label="$t('buttons.delete')"
         show="delete"
       />
+      </template>
     </div>
 
     <div v-if="loading">
