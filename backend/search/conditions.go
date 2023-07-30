@@ -26,9 +26,9 @@ var compressedFile = []string{
 }
 
 type searchOptions struct {
-	Conditions    map[string]bool
+	Conditions    	map[string]bool
 	Size 			int
-	Terms         []string
+	Terms         	[]string
 }
 
 func ParseSearch(value string) *searchOptions {
@@ -59,6 +59,7 @@ func ParseSearch(value string) *searchOptions {
 			case "folder"			: opts.Conditions["dir"] 		= true
 			case "file"				: opts.Conditions["dir"] 		= false
 		}
+		
 		if len(filter) < 8 {
 			continue
 		}
@@ -90,7 +91,8 @@ func ParseSearch(value string) *searchOptions {
 		opts.Terms = []string{unique}
 		return opts
 	}
-
+	re := regexp.MustCompile(` +`)
+	value = re.ReplaceAllString(value, " ")
 	opts.Terms = strings.Split(value, " ")
 	return opts
 }
