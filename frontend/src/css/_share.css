@@ -5,7 +5,7 @@
   align-items: flex-start;
 }
 
-@media (max-width: 736px) {
+@media (max-width: 800px) {
   .share {
     display: block;
   }

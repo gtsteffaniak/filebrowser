@@ -158,7 +158,7 @@ main .spinner .bounce2 {
   color: #fff;
 }
 
-@media (min-width: 738px) {
+@media (min-width: 800px) {
   #previewer header #dropdown .action i {
     color: #fff;
   }
