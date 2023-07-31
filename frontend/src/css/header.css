@@ -171,11 +171,23 @@ body.rtl #search #result ul>* {
   width: 100%;
   text-align: center;
   display: none;
-  margin: 0;
+  margin: 1em;
   max-width: none;
 }
 
 #search.ongoing #result #renew {
+  display: block;
+}
+
+#search #result-desktop #renew {
+  width: 100%;
+  text-align: center;
+  display: none;
+  margin: 1em;
+  max-width: none;
+}
+
+#search.ongoing #result-desktop #renew {
   display: block;
 }
 

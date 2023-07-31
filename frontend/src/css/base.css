@@ -188,6 +188,7 @@ body.rtl .breadcrumbs a {
 
 /* File Selection */
 #file-selection {
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 2em 50px 10px;
   position: fixed;
   bottom: 1em;
   left: 50%;
@@ -196,10 +197,8 @@ body.rtl .breadcrumbs a {
   -ms-flex-align: center;
   align-items: center;
   background: #fff;
-  -webkit-box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
-  box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
   width: 95%;
-  max-width: 25em;
+  max-width: 30em;
   z-index: 1;
 }
 
