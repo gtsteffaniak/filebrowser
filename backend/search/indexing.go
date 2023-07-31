@@ -184,6 +184,7 @@ func containsSearchTerm(pathName string, searchTerm string, options searchOption
 		fileTypes 				:= map[string]bool{}
 		fileSize				:= getFileSize(pathName)
 		matchesCondition 		:= false
+		matchesAllConditions	:= true
 		extension 				:= filepath.Ext(strings.ToLower(path))
 		mimetype 				:= mime.TypeByExtension(extension)
 		fileTypes["audio"] 		= strings.HasPrefix(mimetype, "audio")
@@ -192,7 +193,7 @@ func containsSearchTerm(pathName string, searchTerm string, options searchOption
 		fileTypes["doc"] 		= isDoc(extension)
 		fileTypes["archive"] 	= isArchive(extension)
 		fileTypes["dir"]		= isDir
-		anyFilter 				:= false
+
 		for t,v := range conditions {
 			switch t {
 			case "exact"	: continue
@@ -200,12 +201,12 @@ func containsSearchTerm(pathName string, searchTerm string, options searchOption
 			case "smaller"	: matchesCondition = fileSize < int64(options.Size) * 1000000
 			default			: matchesCondition = v == fileTypes[t]
 			}
-			anyFilter = true
+			if (!matchesCondition) {
+				matchesAllConditions = false
+			}
 		}
-		if !anyFilter {
-			matchesCondition = true
-		}
-		return matchesCondition, fileTypes
+
+		return matchesAllConditions, fileTypes
 	}
 	return false, map[string]bool{}
 }

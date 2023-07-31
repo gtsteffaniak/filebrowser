@@ -335,14 +335,15 @@ body.rtl .breadcrumbs .chevron {
  * * * * * * * * * * * * * * * */
 
 .credits {
-  font-size: 0.6em;
-  margin: 3em 2.5em;
+  font-size: 1em;
   color: #a5a5a5;
+  padding: 1em;
 }
 
 .credits > span {
   display: block;
-  margin: .3em 0;
+  margin-top: .5em;
+  margin-left: 0;
 }
 
 .credits a,

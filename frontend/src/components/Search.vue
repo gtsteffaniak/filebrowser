@@ -1,26 +1,12 @@
 <template>
   <div id="search" @click="open" v-bind:class="{ active, ongoing }">
     <div id="input">
-      <button
-        v-if="active"
-        class="action"
-        @click="close"
-        :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')"
-      >
+      <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
         <i class="material-icons">close</i>
       </button>
       <i v-else class="material-icons">search</i>
-      <input
-        type="text"
-        @keyup.exact="keyup"
-        @input="submit"
-        ref="input"
-        :autofocus="active"
-        v-model.trim="value"
-        :aria-label="$t('search.search')"
-        :placeholder="$t('search.search')"
-      />
+      <input type="text" @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
+        :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
     </div>
     <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
@@ -28,12 +14,7 @@
           Search Context: {{ getContext(this.$route.path) }}
         </div>
         <ul v-show="results.length > 0">
-          <li
-            v-for="(s, k) in results"
-            :key="k"
-            @click.stop.prevent="navigateTo(s.url)"
-            style="cursor: pointer"
-          >
+          <li v-for="(s, k) in results" :key="k" @click.stop.prevent="navigateTo(s.url)" style="cursor: pointer">
             <router-link to="#" event="">
               <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
               <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
@@ -47,20 +28,17 @@
             </router-link>
           </li>
         </ul>
+        <p v-show="isEmpty && isRunning" id="renew">
+          <i class="material-icons spin">autorenew</i>
+        </p>
+        <p v-show="isEmpty && !isRunning">{{ text }}</p>
         <template v-if="isEmpty">
-          <p >{{ text }}</p>
           <template v-if="value.length === 0">
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
-                <div
-                  tabindex="0"
-                  v-for="(v, k) in boxes"
-                  :key="k"
-                  role="button"
-                  @click="init('type:' + k)"
-                  :aria-label="v.label"
-                >
+                <div tabindex="0" v-for="(v, k) in boxes" :key="k" role="button" @click="init('type:' + k)"
+                  :aria-label="v.label">
                   <i class="material-icons">{{ v.icon }}</i>
                   <p>{{ v.label }}</p>
                 </div>
@@ -76,12 +54,7 @@
           Search Context: {{ getContext(this.$route.path) }}
         </div>
         <ul v-show="results.length > 0">
-          <li
-            v-for="(s, k) in results"
-            :key="k"
-            @click.stop.prevent="navigateTo(s.url)"
-            style="cursor: pointer"
-          >
+          <li v-for="(s, k) in results" :key="k" @click.stop.prevent="navigateTo(s.url)" style="cursor: pointer">
             <router-link to="#" event="">
               <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
               <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
@@ -95,25 +68,16 @@
             </router-link>
           </li>
         </ul>
-        <template >
-          <p v-show="isEmpty" >{{ text }}</p>
-          <template >
+        <template>
+          <p v-show="isEmpty && isRunning" id="renew">
+            <i class="material-icons spin">autorenew</i>
+          </p>
+          <p v-show="isEmpty && !isRunning">{{ text }}</p>
+          <template>
             <div v-show="results.length == 0" class="boxes">
-              <ButtonGroup
-                :buttons="folderSelect"
-                @button-clicked="init"
-                @remove-button-clicked="removeInit"
-              />
-              <ButtonGroup
-                :buttons="typeSelect"
-                @button-clicked="init"
-                @remove-button-clicked="removeInit"
-              />
-              <ButtonGroup
-                :buttons="sizeSelect"
-                @button-clicked="init"
-                @remove-button-clicked="removeInit"
-              />
+              <ButtonGroup :buttons="folderSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
+              <ButtonGroup :buttons="typeSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
+              <ButtonGroup :buttons="sizeSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
             </div>
           </template>
         </template>
@@ -151,10 +115,11 @@ export default {
         { label: "Only Files", value: "type:file" },
       ],
       typeSelect: [
-        { label: "Archives", value: "type:archive" },
-        { label: "Audio Files", value: "type:audio" },
+        { label: "Photos", value: "type:image" },
+        { label: "Audio", value: "type:audio" },
         { label: "Videos", value: "type:video" },
         { label: "Documents", value: "type:docs" },
+        { label: "Archives", value: "type:archive" },
       ],
       sizeSelect: [
         { label: "Smaller than 100MB", value: "type:smaller=100" },
@@ -215,6 +180,9 @@ export default {
     isMobile() {
       return this.width <= 800;
     },
+    isRunning() {
+      return this.ongoing;
+    }
   },
   mounted() {
     window.addEventListener("resize", this.handleResize);
@@ -266,20 +234,20 @@ export default {
       this.results.length === 0;
     },
     init(string) {
-      if (string == null || string == ""){
+      if (string == null || string == "") {
         return false
       }
       this.value = `${string} ${this.value}`;
-      if (this.isMobile){
+      if (this.isMobile) {
         this.$refs.input.focus();
       }
     },
     removeInit(string) {
-      if (string == null || string == ""){
+      if (string == null || string == "") {
         return false
       }
-      this.value = this.value.replace(string+" ", "");
-      if (this.isMobile){
+      this.value = this.value.replace(string + " ", "");
+      if (this.isMobile) {
         this.$refs.input.focus();
       }
     },
@@ -301,7 +269,6 @@ export default {
       } catch (error) {
         this.$showError(error);
       }
-
       this.ongoing = false;
     },
   },

@@ -167,15 +167,15 @@ body.rtl #search #result ul>* {
   margin: .5em;
 }
 
-#search #result #renew {
+#search #renew {
   width: 100%;
   text-align: center;
   display: none;
-  margin: 0;
+  margin: 1em;
   max-width: none;
 }
 
-#search.ongoing #result #renew {
+#search.ongoing #renew {
   display: block;
 }
 
