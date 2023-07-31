@@ -58,11 +58,12 @@ over
 
 /* Navigation Styles */
 nav {
-  width: 16em;
+  width: 18em;
   position: fixed;
-  top: 4em;
-  left: -17em;
-  z-index: 99999;
+  top: 0;
+  padding-top: 4em;
+  left: -19em;
+  z-index: 10000;
   background: #fff;
   height: 100%;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);

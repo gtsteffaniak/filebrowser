@@ -167,7 +167,7 @@ body.rtl #search #result ul>* {
   margin: .5em;
 }
 
-#search #result #renew {
+#search #renew {
   width: 100%;
   text-align: center;
   display: none;
@@ -175,19 +175,7 @@ body.rtl #search #result ul>* {
   max-width: none;
 }
 
-#search.ongoing #result #renew {
-  display: block;
-}
-
-#search #result-desktop #renew {
-  width: 100%;
-  text-align: center;
-  display: none;
-  margin: 1em;
-  max-width: none;
-}
-
-#search.ongoing #result-desktop #renew {
+#search.ongoing #renew {
   display: block;
 }
 
