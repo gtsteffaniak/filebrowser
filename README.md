@@ -29,6 +29,18 @@ and it can be used to upload, delete, preview, rename and edit your files.
 It allows the creation of multiple users and each user can have its own 
 directory. It can be used as a standalone app.
 
+## Look
+
+This is how desktop search looks in 0.1.3, the styling will be further refined in the next version" 
+![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/761f2a08-cafb-4f79-90fe-48fa50679f48)
+
+However mobile search still appears very similar to filebrowser/filebrowsers original implementation:
+![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/03af7760-73a0-4a5d-ab32-84815e455245)
+
+search categories are improved:
+
+![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/5572ef20-3047-43b9-92f8-95c4ce6f12b5)
+
 ## Install
 
 Using docker:
