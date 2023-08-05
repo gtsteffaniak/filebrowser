@@ -2,8 +2,8 @@ package search
 
 import (
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 var typeRegexp = regexp.MustCompile(`type:(\S+)`)
@@ -26,21 +26,20 @@ var compressedFile = []string{
 }
 
 type searchOptions struct {
-	Conditions    	map[string]bool
-	Size 			int
-	Terms         	[]string
+	Conditions map[string]bool
+	Size       int
+	Terms      []string
 }
 
 func ParseSearch(value string) *searchOptions {
 	opts := &searchOptions{
-		Conditions:    map[string]bool{
+		Conditions: map[string]bool{
 			"exact": strings.Contains(value, "case:exact"),
 		},
-		Terms:         []string{},
+		Terms: []string{},
 	}
 
 	// removes the options from the value
-	value = strings.Replace(value, "case:exact", "", -1)
 	value = strings.Replace(value, "case:exact", "", -1)
 	value = strings.TrimSpace(value)
 
@@ -51,15 +50,21 @@ func ParseSearch(value string) *searchOptions {
 		}
 		filter := filterType[1]
 		switch filter {
-			case "image"			: opts.Conditions["image"] 		= true
-			case "audio", "music"	: opts.Conditions["audio"] 		= true
-			case "video"			: opts.Conditions["video"] 		= true
-			case "doc"				: opts.Conditions["doc"] 		= true
-			case "archive"			: opts.Conditions["archive"] 	= true
-			case "folder"			: opts.Conditions["dir"] 		= true
-			case "file"				: opts.Conditions["dir"] 		= false
+		case "image":
+			opts.Conditions["image"] = true
+		case "audio", "music":
+			opts.Conditions["audio"] = true
+		case "video":
+			opts.Conditions["video"] = true
+		case "doc":
+			opts.Conditions["doc"] = true
+		case "archive":
+			opts.Conditions["archive"] = true
+		case "folder":
+			opts.Conditions["dir"] = true
+		case "file":
+			opts.Conditions["dir"] = false
 		}
-		
 		if len(filter) < 8 {
 			continue
 		}
@@ -74,8 +79,8 @@ func ParseSearch(value string) *searchOptions {
 	}
 
 	if len(types) > 0 {
-		// Remove the fields from the search value.
-		value = typeRegexp.ReplaceAllString(value, "")
+		// Remove the fields from the search value, including added space
+		value = typeRegexp.ReplaceAllString(value+" ", "")
 	}
 
 	if value == "" {
@@ -91,9 +96,8 @@ func ParseSearch(value string) *searchOptions {
 		opts.Terms = []string{unique}
 		return opts
 	}
-	re := regexp.MustCompile(` +`)
-	value = re.ReplaceAllString(value, " ")
-	opts.Terms = strings.Split(value, " ")
+	value = strings.TrimSpace(value)
+	opts.Terms = strings.Split(value, "|")
 	return opts
 }
 

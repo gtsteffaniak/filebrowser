@@ -23,6 +23,13 @@
           @action="toggleMultipleSelection"
         />
         <action
+          v-if="headerButtons.download"
+          icon="file_download"
+          :label="$t('buttons.download')"
+          @action="download"
+          :counter="selectedCount"
+        />
+        <action
           v-if="headerButtons.share"
           icon="share"
           :label="$t('buttons.share')"
@@ -303,8 +310,8 @@ export default {
     headerButtons() {
       return {
         select: this.selectedCount > 0,
-        upload: this.user.perm.create,
-        download: this.user.perm.download,
+        upload: this.user.perm.create && this.selectedCount > 0,
+        download: this.user.perm.download && this.selectedCount > 0,
         shell: this.user.perm.execute && enableExec,
         delete: this.selectedCount > 0 && this.user.perm.delete,
         rename: this.selectedCount === 1 && this.user.perm.rename,

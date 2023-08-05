@@ -31,7 +31,11 @@
         <p v-show="isEmpty && isRunning" id="renew">
           <i class="material-icons spin">autorenew</i>
         </p>
-        <p v-show="isEmpty && !isRunning">{{ text }}</p>
+        <div v-show="isEmpty && !isRunning">
+          <div class="searchPrompt" v-show="isEmpty && !isRunning">
+            <p>No results found in indexed search.</p>
+          </div>
+        </div>
         <template v-if="isEmpty">
           <template v-if="value.length === 0">
             <div class="boxes">
@@ -50,7 +54,7 @@
     </div>
     <div v-if="!isMobile && active" id="result-desktop" ref="result">
       <div id="result-list">
-        <div class="button" style="width: 100%">
+        <div class="button fluid">
           Search Context: {{ getContext(this.$route.path) }}
         </div>
         <ul v-show="results.length > 0">
@@ -72,9 +76,18 @@
           <p v-show="isEmpty && isRunning" id="renew">
             <i class="material-icons spin">autorenew</i>
           </p>
-          <p v-show="isEmpty && !isRunning">{{ text }}</p>
+          <div class="searchPrompt" v-show="isEmpty && !isRunning">
+            <p>No results found in indexed search.</p>
+            <div class="helpButton" @click="toggleHelp()">Toggle Search Help</div>
+          </div>
+
+          <div class="helpText" v-if="showHelp">
+            Search additional terms separated by <code>|</code>, for example <code>"test|not"</code> searches for both terms independently
+            <p>Note: searching files by size may have significantly longer search times since it cannot rely on the index alone.
+               The search looks for only files that match all other conditions first, then checks the filesize and returns matching results.</p>
+          </div>
           <template>
-            <div v-show="results.length == 0" class="boxes">
+            <div class="boxes">
               <ButtonGroup :buttons="folderSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
               <ButtonGroup :buttons="typeSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
               <ButtonGroup :buttons="sizeSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
@@ -85,6 +98,26 @@
     </div>
   </div>
 </template>
+
+<style>
+.helpText{
+  padding:1em
+}
+.helpButton {
+  text-align: center;
+  background: var(--background);
+  background-color: lightgray;
+  padding: .25em;
+  border-radius: .25em;
+}
+.searchPrompt {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+}
+</style>
 
 <script>
 import ButtonGroup from "./ButtonGroup.vue";
@@ -110,6 +143,7 @@ export default {
   name: "search",
   data: function () {
     return {
+      showHelp: false,
       folderSelect: [
         { label: "Only Folders", value: "type:folder" },
         { label: "Only Files", value: "type:file" },
@@ -182,7 +216,10 @@ export default {
     },
     isRunning() {
       return this.ongoing;
-    }
+    },
+    searchHelp() {
+      return this.showHelp
+    },
   },
   mounted() {
     window.addEventListener("resize", this.handleResize);
@@ -271,6 +308,9 @@ export default {
       }
       this.ongoing = false;
     },
+    toggleHelp(){
+      this.showHelp = !this.showHelp
+    }
   },
 };
 </script>
