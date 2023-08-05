@@ -16,7 +16,7 @@ import (
 )
 
 // MethodHookAuth is used to identify hook auth.
-const MethodHookAuth settings.AuthMethod = "hook"
+const MethodHookAuth = "hook"
 
 type hookCred struct {
 	Password string `json:"password"`

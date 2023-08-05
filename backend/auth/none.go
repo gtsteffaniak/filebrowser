@@ -8,7 +8,7 @@ import (
 )
 
 // MethodNoAuth is used to identify no auth.
-const MethodNoAuth settings.AuthMethod = "noauth"
+const MethodNoAuth = "noauth"
 
 // NoAuth is no auth implementation of auther.
 type NoAuth struct{}

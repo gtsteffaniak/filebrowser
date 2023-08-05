@@ -10,7 +10,7 @@ import (
 )
 
 // MethodProxyAuth is used to identify no auth.
-const MethodProxyAuth settings.AuthMethod = "proxy"
+const MethodProxyAuth = "proxy"
 
 // ProxyAuth is a proxy implementation of an auther.
 type ProxyAuth struct {
