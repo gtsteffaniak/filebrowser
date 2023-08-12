@@ -5,9 +5,11 @@
 // Package bzip2 implements the BZip2 compressed data format.
 //
 // Canonical C implementation:
+//
 //	http://bzip.org
 //
 // Unofficial format specification:
+//
 //	https://github.com/dsnet/compress/blob/master/doc/bzip2-format.pdf
 package bzip2
 

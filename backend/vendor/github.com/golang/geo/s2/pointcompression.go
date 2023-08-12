@@ -106,19 +106,20 @@ func encodeFirstPointFixedLength(e *encoder, pi, qi uint32, level int, piCoder, 
 // encodePointCompressed encodes points into e.
 // Given a sequence of Points assumed to be the center of level-k cells,
 // compresses it into a stream using the following method:
-// - decompose the points into (face, si, ti) tuples.
-// - run-length encode the faces, combining face number and count into a
+//   - decompose the points into (face, si, ti) tuples.
+//   - run-length encode the faces, combining face number and count into a
 //     varint32. See the faceRun struct.
-// - right shift the (si, ti) to remove the part that's constant for all cells
+//   - right shift the (si, ti) to remove the part that's constant for all cells
 //     of level-k. The result is called the (pi, qi) space.
-// - 2nd derivative encode the pi and qi sequences (linear prediction)
-// - zig-zag encode all derivative values but the first, which cannot be
+//   - 2nd derivative encode the pi and qi sequences (linear prediction)
+//   - zig-zag encode all derivative values but the first, which cannot be
 //     negative
-// - interleave the zig-zag encoded values
-// - encode the first interleaved value in a fixed length encoding
+//   - interleave the zig-zag encoded values
+//   - encode the first interleaved value in a fixed length encoding
 //     (varint would make this value larger)
-// - encode the remaining interleaved values as varint64s, as the
+//   - encode the remaining interleaved values as varint64s, as the
 //     derivative encoding should make the values small.
+//
 // In addition, provides a lossless method to compress a sequence of points even
 // if some points are not the center of level-k cells. These points are stored
 // exactly, using 3 double precision values, after the above encoded string,

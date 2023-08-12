@@ -1,3 +1,4 @@
+//go:build generate
 // +build generate
 
 //go:generate go run $GOFILE && gofmt -w inflate_gen.go

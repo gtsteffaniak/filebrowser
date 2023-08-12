@@ -478,13 +478,13 @@ func (ib *IfdBuilder) Tags() (tags []*BuilderTag) {
 //
 // NOTES:
 //
-// - We don't manage any facet of the thumbnail data. This is the
-//   responsibility of the user/developer.
-// - This method will fail unless the thumbnail is set on a the root IFD.
-//   However, in order to be valid, it must be set on the second one, linked to
-//   by the first, as per the EXIF/TIFF specification.
-// - We set the offset to (0) now but will allocate the data and properly assign
-//   the offset when the IB is encoded (later).
+//   - We don't manage any facet of the thumbnail data. This is the
+//     responsibility of the user/developer.
+//   - This method will fail unless the thumbnail is set on a the root IFD.
+//     However, in order to be valid, it must be set on the second one, linked to
+//     by the first, as per the EXIF/TIFF specification.
+//   - We set the offset to (0) now but will allocate the data and properly assign
+//     the offset when the IB is encoded (later).
 func (ib *IfdBuilder) SetThumbnail(data []byte) (err error) {
 	defer func() {
 		if state := recover(); state != nil {

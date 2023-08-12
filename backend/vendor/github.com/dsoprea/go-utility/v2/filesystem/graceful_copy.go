@@ -11,11 +11,11 @@ const (
 
 // GracefulCopy willcopy while enduring lesser normal issues.
 //
-// - We'll ignore EOF if the read byte-count is more than zero. Only an EOF when
-//   zero bytes were read will terminate the loop.
+//   - We'll ignore EOF if the read byte-count is more than zero. Only an EOF when
+//     zero bytes were read will terminate the loop.
 //
-// - Ignore short-writes. If less bytes were written than the bytes that were
-//   given, we'll keep trying until done.
+//   - Ignore short-writes. If less bytes were written than the bytes that were
+//     given, we'll keep trying until done.
 func GracefulCopy(w io.Writer, r io.Reader, buffer []byte) (copyCount int, err error) {
 	if buffer == nil {
 		buffer = make([]byte, defaultCopyBufferSize)

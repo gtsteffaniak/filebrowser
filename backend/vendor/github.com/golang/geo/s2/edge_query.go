@@ -24,16 +24,16 @@ import (
 //
 // Options can be chained together builder-style:
 //
-//	opts = NewClosestEdgeQueryOptions().
-//		MaxResults(1).
-//		DistanceLimit(s1.ChordAngleFromAngle(3 * s1.Degree)).
-//		MaxError(s1.ChordAngleFromAngle(0.001 * s1.Degree))
-//	query = NewClosestEdgeQuery(index, opts)
+//		opts = NewClosestEdgeQueryOptions().
+//			MaxResults(1).
+//			DistanceLimit(s1.ChordAngleFromAngle(3 * s1.Degree)).
+//			MaxError(s1.ChordAngleFromAngle(0.001 * s1.Degree))
+//		query = NewClosestEdgeQuery(index, opts)
 //
-//  or set individually:
+//	 or set individually:
 //
-//	opts = NewClosestEdgeQueryOptions()
-//	opts.IncludeInteriors(true)
+//		opts = NewClosestEdgeQueryOptions()
+//		opts.IncludeInteriors(true)
 //
 // or just inline:
 //
@@ -102,11 +102,11 @@ func NewFurthestEdgeQueryOptions() *EdgeQueryOptions {
 // EdgeQueryResult represents an edge that meets the target criteria for the
 // query. Note the following special cases:
 //
-//  - ShapeID >= 0 && EdgeID < 0 represents the interior of a shape.
-//    Such results may be returned when the option IncludeInteriors is true.
+//   - ShapeID >= 0 && EdgeID < 0 represents the interior of a shape.
+//     Such results may be returned when the option IncludeInteriors is true.
 //
-//  - ShapeID < 0 && EdgeID < 0 is returned to indicate that no edge
-//    satisfies the requested query options.
+//   - ShapeID < 0 && EdgeID < 0 is returned to indicate that no edge
+//     satisfies the requested query options.
 type EdgeQueryResult struct {
 	distance distance
 	shapeID  int32
@@ -162,9 +162,9 @@ func (e EdgeQueryResult) Less(other EdgeQueryResult) bool {
 //
 // By using the appropriate options, this type can answer questions such as:
 //
-//  - Find the minimum distance between two geometries A and B.
-//  - Find all edges of geometry A that are within a distance D of geometry B.
-//  - Find the k edges of geometry A that are closest to a given point P.
+//   - Find the minimum distance between two geometries A and B.
+//   - Find all edges of geometry A that are within a distance D of geometry B.
+//   - Find the k edges of geometry A that are closest to a given point P.
 //
 // You can also specify whether polygons should include their interiors (i.e.,
 // if a point is contained by a polygon, should the distance be zero or should
@@ -322,7 +322,6 @@ func (e *EdgeQuery) Distance(target distanceTarget) s1.ChordAngle {
 // If you wish to check if the distance is less than or equal to the limit, use:
 //
 //	query.IsDistanceLess(target, limit.Successor())
-//
 func (e *EdgeQuery) IsDistanceLess(target distanceTarget, limit s1.ChordAngle) bool {
 	opts := e.opts
 	opts = opts.MaxResults(1).
@@ -339,7 +338,6 @@ func (e *EdgeQuery) IsDistanceLess(target distanceTarget, limit s1.ChordAngle) b
 // If you wish to check if the distance is less than or equal to the limit, use:
 //
 //	query.IsDistanceGreater(target, limit.Predecessor())
-//
 func (e *EdgeQuery) IsDistanceGreater(target distanceTarget, limit s1.ChordAngle) bool {
 	return e.IsDistanceLess(target, limit)
 }

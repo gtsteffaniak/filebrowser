@@ -91,8 +91,8 @@ func (pc PrefixCodes) checkPrefixes() bool {
 // checkCanonical reports whether all codes are canonical.
 // That is, they have the following properties:
 //
-//	1. All codes of a given bit-length are consecutive values.
-//	2. Shorter codes lexicographically precede longer codes.
+//  1. All codes of a given bit-length are consecutive values.
+//  2. Shorter codes lexicographically precede longer codes.
 //
 // The codes must have unique symbols and be sorted by the symbol
 // The Len and Val fields in each code must be populated.

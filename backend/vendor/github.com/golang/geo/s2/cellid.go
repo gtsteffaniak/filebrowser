@@ -39,15 +39,15 @@ import (
 // Sequentially increasing cell IDs follow a continuous space-filling curve
 // over the entire sphere. They have the following properties:
 //
-//  - The ID of a cell at level k consists of a 3-bit face number followed
-//    by k bit pairs that recursively select one of the four children of
-//    each cell. The next bit is always 1, and all other bits are 0.
-//    Therefore, the level of a cell is determined by the position of its
-//    lowest-numbered bit that is turned on (for a cell at level k, this
-//    position is 2 * (maxLevel - k)).
+//   - The ID of a cell at level k consists of a 3-bit face number followed
+//     by k bit pairs that recursively select one of the four children of
+//     each cell. The next bit is always 1, and all other bits are 0.
+//     Therefore, the level of a cell is determined by the position of its
+//     lowest-numbered bit that is turned on (for a cell at level k, this
+//     position is 2 * (maxLevel - k)).
 //
-//  - The ID of a parent cell is at the midpoint of the range of IDs spanned
-//    by its children (or by its descendants at any level).
+//   - The ID of a parent cell is at the midpoint of the range of IDs spanned
+//     by its children (or by its descendants at any level).
 //
 // Leaf cells are often used to represent points on the unit sphere, and
 // this type provides methods for converting directly between these two
@@ -373,9 +373,9 @@ func (ci CellID) LatLng() LatLng { return LatLngFromPoint(Point{ci.rawPoint()}) 
 
 // ChildBegin returns the first child in a traversal of the children of this cell, in Hilbert curve order.
 //
-//    for ci := c.ChildBegin(); ci != c.ChildEnd(); ci = ci.Next() {
-//        ...
-//    }
+//	for ci := c.ChildBegin(); ci != c.ChildEnd(); ci = ci.Next() {
+//	    ...
+//	}
 func (ci CellID) ChildBegin() CellID {
 	ol := ci.lsb()
 	return CellID(uint64(ci) - ol + ol>>2)
@@ -644,7 +644,7 @@ func stToIJ(s float64) int {
 // s2.CellIDs are considered to be closed sets. The returned cell will
 // always contain the given point, i.e.
 //
-//   CellFromPoint(p).ContainsPoint(p)
+//	CellFromPoint(p).ContainsPoint(p)
 //
 // is always true.
 func cellIDFromPoint(p Point) CellID {
@@ -839,19 +839,19 @@ func expandEndpoint(u, maxV, sinDist float64) float64 {
 // it contains all points within 5km of the original cell. You can then
 // test whether a point lies within the expanded bounds like this:
 //
-//   if u, v, ok := faceXYZtoUV(face, point); ok && bound.ContainsPoint(r2.Point{u,v}) { ... }
+//	if u, v, ok := faceXYZtoUV(face, point); ok && bound.ContainsPoint(r2.Point{u,v}) { ... }
 //
 // Limitations:
 //
-//  - Because the rectangle is drawn on one of the six cube-face planes
-//    (i.e., {x,y,z} = +/-1), it can cover at most one hemisphere. This
-//    limits the maximum amount that a rectangle can be expanded. For
-//    example, CellID bounds can be expanded safely by at most 45 degrees
-//    (about 5000 km on the Earth's surface).
+//   - Because the rectangle is drawn on one of the six cube-face planes
+//     (i.e., {x,y,z} = +/-1), it can cover at most one hemisphere. This
+//     limits the maximum amount that a rectangle can be expanded. For
+//     example, CellID bounds can be expanded safely by at most 45 degrees
+//     (about 5000 km on the Earth's surface).
 //
-//  - The implementation is not exact for negative distances. The resulting
-//    rectangle will exclude all points within the given distance of the
-//    boundary but may be slightly smaller than necessary.
+//   - The implementation is not exact for negative distances. The resulting
+//     rectangle will exclude all points within the given distance of the
+//     boundary but may be slightly smaller than necessary.
 func expandedByDistanceUV(uv r2.Rect, distance s1.Angle) r2.Rect {
 	// Expand each of the four sides of the rectangle just enough to include all
 	// points within the given distance of that side. (The rectangle may be
@@ -872,7 +872,7 @@ func expandedByDistanceUV(uv r2.Rect, distance s1.Angle) r2.Rect {
 // a given range (a tiling). This example shows how to generate a tiling
 // for a semi-open range of leaf cells [start, limit):
 //
-//   for id := start.MaxTile(limit); id != limit; id = id.Next().MaxTile(limit)) { ... }
+//	for id := start.MaxTile(limit); id != limit; id = id.Next().MaxTile(limit)) { ... }
 //
 // Note that in general the cells in the tiling will be of different sizes;
 // they gradually get larger (near the middle of the range) and then

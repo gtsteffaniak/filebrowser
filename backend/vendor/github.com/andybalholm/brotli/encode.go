@@ -126,8 +126,11 @@ func remainingInputBlockSize(s *Writer) uint {
 	return block_size - uint(delta)
 }
 
-/* Wraps 64-bit input position to 32-bit ring-buffer position preserving
-   "not-a-first-lap" feature. */
+/*
+Wraps 64-bit input position to 32-bit ring-buffer position preserving
+
+	"not-a-first-lap" feature.
+*/
 func wrapPosition(position uint64) uint32 {
 	var result uint32 = uint32(position)
 	var gb uint64 = position >> 30
@@ -619,11 +622,11 @@ func encoderInitState(s *Writer) {
 }
 
 /*
-   Copies the given input data to the internal ring buffer of the compressor.
-   No processing of the data occurs at this time and this function can be
-   called multiple times before calling WriteBrotliData() to process the
-   accumulated input. At most input_block_size() bytes of input data can be
-   copied to the ring buffer, otherwise the next WriteBrotliData() will fail.
+Copies the given input data to the internal ring buffer of the compressor.
+No processing of the data occurs at this time and this function can be
+called multiple times before calling WriteBrotliData() to process the
+accumulated input. At most input_block_size() bytes of input data can be
+copied to the ring buffer, otherwise the next WriteBrotliData() will fail.
 */
 func copyInputToRingBuffer(s *Writer, input_size uint, input_buffer []byte) {
 	var ringbuffer_ *ringBuffer = &s.ringbuffer_
@@ -678,8 +681,11 @@ func copyInputToRingBuffer(s *Writer, input_size uint, input_buffer []byte) {
 	}
 }
 
-/* Marks all input as processed.
-   Returns true if position wrapping occurs. */
+/*
+Marks all input as processed.
+
+	Returns true if position wrapping occurs.
+*/
 func updateLastProcessedPos(s *Writer) bool {
 	var wrapped_last_processed_pos uint32 = wrapPosition(s.last_processed_pos_)
 	var wrapped_input_pos uint32 = wrapPosition(s.input_pos_)
@@ -717,15 +723,15 @@ func extendLastCommand(s *Writer, bytes *uint32, wrapped_last_processed_pos *uin
 }
 
 /*
-   Processes the accumulated input data and writes
-   the new output meta-block to s.dest, if one has been
-   created (otherwise the processed input data is buffered internally).
-   If |is_last| or |force_flush| is true, an output meta-block is
-   always created. However, until |is_last| is true encoder may retain up
-   to 7 bits of the last byte of output. To force encoder to dump the remaining
-   bits use WriteMetadata() to append an empty meta-data block.
-   Returns false if the size of the input data is larger than
-   input_block_size().
+Processes the accumulated input data and writes
+the new output meta-block to s.dest, if one has been
+created (otherwise the processed input data is buffered internally).
+If |is_last| or |force_flush| is true, an output meta-block is
+always created. However, until |is_last| is true encoder may retain up
+to 7 bits of the last byte of output. To force encoder to dump the remaining
+bits use WriteMetadata() to append an empty meta-data block.
+Returns false if the size of the input data is larger than
+input_block_size().
 */
 func encodeData(s *Writer, is_last bool, force_flush bool) bool {
 	var delta uint64 = unprocessedInputSize(s)
@@ -883,8 +889,11 @@ func encodeData(s *Writer, is_last bool, force_flush bool) bool {
 	}
 }
 
-/* Dumps remaining output bits and metadata header to s.bw.
-   REQUIRED: |block_size| <= (1 << 24). */
+/*
+Dumps remaining output bits and metadata header to s.bw.
+
+	REQUIRED: |block_size| <= (1 << 24).
+*/
 func writeMetadataHeader(s *Writer, block_size uint) {
 	bw := &s.bw
 

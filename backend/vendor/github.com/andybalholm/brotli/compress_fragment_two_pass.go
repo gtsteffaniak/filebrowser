@@ -39,8 +39,11 @@ func isMatch1(p1 []byte, p2 []byte, length uint) bool {
 	return p1[4] == p2[4] && p1[5] == p2[5]
 }
 
-/* Builds a command and distance prefix code (each 64 symbols) into "depth" and
-   "bits" based on "histogram" and stores it into the bit stream. */
+/*
+Builds a command and distance prefix code (each 64 symbols) into "depth" and
+
+	"bits" based on "histogram" and stores it into the bit stream.
+*/
 func buildAndStoreCommandPrefixCode(histogram []uint32, depth []byte, bits []uint16, bw *bitWriter) {
 	var tree [129]huffmanTree
 	var cmd_depth = [numCommandSymbols]byte{0}
@@ -558,18 +561,20 @@ func compressFragmentTwoPassImpl(input []byte, input_size uint, is_last bool, co
 	}
 }
 
-/* Compresses "input" string to bw as one or more complete meta-blocks.
+/*
+Compresses "input" string to bw as one or more complete meta-blocks.
 
-   If "is_last" is 1, emits an additional empty last meta-block.
+	If "is_last" is 1, emits an additional empty last meta-block.
 
-   REQUIRES: "input_size" is greater than zero, or "is_last" is 1.
-   REQUIRES: "input_size" is less or equal to maximal metablock size (1 << 24).
-   REQUIRES: "command_buf" and "literal_buf" point to at least
-              kCompressFragmentTwoPassBlockSize long arrays.
-   REQUIRES: All elements in "table[0..table_size-1]" are initialized to zero.
-   REQUIRES: "table_size" is a power of two
-   OUTPUT: maximal copy distance <= |input_size|
-   OUTPUT: maximal copy distance <= BROTLI_MAX_BACKWARD_LIMIT(18) */
+	REQUIRES: "input_size" is greater than zero, or "is_last" is 1.
+	REQUIRES: "input_size" is less or equal to maximal metablock size (1 << 24).
+	REQUIRES: "command_buf" and "literal_buf" point to at least
+	           kCompressFragmentTwoPassBlockSize long arrays.
+	REQUIRES: All elements in "table[0..table_size-1]" are initialized to zero.
+	REQUIRES: "table_size" is a power of two
+	OUTPUT: maximal copy distance <= |input_size|
+	OUTPUT: maximal copy distance <= BROTLI_MAX_BACKWARD_LIMIT(18)
+*/
 func compressFragmentTwoPass(input []byte, input_size uint, is_last bool, command_buf []uint32, literal_buf []byte, table []int, table_size uint, bw *bitWriter) {
 	var initial_storage_ix uint = bw.getPos()
 	var table_bits uint = uint(log2FloorNonZero(table_size))

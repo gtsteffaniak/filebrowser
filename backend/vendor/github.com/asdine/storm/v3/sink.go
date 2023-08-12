@@ -1,12 +1,12 @@
 package storm
 
 import (
-	"reflect"
-	"sort"
-	"time"
 	"github.com/asdine/storm/v3/index"
 	"github.com/asdine/storm/v3/q"
 	bolt "go.etcd.io/bbolt"
+	"reflect"
+	"sort"
+	"time"
 )
 
 type item struct {

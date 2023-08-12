@@ -239,27 +239,6 @@ body.rtl #search .boxes h3 {
   text-align: right;
 }
 
-#search .boxes>div {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 1em;
-  margin-right: auto;
-  margin-left: auto;
-  max-width: 40em;
-  justify-content: space-between;
-}
-
-#search .boxes>div>div {
-  background: var(--blue);
-  color: #fff;
-  text-align: center;
-  width: 10em;
-  padding: 1em;
-  cursor: pointer;
-  margin-bottom: 1em;
-  margin-right: 1em;
-  flex-grow: 1;
-}
 
 #search .boxes p {
   margin: 1em 0 0;

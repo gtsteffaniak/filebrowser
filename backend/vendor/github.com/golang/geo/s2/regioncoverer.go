@@ -38,21 +38,21 @@ import (
 //
 // Note the following:
 //
-//  - MinLevel takes priority over MaxCells, i.e. cells below the given level will
-//    never be used even if this causes a large number of cells to be returned.
+//   - MinLevel takes priority over MaxCells, i.e. cells below the given level will
+//     never be used even if this causes a large number of cells to be returned.
 //
-//  - For any setting of MaxCells, up to 6 cells may be returned if that
-//    is the minimum number of cells required (e.g. if the region intersects
-//    all six face cells).  Up to 3 cells may be returned even for very tiny
-//    convex regions if they happen to be located at the intersection of
-//    three cube faces.
+//   - For any setting of MaxCells, up to 6 cells may be returned if that
+//     is the minimum number of cells required (e.g. if the region intersects
+//     all six face cells).  Up to 3 cells may be returned even for very tiny
+//     convex regions if they happen to be located at the intersection of
+//     three cube faces.
 //
-//  - For any setting of MaxCells, an arbitrary number of cells may be
-//    returned if MinLevel is too high for the region being approximated.
+//   - For any setting of MaxCells, an arbitrary number of cells may be
+//     returned if MinLevel is too high for the region being approximated.
 //
-//  - If MaxCells is less than 4, the area of the covering may be
-//    arbitrarily large compared to the area of the original region even if
-//    the region is convex (e.g. a Cap or Rect).
+//   - If MaxCells is less than 4, the area of the covering may be
+//     arbitrarily large compared to the area of the original region even if
+//     the region is convex (e.g. a Cap or Rect).
 //
 // The approximation algorithm is not optimal but does a pretty good job in
 // practice. The output does not always use the maximum number of cells
@@ -404,17 +404,17 @@ func (rc *RegionCoverer) FastCovering(region Region) CellUnion {
 // IsCanonical reports whether the given CellUnion represents a valid covering
 // that conforms to the current covering parameters.  In particular:
 //
-//  - All CellIDs must be valid.
+//   - All CellIDs must be valid.
 //
-//  - CellIDs must be sorted and non-overlapping.
+//   - CellIDs must be sorted and non-overlapping.
 //
-//  - CellID levels must satisfy MinLevel, MaxLevel, and LevelMod.
+//   - CellID levels must satisfy MinLevel, MaxLevel, and LevelMod.
 //
-//  - If the covering has more than MaxCells, there must be no two cells with
-//    a common ancestor at MinLevel or higher.
+//   - If the covering has more than MaxCells, there must be no two cells with
+//     a common ancestor at MinLevel or higher.
 //
-//  - There must be no sequence of cells that could be replaced by an
-//    ancestor (i.e. with LevelMod == 1, the 4 child cells of a parent).
+//   - There must be no sequence of cells that could be replaced by an
+//     ancestor (i.e. with LevelMod == 1, the 4 child cells of a parent).
 func (rc *RegionCoverer) IsCanonical(covering CellUnion) bool {
 	return rc.newCoverer().isCanonical(covering)
 }

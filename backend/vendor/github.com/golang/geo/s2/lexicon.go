@@ -53,10 +53,10 @@ func newIDSetLexicon() *idSetLexicon {
 // sorted and duplicates are removed.
 //
 // The primary difference between this and sequenceLexicon are:
-// 1. Empty and singleton sets are represented implicitly; they use no space.
-// 2. Sets are represented rather than sequences; the ordering of values is
-//    not important and duplicates are removed.
-// 3. The values must be 32-bit non-negative integers only.
+//  1. Empty and singleton sets are represented implicitly; they use no space.
+//  2. Sets are represented rather than sequences; the ordering of values is
+//     not important and duplicates are removed.
+//  3. The values must be 32-bit non-negative integers only.
 func (l *idSetLexicon) add(ids ...int32) int32 {
 	// Empty sets have a special ID chosen not to conflict with other IDs.
 	if len(ids) == 0 {

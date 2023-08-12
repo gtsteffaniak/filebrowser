@@ -25,14 +25,14 @@ var compressedFile = []string{
 	".tar.xz",
 }
 
-type searchOptions struct {
+type SearchOptions struct {
 	Conditions map[string]bool
 	Size       int
 	Terms      []string
 }
 
-func ParseSearch(value string) *searchOptions {
-	opts := &searchOptions{
+func ParseSearch(value string) *SearchOptions {
+	opts := &SearchOptions{
 		Conditions: map[string]bool{
 			"exact": strings.Contains(value, "case:exact"),
 		},
@@ -79,8 +79,8 @@ func ParseSearch(value string) *searchOptions {
 	}
 
 	if len(types) > 0 {
-		// Remove the fields from the search value, including added space
-		value = typeRegexp.ReplaceAllString(value+" ", "")
+		// Remove the fields from the search value
+		value = typeRegexp.ReplaceAllString(value, "")
 	}
 
 	if value == "" {

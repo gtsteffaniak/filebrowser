@@ -469,10 +469,12 @@ var errEndOfStream = errors.New("end-of-stream")
 // Create goroutine that handles stream processing, this will send history to decoders as they are available.
 // Decoders update the history as they decode.
 // When a block is returned:
-// 		a) history is sent to the next decoder,
-// 		b) content written to CRC.
-// 		c) return data to WRITER.
-// 		d) wait for next block to return data.
+//
+//	a) history is sent to the next decoder,
+//	b) content written to CRC.
+//	c) return data to WRITER.
+//	d) wait for next block to return data.
+//
 // Once WRITTEN, the decoders reused by the writer frame decoder for re-use.
 func (d *Decoder) startStreamDecoder(inStream chan decodeStream) {
 	defer d.streamWg.Done()

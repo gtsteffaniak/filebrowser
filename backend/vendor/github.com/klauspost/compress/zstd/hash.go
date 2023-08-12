@@ -18,7 +18,8 @@ const (
 // h should always be <32.
 // Preferably h and l should be a constant.
 // FIXME: This does NOT get resolved, if 'mls' is constant,
-//  so this cannot be used.
+//
+//	so this cannot be used.
 func hashLen(u uint64, hashLog, mls uint8) uint32 {
 	switch mls {
 	case 5:

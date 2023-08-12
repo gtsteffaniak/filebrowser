@@ -52,10 +52,10 @@ var (
 // radius (r), the maximum chord length from the cap's center (d), and the
 // radius of cap's base (a).
 //
-//     h = 1 - cos(r)
-//       = 2 * sin^2(r/2)
-//   d^2 = 2 * h
-//       = a^2 + h^2
+//	  h = 1 - cos(r)
+//	    = 2 * sin^2(r/2)
+//	d^2 = 2 * h
+//	    = a^2 + h^2
 //
 // The zero value of Cap is an invalid cap. Use EmptyCap to get a valid empty cap.
 type Cap struct {

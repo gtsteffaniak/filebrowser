@@ -5,7 +5,7 @@ RUN npm i
 COPY  ./frontend/ ./
 RUN npm run build
 
-FROM golang:alpine as base
+FROM golang:1.21-alpine as base
 WORKDIR /app
 COPY  ./backend ./
 RUN go build -ldflags="-w -s" -o filebrowser .
@@ -15,7 +15,7 @@ RUN apk --no-cache add \
       ca-certificates \
       mailcap
 VOLUME /srv
-EXPOSE 80
+EXPOSE 8080
 WORKDIR /
 COPY --from=base /app/.filebrowser.json /.filebrowser.json
 COPY --from=base /app/filebrowser /filebrowser

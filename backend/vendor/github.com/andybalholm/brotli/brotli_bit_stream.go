@@ -7,12 +7,18 @@ import (
 
 const maxHuffmanTreeSize = (2*numCommandSymbols + 1)
 
-/* The maximum size of Huffman dictionary for distances assuming that
-   NPOSTFIX = 0 and NDIRECT = 0. */
+/*
+The maximum size of Huffman dictionary for distances assuming that
+
+	NPOSTFIX = 0 and NDIRECT = 0.
+*/
 const maxSimpleDistanceAlphabetSize = 140
 
-/* Represents the range of values belonging to a prefix code:
-   [offset, offset + 2^nbits) */
+/*
+Represents the range of values belonging to a prefix code:
+
+	[offset, offset + 2^nbits)
+*/
 type prefixCodeRange struct {
 	offset uint32
 	nbits  uint32
@@ -96,9 +102,12 @@ func nextBlockTypeCode(calculator *blockTypeCodeCalculator, type_ byte) uint {
 	return type_code
 }
 
-/* |nibblesbits| represents the 2 bits to encode MNIBBLES (0-3)
-   REQUIRES: length > 0
-   REQUIRES: length <= (1 << 24) */
+/*
+|nibblesbits| represents the 2 bits to encode MNIBBLES (0-3)
+
+	REQUIRES: length > 0
+	REQUIRES: length <= (1 << 24)
+*/
 func encodeMlen(length uint, bits *uint64, numbits *uint, nibblesbits *uint64) {
 	var lg uint
 	if length == 1 {
@@ -132,8 +141,11 @@ func storeCommandExtra(cmd *command, bw *bitWriter) {
 	bw.writeBits(uint(insnumextra+getCopyExtra(copycode)), bits)
 }
 
-/* Data structure that stores almost everything that is needed to encode each
-   block switch command. */
+/*
+Data structure that stores almost everything that is needed to encode each
+
+	block switch command.
+*/
 type blockSplitCode struct {
 	type_code_calculator blockTypeCodeCalculator
 	type_depths          [maxBlockTypeSymbols]byte
@@ -154,9 +166,12 @@ func storeVarLenUint8(n uint, bw *bitWriter) {
 	}
 }
 
-/* Stores the compressed meta-block header.
-   REQUIRES: length > 0
-   REQUIRES: length <= (1 << 24) */
+/*
+Stores the compressed meta-block header.
+
+	REQUIRES: length > 0
+	REQUIRES: length <= (1 << 24)
+*/
 func storeCompressedMetaBlockHeader(is_final_block bool, length uint, bw *bitWriter) {
 	var lenbits uint64
 	var nlenbits uint
@@ -186,9 +201,12 @@ func storeCompressedMetaBlockHeader(is_final_block bool, length uint, bw *bitWri
 	}
 }
 
-/* Stores the uncompressed meta-block header.
-   REQUIRES: length > 0
-   REQUIRES: length <= (1 << 24) */
+/*
+Stores the uncompressed meta-block header.
+
+	REQUIRES: length > 0
+	REQUIRES: length <= (1 << 24)
+*/
 func storeUncompressedMetaBlockHeader(length uint, bw *bitWriter) {
 	var lenbits uint64
 	var nlenbits uint
@@ -312,8 +330,11 @@ func storeSimpleHuffmanTree(depths []byte, symbols []uint, num_symbols uint, max
 	}
 }
 
-/* num = alphabet size
-   depths = symbol depths */
+/*
+num = alphabet size
+
+	depths = symbol depths
+*/
 func storeHuffmanTree(depths []byte, num uint, tree []huffmanTree, bw *bitWriter) {
 	var huffman_tree [numCommandSymbols]byte
 	var huffman_tree_extra_bits [numCommandSymbols]byte
@@ -367,8 +388,11 @@ func storeHuffmanTree(depths []byte, num uint, tree []huffmanTree, bw *bitWriter
 	storeHuffmanTreeToBitMask(huffman_tree_size, huffman_tree[:], huffman_tree_extra_bits[:], code_length_bitdepth[:], code_length_bitdepth_symbols[:], bw)
 }
 
-/* Builds a Huffman tree from histogram[0:length] into depth[0:length] and
-   bits[0:length] and stores the encoded tree to the bit stream. */
+/*
+Builds a Huffman tree from histogram[0:length] into depth[0:length] and
+
+	bits[0:length] and stores the encoded tree to the bit stream.
+*/
 func buildAndStoreHuffmanTree(histogram []uint32, histogram_length uint, alphabet_size uint, tree []huffmanTree, depth []byte, bits []uint16, bw *bitWriter) {
 	var count uint = 0
 	var s4 = [4]uint{0}
@@ -668,12 +692,15 @@ func moveToFrontTransform(v_in []uint32, v_size uint, v_out []uint32) {
 	}
 }
 
-/* Finds runs of zeros in v[0..in_size) and replaces them with a prefix code of
-   the run length plus extra bits (lower 9 bits is the prefix code and the rest
-   are the extra bits). Non-zero values in v[] are shifted by
-   *max_length_prefix. Will not create prefix codes bigger than the initial
-   value of *max_run_length_prefix. The prefix code of run length L is simply
-   Log2Floor(L) and the number of extra bits is the same as the prefix code. */
+/*
+Finds runs of zeros in v[0..in_size) and replaces them with a prefix code of
+
+	the run length plus extra bits (lower 9 bits is the prefix code and the rest
+	are the extra bits). Non-zero values in v[] are shifted by
+	*max_length_prefix. Will not create prefix codes bigger than the initial
+	value of *max_run_length_prefix. The prefix code of run length L is simply
+	Log2Floor(L) and the number of extra bits is the same as the prefix code.
+*/
 func runLengthCodeZeros(in_size uint, v []uint32, out_size *uint, max_run_length_prefix *uint32) {
 	var max_reps uint32 = 0
 	var i uint
@@ -793,8 +820,11 @@ func storeBlockSwitch(code *blockSplitCode, block_len uint32, block_type byte, i
 	bw.writeBits(uint(len_nextra), uint64(len_extra))
 }
 
-/* Builds a BlockSplitCode data structure from the block split given by the
-   vector of block types and block lengths and stores it to the bit stream. */
+/*
+Builds a BlockSplitCode data structure from the block split given by the
+
+	vector of block types and block lengths and stores it to the bit stream.
+*/
 func buildAndStoreBlockSplitCode(types []byte, lengths []uint32, num_blocks uint, num_types uint, tree []huffmanTree, code *blockSplitCode, bw *bitWriter) {
 	var type_histo [maxBlockTypeSymbols]uint32
 	var length_histo [numBlockLenSymbols]uint32
@@ -913,14 +943,20 @@ func cleanupBlockEncoder(self *blockEncoder) {
 	blockEncoderPool.Put(self)
 }
 
-/* Creates entropy codes of block lengths and block types and stores them
-   to the bit stream. */
+/*
+Creates entropy codes of block lengths and block types and stores them
+
+	to the bit stream.
+*/
 func buildAndStoreBlockSwitchEntropyCodes(self *blockEncoder, tree []huffmanTree, bw *bitWriter) {
 	buildAndStoreBlockSplitCode(self.block_types_, self.block_lengths_, self.num_blocks_, self.num_block_types_, tree, &self.block_split_code_, bw)
 }
 
-/* Stores the next symbol with the entropy code of the current block type.
-   Updates the block type and block length at block boundaries. */
+/*
+Stores the next symbol with the entropy code of the current block type.
+
+	Updates the block type and block length at block boundaries.
+*/
 func storeSymbol(self *blockEncoder, symbol uint, bw *bitWriter) {
 	if self.block_len_ == 0 {
 		self.block_ix_++
@@ -939,9 +975,12 @@ func storeSymbol(self *blockEncoder, symbol uint, bw *bitWriter) {
 	}
 }
 
-/* Stores the next symbol with the entropy code of the current block type and
-   context value.
-   Updates the block type and block length at block boundaries. */
+/*
+Stores the next symbol with the entropy code of the current block type and
+
+	context value.
+	Updates the block type and block length at block boundaries.
+*/
 func storeSymbolWithContext(self *blockEncoder, symbol uint, context uint, context_map []uint32, bw *bitWriter, context_bits uint) {
 	if self.block_len_ == 0 {
 		self.block_ix_++
@@ -1257,8 +1296,11 @@ func storeMetaBlockFast(input []byte, start_pos uint, length uint, mask uint, is
 	}
 }
 
-/* This is for storing uncompressed blocks (simple raw storage of
-   bytes-as-bytes). */
+/*
+This is for storing uncompressed blocks (simple raw storage of
+
+	bytes-as-bytes).
+*/
 func storeUncompressedMetaBlock(is_final_block bool, input []byte, position uint, mask uint, len uint, bw *bitWriter) {
 	var masked_pos uint = position & mask
 	storeUncompressedMetaBlockHeader(uint(len), bw)

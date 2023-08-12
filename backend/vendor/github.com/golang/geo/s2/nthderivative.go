@@ -15,7 +15,8 @@
 package s2
 
 // nthDerivativeCoder provides Nth Derivative Coding.
-//   (In signal processing disciplines, this is known as N-th Delta Coding.)
+//
+//	(In signal processing disciplines, this is known as N-th Delta Coding.)
 //
 // Good for varint coding integer sequences with polynomial trends.
 //
@@ -23,28 +24,32 @@ package s2
 // derivative.  Overflow in integer addition and subtraction makes this a
 // lossless transform.
 //
-//                                       constant     linear      quadratic
-//                                        trend       trend         trend
-//                                      /        \  /        \  /           \_
+//	 constant     linear      quadratic
+//	  trend       trend         trend
+//	/        \  /        \  /           \_
+//
 // input                               |0  0  0  0  1  2  3  4  9  16  25  36
 // 0th derivative(identity)            |0  0  0  0  1  2  3  4  9  16  25  36
 // 1st derivative(delta coding)        |   0  0  0  1  1  1  1  5   7   9  11
 // 2nd derivative(linear prediction)   |      0  0  1  0  0  0  4   2   2   2
-//                                      -------------------------------------
-//                                      0  1  2  3  4  5  6  7  8   9  10  11
-//                                                  n in sequence
+//
+//	-------------------------------------
+//	0  1  2  3  4  5  6  7  8   9  10  11
+//	            n in sequence
 //
 // Higher-order codings can break even or be detrimental on other sequences.
 //
-//                                           random            oscillating
-//                                      /               \  /                  \_
+//	     random            oscillating
+//	/               \  /                  \_
+//
 // input                               |5  9  6  1   8  8  2 -2   4  -4   6  -6
 // 0th derivative(identity)            |5  9  6  1   8  8  2 -2   4  -4   6  -6
 // 1st derivative(delta coding)        |   4 -3 -5   7  0 -6 -4   6  -8  10 -12
 // 2nd derivative(linear prediction)   |     -7 -2  12 -7 -6  2  10 -14  18 -22
-//                                      ---------------------------------------
-//                                      0  1  2  3  4   5  6  7   8   9  10  11
-//                                                  n in sequence
+//
+//	---------------------------------------
+//	0  1  2  3  4   5  6  7   8   9  10  11
+//	            n in sequence
 //
 // Note that the nth derivative isn't available until sequence item n.  Earlier
 // values are coded at lower order.  For the above table, read 5 4 -7 -2 12 ...

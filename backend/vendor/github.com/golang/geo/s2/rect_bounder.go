@@ -216,8 +216,7 @@ func (r *RectBounder) RectBound() Rect {
 // More precisely, if L is a loop that does not contain either pole, and S
 // is a loop such that L.Contains(S), then
 //
-//   ExpandForSubregions(L.RectBound).Contains(S.RectBound).
-//
+//	ExpandForSubregions(L.RectBound).Contains(S.RectBound).
 func ExpandForSubregions(bound Rect) Rect {
 	// Empty bounds don't need expansion.
 	if bound.IsEmpty() {

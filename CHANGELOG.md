@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# v0.1.4
+ - various UI fixes
+   - Added download button back to toolbar
+   - Added upload button to side menu
+   - breadcrumb spacing fix
+   - Added "compact" view option
+ - various backend fixes
+   - search no longer searches by word with spaces, includes space in searches
+   - prepared for full json configuration
+ -
 ## v0.1.3
 
  - improved styling, colors, transparency, blur

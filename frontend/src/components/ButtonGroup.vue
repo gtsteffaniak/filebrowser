@@ -1,11 +1,7 @@
 <template>
   <div class="button-group">
-    <button
-      v-for="(btn, index) in buttons"
-      :key="index"
-      :class="{ active: activeButton === index }"
-      @click="setActiveButton(index)"
-    >
+    <button v-for="(btn, index) in buttons" :key="index" :disabled="isDisabled" :class="{ active: activeButton === index && !isDisabled }"
+      @click="setActiveButton(index, btn.label)">
       {{ btn.label }}
     </button>
   </div>
@@ -18,6 +14,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    isDisabled: {
+      type: Boolean,
+      default: false
+    },
     initialActive: {
       type: Number,
       default: null,
@@ -29,7 +29,19 @@ export default {
     };
   },
   methods: {
-    setActiveButton(index) {
+    setActiveButton(index, label) {
+      if (label == "Only Folders" && this.activeButton != index) {
+        console.log("Only Folders && this.activeButton != index")
+        this.$emit("disableAll");
+      }
+      if (label == "Only Folders" && this.activeButton == index) {
+        console.log("Only Folders && this.activeButton == index")
+        this.$emit("enableAll");
+      }
+      if (label == "Only Files" && this.activeButton != index) {
+        console.log("Only Files && this.activeButton != index")
+        this.$emit("enableAll");
+      }
       // If the clicked button is already active, de-select it
       if (this.activeButton === index) {
         this.activeButton = null;
@@ -60,6 +72,7 @@ export default {
 
 <style scoped>
 .button-group {
+  margin:1em;
   display: flex;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -79,7 +92,7 @@ button {
 }
 
 /* Remove the border from the last button */
-.button-group > button:last-child {
+.button-group>button:last-child {
   border-right: none;
 }
 

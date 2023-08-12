@@ -128,8 +128,9 @@ type LogAdapter interface {
 }
 
 // TODO(dustin): !! Also populate whether we've bypassed an exception so that
-//                  we can add a template macro to prefix an exclamation of
-//                  some sort.
+//
+//	we can add a template macro to prefix an exclamation of
+//	some sort.
 type MessageContext struct {
 	Level         *string
 	Noun          *string

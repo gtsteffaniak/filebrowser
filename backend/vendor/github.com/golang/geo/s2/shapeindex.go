@@ -197,10 +197,9 @@ const (
 // ShapeIndexIterator is an iterator that provides low-level access to
 // the cells of the index. Cells are returned in increasing order of CellID.
 //
-//   for it := index.Iterator(); !it.Done(); it.Next() {
-//     fmt.Print(it.CellID())
-//   }
-//
+//	for it := index.Iterator(); !it.Done(); it.Next() {
+//	  fmt.Print(it.CellID())
+//	}
 type ShapeIndexIterator struct {
 	index    *ShapeIndex
 	position int
@@ -571,12 +570,11 @@ const (
 //
 // Example showing how to build an index of Polylines:
 //
-//   index := NewShapeIndex()
-//   for _, polyline := range polylines {
-//       index.Add(polyline);
-//   }
-//   // Now you can use a CrossingEdgeQuery or ClosestEdgeQuery here.
-//
+//	index := NewShapeIndex()
+//	for _, polyline := range polylines {
+//	    index.Add(polyline);
+//	}
+//	// Now you can use a CrossingEdgeQuery or ClosestEdgeQuery here.
 type ShapeIndex struct {
 	// shapes is a map of shape ID to shape.
 	shapes map[int32]Shape

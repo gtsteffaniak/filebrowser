@@ -33,7 +33,7 @@
         </p>
         <div v-show="isEmpty && !isRunning">
           <div class="searchPrompt" v-show="isEmpty && !isRunning">
-            <p>No results found in indexed search.</p>
+            <p>{{ noneMessage }}</p>
           </div>
         </div>
         <template v-if="isEmpty">
@@ -41,7 +41,7 @@
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
-                <div tabindex="0" v-for="(v, k) in boxes" :key="k" role="button" @click="init('type:' + k)"
+                <div tabindex="0" v-for="(v, k) in boxes" :key="k" role="button" @click="addToTypes('type:' + k)"
                   :aria-label="v.label">
                   <i class="material-icons">{{ v.icon }}</i>
                   <p>{{ v.label }}</p>
@@ -57,6 +57,44 @@
         <div class="button fluid">
           Search Context: {{ getContext(this.$route.path) }}
         </div>
+        <template>
+          <p v-show="isEmpty && isRunning" id="renew">
+            <i class="material-icons spin">autorenew</i>
+          </p>
+          <div class="searchPrompt" v-show="isEmpty && !isRunning">
+            <p>{{noneMessage}}</p>
+            <div class="helpButton" @click="toggleHelp()">Toggle Search Help</div>
+          </div>
+          <div class="helpText" v-if="showHelp">
+            <p>Search occurs on each character you type (3 character minimum for search terms).</p>
+            <p><b>The index:</b> Search utilizes the index which automatically gets updated on the configured interval
+              (default: 5 minutes).
+              Searching when the program has just started may result in incomplete results.</p>
+            <p><b>Filter by type:</b> You can have multiple type filters by adding <code>type:condition</code> followed by
+              search terms.</p>
+            <p><b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
+              for example <code>"test|not"</code> searches for both terms independently.</p>
+            <p><b>File size:</b> Searching files by size may have significantly longer search times.</p>
+          </div>
+          <template>
+              <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
+                @disableAll="folderSelectClicked()" @enableAll="resetButtonGroups()" />
+              <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
+                :isDisabled="isTypeSelectDisabled" />
+              <div class="sizeConstraints">
+                <div class="input sizeInputWrapper">
+                  <p>Smaller Than:</p>
+                  <input class="sizeInput" v-model="smallerThan" type="text" placeholder="Enter number">
+                  <p>MB</p>
+                </div>
+                <div class="input sizeInputWrapper">
+                  <p>Larger Than:</p>
+                  <input class="sizeInput" v-model="largerThan" type="text" placeholder="Enter number">
+                  <p>MB</p>
+                </div>
+              </div>
+          </template>
+        </template>
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" @click.stop.prevent="navigateTo(s.url)" style="cursor: pointer">
             <router-link to="#" event="">
@@ -72,44 +110,48 @@
             </router-link>
           </li>
         </ul>
-        <template>
-          <p v-show="isEmpty && isRunning" id="renew">
-            <i class="material-icons spin">autorenew</i>
-          </p>
-          <div class="searchPrompt" v-show="isEmpty && !isRunning">
-            <p>No results found in indexed search.</p>
-            <div class="helpButton" @click="toggleHelp()">Toggle Search Help</div>
-          </div>
-
-          <div class="helpText" v-if="showHelp">
-            Search additional terms separated by <code>|</code>, for example <code>"test|not"</code> searches for both terms independently
-            <p>Note: searching files by size may have significantly longer search times since it cannot rely on the index alone.
-               The search looks for only files that match all other conditions first, then checks the filesize and returns matching results.</p>
-          </div>
-          <template>
-            <div class="boxes">
-              <ButtonGroup :buttons="folderSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
-              <ButtonGroup :buttons="typeSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
-              <ButtonGroup :buttons="sizeSelect" @button-clicked="init" @remove-button-clicked="removeInit" />
-            </div>
-          </template>
-        </template>
       </div>
     </div>
   </div>
 </template>
 
 <style>
-.helpText{
-  padding:1em
+
+.helpText {
+  padding: 1em
 }
-.helpButton {
+.sizeConstraints {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-content: center;
+  margin: 1em;
+  justify-content: center;
+}
+.sizeInput {
   text-align: center;
-  background: var(--background);
+  width: 5em;
+  border: solid !important;
+  border-radius: 1em;
+  padding: 1em;
+}
+.sizeInputWrapper {
+  margin: auto;
+  border-radius: 1em;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
+}
+
+.helpButton {
+  cursor: pointer;
+  text-align: center;
+  background: lightgray;
   background-color: lightgray;
   padding: .25em;
   border-radius: .25em;
 }
+
 .searchPrompt {
   display: flex;
   flex-direction: column;
@@ -132,8 +174,6 @@ var boxes = {
   audio: { label: "audio files", icon: "volume_up" },
   video: { label: "videos", icon: "movie" },
   doc: { label: "documents", icon: "picture_as_pdf" },
-  "larger=100": { label: "larger than 100MB", icon: "arrow_forward_ios" },
-  "smaller=100": { label: "smaller than 100MB ", icon: "arrow_back_ios" },
 };
 
 export default {
@@ -143,6 +183,11 @@ export default {
   name: "search",
   data: function () {
     return {
+      largerThan: "",
+      smallerThan: "",
+      noneMessage: "Start typing 3 or more characters to begin searching.",
+      searchTypes: " ",
+      isTypeSelectDisabled: false,
       showHelp: false,
       folderSelect: [
         { label: "Only Folders", value: "type:folder" },
@@ -154,10 +199,6 @@ export default {
         { label: "Videos", value: "type:video" },
         { label: "Documents", value: "type:docs" },
         { label: "Archives", value: "type:archive" },
-      ],
-      sizeSelect: [
-        { label: "Smaller than 100MB", value: "type:smaller=100" },
-        { label: "Larger than 100MB", value: "type:larger=100" },
       ],
       value: "",
       width: window.innerWidth,
@@ -270,45 +311,63 @@ export default {
       }
       this.results.length === 0;
     },
-    init(string) {
+    addToTypes(string){
+      console.log(string)
       if (string == null || string == "") {
         return false
       }
-      this.value = `${string} ${this.value}`;
-      if (this.isMobile) {
-        this.$refs.input.focus();
-      }
+      this.searchTypes = string+" "+this.searchTypes
+      console.log(this.searchTypes)
     },
-    removeInit(string) {
+    removeFromTypes(string){
+      console.log(string)
       if (string == null || string == "") {
         return false
       }
-      this.value = this.value.replace(string + " ", "");
+      this.searchTypes = this.searchTypes.replace(string + " ", "");
       if (this.isMobile) {
         this.$refs.input.focus();
       }
+      console.log(this.searchTypes)
+    },
+    folderSelectClicked() {
+      this.isTypeSelectDisabled = true;  // Disable the other ButtonGroup
+    },
+    resetButtonGroups() {
+      this.isTypeSelectDisabled = false;
     },
     reset() {
       this.ongoing = false;
-      this.resultsCount = 50;
       this.results = [];
     },
     async submit(event) {
+      this.showHelp = false;
       event.preventDefault();
-      const words = this.value.split(" ").filter((word) => word.length < 3);
-      if (this.value === "" || words.length > 0) {
-        return;
+      if (this.value === "" || this.value.length < 3) {
+        reset();
+        this.noneMessage = "Not enough characters to search (min 3)"
+        return
+      }
+      let searchTypesFull = this.searchTypes
+      if (this.largerThan != "" ){
+        searchTypesFull = searchTypesFull+"type:largerThan="+this.largerThan+" "
+      }
+      if (this.smallerThan != "" ){
+        searchTypesFull = searchTypesFull+"type:smallerThan="+this.smallerThan+" "
       }
       let path = this.$route.path;
       this.ongoing = true;
       try {
-        this.results = await search(path, this.value);
+        this.results = await search(path, searchTypesFull + this.value);
       } catch (error) {
         this.$showError(error);
       }
+      if (this.results.length == 0 && this.ongoing == false){
+        this.noneMessage = "No results found in indexed search."
+      }
       this.ongoing = false;
     },
-    toggleHelp(){
+    toggleHelp() {
       this.showHelp = !this.showHelp
     }
   },

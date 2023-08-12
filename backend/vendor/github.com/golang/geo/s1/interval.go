@@ -35,8 +35,9 @@ import (
 // of normal intervals are in the range (-π, π]. We normalize the latter to
 // the former in IntervalFromEndpoints. However, we take advantage of the point
 // -π to construct two special intervals:
-//   The full interval is [-π, π]
-//   The empty interval is [π, -π].
+//
+//	The full interval is [-π, π]
+//	The empty interval is [π, -π].
 //
 // Treat the exported fields as read-only.
 type Interval struct {
@@ -414,7 +415,9 @@ func (i Interval) ComplementCenter() float64 {
 
 // DirectedHausdorffDistance returns the Hausdorff distance to the given interval.
 // For two intervals i and y, this distance is defined by
-//     h(i, y) = max_{p in i} min_{q in y} d(p, q),
+//
+//	h(i, y) = max_{p in i} min_{q in y} d(p, q),
+//
 // where d(.,.) is measured along S1.
 func (i Interval) DirectedHausdorffDistance(y Interval) Angle {
 	if y.ContainsInterval(i) {

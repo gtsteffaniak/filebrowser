@@ -60,14 +60,13 @@ func (ve *ValueEncoder) encodeAscii(value string) (ed EncodedData, err error) {
 //
 // Note that:
 //
-// 1. This type can not be automatically encoded using `Encode()`. The default
-//    mode is to encode *with* a trailing NUL byte using `encodeAscii`. Only
-//    certain undefined-type tags using an unterminated ASCII string and these
-//    are exceptional in nature.
+//  1. This type can not be automatically encoded using `Encode()`. The default
+//     mode is to encode *with* a trailing NUL byte using `encodeAscii`. Only
+//     certain undefined-type tags using an unterminated ASCII string and these
+//     are exceptional in nature.
 //
-// 2. The presence of this method allows us to completely test the complimentary
-//    no-nul parser.
-//
+//  2. The presence of this method allows us to completely test the complimentary
+//     no-nul parser.
 func (ve *ValueEncoder) encodeAsciiNoNul(value string) (ed EncodedData, err error) {
 	ed.Type = TypeAsciiNoNul
 	ed.Encoded = []byte(value)

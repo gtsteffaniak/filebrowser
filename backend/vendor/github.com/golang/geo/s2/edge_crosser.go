@@ -34,7 +34,6 @@ import (
 //		}
 //		return count
 //	}
-//
 type EdgeCrosser struct {
 	a   Point
 	b   Point
@@ -70,10 +69,10 @@ func NewEdgeCrosser(a, b Point) *EdgeCrosser {
 //
 // Properties of CrossingSign:
 //
-//  (1) CrossingSign(b,a,c,d) == CrossingSign(a,b,c,d)
-//  (2) CrossingSign(c,d,a,b) == CrossingSign(a,b,c,d)
-//  (3) CrossingSign(a,b,c,d) == MaybeCross if a==c, a==d, b==c, b==d
-//  (3) CrossingSign(a,b,c,d) == DoNotCross or MaybeCross if a==b or c==d
+//	(1) CrossingSign(b,a,c,d) == CrossingSign(a,b,c,d)
+//	(2) CrossingSign(c,d,a,b) == CrossingSign(a,b,c,d)
+//	(3) CrossingSign(a,b,c,d) == MaybeCross if a==c, a==d, b==c, b==d
+//	(3) CrossingSign(a,b,c,d) == DoNotCross or MaybeCross if a==b or c==d
 //
 // Note that if you want to check an edge against a chain of other edges,
 // it is slightly more efficient to use the single-argument version

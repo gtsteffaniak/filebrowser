@@ -75,10 +75,10 @@ func OriginPoint() Point {
 //
 // It satisfies the following properties (f == PointCross):
 //
-//   (1) f(p, op) != 0 for all p, op
-//   (2) f(op,p) == -f(p,op) unless p == op or p == -op
-//   (3) f(-p,op) == -f(p,op) unless p == op or p == -op
-//   (4) f(p,-op) == -f(p,op) unless p == op or p == -op
+//	(1) f(p, op) != 0 for all p, op
+//	(2) f(op,p) == -f(p,op) unless p == op or p == -op
+//	(3) f(-p,op) == -f(p,op) unless p == op or p == -op
+//	(4) f(p,-op) == -f(p,op) unless p == op or p == -op
 func (p Point) PointCross(op Point) Point {
 	// NOTE(dnadasi): In the C++ API the equivalent method here was known as "RobustCrossProd",
 	// but PointCross more accurately describes how this method is used.
@@ -102,11 +102,11 @@ func (p Point) PointCross(op Point) Point {
 // contained in the range of angles (inclusive) that starts at A and extends
 // CCW to C. Properties:
 //
-//  (1) If OrderedCCW(a,b,c,o) && OrderedCCW(b,a,c,o), then a == b
-//  (2) If OrderedCCW(a,b,c,o) && OrderedCCW(a,c,b,o), then b == c
-//  (3) If OrderedCCW(a,b,c,o) && OrderedCCW(c,b,a,o), then a == b == c
-//  (4) If a == b or b == c, then OrderedCCW(a,b,c,o) is true
-//  (5) Otherwise if a == c, then OrderedCCW(a,b,c,o) is false
+//	(1) If OrderedCCW(a,b,c,o) && OrderedCCW(b,a,c,o), then a == b
+//	(2) If OrderedCCW(a,b,c,o) && OrderedCCW(a,c,b,o), then b == c
+//	(3) If OrderedCCW(a,b,c,o) && OrderedCCW(c,b,a,o), then a == b == c
+//	(4) If a == b or b == c, then OrderedCCW(a,b,c,o) is true
+//	(5) Otherwise if a == c, then OrderedCCW(a,b,c,o) is false
 func OrderedCCW(a, b, c, o Point) bool {
 	sum := 0
 	if RobustSign(b, o, a) != Clockwise {

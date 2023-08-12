@@ -26,26 +26,26 @@ import (
 //
 // The following conversions between degrees and radians are exact:
 //
-//       Degree*180 == Radian*math.Pi
-//   Degree*(180/n) == Radian*(math.Pi/n)     for n == 0..8
+//	    Degree*180 == Radian*math.Pi
+//	Degree*(180/n) == Radian*(math.Pi/n)     for n == 0..8
 //
 // These identities hold when the arguments are scaled up or down by any power
 // of 2. Some similar identities are also true, for example,
 //
-//   Degree*60 == Radian*(math.Pi/3)
+//	Degree*60 == Radian*(math.Pi/3)
 //
 // But be aware that this type of identity does not hold in general. For example,
 //
-//   Degree*3 != Radian*(math.Pi/60)
+//	Degree*3 != Radian*(math.Pi/60)
 //
 // Similarly, the conversion to radians means that (Angle(x)*Degree).Degrees()
 // does not always equal x. For example,
 //
-//   (Angle(45*n)*Degree).Degrees() == 45*n     for n == 0..8
+//	(Angle(45*n)*Degree).Degrees() == 45*n     for n == 0..8
 //
 // but
 //
-//   (60*Degree).Degrees() != 60
+//	(60*Degree).Degrees() != 60
 //
 // When testing for equality, you should allow for numerical errors (ApproxEqual)
 // or convert to discrete E5/E6/E7 values first.

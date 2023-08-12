@@ -37,6 +37,7 @@ func (rcs RangeCodes) End() uint32 { return rcs[len(rcs)-1].End() }
 
 // checkValid reports whether the RangeCodes is valid. In order to be valid,
 // the following must hold true:
+//
 //	rcs[i-1].Base <= rcs[i].Base
 //	rcs[i-1].End  <= rcs[i].End
 //	rcs[i-1].End  >= rcs[i].Base

@@ -74,10 +74,10 @@ func (c Crossing) String() string {
 //
 // Properties of CrossingSign:
 //
-//  (1) CrossingSign(b,a,c,d) == CrossingSign(a,b,c,d)
-//  (2) CrossingSign(c,d,a,b) == CrossingSign(a,b,c,d)
-//  (3) CrossingSign(a,b,c,d) == MaybeCross if a==c, a==d, b==c, b==d
-//  (3) CrossingSign(a,b,c,d) == DoNotCross or MaybeCross if a==b or c==d
+//	(1) CrossingSign(b,a,c,d) == CrossingSign(a,b,c,d)
+//	(2) CrossingSign(c,d,a,b) == CrossingSign(a,b,c,d)
+//	(3) CrossingSign(a,b,c,d) == MaybeCross if a==c, a==d, b==c, b==d
+//	(3) CrossingSign(a,b,c,d) == DoNotCross or MaybeCross if a==b or c==d
 //
 // This method implements an exact, consistent perturbation model such
 // that no three points are ever considered to be collinear. This means
@@ -107,11 +107,11 @@ func CrossingSign(a, b, c, d Point) Crossing {
 //
 // Useful properties of VertexCrossing (VC):
 //
-//  (1) VC(a,a,c,d) == VC(a,b,c,c) == false
-//  (2) VC(a,b,a,b) == VC(a,b,b,a) == true
-//  (3) VC(a,b,c,d) == VC(a,b,d,c) == VC(b,a,c,d) == VC(b,a,d,c)
-//  (3) If exactly one of a,b equals one of c,d, then exactly one of
-//      VC(a,b,c,d) and VC(c,d,a,b) is true
+//	(1) VC(a,a,c,d) == VC(a,b,c,c) == false
+//	(2) VC(a,b,a,b) == VC(a,b,b,a) == true
+//	(3) VC(a,b,c,d) == VC(a,b,d,c) == VC(b,a,c,d) == VC(b,a,d,c)
+//	(3) If exactly one of a,b equals one of c,d, then exactly one of
+//	    VC(a,b,c,d) and VC(c,d,a,b) is true
 //
 // It is an error to call this method with 4 distinct vertices.
 func VertexCrossing(a, b, c, d Point) bool {
@@ -162,8 +162,8 @@ func EdgeOrVertexCrossing(a, b, c, d Point) bool {
 //
 // Useful properties of Intersection:
 //
-//  (1) Intersection(b,a,c,d) == Intersection(a,b,d,c) == Intersection(a,b,c,d)
-//  (2) Intersection(c,d,a,b) == Intersection(a,b,c,d)
+//	(1) Intersection(b,a,c,d) == Intersection(a,b,d,c) == Intersection(a,b,c,d)
+//	(2) Intersection(c,d,a,b) == Intersection(a,b,c,d)
 //
 // The returned intersection point X is guaranteed to be very close to the
 // true intersection point of AB and CD, even if the edges intersect at a

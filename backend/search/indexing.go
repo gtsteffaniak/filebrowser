@@ -2,29 +2,27 @@ package search
 
 import (
 	"log"
+	"math/rand"
+	"mime"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
 	"time"
-	"mime"
-	"math/rand"
 )
 
 var (
-	sessionInProgress 	sync.Map // Track IPs with requests in progress
-	rootPath 			string = "/srv"
-	indexes				map[string][]string
-	mutex       		sync.RWMutex
-	lastIndexed 		time.Time
+	sessionInProgress sync.Map // Track IPs with requests in progress
+	rootPath          string   = "/srv"
+	indexes           map[string][]string
+	mutex             sync.RWMutex
+	lastIndexed       time.Time
 )
 
 func InitializeIndex(intervalMinutes uint32) {
 	// Initialize the indexes map
 	indexes = make(map[string][]string)
-	indexes["dirs"]  = []string{}
-	indexes["files"] = []string{}
 	var numFiles, numDirs int
 	log.Println("Indexing files...")
 	lastIndexedStart := time.Now()
@@ -97,15 +95,14 @@ func addToIndex(path string, fileName string, isDir bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	path = strings.TrimPrefix(path, rootPath+"/")
-	path = strings.TrimSuffix(path, "/")
-	adjustedPath := path + "/" + fileName
-	if path == rootPath {
-		adjustedPath = fileName
+	path = strings.TrimSuffix(path, "/") + "/"
+	if path == "" {
+		path = "/"
 	}
 	if isDir {
-		indexes["dirs"] = append(indexes["dirs"], adjustedPath)
-	}else{
-		indexes["files"] = append(indexes["files"], adjustedPath)
+		indexes[path] = []string{}
+	} else {
+		indexes[path] = append(indexes[path], fileName)
 	}
 }
 
@@ -119,37 +116,52 @@ func SearchAllIndexes(search string, scope string) ([]string, map[string]map[str
 	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
 	var matching []string
-	maximum := 100
-
+	// 250 items total seems like a reasonable limit
+	maximum := 250
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
 		}
+		// Create a reused fileType map
+		reusedFileType := map[string]bool{}
 		// Iterate over the indexes
-		for _,i := range([]string{"dirs","files"}) {
-			isdir := i == "dirs"
-			count := 0
-			for _, path := range indexes[i] {
-				value, found := sessionInProgress.Load(sourceSession)
-				if !found || value != runningHash {
-					return []string{}, map[string]map[string]bool{}
-				}
-				if count > maximum {
-					break
-				}
-				pathName := scopedPathNameFilter(path, scope)
-				if pathName == "" {
-					continue
-				}
-				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isdir)
+		count := 0
+		for pathName, files := range indexes {
+			if count > maximum {
+				break
+			}
+			// this is here to terminate a search if a new one has started
+			// currently limited to one search per container, should be session based
+			value, found := sessionInProgress.Load(sourceSession)
+			if !found || value != runningHash {
+				return []string{}, map[string]map[string]bool{}
+			}
+			pathName = scopedPathNameFilter(pathName, scope)
+			if pathName == "" {
+				continue
+			}
+			// check if dir matches
+			matches, fileType := containsSearchTerm(pathName, searchTerm, *searchOptions, false)
+			if matches {
+				matching = append(matching, pathName)
+				fileListTypes[pathName] = fileType
+				count++
+			}
+			for _, fileName := range files {
+				// check if file matches
+				matches, fileType := containsSearchTerm(pathName+fileName, searchTerm, *searchOptions, false)
 				if !matches {
 					continue
 				}
-				if isdir {
-					pathName = pathName+"/"
+				matching = append(matching, pathName+fileName)
+				// Clear and reuse the fileType map
+				for key := range reusedFileType {
+					delete(reusedFileType, key)
 				}
-				matching = append(matching, pathName)
-				fileListTypes[pathName] = fileType
+				for key, value := range fileType {
+					reusedFileType[key] = value
+				}
+				fileListTypes[pathName] = copyFileTypeMap(reusedFileType)
 				count++
 			}
 		}
@@ -163,51 +175,79 @@ func SearchAllIndexes(search string, scope string) ([]string, map[string]map[str
 	return matching, fileListTypes
 }
 
-func scopedPathNameFilter(pathName string, scope string) string {
-	scope = strings.TrimPrefix(scope, "/")
-	if strings.HasPrefix(pathName, scope) {
-		pathName = strings.TrimPrefix(pathName, scope)
-	} else {
-		pathName = ""
+func copyFileTypeMap(src map[string]bool) map[string]bool {
+	dest := make(map[string]bool, len(src))
+	for key, value := range src {
+		dest[key] = value
 	}
-	return pathName
+	return dest
 }
 
-func containsSearchTerm(pathName string, searchTerm string, options searchOptions, isDir bool) (bool, map[string]bool) {
-	conditions := options.Conditions
-	path 					:= getLastPathComponent(pathName)
-    if !conditions["exact"] {
-        path = strings.ToLower(path)
-        searchTerm = strings.ToLower(searchTerm)
-    }
-	if strings.Contains(path, searchTerm) {
-		fileTypes 				:= map[string]bool{}
-		fileSize				:= getFileSize(pathName)
-		matchesCondition 		:= false
-		matchesAllConditions	:= true
-		extension 				:= filepath.Ext(strings.ToLower(path))
-		mimetype 				:= mime.TypeByExtension(extension)
-		fileTypes["audio"] 		= strings.HasPrefix(mimetype, "audio")
-		fileTypes["image"]		= strings.HasPrefix(mimetype, "image")
-		fileTypes["video"] 		= strings.HasPrefix(mimetype, "video")
-		fileTypes["doc"] 		= isDoc(extension)
-		fileTypes["archive"] 	= isArchive(extension)
-		fileTypes["dir"]		= isDir
+func scopedPathNameFilter(pathName string, scope string) string {
+	if strings.HasPrefix(pathName, scope) {
+		return strings.TrimPrefix(pathName, scope)
+	}
+	return ""
+}
 
-		for t,v := range conditions {
-			switch t {
-			case "exact"	: continue
-			case "larger"	: matchesCondition = fileSize > int64(options.Size) * 1000000
-			case "smaller"	: matchesCondition = fileSize < int64(options.Size) * 1000000
-			default			: matchesCondition = v == fileTypes[t]
+func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool) (bool, map[string]bool) {
+	conditions := options.Conditions
+	path := getLastPathComponent(pathName)
+	// Convert to lowercase once
+	lowerPath := path
+	lowerSearchTerm := searchTerm
+	if !conditions["exact"] {
+		lowerPath = strings.ToLower(path)
+		lowerSearchTerm = strings.ToLower(searchTerm)
+	}
+	if strings.Contains(lowerPath, lowerSearchTerm) {
+		// Reuse the fileTypes map and clear its values
+		fileTypes := map[string]bool{
+			"audio":   false,
+			"image":   false,
+			"video":   false,
+			"doc":     false,
+			"archive": false,
+			"dir":     false,
+		}
+
+		// Calculate fileSize only if needed
+		var fileSize int64
+		if conditions["larger"] || conditions["smaller"] {
+			fileSize = getFileSize(pathName)
+		}
+
+		matchesAllConditions := true
+		extension := filepath.Ext(lowerPath)
+		mimetype := mime.TypeByExtension(extension)
+		fileTypes["audio"] = strings.HasPrefix(mimetype, "audio")
+		fileTypes["image"] = strings.HasPrefix(mimetype, "image")
+		fileTypes["video"] = strings.HasPrefix(mimetype, "video")
+		fileTypes["doc"] = isDoc(extension)
+		fileTypes["archive"] = isArchive(extension)
+		fileTypes["dir"] = isDir
+
+		for t, v := range conditions {
+			if t == "exact" {
+				continue
 			}
-			if (!matchesCondition) {
+			var matchesCondition bool
+			switch t {
+			case "larger":
+				matchesCondition = fileSize > int64(options.Size)*1000000
+			case "smaller":
+				matchesCondition = fileSize < int64(options.Size)*1000000
+			default:
+				matchesCondition = v == fileTypes[t]
+			}
+			if !matchesCondition {
 				matchesAllConditions = false
 			}
 		}
 
 		return matchesAllConditions, fileTypes
 	}
+	// Clear variables and return
 	return false, map[string]bool{}
 }
 
@@ -221,7 +261,7 @@ func isDoc(extension string) bool {
 }
 
 func getFileSize(filepath string) int64 {
-	fileInfo, err := os.Stat(rootPath+"/"+filepath)
+	fileInfo, err := os.Stat(rootPath + "/" + filepath)
 	if err != nil {
 		return 0
 	}

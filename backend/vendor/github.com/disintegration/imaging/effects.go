@@ -15,7 +15,6 @@ func gaussianBlurKernel(x, sigma float64) float64 {
 // Example:
 //
 //	dstImage := imaging.Blur(srcImage, 3.5)
-//
 func Blur(img image.Image, sigma float64) *image.NRGBA {
 	if sigma <= 0 {
 		return Clone(img)
@@ -137,7 +136,6 @@ func blurVertical(img image.Image, kernel []float64) *image.NRGBA {
 // Example:
 //
 //	dstImage := imaging.Sharpen(srcImage, 3.5)
-//
 func Sharpen(img image.Image, sigma float64) *image.NRGBA {
 	if sigma <= 0 {
 		return Clone(img)

@@ -413,12 +413,12 @@ func (l *Loop) BoundaryEqual(o *Loop) bool {
 // -1 if it excludes the boundary of the other, and 0 if the boundaries of the two
 // loops cross. Shared edges are handled as follows:
 //
-//   If XY is a shared edge, define Reversed(XY) to be true if XY
-//     appears in opposite directions in both loops.
-//   Then this loop contains XY if and only if Reversed(XY) == the other loop is a hole.
-//   (Intuitively, this checks whether this loop contains a vanishingly small region
-//   extending from the boundary of the other toward the interior of the polygon to
-//   which the other belongs.)
+//	If XY is a shared edge, define Reversed(XY) to be true if XY
+//	  appears in opposite directions in both loops.
+//	Then this loop contains XY if and only if Reversed(XY) == the other loop is a hole.
+//	(Intuitively, this checks whether this loop contains a vanishingly small region
+//	extending from the boundary of the other toward the interior of the polygon to
+//	which the other belongs.)
 //
 // This function is used for testing containment and intersection of
 // multi-loop polygons. Note that this method is not symmetric, since the
@@ -979,21 +979,23 @@ func (l *Loop) ContainsNested(other *Loop) bool {
 // surface integral" means:
 //
 // (1) f(A,B,C) must be the integral of f if ABC is counterclockwise,
-//     and the integral of -f if ABC is clockwise.
+//
+//	and the integral of -f if ABC is clockwise.
 //
 // (2) The result of this function is *either* the integral of f over the
-//     loop interior, or the integral of (-f) over the loop exterior.
+//
+//	loop interior, or the integral of (-f) over the loop exterior.
 //
 // Note that there are at least two common situations where it easy to work
 // around property (2) above:
 //
-//  - If the integral of f over the entire sphere is zero, then it doesn't
-//    matter which case is returned because they are always equal.
+//   - If the integral of f over the entire sphere is zero, then it doesn't
+//     matter which case is returned because they are always equal.
 //
-//  - If f is non-negative, then it is easy to detect when the integral over
-//    the loop exterior has been returned, and the integral over the loop
-//    interior can be obtained by adding the integral of f over the entire
-//    unit sphere (a constant) to the result.
+//   - If f is non-negative, then it is easy to detect when the integral over
+//     the loop exterior has been returned, and the integral over the loop
+//     interior can be obtained by adding the integral of f over the entire
+//     unit sphere (a constant) to the result.
 //
 // Any changes to this method may need corresponding changes to surfaceIntegralPoint as well.
 func (l *Loop) surfaceIntegralFloat64(f func(a, b, c Point) float64) float64 {
@@ -1748,10 +1750,12 @@ func (i *intersectsRelation) wedgesCross(a0, ab1, a2, b0, b2 Point) bool {
 // so we return crossingTargetDontCare for both crossing targets.
 //
 // Aside: A possible early exit condition could be based on the following.
-//   If A contains a point of both B and ~B, then A intersects Boundary(B).
-//   If ~A contains a point of both B and ~B, then ~A intersects Boundary(B).
-//   So if the intersections of {A, ~A} with {B, ~B} are all non-empty,
-//   the return value is 0, i.e., Boundary(A) intersects Boundary(B).
+//
+//	If A contains a point of both B and ~B, then A intersects Boundary(B).
+//	If ~A contains a point of both B and ~B, then ~A intersects Boundary(B).
+//	So if the intersections of {A, ~A} with {B, ~B} are all non-empty,
+//	the return value is 0, i.e., Boundary(A) intersects Boundary(B).
+//
 // Unfortunately it isn't worth detecting this situation because by the
 // time we have seen a point in all four intersection regions, we are also
 // guaranteed to have seen at least one pair of crossing edges.

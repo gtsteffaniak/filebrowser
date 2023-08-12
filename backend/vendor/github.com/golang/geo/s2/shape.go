@@ -26,9 +26,9 @@ type Edge struct {
 
 // Cmp compares the two edges using the underlying Points Cmp method and returns
 //
-//   -1 if e <  other
-//    0 if e == other
-//   +1 if e >  other
+//	-1 if e <  other
+//	 0 if e == other
+//	+1 if e >  other
 //
 // The two edges are compared by first vertex, and then by the second vertex.
 func (e Edge) Cmp(other Edge) int {
@@ -59,9 +59,9 @@ type ShapeEdgeID struct {
 
 // Cmp compares the two ShapeEdgeIDs and returns
 //
-//   -1 if s <  other
-//    0 if s == other
-//   +1 if s >  other
+//	-1 if s <  other
+//	 0 if s == other
+//	+1 if s >  other
 //
 // The two are compared first by shape id and then by edge id.
 func (s ShapeEdgeID) Cmp(other ShapeEdgeID) int {

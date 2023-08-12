@@ -15,6 +15,7 @@ import "github.com/dsnet/compress/bzip2/internal/sais"
 // Transform, such that a SA can be converted to a BWT in O(n) time.
 //
 // References:
+//
 //	http://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-124.pdf
 //	https://github.com/cscott/compressjs/blob/master/lib/BWT.js
 //	https://www.quora.com/How-can-I-optimize-burrows-wheeler-transform-and-inverse-transform-to-work-in-O-n-time-O-n-space

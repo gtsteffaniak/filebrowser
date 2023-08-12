@@ -31,16 +31,16 @@ import (
 //
 // Containment of input geometry is defined as follows:
 //
-//  - Each input loop and polygon is contained by the convex hull exactly
-//    (i.e., according to Polygon's Contains(Polygon)).
+//   - Each input loop and polygon is contained by the convex hull exactly
+//     (i.e., according to Polygon's Contains(Polygon)).
 //
-//  - Each input point is either contained by the convex hull or is a vertex
-//    of the convex hull. (Recall that S2Loops do not necessarily contain their
-//    vertices.)
+//   - Each input point is either contained by the convex hull or is a vertex
+//     of the convex hull. (Recall that S2Loops do not necessarily contain their
+//     vertices.)
 //
-//  - For each input polyline, the convex hull contains all of its vertices
-//    according to the rule for points above. (The definition of convexity
-//    then ensures that the convex hull also contains the polyline edges.)
+//   - For each input polyline, the convex hull contains all of its vertices
+//     according to the rule for points above. (The definition of convexity
+//     then ensures that the convex hull also contains the polyline edges.)
 //
 // To use this type, call the various Add... methods to add your input geometry, and
 // then call ConvexHull. Note that ConvexHull does *not* reset the

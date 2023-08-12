@@ -58,9 +58,9 @@ func Invert(img image.Image) *image.NRGBA {
 // The percentage = -100 gives the image with the saturation value zeroed for each pixel (grayscale).
 //
 // Examples:
-//  dstImage = imaging.AdjustSaturation(srcImage, 25) // Increase image saturation by 25%.
-//  dstImage = imaging.AdjustSaturation(srcImage, -10) // Decrease image saturation by 10%.
 //
+//	dstImage = imaging.AdjustSaturation(srcImage, 25) // Increase image saturation by 25%.
+//	dstImage = imaging.AdjustSaturation(srcImage, -10) // Decrease image saturation by 10%.
 func AdjustSaturation(img image.Image, percentage float64) *image.NRGBA {
 	percentage = math.Min(math.Max(percentage, -100), 100)
 	multiplier := 1 + percentage/100
@@ -84,7 +84,6 @@ func AdjustSaturation(img image.Image, percentage float64) *image.NRGBA {
 //
 //	dstImage = imaging.AdjustContrast(srcImage, -10) // Decrease image contrast by 10%.
 //	dstImage = imaging.AdjustContrast(srcImage, 20) // Increase image contrast by 20%.
-//
 func AdjustContrast(img image.Image, percentage float64) *image.NRGBA {
 	percentage = math.Min(math.Max(percentage, -100.0), 100.0)
 	lut := make([]uint8, 256)
@@ -112,7 +111,6 @@ func AdjustContrast(img image.Image, percentage float64) *image.NRGBA {
 //
 //	dstImage = imaging.AdjustBrightness(srcImage, -15) // Decrease image brightness by 15%.
 //	dstImage = imaging.AdjustBrightness(srcImage, 10) // Increase image brightness by 10%.
-//
 func AdjustBrightness(img image.Image, percentage float64) *image.NRGBA {
 	percentage = math.Min(math.Max(percentage, -100.0), 100.0)
 	lut := make([]uint8, 256)
@@ -132,7 +130,6 @@ func AdjustBrightness(img image.Image, percentage float64) *image.NRGBA {
 // Example:
 //
 //	dstImage = imaging.AdjustGamma(srcImage, 0.7)
-//
 func AdjustGamma(img image.Image, gamma float64) *image.NRGBA {
 	e := 1.0 / math.Max(gamma, 0.0001)
 	lut := make([]uint8, 256)
@@ -154,7 +151,6 @@ func AdjustGamma(img image.Image, gamma float64) *image.NRGBA {
 //
 //	dstImage = imaging.AdjustSigmoid(srcImage, 0.5, 3.0) // Increase the contrast.
 //	dstImage = imaging.AdjustSigmoid(srcImage, 0.5, -3.0) // Decrease the contrast.
-//
 func AdjustSigmoid(img image.Image, midpoint, factor float64) *image.NRGBA {
 	if factor == 0 {
 		return Clone(img)
@@ -226,7 +222,6 @@ func adjustLUT(img image.Image, lut []uint8) *image.NRGBA {
 //			return color.NRGBA{uint8(r), c.G, c.B, c.A}
 //		}
 //	)
-//
 func AdjustFunc(img image.Image, fn func(c color.NRGBA) color.NRGBA) *image.NRGBA {
 	src := newScanner(img)
 	dst := image.NewNRGBA(image.Rect(0, 0, src.w, src.h))

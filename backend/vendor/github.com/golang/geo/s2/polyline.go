@@ -318,19 +318,19 @@ func findEndVertex(p Polyline, tolerance s1.Angle, index int) int {
 //
 // Some useful properties of the algorithm:
 //
-//  - It runs in linear time.
+//   - It runs in linear time.
 //
-//  - The output always represents a valid polyline. In particular, adjacent
-//    output vertices are never identical or antipodal.
+//   - The output always represents a valid polyline. In particular, adjacent
+//     output vertices are never identical or antipodal.
 //
-//  - The method is not optimal, but it tends to produce 2-3% fewer
-//    vertices than the Douglas-Peucker algorithm with the same tolerance.
+//   - The method is not optimal, but it tends to produce 2-3% fewer
+//     vertices than the Douglas-Peucker algorithm with the same tolerance.
 //
-//  - The output is parametrically equivalent to the original polyline to
-//    within the given tolerance. For example, if a polyline backtracks on
-//    itself and then proceeds onwards, the backtracking will be preserved
-//    (to within the given tolerance). This is different than the
-//    Douglas-Peucker algorithm which only guarantees geometric equivalence.
+//   - The output is parametrically equivalent to the original polyline to
+//     within the given tolerance. For example, if a polyline backtracks on
+//     itself and then proceeds onwards, the backtracking will be preserved
+//     (to within the given tolerance). This is different than the
+//     Douglas-Peucker algorithm which only guarantees geometric equivalence.
 func (p *Polyline) SubsampleVertices(tolerance s1.Angle) []int {
 	var result []int
 

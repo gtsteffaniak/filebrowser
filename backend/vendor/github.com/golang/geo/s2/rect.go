@@ -56,9 +56,10 @@ func RectFromLatLng(p LatLng) Rect {
 // 360 degrees or more.
 //
 // Examples of clamping (in degrees):
-//   center=(80,170),  size=(40,60)   -> lat=[60,90],   lng=[140,-160]
-//   center=(10,40),   size=(210,400) -> lat=[-90,90],  lng=[-180,180]
-//   center=(-90,180), size=(20,50)   -> lat=[-90,-80], lng=[155,-155]
+//
+//	center=(80,170),  size=(40,60)   -> lat=[60,90],   lng=[140,-160]
+//	center=(10,40),   size=(210,400) -> lat=[-90,90],  lng=[-180,180]
+//	center=(-90,180), size=(20,50)   -> lat=[-90,-80], lng=[155,-155]
 func RectFromCenterSize(center, size LatLng) Rect {
 	half := LatLng{size.Lat / 2, size.Lng / 2}
 	return RectFromLatLng(center).expanded(half)
@@ -484,7 +485,8 @@ func (r Rect) DistanceToLatLng(ll LatLng) s1.Angle {
 // DirectedHausdorffDistance returns the directed Hausdorff distance (measured along the
 // surface of the sphere) to the given Rect. The directed Hausdorff
 // distance from rectangle A to rectangle B is given by
-//     h(A, B) = max_{p in A} min_{q in B} d(p, q).
+//
+//	h(A, B) = max_{p in A} min_{q in B} d(p, q).
 func (r Rect) DirectedHausdorffDistance(other Rect) s1.Angle {
 	if r.IsEmpty() {
 		return 0 * s1.Radian
@@ -500,7 +502,8 @@ func (r Rect) DirectedHausdorffDistance(other Rect) s1.Angle {
 // HausdorffDistance returns the undirected Hausdorff distance (measured along the
 // surface of the sphere) to the given Rect.
 // The Hausdorff distance between rectangle A and rectangle B is given by
-//     H(A, B) = max{h(A, B), h(B, A)}.
+//
+//	H(A, B) = max{h(A, B), h(B, A)}.
 func (r Rect) HausdorffDistance(other Rect) s1.Angle {
 	return maxAngle(r.DirectedHausdorffDistance(other),
 		other.DirectedHausdorffDistance(r))

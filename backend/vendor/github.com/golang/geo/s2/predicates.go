@@ -120,15 +120,15 @@ func Sign(a, b, c Point) bool {
 //
 // RobustSign satisfies the following conditions:
 //
-//  (1) RobustSign(a,b,c) == Indeterminate if and only if a == b, b == c, or c == a
-//  (2) RobustSign(b,c,a) == RobustSign(a,b,c) for all a,b,c
-//  (3) RobustSign(c,b,a) == -RobustSign(a,b,c) for all a,b,c
+//	(1) RobustSign(a,b,c) == Indeterminate if and only if a == b, b == c, or c == a
+//	(2) RobustSign(b,c,a) == RobustSign(a,b,c) for all a,b,c
+//	(3) RobustSign(c,b,a) == -RobustSign(a,b,c) for all a,b,c
 //
 // In other words:
 //
-//  (1) The result is Indeterminate if and only if two points are the same.
-//  (2) Rotating the order of the arguments does not affect the result.
-//  (3) Exchanging any two arguments inverts the result.
+//	(1) The result is Indeterminate if and only if two points are the same.
+//	(2) Rotating the order of the arguments does not affect the result.
+//	(3) Exchanging any two arguments inverts the result.
 //
 // On the other hand, note that it is not true in general that
 // RobustSign(-a,b,c) == -RobustSign(a,b,c), or any similar identities
@@ -298,9 +298,9 @@ func exactSign(a, b, c Point, perturb bool) Direction {
 // And the points must be distinct, with A < B < C in lexicographic order.
 //
 // Reference:
-//   "Simulation of Simplicity" (Edelsbrunner and Muecke, ACM Transactions on
-//   Graphics, 1990).
 //
+//	"Simulation of Simplicity" (Edelsbrunner and Muecke, ACM Transactions on
+//	Graphics, 1990).
 func symbolicallyPerturbedSign(a, b, c, bCrossC r3.PreciseVector) Direction {
 	// This method requires that the points are sorted in lexicographically
 	// increasing order. This is because every possible Point has its own
