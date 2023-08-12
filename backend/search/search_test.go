@@ -31,6 +31,30 @@ func TestParseSearch(t *testing.T) {
 	if !reflect.DeepEqual(value, want) {
 		t.Fatalf("\n got:  %+v\n want: %+v", value, want)
 	}
+	value = ParseSearch("type:largerThan=100 type:smallerThan=1000 test")
+	want = &SearchOptions{
+		Conditions: map[string]bool{
+			"exact":  false,
+			"larger": true,
+		},
+		Terms:       []string{"test"},
+		LargerThan:  100,
+		SmallerThan: 1000,
+	}
+	if !reflect.DeepEqual(value, want) {
+		t.Fatalf("\n got:  %+v\n want: %+v", value, want)
+	}
+	value = ParseSearch("type:audio thisfile")
+	want = &SearchOptions{
+		Conditions: map[string]bool{
+			"exact": false,
+			"audio": true,
+		},
+		Terms: []string{"thisfile"},
+	}
+	if !reflect.DeepEqual(value, want) {
+		t.Fatalf("\n got:  %+v\n want: %+v", value, want)
+	}
 }
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
@@ -60,15 +84,12 @@ func BenchmarkFillIndex(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		createMockData(10000, 10) // 1000 dirs, 3 files per dir
 	}
-	for a, _ := range indexes {
-		b.Logf(a)
-	}
 	printBenchmarkResults(b)
 }
 
 func createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
-		dirName := getRandomTerm()
+		dirName := "srv/" + getRandomTerm()
 		addToIndex("/", dirName, true)
 		for j := 0; j < numFilesPerDir; j++ {
 			fileName := "file-" + getRandomTerm() + getRandomExtension()

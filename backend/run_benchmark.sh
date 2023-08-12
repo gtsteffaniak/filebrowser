@@ -9,7 +9,7 @@ checkExit() {
 
 if command -v go &> /dev/null
 then
-    printf "\n == Running benchmark (sends to results.txt) == \n"
+    printf "\n == Running benchmark == \n"
     go test -bench=. -benchmem ./...
     checkExit
 else

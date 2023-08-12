@@ -26,9 +26,10 @@ var compressedFile = []string{
 }
 
 type SearchOptions struct {
-	Conditions map[string]bool
-	Size       int
-	Terms      []string
+	Conditions  map[string]bool
+	LargerThan  int
+	SmallerThan int
+	Terms       []string
 }
 
 func ParseSearch(value string) *SearchOptions {
@@ -68,13 +69,15 @@ func ParseSearch(value string) *SearchOptions {
 		if len(filter) < 8 {
 			continue
 		}
-		if filter[:7] == "larger=" {
+		if strings.HasPrefix(filter, "largerThan=") {
 			opts.Conditions["larger"] = true
-			opts.Size = updateSize(filter[7:]) // everything after larger=
+			size := strings.TrimPrefix(filter, "largerThan=")
+			opts.LargerThan = updateSize(size)
 		}
-		if filter[:8] == "smaller=" {
-			opts.Conditions["smaller"] = true
-			opts.Size = updateSize(filter[8:]) // everything after smaller=
+		if strings.HasPrefix(filter, "smallerThan=") {
+			opts.Conditions["larger"] = true
+			size := strings.TrimPrefix(filter, "smallerThan=")
+			opts.SmallerThan = updateSize(size)
 		}
 	}
 

@@ -12,9 +12,6 @@ then
     printf "\n == Running tests == \n"
     go test -race -v ./...
     checkExit
-    printf "\n == Running benchmark (sends to results.txt) == \n"
-    go test -bench=. -benchtime=100x -benchmem ./...
-    checkExit
 else
     echo "ERROR: unable to perform tests"
     exit 1
