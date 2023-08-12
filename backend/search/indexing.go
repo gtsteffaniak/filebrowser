@@ -137,19 +137,18 @@ func SearchAllIndexes(search string, scope string) ([]string, map[string]map[str
 				pathName = pathName + "/"
 			}
 			if !strings.HasPrefix(pathName, scope) {
-				// skip directory if not in scope
 				continue
 			}
+			pathName = strings.TrimPrefix(pathName, scope)
 			// check if dir matches
-			matches, fileType = containsSearchTerm(pathName, searchTerm, *searchOptions, true)
+			matches, _ = containsSearchTerm(pathName, searchTerm, *searchOptions, true)
 			if matches {
 				matching = append(matching, pathName)
-				fileListTypes[pathName] = fileType
 				count++
 			}
 			for _, fileName := range files {
 				// check if file matches
-				matches, fileType := containsSearchTerm(pathName+fileName, searchTerm, *searchOptions, false)
+				matches, fileType = containsSearchTerm(pathName+fileName, searchTerm, *searchOptions, false)
 				if !matches {
 					continue
 				}
@@ -198,7 +197,6 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 		// Calculate fileSize only if needed
 		var fileSize int64
 		if conditions["larger"] || conditions["smaller"] {
-			log.Println(conditions)
 			fileSize = getFileSize(pathName)
 		}
 		matchesAllConditions := true

@@ -218,7 +218,8 @@ export default {
         }
 
         document.body.style.overflow = "auto";
-        this.reset();
+        this.ongoing = false;
+        this.results = [];
         this.value = "";
         this.active = false;
         this.$refs.input.blur();
@@ -230,7 +231,8 @@ export default {
     },
     value() {
       if (this.results.length) {
-        this.reset();
+        this.ongoing = false;
+        this.results = [];
       }
     },
   },
@@ -284,17 +286,17 @@ export default {
       if (!str.includes("/")) {
         return "";
       }
-      let parts = str.replace(/\/$/, "").split("/");
+      let parts = str.replace(/(\/$|^\/)/, "").split("/"); //remove first and last slash
       parts.pop();
-      return parts.join("/") + "/";
+      parts = parts.join("/") + "/"
+      if (str.endsWith("/")) {
+        parts = "/" + parts // weird rtl bug
+      }
+      return parts;
     },
     baseName(str) {
-      let parts = str.split("/");
-      if (str.endsWith("/")) {
-        return parts[parts.length - 2] + "/";
-      } else {
-        return parts[parts.length - 1];
-      }
+      let parts = str.replace(/(\/$|^\/)/, "").split("/")
+      return parts.pop()
     },
     ...mapMutations(["showHover", "closeHovers", "setReload"]),
     open() {
@@ -336,15 +338,12 @@ export default {
     resetButtonGroups() {
       this.isTypeSelectDisabled = false;
     },
-    reset() {
-      this.ongoing = false;
-      this.results = [];
-    },
     async submit(event) {
       this.showHelp = false;
       event.preventDefault();
       if (this.value === "" || this.value.length < 3) {
-        reset();
+        this.ongoing = false;
+        this.results = [];
         this.noneMessage = "Not enough characters to search (min 3)"
         return
       }

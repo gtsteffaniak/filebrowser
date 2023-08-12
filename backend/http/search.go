@@ -1,8 +1,9 @@
 package http
 
 import (
-	"github.com/gtsteffaniak/filebrowser/search"
 	"net/http"
+
+	"github.com/gtsteffaniak/filebrowser/search"
 )
 
 var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -10,13 +11,16 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	query := r.URL.Query().Get("query")
 	indexInfo, fileTypes := search.SearchAllIndexes(query, r.URL.Path)
 	for _, path := range indexInfo {
-		f := fileTypes[path]
 		responseObj := map[string]interface{}{
 			"path": path,
+			"dir":  true,
 		}
-		for filterType, _ := range f {
-			if f[filterType] {
-				responseObj[filterType] = f[filterType]
+		if _, ok := fileTypes[path]; ok {
+			responseObj["dir"] = false
+			for filterType, value := range fileTypes[path] {
+				if value {
+					responseObj[filterType] = value
+				}
 			}
 		}
 		response = append(response, responseObj)
