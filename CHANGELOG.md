@@ -8,10 +8,13 @@ All notable changes to this project will be documented in this file. See [standa
    - Added upload button to side menu
    - breadcrumb spacing fix
    - Added "compact" view option
+   - fixed slash issue with css rtl logic
  - various backend fixes
    - search no longer searches by word with spaces, includes space in searches
+   - improved indexing speed and efficiency
    - prepared for full json configuration
- -
+ - made size search work for smaller and larger
+ - made search types not show up in search bar when used
 ## v0.1.3
 
  - improved styling, colors, transparency, blur
@@ -21,7 +24,7 @@ All notable changes to this project will be documented in this file. See [standa
    - search
    - toggle view
  - Changed desktop search style and included additional search options.
-   
+
 ## v0.1.2
 
  - Updated UI to use search features better
