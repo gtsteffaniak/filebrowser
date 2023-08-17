@@ -25,20 +25,20 @@ This fork makes the following significant changes to filebrowser for origin:
   no more flags or binary operations to db
  1. [ ] File browsing uses index first for better performance
     - file details shown only when toggled or needed
- 
+
 ## About
 
-Filebrowser provides a file managing interface within a specified directory 
-and it can be used to upload, delete, preview, rename and edit your files. 
-It allows the creation of multiple users and each user can have its own 
+Filebrowser provides a file managing interface within a specified directory
+and it can be used to upload, delete, preview, rename and edit your files.
+It allows the creation of multiple users and each user can have its own
 directory. It can be used as a standalone app.
 
-This repository is a fork, a collection of changes that make this program 
+This repository is a fork, a collection of changes that make this program
 work better in terms of asthetics and performance. Improved search,
  simplified ui (without removing features) and more secure and up-to-date
- build are just a few examples. 
+ build are just a few examples.
 
-There are a few more changes needed to get it to a stable status where it 
+There are a few more changes needed to get it to a stable status where it
 will only recieve security updates. These changes are mentioned above.
 Once this is fully complete, the only updates to th
 
@@ -56,11 +56,11 @@ search categories are improved:
 
 ## Performance
 
-Search Performance - 100x faster search. However, this will be at expense of RAM. if you have < 1 million 
-files and folders in the given scope, the RAM usage should be less than 200MB total. RAM requirements 
-should scale based on the number of directories. 
+Search Performance - 100x faster search. However, this will be at expense of RAM. if you have < 1 million
+files and folders in the given scope, the RAM usage should be less than 200MB total. RAM requirements
+should scale based on the number of directories.
 
-Also , the approx. time to fully index will vary widely based on performance. A sufficiently performant 
+Also , the approx. time to fully index will vary widely based on performance. A sufficiently performant
 system should fully index within the first 5 minutes, potentially within the first few seconds.
 
 For example, a low end 11th gen i5 with SSD indexes 86K files within 1 second:
@@ -127,12 +127,12 @@ volumes:
 
 Note: still a WIP migrating configuration to json.
 
-All configuration is now done via the filebrowser.json config file. 
+All configuration is now done via the filebrowser.json config file.
 This was chosen because it works best with a docker first use case.
 
-Previously the primary way to configure filebrowser was via flags. 
+Previously the primary way to configure filebrowser was via flags.
 But this quickly became cumbersome if you had many configurations to make
 
-The other method to configure was via `filebrowser config` commands which 
+The other method to configure was via `filebrowser config` commands which
 would write configurations to a db if it existed already.
 When considering

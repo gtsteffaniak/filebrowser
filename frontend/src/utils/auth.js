@@ -16,6 +16,7 @@ export function parseToken(token) {
 
   localStorage.setItem("jwt", token);
   store.commit("setJWT", token);
+  store.commit("setSession", generateRandomCode(8));
   store.commit("setUser", data.user);
 }
 
@@ -60,10 +61,23 @@ export async function renew(jwt) {
   const body = await res.text();
 
   if (res.status === 200) {
+    store.commit("setSession", generateRandomCode(8));
     parseToken(body);
   } else {
     throw new Error(body);
   }
+}
+
+function generateRandomCode(length) {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let code = '';
+
+  for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      code += charset[randomIndex];
+  }
+
+  return code;
 }
 
 export async function signup(username, password) {

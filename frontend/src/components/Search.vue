@@ -5,8 +5,8 @@
         <i class="material-icons">close</i>
       </button>
       <i v-else class="material-icons">search</i>
-      <input type="text" @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
-        :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
+      <input class="main-input" type="text" @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active"
+        v-model.trim="value" :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
     </div>
     <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
@@ -41,8 +41,8 @@
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
-                <div tabindex="0" v-for="(v, k) in boxes" :key="k" role="button" @click="addToTypes('type:' + k)"
-                  :aria-label="v.label">
+                <div v-if="showBoxes" class="mobile-boxes" tabindex="0" v-for="(v, k) in boxes" :key="k" role="button"
+                  @click="addToTypes('type:' + k)" :aria-label="v.label">
                   <i class="material-icons">{{ v.icon }}</i>
                   <p>{{ v.label }}</p>
                 </div>
@@ -62,8 +62,8 @@
             <i class="material-icons spin">autorenew</i>
           </p>
           <div class="searchPrompt" v-show="isEmpty && !isRunning">
-            <p>{{noneMessage}}</p>
-            <div class="helpButton" @click="toggleHelp()">Toggle Search Help</div>
+            <p>{{ noneMessage }}</p>
+            <div class="helpButton" @click="toggleHelp()">Help</div>
           </div>
           <div class="helpText" v-if="showHelp">
             <p>Search occurs on each character you type (3 character minimum for search terms).</p>
@@ -77,22 +77,22 @@
             <p><b>File size:</b> Searching files by size may have significantly longer search times.</p>
           </div>
           <template>
-              <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
-                @disableAll="folderSelectClicked()" @enableAll="resetButtonGroups()" />
-              <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
-                :isDisabled="isTypeSelectDisabled" />
-              <div class="sizeConstraints">
-                <div class="input sizeInputWrapper">
-                  <p>Smaller Than:</p>
-                  <input class="sizeInput" v-model="smallerThan" type="text" placeholder="Enter number">
-                  <p>MB</p>
-                </div>
-                <div class="input sizeInputWrapper">
-                  <p>Larger Than:</p>
-                  <input class="sizeInput" v-model="largerThan" type="text" placeholder="Enter number">
-                  <p>MB</p>
-                </div>
+            <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
+              @disableAll="folderSelectClicked()" @enableAll="resetButtonGroups()" />
+            <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
+              :isDisabled="isTypeSelectDisabled" />
+            <div class="sizeConstraints">
+              <div class="sizeInputWrapper">
+                <p>Smaller Than:</p>
+                <input class="sizeInput" v-model="smallerThan" type="text" placeholder="number">
+                <p>MB</p>
               </div>
+              <div class="sizeInputWrapper">
+                <p>Larger Than:</p>
+                <input class="sizeInput" v-model="largerThan" type="text" placeholder="number">
+                <p>MB</p>
+              </div>
+            </div>
           </template>
         </template>
         <ul v-show="results.length > 0">
@@ -116,10 +116,24 @@
 </template>
 
 <style>
+.main-input {
+  width: 100%
+}
+
+.mobile-boxes {
+  cursor: pointer;
+  margin-bottom: 1em;
+  background: var(--blue);
+  color: white;
+  padding: 1em;
+  border-radius: 1em;
+  text-align: center;
+}
 
 .helpText {
   padding: 1em
 }
+
 .sizeConstraints {
   display: flex;
   flex-direction: row;
@@ -128,28 +142,37 @@
   margin: 1em;
   justify-content: center;
 }
+
 .sizeInput {
+  height: 100%;
   text-align: center;
   width: 5em;
-  border: solid !important;
   border-radius: 1em;
   padding: 1em;
+
+  border: solid !important;
 }
+
 .sizeInputWrapper {
-  margin: auto;
   border-radius: 1em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  border-style: groove;
   display: flex;
-  flex-wrap: nowrap;
-  justify-content: space-evenly;
+  background-color: rgb(245, 245, 245);
+  padding: .25em;
+  height: 3em;
+  align-items: center;
 }
 
 .helpButton {
+  position: absolute;
+  right: 10px;
   cursor: pointer;
   text-align: center;
-  background: lightgray;
-  background-color: lightgray;
-  padding: .25em;
-  border-radius: .25em;
+  background: rgb(211, 211, 211);
+  padding: 0.25em;
+  border-radius: 0.25em;
 }
 
 .searchPrompt {
@@ -183,6 +206,7 @@ export default {
   name: "search",
   data: function () {
     return {
+      showBoxes: true,
       largerThan: "",
       smallerThan: "",
       noneMessage: "Start typing 3 or more characters to begin searching.",
@@ -239,6 +263,9 @@ export default {
   computed: {
     ...mapState(["user", "show"]),
     ...mapGetters(["isListing"]),
+    showBoxes() {
+      return this.showBoxes
+    },
     boxes() {
       return boxes;
     },
@@ -301,6 +328,7 @@ export default {
     ...mapMutations(["showHover", "closeHovers", "setReload"]),
     open() {
       this.showHover("search");
+      this.showBoxes = true
     },
     close(event) {
       event.stopPropagation();
@@ -313,16 +341,17 @@ export default {
       }
       this.results.length === 0;
     },
-    addToTypes(string){
-      console.log(string)
+    addToTypes(string) {
+      this.showBoxes = false
+      if (this.searchTypes.includes(string)) {
+        return true
+      }
       if (string == null || string == "") {
         return false
       }
-      this.searchTypes = string+" "+this.searchTypes
-      console.log(this.searchTypes)
+      this.searchTypes = string + " " + this.searchTypes
     },
-    removeFromTypes(string){
-      console.log(string)
+    removeFromTypes(string) {
       if (string == null || string == "") {
         return false
       }
@@ -330,7 +359,6 @@ export default {
       if (this.isMobile) {
         this.$refs.input.focus();
       }
-      console.log(this.searchTypes)
     },
     folderSelectClicked() {
       this.isTypeSelectDisabled = true;  // Disable the other ButtonGroup
@@ -348,11 +376,11 @@ export default {
         return
       }
       let searchTypesFull = this.searchTypes
-      if (this.largerThan != "" ){
-        searchTypesFull = searchTypesFull+"type:largerThan="+this.largerThan+" "
+      if (this.largerThan != "") {
+        searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " "
       }
-      if (this.smallerThan != "" ){
-        searchTypesFull = searchTypesFull+"type:smallerThan="+this.smallerThan+" "
+      if (this.smallerThan != "") {
+        searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " "
       }
       let path = this.$route.path;
       this.ongoing = true;
@@ -361,7 +389,7 @@ export default {
       } catch (error) {
         this.$showError(error);
       }
-      if (this.results.length == 0 && this.ongoing == false){
+      if (this.results.length == 0 && this.ongoing == false) {
         this.noneMessage = "No results found in indexed search."
       }
       this.ongoing = false;

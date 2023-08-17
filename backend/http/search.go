@@ -9,7 +9,10 @@ import (
 var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	response := []map[string]interface{}{}
 	query := r.URL.Query().Get("query")
-	indexInfo, fileTypes := search.SearchAllIndexes(query, r.URL.Path)
+
+	// Retrieve the User-Agent and X-Auth headers from the request
+	sessionId := r.Header.Get("SessionId")
+	indexInfo, fileTypes := search.SearchAllIndexes(query, r.URL.Path, sessionId)
 	for _, path := range indexInfo {
 		responseObj := map[string]interface{}{
 			"path": path,

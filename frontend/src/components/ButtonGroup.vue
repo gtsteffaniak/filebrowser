@@ -75,11 +75,12 @@ export default {
   margin:1em;
   display: flex;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 1em;
   overflow: hidden;
 }
 
 button {
+  cursor: pointer;
   flex: 1;
   height: 3em;
   padding: 8px 16px;

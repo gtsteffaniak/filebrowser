@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	sessionInProgress sync.Map // Track IPs with requests in progress
+	sessionInProgress sync.Map // Track session with requests in progress
 	rootPath          string   = "/srv"
 	indexes           map[string][]string
 	mutex             sync.RWMutex
@@ -23,6 +23,8 @@ var (
 func InitializeIndex(intervalMinutes uint32) {
 	// Initialize the indexes map
 	indexes = make(map[string][]string)
+	indexes["dirs"] = []string{}
+	indexes["files"] = []string{}
 	var numFiles, numDirs int
 	log.Println("Indexing files...")
 	lastIndexedStart := time.Now()
@@ -96,64 +98,57 @@ func addToIndex(path string, fileName string, isDir bool) {
 	defer mutex.Unlock()
 	path = strings.TrimPrefix(path, rootPath+"/")
 	path = strings.TrimSuffix(path, "/")
-	path = "/" + strings.TrimPrefix(path, "/")
+	adjustedPath := path + "/" + fileName
+	if path == rootPath {
+		adjustedPath = fileName
+	}
 	if isDir {
-		indexes[path] = []string{}
+		indexes["dirs"] = append(indexes["dirs"], adjustedPath)
 	} else {
-		indexes[path] = append(indexes[path], fileName)
+		indexes["files"] = append(indexes["files"], adjustedPath)
 	}
 }
 
-func SearchAllIndexes(search string, scope string) ([]string, map[string]map[string]bool) {
-	sourceSession := "0.0.0.0"
+func SearchAllIndexes(search string, scope string, sourceSession string) ([]string, map[string]map[string]bool) {
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
+
 	searchOptions := ParseSearch(search)
 	mutex.RLock()
 	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
 	var matching []string
-	var matches bool
-	var fileType map[string]bool
-	// 250 items total seems like a reasonable limit
-	maximum := 250
+	maximum := 100
+
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
 		}
 		// Iterate over the indexes
-		count := 0
-		for pathName, files := range indexes {
-			if count > maximum {
-				break
-			}
-			// this is here to terminate a search if a new one has started
-			// currently limited to one search per container, should be session based
-			value, found := sessionInProgress.Load(sourceSession)
-			if !found || value != runningHash {
-				return []string{}, map[string]map[string]bool{}
-			}
-			if pathName != "/" {
-				pathName = pathName + "/"
-			}
-			if !strings.HasPrefix(pathName, scope) {
-				continue
-			}
-			pathName = strings.TrimPrefix(pathName, scope)
-			// check if dir matches
-			matches, _ = containsSearchTerm(pathName, searchTerm, *searchOptions, true)
-			if matches {
-				matching = append(matching, pathName)
-				count++
-			}
-			for _, fileName := range files {
-				// check if file matches
-				matches, fileType = containsSearchTerm(pathName+fileName, searchTerm, *searchOptions, false)
+		for _, i := range []string{"dirs", "files"} {
+			isdir := i == "dirs"
+			count := 0
+			for _, path := range indexes[i] {
+				value, found := sessionInProgress.Load(sourceSession)
+				if !found || value != runningHash {
+					return []string{}, map[string]map[string]bool{}
+				}
+				if count > maximum {
+					break
+				}
+				pathName := scopedPathNameFilter(path, scope)
+				if pathName == "" {
+					continue
+				}
+				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isdir)
 				if !matches {
 					continue
 				}
-				matching = append(matching, pathName+fileName)
-				fileListTypes[pathName+fileName] = fileType
+				if isdir {
+					pathName = pathName + "/"
+				}
+				matching = append(matching, pathName)
+				fileListTypes[pathName] = fileType
 				count++
 			}
 		}
@@ -167,12 +162,14 @@ func SearchAllIndexes(search string, scope string) ([]string, map[string]map[str
 	return matching, fileListTypes
 }
 
-func inSearchScope(pathName string, scope string) string {
+func scopedPathNameFilter(pathName string, scope string) string {
+	scope = strings.TrimPrefix(scope, "/")
 	if strings.HasPrefix(pathName, scope) {
 		pathName = strings.TrimPrefix(pathName, scope)
-		return pathName
+	} else {
+		pathName = ""
 	}
-	return ""
+	return pathName
 }
 
 func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool) (bool, map[string]bool) {
