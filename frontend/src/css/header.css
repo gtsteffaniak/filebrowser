@@ -96,7 +96,16 @@ header>div div {
   overflow-y: auto;
   border-color: gray;
 }
+/* Hiding scrollbar for Chrome, Safari and Opera */
+#result-list::-webkit-scrollbar {
+  display: none;
+}
 
+/* Hiding scrollbar for IE, Edge and Firefox */
+#result-list {
+scrollbar-width: none;  /* Firefox */
+-ms-overflow-style: none;  /* IE and Edge */
+}
 @media (min-width: 800px) {
   #result-list {
     padding-top: 0;

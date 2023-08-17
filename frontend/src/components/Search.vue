@@ -37,11 +37,12 @@
           </div>
         </div>
         <template v-if="isEmpty">
-          <template v-if="value.length === 0">
+          <button class="mobile-boxes" v-if="value.length === 0 && !showBoxes " @click="resetSearchFilters()" >Reset filters</button>
+          <template v-if="value.length === 0 && showBoxes ">
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
-                <div v-if="showBoxes" class="mobile-boxes" tabindex="0" v-for="(v, k) in boxes" :key="k" role="button"
+                <div class="mobile-boxes" tabindex="0" v-for="(v, k) in boxes" :key="k" role="button"
                   @click="addToTypes('type:' + k)" :aria-label="v.label">
                   <i class="material-icons">{{ v.icon }}</i>
                   <p>{{ v.label }}</p>
@@ -122,6 +123,7 @@
 
 .mobile-boxes {
   cursor: pointer;
+  overflow: hidden;
   margin-bottom: 1em;
   background: var(--blue);
   color: white;
@@ -129,7 +131,16 @@
   border-radius: 1em;
   text-align: center;
 }
+/* Hiding scrollbar for Chrome, Safari and Opera */
+.mobile-boxes::-webkit-scrollbar {
+    display: none;
+}
 
+/* Hiding scrollbar for IE, Edge and Firefox */
+.mobile-boxes {
+  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
 .helpText {
   padding: 1em
 }
@@ -206,11 +217,10 @@ export default {
   name: "search",
   data: function () {
     return {
-      showBoxes: true,
       largerThan: "",
       smallerThan: "",
       noneMessage: "Start typing 3 or more characters to begin searching.",
-      searchTypes: " ",
+      searchTypes: "",
       isTypeSelectDisabled: false,
       showHelp: false,
       folderSelect: [
@@ -264,7 +274,7 @@ export default {
     ...mapState(["user", "show"]),
     ...mapGetters(["isListing"]),
     showBoxes() {
-      return this.showBoxes
+      return this.searchTypes == "";
     },
     boxes() {
       return boxes;
@@ -328,7 +338,7 @@ export default {
     ...mapMutations(["showHover", "closeHovers", "setReload"]),
     open() {
       this.showHover("search");
-      this.showBoxes = true
+      this.showBoxes = true;
     },
     close(event) {
       event.stopPropagation();
@@ -342,14 +352,16 @@ export default {
       this.results.length === 0;
     },
     addToTypes(string) {
-      this.showBoxes = false
       if (this.searchTypes.includes(string)) {
         return true
       }
       if (string == null || string == "") {
         return false
       }
-      this.searchTypes = string + " " + this.searchTypes
+      this.searchTypes = this.searchTypes + string + " "
+    },
+    resetSearchFilters(){
+      this.searchTypes= "";
     },
     removeFromTypes(string) {
       if (string == null || string == "") {

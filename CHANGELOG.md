@@ -10,11 +10,12 @@ All notable changes to this project will be documented in this file. See [standa
    - Added "compact" view option
    - fixed slash issue with css rtl logic
  - various backend fixes
+   - search has a sessionId attached so searches don't collide
    - search no longer searches by word with spaces, includes space in searches
-   - improved indexing speed and efficiency
    - prepared for full json configuration
  - made size search work for smaller and larger
  - made search types not show up in search bar when used
+
 ## v0.1.3
 
  - improved styling, colors, transparency, blur
@@ -32,7 +33,7 @@ All notable changes to this project will be documented in this file. See [standa
    - Better icons with colors
    - GUI styling
  - Improved search performance
-   
+
 ## v0.1.1
 
  - Improved search with indexing

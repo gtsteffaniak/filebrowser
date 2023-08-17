@@ -103,8 +103,9 @@
 
   #result-list {
     padding-top: 3em;
+    display: flex;
+    flex-direction: column;
   }
-
 }
 
 
@@ -117,6 +118,7 @@
     width: 100%;
   }
 }
+
 /* Mobile Specific Styles */
 .mobile-only {
   display: none !important;
