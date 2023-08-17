@@ -49,8 +49,8 @@ func addConfigFlags(flags *pflag.FlagSet) {
 }
 
 //nolint:gocyclo
-func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (settings.AuthMethod, auth.Auther) {
-	method := settings.AuthMethod(mustGetString(flags, "auth.method"))
+func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (string, auth.Auther) {
+	method := mustGetString(flags, "auth.method")
 
 	var defaultAuther map[string]interface{}
 	if len(defaults) > 0 {

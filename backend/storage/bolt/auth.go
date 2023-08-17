@@ -5,14 +5,13 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 type authBackend struct {
 	db *storm.DB
 }
 
-func (s authBackend) Get(t settings.AuthMethod) (auth.Auther, error) {
+func (s authBackend) Get(t string) (auth.Auther, error) {
 	var auther auth.Auther
 
 	switch t {

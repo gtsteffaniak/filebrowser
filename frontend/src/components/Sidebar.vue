@@ -16,6 +16,10 @@
           <i class="material-icons">note_add</i>
           <span>{{ $t("sidebar.newFile") }}</span>
         </button>
+        <button id="upload-button" @click="upload($event)" class="action" :aria-label="$t('sidebar.upload')" >
+          <i class="material-icons">file_upload</i>
+          <span>Upload file</span>
+        </button>
       </div>
       <div>
         <button class="action" @click="toSettings" :aria-label="$t('sidebar.settings')" :title="$t('sidebar.settings')">
@@ -62,6 +66,7 @@
 </template>
 <script>
 import { mapState, mapGetters } from "vuex";
+import * as upload from "@/utils/upload";
 import * as auth from "@/utils/auth";
 import {
   version,
@@ -131,6 +136,50 @@ export default {
     },
     help() {
       this.$store.commit("showHover", "help");
+    },
+    upload: function () {
+      if (
+        typeof window.DataTransferItem !== "undefined" &&
+        typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
+      ) {
+        this.$store.commit("showHover", "upload");
+      } else {
+        document.getElementById("upload-input").click();
+      }
+    },
+    uploadInput(event) {
+      this.$store.commit("closeHovers");
+
+      let files = event.currentTarget.files;
+      let folder_upload =
+        files[0].webkitRelativePath !== undefined && files[0].webkitRelativePath !== "";
+
+      if (folder_upload) {
+        for (let i = 0; i < files.length; i++) {
+          let file = files[i];
+          files[i].fullPath = file.webkitRelativePath;
+        }
+      }
+
+      let path = this.$route.path.endsWith("/")
+        ? this.$route.path
+        : this.$route.path + "/";
+      let conflict = upload.checkConflict(files, this.req.items);
+
+      if (conflict) {
+        this.$store.commit("showHover", {
+          prompt: "replace",
+          confirm: (event) => {
+            event.preventDefault();
+            this.$store.commit("closeHovers");
+            upload.handleFiles(files, path, true);
+          },
+        });
+
+        return;
+      }
+
+      upload.handleFiles(files, path);
     },
     logout: auth.logout,
   },

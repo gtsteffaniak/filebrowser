@@ -125,6 +125,7 @@ main {
 .breadcrumbs a {
   color: inherit;
   transition: 0.1s ease-in;
+  display: flex;
   border-radius: 0.125em;
 }
 

@@ -12,7 +12,7 @@ import (
 )
 
 // MethodJSONAuth is used to identify json auth.
-const MethodJSONAuth settings.AuthMethod = "json"
+const MethodJSONAuth = "json"
 
 type jsonCred struct {
 	Password  string `json:"password"`

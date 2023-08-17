@@ -208,3 +208,7 @@ nav {
 .share__box__element {
   border-top-color: var(--divider);
 }
+
+.helpButton {
+  background: var(--background);
+}

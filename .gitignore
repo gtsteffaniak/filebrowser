@@ -7,7 +7,7 @@ rice-box.go
 /filebrowser.exe
 /frontend/dist
 /backend/vendor
-
+/backend/*.cov
 
 .DS_Store
 node_modules

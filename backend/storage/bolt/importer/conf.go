@@ -149,13 +149,13 @@ func importConf(db *storm.DB, path string, sto *storage.Storage) error {
 	switch cfg.Auth.Method {
 	case "proxy":
 		auther = &auth.ProxyAuth{Header: cfg.Auth.Header}
-		s.AuthMethod = auth.MethodProxyAuth
+		s.AuthMethod = string(auth.MethodProxyAuth)
 	case "hook":
 		auther = &auth.HookAuth{Command: cfg.Auth.Command}
-		s.AuthMethod = auth.MethodHookAuth
+		s.AuthMethod = string(auth.MethodHookAuth)
 	case "none":
 		auther = &auth.NoAuth{}
-		s.AuthMethod = auth.MethodNoAuth
+		s.AuthMethod = string(auth.MethodNoAuth)
 	default:
 		auther = &auth.JSONAuth{
 			ReCaptcha: &auth.ReCaptcha{
@@ -164,7 +164,7 @@ func importConf(db *storm.DB, path string, sto *storage.Storage) error {
 				Secret: cfg.ReCaptcha.Secret,
 			},
 		}
-		s.AuthMethod = auth.MethodJSONAuth
+		s.AuthMethod = string(auth.MethodJSONAuth)
 	}
 
 	err = sto.Auth.Save(auther)

@@ -1,0 +1,4 @@
+backend/database.db
+backend/vendor/**
+frontend/dist/**
+frontend/node_modules/**

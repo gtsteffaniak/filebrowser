@@ -1,13 +1,12 @@
 package auth
 
 import (
-	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 // StorageBackend is a storage backend for auth storage.
 type StorageBackend interface {
-	Get(settings.AuthMethod) (Auther, error)
+	Get(string) (Auther, error)
 	Save(Auther) error
 }
 
@@ -23,7 +22,7 @@ func NewStorage(back StorageBackend, userStore *users.Storage) *Storage {
 }
 
 // Get wraps a StorageBackend.Get.
-func (s *Storage) Get(t settings.AuthMethod) (Auther, error) {
+func (s *Storage) Get(t string) (Auther, error) {
 	return s.back.Get(t)
 }
 
