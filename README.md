@@ -47,14 +47,11 @@ Once this is fully complete, the only updates to th
 General UI desktop (dark mode):
 ![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/11346953-f3eb-4f2f-a833-1d615e0e38bc)
 
-General UI mobile (dark mode):
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/634d3ba6-7ac0-425b-8a83-419743e92fec)
+[General UI mobile (dark mode)](https://github.com/gtsteffaniak/filebrowser/assets/42989099/634d3ba6-7ac0-425b-8a83-419743e92fec)
 
-This is how desktop search looks in 0.1.4:
 ![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/c8dc8af1-6869-4736-9092-c47f735bbdc0)
 
-However, mobile search still appears very similar to filebrowser/filebrowsers original implementation:
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/e179b821-f4e2-4568-b895-4e00de371637)
+[However, mobile search still appears very similar to filebrowser/filebrowsers original implementation](https://github.com/gtsteffaniak/filebrowser/assets/42989099/e179b821-f4e2-4568-b895-4e00de371637)
 
 ## Performance
 
