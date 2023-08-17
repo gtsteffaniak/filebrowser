@@ -48,9 +48,6 @@ header {
   background: var(--background);
   color: var(--textPrimary);
 }
-#search .boxes {
-  background: var(--surfaceSecondary);
-}
 #search .boxes h3 {
   color: var(--textPrimary);
 }
@@ -196,10 +193,6 @@ nav {
   background: var(--surfaceSecondary) !important;
 }
 
-.button-group button {
-  background-color:darkgray;
-}
-
 .share__box {
   background: var(--surfacePrimary) !important;
   color: var(--textPrimary);
@@ -211,4 +204,12 @@ nav {
 
 .helpButton {
   background: var(--background);
+}
+.sizeInputWrapper {
+  background: var(--background);
+  color: white
+}
+.button-group button {
+  background: var(--background);
+  color: white
 }

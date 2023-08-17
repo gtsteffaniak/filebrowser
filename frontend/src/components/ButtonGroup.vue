@@ -85,7 +85,7 @@ button {
   height: 3em;
   padding: 8px 16px;
   border: none;
-  background-color: #f5f5f5;
+  background: #f5f5f5;
   transition: background-color 0.3s;
 
   /* Add borders */
@@ -98,7 +98,7 @@ button {
 }
 
 button:hover {
-  background-color: #e0e0e0;
+  background: #e0e0e0;
 }
 
 button.active {

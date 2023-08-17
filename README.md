@@ -1,4 +1,4 @@
-## Gtstef / filebrowser
+## Filebrowser
 
 **Note: Intended to be used in docker only.**
 
@@ -44,15 +44,14 @@ Once this is fully complete, the only updates to th
 
 ## Look
 
-This is how desktop search looks in 0.1.3, the styling will be further refined in the next version.
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/761f2a08-cafb-4f79-90fe-48fa50679f48)
+General UI desktop (dark mode):
+![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/11346953-f3eb-4f2f-a833-1d615e0e38bc)
 
-However mobile search still appears very similar to filebrowser/filebrowsers original implementation:
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/03af7760-73a0-4a5d-ab32-84815e455245)
+[General UI mobile (dark mode)](https://github.com/gtsteffaniak/filebrowser/assets/42989099/634d3ba6-7ac0-425b-8a83-419743e92fec)
 
-search categories are improved:
+![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/c8dc8af1-6869-4736-9092-c47f735bbdc0)
 
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/5572ef20-3047-43b9-92f8-95c4ce6f12b5)
+[However, mobile search still appears very similar to filebrowser/filebrowsers original implementation](https://github.com/gtsteffaniak/filebrowser/assets/42989099/e179b821-f4e2-4568-b895-4e00de371637)
 
 ## Performance
 
