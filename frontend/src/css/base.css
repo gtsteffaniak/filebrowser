@@ -177,11 +177,11 @@ body.rtl .breadcrumbs a {
   }
 }
 
-#search.active #result-desktop ul li a {
-  display: flex;
-  align-items: center;
-  padding: .3em 0;
-  margin-right: .3em;
+#search.active #input  {
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
 }
 
 #result-desktop {

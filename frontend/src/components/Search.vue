@@ -54,10 +54,10 @@
       </div>
     </div>
     <div v-if="!isMobile && active" id="result-desktop" ref="result">
-      <div id="result-list">
-        <div class="button fluid">
+      <div class="searchContext">
           Search Context: {{ getContext(this.$route.path) }}
         </div>
+      <div id="result-list">
         <template>
           <p v-show="isEmpty && isRunning" id="renew">
             <i class="material-icons spin">autorenew</i>
@@ -119,6 +119,13 @@
 <style>
 .main-input {
   width: 100%
+}
+.searchContext {
+  width: 100%;
+  padding: .5em 1em;
+  background: var(--blue);
+  color: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .mobile-boxes {
@@ -320,14 +327,14 @@ export default {
       return path.replace(/\/+$/, "") + "/";
     },
     basePath(str) {
-      if (!str.includes("/")) {
-        return "";
+      let parts = str.split("/");
+      if (parts.length <= 2) {
+        return "/";
       }
-      let parts = str.replace(/(\/$|^\/)/, "").split("/"); //remove first and last slash
       parts.pop();
-      parts = parts.join("/") + "/"
-      if (str.endsWith("/")) {
-        parts = "/" + parts // weird rtl bug
+      parts = parts.join("/") + "/";
+      if (str.endsWith("/")){
+        parts = "/" + parts
       }
       return parts;
     },
@@ -338,7 +345,6 @@ export default {
     ...mapMutations(["showHover", "closeHovers", "setReload"]),
     open() {
       this.showHover("search");
-      this.showBoxes = true;
     },
     close(event) {
       event.stopPropagation();
