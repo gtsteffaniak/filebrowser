@@ -10,7 +10,7 @@ checkExit() {
 if command -v go &> /dev/null
 then
     printf "\n == Running benchmark == \n"
-    go test -bench=. -benchmem ./...
+    go test -bench=. -benchtime=10x -benchmem ./...
     checkExit
 else
     echo "ERROR: unable to perform tests"

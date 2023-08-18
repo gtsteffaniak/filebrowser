@@ -61,7 +61,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	indexes = make(map[string][]string)
 
 	// Create mock data
-	createMockData(500, 3) // 1000 dirs, 3 files per dir
+	createMockData(50, 3) // 1000 dirs, 3 files per dir
 
 	// Generate 100 random search terms
 	searchTerms := generateRandomSearchTerms(100)
@@ -71,10 +71,9 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			SearchAllIndexes(term, "/")
+			SearchAllIndexes(term, "/", "test")
 		}
 	}
-	printBenchmarkResults(b)
 }
 
 func BenchmarkFillIndex(b *testing.B) {
@@ -82,20 +81,28 @@ func BenchmarkFillIndex(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		createMockData(10000, 10) // 1000 dirs, 3 files per dir
+		createMockData(50, 3) // 1000 dirs, 3 files per dir
 	}
-	printBenchmarkResults(b)
 }
 
 func createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
-		dirName := "srv/" + getRandomTerm()
+		dirName := generateRandomPath(rand.Intn(3) + 1)
 		addToIndex("/", dirName, true)
 		for j := 0; j < numFilesPerDir; j++ {
 			fileName := "file-" + getRandomTerm() + getRandomExtension()
 			addToIndex("/"+dirName, fileName, false)
 		}
 	}
+}
+
+func generateRandomPath(levels int) string {
+	rand.Seed(time.Now().UnixNano())
+	dirName := "srv"
+	for i := 0; i < levels; i++ {
+		dirName += "/" + getRandomTerm()
+	}
+	return dirName
 }
 
 func getRandomTerm() string {
@@ -160,12 +167,4 @@ func formatMemory(bytes int64) string {
 		i++
 	}
 	return fmt.Sprintf("%d %s", bytes, sizes[i])
-}
-
-// Output the benchmark results with human-readable units
-func printBenchmarkResults(b *testing.B) {
-	averageTimePerIteration := b.Elapsed() / time.Duration(b.N)
-	fmt.Printf("\nIterations            : %d\n", b.N)
-	fmt.Printf("Total time            : %s\n", formatDuration(b.Elapsed()))
-	fmt.Printf("Avg time per op       : %s\n", formatDuration(averageTimePerIteration))
 }
