@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+
+# v0.2.0
+
+ - Works with new more advanced filebrowser.json 
+ - improved GUI
+   - more unified coehisive look
+ - 
+
 # v0.1.4
  - various UI fixes
    - Added download button back to toolbar

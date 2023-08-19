@@ -165,28 +165,7 @@ body.rtl .breadcrumbs a {
   transition: 0.2s ease width;
 }
 
-/* Animations */
-@keyframes flyInFromTop {
-  0% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
 
-#search.active #input  {
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
-}
-
-#result-desktop {
-  animation: flyInFromTop 0.5s forwards;
-}
 
 /* File Selection */
 #file-selection {
