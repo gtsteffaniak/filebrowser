@@ -52,19 +52,16 @@
   body.rtl .dashboard .row {
     margin-right: unset;
   }
-
-  #search.active {
-    display: block;
+  #search {
+    min-width: unset;
   }
 
   #search.active {
+    display: block;
     position: fixed;
     top: 0;
-    right: 0;
+    left: 0;
     width: 100%;
-    max-width: 100%;
-    height: 100%;
-    z-index: 9999;
   }
 
   #search.active #input {
@@ -79,7 +76,8 @@
   }
 
   #search.active #result {
-    height: 100vh
+    height: 100vh;
+    padding-top: 0;
   }
 
   #search.active #result>p>i {
@@ -102,7 +100,12 @@
   }
 
   #result-list {
-    padding-top: 3em;
+    width:100%;
+    left: 0;
+    top: 4em;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    overflow: scroll;
     display: flex;
     flex-direction: column;
   }

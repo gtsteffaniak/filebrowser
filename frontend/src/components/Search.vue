@@ -138,9 +138,11 @@
               <div class="sizeInputWrapper">
                 <p>Smaller Than:</p>
                 <input
+                
                   class="sizeInput"
                   v-model="smallerThan"
-                  type="text"
+                  type="number"
+                  min="0"
                   placeholder="number"
                 />
                 <p>MB</p>
@@ -150,7 +152,7 @@
                 <input
                   class="sizeInput"
                   v-model="largerThan"
-                  type="text"
+                  type="number"
                   placeholder="number"
                 />
                 <p>MB</p>
@@ -202,9 +204,13 @@
   border-color: gray;
   width: 30em;
   padding-top: 0em;
-  border-bottom-right-radius: 1em;
-  border-width: 2px;
-  border-bottom-left-radius: 1em;
+  border-color: #a7a7a7;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 1em;
+  border-top: none;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
   background-color: white;
   max-height: 80vh;
   left: 50%;
@@ -213,7 +219,12 @@
   -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
 }
-
+#search.active #result-desktop ul li a {
+  display: flex;
+  align-items: center;
+  padding: .3em 0;
+  margin-right: .3em;
+}
 #result-list.active {
   width: 65em !important;
   max-width: 85vw !important;
@@ -244,10 +255,15 @@
   display: flex;
   height: 100%;
   padding: 0em 0.75em;
-  border-radius: 0.3em;
+  border-style: solid;
+  border-color: #ccc;
+  border-radius: 1em;
+  border-style: solid;
+  border-color: #a7a7a7;
+  border-width: 1px;
   transition: 1s ease all;
   align-items: center;
-  z-index: 2;
+  z-index: 3;
 }
 
 #search input {
@@ -293,7 +309,7 @@
   color: rgba(0, 0, 0, 0.6);
   height: 0;
   transition: 2s ease height, 2s ease padding;
-  z-index: 1;
+  z-index: 3;
 }
 
 body.rtl #search #result {
@@ -337,8 +353,9 @@ body.rtl #search #result ul > * {
   display: block;
 }
 #search.active #input {
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+  border-bottom-style: none;
   border-bottom-left-radius: 0px;
   border-bottom-right-radius: 0px;
 }
@@ -432,20 +449,23 @@ body.rtl #search .boxes h3 {
   width: 5em;
   border-radius: 1em;
   padding: 1em;
-
-  border: solid !important;
+  backdrop-filter: invert(.1);
+  border: none !important;
 }
 
 .sizeInputWrapper {
   border-radius: 1em;
-  margin-left: 0.5em;
-  margin-right: 0.5em;
-  border-style: groove;
-  display: flex;
-  background-color: rgb(245, 245, 245);
-  padding: 0.25em;
-  height: 3em;
-  align-items: center;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    display: -ms-flexbox;
+    display: flex;
+    background-color: rgb(245, 245, 245);
+    padding: 0.25em;
+    height: 3em;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    border: 1px solid #ccc
 }
 
 .helpButton {
@@ -518,13 +538,14 @@ export default {
   watch: {
     active(active) {
       const resultList = document.getElementById("result-list");
-      if (active) {
-        setTimeout(() => {
-          resultList.classList.add("active");
-        }, 100);
-        return true;
+      if (!active) {
+        resultList.classList.remove("active");
+        return
       }
-      resultList.classList.remove("active");
+      setTimeout(() => {
+        resultList.classList.add("active");
+      }, 100);
+      
     },
     show(val, old) {
       this.active = val === "search";
@@ -683,10 +704,10 @@ export default {
       } catch (error) {
         this.$showError(error);
       }
-      if (this.results.length == 0 && this.ongoing == false) {
+      this.ongoing = false;
+      if (this.results.length == 0) {
         this.noneMessage = "No results found in indexed search.";
       }
-      this.ongoing = false;
     },
     toggleHelp() {
       this.showHelp = !this.showHelp;

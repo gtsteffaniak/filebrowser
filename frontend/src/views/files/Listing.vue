@@ -1,14 +1,7 @@
 <template>
   <div>
-    <header-bar showMenu showLogo>
-      <search />
-      <template #actions>
-        <action :icon="viewIcon" :label="$t('buttons.switchView')" @action="switchView" />
-      </template>
-    </header-bar>
-
-    <div id="file-selection">
-      <span v-if="selectedCount > 0">{{ selectedCount }} selected</span>
+    <div v-if="selectedCount > 0" id="file-selection">
+      <span >{{ selectedCount }} selected</span>
       <template>
         <action
           v-if="headerButtons.select"
@@ -217,17 +210,13 @@ import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
 
-import HeaderBar from "@/components/header/HeaderBar";
 import Action from "@/components/header/Action";
-import Search from "@/components/Search";
 import Item from "@/components/files/ListingItem";
 
 export default {
   name: "listing",
   components: {
-    HeaderBar,
     Action,
-    Search,
     Item,
   },
   data: function () {
@@ -740,27 +729,7 @@ export default {
         },
       });
     },
-    switchView: async function () {
-      this.$store.commit("closeHovers");
-      const modes = {
-        list: "mosaic",
-        mosaic: "mosaic gallery",
-        "mosaic gallery": "list",
-      };
 
-      const data = {
-        id: this.user.id,
-        viewMode: modes[this.user.viewMode] || "list",
-      };
-
-      users.update(data, ["viewMode"]).catch(this.$showError);
-
-      // Await ensures correct value for setItemWeight()
-      await this.$store.commit("updateUser", data);
-
-      this.setItemWeight();
-      this.fillWindow();
-    },
     upload: function () {
       if (
         typeof window.DataTransferItem !== "undefined" &&

@@ -4,8 +4,19 @@ body {
   padding-top: 4em;
   background-color: #fafafa;
   color: #333333;
+  overflow:auto;
+  overflow:initial;
+
+}
+body::-webkit-scrollbar {
+  z-index: 1000;
 }
 
+/* Hiding scrollbar for IE, Edge and Firefox */
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
 body.rtl {
   direction: rtl;
 }
@@ -63,7 +74,7 @@ nav {
   top: 0;
   padding-top: 4em;
   left: -19em;
-  z-index: 10000;
+  z-index: 4;
   background: #fff;
   height: 100%;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
@@ -110,7 +121,13 @@ nav .action > * {
 
 /* Main Content */
 main {
-  margin: 1em;
+  position: fixed;
+  padding: 1em;
+  padding-top: 4em;
+  overflow: scroll;
+  top: 0;
+  height: 100vh;
+  width: 100%;
 }
 
 .breadcrumbs {

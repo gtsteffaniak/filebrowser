@@ -1,8 +1,7 @@
 /* Header */
 header {
-  z-index: 1000;
+  z-index: 5;
   position: fixed;
-  z-index: 10000;
   top: 0;
   left: 0;
   width: 100%;
