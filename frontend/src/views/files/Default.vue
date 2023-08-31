@@ -29,14 +29,14 @@ import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
-import HeaderBar from "@/components/header/HeaderBar";
-import Action from "@/components/header/Action";
+import HeaderBar from "@/components/header/HeaderBar.vue";
+import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
-import Search from "@/components/Search";
+import Search from "@/components/Search.vue";
 
-import Item from "@/components/files/ListingItem";
+import Item from "@/components/files/ListingItem.vue";
 
 export default {
   name: "listing",

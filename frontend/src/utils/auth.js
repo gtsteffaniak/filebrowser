@@ -1,7 +1,7 @@
 import store from "@/store";
 import router from "@/router";
 import { Base64 } from "js-base64";
-import { baseURL } from "@/utils/constants";
+import { fetchURL } from "@/api/utils";
 
 export function parseToken(token) {
   const parts = token.split(".");
@@ -16,7 +16,6 @@ export function parseToken(token) {
 
   localStorage.setItem("jwt", token);
   store.commit("setJWT", token);
-  store.commit("setSession", generateRandomCode(8));
   store.commit("setUser", data.user);
 }
 
@@ -26,20 +25,24 @@ export async function validateLogin() {
       await renew(localStorage.getItem("jwt"));
     }
   } catch (_) {
-    console.warn('Invalid JWT token in storage') // eslint-disable-line
+    console.warn("Invalid JWT token in storage"); // eslint-disable-line
   }
 }
 
 export async function login(username, password, recaptcha) {
   const data = { username, password, recaptcha };
 
-  const res = await fetch(`${baseURL}/api/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const res = await fetchURL(
+    `/api/login`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     },
-    body: JSON.stringify(data),
-  });
+    false
+  );
 
   const body = await res.text();
 
@@ -51,7 +54,7 @@ export async function login(username, password, recaptcha) {
 }
 
 export async function renew(jwt) {
-  const res = await fetch(`${baseURL}/api/renew`, {
+  const res = await fetchURL(`/api/renew`, {
     method: "POST",
     headers: {
       "X-Auth": jwt,
@@ -61,35 +64,26 @@ export async function renew(jwt) {
   const body = await res.text();
 
   if (res.status === 200) {
-    store.commit("setSession", generateRandomCode(8));
     parseToken(body);
   } else {
     throw new Error(body);
   }
 }
 
-function generateRandomCode(length) {
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let code = '';
-
-  for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * charset.length);
-      code += charset[randomIndex];
-  }
-
-  return code;
-}
-
 export async function signup(username, password) {
   const data = { username, password };
 
-  const res = await fetch(`${baseURL}/api/signup`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const res = await fetchURL(
+    `/api/signup`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     },
-    body: JSON.stringify(data),
-  });
+    false
+  );
 
   if (res.status !== 200) {
     throw new Error(res.status);

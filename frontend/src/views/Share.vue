@@ -160,10 +160,10 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
 import moment from "moment";
 
-import Breadcrumbs from "@/components/Breadcrumbs";
-import Errors from "@/views/Errors";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import Errors from "@/views/Errors.vue";
 import QrcodeVue from "qrcode.vue";
-import Item from "@/components/files/ListingItem";
+import Item from "@/components/files/ListingItem.vue";
 import Clipboard from "clipboard";
 
 export default {

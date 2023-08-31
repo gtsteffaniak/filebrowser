@@ -30,9 +30,9 @@ import ace from "ace-builds/src-min-noconflict/ace.js";
 import modelist from "ace-builds/src-min-noconflict/ext-modelist.js";
 import "ace-builds/webpack-resolver";
 
-import HeaderBar from "@/components/header/HeaderBar";
-import Action from "@/components/header/Action";
-import Breadcrumbs from "@/components/Breadcrumbs";
+import HeaderBar from "@/components/header/HeaderBar.vue";
+import Action from "@/components/header/Action.vue";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
 
 export default {
   name: "editor",

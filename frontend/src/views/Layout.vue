@@ -22,12 +22,12 @@ import editorBar from "./files/Editor.vue"
 import defaultBar from "./files/Default.vue"
 import listingBar from"./files/Listing.vue"
 import previewBar from "./files/Preview.vue"
-import Action from "@/components/header/Action";
+import Action from "@/components/header/Action.vue";
 import { mapState, mapGetters } from "vuex";
-import Sidebar from "@/components/Sidebar";
-import Prompts from "@/components/prompts/Prompts";
-import Shell from "@/components/Shell";
-import UploadFiles from "../components/prompts/UploadFiles";
+import Sidebar from "@/components/Sidebar.vue";
+import Prompts from "@/components/header/Action.vue";
+import Shell from "@/components/Shell.vue";
+import UploadFiles from "../components/prompts/UploadFiles.vue";
 import { enableExec } from "@/utils/constants";
 
 export default {

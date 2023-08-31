@@ -210,8 +210,8 @@ import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
 
-import Action from "@/components/header/Action";
-import Item from "@/components/files/ListingItem";
+import Action from "@/components/header/Action.vue";
+import Item from "@/components/files/ListingItem.vue";
 
 export default {
   name: "listing",
