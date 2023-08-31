@@ -18,6 +18,12 @@ const mutations = {
     state.show = value.prompt;
     state.showConfirm = value.confirm;
   },
+  setCurrentView: (state,value) => {
+    if (value != null) {
+      state.currentView = value;
+      return;
+    }
+  },
   showError: (state) => {
     state.show = "error";
   },

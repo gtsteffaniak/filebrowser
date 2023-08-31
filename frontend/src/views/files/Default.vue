@@ -1,13 +1,19 @@
 <template>
-  <div class="flexbar">
-  
-    <div class="menu-button action" icon="menu" :label="$t('buttons.toggleSidebar')" @click="toggleSidebar()">
-      <i class="material-icons">{{ icon }}</i>
-      <span>{{ label }}</span>
-    </div>
+  <header-bar>
+    <action
+      class="menu-button"
+      icon="menu"
+      :label="$t('buttons.toggleSidebar')"
+      @action="toggleSidebar()"
+    />
     <search />
-    <div class="menu-button action" icon="grid_view" :label="$t('buttons.switchView')" @action="switchView" />
-  </div>
+    <action
+      class="menu-button"
+      icon="grid_view"
+      :label="$t('buttons.switchView')"
+      @action="switchView"
+    />
+  </header-bar>
 </template>
 
 <style>
@@ -23,6 +29,8 @@ import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
+import HeaderBar from "@/components/header/HeaderBar";
+import Action from "@/components/header/Action";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
@@ -33,6 +41,8 @@ import Item from "@/components/files/ListingItem";
 export default {
   name: "listing",
   components: {
+    HeaderBar,
+    Action,
     Search,
     Item,
   },

@@ -1,18 +1,6 @@
 <template>
   <header>
-    <action
-      class="menu-button"
-      icon="menu"
-      :label="$t('buttons.toggleSidebar')"
-      @action="toggleSidebar()"
-    />
-
     <slot />
-
-    <div id="dropdown" :class="{ active: this.$store.state.show === 'more' }">
-      <slot name="actions" />
-    </div>
-
   </header>
 </template>
 

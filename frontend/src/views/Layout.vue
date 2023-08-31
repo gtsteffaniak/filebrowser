@@ -54,13 +54,16 @@ export default {
   computed: {
     ...mapGetters(["isLogged", "progress"]),
     ...mapState(["req", "user", "currentView"]),
-
+    
     isExecEnabled: () => enableExec,
     getCurrentView() {
-      return this.$store.state.currentView;
+      return this.currentView;
     },
   },
   watch: {
+    getCurrentView: function () {
+      console.log(this.currentView)
+    },
     $route: function () {
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
