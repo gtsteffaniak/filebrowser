@@ -211,7 +211,7 @@
   border-top: none;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
-  background-color: white;
+  background: white;
   max-height: 80vh;
   left: 50%;
   -webkit-transform: translateX(-50%);
