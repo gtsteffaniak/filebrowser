@@ -1,9 +1,7 @@
 <template>
   <div id="editor-container">
-    <header-bar>
       <action icon="close" :label="$t('buttons.close')" @action="close()" />
       <title>{{ req.name }}</title>
-
       <action
         v-if="user.perm.modify"
         id="save-button"
@@ -11,10 +9,6 @@
         :label="$t('buttons.save')"
         @action="save()"
       />
-    </header-bar>
-
-    <breadcrumbs base="/files" noLink />
-
     <form id="editor"></form>
   </div>
 </template>
@@ -30,14 +24,12 @@ import ace from "ace-builds/src-min-noconflict/ace.js";
 import modelist from "ace-builds/src-min-noconflict/ext-modelist.js";
 import "ace-builds/webpack-resolver";
 
-import HeaderBar from "@/components/header/HeaderBar";
 import Action from "@/components/header/Action";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default {
   name: "editor",
   components: {
-    HeaderBar,
     Action,
     Breadcrumbs,
   },

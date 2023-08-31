@@ -1,30 +1,5 @@
 <template>
   <div>
-    <header-bar showMenu showLogo>
-      <title />
-
-      <action
-        v-if="selectedCount"
-        icon="file_download"
-        :label="$t('buttons.download')"
-        @action="download"
-        :counter="selectedCount"
-      />
-      <button
-        v-if="isSingleFile()"
-        class="action copy-clipboard"
-        :data-clipboard-text="linkSelected()"
-        :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
-        :title="$t('buttons.copyDownloadLinkToClipboard')"
-      >
-        <i class="material-icons">content_paste</i>
-      </button>
-      <action
-        icon="check_circle"
-        :label="$t('buttons.selectMultiple')"
-        @action="toggleMultipleSelection"
-      />
-    </header-bar>
 
     <breadcrumbs :base="'/share/' + hash" />
 
@@ -185,8 +160,6 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
 import moment from "moment";
 
-import HeaderBar from "@/components/header/HeaderBar";
-import Action from "@/components/header/Action";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";
 import QrcodeVue from "qrcode.vue";
@@ -196,8 +169,6 @@ import Clipboard from "clipboard";
 export default {
   name: "share",
   components: {
-    HeaderBar,
-    Action,
     Breadcrumbs,
     Item,
     QrcodeVue,

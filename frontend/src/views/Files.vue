@@ -23,7 +23,6 @@
 import { files as api } from "@/api";
 import { mapState, mapMutations } from "vuex";
 
-import HeaderBar from "@/components/header/HeaderBar";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";
 import Preview from "@/views/files/Preview";
@@ -36,7 +35,6 @@ function clean(path) {
 export default {
   name: "files",
   components: {
-    HeaderBar,
     Breadcrumbs,
     Errors,
     Preview,
@@ -62,8 +60,10 @@ export default {
         this.req.type === "text" ||
         this.req.type === "textImmutable"
       ) {
+        this.$store.state.CurrentView = "editor"
         return "editor";
       } else {
+        this.$store.state.CurrentView = "preview"
         return "preview";
       }
     },

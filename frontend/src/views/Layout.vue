@@ -3,12 +3,10 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <header-bar showMenu showLogo>
-      <search />
-      <template #actions>
-        <action icon="grid_view" :label="$t('buttons.switchView')" @action="switchView" />
-      </template>
-    </header-bar>
+    <editorBar v-if="getCurrentView === 'editor'"></editorBar>
+    <listingBar v-else-if="getCurrentView === 'listing'"></listingBar>
+    <previewBar v-else-if="getCurrentView === 'preview'"></previewBar>
+    <defaultBar v-else></defaultBar>
     <sidebar></sidebar>
     <main>
       <router-view></router-view>
@@ -20,60 +18,63 @@
 </template>
 
 <script>
+import editorBar from "./files/Editor.vue"
+import defaultBar from "./files/Default.vue"
+import listingBar from"./files/Listing.vue"
+import previewBar from "./files/Preview.vue"
+import Action from "@/components/header/Action";
 import { mapState, mapGetters } from "vuex";
 import Sidebar from "@/components/Sidebar";
 import Prompts from "@/components/prompts/Prompts";
 import Shell from "@/components/Shell";
 import UploadFiles from "../components/prompts/UploadFiles";
 import { enableExec } from "@/utils/constants";
-import HeaderBar from "@/components/header/HeaderBar";
-import Search from "@/components/Search";
-import Action from "@/components/header/Action";
 
 export default {
   name: "layout",
   components: {
+    defaultBar,
+    editorBar,
+    listingBar,
+    previewBar,
     Action,
-    HeaderBar,
-    Search,
     Sidebar,
     Prompts,
     Shell,
     UploadFiles,
   },
+  data: function () {
+    return {
+      showContexts: true,
+      dragCounter: 0,
+      width: window.innerWidth,
+      itemWeight: 0,
+    };
+  },
   computed: {
     ...mapGetters(["isLogged", "progress"]),
-    ...mapState(["user"]),
+    ...mapState(["req", "user", "currentView"]),
+
     isExecEnabled: () => enableExec,
+    getCurrentView() {
+      return this.$store.state.currentView;
+    },
   },
   watch: {
     $route: function () {
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
-      if (this.$store.state.show !== "success")
-        this.$store.commit("closeHovers");
+      if (this.$store.state.show !== "success") this.$store.commit("closeHovers");
     },
   },
   methods: {
-    switchView: async function () {
-      this.$store.commit("closeHovers");
-      const modes = {
-        list: "mosaic",
-        mosaic: "mosaic gallery",
-        "mosaic gallery": "list",
-      };
-
-      const data = {
-        id: this.user.id,
-        viewMode: modes[this.user.viewMode] || "list",
-      };
-      //users.update(data, ["viewMode"]).catch(this.$showError);
-      this.$store.commit("updateUser", data);
-
-      //this.setItemWeight();
-      //this.fillWindow();
+    getTitle() {
+      let title = "Title"
+      if (this.$route.path.startsWith('/settings/')){
+        title = "Settings"
+      }
+      return title
     },
-  }
-
+  },
 };
 </script>

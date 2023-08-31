@@ -1,6 +1,5 @@
 <template>
   <div class="dashboard">
-    <header-bar showMenu showLogo />
 
     <div id="nav">
       <div class="wrapper">
@@ -52,13 +51,9 @@
 <script>
 import { mapState } from "vuex";
 
-import HeaderBar from "@/components/header/HeaderBar";
 
 export default {
   name: "settings",
-  components: {
-    HeaderBar,
-  },
   computed: {
     ...mapState(["user", "loading"]),
   },
