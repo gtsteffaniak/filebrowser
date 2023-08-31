@@ -8,7 +8,9 @@ All notable changes to this project will be documented in this file. See [standa
  - Works with new more advanced filebrowser.json 
  - improved GUI
    - more unified coehisive look
- - 
+ - The shell is dead.
+   - If you need to use the shell, exec into the docker container.
+   - All configuration is done via filebrowser.yml
 
 # v0.1.4
  - various UI fixes

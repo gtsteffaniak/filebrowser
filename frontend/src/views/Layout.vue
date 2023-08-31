@@ -10,7 +10,6 @@
     <sidebar></sidebar>
     <main>
       <router-view></router-view>
-      <shell v-if="isExecEnabled && isLogged && user.perm.execute" />
     </main>
     <prompts></prompts>
     <upload-files></upload-files>
@@ -22,12 +21,11 @@ import editorBar from "./files/Editor.vue"
 import defaultBar from "./files/Default.vue"
 import listingBar from"./files/Listing.vue"
 import previewBar from "./files/Preview.vue"
-import Action from "@/components/header/Action.vue";
+import Prompts from "@/components/prompts/Prompts";
+import Action from "@/components/header/Action";
 import { mapState, mapGetters } from "vuex";
 import Sidebar from "@/components/Sidebar.vue";
-import Prompts from "@/components/header/Action.vue";
-import Shell from "@/components/Shell.vue";
-import UploadFiles from "../components/prompts/UploadFiles.vue";
+import UploadFiles from "../components/prompts/UploadFiles";
 import { enableExec } from "@/utils/constants";
 
 export default {
@@ -40,7 +38,6 @@ export default {
     Action,
     Sidebar,
     Prompts,
-    Shell,
     UploadFiles,
   },
   data: function () {

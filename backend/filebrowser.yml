@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  baseURL: /files
+  address: ''
+  log: stdout
+  database: ./database.db
+  root: /srv
+  disable-thumbnails: false
+  disable-preview-resize: false
+  disable-exec: false
+  disable-type-detection-by-header: false
+auth:
+  header: ''
+  method: ''
+  command: ''
+  signup: false
+  shell: ''
+branding:
+  name: ''
+  color: ''
+  files: ''
+  disableExternal: ''
+  disableUsedPercentage: ''
+permissions:
+  Admin: false
+  Execute: true
+  Create: true
+  Rename: true
+  Modify: true
+  Delete: true
+  Share: true
+  Download: true
+commands:
+shell:
+rules:
