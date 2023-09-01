@@ -85,8 +85,7 @@ func dbExists(path string) (bool, error) {
 func python(fn pythonFunc, cfg pythonConfig) cobraFunc {
 	return func(cmd *cobra.Command, args []string) {
 		data := pythonData{hadDB: true}
-
-		path := getParam(cmd.Flags(), "database")
+		path := settings.GlobalConfiguration.Server.Database
 		exists, err := dbExists(path)
 
 		if err != nil {
@@ -100,6 +99,7 @@ func python(fn pythonFunc, cfg pythonConfig) cobraFunc {
 		data.hadDB = exists
 		db, err := storm.Open(path)
 		checkErr(err)
+
 		defer db.Close()
 		data.store, err = bolt.NewStorage(db)
 		checkErr(err)

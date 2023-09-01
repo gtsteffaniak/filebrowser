@@ -82,10 +82,8 @@ Also, if the database path doesn't exist, File Browser will enter into
 the quick setup mode and a new database will be bootstraped and a new
 user created with the credentials from options "username" and "password".`,
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
-		settings.Initialize()
 		serverConfig := settings.GlobalConfiguration.Server
 		log.Println(cfgFile)
-
 		if !d.hadDB {
 			quickSetup(cmd.Flags(), d)
 		}

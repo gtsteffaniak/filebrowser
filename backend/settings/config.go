@@ -10,7 +10,7 @@ import (
 
 var GlobalConfiguration Settings
 
-func Initialize() {
+func init() {
 	// Open and read the YAML file
 	yamlFile, err := os.Open("filebrowser.yml")
 	if err != nil {
