@@ -2,7 +2,6 @@ package bolt
 
 import (
 	"github.com/asdine/storm/v3"
-
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
@@ -20,7 +19,10 @@ func (s settingsBackend) Save(set *settings.Settings) error {
 }
 
 func (s settingsBackend) GetServer() (*settings.Server, error) {
-	server := &settings.Server{}
+	server := &settings.Server{
+		Port: 8080,
+		NumImageProcessors: 1,
+	}
 	return server, get(s.db, "server", server)
 }
 

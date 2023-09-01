@@ -26,33 +26,9 @@ override the options.`,
 		defaults := settings.UserDefaults{}
 		flags := cmd.Flags()
 		getUserDefaults(flags, &defaults, true)
-		authMethod, auther := getAuthentication(flags)
-
-		s := &settings.Settings{
-			Key:        generateKey(),
-			Signup:     mustGetBool(flags, "signup"),
-			Shell:      convertCmdStrToCmdArray(mustGetString(flags, "shell")),
-			AuthMethod: authMethod,
-			Defaults:   defaults,
-			Branding: settings.Branding{
-				Name:                  mustGetString(flags, "branding.name"),
-				DisableExternal:       mustGetBool(flags, "branding.disableExternal"),
-				DisableUsedPercentage: mustGetBool(flags, "branding.DisableUsedPercentage"),
-				Files:                 mustGetString(flags, "branding.files"),
-			},
-		}
-
-		ser := &settings.Server{
-			Address: mustGetString(flags, "address"),
-			Socket:  mustGetString(flags, "socket"),
-			Root:    mustGetString(flags, "root"),
-			BaseURL: mustGetString(flags, "baseurl"),
-			TLSKey:  mustGetString(flags, "key"),
-			TLSCert: mustGetString(flags, "cert"),
-			Port:    mustGetString(flags, "port"),
-			Log:     mustGetString(flags, "log"),
-		}
-		err := d.store.Settings.Save(s)
+		_, auther := getAuthentication()
+		ser := &settings.GlobalConfiguration.Server
+		err := d.store.Settings.Save(&settings.GlobalConfiguration)
 		checkErr(err)
 		err = d.store.Settings.SaveServer(ser)
 		checkErr(err)
@@ -64,6 +40,6 @@ Congratulations! You've set up your database to use with File Browser.
 Now add your first user via 'filebrowser users add' and then you just
 need to call the main command to boot up the server.
 `)
-		printSettings(ser, s, auther)
+		printSettings(ser, &settings.GlobalConfiguration, auther)
 	}, pythonConfig{noDB: true}),
 }

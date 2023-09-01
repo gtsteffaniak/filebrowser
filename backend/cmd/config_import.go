@@ -43,7 +43,6 @@ The path must be for a json or yaml file.`,
 		} else {
 			key = generateKey()
 		}
-
 		file := settingsFile{}
 		err := unmarshal(args[0], &file)
 		checkErr(err)
@@ -63,7 +62,7 @@ The path must be for a json or yaml file.`,
 		}
 
 		var auther auth.Auther
-		switch file.Settings.AuthMethod {
+		switch file.Settings.Auth.Method {
 		case auth.MethodJSONAuth:
 			auther = getAuther(auth.JSONAuth{}, rawAuther).(*auth.JSONAuth)
 		case auth.MethodNoAuth:

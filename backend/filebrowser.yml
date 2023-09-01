@@ -1,26 +1,27 @@
 server:
-  port: 8080
+  port: 8050
   baseURL: /files
   address: ''
   log: stdout
   database: ./database.db
   root: /srv
+general:
   disable-thumbnails: false
   disable-preview-resize: false
   disable-exec: false
   disable-type-detection-by-header: false
 auth:
   header: ''
-  method: ''
+  method: 'noauth'
   command: ''
   signup: false
   shell: ''
-branding:
+frontend:
   name: ''
   color: ''
   files: ''
-  disableExternal: ''
-  disableUsedPercentage: ''
+  disableExternal: false
+  disableUsedPercentage: false
 permissions:
   Admin: false
   Execute: true
@@ -31,5 +32,4 @@ permissions:
   Share: true
   Download: true
 commands:
-shell:
 rules:

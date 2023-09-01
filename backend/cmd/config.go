@@ -28,7 +28,6 @@ var configCmd = &cobra.Command{
 }
 
 func addConfigFlags(flags *pflag.FlagSet) {
-	addServerFlags(flags)
 	addUserFlags(flags)
 	flags.BoolP("signup", "s", false, "allow users to signup")
 	flags.String("shell", "", "shell command to which other commands should be appended")
@@ -41,38 +40,20 @@ func addConfigFlags(flags *pflag.FlagSet) {
 	flags.String("recaptcha.key", "", "ReCaptcha site key")
 	flags.String("recaptcha.secret", "", "ReCaptcha secret")
 
-	flags.String("branding.name", "", "replace 'File Browser' by this name")
-	flags.String("branding.color", "", "set the theme color")
-	flags.String("branding.files", "", "path to directory with images and custom styles")
-	flags.Bool("branding.disableExternal", false, "disable external links such as GitHub links")
-	flags.Bool("branding.disableUsedPercentage", false, "disable used disk percentage graph")
+	flags.String("frontend.name", "", "replace 'File Browser' by this name")
+	flags.String("frontend.color", "", "set the theme color")
+	flags.String("frontend.files", "", "path to directory with images and custom styles")
+	flags.Bool("frontend.disableExternal", false, "disable external links such as GitHub links")
+	flags.Bool("frontend.disableUsedPercentage", false, "disable used disk percentage graph")
 }
 
 //nolint:gocyclo
-func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (string, auth.Auther) {
-	method := mustGetString(flags, "auth.method")
-
+func getAuthentication() (string, auth.Auther) {
+	method := settings.GlobalConfiguration.Auth.Method
 	var defaultAuther map[string]interface{}
-	if len(defaults) > 0 {
-		if hasAuth := defaults[0]; hasAuth != true {
-			for _, arg := range defaults {
-				switch def := arg.(type) {
-				case *settings.Settings:
-					method = def.AuthMethod
-				case auth.Auther:
-					ms, err := json.Marshal(def)
-					checkErr(err)
-					err = json.Unmarshal(ms, &defaultAuther)
-					checkErr(err)
-				}
-			}
-		}
-	}
-
 	var auther auth.Auther
 	if method == auth.MethodProxyAuth {
-		header := mustGetString(flags, "auth.header")
-
+		header := settings.GlobalConfiguration.Auth.Header
 		if header == "" {
 			header = defaultAuther["header"].(string)
 		}
@@ -90,9 +71,9 @@ func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (string, a
 
 	if method == auth.MethodJSONAuth {
 		jsonAuth := &auth.JSONAuth{}
-		host := mustGetString(flags, "recaptcha.host")
-		key := mustGetString(flags, "recaptcha.key")
-		secret := mustGetString(flags, "recaptcha.secret")
+		host := settings.GlobalConfiguration.Auth.Recaptcha.Host
+		key := settings.GlobalConfiguration.Auth.Recaptcha.Key
+		secret := settings.GlobalConfiguration.Auth.Recaptcha.Secret
 
 		if key == "" {
 			if kmap, ok := defaultAuther["recaptcha"].(map[string]interface{}); ok {
@@ -117,7 +98,7 @@ func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (string, a
 	}
 
 	if method == auth.MethodHookAuth {
-		command := mustGetString(flags, "auth.command")
+		command := settings.GlobalConfiguration.Auth.Command
 
 		if command == "" {
 			command = defaultAuther["command"].(string)
@@ -142,14 +123,14 @@ func printSettings(ser *settings.Server, set *settings.Settings, auther auth.Aut
 
 	fmt.Fprintf(w, "Sign up:\t%t\n", set.Signup)
 	fmt.Fprintf(w, "Create User Dir:\t%t\n", set.CreateUserDir)
-	fmt.Fprintf(w, "Auth method:\t%s\n", set.AuthMethod)
+	fmt.Fprintf(w, "Auth method:\t%s\n", set.Auth.Method)
 	fmt.Fprintf(w, "Shell:\t%s\t\n", strings.Join(set.Shell, " "))
-	fmt.Fprintln(w, "\nBranding:")
-	fmt.Fprintf(w, "\tName:\t%s\n", set.Branding.Name)
-	fmt.Fprintf(w, "\tFiles override:\t%s\n", set.Branding.Files)
-	fmt.Fprintf(w, "\tDisable external links:\t%t\n", set.Branding.DisableExternal)
-	fmt.Fprintf(w, "\tDisable used disk percentage graph:\t%t\n", set.Branding.DisableUsedPercentage)
-	fmt.Fprintf(w, "\tColor:\t%s\n", set.Branding.Color)
+	fmt.Fprintln(w, "\nFrontend:")
+	fmt.Fprintf(w, "\tName:\t%s\n", set.Frontend.Name)
+	fmt.Fprintf(w, "\tFiles override:\t%s\n", set.Frontend.Files)
+	fmt.Fprintf(w, "\tDisable external links:\t%t\n", set.Frontend.DisableExternal)
+	fmt.Fprintf(w, "\tDisable used disk percentage graph:\t%t\n", set.Frontend.DisableUsedPercentage)
+	fmt.Fprintf(w, "\tColor:\t%s\n", set.Frontend.Color)
 	fmt.Fprintln(w, "\nServer:")
 	fmt.Fprintf(w, "\tLog:\t%s\n", ser.Log)
 	fmt.Fprintf(w, "\tPort:\t%s\n", ser.Port)

@@ -7,6 +7,7 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/dsoprea/go-exif/v3 v3.0.1
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568
+	github.com/goccy/go-yaml v1.11.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.5.0
@@ -35,6 +36,7 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349 // indirect
+	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
@@ -45,6 +47,8 @@ require (
 	github.com/klauspost/compress v1.11.4 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/nwaples/rardecode v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.2 // indirect
@@ -58,6 +62,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

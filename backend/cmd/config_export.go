@@ -22,7 +22,7 @@ and imported again with 'config import' command.`,
 		server, err := d.store.Settings.GetServer()
 		checkErr(err)
 
-		auther, err := d.store.Auth.Get(settings.AuthMethod)
+		auther, err := d.store.Auth.Get(settings.Auth.Method)
 		checkErr(err)
 
 		data := &settingsFile{

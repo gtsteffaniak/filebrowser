@@ -24,7 +24,6 @@ you want to change. Other options will remain unchanged.`,
 		ser, err := d.store.Settings.GetServer()
 		checkErr(err)
 
-		hasAuth := false
 		flags.Visit(func(flag *pflag.Flag) {
 			switch flag.Name {
 			case "baseurl":
@@ -40,37 +39,30 @@ you want to change. Other options will remain unchanged.`,
 			case "address":
 				ser.Address = mustGetString(flags, flag.Name)
 			case "port":
-				ser.Port = mustGetString(flags, flag.Name)
+				ser.Port = 8080
 			case "log":
 				ser.Log = mustGetString(flags, flag.Name)
 			case "signup":
 				set.Signup = mustGetBool(flags, flag.Name)
-			case "auth.method":
-				hasAuth = true
 			case "shell":
 				set.Shell = convertCmdStrToCmdArray(mustGetString(flags, flag.Name))
-			case "branding.name":
-				set.Branding.Name = mustGetString(flags, flag.Name)
-			case "branding.color":
-				set.Branding.Color = mustGetString(flags, flag.Name)
-			case "branding.disableExternal":
-				set.Branding.DisableExternal = mustGetBool(flags, flag.Name)
-			case "branding.disableUsedPercentage":
-				set.Branding.DisableUsedPercentage = mustGetBool(flags, flag.Name)
-			case "branding.files":
-				set.Branding.Files = mustGetString(flags, flag.Name)
+			case "frontend.name":
+				set.Frontend.Name = mustGetString(flags, flag.Name)
+			case "frontend.color":
+				set.Frontend.Color = mustGetString(flags, flag.Name)
+			case "frontend.disableExternal":
+				set.Frontend.DisableExternal = mustGetBool(flags, flag.Name)
+			case "frontend.disableUsedPercentage":
+				set.Frontend.DisableUsedPercentage = mustGetBool(flags, flag.Name)
+			case "frontend.files":
+				set.Frontend.Files = mustGetString(flags, flag.Name)
 			}
 		})
 
 		getUserDefaults(flags, &set.Defaults, false)
 
 		// read the defaults
-		auther, err := d.store.Auth.Get(set.AuthMethod)
-		checkErr(err)
-
-		// check if there are new flags for existing auth method
-		set.AuthMethod, auther = getAuthentication(flags, hasAuth, set, auther)
-
+		_, auther := getAuthentication()
 		err = d.store.Auth.Save(auther)
 		checkErr(err)
 		err = d.store.Settings.Save(set)
