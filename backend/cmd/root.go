@@ -112,9 +112,6 @@ user created with the credentials from options "username" and "password".`,
 
 		var listener net.Listener
 		listenAddress := serverConfig.Address
-		if listenAddress == "" {
-			listenAddress = "[::]" // default an
-		}
 		address := listenAddress + ":" + strconv.Itoa(serverConfig.Port)
 
 		switch {
@@ -141,7 +138,8 @@ user created with the credentials from options "username" and "password".`,
 		sigc := make(chan os.Signal, 1)
 		signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
 		go cleanupHandler(listener, sigc)
-
+		_, err = os.Stat("frontend/dist")
+		checkErr(err)
 		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
 		handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
 		checkErr(err)

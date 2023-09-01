@@ -1,35 +1,77 @@
+general:
+  key: []
+  signup: true
+  createUserDir: false
+  userHomeBasePath: ""
+  scope: ""
+  locale: ""
+  viewMode: ""
+  singleClick: false
+  hideDotfiles: true
+  dateFormat: false
+  defaultSortBy: ""
+perm:
+  admin: true
+  execute: true
+  create: true
+  rename: true
+  modify: true
+  delete: true
+  share: true
+  download: true
+shell: []
+rules: []
 server:
+  indexingInterval: 5
+  numImageProcessors: 1
+  socket: ""
+  tlsKey: ""
+  tlsCert: ""
+  enableThumbnails: true
+  resizePreview: false
+  enableExec: false
+  typeDetectionByHeader: true
+  authHook: ""
   port: 8080
   baseURL: "/"
-  address: ''
-  log: stdout
-  database: database.db
-  root: /srv
-general:
-  disable-thumbnails: false
-  disable-preview-resize: false
-  disable-exec: false
-  disable-type-detection-by-header: false
+  address: ""
+  log: "stdout"
+  database: "database.db"
+  root: "/srv"
 auth:
-  header: ''
-  method: noauth
-  command: ''
+  recaptcha:
+    host: ""
+    key: ""
+    secret: ""
+  header: ""
+  method: "noauth"
+  command: ""
   signup: false
-  shell: ''
+  shell: ""
 frontend:
-  name: ''
-  color: ''
-  files: ''
+  name: ""
   disableExternal: false
   disableUsedPercentage: false
-permissions:
-  Admin: false
-  Execute: true
-  Create: true
-  Rename: true
-  Modify: true
-  Delete: true
-  Share: true
-  Download: true
-commands:
-rules:
+  files: ""
+  theme: ""
+  color: ""
+userDefaults:
+  scope: ""
+  locale: ""
+  viewMode: ""
+  singleClick: false
+  sorting:
+    by: ""
+    asc: false
+  perm:
+    admin: false
+    execute: false
+    create: false
+    rename: false
+    modify: false
+    delete: false
+    share: false
+    download: false
+  commands: []
+  hideDotfiles: false
+  dateFormat: false
