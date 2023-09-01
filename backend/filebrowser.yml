@@ -1,6 +1,6 @@
 server:
   port: 8050
-  baseURL: /files
+  baseURL: /
   address: ''
   log: stdout
   database: ./database.db
@@ -12,7 +12,7 @@ general:
   disable-type-detection-by-header: false
 auth:
   header: ''
-  method: 'noauth'
+  method: noauth
   command: ''
   signup: false
   shell: ''

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"path/filepath"
 	"reflect"
+	"log"
 
 	"github.com/spf13/cobra"
 
@@ -46,7 +47,7 @@ The path must be for a json or yaml file.`,
 		file := settingsFile{}
 		err := unmarshal(args[0], &file)
 		checkErr(err)
-
+		log.Println(file.Settings)
 		file.Settings.Key = key
 		err = d.store.Settings.Save(file.Settings)
 		checkErr(err)
@@ -60,16 +61,16 @@ The path must be for a json or yaml file.`,
 		} else {
 			rawAuther = file.Auther
 		}
-
+		log.Println("config_import",file.Settings.Auth)
 		var auther auth.Auther
 		switch file.Settings.Auth.Method {
-		case auth.MethodJSONAuth:
+		case "password":
 			auther = getAuther(auth.JSONAuth{}, rawAuther).(*auth.JSONAuth)
-		case auth.MethodNoAuth:
+		case "noauth":
 			auther = getAuther(auth.NoAuth{}, rawAuther).(*auth.NoAuth)
-		case auth.MethodProxyAuth:
+		case "proxy":
 			auther = getAuther(auth.ProxyAuth{}, rawAuther).(*auth.ProxyAuth)
-		case auth.MethodHookAuth:
+		case "hook":
 			auther = getAuther(&auth.HookAuth{}, rawAuther).(*auth.HookAuth)
 		default:
 			checkErr(errors.New("invalid auth method"))

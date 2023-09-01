@@ -32,10 +32,6 @@ func addConfigFlags(flags *pflag.FlagSet) {
 	flags.BoolP("signup", "s", false, "allow users to signup")
 	flags.String("shell", "", "shell command to which other commands should be appended")
 
-	flags.String("auth.method", string(auth.MethodJSONAuth), "authentication type")
-	flags.String("auth.header", "", "HTTP header for auth.method=proxy")
-	flags.String("auth.command", "", "command for auth.method=hook")
-
 	flags.String("recaptcha.host", "https://www.google.com", "use another host for ReCAPTCHA. recaptcha.net might be useful in China")
 	flags.String("recaptcha.key", "", "ReCaptcha site key")
 	flags.String("recaptcha.secret", "", "ReCaptcha secret")
@@ -52,7 +48,7 @@ func getAuthentication() (string, auth.Auther) {
 	method := settings.GlobalConfiguration.Auth.Method
 	var defaultAuther map[string]interface{}
 	var auther auth.Auther
-	if method == auth.MethodProxyAuth {
+	if method == "proxy" {
 		header := settings.GlobalConfiguration.Auth.Header
 		if header == "" {
 			header = defaultAuther["header"].(string)
@@ -65,11 +61,11 @@ func getAuthentication() (string, auth.Auther) {
 		auther = &auth.ProxyAuth{Header: header}
 	}
 
-	if method == auth.MethodNoAuth {
+	if method == "noauth" {
 		auther = &auth.NoAuth{}
 	}
 
-	if method == auth.MethodJSONAuth {
+	if method == "password" {
 		jsonAuth := &auth.JSONAuth{}
 		host := settings.GlobalConfiguration.Auth.Recaptcha.Host
 		key := settings.GlobalConfiguration.Auth.Recaptcha.Key
@@ -97,7 +93,7 @@ func getAuthentication() (string, auth.Auther) {
 		auther = jsonAuth
 	}
 
-	if method == auth.MethodHookAuth {
+	if method == "hook" {
 		command := settings.GlobalConfiguration.Auth.Command
 
 		if command == "" {

@@ -19,7 +19,6 @@ import (
 	v "github.com/spf13/viper"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	fbhttp "github.com/gtsteffaniak/filebrowser/http"
 	"github.com/gtsteffaniak/filebrowser/img"
@@ -51,8 +50,6 @@ func init() {
 	persistent := rootCmd.PersistentFlags()
 
 	persistent.StringVarP(&cfgFile, "config", "c", "", "config file path")
-	persistent.StringP("database", "d", "./filebrowser.db", "database path")
-	flags.Bool("noauth", false, "use the noauth auther when using quick setup")
 	flags.String("username", "admin", "username for the first user when using quick config")
 	flags.String("password", "", "hashed password for the first user when using quick config (default \"admin\")")
 }
@@ -115,7 +112,7 @@ user created with the credentials from options "username" and "password".`,
 		checkErr(err)
 
 		var listener net.Listener
-		address := serverConfig.Address+":"+strconv.Itoa(serverConfig.Port)
+		address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
 
 		switch {
 		case serverConfig.Socket != "":
@@ -238,20 +235,14 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 				Download: true,
 			},
 		},
-		Frontend:   settings.Frontend{},
-		Commands:   nil,
-		Shell:      nil,
-		Rules:      nil,
+		Frontend: settings.Frontend{},
+		Commands: nil,
+		Shell:    nil,
+		Rules:    nil,
 	}
 
 	var err error
-	if settings.GlobalConfiguration.Auth.Method == "noAuth" {
-		set.Auth.Method = "noAuth"
-		err = d.store.Auth.Save(&auth.NoAuth{})
-	}else{
-		set.Auth.Method = auth.MethodJSONAuth
-		err = d.store.Auth.Save(&auth.JSONAuth{})
-	}
+	set.Auth.Method = settings.GlobalConfiguration.Auth.Method
 	err = d.store.Settings.Save(set)
 	checkErr(err)
 

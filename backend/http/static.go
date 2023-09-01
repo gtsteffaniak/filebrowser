@@ -35,7 +35,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		"Version":               version.Version,
 		"StaticURL":             path.Join(d.server.BaseURL, "/static"),
 		"Signup":                d.settings.Signup,
-		"NoAuth":                d.settings.Auth.Method == auth.MethodNoAuth,
+		"NoAuth":                d.settings.Auth.Method == "noauth",
 		"AuthMethod":            d.settings.Auth.Method,
 		"LoginPage":             auther.LoginPage(),
 		"CSS":                   false,
@@ -59,7 +59,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		}
 	}
 
-	if d.settings.Auth.Method == auth.MethodJSONAuth {
+	if d.settings.Auth.Method == "password" {
 		raw, err := d.store.Auth.Get(d.settings.Auth.Method) //nolint:govet
 		if err != nil {
 			return http.StatusInternalServerError, err
