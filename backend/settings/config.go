@@ -22,16 +22,13 @@ func init() {
 	if err != nil {
 		log.Fatalf("Error reading YAML data: %v", err)
 	}
-	log.Println(GlobalConfiguration)
 	setDefaults()
-	log.Println(GlobalConfiguration)
-
 	// Unmarshal the YAML data into the Settings struct
 	err = yaml.Unmarshal(yamlData, &GlobalConfiguration)
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
-	log.Println(GlobalConfiguration)
+	log.Printf("GlobalConfiguration: \n%#v\n", GlobalConfiguration)
 
 	// Now you have the Settings struct with values from the YAML file
 	// You can access the values like: defaultSettings.Key, defaultSettings.Server.Port, etc.

@@ -14,7 +14,6 @@ type authBackend struct {
 
 func (s authBackend) Get(t string) (auth.Auther, error) {
 	var auther auth.Auther
-	fmt.Println("auth.go", t)
 	switch t {
 	case "password":
 		auther = &auth.JSONAuth{}
@@ -27,6 +26,7 @@ func (s authBackend) Get(t string) (auth.Auther, error) {
 	default:
 		return nil, errors.ErrInvalidAuthMethod
 	}
+	fmt.Println("auth.go", t)
 
 	return auther, get(s.db, "auther", auther)
 }

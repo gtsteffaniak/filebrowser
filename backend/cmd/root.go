@@ -111,7 +111,11 @@ user created with the credentials from options "username" and "password".`,
 		checkErr(err)
 
 		var listener net.Listener
-		address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
+		listenAddress := serverConfig.Address
+		if listenAddress == "" {
+			listenAddress = "[::]" // default an
+		}
+		address := listenAddress + ":" + strconv.Itoa(serverConfig.Port)
 
 		switch {
 		case serverConfig.Socket != "":
