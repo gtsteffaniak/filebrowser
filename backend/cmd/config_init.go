@@ -23,14 +23,12 @@ to the defaults when creating new users and you don't
 override the options.`,
 	Args: cobra.NoArgs,
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
-		defaults := settings.UserDefaults{}
-		flags := cmd.Flags()
-		getUserDefaults(flags, &defaults, true)
-		_, auther := getAuthentication()
-		ser := &settings.GlobalConfiguration.Server
-		err := d.store.Settings.Save(&settings.GlobalConfiguration)
+		auther := getAuthentication()
+		s := settings.GlobalConfiguration
+		s.Key = generateKey()
+		err := d.store.Settings.Save(&s)
 		checkErr(err)
-		err = d.store.Settings.SaveServer(ser)
+		err = d.store.Settings.SaveServer(&s.Server)
 		checkErr(err)
 		err = d.store.Auth.Save(auther)
 		checkErr(err)
@@ -40,6 +38,6 @@ Congratulations! You've set up your database to use with File Browser.
 Now add your first user via 'filebrowser users add' and then you just
 need to call the main command to boot up the server.
 `)
-		printSettings(ser, &settings.GlobalConfiguration, auther)
+		printSettings(&s.Server, &s, auther)
 	}, pythonConfig{noDB: true}),
 }

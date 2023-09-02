@@ -5,12 +5,14 @@ All notable changes to this project will be documented in this file. See [standa
 
 # v0.2.0
 
- - Works with new more advanced filebrowser.json 
  - improved GUI
    - more unified coehisive look
+   - Adjusted header bar look and icon behavior
  - The shell is dead.
-   - If you need to use the shell, exec into the docker container.
-   - All configuration is done via filebrowser.yml
+   - If you need to use custom commands, exec into the docker container.
+ - All configuration is done via `filebrowser.yaml`
+ - Removed old code to migrate database veresions
+ - Removed all unused cmd code
 
 # v0.1.4
  - various UI fixes

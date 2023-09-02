@@ -44,7 +44,7 @@ func addConfigFlags(flags *pflag.FlagSet) {
 }
 
 //nolint:gocyclo
-func getAuthentication() (string, auth.Auther) {
+func getAuthentication() auth.Auther {
 	method := settings.GlobalConfiguration.Auth.Method
 	var defaultAuther map[string]interface{}
 	var auther auth.Auther
@@ -111,7 +111,7 @@ func getAuthentication() (string, auth.Auther) {
 		panic(errors.ErrInvalidAuthMethod)
 	}
 
-	return method, auther
+	return auther
 }
 
 func printSettings(ser *settings.Server, set *settings.Settings, auther auth.Auther) {

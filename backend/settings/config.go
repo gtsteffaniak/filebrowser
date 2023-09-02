@@ -11,7 +11,7 @@ var GlobalConfiguration Settings
 
 func init() {
 	// Open and read the YAML file
-	yamlFile, err := os.Open("filebrowser.yml")
+	yamlFile, err := os.Open("filebrowser.yaml")
 	if err != nil {
 		log.Fatalf("Error opening YAML file: %v", err)
 	}

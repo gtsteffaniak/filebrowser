@@ -62,7 +62,7 @@ you want to change. Other options will remain unchanged.`,
 		getUserDefaults(flags, &set.UserDefaults, false)
 
 		// read the defaults
-		_, auther := getAuthentication()
+		auther := getAuthentication()
 		err = d.store.Auth.Save(auther)
 		checkErr(err)
 		err = d.store.Settings.Save(set)
