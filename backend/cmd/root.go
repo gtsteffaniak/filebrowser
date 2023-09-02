@@ -19,6 +19,7 @@ import (
 	v "github.com/spf13/viper"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
+	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	fbhttp "github.com/gtsteffaniak/filebrowser/http"
 	"github.com/gtsteffaniak/filebrowser/img"
@@ -44,12 +45,16 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	cobra.MousetrapHelpText = ""
 	rootCmd.SetVersionTemplate("File Browser version {{printf \"%s\" .Version}}\n")
+	settings.Initialize()
 
+	log.Println(settings.GlobalConfiguration)
 	flags := rootCmd.Flags()
 
 	persistent := rootCmd.PersistentFlags()
 
 	persistent.StringVarP(&cfgFile, "config", "c", "", "config file path")
+	persistent.StringP("database", "d", "./filebrowser.db", "database path")
+	flags.Bool("noauth", false, "use the noauth auther when using quick setup")
 	flags.String("username", "admin", "username for the first user when using quick config")
 	flags.String("password", "", "hashed password for the first user when using quick config (default \"admin\")")
 }
@@ -83,7 +88,6 @@ the quick setup mode and a new database will be bootstraped and a new
 user created with the credentials from options "username" and "password".`,
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
 		serverConfig := settings.GlobalConfiguration.Server
-		log.Println(cfgFile)
 
 		if !d.hadDB {
 			quickSetup(cmd.Flags(), d)
@@ -111,8 +115,7 @@ user created with the credentials from options "username" and "password".`,
 		checkErr(err)
 
 		var listener net.Listener
-		listenAddress := serverConfig.Address
-		address := listenAddress + ":" + strconv.Itoa(serverConfig.Port)
+		address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
 
 		switch {
 		case serverConfig.Socket != "":
@@ -138,8 +141,7 @@ user created with the credentials from options "username" and "password".`,
 		sigc := make(chan os.Signal, 1)
 		signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
 		go cleanupHandler(listener, sigc)
-		_, err = os.Stat("frontend/dist")
-		checkErr(err)
+
 		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
 		handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
 		checkErr(err)
@@ -243,7 +245,13 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 	}
 
 	var err error
-	set.Auth.Method = settings.GlobalConfiguration.Auth.Method
+	if settings.GlobalConfiguration.Auth.Method == "noAuth" {
+		set.Auth.Method = "noAuth"
+		err = d.store.Auth.Save(&auth.NoAuth{})
+	} else {
+		set.Auth.Method = "json"
+		err = d.store.Auth.Save(&auth.JSONAuth{})
+	}
 	err = d.store.Settings.Save(set)
 	checkErr(err)
 

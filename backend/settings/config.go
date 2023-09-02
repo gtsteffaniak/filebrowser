@@ -10,7 +10,7 @@ import (
 
 var GlobalConfiguration Settings
 
-func init() {
+func Initialize() {
 	// Open and read the YAML file
 	yamlFile, err := os.Open("filebrowser.yml")
 	if err != nil {
@@ -28,8 +28,6 @@ func init() {
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
-	log.Printf("GlobalConfiguration: \n%#v\n", GlobalConfiguration)
-
 	// Now you have the Settings struct with values from the YAML file
 	// You can access the values like: defaultSettings.Key, defaultSettings.Server.Port, etc.
 }
@@ -37,17 +35,16 @@ func init() {
 func setDefaults() {
 	GlobalConfiguration = Settings{
 		Signup: true,
-		Server: Server{
-			IndexingInterval:   5,
-			Port:               8080,
+        Server: Server{
+			IndexingInterval:	5,
+            Port:    8080,
 			NumImageProcessors: 1,
-			BaseURL:            "/",
-		},
+            BaseURL: "/files",
+        },
 		Auth: Auth{
-			Method: "noauth",
 			Recaptcha: Recaptcha{
 				Host: "",
 			},
 		},
-	}
+    }
 }
