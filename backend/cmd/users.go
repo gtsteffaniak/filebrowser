@@ -79,8 +79,8 @@ func addUserFlags(flags *pflag.FlagSet) {
 	flags.Bool("singleClick", false, "use single clicks only")
 }
 
-func getViewMode(flags *pflag.FlagSet) users.ViewMode {
-	viewMode := users.ViewMode(mustGetString(flags, "viewMode"))
+func getViewMode(flags *pflag.FlagSet) string {
+	viewMode := settings.GlobalConfiguration.UserDefaults.ViewMode
 	if viewMode != users.ListViewMode && viewMode != users.MosaicViewMode {
 		checkErr(errors.New("view mode must be \"" + string(users.ListViewMode) + "\" or \"" + string(users.MosaicViewMode) + "\""))
 	}

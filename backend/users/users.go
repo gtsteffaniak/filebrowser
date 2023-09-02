@@ -11,12 +11,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/rules"
 )
 
-// ViewMode describes a view mode.
-type ViewMode string
-
-const (
-	ListViewMode   ViewMode = "list"
-	MosaicViewMode ViewMode = "mosaic"
+var (
+	ListViewMode   = "list"
+	MosaicViewMode = "mosaic"
 )
 
 // User describes a user.
@@ -27,7 +24,7 @@ type User struct {
 	Scope        string        `json:"scope"`
 	Locale       string        `json:"locale"`
 	LockPassword bool          `json:"lockPassword"`
-	ViewMode     ViewMode      `json:"viewMode"`
+	ViewMode     string        `json:"viewMode"`
 	SingleClick  bool          `json:"singleClick"`
 	Perm         Permissions   `json:"perm"`
 	Commands     []string      `json:"commands"`

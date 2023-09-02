@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
@@ -24,31 +23,28 @@ type Settings struct {
 	Signup           bool                `json:"signup"`
 	CreateUserDir    bool                `json:"createUserDir"`
 	UserHomeBasePath string              `json:"userHomeBasePath"`
-	Defaults         UserDefaults        `json:"defaults"`
 	Commands         map[string][]string `json:"commands"`
 	Shell            []string            `json:"shell"`
 	Rules            []rules.Rule        `json:"rules"`
 	Server           Server              `json:"server"`
 	Auth             Auth                `json:"auth"`
-
-	Frontend Frontend `json:"frontend"`
-
-	UserDefaults UserDefaults `json:"userDefaults"`
+	Frontend         Frontend            `json:"frontend"`
+	UserDefaults     UserDefaults        `json:"userDefaults"`
 }
 
 type Auth struct {
-	Recaptcha Recaptcha
-	Header    string `json:"header"`
-	Method    string `json:"method"`
-	Command   string `json:"command"`
-	Signup    bool   `json:"signup"`
-	Shell     string `json:"shell"`
+	Recaptcha Recaptcha `json:"recaptcha"`
+	Header    string    `json:"header"`
+	Method    string    `json:"method"`
+	Command   string    `json:"command"`
+	Signup    bool      `json:"signup"`
+	Shell     string    `json:"shell"`
 }
 
 type Recaptcha struct {
-	Host   string
-	Key    string
-	Secret string
+	Host   string `json:"host"`
+	Key    string `json:"key"`
+	Secret string `json:"secret"`
 }
 
 type Server struct {
@@ -68,7 +64,7 @@ type Server struct {
 	Log                   string `json:"log"`
 	Database              string `json:"database"`
 	Root                  string `json:"root"`
-	EnablePreviewResize   bool   `json:"disable-preview-resize"`
+	EnablePreviewResize   bool   `json:"enablePreviewResize"`
 }
 
 type Frontend struct {
@@ -83,55 +79,25 @@ type Frontend struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	Scope        string            `json:"scope"`
-	Locale       string            `json:"locale"`
-	ViewMode     users.ViewMode    `json:"viewMode"`
-	SingleClick  bool              `json:"singleClick"`
-	Sorting      files.Sorting     `json:"sorting"`
-	Perm         users.Permissions `json:"perm"`
-	Commands     []string          `json:"commands"`
-	HideDotfiles bool              `json:"hideDotfiles"`
-	DateFormat   bool              `json:"dateFormat"`
+	Scope       string `json:"scope"`
+	Locale      string `json:"locale"`
+	ViewMode    string `json:"viewMode"`
+	SingleClick bool   `json:"singleClick"`
+	Sorting     struct {
+		By  string `json:"by"`
+		Asc bool   `json:"asc"`
+	} `json:"sorting"`
+	Perm struct {
+		Admin    bool `json:"admin"`
+		Execute  bool `json:"execute"`
+		Create   bool `json:"create"`
+		Rename   bool `json:"rename"`
+		Modify   bool `json:"modify"`
+		Delete   bool `json:"delete"`
+		Share    bool `json:"share"`
+		Download bool `json:"download"`
+	} `json:"perm"`
+	Commands     []string `json:"commands"`
+	HideDotfiles bool     `json:"hideDotfiles"`
+	DateFormat   bool     `json:"dateFormat"`
 }
-
-//{
-//	"server":{
-//	   "port":8080,
-//	   "baseURL":"",
-//	   "address":"",
-//	   "log":"stdout",
-//	   "database":"./database.db",
-//	   "root":"/srv",
-//	   "disable-thumbnails":false,
-//	   "disable-preview-resize":false,
-//	   "disable-exec":false,
-//	   "disable-type-detection-by-header":false
-//	},
-//	"auth":{
-//	   "header":"",
-//	   "method":"",
-//	   "command":"",
-//	   "signup":false,
-//	   "shell":""
-//	},
-//	"branding":{
-//	   "name":"",
-//	   "color":"",
-//	   "files":"",
-//	   "disableExternal":"",
-//	   "disableUsedPercentage":""
-//	},
-//	"permissions":{
-//	   "Admin":false,
-//	   "Execute":true,
-//	   "Create":true,
-//	   "Rename":true,
-//	   "Modify":true,
-//	   "Delete":true,
-//	   "Share":true,
-//	   "Download":true
-//	},
-//	"commands":{},
-//	"shell":{},
-//	"rules":{}
-// }

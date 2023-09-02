@@ -24,7 +24,7 @@ var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 		Signup:           d.settings.Signup,
 		CreateUserDir:    d.settings.CreateUserDir,
 		UserHomeBasePath: d.settings.UserHomeBasePath,
-		Defaults:         d.settings.Defaults,
+		Defaults:         d.settings.UserDefaults,
 		Rules:            d.settings.Rules,
 		Frontend:         d.settings.Frontend,
 		Shell:            d.settings.Shell,
@@ -44,7 +44,7 @@ var settingsPutHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 	d.settings.Signup = req.Signup
 	d.settings.CreateUserDir = req.CreateUserDir
 	d.settings.UserHomeBasePath = req.UserHomeBasePath
-	d.settings.Defaults = req.Defaults
+	d.settings.UserDefaults = req.Defaults
 	d.settings.Rules = req.Rules
 	d.settings.Frontend = req.Frontend
 	d.settings.Shell = req.Shell

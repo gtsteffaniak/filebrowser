@@ -59,7 +59,7 @@ you want to change. Other options will remain unchanged.`,
 			}
 		})
 
-		getUserDefaults(flags, &set.Defaults, false)
+		getUserDefaults(flags, &set.UserDefaults, false)
 
 		// read the defaults
 		_, auther := getAuthentication()

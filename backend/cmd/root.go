@@ -209,7 +209,7 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 		Signup:           false,
 		CreateUserDir:    false,
 		UserHomeBasePath: settings.DefaultUsersHomeBasePath,
-		Defaults: settings.UserDefaults{
+		UserDefaults: settings.UserDefaults{
 			Scope:       ".",
 			Locale:      "en",
 			SingleClick: false,
@@ -268,7 +268,7 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 		LockPassword: false,
 	}
 
-	set.Defaults.Apply(user)
+	set.UserDefaults.Apply(user)
 	user.Perm.Admin = true
 
 	err = d.store.Users.Save(user)

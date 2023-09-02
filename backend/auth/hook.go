@@ -155,14 +155,14 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 		d := &users.User{
 			Username:     a.Cred.Username,
 			Password:     pass,
-			Scope:        a.Settings.Defaults.Scope,
-			Locale:       a.Settings.Defaults.Locale,
-			ViewMode:     a.Settings.Defaults.ViewMode,
-			SingleClick:  a.Settings.Defaults.SingleClick,
-			Sorting:      a.Settings.Defaults.Sorting,
-			Perm:         a.Settings.Defaults.Perm,
-			Commands:     a.Settings.Defaults.Commands,
-			HideDotfiles: a.Settings.Defaults.HideDotfiles,
+			Scope:        a.Settings.UserDefaults.Scope,
+			Locale:       a.Settings.UserDefaults.Locale,
+			ViewMode:     a.Settings.UserDefaults.ViewMode,
+			SingleClick:  a.Settings.UserDefaults.SingleClick,
+			Sorting:      a.Settings.UserDefaults.Sorting,
+			Perm:         a.Settings.UserDefaults.Perm,
+			Commands:     a.Settings.UserDefaults.Commands,
+			HideDotfiles: a.Settings.UserDefaults.HideDotfiles,
 		}
 		u = a.GetUser(d)
 
@@ -219,7 +219,7 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		Password:    d.Password,
 		Scope:       a.Fields.GetString("user.scope", d.Scope),
 		Locale:      a.Fields.GetString("user.locale", d.Locale),
-		ViewMode:    users.ViewMode(a.Fields.GetString("user.viewMode", string(d.ViewMode))),
+		ViewMode:    d.ViewMode,
 		SingleClick: a.Fields.GetBoolean("user.singleClick", d.SingleClick),
 		Sorting: files.Sorting{
 			Asc: a.Fields.GetBoolean("user.sorting.asc", d.Sorting.Asc),
