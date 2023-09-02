@@ -45,9 +45,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	cobra.MousetrapHelpText = ""
 	rootCmd.SetVersionTemplate("File Browser version {{printf \"%s\" .Version}}\n")
-	settings.Initialize()
 
-	log.Println(settings.GlobalConfiguration)
 	flags := rootCmd.Flags()
 
 	persistent := rootCmd.PersistentFlags()
@@ -88,12 +86,12 @@ the quick setup mode and a new database will be bootstraped and a new
 user created with the credentials from options "username" and "password".`,
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
 		serverConfig := settings.GlobalConfiguration.Server
-
 		if !d.hadDB {
 			quickSetup(cmd.Flags(), d)
 		}
 
 		workersCount := serverConfig.NumImageProcessors
+		log.Println(serverConfig)
 		if workersCount < 1 {
 			log.Fatal("Image resize workers count could not be < 1")
 		}

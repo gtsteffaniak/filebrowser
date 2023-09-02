@@ -10,7 +10,7 @@ import (
 
 var GlobalConfiguration Settings
 
-func Initialize() {
+func init() {
 	// Open and read the YAML file
 	yamlFile, err := os.Open("filebrowser.yml")
 	if err != nil {
@@ -35,16 +35,17 @@ func Initialize() {
 func setDefaults() {
 	GlobalConfiguration = Settings{
 		Signup: true,
-        Server: Server{
-			IndexingInterval:	5,
-            Port:    8080,
+		Server: Server{
+			IndexingInterval:   5,
+			Port:               8080,
 			NumImageProcessors: 1,
-            BaseURL: "/files",
-        },
+			BaseURL:            "/files",
+		},
 		Auth: Auth{
+			Method: "password",
 			Recaptcha: Recaptcha{
 				Host: "",
 			},
 		},
-    }
+	}
 }

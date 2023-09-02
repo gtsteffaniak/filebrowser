@@ -29,7 +29,7 @@ type Settings struct {
 	Shell            []string            `json:"shell"`
 	Rules            []rules.Rule        `json:"rules"`
 	Server           Server              `json:"server"`
-	Auth             Auth				 `json:"auth"`
+	Auth             Auth                `json:"auth"`
 
 	Frontend Frontend `json:"frontend"`
 
@@ -38,22 +38,22 @@ type Settings struct {
 
 type Auth struct {
 	Recaptcha Recaptcha
-	Header  string `json:"header"`
-	Method  string `json:"method"`
-	Command string `json:"command"`
-	Signup  bool   `json:"signup"`
-	Shell   string `json:"shell"`
+	Header    string `json:"header"`
+	Method    string `json:"method"`
+	Command   string `json:"command"`
+	Signup    bool   `json:"signup"`
+	Shell     string `json:"shell"`
 }
 
 type Recaptcha struct {
-	Host	string
-	Key		string
-	Secret	string
+	Host   string
+	Key    string
+	Secret string
 }
 
 type Server struct {
-	IndexingInterval		uint32
-	NumImageProcessors			int
+	IndexingInterval      uint32 `json:"indexingInterval"`
+	NumImageProcessors    int    `json:"numImageProcessors"`
 	Socket                string `json:"socket"`
 	TLSKey                string `json:"tlsKey"`
 	TLSCert               string `json:"tlsCert"`
@@ -62,7 +62,7 @@ type Server struct {
 	EnableExec            bool   `json:"enableExec"`
 	TypeDetectionByHeader bool   `json:"typeDetectionByHeader"`
 	AuthHook              string `json:"authHook"`
-	Port                  int `json:"port"`
+	Port                  int    `json:"port"`
 	BaseURL               string `json:"baseURL"`
 	Address               string `json:"address"`
 	Log                   string `json:"log"`
