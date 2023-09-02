@@ -1,8 +1,6 @@
 package bolt
 
 import (
-	"fmt"
-
 	"github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/errors"
@@ -26,8 +24,6 @@ func (s authBackend) Get(t string) (auth.Auther, error) {
 	default:
 		return nil, errors.ErrInvalidAuthMethod
 	}
-	fmt.Println("auth.go", t)
-
 	return auther, get(s.db, "auther", auther)
 }
 

@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -18,7 +17,13 @@ func init() {
 	}
 	defer yamlFile.Close()
 
-	yamlData, err := ioutil.ReadAll(yamlFile)
+	stat, err := yamlFile.Stat()
+	if err != nil {
+		log.Fatalf("Error getting file information: %v", err)
+	}
+
+	yamlData := make([]byte, stat.Size())
+	_, err = yamlFile.Read(yamlData)
 	if err != nil {
 		log.Fatalf("Error reading YAML data: %v", err)
 	}
@@ -39,7 +44,7 @@ func setDefaults() {
 			IndexingInterval:   5,
 			Port:               8080,
 			NumImageProcessors: 1,
-			BaseURL:            "/files",
+			BaseURL:            "",
 		},
 		Auth: Auth{
 			Method: "password",

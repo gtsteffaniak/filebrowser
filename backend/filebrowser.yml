@@ -1,37 +1,12 @@
-general:
-  key: []
-  signup: true
-  createUserDir: false
-  userHomeBasePath: ""
-  scope: ""
-  locale: ""
-  viewMode: ""
-  singleClick: false
-  hideDotfiles: true
-  dateFormat: false
-  defaultSortBy: ""
-perm:
-  admin: true
-  execute: true
-  create: true
-  rename: true
-  modify: true
-  delete: true
-  share: true
-  download: true
-shell: []
-rules: []
 server:
   indexingInterval: 5
-  numImageProcessors: 1
+  numImageProcessors: 2
   socket: ""
   tlsKey: ""
   tlsCert: ""
   enableThumbnails: true
   resizePreview: false
-  enableExec: false
   typeDetectionByHeader: true
-  authHook: ""
   port: 8080
   baseURL: "/"
   address: ""
@@ -44,7 +19,7 @@ auth:
     key: ""
     secret: ""
   header: ""
-  method: "noauth"
+  method: noauth
   command: ""
   signup: false
   shell: ""

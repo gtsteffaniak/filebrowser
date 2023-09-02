@@ -89,14 +89,10 @@ user created with the credentials from options "username" and "password".`,
 		if !d.hadDB {
 			quickSetup(cmd.Flags(), d)
 		}
-
-		workersCount := serverConfig.NumImageProcessors
-		log.Println(serverConfig)
-		if workersCount < 1 {
+		if serverConfig.NumImageProcessors < 1 {
 			log.Fatal("Image resize workers count could not be < 1")
 		}
-		imgSvc := img.New(workersCount)
-
+		imgSvc := img.New(serverConfig.NumImageProcessors)
 		var fileCache diskcache.Interface = diskcache.NewNoOp()
 		cacheDir := "/tmp"
 		if cacheDir != "" {
@@ -105,16 +101,12 @@ user created with the credentials from options "username" and "password".`,
 			}
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
-
 		// initialize indexing and schedule indexing ever n minutes (default 5)
 		go search.InitializeIndex(serverConfig.IndexingInterval)
-
 		_, err := os.Stat(serverConfig.Root)
 		checkErr(err)
-
 		var listener net.Listener
 		address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
-
 		switch {
 		case serverConfig.Socket != "":
 			listener, err = net.Listen("unix", serverConfig.Socket)
@@ -135,17 +127,13 @@ user created with the credentials from options "username" and "password".`,
 			listener, err = net.Listen("tcp", address)
 			checkErr(err)
 		}
-
 		sigc := make(chan os.Signal, 1)
 		signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
 		go cleanupHandler(listener, sigc)
-
 		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
 		handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
 		checkErr(err)
-
 		defer listener.Close()
-
 		log.Println("Listening on", listener.Addr().String())
 		//nolint: gosec
 		if err := http.Serve(listener, handler); err != nil {
@@ -241,13 +229,12 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 		Shell:    nil,
 		Rules:    nil,
 	}
-
 	var err error
-	if settings.GlobalConfiguration.Auth.Method == "noAuth" {
-		set.Auth.Method = "noAuth"
+	if settings.GlobalConfiguration.Auth.Method == "noauth" {
+		set.Auth.Method = "noauth"
 		err = d.store.Auth.Save(&auth.NoAuth{})
 	} else {
-		set.Auth.Method = "json"
+		set.Auth.Method = "password"
 		err = d.store.Auth.Save(&auth.JSONAuth{})
 	}
 	err = d.store.Settings.Save(set)

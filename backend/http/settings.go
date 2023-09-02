@@ -49,7 +49,6 @@ var settingsPutHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 	d.settings.Frontend = req.Frontend
 	d.settings.Shell = req.Shell
 	d.settings.Commands = req.Commands
-
 	err = d.store.Settings.Save(d.settings)
 	return errToStatus(err), err
 })
