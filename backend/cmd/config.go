@@ -9,7 +9,6 @@ import (
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/errors"
@@ -25,22 +24,6 @@ var configCmd = &cobra.Command{
 	Short: "Configuration management utility",
 	Long:  `Configuration management utility.`,
 	Args:  cobra.NoArgs,
-}
-
-func addConfigFlags(flags *pflag.FlagSet) {
-	addUserFlags(flags)
-	flags.BoolP("signup", "s", false, "allow users to signup")
-	flags.String("shell", "", "shell command to which other commands should be appended")
-
-	flags.String("recaptcha.host", "https://www.google.com", "use another host for ReCAPTCHA. recaptcha.net might be useful in China")
-	flags.String("recaptcha.key", "", "ReCaptcha site key")
-	flags.String("recaptcha.secret", "", "ReCaptcha secret")
-
-	flags.String("frontend.name", "", "replace 'File Browser' by this name")
-	flags.String("frontend.color", "", "set the theme color")
-	flags.String("frontend.files", "", "path to directory with images and custom styles")
-	flags.Bool("frontend.disableExternal", false, "disable external links such as GitHub links")
-	flags.Bool("frontend.disableUsedPercentage", false, "disable used disk percentage graph")
 }
 
 //nolint:gocyclo

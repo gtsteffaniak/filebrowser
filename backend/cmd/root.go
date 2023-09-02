@@ -142,6 +142,12 @@ user created with the credentials from options "username" and "password".`,
 	}, pythonConfig{allowNoDB: true}),
 }
 
+func StartFilebrowser() {
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
+}
+
 func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfacer
 	sig := <-c
 	log.Printf("Caught signal %s: shutting down.", sig)
