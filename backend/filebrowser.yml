@@ -4,8 +4,8 @@ server:
   socket: ""
   tlsKey: ""
   tlsCert: ""
-  enableThumbnails: true
-  resizePreview: false
+  enableThumbnails: false
+  resizePreview: true
   typeDetectionByHeader: true
   port: 8080
   baseURL: "/"
@@ -26,7 +26,7 @@ auth:
 frontend:
   name: ""
   disableExternal: false
-  disableUsedPercentage: false
+  disableUsedPercentage: true
   files: ""
   theme: ""
   color: ""
@@ -34,19 +34,19 @@ userDefaults:
   scope: ""
   locale: ""
   viewMode: ""
-  singleClick: false
+  singleClick: true
   sorting:
     by: ""
-    asc: false
+    asc: true
   perm:
-    admin: false
-    execute: false
-    create: false
-    rename: false
-    modify: false
-    delete: false
-    share: false
-    download: false
+    admin: true
+    execute: true
+    create: true
+    rename: true
+    modify: true
+    delete: true
+    share: true
+    download: true
   commands: []
-  hideDotfiles: false
+  hideDotfiles: true
   dateFormat: false
