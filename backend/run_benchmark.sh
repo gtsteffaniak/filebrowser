@@ -1,6 +1,5 @@
 #!/bin/sh
 ## TEST file used by docker testing containers
-touch render.yml
 checkExit() {
     if [ "$?" -ne 0 ];then
         exit 1
