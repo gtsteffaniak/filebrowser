@@ -11,9 +11,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-// MethodJSONAuth is used to identify json auth.
-const MethodJSONAuth = "json"
-
 type jsonCred struct {
 	Password  string `json:"password"`
 	Username  string `json:"username"`

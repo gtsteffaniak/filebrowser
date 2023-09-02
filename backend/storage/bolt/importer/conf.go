@@ -140,22 +140,22 @@ func importConf(db *storm.DB, path string, sto *storage.Storage) error {
 
 	server := &settings.Server{
 		BaseURL: cfg.BaseURL,
-		Port:    cfg.Port,
+		Port:    8080,
 		Address: cfg.Address,
 		Log:     cfg.Log,
 	}
-
+	fmt.Println("config.go", server)
 	var auther auth.Auther
 	switch cfg.Auth.Method {
 	case "proxy":
 		auther = &auth.ProxyAuth{Header: cfg.Auth.Header}
-		s.AuthMethod = string(auth.MethodProxyAuth)
+		s.Auth.Method = "proxy"
 	case "hook":
 		auther = &auth.HookAuth{Command: cfg.Auth.Command}
-		s.AuthMethod = string(auth.MethodHookAuth)
+		s.Auth.Method = "hoook"
 	case "none":
 		auther = &auth.NoAuth{}
-		s.AuthMethod = string(auth.MethodNoAuth)
+		s.Auth.Method = "noauth"
 	default:
 		auther = &auth.JSONAuth{
 			ReCaptcha: &auth.ReCaptcha{
@@ -164,7 +164,7 @@ func importConf(db *storm.DB, path string, sto *storage.Storage) error {
 				Secret: cfg.ReCaptcha.Secret,
 			},
 		}
-		s.AuthMethod = string(auth.MethodJSONAuth)
+		s.Auth.Method = "password"
 	}
 
 	err = sto.Auth.Save(auther)

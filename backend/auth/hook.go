@@ -15,9 +15,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-// MethodHookAuth is used to identify hook auth.
-const MethodHookAuth = "hook"
-
 type hookCred struct {
 	Password string `json:"password"`
 	Username string `json:"username"`

@@ -29,21 +29,31 @@ type Settings struct {
 	Shell            []string            `json:"shell"`
 	Rules            []rules.Rule        `json:"rules"`
 	Server           Server              `json:"server"`
-	AuthMethod       string              `json:"authMethod"`
-	Auth             struct {
-		Header  string `json:"header"`
-		Method  string `json:"method"`
-		Command string `json:"command"`
-		Signup  bool   `json:"signup"`
-		Shell   string `json:"shell"`
-	} `json:"auth"`
+	Auth             Auth                `json:"auth"`
 
-	Branding Branding `json:"branding"`
+	Frontend Frontend `json:"frontend"`
 
 	UserDefaults UserDefaults `json:"userDefaults"`
 }
 
+type Auth struct {
+	Recaptcha Recaptcha
+	Header    string `json:"header"`
+	Method    string `json:"method"`
+	Command   string `json:"command"`
+	Signup    bool   `json:"signup"`
+	Shell     string `json:"shell"`
+}
+
+type Recaptcha struct {
+	Host   string
+	Key    string
+	Secret string
+}
+
 type Server struct {
+	IndexingInterval      uint32 `json:"indexingInterval"`
+	NumImageProcessors    int    `json:"numImageProcessors"`
 	Socket                string `json:"socket"`
 	TLSKey                string `json:"tlsKey"`
 	TLSCert               string `json:"tlsCert"`
@@ -52,7 +62,7 @@ type Server struct {
 	EnableExec            bool   `json:"enableExec"`
 	TypeDetectionByHeader bool   `json:"typeDetectionByHeader"`
 	AuthHook              string `json:"authHook"`
-	Port                  string `json:"port"`
+	Port                  int    `json:"port"`
 	BaseURL               string `json:"baseURL"`
 	Address               string `json:"address"`
 	Log                   string `json:"log"`
@@ -61,7 +71,7 @@ type Server struct {
 	EnablePreviewResize   bool   `json:"disable-preview-resize"`
 }
 
-type Branding struct {
+type Frontend struct {
 	Name                  string `json:"name"`
 	DisableExternal       bool   `json:"disableExternal"`
 	DisableUsedPercentage bool   `json:"disableUsedPercentage"`

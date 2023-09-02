@@ -18,7 +18,7 @@ var configCatCmd = &cobra.Command{
 		checkErr(err)
 		ser, err := d.store.Settings.GetServer()
 		checkErr(err)
-		auther, err := d.store.Auth.Get(set.AuthMethod)
+		auther, err := d.store.Auth.Get(set.Auth.Method)
 		checkErr(err)
 		printSettings(ser, set, auther)
 	}, pythonConfig{}),

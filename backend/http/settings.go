@@ -14,7 +14,7 @@ type settingsData struct {
 	UserHomeBasePath string                `json:"userHomeBasePath"`
 	Defaults         settings.UserDefaults `json:"defaults"`
 	Rules            []rules.Rule          `json:"rules"`
-	Branding         settings.Branding     `json:"branding"`
+	Frontend         settings.Frontend     `json:"frontend"`
 	Shell            []string              `json:"shell"`
 	Commands         map[string][]string   `json:"commands"`
 }
@@ -26,7 +26,7 @@ var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 		UserHomeBasePath: d.settings.UserHomeBasePath,
 		Defaults:         d.settings.Defaults,
 		Rules:            d.settings.Rules,
-		Branding:         d.settings.Branding,
+		Frontend:         d.settings.Frontend,
 		Shell:            d.settings.Shell,
 		Commands:         d.settings.Commands,
 	}
@@ -46,10 +46,9 @@ var settingsPutHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 	d.settings.UserHomeBasePath = req.UserHomeBasePath
 	d.settings.Defaults = req.Defaults
 	d.settings.Rules = req.Rules
-	d.settings.Branding = req.Branding
+	d.settings.Frontend = req.Frontend
 	d.settings.Shell = req.Shell
 	d.settings.Commands = req.Commands
-
 	err = d.store.Settings.Save(d.settings)
 	return errToStatus(err), err
 })

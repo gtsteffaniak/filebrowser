@@ -2,12 +2,14 @@ package importer
 
 import (
 	"github.com/asdine/storm/v3"
+	"log"
 
 	"github.com/gtsteffaniak/filebrowser/storage/bolt"
 )
 
 // Import imports an old configuration to a newer database.
 func Import(oldDBPath, oldConf, newDBPath string) error {
+	log.Println(oldDBPath, oldConf, newDBPath)
 	oldDB, err := storm.Open(oldDBPath)
 	if err != nil {
 		return err

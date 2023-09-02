@@ -102,7 +102,7 @@ func withAdmin(fn handleFunc) handleFunc {
 }
 
 var loginHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	auther, err := d.store.Auth.Get(d.settings.AuthMethod)
+	auther, err := d.store.Auth.Get(d.settings.Auth.Method)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

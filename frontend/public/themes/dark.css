@@ -213,3 +213,7 @@ nav {
   background: var(--background);
   color: white
 }
+#result-desktop #result-list {
+  background: #2a3137;
+
+}

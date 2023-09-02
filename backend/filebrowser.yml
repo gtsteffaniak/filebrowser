@@ -1,0 +1,52 @@
+server:
+  indexingInterval: 5
+  numImageProcessors: 2
+  socket: ""
+  tlsKey: ""
+  tlsCert: ""
+  enableThumbnails: true
+  resizePreview: false
+  typeDetectionByHeader: true
+  port: 8080
+  baseURL: "/"
+  address: ""
+  log: "stdout"
+  database: "database.db"
+  root: "/srv"
+auth:
+  recaptcha:
+    host: ""
+    key: ""
+    secret: ""
+  header: ""
+  method: noauth
+  command: ""
+  signup: false
+  shell: ""
+frontend:
+  name: ""
+  disableExternal: false
+  disableUsedPercentage: false
+  files: ""
+  theme: ""
+  color: ""
+userDefaults:
+  scope: ""
+  locale: ""
+  viewMode: ""
+  singleClick: false
+  sorting:
+    by: ""
+    asc: false
+  perm:
+    admin: false
+    execute: false
+    create: false
+    rename: false
+    modify: false
+    delete: false
+    share: false
+    download: false
+  commands: []
+  hideDotfiles: false
+  dateFormat: false
