@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/asdine/storm/v3"
+	"github.com/goccy/go-yaml"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	yaml "gopkg.in/yaml.v2"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
@@ -118,8 +118,8 @@ func marshal(filename string, data interface{}) error {
 		encoder.SetIndent("", "    ")
 		return encoder.Encode(data)
 	case ".yml", ".yaml": //nolint:goconst
-		encoder := yaml.NewEncoder(fd)
-		return encoder.Encode(data)
+		_, err := yaml.Marshal(fd)
+		return err
 	default:
 		return errors.New("invalid format: " + ext)
 	}

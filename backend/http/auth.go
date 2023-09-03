@@ -20,15 +20,15 @@ const (
 )
 
 type userInfo struct {
-	ID           uint              `json:"id"`
-	Locale       string            `json:"locale"`
-	ViewMode     string            `json:"viewMode"`
-	SingleClick  bool              `json:"singleClick"`
-	Perm         users.Permissions `json:"perm"`
-	Commands     []string          `json:"commands"`
-	LockPassword bool              `json:"lockPassword"`
-	HideDotfiles bool              `json:"hideDotfiles"`
-	DateFormat   bool              `json:"dateFormat"`
+	ID           uint       `json:"id"`
+	Locale       string     `json:"locale"`
+	ViewMode     string     `json:"viewMode"`
+	SingleClick  bool       `json:"singleClick"`
+	Perm         users.Perm `json:"perm"`
+	Commands     []string   `json:"commands"`
+	LockPassword bool       `json:"lockPassword"`
+	HideDotfiles bool       `json:"hideDotfiles"`
+	DateFormat   bool       `json:"dateFormat"`
 }
 
 type authToken struct {
@@ -177,7 +177,6 @@ var renewHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data
 })
 
 func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User) (int, error) {
-	log.Printf("%#v", user)
 	claims := &authToken{
 		User: userInfo{
 			ID:           user.ID,

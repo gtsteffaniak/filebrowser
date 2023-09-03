@@ -5,25 +5,26 @@ import (
 	"os"
 
 	"github.com/goccy/go-yaml"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var GlobalConfiguration Settings
-var configYml = "filebrowser.yaml"
 
-func Initialize() {
-	yamlData := loadConfigFile()
+func Initialize(configFile string) {
+	yamlData := loadConfigFile(configFile)
 	GlobalConfiguration = setDefaults()
 	err := yaml.Unmarshal(yamlData, &GlobalConfiguration)
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
+	GlobalConfiguration.Server.Root = "/srv" // hardcoded for now. TODO allow changing
 }
 
-func loadConfigFile() []byte {
+func loadConfigFile(configFile string) []byte {
 	// Open and read the YAML file
-	yamlFile, err := os.Open(configYml)
+	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		log.Printf("Error opening config file: %v\nUsing default config only", err)
+		log.Printf("ERROR: opening config file\n %v\n WARNING: Using default config only\n If this was a mistake, please make sure the file exists and is accessible by the filebrowser binary.\n\n", err)
 		setDefaults()
 		return []byte{}
 	}
@@ -44,12 +45,18 @@ func loadConfigFile() []byte {
 
 func setDefaults() Settings {
 	return Settings{
-		Signup: true,
+		Signup:        true,
+		AdminUsername: "admin",
+		AdminPassword: "admin",
 		Server: Server{
+			EnableExec:         false,
 			IndexingInterval:   5,
 			Port:               8080,
 			NumImageProcessors: 4,
 			BaseURL:            "",
+			Database:           "database.db",
+			Log:                "stdout",
+			Root:               "/srv",
 		},
 		Auth: Auth{
 			Method: "password",
@@ -58,7 +65,16 @@ func setDefaults() Settings {
 			},
 		},
 		UserDefaults: UserDefaults{
+			LockPassword: false,
 			HideDotfiles: true,
+			Perm: users.Perm{
+				Create:   true,
+				Rename:   true,
+				Modify:   true,
+				Delete:   true,
+				Share:    true,
+				Download: true,
+			},
 		},
 	}
 }

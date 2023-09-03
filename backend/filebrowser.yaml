@@ -7,7 +7,7 @@ auth:
 userDefaults:
   hideDotfiles: true
   singleClick: false
-  perm:
+  permissions:
     admin: false
     create: true
     rename: true
@@ -15,3 +15,5 @@ userDefaults:
     delete: true
     share: true
     download: true
+frontend:
+  theme: dark

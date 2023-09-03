@@ -25,6 +25,8 @@ type Settings struct {
 	UserHomeBasePath string              `json:"userHomeBasePath"`
 	Commands         map[string][]string `json:"commands"`
 	Shell            []string            `json:"shell"`
+	AdminUsername    string              `json:"adminUsername"`
+	AdminPassword    string              `json:"adminPassword"`
 	Rules            []rules.Rule        `json:"rules"`
 	Server           Server              `json:"server"`
 	Auth             Auth                `json:"auth"`
@@ -78,25 +80,17 @@ type Frontend struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	Scope       string `json:"scope"`
-	Locale      string `json:"locale"`
-	ViewMode    string `json:"viewMode"`
-	SingleClick bool   `json:"singleClick"`
-	Sorting     struct {
+	LockPassword bool   `json:"lockPassword"`
+	Scope        string `json:"scope"`
+	Locale       string `json:"locale"`
+	ViewMode     string `json:"viewMode"`
+	SingleClick  bool   `json:"singleClick"`
+	Sorting      struct {
 		By  string `json:"by"`
 		Asc bool   `json:"asc"`
 	} `json:"sorting"`
-	Perm struct {
-		Admin    bool `json:"admin"`
-		Execute  bool `json:"execute"`
-		Create   bool `json:"create"`
-		Rename   bool `json:"rename"`
-		Modify   bool `json:"modify"`
-		Delete   bool `json:"delete"`
-		Share    bool `json:"share"`
-		Download bool `json:"download"`
-	} `json:"perm"`
-	Commands     []string `json:"commands"`
-	HideDotfiles bool     `json:"hideDotfiles"`
-	DateFormat   bool     `json:"dateFormat"`
+	Perm         users.Perm `json:"permissions"`
+	Commands     []string   `json:"commands"`
+	HideDotfiles bool       `json:"hideDotfiles"`
+	DateFormat   bool       `json:"dateFormat"`
 }

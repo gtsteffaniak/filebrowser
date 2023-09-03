@@ -16,6 +16,17 @@ var (
 	MosaicViewMode = "mosaic"
 )
 
+type Perm struct {
+	Admin    bool `json:"admin"`
+	Execute  bool `json:"execute"`
+	Create   bool `json:"create"`
+	Rename   bool `json:"rename"`
+	Modify   bool `json:"modify"`
+	Delete   bool `json:"delete"`
+	Share    bool `json:"share"`
+	Download bool `json:"download"`
+}
+
 // User describes a user.
 type User struct {
 	ID           uint          `storm:"id,increment" json:"id"`
@@ -26,7 +37,7 @@ type User struct {
 	LockPassword bool          `json:"lockPassword"`
 	ViewMode     string        `json:"viewMode"`
 	SingleClick  bool          `json:"singleClick"`
-	Perm         Permissions   `json:"perm"`
+	Perm         Perm          `json:"perm"`
 	Commands     []string      `json:"commands"`
 	Sorting      files.Sorting `json:"sorting"`
 	Fs           afero.Fs      `json:"-" yaml:"-"`
