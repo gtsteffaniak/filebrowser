@@ -8,18 +8,30 @@ import (
 )
 
 var GlobalConfiguration Settings
+var configYml = "filebrowser.yaml"
 
-func init() {
-	// Open and read the YAML file
-	yamlFile, err := os.Open("filebrowser.yml")
+func Initialize() {
+	yamlData := loadConfigFile()
+	GlobalConfiguration = setDefaults()
+	err := yaml.Unmarshal(yamlData, &GlobalConfiguration)
 	if err != nil {
-		log.Fatalf("Error opening YAML file: %v", err)
+		log.Fatalf("Error unmarshaling YAML data: %v", err)
+	}
+}
+
+func loadConfigFile() []byte {
+	// Open and read the YAML file
+	yamlFile, err := os.Open(configYml)
+	if err != nil {
+		log.Printf("Error opening config file: %v\nUsing default config only", err)
+		setDefaults()
+		return []byte{}
 	}
 	defer yamlFile.Close()
 
 	stat, err := yamlFile.Stat()
 	if err != nil {
-		log.Fatalf("Error getting file information: %v", err)
+		log.Fatalf("Error getting file information: %s", err.Error())
 	}
 
 	yamlData := make([]byte, stat.Size())
@@ -27,23 +39,16 @@ func init() {
 	if err != nil {
 		log.Fatalf("Error reading YAML data: %v", err)
 	}
-	setDefaults()
-	// Unmarshal the YAML data into the Settings struct
-	err = yaml.Unmarshal(yamlData, &GlobalConfiguration)
-	if err != nil {
-		log.Fatalf("Error unmarshaling YAML data: %v", err)
-	}
-	// Now you have the Settings struct with values from the YAML file
-	// You can access the values like: defaultSettings.Key, defaultSettings.Server.Port, etc.
+	return yamlData
 }
 
-func setDefaults() {
-	GlobalConfiguration = Settings{
+func setDefaults() Settings {
+	return Settings{
 		Signup: true,
 		Server: Server{
 			IndexingInterval:   5,
 			Port:               8080,
-			NumImageProcessors: 1,
+			NumImageProcessors: 4,
 			BaseURL:            "",
 		},
 		Auth: Auth{
@@ -51,6 +56,9 @@ func setDefaults() {
 			Recaptcha: Recaptcha{
 				Host: "",
 			},
+		},
+		UserDefaults: UserDefaults{
+			HideDotfiles: true,
 		},
 	}
 }

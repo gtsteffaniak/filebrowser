@@ -1,6 +1,6 @@
 server:
-  indexingInterval: 5
-  numImageProcessors: 2
+  indexingInterval: 60
+  numImageProcessors: 8
   socket: ""
   tlsKey: ""
   tlsCert: ""
@@ -21,12 +21,12 @@ auth:
   header: ""
   method: noauth
   command: ""
-  signup: false
+  signup: true
   shell: ""
 frontend:
   name: ""
   disableExternal: false
-  disableUsedPercentage: false
+  disableUsedPercentage: true
   files: ""
   theme: ""
   color: ""
@@ -37,16 +37,16 @@ userDefaults:
   singleClick: false
   sorting:
     by: ""
-    asc: false
+    asc: true
   perm:
-    admin: false
-    execute: false
-    create: false
-    rename: false
-    modify: false
-    delete: false
-    share: false
-    download: false
+    admin: true
+    execute: true
+    create: true
+    rename: true
+    modify: true
+    delete: true
+    share: true
+    download: true
   commands: []
-  hideDotfiles: false
+  hideDotfiles: true
   dateFormat: false
