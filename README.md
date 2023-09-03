@@ -4,7 +4,7 @@
 Intended for docker use only
 
 > **Warning**
-Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml` configuration file. `.filebrowser.json` and any flags used during execution WILL NO LONGER WORK. This is by design, in order to use the v0.2.0 You can mount your directory and initialize a new DB with a new default `filebrowser.yaml` which you can tweak and use in the future. Or you can copy and paste the default startup `filebrowser.yaml` below.
+Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml` configuration file. `.filebrowser.json` and any flags other than `-c` and `-config` during execution WILL NO LONGER WORK. This is by design, in order to use the v0.2.0 You can mount your directory and initialize a new DB with a new default `filebrowser.yaml` which you can tweak and use in the future. Or you can copy and paste the default startup `filebrowser.yaml` below.
 
 This fork makes the following significant changes to filebrowser for origin:
 
