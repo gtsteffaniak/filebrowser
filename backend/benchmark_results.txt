@@ -9,30 +9,34 @@ ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/files	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2023/09/02 13:08:16 Error opening YAML file: open filebrowser.yaml: no such file or directory
-exit status 1
-FAIL	github.com/gtsteffaniak/filebrowser/http	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.004s
+2023/09/02 19:15:20 h: 401  <nil>
+2023/09/02 19:15:20 h: 401  <nil>
+2023/09/02 19:15:20 h: 401  <nil>
+2023/09/02 19:15:20 h: 401  <nil>
+2023/09/02 19:15:20 h: 401  <nil>
+2023/09/02 19:15:20 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.123s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.094s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/rules	0.003s
-2023/09/02 13:08:16 Error opening YAML file: open filebrowser.yaml: no such file or directory
-exit status 1
-FAIL	github.com/gtsteffaniak/filebrowser/runner	0.002s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.122s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/runner	0.004s
 goos: linux
 goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/search
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkSearchAllIndexes-8   	      10	   5705789 ns/op	 3017139 B/op	   44605 allocs/op
-BenchmarkFillIndex-8          	      10	   3205461 ns/op	   18498 B/op	     454 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	   5176084 ns/op	 2743632 B/op	   42785 allocs/op
+BenchmarkFillIndex-8          	      10	   3263308 ns/op	   18485 B/op	     453 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/search	0.117s
-?   	github.com/gtsteffaniak/filebrowser/settings	[no test files]
+ok  	github.com/gtsteffaniak/filebrowser/search	0.109s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/settings	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage/bolt	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/users	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/users	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/version	[no test files]
-FAIL
