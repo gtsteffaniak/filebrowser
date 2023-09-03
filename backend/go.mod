@@ -9,12 +9,11 @@ require (
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568
 	github.com/goccy/go-yaml v1.11.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/google/go-cmp v0.5.9
 	github.com/gorilla/mux v1.8.0
-	github.com/gorilla/websocket v1.5.0
 	github.com/maruel/natural v1.1.0
 	github.com/marusama/semaphore/v2 v2.5.0
 	github.com/mholt/archiver/v3 v3.5.1
-	github.com/pelletier/go-toml/v2 v2.0.9
 	github.com/shirou/gopsutil/v3 v3.23.7
 	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.7.0
@@ -22,7 +21,6 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce
-	go.etcd.io/bbolt v1.3.7
 	golang.org/x/crypto v0.12.0
 	golang.org/x/image v0.11.0
 	golang.org/x/text v0.12.0
@@ -51,6 +49,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/nwaples/rardecode v1.1.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.9 // indirect
 	github.com/pierrec/lz4/v4 v4.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
@@ -60,6 +59,7 @@ require (
 	github.com/ulikunitz/xz v0.5.9 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
+	go.etcd.io/bbolt v1.3.7 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect

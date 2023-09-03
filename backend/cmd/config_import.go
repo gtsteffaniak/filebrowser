@@ -3,19 +3,15 @@ package cmd
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"path/filepath"
 	"reflect"
-	"log"
 
 	"github.com/spf13/cobra"
 
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
-
-func init() {
-	configCmd.AddCommand(configImportCmd)
-}
 
 type settingsFile struct {
 	Settings *settings.Settings `json:"settings"`
@@ -61,7 +57,7 @@ The path must be for a json or yaml file.`,
 		} else {
 			rawAuther = file.Auther
 		}
-		log.Println("config_import",file.Settings.Auth)
+		log.Println("config_import", file.Settings.Auth)
 		var auther auth.Auther
 		switch file.Settings.Auth.Method {
 		case "password":
@@ -79,7 +75,6 @@ The path must be for a json or yaml file.`,
 		err = d.store.Auth.Save(auther)
 		checkErr(err)
 
-		printSettings(file.Server, file.Settings, auther)
 	}, pythonConfig{allowNoDB: true}),
 }
 

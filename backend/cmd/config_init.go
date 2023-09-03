@@ -5,13 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/gtsteffaniak/filebrowser/auth"
+	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
-
-func init() {
-	configCmd.AddCommand(configInitCmd)
-	addConfigFlags(configInitCmd.Flags())
-}
 
 var configInitCmd = &cobra.Command{
 	Use:   "init",
@@ -38,6 +35,45 @@ Congratulations! You've set up your database to use with File Browser.
 Now add your first user via 'filebrowser users add' and then you just
 need to call the main command to boot up the server.
 `)
-		printSettings(&s.Server, &s, auther)
 	}, pythonConfig{noDB: true}),
+}
+
+//nolint:gocyclo
+func getAuthentication() auth.Auther {
+	method := settings.GlobalConfiguration.Auth.Method
+	var auther auth.Auther
+	if method == "proxy" {
+		header := settings.GlobalConfiguration.Auth.Header
+		auther = &auth.ProxyAuth{Header: header}
+	}
+
+	if method == "noauth" {
+		auther = &auth.NoAuth{}
+	}
+
+	if method == "password" {
+		jsonAuth := &auth.JSONAuth{}
+		host := settings.GlobalConfiguration.Auth.Recaptcha.Host
+		key := settings.GlobalConfiguration.Auth.Recaptcha.Key
+		secret := settings.GlobalConfiguration.Auth.Recaptcha.Secret
+		if key != "" && secret != "" {
+			jsonAuth.ReCaptcha = &auth.ReCaptcha{
+				Host:   host,
+				Key:    key,
+				Secret: secret,
+			}
+		}
+		auther = jsonAuth
+	}
+
+	if method == "hook" {
+		command := settings.GlobalConfiguration.Auth.Command
+		auther = &auth.HookAuth{Command: command}
+	}
+
+	if auther == nil {
+		panic(errors.ErrInvalidAuthMethod)
+	}
+
+	return auther
 }

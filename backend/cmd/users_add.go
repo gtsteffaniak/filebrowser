@@ -19,7 +19,6 @@ var usersAddCmd = &cobra.Command{
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
 		s, err := d.store.Settings.Get()
 		checkErr(err)
-		getUserDefaults(cmd.Flags(), &s.UserDefaults, false)
 
 		password, err := users.HashPwd(args[1])
 		checkErr(err)

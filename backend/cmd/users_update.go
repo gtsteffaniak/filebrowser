@@ -49,7 +49,6 @@ options you want to change.`,
 			Sorting:     user.Sorting,
 			Commands:    user.Commands,
 		}
-		getUserDefaults(flags, &defaults, false)
 		user.Scope = defaults.Scope
 		user.Locale = defaults.Locale
 		user.ViewMode = defaults.ViewMode

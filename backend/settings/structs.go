@@ -64,7 +64,6 @@ type Server struct {
 	Log                   string `json:"log"`
 	Database              string `json:"database"`
 	Root                  string `json:"root"`
-	EnablePreviewResize   bool   `json:"enablePreviewResize"`
 }
 
 type Frontend struct {

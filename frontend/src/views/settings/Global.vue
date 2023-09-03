@@ -56,7 +56,7 @@
           <p>
             <input
               type="checkbox"
-              v-model="settings.branding.disableExternal"
+              v-model="settings.frontend.disableExternal"
               id="branding-links"
             />
             {{ $t("settings.disableExternalLinks") }}
@@ -65,7 +65,7 @@
           <p>
             <input
               type="checkbox"
-              v-model="settings.branding.disableUsedPercentage"
+              v-model="settings.frontend.disableUsedPercentage"
               id="branding-links"
             />
             {{ $t("settings.disableUsedDiskPercentage") }}
@@ -75,7 +75,7 @@
             <label for="theme">{{ $t("settings.themes.title") }}</label>
             <themes
               class="input input--block"
-              :theme.sync="settings.branding.theme"
+              :theme.sync="settings.frontend.theme"
               id="theme"
             ></themes>
           </p>
@@ -85,7 +85,7 @@
             <input
               class="input input--block"
               type="text"
-              v-model="settings.branding.name"
+              v-model="settings.frontend.name"
               id="branding-name"
             />
           </p>
@@ -97,7 +97,7 @@
             <input
               class="input input--block"
               type="text"
-              v-model="settings.branding.files"
+              v-model="settings.frontend.files"
               id="branding-files"
             />
           </p>

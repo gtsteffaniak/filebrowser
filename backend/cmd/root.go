@@ -210,50 +210,18 @@ func setupLog(logMethod string) {
 }
 
 func quickSetup(flags *pflag.FlagSet, d pythonData) {
-	set := &settings.Settings{
-		Key:              generateKey(),
-		Signup:           false,
-		CreateUserDir:    false,
-		UserHomeBasePath: settings.DefaultUsersHomeBasePath,
-		UserDefaults: settings.UserDefaults{
-			Scope:       ".",
-			Locale:      "en",
-			SingleClick: false,
-			Perm: users.Permissions{
-				Admin:    false,
-				Execute:  true,
-				Create:   true,
-				Rename:   true,
-				Modify:   true,
-				Delete:   true,
-				Share:    true,
-				Download: true,
-			},
-		},
-		Frontend: settings.Frontend{},
-		Commands: nil,
-		Shell:    nil,
-		Rules:    nil,
-	}
+	settings.GlobalConfiguration.Key = generateKey()
 	var err error
 	if settings.GlobalConfiguration.Auth.Method == "noauth" {
-		set.Auth.Method = "noauth"
+		settings.GlobalConfiguration.Auth.Method = "noauth"
 		err = d.store.Auth.Save(&auth.NoAuth{})
 	} else {
-		set.Auth.Method = "password"
+		settings.GlobalConfiguration.Auth.Method = "password"
 		err = d.store.Auth.Save(&auth.JSONAuth{})
 	}
-	err = d.store.Settings.Save(set)
+	err = d.store.Settings.Save(&settings.GlobalConfiguration)
 	checkErr(err)
-
-	ser := &settings.Server{
-		BaseURL: getParam(flags, "baseurl"),
-		Log:     getParam(flags, "log"),
-		TLSKey:  getParam(flags, "key"),
-		TLSCert: getParam(flags, "cert"),
-		Root:    getParam(flags, "root"),
-	}
-	err = d.store.Settings.SaveServer(ser)
+	err = d.store.Settings.SaveServer(&settings.GlobalConfiguration.Server)
 	checkErr(err)
 
 	username := getParam(flags, "username")
@@ -274,7 +242,7 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) {
 		LockPassword: false,
 	}
 
-	set.UserDefaults.Apply(user)
+	settings.GlobalConfiguration.UserDefaults.Apply(user)
 	user.Perm.Admin = true
 
 	err = d.store.Users.Save(user)

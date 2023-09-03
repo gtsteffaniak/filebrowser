@@ -1,11 +1,11 @@
 server:
-  indexingInterval: 5
-  numImageProcessors: 2
+  indexingInterval: 60
+  numImageProcessors: 8
   socket: ""
   tlsKey: ""
   tlsCert: ""
-  enableThumbnails: false
-  resizePreview: true
+  enableThumbnails: true
+  resizePreview: false
   typeDetectionByHeader: true
   port: 8080
   baseURL: "/"
@@ -21,7 +21,7 @@ auth:
   header: ""
   method: noauth
   command: ""
-  signup: false
+  signup: true
   shell: ""
 frontend:
   name: ""
@@ -34,7 +34,7 @@ userDefaults:
   scope: ""
   locale: ""
   viewMode: ""
-  singleClick: true
+  singleClick: false
   sorting:
     by: ""
     asc: true

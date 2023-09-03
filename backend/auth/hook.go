@@ -31,7 +31,7 @@ type HookAuth struct {
 }
 
 // Auth authenticates the user via a json in content body.
-func (a *HookAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings, srv *settings.Server) (*users.User, error) {
+func (a *HookAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
 	var cred hookCred
 
 	if r.Body == nil {
@@ -44,8 +44,8 @@ func (a *HookAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings
 	}
 
 	a.Users = usr
-	a.Settings = stg
-	a.Server = srv
+	a.Settings = &settings.GlobalConfiguration
+	a.Server = &settings.GlobalConfiguration.Server
 	a.Cred = cred
 
 	action, err := a.RunCommand()
@@ -150,7 +150,6 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		// create user with the provided credentials
 		d := &users.User{
 			Username:     a.Cred.Username,
