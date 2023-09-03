@@ -1,6 +1,10 @@
 ## Gtstef / filebrowser
 
-**Note: Intended to be used in docker only.**
+> **NOTE**
+Intended for docker use only
+
+> **Warning**
+Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yml` configuration file. `.filebrowser.json` and any flags used during execution WILL NO LONGER WORK. This is by design, in order to use the v0.2.0 You can mount your directory and initialize a new DB with a new default `filebrowser.yaml` which you can tweak and use in the future. Or you can copy and paste the default startup `filebrowser.yaml` below.
 
 This fork makes the following significant changes to filebrowser for origin:
 
@@ -9,7 +13,7 @@ This fork makes the following significant changes to filebrowser for origin:
     - [x] Realtime results as you type
     - [x] Works with file type filter
     - [x] better desktop search view
- 1. [ ] Preview enhancements
+ 1. [x] Preview enhancements
     - Preview default view is constrained to files subwindow,
     which can be toggled to fullscreen.
  1. [x] Improved and simplified GUI
@@ -20,11 +24,8 @@ This fork makes the following significant changes to filebrowser for origin:
     - [x] Uses latest npm and node version
     - [x] Removes deprecated npm packages
     - [x] Updates golang dependencies
-    - [ ] Remove all unnecessary packages, replaces with generic functions.
- 1. [ ] Moved all configurations to filebrowser.json.
-  no more flags or binary operations to db
- 1. [ ] File browsing uses index first for better performance
-    - file details shown only when toggled or needed
+    - [x] Remove all unnecessary packages, replaces with generic functions.
+ 1. [x] **IMPORTANT** Moved all configurations to `filebrowser.yaml`. no more flags or binary operations to db
 
 ## About
 
@@ -125,14 +126,9 @@ volumes:
 
 ## Configuration
 
-Note: still a WIP migrating configuration to json.
+All configuration is now done via a single configuration file: `filebrowser.yaml`, here is an example [configuration file](./backend/filebrowser.yaml).
+### background
 
-All configuration is now done via the filebrowser.json config file.
-This was chosen because it works best with a docker first use case.
-
-Previously the primary way to configure filebrowser was via flags.
-But this quickly became cumbersome if you had many configurations to make
-
-The other method to configure was via `filebrowser config` commands which
-would write configurations to a db if it existed already.
-When considering
+The original project filebrowser/filebrowser used multiple different ways to configure the server.
+This was confusing and difficult to work with from a user and from a developer's perspective.
+So I completely redesigned the program to use one single human-readable config file.
