@@ -90,6 +90,7 @@ type UserDefaults struct {
 		Asc bool   `json:"asc"`
 	} `json:"sorting"`
 	Perm         users.Permissions `json:"perm"`
+	Permissions  users.Permissions `json:"permissions"`
 	Commands     []string          `json:"commands"`
 	HideDotfiles bool              `json:"hideDotfiles"`
 	DateFormat   bool              `json:"dateFormat"`

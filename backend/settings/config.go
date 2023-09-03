@@ -17,6 +17,7 @@ func Initialize(configFile string) {
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
+	GlobalConfiguration.UserDefaults.Perm = GlobalConfiguration.UserDefaults.Permissions
 	GlobalConfiguration.Server.Root = "/srv" // hardcoded for now. TODO allow changing
 }
 
@@ -65,9 +66,10 @@ func setDefaults() Settings {
 			},
 		},
 		UserDefaults: UserDefaults{
+			Scope:        ".",
 			LockPassword: false,
 			HideDotfiles: true,
-			Perm: users.Permissions{
+			Permissions: users.Permissions{
 				Create:   true,
 				Rename:   true,
 				Modify:   true,

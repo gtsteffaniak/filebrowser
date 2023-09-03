@@ -5,9 +5,10 @@ auth:
   method: noauth
   signup: true
 userDefaults:
+  scope: "."
   hideDotfiles: true
   singleClick: false
-  perm:
+  permissions:
     admin: false
     create: true
     rename: true
