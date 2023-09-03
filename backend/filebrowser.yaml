@@ -7,7 +7,7 @@ auth:
 userDefaults:
   hideDotfiles: true
   singleClick: false
-  permissions:
+  perm:
     admin: false
     create: true
     rename: true

@@ -202,7 +202,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 func (a *HookAuth) GetUser(d *users.User) *users.User {
 	// adds all permissions when user is admin
 	isAdmin := a.Fields.GetBoolean("user.perm.admin", d.Perm.Admin)
-	perm := users.Perm{
+	perms := users.Permissions{
 		Admin:    isAdmin,
 		Execute:  isAdmin || a.Fields.GetBoolean("user.perm.execute", d.Perm.Execute),
 		Create:   isAdmin || a.Fields.GetBoolean("user.perm.create", d.Perm.Create),
@@ -226,7 +226,7 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		},
 		Commands:     a.Fields.GetArray("user.commands", d.Commands),
 		HideDotfiles: a.Fields.GetBoolean("user.hideDotfiles", d.HideDotfiles),
-		Perm:         perm,
+		Perm:         perms,
 		LockPassword: true,
 	}
 

@@ -16,7 +16,7 @@ var (
 	MosaicViewMode = "mosaic"
 )
 
-type Perm struct {
+type Permissions struct {
 	Admin    bool `json:"admin"`
 	Execute  bool `json:"execute"`
 	Create   bool `json:"create"`
@@ -37,7 +37,7 @@ type User struct {
 	LockPassword bool          `json:"lockPassword"`
 	ViewMode     string        `json:"viewMode"`
 	SingleClick  bool          `json:"singleClick"`
-	Perm         Perm          `json:"perm"`
+	Perm         Permissions   `json:"perm"`
 	Commands     []string      `json:"commands"`
 	Sorting      files.Sorting `json:"sorting"`
 	Fs           afero.Fs      `json:"-" yaml:"-"`

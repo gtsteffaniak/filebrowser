@@ -67,7 +67,7 @@ func setDefaults() Settings {
 		UserDefaults: UserDefaults{
 			LockPassword: false,
 			HideDotfiles: true,
-			Perm: users.Perm{
+			Perm: users.Permissions{
 				Create:   true,
 				Rename:   true,
 				Modify:   true,
