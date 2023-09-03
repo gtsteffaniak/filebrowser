@@ -38,7 +38,7 @@ userDefaults:
   sorting:
     by: ""
     asc: true
-  perm:
+  permissions:
     admin: true
     execute: true
     create: true

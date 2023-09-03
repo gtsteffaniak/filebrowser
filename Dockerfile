@@ -17,7 +17,7 @@ RUN apk --no-cache add \
 VOLUME /srv
 EXPOSE 8080
 WORKDIR /
-COPY --from=base /app/settings/filebrowser.yaml /filebrowser.yaml
+COPY --from=base /app/filebrowser.yaml /filebrowser.yaml
 COPY --from=base /app/filebrowser /filebrowser
 COPY --from=nbuild /app/dist/ /frontend/dist/
 ENTRYPOINT [ "./filebrowser" ]

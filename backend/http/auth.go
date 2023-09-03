@@ -177,7 +177,6 @@ var renewHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data
 })
 
 func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User) (int, error) {
-	log.Printf("%#v", user)
 	claims := &authToken{
 		User: userInfo{
 			ID:           user.ID,
