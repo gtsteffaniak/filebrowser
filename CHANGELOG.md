@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+
+# v0.2.0
+
+ - improved UI
+   - more unified coehisive look
+   - Adjusted header bar look and icon behavior
+ - The shell is dead.
+   - If you need to use custom commands, exec into the docker container.
+ - The json config file is dead.
+   - All configuration is done via advanced `filebrowser.yaml`
+   - The only flag that is allowed is flag to specify config file.
+ - Removed old code to migrate database versions
+ - Removed all unused cmd code
+
 # v0.1.4
  - various UI fixes
    - Added download button back to toolbar

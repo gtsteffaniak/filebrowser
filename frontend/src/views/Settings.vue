@@ -1,7 +1,5 @@
 <template>
   <div class="dashboard">
-    <header-bar showMenu showLogo />
-
     <div id="nav">
       <div class="wrapper">
         <ul>
@@ -52,15 +50,14 @@
 <script>
 import { mapState } from "vuex";
 
-import HeaderBar from "@/components/header/HeaderBar";
-
 export default {
   name: "settings",
-  components: {
-    HeaderBar,
+  mounted() {
+    // Update the req name property
+    this.$store.commit("updateRequest", { name: "Settings" });
   },
   computed: {
-    ...mapState(["user", "loading"]),
+    ...mapState(["user", "loading","req"]),
   },
 };
 </script>

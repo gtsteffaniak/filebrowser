@@ -50,16 +50,16 @@ func (s *Storage) Save(set *Settings) error {
 		return errors.ErrEmptyKey
 	}
 
-	if set.Defaults.Locale == "" {
-		set.Defaults.Locale = "en"
+	if set.UserDefaults.Locale == "" {
+		set.UserDefaults.Locale = "en"
 	}
 
-	if set.Defaults.Commands == nil {
-		set.Defaults.Commands = []string{}
+	if set.UserDefaults.Commands == nil {
+		set.UserDefaults.Commands = []string{}
 	}
 
-	if set.Defaults.ViewMode == "" {
-		set.Defaults.ViewMode = users.MosaicViewMode
+	if set.UserDefaults.ViewMode == "" {
+		set.UserDefaults.ViewMode = users.MosaicViewMode
 	}
 
 	if set.Rules == nil {

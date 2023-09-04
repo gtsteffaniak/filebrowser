@@ -302,7 +302,7 @@ body.rtl .card .card-title>*:first-child {
   left: 0;
   height: 100%;
   width: 100%;
-  z-index: 9999;
+  z-index: 3;
   animation: .3s show ease-in;
 }
 

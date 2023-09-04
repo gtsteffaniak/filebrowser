@@ -52,21 +52,22 @@
   body.rtl .dashboard .row {
     margin-right: unset;
   }
+  #search {
+    min-width: unset;
+    max-width: 60%;
+  }
 
   #search.active {
     display: block;
-  }
-
-  #search.active {
     position: fixed;
     top: 0;
-    right: 0;
+    left: 50%;
     width: 100%;
     max-width: 100%;
-    height: 100%;
-    z-index: 9999;
   }
-
+  #search #input {
+    transition: 1s ease all;
+  }
   #search.active #input {
     border-bottom: 3px solid rgba(0, 0, 0, 0.075);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -79,7 +80,8 @@
   }
 
   #search.active #result {
-    height: 100vh
+    height: 100vh;
+    padding-top: 0;
   }
 
   #search.active #result>p>i {
@@ -102,7 +104,12 @@
   }
 
   #result-list {
-    padding-top: 3em;
+    width:100%;
+    left: 0;
+    top: 4em;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    overflow: scroll;
     display: flex;
     flex-direction: column;
   }

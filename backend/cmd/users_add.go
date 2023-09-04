@@ -19,7 +19,6 @@ var usersAddCmd = &cobra.Command{
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
 		s, err := d.store.Settings.Get()
 		checkErr(err)
-		getUserDefaults(cmd.Flags(), &s.Defaults, false)
 
 		password, err := users.HashPwd(args[1])
 		checkErr(err)
@@ -30,7 +29,7 @@ var usersAddCmd = &cobra.Command{
 			LockPassword: mustGetBool(cmd.Flags(), "lockPassword"),
 		}
 
-		s.Defaults.Apply(user)
+		s.UserDefaults.Apply(user)
 
 		servSettings, err := d.store.Settings.GetServer()
 		checkErr(err)

@@ -21,33 +21,33 @@ import (
 func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys fs.FS, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
 
-	auther, err := d.store.Auth.Get(d.settings.AuthMethod)
+	auther, err := d.store.Auth.Get(d.settings.Auth.Method)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	data := map[string]interface{}{
-		"Name":                  d.settings.Branding.Name,
-		"DisableExternal":       d.settings.Branding.DisableExternal,
-		"DisableUsedPercentage": d.settings.Branding.DisableUsedPercentage,
-		"Color":                 d.settings.Branding.Color,
+		"Name":                  d.settings.Frontend.Name,
+		"DisableExternal":       d.settings.Frontend.DisableExternal,
+		"DisableUsedPercentage": d.settings.Frontend.DisableUsedPercentage,
+		"Color":                 d.settings.Frontend.Color,
 		"BaseURL":               d.server.BaseURL,
 		"Version":               version.Version,
 		"StaticURL":             path.Join(d.server.BaseURL, "/static"),
 		"Signup":                d.settings.Signup,
-		"NoAuth":                d.settings.AuthMethod == auth.MethodNoAuth,
-		"AuthMethod":            d.settings.AuthMethod,
+		"NoAuth":                d.settings.Auth.Method == "noauth",
+		"AuthMethod":            d.settings.Auth.Method,
 		"LoginPage":             auther.LoginPage(),
 		"CSS":                   false,
 		"ReCaptcha":             false,
-		"Theme":                 d.settings.Branding.Theme,
+		"Theme":                 d.settings.Frontend.Theme,
 		"EnableThumbs":          d.server.EnableThumbnails,
 		"ResizePreview":         d.server.ResizePreview,
 		"EnableExec":            d.server.EnableExec,
 	}
 
-	if d.settings.Branding.Files != "" {
-		fPath := filepath.Join(d.settings.Branding.Files, "custom.css")
+	if d.settings.Frontend.Files != "" {
+		fPath := filepath.Join(d.settings.Frontend.Files, "custom.css")
 		_, err := os.Stat(fPath) //nolint:govet
 
 		if err != nil && !os.IsNotExist(err) {
@@ -59,8 +59,8 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		}
 	}
 
-	if d.settings.AuthMethod == auth.MethodJSONAuth {
-		raw, err := d.store.Auth.Get(d.settings.AuthMethod) //nolint:govet
+	if d.settings.Auth.Method == "password" {
+		raw, err := d.store.Auth.Get(d.settings.Auth.Method) //nolint:govet
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -115,15 +115,15 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 		const maxAge = 86400 // 1 day
 		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
 
-		if d.settings.Branding.Files != "" {
+		if d.settings.Frontend.Files != "" {
 			if strings.HasPrefix(r.URL.Path, "img/") {
-				fPath := filepath.Join(d.settings.Branding.Files, r.URL.Path)
+				fPath := filepath.Join(d.settings.Frontend.Files, r.URL.Path)
 				if _, err := os.Stat(fPath); err == nil {
 					http.ServeFile(w, r, fPath)
 					return 0, nil
 				}
-			} else if r.URL.Path == "custom.css" && d.settings.Branding.Files != "" {
-				http.ServeFile(w, r, filepath.Join(d.settings.Branding.Files, "custom.css"))
+			} else if r.URL.Path == "custom.css" && d.settings.Frontend.Files != "" {
+				http.ServeFile(w, r, filepath.Join(d.settings.Frontend.Files, "custom.css"))
 				return 0, nil
 			}
 		}

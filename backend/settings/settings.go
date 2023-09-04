@@ -35,3 +35,7 @@ func GenerateKey() ([]byte, error) {
 
 	return b, nil
 }
+
+func GetSettingsConfig(nameType string, Value string) string {
+	return nameType + Value
+}

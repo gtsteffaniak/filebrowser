@@ -4,48 +4,6 @@
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
   >
-    <header-bar>
-      <action icon="close" :label="$t('buttons.close')" @action="close()" />
-      <title>{{ name }}</title>
-      <action
-        :disabled="loading"
-        v-if="isResizeEnabled && req.type === 'image'"
-        :icon="fullSize ? 'photo_size_select_large' : 'hd'"
-        @action="toggleSize"
-      />
-
-      <template #actions>
-        <action
-          :disabled="loading"
-          v-if="user.perm.rename"
-          icon="mode_edit"
-          :label="$t('buttons.rename')"
-          show="rename"
-        />
-        <action
-          :disabled="loading"
-          v-if="user.perm.delete"
-          icon="delete"
-          :label="$t('buttons.delete')"
-          @action="deleteFile"
-          id="delete-button"
-        />
-        <action
-          :disabled="loading"
-          v-if="user.perm.download"
-          icon="file_download"
-          :label="$t('buttons.download')"
-          @action="download"
-        />
-        <action
-          :disabled="loading"
-          icon="info"
-          :label="$t('buttons.info')"
-          show="info"
-        />
-      </template>
-    </header-bar>
-
     <div class="loading delayed" v-if="loading">
       <div class="spinner">
         <div class="bounce1"></div>

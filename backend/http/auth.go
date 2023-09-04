@@ -22,7 +22,7 @@ const (
 type userInfo struct {
 	ID           uint              `json:"id"`
 	Locale       string            `json:"locale"`
-	ViewMode     users.ViewMode    `json:"viewMode"`
+	ViewMode     string            `json:"viewMode"`
 	SingleClick  bool              `json:"singleClick"`
 	Perm         users.Permissions `json:"perm"`
 	Commands     []string          `json:"commands"`
@@ -102,12 +102,12 @@ func withAdmin(fn handleFunc) handleFunc {
 }
 
 var loginHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	auther, err := d.store.Auth.Get(d.settings.AuthMethod)
+	auther, err := d.store.Auth.Get(d.settings.Auth.Method)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	user, err := auther.Auth(r, d.store.Users, d.settings, d.server)
+	user, err := auther.Auth(r, d.store.Users)
 	if err == os.ErrPermission {
 		return http.StatusForbidden, nil
 	} else if err != nil {
@@ -145,7 +145,7 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 		Username: info.Username,
 	}
 
-	d.settings.Defaults.Apply(user)
+	d.settings.UserDefaults.Apply(user)
 
 	pwd, err := users.HashPwd(info.Password)
 	if err != nil {

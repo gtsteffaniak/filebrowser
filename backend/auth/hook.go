@@ -15,9 +15,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-// MethodHookAuth is used to identify hook auth.
-const MethodHookAuth = "hook"
-
 type hookCred struct {
 	Password string `json:"password"`
 	Username string `json:"username"`
@@ -34,7 +31,7 @@ type HookAuth struct {
 }
 
 // Auth authenticates the user via a json in content body.
-func (a *HookAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings, srv *settings.Server) (*users.User, error) {
+func (a *HookAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
 	var cred hookCred
 
 	if r.Body == nil {
@@ -47,8 +44,8 @@ func (a *HookAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings
 	}
 
 	a.Users = usr
-	a.Settings = stg
-	a.Server = srv
+	a.Settings = &settings.GlobalConfiguration
+	a.Server = &settings.GlobalConfiguration.Server
 	a.Cred = cred
 
 	action, err := a.RunCommand()
@@ -153,19 +150,18 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		// create user with the provided credentials
 		d := &users.User{
 			Username:     a.Cred.Username,
 			Password:     pass,
-			Scope:        a.Settings.Defaults.Scope,
-			Locale:       a.Settings.Defaults.Locale,
-			ViewMode:     a.Settings.Defaults.ViewMode,
-			SingleClick:  a.Settings.Defaults.SingleClick,
-			Sorting:      a.Settings.Defaults.Sorting,
-			Perm:         a.Settings.Defaults.Perm,
-			Commands:     a.Settings.Defaults.Commands,
-			HideDotfiles: a.Settings.Defaults.HideDotfiles,
+			Scope:        a.Settings.UserDefaults.Scope,
+			Locale:       a.Settings.UserDefaults.Locale,
+			ViewMode:     a.Settings.UserDefaults.ViewMode,
+			SingleClick:  a.Settings.UserDefaults.SingleClick,
+			Sorting:      a.Settings.UserDefaults.Sorting,
+			Perm:         a.Settings.UserDefaults.Perm,
+			Commands:     a.Settings.UserDefaults.Commands,
+			HideDotfiles: a.Settings.UserDefaults.HideDotfiles,
 		}
 		u = a.GetUser(d)
 
@@ -222,7 +218,7 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		Password:    d.Password,
 		Scope:       a.Fields.GetString("user.scope", d.Scope),
 		Locale:      a.Fields.GetString("user.locale", d.Locale),
-		ViewMode:    users.ViewMode(a.Fields.GetString("user.viewMode", string(d.ViewMode))),
+		ViewMode:    d.ViewMode,
 		SingleClick: a.Fields.GetBoolean("user.singleClick", d.SingleClick),
 		Sorting: files.Sorting{
 			Asc: a.Fields.GetBoolean("user.sorting.asc", d.Sorting.Asc),

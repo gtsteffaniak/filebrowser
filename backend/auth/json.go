@@ -11,9 +11,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-// MethodJSONAuth is used to identify json auth.
-const MethodJSONAuth = "json"
-
 type jsonCred struct {
 	Password  string `json:"password"`
 	Username  string `json:"username"`
@@ -26,7 +23,8 @@ type JSONAuth struct {
 }
 
 // Auth authenticates the user via a json in content body.
-func (a JSONAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings, srv *settings.Server) (*users.User, error) {
+func (a JSONAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
+	config := &settings.GlobalConfiguration
 	var cred jsonCred
 
 	if r.Body == nil {
@@ -51,7 +49,7 @@ func (a JSONAuth) Auth(r *http.Request, usr users.Store, stg *settings.Settings,
 		}
 	}
 
-	u, err := usr.Get(srv.Root, cred.Username)
+	u, err := usr.Get(config.Server.Root, cred.Username)
 	if err != nil || !users.CheckPwd(cred.Password, u.Password) {
 		return nil, os.ErrPermission
 	}

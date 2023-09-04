@@ -1,7 +1,5 @@
 <template>
   <div>
-    <header-bar v-if="error || req.type == null" showMenu showLogo />
-
     <breadcrumbs base="/files" />
 
     <errors v-if="error" :errorCode="error.status" />
@@ -91,8 +89,12 @@ export default {
     }
     this.$store.commit("updateRequest", {});
   },
+  currentView(newView) {
+    // Commit the new value to the store
+    this.setCurrentValue(this.newValue);
+  },
   methods: {
-    ...mapMutations(["setLoading"]),
+    ...mapMutations(["setLoading","setCurrentView"]),
     async fetchData() {
       // Reset view information.
       this.$store.commit("setReload", false);

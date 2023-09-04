@@ -3,7 +3,6 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -37,27 +36,15 @@ options you want to change.`,
 		} else {
 			user, err = d.store.Users.Get("", username)
 		}
-
 		checkErr(err)
-
-		defaults := settings.UserDefaults{
-			Scope:       user.Scope,
-			Locale:      user.Locale,
-			ViewMode:    user.ViewMode,
-			SingleClick: user.SingleClick,
-			Perm:        user.Perm,
-			Sorting:     user.Sorting,
-			Commands:    user.Commands,
-		}
-		getUserDefaults(flags, &defaults, false)
-		user.Scope = defaults.Scope
-		user.Locale = defaults.Locale
-		user.ViewMode = defaults.ViewMode
-		user.SingleClick = defaults.SingleClick
-		user.Perm = defaults.Perm
-		user.Commands = defaults.Commands
-		user.Sorting = defaults.Sorting
-		user.LockPassword = mustGetBool(flags, "lockPassword")
+		user.Scope = user.Scope
+		user.Locale = user.Locale
+		user.ViewMode = user.ViewMode
+		user.SingleClick = user.SingleClick
+		user.Perm = user.Perm
+		user.Commands = user.Commands
+		user.Sorting = user.Sorting
+		user.LockPassword = user.LockPassword
 
 		if newUsername != "" {
 			user.Username = newUsername

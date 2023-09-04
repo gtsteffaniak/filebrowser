@@ -1,8 +1,26 @@
 <template>
-    <div id="editor-container">
-    <form id="editor"></form>
-  </div>
+  <header-bar>
+    <action icon="close" :label="$t('buttons.close')" @action="close()" />
+    <title class="topTitle">{{ req.name }}</title>
+
+    <action v-if="user.perm.modify" id="save-button" icon="save" :label="$t('buttons.save')"
+      @action="save()" />
+  </header-bar>
 </template>
+
+<style>
+.flexbar {
+  display: flex;
+  flex-direction: block;
+  justify-content: space-between;
+}
+
+.topTitle {
+  display: flex;
+  justify-content: center;
+
+}
+</style>
 
 <script>
 import { mapState } from "vuex";
@@ -30,7 +48,7 @@ export default {
     return {};
   },
   computed: {
-    ...mapState(["req", "user","currentView"]),
+    ...mapState(["req", "user", "currentView"]),
     breadcrumbs() {
       let parts = this.$route.path.split("/");
 
@@ -115,7 +133,6 @@ export default {
     },
     close() {
       this.$store.commit("updateRequest", {});
-
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
     },

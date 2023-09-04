@@ -37,8 +37,10 @@
           </div>
         </div>
         <template v-if="isEmpty">
-          <button class="mobile-boxes" v-if="value.length === 0 && !showBoxes " @click="resetSearchFilters()" >Reset filters</button>
-          <template v-if="value.length === 0 && showBoxes ">
+          <button class="mobile-boxes" v-if="value.length === 0 && !showBoxes" @click="resetSearchFilters()">
+            Reset filters
+          </button>
+          <template v-if="value.length === 0 && showBoxes">
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
@@ -53,11 +55,9 @@
         </template>
       </div>
     </div>
-    <div v-if="!isMobile && active" id="result-desktop" ref="result">
+    <div v-show="!isMobile && active" id="result-desktop" ref="result">
+      <div class="searchContext">Search Context: {{ getContext(this.$route.path) }}</div>
       <div id="result-list">
-        <div class="button fluid">
-          Search Context: {{ getContext(this.$route.path) }}
-        </div>
         <template>
           <p v-show="isEmpty && isRunning" id="renew">
             <i class="material-icons spin">autorenew</i>
@@ -67,15 +67,27 @@
             <div class="helpButton" @click="toggleHelp()">Help</div>
           </div>
           <div class="helpText" v-if="showHelp">
-            <p>Search occurs on each character you type (3 character minimum for search terms).</p>
-            <p><b>The index:</b> Search utilizes the index which automatically gets updated on the configured interval
-              (default: 5 minutes).
-              Searching when the program has just started may result in incomplete results.</p>
-            <p><b>Filter by type:</b> You can have multiple type filters by adding <code>type:condition</code> followed by
-              search terms.</p>
-            <p><b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
-              for example <code>"test|not"</code> searches for both terms independently.</p>
-            <p><b>File size:</b> Searching files by size may have significantly longer search times.</p>
+            <p>
+              Search occurs on each character you type (3 character minimum for search
+              terms).
+            </p>
+            <p>
+              <b>The index:</b> Search utilizes the index which automatically gets updated
+              on the configured interval (default: 5 minutes). Searching when the program
+              has just started may result in incomplete results.
+            </p>
+            <p>
+              <b>Filter by type:</b> You can have multiple type filters by adding
+              <code>type:condition</code> followed by search terms.
+            </p>
+            <p>
+              <b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
+              for example <code>"test|not"</code> searches for both terms independently.
+            </p>
+            <p>
+              <b>File size:</b> Searching files by size may have significantly longer
+              search times.
+            </p>
           </div>
           <template>
             <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
@@ -85,12 +97,12 @@
             <div class="sizeConstraints">
               <div class="sizeInputWrapper">
                 <p>Smaller Than:</p>
-                <input class="sizeInput" v-model="smallerThan" type="text" placeholder="number">
+                <input class="sizeInput" v-model="smallerThan" type="number" min="0" placeholder="number" />
                 <p>MB</p>
               </div>
               <div class="sizeInputWrapper">
                 <p>Larger Than:</p>
-                <input class="sizeInput" v-model="largerThan" type="text" placeholder="number">
+                <input class="sizeInput" v-model="largerThan" type="number" placeholder="number" />
                 <p>MB</p>
               </div>
             </div>
@@ -118,7 +130,242 @@
 
 <style>
 .main-input {
-  width: 100%
+  width: 100%;
+}
+
+.searchContext {
+  width: 100%;
+  padding: 0.5em 1em;
+  background: var(--blue);
+  color: white;
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
+}
+
+#result-desktop>#result-list {
+  max-height: 80vh;
+  width: 35em;
+  overflow: scroll;
+  padding-bottom: 1em;
+  -webkit-transition: width 0.3s ease 0s;
+  transition: width 0.3s ease 0s;
+}
+
+#result-desktop {
+  -webkit-animation: SlideDown 0.5s forwards;
+  animation: SlideDown 0.5s forwards;
+  border-radius: 1m;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 1em;
+  max-height: 100%;
+  border-top: none;
+  border-top-width: initial;
+  border-top-style: none;
+  border-top-color: initial;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
+  background-color: lightgray;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+#search.active #result-desktop ul li a {
+  display: flex;
+  align-items: center;
+  padding: .3em 0;
+  margin-right: .3em;
+}
+
+#search #result-list.active {
+  width: 65em !important;
+  max-width: 85vw !important;
+}
+
+/* Animations */
+@keyframes SlideDown {
+  0% {
+    transform: translateY(-3em);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Search */
+#search {
+  z-index:3;
+  position: fixed;
+  top: .5em;
+  min-width: 35em;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+
+#search #input {
+  background-color: rgba(100, 100, 100, 0.2);
+  display: flex;
+  height: 100%;
+  padding: 0em 0.75em;
+  border-style: solid;
+  border-radius: 1em;
+  border-style: unset;
+  border-width: 1px;
+  align-items: center;
+  height: 3em;
+}
+
+#search input {
+  border: 0;
+  background-color: transparent;
+  padding: 0;
+}
+
+#result-list p {
+  margin: 1em;
+}
+
+/* Hiding scrollbar for Chrome, Safari and Opera */
+#result-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hiding scrollbar for IE, Edge and Firefox */
+#result-list {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+
+.text-container {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: left;
+  direction: rtl;
+}
+
+
+#search #result {
+  padding-top: 1em;
+  overflow: hidden;
+  background: white;
+  display: flex;
+  top: -4em;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+  color: rgba(0, 0, 0, 0.6);
+  height: 0;
+  transition: 2s ease height, 2s ease padding;
+  transition: 2s ease width, 2s ease padding;
+  z-index: 3;
+}
+
+body.rtl #search #result {
+  direction: ltr;
+}
+
+#search #result>div>*:first-child {
+  margin-top: 0;
+}
+
+body.rtl #search #result {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Search Results */
+body.rtl #search #result ul>* {
+  direction: ltr;
+  text-align: left;
+}
+
+#search ul {
+  margin-top: 1em;
+  padding: 0;
+  list-style: none;
+}
+
+#search li {
+  margin: 0.5em;
+}
+
+#search #renew {
+  width: 100%;
+  text-align: center;
+  display: none;
+  margin: 1em;
+  max-width: none;
+}
+
+#search.ongoing #renew {
+  display: block;
+}
+
+#search.active #input {
+  background-color: lightgray;
+  border-color: black;
+  border-style: solid;
+  border-bottom-style: none;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Search Input Placeholder */
+#search::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#search:-moz-placeholder {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#search::-moz-placeholder {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#search:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Search Boxes */
+#search .boxes {
+  margin: 1em;
+  text-align: center;
+}
+
+#search .boxes h3 {
+  margin: 0;
+  font-weight: 500;
+  font-size: 1em;
+  color: #212121;
+  padding: 0.5em;
+}
+
+body.rtl #search .boxes h3 {
+  text-align: right;
+}
+
+#search .boxes p {
+  margin: 1em 0 0;
+}
+
+#search .boxes i {
+  color: #fff !important;
+  font-size: 3.5em;
 }
 
 .mobile-boxes {
@@ -131,18 +378,22 @@
   border-radius: 1em;
   text-align: center;
 }
+
 /* Hiding scrollbar for Chrome, Safari and Opera */
 .mobile-boxes::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 /* Hiding scrollbar for IE, Edge and Firefox */
 .mobile-boxes {
-  scrollbar-width: none;  /* Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
 }
+
 .helpText {
-  padding: 1em
+  padding: 1em;
 }
 
 .sizeConstraints {
@@ -160,20 +411,23 @@
   width: 5em;
   border-radius: 1em;
   padding: 1em;
-
-  border: solid !important;
+  backdrop-filter: invert(.1);
+  border: none !important;
 }
 
 .sizeInputWrapper {
   border-radius: 1em;
   margin-left: 0.5em;
   margin-right: 0.5em;
-  border-style: groove;
+  display: -ms-flexbox;
   display: flex;
   background-color: rgb(245, 245, 245);
-  padding: .25em;
+  padding: 0.25em;
   height: 3em;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
   align-items: center;
+  border: 1px solid #ccc
 }
 
 .helpButton {
@@ -244,6 +498,17 @@ export default {
     };
   },
   watch: {
+    active(active) {
+      const resultList = document.getElementById("result-list");
+      if (!active) {
+        resultList.classList.remove("active");
+        return
+      }
+      setTimeout(() => {
+        resultList.classList.add("active");
+      }, 100);
+
+    },
     show(val, old) {
       this.active = val === "search";
       if (old === "search" && !this.active) {
@@ -298,7 +563,7 @@ export default {
       return this.ongoing;
     },
     searchHelp() {
-      return this.showHelp
+      return this.showHelp;
     },
   },
   mounted() {
@@ -320,25 +585,24 @@ export default {
       return path.replace(/\/+$/, "") + "/";
     },
     basePath(str) {
-      if (!str.includes("/")) {
-        return "";
+      let parts = str.split("/");
+      if (parts.length <= 2) {
+        return "/";
       }
-      let parts = str.replace(/(\/$|^\/)/, "").split("/"); //remove first and last slash
       parts.pop();
-      parts = parts.join("/") + "/"
+      parts = parts.join("/") + "/";
       if (str.endsWith("/")) {
-        parts = "/" + parts // weird rtl bug
+        parts = "/" + parts;
       }
       return parts;
     },
     baseName(str) {
-      let parts = str.replace(/(\/$|^\/)/, "").split("/")
-      return parts.pop()
+      let parts = str.replace(/(\/$|^\/)/, "").split("/");
+      return parts.pop();
     },
     ...mapMutations(["showHover", "closeHovers", "setReload"]),
     open() {
       this.showHover("search");
-      this.showBoxes = true;
     },
     close(event) {
       event.stopPropagation();
@@ -353,19 +617,20 @@ export default {
     },
     addToTypes(string) {
       if (this.searchTypes.includes(string)) {
-        return true
+        return true;
       }
       if (string == null || string == "") {
-        return false
+        return false;
       }
-      this.searchTypes = this.searchTypes + string + " "
+      this.searchTypes = this.searchTypes + string + " ";
+
     },
-    resetSearchFilters(){
-      this.searchTypes= "";
+    resetSearchFilters() {
+      this.searchTypes = "";
     },
     removeFromTypes(string) {
       if (string == null || string == "") {
-        return false
+        return false;
       }
       this.searchTypes = this.searchTypes.replace(string + " ", "");
       if (this.isMobile) {
@@ -373,7 +638,7 @@ export default {
       }
     },
     folderSelectClicked() {
-      this.isTypeSelectDisabled = true;  // Disable the other ButtonGroup
+      this.isTypeSelectDisabled = true; // Disable the other ButtonGroup
     },
     resetButtonGroups() {
       this.isTypeSelectDisabled = false;
@@ -384,15 +649,15 @@ export default {
       if (this.value === "" || this.value.length < 3) {
         this.ongoing = false;
         this.results = [];
-        this.noneMessage = "Not enough characters to search (min 3)"
-        return
+        this.noneMessage = "Not enough characters to search (min 3)";
+        return;
       }
-      let searchTypesFull = this.searchTypes
+      let searchTypesFull = this.searchTypes;
       if (this.largerThan != "") {
-        searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " "
+        searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " ";
       }
       if (this.smallerThan != "") {
-        searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " "
+        searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
       let path = this.$route.path;
       this.ongoing = true;
@@ -401,14 +666,14 @@ export default {
       } catch (error) {
         this.$showError(error);
       }
-      if (this.results.length == 0 && this.ongoing == false) {
-        this.noneMessage = "No results found in indexed search."
-      }
       this.ongoing = false;
+      if (this.results.length == 0) {
+        this.noneMessage = "No results found in indexed search.";
+      }
     },
     toggleHelp() {
-      this.showHelp = !this.showHelp
-    }
+      this.showHelp = !this.showHelp;
+    },
   },
 };
 </script>

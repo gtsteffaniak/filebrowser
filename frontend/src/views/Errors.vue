@@ -1,7 +1,5 @@
 <template>
   <div>
-    <header-bar v-if="showHeader" showMenu showLogo />
-
     <h2 class="message">
       <i class="material-icons">{{ info.icon }}</i>
       <span>{{ $t(info.message) }}</span>

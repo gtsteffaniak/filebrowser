@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
@@ -24,26 +23,35 @@ type Settings struct {
 	Signup           bool                `json:"signup"`
 	CreateUserDir    bool                `json:"createUserDir"`
 	UserHomeBasePath string              `json:"userHomeBasePath"`
-	Defaults         UserDefaults        `json:"defaults"`
 	Commands         map[string][]string `json:"commands"`
 	Shell            []string            `json:"shell"`
+	AdminUsername    string              `json:"adminUsername"`
+	AdminPassword    string              `json:"adminPassword"`
 	Rules            []rules.Rule        `json:"rules"`
 	Server           Server              `json:"server"`
-	AuthMethod       string              `json:"authMethod"`
-	Auth             struct {
-		Header  string `json:"header"`
-		Method  string `json:"method"`
-		Command string `json:"command"`
-		Signup  bool   `json:"signup"`
-		Shell   string `json:"shell"`
-	} `json:"auth"`
+	Auth             Auth                `json:"auth"`
+	Frontend         Frontend            `json:"frontend"`
+	UserDefaults     UserDefaults        `json:"userDefaults"`
+}
 
-	Branding Branding `json:"branding"`
+type Auth struct {
+	Recaptcha Recaptcha `json:"recaptcha"`
+	Header    string    `json:"header"`
+	Method    string    `json:"method"`
+	Command   string    `json:"command"`
+	Signup    bool      `json:"signup"`
+	Shell     string    `json:"shell"`
+}
 
-	UserDefaults UserDefaults `json:"userDefaults"`
+type Recaptcha struct {
+	Host   string `json:"host"`
+	Key    string `json:"key"`
+	Secret string `json:"secret"`
 }
 
 type Server struct {
+	IndexingInterval      uint32 `json:"indexingInterval"`
+	NumImageProcessors    int    `json:"numImageProcessors"`
 	Socket                string `json:"socket"`
 	TLSKey                string `json:"tlsKey"`
 	TLSCert               string `json:"tlsCert"`
@@ -52,16 +60,15 @@ type Server struct {
 	EnableExec            bool   `json:"enableExec"`
 	TypeDetectionByHeader bool   `json:"typeDetectionByHeader"`
 	AuthHook              string `json:"authHook"`
-	Port                  string `json:"port"`
+	Port                  int    `json:"port"`
 	BaseURL               string `json:"baseURL"`
 	Address               string `json:"address"`
 	Log                   string `json:"log"`
 	Database              string `json:"database"`
 	Root                  string `json:"root"`
-	EnablePreviewResize   bool   `json:"disable-preview-resize"`
 }
 
-type Branding struct {
+type Frontend struct {
 	Name                  string `json:"name"`
 	DisableExternal       bool   `json:"disableExternal"`
 	DisableUsedPercentage bool   `json:"disableUsedPercentage"`
@@ -73,55 +80,18 @@ type Branding struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	Scope        string            `json:"scope"`
-	Locale       string            `json:"locale"`
-	ViewMode     users.ViewMode    `json:"viewMode"`
-	SingleClick  bool              `json:"singleClick"`
-	Sorting      files.Sorting     `json:"sorting"`
+	LockPassword bool   `json:"lockPassword"`
+	Scope        string `json:"scope"`
+	Locale       string `json:"locale"`
+	ViewMode     string `json:"viewMode"`
+	SingleClick  bool   `json:"singleClick"`
+	Sorting      struct {
+		By  string `json:"by"`
+		Asc bool   `json:"asc"`
+	} `json:"sorting"`
 	Perm         users.Permissions `json:"perm"`
+	Permissions  users.Permissions `json:"permissions"`
 	Commands     []string          `json:"commands"`
 	HideDotfiles bool              `json:"hideDotfiles"`
 	DateFormat   bool              `json:"dateFormat"`
 }
-
-//{
-//	"server":{
-//	   "port":8080,
-//	   "baseURL":"",
-//	   "address":"",
-//	   "log":"stdout",
-//	   "database":"./database.db",
-//	   "root":"/srv",
-//	   "disable-thumbnails":false,
-//	   "disable-preview-resize":false,
-//	   "disable-exec":false,
-//	   "disable-type-detection-by-header":false
-//	},
-//	"auth":{
-//	   "header":"",
-//	   "method":"",
-//	   "command":"",
-//	   "signup":false,
-//	   "shell":""
-//	},
-//	"branding":{
-//	   "name":"",
-//	   "color":"",
-//	   "files":"",
-//	   "disableExternal":"",
-//	   "disableUsedPercentage":""
-//	},
-//	"permissions":{
-//	   "Admin":false,
-//	   "Execute":true,
-//	   "Create":true,
-//	   "Rename":true,
-//	   "Modify":true,
-//	   "Delete":true,
-//	   "Share":true,
-//	   "Download":true
-//	},
-//	"commands":{},
-//	"shell":{},
-//	"rules":{}
-// }

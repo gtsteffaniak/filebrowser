@@ -4,8 +4,19 @@ body {
   padding-top: 4em;
   background-color: #fafafa;
   color: #333333;
+  overflow:auto;
+  overflow:initial;
+
+}
+body::-webkit-scrollbar {
+  z-index: 1000;
 }
 
+/* Hiding scrollbar for IE, Edge and Firefox */
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
 body.rtl {
   direction: rtl;
 }
@@ -63,7 +74,7 @@ nav {
   top: 0;
   padding-top: 4em;
   left: -19em;
-  z-index: 10000;
+  z-index: 4;
   background: #fff;
   height: 100%;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
@@ -110,7 +121,18 @@ nav .action > * {
 
 /* Main Content */
 main {
-  margin: 1em;
+  position: fixed;
+  padding: 1em;
+  padding-top: 4em;
+  overflow: scroll;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+main > div {
+  height: calc(100% - 3em);
 }
 
 .breadcrumbs {
@@ -165,28 +187,7 @@ body.rtl .breadcrumbs a {
   transition: 0.2s ease width;
 }
 
-/* Animations */
-@keyframes flyInFromTop {
-  0% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
 
-#search.active #result-desktop ul li a {
-  display: flex;
-  align-items: center;
-  padding: .3em 0;
-  margin-right: .3em;
-}
-
-#result-desktop {
-  animation: flyInFromTop 0.5s forwards;
-}
 
 /* File Selection */
 #file-selection {

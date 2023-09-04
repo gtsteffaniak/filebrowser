@@ -1,6 +1,10 @@
 ## Filebrowser
 
-**Note: Intended to be used in docker only.**
+> **NOTE**
+Intended for docker use only
+
+> **Warning**
+Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml` configuration file. `.filebrowser.json` and any flags other than `-c` and `-config` during execution WILL NO LONGER WORK. This is by design, in order to use the v0.2.0 You can mount your directory and initialize a new DB with a new default `filebrowser.yaml` which you can tweak and use in the future. Or you can copy and paste the default startup `filebrowser.yaml` below.
 
 This fork makes the following significant changes to filebrowser for origin:
 
@@ -9,7 +13,7 @@ This fork makes the following significant changes to filebrowser for origin:
     - [x] Realtime results as you type
     - [x] Works with file type filter
     - [x] better desktop search view
- 1. [ ] Preview enhancements
+ 1. [x] Preview enhancements
     - Preview default view is constrained to files subwindow,
     which can be toggled to fullscreen.
  1. [x] Improved and simplified GUI
@@ -20,11 +24,8 @@ This fork makes the following significant changes to filebrowser for origin:
     - [x] Uses latest npm and node version
     - [x] Removes deprecated npm packages
     - [x] Updates golang dependencies
-    - [ ] Remove all unnecessary packages, replaces with generic functions.
- 1. [ ] Moved all configurations to filebrowser.json.
-  no more flags or binary operations to db
- 1. [ ] File browsing uses index first for better performance
-    - file details shown only when toggled or needed
+    - [x] Remove all unnecessary packages, replaces with generic functions.
+ 1. [x] **IMPORTANT** Moved all configurations to `filebrowser.yaml`. no more flags or binary operations to db
 
 ## About
 
@@ -44,14 +45,14 @@ Once this is fully complete, the only updates to th
 
 ## Look
 
-General UI desktop (dark mode):
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/11346953-f3eb-4f2f-a833-1d615e0e38bc)
+This is how desktop search looks in 0.2.0
+![darkmode-capture1](https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb)
 
-[General UI mobile (dark mode)](https://github.com/gtsteffaniak/filebrowser/assets/42989099/634d3ba6-7ac0-425b-8a83-419743e92fec)
+![darkmode2](https://github.com/gtsteffaniak/filebrowser/assets/42989099/8d426356-26cf-407b-b078-bf58f198e799)
 
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/c8dc8af1-6869-4736-9092-c47f735bbdc0)
+However [mobile search](https://github.com/gtsteffaniak/filebrowser/assets/42989099/37e8f03b-4f5a-4689-aa6c-5cd858a858e9) still appears very similar to filebrowser/filebrowsers original implementation.
 
-[However, mobile search still appears very similar to filebrowser/filebrowsers original implementation](https://github.com/gtsteffaniak/filebrowser/assets/42989099/e179b821-f4e2-4568-b895-4e00de371637)
+[Mobile web also looks similar](https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9)
 
 ## Performance
 
@@ -124,14 +125,9 @@ volumes:
 
 ## Configuration
 
-Note: still a WIP migrating configuration to json.
+All configuration is now done via a single configuration file: `filebrowser.yaml`, here is an example [configuration file](./backend/filebrowser.yaml).
+### background
 
-All configuration is now done via the filebrowser.json config file.
-This was chosen because it works best with a docker first use case.
-
-Previously the primary way to configure filebrowser was via flags.
-But this quickly became cumbersome if you had many configurations to make
-
-The other method to configure was via `filebrowser config` commands which
-would write configurations to a db if it existed already.
-When considering
+The original project filebrowser/filebrowser used multiple different ways to configure the server.
+This was confusing and difficult to work with from a user and from a developer's perspective.
+So I completely redesigned the program to use one single human-readable config file.

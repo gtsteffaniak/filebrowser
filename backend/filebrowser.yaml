@@ -1,0 +1,20 @@
+server:
+  port: 8080
+  baseURL: "/"
+auth:
+  method: noauth
+  signup: true
+userDefaults:
+  scope: "."
+  hideDotfiles: true
+  singleClick: false
+  permissions:
+    admin: false
+    create: true
+    rename: true
+    modify: true
+    delete: true
+    share: true
+    download: true
+frontend:
+  theme: dark

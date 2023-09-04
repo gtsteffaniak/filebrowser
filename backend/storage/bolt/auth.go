@@ -2,7 +2,6 @@ package bolt
 
 import (
 	"github.com/asdine/storm/v3"
-
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/errors"
 )
@@ -13,20 +12,18 @@ type authBackend struct {
 
 func (s authBackend) Get(t string) (auth.Auther, error) {
 	var auther auth.Auther
-
 	switch t {
-	case auth.MethodJSONAuth:
+	case "password":
 		auther = &auth.JSONAuth{}
-	case auth.MethodProxyAuth:
+	case "proxy":
 		auther = &auth.ProxyAuth{}
-	case auth.MethodHookAuth:
+	case "hook":
 		auther = &auth.HookAuth{}
-	case auth.MethodNoAuth:
+	case "noauth":
 		auther = &auth.NoAuth{}
 	default:
 		return nil, errors.ErrInvalidAuthMethod
 	}
-
 	return auther, get(s.db, "auther", auther)
 }
 
