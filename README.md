@@ -1,4 +1,4 @@
-## Gtstef / filebrowser
+## Filebrowser
 
 > **NOTE**
 Intended for docker use only
@@ -53,8 +53,6 @@ This is how desktop search looks in 0.2.0
 However [mobile search](https://github.com/gtsteffaniak/filebrowser/assets/42989099/37e8f03b-4f5a-4689-aa6c-5cd858a858e9) still appears very similar to filebrowser/filebrowsers original implementation.
 
 [Mobile web also looks similar](https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9)
-
-
 
 ## Performance
 
