@@ -45,15 +45,16 @@ Once this is fully complete, the only updates to th
 
 ## Look
 
-This is how desktop search looks in 0.1.3, the styling will be further refined in the next version.
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/761f2a08-cafb-4f79-90fe-48fa50679f48)
+This is how desktop search looks in 0.2.0
+![darkmode-capture1](https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb)
 
-However mobile search still appears very similar to filebrowser/filebrowsers original implementation:
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/03af7760-73a0-4a5d-ab32-84815e455245)
+![darkmode2](https://github.com/gtsteffaniak/filebrowser/assets/42989099/8d426356-26cf-407b-b078-bf58f198e799)
 
-search categories are improved:
+However [mobile search](https://github.com/gtsteffaniak/filebrowser/assets/42989099/37e8f03b-4f5a-4689-aa6c-5cd858a858e9) still appears very similar to filebrowser/filebrowsers original implementation.
 
-![image](https://github.com/gtsteffaniak/filebrowser/assets/42989099/5572ef20-3047-43b9-92f8-95c4ce6f12b5)
+[Mobile web also looks similar](https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9)
+
+
 
 ## Performance
 
