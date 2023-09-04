@@ -1,18 +1,8 @@
 <template>
   <header-bar>
-    <action
-      class="menu-button"
-      icon="menu"
-      :label="$t('buttons.toggleSidebar')"
-      @action="toggleSidebar()"
-    />
-    <search />
-    <action
-      class="menu-button"
-      icon="grid_view"
-      :label="$t('buttons.switchView')"
-      @action="switchView"
-    />
+    <action icon="close" :label="$t('buttons.close')" @action="close()" />
+    <title class="topTitle">{{ req.name }}</title>
+
   </header-bar>
 </template>
 
@@ -29,6 +19,7 @@ import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
+import url from "@/utils/url";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
@@ -58,6 +49,9 @@ export default {
   computed: {
     ...mapState(["req", "selected", "user", "show", "multiple", "selected", "loading"]),
     ...mapGetters(["selectedCount"]),
+    isSettings() {
+      return this.$route.path.includes("/settings/")
+    },
     nameSorted() {
       return this.req.sorting.by === "name";
     },
@@ -587,7 +581,17 @@ export default {
         },
       });
     },
-
+    close() {
+      if (this.isSettings) { // Use this.isSettings to access the computed property
+        this.$router.push({ path: "/files/" }, () => { });
+        this.$store.commit("closeHovers");
+        return;
+      }
+      this.$store.commit("updateRequest", {});
+      let uri = url.removeLastDir(this.$route.path) + "/";
+      console.log(url)
+      this.$router.push({ path: uri });
+    },
     upload: function () {
       if (
         typeof window.DataTransferItem !== "undefined" &&

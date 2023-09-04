@@ -5,9 +5,6 @@
     </div>
     <listingBar v-if="currentView === 'listing'"></listingBar>
     <editorBar v-else-if="currentView === 'editor'"></editorBar>
-    <editorBar v-else-if="currentView === 'share'"></editorBar>
-    <editorBar v-else-if="currentView === 'dashboard'"></editorBar>
-    <editorBar v-else-if="currentView === 'error'"></editorBar>
     <defaultBar v-else></defaultBar>
     <sidebar></sidebar>
     <main>
@@ -19,10 +16,9 @@
 </template>
 
 <script>
-import editorBar from "./files/EditorBar.vue"
-import defaultBar from "./files/Default.vue"
-import listingBar from "./files/ListingBar.vue"
-import previewBar from "./files/Preview.vue"
+import editorBar from "./bars/EditorBar.vue"
+import defaultBar from "./bars/Default.vue"
+import listingBar from "./bars/ListingBar.vue"
 import Prompts from "@/components/prompts/Prompts";
 import Action from "@/components/header/Action";
 import { mapState, mapGetters } from "vuex";
@@ -35,7 +31,6 @@ export default {
     defaultBar,
     editorBar,
     listingBar,
-    previewBar,
     Action,
     Sidebar,
     Prompts,

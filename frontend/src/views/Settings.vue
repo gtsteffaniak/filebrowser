@@ -52,6 +52,10 @@ import { mapState } from "vuex";
 
 export default {
   name: "settings",
+  mounted() {
+    // Update the req name property
+    this.$store.commit("updateRequest", { name: "Settings" });
+  },
   computed: {
     ...mapState(["user", "loading","req"]),
   },

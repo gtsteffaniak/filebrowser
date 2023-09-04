@@ -132,11 +132,6 @@ export default {
       }
     },
     close() {
-      if (this.isSettings) { // Use this.isSettings to access the computed property
-        this.$router.push({ path: "/files/" }, () => { });
-        this.$store.commit("closeHovers");
-        return;
-      }
       this.$store.commit("updateRequest", {});
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
