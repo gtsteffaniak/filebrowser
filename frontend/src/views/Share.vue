@@ -1,30 +1,5 @@
 <template>
   <div>
-    <header-bar showMenu showLogo>
-      <title />
-
-      <action
-        v-if="selectedCount"
-        icon="file_download"
-        :label="$t('buttons.download')"
-        @action="download"
-        :counter="selectedCount"
-      />
-      <button
-        v-if="isSingleFile()"
-        class="action copy-clipboard"
-        :data-clipboard-text="linkSelected()"
-        :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
-        :title="$t('buttons.copyDownloadLinkToClipboard')"
-      >
-        <i class="material-icons">content_paste</i>
-      </button>
-      <action
-        icon="check_circle"
-        :label="$t('buttons.selectMultiple')"
-        @action="toggleMultipleSelection"
-      />
-    </header-bar>
 
     <breadcrumbs :base="'/share/' + hash" />
 
