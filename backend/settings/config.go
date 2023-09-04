@@ -50,6 +50,7 @@ func setDefaults() Settings {
 		AdminUsername: "admin",
 		AdminPassword: "admin",
 		Server: Server{
+			EnableThumbnails:   true,
 			EnableExec:         false,
 			IndexingInterval:   5,
 			Port:               8080,

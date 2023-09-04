@@ -126,8 +126,13 @@ main {
   padding-top: 4em;
   overflow: scroll;
   top: 0;
-  height: 100vh;
+  height: 100%;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+main > div {
+  height: calc(100% - 3em);
 }
 
 .breadcrumbs {

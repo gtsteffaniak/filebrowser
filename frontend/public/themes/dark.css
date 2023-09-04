@@ -33,13 +33,14 @@ header {
 
 #search #input {
   background: var(--surfaceSecondary);
-  border-color: var(--surfacePrimary);
+  border-color: var(--surfaceSecondary);
 }
 #search #input input::placeholder {
   color: var(--textSecondary);
 }
 #search.active #input {
   background: var(--surfacePrimary);
+  border-color: white;
 }
 #search.active input {
   color: var(--textPrimary);
@@ -131,8 +132,8 @@ nav > div {
 .input {
   background: var(--surfaceSecondary);
   color: var(--textPrimary);
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .input:hover,
 .input:focus {
   border-color: rgba(255, 255, 255, 0.15);
@@ -215,5 +216,5 @@ nav {
 }
 #result-desktop #result-list {
   background: #2a3137;
-
+  max-height: unset;
 }

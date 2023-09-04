@@ -16,7 +16,7 @@
           <i class="material-icons">note_add</i>
           <span>{{ $t("sidebar.newFile") }}</span>
         </button>
-        <button id="upload-button" @click="upload($event)" class="action" :aria-label="$t('sidebar.upload')" >
+        <button id="upload-button" @click="upload($event)" class="action" >
           <i class="material-icons">file_upload</i>
           <span>Upload file</span>
         </button>

@@ -53,11 +53,6 @@ header .action span {
   display: none;
 }
 
-header>div div {
-  vertical-align: middle;
-  position: relative;
-}
-
 /* Icon Colors */
 .folder-icons {
   color: var(--icon-blue);

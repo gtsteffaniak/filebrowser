@@ -3,9 +3,8 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <editorBar v-if="getCurrentView === 'editor'"></editorBar>
-    <listingBar v-else-if="getCurrentView === 'listing'"></listingBar>
-    <previewBar v-else-if="getCurrentView === 'preview'"></previewBar>
+    <listingBar v-if="currentView === 'listing'"></listingBar>
+    <editorBar v-else-if="currentView === 'editor'"></editorBar>
     <defaultBar v-else></defaultBar>
     <sidebar></sidebar>
     <main>
@@ -17,24 +16,21 @@
 </template>
 
 <script>
-import editorBar from "./files/Editor.vue"
-import defaultBar from "./files/Default.vue"
-import listingBar from"./files/Listing.vue"
-import previewBar from "./files/Preview.vue"
+import editorBar from "./bars/EditorBar.vue"
+import defaultBar from "./bars/Default.vue"
+import listingBar from "./bars/ListingBar.vue"
 import Prompts from "@/components/prompts/Prompts";
 import Action from "@/components/header/Action";
 import { mapState, mapGetters } from "vuex";
 import Sidebar from "@/components/Sidebar.vue";
 import UploadFiles from "../components/prompts/UploadFiles";
 import { enableExec } from "@/utils/constants";
-
 export default {
   name: "layout",
   components: {
     defaultBar,
     editorBar,
     listingBar,
-    previewBar,
     Action,
     Sidebar,
     Prompts,
@@ -49,18 +45,28 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["isLogged", "progress"]),
-    ...mapState(["req", "user", "currentView"]),
-    
+    ...mapGetters(["isLogged", "progress", "isListing"]),
+    ...mapState(["req", "user", "state"]),
+
     isExecEnabled: () => enableExec,
-    getCurrentView() {
-      return this.currentView;
+    currentView() {
+      if (this.req.type == undefined) {
+        return null;
+      }
+
+      if (this.req.isDir) {
+        return "listing";
+      } else if (
+        this.req.type === "text" ||
+        this.req.type === "textImmutable"
+      ) {
+        return "editor";
+      } else {
+        return "preview";
+      }
     },
   },
   watch: {
-    getCurrentView: function () {
-      console.log(this.currentView)
-    },
     $route: function () {
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
@@ -70,7 +76,7 @@ export default {
   methods: {
     getTitle() {
       let title = "Title"
-      if (this.$route.path.startsWith('/settings/')){
+      if (this.$route.path.startsWith('/settings/')) {
         title = "Settings"
       }
       return title
