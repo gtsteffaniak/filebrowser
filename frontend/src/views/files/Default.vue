@@ -6,13 +6,8 @@
       :label="$t('buttons.toggleSidebar')"
       @action="toggleSidebar()"
     />
-    <search />
-    <action
-      class="menu-button"
-      icon="grid_view"
-      :label="$t('buttons.switchView')"
-      @action="switchView"
-    />
+    <title class="topTitle">{{ req.name }}</title>
+
   </header-bar>
 </template>
 

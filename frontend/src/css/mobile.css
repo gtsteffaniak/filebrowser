@@ -54,26 +54,16 @@
   }
   #search {
     min-width: unset;
-    max-width: 60%
-  }
-
-  #search .boxes {
-    text-align: center;
-    width: 100%;
-    padding: 1em;
-    padding-top: 0;
-    max-width: 30em;
-    margin:auto;
-
+    max-width: 60%;
   }
 
   #search.active {
-    min-width: 100%;
     display: block;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
+    max-width: 100%;
   }
 
   #search.active #input {
@@ -110,15 +100,16 @@
     margin-right: 0.3em;
     user-select: none;
   }
-  #result {
-    overflow:scroll
-  }
+
   #result-list {
     width:100%;
     left: 0;
     top: 4em;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
     overflow: scroll;
-    display: contents;
+    display: flex;
+    flex-direction: column;
   }
 }
 

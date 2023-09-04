@@ -3,7 +3,7 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <defaultBar v-if="currentView === 'listing'"></defaultBar>
+    <listingBar v-if="currentView === 'listing'"></listingBar>
     <editorBar v-else-if="currentView === 'editor'"></editorBar>
     <editorBar v-else-if="currentView === 'share'"></editorBar>
     <editorBar v-else-if="currentView === 'dashboard'"></editorBar>

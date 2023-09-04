@@ -1,222 +1,49 @@
 <template>
-  <div>
-    <div v-if="selectedCount > 0" id="file-selection">
-      <span >{{ selectedCount }} selected</span>
-      <template>
-        <action
-          v-if="headerButtons.select"
-          icon="info"
-          :label="$t('buttons.info')"
-          show="info"
-        />
-        <action
-        v-if="headerButtons.select"
-          icon="check_circle"
-          :label="$t('buttons.selectMultiple')"
-          @action="toggleMultipleSelection"
-        />
-        <action
-          v-if="headerButtons.download"
-          icon="file_download"
-          :label="$t('buttons.download')"
-          @action="download"
-          :counter="selectedCount"
-        />
-        <action
-          v-if="headerButtons.share"
-          icon="share"
-          :label="$t('buttons.share')"
-          show="share"
-        />
-        <action
-          v-if="headerButtons.rename"
-          icon="mode_edit"
-          :label="$t('buttons.rename')"
-          show="rename"
-        />
-        <action
-          v-if="headerButtons.copy"
-          icon="content_copy"
-          :label="$t('buttons.copyFile')"
-          show="copy"
-        />
-        <action
-          v-if="headerButtons.move"
-          icon="forward"
-          :label="$t('buttons.moveFile')"
-          show="move"
-        />
-        <action
-          v-if="headerButtons.delete"
-          icon="delete"
-          :label="$t('buttons.delete')"
-          show="delete"
-        />
-      </template>
-    </div>
-
-    <div v-if="loading">
-      <h2 class="message delayed">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
-        <span>{{ $t("files.loading") }}</span>
-      </h2>
-    </div>
-    <template v-else>
-      <div v-if="req.numDirs + req.numFiles == 0">
-        <h2 class="message">
-          <i class="material-icons">sentiment_dissatisfied</i>
-          <span>{{ $t("files.lonely") }}</span>
-        </h2>
-        <input
-          style="display: none"
-          type="file"
-          id="upload-input"
-          @change="uploadInput($event)"
-          multiple
-        />
-        <input
-          style="display: none"
-          type="file"
-          id="upload-folder-input"
-          @change="uploadInput($event)"
-          webkitdirectory
-          multiple
-        />
-      </div>
-      <div v-else id="listing" ref="listing" :class="user.viewMode + ' file-icons'">
-        <div>
-          <div class="item header">
-            <div></div>
-            <div>
-              <p
-                :class="{ active: nameSorted }"
-                class="name"
-                role="button"
-                tabindex="0"
-                @click="sort('name')"
-                :title="$t('files.sortByName')"
-                :aria-label="$t('files.sortByName')"
-              >
-                <span>{{ $t("files.name") }}</span>
-                <i class="material-icons">{{ nameIcon }}</i>
-              </p>
-
-              <p
-                :class="{ active: sizeSorted }"
-                class="size"
-                role="button"
-                tabindex="0"
-                @click="sort('size')"
-                :title="$t('files.sortBySize')"
-                :aria-label="$t('files.sortBySize')"
-              >
-                <span>{{ $t("files.size") }}</span>
-                <i class="material-icons">{{ sizeIcon }}</i>
-              </p>
-              <p
-                :class="{ active: modifiedSorted }"
-                class="modified"
-                role="button"
-                tabindex="0"
-                @click="sort('modified')"
-                :title="$t('files.sortByLastModified')"
-                :aria-label="$t('files.sortByLastModified')"
-              >
-                <span>{{ $t("files.lastModified") }}</span>
-                <i class="material-icons">{{ modifiedIcon }}</i>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <h2 v-if="req.numDirs > 0">{{ $t("files.folders") }}</h2>
-        <div v-if="req.numDirs > 0">
-          <item
-            v-for="item in dirs"
-            :key="base64(item.name)"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.isDir"
-            v-bind:url="item.url"
-            v-bind:modified="item.modified"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-          >
-          </item>
-        </div>
-
-        <h2 v-if="req.numFiles > 0">{{ $t("files.files") }}</h2>
-        <div v-if="req.numFiles > 0">
-          <item
-            v-for="item in files"
-            :key="base64(item.name)"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.isDir"
-            v-bind:url="item.url"
-            v-bind:modified="item.modified"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-          >
-          </item>
-        </div>
-
-        <input
-          style="display: none"
-          type="file"
-          id="upload-input"
-          @change="uploadInput($event)"
-          multiple
-        />
-        <input
-          style="display: none"
-          type="file"
-          id="upload-folder-input"
-          @change="uploadInput($event)"
-          webkitdirectory
-          multiple
-        />
-
-        <div :class="{ active: $store.state.multiple }" id="multiple-selection">
-          <p>{{ $t("files.multipleSelectionEnabled") }}</p>
-          <div
-            @click="$store.commit('multiple', false)"
-            tabindex="0"
-            role="button"
-            :title="$t('files.clear')"
-            :aria-label="$t('files.clear')"
-            class="action"
-          >
-            <i class="material-icons">clear</i>
-          </div>
-        </div>
-      </div>
-    </template>
-  </div>
+  <header-bar>
+    <action
+      class="menu-button"
+      icon="menu"
+      :label="$t('buttons.toggleSidebar')"
+      @action="toggleSidebar()"
+    />
+    <search />
+    <action
+      class="menu-button"
+      icon="grid_view"
+      :label="$t('buttons.switchView')"
+      @action="switchView"
+    />
+  </header-bar>
 </template>
+
+<style>
+.flexbar {
+  display:flex;
+  flex-direction:block;
+  justify-content: space-between;
+}
+</style>
 
 <script>
 import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
+import HeaderBar from "@/components/header/HeaderBar.vue";
+import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
+import Search from "@/components/Search.vue";
 
-import Action from "@/components/header/Action";
-import Item from "@/components/files/ListingItem";
+import Item from "@/components/files/ListingItem.vue";
 
 export default {
   name: "listing",
   components: {
+    HeaderBar,
     Action,
+    Search,
     Item,
   },
   data: function () {
@@ -358,6 +185,20 @@ export default {
     document.removeEventListener("drop", this.drop);
   },
   methods: {
+    action: function () {
+      if (this.show) {
+        this.$store.commit("showHover", this.show);
+      }
+
+      this.$emit("action");
+    },
+    toggleSidebar() {
+      if (this.$store.state.show == "sidebar") {
+        this.$store.commit("closeHovers");
+      } else {
+        this.$store.commit("showHover", "sidebar");
+      }
+    },
     ...mapMutations(["updateUser", "addSelected"]),
     base64: function (name) {
       return window.btoa(unescape(encodeURIComponent(name)));
@@ -427,6 +268,24 @@ export default {
           document.getElementById("download-button").click();
           break;
       }
+    },
+    switchView: async function () {
+      this.$store.commit("closeHovers");
+      const modes = {
+        list: "mosaic",
+        mosaic: "mosaic gallery",
+        "mosaic gallery": "list",
+      };
+
+      const data = {
+        id: this.user.id,
+        viewMode: modes[this.user.viewMode] || "list",
+      };
+      //users.update(data, ["viewMode"]).catch(this.$showError);
+      this.$store.commit("updateUser", data);
+
+      //this.setItemWeight();
+      //this.fillWindow();
     },
     preventDefault(event) {
       // Wrapper around prevent default.
