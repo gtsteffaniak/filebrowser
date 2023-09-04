@@ -33,7 +33,7 @@ header {
 
 #search #input {
   background: var(--surfaceSecondary);
-  border-color: var(--surfacePrimary);
+  border-color: var(--surfaceSecondary);
 }
 #search #input input::placeholder {
   color: var(--textSecondary);

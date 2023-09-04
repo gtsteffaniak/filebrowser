@@ -142,38 +142,34 @@
   border-right: 1px solid gray;
 }
 
-#result-desktop #result-list {
+#result-desktop>#result-list {
+  max-height: 80vh;
+  overflow: scroll;
+  padding-bottom: 1em;
   -webkit-transition: width 0.3s ease 0s;
   transition: width 0.3s ease 0s;
-  max-width: 100%;
-  width: 30em;
-  padding-top: 0em;
+}
+
+#result-desktop {
+  -webkit-animation: SlideDown 0.5s forwards;
+  animation: SlideDown 0.5s forwards;
+  border-radius: 1m;
   border-width: 1px;
   border-style: solid;
   border-radius: 1em;
+  max-height: 100%;
   border-top: none;
   border-top-width: initial;
   border-top-style: none;
   border-top-color: initial;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
-  max-height: 80vh;
-  left: 50%;
-  vertical-align: middle;
-  position: relative;
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
   -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   background-color: lightgray;
-  margin-top: 0;
-  padding-top: 1em;
-  overflow: auto;
-}
-
-#result-desktop {
-  animation: SlideDown 0.5s forwards;
-  border-radius: 1m;
+  max-height: 80vh;
   overflow: hidden;
 }
 
@@ -204,25 +200,27 @@
 
 /* Search */
 #search {
-  min-width: 35em;
-  height: 3em;
-  display: block;
+  z-index:3;
+  position: fixed;
+  top: .5em;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
 }
 
 #search #input {
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
   height: 100%;
+  min-width: 35em;
   padding: 0em 0.75em;
   border-style: solid;
-  border-color: #ccc;
   border-radius: 1em;
-  border-style: solid;
-  border-color: #a7a7a7;
+  border-style: unset;
   border-width: 1px;
   transition: 1s ease all;
   align-items: center;
-  z-index: 3;
+  height: 3em;
 }
 
 #search input {
@@ -270,6 +268,7 @@
   color: rgba(0, 0, 0, 0.6);
   height: 0;
   transition: 2s ease height, 2s ease padding;
+  transition: 2s ease width, 2s ease padding;
   z-index: 3;
 }
 
@@ -315,11 +314,12 @@ body.rtl #search #result ul>* {
 }
 
 #search.active #input {
-  border-bottom-left-radius: 1px;
   background-color: lightgray;
-  border-color: gray;
+  border-color: black;
+  border-style: solid;
   border-bottom-style: none;
-  border-bottom-right-radius: 1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 /* Search Input Placeholder */

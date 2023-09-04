@@ -21,7 +21,7 @@
 <script>
 import editorBar from "./files/EditorBar.vue"
 import defaultBar from "./files/Default.vue"
-import listingBar from "./files/Listing.vue"
+import listingBar from "./files/ListingBar.vue"
 import previewBar from "./files/Preview.vue"
 import Prompts from "@/components/prompts/Prompts";
 import Action from "@/components/header/Action";
