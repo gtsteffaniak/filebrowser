@@ -65,7 +65,9 @@
     width: 100%;
     max-width: 100%;
   }
-
+  #search #input {
+    transition: 1s ease all;
+  }
   #search.active #input {
     border-bottom: 3px solid rgba(0, 0, 0, 0.075);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);

@@ -144,6 +144,7 @@
 
 #result-desktop>#result-list {
   max-height: 80vh;
+  width: 35em;
   overflow: scroll;
   padding-bottom: 1em;
   -webkit-transition: width 0.3s ease 0s;
@@ -180,7 +181,7 @@
   margin-right: .3em;
 }
 
-#result-list.active {
+#search #result-list.active {
   width: 65em !important;
   max-width: 85vw !important;
 }
@@ -203,6 +204,7 @@
   z-index:3;
   position: fixed;
   top: .5em;
+  min-width: 35em;
   left: 50%;
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
@@ -212,13 +214,11 @@
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
   height: 100%;
-  min-width: 35em;
   padding: 0em 0.75em;
   border-style: solid;
   border-radius: 1em;
   border-style: unset;
   border-width: 1px;
-  transition: 1s ease all;
   align-items: center;
   height: 3em;
 }
