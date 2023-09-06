@@ -1,4 +1,13 @@
-## Filebrowser
+<p align="center"> 
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg?color=3F51B5&style=for-the-badge&label=License&logoColor=000000&labelColor=ececec" alt="License: MIT"></a>
+</p>
+<p align="center">
+<img src="frontend/public/img/icons/favicon-32x32.png" width="100" title="Login With Custom URL">
+</p>
+<h3 align="center">Filebrowser - A modern file manager for the web</h3>
+<p align="center">
+  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/459937ef-3f14-408d-aef5-899cde4cf3a1" title="Main Screenshot">
+</p>
 
 > **NOTE**
 Intended for docker use only
@@ -44,15 +53,12 @@ will only recieve security updates. These changes are mentioned above.
 Once this is fully complete, the only updates to th
 
 ## Look
-
-This is how desktop search looks in 0.2.0
-![darkmode-capture1](https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb)
-
-![darkmode2](https://github.com/gtsteffaniak/filebrowser/assets/42989099/8d426356-26cf-407b-b078-bf58f198e799)
-
-However [mobile search](https://github.com/gtsteffaniak/filebrowser/assets/42989099/37e8f03b-4f5a-4689-aa6c-5cd858a858e9) still appears very similar to filebrowser/filebrowsers original implementation.
-
-[Mobile web also looks similar](https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9)
+<p align="center">
+  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb" title="Dark mode">
+  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/8d426356-26cf-407b-b078-bf58f198e799" title="Dark mode2">
+  <img width="300" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/37e8f03b-4f5a-4689-aa6c-5cd858a858e9" title="Dark mode">
+  <img width="300" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9" title="Dark mode">
+</p>
 
 ## Performance
 
