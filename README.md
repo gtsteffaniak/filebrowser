@@ -72,23 +72,23 @@ system should fully index within the first 5 minutes, potentially within the fir
 For example, a low end 11th gen i5 with SSD indexes 86K files within 1 second:
 
 ```
-2023/08/01 00:08:29 Using config file: /.filebrowser.json
-2023/08/01 00:08:29 Indexing files...
-2023/08/01 00:08:29 Listening on [::]:8080
-2023/08/01 00:08:30 Successfully indexed files.
-2023/08/01 00:08:30 Files found       : 85310
-2023/08/01 00:08:30 Directories found : 1711
-2023/08/01 00:08:30 Indexing scheduler will run every 5 minutes
+2023/09/09 21:38:50 Initializing with config file: filebrowser.yaml
+2023/09/09 21:38:50 Indexing files...
+2023/09/09 21:38:50 Listening on [::]:8080
+2023/09/09 21:38:51 Successfully indexed files.
+2023/09/09 21:38:51 Files found       : 123452
+2023/09/09 21:38:51 Directories found : 1768
+2023/09/09 21:38:51 Indexing scheduler will run every 5 minutes
 ```
 
 ## Install
 
 Using docker:
 
-1. docker run:
+1. docker run (no persistent db):
 
 ```
-docker run -it -v /path/to/folder:/srv -p 8080:8080 gtstef/filebrowser
+docker run -it -v /path/to/folder:/srv -p 80:8080 gtstef/filebrowser
 ```
 
 1. docker-compose:
@@ -100,12 +100,13 @@ version: '3.7'
 services:
   filebrowser:
     volumes:
-      - '/path/to/folder:/srv'
-      #- './database/:/database/'
-      - './config.json:/.filebrowser.json'
+      - '/path/to/folder:/srv' # required (for now not configurable)
+      - './database:/database'  # optional if you want db to persist - configure a path under "database" dir in config file.
+      - './filebrowser.yaml:/filebrowser.yaml' # required
     ports:
-      - '8080:8080'
+      - '80:8080'
     image: gtstef/filebrowser
+    restart: always
 ```
 
   - with network share
@@ -115,23 +116,28 @@ version: '3.7'
 services:
   filebrowser:
     volumes:
-      - 'nas:/srv'
-      #- './database/:/database/'
-      #- './config.json:/.filebrowser.json'
+      - 'storage:/srv' # required (for now not configurable)
+      - './database:/database'  # optional if you want db to persist - configure a path under "database" dir in config file.
+      - './filebrowser.yaml:/filebrowser.yaml' # required
     ports:
-      - '8080:80'
+      - '80:8080'
     image: gtstef/filebrowser
+    restart: always
 volumes:
-  nas:
+  storage:
     driver_opts:
       type: cifs
-      o: "username=myusername,password=mypassword,rw"
-      device: "//fileshare/"
+      o: "username=admin,password=password,rw" # enter valid info here
+      device: "//192.168.1.100/share/"         # enter valid hinfo here
+
 ```
 
 ## Configuration
 
-All configuration is now done via a single configuration file: `filebrowser.yaml`, here is an example [configuration file](./backend/filebrowser.yaml).
+All configuration is now done via a single configuration file: `filebrowser.yaml`, here is an example minimal [configuration file](./backend/filebrowser.yaml).
+
+View the [Configuration Help Page](./configuration.md) for available configuration options and other help.
+
 ### background
 
 The original project filebrowser/filebrowser used multiple different ways to configure the server.

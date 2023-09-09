@@ -98,7 +98,6 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 }
 
 func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs fs.FS) (index, static http.Handler) {
-	log.Print("requesting", store, assetsFs)
 	index = handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.Method != http.MethodGet {
 			return http.StatusNotFound, nil
