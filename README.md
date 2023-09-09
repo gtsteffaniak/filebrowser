@@ -1,4 +1,13 @@
-## Filebrowser
+<p align="center"> 
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg?color=3F51B5&style=for-the-badge&label=License&logoColor=000000&labelColor=ececec" alt="License: MIT"></a>
+</p>
+<p align="center">
+<img src="frontend/public/img/icons/favicon-256x256.png" width="100" title="Login With Custom URL">
+</p>
+<h3 align="center">Filebrowser - A modern file manager for the web</h3>
+<p align="center">
+  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/459937ef-3f14-408d-aef5-899cde4cf3a1" title="Main Screenshot">
+</p>
 
 > **NOTE**
 Intended for docker use only
@@ -44,15 +53,12 @@ will only recieve security updates. These changes are mentioned above.
 Once this is fully complete, the only updates to th
 
 ## Look
-
-This is how desktop search looks in 0.2.0
-![darkmode-capture1](https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb)
-
-![darkmode2](https://github.com/gtsteffaniak/filebrowser/assets/42989099/8d426356-26cf-407b-b078-bf58f198e799)
-
-However [mobile search](https://github.com/gtsteffaniak/filebrowser/assets/42989099/37e8f03b-4f5a-4689-aa6c-5cd858a858e9) still appears very similar to filebrowser/filebrowsers original implementation.
-
-[Mobile web also looks similar](https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9)
+<p align="center">
+  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb" title="Dark mode">
+  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/8d426356-26cf-407b-b078-bf58f198e799" title="Dark mode2">
+  <img width="300" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/37e8f03b-4f5a-4689-aa6c-5cd858a858e9" title="Dark mode">
+  <img width="300" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9" title="Dark mode">
+</p>
 
 ## Performance
 
@@ -66,23 +72,23 @@ system should fully index within the first 5 minutes, potentially within the fir
 For example, a low end 11th gen i5 with SSD indexes 86K files within 1 second:
 
 ```
-2023/08/01 00:08:29 Using config file: /.filebrowser.json
-2023/08/01 00:08:29 Indexing files...
-2023/08/01 00:08:29 Listening on [::]:8080
-2023/08/01 00:08:30 Successfully indexed files.
-2023/08/01 00:08:30 Files found       : 85310
-2023/08/01 00:08:30 Directories found : 1711
-2023/08/01 00:08:30 Indexing scheduler will run every 5 minutes
+2023/09/09 21:38:50 Initializing with config file: filebrowser.yaml
+2023/09/09 21:38:50 Indexing files...
+2023/09/09 21:38:50 Listening on [::]:8080
+2023/09/09 21:38:51 Successfully indexed files.
+2023/09/09 21:38:51 Files found       : 123452
+2023/09/09 21:38:51 Directories found : 1768
+2023/09/09 21:38:51 Indexing scheduler will run every 5 minutes
 ```
 
 ## Install
 
 Using docker:
 
-1. docker run:
+1. docker run (no persistent db):
 
 ```
-docker run -it -v /path/to/folder:/srv -p 8080:8080 gtstef/filebrowser
+docker run -it -v /path/to/folder:/srv -p 80:8080 gtstef/filebrowser
 ```
 
 1. docker-compose:
@@ -94,12 +100,13 @@ version: '3.7'
 services:
   filebrowser:
     volumes:
-      - '/path/to/folder:/srv'
-      #- './database/:/database/'
-      - './config.json:/.filebrowser.json'
+      - '/path/to/folder:/srv' # required (for now not configurable)
+      - './database:/database'  # optional if you want db to persist - configure a path under "database" dir in config file.
+      - './filebrowser.yaml:/filebrowser.yaml' # required
     ports:
-      - '8080:8080'
+      - '80:8080'
     image: gtstef/filebrowser
+    restart: always
 ```
 
   - with network share
@@ -109,23 +116,28 @@ version: '3.7'
 services:
   filebrowser:
     volumes:
-      - 'nas:/srv'
-      #- './database/:/database/'
-      #- './config.json:/.filebrowser.json'
+      - 'storage:/srv' # required (for now not configurable)
+      - './database:/database'  # optional if you want db to persist - configure a path under "database" dir in config file.
+      - './filebrowser.yaml:/filebrowser.yaml' # required
     ports:
-      - '8080:80'
+      - '80:8080'
     image: gtstef/filebrowser
+    restart: always
 volumes:
-  nas:
+  storage:
     driver_opts:
       type: cifs
-      o: "username=myusername,password=mypassword,rw"
-      device: "//fileshare/"
+      o: "username=admin,password=password,rw" # enter valid info here
+      device: "//192.168.1.100/share/"         # enter valid hinfo here
+
 ```
 
 ## Configuration
 
-All configuration is now done via a single configuration file: `filebrowser.yaml`, here is an example [configuration file](./backend/filebrowser.yaml).
+All configuration is now done via a single configuration file: `filebrowser.yaml`, here is an example minimal [configuration file](./backend/filebrowser.yaml).
+
+View the [Configuration Help Page](./configuration.md) for available configuration options and other help.
+
 ### background
 
 The original project filebrowser/filebrowser used multiple different ways to configure the server.
