@@ -2,7 +2,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg?color=3F51B5&style=for-the-badge&label=License&logoColor=000000&labelColor=ececec" alt="License: MIT"></a>
 </p>
 <p align="center">
-<img src="frontend/public/img/icons/favicon-32x32.png" width="100" title="Login With Custom URL">
+<img src="frontend/public/img/icons/favicon-256x256.png" width="100" title="Login With Custom URL">
 </p>
 <h3 align="center">Filebrowser - A modern file manager for the web</h3>
 <p align="center">
