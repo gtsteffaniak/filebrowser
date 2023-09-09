@@ -11,8 +11,7 @@
 
   <title>[{[ if .Name -]}][{[ .Name ]}][{[ else ]}]File Browser[{[ end ]}]</title>
 
-  <link rel="icon" type="image/png" sizes="32x32" href="[{[ .StaticURL ]}]/img/icons/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="[{[ .StaticURL ]}]/img/icons/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="[{[ .StaticURL ]}]/img/icons/favicon-256x256.png">
 
   <!-- Add to home screen for Android and modern mobile browsers -->
   <link rel="manifest" id="manifestPlaceholder" crossorigin="use-credentials">
@@ -38,12 +37,7 @@
       "short_name": window.FileBrowser.Name || 'File Browser',
       "icons": [
         {
-          "src": fullStaticURL + "/img/icons/android-chrome-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        },
-        {
-          "src": fullStaticURL + "/img/icons/android-chrome-512x512.png",
+          "src": fullStaticURL + "/img/icons/android-chrome-256x256.png",
           "sizes": "512x512",
           "type": "image/png"
         }
