@@ -18,23 +18,11 @@ Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml` configu
 This fork makes the following significant changes to filebrowser for origin:
 
  1. [x] Improves search to use index instead of filesystem.
-    - [x] Lightning fast
-    - [x] Realtime results as you type
-    - [x] Works with file type filter
-    - [x] better desktop search view
- 1. [x] Preview enhancements
-    - Preview default view is constrained to files subwindow,
-    which can be toggled to fullscreen.
- 1. [x] Improved and simplified GUI
-    - Moved all action buttons to file action bar except for switch-view
-    - Simplified navbar to 3 main actions: settings,search, and switch-view
-    - New search view on desktop
- 1. [x] Updated version and dependencies
-    - [x] Uses latest npm and node version
-    - [x] Removes deprecated npm packages
-    - [x] Updates golang dependencies
-    - [x] Remove all unnecessary packages, replaces with generic functions.
- 1. [x] **IMPORTANT** Moved all configurations to `filebrowser.yaml`. no more flags or binary operations to db
+    - Lightning fast, realtime results as you type
+    - Works with more type filters
+ 1. [x] Improved and simplified GUI navbar and sidebar menu.
+ 1. [x] Updated version and dependencies.
+ 1. [x] **IMPORTANT** Moved all configurations to `filebrowser.yaml`.
 
 ## About
 
@@ -48,10 +36,6 @@ work better in terms of asthetics and performance. Improved search,
  simplified ui (without removing features) and more secure and up-to-date
  build are just a few examples.
 
-There are a few more changes needed to get it to a stable status where it
-will only recieve security updates. These changes are mentioned above.
-Once this is fully complete, the only updates to th
-
 ## Look
 <p align="center">
   <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb" title="Dark mode">
@@ -60,16 +44,16 @@ Once this is fully complete, the only updates to th
   <img width="300" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9" title="Dark mode">
 </p>
 
-## Performance
+## Search Performance
 
-Search Performance - 100x faster search. However, this will be at expense of RAM. if you have < 1 million
+100x faster search. However, this will be at expense of RAM. if you have < 1 million
 files and folders in the given scope, the RAM usage should be less than 200MB total. RAM requirements
 should scale based on the number of directories.
 
 Also , the approx. time to fully index will vary widely based on performance. A sufficiently performant
 system should fully index within the first 5 minutes, potentially within the first few seconds.
 
-For example, a low end 11th gen i5 with SSD indexes 86K files within 1 second:
+For example, a low end 11th gen i5 with SSD indexes 128K files within 1 second:
 
 ```
 2023/09/09 21:38:50 Initializing with config file: filebrowser.yaml

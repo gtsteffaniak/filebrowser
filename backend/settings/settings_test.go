@@ -9,8 +9,7 @@ import (
 )
 
 func TestConfigLoadChanged(t *testing.T) {
-	configYml = "./testingConfig.yaml"
-	yamlData := loadConfigFile()
+	yamlData := loadConfigFile("./testingConfig.yaml")
 	// Marshal the YAML data to a more human-readable format
 	newConfig := setDefaults()
 	GlobalConfiguration := setDefaults()
@@ -26,8 +25,7 @@ func TestConfigLoadChanged(t *testing.T) {
 }
 
 func TestConfigLoadSpecificValues(t *testing.T) {
-	configYml = "./testingConfig.yaml"
-	yamlData := loadConfigFile()
+	yamlData := loadConfigFile("./testingConfig.yaml")
 	// Marshal the YAML data to a more human-readable format
 	newConfig := setDefaults()
 	GlobalConfiguration := setDefaults()
