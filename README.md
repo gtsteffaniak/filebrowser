@@ -69,7 +69,7 @@ should scale based on the number of directories.
 Also , the approx. time to fully index will vary widely based on performance. A sufficiently performant
 system should fully index within the first 5 minutes, potentially within the first few seconds.
 
-For example, a low end 11th gen i5 with SSD indexes 86K files within 1 second:
+For example, a low end 11th gen i5 with SSD indexes 128K files within 1 second:
 
 ```
 2023/09/09 21:38:50 Initializing with config file: filebrowser.yaml
