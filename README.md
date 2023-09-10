@@ -138,8 +138,17 @@ All configuration is now done via a single configuration file: `filebrowser.yaml
 
 View the [Configuration Help Page](./configuration.md) for available configuration options and other help.
 
-### background
+### background & help
 
 The original project filebrowser/filebrowser used multiple different ways to configure the server.
 This was confusing and difficult to work with from a user and from a developer's perspective.
 So I completely redesigned the program to use one single human-readable config file.
+
+I understand many coming from the original fork may notice differences which make using this improved version more difficult. If you notice issues that you believe should be fixed, please open an issue here and it will very likely be addressed with a PR within a few weeks.
+
+This version of filebrowser is going through a configuration overhaul as mentioned above. Certain features related to rules and commands may not work as they do on the original filebrowser. The purpose of this is to create a more consistent experience where configuration is done via files rather than running commands, so that it's very clear what the current state of the configuration is. When running commands its not clear what the configuration is.
+
+## Roadmap
+
+see [Roadmap Page](./roadmap.md)
+
