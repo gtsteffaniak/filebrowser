@@ -6,7 +6,10 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "fix": "npx vue-cli-service lint",
-    "watch": "vue-cli-service build --watch"
+    "watch": "vue-cli-service build --watch",
+    "lint": "eslint --ext .vue,.js src/",
+    "lint:fix": "eslint --ext .vue,.js --fix src/",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "ace-builds": "^1.4.7",
