@@ -25,13 +25,8 @@
 <script>
 import { mapState } from "vuex";
 import { files as api } from "@/api";
-import { theme } from "@/utils/constants";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
-
-import ace from "ace-builds/src-min-noconflict/ace.js";
-import modelist from "ace-builds/src-min-noconflict/ext-modelist.js";
-import "ace-builds/webpack-resolver";
 
 import HeaderBar from "@/components/header/HeaderBar";
 import Action from "@/components/header/Action";
@@ -85,22 +80,6 @@ export default {
   beforeDestroy() {
     window.removeEventListener("keydown", this.keyEvent);
     this.editor.destroy();
-  },
-  mounted: function () {
-    const fileContent = this.req.content || "";
-
-    this.editor = ace.edit("editor", {
-      value: fileContent,
-      showPrintMargin: false,
-      readOnly: this.req.type === "textImmutable",
-      theme: "ace/theme/chrome",
-      mode: modelist.getModeForPath(this.req.name).mode,
-      wrap: true,
-    });
-
-    if (theme == "dark") {
-      this.editor.setTheme("ace/theme/twilight");
-    }
   },
   methods: {
     back() {
