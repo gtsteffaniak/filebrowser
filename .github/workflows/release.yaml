@@ -1,9 +1,9 @@
-name: main
+name: release
 
 on:
   push:
     branches:
-      - 'main'
+      - 'v\d+.\d+.\d+'
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -21,11 +21,11 @@ jobs:
         with:
           go-version: 1.21.1
       - run: cd backend && go fmt ./...
-  push_latest_to_registry:
+  push_release_to_registry:
     needs: [lint, test]
-    name: Push latest
+    name: Push release
     runs-on: ubuntu-latest
-    if: branch-name.outputs.is_default == 'true'
+    if: ${{ github.event_name == 'release' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,6 +40,7 @@ jobs:
           driver-opts: |
             image=moby/buildkit:v0.10.6
       - name: Login to Docker Hub
+        # Only push to Docker Hub when making a release
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -56,5 +57,5 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./Dockerfile
           push: true
-          tags: 'gtstef/filebrowser:latest'
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
