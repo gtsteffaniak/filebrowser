@@ -30,6 +30,7 @@ jobs:
     needs: [lint, test]
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    if: contains(github.ref, 'main') || startsWith(github.ref,'v0.')
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
