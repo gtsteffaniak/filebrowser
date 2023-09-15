@@ -53,5 +53,5 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ contains(github.ref, 'main') && 'latest' || steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
