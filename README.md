@@ -1,5 +1,5 @@
-<p align="center"> 
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg?color=3F51B5&style=for-the-badge&label=License&logoColor=000000&labelColor=ececec" alt="License: MIT"></a>
+<p align="center">
+  <a href="https://opensource.org/license/apache-2-0/"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License: Apache-2.0"></a>
 </p>
 <p align="center">
 <img src="frontend/public/img/icons/favicon-256x256.png" width="100" title="Login With Custom URL">
