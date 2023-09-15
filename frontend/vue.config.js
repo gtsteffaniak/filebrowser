@@ -5,11 +5,17 @@ module.exports = {
   publicPath: "[{[ .StaticURL ]}]",
   parallel: true,
   configureWebpack: {
+    resolve: {
+      alias: {
+        // Add Ace Editor alias for importing it in your Vue components
+        ace: "ace-builds/src-min-noconflict",
+      },
+      extensions: ["*", ".js", ".vue", ".json"],
+    },
     plugins: [
       new CompressionPlugin({
         include: /\.js$/,
         deleteOriginalAssets: true,
-        threshold: 10240, // Only compress files larger than 10KB
         minRatio: 0.8,
       }),
     ],

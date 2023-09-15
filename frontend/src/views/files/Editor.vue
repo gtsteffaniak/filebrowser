@@ -1,6 +1,6 @@
 <template>
-    <div id="editor-container">
-    <form id="editor"></form>
+  <div id="editor-container">
+    <div id="editor"></div>
   </div>
 </template>
 
@@ -10,27 +10,16 @@ import { files as api } from "@/api";
 import { theme } from "@/utils/constants";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
-
 import ace from "ace-builds/src-min-noconflict/ace.js";
 import modelist from "ace-builds/src-min-noconflict/ext-modelist.js";
-import "ace-builds/webpack-resolver";
-
-import HeaderBar from "@/components/header/HeaderBar";
-import Action from "@/components/header/Action";
-import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default {
   name: "editor",
-  components: {
-    HeaderBar,
-    Action,
-    Breadcrumbs,
-  },
   data: function () {
     return {};
   },
   computed: {
-    ...mapState(["req", "user","currentView"]),
+    ...mapState(["req", "user"]),
     breadcrumbs() {
       let parts = this.$route.path.split("/");
 
@@ -75,14 +64,9 @@ export default {
       value: fileContent,
       showPrintMargin: false,
       readOnly: this.req.type === "textImmutable",
-      theme: "ace/theme/chrome",
       mode: modelist.getModeForPath(this.req.name).mode,
       wrap: true,
     });
-
-    if (theme == "dark") {
-      this.editor.setTheme("ace/theme/twilight");
-    }
   },
   methods: {
     back() {
