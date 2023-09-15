@@ -25,7 +25,6 @@ jobs:
     needs: [lint, test]
     name: Push latest
     runs-on: ubuntu-latest
-    if: branch-name.outputs.is_default == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
