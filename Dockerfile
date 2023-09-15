@@ -8,6 +8,7 @@ RUN npm run build
 FROM golang:1.21-alpine as base
 WORKDIR /app
 COPY  ./backend ./
+RUN go get -u golang.org/x/net
 RUN go build -ldflags="-w -s" -o filebrowser .
 
 FROM alpine:latest
