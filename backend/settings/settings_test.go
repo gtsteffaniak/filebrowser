@@ -34,11 +34,21 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
-
-	if GlobalConfiguration.Auth.Method == newConfig.Auth.Method {
-		log.Fatalf("Differences should have been found, but were not on Auth method")
+	testCases := []struct {
+		fieldName string
+		globalVal interface{}
+		newVal    interface{}
+	}{
+		{"Auth.Method", GlobalConfiguration.Auth.Method, newConfig.Auth.Method},
+		{"Auth.Method", GlobalConfiguration.Auth.Method, newConfig.Auth.Method},
+		{"Frontend.disableExternal", GlobalConfiguration.Frontend.DisableExternal, newConfig.Frontend.DisableExternal},
+		{"UserDefaults.HideDotfiles", GlobalConfiguration.UserDefaults.HideDotfiles, newConfig.UserDefaults.HideDotfiles},
+		{"Server.Database", GlobalConfiguration.Server.Database, newConfig.Server.Database},
 	}
-	if GlobalConfiguration.UserDefaults.HideDotfiles == newConfig.UserDefaults.HideDotfiles {
-		log.Fatalf("Differences should have been found, but were not on Auth method")
+
+	for _, tc := range testCases {
+		if tc.globalVal == tc.newVal {
+			t.Errorf("Differences should have been found:\n\tGlobalConfig.%s: %v \n\tSetConfig: %v \n", tc.fieldName, tc.globalVal, tc.newVal)
+		}
 	}
 }
