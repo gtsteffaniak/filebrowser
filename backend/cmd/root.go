@@ -172,7 +172,6 @@ func quickSetup(d pythonData) {
 		Password:     password,
 		LockPassword: false,
 	}
-	settings.GlobalConfiguration.UserDefaults.Apply(user)
 	user.Perm.Admin = true
 	err = d.store.Users.Save(user)
 	checkErr(err)

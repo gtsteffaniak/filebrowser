@@ -16,9 +16,6 @@ var usersAddCmd = &cobra.Command{
 	Long:  `Create a new user and add it to the database.`,
 	Args:  cobra.ExactArgs(2), //nolint:gomnd
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
-		s, err := d.store.Settings.Get()
-		checkErr(err)
-
 		password, err := users.HashPwd(args[1])
 		checkErr(err)
 
@@ -27,9 +24,6 @@ var usersAddCmd = &cobra.Command{
 			Password:     password,
 			LockPassword: mustGetBool(cmd.Flags(), "lockPassword"),
 		}
-
-		s.UserDefaults.Apply(user)
-
 		servSettings, err := d.store.Settings.GetServer()
 		checkErr(err)
 		// since getUserDefaults() polluted s.Defaults.Scope
