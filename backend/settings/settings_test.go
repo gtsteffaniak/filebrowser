@@ -40,6 +40,8 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 		newVal    interface{}
 	}{
 		{"Auth.Method", GlobalConfiguration.Auth.Method, newConfig.Auth.Method},
+		{"Auth.Method", GlobalConfiguration.Auth.Method, newConfig.Auth.Method},
+		{"Frontend.disableExternal", GlobalConfiguration.Frontend.DisableExternal, newConfig.Frontend.DisableExternal},
 		{"UserDefaults.HideDotfiles", GlobalConfiguration.UserDefaults.HideDotfiles, newConfig.UserDefaults.HideDotfiles},
 		{"Server.Database", GlobalConfiguration.Server.Database, newConfig.Server.Database},
 	}

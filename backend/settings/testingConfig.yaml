@@ -25,7 +25,7 @@ auth:
   shell: ""
 frontend:
   name: ""
-  disableExternal: false
+  disableExternal: true
   disableUsedPercentage: true
   files: ""
   theme: ""
