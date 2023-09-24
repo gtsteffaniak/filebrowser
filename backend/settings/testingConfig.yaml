@@ -11,7 +11,7 @@ server:
   baseURL: "/"
   address: ""
   log: "stdout"
-  database: "database.db"
+  database: "mydb.db"
   root: "/srv"
 auth:
   recaptcha:
