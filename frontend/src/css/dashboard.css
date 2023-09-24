@@ -6,6 +6,7 @@
   display: flex;
   margin: 0 -.5em;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 body.rtl .dashboard .row {
@@ -61,6 +62,7 @@ p code {
 .dashboard #nav .wrapper {
   display: flex;
   flex-grow: 1;
+  justify-content: center;
   border-bottom: 2px solid rgba(0, 0, 0, 0.05);
 }
 
