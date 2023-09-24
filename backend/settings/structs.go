@@ -5,19 +5,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-// Apply applies the default options to a user.
-func (d *UserDefaults) Apply(u *users.User) {
-	u.Scope = d.Scope
-	u.Locale = d.Locale
-	u.ViewMode = d.ViewMode
-	u.SingleClick = d.SingleClick
-	u.Perm = d.Perm
-	u.Sorting = d.Sorting
-	u.Commands = d.Commands
-	u.HideDotfiles = d.HideDotfiles
-	u.DateFormat = d.DateFormat
-}
-
 type Settings struct {
 	Key              []byte              `json:"key"`
 	Signup           bool                `json:"signup"`
@@ -31,6 +18,7 @@ type Settings struct {
 	Server           Server              `json:"server"`
 	Auth             Auth                `json:"auth"`
 	Frontend         Frontend            `json:"frontend"`
+	Users            []UserDefaults      `json:"users,omitempty"`
 	UserDefaults     UserDefaults        `json:"userDefaults"`
 }
 
@@ -80,18 +68,20 @@ type Frontend struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	LockPassword bool   `json:"lockPassword"`
-	Scope        string `json:"scope"`
-	Locale       string `json:"locale"`
-	ViewMode     string `json:"viewMode"`
-	SingleClick  bool   `json:"singleClick"`
-	Sorting      struct {
+	LockPassword    bool         `json:"lockPassword"`
+	DisableSettings bool         `json:"disableSettings,omitempty"`
+	Scope           string       `json:"scope"`
+	Locale          string       `json:"locale"`
+	ViewMode        string       `json:"viewMode"`
+	SingleClick     bool         `json:"singleClick"`
+	Rules           []rules.Rule `json:"rules"`
+	Sorting         struct {
 		By  string `json:"by"`
 		Asc bool   `json:"asc"`
 	} `json:"sorting"`
 	Perm         users.Permissions `json:"perm"`
 	Permissions  users.Permissions `json:"permissions"`
-	Commands     []string          `json:"commands"`
+	Commands     []string          `json:"commands,omitemptys"`
 	HideDotfiles bool              `json:"hideDotfiles"`
 	DateFormat   bool              `json:"dateFormat"`
 }

@@ -11,7 +11,7 @@ server:
   baseURL: "/"
   address: ""
   log: "stdout"
-  database: "database.db"
+  database: "mydb.db"
   root: "/srv"
 auth:
   recaptcha:
@@ -47,6 +47,5 @@ userDefaults:
     delete: true
     share: true
     download: true
-  commands: []
   hideDotfiles: false
   dateFormat: false

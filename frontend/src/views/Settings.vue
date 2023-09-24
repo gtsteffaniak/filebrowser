@@ -1,7 +1,10 @@
 <template>
   <div class="dashboard">
     <div id="nav">
-      <div class="wrapper">
+      <div v-if="disabledSettings">
+        nothing to see here
+      </div>
+      <div v-else class="wrapper">
         <ul>
           <router-link to="/settings/profile"
             ><li :class="{ active: $route.path === '/settings/profile' }">
@@ -58,6 +61,10 @@ export default {
   },
   computed: {
     ...mapState(["user", "loading","req"]),
+    disableSettings() {
+      console.log(this.User)
+      this.User.disableSettings == "true"
+    }
   },
 };
 </script>

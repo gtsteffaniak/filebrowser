@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# v0.2.1
+  - issue #29 - Rules can now be configured and read from configuration yaml
 
 # v0.2.0
-
  - improved UI
    - more unified coehisive look
    - Adjusted header bar look and icon behavior

@@ -10,16 +10,16 @@ ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.003s
 ?   	github.com/gtsteffaniak/filebrowser/files	[no test files]
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2023/09/10 09:17:55 h: 401  <nil>
-2023/09/10 09:17:55 h: 401  <nil>
-2023/09/10 09:17:55 h: 401  <nil>
-2023/09/10 09:17:56 h: 401  <nil>
-2023/09/10 09:17:56 h: 401  <nil>
-2023/09/10 09:17:56 h: 401  <nil>
+2023/09/24 12:52:05 h: 401  <nil>
+2023/09/24 12:52:05 h: 401  <nil>
+2023/09/24 12:52:05 h: 401  <nil>
+2023/09/24 12:52:05 h: 401  <nil>
+2023/09/24 12:52:05 h: 401  <nil>
+2023/09/24 12:52:05 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	0.082s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.094s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.118s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.144s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
@@ -28,10 +28,10 @@ goos: linux
 goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/search
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkSearchAllIndexes-8   	      10	   5311144 ns/op	 2934075 B/op	   44569 allocs/op
-BenchmarkFillIndex-8          	      10	   3142607 ns/op	   18473 B/op	     452 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	   5912685 ns/op	 3003976 B/op	   46139 allocs/op
+BenchmarkFillIndex-8          	      10	   3157995 ns/op	   18370 B/op	     449 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/search	0.110s
+ok  	github.com/gtsteffaniak/filebrowser/search	0.116s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]

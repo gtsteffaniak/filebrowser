@@ -145,8 +145,6 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 		Username: info.Username,
 	}
 
-	d.settings.UserDefaults.Apply(user)
-
 	pwd, err := users.HashPwd(info.Password)
 	if err != nil {
 		return http.StatusInternalServerError, err
