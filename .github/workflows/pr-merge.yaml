@@ -39,6 +39,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '20'
+      - run: cd frontend && npm i eslint
       - run: cd frontend && npm run lint
 
   push_pr_to_registry:
