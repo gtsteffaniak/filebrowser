@@ -160,8 +160,6 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
 import moment from "moment";
 
-import HeaderBar from "@/components/header/HeaderBar";
-import Action from "@/components/header/Action";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";
 import QrcodeVue from "qrcode.vue";
@@ -171,8 +169,6 @@ import Clipboard from "clipboard";
 export default {
   name: "share",
   components: {
-    HeaderBar,
-    Action,
     Breadcrumbs,
     Item,
     QrcodeVue,
@@ -206,7 +202,7 @@ export default {
       this.$showSuccess(this.$t("success.linkCopied"));
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
     this.clip.destroy();
   },

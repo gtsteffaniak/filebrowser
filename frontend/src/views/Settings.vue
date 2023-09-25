@@ -63,7 +63,7 @@ export default {
     ...mapState(["user", "loading","req"]),
     disableSettings() {
       console.log(this.User)
-      this.User.disableSettings == "true"
+      return this.User.disableSettings == "true"
     }
   },
 };

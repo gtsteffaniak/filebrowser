@@ -106,8 +106,6 @@ import { files as api } from "@/api";
 import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url";
 import throttle from "lodash.throttle";
-import HeaderBar from "@/components/header/HeaderBar";
-import Action from "@/components/header/Action";
 import ExtendedImage from "@/components/files/ExtendedImage";
 
 const mediaTypes = ["image", "video", "audio", "blob"];
@@ -115,8 +113,6 @@ const mediaTypes = ["image", "video", "audio", "blob"];
 export default {
   name: "preview",
   components: {
-    HeaderBar,
-    Action,
     ExtendedImage,
   },
   data: function () {
@@ -176,7 +172,7 @@ export default {
     this.listing = this.oldReq.items;
     this.updatePreview();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.key);
   },
   methods: {

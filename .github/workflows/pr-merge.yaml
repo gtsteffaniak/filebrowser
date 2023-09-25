@@ -5,8 +5,9 @@ on:
     branches:
       - 'main'
       - 'v[0-9]+.[0-9]+.[0-9]+'
+  
 jobs:
-  test:
+  test-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -14,7 +15,16 @@ jobs:
         with:
           go-version: 1.21.1
       - run: cd backend && go test -race -v ./...
-  lint:
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.1
+      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
+      - run: cd backend && golangci-lint run
+  format-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,8 +32,18 @@ jobs:
         with:
           go-version: 1.21.1
       - run: cd backend && go fmt ./...
+  lint-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+      - run: cd frontend && npm i eslint
+      - run: cd frontend && npm run lint
+
   push_pr_to_registry:
-    needs: [lint, test]
+    needs: [lint-frontend, lint-backend, test-backend, format-backend]
     name: Push PR
     runs-on: ubuntu-latest
     steps:

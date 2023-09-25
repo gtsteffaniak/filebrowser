@@ -84,7 +84,11 @@ func indexFiles(path string, numFiles *int, numDirs *int) (int, int, error) {
 		if file.IsDir() {
 			*numDirs++
 			addToIndex(path, file.Name(), true)
-			indexFiles(path+"/"+file.Name(), numFiles, numDirs) // recursive
+			_, _, err := indexFiles(path+"/"+file.Name(), numFiles, numDirs) // recursive
+			if err != nil {
+				log.Println("Could not index :", err)
+				return 0, 0, nil
+			}
 		} else {
 			*numFiles++
 			addToIndex(path, file.Name(), false)
@@ -261,19 +265,10 @@ func getLastPathComponent(path string) string {
 
 func generateRandomHash(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-	rand.Seed(rand.Int63()) // Automatically seeded based on current time
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	result := make([]byte, length)
 	for i := range result {
 		result[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(result)
-}
-
-func stringExistsInArray(target string, strings []string) bool {
-	for _, s := range strings {
-		if s == target {
-			return true
-		}
-	}
-	return false
 }

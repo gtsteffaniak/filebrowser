@@ -25,12 +25,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/search"
 	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
-)
-
-var (
-	configFile string
 )
 
 type dirFS struct {
@@ -61,6 +56,7 @@ var rootCmd = &cobra.Command{
 		if serverConfig.NumImageProcessors < 1 {
 			log.Fatal("Image resize workers count could not be < 1")
 		}
+		setupLog(serverConfig.Log)
 		imgSvc := img.New(serverConfig.NumImageProcessors)
 		var fileCache diskcache.Interface = diskcache.NewNoOp()
 		cacheDir := "/tmp"
@@ -124,13 +120,6 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 	os.Exit(0)
 }
 
-//nolint:gocyclo
-func getRunParams(st *storage.Storage) *settings.Server {
-	server, err := st.Settings.GetServer()
-	checkErr(err)
-	return server
-}
-
 func setupLog(logMethod string) {
 	switch logMethod {
 	case "stdout":
@@ -151,14 +140,15 @@ func setupLog(logMethod string) {
 
 func quickSetup(d pythonData) {
 	settings.GlobalConfiguration.Key = generateKey()
-	var err error
 	if settings.GlobalConfiguration.Auth.Method == "noauth" {
-		err = d.store.Auth.Save(&auth.NoAuth{})
+		err := d.store.Auth.Save(&auth.NoAuth{})
+		checkErr(err)
 	} else {
 		settings.GlobalConfiguration.Auth.Method = "password"
-		err = d.store.Auth.Save(&auth.JSONAuth{})
+		err := d.store.Auth.Save(&auth.JSONAuth{})
+		checkErr(err)
 	}
-	err = d.store.Settings.Save(&settings.GlobalConfiguration)
+	err := d.store.Settings.Save(&settings.GlobalConfiguration)
 	checkErr(err)
 	err = d.store.Settings.SaveServer(&settings.GlobalConfiguration.Server)
 	checkErr(err)
