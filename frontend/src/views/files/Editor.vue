@@ -7,7 +7,6 @@
 <script>
 import { mapState } from "vuex";
 import { files as api } from "@/api";
-import { theme } from "@/utils/constants";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
@@ -53,7 +52,7 @@ export default {
   created() {
     window.addEventListener("keydown", this.keyEvent);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
     this.editor.destroy();
   },

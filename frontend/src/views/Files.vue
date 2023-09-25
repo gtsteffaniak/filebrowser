@@ -25,7 +25,7 @@ import HeaderBar from "@/components/header/HeaderBar";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";
 import Preview from "@/views/files/Preview";
-import Listing from "@/views/files/Listing";
+import ListingView from "@/views/files/Listing";
 
 function clean(path) {
   return path.endsWith("/") ? path.slice(0, -1) : path;
@@ -38,7 +38,7 @@ export default {
     Breadcrumbs,
     Errors,
     Preview,
-    Listing,
+    ListingView,
     Editor: () => import("@/views/files/Editor"),
   },
   data: function () {
@@ -80,10 +80,10 @@ export default {
   mounted() {
     window.addEventListener("keydown", this.keyEvent);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
   },
-  destroyed() {
+  unmounted() {
     if (this.$store.state.showShell) {
       this.$store.commit("toggleShell");
     }
@@ -91,7 +91,7 @@ export default {
   },
   currentView(newView) {
     // Commit the new value to the store
-    this.setCurrentValue(this.newValue);
+    this.setCurrentValue(newView);
   },
   methods: {
     ...mapMutations(["setLoading","setCurrentView"]),

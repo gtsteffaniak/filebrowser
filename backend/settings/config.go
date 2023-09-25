@@ -26,7 +26,7 @@ func loadConfigFile(configFile string) []byte {
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
 		log.Printf("ERROR: opening config file\n %v\n WARNING: Using default config only\n If this was a mistake, please make sure the file exists and is accessible by the filebrowser binary.\n\n", err)
-		setDefaults()
+		GlobalConfiguration = setDefaults()
 		return []byte{}
 	}
 	defer yamlFile.Close()

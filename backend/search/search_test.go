@@ -2,7 +2,6 @@ package search
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -97,7 +96,7 @@ func createMockData(numDirs, numFilesPerDir int) {
 }
 
 func generateRandomPath(levels int) string {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	dirName := "srv"
 	for i := 0; i < levels; i++ {
 		dirName += "/" + getRandomTerm()
@@ -110,7 +109,8 @@ func getRandomTerm() string {
 		"hi", "test", "other", "name",
 		"cool", "things", "more", "items",
 	}
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+
 	index := rand.Intn(len(wordbank))
 	return wordbank[index]
 }
@@ -120,7 +120,7 @@ func getRandomExtension() string {
 		".txt", ".mp3", ".mov", ".doc",
 		".mp4", ".bak", ".zip", ".jpg",
 	}
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	index := rand.Intn(len(wordbank))
 	return wordbank[index]
 }
@@ -144,27 +144,4 @@ func JSONBytesEqual(a, b []byte) (bool, error) {
 		return false, err
 	}
 	return reflect.DeepEqual(j2, j), nil
-}
-
-func passedFunc(t *testing.T) {
-	t.Logf("%s passed!", t.Name())
-}
-
-func formatDuration(duration time.Duration) string {
-	if duration >= time.Second {
-		return fmt.Sprintf("%.2f seconds", duration.Seconds())
-	} else if duration >= time.Millisecond {
-		return fmt.Sprintf("%.2f ms", float64(duration.Milliseconds()))
-	}
-	return fmt.Sprintf("%.2f ns", float64(duration.Nanoseconds()))
-}
-
-func formatMemory(bytes int64) string {
-	sizes := []string{"B", "KB", "MB", "GB", "TB"}
-	i := 0
-	for bytes >= 1024 && i < len(sizes)-1 {
-		bytes /= 1024
-		i++
-	}
-	return fmt.Sprintf("%d %s", bytes, sizes[i])
 }
