@@ -5,6 +5,27 @@ import (
 	"testing"
 )
 
+func BenchmarkSearchAllIndexes(b *testing.B) {
+	indexes = Index{
+		Dirs:  make([]string, 0, 1000),
+		Files: make([]string, 0, 1000),
+	}
+	// Create mock data
+	createMockData(50, 3) // 1000 dirs, 3 files per dir
+
+	// Generate 100 random search terms
+	searchTerms := generateRandomSearchTerms(100)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		// Execute the SearchAllIndexes function
+		for _, term := range searchTerms {
+			indexes.Search(term, "/", "test")
+		}
+	}
+}
+
 // loop over test files and compare output
 func TestParseSearch(t *testing.T) {
 	value := ParseSearch("my test search")
