@@ -18,7 +18,6 @@ func Initialize(configFile string) {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
 	GlobalConfiguration.UserDefaults.Perm = GlobalConfiguration.UserDefaults.Permissions
-	GlobalConfiguration.Server.Root = "/srv" // hardcoded for now. TODO allow changing
 }
 
 func loadConfigFile(configFile string) []byte {

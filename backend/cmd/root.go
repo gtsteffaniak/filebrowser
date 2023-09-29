@@ -23,7 +23,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	fbhttp "github.com/gtsteffaniak/filebrowser/http"
 	"github.com/gtsteffaniak/filebrowser/img"
-	"github.com/gtsteffaniak/filebrowser/search"
+	"github.com/gtsteffaniak/filebrowser/index"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
@@ -67,7 +67,7 @@ var rootCmd = &cobra.Command{
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
 		// initialize indexing and schedule indexing ever n minutes (default 5)
-		go search.InitializeIndex(serverConfig.IndexingInterval)
+		go index.InitializeIndex(serverConfig.IndexingInterval)
 		_, err := os.Stat(serverConfig.Root)
 		checkErr(err)
 		var listener net.Listener
