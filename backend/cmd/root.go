@@ -25,6 +25,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/index"
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -56,7 +57,6 @@ var rootCmd = &cobra.Command{
 		if serverConfig.NumImageProcessors < 1 {
 			log.Fatal("Image resize workers count could not be < 1")
 		}
-		setupLog(serverConfig.Log)
 		imgSvc := img.New(serverConfig.NumImageProcessors)
 		var fileCache diskcache.Interface = diskcache.NewNoOp()
 		cacheDir := "/tmp"
@@ -67,7 +67,7 @@ var rootCmd = &cobra.Command{
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
 		// initialize indexing and schedule indexing ever n minutes (default 5)
-		index.Initialize(serverConfig.IndexingInterval)
+		go index.Initialize(serverConfig.IndexingInterval)
 		_, err := os.Stat(serverConfig.Root)
 		checkErr(err)
 		var listener net.Listener
@@ -120,6 +120,13 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 	os.Exit(0)
 }
 
+//nolint:gocyclo
+func getRunParams(st *storage.Storage) *settings.Server {
+	server, err := st.Settings.GetServer()
+	checkErr(err)
+	return server
+}
+
 func setupLog(logMethod string) {
 	switch logMethod {
 	case "stdout":
@@ -162,6 +169,7 @@ func quickSetup(d pythonData) {
 		Password:     password,
 		LockPassword: false,
 	}
+	settings.GlobalConfiguration.UserDefaults.Apply(user)
 	user.Perm.Admin = true
 	err = d.store.Users.Save(user)
 	checkErr(err)
