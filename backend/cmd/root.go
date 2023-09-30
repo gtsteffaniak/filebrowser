@@ -3,7 +3,6 @@ package cmd
 import (
 	"crypto/tls"
 	"flag"
-	"io"
 	"io/fs"
 	"log"
 	"net"
@@ -17,7 +16,6 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
@@ -25,7 +23,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/index"
 	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -118,31 +115,6 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 	log.Printf("Caught signal %s: shutting down.", sig)
 	listener.Close()
 	os.Exit(0)
-}
-
-//nolint:gocyclo
-func getRunParams(st *storage.Storage) *settings.Server {
-	server, err := st.Settings.GetServer()
-	checkErr(err)
-	return server
-}
-
-func setupLog(logMethod string) {
-	switch logMethod {
-	case "stdout":
-		log.SetOutput(os.Stdout)
-	case "stderr":
-		log.SetOutput(os.Stderr)
-	case "":
-		log.SetOutput(io.Discard)
-	default:
-		log.SetOutput(&lumberjack.Logger{
-			Filename:   logMethod,
-			MaxSize:    100,
-			MaxAge:     14,
-			MaxBackups: 10,
-		})
-	}
 }
 
 func quickSetup(d pythonData) {
