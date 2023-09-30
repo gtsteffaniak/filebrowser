@@ -10,8 +10,8 @@
 
         <div class="card-content">
           <user-form
-            v-model:user="user"
-            v-model:createUserDir="createUserDir"
+            :user.sync="user"
+            :createUserDir.sync="createUserDir"
             :isDefault="false"
             :isNew="isNew"
           />
