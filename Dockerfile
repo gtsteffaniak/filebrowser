@@ -12,13 +12,11 @@ RUN go get -u golang.org/x/net
 RUN go build -ldflags="-w -s" -o filebrowser .
 
 FROM alpine:latest
+ARG app="/app/filebrowser"
 RUN apk --no-cache add \
       ca-certificates \
       mailcap
-VOLUME /srv
-EXPOSE 8080
-WORKDIR /
-COPY --from=base /app/filebrowser.yaml /filebrowser.yaml
-COPY --from=base /app/filebrowser /filebrowser
-COPY --from=nbuild /app/dist/ /frontend/dist/
+WORKDIR /app
+COPY --from=base $app* ./
+COPY --from=nbuild /app/dist/ ./frontend/dist/
 ENTRYPOINT [ "./filebrowser" ]

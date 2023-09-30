@@ -5,29 +5,17 @@ server:
 auth:
   method: noauth
   signup: true
+userDefaults:
+  scope: "."
+  hideDotfiles: true
+  singleClick: false
+  permissions:
+    admin: false
+    create: true
+    rename: true
+    modify: true
+    delete: true
+    share: true
+    download: true
 frontend:
   theme: dark
-Users:
-  admin:
-    rules:
-      - regex: false
-        allow: true
-        path: test
-        regexp:
-          raw: ''
-      - regex: true
-        allow: true
-        path: ''
-        regexp:
-          raw: test
-    scope: "."
-    hideDotfiles: true
-    singleClick: false
-    permissions:
-      admin: false
-      create: true
-      rename: true
-      modify: true
-      delete: true
-      share: true
-      download: true

@@ -87,7 +87,7 @@
           multiple
         />
       </div>
-      <div v-else id="listingView" ref="listingView" :class="user.viewMode + ' file-icons'">
+      <div v-else id="listing" ref="listing" :class="user.viewMode + ' file-icons'">
         <div>
           <div class="item header">
             <div></div>
@@ -213,7 +213,7 @@ import Action from "@/components/header/Action";
 import Item from "@/components/files/ListingItem";
 
 export default {
-  name: "listingView",
+  name: "listing",
   components: {
     Action,
     Item,
@@ -313,12 +313,12 @@ export default {
       // Reset the show value
       this.showLimit = 50;
 
-      // Ensures that the listingView is displayed
+      // Ensures that the listing is displayed
       Vue.nextTick(() => {
-        // How much every listingView item affects the window height
+        // How much every listing item affects the window height
         this.setItemWeight();
 
-        // Fill and fit the window with listingView items
+        // Fill and fit the window with listing items
         this.fillWindow(true);
       });
     },
@@ -327,10 +327,10 @@ export default {
     // Check the columns size for the first time.
     this.colunmsResize();
 
-    // How much every listingView item affects the window height
+    // How much every listing item affects the window height
     this.setItemWeight();
 
-    // Fill and fit the window with listingView items
+    // Fill and fit the window with listing items
     this.fillWindow(true);
 
     // Add the needed event listeners to the window and document.
@@ -527,7 +527,7 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listingView.mosaic .item", ".mosaic#listingView .item"]);
+      let items = css(["#listing.mosaic .item", ".mosaic#listing .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },
@@ -554,7 +554,7 @@ export default {
       this.dragCounter++;
 
       // When the user starts dragging an item, put every
-      // file on the listingView with 50% opacity.
+      // file on the listing with 50% opacity.
       let items = document.getElementsByClassName("item");
 
       Array.from(items).forEach((file) => {
@@ -696,9 +696,9 @@ export default {
       this.width = window.innerWidth;
 
       // Listing element is not displayed
-      if (this.$refs.listingView == null) return;
+      if (this.$refs.listing == null) return;
 
-      // How much every listingView item affects the window height
+      // How much every listing item affects the window height
       this.setItemWeight();
 
       // Fill but not fit the window
@@ -740,13 +740,13 @@ export default {
     },
     setItemWeight() {
       // Listing element is not displayed
-      if (this.$refs.listingView == null) return;
+      if (this.$refs.listing == null) return;
 
       let itemQuantity = this.req.numDirs + this.req.numFiles;
       if (itemQuantity > this.showLimit) itemQuantity = this.showLimit;
 
-      // How much every listingView item affects the window height
-      this.itemWeight = this.$refs.listingView.offsetHeight / itemQuantity;
+      // How much every listing item affects the window height
+      this.itemWeight = this.$refs.listing.offsetHeight / itemQuantity;
     },
     fillWindow(fit = false) {
       const totalItems = this.req.numDirs + this.req.numFiles;

@@ -3,7 +3,6 @@ package cmd
 import (
 	"crypto/tls"
 	"flag"
-	"io"
 	"io/fs"
 	"log"
 	"net"
@@ -17,7 +16,6 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
@@ -56,7 +54,6 @@ var rootCmd = &cobra.Command{
 		if serverConfig.NumImageProcessors < 1 {
 			log.Fatal("Image resize workers count could not be < 1")
 		}
-		setupLog(serverConfig.Log)
 		imgSvc := img.New(serverConfig.NumImageProcessors)
 		var fileCache diskcache.Interface = diskcache.NewNoOp()
 		cacheDir := "/tmp"
@@ -67,7 +64,7 @@ var rootCmd = &cobra.Command{
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
 		// initialize indexing and schedule indexing ever n minutes (default 5)
-		go index.InitializeIndex(serverConfig.IndexingInterval)
+		go index.Initialize(serverConfig.IndexingInterval)
 		_, err := os.Stat(serverConfig.Root)
 		checkErr(err)
 		var listener net.Listener
@@ -120,24 +117,6 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 	os.Exit(0)
 }
 
-func setupLog(logMethod string) {
-	switch logMethod {
-	case "stdout":
-		log.SetOutput(os.Stdout)
-	case "stderr":
-		log.SetOutput(os.Stderr)
-	case "":
-		log.SetOutput(io.Discard)
-	default:
-		log.SetOutput(&lumberjack.Logger{
-			Filename:   logMethod,
-			MaxSize:    100,
-			MaxAge:     14,
-			MaxBackups: 10,
-		})
-	}
-}
-
 func quickSetup(d pythonData) {
 	settings.GlobalConfiguration.Key = generateKey()
 	if settings.GlobalConfiguration.Auth.Method == "noauth" {
@@ -162,6 +141,7 @@ func quickSetup(d pythonData) {
 		Password:     password,
 		LockPassword: false,
 	}
+	settings.GlobalConfiguration.UserDefaults.Apply(user)
 	user.Perm.Admin = true
 	err = d.store.Users.Save(user)
 	checkErr(err)
