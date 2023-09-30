@@ -14,31 +14,31 @@ import (
 var (
 	sessionInProgress sync.Map
 	mutex             sync.RWMutex
+	maxSearchResults        = 100
+	bytesInMegabyte   int64 = 1000000
 )
 
 func (si *Index) Search(search string, scope string, sourceSession string) ([]string, map[string]map[string]bool) {
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
-
 	searchOptions := ParseSearch(search)
 	mutex.RLock()
 	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
 	var matching []string
-	maximum := 100
-
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
 		}
 		// Iterate over the embedded index.Index fields Dirs and Files
 		for _, i := range []string{"Dirs", "Files"} {
-			isDir := i == "Dirs"
+			isDir := false
 			count := 0
 			var paths []string
 
 			switch i {
 			case "Dirs":
+				isDir = true
 				paths = si.Dirs
 			case "Files":
 				paths = si.Files
@@ -49,7 +49,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if !found || value != runningHash {
 					return []string{}, map[string]map[string]bool{}
 				}
-				if count > maximum {
+				if count > maxSearchResults {
 					break
 				}
 				pathName := scopedPathNameFilter(path, scope)
@@ -128,9 +128,9 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 			var matchesCondition bool
 			switch t {
 			case "larger":
-				matchesCondition = fileSize > int64(options.LargerThan)*1000000
+				matchesCondition = fileSize > int64(options.LargerThan)*bytesInMegabyte
 			case "smaller":
-				matchesCondition = fileSize < int64(options.SmallerThan)*1000000
+				matchesCondition = fileSize < int64(options.SmallerThan)*bytesInMegabyte
 			default:
 				matchesCondition = v == fileTypes[t]
 			}

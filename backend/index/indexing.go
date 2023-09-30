@@ -12,9 +12,7 @@ import (
 )
 
 const (
-	maxIndexSize     = 1000
-	maxSearchResults = 100
-	bytesInMegabyte  = 1000000
+	maxIndexSize = 1000
 )
 
 type Index struct {
