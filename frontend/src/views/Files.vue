@@ -25,7 +25,7 @@ import HeaderBar from "@/components/header/HeaderBar";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";
 import Preview from "@/views/files/Preview";
-import ListingView from "@/views/files/Listing";
+import Listing from "@/views/files/Listing";
 
 function clean(path) {
   return path.endsWith("/") ? path.slice(0, -1) : path;
@@ -38,7 +38,7 @@ export default {
     Breadcrumbs,
     Errors,
     Preview,
-    ListingView,
+    Listing,
     Editor: () => import("@/views/files/Editor"),
   },
   data: function () {

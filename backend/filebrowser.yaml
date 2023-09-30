@@ -1,6 +1,7 @@
 server:
   port: 8080
   baseURL: "/"
+  root: "/srv"
 auth:
   method: noauth
   signup: true

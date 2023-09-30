@@ -5,33 +5,33 @@
 ?   	github.com/gtsteffaniak/filebrowser/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/cmd	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.011s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/files	[no test files]
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
+2023/09/29 19:48:56 h: 401  <nil>
+2023/09/29 19:48:56 h: 401  <nil>
+2023/09/29 19:48:56 h: 401  <nil>
+2023/09/29 19:48:56 h: 401  <nil>
+2023/09/29 19:48:56 h: 401  <nil>
+2023/09/29 19:48:56 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	0.094s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.095s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.144s
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/runner	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.141s
 goos: linux
 goarch: amd64
-pkg: github.com/gtsteffaniak/filebrowser/search
+pkg: github.com/gtsteffaniak/filebrowser/index
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkSearchAllIndexes-8   	      10	   5912685 ns/op	 3003976 B/op	   46139 allocs/op
-BenchmarkFillIndex-8          	      10	   3157995 ns/op	   18370 B/op	     449 allocs/op
+BenchmarkFillIndex-8          	      10	   3232060 ns/op	   12384 B/op	     451 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	   5611219 ns/op	 3262723 B/op	   42857 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/search	0.116s
+ok  	github.com/gtsteffaniak/filebrowser/index	0.124s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/rules	0.003s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/runner	0.005s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]
