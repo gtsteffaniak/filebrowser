@@ -29,7 +29,7 @@
 
           <h3>{{ $t("settings.rules") }}</h3>
           <p class="small">{{ $t("settings.globalRules") }}</p>
-          <rules v-model:rules="settings.rules" />
+          <rules :rules.sync="settings.rules" />
 
           <div v-if="isExecEnabled">
             <h3>{{ $t("settings.executeOnShell") }}</h3>
@@ -75,7 +75,7 @@
             <label for="theme">{{ $t("settings.themes.title") }}</label>
             <themes
               class="input input--block"
-              v-model:theme="settings.frontend.theme"
+              :theme.sync="settings.frontend.theme"
               id="theme"
             ></themes>
           </p>
@@ -125,7 +125,7 @@
           <user-form
             :isNew="false"
             :isDefault="true"
-            v-model:user="settings.defaults"
+            :user.sync="settings.defaults"
           />
         </div>
 

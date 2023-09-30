@@ -22,7 +22,7 @@
           <h3>{{ $t("settings.language") }}</h3>
           <languages
             class="input input--block"
-            v-model:locale="locale"
+            :locale.sync="locale"
           ></languages>
         </div>
 
