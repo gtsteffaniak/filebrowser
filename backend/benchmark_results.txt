@@ -1,42 +1,39 @@
 
  == Running benchmark == 
-/usr/local/go/bin/go
 ?   	github.com/gtsteffaniak/filebrowser	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/cmd	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.011s
+ok  	github.com/gtsteffaniak/filebrowser/diskcache	1.318s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/files	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2023/09/29 19:48:56 h: 401  <nil>
-2023/09/29 19:48:56 h: 401  <nil>
-2023/09/29 19:48:56 h: 401  <nil>
-2023/09/29 19:48:56 h: 401  <nil>
-2023/09/29 19:48:56 h: 401  <nil>
-2023/09/29 19:48:56 h: 401  <nil>
+ok  	github.com/gtsteffaniak/filebrowser/fileutils	1.176s
+2023/09/29 17:01:53 h: 401  <nil>
+2023/09/29 17:01:53 h: 401  <nil>
+2023/09/29 17:01:53 h: 401  <nil>
+2023/09/29 17:01:53 h: 401  <nil>
+2023/09/29 17:01:53 h: 401  <nil>
+2023/09/29 17:01:53 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	0.095s
+ok  	github.com/gtsteffaniak/filebrowser/http	1.055s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.141s
-goos: linux
-goarch: amd64
+ok  	github.com/gtsteffaniak/filebrowser/img	0.771s
+goos: darwin
+goarch: arm64
 pkg: github.com/gtsteffaniak/filebrowser/index
-cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkFillIndex-8          	      10	   3232060 ns/op	   12384 B/op	     451 allocs/op
-BenchmarkSearchAllIndexes-8   	      10	   5611219 ns/op	 3262723 B/op	   42857 allocs/op
+BenchmarkFillIndex-10    	      10	   6355542 ns/op	   12084 B/op	     449 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/index	0.124s
+ok  	github.com/gtsteffaniak/filebrowser/index	0.653s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/rules	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/rules	0.549s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/runner	0.005s
+ok  	github.com/gtsteffaniak/filebrowser/runner	0.661s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
+ok  	github.com/gtsteffaniak/filebrowser/settings	0.665s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage/bolt	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/users	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/users	0.654s
 ?   	github.com/gtsteffaniak/filebrowser/version	[no test files]

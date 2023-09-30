@@ -21,7 +21,7 @@ type Index struct {
 }
 
 var (
-	rootPath    string = "/rootPath"
+	rootPath    string = "/srv"
 	indexes     Index
 	indexMutex  sync.RWMutex
 	lastIndexed time.Time
