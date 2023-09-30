@@ -23,7 +23,7 @@ type Index struct {
 }
 
 var (
-	rootPath    string = settings.GlobalConfiguration.Server.Root
+	rootPath    string = "/rootPath"
 	indexes     Index
 	indexMutex  sync.RWMutex
 	lastIndexed time.Time
@@ -33,12 +33,13 @@ func GetIndex() *Index {
 	return &indexes
 }
 
-func InitializeIndex(intervalMinutes uint32) {
+func Initialize(intervalMinutes uint32) {
 	// Initialize the index
 	indexes = Index{
 		Dirs:  make([]string, 0, maxIndexSize),
 		Files: make([]string, 0, maxIndexSize),
 	}
+	rootPath = settings.GlobalConfiguration.Server.Root
 	var numFiles, numDirs int
 	log.Println("Indexing files...")
 	lastIndexedStart := time.Now()
@@ -117,7 +118,6 @@ func indexFiles(path string, numFiles *int, numDirs *int) (int, int, error) {
 			_, _, err := indexFiles(path+"/"+file.Name(), numFiles, numDirs) // recursive
 			if err != nil {
 				log.Println("Could not index :", err)
-				return 0, 0, nil
 			}
 		} else {
 			*numFiles++
