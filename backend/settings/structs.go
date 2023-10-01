@@ -68,6 +68,7 @@ type Frontend struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
+	DarkMode        bool         `json:"darkMode"`
 	LockPassword    bool         `json:"lockPassword"`
 	DisableSettings bool         `json:"disableSettings,omitempty"`
 	Scope           string       `json:"scope"`

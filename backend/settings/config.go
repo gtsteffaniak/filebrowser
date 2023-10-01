@@ -69,6 +69,7 @@ func setDefaults() Settings {
 			Scope:        ".",
 			LockPassword: false,
 			HideDotfiles: true,
+			DarkMode:     false,
 			Permissions: users.Permissions{
 				Create:   true,
 				Rename:   true,
@@ -76,6 +77,7 @@ func setDefaults() Settings {
 				Delete:   true,
 				Share:    true,
 				Download: true,
+				Admin:    false,
 			},
 		},
 	}

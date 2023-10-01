@@ -115,8 +115,8 @@ export default {
     viewIcon() {
       const icons = {
         list: "view_module",
-        mosaic: "grid_view",
-        "mosaic gallery": "view_list",
+        card: "grid_view",
+        gallery: "view_list",
       };
       return icons[this.user.viewMode];
     },
@@ -269,9 +269,9 @@ export default {
     switchView: async function () {
       this.$store.commit("closeHovers");
       const modes = {
-        list: "mosaic",
-        mosaic: "mosaic gallery",
-        "mosaic gallery": "list",
+        list: "list",
+        card: "gallery",
+        gallery: "list",
       };
 
       const data = {
@@ -384,7 +384,7 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listing.mosaic .item", ".mosaic#listing .item"]);
+      let items = css(["#listing .item", "#listing .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },

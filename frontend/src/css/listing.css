@@ -85,12 +85,12 @@ body.rtl #listing {
   display: block;
 }
 
-#listing.mosaic {
+#listing {
   padding-top: 1em;
   margin: 0 -0.5em;
 }
 
-#listing.mosaic .item {
+#listing .item {
   width: calc(33% - 1em);
   margin: .5em;
   padding: 0.5em;
@@ -98,28 +98,28 @@ body.rtl #listing {
   box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .12);
 }
 
-#listing.mosaic .item:hover {
+#listing .item:hover {
   box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .24) !important;
 }
 
-#listing.mosaic .header {
+#listing .header {
   display: none;
 }
 
-#listing.mosaic .item div:first-of-type {
+#listing .item div:first-of-type {
   width: 5em;
 }
 
-#listing.mosaic .item div:last-of-type {
+#listing .item div:last-of-type {
   width: calc(100% - 5vw);
 }
 
-#listing.mosaic.gallery .item div:first-of-type {
+#listing.gallery .item div:first-of-type {
   width: 100%;
   height: 12em;
 }
 
-#listing.mosaic.gallery .item div:last-of-type {
+#listing.gallery .item div:last-of-type {
   position: absolute;
   bottom: 0.5em;
   padding: 1em;
@@ -127,19 +127,19 @@ body.rtl #listing {
   text-align: center;
 }
 
-#listing.mosaic.gallery .item[data-type=image] div:last-of-type {
+#listing.gallery .item[data-type=image] div:last-of-type {
   color: white;
   background: linear-gradient(#0000, #0009);
 }
 
-#listing.mosaic.gallery .item i {
+#listing.gallery .item i {
     width: 100%;
     margin-right: 0;
     font-size: 8em;
     text-align: center;
 }
 
-#listing.mosaic.gallery .item img {
+#listing.gallery .item img {
   width: 100%;
   height: 100%;
 }

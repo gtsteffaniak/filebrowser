@@ -139,10 +139,20 @@ func quickSetup(d pythonData) {
 	user := &users.User{
 		Username:     username,
 		Password:     password,
+		DarkMode:     false,
+		ViewMode:     "mosaic",
 		LockPassword: false,
+		Perm: users.Permissions{
+			Create:   true,
+			Rename:   true,
+			Modify:   true,
+			Delete:   true,
+			Share:    true,
+			Download: true,
+			Admin:    true,
+		},
 	}
-	settings.GlobalConfiguration.UserDefaults.Apply(user)
-	user.Perm.Admin = true
+
 	err = d.store.Users.Save(user)
 	checkErr(err)
 }

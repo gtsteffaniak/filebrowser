@@ -11,11 +11,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/rules"
 )
 
-var (
-	ListViewMode   = "list"
-	MosaicViewMode = "mosaic"
-)
-
 type Permissions struct {
 	Admin    bool `json:"admin"`
 	Execute  bool `json:"execute"`
@@ -29,6 +24,7 @@ type Permissions struct {
 
 // User describes a user.
 type User struct {
+	DarkMode     bool          `json:"darkMode"`
 	ID           uint          `storm:"id,increment" json:"id"`
 	Username     string        `storm:"unique" json:"username"`
 	Password     string        `json:"password"`
@@ -82,7 +78,7 @@ func (u *User) Clean(baseScope string, fields ...string) error {
 			}
 		case "ViewMode":
 			if u.ViewMode == "" {
-				u.ViewMode = ListViewMode
+				u.ViewMode = "list"
 			}
 		case "Commands":
 			if u.Commands == nil {
