@@ -140,7 +140,7 @@ func quickSetup(d pythonData) {
 		Username:     username,
 		Password:     password,
 		DarkMode:     false,
-		ViewMode:     "mosaic",
+		ViewMode:     "card",
 		LockPassword: false,
 		Perm: users.Permissions{
 			Create:   true,

@@ -58,7 +58,7 @@ func (s *Storage) Save(set *Settings) error {
 	}
 
 	if set.UserDefaults.ViewMode == "" {
-		set.UserDefaults.ViewMode = "mosaic"
+		set.UserDefaults.ViewMode = "card"
 	}
 
 	if set.Rules == nil {
