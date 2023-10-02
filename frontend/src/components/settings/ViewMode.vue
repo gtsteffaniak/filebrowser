@@ -14,9 +14,10 @@ export default {
     let dataObj = {
       viewMode: "list",
       viewModes: {
-        card: "card",
+        card: "normal",
         gallery: "gallery",
         list: "list",
+        compactList: "compact",
       },
     };
 

@@ -50,6 +50,7 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       itemWeight: 0,
+      viewModes: ['list', 'compact', 'normal', 'gallery'],
     };
   },
   computed: {
@@ -115,7 +116,8 @@ export default {
     viewIcon() {
       const icons = {
         list: "view_module",
-        card: "grid_view",
+        compact: "view_module",
+        normal: "grid_view",
         gallery: "view_list",
       };
       return icons[this.user.viewMode];
@@ -267,22 +269,16 @@ export default {
       }
     },
     switchView: async function () {
+      console.log(this.user.viewMode)
       this.$store.commit("closeHovers");
-      const modes = {
-        list: "list",
-        card: "gallery",
-        gallery: "list",
-      };
-
+      const currentIndex = this.viewModes.indexOf(this.user.viewMode);
+      const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const data = {
         id: this.user.id,
-        viewMode: modes[this.user.viewMode] || "list",
+        viewMode: this.viewModes[nextIndex],
       };
-      //users.update(data, ["viewMode"]).catch(this.$showError);
       this.$store.commit("updateUser", data);
-
-      //this.setItemWeight();
-      //this.fillWindow();
+      console.log(data)
     },
     preventDefault(event) {
       // Wrapper around prevent default.

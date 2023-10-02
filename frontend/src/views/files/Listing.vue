@@ -87,9 +87,9 @@
           multiple
         />
       </div>
-      <div v-else id="listing" ref="listing" :class="user.viewMode + ' file-icons'">
+      <div v-else id="listing" ref="listing" :class="listingViewMode + ' file-icons'">
         <div>
-          <div class="item header">
+          <div class="header">
             <div></div>
             <div>
               <p
@@ -290,10 +290,15 @@ export default {
     viewIcon() {
       const icons = {
         list: "view_module",
-        card: "grid_view",
+        compact: "view_module",
+        normal: "grid_view",
         gallery: "view_list",
       };
       return icons[this.user.viewMode];
+    },
+    listingViewMode() {
+      console.log("listing view mode",this.user.viewMode )
+      return this.user.viewMode
     },
     headerButtons() {
       return {

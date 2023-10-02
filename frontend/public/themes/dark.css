@@ -96,10 +96,6 @@ nav > div {
   color: var(--textPrimary);
 }
 
-#listing.list .item.header {
-  background: var(--background);
-}
-
 .message {
   color: var(--textPrimary);
 }
