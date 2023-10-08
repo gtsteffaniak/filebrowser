@@ -277,8 +277,8 @@ export default {
         id: this.user.id,
         viewMode: this.viewModes[nextIndex],
       };
+      users.update(data, ["viewMode"]).catch(this.$showError);
       this.$store.commit("updateUser", data);
-      console.log(data)
     },
     preventDefault(event) {
       // Wrapper around prevent default.
