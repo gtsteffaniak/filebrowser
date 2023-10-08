@@ -91,6 +91,7 @@ body.rtl #listing {
 }
 
 #listing.gallery .item,
+#listing.compact .item,
 #listing.normal .item,
 #listing.list .item {
   width: calc(33% - 1em);
@@ -101,9 +102,11 @@ body.rtl #listing {
   box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .12);
 }
 #listing.gallery .item {
-  width: 300px;
+  max-width: 300px;
 }
-#listing.list .item {
+#listing.list .item,
+#listing.compact .item {
+  max-width: 100%;
   border-radius: 0em;
 }
 
@@ -323,6 +326,7 @@ body.rtl #listing {
   margin-left: .2em;
 }
 
+#listing.compact .header,
 #listing.list .header {
   display: flex !important;
   background: var(--surfacePrimary);
@@ -330,6 +334,7 @@ body.rtl #listing {
   border-top-right-radius: 1em;
   z-index: 999;
   padding: .85em;
+  width:100%;
   border: 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
