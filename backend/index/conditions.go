@@ -1,6 +1,7 @@
 package index
 
 import (
+	"mime"
 	"regexp"
 	"strconv"
 	"strings"
@@ -119,4 +120,36 @@ func updateSize(given string) int {
 	} else {
 		return size
 	}
+}
+
+func IsMatchingType(extension string, matchType string) bool {
+	mimetype := mime.TypeByExtension(extension)
+	if strings.HasPrefix(mimetype, matchType) {
+		return true
+	}
+	switch matchType {
+	case "doc":
+		return isDoc(extension)
+	case "archive":
+		return isArchive(extension)
+	}
+	return false
+}
+
+func isDoc(extension string) bool {
+	for _, typefile := range documentTypes {
+		if extension == typefile {
+			return true
+		}
+	}
+	return false
+}
+
+func isArchive(extension string) bool {
+	for _, typefile := range compressedFile {
+		if extension == typefile {
+			return true
+		}
+	}
+	return false
 }

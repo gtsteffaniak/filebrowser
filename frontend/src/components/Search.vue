@@ -488,7 +488,7 @@ export default {
         { label: "Photos", value: "type:image" },
         { label: "Audio", value: "type:audio" },
         { label: "Videos", value: "type:video" },
-        { label: "Documents", value: "type:docs" },
+        { label: "Documents", value: "type:doc" },
         { label: "Archives", value: "type:archive" },
       ],
       value: "",

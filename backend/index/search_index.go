@@ -2,7 +2,6 @@ package index
 
 import (
 	"math/rand"
-	"mime"
 	"os"
 	"path/filepath"
 	"sort"
@@ -107,21 +106,15 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 		searchTerm = strings.ToLower(searchTerm)
 	}
 	if strings.Contains(path, searchTerm) {
-		// Clear the fileTypes map
-		for k := range fileTypes {
-			fileTypes[k] = false
-		}
 		// Calculate fileSize only if needed
 		var fileSize int64
 		matchesAllConditions := true
 		extension := filepath.Ext(path)
-		mimetype := mime.TypeByExtension(extension)
-		fileTypes["audio"] = strings.HasPrefix(mimetype, "audio")
-		fileTypes["image"] = strings.HasPrefix(mimetype, "image")
-		fileTypes["video"] = strings.HasPrefix(mimetype, "video")
-		fileTypes["doc"] = isDoc(extension)
-		fileTypes["archive"] = isArchive(extension)
+		for k := range fileTypes {
+			fileTypes[k] = IsMatchingType(extension, k)
+		}
 		fileTypes["dir"] = isDir
+
 		for t, v := range conditions {
 			if t == "exact" {
 				continue
@@ -151,30 +144,12 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 	return false, map[string]bool{}
 }
 
-func isDoc(extension string) bool {
-	for _, typefile := range documentTypes {
-		if extension == typefile {
-			return true
-		}
-	}
-	return false
-}
-
 func getFileSize(filepath string) int64 {
 	fileInfo, err := os.Stat(rootPath + "/" + filepath)
 	if err != nil {
 		return 0
 	}
 	return fileInfo.Size()
-}
-
-func isArchive(extension string) bool {
-	for _, typefile := range compressedFile {
-		if extension == typefile {
-			return true
-		}
-	}
-	return false
 }
 
 func getLastPathComponent(path string) string {
