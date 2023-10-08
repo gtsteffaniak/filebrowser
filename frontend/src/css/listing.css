@@ -279,10 +279,6 @@ body.rtl #listing {
   border-top: 0;
 }
 
-#listing.list h2 {
-  display: none;
-}
-
 #listing .item[aria-selected=true] {
   background: var(--blue) !important;
   color: var(--item-selected) !important;
@@ -338,12 +334,17 @@ body.rtl #listing {
   border: 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
+#listing.list .item:first-child {
+  margin-top: .5em;
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+}
 
 #listing.list .item:last-child  {
+  margin-bottom: .5em;
    border-bottom-left-radius: 1em;
    border-bottom-right-radius: 1em;
 }
-
 #listing.list .header>div:first-child {
   width: 0;
 }

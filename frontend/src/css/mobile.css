@@ -7,12 +7,12 @@
 }
 
 @media (max-width: 800px) {
+  #listing.list .item div:last-of-type{
+    display:block;
+    width:100%;
+  }
   body {
     padding-bottom: 5em;
-  }
-
-  #listing.list .item .size {
-    display: none;
   }
 
   #listing.list .item .name {
@@ -117,9 +117,6 @@
 
 
 @media (max-width: 450px) {
-  #listing.list .item .modified {
-    display: none;
-  }
 
   #listing.list .item .name {
     width: 100%;

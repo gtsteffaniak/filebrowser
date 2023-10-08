@@ -89,7 +89,7 @@
       </div>
       <div v-else id="listing" ref="listing" :class="listingViewMode + ' file-icons'">
         <div>
-          <div class="header">
+          <div class="item header">
             <div></div>
             <div>
               <p
@@ -132,8 +132,11 @@
             </div>
           </div>
         </div>
-
-        <h2 v-if="req.numDirs > 0">{{ $t("files.folders") }}</h2>
+        <div v-if="req.numDirs > 0">
+          <div class="header-items">
+            <h2>{{ $t("files.folders") }}</h2>
+          </div>
+        </div>
         <div v-if="req.numDirs > 0">
           <item
             v-for="item in dirs"
@@ -150,7 +153,11 @@
           </item>
         </div>
 
-        <h2 v-if="req.numFiles > 0">{{ $t("files.files") }}</h2>
+        <div v-if="req.numFiles > 0">
+          <div class="header-items">
+            <h2>{{ $t("files.files") }}</h2>
+          </div>
+        </div>
         <div v-if="req.numFiles > 0">
           <item
             v-for="item in files"
@@ -200,6 +207,15 @@
     </template>
   </div>
 </template>
+
+<style>
+
+.header-items {
+  width: 100% !important;
+  max-width: 100% !important;
+  justify-content: center;
+}
+</style>
 
 <script>
 import Vue from "vue";

@@ -3,7 +3,7 @@ server:
   baseURL: "/"
   root: "/Users/steffag/git/go"
 auth:
-  method: noauth
+  method: password
   signup: true
 userDefaults:
   scope: "."
