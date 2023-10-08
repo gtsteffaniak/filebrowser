@@ -211,6 +211,8 @@ nav {
   color: white
 }
 #result-desktop #result-list {
-  background: #2a3137;
   max-height: unset;
+}
+#result-desktop {
+  background-color: var(--background);
 }

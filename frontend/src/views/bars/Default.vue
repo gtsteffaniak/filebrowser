@@ -38,7 +38,7 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       itemWeight: 0,
-      viewModes: ['list', 'card', 'gallery'],
+      viewModes: ['list', 'compact', 'normal', 'gallery'],
     };
   },
   computed: {

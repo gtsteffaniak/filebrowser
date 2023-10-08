@@ -84,7 +84,6 @@
 import { mapState, mapMutations } from "vuex";
 import { users as api } from "@/api";
 import Languages from "@/components/settings/Languages";
-import Themes from "@/components/settings/Themes";
 import ViewMode from "@/components/settings/ViewMode";
 import i18n, { rtlLanguages } from "@/i18n";
 
@@ -92,7 +91,6 @@ export default {
   name: "settings",
   components: {
     ViewMode,
-    Themes,
     Languages,
   },
   data: function () {
@@ -103,7 +101,7 @@ export default {
       singleClick: false,
       dateFormat: false,
       darkMode: false,
-      viewMode: this.viewMode,
+      viewMode: "list",
       locale: "",
     };
   },

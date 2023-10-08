@@ -149,6 +149,7 @@
   padding-bottom: 1em;
   -webkit-transition: width 0.3s ease 0s;
   transition: width 0.3s ease 0s;
+  background-color: unset;
 }
 
 #result-desktop {
@@ -172,6 +173,8 @@
   background-color: lightgray;
   max-height: 80vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 #search.active #result-desktop ul li a {

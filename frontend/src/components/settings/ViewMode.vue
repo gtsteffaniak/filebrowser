@@ -1,7 +1,7 @@
 <template>
   <select v-on:change="change" :value="viewMode">
-    <option v-for="(viewMode, value) in viewModes" :key="value" :value="value">
-      {{viewMode}}
+    <option v-for="(viewMode) in viewModes" :key="viewMode" :value="viewMode">
+      {{ viewMode }}
     </option>
   </select>
 </template>
@@ -13,12 +13,7 @@ export default {
   data() {
     let dataObj = {
       viewMode: "list",
-      viewModes: {
-        card: "normal",
-        gallery: "gallery",
-        list: "list",
-        compactList: "compact",
-      },
+      viewModes: ['list', 'compact', 'normal', 'gallery'],
     };
 
     Object.defineProperty(dataObj, "viewMode", {
