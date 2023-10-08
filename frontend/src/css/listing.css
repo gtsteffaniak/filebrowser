@@ -90,16 +90,11 @@ body.rtl #listing {
   margin: 0 -0.5em;
 }
 
-#listing.gallery .item {
+#listing.gallery .item,
+#listing.normal .item,
+#listing.list .item {
   width: calc(33% - 1em);
-  margin: .5em;
-  padding: 0.5em;
-  border-radius: 1em;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .12);
-}
-
-#listing.normal .item {
-  width: calc(33% - 1em);
+  max-width: 300px;
   margin: .5em;
   padding: 0.5em;
   border-radius: 1em;
@@ -107,11 +102,7 @@ body.rtl #listing {
 }
 
 #listing.list .item {
-  width: calc(33% - 1em);
-  margin: .5em;
-  padding: 0.5em;
   border-radius: 0em;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .12);
 }
 
 #listing .item:hover {
