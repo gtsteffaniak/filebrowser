@@ -61,10 +61,11 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 					continue
 				}
 				if isDir {
-					pathName = pathName + "/"
+					fileListTypes[pathName+"/"] = fileType
+				} else {
+					fileListTypes[pathName] = fileType
 				}
 				matching = append(matching, pathName)
-				fileListTypes[pathName] = fileType
 				count++
 			}
 		}
@@ -88,30 +89,30 @@ func scopedPathNameFilter(pathName string, scope string) string {
 	return pathName
 }
 
+var fileTypes = map[string]bool{
+	"audio":   false,
+	"image":   false,
+	"video":   false,
+	"doc":     false,
+	"archive": false,
+	"dir":     false,
+}
+
 func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool) (bool, map[string]bool) {
 	conditions := options.Conditions
 	path := getLastPathComponent(pathName)
 	// Convert to lowercase once
-	lowerSearchTerm := searchTerm
 	if !conditions["exact"] {
 		path = strings.ToLower(path)
-		lowerSearchTerm = strings.ToLower(searchTerm)
+		searchTerm = strings.ToLower(searchTerm)
 	}
-	if strings.Contains(path, lowerSearchTerm) {
-		// Reuse the fileTypes map and clear its values
-		fileTypes := map[string]bool{
-			"audio":   false,
-			"image":   false,
-			"video":   false,
-			"doc":     false,
-			"archive": false,
-			"dir":     false,
+	if strings.Contains(path, searchTerm) {
+		// Clear the fileTypes map
+		for k := range fileTypes {
+			fileTypes[k] = false
 		}
 		// Calculate fileSize only if needed
 		var fileSize int64
-		if conditions["larger"] || conditions["smaller"] {
-			fileSize = getFileSize(pathName)
-		}
 		matchesAllConditions := true
 		extension := filepath.Ext(path)
 		mimetype := mime.TypeByExtension(extension)
@@ -128,8 +129,14 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 			var matchesCondition bool
 			switch t {
 			case "larger":
+				if fileSize == 0 {
+					fileSize = getFileSize(pathName)
+				}
 				matchesCondition = fileSize > int64(options.LargerThan)*bytesInMegabyte
 			case "smaller":
+				if fileSize == 0 {
+					fileSize = getFileSize(pathName)
+				}
 				matchesCondition = fileSize < int64(options.SmallerThan)*bytesInMegabyte
 			default:
 				matchesCondition = v == fileTypes[t]
