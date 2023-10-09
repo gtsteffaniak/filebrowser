@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/rules"
 )
@@ -62,39 +61,7 @@ var checkableFields = []string{
 // are alright to be saved.
 //
 //nolint:gocyclo
-func (u *User) Clean(baseScope string, fields ...string) error {
-	if len(fields) == 0 {
-		fields = checkableFields
-	}
-
-	for _, field := range fields {
-		switch field {
-		case "Username":
-			if u.Username == "" {
-				return errors.ErrEmptyUsername
-			}
-		case "Password":
-			if u.Password == "" {
-				return errors.ErrEmptyPassword
-			}
-		case "ViewMode":
-			if u.ViewMode == "" {
-				u.ViewMode = "list"
-			}
-		case "Commands":
-			if u.Commands == nil {
-				u.Commands = []string{}
-			}
-		case "Sorting":
-			if u.Sorting.By == "" {
-				u.Sorting.By = "name"
-			}
-		case "Rules":
-			if u.Rules == nil {
-				u.Rules = []rules.Rule{}
-			}
-		}
-	}
+func (u *User) Clean(baseScope string) error {
 
 	if u.Fs == nil {
 		scope := u.Scope

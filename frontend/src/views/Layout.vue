@@ -7,7 +7,7 @@
     <editorBar v-else-if="currentView === 'editor'"></editorBar>
     <defaultBar v-else></defaultBar>
     <sidebar></sidebar>
-    <main>
+    <main :class="{ 'dark-mode': isDarkMode }">
       <router-view></router-view>
     </main>
     <prompts></prompts>
@@ -45,7 +45,9 @@ export default {
   computed: {
     ...mapGetters(["isLogged", "progress", "isListing"]),
     ...mapState(["req", "user", "state"]),
-
+    isDarkMode() {
+      return this.user.darkMode === true
+    },
     isExecEnabled: () => enableExec,
     currentView() {
       if (this.req.type == undefined) {
@@ -82,3 +84,13 @@ export default {
   },
 };
 </script>
+
+<style>
+
+/* Use the class .dark-mode to apply styles conditionally */
+.dark-mode {
+  background: var(--background);
+  color: var(--textPrimary);
+}
+
+</style>

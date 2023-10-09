@@ -1,4 +1,5 @@
-:root {
+/* Define a class .dark-mode for dark mode styles */
+.dark-mode {
   --background: #141D24;
   --surfacePrimary: #20292F;
   --surfaceSecondary: #3A4147;
@@ -7,212 +8,285 @@
   --textSecondary: rgba(255, 255, 255, 0.6);
 }
 
-body {
-  background: var(--background);
-  color: var(--textPrimary);
-}
-
-#loading {
+.dark-mode #loading {
   background: var(--background);
 }
 
-#login {
+.dark-mode #login {
+  background: var(--background);
+}
+/* Loading */
+.dark-mode #loading {
   background: var(--background);
 }
 
-header {
+/* Login */
+.dark-mode #login {
+  background: var(--background);
+}
+
+/* Header */
+.dark-mode header {
   background: var(--surfacePrimary);
 }
 
+/* Header with backdrop-filter support */
 @supports (backdrop-filter: none) {
-  header {
+  .dark-mode header {
     background: transparent;
     backdrop-filter: blur(16px) invert(0.1);
   }
 }
 
-#search #input {
+#search.dark-mode input {
+  color:white
+}
+
+#search.active.dark-mode #input {
+  border-color: white;
+}
+/* Search input */
+.dark-mode #search #input {
   background: var(--surfaceSecondary);
   border-color: var(--surfaceSecondary);
 }
-#search #input input::placeholder {
+
+.dark-mode #search #input input::placeholder {
   color: var(--textSecondary);
 }
-#search.active #input {
+
+/* Active Search input */
+.dark-mode #search.active #input {
   background: var(--surfacePrimary);
   border-color: white;
 }
-#search.active input {
+
+.dark-mode #search.active input {
   color: var(--textPrimary);
 }
-#search #result {
+
+/* Search result */
+.dark-mode #search #result {
   background: var(--background);
   color: var(--textPrimary);
 }
-#search .boxes h3 {
+
+/* Search boxes */
+.dark-mode #search .boxes h3 {
   color: var(--textPrimary);
 }
 
-.action {
+/* Action */
+.dark-mode .action {
   color: var(--textPrimary) !important;
 }
-.action:hover {
+
+.dark-mode .action:hover {
   background-color: rgba(255, 255, 255, .1);
 }
 
-.action .counter {
+/* Action counter */
+.dark-mode .action .counter {
   border-color: var(--surfacePrimary);
 }
 
-nav > div {
+/* Navigation */
+.dark-mode nav > div {
   border-color: var(--divider);
 }
 
-.breadcrumbs {
+/* Breadcrumbs */
+.dark-mode .breadcrumbs {
   border-color: var(--divider);
   color: var(--textPrimary) !important;
 }
-.breadcrumbs span {
+
+.dark-mode .breadcrumbs span {
   color: var(--textPrimary) !important;
 }
-.breadcrumbs a:hover {
+
+.dark-mode .breadcrumbs a:hover {
   background-color: rgba(255, 255, 255, .1);
 }
 
-#listing .item {
+/* Listing items */
+.dark-mode #listing .item {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
   border-color: var(--divider) !important;
 }
 
-#listing .item .modified {
+/* Listing item modified text */
+.dark-mode #listing .item .modified {
   color: var(--textSecondary);
 }
-#listing h2,
-#listing.list .header span {
+
+/* Listing header and span */
+.dark-mode #listing h2,
+.dark-mode #listing.list .header span {
   color: var(--textPrimary) !important;
 }
-#listing.list .header span {
+
+/* Message */
+.dark-mode .message {
   color: var(--textPrimary);
 }
 
-.message {
-  color: var(--textPrimary);
-}
-
-.card {
+/* Card */
+.dark-mode .card {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
 }
-.button--flat:hover {
+
+/* Flat button hover */
+.dark-mode .button--flat:hover {
   background: var(--surfaceSecondary);
 }
 
-.dashboard #nav ul li {
+/* Dashboard navigation */
+.dark-mode .dashboard #nav ul li {
   color: var(--textSecondary);
 }
-.dashboard #nav ul li:hover {
+
+.dark-mode .dashboard #nav ul li:hover {
   background: var(--surfaceSecondary);
 }
-#result-list {
-  background-color:#292929;
+#search.active.dark-mode #result {
+  background-color: black;
+}
+/* Result list */
+.dark-mode #result-list {
+  background-color: var(--surfacePrimary);
+  color:white;
 }
 
-.card h3,
-.dashboard #nav,
-.dashboard p label {
+/* Card, Dashboard navigation, and label */
+.dark-mode .card h3,
+.dark-mode .dashboard #nav,
+.dark-mode .dashboard p label {
   color: var(--textPrimary);
 }
-.card#share input,
-.card#share select,
-.input {
+
+.dark-mode .card#share input,
+.dark-mode .card#share select,
+.dark-mode .input {
   background: var(--surfaceSecondary);
   color: var(--textPrimary);
 }
 
-.input:hover,
-.input:focus {
+/* Input hover and focus */
+.dark-mode .input:hover,
+.dark-mode .input:focus {
   border-color: rgba(255, 255, 255, 0.15);
 }
-.input--red {
+
+/* Red input */
+.dark-mode .input--red {
   background: #73302D;
 }
 
-.input--green {
+/* Green input */
+.dark-mode .input--green {
   background: #147A41;
 }
 
-.dashboard #nav .wrapper,
-.collapsible {
+/* Collapsible and label */
+.dark-mode .dashboard #nav .wrapper,
+.dark-mode .collapsible {
   border-color: var(--divider);
 }
-.collapsible > label * {
+
+.dark-mode .collapsible > label * {
   color: var(--textPrimary);
 }
 
-table th {
+/* Table header */
+.dark-mode table th {
   color: var(--textSecondary);
 }
 
-.file-list li:hover {
+/* File list item */
+.dark-mode .file-list li:hover {
   background: var(--surfaceSecondary);
 }
-.file-list li:before {
+
+.dark-mode .file-list li:before {
   color: var(--textSecondary);
 }
 
-.shell {
+/* Shell */
+.dark-mode .shell {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
 }
-.shell__result {
+
+/* Shell result */
+.dark-mode .shell__result {
   border-top: 1px solid var(--divider);
 }
 
-#editor-container {
+/* Editor container */
+.dark-mode #editor-container {
   background: var(--background);
 }
 
-#editor-container .bar {
+.dark-mode #editor-container .bar {
   background: var(--surfacePrimary);
 }
-nav {
+
+/* Navigation */
+.dark-mode nav {
   background: var(--surfaceSecondary) !important;
 }
 
-#file-selection {
+/* File selection */
+.dark-mode #file-selection {
   background: var(--surfaceSecondary) !important;
 }
-#file-selection span {
+
+.dark-mode #file-selection span {
   color: var(--textPrimary) !important;
 }
-#dropdown {
+
+/* Dropdown */
+.dark-mode #dropdown {
   background: var(--surfaceSecondary) !important;
 }
 
-.share__box {
+/* Share box */
+.dark-mode .share__box {
   background: var(--surfacePrimary) !important;
   color: var(--textPrimary);
 }
 
-.share__box__element {
+/* Share box element */
+.dark-mode .share__box__element {
   border-top-color: var(--divider);
 }
 
-.helpButton {
+/* Help button */
+.dark-mode .helpButton {
   background: var(--background);
 }
-.sizeInputWrapper {
+
+/* Size input wrapper */
+.dark-mode .sizeInputWrapper {
   background: var(--background);
-  color: white
+  color: white;
 }
-.button-group button {
+
+/* Button group button */
+.dark-mode .button-group button {
   background: var(--background);
-  color: white
+  color: white;
 }
-#result-desktop #result-list {
+
+/* Result desktop */
+.dark-mode #result-desktop #result-list {
   max-height: unset;
 }
-#result-desktop {
+
+/* Result desktop background */
+.dark-mode #result-desktop {
   background-color: var(--background);
 }

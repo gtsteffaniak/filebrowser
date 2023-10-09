@@ -260,7 +260,6 @@ export default {
       }
     },
     switchView: async function () {
-      console.log(this.user.viewMode)
       this.$store.commit("closeHovers");
       const currentIndex = this.viewModes.indexOf(this.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
@@ -579,7 +578,6 @@ export default {
       }
       this.$store.commit("updateRequest", {});
       let uri = url.removeLastDir(this.$route.path) + "/";
-      console.log(url)
       this.$router.push({ path: uri });
     },
     upload: function () {

@@ -2,6 +2,7 @@ package bolt
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/asdine/storm/v3"
@@ -73,11 +74,12 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 }
 
 func (st usersBackend) Save(user *users.User) error {
-	password, err := users.HashPwd(user.Password)
+	log.Println("userinfo", user.Password)
+	pass, err := users.HashPwd(user.Password)
 	if err != nil {
 		return err
 	}
-	user.Password = password
+	user.Password = pass
 	err = st.db.Save(user)
 	if err == storm.ErrAlreadyExists {
 		return errors.ErrExist

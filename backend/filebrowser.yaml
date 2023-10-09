@@ -3,10 +3,11 @@ server:
   baseURL: "/"
   root: "/Users/steffag/git/go"
 auth:
-  method: noauth
+  method: password
   signup: true
 userDefaults:
   darkMode: true
+  disableSettings: false
   scope: "."
   hideDotfiles: true
   singleClick: false

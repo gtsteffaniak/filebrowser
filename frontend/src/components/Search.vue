@@ -1,5 +1,5 @@
 <template>
-  <div id="search" @click="open" v-bind:class="{ active, ongoing }">
+  <div id="search" @click="open" v-bind:class="{ active, ongoing, 'dark-mode': isDarkMode }">
     <div id="input">
       <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
         <i class="material-icons">close</i>
@@ -204,6 +204,7 @@
 
 /* Search */
 #search {
+  background-color:unset;
   z-index:3;
   position: fixed;
   top: .5em;
@@ -317,7 +318,7 @@ body.rtl #search #result ul>* {
 }
 
 #search.active #input {
-  background-color: lightgray;
+  background-color: var(--background);
   border-color: black;
   border-style: solid;
   border-bottom-style: none;
@@ -541,6 +542,9 @@ export default {
   computed: {
     ...mapState(["user", "show"]),
     ...mapGetters(["isListing"]),
+    isDarkMode() {
+      return this.user.darkMode === true
+    },
     showBoxes() {
       return this.searchTypes == "";
     },

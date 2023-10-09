@@ -146,14 +146,11 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 	}
 
 	if u == nil {
-		pass, err := users.HashPwd(a.Cred.Password)
-		if err != nil {
-			return nil, err
-		}
+		log.Println("creds", a.Cred.Password)
 		// create user with the provided credentials
 		d := &users.User{
 			Username:     a.Cred.Username,
-			Password:     pass,
+			Password:     a.Cred.Password,
 			Scope:        a.Settings.UserDefaults.Scope,
 			Locale:       a.Settings.UserDefaults.Locale,
 			ViewMode:     a.Settings.UserDefaults.ViewMode,
@@ -178,16 +175,6 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 		}
 	} else if p := !users.CheckPwd(a.Cred.Password, u.Password); len(a.Fields.Values) > 1 || p {
 		u = a.GetUser(u)
-
-		// update the password when it doesn't match the current
-		if p {
-			pass, err := users.HashPwd(a.Cred.Password)
-			if err != nil {
-				return nil, err
-			}
-			u.Password = pass
-		}
-
 		// update user with provided fields
 		err := a.Users.Update(u)
 		if err != nil {

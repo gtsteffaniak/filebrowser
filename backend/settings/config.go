@@ -61,6 +61,7 @@ func setDefaults() Settings {
 		},
 		Auth: Auth{
 			Method: "password",
+			Signup: true,
 			Recaptcha: Recaptcha{
 				Host: "",
 			},
@@ -71,6 +72,7 @@ func setDefaults() Settings {
 			HideDotfiles:    true,
 			DarkMode:        false,
 			DisableSettings: false,
+			Locale:          "en",
 			Permissions: users.Permissions{
 				Create:   true,
 				Rename:   true,

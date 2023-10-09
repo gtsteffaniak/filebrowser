@@ -1,10 +1,7 @@
 <template>
   <div class="dashboard">
     <div id="nav">
-      <div>
-        nothing to see here
-      </div>
-      <div v-else class="wrapper">
+      <div v-if="settingsEnabled" class="wrapper">
         <ul>
           <router-link to="/settings/profile"
             ><li :class="{ active: $route.path === '/settings/profile' }">
@@ -60,9 +57,9 @@ export default {
     this.$store.commit("updateRequest", { name: "Settings" });
   },
   computed: {
-    ...mapState(["user", "loading", "req"]),
-    disableSettings() {
-      return this.user.disableSettings === "true"; // Use strict equality (===) to compare with "true"
+    ...mapState(["user"]),
+    settingsEnabled() {
+      return this.user.disableSettings == false;
     },
   },
 };
