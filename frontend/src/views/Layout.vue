@@ -12,7 +12,6 @@
     </main>
     <prompts></prompts>
     <upload-files></upload-files>
-    <link v-if="darkModeCSS" rel="stylesheet" :href="darkModeCSS" />
   </div>
 </template>
 
@@ -48,14 +47,6 @@ export default {
     ...mapState(["req", "user", "state"]),
 
     isExecEnabled: () => enableExec,
-    darkModeCSS() {
-      if (this.user.darkMode) {
-        return `${this.user.StaticURL}/themes/dark.css`;
-      } else {
-        // Return a default CSS file path or an empty string if not in dark mode.
-        return ""; // or a default CSS path
-      }
-    },
     currentView() {
       if (this.req.type == undefined) {
         return null;

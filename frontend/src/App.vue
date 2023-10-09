@@ -13,7 +13,6 @@ export default {
   computed: {
     ...mapState(["user"]),
     isDarkMode() {
-      // Access the darkMode variable from the Vuex store
       return this.user.darkMode;
     },
   },

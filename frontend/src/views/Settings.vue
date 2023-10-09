@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <div id="nav">
-      <div v-if="disableSettings">
+      <div>
         nothing to see here
       </div>
       <div v-else class="wrapper">
