@@ -47,16 +47,6 @@ func (u *User) GetRules() []rules.Rule {
 	return u.Rules
 }
 
-var checkableFields = []string{
-	"Username",
-	"Password",
-	"Scope",
-	"ViewMode",
-	"Commands",
-	"Sorting",
-	"Rules",
-}
-
 // Clean cleans up a user and verifies if all its fields
 // are alright to be saved.
 //
