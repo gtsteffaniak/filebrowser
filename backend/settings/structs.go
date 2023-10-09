@@ -31,6 +31,7 @@ type Settings struct {
 	Server           Server              `json:"server"`
 	Auth             Auth                `json:"auth"`
 	Frontend         Frontend            `json:"frontend"`
+	Users            []UserDefaults      `json:"users,omitempty"`
 	UserDefaults     UserDefaults        `json:"userDefaults"`
 }
 
@@ -80,18 +81,19 @@ type Frontend struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	LockPassword bool   `json:"lockPassword"`
-	Scope        string `json:"scope"`
-	Locale       string `json:"locale"`
-	ViewMode     string `json:"viewMode"`
-	SingleClick  bool   `json:"singleClick"`
+	LockPassword bool         `json:"lockPassword"`
+	Scope        string       `json:"scope"`
+	Locale       string       `json:"locale"`
+	ViewMode     string       `json:"viewMode"`
+	SingleClick  bool         `json:"singleClick"`
+	Rules        []rules.Rule `json:"rules"`
 	Sorting      struct {
 		By  string `json:"by"`
 		Asc bool   `json:"asc"`
 	} `json:"sorting"`
 	Perm         users.Permissions `json:"perm"`
 	Permissions  users.Permissions `json:"permissions"`
-	Commands     []string          `json:"commands"`
+	Commands     []string          `json:"commands,omitemptys"`
 	HideDotfiles bool              `json:"hideDotfiles"`
 	DateFormat   bool              `json:"dateFormat"`
 }

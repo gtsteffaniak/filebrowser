@@ -73,7 +73,12 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 }
 
 func (st usersBackend) Save(user *users.User) error {
-	err := st.db.Save(user)
+	password, err := users.HashPwd(user.Password)
+	if err != nil {
+		return err
+	}
+	user.Password = password
+	err = st.db.Save(user)
 	if err == storm.ErrAlreadyExists {
 		return errors.ErrExist
 	}
