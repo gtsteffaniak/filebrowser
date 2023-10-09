@@ -50,6 +50,7 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       itemWeight: 0,
+      viewModes: ['list', 'compact', 'normal', 'gallery'],
     };
   },
   computed: {
@@ -115,8 +116,9 @@ export default {
     viewIcon() {
       const icons = {
         list: "view_module",
-        mosaic: "grid_view",
-        "mosaic gallery": "view_list",
+        compact: "view_module",
+        normal: "grid_view",
+        gallery: "view_list",
       };
       return icons[this.user.viewMode];
     },
@@ -268,21 +270,14 @@ export default {
     },
     switchView: async function () {
       this.$store.commit("closeHovers");
-      const modes = {
-        list: "mosaic",
-        mosaic: "mosaic gallery",
-        "mosaic gallery": "list",
-      };
-
+      const currentIndex = this.viewModes.indexOf(this.user.viewMode);
+      const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const data = {
         id: this.user.id,
-        viewMode: modes[this.user.viewMode] || "list",
+        viewMode: this.viewModes[nextIndex],
       };
-      //users.update(data, ["viewMode"]).catch(this.$showError);
+      users.update(data, ["viewMode"]).catch(this.$showError);
       this.$store.commit("updateUser", data);
-
-      //this.setItemWeight();
-      //this.fillWindow();
     },
     preventDefault(event) {
       // Wrapper around prevent default.
@@ -384,7 +379,7 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listing.mosaic .item", ".mosaic#listing .item"]);
+      let items = css(["#listing .item", "#listing .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },

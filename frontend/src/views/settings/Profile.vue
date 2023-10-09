@@ -8,6 +8,10 @@
 
         <div class="card-content">
           <p>
+            <input type="checkbox" v-model="darkMode" />
+            Dark Mode
+          </p>
+          <p>
             <input type="checkbox" v-model="hideDotfiles" />
             {{ $t("settings.hideDotfiles") }}
           </p>
@@ -19,6 +23,11 @@
             <input type="checkbox" v-model="dateFormat" />
             {{ $t("settings.setDateFormat") }}
           </p>
+          <h3>Listing View Style</h3>
+          <ViewMode
+            class="input input--block"
+            :viewMode.sync="viewMode"
+          ></ViewMode>
           <h3>{{ $t("settings.language") }}</h3>
           <languages
             class="input input--block"
@@ -75,11 +84,13 @@
 import { mapState, mapMutations } from "vuex";
 import { users as api } from "@/api";
 import Languages from "@/components/settings/Languages";
+import ViewMode from "@/components/settings/ViewMode";
 import i18n, { rtlLanguages } from "@/i18n";
 
 export default {
   name: "settings",
   components: {
+    ViewMode,
     Languages,
   },
   data: function () {
@@ -89,6 +100,8 @@ export default {
       hideDotfiles: false,
       singleClick: false,
       dateFormat: false,
+      darkMode: false,
+      viewMode: "list",
       locale: "",
     };
   },
@@ -109,8 +122,14 @@ export default {
     },
   },
   created() {
+    if (typeof this.user.darkMode === 'undefined') {
+      this.darkMode = false;
+    } else {
+      this.darkMode = this.user.darkMode
+    }
     this.setLoading(false);
     this.locale = this.user.locale;
+    this.viewMode = this.user.viewMode;
     this.hideDotfiles = this.user.hideDotfiles;
     this.singleClick = this.user.singleClick;
     this.dateFormat = this.user.dateFormat;
@@ -135,11 +154,12 @@ export default {
     },
     async updateSettings(event) {
       event.preventDefault();
-
       try {
         const data = {
           id: this.user.id,
           locale: this.locale,
+          darkMode: this.darkMode,
+          viewMode: this.viewMode,
           hideDotfiles: this.hideDotfiles,
           singleClick: this.singleClick,
           dateFormat: this.dateFormat,
@@ -149,6 +169,8 @@ export default {
           rtlLanguages.includes(i18n.locale);
         await api.update(data, [
           "locale",
+          "darkMode",
+          "viewMode",
           "hideDotfiles",
           "singleClick",
           "dateFormat",

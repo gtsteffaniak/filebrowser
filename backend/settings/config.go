@@ -61,14 +61,18 @@ func setDefaults() Settings {
 		},
 		Auth: Auth{
 			Method: "password",
+			Signup: true,
 			Recaptcha: Recaptcha{
 				Host: "",
 			},
 		},
 		UserDefaults: UserDefaults{
-			Scope:        ".",
-			LockPassword: false,
-			HideDotfiles: true,
+			Scope:           ".",
+			LockPassword:    false,
+			HideDotfiles:    true,
+			DarkMode:        false,
+			DisableSettings: false,
+			Locale:          "en",
 			Permissions: users.Permissions{
 				Create:   true,
 				Rename:   true,
@@ -76,6 +80,7 @@ func setDefaults() Settings {
 				Delete:   true,
 				Share:    true,
 				Download: true,
+				Admin:    false,
 			},
 		},
 	}
@@ -83,6 +88,8 @@ func setDefaults() Settings {
 
 // Apply applies the default options to a user.
 func (d *UserDefaults) Apply(u *users.User) {
+	u.DisableSettings = d.DisableSettings
+	u.DarkMode = d.DarkMode
 	u.Scope = d.Scope
 	u.Locale = d.Locale
 	u.ViewMode = d.ViewMode

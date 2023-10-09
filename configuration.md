@@ -40,6 +40,8 @@ frontend:
   theme: ""
   color: ""
 userDefaults:
+  settingsAllowed: true
+  darkMode: false
   scope: ""
   locale: ""
   viewMode: ""
@@ -175,6 +177,10 @@ UserDefaults:
 - `color`: This is the color configuration.
   
 ### UserDefaults configuration settings
+
+- `darkMode`: Determines whether dark mode is enabled for the user (true or false)
+
+- `settingsAllowed`: Determines whether settings page is enabled for the user (true or false)
 
 - `scope`: This is a scope of the permissions, "." or "./" means all directories, "./downloads" would mean only the downloads folder.
 

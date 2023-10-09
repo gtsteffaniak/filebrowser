@@ -12,6 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v4/request"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -19,20 +20,8 @@ const (
 	TokenExpirationTime = time.Hour * 2
 )
 
-type userInfo struct {
-	ID           uint              `json:"id"`
-	Locale       string            `json:"locale"`
-	ViewMode     string            `json:"viewMode"`
-	SingleClick  bool              `json:"singleClick"`
-	Perm         users.Permissions `json:"perm"`
-	Commands     []string          `json:"commands"`
-	LockPassword bool              `json:"lockPassword"`
-	HideDotfiles bool              `json:"hideDotfiles"`
-	DateFormat   bool              `json:"dateFormat"`
-}
-
 type authToken struct {
-	User userInfo `json:"user"`
+	User users.User `json:"user"`
 	jwt.RegisteredClaims
 }
 
@@ -143,15 +132,9 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 
 	user := &users.User{
 		Username: info.Username,
+		Password: info.Password,
 	}
-
-	pwd, err := users.HashPwd(info.Password)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	user.Password = pwd
-
+	settings.GlobalConfiguration.UserDefaults.Apply(user)
 	userHome, err := d.settings.MakeUserDir(user.Username, user.Scope, d.server.Root)
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
@@ -176,17 +159,7 @@ var renewHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data
 
 func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User) (int, error) {
 	claims := &authToken{
-		User: userInfo{
-			ID:           user.ID,
-			Locale:       user.Locale,
-			ViewMode:     user.ViewMode,
-			SingleClick:  user.SingleClick,
-			Perm:         user.Perm,
-			LockPassword: user.LockPassword,
-			Commands:     user.Commands,
-			HideDotfiles: user.HideDotfiles,
-			DateFormat:   user.DateFormat,
-		},
+		User: *user,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExpirationTime)),

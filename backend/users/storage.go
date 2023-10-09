@@ -73,7 +73,7 @@ func (s *Storage) Gets(baseScope string) ([]*User, error) {
 
 // Update updates a user in the database.
 func (s *Storage) Update(user *User, fields ...string) error {
-	err := user.Clean("", fields...)
+	err := user.Clean("")
 	if err != nil {
 		return err
 	}

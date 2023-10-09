@@ -1,5 +1,5 @@
 <template>
-  <nav :class="{ active }">
+  <nav :class="{ active, 'dark-mode': isDarkMode }">
     <template v-if="isLogged">
       <button class="action" @click="toRoot" :aria-label="$t('sidebar.myFiles')" :title="$t('sidebar.myFiles')">
         <i class="material-icons">folder</i>
@@ -87,6 +87,9 @@ export default {
   },
   computed: {
     ...mapState(["user"]),
+    isDarkMode() {
+      return this.user.darkMode === true
+    },
     ...mapGetters(["isLogged"]),
     active() {
       return this.$store.state.show === "sidebar";

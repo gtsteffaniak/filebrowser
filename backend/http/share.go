@@ -129,7 +129,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 
 	var token string
 	if len(hash) > 0 {
-		tokenBuffer := make([]byte, 96) //nolint:gomnd
+		tokenBuffer := make([]byte, 24) //nolint:gomnd
 		if _, err := rand.Read(tokenBuffer); err != nil {
 			return http.StatusInternalServerError, err
 		}
