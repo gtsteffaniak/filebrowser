@@ -122,9 +122,13 @@ export default {
     },
   },
   created() {
+    if (typeof this.user.darkMode === 'undefined') {
+      this.darkMode = false;
+    } else {
+      this.darkMode = this.user.darkMode
+    }
     this.setLoading(false);
     this.locale = this.user.locale;
-    this.darkMode = this.user.darkMode;
     this.viewMode = this.user.viewMode;
     this.hideDotfiles = this.user.hideDotfiles;
     this.singleClick = this.user.singleClick;

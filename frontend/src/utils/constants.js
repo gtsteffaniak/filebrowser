@@ -11,7 +11,6 @@ const logoURL = `${staticURL}/img/logo.svg`;
 const noAuth = window.FileBrowser.NoAuth;
 const authMethod = window.FileBrowser.AuthMethod;
 const loginPage = window.FileBrowser.LoginPage;
-const theme = window.FileBrowser.Theme;
 const enableThumbs = window.FileBrowser.EnableThumbs;
 const resizePreview = window.FileBrowser.ResizePreview;
 const enableExec = window.FileBrowser.EnableExec;
@@ -30,7 +29,6 @@ export {
   noAuth,
   authMethod,
   loginPage,
-  theme,
   enableThumbs,
   resizePreview,
   enableExec,

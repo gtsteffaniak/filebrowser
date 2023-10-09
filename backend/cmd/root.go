@@ -137,23 +137,23 @@ func quickSetup(d pythonData) {
 		log.Fatal("username and password cannot be empty during quick setup")
 	}
 	user := &users.User{
-		Username:     username,
-		Password:     password,
-		DarkMode:     false,
-		ViewMode:     "normal",
-		LockPassword: false,
-		Perm: users.Permissions{
-			Create:   true,
-			Rename:   true,
-			Modify:   true,
-			Delete:   true,
-			Share:    true,
-			Download: true,
-			Admin:    true,
-		},
+		Username: username,
+		Password: password,
 	}
-	user.Perm.Admin = true
 	settings.GlobalConfiguration.UserDefaults.Apply(user)
+	user.Perm.Admin = true
+	user.DarkMode = true
+	user.ViewMode = "normal"
+	user.LockPassword = false
+	user.Perm = users.Permissions{
+		Create:   true,
+		Rename:   true,
+		Modify:   true,
+		Delete:   true,
+		Share:    true,
+		Download: true,
+		Admin:    true,
+	}
 	err = d.store.Users.Save(user)
 	checkErr(err)
 }

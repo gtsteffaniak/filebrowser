@@ -3,22 +3,31 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
+
 // eslint-disable-next-line no-undef
 __webpack_public_path__ = window.FileBrowser.StaticURL + "/";
 
 export default {
   name: "app",
+  computed: {
+    ...mapState(["user"]),
+    isDarkMode() {
+      // Access the darkMode variable from the Vuex store
+      return this.user.darkMode;
+    },
+  },
   mounted() {
-    const loading = document.getElementById("loading");
-    loading.classList.add("done");
-
-    setTimeout(function () {
-      loading.parentNode.removeChild(loading);
-    }, 200);
   },
 };
 </script>
 
 <style>
+/* Always load styles.css */
 @import "./css/styles.css";
+</style>
+
+<!-- Use a conditional style block to load dark mode styles -->
+<style v-if="isDarkMode">
+  @import url('./css/dark.css');
 </style>

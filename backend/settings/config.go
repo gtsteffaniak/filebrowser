@@ -66,10 +66,11 @@ func setDefaults() Settings {
 			},
 		},
 		UserDefaults: UserDefaults{
-			Scope:        ".",
-			LockPassword: false,
-			HideDotfiles: true,
-			DarkMode:     false,
+			Scope:           ".",
+			LockPassword:    false,
+			HideDotfiles:    true,
+			DarkMode:        false,
+			DisableSettings: false,
 			Permissions: users.Permissions{
 				Create:   true,
 				Rename:   true,
@@ -85,6 +86,8 @@ func setDefaults() Settings {
 
 // Apply applies the default options to a user.
 func (d *UserDefaults) Apply(u *users.User) {
+	u.DisableSettings = d.DisableSettings
+	u.DarkMode = d.DarkMode
 	u.Scope = d.Scope
 	u.Locale = d.Locale
 	u.ViewMode = d.ViewMode

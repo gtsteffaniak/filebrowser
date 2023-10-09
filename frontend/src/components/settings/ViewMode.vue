@@ -1,27 +1,19 @@
 <template>
   <select v-on:change="change" :value="viewMode">
-    <option v-for="(viewMode) in viewModes" :key="viewMode" :value="viewMode">
-      {{ viewMode }}
+    <option v-for="mode in viewModes" :key="mode" :value="mode">
+      {{ mode }}
     </option>
   </select>
 </template>
 
 <script>
 export default {
-  name: "viewMode",
+  name: "ViewMode",
   props: ["viewMode"],
   data() {
-    let dataObj = {
-      viewMode: "list",
+    return {
       viewModes: ['list', 'compact', 'normal', 'gallery'],
     };
-
-    Object.defineProperty(dataObj, "viewMode", {
-      configurable: false,
-      writable: false,
-    });
-
-    return dataObj;
   },
   methods: {
     change(event) {

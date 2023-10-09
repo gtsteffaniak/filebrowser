@@ -1,6 +1,6 @@
 {
   "name": "filebrowser-frontend",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -39,8 +39,6 @@
   "devDependencies": {
     "@vue/cli-service": "^5.0.8",
     "compression-webpack-plugin": "^10.0.0",
-    "eslint": "^8.50.0",
-    "eslint-plugin-vue": "^9.17.0",
     "vue-template-compiler": "^2.6.10"
   },
   "postcss": {

@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <div id="nav">
-      <div v-if="disabledSettings">
+      <div v-if="disableSettings">
         nothing to see here
       </div>
       <div v-else class="wrapper">
@@ -60,11 +60,10 @@ export default {
     this.$store.commit("updateRequest", { name: "Settings" });
   },
   computed: {
-    ...mapState(["user", "loading","req"]),
+    ...mapState(["user", "loading", "req"]),
     disableSettings() {
-      console.log(this.User)
-      return this.User.disableSettings == "true"
-    }
+      return this.user.disableSettings === "true"; // Use strict equality (===) to compare with "true"
+    },
   },
 };
 </script>

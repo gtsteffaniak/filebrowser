@@ -313,7 +313,6 @@ export default {
       return icons[this.user.viewMode];
     },
     listingViewMode() {
-      console.log("listing view mode:",this.user.viewMode )
       return this.user.viewMode
     },
     headerButtons() {
