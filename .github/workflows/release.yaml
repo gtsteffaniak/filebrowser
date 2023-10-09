@@ -43,7 +43,6 @@ jobs:
     needs: [lint-frontend, lint-backend, test-backend, format-backend]
     name: Push release
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'release' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
