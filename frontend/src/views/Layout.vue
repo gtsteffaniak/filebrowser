@@ -10,7 +10,7 @@
     <main :class="{ 'dark-mode': isDarkMode }">
       <router-view></router-view>
     </main>
-    <prompts></prompts>
+    <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
     <upload-files></upload-files>
   </div>
 </template>
