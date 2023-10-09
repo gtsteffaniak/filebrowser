@@ -152,7 +152,8 @@ func quickSetup(d pythonData) {
 			Admin:    true,
 		},
 	}
-
+	user.Perm.Admin = true
+	settings.GlobalConfiguration.UserDefaults.Apply(user)
 	err = d.store.Users.Save(user)
 	checkErr(err)
 }
