@@ -72,7 +72,7 @@ jobs:
         run: |
           JSON="${{ steps.meta.outputs.tags }}"
           # Use jq to remove 'v' from the version field
-          JSON=$(echo "$JSON" |sed -s '/filebrowser:v/filebrowser:/g')
+          JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
           echo "::set-output name=cleaned_tag::$JSON"
       - name: Build and push
         uses: docker/build-push-action@v5
