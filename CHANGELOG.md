@@ -4,7 +4,15 @@ All notable changes to this project will be documented in this file. See [standa
 
 # v0.2.1
   - issue #29 - Rules can now be configured and read from configuration yaml
-  - More rounded corners
+  - issue #28 - Allow disable settings per user.
+  - issue #27 - shorten download link for password protected files
+  - issue #26 - enable dark mode per user and improve switching performance.
+  - More rounded corners and improved listing styling
+  - improve search performance
+  - fixes authentication issues
+  - adds compact view mode
+  - improves view mode configuration and behavior
+  - updates configuration file to accept new settings
 
 # v0.2.0
  - improved UI
