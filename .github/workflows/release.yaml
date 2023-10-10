@@ -70,10 +70,10 @@ jobs:
       - name: Modify DOCKER_METADATA_OUTPUT_JSON
         id: modify-json
         run: |
-          JSON="${{ steps.meta.outputs.DOCKER_METADATA_OUTPUT_JSON }}"
+          JSON="${{ steps.meta.outputs.tags }}"
           # Use jq to remove 'v' from the version field
-          JSON=$(echo "$JSON" | jq '(.tags) |= sub("filebrowser:v"; "filebrowser:")')
-          echo "::set-output name=modified_json::$JSON"
+          JSON=$(echo "$JSON" |sed -s '/filebrowser:v/filebrowser:/g')
+          echo "::set-output name=cleaned_tag::$JSON"
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -81,5 +81,5 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.modify-json.outputs.modified_json }}
+          tags: ${{ steps.modify-json.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
