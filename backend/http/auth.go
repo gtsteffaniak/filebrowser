@@ -112,7 +112,7 @@ type signupBody struct {
 }
 
 var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if !d.settings.Signup {
+	if !settings.GlobalConfiguration.Auth.Signup {
 		return http.StatusMethodNotAllowed, nil
 	}
 
