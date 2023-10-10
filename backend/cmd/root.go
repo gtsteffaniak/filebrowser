@@ -118,7 +118,7 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 }
 
 func quickSetup(d pythonData) {
-	settings.GlobalConfiguration.Key = generateKey()
+	settings.GlobalConfiguration.Auth.Key = generateKey()
 	if settings.GlobalConfiguration.Auth.Method == "noauth" {
 		err := d.store.Auth.Save(&auth.NoAuth{})
 		checkErr(err)
@@ -131,8 +131,8 @@ func quickSetup(d pythonData) {
 	checkErr(err)
 	err = d.store.Settings.SaveServer(&settings.GlobalConfiguration.Server)
 	checkErr(err)
-	username := settings.GlobalConfiguration.AdminUsername
-	password := settings.GlobalConfiguration.AdminPassword
+	username := settings.GlobalConfiguration.Auth.AdminUsername
+	password := settings.GlobalConfiguration.Auth.AdminPassword
 	if username == "" || password == "" {
 		log.Fatal("username and password cannot be empty during quick setup")
 	}

@@ -9,6 +9,7 @@ import (
 )
 
 type settingsData struct {
+	Signup           bool                  `json:"signup"`
 	CreateUserDir    bool                  `json:"createUserDir"`
 	UserHomeBasePath string                `json:"userHomeBasePath"`
 	Defaults         settings.UserDefaults `json:"defaults"`
@@ -20,8 +21,9 @@ type settingsData struct {
 
 var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	data := &settingsData{
-		CreateUserDir:    d.settings.CreateUserDir,
-		UserHomeBasePath: d.settings.UserHomeBasePath,
+		Signup:           settings.GlobalConfiguration.Auth.Signup,
+		CreateUserDir:    settings.GlobalConfiguration.Server.CreateUserDir,
+		UserHomeBasePath: settings.GlobalConfiguration.Server.UserHomeBasePath,
 		Defaults:         d.settings.UserDefaults,
 		Rules:            d.settings.Rules,
 		Frontend:         d.settings.Frontend,
@@ -39,8 +41,8 @@ var settingsPutHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 		return http.StatusBadRequest, err
 	}
 
-	d.settings.CreateUserDir = req.CreateUserDir
-	d.settings.UserHomeBasePath = req.UserHomeBasePath
+	d.settings.Server.CreateUserDir = req.CreateUserDir
+	d.settings.Server.UserHomeBasePath = req.UserHomeBasePath
 	d.settings.UserDefaults = req.Defaults
 	d.settings.Rules = req.Rules
 	d.settings.Frontend = req.Frontend

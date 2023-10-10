@@ -57,7 +57,7 @@ export default {
     this.$store.commit("updateRequest", { name: "Settings" });
   },
   computed: {
-    ...mapState(["user"]),
+    ...mapState(["user", "loading"]),
     settingsEnabled() {
       return this.user.disableSettings == false;
     },

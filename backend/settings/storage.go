@@ -29,8 +29,8 @@ func (s *Storage) Get() (*Settings, error) {
 	if err != nil {
 		return nil, err
 	}
-	if set.UserHomeBasePath == "" {
-		set.UserHomeBasePath = DefaultUsersHomeBasePath
+	if set.Server.UserHomeBasePath == "" {
+		set.Server.UserHomeBasePath = DefaultUsersHomeBasePath
 	}
 	return set, nil
 }
@@ -45,7 +45,7 @@ var defaultEvents = []string{
 
 // Save saves the settings for the current instance.
 func (s *Storage) Save(set *Settings) error {
-	if len(set.Key) == 0 {
+	if len(set.Auth.Key) == 0 {
 		return errors.ErrEmptyKey
 	}
 
