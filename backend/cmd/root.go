@@ -141,9 +141,6 @@ func quickSetup(d pythonData) {
 		Password: password,
 	}
 	user.Perm.Admin = true
-<<<<<<< HEAD
-	settings.GlobalConfiguration.UserDefaults.Apply(user)
-=======
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false
@@ -156,7 +153,6 @@ func quickSetup(d pythonData) {
 		Download: true,
 		Admin:    true,
 	}
->>>>>>> v0.2.1
 	err = d.store.Users.Save(user)
 	checkErr(err)
 }

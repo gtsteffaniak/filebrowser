@@ -67,15 +67,6 @@ type Frontend struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-<<<<<<< HEAD
-	LockPassword bool         `json:"lockPassword"`
-	Scope        string       `json:"scope"`
-	Locale       string       `json:"locale"`
-	ViewMode     string       `json:"viewMode"`
-	SingleClick  bool         `json:"singleClick"`
-	Rules        []rules.Rule `json:"rules"`
-	Sorting      struct {
-=======
 	DarkMode        bool         `json:"darkMode"`
 	LockPassword    bool         `json:"lockPassword"`
 	DisableSettings bool         `json:"disableSettings,omitempty"`
@@ -85,17 +76,12 @@ type UserDefaults struct {
 	SingleClick     bool         `json:"singleClick"`
 	Rules           []rules.Rule `json:"rules"`
 	Sorting         struct {
->>>>>>> v0.2.1
 		By  string `json:"by"`
 		Asc bool   `json:"asc"`
 	} `json:"sorting"`
 	Perm         users.Permissions `json:"perm"`
 	Permissions  users.Permissions `json:"permissions"`
-<<<<<<< HEAD
-	Commands     []string          `json:"commands,omitemptys"`
-=======
 	Commands     []string          `json:"commands,omitempty"`
->>>>>>> v0.2.1
 	HideDotfiles bool              `json:"hideDotfiles"`
 	DateFormat   bool              `json:"dateFormat"`
 }

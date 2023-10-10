@@ -8,12 +8,6 @@ import (
 
 func init() {
 	usersCmd.AddCommand(usersUpdateCmd)
-<<<<<<< HEAD
-
-	usersUpdateCmd.Flags().StringP("password", "p", "", "new password")
-	usersUpdateCmd.Flags().StringP("username", "u", "", "new username")
-=======
->>>>>>> v0.2.1
 }
 
 var usersUpdateCmd = &cobra.Command{

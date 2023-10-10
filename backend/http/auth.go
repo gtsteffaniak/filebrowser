@@ -134,18 +134,7 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 		Username: info.Username,
 		Password: info.Password,
 	}
-<<<<<<< HEAD
-
-	pwd, err := users.HashPwd(info.Password)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	user.Password = pwd
-
-=======
 	settings.GlobalConfiguration.UserDefaults.Apply(user)
->>>>>>> v0.2.1
 	userHome, err := d.settings.MakeUserDir(user.Username, user.Scope, d.server.Root)
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
