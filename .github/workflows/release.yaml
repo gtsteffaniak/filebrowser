@@ -1,10 +1,9 @@
-name: main job
+name: release
 
 on:
   push:
     branches:
-      - 'main'
-
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 jobs:
   test-backend:
     runs-on: ubuntu-latest
@@ -40,10 +39,9 @@ jobs:
           node-version: '20'
       - run: cd frontend && npm i eslint
       - run: cd frontend && npm run lint
-
-  push_latest_to_registry:
+  push_release_to_registry:
     needs: [lint-frontend, lint-backend, test-backend, format-backend]
-    name: Push latest
+    name: Push release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -59,6 +57,7 @@ jobs:
           driver-opts: |
             image=moby/buildkit:v0.10.6
       - name: Login to Docker Hub
+        # Only push to Docker Hub when making a release
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -68,6 +67,13 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: gtstef/filebrowser
+      - name: Strip v from version number
+        id: modify-json
+        run: |
+          JSON="${{ steps.meta.outputs.tags }}"
+          # Use jq to remove 'v' from the version field
+          JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
+          echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -75,5 +81,5 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./Dockerfile
           push: true
-          tags: 'gtstef/filebrowser:latest'
+          tags: ${{ steps.modify-json.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
