@@ -67,6 +67,13 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: gtstef/filebrowser
+      - name: Remove leading 'v' from tags
+        id: remove-v
+        run: |
+          TAGS="${{ steps.meta.outputs.tags }}"
+          # Remove the 'v' prefix from each tag
+          TAGS=$(echo "$TAGS" | sed 's/^v//g')
+          echo "::set-output name=stripped_tags::$TAGS"
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -74,5 +81,5 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.remove-v.outputs.stripped_tags }}
           labels: ${{ steps.meta.outputs.labels }}
