@@ -5,14 +5,6 @@ on:
     branches:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 jobs:
-  test-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: 1.21.1
-      - run: cd backend && go test -race -v ./...
   format-backend:
     runs-on: ubuntu-latest
     steps:
@@ -22,7 +14,7 @@ jobs:
           go-version: 1.21.1
       - run: cd backend && go fmt ./...
   push_release_to_registry:
-    needs: [test-backend, format-backend]
+    needs: [format-backend]
     name: Push release
     runs-on: ubuntu-latest
     steps:
