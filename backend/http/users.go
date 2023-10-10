@@ -124,11 +124,6 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
-	req.Data.Password, err = users.HashPwd(req.Data.Password)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
 	userHome, err := d.settings.MakeUserDir(req.Data.Username, req.Data.Scope, d.server.Root)
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
@@ -184,7 +179,6 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 			if !d.user.Perm.Admin && d.user.LockPassword {
 				return http.StatusForbidden, nil
 			}
-
 			req.Data.Password, err = users.HashPwd(req.Data.Password)
 			if err != nil {
 				return http.StatusInternalServerError, err

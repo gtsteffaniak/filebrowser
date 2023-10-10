@@ -1,0 +1,292 @@
+/* Define a class .dark-mode for dark mode styles */
+.dark-mode {
+  --background: #141D24;
+  --surfacePrimary: #20292F;
+  --surfaceSecondary: #3A4147;
+  --divider: rgba(255, 255, 255, 0.12);
+  --textPrimary: rgba(255, 255, 255, 0.87);
+  --textSecondary: rgba(255, 255, 255, 0.6);
+}
+
+.dark-mode #loading {
+  background: var(--background);
+}
+
+.dark-mode #login {
+  background: var(--background);
+}
+/* Loading */
+.dark-mode #loading {
+  background: var(--background);
+}
+
+/* Login */
+.dark-mode #login {
+  background: var(--background);
+}
+
+/* Header */
+.dark-mode header {
+  background: var(--surfacePrimary);
+}
+
+/* Header with backdrop-filter support */
+@supports (backdrop-filter: none) {
+  .dark-mode header {
+    background: transparent;
+    backdrop-filter: blur(16px) invert(0.1);
+  }
+}
+
+#search.dark-mode input {
+  color:white
+}
+
+#search.active.dark-mode #input {
+  border-color: white;
+}
+/* Search input */
+.dark-mode #search #input {
+  background: var(--surfaceSecondary);
+  border-color: var(--surfaceSecondary);
+}
+
+.dark-mode #search #input input::placeholder {
+  color: var(--textSecondary);
+}
+
+/* Active Search input */
+.dark-mode #search.active #input {
+  background: var(--surfacePrimary);
+  border-color: white;
+}
+
+.dark-mode #search.active input {
+  color: var(--textPrimary);
+}
+
+/* Search result */
+.dark-mode #search #result {
+  background: var(--background);
+  color: var(--textPrimary);
+}
+
+/* Search boxes */
+.dark-mode #search .boxes h3 {
+  color: var(--textPrimary);
+}
+
+/* Action */
+.dark-mode .action {
+  color: var(--textPrimary) !important;
+}
+
+.dark-mode .action:hover {
+  background-color: rgba(255, 255, 255, .1);
+}
+
+/* Action counter */
+.dark-mode .action .counter {
+  border-color: var(--surfacePrimary);
+}
+
+/* Navigation */
+.dark-mode nav > div {
+  border-color: var(--divider);
+}
+
+/* Breadcrumbs */
+.dark-mode .breadcrumbs {
+  border-color: var(--divider);
+  color: var(--textPrimary) !important;
+}
+
+.dark-mode .breadcrumbs span {
+  color: var(--textPrimary) !important;
+}
+
+.dark-mode .breadcrumbs a:hover {
+  background-color: rgba(255, 255, 255, .1);
+}
+
+/* Listing items */
+.dark-mode #listing .item {
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
+  border-color: var(--divider) !important;
+}
+
+/* Listing item modified text */
+.dark-mode #listing .item .modified {
+  color: var(--textSecondary);
+}
+
+/* Listing header and span */
+.dark-mode #listing h2,
+.dark-mode #listing.list .header span {
+  color: var(--textPrimary) !important;
+}
+
+/* Message */
+.dark-mode .message {
+  color: var(--textPrimary);
+}
+
+/* Card */
+.dark-mode .card {
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
+}
+
+/* Flat button hover */
+.dark-mode .button--flat:hover {
+  background: var(--surfaceSecondary);
+}
+
+/* Dashboard navigation */
+.dark-mode .dashboard #nav ul li {
+  color: var(--textSecondary);
+}
+
+.dark-mode .dashboard #nav ul li:hover {
+  background: var(--surfaceSecondary);
+}
+#search.active.dark-mode #result {
+  background-color: black;
+}
+/* Result list */
+.dark-mode #result-list {
+  background-color: var(--surfacePrimary);
+  color:white;
+}
+
+/* Card, Dashboard navigation, and label */
+.dark-mode .card h3,
+.dark-mode .dashboard #nav,
+.dark-mode .dashboard p label {
+  color: var(--textPrimary);
+}
+
+.dark-mode .card#share input,
+.dark-mode .card#share select,
+.dark-mode .input {
+  background: var(--surfaceSecondary);
+  color: var(--textPrimary);
+}
+
+/* Input hover and focus */
+.dark-mode .input:hover,
+.dark-mode .input:focus {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Red input */
+.dark-mode .input--red {
+  background: #73302D;
+}
+
+/* Green input */
+.dark-mode .input--green {
+  background: #147A41;
+}
+
+/* Collapsible and label */
+.dark-mode .dashboard #nav .wrapper,
+.dark-mode .collapsible {
+  border-color: var(--divider);
+}
+
+.dark-mode .collapsible > label * {
+  color: var(--textPrimary);
+}
+
+/* Table header */
+.dark-mode table th {
+  color: var(--textSecondary);
+}
+
+/* File list item */
+.dark-mode .file-list li:hover {
+  background: var(--surfaceSecondary);
+}
+
+.dark-mode .file-list li:before {
+  color: var(--textSecondary);
+}
+
+/* Shell */
+.dark-mode .shell {
+  background: var(--surfacePrimary);
+  color: var(--textPrimary);
+}
+
+/* Shell result */
+.dark-mode .shell__result {
+  border-top: 1px solid var(--divider);
+}
+
+/* Editor container */
+.dark-mode #editor-container {
+  background: var(--background);
+}
+
+.dark-mode #editor-container .bar {
+  background: var(--surfacePrimary);
+}
+
+/* Navigation */
+.dark-mode nav {
+  background: var(--surfaceSecondary) !important;
+}
+
+/* File selection */
+.dark-mode #file-selection {
+  background: var(--surfaceSecondary) !important;
+}
+
+.dark-mode #file-selection span {
+  color: var(--textPrimary) !important;
+}
+
+/* Dropdown */
+.dark-mode #dropdown {
+  background: var(--surfaceSecondary) !important;
+}
+
+/* Share box */
+.dark-mode .share__box {
+  background: var(--surfacePrimary) !important;
+  color: var(--textPrimary);
+}
+
+/* Share box element */
+.dark-mode .share__box__element {
+  border-top-color: var(--divider);
+}
+
+/* Help button */
+.dark-mode .helpButton {
+  background: var(--background);
+}
+
+/* Size input wrapper */
+.dark-mode .sizeInputWrapper {
+  background: var(--background);
+  color: white;
+}
+
+/* Button group button */
+.dark-mode .button-group button {
+  background: var(--background);
+  color: white;
+}
+
+/* Result desktop */
+.dark-mode #result-desktop #result-list {
+  max-height: unset;
+}
+
+/* Result desktop background */
+.dark-mode #result-desktop {
+  background-color: var(--background);
+}

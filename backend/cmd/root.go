@@ -3,7 +3,6 @@ package cmd
 import (
 	"crypto/tls"
 	"flag"
-	"io"
 	"io/fs"
 	"log"
 	"net"
@@ -17,20 +16,14 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	fbhttp "github.com/gtsteffaniak/filebrowser/http"
 	"github.com/gtsteffaniak/filebrowser/img"
-	"github.com/gtsteffaniak/filebrowser/search"
+	"github.com/gtsteffaniak/filebrowser/index"
 	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
-)
-
-var (
-	configFile string
 )
 
 type dirFS struct {
@@ -71,7 +64,7 @@ var rootCmd = &cobra.Command{
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
 		// initialize indexing and schedule indexing ever n minutes (default 5)
-		go search.InitializeIndex(serverConfig.IndexingInterval)
+		go index.Initialize(serverConfig.IndexingInterval)
 		_, err := os.Stat(serverConfig.Root)
 		checkErr(err)
 		var listener net.Listener
@@ -124,41 +117,17 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 	os.Exit(0)
 }
 
-//nolint:gocyclo
-func getRunParams(st *storage.Storage) *settings.Server {
-	server, err := st.Settings.GetServer()
-	checkErr(err)
-	return server
-}
-
-func setupLog(logMethod string) {
-	switch logMethod {
-	case "stdout":
-		log.SetOutput(os.Stdout)
-	case "stderr":
-		log.SetOutput(os.Stderr)
-	case "":
-		log.SetOutput(io.Discard)
-	default:
-		log.SetOutput(&lumberjack.Logger{
-			Filename:   logMethod,
-			MaxSize:    100,
-			MaxAge:     14,
-			MaxBackups: 10,
-		})
-	}
-}
-
 func quickSetup(d pythonData) {
 	settings.GlobalConfiguration.Key = generateKey()
-	var err error
 	if settings.GlobalConfiguration.Auth.Method == "noauth" {
-		err = d.store.Auth.Save(&auth.NoAuth{})
+		err := d.store.Auth.Save(&auth.NoAuth{})
+		checkErr(err)
 	} else {
 		settings.GlobalConfiguration.Auth.Method = "password"
-		err = d.store.Auth.Save(&auth.JSONAuth{})
+		err := d.store.Auth.Save(&auth.JSONAuth{})
+		checkErr(err)
 	}
-	err = d.store.Settings.Save(&settings.GlobalConfiguration)
+	err := d.store.Settings.Save(&settings.GlobalConfiguration)
 	checkErr(err)
 	err = d.store.Settings.SaveServer(&settings.GlobalConfiguration.Server)
 	checkErr(err)
@@ -168,12 +137,26 @@ func quickSetup(d pythonData) {
 		log.Fatal("username and password cannot be empty during quick setup")
 	}
 	user := &users.User{
-		Username:     username,
-		Password:     password,
-		LockPassword: false,
+		Username: username,
+		Password: password,
 	}
 	user.Perm.Admin = true
+<<<<<<< HEAD
 	settings.GlobalConfiguration.UserDefaults.Apply(user)
+=======
+	user.DarkMode = true
+	user.ViewMode = "normal"
+	user.LockPassword = false
+	user.Perm = users.Permissions{
+		Create:   true,
+		Rename:   true,
+		Modify:   true,
+		Delete:   true,
+		Share:    true,
+		Download: true,
+		Admin:    true,
+	}
+>>>>>>> v0.2.1
 	err = d.store.Users.Save(user)
 	checkErr(err)
 }

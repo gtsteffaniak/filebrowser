@@ -1,11 +1,14 @@
 package users
 
 import (
+	"log"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
 // HashPwd hashes a password.
 func HashPwd(password string) (string, error) {
+	log.Println("hashing password", password)
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }

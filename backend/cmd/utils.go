@@ -3,11 +3,9 @@ package cmd
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/asdine/storm/v3"
 	"github.com/goccy/go-yaml"
@@ -151,43 +149,4 @@ func jsonYamlArg(cmd *cobra.Command, args []string) error {
 	default:
 		return errors.New("invalid format: " + ext)
 	}
-}
-
-func cleanUpInterfaceMap(in map[interface{}]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	for k, v := range in {
-		result[fmt.Sprintf("%v", k)] = cleanUpMapValue(v)
-	}
-	return result
-}
-
-func cleanUpInterfaceArray(in []interface{}) []interface{} {
-	result := make([]interface{}, len(in))
-	for i, v := range in {
-		result[i] = cleanUpMapValue(v)
-	}
-	return result
-}
-
-func cleanUpMapValue(v interface{}) interface{} {
-	switch v := v.(type) {
-	case []interface{}:
-		return cleanUpInterfaceArray(v)
-	case map[interface{}]interface{}:
-		return cleanUpInterfaceMap(v)
-	default:
-		return v
-	}
-}
-
-// convertCmdStrToCmdArray checks if cmd string is blank (whitespace included)
-// then returns empty string array, else returns the splitted word array of cmd.
-// This is to ensure the result will never be []string{""}
-func convertCmdStrToCmdArray(cmd string) []string {
-	var cmdArray []string
-	trimmedCmdStr := strings.TrimSpace(cmd)
-	if trimmedCmdStr != "" {
-		cmdArray = strings.Split(trimmedCmdStr, " ")
-	}
-	return cmdArray
 }

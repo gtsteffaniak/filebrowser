@@ -107,7 +107,7 @@ export default {
       this.$showSuccess(this.$t("success.linkCopied"));
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.clip.destroy();
   },
   methods: {

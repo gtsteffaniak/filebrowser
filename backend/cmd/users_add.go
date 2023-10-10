@@ -16,12 +16,15 @@ var usersAddCmd = &cobra.Command{
 	Long:  `Create a new user and add it to the database.`,
 	Args:  cobra.ExactArgs(2), //nolint:gomnd
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
+<<<<<<< HEAD
 		password, err := users.HashPwd(args[1])
 		checkErr(err)
 
+=======
+>>>>>>> v0.2.1
 		user := &users.User{
 			Username:     args[0],
-			Password:     password,
+			Password:     args[1],
 			LockPassword: mustGetBool(cmd.Flags(), "lockPassword"),
 		}
 		servSettings, err := d.store.Settings.GetServer()

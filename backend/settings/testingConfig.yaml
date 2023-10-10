@@ -28,12 +28,13 @@ frontend:
   disableExternal: true
   disableUsedPercentage: true
   files: ""
-  theme: ""
   color: ""
 userDefaults:
   scope: ""
   locale: ""
   viewMode: ""
+  darkMode: true
+  disableSettings: false
   singleClick: true
   sorting:
     by: ""

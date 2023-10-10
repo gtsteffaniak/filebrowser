@@ -1,5 +1,5 @@
 <template>
-  <div id="search" @click="open" v-bind:class="{ active, ongoing }">
+  <div id="search" @click="open" v-bind:class="{ active, ongoing, 'dark-mode': isDarkMode }">
     <div id="input">
       <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
         <i class="material-icons">close</i>
@@ -149,6 +149,7 @@
   padding-bottom: 1em;
   -webkit-transition: width 0.3s ease 0s;
   transition: width 0.3s ease 0s;
+  background-color: unset;
 }
 
 #result-desktop {
@@ -172,6 +173,8 @@
   background-color: lightgray;
   max-height: 80vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 #search.active #result-desktop ul li a {
@@ -201,6 +204,7 @@
 
 /* Search */
 #search {
+  background-color:unset;
   z-index:3;
   position: fixed;
   top: .5em;
@@ -314,7 +318,7 @@ body.rtl #search #result ul>* {
 }
 
 #search.active #input {
-  background-color: lightgray;
+  background-color: var(--background);
   border-color: black;
   border-style: solid;
   border-bottom-style: none;
@@ -485,7 +489,7 @@ export default {
         { label: "Photos", value: "type:image" },
         { label: "Audio", value: "type:audio" },
         { label: "Videos", value: "type:video" },
-        { label: "Documents", value: "type:docs" },
+        { label: "Documents", value: "type:doc" },
         { label: "Archives", value: "type:archive" },
       ],
       value: "",
@@ -538,6 +542,9 @@ export default {
   computed: {
     ...mapState(["user", "show"]),
     ...mapGetters(["isListing"]),
+    isDarkMode() {
+      return this.user.darkMode === true
+    },
     showBoxes() {
       return this.searchTypes == "";
     },

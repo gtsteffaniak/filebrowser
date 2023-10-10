@@ -80,10 +80,10 @@ export default {
   mounted() {
     window.addEventListener("keydown", this.keyEvent);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
   },
-  destroyed() {
+  unmounted() {
     if (this.$store.state.showShell) {
       this.$store.commit("toggleShell");
     }
@@ -91,7 +91,7 @@ export default {
   },
   currentView(newView) {
     // Commit the new value to the store
-    this.setCurrentValue(this.newValue);
+    this.setCurrentValue(newView);
   },
   methods: {
     ...mapMutations(["setLoading","setCurrentView"]),

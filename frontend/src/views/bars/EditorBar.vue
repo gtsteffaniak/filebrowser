@@ -30,14 +30,12 @@ import url from "@/utils/url";
 
 import HeaderBar from "@/components/header/HeaderBar";
 import Action from "@/components/header/Action";
-import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default {
   name: "editor",
   components: {
     HeaderBar,
     Action,
-    Breadcrumbs,
   },
   data: function () {
     return {};
@@ -77,7 +75,7 @@ export default {
   created() {
     window.addEventListener("keydown", this.keyEvent);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
     this.editor.destroy();
   },

@@ -1,9 +1,11 @@
 server:
   port: 8080
   baseURL: "/"
+  root: "/Users/steffag/git/go"
 auth:
-  method: noauth
+  method: password
   signup: true
+<<<<<<< HEAD
 frontend:
   theme: dark
 users:
@@ -11,3 +13,19 @@ users:
     settings:
       hideDotfiles: true
       singleClick: false
+=======
+userDefaults:
+  darkMode: true
+  disableSettings: false
+  scope: "."
+  hideDotfiles: true
+  singleClick: false
+  permissions:
+    admin: false
+    create: true
+    rename: true
+    modify: true
+    delete: true
+    share: true
+    download: true
+>>>>>>> v0.2.1

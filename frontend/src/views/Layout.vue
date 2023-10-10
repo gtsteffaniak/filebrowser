@@ -7,10 +7,10 @@
     <editorBar v-else-if="currentView === 'editor'"></editorBar>
     <defaultBar v-else></defaultBar>
     <sidebar></sidebar>
-    <main>
+    <main :class="{ 'dark-mode': isDarkMode }">
       <router-view></router-view>
     </main>
-    <prompts></prompts>
+    <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
     <upload-files></upload-files>
   </div>
 </template>
@@ -20,7 +20,6 @@ import editorBar from "./bars/EditorBar.vue"
 import defaultBar from "./bars/Default.vue"
 import listingBar from "./bars/ListingBar.vue"
 import Prompts from "@/components/prompts/Prompts";
-import Action from "@/components/header/Action";
 import { mapState, mapGetters } from "vuex";
 import Sidebar from "@/components/Sidebar.vue";
 import UploadFiles from "../components/prompts/UploadFiles";
@@ -31,7 +30,6 @@ export default {
     defaultBar,
     editorBar,
     listingBar,
-    Action,
     Sidebar,
     Prompts,
     UploadFiles,
@@ -47,7 +45,9 @@ export default {
   computed: {
     ...mapGetters(["isLogged", "progress", "isListing"]),
     ...mapState(["req", "user", "state"]),
-
+    isDarkMode() {
+      return this.user.darkMode === true
+    },
     isExecEnabled: () => enableExec,
     currentView() {
       if (this.req.type == undefined) {
@@ -84,3 +84,13 @@ export default {
   },
 };
 </script>
+
+<style>
+
+/* Use the class .dark-mode to apply styles conditionally */
+.dark-mode {
+  background: var(--background);
+  color: var(--textPrimary);
+}
+
+</style>

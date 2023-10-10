@@ -146,14 +146,11 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 	}
 
 	if u == nil {
-		pass, err := users.HashPwd(a.Cred.Password)
-		if err != nil {
-			return nil, err
-		}
+		log.Println("creds", a.Cred.Password)
 		// create user with the provided credentials
 		d := &users.User{
 			Username:     a.Cred.Username,
-			Password:     pass,
+			Password:     a.Cred.Password,
 			Scope:        a.Settings.UserDefaults.Scope,
 			Locale:       a.Settings.UserDefaults.Locale,
 			ViewMode:     a.Settings.UserDefaults.ViewMode,
@@ -178,16 +175,6 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 		}
 	} else if p := !users.CheckPwd(a.Cred.Password, u.Password); len(a.Fields.Values) > 1 || p {
 		u = a.GetUser(u)
-
-		// update the password when it doesn't match the current
-		if p {
-			pass, err := users.HashPwd(a.Cred.Password)
-			if err != nil {
-				return nil, err
-			}
-			u.Password = pass
-		}
-
 		// update user with provided fields
 		err := a.Users.Update(u)
 		if err != nil {
@@ -201,31 +188,31 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 // GetUser returns a User filled with hook values or provided defaults
 func (a *HookAuth) GetUser(d *users.User) *users.User {
 	// adds all permissions when user is admin
-	isAdmin := a.Fields.GetBoolean("user.perm.admin", d.Perm.Admin)
+	isAdmin := d.Perm.Admin
 	perms := users.Permissions{
 		Admin:    isAdmin,
-		Execute:  isAdmin || a.Fields.GetBoolean("user.perm.execute", d.Perm.Execute),
-		Create:   isAdmin || a.Fields.GetBoolean("user.perm.create", d.Perm.Create),
-		Rename:   isAdmin || a.Fields.GetBoolean("user.perm.rename", d.Perm.Rename),
-		Modify:   isAdmin || a.Fields.GetBoolean("user.perm.modify", d.Perm.Modify),
-		Delete:   isAdmin || a.Fields.GetBoolean("user.perm.delete", d.Perm.Delete),
-		Share:    isAdmin || a.Fields.GetBoolean("user.perm.share", d.Perm.Share),
-		Download: isAdmin || a.Fields.GetBoolean("user.perm.download", d.Perm.Download),
+		Execute:  isAdmin || d.Perm.Execute,
+		Create:   isAdmin || d.Perm.Create,
+		Rename:   isAdmin || d.Perm.Rename,
+		Modify:   isAdmin || d.Perm.Modify,
+		Delete:   isAdmin || d.Perm.Delete,
+		Share:    isAdmin || d.Perm.Share,
+		Download: isAdmin || d.Perm.Download,
 	}
 	user := users.User{
 		ID:          d.ID,
 		Username:    d.Username,
 		Password:    d.Password,
-		Scope:       a.Fields.GetString("user.scope", d.Scope),
-		Locale:      a.Fields.GetString("user.locale", d.Locale),
+		Scope:       d.Scope,
+		Locale:      d.Locale,
 		ViewMode:    d.ViewMode,
-		SingleClick: a.Fields.GetBoolean("user.singleClick", d.SingleClick),
+		SingleClick: d.SingleClick,
 		Sorting: files.Sorting{
-			Asc: a.Fields.GetBoolean("user.sorting.asc", d.Sorting.Asc),
-			By:  a.Fields.GetString("user.sorting.by", d.Sorting.By),
+			Asc: d.Sorting.Asc,
+			By:  d.Sorting.By,
 		},
-		Commands:     a.Fields.GetArray("user.commands", d.Commands),
-		HideDotfiles: a.Fields.GetBoolean("user.hideDotfiles", d.HideDotfiles),
+		Commands:     d.Commands,
+		HideDotfiles: d.HideDotfiles,
 		Perm:         perms,
 		LockPassword: true,
 	}

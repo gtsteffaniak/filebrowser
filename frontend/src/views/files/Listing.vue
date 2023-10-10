@@ -87,7 +87,7 @@
           multiple
         />
       </div>
-      <div v-else id="listing" ref="listing" :class="user.viewMode + ' file-icons'">
+      <div v-else id="listing" ref="listing" :class="listingViewMode + ' file-icons'">
         <div>
           <div class="item header">
             <div></div>
@@ -132,8 +132,11 @@
             </div>
           </div>
         </div>
-
-        <h2 v-if="req.numDirs > 0">{{ $t("files.folders") }}</h2>
+        <div v-if="req.numDirs > 0">
+          <div class="header-items">
+            <h2>{{ $t("files.folders") }}</h2>
+          </div>
+        </div>
         <div v-if="req.numDirs > 0">
           <item
             v-for="item in dirs"
@@ -150,7 +153,11 @@
           </item>
         </div>
 
-        <h2 v-if="req.numFiles > 0">{{ $t("files.files") }}</h2>
+        <div v-if="req.numFiles > 0">
+          <div class="header-items">
+            <h2>{{ $t("files.files") }}</h2>
+          </div>
+        </div>
         <div v-if="req.numFiles > 0">
           <item
             v-for="item in files"
@@ -201,11 +208,19 @@
   </div>
 </template>
 
+<style>
+
+.header-items {
+  width: 100% !important;
+  max-width: 100% !important;
+  justify-content: center;
+}
+</style>
+
 <script>
 import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { users, files as api } from "@/api";
-import { enableExec } from "@/utils/constants";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
@@ -291,10 +306,14 @@ export default {
     viewIcon() {
       const icons = {
         list: "view_module",
-        mosaic: "grid_view",
-        "mosaic gallery": "view_list",
+        compact: "view_module",
+        normal: "grid_view",
+        gallery: "view_list",
       };
       return icons[this.user.viewMode];
+    },
+    listingViewMode() {
+      return this.user.viewMode
     },
     headerButtons() {
       return {
@@ -345,7 +364,7 @@ export default {
     document.addEventListener("dragleave", this.dragLeave);
     document.addEventListener("drop", this.drop);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("scroll", this.scrollEvent);
@@ -528,7 +547,7 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listing.mosaic .item", ".mosaic#listing .item"]);
+      let items = css(["#listing .item", "#listing .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },

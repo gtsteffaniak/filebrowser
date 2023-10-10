@@ -6,14 +6,11 @@
 
 <script>
 import { logoURL } from "@/utils/constants";
-import Action from "@/components/header/Action.vue";
 
 export default {
   name: "header-bar",
   props: ["showLogo", "showMenu"],
-  components: {
-    Action,
-  },
+
   data: function () {
     return {
       logoURL,

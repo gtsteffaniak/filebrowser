@@ -30,7 +30,6 @@ func (a JSONAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
 	if r.Body == nil {
 		return nil, os.ErrPermission
 	}
-
 	err := json.NewDecoder(r.Body).Decode(&cred)
 	if err != nil {
 		return nil, os.ErrPermission

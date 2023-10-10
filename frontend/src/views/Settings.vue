@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <div id="nav">
-      <div class="wrapper">
+      <div v-if="settingsEnabled" class="wrapper">
         <ul>
           <router-link to="/settings/profile"
             ><li :class="{ active: $route.path === '/settings/profile' }">
@@ -57,7 +57,10 @@ export default {
     this.$store.commit("updateRequest", { name: "Settings" });
   },
   computed: {
-    ...mapState(["user", "loading","req"]),
+    ...mapState(["user"]),
+    settingsEnabled() {
+      return this.user.disableSettings == false;
+    },
   },
 };
 </script>

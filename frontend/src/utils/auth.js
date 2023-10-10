@@ -11,9 +11,7 @@ export function parseToken(token) {
   }
 
   const data = JSON.parse(Base64.decode(parts[1]));
-
   document.cookie = `auth=${token}; path=/`;
-
   localStorage.setItem("jwt", token);
   store.commit("setJWT", token);
   store.commit("setSession", generateRandomCode(8));
@@ -40,7 +38,6 @@ export async function login(username, password, recaptcha) {
     },
     body: JSON.stringify(data),
   });
-
   const body = await res.text();
 
   if (res.status === 200) {

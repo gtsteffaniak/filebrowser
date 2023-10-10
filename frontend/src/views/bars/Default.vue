@@ -18,24 +18,18 @@
 import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { users, files as api } from "@/api";
-import { enableExec } from "@/utils/constants";
 import url from "@/utils/url";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
-import Search from "@/components/Search.vue";
-
-import Item from "@/components/files/ListingItem.vue";
 
 export default {
   name: "listing",
   components: {
     HeaderBar,
     Action,
-    Search,
-    Item,
   },
   data: function () {
     return {
@@ -44,6 +38,7 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       itemWeight: 0,
+      viewModes: ['list', 'compact', 'normal', 'gallery'],
     };
   },
   computed: {
@@ -112,8 +107,9 @@ export default {
     viewIcon() {
       const icons = {
         list: "view_module",
-        mosaic: "grid_view",
-        "mosaic gallery": "view_list",
+        compact: "view_module",
+        normal: "grid_view",
+        gallery: "view_list",
       };
       return icons[this.user.viewMode];
     },
@@ -166,7 +162,7 @@ export default {
     document.addEventListener("dragleave", this.dragLeave);
     document.addEventListener("drop", this.drop);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("scroll", this.scrollEvent);
@@ -265,21 +261,14 @@ export default {
     },
     switchView: async function () {
       this.$store.commit("closeHovers");
-      const modes = {
-        list: "mosaic",
-        mosaic: "mosaic gallery",
-        "mosaic gallery": "list",
-      };
-
+      const currentIndex = this.viewModes.indexOf(this.user.viewMode);
+      const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const data = {
         id: this.user.id,
-        viewMode: modes[this.user.viewMode] || "list",
+        viewMode: this.viewModes[nextIndex],
       };
-      //users.update(data, ["viewMode"]).catch(this.$showError);
+      users.update(data, ["viewMode"]).catch(this.$showError);
       this.$store.commit("updateUser", data);
-
-      //this.setItemWeight();
-      //this.fillWindow();
     },
     preventDefault(event) {
       // Wrapper around prevent default.
@@ -381,7 +370,7 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listing.mosaic .item", ".mosaic#listing .item"]);
+      let items = css(["#listing .item", "#listing .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },
@@ -589,7 +578,6 @@ export default {
       }
       this.$store.commit("updateRequest", {});
       let uri = url.removeLastDir(this.$route.path) + "/";
-      console.log(url)
       this.$router.push({ path: uri });
     },
     upload: function () {
