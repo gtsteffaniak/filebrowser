@@ -7,6 +7,9 @@ This document covers the available configuration options, their defaults, and ho
 Here is an expanded config file which includes all possible configurations:
 
 ```
+signup: false
+adminUsername: admin
+adminPassword: admin
 server:
   indexingInterval: 5
   numImageProcessors: 4
@@ -30,20 +33,18 @@ auth:
   header: ""
   method: json
   command: ""
-  signup: false
   shell: ""
 frontend:
   name: ""
   disableExternal: false
   disableUsedPercentage: true
   files: ""
-  theme: ""
   color: ""
 userDefaults:
   settingsAllowed: true
   darkMode: false
   scope: ""
-  locale: ""
+  locale: "en"
   viewMode: ""
   singleClick: true
   sorting:
@@ -66,34 +67,38 @@ userDefaults:
 Here are the defaults if nothing is set:
 
 ```
-Signup: true
-AdminUsername: admin
-AdminPassword: admin
-Server:
-  EnableThumbnails: true
-  EnableExec: false
-  IndexingInterval: 5
-  Port: 8080
-  NumImageProcessors: 4
-  BaseURL: ""
-  Database: database.db
-  Log: stdout
-  Root: /srv
-Auth:
-  Method: password
-  Recaptcha:
-    Host: ""
-UserDefaults:
-  Scope: "."
-  LockPassword: false
-  HideDotfiles: true
-  Permissions:
-    Create: true
-    Rename: true
-    Modify: true
-    Delete: true
-    Share: true
-    Download: true
+signup: true
+adminUsername: admin
+adminPassword: admin
+server:
+  enableThumbnails: true
+  enableExec: false
+  indexingInterval: 5
+  port: 8080
+  numImageProcessors: 4
+  baseURL: ""
+  database: database.db
+  log: stdout
+  root: /srv
+auth:
+  method: password
+  recaptcha:
+    host: ""
+userDefaults:
+  settingsAllowed: true
+  darkMode: false
+  scope: ""
+  locale: "en"
+  scope: "."
+  lockPassword: false
+  hideDotfiles: true
+  permissions:
+    create: true
+    rename: true
+    modify: true
+    delete: true
+    share: true
+    download: true
 ```
 
 ## About each configuration
@@ -102,17 +107,17 @@ UserDefaults:
 
 ## About each configuration
 
-- `Signup`: This boolean value indicates whether user signup is enabled.
+- `Signup`: This boolean value indicates whether user signup is enabled on the login page. NOTE: Be mindful of `userDefaults` settings if enabled. Default: `false`
 
-- `AdminUsername`: This is the username of the admin user.
+- `AdminUsername`: This is the username of the admin user. Default: `admin`
 
-- `AdminPassword`: This is the password of the admin user.
+- `AdminPassword`: This is the password of the admin user. Default: `admin`
 
 ### Server configuration settings
 
-- `indexingInterval`: This is the time in minutes the system waits before checking for filesystem changes (used in search only).
+- `indexingInterval`: This is the time in minutes the system waits before checking for filesystem changes. Default: `5`
 
-- `numImageProcessors`: This is the number of image processors available.
+- `numImageProcessors`: This is the number of image processors available. Default: `4`
 
 - `socket`: This is the socket configuration.
 
@@ -120,23 +125,23 @@ UserDefaults:
 
 - `tlsCert`: This is the TLS certificate configuration.
 
-- `enableThumbnails`: This boolean value determines whether thumbnails are enabled.
+- `enableThumbnails`: This boolean value determines whether thumbnails are enabled on ui. Default: `true`
 
-- `resizePreview`: This boolean value determines whether preview resizing is enabled.
+- `resizePreview`: This boolean value determines whether preview resizing is enabled. Default: `false`
 
 - `typeDetectionByHeader`: This boolean value determines whether type detection is based on headers.
 
-- `port`: This is the port number on which the server is running.
+- `port`: This is the port number on which the server is running. Default: `8080`
 
-- `baseURL`: This is the base URL for the server.
+- `baseURL`: This is the base URL for the server. Default: `""`
 
-- `address`: This is the server address configuration.
+- `address`: This is the server address configuration. Default: `0.0.0.0`
 
-- `log`: This specifies the log destination (e.g., "stdout" for standard output).
+- `log`: This specifies the log destination. Default: `stdout`
 
-- `database`: This is the database file path + filename that will be created if it does not already exist. If it exists, it will use the existing file.
+- `database`: This is the database file path + filename that will be created if it does not already exist. If it exists, it will use the existing file. Default `database.db`
 
-- `root`: This is the root directory path.
+- `root`: This is the root directory path. Default: `/srv`
 
 ### Auth configuration settings
 
@@ -151,17 +156,16 @@ UserDefaults:
 - `header`: This is the authentication header.
 
 - `method`: This is the authentication method used (e.g., "json"). Possible values:
-  - password - username and password
-  - hook - hook authentication
-  - proxy - proxy authentication
-  - oath - oath authentication
+  - `password` - username and password
+  - `hook` - hook authentication
+  - `proxy` - proxy authentication
+  - `oath` - oath authentication
+  - `noauth` - no authentication/login required.
 
-- `command`: This is the authentication command.
-
-- `signup`: This boolean value indicates whether user signup is enabled.
+- `command`: Deprecated: This is the authentication command.
 
 - `shell`: This is the shell configuration.
-  
+
 ### Frontend configuration settings
 
 - `name`: This is the name of the frontend.
@@ -175,26 +179,26 @@ UserDefaults:
 - `theme`: This is the theme configuration.
 
 - `color`: This is the color configuration.
-  
+
 ### UserDefaults configuration settings
 
-- `darkMode`: Determines whether dark mode is enabled for the user (true or false)
+- `darkMode`: Determines whether dark mode is enabled for the user (`true` or `false`)
 
-- `settingsAllowed`: Determines whether settings page is enabled for the user (true or false)
+- `settingsAllowed`: Determines whether settings page is enabled for the user (`true` or `false`)
 
 - `scope`: This is a scope of the permissions, "." or "./" means all directories, "./downloads" would mean only the downloads folder.
 
-- `locale`: This is the locale configuration.
+- `locale`: String locale configuration. Default: `en`
 
-- `viewMode`: This is the view mode configuration.
+- `viewMode`: This is the view mode configuration. Possible values: `normal`, `compact`, `list`, and `gallery`. default: `normal`
 
-- `singleClick`: This boolean value determines whether single-click is enabled.
+- `singleClick`: This boolean value determines whether single-click is enabled. (`true` or `false`)
 
 - `sorting`:
 
   - `by`: This is the sorting method used (e.g., "asc").
 
-  - `asc`: This boolean value determines the sorting order.
+  - `asc`: This boolean value determines the sorting order is ascending or descending. (`true` or `false`)
 
 - `permissions`:
 
@@ -214,9 +218,8 @@ UserDefaults:
 
   - `download`: This boolean value determines whether download permissions are granted.
 
-- `commands`: This is a list of commands.
+- `commands`: Deprecated: This is a list of commands.
 
-- `hideDotfiles`: This boolean value determines whether dotfiles are hidden.
+- `hideDotfiles`: This boolean value determines whether dotfiles are hidden. (`true` or `false`)
 
-- `dateFormat`: This boolean value determines whether date formatting is enabled.
-
+- `dateFormat`: This boolean value determines whether date formatting is enabled. (`true` or `false`)
