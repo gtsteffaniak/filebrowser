@@ -81,5 +81,5 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.modify-json.outputs.modified_json | fromJSON | .tags }}
-          labels: ${{ steps.modify-json.outputs.modified_json | fromJSON | .labels }}
+          tags: ${{ steps.modify-json.outputs.modified_json }}
+          labels: ${{ steps.meta.outputs.labels }}
