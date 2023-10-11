@@ -3,6 +3,7 @@ const disableExternal = window.FileBrowser.DisableExternal;
 const disableUsedPercentage = window.FileBrowser.DisableUsedPercentage;
 const baseURL = window.FileBrowser.BaseURL;
 const staticURL = window.FileBrowser.StaticURL;
+const darkMode = window.FileBrowser.darkMode;
 const recaptcha = window.FileBrowser.ReCaptcha;
 const recaptchaKey = window.FileBrowser.ReCaptchaKey;
 const signup = window.FileBrowser.Signup;
@@ -34,4 +35,5 @@ export {
   resizePreview,
   enableExec,
   origin,
+  darkMode
 };

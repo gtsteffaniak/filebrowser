@@ -30,6 +30,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		"Name":                  d.settings.Frontend.Name,
 		"DisableExternal":       d.settings.Frontend.DisableExternal,
 		"DisableUsedPercentage": d.settings.Frontend.DisableUsedPercentage,
+		"darkMode":              settings.GlobalConfiguration.UserDefaults.DarkMode,
 		"Color":                 d.settings.Frontend.Color,
 		"BaseURL":               d.server.BaseURL,
 		"Version":               version.Version,
