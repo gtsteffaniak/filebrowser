@@ -37,7 +37,7 @@
       </form>
     </div>
 
-    <div v-if="$store.state.show === 'deleteUser'" class="card floating">
+    <div v-if="showDeletePrompt" class="card floating">
       <div class="card-content">
         <p>Are you sure you want to delete this user?</p>
       </div>
@@ -78,6 +78,7 @@ export default {
       error: null,
       originalUser: null,
       user: {},
+      showDelete: false,
       createUserDir: false,
     };
   },
@@ -89,6 +90,9 @@ export default {
       return this.$route.path === "/settings/users/new";
     },
     ...mapState(["loading"]),
+    showDeletePrompt() {
+      return this.showDelete
+    },
   },
   watch: {
     $route: "fetchData",
@@ -125,7 +129,7 @@ export default {
       }
     },
     deletePrompt() {
-      this.showHover("deleteUser");
+      this.showDelete = true
     },
     async deleteUser(event) {
       event.preventDefault();

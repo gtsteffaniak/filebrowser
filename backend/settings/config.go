@@ -45,9 +45,6 @@ func loadConfigFile(configFile string) []byte {
 
 func setDefaults() Settings {
 	return Settings{
-		Signup:        true,
-		AdminUsername: "admin",
-		AdminPassword: "admin",
 		Server: Server{
 			EnableThumbnails:   true,
 			EnableExec:         false,
@@ -60,8 +57,10 @@ func setDefaults() Settings {
 			Root:               "/srv",
 		},
 		Auth: Auth{
-			Method: "password",
-			Signup: true,
+			AdminUsername: "admin",
+			AdminPassword: "admin",
+			Method:        "password",
+			Signup:        true,
 			Recaptcha: Recaptcha{
 				Host: "",
 			},

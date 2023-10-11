@@ -8,7 +8,6 @@ import (
 
 func TestSettings_MakeUserDir(t *testing.T) {
 	type fields struct {
-		Key              []byte
 		Signup           bool
 		CreateUserDir    bool
 		UserHomeBasePath string
@@ -40,20 +39,14 @@ func TestSettings_MakeUserDir(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Settings{
-				Key:              tt.fields.Key,
-				Signup:           tt.fields.Signup,
-				CreateUserDir:    tt.fields.CreateUserDir,
-				UserHomeBasePath: tt.fields.UserHomeBasePath,
-				Commands:         tt.fields.Commands,
-				Shell:            tt.fields.Shell,
-				AdminUsername:    tt.fields.AdminUsername,
-				AdminPassword:    tt.fields.AdminPassword,
-				Rules:            tt.fields.Rules,
-				Server:           tt.fields.Server,
-				Auth:             tt.fields.Auth,
-				Frontend:         tt.fields.Frontend,
-				Users:            tt.fields.Users,
-				UserDefaults:     tt.fields.UserDefaults,
+				Commands:     tt.fields.Commands,
+				Shell:        tt.fields.Shell,
+				Rules:        tt.fields.Rules,
+				Server:       tt.fields.Server,
+				Auth:         tt.fields.Auth,
+				Frontend:     tt.fields.Frontend,
+				Users:        tt.fields.Users,
+				UserDefaults: tt.fields.UserDefaults,
 			}
 			got, err := s.MakeUserDir(tt.args.username, tt.args.userScope, tt.args.serverRoot)
 			if (err != nil) != tt.wantErr {

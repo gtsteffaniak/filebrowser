@@ -4,7 +4,7 @@
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
   >
-    <div class="loading delayed" v-if="loading">
+    <div class="loading delayed" :class="{ 'dark-mode': isDarkMode }" v-if="loading">
       <div class="spinner">
         <div class="bounce1"></div>
         <div class="bounce2"></div>
@@ -103,7 +103,7 @@
 <script>
 import { mapState } from "vuex";
 import { files as api } from "@/api";
-import { resizePreview } from "@/utils/constants";
+import { resizePreview, darkMode } from "@/utils/constants";
 import url from "@/utils/url";
 import throttle from "lodash.throttle";
 import ExtendedImage from "@/components/files/ExtendedImage";
@@ -132,6 +132,9 @@ export default {
   },
   computed: {
     ...mapState(["req", "user", "oldReq", "jwt", "loading", "show"]),
+    isDarkMode() {
+      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
+    },
     hasPrevious() {
       return this.previousLink !== "";
     },

@@ -1,5 +1,5 @@
 <template>
-  <div id="login" :class="{ recaptcha: recaptcha }">
+  <div id="login" :class="{ recaptcha: recaptcha, 'dark-mode': isDarkMode }">
     <form @submit="submit">
       <img :src="logoURL" alt="File Browser" />
       <h1>{{ name }}</h1>
@@ -51,6 +51,7 @@ import {
   recaptcha,
   recaptchaKey,
   signup,
+  darkMode,
 } from "@/utils/constants";
 
 export default {
@@ -59,6 +60,9 @@ export default {
     signup: () => signup,
     name: () => name,
     logoURL: () => logoURL,
+    isDarkMode() {
+      return darkMode === true
+    },
   },
   data: function () {
     return {
