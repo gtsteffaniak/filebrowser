@@ -16,7 +16,7 @@ ARG app="/app/filebrowser"
 RUN apk --no-cache add \
       ca-certificates \
       mailcap
-WORKDIR /app
-COPY --from=base $app* ./
+WORKDIR /
+COPY --from=base /app/filebrowser* ./
 COPY --from=nbuild /app/dist/ ./frontend/dist/
 ENTRYPOINT [ "./filebrowser" ]

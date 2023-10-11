@@ -94,7 +94,6 @@ body.rtl #listing {
 #listing.compact .item,
 #listing.normal .item,
 #listing.list .item {
-  width: calc(33% - 1em);
   max-width: 300px;
   margin: .5em;
   padding: 0.5em;
