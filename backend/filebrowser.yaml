@@ -1,10 +1,9 @@
 server:
   port: 8080
   baseURL: "/"
-  root: "/Users/steffag/git/go"
 auth:
   method: password
-  signup: false
+  signup: true
 userDefaults:
   darkMode: true
   disableSettings: false
