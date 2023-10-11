@@ -47,6 +47,7 @@ func setDefaults() Settings {
 	return Settings{
 		Server: Server{
 			EnableThumbnails:   true,
+			ResizePreview:      false,
 			EnableExec:         false,
 			IndexingInterval:   5,
 			Port:               8080,
@@ -60,7 +61,7 @@ func setDefaults() Settings {
 			AdminUsername: "admin",
 			AdminPassword: "admin",
 			Method:        "password",
-			Signup:        true,
+			Signup:        false,
 			Recaptcha: Recaptcha{
 				Host: "",
 			},
@@ -73,12 +74,12 @@ func setDefaults() Settings {
 			DisableSettings: false,
 			Locale:          "en",
 			Permissions: users.Permissions{
-				Create:   true,
-				Rename:   true,
-				Modify:   true,
-				Delete:   true,
-				Share:    true,
-				Download: true,
+				Create:   false,
+				Rename:   false,
+				Modify:   false,
+				Delete:   false,
+				Share:    false,
+				Download: false,
 				Admin:    false,
 			},
 		},

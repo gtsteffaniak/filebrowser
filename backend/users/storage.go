@@ -1,6 +1,7 @@
 package users
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -91,6 +92,7 @@ func (s *Storage) Update(user *User, fields ...string) error {
 
 // Save saves the user in a storage.
 func (s *Storage) Save(user *User) error {
+	log.Println("Saving new user:", user.Username)
 	if err := user.Clean(""); err != nil {
 		return err
 	}

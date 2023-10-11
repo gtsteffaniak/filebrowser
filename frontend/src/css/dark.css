@@ -25,19 +25,6 @@
   background: var(--background);
 }
 
-/* Header */
-.dark-mode header {
-  background: var(--surfacePrimary);
-}
-
-/* Header with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  .dark-mode header {
-    background: transparent;
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-}
-
 #search.dark-mode input {
   color:white
 }

@@ -1,10 +1,9 @@
 server:
   port: 8080
   baseURL: "/"
-  root: "/Users/steffag/git/go"
 auth:
   method: password
-  signup: false
+  signup: true
 userDefaults:
   darkMode: true
   disableSettings: false
@@ -13,9 +12,9 @@ userDefaults:
   singleClick: false
   permissions:
     admin: false
-    create: true
-    rename: true
-    modify: true
-    delete: true
-    share: true
-    download: true
+    create: false
+    rename: false
+    modify: false
+    delete: false
+    share: false
+    download: false

@@ -3,9 +3,9 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar v-if="currentView === 'listing'"></listingBar>
-    <editorBar v-else-if="currentView === 'editor'"></editorBar>
-    <defaultBar v-else></defaultBar>
+    <listingBar :class="{ 'dark-mode-header': isDarkMode }" v-if="currentView === 'listing'"></listingBar>
+    <editorBar :class="{ 'dark-mode-header': isDarkMode }" v-else-if="currentView === 'editor'"></editorBar>
+    <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
     <main :class="{ 'dark-mode': isDarkMode }">
       <router-view></router-view>
@@ -91,6 +91,21 @@ export default {
 .dark-mode {
   background: var(--background);
   color: var(--textPrimary);
+}
+
+
+/* Header */
+.dark-mode-header {
+  color:white;
+  background: var(--surfacePrimary);
+}
+
+/* Header with backdrop-filter support */
+@supports (backdrop-filter: none) {
+  .dark-mode-header {
+    background: transparent;
+    backdrop-filter: blur(16px) invert(0.1);
+  }
 }
 
 </style>

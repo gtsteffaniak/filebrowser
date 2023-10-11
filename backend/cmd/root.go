@@ -131,16 +131,12 @@ func quickSetup(d pythonData) {
 	checkErr(err)
 	err = d.store.Settings.SaveServer(&settings.GlobalConfiguration.Server)
 	checkErr(err)
-	username := settings.GlobalConfiguration.Auth.AdminUsername
-	password := settings.GlobalConfiguration.Auth.AdminPassword
-	if username == "" || password == "" {
-		log.Fatal("username and password cannot be empty during quick setup")
-	}
-	user := &users.User{
-		Username: username,
-		Password: password,
-	}
+	user := &users.User{}
+	settings.GlobalConfiguration.UserDefaults.Apply(user)
+	user.Username = settings.GlobalConfiguration.Auth.AdminUsername
+	user.Password = settings.GlobalConfiguration.Auth.AdminPassword
 	user.Perm.Admin = true
+	user.Scope = "./"
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false
