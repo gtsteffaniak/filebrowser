@@ -103,7 +103,7 @@
 <script>
 import { mapState } from "vuex";
 import { files as api } from "@/api";
-import { resizePreview,darkMode } from "@/utils/constants";
+import { resizePreview, darkMode } from "@/utils/constants";
 import url from "@/utils/url";
 import throttle from "lodash.throttle";
 import ExtendedImage from "@/components/files/ExtendedImage";
@@ -133,7 +133,7 @@ export default {
   computed: {
     ...mapState(["req", "user", "oldReq", "jwt", "loading", "show"]),
     isDarkMode() {
-      return this.user && this.user.darkMode ? this.user.darkMode : this.darkMode;
+      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
     },
     hasPrevious() {
       return this.previousLink !== "";
