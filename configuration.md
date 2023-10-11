@@ -7,10 +7,11 @@ This document covers the available configuration options, their defaults, and ho
 Here is an expanded config file which includes all possible configurations:
 
 ```
-signup: false
 adminUsername: admin
 adminPassword: admin
 server:
+  CreateUserDir: false
+  UserHomeBasePath: ""
   indexingInterval: 5
   numImageProcessors: 4
   socket: ""
@@ -33,6 +34,7 @@ auth:
   header: ""
   method: json
   command: ""
+  signup: false
   shell: ""
 frontend:
   name: ""
@@ -67,7 +69,6 @@ userDefaults:
 Here are the defaults if nothing is set:
 
 ```
-signup: true
 adminUsername: admin
 adminPassword: admin
 server:
@@ -107,12 +108,6 @@ userDefaults:
 
 ## About each configuration
 
-- `Signup`: This boolean value indicates whether user signup is enabled on the login page. NOTE: Be mindful of `userDefaults` settings if enabled. Default: `false`
-
-- `AdminUsername`: This is the username of the admin user. Default: `admin`
-
-- `AdminPassword`: This is the password of the admin user. Default: `admin`
-
 ### Server configuration settings
 
 - `indexingInterval`: This is the time in minutes the system waits before checking for filesystem changes. Default: `5`
@@ -143,6 +138,10 @@ userDefaults:
 
 - `root`: This is the root directory path. Default: `/srv`
 
+- `CreateUserDir`: Boolean to create user directory on user creation. Default: `false`
+
+- `UserHomeBasePath`: String to define user home directory base path. Default: `""`
+
 ### Auth configuration settings
 
 - `recaptcha`:
@@ -165,6 +164,12 @@ userDefaults:
 - `command`: Deprecated: This is the authentication command.
 
 - `shell`: This is the shell configuration.
+
+- `Signup`: This boolean value indicates whether user signup is enabled on the login page. NOTE: Be mindful of `userDefaults` settings if enabled. Default: `false`
+
+- `AdminUsername`: This is the username of the admin user. Default: `admin`
+
+- `AdminPassword`: This is the password of the admin user. Default: `admin`
 
 ### Frontend configuration settings
 
