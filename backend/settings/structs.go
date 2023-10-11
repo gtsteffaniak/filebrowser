@@ -6,29 +6,26 @@ import (
 )
 
 type Settings struct {
-	Key              []byte              `json:"key"`
-	Signup           bool                `json:"signup"`
-	CreateUserDir    bool                `json:"createUserDir"`
-	UserHomeBasePath string              `json:"userHomeBasePath"`
-	Commands         map[string][]string `json:"commands"`
-	Shell            []string            `json:"shell"`
-	AdminUsername    string              `json:"adminUsername"`
-	AdminPassword    string              `json:"adminPassword"`
-	Rules            []rules.Rule        `json:"rules"`
-	Server           Server              `json:"server"`
-	Auth             Auth                `json:"auth"`
-	Frontend         Frontend            `json:"frontend"`
-	Users            []UserDefaults      `json:"users,omitempty"`
-	UserDefaults     UserDefaults        `json:"userDefaults"`
+	Commands     map[string][]string `json:"commands"`
+	Shell        []string            `json:"shell"`
+	Rules        []rules.Rule        `json:"rules"`
+	Server       Server              `json:"server"`
+	Auth         Auth                `json:"auth"`
+	Frontend     Frontend            `json:"frontend"`
+	Users        []UserDefaults      `json:"users,omitempty"`
+	UserDefaults UserDefaults        `json:"userDefaults"`
 }
 
 type Auth struct {
-	Recaptcha Recaptcha `json:"recaptcha"`
-	Header    string    `json:"header"`
-	Method    string    `json:"method"`
-	Command   string    `json:"command"`
-	Signup    bool      `json:"signup"`
-	Shell     string    `json:"shell"`
+	Recaptcha     Recaptcha `json:"recaptcha"`
+	Header        string    `json:"header"`
+	Method        string    `json:"method"`
+	Command       string    `json:"command"`
+	Signup        bool      `json:"signup"`
+	Shell         string    `json:"shell"`
+	AdminUsername string    `json:"adminUsername"`
+	AdminPassword string    `json:"adminPassword"`
+	Key           []byte    `json:"key"`
 }
 
 type Recaptcha struct {
@@ -54,6 +51,8 @@ type Server struct {
 	Log                   string `json:"log"`
 	Database              string `json:"database"`
 	Root                  string `json:"root"`
+	UserHomeBasePath      string `json:"userHomeBasePath"`
+	CreateUserDir         bool   `json:"createUserDir"`
 }
 
 type Frontend struct {

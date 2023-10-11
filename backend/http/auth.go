@@ -55,7 +55,7 @@ func (e extractor) ExtractToken(r *http.Request) (string, error) {
 func withUser(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
-			return d.settings.Key, nil
+			return d.settings.Auth.Key, nil
 		}
 
 		var tk authToken
@@ -112,7 +112,7 @@ type signupBody struct {
 }
 
 var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if !d.settings.Signup {
+	if !settings.GlobalConfiguration.Auth.Signup {
 		return http.StatusMethodNotAllowed, nil
 	}
 
@@ -142,7 +142,7 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 	}
 	user.Scope = userHome
 	log.Printf("new user: %s, home dir: [%s].", user.Username, userHome)
-
+	settings.GlobalConfiguration.UserDefaults.Apply(user)
 	err = d.store.Users.Save(user)
 	if err == errors.ErrExist {
 		return http.StatusConflict, err
@@ -168,7 +168,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString(d.settings.Key)
+	signed, err := token.SignedString(d.settings.Auth.Key)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

@@ -21,13 +21,13 @@ var (
 // MakeUserDir makes the user directory according to settings.
 func (s *Settings) MakeUserDir(username, userScope, serverRoot string) (string, error) {
 	userScope = strings.TrimSpace(userScope)
-	if userScope == "" && s.CreateUserDir {
+	if userScope == "" && s.Server.CreateUserDir {
 		username = cleanUsername(username)
 		if username == "" || username == "-" || username == "." {
 			log.Printf("create user: invalid user for home dir creation: [%s]", username)
 			return "", errors.New("invalid user for home dir creation")
 		}
-		userScope = path.Join(s.UserHomeBasePath, username)
+		userScope = path.Join(s.Server.UserHomeBasePath, username)
 	}
 
 	userScope = path.Join("/", userScope)
