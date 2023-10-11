@@ -7,7 +7,7 @@ auth:
 userDefaults:
   darkMode: true
   disableSettings: false
-  scope: "./restricted-scope/"
+  scope: "."
   hideDotfiles: true
   singleClick: false
   permissions:
