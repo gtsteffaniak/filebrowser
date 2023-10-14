@@ -79,6 +79,7 @@ import {
 import { files as api } from "@/api";
 import ProgressBar from "vue-simple-progress";
 import prettyBytes from "pretty-bytes";
+import { darkMode } from "@/utils/constants";
 
 export default {
   name: "sidebar",
@@ -88,7 +89,7 @@ export default {
   computed: {
     ...mapState(["user"]),
     isDarkMode() {
-      return this.user.darkMode === true
+      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
     },
     ...mapGetters(["isLogged"]),
     active() {

@@ -457,6 +457,7 @@ body.rtl #search .boxes h3 {
 import ButtonGroup from "./ButtonGroup.vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { search } from "@/api";
+import { darkMode } from "@/utils/constants";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -543,7 +544,7 @@ export default {
     ...mapState(["user", "show"]),
     ...mapGetters(["isListing"]),
     isDarkMode() {
-      return this.user.darkMode === true
+      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
     },
     showBoxes() {
       return this.searchTypes == "";

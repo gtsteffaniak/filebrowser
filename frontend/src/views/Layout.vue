@@ -24,6 +24,8 @@ import { mapState, mapGetters } from "vuex";
 import Sidebar from "@/components/Sidebar.vue";
 import UploadFiles from "../components/prompts/UploadFiles";
 import { enableExec } from "@/utils/constants";
+import { darkMode } from "@/utils/constants";
+
 export default {
   name: "layout",
   components: {
@@ -46,7 +48,7 @@ export default {
     ...mapGetters(["isLogged", "progress", "isListing"]),
     ...mapState(["req", "user", "state"]),
     isDarkMode() {
-      return this.user.darkMode === true
+      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
     },
     isExecEnabled: () => enableExec,
     currentView() {
