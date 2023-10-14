@@ -3,14 +3,8 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar
-      :class="{ 'dark-mode-header': isDarkMode }"
-      v-if="currentView === 'listing'"
-    ></listingBar>
-    <editorBar
-      :class="{ 'dark-mode-header': isDarkMode }"
-      v-else-if="currentView === 'editor'"
-    ></editorBar>
+    <listingBar :class="{ 'dark-mode-header': isDarkMode }" v-if="currentView === 'listing'"></listingBar>
+    <editorBar :class="{ 'dark-mode-header': isDarkMode }" v-else-if="currentView === 'editor'"></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
     <main :class="{ 'dark-mode': isDarkMode }">
@@ -99,7 +93,6 @@ export default {
 
 /* Header */
 .dark-mode-header {
-  color: white;
   background: var(--surfacePrimary);
 }
 
