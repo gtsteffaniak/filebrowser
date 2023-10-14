@@ -1,12 +1,31 @@
 <template>
-  <div id="search" @click="open" v-bind:class="{ active, ongoing, 'dark-mode': isDarkMode }">
+  <div
+    id="search"
+    @click="open"
+    v-bind:class="{ active, ongoing, 'dark-mode': isDarkMode }"
+  >
     <div id="input">
-      <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')" :title="$t('buttons.close')">
+      <button
+        v-if="active"
+        class="action"
+        @click="close"
+        :aria-label="$t('buttons.close')"
+        :title="$t('buttons.close')"
+      >
         <i class="material-icons">close</i>
       </button>
       <i v-else class="material-icons">search</i>
-      <input class="main-input" type="text" @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active"
-        v-model.trim="value" :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
+      <input
+        class="main-input"
+        type="text"
+        @keyup.exact="keyup"
+        @input="submit"
+        ref="input"
+        :autofocus="active"
+        v-model.trim="value"
+        :aria-label="$t('search.search')"
+        :placeholder="$t('search.search')"
+      />
     </div>
     <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
@@ -14,7 +33,12 @@
           Search Context: {{ getContext(this.$route.path) }}
         </div>
         <ul v-show="results.length > 0">
-          <li v-for="(s, k) in results" :key="k" @click.stop.prevent="navigateTo(s.url)" style="cursor: pointer">
+          <li
+            v-for="(s, k) in results"
+            :key="k"
+            @click.stop.prevent="navigateTo(s.url)"
+            style="cursor: pointer"
+          >
             <router-link to="#" event="">
               <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
               <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
@@ -37,15 +61,26 @@
           </div>
         </div>
         <template v-if="isEmpty">
-          <button class="mobile-boxes" v-if="value.length === 0 && !showBoxes" @click="resetSearchFilters()">
+          <button
+            class="mobile-boxes"
+            v-if="value.length === 0 && !showBoxes"
+            @click="resetSearchFilters()"
+          >
             Reset filters
           </button>
           <template v-if="value.length === 0 && showBoxes">
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
-                <div class="mobile-boxes" tabindex="0" v-for="(v, k) in boxes" :key="k" role="button"
-                  @click="addToTypes('type:' + k)" :aria-label="v.label">
+                <div
+                  class="mobile-boxes"
+                  tabindex="0"
+                  v-for="(v, k) in boxes"
+                  :key="k"
+                  role="button"
+                  @click="addToTypes('type:' + k)"
+                  :aria-label="v.label"
+                >
                   <i class="material-icons">{{ v.icon }}</i>
                   <p>{{ v.label }}</p>
                 </div>
@@ -90,26 +125,51 @@
             </p>
           </div>
           <template>
-            <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
-              @disableAll="folderSelectClicked()" @enableAll="resetButtonGroups()" />
-            <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
-              :isDisabled="isTypeSelectDisabled" />
+            <ButtonGroup
+              :buttons="folderSelect"
+              @button-clicked="addToTypes"
+              @remove-button-clicked="removeFromTypes"
+              @disableAll="folderSelectClicked()"
+              @enableAll="resetButtonGroups()"
+            />
+            <ButtonGroup
+              :buttons="typeSelect"
+              @button-clicked="addToTypes"
+              @remove-button-clicked="removeFromTypes"
+              :isDisabled="isTypeSelectDisabled"
+            />
             <div class="sizeConstraints">
               <div class="sizeInputWrapper">
                 <p>Smaller Than:</p>
-                <input class="sizeInput" v-model="smallerThan" type="number" min="0" placeholder="number" />
+                <input
+                  class="sizeInput"
+                  v-model="smallerThan"
+                  type="number"
+                  min="0"
+                  placeholder="number"
+                />
                 <p>MB</p>
               </div>
               <div class="sizeInputWrapper">
                 <p>Larger Than:</p>
-                <input class="sizeInput" v-model="largerThan" type="number" placeholder="number" />
+                <input
+                  class="sizeInput"
+                  v-model="largerThan"
+                  type="number"
+                  placeholder="number"
+                />
                 <p>MB</p>
               </div>
             </div>
           </template>
         </template>
         <ul v-show="results.length > 0">
-          <li v-for="(s, k) in results" :key="k" @click.stop.prevent="navigateTo(s.url)" style="cursor: pointer">
+          <li
+            v-for="(s, k) in results"
+            :key="k"
+            @click.stop.prevent="navigateTo(s.url)"
+            style="cursor: pointer"
+          >
             <router-link to="#" event="">
               <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
               <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
@@ -142,7 +202,7 @@
   border-right: 1px solid gray;
 }
 
-#result-desktop>#result-list {
+#result-desktop > #result-list {
   max-height: 80vh;
   width: 35em;
   overflow: scroll;
@@ -180,8 +240,8 @@
 #search.active #result-desktop ul li a {
   display: flex;
   align-items: center;
-  padding: .3em 0;
-  margin-right: .3em;
+  padding: 0.3em 0;
+  margin-right: 0.3em;
 }
 
 #search #result-list.active {
@@ -204,10 +264,10 @@
 
 /* Search */
 #search {
-  background-color:unset;
-  z-index:3;
+  background-color: unset;
+  z-index: 3;
   position: fixed;
-  top: .5em;
+  top: 0.5em;
   min-width: 35em;
   left: 50%;
   -webkit-transform: translateX(-50%);
@@ -259,7 +319,6 @@
   direction: rtl;
 }
 
-
 #search #result {
   padding-top: 1em;
   overflow: hidden;
@@ -280,7 +339,7 @@ body.rtl #search #result {
   direction: ltr;
 }
 
-#search #result>div>*:first-child {
+#search #result > div > *:first-child {
   margin-top: 0;
 }
 
@@ -290,7 +349,7 @@ body.rtl #search #result {
 }
 
 /* Search Results */
-body.rtl #search #result ul>* {
+body.rtl #search #result ul > * {
   direction: ltr;
   text-align: left;
 }
@@ -415,7 +474,7 @@ body.rtl #search .boxes h3 {
   width: 5em;
   border-radius: 1em;
   padding: 1em;
-  backdrop-filter: invert(.1);
+  backdrop-filter: invert(0.1);
   border: none !important;
 }
 
@@ -431,7 +490,7 @@ body.rtl #search .boxes h3 {
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  border: 1px solid #ccc
+  border: 1px solid #ccc;
 }
 
 .helpButton {
@@ -457,6 +516,7 @@ body.rtl #search .boxes h3 {
 import ButtonGroup from "./ButtonGroup.vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { search } from "@/api";
+import { darkMode } from "@/utils/constants";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -506,12 +566,11 @@ export default {
       const resultList = document.getElementById("result-list");
       if (!active) {
         resultList.classList.remove("active");
-        return
+        return;
       }
       setTimeout(() => {
         resultList.classList.add("active");
       }, 100);
-
     },
     show(val, old) {
       this.active = val === "search";
@@ -543,7 +602,7 @@ export default {
     ...mapState(["user", "show"]),
     ...mapGetters(["isListing"]),
     isDarkMode() {
-      return this.user.darkMode === true
+      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
     },
     showBoxes() {
       return this.searchTypes == "";
@@ -630,7 +689,6 @@ export default {
         return false;
       }
       this.searchTypes = this.searchTypes + string + " ";
-
     },
     resetSearchFilters() {
       this.searchTypes = "";
