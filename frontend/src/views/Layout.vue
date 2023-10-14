@@ -93,6 +93,7 @@ export default {
 
 /* Header */
 .dark-mode-header {
+  color:white;
   background: var(--surfacePrimary);
 }
 
