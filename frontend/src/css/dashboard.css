@@ -204,8 +204,14 @@ body.rtl .card .card-title>*:first-child {
   text-align: right;
 }
 
+.card input {
+  width: 90%
+}
+
 .card>div {
   padding: 1em 1em;
+  justify-content: center;
+  display: flex;
 }
 
 .card>div:first-child {
@@ -217,7 +223,7 @@ body.rtl .card .card-title>*:first-child {
 }
 
 .card .card-title * {
-  margin: 0;
+  margin: auto;
 }
 
 .card .card-action {
