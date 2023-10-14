@@ -2,10 +2,7 @@ import * as i18n from "@/i18n";
 import moment from "moment";
 
 const mutations = {
-  closeHovers: (state) => {
-    state.show = null;
-    state.showConfirm = null;
-  },
+  setEditor: (state, value) => (state.currentEditor = value),
   toggleShell: (state) => {
     state.showShell = !state.showShell;
   },

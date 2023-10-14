@@ -41,7 +41,10 @@ export default {
     return {};
   },
   computed: {
-    ...mapState(["req", "user", "currentView"]),
+    ...mapState(["req", "user", "currentView","currentEditor"]),
+    getEditor() {
+      return this.currentEditor;
+    }
     breadcrumbs() {
       let parts = this.$route.path.split("/");
 
@@ -78,6 +81,10 @@ export default {
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
     this.editor.destroy();
+  },
+  mounted: function () {
+    const fileContent = this.req.content || "";
+    this.editor = getEditor()
   },
   methods: {
     back() {

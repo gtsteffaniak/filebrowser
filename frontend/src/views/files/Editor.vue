@@ -66,6 +66,7 @@ export default {
       mode: modelist.getModeForPath(this.req.name).mode,
       wrap: true,
     });
+    this.$store.commit("currentEditor",this.editor)
   },
   methods: {
     back() {
