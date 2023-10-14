@@ -204,10 +204,6 @@ body.rtl .card .card-title>*:first-child {
   text-align: right;
 }
 
-.card input {
-  width: 90%;
-}
-
 .card>div {
   padding: 1em 1em;
 }
@@ -221,7 +217,7 @@ body.rtl .card .card-title>*:first-child {
 }
 
 .card .card-title * {
-  margin: auto;
+  margin: 0;
 }
 
 .card .card-action {
@@ -385,12 +381,10 @@ body.rtl .card .card-title>*:first-child {
     display: none;
     opacity: 0;
   }
-
   1% {
     display: block;
     opacity: 0;
   }
-
   100% {
     display: block;
     opacity: 1;
@@ -398,18 +392,18 @@ body.rtl .card .card-title>*:first-child {
 }
 
 .collapsible {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(0,0,0,0.1);
 }
 
 .collapsible:last-of-type {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
-.collapsible>input {
+.collapsible > input {
   display: none;
 }
 
-.collapsible>label {
+.collapsible > label {
   padding: 1em 0;
   cursor: pointer;
   border-right: 0;
@@ -418,12 +412,12 @@ body.rtl .card .card-title>*:first-child {
   justify-content: space-between;
 }
 
-.collapsible>label * {
+.collapsible > label * {
   margin: 0;
-  color: rgba(0, 0, 0, 0.57);
+  color: rgba(0,0,0,0.57);
 }
 
-.collapsible>label i {
+.collapsible > label i {
   transition: .2s ease transform;
   user-select: none;
 }
@@ -434,13 +428,13 @@ body.rtl .card .card-title>*:first-child {
   transition: .2s ease all;
 }
 
-.collapsible>input:checked~.collapse {
+.collapsible > input:checked ~ .collapse {
   padding-top: 1em;
   padding-bottom: 1em;
   max-height: 20em;
 }
 
-.collapsible>input:checked~label i {
+.collapsible > input:checked ~ label i {
   transform: rotate(180deg)
 }
 
@@ -449,7 +443,7 @@ body.rtl .card .card-title>*:first-child {
   margin: 0 -1em;
 }
 
-.card .collapsible>label {
+.card .collapsible > label {
   padding: 1em;
 }
 
