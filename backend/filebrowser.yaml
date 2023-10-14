@@ -3,7 +3,7 @@ server:
   baseURL: "/"
 auth:
   method: password
-  signup: false
+  signup: true
 userDefaults:
   darkMode: true
   disableSettings: false

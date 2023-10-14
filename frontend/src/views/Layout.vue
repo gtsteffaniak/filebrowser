@@ -16,14 +16,16 @@
 </template>
 
 <script>
-import editorBar from "./bars/EditorBar.vue"
-import defaultBar from "./bars/Default.vue"
-import listingBar from "./bars/ListingBar.vue"
+import editorBar from "./bars/EditorBar.vue";
+import defaultBar from "./bars/Default.vue";
+import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts";
 import { mapState, mapGetters } from "vuex";
 import Sidebar from "@/components/Sidebar.vue";
 import UploadFiles from "../components/prompts/UploadFiles";
 import { enableExec } from "@/utils/constants";
+import { darkMode } from "@/utils/constants";
+
 export default {
   name: "layout",
   components: {
@@ -46,7 +48,7 @@ export default {
     ...mapGetters(["isLogged", "progress", "isListing"]),
     ...mapState(["req", "user", "state"]),
     isDarkMode() {
-      return this.user.darkMode === true
+      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
     },
     isExecEnabled: () => enableExec,
     currentView() {
@@ -56,10 +58,7 @@ export default {
 
       if (this.req.isDir) {
         return "listing";
-      } else if (
-        this.req.type === "text" ||
-        this.req.type === "textImmutable"
-      ) {
+      } else if (this.req.type === "text" || this.req.type === "textImmutable") {
         return "editor";
       } else {
         return "preview";
@@ -75,24 +74,22 @@ export default {
   },
   methods: {
     getTitle() {
-      let title = "Title"
-      if (this.$route.path.startsWith('/settings/')) {
-        title = "Settings"
+      let title = "Title";
+      if (this.$route.path.startsWith("/settings/")) {
+        title = "Settings";
       }
-      return title
+      return title;
     },
   },
 };
 </script>
 
 <style>
-
 /* Use the class .dark-mode to apply styles conditionally */
 .dark-mode {
   background: var(--background);
   color: var(--textPrimary);
 }
-
 
 /* Header */
 .dark-mode-header {
@@ -107,5 +104,4 @@ export default {
     backdrop-filter: blur(16px) invert(0.1);
   }
 }
-
 </style>
