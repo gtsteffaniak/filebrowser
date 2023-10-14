@@ -206,13 +206,6 @@ body.rtl .card .card-title>*:first-child {
 
 .card input {
   width: 90%;
-  border-radius: 1em;
-  padding: .5em 1em;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: .2s ease all;
-  color: #333;
-  margin: 0;
 }
 
 .card>div {
