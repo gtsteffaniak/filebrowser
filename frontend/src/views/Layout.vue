@@ -3,8 +3,14 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar :class="{ 'dark-mode-header': isDarkMode }" v-if="currentView === 'listing'"></listingBar>
-    <editorBar :class="{ 'dark-mode-header': isDarkMode }" v-else-if="currentView === 'editor'"></editorBar>
+    <listingBar
+      :class="{ 'dark-mode-header': isDarkMode }"
+      v-if="currentView === 'listing'"
+    ></listingBar>
+    <editorBar
+      :class="{ 'dark-mode-header': isDarkMode }"
+      v-else-if="currentView === 'editor'"
+    ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
     <main :class="{ 'dark-mode': isDarkMode }">
@@ -16,9 +22,9 @@
 </template>
 
 <script>
-import editorBar from "./bars/EditorBar.vue"
-import defaultBar from "./bars/Default.vue"
-import listingBar from "./bars/ListingBar.vue"
+import editorBar from "./bars/EditorBar.vue";
+import defaultBar from "./bars/Default.vue";
+import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts";
 import { mapState, mapGetters } from "vuex";
 import Sidebar from "@/components/Sidebar.vue";
@@ -58,10 +64,7 @@ export default {
 
       if (this.req.isDir) {
         return "listing";
-      } else if (
-        this.req.type === "text" ||
-        this.req.type === "textImmutable"
-      ) {
+      } else if (this.req.type === "text" || this.req.type === "textImmutable") {
         return "editor";
       } else {
         return "preview";
@@ -77,28 +80,26 @@ export default {
   },
   methods: {
     getTitle() {
-      let title = "Title"
-      if (this.$route.path.startsWith('/settings/')) {
-        title = "Settings"
+      let title = "Title";
+      if (this.$route.path.startsWith("/settings/")) {
+        title = "Settings";
       }
-      return title
+      return title;
     },
   },
 };
 </script>
 
 <style>
-
 /* Use the class .dark-mode to apply styles conditionally */
 .dark-mode {
   background: var(--background);
   color: var(--textPrimary);
 }
 
-
 /* Header */
 .dark-mode-header {
-  color:white;
+  color: white;
   background: var(--surfacePrimary);
 }
 
@@ -109,5 +110,4 @@ export default {
     backdrop-filter: blur(16px) invert(0.1);
   }
 }
-
 </style>
