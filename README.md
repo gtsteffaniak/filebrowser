@@ -6,7 +6,7 @@
 </p>
 <h3 align="center">Filebrowser - A modern file manager for the web</h3>
 <p align="center">
-  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/459937ef-3f14-408d-aef5-899cde4cf3a1" title="Main Screenshot">
+  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/b45683b0-bd55-4430-9831-650fe0d21eb8" title="Main Screenshot">
 </p>
 
 > **NOTE**
@@ -39,9 +39,12 @@ work better in terms of asthetics and performance. Improved search,
 ## Look
 <p align="center">
   <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb" title="Dark mode">
-  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/8d426356-26cf-407b-b078-bf58f198e799" title="Dark mode2">
-  <img width="300" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/37e8f03b-4f5a-4689-aa6c-5cd858a858e9" title="Dark mode">
-  <img width="300" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/b04d3c1f-154b-45ba-927c-2112926ad3a9" title="Dark mode">
+<img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/55fa4f5c-440e-4a97-b711-96139208a163">
+<img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/c76f4100-949b-4e17-a3e6-e410fb8ec08f">
+<img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/0bde26f3-fa90-411e-bd0b-abaa47506d62">
+<img width="560" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/71d8f2b8-6fe6-4fdc-8aac-503d08c28d86">
+
+
 </p>
 
 ## Search Performance
