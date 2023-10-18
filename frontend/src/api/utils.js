@@ -15,6 +15,7 @@ export async function fetchURL(url, opts, auth = true) {
       headers: {
         "X-Auth": store.state.jwt,
         "sessionId": store.state.sessionId,
+        "userScope": store.state.user.scope,
         ...headers,
       },
       ...rest,

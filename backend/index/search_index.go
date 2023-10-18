@@ -18,13 +18,18 @@ var (
 )
 
 func (si *Index) Search(search string, scope string, sourceSession string) ([]string, map[string]map[string]bool) {
+	if scope == "" {
+		scope = "/"
+	}
+	fileTypes := map[string]bool{}
+
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
 	mutex.RLock()
 	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
-	var matching []string
+	matching := []string{}
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -42,7 +47,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			case "Files":
 				paths = si.Files
 			}
-
 			for _, path := range paths {
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
@@ -55,7 +59,8 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if pathName == "" {
 					continue
 				}
-				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir)
+
+				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir, fileTypes)
 				if !matches {
 					continue
 				}
@@ -80,24 +85,16 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 
 func scopedPathNameFilter(pathName string, scope string) string {
 	scope = strings.TrimPrefix(scope, "/")
+	pathName = strings.TrimPrefix(pathName, "/")
 	if strings.HasPrefix(pathName, scope) {
-		pathName = strings.TrimPrefix(pathName, scope)
+		pathName = "/" + strings.TrimPrefix(pathName, scope)
 	} else {
 		pathName = ""
 	}
 	return pathName
 }
 
-var fileTypes = map[string]bool{
-	"audio":   false,
-	"image":   false,
-	"video":   false,
-	"doc":     false,
-	"archive": false,
-	"dir":     false,
-}
-
-func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool) (bool, map[string]bool) {
+func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, map[string]bool) {
 	conditions := options.Conditions
 	path := getLastPathComponent(pathName)
 	// Convert to lowercase once
@@ -110,11 +107,12 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 		var fileSize int64
 		matchesAllConditions := true
 		extension := filepath.Ext(path)
-		for k := range fileTypes {
-			fileTypes[k] = IsMatchingType(extension, k)
+		for _, k := range AllFiletypeOptions {
+			if IsMatchingType(extension, k) {
+				fileTypes[k] = true
+			}
 		}
 		fileTypes["dir"] = isDir
-
 		for t, v := range conditions {
 			if t == "exact" {
 				continue
