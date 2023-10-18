@@ -21,6 +21,8 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	if scope == "" {
 		scope = "/"
 	}
+	fileTypes := map[string]bool{}
+
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -58,7 +60,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 					continue
 				}
 
-				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir)
+				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir, fileTypes)
 				if !matches {
 					continue
 				}
@@ -92,8 +94,7 @@ func scopedPathNameFilter(pathName string, scope string) string {
 	return pathName
 }
 
-func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool) (bool, map[string]bool) {
-	fileTypes := map[string]bool{}
+func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, map[string]bool) {
 	conditions := options.Conditions
 	path := getLastPathComponent(pathName)
 	// Convert to lowercase once

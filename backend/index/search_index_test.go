@@ -171,34 +171,6 @@ func Test_scopedPathNameFilter(t *testing.T) {
 	}
 }
 
-func Test_containsSearchTerm(t *testing.T) {
-	type args struct {
-		pathName   string
-		searchTerm string
-		options    SearchOptions
-		isDir      bool
-	}
-	tests := []struct {
-		name  string
-		args  args
-		want  bool
-		want1 map[string]bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := containsSearchTerm(tt.args.pathName, tt.args.searchTerm, tt.args.options, tt.args.isDir)
-			if got != tt.want {
-				t.Errorf("containsSearchTerm() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("containsSearchTerm() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
-
 func Test_isDoc(t *testing.T) {
 	type args struct {
 		extension string

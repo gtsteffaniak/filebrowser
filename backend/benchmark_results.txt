@@ -5,41 +5,41 @@
 ?   	github.com/gtsteffaniak/filebrowser/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/cmd	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/files	[no test files]
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 h: 401  <nil>
-2023/10/18 10:13:13 h: 401  <nil>
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 Saving new user: username
-2023/10/18 10:13:13 h: 401  <nil>
-2023/10/18 10:13:14 h: 401  <nil>
-2023/10/18 10:13:14 h: 401  <nil>
-2023/10/18 10:13:14 h: 401  <nil>
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 h: 401  <nil>
+2023/10/18 10:19:52 h: 401  <nil>
+2023/10/18 10:19:52 h: 401  <nil>
+2023/10/18 10:19:52 h: 401  <nil>
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:52 Saving new user: username
+2023/10/18 10:19:53 h: 401  <nil>
+2023/10/18 10:19:53 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	0.206s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.208s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.123s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.124s
 goos: linux
 goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/index
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkFillIndex-8          	      10	   3243601 ns/op	   11280 B/op	     448 allocs/op
-BenchmarkSearchAllIndexes-8   	      10	   6842827 ns/op	 4327143 B/op	   79871 allocs/op
+BenchmarkFillIndex-8          	      10	   3239196 ns/op	   11289 B/op	     448 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	   6645964 ns/op	 3176834 B/op	   59104 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/index	0.130s
+ok  	github.com/gtsteffaniak/filebrowser/index	0.126s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
