@@ -1,6 +1,7 @@
 package index
 
 import (
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -24,7 +25,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	mutex.RLock()
 	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
-	var matching []string
+	matching := []string{}
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -42,7 +43,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			case "Files":
 				paths = si.Files
 			}
-
 			for _, path := range paths {
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
@@ -55,10 +55,12 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if pathName == "" {
 					continue
 				}
+
 				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir)
 				if !matches {
 					continue
 				}
+				log.Println("search", path, searchTerm, isDir, fileType)
 				if isDir {
 					fileListTypes[pathName+"/"] = fileType
 				} else {
@@ -80,24 +82,17 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 
 func scopedPathNameFilter(pathName string, scope string) string {
 	scope = strings.TrimPrefix(scope, "/")
+	pathName = strings.TrimPrefix(pathName, "/")
 	if strings.HasPrefix(pathName, scope) {
-		pathName = strings.TrimPrefix(pathName, scope)
+		pathName = "/" + strings.TrimPrefix(pathName, scope)
 	} else {
 		pathName = ""
 	}
 	return pathName
 }
 
-var fileTypes = map[string]bool{
-	"audio":   false,
-	"image":   false,
-	"video":   false,
-	"doc":     false,
-	"archive": false,
-	"dir":     false,
-}
-
 func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool) (bool, map[string]bool) {
+	fileTypes := map[string]bool{}
 	conditions := options.Conditions
 	path := getLastPathComponent(pathName)
 	// Convert to lowercase once
@@ -110,11 +105,12 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 		var fileSize int64
 		matchesAllConditions := true
 		extension := filepath.Ext(path)
-		for k := range fileTypes {
-			fileTypes[k] = IsMatchingType(extension, k)
+		for _, k := range AllFiletypeOptions {
+			if IsMatchingType(extension, k) {
+				fileTypes[k] = true
+			}
 		}
 		fileTypes["dir"] = isDir
-
 		for t, v := range conditions {
 			if t == "exact" {
 				continue

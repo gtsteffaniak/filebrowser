@@ -3,6 +3,8 @@ package index
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
@@ -75,27 +77,74 @@ func TestParseSearch(t *testing.T) {
 }
 
 func TestSearchIndexes(t *testing.T) {
-	type args struct {
-		search        string
-		scope         string
-		sourceSession string
+	indexes = Index{
+		Dirs: []string{
+			"/test",
+			"/test/path",
+			"/new/test/path",
+		},
+		Files: []string{
+			"/test/path/file.txt",
+			"/test/audio1.wav",
+			"/new/test/audio.wav",
+			"/new/test/video.mp4",
+			"/new/test/video.MP4",
+			"/new/test/path/archive.zip",
+		},
 	}
 	tests := []struct {
-		name  string
-		args  args
-		want  []string
-		want1 map[string]map[string]bool
+		search         string
+		scope          string
+		expectedResult []string
+		expectedTypes  map[string]map[string]bool
 	}{
-		// TODO: Add test cases.
+		{
+			search:         "audio",
+			scope:          "/new/",
+			expectedResult: []string{"/test/audio.wav"},
+			expectedTypes: map[string]map[string]bool{
+				"/test/audio.wav": map[string]bool{"audio": true, "dir": false},
+			},
+		},
+		{
+			search:         "test",
+			scope:          "/",
+			expectedResult: []string{"/test"},
+			expectedTypes: map[string]map[string]bool{
+				"/test/": map[string]bool{"dir": true},
+			},
+		},
+		{
+			search:         "archive",
+			scope:          "/",
+			expectedResult: []string{"/new/test/path/archive.zip"},
+			expectedTypes: map[string]map[string]bool{
+				"/new/test/path/archive.zip": map[string]bool{"archive": true, "dir": false},
+			},
+		},
+		{
+			search: "video",
+			scope:  "/",
+			expectedResult: []string{
+				"/new/test/video.mp4",
+				"/new/test/video.MP4",
+			},
+			expectedTypes: map[string]map[string]bool{
+				"/new/test/video.MP4": map[string]bool{"video": true, "dir": false},
+				"/new/test/video.mp4": map[string]bool{"video": true, "dir": false},
+			},
+		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := indexes.Search(tt.args.search, tt.args.scope, tt.args.sourceSession)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SearchAllIndexes() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("SearchAllIndexes() got1 = %v, want %v", got1, tt.want1)
+		t.Run(tt.search, func(t *testing.T) {
+			actualResult, actualTypes := indexes.Search(tt.search, tt.scope, "")
+			assert.Equal(t, tt.expectedResult, actualResult)
+			if len(tt.expectedTypes) > 0 {
+				for key, value := range tt.expectedTypes {
+					actualValue, exists := actualTypes[key]
+					assert.True(t, exists, "Expected type key '%s' not found in actual types", key)
+					assert.Equal(t, value, actualValue, "Type value mismatch for key '%s'", key)
+				}
 			}
 		})
 	}
