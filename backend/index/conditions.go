@@ -8,7 +8,14 @@ import (
 )
 
 var typeRegexp = regexp.MustCompile(`type:(\S+)`)
-
+var AllFiletypeOptions = []string{
+	"image",
+	"audio",
+	"archive",
+	"video",
+	"doc",
+	"dir",
+}
 var documentTypes = []string{
 	".word",
 	".pdf",
