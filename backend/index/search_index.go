@@ -1,7 +1,6 @@
 package index
 
 import (
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -19,6 +18,9 @@ var (
 )
 
 func (si *Index) Search(search string, scope string, sourceSession string) ([]string, map[string]map[string]bool) {
+	if scope == "" {
+		scope = "/"
+	}
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -60,7 +62,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if !matches {
 					continue
 				}
-				log.Println("search", path, searchTerm, isDir, fileType)
 				if isDir {
 					fileListTypes[pathName+"/"] = fileType
 				} else {

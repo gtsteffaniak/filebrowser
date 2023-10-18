@@ -10,28 +10,40 @@ ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.003s
 ?   	github.com/gtsteffaniak/filebrowser/files	[no test files]
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
-2023/09/24 12:52:05 h: 401  <nil>
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 h: 401  <nil>
+2023/10/18 10:13:13 h: 401  <nil>
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 Saving new user: username
+2023/10/18 10:13:13 h: 401  <nil>
+2023/10/18 10:13:14 h: 401  <nil>
+2023/10/18 10:13:14 h: 401  <nil>
+2023/10/18 10:13:14 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	0.094s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.206s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.144s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.123s
+goos: linux
+goarch: amd64
+pkg: github.com/gtsteffaniak/filebrowser/index
+cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
+BenchmarkFillIndex-8          	      10	   3243601 ns/op	   11280 B/op	     448 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	   6842827 ns/op	 4327143 B/op	   79871 allocs/op
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/index	0.130s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/runner	0.003s
-goos: linux
-goarch: amd64
-pkg: github.com/gtsteffaniak/filebrowser/search
-cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkSearchAllIndexes-8   	      10	   5912685 ns/op	 3003976 B/op	   46139 allocs/op
-BenchmarkFillIndex-8          	      10	   3157995 ns/op	   18370 B/op	     449 allocs/op
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/search	0.116s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]
