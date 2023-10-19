@@ -14,4 +14,3 @@ rules:
   vue/no-reserved-component-names: warn
   vue/no-mutating-props: off
   vue/no-deprecated-v-bind-sync: warn
-  vue/no-prototype-builtins: off
