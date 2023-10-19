@@ -133,7 +133,7 @@ export default {
   computed: {
     ...mapState(["req", "user", "oldReq", "jwt", "loading", "show"]),
     isDarkMode() {
-      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
+      return this.user && this.user.hasOwnProperty('darkMode') ? this.user.darkMode : darkMode;
     },
     hasPrevious() {
       return this.previousLink !== "";

@@ -129,7 +129,7 @@ export default {
   computed: {
     ...mapState(["user"]),
     isDarkMode() {
-      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
+      return this.user && this.user.hasOwnProperty('darkMode') ? this.user.darkMode : darkMode;
     },
     ...mapGetters(["isLogged"]),
     active() {
