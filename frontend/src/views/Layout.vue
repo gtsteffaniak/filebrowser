@@ -48,7 +48,7 @@ export default {
     ...mapGetters(["isLogged", "progress", "isListing"]),
     ...mapState(["req", "user", "state"]),
     isDarkMode() {
-      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
+      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
     },
     isExecEnabled: () => enableExec,
     currentView() {
