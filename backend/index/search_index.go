@@ -1,10 +1,13 @@
 package index
 
 import (
+	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -34,8 +37,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 		if searchTerm == "" {
 			continue
 		}
-		si.Root.SearchTrie(searchTerm, "", &matching)
-
+		si.Root.SearchTrie(searchTerm, rootPath+scope, rootPath+scope, &matching)
 	}
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
@@ -50,7 +52,7 @@ func scopedPathNameFilter(pathName string, scope string) string {
 	scope = strings.TrimPrefix(scope, "/")
 	pathName = strings.TrimPrefix(pathName, "/")
 	if strings.HasPrefix(pathName, scope) {
-		pathName = "/" + strings.TrimPrefix(pathName, scope)
+		pathName = strings.TrimPrefix(pathName, scope)
 	} else {
 		pathName = ""
 	}
@@ -128,38 +130,39 @@ func generateRandomHash(length int) string {
 	return string(result)
 }
 
-func (node *TrieNode) SearchTrie(pattern string, currentPath string, results *[]string) {
+func (node *TrieNode) SearchTrie(searchPattern, scope, currentPath string, results *[]string) {
+	// Iterate over the children
+	for name, child := range node.Children {
+		log.Println(name)
+		filename := getLastPathComponent(name)
+		// If the child is a directory, continue to traverse
+		if child.IsDir {
+			child.SearchTrie(searchPattern, scope, filename, results)
+		}
+		if strings.Contains(filename, searchPattern) {
+			*results = append(*results, currentPath+filename)
+		}
+	}
+}
+func PrintIndexPaths(node *TrieNode, currentPath string, count int) {
 	if node == nil {
 		return
 	}
-
-	// Construct the current path by appending the node's name
+	count += 1
+	// Print the current path
 	if currentPath != "" {
-		currentPath += "/"
-	}
-	currentPath += pattern
-
-	// Check if the pattern matches the end of the node
-	if strings.HasSuffix(node.nodeName(), currentPath) {
-		*results = append(*results, node.nodeName())
+		fmt.Println(strconv.Itoa(count) + " " + currentPath)
 	}
 
-	// Recursively search the children
-	for _, child := range node.Children {
-		child.SearchTrie(pattern, currentPath, results)
+	// Iterate over the children
+	for name, child := range node.Children {
+		count += 1
+		// If the child is a directory, continue to traverse
+		if child.IsDir {
+			PrintIndexPaths(child, currentPath+"/"+name, count)
+		} else {
+			// If it's a file, print the path
+			fmt.Println(currentPath + "/" + name)
+		}
 	}
-}
-
-func (node *TrieNode) nodeName() string {
-	if node.IsDir {
-		return node.Children[node.nodeNameKey()].nodeName()
-	}
-	return node.nodeNameKey()
-}
-
-func (node *TrieNode) nodeNameKey() string {
-	for k := range node.Children {
-		return k
-	}
-	return ""
 }

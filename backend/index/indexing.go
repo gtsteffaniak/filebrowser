@@ -3,7 +3,6 @@ package index
 import (
 	"log"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -98,48 +97,20 @@ func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error 
 	}
 	// Iterate over the files and directories
 	for _, file := range files {
-		childNode := &TrieNode{
+		node.Children[file.Name()] = &TrieNode{
 			Children: make(map[string]*TrieNode),
 		}
-		node.Children[path] = childNode
 		if file.IsDir() {
-			node.Children[path].IsDir = true
+			node.Children[file.Name()].IsDir = true
 			*numDirs++
-			addToIndex(node.Children[path], path, file.Name())
-			err := indexFiles(path+"/"+file.Name(), node.Children[path], numFiles, numDirs) // recursive
+			err := indexFiles(path+"/"+file.Name(), node.Children[file.Name()], numFiles, numDirs) // recursive
 			if err != nil {
 				log.Printf("Could not index \"%v\": %v", path, err)
 			}
 		} else {
-			node.Children[path].IsDir = false
+			node.Children[file.Name()].IsDir = false
 			*numFiles++
-			addToIndex(node.Children[path], path, file.Name())
 		}
 	}
 	return nil
-}
-
-func addToIndex(node *TrieNode, path, fileName string) {
-	pathComponents := strings.Split(path, "/")
-	for _, component := range pathComponents {
-		if node.Children[component] == nil {
-			node.Children[component] = &TrieNode{
-				Children: make(map[string]*TrieNode),
-			}
-		}
-		node = node.Children[component]
-	}
-	node.IsDir = true
-
-	if node.IsDir {
-		if node.Children[fileName] == nil {
-			node.Children[fileName] = &TrieNode{Children: make(map[string]*TrieNode)}
-		}
-		node.Children[fileName].IsDir = true
-	} else {
-		if node.Children[fileName] == nil {
-			node.Children[fileName] = &TrieNode{Children: make(map[string]*TrieNode)}
-		}
-		node.Children[fileName].IsDir = false
-	}
 }
