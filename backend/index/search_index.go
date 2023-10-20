@@ -21,7 +21,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	if scope == "" {
 		scope = "/"
 	}
-	fileTypes := map[string]bool{}
+	//fileTypes := map[string]bool{}
 
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
@@ -34,45 +34,8 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 		if searchTerm == "" {
 			continue
 		}
-		// Iterate over the embedded index.Index fields Dirs and Files
-		for _, i := range []string{"Dirs", "Files"} {
-			isDir := false
-			count := 0
-			var paths []string
+		si.Root.SearchTrie(searchTerm, "", &matching)
 
-			switch i {
-			case "Dirs":
-				isDir = true
-				paths = si.Dirs
-			case "Files":
-				paths = si.Files
-			}
-			for _, path := range paths {
-				value, found := sessionInProgress.Load(sourceSession)
-				if !found || value != runningHash {
-					return []string{}, map[string]map[string]bool{}
-				}
-				if count > maxSearchResults {
-					break
-				}
-				pathName := scopedPathNameFilter(path, scope)
-				if pathName == "" {
-					continue
-				}
-
-				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir, fileTypes)
-				if !matches {
-					continue
-				}
-				if isDir {
-					fileListTypes[pathName+"/"] = fileType
-				} else {
-					fileListTypes[pathName] = fileType
-				}
-				matching = append(matching, pathName)
-				count++
-			}
-		}
 	}
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
@@ -163,4 +126,40 @@ func generateRandomHash(length int) string {
 		result[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(result)
+}
+
+func (node *TrieNode) SearchTrie(pattern string, currentPath string, results *[]string) {
+	if node == nil {
+		return
+	}
+
+	// Construct the current path by appending the node's name
+	if currentPath != "" {
+		currentPath += "/"
+	}
+	currentPath += pattern
+
+	// Check if the pattern matches the end of the node
+	if strings.HasSuffix(node.nodeName(), currentPath) {
+		*results = append(*results, node.nodeName())
+	}
+
+	// Recursively search the children
+	for _, child := range node.Children {
+		child.SearchTrie(pattern, currentPath, results)
+	}
+}
+
+func (node *TrieNode) nodeName() string {
+	if node.IsDir {
+		return node.Children[node.nodeNameKey()].nodeName()
+	}
+	return node.nodeNameKey()
+}
+
+func (node *TrieNode) nodeNameKey() string {
+	for k := range node.Children {
+		return k
+	}
+	return ""
 }

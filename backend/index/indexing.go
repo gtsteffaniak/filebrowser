@@ -3,7 +3,6 @@ package index
 import (
 	"log"
 	"os"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -15,15 +14,19 @@ const (
 	maxIndexSize = 1000
 )
 
+type TrieNode struct {
+	Children map[string]*TrieNode
+	IsDir    bool
+	mutex    sync.RWMutex
+}
+
 type Index struct {
-	Dirs  []string
-	Files []string
+	Root *TrieNode
 }
 
 var (
 	rootPath    string = "/srv"
 	indexes     Index
-	indexMutex  sync.RWMutex
 	lastIndexed time.Time
 )
 
@@ -34,109 +37,113 @@ func GetIndex() *Index {
 func Initialize(intervalMinutes uint32) {
 	// Initialize the index
 	indexes = Index{
-		Dirs:  make([]string, 0, maxIndexSize),
-		Files: make([]string, 0, maxIndexSize),
+		Root: &TrieNode{Children: make(map[string]*TrieNode)},
 	}
 	rootPath = settings.GlobalConfiguration.Server.Root
 	var numFiles, numDirs int
 	log.Println("Indexing files...")
 	lastIndexedStart := time.Now()
 	// Call the function to index files and directories
-	totalNumFiles, totalNumDirs, err := indexFiles(rootPath, &numFiles, &numDirs)
+	err := indexFiles(rootPath, indexes.Root, &numFiles, &numDirs)
 	if err != nil {
 		log.Fatal(err)
 	}
 	lastIndexed = lastIndexedStart
 	go indexingScheduler(intervalMinutes)
 	log.Println("Successfully indexed files.")
-	log.Println("Files found       :", totalNumFiles)
-	log.Println("Directories found :", totalNumDirs)
+	log.Println("Files found       :", numFiles)
+	log.Println("Directories found :", numDirs)
 }
 
 func indexingScheduler(intervalMinutes uint32) {
 	log.Printf("Indexing scheduler will run every %v minutes", intervalMinutes)
 	for {
-		indexes.Dirs = slices.Compact(indexes.Dirs)
-		indexes.Files = slices.Compact(indexes.Files)
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 		var numFiles, numDirs int
 		lastIndexedStart := time.Now()
-		totalNumFiles, totalNumDirs, err := indexFiles(rootPath, &numFiles, &numDirs)
+		err := indexFiles(rootPath, indexes.Root, &numFiles, &numDirs)
 		if err != nil {
 			log.Fatal(err)
 		}
 		lastIndexed = lastIndexedStart
-		if totalNumFiles+totalNumDirs > 0 {
+		if numFiles+numDirs > 0 {
 			log.Println("re-indexing found changes and updated the index.")
 		}
 	}
 }
 
-func removeFromSlice(slice []string, target string) []string {
-	for i, s := range slice {
-		if s == target {
-			// Swap the target element with the last element
-			slice[i], slice[len(slice)-1] = slice[len(slice)-1], slice[i]
-			// Resize the slice to exclude the last element
-			slice = slice[:len(slice)-1]
-			break // Exit the loop, assuming there's only one target element
-		}
-	}
-	return slice
-}
-
 // Define a function to recursively index files and directories
-func indexFiles(path string, numFiles *int, numDirs *int) (int, int, error) {
+func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error {
 	// Check if the current directory has been modified since last indexing
+
 	dir, err := os.Open(path)
 	if err != nil {
 		// directory must have been deleted, remove from index
-		indexes.Dirs = removeFromSlice(indexes.Dirs, path)
-		indexes.Files = removeFromSlice(indexes.Files, path)
+		node.mutex.Lock()
+		delete(node.Children, path)
+		node.mutex.Unlock()
 	}
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
 	if err != nil {
-		return *numFiles, *numDirs, err
+		return err
 	}
+	log.Println(dirInfo)
 	// Compare the last modified time of the directory with the last indexed time
 	if dirInfo.ModTime().Before(lastIndexed) {
-		return *numFiles, *numDirs, nil
+		return nil
 	}
+
 	// Read the directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
-		return *numFiles, *numDirs, err
+		return err
 	}
+	log.Println(files)
+
 	// Iterate over the files and directories
 	for _, file := range files {
+
 		if file.IsDir() {
 			*numDirs++
-			addToIndex(path, file.Name(), true)
-			_, _, err := indexFiles(path+"/"+file.Name(), numFiles, numDirs) // recursive
+			addToIndex(node, path, file.Name(), true)
+			err := indexFiles(path+"/"+file.Name(), node.Children[path], numFiles, numDirs) // recursive
 			if err != nil {
-				log.Println("Could not index :", err)
+				log.Println("Could not index:", err)
 			}
 		} else {
 			*numFiles++
-			addToIndex(path, file.Name(), false)
+			addToIndex(node, path, file.Name(), false)
 		}
 	}
-	return *numFiles, *numDirs, nil
+	return nil
 }
 
-func addToIndex(path string, fileName string, isDir bool) {
-	indexMutex.Lock()
-	defer indexMutex.Unlock()
-	path = strings.TrimPrefix(path, rootPath+"/")
-	path = strings.TrimSuffix(path, "/")
-	adjustedPath := path + "/" + fileName
-	if path == rootPath {
-		adjustedPath = fileName
+func addToIndex(node *TrieNode, path, fileName string, isDir bool) {
+	node.mutex.Lock()
+	defer node.mutex.Unlock()
+
+	if path != "" {
+		pathComponents := strings.Split(path, "/")
+		currNode := node
+		for _, component := range pathComponents {
+			if currNode.Children[component] == nil {
+				currNode.Children[component] = &TrieNode{Children: make(map[string]*TrieNode)}
+			}
+			currNode = currNode.Children[component]
+		}
+		currNode.IsDir = true
 	}
+
 	if isDir {
-		indexes.Dirs = append(indexes.Dirs, adjustedPath)
+		if node.Children[fileName] == nil {
+			node.Children[fileName] = &TrieNode{Children: make(map[string]*TrieNode)}
+		}
+		node.Children[fileName].IsDir = true
 	} else {
-		indexes.Files = append(indexes.Files, adjustedPath)
+		if node.Children[fileName] == nil {
+			node.Children[fileName] = &TrieNode{Children: make(map[string]*TrieNode)}
+		}
+		node.Children[fileName].IsDir = false
 	}
 }
