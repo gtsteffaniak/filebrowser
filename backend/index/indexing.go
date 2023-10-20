@@ -101,35 +101,35 @@ func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error 
 		childNode := &TrieNode{
 			Children: make(map[string]*TrieNode),
 		}
+		node.Children[path] = childNode
 		if file.IsDir() {
-			childNode.IsDir = true
+			node.Children[path].IsDir = true
 			*numDirs++
-			addToIndex(node, path, file.Name())
-			node.Children[path] = childNode
+			addToIndex(node.Children[path], path, file.Name())
 			err := indexFiles(path+"/"+file.Name(), node.Children[path], numFiles, numDirs) // recursive
 			if err != nil {
-				log.Println("Could not index:", err)
+				log.Printf("Could not index \"%v\": %v", path, err)
 			}
 		} else {
-			childNode.IsDir = false
+			node.Children[path].IsDir = false
 			*numFiles++
-			addToIndex(node, path, file.Name())
+			addToIndex(node.Children[path], path, file.Name())
 		}
 	}
 	return nil
 }
 
 func addToIndex(node *TrieNode, path, fileName string) {
-	if path != "" {
-		pathComponents := strings.Split(path, "/")
-		for _, component := range pathComponents {
-			if node.Children[component] == nil {
-				node.Children[component] = &TrieNode{Children: make(map[string]*TrieNode)}
+	pathComponents := strings.Split(path, "/")
+	for _, component := range pathComponents {
+		if node.Children[component] == nil {
+			node.Children[component] = &TrieNode{
+				Children: make(map[string]*TrieNode),
 			}
-			node = node.Children[component]
 		}
-		node.IsDir = true
+		node = node.Children[component]
 	}
+	node.IsDir = true
 
 	if node.IsDir {
 		if node.Children[fileName] == nil {
