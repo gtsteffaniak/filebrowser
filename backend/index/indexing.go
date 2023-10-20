@@ -17,11 +17,11 @@ const (
 type TrieNode struct {
 	Children map[string]*TrieNode
 	IsDir    bool
-	mutex    sync.RWMutex
 }
 
 type Index struct {
-	Root *TrieNode
+	Root  *TrieNode
+	mutex sync.RWMutex
 }
 
 var (
@@ -79,16 +79,13 @@ func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error 
 	dir, err := os.Open(path)
 	if err != nil {
 		// directory must have been deleted, remove from index
-		node.mutex.Lock()
 		delete(node.Children, path)
-		node.mutex.Unlock()
 	}
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
 	if err != nil {
 		return err
 	}
-	log.Println(dirInfo)
 	// Compare the last modified time of the directory with the last indexed time
 	if dirInfo.ModTime().Before(lastIndexed) {
 		return nil
@@ -99,43 +96,42 @@ func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error 
 	if err != nil {
 		return err
 	}
-	log.Println(files)
-
 	// Iterate over the files and directories
 	for _, file := range files {
-
+		childNode := &TrieNode{
+			Children: make(map[string]*TrieNode),
+		}
 		if file.IsDir() {
+			childNode.IsDir = true
 			*numDirs++
-			addToIndex(node, path, file.Name(), true)
+			addToIndex(node, path, file.Name())
+			node.Children[path] = childNode
 			err := indexFiles(path+"/"+file.Name(), node.Children[path], numFiles, numDirs) // recursive
 			if err != nil {
 				log.Println("Could not index:", err)
 			}
 		} else {
+			childNode.IsDir = false
 			*numFiles++
-			addToIndex(node, path, file.Name(), false)
+			addToIndex(node, path, file.Name())
 		}
 	}
 	return nil
 }
 
-func addToIndex(node *TrieNode, path, fileName string, isDir bool) {
-	node.mutex.Lock()
-	defer node.mutex.Unlock()
-
+func addToIndex(node *TrieNode, path, fileName string) {
 	if path != "" {
 		pathComponents := strings.Split(path, "/")
-		currNode := node
 		for _, component := range pathComponents {
-			if currNode.Children[component] == nil {
-				currNode.Children[component] = &TrieNode{Children: make(map[string]*TrieNode)}
+			if node.Children[component] == nil {
+				node.Children[component] = &TrieNode{Children: make(map[string]*TrieNode)}
 			}
-			currNode = currNode.Children[component]
+			node = node.Children[component]
 		}
-		currNode.IsDir = true
+		node.IsDir = true
 	}
 
-	if isDir {
+	if node.IsDir {
 		if node.Children[fileName] == nil {
 			node.Children[fileName] = &TrieNode{Children: make(map[string]*TrieNode)}
 		}
