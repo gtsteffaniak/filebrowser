@@ -127,13 +127,13 @@ func generateRandomHash(length int) string {
 	return string(result)
 }
 
-func (node *TrieNode) searchDirectory(searchPattern, scope, currentPath string, results *[]string) {
+func (node Directory) searchDirectory(searchPattern, scope, currentPath string, results *[]string) {
 	// Iterate over the children
-	for name, dir := range node.Dirs {
+	for _, dir := range node.Dirs {
 		// If the child is a directory, continue to traverse
-		dir.searchDirectory(searchPattern, scope, currentPath+"/"+name, results)
-		if strings.Contains(name, searchPattern) {
-			scopedName := scopedPathNameFilter(currentPath+"/"+name, scope)
+		dir.searchDirectory(searchPattern, scope, currentPath+"/"+dir.Name, results)
+		if strings.Contains(dir.Name, searchPattern) {
+			scopedName := scopedPathNameFilter(currentPath+"/"+dir.Name, scope)
 			*results = append(*results, scopedName)
 		}
 	}

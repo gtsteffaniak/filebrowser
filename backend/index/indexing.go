@@ -9,17 +9,14 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-const (
-	maxIndexSize = 1000
-)
-
-type TrieNode struct {
-	Dirs  map[string]*TrieNode
+type Directory struct {
+	Name  string
+	Dirs  []*Directory
 	Files []string
 }
 
 type Index struct {
-	Root  *TrieNode
+	Root  *Directory
 	mutex sync.RWMutex
 }
 
@@ -36,7 +33,7 @@ func GetIndex() *Index {
 func Initialize(intervalMinutes uint32) {
 	// Initialize the index
 	indexes = Index{
-		Root: &TrieNode{Dirs: make(map[string]*TrieNode)},
+		Root: &Directory{Dirs: []*Directory{}},
 	}
 	rootPath = settings.GlobalConfiguration.Server.Root
 	var numFiles, numDirs int
@@ -72,13 +69,13 @@ func indexingScheduler(intervalMinutes uint32) {
 }
 
 // Define a function to recursively index files and directories
-func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error {
+func indexFiles(path string, node *Directory, numFiles *int, numDirs *int) error {
 	// Check if the current directory has been modified since last indexing
 
 	dir, err := os.Open(path)
 	if err != nil {
 		// Directory must have been deleted, remove from index
-		delete(node.Dirs, path)
+		node.Dirs = removeFromSlice(node.Dirs, node)
 	}
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
@@ -105,16 +102,14 @@ func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error 
 		if file.IsDir() {
 			*numDirs++
 			dirName := file.Name()
-			// Reuse the existing TrieNode or create a new one
-			childNode, exists := node.Dirs[dirName]
-			if !exists {
-				childNode = &TrieNode{
-					Dirs: make(map[string]*TrieNode),
-				}
-				node.Dirs[dirName] = childNode
+			subDirectory := &Directory{
+				Name:  file.Name(),
+				Dirs:  []*Directory{},
+				Files: []string{},
 			}
+			node.Dirs = append(node.Dirs, subDirectory)
 			// Recursively index the directory
-			err := indexFiles(path+"/"+dirName, childNode, numFiles, numDirs)
+			err := indexFiles(path+"/"+dirName, subDirectory, numFiles, numDirs)
 			if err != nil {
 				log.Printf("Could not index \"%v\": %v", path, err)
 			}
@@ -125,4 +120,15 @@ func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error 
 	}
 
 	return nil
+}
+
+func removeFromSlice(slice []*Directory, target *Directory) []*Directory {
+	for i, d := range slice {
+		if d == target {
+			// Remove the element at index i by slicing the slice
+			slice = append(slice[:i], slice[i+1:]...)
+			break
+		}
+	}
+	return slice
 }
