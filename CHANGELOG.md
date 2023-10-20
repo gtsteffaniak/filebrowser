@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# v0.2.2
+  - Uses more efficient indexing
+  - Uses the index for filebrowser listings as well
+  - hidden files still accessible directly.
+  - editor fixed on save and themes
+  - running-config.yaml gets updated on settings change so running settings
+
 # v0.2.1
   - issue #29 - Rules can now be configured and read from configuration yaml
   - issue #28 - Allow disable settings per user.
