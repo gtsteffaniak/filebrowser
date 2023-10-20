@@ -2,7 +2,6 @@ package index
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -133,14 +132,13 @@ func generateRandomHash(length int) string {
 func (node *TrieNode) SearchTrie(searchPattern, scope, currentPath string, results *[]string) {
 	// Iterate over the children
 	for name, child := range node.Children {
-		log.Println(name)
-		filename := getLastPathComponent(name)
 		// If the child is a directory, continue to traverse
 		if child.IsDir {
-			child.SearchTrie(searchPattern, scope, filename, results)
+			child.SearchTrie(searchPattern, scope, currentPath+"/"+name, results)
 		}
-		if strings.Contains(filename, searchPattern) {
-			*results = append(*results, currentPath+filename)
+		if strings.Contains(name, searchPattern) {
+			scopedName := scopedPathNameFilter(currentPath+"/"+name, scope)
+			*results = append(*results, scopedName)
 		}
 	}
 }
