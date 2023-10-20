@@ -1,12 +1,10 @@
 package index
 
 import (
-	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -36,7 +34,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 		if searchTerm == "" {
 			continue
 		}
-		si.Root.SearchTrie(searchTerm, rootPath+scope, rootPath+scope, &matching)
+		si.Root.searchDirectory(searchTerm, rootPath+scope, rootPath+scope, &matching)
 	}
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
@@ -129,38 +127,14 @@ func generateRandomHash(length int) string {
 	return string(result)
 }
 
-func (node *TrieNode) SearchTrie(searchPattern, scope, currentPath string, results *[]string) {
+func (node *TrieNode) searchDirectory(searchPattern, scope, currentPath string, results *[]string) {
 	// Iterate over the children
-	for name, child := range node.Children {
+	for name, dir := range node.Dirs {
 		// If the child is a directory, continue to traverse
-		if child.IsDir {
-			child.SearchTrie(searchPattern, scope, currentPath+"/"+name, results)
-		}
+		dir.searchDirectory(searchPattern, scope, currentPath+"/"+name, results)
 		if strings.Contains(name, searchPattern) {
 			scopedName := scopedPathNameFilter(currentPath+"/"+name, scope)
 			*results = append(*results, scopedName)
-		}
-	}
-}
-func PrintIndexPaths(node *TrieNode, currentPath string, count int) {
-	if node == nil {
-		return
-	}
-	count += 1
-	// Print the current path
-	if currentPath != "" {
-		fmt.Println(strconv.Itoa(count) + " " + currentPath)
-	}
-
-	// Iterate over the children
-	for name, child := range node.Children {
-		count += 1
-		// If the child is a directory, continue to traverse
-		if child.IsDir {
-			PrintIndexPaths(child, currentPath+"/"+name, count)
-		} else {
-			// If it's a file, print the path
-			fmt.Println(currentPath + "/" + name)
 		}
 	}
 }

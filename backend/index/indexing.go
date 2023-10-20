@@ -14,8 +14,8 @@ const (
 )
 
 type TrieNode struct {
-	Children map[string]*TrieNode
-	IsDir    bool
+	Dirs  map[string]*TrieNode
+	Files []string
 }
 
 type Index struct {
@@ -36,7 +36,7 @@ func GetIndex() *Index {
 func Initialize(intervalMinutes uint32) {
 	// Initialize the index
 	indexes = Index{
-		Root: &TrieNode{Children: make(map[string]*TrieNode)},
+		Root: &TrieNode{Dirs: make(map[string]*TrieNode)},
 	}
 	rootPath = settings.GlobalConfiguration.Server.Root
 	var numFiles, numDirs int
@@ -77,8 +77,8 @@ func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error 
 
 	dir, err := os.Open(path)
 	if err != nil {
-		// directory must have been deleted, remove from index
-		delete(node.Children, path)
+		// Directory must have been deleted, remove from index
+		delete(node.Dirs, path)
 	}
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
@@ -95,22 +95,34 @@ func indexFiles(path string, node *TrieNode, numFiles *int, numDirs *int) error 
 	if err != nil {
 		return err
 	}
+
+	// Separate slices for directories and files
+	node.Files = []string{}
+
 	// Iterate over the files and directories
 	for _, file := range files {
-		node.Children[file.Name()] = &TrieNode{
-			Children: make(map[string]*TrieNode),
-		}
+		// Check if it's a directory or a file
 		if file.IsDir() {
-			node.Children[file.Name()].IsDir = true
 			*numDirs++
-			err := indexFiles(path+"/"+file.Name(), node.Children[file.Name()], numFiles, numDirs) // recursive
+			dirName := file.Name()
+			// Reuse the existing TrieNode or create a new one
+			childNode, exists := node.Dirs[dirName]
+			if !exists {
+				childNode = &TrieNode{
+					Dirs: make(map[string]*TrieNode),
+				}
+				node.Dirs[dirName] = childNode
+			}
+			// Recursively index the directory
+			err := indexFiles(path+"/"+dirName, childNode, numFiles, numDirs)
 			if err != nil {
 				log.Printf("Could not index \"%v\": %v", path, err)
 			}
 		} else {
-			node.Children[file.Name()].IsDir = false
+			node.Files = append(node.Files, file.Name())
 			*numFiles++
 		}
 	}
+
 	return nil
 }

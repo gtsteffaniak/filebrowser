@@ -17,16 +17,21 @@ func createMockData(node *TrieNode, numLevels, numDirs, numFilesPerDir int) {
 	rootPath := "srv"
 	for i := 0; i < numDirs; i++ {
 		dirName := getRandomTerm()
-		addToIndex(node, rootPath, dirName)
-
+		node.Children[dirName] = &TrieNode{
+			Children: make(map[string]*TrieNode),
+			IsDir:    true,
+		}
 		for j := 0; j < numFilesPerDir; j++ {
 			fileName := "file-" + getRandomTerm() + getRandomExtension()
-			addToIndex(node, dirName, fileName)
+			node.Children[dirName].Children = &TrieNode{
+				Children: make(map[string]*TrieNode),
+				IsDir:    false,
+			}
 		}
-
 		// Recursively create data for subdirectories
 		createMockData(node.Children[dirName], numLevels-1, numDirs, numFilesPerDir)
 	}
+
 }
 
 // Usage in the benchmark function:
