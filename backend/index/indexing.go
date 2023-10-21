@@ -3,7 +3,6 @@ package index
 import (
 	"log"
 	"os"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -11,13 +10,13 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-const (
-	maxIndexSize = 1000
-)
+type Directory struct {
+	Name  string
+	Files []string
+}
 
 type Index struct {
-	Dirs  []string
-	Files []string
+	Dirs []Directory
 }
 
 var (
@@ -34,8 +33,7 @@ func GetIndex() *Index {
 func Initialize(intervalMinutes uint32) {
 	// Initialize the index
 	indexes = Index{
-		Dirs:  make([]string, 0, maxIndexSize),
-		Files: make([]string, 0, maxIndexSize),
+		Dirs: make([]Directory, 0, 1000),
 	}
 	rootPath = settings.GlobalConfiguration.Server.Root
 	var numFiles, numDirs int
@@ -56,8 +54,6 @@ func Initialize(intervalMinutes uint32) {
 func indexingScheduler(intervalMinutes uint32) {
 	log.Printf("Indexing scheduler will run every %v minutes", intervalMinutes)
 	for {
-		indexes.Dirs = slices.Compact(indexes.Dirs)
-		indexes.Files = slices.Compact(indexes.Files)
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 		var numFiles, numDirs int
 		lastIndexedStart := time.Now()
@@ -72,9 +68,9 @@ func indexingScheduler(intervalMinutes uint32) {
 	}
 }
 
-func removeFromSlice(slice []string, target string) []string {
-	for i, s := range slice {
-		if s == target {
+func removeFromSlice(slice []Directory, target string) []Directory {
+	for i, d := range slice {
+		if d.Name == target {
 			// Swap the target element with the last element
 			slice[i], slice[len(slice)-1] = slice[len(slice)-1], slice[i]
 			// Resize the slice to exclude the last element
@@ -92,7 +88,6 @@ func indexFiles(path string, numFiles *int, numDirs *int) (int, int, error) {
 	if err != nil {
 		// directory must have been deleted, remove from index
 		indexes.Dirs = removeFromSlice(indexes.Dirs, path)
-		indexes.Files = removeFromSlice(indexes.Files, path)
 	}
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
@@ -135,8 +130,14 @@ func addToIndex(path string, fileName string, isDir bool) {
 		adjustedPath = fileName
 	}
 	if isDir {
-		indexes.Dirs = append(indexes.Dirs, adjustedPath)
+		indexes.Dirs = append(indexes.Dirs, Directory{Name: adjustedPath})
 	} else {
-		indexes.Files = append(indexes.Files, adjustedPath)
+		// Find the corresponding directory and append the file
+		for i, dir := range indexes.Dirs {
+			if dir.Name == path {
+				indexes.Dirs[i].Files = append(indexes.Dirs[i].Files, adjustedPath)
+				return
+			}
+		}
 	}
 }

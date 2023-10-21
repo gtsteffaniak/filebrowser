@@ -35,19 +35,11 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			continue
 		}
 		// Iterate over the embedded index.Index fields Dirs and Files
-		for _, i := range []string{"Dirs", "Files"} {
-			isDir := false
+		for _, directory := range si.Dirs {
+			isDir := true
 			count := 0
-			var paths []string
-
-			switch i {
-			case "Dirs":
-				isDir = true
-				paths = si.Dirs
-			case "Files":
-				paths = si.Files
-			}
-			for _, path := range paths {
+			for _, filename := range directory.Files {
+				path := directory.Name + "/" + filename
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					return []string{}, map[string]map[string]bool{}
