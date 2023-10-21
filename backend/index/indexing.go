@@ -135,7 +135,7 @@ func addToIndex(path string, fileName string, isDir bool) {
 		// Find the corresponding directory and append the file
 		for i, dir := range indexes.Dirs {
 			if dir.Name == path {
-				indexes.Dirs[i].Files = append(indexes.Dirs[i].Files, adjustedPath)
+				indexes.Dirs[i].Files = append(indexes.Dirs[i].Files, fileName)
 				return
 			}
 		}

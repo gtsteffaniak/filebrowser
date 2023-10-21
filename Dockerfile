@@ -1,4 +1,4 @@
-FROM node:slim as nbuild
+FROM node:current-alpine as nbuild
 WORKDIR /app
 COPY  ./frontend/package*.json ./
 RUN npm ci --maxsockets 1
