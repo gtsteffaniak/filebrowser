@@ -34,7 +34,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 		if searchTerm == "" {
 			continue
 		}
-		si.Root.searchDirectory(searchTerm, rootPath+scope, rootPath+scope, &matching)
 	}
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
@@ -125,16 +124,4 @@ func generateRandomHash(length int) string {
 		result[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(result)
-}
-
-func (node Directory) searchDirectory(searchPattern, scope, currentPath string, results *[]string) {
-	// Iterate over the children
-	for _, dir := range node.Dirs {
-		// If the child is a directory, continue to traverse
-		dir.searchDirectory(searchPattern, scope, currentPath+"/"+dir.Name, results)
-		if strings.Contains(dir.Name, searchPattern) {
-			scopedName := scopedPathNameFilter(currentPath+"/"+dir.Name, scope)
-			*results = append(*results, scopedName)
-		}
-	}
 }
