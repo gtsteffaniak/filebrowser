@@ -11,18 +11,23 @@ import (
 )
 
 type Directory struct {
-	Name  string
-	Files []string
+	Name     string
+	Metadata map[string]MetadataObj
+	Files    []string
 }
 
+type MetadataObj struct {
+	LastUpdated int
+	Size        int
+}
 type Index struct {
-	Dirs []Directory
+	Dirs  map[string]Directory
+	Mutex sync.RWMutex
 }
 
 var (
 	rootPath    string = "/srv"
 	indexes     Index
-	indexMutex  sync.RWMutex
 	lastIndexed time.Time
 )
 
@@ -33,7 +38,7 @@ func GetIndex() *Index {
 func Initialize(intervalMinutes uint32) {
 	// Initialize the index
 	indexes = Index{
-		Dirs: make([]Directory, 0, 1000),
+		Dirs: make(map[string]Directory),
 	}
 	rootPath = strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/")
 	var numFiles, numDirs int
@@ -90,7 +95,8 @@ func indexFiles(path string, numFiles *int, numDirs *int) error {
 	dir, err := os.Open(path)
 	if err != nil {
 		// directory must have been deleted, remove from index
-		indexes.Dirs = removeFromSlice(indexes.Dirs, path)
+		//indexes.Dirs = removeFromSlice(indexes.Dirs, path)
+		log.Println("error")
 	}
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
@@ -109,7 +115,7 @@ func indexFiles(path string, numFiles *int, numDirs *int) error {
 	// Iterate over the files and directories
 	for _, file := range files {
 		if file.IsDir() {
-			addToIndex(path+"/"+file.Name(), "", numFiles, numDirs)
+			indexes.addToIndex(path+"/"+file.Name(), "", numFiles, numDirs)
 			err := indexFiles(path+"/"+file.Name(), numFiles, numDirs) // recursive
 			if err != nil {
 				errMsg := err.Error()
@@ -119,39 +125,31 @@ func indexFiles(path string, numFiles *int, numDirs *int) error {
 				log.Printf("Could not index \"%v\" : %v", path+"/"+file.Name(), errMsg)
 			}
 		} else {
-			addToIndex(path, file.Name(), numFiles, numDirs)
+			indexes.addToIndex(path, file.Name(), numFiles, numDirs)
 		}
 	}
 	return nil
 }
 
-func addToIndex(path string, fileName string, numFiles *int, numDirs *int) {
-	indexMutex.Lock()
-	defer indexMutex.Unlock()
+func (si *Index) addToIndex(path string, fileName string, numFiles *int, numDirs *int) {
+	si.Mutex.Lock()
+	defer si.Mutex.Unlock()
 	path = strings.TrimPrefix(path, rootPath+"/")
 	path = strings.TrimSuffix(path, "/")
-	// Flag to check if the directory exists in the slice
-	exists := false
-	// Iterate over the slice to find the directory
-	for i, dir := range indexes.Dirs {
-		if dir.Name == path {
-			// If the directory exists, append the file to it
-			if fileName != "" {
-				*numFiles++
-				indexes.Dirs[i].Files = append(indexes.Dirs[i].Files, fileName)
-			}
-			exists = true
-			break
-		}
-	}
-	// If the directory doesn't exist, add it to the slice
+	// Check if the key exists
+	value, exists := indexes.Dirs[path]
 	if !exists {
 		*numDirs++
-		if fileName == "" {
-			indexes.Dirs = append(indexes.Dirs, Directory{Name: path, Files: []string{}})
-		} else {
-			*numFiles++
-			indexes.Dirs = append(indexes.Dirs, Directory{Name: path, Files: []string{fileName}})
-		}
+		// Key doesn't exist, create a new Directory
+		value = Directory{}
 	}
+
+	// Now you can update the struct field inside the value
+	if fileName != "" {
+		*numFiles++
+		value.Files = append(value.Files, fileName)
+	}
+
+	// Update the map with the modified value
+	indexes.Dirs[path] = value
 }
