@@ -2,42 +2,46 @@ package index
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 )
 
+func createMockData(node *TrieNode, numLevels, numDirs, numFilesPerDir int) {
+	if numLevels == 0 {
+		return
+	}
+	rootPath := "srv"
+	for i := 0; i < numDirs; i++ {
+		dirName := getRandomTerm()
+		addToIndex(node, rootPath, dirName)
+
+		for j := 0; j < numFilesPerDir; j++ {
+			fileName := "file-" + getRandomTerm() + getRandomExtension()
+			addToIndex(node, dirName, fileName)
+		}
+
+		// Recursively create data for subdirectories
+		createMockData(node.Children[dirName], numLevels-1, numDirs, numFilesPerDir)
+	}
+}
+
+// Usage in the benchmark function:
 func BenchmarkFillIndex(b *testing.B) {
 	indexes = Index{
-		Dirs:  make([]string, 0, 1000),
-		Files: make([]string, 0, 1000),
+		Root: &TrieNode{
+			Children: make(map[string]*TrieNode),
+			IsDir:    true,
+		},
 	}
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		createMockData(50, 3) // 1000 dirs, 3 files per dir
+		createMockData(indexes.Root, 5, 2, 2) // 5 levels * 5 dirs per level * 3 files per dir
 	}
-}
-
-func createMockData(numDirs, numFilesPerDir int) {
-	for i := 0; i < numDirs; i++ {
-		dirName := generateRandomPath(rand.Intn(3) + 1)
-		addToIndex("/", dirName, true)
-		for j := 0; j < numFilesPerDir; j++ {
-			fileName := "file-" + getRandomTerm() + getRandomExtension()
-			addToIndex("/"+dirName, fileName, false)
-		}
-	}
-}
-
-func generateRandomPath(levels int) string {
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	dirName := "srv"
-	for i := 0; i < levels; i++ {
-		dirName += "/" + getRandomTerm()
-	}
-	return dirName
 }
 
 func getRandomTerm() string {
@@ -131,54 +135,25 @@ func Test_indexingScheduler(t *testing.T) {
 		})
 	}
 }
+func PrintIndexPaths(node *TrieNode, currentPath string, count int) {
+	if node == nil {
+		return
+	}
+	count += 1
+	// Print the current path
+	if currentPath != "" {
+		fmt.Println(strconv.Itoa(count) + " " + currentPath)
+	}
 
-func Test_indexFiles(t *testing.T) {
-	type args struct {
-		path     string
-		numFiles *int
-		numDirs  *int
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    int
-		want1   int
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := indexFiles(tt.args.path, tt.args.numFiles, tt.args.numDirs)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("indexFiles() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("indexFiles() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("indexFiles() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
-
-func Test_addToIndex(t *testing.T) {
-	type args struct {
-		path     string
-		fileName string
-		isDir    bool
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			addToIndex(tt.args.path, tt.args.fileName, tt.args.isDir)
-		})
+	// Iterate over the children
+	for name, child := range node.Children {
+		count += 1
+		// If the child is a directory, continue to traverse
+		if child.IsDir {
+			PrintIndexPaths(child, currentPath+"/"+name, count)
+		} else {
+			// If it's a file, print the path
+			fmt.Println(currentPath + "/" + name)
+		}
 	}
 }

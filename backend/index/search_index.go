@@ -152,3 +152,39 @@ func generateRandomHash(length int) string {
 	}
 	return string(result)
 }
+
+func (node *TrieNode) SearchTrie(pattern string, currentPath string, results *[]string) {
+	if node == nil {
+		return
+	}
+
+	// Construct the current path by appending the node's name
+	if currentPath != "" {
+		currentPath += "/"
+	}
+	currentPath += pattern
+
+	// Check if the pattern matches the end of the node
+	if strings.HasSuffix(node.nodeName(), currentPath) {
+		*results = append(*results, node.nodeName())
+	}
+
+	// Recursively search the children
+	for _, child := range node.Children {
+		child.SearchTrie(pattern, currentPath, results)
+	}
+}
+
+func (node *TrieNode) nodeName() string {
+	if node.IsDir {
+		return node.Children[node.nodeNameKey()].nodeName()
+	}
+	return node.nodeNameKey()
+}
+
+func (node *TrieNode) nodeNameKey() string {
+	for k := range node.Children {
+		return k
+	}
+	return ""
+}

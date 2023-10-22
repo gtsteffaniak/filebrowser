@@ -3,7 +3,6 @@ package index
 import (
 	"log"
 	"os"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -60,23 +59,11 @@ func indexingScheduler(intervalMinutes uint32) {
 			log.Printf("Time spent indexing : %v seconds \n", timeIndexedInSeconds)
 			log.Println("Files found       :", numFiles)
 			log.Println("Directories found :", numDirs)
+
 		}
 		index.Files = slices.Compact(index.Files)
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 	}
-}
-
-func removeFromSlice(slice []string, target string) []string {
-	for i, s := range slice {
-		if s == target {
-			// Swap the target element with the last element
-			slice[i], slice[len(slice)-1] = slice[len(slice)-1], slice[i]
-			// Resize the slice to exclude the last element
-			slice = slice[:len(slice)-1]
-			break // Exit the loop, assuming there's only one target element
-		}
-	}
-	return slice
 }
 
 // Define a function to recursively index files and directories
@@ -84,6 +71,7 @@ func (si *Index) indexFiles(path string, numFiles *int, numDirs *int) error {
 	// Check if the current directory has been modified since last indexing
 	path = strings.TrimSuffix(path, "/")
 	// Check if the current directory has been modified since last indexing
+
 	dir, err := os.Open(path)
 	if err != nil {
 		// directory must have been deleted, remove from index
@@ -99,6 +87,7 @@ func (si *Index) indexFiles(path string, numFiles *int, numDirs *int) error {
 	if dirInfo.ModTime().Before(si.LastIndexed) {
 		return nil
 	}
+
 	// Read the directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
@@ -106,11 +95,15 @@ func (si *Index) indexFiles(path string, numFiles *int, numDirs *int) error {
 	}
 	// Iterate over the files and directories
 	for _, file := range files {
+		childNode := &TrieNode{
+			Children: make(map[string]*TrieNode),
+		}
+		node.Children[path] = childNode
 		if file.IsDir() {
 			//si.addToIndex(path+"/"+file.Name(), "", numFiles, numDirs)
 			err := si.indexFiles(path+"/"+file.Name(), numFiles, numDirs) // recursive
 			if err != nil {
-				log.Println("Could not index :", err)
+				log.Printf("Could not index \"%v\": %v", path, err)
 			}
 		} else {
 			si.addToIndex(path, file.Name(), numFiles, numDirs)
