@@ -35,20 +35,22 @@ func Initialize(intervalMinutes uint32) {
 	indexes = Index{
 		Dirs: make([]Directory, 0, 1000),
 	}
-	rootPath = settings.GlobalConfiguration.Server.Root
+	rootPath = strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/")
 	var numFiles, numDirs int
 	log.Println("Indexing files...")
 	lastIndexedStart := time.Now()
 	// Call the function to index files and directories
-	totalNumFiles, totalNumDirs, err := indexFiles(rootPath, &numFiles, &numDirs)
+	err := indexFiles(rootPath, &numFiles, &numDirs)
 	if err != nil {
 		log.Fatal(err)
 	}
 	lastIndexed = lastIndexedStart
+	timeIndexedInSeconds := int(time.Since(lastIndexedStart).Seconds())
 	go indexingScheduler(intervalMinutes)
 	log.Println("Successfully indexed files.")
-	log.Println("Files found       :", totalNumFiles)
-	log.Println("Directories found :", totalNumDirs)
+	log.Printf("Time spent indexing : %v seconds \n", timeIndexedInSeconds)
+	log.Println("Files found         :", numFiles)
+	log.Println("Directories found   :", numDirs)
 }
 
 func indexingScheduler(intervalMinutes uint32) {
@@ -57,12 +59,12 @@ func indexingScheduler(intervalMinutes uint32) {
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 		var numFiles, numDirs int
 		lastIndexedStart := time.Now()
-		totalNumFiles, totalNumDirs, err := indexFiles(rootPath, &numFiles, &numDirs)
+		err := indexFiles(rootPath, &numFiles, &numDirs)
 		if err != nil {
 			log.Fatal(err)
 		}
 		lastIndexed = lastIndexedStart
-		if totalNumFiles+totalNumDirs > 0 {
+		if numFiles+numDirs > 0 {
 			log.Println("re-indexing found changes and updated the index.")
 		}
 	}
@@ -82,7 +84,8 @@ func removeFromSlice(slice []Directory, target string) []Directory {
 }
 
 // Define a function to recursively index files and directories
-func indexFiles(path string, numFiles *int, numDirs *int) (int, int, error) {
+func indexFiles(path string, numFiles *int, numDirs *int) error {
+	path = strings.TrimSuffix(path, "/")
 	// Check if the current directory has been modified since last indexing
 	dir, err := os.Open(path)
 	if err != nil {
@@ -92,52 +95,63 @@ func indexFiles(path string, numFiles *int, numDirs *int) (int, int, error) {
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
 	if err != nil {
-		return *numFiles, *numDirs, err
+		return err
 	}
 	// Compare the last modified time of the directory with the last indexed time
 	if dirInfo.ModTime().Before(lastIndexed) {
-		return *numFiles, *numDirs, nil
+		return nil
 	}
 	// Read the directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
-		return *numFiles, *numDirs, err
+		return err
 	}
 	// Iterate over the files and directories
 	for _, file := range files {
 		if file.IsDir() {
-			*numDirs++
-			addToIndex(path, file.Name(), true)
-			_, _, err := indexFiles(path+"/"+file.Name(), numFiles, numDirs) // recursive
+			addToIndex(path+"/"+file.Name(), "", numFiles, numDirs)
+			err := indexFiles(path+"/"+file.Name(), numFiles, numDirs) // recursive
 			if err != nil {
-				log.Println("Could not index :", err)
+				errMsg := err.Error()
+				if errMsg == "invalid argument" {
+					errMsg = "Permission Denied"
+				}
+				log.Printf("Could not index \"%v\" : %v", path+"/"+file.Name(), errMsg)
 			}
 		} else {
-			*numFiles++
-			addToIndex(path, file.Name(), false)
+			addToIndex(path, file.Name(), numFiles, numDirs)
 		}
 	}
-	return *numFiles, *numDirs, nil
+	return nil
 }
 
-func addToIndex(path string, fileName string, isDir bool) {
+func addToIndex(path string, fileName string, numFiles *int, numDirs *int) {
 	indexMutex.Lock()
 	defer indexMutex.Unlock()
 	path = strings.TrimPrefix(path, rootPath+"/")
 	path = strings.TrimSuffix(path, "/")
-	adjustedPath := path + "/" + fileName
-	if path == rootPath {
-		adjustedPath = fileName
-	}
-	if isDir {
-		indexes.Dirs = append(indexes.Dirs, Directory{Name: adjustedPath})
-	} else {
-		// Find the corresponding directory and append the file
-		for i, dir := range indexes.Dirs {
-			if dir.Name == path {
+	// Flag to check if the directory exists in the slice
+	exists := false
+	// Iterate over the slice to find the directory
+	for i, dir := range indexes.Dirs {
+		if dir.Name == path {
+			// If the directory exists, append the file to it
+			if fileName != "" {
+				*numFiles++
 				indexes.Dirs[i].Files = append(indexes.Dirs[i].Files, fileName)
-				return
 			}
+			exists = true
+			break
+		}
+	}
+	// If the directory doesn't exist, add it to the slice
+	if !exists {
+		*numDirs++
+		if fileName == "" {
+			indexes.Dirs = append(indexes.Dirs, Directory{Name: path, Files: []string{}})
+		} else {
+			*numFiles++
+			indexes.Dirs = append(indexes.Dirs, Directory{Name: path, Files: []string{fileName}})
 		}
 	}
 }
