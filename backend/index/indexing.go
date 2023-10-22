@@ -55,8 +55,8 @@ func Initialize(intervalMinutes uint32) {
 
 func indexingScheduler(intervalMinutes uint32) {
 	log.Printf("Indexing Files...")
-	log.Println("Configured to run every %v minutes", intervalMinutes)
-	log.Println("Indexing from root : ", index.Root)
+	log.Printf("Configured to run every %v minutes", intervalMinutes)
+	log.Printf("Indexing from root: %s", index.Root)
 	for {
 		startTime := time.Now()
 		// Check if the read lock is held by any goroutine
@@ -65,15 +65,15 @@ func indexingScheduler(intervalMinutes uint32) {
 		}
 		err := index.indexFiles(index.Root)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("Error during indexing: %v", err)
 		}
 		index.LastIndexed = time.Now()
 		if index.NumFiles+index.NumDirs > 0 {
 			timeIndexedInSeconds := int(time.Since(startTime).Seconds())
 			log.Println("Successfully indexed files.")
-			log.Printf("Time spent indexing : %v seconds \n", timeIndexedInSeconds)
-			log.Println("Files found       :", index.NumFiles)
-			log.Println("Directories found :", index.NumDirs)
+			log.Printf("Time spent indexing: %v seconds\n", timeIndexedInSeconds)
+			log.Printf("Files found: %v\n", index.NumFiles)
+			log.Printf("Directories found: %v\n", index.NumDirs)
 		}
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 	}
@@ -137,18 +137,6 @@ func (si *Index) Insert(path string, fileName string, isDir bool) {
 		err := index.indexFiles(path + "/" + fileName)
 		if err != nil {
 			log.Printf("Could not index \"%v\": %v", path, err)
-		}
-	} else {
-		//exists := false
-		for k, v := range index.Directories {
-			if v.Name == adjustedPath {
-				//exists := true
-				si.mutex.Lock()
-				index.Directories[k].Files = append(index.Directories[k].Files, fileName)
-				si.mutex.Unlock()
-				si.NumFiles++
-				continue
-			}
 		}
 	}
 }
