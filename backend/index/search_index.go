@@ -21,8 +21,8 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	if scope == "" {
 		scope = "/"
 	}
+	isDir := false
 	fileTypes := map[string]bool{}
-
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -35,43 +35,31 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			continue
 		}
 		// Iterate over the embedded index.Index fields Dirs and Files
-		for _, i := range []string{"Dirs", "Files"} {
-			isDir := false
+		for _, path := range si.Files {
 			count := 0
-			var paths []string
-
-			switch i {
-			case "Dirs":
-				isDir = true
-				paths = si.Dirs
-			case "Files":
-				paths = si.Files
+			value, found := sessionInProgress.Load(sourceSession)
+			if !found || value != runningHash {
+				return []string{}, map[string]map[string]bool{}
 			}
-			for _, path := range paths {
-				value, found := sessionInProgress.Load(sourceSession)
-				if !found || value != runningHash {
-					return []string{}, map[string]map[string]bool{}
-				}
-				if count > maxSearchResults {
-					break
-				}
-				pathName := scopedPathNameFilter(path, scope)
-				if pathName == "" {
-					continue
-				}
-
-				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir, fileTypes)
-				if !matches {
-					continue
-				}
-				if isDir {
-					fileListTypes[pathName+"/"] = fileType
-				} else {
-					fileListTypes[pathName] = fileType
-				}
-				matching = append(matching, pathName)
-				count++
+			if count > maxSearchResults {
+				break
 			}
+			pathName := scopedPathNameFilter(path, scope)
+			if pathName == "" {
+				continue
+			}
+
+			matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir, fileTypes, si.Root)
+			if !matches {
+				continue
+			}
+			if isDir {
+				fileListTypes[pathName+"/"] = fileType
+			} else {
+				fileListTypes[pathName] = fileType
+			}
+			matching = append(matching, pathName)
+			count++
 		}
 	}
 	// Sort the strings based on the number of elements after splitting by "/"
@@ -94,7 +82,7 @@ func scopedPathNameFilter(pathName string, scope string) string {
 	return pathName
 }
 
-func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, map[string]bool) {
+func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool, rootPath string) (bool, map[string]bool) {
 	conditions := options.Conditions
 	path := getLastPathComponent(pathName)
 	// Convert to lowercase once
@@ -121,12 +109,12 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 			switch t {
 			case "larger":
 				if fileSize == 0 {
-					fileSize = getFileSize(pathName)
+					fileSize = getFileSize(rootPath, pathName)
 				}
 				matchesCondition = fileSize > int64(options.LargerThan)*bytesInMegabyte
 			case "smaller":
 				if fileSize == 0 {
-					fileSize = getFileSize(pathName)
+					fileSize = getFileSize(rootPath, pathName)
 				}
 				matchesCondition = fileSize < int64(options.SmallerThan)*bytesInMegabyte
 			default:
@@ -142,7 +130,7 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 	return false, map[string]bool{}
 }
 
-func getFileSize(filepath string) int64 {
+func getFileSize(rootPath string, filepath string) int64 {
 	fileInfo, err := os.Stat(rootPath + "/" + filepath)
 	if err != nil {
 		return 0
