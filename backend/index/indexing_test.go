@@ -2,51 +2,48 @@ package index
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"reflect"
-	"strconv"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-func createMockData(node *TrieNode, numLevels, numDirs, numFilesPerDir int) {
-	if numLevels == 0 {
-		return
-	}
-	rootPath := "srv"
-	for i := 0; i < numDirs; i++ {
-		dirName := getRandomTerm()
-		node.Children[dirName] = &TrieNode{
-			Children: make(map[string]*TrieNode),
-			IsDir:    true,
-		}
-		for j := 0; j < numFilesPerDir; j++ {
-			fileName := "file-" + getRandomTerm() + getRandomExtension()
-			node.Children[dirName].Children = &TrieNode{
-				Children: make(map[string]*TrieNode),
-				IsDir:    false,
-			}
-		}
-		// Recursively create data for subdirectories
-		createMockData(node.Children[dirName], numLevels-1, numDirs, numFilesPerDir)
-	}
-
-}
-
-// Usage in the benchmark function:
 func BenchmarkFillIndex(b *testing.B) {
-	indexes = Index{
-		Root: &TrieNode{
-			Children: make(map[string]*TrieNode),
-			IsDir:    true,
-		},
+	index = Index{
+		Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+		Directories:       []Directory{},
+		NumDirs:           0,
+		NumFiles:          0,
+		currentlyIndexing: false,
 	}
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		createMockData(indexes.Root, 5, 2, 2) // 5 levels * 5 dirs per level * 3 files per dir
+		createMockData(50, 3) // 1000 dirs, 3 files per dir
 	}
+}
+
+func createMockData(numDirs, numFilesPerDir int) {
+	for i := 0; i < numDirs; i++ {
+		dirName := generateRandomPath(rand.Intn(3) + 1)
+		index.indexFiles("/" + dirName)
+		for j := 0; j < numFilesPerDir; j++ {
+			fileName := "file-" + getRandomTerm() + getRandomExtension()
+			index.indexFiles("/" + dirName + "/" + fileName)
+		}
+	}
+}
+
+func generateRandomPath(levels int) string {
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	dirName := "srv"
+	for i := 0; i < levels; i++ {
+		dirName += "/" + getRandomTerm()
+	}
+	return dirName
 }
 
 func getRandomTerm() string {
@@ -100,7 +97,7 @@ func TestGetIndex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetIndex(); !reflect.DeepEqual(got, tt.want) {
+			if got := GetIndex("root"); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetIndex() = %v, want %v", got, tt.want)
 			}
 		})
@@ -138,27 +135,5 @@ func Test_indexingScheduler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			indexingScheduler(tt.args.intervalMinutes)
 		})
-	}
-}
-func PrintIndexPaths(node *TrieNode, currentPath string, count int) {
-	if node == nil {
-		return
-	}
-	count += 1
-	// Print the current path
-	if currentPath != "" {
-		fmt.Println(strconv.Itoa(count) + " " + currentPath)
-	}
-
-	// Iterate over the children
-	for name, child := range node.Children {
-		count += 1
-		// If the child is a directory, continue to traverse
-		if child.IsDir {
-			PrintIndexPaths(child, currentPath+"/"+name, count)
-		} else {
-			// If it's a file, print the path
-			fmt.Println(currentPath + "/" + name)
-		}
 	}
 }
