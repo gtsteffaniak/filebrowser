@@ -89,7 +89,7 @@ func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
 			pathName = pathName + "/"
 		}
 	} else {
-		pathName = "/"
+		pathName = "" // return not matched
 	}
 	return pathName
 }

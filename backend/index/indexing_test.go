@@ -10,8 +10,8 @@ import (
 
 func BenchmarkFillIndex(b *testing.B) {
 	indexes = Index{
-		Dirs:  make([]string, 0, 1000),
-		Files: make([]string, 0, 1000),
+		Dirs:  []string{},
+		Files: []string{},
 	}
 	b.ResetTimer()
 	b.ReportAllocs()

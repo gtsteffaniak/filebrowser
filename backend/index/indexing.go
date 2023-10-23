@@ -11,10 +11,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-const (
-	maxIndexSize = 1000
-)
-
 type Index struct {
 	Dirs  []string
 	Files []string
@@ -34,8 +30,8 @@ func GetIndex() *Index {
 func Initialize(intervalMinutes uint32) {
 	// Initialize the index
 	indexes = Index{
-		Dirs:  make([]string, 0, maxIndexSize),
-		Files: make([]string, 0, maxIndexSize),
+		Dirs:  []string{},
+		Files: []string{},
 	}
 	rootPath = settings.GlobalConfiguration.Server.Root
 	var numFiles, numDirs int
