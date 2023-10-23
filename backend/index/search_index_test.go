@@ -9,8 +9,8 @@ import (
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
 	indexes = Index{
-		Dirs:  make([]string, 0, 1000),
-		Files: make([]string, 0, 1000),
+		Dirs:  []string{},
+		Files: []string{},
 	}
 	// Create mock data
 	createMockData(50, 3) // 1000 dirs, 3 files per dir
@@ -101,37 +101,37 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search:         "audio",
 			scope:          "/new/",
-			expectedResult: []string{"/test/audio.wav"},
+			expectedResult: []string{"test/audio.wav"},
 			expectedTypes: map[string]map[string]bool{
-				"/test/audio.wav": map[string]bool{"audio": true, "dir": false},
+				"test/audio.wav": map[string]bool{"audio": true, "dir": false},
 			},
 		},
 		{
 			search:         "test",
 			scope:          "/",
-			expectedResult: []string{"/test"},
+			expectedResult: []string{"test/"},
 			expectedTypes: map[string]map[string]bool{
-				"/test/": map[string]bool{"dir": true},
+				"test/": map[string]bool{"dir": true},
 			},
 		},
 		{
 			search:         "archive",
 			scope:          "/",
-			expectedResult: []string{"/new/test/path/archive.zip"},
+			expectedResult: []string{"new/test/path/archive.zip"},
 			expectedTypes: map[string]map[string]bool{
-				"/new/test/path/archive.zip": map[string]bool{"archive": true, "dir": false},
+				"new/test/path/archive.zip": map[string]bool{"archive": true, "dir": false},
 			},
 		},
 		{
 			search: "video",
 			scope:  "/",
 			expectedResult: []string{
-				"/new/test/video.mp4",
-				"/new/test/video.MP4",
+				"new/test/video.mp4",
+				"new/test/video.MP4",
 			},
 			expectedTypes: map[string]map[string]bool{
-				"/new/test/video.MP4": map[string]bool{"video": true, "dir": false},
-				"/new/test/video.mp4": map[string]bool{"video": true, "dir": false},
+				"new/test/video.MP4": map[string]bool{"video": true, "dir": false},
+				"new/test/video.mp4": map[string]bool{"video": true, "dir": false},
 			},
 		},
 	}
@@ -145,27 +145,6 @@ func TestSearchIndexes(t *testing.T) {
 					assert.True(t, exists, "Expected type key '%s' not found in actual types", key)
 					assert.Equal(t, value, actualValue, "Type value mismatch for key '%s'", key)
 				}
-			}
-		})
-	}
-}
-
-func Test_scopedPathNameFilter(t *testing.T) {
-	type args struct {
-		pathName string
-		scope    string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := scopedPathNameFilter(tt.args.pathName, tt.args.scope); got != tt.want {
-				t.Errorf("scopedPathNameFilter() = %v, want %v", got, tt.want)
 			}
 		})
 	}

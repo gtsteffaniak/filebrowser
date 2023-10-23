@@ -21,8 +21,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	if scope == "" {
 		scope = "/"
 	}
-	fileTypes := map[string]bool{}
-
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -55,20 +53,16 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if count > maxSearchResults {
 					break
 				}
-				pathName := scopedPathNameFilter(path, scope)
+				pathName := scopedPathNameFilter(path, scope, isDir)
 				if pathName == "" {
 					continue
 				}
-
+				fileTypes := map[string]bool{}
 				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir, fileTypes)
 				if !matches {
 					continue
 				}
-				if isDir {
-					fileListTypes[pathName+"/"] = fileType
-				} else {
-					fileListTypes[pathName] = fileType
-				}
+				fileListTypes[pathName] = fileType
 				matching = append(matching, pathName)
 				count++
 			}
@@ -83,13 +77,17 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	return matching, fileListTypes
 }
 
-func scopedPathNameFilter(pathName string, scope string) string {
+func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
 	scope = strings.TrimPrefix(scope, "/")
 	pathName = strings.TrimPrefix(pathName, "/")
+	pathName = strings.TrimSuffix(pathName, "/")
 	if strings.HasPrefix(pathName, scope) {
-		pathName = "/" + strings.TrimPrefix(pathName, scope)
+		pathName = strings.TrimPrefix(pathName, scope)
+		if isDir {
+			pathName = pathName + "/"
+		}
 	} else {
-		pathName = ""
+		pathName = "" // return not matched
 	}
 	return pathName
 }
