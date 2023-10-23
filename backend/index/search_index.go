@@ -21,8 +21,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	if scope == "" {
 		scope = "/"
 	}
-	fileTypes := map[string]bool{}
-
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -59,7 +57,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if pathName == "" {
 					continue
 				}
-				fileTypes = map[string]bool{}
+				fileTypes := map[string]bool{}
 				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir, fileTypes)
 				if !matches {
 					continue
