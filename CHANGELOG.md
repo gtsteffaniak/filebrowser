@@ -7,11 +7,10 @@ All notable changes to this project will be documented in this file. See [standa
   - Index changes: 
     - Speed        : (0m57s) +78% change vs prior release
     - Memory Usage : (41MB ) -45% change vs prior release
-  - Uses more efficient indexing
-  - Uses the index for filebrowser listings as well
-  - hidden files still accessible directly.
-  - editor fixed on save and themes
-  - running-config.yaml gets updated on settings change so running settings
+  - [WIP] Uses the index for filebrowser listings as well
+  - [WIP] hidden files still accessible directly.
+  - [WIP] editor fixed on save and themes
+  - [WIP] running-config.yaml gets updated on settings change so running settings
 
 # v0.2.1
 
