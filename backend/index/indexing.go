@@ -111,16 +111,26 @@ func (si *Index) indexFiles(path string) error {
 		si.currentlyIndexing = false
 		return err
 	}
-
+	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
+	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
+	keyVal := -1
+	//exists := false
+	for k, v := range index.Directories {
+		if v.Name == adjustedPath {
+			//exists := true
+			keyVal = k
+			continue
+		}
+	}
 	// Iterate over the files and directories
 	for _, file := range files {
-		si.Insert(path, file.Name(), file.IsDir())
+		si.Insert(path, file.Name(), file.IsDir(), keyVal)
 	}
 	si.currentlyIndexing = false
 	return nil
 }
 
-func (si *Index) Insert(path string, fileName string, isDir bool) {
+func (si *Index) Insert(path string, fileName string, isDir bool, key int) {
 	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
 	// Check if it's a directory or a file
@@ -138,6 +148,14 @@ func (si *Index) Insert(path string, fileName string, isDir bool) {
 		if err != nil {
 			log.Printf("Could not index \"%v\": %v", path, err)
 		}
+	} else {
+		if key != -1 {
+			si.mutex.Lock()
+			index.Directories[key].Files = append(index.Directories[key].Files, fileName)
+			si.mutex.Unlock()
+			si.NumFiles++
+		}
+
 	}
 }
 
