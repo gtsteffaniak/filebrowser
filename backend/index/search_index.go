@@ -22,7 +22,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 		scope = "/"
 	}
 	//fileTypes := map[string]bool{}
-
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -30,9 +29,58 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
 	matching := []string{}
+	count := 0
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
+		}
+		for _, dir := range si.Directories {
+			isDir := true
+			files := strings.Split(dir.Files, ";")
+			value, found := sessionInProgress.Load(sourceSession)
+			if !found || value != runningHash {
+				return []string{}, map[string]map[string]bool{}
+			}
+			if count > maxSearchResults {
+				break
+			}
+			pathName := scopedPathNameFilter(dir.Name, scope, isDir)
+			if pathName != "" {
+				fileTypes := map[string]bool{}
+				matches, fileType := containsSearchTerm(dir.Name, searchTerm, *searchOptions, isDir, fileTypes)
+				if !matches {
+					continue
+				}
+				fileListTypes[pathName] = fileType
+				matching = append(matching, pathName)
+				count++
+			}
+			for _, file := range files {
+				if file == "" {
+					continue
+				}
+				fullName := dir.Name + "/" + file
+				isDir = false
+				value, found := sessionInProgress.Load(sourceSession)
+				if !found || value != runningHash {
+					return []string{}, map[string]map[string]bool{}
+				}
+				if count > maxSearchResults {
+					break
+				}
+				pathName := scopedPathNameFilter(fullName, scope, isDir)
+				if pathName == "" {
+					continue
+				}
+				fileTypes := map[string]bool{}
+				matches, fileType := containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
+				if !matches {
+					continue
+				}
+				fileListTypes[pathName] = fileType
+				matching = append(matching, pathName)
+				count++
+			}
 		}
 	}
 	// Sort the strings based on the number of elements after splitting by "/"
@@ -44,13 +92,17 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	return matching, fileListTypes
 }
 
-func scopedPathNameFilter(pathName string, scope string) string {
+func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
 	scope = strings.TrimPrefix(scope, "/")
 	pathName = strings.TrimPrefix(pathName, "/")
+	pathName = strings.TrimSuffix(pathName, "/")
 	if strings.HasPrefix(pathName, scope) {
 		pathName = strings.TrimPrefix(pathName, scope)
+		if isDir {
+			pathName = pathName + "/"
+		}
 	} else {
-		pathName = ""
+		pathName = "" // return not matched
 	}
 	return pathName
 }

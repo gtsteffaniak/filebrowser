@@ -13,7 +13,7 @@ import (
 type Directory struct {
 	Name     string
 	Metadata map[string]meta
-	Files    []string
+	Files    string
 }
 type meta struct {
 	LastUpdated int
@@ -37,7 +37,6 @@ var (
 
 func GetIndex(root string) *Index {
 	root = strings.TrimSuffix(root, "/")
-	log.Println("getting index for ", root)
 	return &index
 }
 
@@ -138,7 +137,7 @@ func (si *Index) Insert(path string, fileName string, isDir bool, key int) {
 		si.NumDirs++
 		subDirectory := Directory{
 			Name: adjustedPath + "/" + fileName,
-		}
+		} // 48
 		si.mutex.Lock()
 		index.Directories = append(index.Directories, subDirectory)
 		si.mutex.Unlock()
@@ -151,11 +150,10 @@ func (si *Index) Insert(path string, fileName string, isDir bool, key int) {
 	} else {
 		if key != -1 {
 			si.mutex.Lock()
-			index.Directories[key].Files = append(index.Directories[key].Files, fileName)
+			index.Directories[key].Files += fileName + ";"
 			si.mutex.Unlock()
 			si.NumFiles++
 		}
-
 	}
 }
 
