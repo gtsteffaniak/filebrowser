@@ -1,27 +1,54 @@
 
  == Running benchmark == 
 /usr/local/go/bin/go
+?   	github.com/gtsteffaniak/filebrowser	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/auth	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/cmd	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/files	[no test files]
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-FAIL	github.com/gtsteffaniak/filebrowser/http [build failed]
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 h: 401  <nil>
+2023/11/04 08:50:05 h: 401  <nil>
+2023/11/04 08:50:05 h: 401  <nil>
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 Saving new user: username
+2023/11/04 08:50:05 h: 401  <nil>
+2023/11/04 08:50:05 h: 401  <nil>
+2023/11/04 08:50:05 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.131s
-FAIL	github.com/gtsteffaniak/filebrowser/index [build failed]
+ok  	github.com/gtsteffaniak/filebrowser/http	0.174s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/rules	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.129s
+goos: linux
+goarch: amd64
+pkg: github.com/gtsteffaniak/filebrowser/index
+cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
+BenchmarkFillIndex-8          	      10	   3269365 ns/op	   40545 B/op	     252 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	   7145813 ns/op	 4773570 B/op	   83975 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/runner	0.004s
+ok  	github.com/gtsteffaniak/filebrowser/index	0.134s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/settings	0.006s
+ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/runner	0.003s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage/bolt	[no test files]
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/users	0.003s
 ?   	github.com/gtsteffaniak/filebrowser/version	[no test files]
-FAIL
