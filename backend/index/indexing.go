@@ -33,30 +33,35 @@ type Index struct {
 
 var (
 	rootPath    string = "/srv"
-	index       Index
+	indexes     []Index
 	lastIndexed time.Time
 )
 
 func GetIndex(root string) *Index {
-	index := &Index{
-		Root: strings.TrimSuffix(root, "/"),
+	for i, _ := range indexes {
+		if indexes[i].Root == root {
+			return &indexes[i]
+		}
 	}
-	return index
+	return &Index{}
 }
 
 func Initialize(intervalMinutes uint32) {
 	// Initialize the index
-	index = Index{
-		Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
-		Directories:       []Directory{},
-		NumDirs:           0,
-		NumFiles:          0,
-		currentlyIndexing: false,
+	indexes = []Index{
+		Index{
+			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+			Directories:       []Directory{},
+			NumDirs:           0,
+			NumFiles:          0,
+			currentlyIndexing: false,
+		},
 	}
 	go indexingScheduler(intervalMinutes)
 }
 
 func indexingScheduler(intervalMinutes uint32) {
+	index := GetIndex(strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"))
 	log.Printf("Indexing Files...")
 	log.Printf("Configured to run every %v minutes", intervalMinutes)
 	log.Printf("Indexing from root: %s", index.Root)
@@ -140,7 +145,7 @@ func (si *Index) Insert(path string, fileName string, isDir bool, key int, buffe
 			Name: adjustedPath + "/" + fileName,
 		} // 48
 		si.mutex.Lock()
-		si.Directories = append(index.Directories, subDirectory)
+		si.Directories = append(si.Directories, subDirectory)
 		si.mutex.Unlock()
 
 		// Recursively index the directory

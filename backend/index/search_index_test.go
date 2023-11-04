@@ -10,13 +10,16 @@ import (
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	index = Index{
-		Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
-		Directories:       []Directory{},
-		NumDirs:           0,
-		NumFiles:          0,
-		currentlyIndexing: false,
+	indexes = []Index{
+		Index{
+			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+			Directories:       []Directory{},
+			NumDirs:           0,
+			NumFiles:          0,
+			currentlyIndexing: false,
+		},
 	}
+	index := &indexes[0]
 	// Create mock data
 	createMockData(50, 3) // 1000 dirs, 3 files per dir
 
@@ -82,7 +85,7 @@ func TestParseSearch(t *testing.T) {
 }
 
 func TestSearchIndexes(t *testing.T) {
-	index = Index{
+	index := Index{
 		Directories: []Directory{
 			{
 				Name:  "test",

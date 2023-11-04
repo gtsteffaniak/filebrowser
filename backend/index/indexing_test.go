@@ -12,12 +12,14 @@ import (
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	index = Index{
-		Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
-		Directories:       []Directory{},
-		NumDirs:           0,
-		NumFiles:          0,
-		currentlyIndexing: false,
+	indexes = []Index{
+		Index{
+			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+			Directories:       []Directory{},
+			NumDirs:           0,
+			NumFiles:          0,
+			currentlyIndexing: false,
+		},
 	}
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -26,6 +28,7 @@ func BenchmarkFillIndex(b *testing.B) {
 	}
 }
 func createMockData(numDirs, numFilesPerDir int) {
+	index := GetIndex(strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"))
 	for i := 0; i < numDirs; i++ {
 		dirName := generateRandomPath(rand.Intn(3) + 1)
 		// Append a new Directory to the slice
