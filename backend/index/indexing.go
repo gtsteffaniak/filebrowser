@@ -36,8 +36,10 @@ var (
 )
 
 func GetIndex(root string) *Index {
-	root = strings.TrimSuffix(root, "/")
-	return &index
+	index := &Index{
+		Root: strings.TrimSuffix(root, "/"),
+	}
+	return index
 }
 
 func Initialize(intervalMinutes uint32) {

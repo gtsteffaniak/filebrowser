@@ -2,6 +2,7 @@ package index
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -29,10 +30,16 @@ func BenchmarkFillIndex(b *testing.B) {
 func createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
 		dirName := generateRandomPath(rand.Intn(3) + 1)
-		index.indexFiles("/" + dirName)
+		err := index.indexFiles("/" + dirName)
+		if err != nil {
+			fmt.Printf("Could not index: %v", err)
+		}
 		for j := 0; j < numFilesPerDir; j++ {
 			fileName := "file-" + getRandomTerm() + getRandomExtension()
-			index.indexFiles("/" + dirName + "/" + fileName)
+			err = index.indexFiles("/" + dirName + "/" + fileName)
+			if err != nil {
+				fmt.Printf("Could not index: %v", err)
+			}
 		}
 	}
 }
