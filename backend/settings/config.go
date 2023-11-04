@@ -9,17 +9,17 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-var GlobalConfig Settings
+var Config Settings
 
 func Initialize(configFile string) {
 	yamlData := loadConfigFile(configFile)
-	GlobalConfig = setDefaults()
-	err := yaml.Unmarshal(yamlData, &GlobalConfig)
+	Config = setDefaults()
+	err := yaml.Unmarshal(yamlData, &Config)
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
-	GlobalConfig.UserDefaults.Perm = GlobalConfig.UserDefaults.Permissions
-	GlobalConfig.Server.Root = strings.TrimPrefix(GlobalConfig.Server.Root, "/")
+	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
+	Config.Server.Root = strings.TrimPrefix(Config.Server.Root, "/")
 }
 
 func loadConfigFile(configFile string) []byte {
@@ -27,7 +27,7 @@ func loadConfigFile(configFile string) []byte {
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
 		log.Printf("ERROR: opening config file\n %v\n WARNING: Using default config only\n If this was a mistake, please make sure the file exists and is accessible by the filebrowser binary.\n\n", err)
-		GlobalConfig = setDefaults()
+		Config = setDefaults()
 		return []byte{}
 	}
 	defer yamlFile.Close()

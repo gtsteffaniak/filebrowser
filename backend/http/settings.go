@@ -21,9 +21,9 @@ type settingsData struct {
 
 var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	data := &settingsData{
-		Signup:           settings.GlobalConfig.Auth.Signup,
-		CreateUserDir:    settings.GlobalConfig.Server.CreateUserDir,
-		UserHomeBasePath: settings.GlobalConfig.Server.UserHomeBasePath,
+		Signup:           settings.Config.Auth.Signup,
+		CreateUserDir:    settings.Config.Server.CreateUserDir,
+		UserHomeBasePath: settings.Config.Server.UserHomeBasePath,
 		Defaults:         d.settings.UserDefaults,
 		Rules:            d.settings.Rules,
 		Frontend:         d.settings.Frontend,

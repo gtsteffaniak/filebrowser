@@ -48,8 +48,8 @@ func GetIndex(root string) *Index {
 func Initialize(intervalMinutes uint32, schedule bool) {
 	// Initialize the index
 	indexes = make(map[string]*Index)
-	if settings.GlobalConfig.Server.Root != "" {
-		rootPath = settings.GlobalConfig.Server.Root
+	if settings.Config.Server.Root != "" {
+		rootPath = settings.Config.Server.Root
 	}
 	indexes[rootPath] = &Index{
 		Root:              rootPath,

@@ -24,7 +24,7 @@ type JSONAuth struct {
 
 // Auth authenticates the user via a json in content body.
 func (a JSONAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
-	config := &settings.GlobalConfig
+	config := &settings.Config
 	var cred jsonCred
 
 	if r.Body == nil {
