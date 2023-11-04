@@ -1,7 +1,6 @@
 package index
 
 import (
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"

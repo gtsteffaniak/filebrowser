@@ -83,13 +83,10 @@ func indexingScheduler(intervalMinutes uint32) {
 
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
-
 	si.currentlyIndexing = true
 	// Check if the current directory has been modified since last indexing
 	path = strings.TrimSuffix(path, "/")
-
 	dir, err := os.Open(path)
-
 	if err != nil {
 		// Directory must have been deleted, remove from index
 		si.Directories = removeFromSlice(si.Directories, path)
@@ -100,13 +97,11 @@ func (si *Index) indexFiles(path string) error {
 		si.currentlyIndexing = false
 		return err
 	}
-
 	// Compare the last modified time of the directory with the last indexed time
 	if dirInfo.ModTime().Before(lastIndexed) {
 		si.currentlyIndexing = false
 		return nil
 	}
-
 	// Read the directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
@@ -148,7 +143,7 @@ func (si *Index) Insert(path string, fileName string, isDir bool, key int) {
 		// Recursively index the directory
 		err := index.indexFiles(path + "/" + fileName)
 		if err != nil {
-			log.Printf("Could not index \"%v\": %v", path, err)
+			log.Printf("Could not index \"%v\": %v \n", path, err)
 		}
 	} else {
 		if key != -1 {
