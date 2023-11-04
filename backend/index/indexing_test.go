@@ -73,6 +73,32 @@ func generateRandomPath(levels int) string {
 	return dirName
 }
 
+func createMockData(numDirs, numFilesPerDir int) {
+	for i := 0; i < numDirs; i++ {
+		dirName := generateRandomPath(rand.Intn(3) + 1)
+		err := index.indexFiles("/" + dirName)
+		if err != nil {
+			fmt.Printf("Could not index: %v", err)
+		}
+		for j := 0; j < numFilesPerDir; j++ {
+			fileName := "file-" + getRandomTerm() + getRandomExtension()
+			err = index.indexFiles("/" + dirName + "/" + fileName)
+			if err != nil {
+				fmt.Printf("Could not index: %v", err)
+			}
+		}
+	}
+}
+
+func generateRandomPath(levels int) string {
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	dirName := "srv"
+	for i := 0; i < levels; i++ {
+		dirName += "/" + getRandomTerm()
+	}
+	return dirName
+}
+
 func getRandomTerm() string {
 	wordbank := []string{
 		"hi", "test", "other", "name",
