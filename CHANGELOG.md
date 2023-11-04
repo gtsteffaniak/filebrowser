@@ -3,13 +3,17 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 # v0.2.2
-  - Uses more efficient indexing
-  - Uses the index for filebrowser listings as well
-  - hidden files still accessible directly.
-  - editor fixed on save and themes
-  - running-config.yaml gets updated on settings change so running settings
+
+  - Index changes: 
+    - Speed        : (0m57s) +78% change vs prior release
+    - Memory Usage : (41MB ) -45% change vs prior release
+  - [WIP] Uses the index for filebrowser listings as well
+  - [WIP] hidden files still accessible directly.
+  - [WIP] editor fixed on save and themes
+  - [WIP] running-config.yaml gets updated on settings change so running settings
 
 # v0.2.1
+
   - issue #29 - Rules can now be configured and read from configuration yaml
   - issue #28 - Allow disable settings per user.
   - issue #27 - shorten download link for password protected files
@@ -22,6 +26,7 @@ All notable changes to this project will be documented in this file. See [standa
   - updates configuration file to accept new settings
 
 # v0.2.0
+
  - improved UI
    - more unified coehisive look
    - Adjusted header bar look and icon behavior
@@ -34,6 +39,7 @@ All notable changes to this project will be documented in this file. See [standa
  - Removed all unused cmd code
 
 # v0.1.4
+
  - various UI fixes
    - Added download button back to toolbar
    - Added upload button to side menu
@@ -56,7 +62,7 @@ All notable changes to this project will be documented in this file. See [standa
    - search
    - toggle view
  - Changed desktop search style and included additional search options.
-
+  
 ## v0.1.2
 
  - Updated UI to use search features better
@@ -64,10 +70,16 @@ All notable changes to this project will be documented in this file. See [standa
    - Better icons with colors
    - GUI styling
  - Improved search performance
-
+ - Index changes: 
+   - Speed        : (0m32s) +6% change vs prior release
+   - Memory Usage : (93MB) +3% change vs prior release
+     
 ## v0.1.1
 
  - Improved search with indexing
+ - Index changes (baseline results): 
+   - Speed        : (0m30s)
+   - Memory Usage : (90MB)
 
 ## v0.1.0
 
