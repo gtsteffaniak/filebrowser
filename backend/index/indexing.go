@@ -90,7 +90,6 @@ func (si *Index) indexFiles(path string) error {
 	path = strings.TrimSuffix(path, "/")
 	dir, err := os.Open(path)
 	if err != nil {
-		log.Println("error!")
 		// Directory must have been deleted, remove from the index
 		si.Directories = removeFromSlice(si.Directories, path)
 	}

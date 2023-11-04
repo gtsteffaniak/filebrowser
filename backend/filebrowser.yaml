@@ -1,6 +1,6 @@
 server:
   port: 8080
-  root: "/mnt/storage"
+  baseURL: "/"
 auth:
   method: password
   signup: false
