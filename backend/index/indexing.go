@@ -50,7 +50,7 @@ func Initialize(intervalMinutes uint32) {
 	// Initialize the index
 	indexes = []Index{
 		Index{
-			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+			Root:              settings.GlobalConfig.Server.Root,
 			Directories:       []Directory{},
 			NumDirs:           0,
 			NumFiles:          0,
@@ -61,7 +61,7 @@ func Initialize(intervalMinutes uint32) {
 }
 
 func indexingScheduler(intervalMinutes uint32) {
-	index := GetIndex(strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"))
+	index := GetIndex(settings.GlobalConfig.Server.Root)
 	log.Printf("Indexing Files...")
 	log.Printf("Configured to run every %v minutes", intervalMinutes)
 	log.Printf("Indexing from root: %s", index.Root)

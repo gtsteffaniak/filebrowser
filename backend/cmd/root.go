@@ -47,7 +47,7 @@ func init() {
 var rootCmd = &cobra.Command{
 	Use: "filebrowser",
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
-		serverConfig := settings.GlobalConfiguration.Server
+		serverConfig := settings.GlobalConfig.Server
 		if !d.hadDB {
 			quickSetup(d)
 		}
@@ -118,23 +118,23 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 }
 
 func quickSetup(d pythonData) {
-	settings.GlobalConfiguration.Auth.Key = generateKey()
-	if settings.GlobalConfiguration.Auth.Method == "noauth" {
+	settings.GlobalConfig.Auth.Key = generateKey()
+	if settings.GlobalConfig.Auth.Method == "noauth" {
 		err := d.store.Auth.Save(&auth.NoAuth{})
 		checkErr(err)
 	} else {
-		settings.GlobalConfiguration.Auth.Method = "password"
+		settings.GlobalConfig.Auth.Method = "password"
 		err := d.store.Auth.Save(&auth.JSONAuth{})
 		checkErr(err)
 	}
-	err := d.store.Settings.Save(&settings.GlobalConfiguration)
+	err := d.store.Settings.Save(&settings.GlobalConfig)
 	checkErr(err)
-	err = d.store.Settings.SaveServer(&settings.GlobalConfiguration.Server)
+	err = d.store.Settings.SaveServer(&settings.GlobalConfig.Server)
 	checkErr(err)
 	user := &users.User{}
-	settings.GlobalConfiguration.UserDefaults.Apply(user)
-	user.Username = settings.GlobalConfiguration.Auth.AdminUsername
-	user.Password = settings.GlobalConfiguration.Auth.AdminPassword
+	settings.GlobalConfig.UserDefaults.Apply(user)
+	user.Username = settings.GlobalConfig.Auth.AdminUsername
+	user.Password = settings.GlobalConfig.Auth.AdminPassword
 	user.Perm.Admin = true
 	user.Scope = "./"
 	user.DarkMode = true

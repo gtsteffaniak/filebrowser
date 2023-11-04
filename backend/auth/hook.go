@@ -44,8 +44,8 @@ func (a *HookAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
 	}
 
 	a.Users = usr
-	a.Settings = &settings.GlobalConfiguration
-	a.Server = &settings.GlobalConfiguration.Server
+	a.Settings = &settings.GlobalConfig
+	a.Server = &settings.GlobalConfig.Server
 	a.Cred = cred
 
 	action, err := a.RunCommand()

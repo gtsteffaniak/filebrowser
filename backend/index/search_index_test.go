@@ -2,7 +2,6 @@ package index
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
@@ -12,7 +11,7 @@ import (
 func BenchmarkSearchAllIndexes(b *testing.B) {
 	indexes = []Index{
 		Index{
-			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+			Root:              settings.GlobalConfig.Server.Root,
 			Directories:       []Directory{},
 			NumDirs:           0,
 			NumFiles:          0,

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"math/rand"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 func BenchmarkFillIndex(b *testing.B) {
 	indexes = []Index{
 		Index{
-			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+			Root:              settings.GlobalConfig.Server.Root,
 			Directories:       []Directory{},
 			NumDirs:           0,
 			NumFiles:          0,
@@ -28,7 +27,7 @@ func BenchmarkFillIndex(b *testing.B) {
 	}
 }
 func createMockData(numDirs, numFilesPerDir int) {
-	index := GetIndex(strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"))
+	index := GetIndex(settings.GlobalConfig.Server.Root)
 	for i := 0; i < numDirs; i++ {
 		dirName := generateRandomPath(rand.Intn(3) + 1)
 		// Append a new Directory to the slice

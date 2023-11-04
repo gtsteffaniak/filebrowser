@@ -12,14 +12,14 @@ func TestConfigLoadChanged(t *testing.T) {
 	yamlData := loadConfigFile("./testingConfig.yaml")
 	// Marshal the YAML data to a more human-readable format
 	newConfig := setDefaults()
-	GlobalConfiguration := setDefaults()
+	GlobalConfig := setDefaults()
 
 	err := yaml.Unmarshal(yamlData, &newConfig)
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
 	// Use go-cmp to compare the two structs
-	if diff := cmp.Diff(newConfig, GlobalConfiguration); diff == "" {
+	if diff := cmp.Diff(newConfig, GlobalConfig); diff == "" {
 		t.Errorf("No change when there should have been (-want +got):\n%s", diff)
 	}
 }
@@ -28,7 +28,7 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 	yamlData := loadConfigFile("./testingConfig.yaml")
 	// Marshal the YAML data to a more human-readable format
 	newConfig := setDefaults()
-	GlobalConfiguration := setDefaults()
+	GlobalConfig := setDefaults()
 
 	err := yaml.Unmarshal(yamlData, &newConfig)
 	if err != nil {
@@ -39,11 +39,11 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 		globalVal interface{}
 		newVal    interface{}
 	}{
-		{"Auth.Method", GlobalConfiguration.Auth.Method, newConfig.Auth.Method},
-		{"Auth.Method", GlobalConfiguration.Auth.Method, newConfig.Auth.Method},
-		{"Frontend.disableExternal", GlobalConfiguration.Frontend.DisableExternal, newConfig.Frontend.DisableExternal},
-		{"UserDefaults.HideDotfiles", GlobalConfiguration.UserDefaults.HideDotfiles, newConfig.UserDefaults.HideDotfiles},
-		{"Server.Database", GlobalConfiguration.Server.Database, newConfig.Server.Database},
+		{"Auth.Method", GlobalConfig.Auth.Method, newConfig.Auth.Method},
+		{"Auth.Method", GlobalConfig.Auth.Method, newConfig.Auth.Method},
+		{"Frontend.disableExternal", GlobalConfig.Frontend.DisableExternal, newConfig.Frontend.DisableExternal},
+		{"UserDefaults.HideDotfiles", GlobalConfig.UserDefaults.HideDotfiles, newConfig.UserDefaults.HideDotfiles},
+		{"Server.Database", GlobalConfig.Server.Database, newConfig.Server.Database},
 	}
 
 	for _, tc := range testCases {
