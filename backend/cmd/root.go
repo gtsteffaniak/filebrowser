@@ -47,7 +47,7 @@ func init() {
 var rootCmd = &cobra.Command{
 	Use: "filebrowser",
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
-		serverConfig := settings.GlobalConfiguration.Server
+		serverConfig := settings.Config.Server
 		if !d.hadDB {
 			quickSetup(d)
 		}
@@ -64,7 +64,7 @@ var rootCmd = &cobra.Command{
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
 		// initialize indexing and schedule indexing ever n minutes (default 5)
-		go index.Initialize(serverConfig.IndexingInterval)
+		go index.Initialize(serverConfig.IndexingInterval, true)
 		_, err := os.Stat(serverConfig.Root)
 		checkErr(err)
 		var listener net.Listener
@@ -118,23 +118,23 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 }
 
 func quickSetup(d pythonData) {
-	settings.GlobalConfiguration.Auth.Key = generateKey()
-	if settings.GlobalConfiguration.Auth.Method == "noauth" {
+	settings.Config.Auth.Key = generateKey()
+	if settings.Config.Auth.Method == "noauth" {
 		err := d.store.Auth.Save(&auth.NoAuth{})
 		checkErr(err)
 	} else {
-		settings.GlobalConfiguration.Auth.Method = "password"
+		settings.Config.Auth.Method = "password"
 		err := d.store.Auth.Save(&auth.JSONAuth{})
 		checkErr(err)
 	}
-	err := d.store.Settings.Save(&settings.GlobalConfiguration)
+	err := d.store.Settings.Save(&settings.Config)
 	checkErr(err)
-	err = d.store.Settings.SaveServer(&settings.GlobalConfiguration.Server)
+	err = d.store.Settings.SaveServer(&settings.Config.Server)
 	checkErr(err)
 	user := &users.User{}
-	settings.GlobalConfiguration.UserDefaults.Apply(user)
-	user.Username = settings.GlobalConfiguration.Auth.AdminUsername
-	user.Password = settings.GlobalConfiguration.Auth.AdminPassword
+	settings.Config.UserDefaults.Apply(user)
+	user.Username = settings.Config.Auth.AdminUsername
+	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
 	user.Scope = "./"
 	user.DarkMode = true

@@ -12,14 +12,14 @@ func TestConfigLoadChanged(t *testing.T) {
 	yamlData := loadConfigFile("./testingConfig.yaml")
 	// Marshal the YAML data to a more human-readable format
 	newConfig := setDefaults()
-	GlobalConfiguration := setDefaults()
+	Config := setDefaults()
 
 	err := yaml.Unmarshal(yamlData, &newConfig)
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
 	// Use go-cmp to compare the two structs
-	if diff := cmp.Diff(newConfig, GlobalConfiguration); diff == "" {
+	if diff := cmp.Diff(newConfig, Config); diff == "" {
 		t.Errorf("No change when there should have been (-want +got):\n%s", diff)
 	}
 }
@@ -28,7 +28,7 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 	yamlData := loadConfigFile("./testingConfig.yaml")
 	// Marshal the YAML data to a more human-readable format
 	newConfig := setDefaults()
-	GlobalConfiguration := setDefaults()
+	Config := setDefaults()
 
 	err := yaml.Unmarshal(yamlData, &newConfig)
 	if err != nil {
@@ -39,16 +39,16 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 		globalVal interface{}
 		newVal    interface{}
 	}{
-		{"Auth.Method", GlobalConfiguration.Auth.Method, newConfig.Auth.Method},
-		{"Auth.Method", GlobalConfiguration.Auth.Method, newConfig.Auth.Method},
-		{"Frontend.disableExternal", GlobalConfiguration.Frontend.DisableExternal, newConfig.Frontend.DisableExternal},
-		{"UserDefaults.HideDotfiles", GlobalConfiguration.UserDefaults.HideDotfiles, newConfig.UserDefaults.HideDotfiles},
-		{"Server.Database", GlobalConfiguration.Server.Database, newConfig.Server.Database},
+		{"Auth.Method", Config.Auth.Method, newConfig.Auth.Method},
+		{"Auth.Method", Config.Auth.Method, newConfig.Auth.Method},
+		{"Frontend.disableExternal", Config.Frontend.DisableExternal, newConfig.Frontend.DisableExternal},
+		{"UserDefaults.HideDotfiles", Config.UserDefaults.HideDotfiles, newConfig.UserDefaults.HideDotfiles},
+		{"Server.Database", Config.Server.Database, newConfig.Server.Database},
 	}
 
 	for _, tc := range testCases {
 		if tc.globalVal == tc.newVal {
-			t.Errorf("Differences should have been found:\n\tGlobalConfig.%s: %v \n\tSetConfig: %v \n", tc.fieldName, tc.globalVal, tc.newVal)
+			t.Errorf("Differences should have been found:\n\tConfig.%s: %v \n\tSetConfig: %v \n", tc.fieldName, tc.globalVal, tc.newVal)
 		}
 	}
 }

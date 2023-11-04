@@ -33,35 +33,38 @@ type Index struct {
 
 var (
 	rootPath    string = "/srv"
-	indexes     []Index
+	indexes     map[string]*Index
 	lastIndexed time.Time
 )
 
 func GetIndex(root string) *Index {
-	for i, _ := range indexes {
-		if indexes[i].Root == root {
-			return &indexes[i]
-		}
+	index, exists := indexes[root]
+	if exists {
+		return index
 	}
 	return &Index{}
 }
 
-func Initialize(intervalMinutes uint32) {
+func Initialize(intervalMinutes uint32, schedule bool) {
 	// Initialize the index
-	indexes = []Index{
-		Index{
-			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
-			Directories:       []Directory{},
-			NumDirs:           0,
-			NumFiles:          0,
-			currentlyIndexing: false,
-		},
+	indexes = make(map[string]*Index)
+	if settings.Config.Server.Root != "" {
+		rootPath = settings.Config.Server.Root
 	}
-	go indexingScheduler(intervalMinutes)
+	indexes[rootPath] = &Index{
+		Root:              rootPath,
+		Directories:       []Directory{},
+		NumDirs:           0,
+		NumFiles:          0,
+		currentlyIndexing: false,
+	}
+	if schedule {
+		go indexingScheduler(intervalMinutes)
+	}
 }
 
 func indexingScheduler(intervalMinutes uint32) {
-	index := GetIndex(strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"))
+	index := GetIndex(rootPath)
 	log.Printf("Indexing Files...")
 	log.Printf("Configured to run every %v minutes", intervalMinutes)
 	log.Printf("Indexing from root: %s", index.Root)

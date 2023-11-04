@@ -2,24 +2,14 @@ package index
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/stretchr/testify/assert"
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	indexes = []Index{
-		Index{
-			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
-			Directories:       []Directory{},
-			NumDirs:           0,
-			NumFiles:          0,
-			currentlyIndexing: false,
-		},
-	}
-	index := &indexes[0]
+	Initialize(5, false)
+	index := indexes[rootPath]
 	// Create mock data
 	createMockData(50, 3) // 1000 dirs, 3 files per dir
 

@@ -4,23 +4,12 @@ import (
 	"encoding/json"
 	"math/rand"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
-
-	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	indexes = []Index{
-		Index{
-			Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
-			Directories:       []Directory{},
-			NumDirs:           0,
-			NumFiles:          0,
-			currentlyIndexing: false,
-		},
-	}
+	Initialize(5, false)
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
@@ -28,7 +17,7 @@ func BenchmarkFillIndex(b *testing.B) {
 	}
 }
 func createMockData(numDirs, numFilesPerDir int) {
-	index := GetIndex(strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"))
+	index := GetIndex(rootPath)
 	for i := 0; i < numDirs; i++ {
 		dirName := generateRandomPath(rand.Intn(3) + 1)
 		// Append a new Directory to the slice
@@ -120,7 +109,7 @@ func TestInitializeIndex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			Initialize(tt.args.intervalMinutes)
+			Initialize(tt.args.intervalMinutes, false)
 		})
 	}
 }
