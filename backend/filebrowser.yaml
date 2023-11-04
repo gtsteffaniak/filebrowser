@@ -1,7 +1,6 @@
 server:
   port: 8080
   baseURL: "/"
-  root: "/Users/steffag"
 auth:
   method: password
   signup: true

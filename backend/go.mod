@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/asdine/storm/v3 v3.2.1
-	github.com/dghubble/trie v0.0.0-20230729160116-2bc358f28a8b
 	github.com/disintegration/imaging v1.6.2
 	github.com/dsoprea/go-exif/v3 v3.0.1
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568
