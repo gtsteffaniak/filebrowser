@@ -19,6 +19,7 @@ type meta struct {
 	LastUpdated int
 	Size        int
 }
+
 type Index struct {
 	Root              string
 	Directories       []Directory

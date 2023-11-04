@@ -180,7 +180,6 @@ func Test_scopedPathNameFilter(t *testing.T) {
 		})
 	}
 }
-
 func Test_isDoc(t *testing.T) {
 	type args struct {
 		extension string

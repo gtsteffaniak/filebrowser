@@ -22,7 +22,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	if scope == "" {
 		scope = "/"
 	}
-	//fileTypes := map[string]bool{}
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -99,7 +98,6 @@ func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
 		if isDir {
 			pathName = pathName + "/"
 		}
-		log.Println("matched: ", pathName, "scope:", scope)
 	} else {
 		pathName = "" // return not matched
 	}
