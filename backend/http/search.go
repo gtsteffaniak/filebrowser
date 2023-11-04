@@ -2,8 +2,10 @@ package http
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/index"
+	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -11,8 +13,11 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	query := r.URL.Query().Get("query")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
-	index := *index.GetIndex()
-	results, fileTypes := index.Search(query, r.URL.Path, sessionId)
+	userScope := r.Header.Get("UserScope")
+	index := *index.GetIndex(settings.GlobalConfiguration.Server.Root)
+	combinedScope := strings.TrimPrefix(userScope+r.URL.Path, ".")
+	combinedScope = strings.TrimPrefix(combinedScope, "/")
+	results, fileTypes := index.Search(query, combinedScope, sessionId)
 	for _, path := range results {
 		responseObj := map[string]interface{}{
 			"path": path,

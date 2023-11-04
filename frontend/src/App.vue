@@ -9,15 +9,7 @@ __webpack_public_path__ = window.FileBrowser.StaticURL + "/";
 
 export default {
   name: "app",
-  computed: {
-  },
-  mounted() {
-    const loading = document.getElementById("loading");
-    loading.classList.add("done");
-    setTimeout(() => {
-      loading.parentNode.removeChild(loading);
-    }, 200);
-  },
+  computed: {},
 };
 </script>
 

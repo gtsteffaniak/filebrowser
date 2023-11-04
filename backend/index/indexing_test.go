@@ -4,14 +4,20 @@ import (
 	"encoding/json"
 	"math/rand"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	indexes = Index{
-		Dirs:  make([]string, 0, 1000),
-		Files: make([]string, 0, 1000),
+	index = Index{
+		Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+		Directories:       []Directory{},
+		NumDirs:           0,
+		NumFiles:          0,
+		currentlyIndexing: false,
 	}
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -19,14 +25,15 @@ func BenchmarkFillIndex(b *testing.B) {
 		createMockData(50, 3) // 1000 dirs, 3 files per dir
 	}
 }
-
 func createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
 		dirName := generateRandomPath(rand.Intn(3) + 1)
-		addToIndex("/", dirName, true)
+		// Append a new Directory to the slice
+		index.Directories = append(index.Directories, Directory{Name: dirName})
 		for j := 0; j < numFilesPerDir; j++ {
 			fileName := "file-" + getRandomTerm() + getRandomExtension()
-			addToIndex("/"+dirName, fileName, false)
+			// Append the fileName to the Files slice within the Directory struct
+			index.Directories[i].Files += fileName + ";"
 		}
 	}
 }
@@ -91,7 +98,7 @@ func TestGetIndex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetIndex(); !reflect.DeepEqual(got, tt.want) {
+			if got := GetIndex("root"); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetIndex() = %v, want %v", got, tt.want)
 			}
 		})
@@ -128,57 +135,6 @@ func Test_indexingScheduler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			indexingScheduler(tt.args.intervalMinutes)
-		})
-	}
-}
-
-func Test_indexFiles(t *testing.T) {
-	type args struct {
-		path     string
-		numFiles *int
-		numDirs  *int
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    int
-		want1   int
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := indexFiles(tt.args.path, tt.args.numFiles, tt.args.numDirs)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("indexFiles() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("indexFiles() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("indexFiles() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
-
-func Test_addToIndex(t *testing.T) {
-	type args struct {
-		path     string
-		fileName string
-		isDir    bool
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			addToIndex(tt.args.path, tt.args.fileName, tt.args.isDir)
 		})
 	}
 }

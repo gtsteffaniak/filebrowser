@@ -30,7 +30,7 @@
     <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
         <div class="button" style="width: 100%">
-          Search Context: {{ getContext(this.$route.path) }}
+          Search Context: {{ this.searchContext }}
         </div>
         <ul v-show="results.length > 0">
           <li
@@ -47,7 +47,7 @@
               <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
               <i v-else class="material-icons file-icons"> insert_drive_file </i>
               <span class="text-container">
-                {{ basePath(s.path) }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path,s.dir) }}<b>{{ baseName(s.path) }}</b>
               </span>
             </router-link>
           </li>
@@ -91,7 +91,7 @@
       </div>
     </div>
     <div v-show="!isMobile && active" id="result-desktop" ref="result">
-      <div class="searchContext">Search Context: {{ getContext(this.$route.path) }}</div>
+      <div class="searchContext">Search Context: {{ this.searchContext }}</div>
       <div id="result-list">
         <template>
           <p v-show="isEmpty && isRunning" id="renew">
@@ -178,7 +178,7 @@
               <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
               <i v-else class="material-icons file-icons"> insert_drive_file </i>
               <span class="text-container">
-                {{ basePath(s.path) }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path,s.dir) }}<b>{{ baseName(s.path) }}</b>
               </span>
             </router-link>
           </li>
@@ -535,6 +535,7 @@ export default {
   name: "search",
   data: function () {
     return {
+      searchContext: "./",
       largerThan: "",
       smallerThan: "",
       noneMessage: "Start typing 3 or more characters to begin searching.",
@@ -602,7 +603,7 @@ export default {
     ...mapState(["user", "show"]),
     ...mapGetters(["isListing"]),
     isDarkMode() {
-      return this.user && this.user.darkMode ? this.user.darkMode : darkMode;
+      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
     },
     showBoxes() {
       return this.searchTypes == "";
@@ -634,6 +635,7 @@ export default {
   },
   mounted() {
     window.addEventListener("resize", this.handleResize);
+    this.searchContext = this.getContext(this.$route.path)
     this.handleResize(); // Call this once to set the initial width
   },
   methods: {
@@ -650,15 +652,18 @@ export default {
       let path = "./" + url.substring(url.indexOf("/") + 1);
       return path.replace(/\/+$/, "") + "/";
     },
-    basePath(str) {
-      let parts = str.split("/");
+    basePath(str,isDir) {
+      let parts = str.replace(/(\/$|^\/)/, "").split("/");
       if (parts.length <= 2) {
-        return "/";
+        if (isDir) {
+          return "/"
+        }
+        return "";
       }
       parts.pop();
       parts = parts.join("/") + "/";
-      if (str.endsWith("/")) {
-        parts = "/" + parts;
+      if (isDir) {
+        parts = "/" + parts; // fix weird rtl thing
       }
       return parts;
     },

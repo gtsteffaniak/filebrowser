@@ -23,7 +23,6 @@ require (
 	golang.org/x/crypto v0.12.0
 	golang.org/x/image v0.12.0
 	golang.org/x/text v0.13.0
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (

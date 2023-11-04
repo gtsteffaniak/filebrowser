@@ -2,13 +2,20 @@ package index
 
 import (
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/stretchr/testify/assert"
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	indexes = Index{
-		Dirs:  make([]string, 0, 1000),
-		Files: make([]string, 0, 1000),
+	index = Index{
+		Root:              strings.TrimSuffix(settings.GlobalConfiguration.Server.Root, "/"),
+		Directories:       []Directory{},
+		NumDirs:           0,
+		NumFiles:          0,
+		currentlyIndexing: false,
 	}
 	// Create mock data
 	createMockData(50, 3) // 1000 dirs, 3 files per dir
@@ -21,7 +28,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			indexes.Search(term, "/", "test")
+			index.Search(term, "/", "test")
 		}
 	}
 }
@@ -75,27 +82,79 @@ func TestParseSearch(t *testing.T) {
 }
 
 func TestSearchIndexes(t *testing.T) {
-	type args struct {
-		search        string
-		scope         string
-		sourceSession string
+	index = Index{
+		Directories: []Directory{
+			{
+				Name:  "test",
+				Files: "audio1.wav;",
+			},
+			{
+				Name:  "test/path",
+				Files: "file.txt;",
+			},
+			{
+				Name: "new",
+			},
+			{
+				Name:  "new/test",
+				Files: "audio.wav;video.mp4;video.MP4;",
+			},
+			{
+				Name:  "new/test/path",
+				Files: "archive.zip;",
+			},
+		},
 	}
 	tests := []struct {
-		name  string
-		args  args
-		want  []string
-		want1 map[string]map[string]bool
+		search         string
+		scope          string
+		expectedResult []string
+		expectedTypes  map[string]map[string]bool
 	}{
-		// TODO: Add test cases.
+		{
+			search:         "audio",
+			scope:          "/new/",
+			expectedResult: []string{"test/audio.wav"},
+			expectedTypes: map[string]map[string]bool{
+				"test/audio.wav": map[string]bool{"audio": true, "dir": false},
+			},
+		},
+		{
+			search:         "test",
+			scope:          "/",
+			expectedResult: []string{"test/", "new/test/"},
+			expectedTypes: map[string]map[string]bool{
+				"test/":     map[string]bool{"dir": true},
+				"new/test/": map[string]bool{"dir": true},
+			},
+		},
+		{
+			search:         "archive",
+			scope:          "/",
+			expectedResult: []string{"new/test/path/archive.zip"},
+			expectedTypes: map[string]map[string]bool{
+				"new/test/path/archive.zip": map[string]bool{"archive": true, "dir": false},
+			},
+		},
+		{
+			search: "video",
+			scope:  "/",
+			expectedResult: []string{
+				"new/test/video.mp4",
+				"new/test/video.MP4",
+			},
+			expectedTypes: map[string]map[string]bool{
+				"new/test/video.MP4": map[string]bool{"video": true, "dir": false},
+				"new/test/video.mp4": map[string]bool{"video": true, "dir": false},
+			},
+		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := indexes.Search(tt.args.search, tt.args.scope, tt.args.sourceSession)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SearchAllIndexes() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("SearchAllIndexes() got1 = %v, want %v", got1, tt.want1)
+		t.Run(tt.search, func(t *testing.T) {
+			actualResult, actualTypes := index.Search(tt.search, tt.scope, "")
+			assert.Equal(t, tt.expectedResult, actualResult)
+			if !reflect.DeepEqual(tt.expectedTypes, actualTypes) {
+				t.Fatalf("\n got:  %+v\n want: %+v", actualTypes, tt.expectedTypes)
 			}
 		})
 	}
@@ -115,41 +174,12 @@ func Test_scopedPathNameFilter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := scopedPathNameFilter(tt.args.pathName, tt.args.scope); got != tt.want {
+			if got := scopedPathNameFilter(tt.args.pathName, tt.args.scope, false); got != tt.want {
 				t.Errorf("scopedPathNameFilter() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
-
-func Test_containsSearchTerm(t *testing.T) {
-	type args struct {
-		pathName   string
-		searchTerm string
-		options    SearchOptions
-		isDir      bool
-	}
-	tests := []struct {
-		name  string
-		args  args
-		want  bool
-		want1 map[string]bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := containsSearchTerm(tt.args.pathName, tt.args.searchTerm, tt.args.options, tt.args.isDir)
-			if got != tt.want {
-				t.Errorf("containsSearchTerm() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("containsSearchTerm() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
-
 func Test_isDoc(t *testing.T) {
 	type args struct {
 		extension string
