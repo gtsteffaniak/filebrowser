@@ -93,16 +93,15 @@ func TestSearchIndexes(t *testing.T) {
 				Files: "file.txt;",
 			},
 			{
-				Name:  "new",
-				Files: "",
+				Name: "new",
 			},
 			{
 				Name:  "new/test",
-				Files: "audio.wav;video.mp4;video.MP4",
+				Files: "audio.wav;video.mp4;video.MP4;",
 			},
 			{
 				Name:  "new/test/path",
-				Files: "archive.zip",
+				Files: "archive.zip;",
 			},
 		},
 	}
@@ -115,37 +114,38 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search:         "audio",
 			scope:          "/new/",
-			expectedResult: []string{"/test/audio.wav"},
+			expectedResult: []string{"test/audio.wav"},
 			expectedTypes: map[string]map[string]bool{
-				"/test/audio.wav": map[string]bool{"audio": true, "dir": false},
+				"test/audio.wav": map[string]bool{"audio": true, "dir": false},
 			},
 		},
 		{
 			search:         "test",
 			scope:          "/",
-			expectedResult: []string{"/test"},
+			expectedResult: []string{"test/", "new/test/"},
 			expectedTypes: map[string]map[string]bool{
-				"/test/": map[string]bool{"dir": true},
+				"test/":     map[string]bool{"dir": true},
+				"new/test/": map[string]bool{"dir": true},
 			},
 		},
 		{
 			search:         "archive",
 			scope:          "/",
-			expectedResult: []string{"/new/test/path/archive.zip"},
+			expectedResult: []string{"new/test/path/archive.zip"},
 			expectedTypes: map[string]map[string]bool{
-				"/new/test/path/archive.zip": map[string]bool{"archive": true, "dir": false},
+				"new/test/path/archive.zip": map[string]bool{"archive": true, "dir": false},
 			},
 		},
 		{
 			search: "video",
 			scope:  "/",
 			expectedResult: []string{
-				"/new/test/video.mp4",
-				"/new/test/video.MP4",
+				"new/test/video.mp4",
+				"new/test/video.MP4",
 			},
 			expectedTypes: map[string]map[string]bool{
-				"/new/test/video.MP4": map[string]bool{"video": true, "dir": false},
-				"/new/test/video.mp4": map[string]bool{"video": true, "dir": false},
+				"new/test/video.MP4": map[string]bool{"video": true, "dir": false},
+				"new/test/video.mp4": map[string]bool{"video": true, "dir": false},
 			},
 		},
 	}
@@ -153,12 +153,8 @@ func TestSearchIndexes(t *testing.T) {
 		t.Run(tt.search, func(t *testing.T) {
 			actualResult, actualTypes := index.Search(tt.search, tt.scope, "")
 			assert.Equal(t, tt.expectedResult, actualResult)
-			if len(tt.expectedTypes) > 0 {
-				for key, value := range tt.expectedTypes {
-					actualValue, exists := actualTypes[key]
-					assert.True(t, exists, "Expected type key '%s' not found in actual types", key)
-					assert.Equal(t, value, actualValue, "Type value mismatch for key '%s'", key)
-				}
+			if !reflect.DeepEqual(tt.expectedTypes, actualTypes) {
+				t.Fatalf("\n got:  %+v\n want: %+v", actualTypes, tt.expectedTypes)
 			}
 		})
 	}

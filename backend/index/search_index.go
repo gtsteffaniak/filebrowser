@@ -1,6 +1,7 @@
 package index
 
 import (
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -45,22 +46,21 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				break
 			}
 			pathName := scopedPathNameFilter(dir.Name, scope, isDir)
-			if pathName != "" {
-				fileTypes := map[string]bool{}
-				matches, fileType := containsSearchTerm(dir.Name, searchTerm, *searchOptions, isDir, fileTypes)
-				if !matches {
-					continue
-				}
+			if pathName == "" {
+				continue // path not matched
+			}
+			fileTypes := map[string]bool{}
+			matches, fileType := containsSearchTerm(dir.Name, searchTerm, *searchOptions, isDir, fileTypes)
+			if matches {
 				fileListTypes[pathName] = fileType
 				matching = append(matching, pathName)
 				count++
 			}
+			isDir = false
 			for _, file := range files {
 				if file == "" {
 					continue
 				}
-				fullName := dir.Name + "/" + file
-				isDir = false
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					return []string{}, map[string]map[string]bool{}
@@ -68,17 +68,15 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if count > maxSearchResults {
 					break
 				}
-				pathName := scopedPathNameFilter(fullName, scope, isDir)
-				if pathName == "" {
-					continue
-				}
+				fullName := pathName + file
 				fileTypes := map[string]bool{}
+
 				matches, fileType := containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
 				if !matches {
 					continue
 				}
-				fileListTypes[pathName] = fileType
-				matching = append(matching, pathName)
+				fileListTypes[fullName] = fileType
+				matching = append(matching, fullName)
 				count++
 			}
 		}
@@ -101,6 +99,7 @@ func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
 		if isDir {
 			pathName = pathName + "/"
 		}
+		log.Println("matched: ", pathName, "scope:", scope)
 	} else {
 		pathName = "" // return not matched
 	}
