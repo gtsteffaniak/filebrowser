@@ -3,7 +3,7 @@ name: dev
 on:
   push:
     branches:
-      - 'dev_v0.2.2'
+      - 'dev_v*'
 
 jobs:
   test-backend:
