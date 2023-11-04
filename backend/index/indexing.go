@@ -8,17 +8,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 type Directory struct {
 	Name     string
-	Metadata map[string]meta
+	Metadata map[string]files.FileInfo
 	Files    string
-}
-type meta struct {
-	LastUpdated int
-	Size        int
 }
 
 type Index struct {
