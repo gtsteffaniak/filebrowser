@@ -1,6 +1,7 @@
 package index
 
 import (
+	"bytes"
 	"log"
 	"os"
 	"strings"
@@ -90,7 +91,7 @@ func (si *Index) indexFiles(path string) error {
 	dir, err := os.Open(path)
 	if err != nil {
 		log.Println("error!")
-		// Directory must have been deleted, remove from index
+		// Directory must have been deleted, remove from the index
 		si.Directories = removeFromSlice(si.Directories, path)
 	}
 	defer dir.Close()
@@ -110,22 +111,27 @@ func (si *Index) indexFiles(path string) error {
 	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
 	keyVal := -1
-	//exists := false
-	for k, v := range index.Directories {
+	// Find the key for the directory
+	for k, v := range si.Directories {
 		if v.Name == adjustedPath {
-			//exists := true
 			keyVal = k
-			continue
+			break
 		}
 	}
+	// Create a buffer for the directory
+	var buffer bytes.Buffer
 	// Iterate over the files and directories
 	for _, file := range files {
-		si.Insert(path, file.Name(), file.IsDir(), keyVal)
+		si.Insert(path, file.Name(), file.IsDir(), keyVal, &buffer)
+	}
+	if keyVal != -1 {
+		// Store the buffer in the directory's Files field
+		si.Directories[keyVal].Files = buffer.String()
 	}
 	return nil
 }
 
-func (si *Index) Insert(path string, fileName string, isDir bool, key int) {
+func (si *Index) Insert(path string, fileName string, isDir bool, key int, buffer *bytes.Buffer) {
 	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
 	// Check if it's a directory or a file
@@ -135,19 +141,19 @@ func (si *Index) Insert(path string, fileName string, isDir bool, key int) {
 			Name: adjustedPath + "/" + fileName,
 		} // 48
 		si.mutex.Lock()
-		index.Directories = append(index.Directories, subDirectory)
+		si.Directories = append(index.Directories, subDirectory)
 		si.mutex.Unlock()
 
 		// Recursively index the directory
-		err := index.indexFiles(path + "/" + fileName)
+		err := si.indexFiles(path + "/" + fileName)
 		if err != nil {
 			log.Printf("Could not index \"%v\": %v \n", path, err)
 		}
 	} else {
 		if key != -1 {
-			si.mutex.Lock()
-			index.Directories[key].Files += fileName + ";"
-			si.mutex.Unlock()
+			// Use the buffer for this directory to concatenate file names
+			buffer.WriteString(fileName)
+			buffer.WriteString(";")
 			si.NumFiles++
 		}
 	}
