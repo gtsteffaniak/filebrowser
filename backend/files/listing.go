@@ -42,7 +42,7 @@ func (l *Listing) ApplySort() {
 			return false
 		}
 	}
-	if l.Sorting.Asc == false {
+	if !l.Sorting.Asc {
 		sortItems(l.Items, func(i, j int) bool {
 			return !less(i, j)
 		})

@@ -86,7 +86,6 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 
 func stat(opts FileOptions) (*FileInfo, error) {
 	var file *FileInfo
-
 	if lstaterFs, ok := opts.Fs.(afero.Lstater); ok {
 		info, _, err := lstaterFs.LstatIfPossible(opts.Path)
 		if err == nil {
@@ -195,28 +194,25 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 		i.Type = "blob"
 		return nil
 	}
-
 	mimetype := mime.TypeByExtension(i.Extension)
-
 	var buffer []byte
 	if readHeader {
 		buffer = i.readFirstBytes()
-
 		if mimetype == "" {
-			mimetype = http.DetectContentType(buffer)
+			http.DetectContentType(buffer)
 		}
 	}
-
-	if IsMatchingType(i.Extension, "video") {
+	switch {
+	case IsMatchingType(i.Extension, "video"):
 		i.Type = "video"
 		i.detectSubtitles()
-	} else if IsMatchingType(i.Extension, "audio") {
+	case IsMatchingType(i.Extension, "audio"):
 		i.Type = "audio"
-	} else if IsMatchingType(i.Extension, "image") {
+	case IsMatchingType(i.Extension, "image"):
 		i.Type = "image"
-	} else if IsMatchingType(i.Extension, "pdf") {
+	case IsMatchingType(i.Extension, "pdf"):
 		i.Type = "pdf"
-	} else if (IsMatchingType(i.Extension, "text") || !isBinary(buffer)) && i.Size <= 10*bytesInMegabyte { // 10 MB
+	case (IsMatchingType(i.Extension, "text") || !isBinary(buffer)) && i.Size <= 10*bytesInMegabyte: // 10 MB
 		i.Type = "text"
 
 		if !modify {
@@ -232,10 +228,9 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 
 			i.Content = string(content)
 		}
-	} else {
+	default:
 		i.Type = "blob"
 	}
-
 	return nil
 }
 
