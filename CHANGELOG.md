@@ -1,88 +1,88 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-# v0.2.2
+## v0.2.2
 
-  - Index changes: 
-    - Speed        : (0m57s) +78% change vs prior release
-    - Memory Usage : (41MB ) -45% change vs prior release
-  - [WIP] Uses the index for filebrowser listings as well
-  - [WIP] hidden files still accessible directly.
-  - [WIP] editor fixed on save and themes
-  - [WIP] running-config.yaml gets updated on settings change so running settings
+- **Major Indexing Changes:**
+  - **Speed:** (0m57s) - Decreased by 78% compared to the previous release.
+  - **Memory Usage:** (41MB) - Reduced by 45% compared to the previous release.
+- Now utilizes the index for file browser listings!
+- **[Work in Progress]** Hidden files are still directly accessible.
+- **[Work in Progress]** Editor issues fixed on save and themes.
+- **[Work in Progress]** `running-config.yaml` gets updated when settings change, ensuring that running settings are up to date.
 
-# v0.2.1
+## v0.2.1
 
-  - issue #29 - Rules can now be configured and read from configuration yaml
-  - issue #28 - Allow disable settings per user.
-  - issue #27 - shorten download link for password protected files
-  - issue #26 - enable dark mode per user and improve switching performance.
-  - More rounded corners and improved listing styling
-  - improve search performance
-  - fixes authentication issues
-  - adds compact view mode
-  - improves view mode configuration and behavior
-  - updates configuration file to accept new settings
+- Addressed issue #29 - Rules can now be configured and read from the configuration YAML.
+- Addressed issue #28 - Allows disabling settings per user.
+- Addressed issue #27 - Shortened download link for password-protected files.
+- Addressed issue #26 - Enables dark mode per user and improves switching performance.
+- Improved styling with more rounded corners and enhanced listing design.
+- Enhanced search performance.
+- Fixed authentication issues.
+- Added compact view mode.
+- Improved view mode configuration and behavior.
+- Updated the configuration file to accept new settings.
 
-# v0.2.0
+## v0.2.0
 
- - improved UI
-   - more unified coehisive look
-   - Adjusted header bar look and icon behavior
- - The shell is dead.
-   - If you need to use custom commands, exec into the docker container.
- - The json config file is dead.
-   - All configuration is done via advanced `filebrowser.yaml`
-   - The only flag that is allowed is flag to specify config file.
- - Removed old code to migrate database versions
- - Removed all unused cmd code
+- **Improved UI:**
+  - Enhanced the cohesive and unified look.
+  - Adjusted the header bar appearance and icon behavior.
+- The shell feature has been deprecated.
+  - Custom commands can be executed within the Docker container if needed.
+- The JSON config file is no longer used.
+  - All configurations are now performed via the advanced `filebrowser.yaml`.
+  - The only allowed flag is specifying the config file.
+- Removed old code for migrating database versions.
+- Eliminated all unused `cmd` code.
 
-# v0.1.4
+## v0.1.4
 
- - various UI fixes
-   - Added download button back to toolbar
-   - Added upload button to side menu
-   - breadcrumb spacing fix
-   - Added "compact" view option
-   - fixed slash issue with css rtl logic
- - various backend fixes
-   - search has a sessionId attached so searches don't collide
-   - search no longer searches by word with spaces, includes space in searches
-   - prepared for full json configuration
- - made size search work for smaller and larger
- - made search types not show up in search bar when used
+- **Various UI fixes:**
+  - Reintroduced the download button to the toolbar.
+  - Added the upload button to the side menu.
+  - Adjusted breadcrumb spacing.
+  - Introduced a "compact" view option.
+  - Fixed a slash issue with CSS right-to-left (RTL) logic.
+- **Various backend improvements:**
+  - Added session IDs to searches to prevent collisions.
+  - Modified search behavior to include spaces in searches.
+  - Prepared for full JSON configuration support.
+- Made size-based searches work for both smaller and larger files.
+- Modified search types not to appear in the search bar when used.
 
 ## v0.1.3
 
- - improved styling, colors, transparency, blur
- - Made sidebar hidden on desktop as well
- - simplified navbar to be three buttons
-   - open menu
-   - search
-   - toggle view
- - Changed desktop search style and included additional search options.
-  
+- Enhanced styling with improved colors, transparency, and blur effects.
+- Hid the sidebar on desktop views.
+- Simplified the navbar to include three buttons:
+  - Open menu
+  - Search
+  - Toggle view
+- Revised desktop search style and included additional search options.
+
 ## v0.1.2
 
- - Updated UI to use search features better
-   - More filter options
-   - Better icons with colors
-   - GUI styling
- - Improved search performance
- - Index changes: 
-   - Speed        : (0m32s) +6% change vs prior release
-   - Memory Usage : (93MB) +3% change vs prior release
-     
+- Updated the UI to better utilize search features:
+  - Added more filter options.
+  - Enhanced icons with colors.
+  - Improved GUI styling.
+- Improved search performance.
+- **Index Changes:**
+  - **Speed:** (0m32s) - Increased by 6% compared to the previous release.
+  - **Memory Usage:** (93MB) - Increased by 3% compared to the previous release.
+
 ## v0.1.1
 
- - Improved search with indexing
- - Index changes (baseline results): 
-   - Speed        : (0m30s)
-   - Memory Usage : (90MB)
+- Improved search functionality with indexing.
+- **Index Changes (Baseline Results):**
+  - **Speed:** (0m30s)
+  - **Memory Usage:** (90MB)
 
 ## v0.1.0
 
- - nothing changed from origin.
+- No changes from the original.
 
-Forked from https://github.com/filebrowser/filebrowser
+Forked from [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser).

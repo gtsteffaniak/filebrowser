@@ -13,8 +13,7 @@ import (
 var (
 	sessionInProgress sync.Map
 	mutex             sync.RWMutex
-	maxSearchResults        = 100
-	bytesInMegabyte   int64 = 1000000
+	maxSearchResults  = 100
 )
 
 func (si *Index) Search(search string, scope string, sourceSession string) ([]string, map[string]map[string]bool) {
