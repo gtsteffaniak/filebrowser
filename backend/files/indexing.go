@@ -7,17 +7,18 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 type Directory struct {
-	Name     string
 	Metadata map[string]FileInfo
 	Files    string
 }
 
 type Index struct {
 	Root              string
-	Directories       []Directory
+	Directories       map[string]Directory // Change from []Directory to map[string]Directory
 	NumDirs           int
 	NumFiles          int
 	currentlyIndexing bool
@@ -26,12 +27,15 @@ type Index struct {
 }
 
 var (
-	rootPath    string = "/srv"
-	indexes     map[string]*Index
-	lastIndexed time.Time
+	rootPath     string = "/srv"
+	indexes      map[string]*Index
+	indexesMutex sync.RWMutex
+	lastIndexed  time.Time
 )
 
 func GetIndex(root string) *Index {
+	indexesMutex.RLock()
+	defer indexesMutex.RUnlock()
 	index, exists := indexes[root]
 	if exists {
 		return index
@@ -42,9 +46,12 @@ func GetIndex(root string) *Index {
 func InitializeIndex(intervalMinutes uint32, schedule bool) {
 	// Initialize the index
 	indexes = make(map[string]*Index)
+	if settings.Config.Server.Root != "" {
+		rootPath = settings.Config.Server.Root
+	}
 	indexes[rootPath] = &Index{
 		Root:              rootPath,
-		Directories:       []Directory{},
+		Directories:       make(map[string]Directory), // Initialize the map
 		NumDirs:           0,
 		NumFiles:          0,
 		currentlyIndexing: false,
@@ -55,29 +62,34 @@ func InitializeIndex(intervalMinutes uint32, schedule bool) {
 }
 
 func indexingScheduler(intervalMinutes uint32) {
-	index := GetIndex(rootPath)
+	si := GetIndex(rootPath)
 	log.Printf("Indexing Files...")
 	log.Printf("Configured to run every %v minutes", intervalMinutes)
-	log.Printf("Indexing from root: %s", index.Root)
+	log.Printf("Indexing from root: %s", si.Root)
 	for {
 		startTime := time.Now()
 		// Check if the read lock is held by any goroutine
-		if index.currentlyIndexing {
+		if si.currentlyIndexing {
 			continue
 		}
-		index.currentlyIndexing = true
-		err := index.indexFiles(index.Root)
+		si.mutex.Lock()
+		si.currentlyIndexing = true
+		si.mutex.Unlock()
+
+		err := si.indexFiles(si.Root)
 		if err != nil {
 			log.Printf("Error during indexing: %v", err)
 		}
-		index.currentlyIndexing = false
-		index.LastIndexed = time.Now()
-		if index.NumFiles+index.NumDirs > 0 {
+		si.mutex.Lock()
+		si.currentlyIndexing = false
+		si.LastIndexed = time.Now()
+		si.mutex.Unlock()
+		if si.NumFiles+si.NumDirs > 0 {
 			timeIndexedInSeconds := int(time.Since(startTime).Seconds())
 			log.Println("Successfully indexed files.")
 			log.Printf("Time spent indexing: %v seconds\n", timeIndexedInSeconds)
-			log.Printf("Files found: %v\n", index.NumFiles)
-			log.Printf("Directories found: %v\n", index.NumDirs)
+			log.Printf("Files found: %v\n", si.NumFiles)
+			log.Printf("Directories found: %v\n", si.NumDirs)
 		}
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 	}
@@ -85,22 +97,32 @@ func indexingScheduler(intervalMinutes uint32) {
 
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
-	// Check if the current directory has been modified since last indexing
+	// Check if the current directory has been modified since the last indexing
 	path = strings.TrimSuffix(path, "/")
 	dir, err := os.Open(path)
+
 	if err != nil {
-		// Directory must have been deleted, remove from the index
-		si.Directories = removeFromSlice(si.Directories, path)
+		// Directory must have been deleted, remove it from the index
+		adjustedPath := strings.TrimPrefix(path, si.Root+"/")
+		adjustedPath = strings.TrimSuffix(adjustedPath, "/")
+		si.mutex.Lock()
+		delete(si.Directories, adjustedPath)
+		si.mutex.Unlock()
 	}
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
 	if err != nil {
 		return err
 	}
+
 	// Compare the last modified time of the directory with the last indexed time
+	si.mutex.RLock()
+	lastIndexed := si.LastIndexed
+	si.mutex.RUnlock()
 	if dirInfo.ModTime().Before(lastIndexed) {
 		return nil
 	}
+
 	// Read the directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
@@ -108,62 +130,50 @@ func (si *Index) indexFiles(path string) error {
 	}
 	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-	keyVal := -1
-	// Find the key for the directory
-	for k, v := range si.Directories {
-		if v.Name == adjustedPath {
-			keyVal = k
-			break
-		}
-	}
+
 	// Create a buffer for the directory
 	var buffer bytes.Buffer
 	// Iterate over the files and directories
 	for _, file := range files {
-		si.Insert(path, file.Name(), file.IsDir(), keyVal, &buffer)
+		si.Insert(adjustedPath, file.Name(), file.IsDir(), &buffer)
+		if file.IsDir() {
+			// Recursively index the directory
+			err := si.indexFiles(path + "/" + file.Name())
+			if err != nil {
+				log.Printf("Could not index \"%v\": %v \n", path, err)
+			}
+		}
 	}
-	if keyVal != -1 {
-		// Store the buffer in the directory's Files field
-		si.Directories[keyVal].Files = buffer.String()
-	}
+
+	si.mutex.Lock()
+	// Get the directory from the map
+	directory := si.Directories[adjustedPath]
+	// Store the buffer in the directory's Files field
+	directory.Files = buffer.String()
+	si.Directories[adjustedPath] = directory
+	si.mutex.Unlock()
+
 	return nil
 }
 
-func (si *Index) Insert(path string, fileName string, isDir bool, key int, buffer *bytes.Buffer) {
+func (si *Index) Insert(path string, fileName string, isDir bool, buffer *bytes.Buffer) {
+	si.mutex.Lock()
 	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-	// Check if it's a directory or a file
+
 	if isDir {
-		si.NumDirs++
-		subDirectory := Directory{
-			Name: adjustedPath + "/" + fileName,
-		} // 48
-		si.mutex.Lock()
-		si.Directories = append(si.Directories, subDirectory)
+		if _, exists := si.Directories[adjustedPath]; !exists {
+			si.NumDirs++
+			subDirectory := Directory{} // No need for Name here
+			// Add or update the directory in the map
+			si.Directories[adjustedPath+"/"+fileName] = subDirectory
+		}
 		si.mutex.Unlock()
 
-		// Recursively index the directory
-		err := si.indexFiles(path + "/" + fileName)
-		if err != nil {
-			log.Printf("Could not index \"%v\": %v \n", path, err)
-		}
 	} else {
-		if key != -1 {
-			// Use the buffer for this directory to concatenate file names
-			buffer.WriteString(fileName)
-			buffer.WriteString(";")
-			si.NumFiles++
-		}
+		// Use the buffer for this directory to concatenate file names
+		buffer.WriteString(fileName + ";")
+		si.NumFiles++
 	}
-}
 
-func removeFromSlice(slice []Directory, path string) []Directory {
-	for i, d := range slice {
-		if d.Name == path {
-			// Remove the element at index i by slicing the slice
-			slice = append(slice[:i], slice[i+1:]...)
-			break
-		}
-	}
-	return slice
 }
