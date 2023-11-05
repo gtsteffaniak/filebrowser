@@ -23,6 +23,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/rules"
 )
 
+var (
+	bytesInMegabyte int64 = 1000000
+)
+
 // FileInfo describes a file.
 type FileInfo struct {
 	*Listing
@@ -69,15 +73,11 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 
 	if opts.Expand {
 		if file.IsDir {
-			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
+			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil {
 				return nil, err
 			}
-			return file, nil
-		}
-
-		err = file.detectType(opts.Modify, opts.Content, true)
-		if err != nil {
-			return nil, err
+		} else {
+			err = file.detectType(opts.Modify, opts.Content, true)
 		}
 	}
 
@@ -86,12 +86,36 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 
 func stat(opts FileOptions) (*FileInfo, error) {
 	var file *FileInfo
-
 	if lstaterFs, ok := opts.Fs.(afero.Lstater); ok {
 		info, _, err := lstaterFs.LstatIfPossible(opts.Path)
+		if err == nil {
+			file = &FileInfo{
+				Fs:        opts.Fs,
+				Path:      opts.Path,
+				Name:      info.Name(),
+				ModTime:   info.ModTime(),
+				Mode:      info.Mode(),
+				IsDir:     info.IsDir(),
+				IsSymlink: IsSymlink(info.Mode()),
+				Size:      info.Size(),
+				Extension: filepath.Ext(info.Name()),
+				Token:     opts.Token,
+			}
+		}
+	}
+
+	if file == nil || file.IsSymlink {
+		info, err := opts.Fs.Stat(opts.Path)
 		if err != nil {
 			return nil, err
 		}
+
+		if file != nil && file.IsSymlink {
+			file.Size = info.Size()
+			file.IsDir = info.IsDir()
+			return file, nil
+		}
+
 		file = &FileInfo{
 			Fs:        opts.Fs,
 			Path:      opts.Path,
@@ -99,45 +123,10 @@ func stat(opts FileOptions) (*FileInfo, error) {
 			ModTime:   info.ModTime(),
 			Mode:      info.Mode(),
 			IsDir:     info.IsDir(),
-			IsSymlink: IsSymlink(info.Mode()),
 			Size:      info.Size(),
 			Extension: filepath.Ext(info.Name()),
 			Token:     opts.Token,
 		}
-	}
-
-	// regular file
-	if file != nil && !file.IsSymlink {
-		return file, nil
-	}
-
-	// fs doesn't support afero.Lstater interface or the file is a symlink
-	info, err := opts.Fs.Stat(opts.Path)
-	if err != nil {
-		// can't follow symlink
-		if file != nil && file.IsSymlink {
-			return file, nil
-		}
-		return nil, err
-	}
-
-	// set correct file size in case of symlink
-	if file != nil && file.IsSymlink {
-		file.Size = info.Size()
-		file.IsDir = info.IsDir()
-		return file, nil
-	}
-
-	file = &FileInfo{
-		Fs:        opts.Fs,
-		Path:      opts.Path,
-		Name:      info.Name(),
-		ModTime:   info.ModTime(),
-		Mode:      info.Mode(),
-		IsDir:     info.IsDir(),
-		Size:      info.Size(),
-		Extension: filepath.Ext(info.Name()),
-		Token:     opts.Token,
 	}
 
 	return file, nil
@@ -185,6 +174,7 @@ func (i *FileInfo) Checksum(algo string) error {
 	return nil
 }
 
+// RealPath gets the real path for the file, resolving symlinks if supported.
 func (i *FileInfo) RealPath() string {
 	if realPathFs, ok := i.Fs.(interface {
 		RealPath(name string) (fPath string, err error)
@@ -198,45 +188,31 @@ func (i *FileInfo) RealPath() string {
 	return i.Path
 }
 
-// TODO: use constants
-//
-//nolint:goconst
+// detectType detects the file type.
 func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		return nil
 	}
-	// failing to detect the type should not return error.
-	// imagine the situation where a file in a dir with thousands
-	// of files couldn't be opened: we'd have immediately
-	// a 500 even though it doesn't matter. So we just log it.
-
 	mimetype := mime.TypeByExtension(i.Extension)
-
 	var buffer []byte
 	if readHeader {
 		buffer = i.readFirstBytes()
-
 		if mimetype == "" {
-			mimetype = http.DetectContentType(buffer)
+			http.DetectContentType(buffer)
 		}
 	}
-
 	switch {
-	case strings.HasPrefix(mimetype, "video"):
+	case IsMatchingType(i.Extension, "video"):
 		i.Type = "video"
 		i.detectSubtitles()
-		return nil
-	case strings.HasPrefix(mimetype, "audio"):
+	case IsMatchingType(i.Extension, "audio"):
 		i.Type = "audio"
-		return nil
-	case strings.HasPrefix(mimetype, "image"):
+	case IsMatchingType(i.Extension, "image"):
 		i.Type = "image"
-		return nil
-	case strings.HasSuffix(mimetype, "pdf"):
+	case IsMatchingType(i.Extension, "pdf"):
 		i.Type = "pdf"
-		return nil
-	case (strings.HasPrefix(mimetype, "text") || !isBinary(buffer)) && i.Size <= 10*1024*1024: // 10 MB
+	case (IsMatchingType(i.Extension, "text") || !isBinary(buffer)) && i.Size <= 10*bytesInMegabyte: // 10 MB
 		i.Type = "text"
 
 		if !modify {
@@ -252,14 +228,13 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 
 			i.Content = string(content)
 		}
-		return nil
 	default:
 		i.Type = "blob"
 	}
-
 	return nil
 }
 
+// readFirstBytes reads the first bytes of the file.
 func (i *FileInfo) readFirstBytes() []byte {
 	reader, err := i.Fs.Open(i.Path)
 	if err != nil {
@@ -280,6 +255,7 @@ func (i *FileInfo) readFirstBytes() []byte {
 	return buffer[:n]
 }
 
+// detectSubtitles detects subtitles for video files.
 func (i *FileInfo) detectSubtitles() {
 	if i.Type != "video" {
 		return
@@ -288,20 +264,30 @@ func (i *FileInfo) detectSubtitles() {
 	i.Subtitles = []string{}
 	ext := filepath.Ext(i.Path)
 
-	// detect multiple languages. Base*.vtt
-	// TODO: give subtitles descriptive names (lang) and track attributes
 	parentDir := strings.TrimRight(i.Path, i.Name)
 	dir, err := afero.ReadDir(i.Fs, parentDir)
-	if err == nil {
-		base := strings.TrimSuffix(i.Name, ext)
-		for _, f := range dir {
-			if !f.IsDir() && strings.HasPrefix(f.Name(), base) && strings.HasSuffix(f.Name(), ".vtt") {
+	if err != nil {
+		return
+	}
+
+	base := strings.TrimSuffix(i.Name, ext)
+	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
+
+	for _, f := range dir {
+		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
+			continue
+		}
+
+		for _, subtitleExt := range subtitleExts {
+			if strings.HasSuffix(f.Name(), subtitleExt) {
 				i.Subtitles = append(i.Subtitles, path.Join(parentDir, f.Name()))
+				break
 			}
 		}
 	}
 }
 
+// readListing reads the contents of a directory and fills the listing.
 func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 	afs := &afero.Afero{Fs: i.Fs}
 	dir, err := afs.ReadDir(i.Path)
@@ -326,8 +312,6 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 		isSymlink, isInvalidLink := false, false
 		if IsSymlink(f.Mode()) {
 			isSymlink = true
-			// It's a symbolic link. We try to follow it. If it doesn't work,
-			// we stay with the link information instead of the target's.
 			info, err := i.Fs.Stat(fPath)
 			if err == nil {
 				f = info

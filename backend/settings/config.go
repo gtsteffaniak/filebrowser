@@ -19,7 +19,7 @@ func Initialize(configFile string) {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
-	Config.Server.Root = strings.TrimPrefix(Config.Server.Root, "/")
+	Config.Server.Root = strings.TrimSuffix(Config.Server.Root, "/")
 }
 
 func loadConfigFile(configFile string) []byte {

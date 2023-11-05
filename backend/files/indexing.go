@@ -1,4 +1,4 @@
-package index
+package files
 
 import (
 	"bytes"
@@ -7,18 +7,12 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 type Directory struct {
 	Name     string
-	Metadata map[string]meta
+	Metadata map[string]FileInfo
 	Files    string
-}
-type meta struct {
-	LastUpdated int
-	Size        int
 }
 
 type Index struct {
@@ -45,12 +39,9 @@ func GetIndex(root string) *Index {
 	return &Index{}
 }
 
-func Initialize(intervalMinutes uint32, schedule bool) {
+func InitializeIndex(intervalMinutes uint32, schedule bool) {
 	// Initialize the index
 	indexes = make(map[string]*Index)
-	if settings.Config.Server.Root != "" {
-		rootPath = settings.Config.Server.Root
-	}
 	indexes[rootPath] = &Index{
 		Root:              rootPath,
 		Directories:       []Directory{},

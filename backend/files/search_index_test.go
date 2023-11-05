@@ -1,4 +1,4 @@
-package index
+package files
 
 import (
 	"reflect"
@@ -8,7 +8,7 @@ import (
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	Initialize(5, false)
+	InitializeIndex(5, false)
 	index := indexes[rootPath]
 	// Create mock data
 	createMockData(50, 3) // 1000 dirs, 3 files per dir
