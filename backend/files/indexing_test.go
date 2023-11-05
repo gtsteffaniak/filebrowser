@@ -1,4 +1,4 @@
-package index
+package files
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	Initialize(5, false)
+	InitializeIndex(5, false)
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
@@ -109,7 +109,7 @@ func TestInitializeIndex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			Initialize(tt.args.intervalMinutes, false)
+			InitializeIndex(tt.args.intervalMinutes, false)
 		})
 	}
 }

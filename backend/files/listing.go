@@ -15,6 +15,11 @@ type Listing struct {
 	Sorting  Sorting     `json:"sorting"`
 }
 
+type Sorting struct {
+	By  string `json:"by"`
+	Asc bool   `json:"asc"`
+}
+
 // ApplySort applies the sort order using .Order and .Sort
 //
 //nolint:goconst
