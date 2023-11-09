@@ -27,7 +27,6 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		Expand:     true,
 		ReadHeader: d.server.TypeDetectionByHeader,
 		Checker:    d,
-		Content:    true,
 	})
 	if err != nil {
 		return errToStatus(err), err
@@ -46,9 +45,6 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		} else if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
-		// do not waste bandwidth if we just want the checksum
-		file.Content = ""
 	}
 
 	return renderJSON(w, r, file)
@@ -345,7 +341,6 @@ var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (
 		Expand:     false,
 		ReadHeader: false,
 		Checker:    d,
-		Content:    false,
 	})
 	if err != nil {
 		return errToStatus(err), err

@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
@@ -18,44 +17,44 @@ type Directory struct {
 
 type Index struct {
 	Root              string
-	Directories       map[string]Directory // Change from []Directory to map[string]Directory
+	Directories       map[string]Directory
 	NumDirs           int
 	NumFiles          int
 	currentlyIndexing bool
 	LastIndexed       time.Time
-	mutex             sync.RWMutex
+	syncLock          bool
+	paused            bool
+	pauseChan         chan bool
 }
 
 var (
-	rootPath     string = "/srv"
-	indexes      map[string]*Index
-	indexesMutex sync.RWMutex
-	lastIndexed  time.Time
+	rootPath string = "/srv"
+	indexes  []Index
 )
 
 func GetIndex(root string) *Index {
-	indexesMutex.RLock()
-	defer indexesMutex.RUnlock()
-	index, exists := indexes[root]
-	if exists {
-		return index
+	for _, index := range indexes {
+		if index.Root == root {
+			return &index
+		}
 	}
 	return &Index{}
 }
-
 func InitializeIndex(intervalMinutes uint32, schedule bool) {
 	// Initialize the index
-	indexes = make(map[string]*Index)
 	if settings.Config.Server.Root != "" {
 		rootPath = settings.Config.Server.Root
 	}
-	indexes[rootPath] = &Index{
-		Root:              rootPath,
-		Directories:       make(map[string]Directory), // Initialize the map
-		NumDirs:           0,
-		NumFiles:          0,
-		currentlyIndexing: false,
+	indexes = []Index{
+		Index{
+			Root:              rootPath,
+			Directories:       make(map[string]Directory), // Initialize the map
+			NumDirs:           0,
+			NumFiles:          0,
+			currentlyIndexing: false,
+		},
 	}
+
 	if schedule {
 		go indexingScheduler(intervalMinutes)
 	}
@@ -66,24 +65,20 @@ func indexingScheduler(intervalMinutes uint32) {
 	log.Printf("Indexing Files...")
 	log.Printf("Configured to run every %v minutes", intervalMinutes)
 	log.Printf("Indexing from root: %s", si.Root)
+
 	for {
 		startTime := time.Now()
-		// Check if the read lock is held by any goroutine
-		if si.currentlyIndexing {
-			continue
-		}
-		si.mutex.Lock()
+		// Set the indexing flag to indicate that indexing is in progress
 		si.currentlyIndexing = true
-		si.mutex.Unlock()
-
+		// Perform the indexing operation
 		err := si.indexFiles(si.Root)
+		// Reset the indexing flag to indicate that indexing has finished
+		si.currentlyIndexing = false
+		// Update the LastIndexed time
+		si.LastIndexed = time.Now()
 		if err != nil {
 			log.Printf("Error during indexing: %v", err)
 		}
-		si.mutex.Lock()
-		si.currentlyIndexing = false
-		si.LastIndexed = time.Now()
-		si.mutex.Unlock()
 		if si.NumFiles+si.NumDirs > 0 {
 			timeIndexedInSeconds := int(time.Since(startTime).Seconds())
 			log.Println("Successfully indexed files.")
@@ -91,23 +86,31 @@ func indexingScheduler(intervalMinutes uint32) {
 			log.Printf("Files found: %v\n", si.NumFiles)
 			log.Printf("Directories found: %v\n", si.NumDirs)
 		}
+
+		// Sleep for the specified interval
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 	}
 }
 
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
+	// Pause the Goroutine if `si.pauseChan` receives `true`.
+	select {
+	case p := <-si.pauseChan:
+		log.Println("mypause", p)
+	default:
+	}
+	log.Println("continue")
 	// Check if the current directory has been modified since the last indexing
 	path = strings.TrimSuffix(path, "/")
 	dir, err := os.Open(path)
+	time.Sleep(1000000000)
 
 	if err != nil {
 		// Directory must have been deleted, remove it from the index
 		adjustedPath := strings.TrimPrefix(path, si.Root+"/")
 		adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-		si.mutex.Lock()
 		delete(si.Directories, adjustedPath)
-		si.mutex.Unlock()
 	}
 	defer dir.Close()
 	dirInfo, err := dir.Stat()
@@ -116,9 +119,7 @@ func (si *Index) indexFiles(path string) error {
 	}
 
 	// Compare the last modified time of the directory with the last indexed time
-	si.mutex.RLock()
 	lastIndexed := si.LastIndexed
-	si.mutex.RUnlock()
 	if dirInfo.ModTime().Before(lastIndexed) {
 		return nil
 	}
@@ -144,23 +145,17 @@ func (si *Index) indexFiles(path string) error {
 			}
 		}
 	}
-
-	si.mutex.Lock()
 	// Get the directory from the map
 	directory := si.Directories[adjustedPath]
 	// Store the buffer in the directory's Files field
 	directory.Files = buffer.String()
 	si.Directories[adjustedPath] = directory
-	si.mutex.Unlock()
-
 	return nil
 }
 
 func (si *Index) Insert(path string, fileName string, isDir bool, buffer *bytes.Buffer) {
-	si.mutex.Lock()
 	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-
 	if isDir {
 		if _, exists := si.Directories[adjustedPath]; !exists {
 			si.NumDirs++
@@ -168,12 +163,10 @@ func (si *Index) Insert(path string, fileName string, isDir bool, buffer *bytes.
 			// Add or update the directory in the map
 			si.Directories[adjustedPath+"/"+fileName] = subDirectory
 		}
-		si.mutex.Unlock()
 
 	} else {
 		// Use the buffer for this directory to concatenate file names
 		buffer.WriteString(fileName + ";")
 		si.NumFiles++
 	}
-
 }
