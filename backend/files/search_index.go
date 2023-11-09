@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -60,7 +59,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if file == "" {
 					continue
 				}
-				fmt.Println(file)
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					return []string{}, map[string]map[string]bool{}
