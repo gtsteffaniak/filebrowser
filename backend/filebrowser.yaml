@@ -1,7 +1,7 @@
 server:
   port: 8080
   baseURL:  "/"
-  root: "/Users/steffag"
+  root: "/mnt/storage"
 auth:
   method: password
   signup: false

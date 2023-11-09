@@ -1,7 +1,6 @@
 package files
 
 import (
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -26,8 +25,16 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	fileListTypes := make(map[string]map[string]bool)
 	matching := []string{}
 	count := 0
-	log.Println("starting search")
-	si.pauseChan <- true
+	// Send a pause signal to indexing Goroutine
+	select {
+	case p := <-si.pauseChan:
+		if p {
+			si.indexRunning = false
+		}
+	default:
+		// Send a pause signal to indexing Goroutine
+		si.isSearching = true
+	}
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -79,8 +86,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			}
 		}
 	}
-	si.pauseChan <- false
-	log.Println("finished search")
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
 		parts1 := strings.Split(matching[i], "/")

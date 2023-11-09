@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
@@ -23,7 +24,9 @@ type Index struct {
 	currentlyIndexing bool
 	LastIndexed       time.Time
 	syncLock          bool
-	paused            bool
+	isSearching       bool
+	indexRunning      bool
+	pauseMutex        sync.Mutex
 	pauseChan         chan bool
 }
 
@@ -94,39 +97,45 @@ func indexingScheduler(intervalMinutes uint32) {
 
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
-	// Pause the Goroutine if `si.pauseChan` receives `true`.
-	select {
-	case p := <-si.pauseChan:
-		log.Println("mypause", p)
-	default:
+	if si.indexRunning {
+		si.indexRunning = !si.indexRunning
+		si.pauseMutex.Unlock()
 	}
-	log.Println("continue")
+	si.pauseMutex.Lock()
+	si.indexRunning = true
 	// Check if the current directory has been modified since the last indexing
 	path = strings.TrimSuffix(path, "/")
 	dir, err := os.Open(path)
-	time.Sleep(1000000000)
-
 	if err != nil {
+		log.Println("deleting")
 		// Directory must have been deleted, remove it from the index
 		adjustedPath := strings.TrimPrefix(path, si.Root+"/")
 		adjustedPath = strings.TrimSuffix(adjustedPath, "/")
 		delete(si.Directories, adjustedPath)
 	}
-	defer dir.Close()
 	dirInfo, err := dir.Stat()
 	if err != nil {
+		dir.Close()
+		si.indexRunning = false
+		si.pauseMutex.Unlock()
 		return err
 	}
 
 	// Compare the last modified time of the directory with the last indexed time
 	lastIndexed := si.LastIndexed
 	if dirInfo.ModTime().Before(lastIndexed) {
+		dir.Close()
+		si.indexRunning = false
+		si.pauseMutex.Unlock()
 		return nil
 	}
 
 	// Read the directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
+		dir.Close()
+		si.indexRunning = false
+		si.pauseMutex.Unlock()
 		return err
 	}
 	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
@@ -139,17 +148,33 @@ func (si *Index) indexFiles(path string) error {
 		si.Insert(adjustedPath, file.Name(), file.IsDir(), &buffer)
 		if file.IsDir() {
 			// Recursively index the directory
+			dir.Close()
+			if si.indexRunning {
+				si.pauseMutex.Unlock()
+				si.indexRunning = false
+			} else {
+				si.pauseMutex.Lock()
+				si.indexRunning = true
+			}
 			err := si.indexFiles(path + "/" + file.Name())
 			if err != nil {
 				log.Printf("Could not index \"%v\": %v \n", path, err)
+				si.pauseMutex.Lock()
+				si.indexRunning = true
 			}
 		}
 	}
+
 	// Get the directory from the map
 	directory := si.Directories[adjustedPath]
 	// Store the buffer in the directory's Files field
 	directory.Files = buffer.String()
 	si.Directories[adjustedPath] = directory
+	dir.Close()
+	if len(files) == 0 {
+		si.indexRunning = false
+		si.pauseMutex.Unlock()
+	}
 	return nil
 }
 
