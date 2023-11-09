@@ -23,11 +23,9 @@ type Index struct {
 	NumFiles          int
 	currentlyIndexing bool
 	LastIndexed       time.Time
-	syncLock          bool
 	isSearching       bool
 	indexRunning      bool
 	pauseMutex        sync.RWMutex
-	pauseChan         chan bool
 }
 
 var (
@@ -107,10 +105,9 @@ func (si *Index) indexFiles(path string) error {
 	dir, err := os.Open(path)
 	if err != nil {
 		adjustedPath := makeIndexPath(path, si.Root)
-		if _, exists := si.Directories[adjustedPath]; exists {
-			// Directory must have been deleted, remove it from the index
-			delete(si.Directories, adjustedPath)
-		}
+		// Directory must have been deleted, remove it from the index
+		delete(si.Directories, adjustedPath)
+
 	}
 	dirInfo, err := dir.Stat()
 	if err != nil {
