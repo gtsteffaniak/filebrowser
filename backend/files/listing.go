@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/users"
 	"github.com/maruel/natural"
 )
 
@@ -16,16 +17,10 @@ const (
 
 // Listing is a collection of files.
 type Listing struct {
-	Items    []*FileInfo `json:"items"`
-	NumDirs  int         `json:"numDirs"`
-	NumFiles int         `json:"numFiles"`
-	Sorting  Sorting     `json:"sorting"`
-}
-
-// SortingSettings represents the sorting settings.
-type Sorting struct {
-	By  string `json:"by"`
-	Asc bool   `json:"asc"`
+	Items    []*FileInfo   `json:"items"`
+	NumDirs  int           `json:"numDirs"`
+	NumFiles int           `json:"numFiles"`
+	Sorting  users.Sorting `json:"sorting"`
 }
 
 // ApplySort applies the specified sorting order to the listing.

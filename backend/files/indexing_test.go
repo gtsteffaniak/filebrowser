@@ -21,12 +21,13 @@ func createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
 		dirName := generateRandomPath(rand.Intn(3) + 1)
 		// Append a new Directory to the slice
-		index.Directories = append(index.Directories, Directory{Name: dirName})
+		tempDir := Directory{}
 		for j := 0; j < numFilesPerDir; j++ {
 			fileName := "file-" + getRandomTerm() + getRandomExtension()
 			// Append the fileName to the Files slice within the Directory struct
-			index.Directories[i].Files += fileName + ";"
+			tempDir.Files += fileName + ";"
 		}
+		index.Directories[dirName] = tempDir
 	}
 }
 

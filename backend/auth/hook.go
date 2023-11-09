@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
@@ -207,7 +206,7 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		Locale:      d.Locale,
 		ViewMode:    d.ViewMode,
 		SingleClick: d.SingleClick,
-		Sorting: files.Sorting{
+		Sorting: users.Sorting{
 			Asc: d.Sorting.Asc,
 			By:  d.Sorting.By,
 		},

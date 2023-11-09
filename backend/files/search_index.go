@@ -12,7 +12,6 @@ import (
 
 var (
 	sessionInProgress sync.Map
-	mutex             sync.RWMutex
 	maxSearchResults  = 100
 )
 
@@ -23,31 +22,33 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
-	mutex.RLock()
-	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
 	matching := []string{}
 	count := 0
+	si.isSearching = true
+	si.pauseMutex.Lock()
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
 		}
-		for _, dir := range si.Directories {
+		for dirName, dir := range si.Directories {
 			isDir := true
 			files := strings.Split(dir.Files, ";")
 			value, found := sessionInProgress.Load(sourceSession)
 			if !found || value != runningHash {
+				si.isSearching = false
 				return []string{}, map[string]map[string]bool{}
 			}
 			if count > maxSearchResults {
 				break
 			}
-			pathName := scopedPathNameFilter(dir.Name, scope, isDir)
+			pathName := scopedPathNameFilter(dirName, scope, isDir)
 			if pathName == "" {
 				continue // path not matched
 			}
+
 			fileTypes := map[string]bool{}
-			matches, fileType := containsSearchTerm(dir.Name, searchTerm, *searchOptions, isDir, fileTypes)
+			matches, fileType := containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
 			if matches {
 				fileListTypes[pathName] = fileType
 				matching = append(matching, pathName)
@@ -62,6 +63,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if !found || value != runningHash {
 					return []string{}, map[string]map[string]bool{}
 				}
+
 				if count > maxSearchResults {
 					break
 				}
@@ -72,12 +74,17 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if !matches {
 					continue
 				}
+
 				fileListTypes[fullName] = fileType
 				matching = append(matching, fullName)
 				count++
 			}
 		}
 	}
+	if si.indexRunning || si.isSearching {
+		si.isSearching = false
+	}
+	si.pauseMutex.Unlock()
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
 		parts1 := strings.Split(matching[i], "/")

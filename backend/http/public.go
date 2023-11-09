@@ -13,6 +13,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/share"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var withHashFile = func(fn handleFunc) handleFunc {
@@ -98,7 +99,7 @@ var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Reques
 	file := d.raw.(*files.FileInfo)
 
 	if file.IsDir {
-		file.Listing.Sorting = files.Sorting{By: "name", Asc: false}
+		file.Listing.Sorting = users.Sorting{By: "name", Asc: false}
 		file.Listing.ApplySort()
 		return renderJSON(w, r, file)
 	}
