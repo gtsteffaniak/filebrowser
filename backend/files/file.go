@@ -65,6 +65,20 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
+	index := GetIndex(rootPath)
+	trimmed := strings.TrimPrefix(opts.Path, "/")
+	adjustedPath := makeIndexPath(trimmed, index.Root)
+	if dir, exists := index.Directories[adjustedPath]; exists {
+		// Initialize the Metadata map if it is nil
+		if dir.Metadata == nil {
+			dir.Metadata = make(map[string]FileInfo)
+			index.Directories[adjustedPath] = dir
+		}
+		info, metadataExists := dir.Metadata[adjustedPath]
+		if metadataExists && info.Path == trimmed {
+			return &info, nil // Return the pointer directly
+		}
+	}
 
 	file, err := stat(opts)
 	if err != nil {
@@ -78,6 +92,16 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			}
 		} else {
 			err = file.detectType(opts.Modify, opts.Content, true)
+		}
+	}
+
+	if file.IsDir {
+		if _, exists := index.Directories[adjustedPath]; exists {
+			if file.Path == trimmed {
+				index.Directories[adjustedPath].Metadata[adjustedPath] = *file
+				newInfo := index.Directories[adjustedPath].Metadata[adjustedPath]
+				return &newInfo, nil
+			}
 		}
 	}
 

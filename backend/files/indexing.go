@@ -26,19 +26,19 @@ type Index struct {
 	syncLock          bool
 	isSearching       bool
 	indexRunning      bool
-	pauseMutex        sync.Mutex
+	pauseMutex        sync.RWMutex
 	pauseChan         chan bool
 }
 
 var (
 	rootPath string = "/srv"
-	indexes  []Index
+	indexes  []*Index
 )
 
 func GetIndex(root string) *Index {
 	for _, index := range indexes {
 		if index.Root == root {
-			return &index
+			return index
 		}
 	}
 	return &Index{}
@@ -48,8 +48,8 @@ func InitializeIndex(intervalMinutes uint32, schedule bool) {
 	if settings.Config.Server.Root != "" {
 		rootPath = settings.Config.Server.Root
 	}
-	indexes = []Index{
-		Index{
+	indexes = []*Index{
+		&Index{
 			Root:              rootPath,
 			Directories:       make(map[string]Directory), // Initialize the map
 			NumDirs:           0,
@@ -97,21 +97,20 @@ func indexingScheduler(intervalMinutes uint32) {
 
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
-	if si.indexRunning {
-		si.indexRunning = !si.indexRunning
+	if si.indexRunning || si.isSearching {
 		si.pauseMutex.Unlock()
 	}
-	si.pauseMutex.Lock()
 	si.indexRunning = true
+	si.pauseMutex.Lock()
 	// Check if the current directory has been modified since the last indexing
 	path = strings.TrimSuffix(path, "/")
 	dir, err := os.Open(path)
 	if err != nil {
-		log.Println("deleting")
-		// Directory must have been deleted, remove it from the index
-		adjustedPath := strings.TrimPrefix(path, si.Root+"/")
-		adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-		delete(si.Directories, adjustedPath)
+		adjustedPath := makeIndexPath(path, si.Root)
+		if _, exists := si.Directories[adjustedPath]; exists {
+			// Directory must have been deleted, remove it from the index
+			delete(si.Directories, adjustedPath)
+		}
 	}
 	dirInfo, err := dir.Stat()
 	if err != nil {
@@ -138,9 +137,7 @@ func (si *Index) indexFiles(path string) error {
 		si.pauseMutex.Unlock()
 		return err
 	}
-	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
-	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-
+	adjustedPath := makeIndexPath(path, si.Root)
 	// Create a buffer for the directory
 	var buffer bytes.Buffer
 	// Iterate over the files and directories
@@ -152,9 +149,6 @@ func (si *Index) indexFiles(path string) error {
 			if si.indexRunning {
 				si.pauseMutex.Unlock()
 				si.indexRunning = false
-			} else {
-				si.pauseMutex.Lock()
-				si.indexRunning = true
 			}
 			err := si.indexFiles(path + "/" + file.Name())
 			if err != nil {
@@ -179,19 +173,32 @@ func (si *Index) indexFiles(path string) error {
 }
 
 func (si *Index) Insert(path string, fileName string, isDir bool, buffer *bytes.Buffer) {
-	adjustedPath := strings.TrimPrefix(path, si.Root+"/")
-	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
 	if isDir {
-		if _, exists := si.Directories[adjustedPath]; !exists {
+		if _, exists := si.Directories[path]; !exists {
 			si.NumDirs++
 			subDirectory := Directory{} // No need for Name here
 			// Add or update the directory in the map
-			si.Directories[adjustedPath+"/"+fileName] = subDirectory
+			if path != "" {
+				si.Directories[path+"/"+fileName] = subDirectory
+			} else {
+				si.Directories[fileName] = subDirectory
+			}
 		}
-
 	} else {
 		// Use the buffer for this directory to concatenate file names
 		buffer.WriteString(fileName + ";")
 		si.NumFiles++
 	}
+}
+
+func makeIndexPath(path string, root string) string {
+	if path == root {
+		return "/"
+	}
+	adjustedPath := strings.TrimPrefix(path, root+"/")
+	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
+	if adjustedPath == "" {
+		adjustedPath = "/"
+	}
+	return adjustedPath
 }

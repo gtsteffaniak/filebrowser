@@ -1,6 +1,7 @@
 package files
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -25,16 +26,8 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	fileListTypes := make(map[string]map[string]bool)
 	matching := []string{}
 	count := 0
-	// Send a pause signal to indexing Goroutine
-	select {
-	case p := <-si.pauseChan:
-		if p {
-			si.indexRunning = false
-		}
-	default:
-		// Send a pause signal to indexing Goroutine
-		si.isSearching = true
-	}
+	si.isSearching = true
+	si.pauseMutex.Lock()
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -44,6 +37,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			files := strings.Split(dir.Files, ";")
 			value, found := sessionInProgress.Load(sourceSession)
 			if !found || value != runningHash {
+				si.isSearching = false
 				return []string{}, map[string]map[string]bool{}
 			}
 			if count > maxSearchResults {
@@ -63,7 +57,10 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			}
 			isDir = false
 			for _, file := range files {
-
+				if file == "" {
+					continue
+				}
+				fmt.Println(file)
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					return []string{}, map[string]map[string]bool{}
@@ -86,6 +83,10 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			}
 		}
 	}
+	if si.indexRunning || si.isSearching {
+		si.isSearching = false
+	}
+	si.pauseMutex.Unlock()
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
 		parts1 := strings.Split(matching[i], "/")

@@ -9,8 +9,8 @@ import (
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
 	InitializeIndex(5, false)
-	index := indexes[rootPath]
-	// Create mock data
+	index := GetIndex(rootPath)
+
 	createMockData(50, 3) // 1000 dirs, 3 files per dir
 
 	// Generate 100 random search terms
@@ -76,24 +76,18 @@ func TestParseSearch(t *testing.T) {
 
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
-		Directories: []Directory{
-			{
-				Name:  "test",
+		Directories: map[string]Directory{
+			"test": {
 				Files: "audio1.wav;",
 			},
-			{
-				Name:  "test/path",
+			"test/path": {
 				Files: "file.txt;",
 			},
-			{
-				Name: "new",
-			},
-			{
-				Name:  "new/test",
+			"new": {},
+			"new/test": {
 				Files: "audio.wav;video.mp4;video.MP4;",
 			},
-			{
-				Name:  "new/test/path",
+			"new/test/path": {
 				Files: "archive.zip;",
 			},
 		},
