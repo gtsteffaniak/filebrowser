@@ -219,7 +219,7 @@
 <script>
 import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
-import { users, files as api } from "@/api";
+import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
