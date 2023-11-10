@@ -8,7 +8,12 @@ Vue.use(Vuex);
 
 const state = {
   user: null,
-  req: {},
+  req: {
+    sorting: {
+      by: 'name', // Initial sorting field
+      asc: true,  // Initial sorting order
+    },
+  },
   oldReq: {},
   clipboard: {
     key: "",
