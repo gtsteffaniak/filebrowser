@@ -236,7 +236,7 @@ export default {
   data: function () {
     return {
       sortField: "name",
-      showLimit: 50,
+      showLimit: 500,
       columnWidth: 280,
       dragCounter: 0,
       width: window.innerWidth,
