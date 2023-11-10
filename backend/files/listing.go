@@ -2,10 +2,8 @@ package files
 
 import (
 	"sort"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/users"
-	"github.com/maruel/natural"
 )
 
 // Sorting constants
@@ -21,29 +19,6 @@ type Listing struct {
 	NumDirs  int           `json:"numDirs"`
 	NumFiles int           `json:"numFiles"`
 	Sorting  users.Sorting `json:"sorting"`
-}
-
-// ApplySort applies the specified sorting order to the listing.
-func (l *Listing) ApplySort() {
-	less := func(i, j int) bool {
-		switch l.Sorting.By {
-		case SortingByName:
-			return natural.Less(strings.ToLower(l.Items[i].Name), strings.ToLower(l.Items[j].Name))
-		case SortingBySize:
-			return l.sortBySize(i, j)
-		case SortingByModified:
-			return l.sortByModified(i, j)
-		default:
-			return false
-		}
-	}
-	if !l.Sorting.Asc {
-		sortItems(l.Items, func(i, j int) bool {
-			return !less(i, j)
-		})
-	} else {
-		sortItems(l.Items, less)
-	}
 }
 
 // sortItems is a generic sorting function for items.

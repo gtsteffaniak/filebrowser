@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="selectedCount > 0" id="file-selection">
-      <span >{{ selectedCount }} selected</span>
+      <span>{{ selectedCount }} selected</span>
       <template>
         <action
           v-if="headerButtons.select"
@@ -10,7 +10,7 @@
           show="info"
         />
         <action
-        v-if="headerButtons.select"
+          v-if="headerButtons.select"
           icon="check_circle"
           :label="$t('buttons.selectMultiple')"
           @action="toggleMultipleSelection"
@@ -209,7 +209,6 @@
 </template>
 
 <style>
-
 .header-items {
   width: 100% !important;
   max-width: 100% !important;
@@ -236,6 +235,7 @@ export default {
   },
   data: function () {
     return {
+      sortField: "name",
       showLimit: 50,
       columnWidth: 280,
       dragCounter: 0,
@@ -269,7 +269,6 @@ export default {
           files.push(item);
         }
       });
-
       return { dirs, files };
     },
     dirs() {
@@ -313,7 +312,7 @@ export default {
       return icons[this.user.viewMode];
     },
     listingViewMode() {
-      return this.user.viewMode
+      return this.user.viewMode;
     },
     headerButtons() {
       return {
@@ -679,31 +678,21 @@ export default {
         file.style.opacity = 1;
       });
     },
-    async sort(by) {
+    sort(field) {
       let asc = false;
-
-      if (by === "name") {
-        if (this.nameIcon === "arrow_upward") {
-          asc = true;
-        }
-      } else if (by === "size") {
-        if (this.sizeIcon === "arrow_upward") {
-          asc = true;
-        }
-      } else if (by === "modified") {
-        if (this.modifiedIcon === "arrow_upward") {
-          asc = true;
-        }
+      if (
+        (field === "name" && this.nameIcon === "arrow_upward") ||
+        (field === "size" && this.sizeIcon === "arrow_upward") ||
+        (field === "modified" && this.modifiedIcon === "arrow_upward")
+      ) {
+        asc = true;
       }
 
-      try {
-        await users.update({ id: this.user.id, sorting: { by, asc } }, ["sorting"]);
-      } catch (e) {
-        this.$showError(e);
-      }
-
-      this.$store.commit("setReload", true);
+      // Commit the updateSort mutation
+      this.$store.commit("updateListingSortConfig", { field, asc });
+      this.$store.commit("updateListingItems");
     },
+
     openSearch() {
       this.$store.commit("showHover", "search");
     },
