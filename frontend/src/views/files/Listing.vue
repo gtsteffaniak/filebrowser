@@ -137,7 +137,7 @@
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="req.numDirs > 0">
+        <div v-if="req.numDirs > 0" >
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -219,7 +219,7 @@
 <script>
 import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
-import { users, files as api } from "@/api";
+import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
@@ -236,7 +236,7 @@ export default {
   data: function () {
     return {
       sortField: "name",
-      showLimit: 50,
+      showLimit: 500,
       columnWidth: 280,
       dragCounter: 0,
       width: window.innerWidth,

@@ -85,6 +85,14 @@ export default {
 </script>
 
 <style>
+
+main {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+}
+main::-webkit-scrollbar { 
+    display: none;  /* Safari and Chrome */
+}
 /* Use the class .dark-mode to apply styles conditionally */
 .dark-mode {
   background: var(--background);

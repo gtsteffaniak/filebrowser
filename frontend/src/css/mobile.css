@@ -37,7 +37,7 @@
     margin-bottom: 5em;
   }
   #listing .item {
-    min-width: 100%
+    width: 100%
   }
   body.rtl #listing {
     margin-right: unset;

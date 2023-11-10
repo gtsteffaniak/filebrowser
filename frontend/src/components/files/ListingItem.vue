@@ -1,5 +1,6 @@
 <template>
   <div
+    :class="{activebutton: isSelected}"
     class="item"
     role="button"
     tabindex="0"
@@ -13,15 +14,15 @@
     :aria-label="name"
     :aria-selected="isSelected"
   >
-    <div>
-      <img
+    <div :class="{active: isSelected && type === 'image' }">
+      <img :class="{activeimg: isSelected && type === 'image' }"
         v-if="readOnly == undefined && type === 'image' && isThumbsEnabled"
         v-lazy="thumbnailUrl"
       />
       <i v-else class="material-icons"></i>
     </div>
 
-    <div>
+    <div :class="{activecontent: isSelected && type === 'image' }" >
       <p class="name">{{ name }}</p>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
@@ -33,6 +34,24 @@
     </div>
   </div>
 </template>
+
+<style>
+  .activebutton{
+    height: 10em;
+  }
+  .activecontent {
+    height: 5em  !important;
+    display: grid  !important;
+  }
+  .activeimg {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .active {
+    width: 25%  !important;
+    margin-right: 1em  !important;
+  }
+</style>
 
 <script>
 import { enableThumbs } from "@/utils/constants";

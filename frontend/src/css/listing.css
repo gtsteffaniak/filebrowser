@@ -1,5 +1,7 @@
 #listing {
   --item-selected: white;
+  transition: all;
+  animation-duration: 0.25s;
 }
 
 body.rtl #listing {
@@ -67,6 +69,7 @@ body.rtl #listing {
   object-fit: cover;
   margin-right: 0.1em;
   vertical-align: bottom;
+  border-radius: 0.5em;
 }
 
 .message {
@@ -87,18 +90,17 @@ body.rtl #listing {
 
 #listing {
   padding-top: 1em;
-  margin: 0 -0.5em;
+  padding-bottom: 1em;
 }
 
 #listing.gallery .item,
 #listing.compact .item,
 #listing.normal .item,
 #listing.list .item {
-  max-width: 300px;
   margin: .5em;
   padding: 0.5em;
   border-radius: 1em;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .12);
+  box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
 }
 #listing.gallery .item {
   max-width: 300px;
@@ -153,6 +155,7 @@ body.rtl #listing {
 #listing.gallery .item img {
   width: 100%;
   height: 100%;
+  border-radius: 0.5em;
 }
 
 #listing.gallery .size,
@@ -294,6 +297,7 @@ body.rtl #listing {
 #listing.list .item div:first-of-type img {
   width: 2em;
   height: 2em;
+  border-radius: 0.25em;
 }
 
 #listing.list .item div:last-of-type {
