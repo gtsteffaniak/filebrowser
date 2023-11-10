@@ -137,7 +137,7 @@
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="req.numDirs > 0">
+        <div v-if="req.numDirs > 0" >
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -209,6 +209,7 @@
 </template>
 
 <style>
+
 .header-items {
   width: 100% !important;
   max-width: 100% !important;
