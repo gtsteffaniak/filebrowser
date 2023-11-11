@@ -19,15 +19,18 @@ func BenchmarkFillIndex(b *testing.B) {
 func createMockData(numDirs, numFilesPerDir int) {
 	index := GetIndex(rootPath)
 	for i := 0; i < numDirs; i++ {
+		fileList := []File{}
+
 		dirName := generateRandomPath(rand.Intn(3) + 1)
 		// Append a new Directory to the slice
-		tempDir := Directory{}
 		for j := 0; j < numFilesPerDir; j++ {
-			fileName := "file-" + getRandomTerm() + getRandomExtension()
-			// Append the fileName to the Files slice within the Directory struct
-			tempDir.Files += fileName + ";"
+			newFile := File{
+				Name:  "file-" + getRandomTerm() + getRandomExtension(),
+				IsDir: false,
+			}
+			fileList = append(fileList, newFile)
 		}
-		index.Directories[dirName] = tempDir
+		index.PrepAndInsert(fileList, dirName)
 	}
 }
 

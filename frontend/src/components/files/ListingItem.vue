@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="{activebutton: isSelected}"
+    :class="{ activebutton: this.isMaximized && this.isSelected}"
     class="item"
     role="button"
     tabindex="0"
@@ -14,15 +14,19 @@
     :aria-label="name"
     :aria-selected="isSelected"
   >
-    <div :class="{active: isSelected && type === 'image' }">
-      <img :class="{activeimg: isSelected && type === 'image' }"
-        v-if="readOnly == undefined && type === 'image' && isThumbsEnabled"
+    <div
+      @click="toggleClick"
+      :class="{ activetitle: this.isMaximized && this.isSelected }"
+    >
+      <img
+        v-if="readOnly === undefined && type === 'image' && isThumbsEnabled"
         v-lazy="thumbnailUrl"
+        :class="{ activeimg: this.isMaximized && this.isSelected }"
       />
-      <i v-else class="material-icons"></i>
+      <i :class="{ iconActive: this.isMaximized && this.isSelected }" v-else class="material-icons"></i>
     </div>
 
-    <div :class="{activecontent: isSelected && type === 'image' }" >
+    <div :class="{ activecontent: this.isMaximized && this.isSelected }">
       <p class="name">{{ name }}</p>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
@@ -36,21 +40,24 @@
 </template>
 
 <style>
-  .activebutton{
-    height: 10em;
-  }
-  .activecontent {
-    height: 5em  !important;
-    display: grid  !important;
-  }
-  .activeimg {
-    width: 100% !important;
-    height: 100% !important;
-  }
-  .active {
-    width: 25%  !important;
-    margin-right: 1em  !important;
-  }
+.activebutton {
+  height: 10em;
+}
+.activecontent {
+  height: 5em !important;
+  display: grid !important;
+}
+.activeimg {
+  width: 8em !important;
+  height: 8em !important;
+}
+.iconActive {
+  font-size: 6em !important;
+}
+.activetitle {
+  width: 9em !important;
+  margin-right: 1em !important;
+}
 </style>
 
 <script>
@@ -65,6 +72,7 @@ export default {
   name: "item",
   data: function () {
     return {
+      isMaximized: false,
       touches: 0,
     };
   },
@@ -82,6 +90,16 @@ export default {
   computed: {
     ...mapState(["user", "selected", "req", "jwt"]),
     ...mapGetters(["selectedCount"]),
+    isClicked() {
+      if (this.user.singleClick || !this.allowedView ) {
+        return false;
+      }
+      // Assuming toggleClick returns a boolean value
+      return !this.isMaximized;
+    },
+    allowedView() {
+      return this.user.viewMode != "gallery" && this.user.viewMode != "normal"
+    },
     singleClick() {
       return this.readOnly == undefined && this.user.singleClick;
     },
@@ -115,9 +133,14 @@ export default {
     },
   },
   methods: {
+    toggleClick() {
+      this.isMaximized = this.isClicked;
+    },
     ...mapMutations(["addSelected", "removeSelected", "resetSelected"]),
     humanSize: function () {
-      return this.type == "invalid_link" ? "invalid link" : getHumanReadableFilesize(this.size);
+      return this.type == "invalid_link"
+        ? "invalid link"
+        : getHumanReadableFilesize(this.size);
     },
     humanTime: function () {
       if (this.readOnly == undefined && this.user.dateFormat) {
@@ -250,7 +273,6 @@ export default {
 
         return;
       }
-
       if (
         !this.singleClick &&
         !event.ctrlKey &&

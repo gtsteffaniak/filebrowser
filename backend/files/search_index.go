@@ -25,8 +25,8 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	fileListTypes := make(map[string]map[string]bool)
 	matching := []string{}
 	count := 0
-	si.isSearching = true
-	si.pauseMutex.Lock()
+	si.mu.RLock()
+	defer si.mu.RUnlock()
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -36,7 +36,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			files := strings.Split(dir.Files, ";")
 			value, found := sessionInProgress.Load(sourceSession)
 			if !found || value != runningHash {
-				si.isSearching = false
 				return []string{}, map[string]map[string]bool{}
 			}
 			if count > maxSearchResults {
@@ -81,10 +80,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			}
 		}
 	}
-	if si.indexRunning || si.isSearching {
-		si.isSearching = false
-	}
-	si.pauseMutex.Unlock()
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
 		parts1 := strings.Split(matching[i], "/")

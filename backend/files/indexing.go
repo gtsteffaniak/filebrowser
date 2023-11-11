@@ -15,17 +15,19 @@ type Directory struct {
 	Metadata map[string]FileInfo
 	Files    string
 }
+type File struct {
+	Name  string
+	IsDir bool
+}
 
 type Index struct {
-	Root              string
-	Directories       map[string]Directory
-	NumDirs           int
-	NumFiles          int
-	currentlyIndexing bool
-	LastIndexed       time.Time
-	isSearching       bool
-	indexRunning      bool
-	pauseMutex        sync.RWMutex
+	Root        string
+	Directories map[string]Directory
+	NumDirs     int
+	NumFiles    int
+	inProgress  bool
+	LastIndexed time.Time
+	mu          sync.RWMutex
 }
 
 var (
@@ -48,11 +50,11 @@ func InitializeIndex(intervalMinutes uint32, schedule bool) {
 	}
 	indexes = []*Index{
 		&Index{
-			Root:              rootPath,
-			Directories:       make(map[string]Directory), // Initialize the map
-			NumDirs:           0,
-			NumFiles:          0,
-			currentlyIndexing: false,
+			Root:        rootPath,
+			Directories: make(map[string]Directory), // Initialize the map
+			NumDirs:     0,
+			NumFiles:    0,
+			inProgress:  false,
 		},
 	}
 
@@ -70,11 +72,11 @@ func indexingScheduler(intervalMinutes uint32) {
 	for {
 		startTime := time.Now()
 		// Set the indexing flag to indicate that indexing is in progress
-		si.currentlyIndexing = true
+		si.inProgress = true
 		// Perform the indexing operation
 		err := si.indexFiles(si.Root)
 		// Reset the indexing flag to indicate that indexing has finished
-		si.currentlyIndexing = false
+		si.inProgress = false
 		// Update the LastIndexed time
 		si.LastIndexed = time.Now()
 		if err != nil {
@@ -95,11 +97,6 @@ func indexingScheduler(intervalMinutes uint32) {
 
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
-	if si.indexRunning || si.isSearching {
-		si.pauseMutex.Unlock()
-	}
-	si.indexRunning = true
-	si.pauseMutex.Lock()
 	// Check if the current directory has been modified since the last indexing
 	path = strings.TrimSuffix(path, "/")
 	dir, err := os.Open(path)
@@ -112,8 +109,6 @@ func (si *Index) indexFiles(path string) error {
 	dirInfo, err := dir.Stat()
 	if err != nil {
 		dir.Close()
-		si.indexRunning = false
-		si.pauseMutex.Unlock()
 		return err
 	}
 
@@ -121,8 +116,6 @@ func (si *Index) indexFiles(path string) error {
 	lastIndexed := si.LastIndexed
 	if dirInfo.ModTime().Before(lastIndexed) {
 		dir.Close()
-		si.indexRunning = false
-		si.pauseMutex.Unlock()
 		return nil
 	}
 
@@ -130,28 +123,33 @@ func (si *Index) indexFiles(path string) error {
 	files, err := dir.Readdir(-1)
 	if err != nil {
 		dir.Close()
-		si.indexRunning = false
-		si.pauseMutex.Unlock()
 		return err
 	}
+	fileList := []File{}
+	for _, file := range files {
+		newFile := File{
+			Name:  file.Name(),
+			IsDir: file.IsDir(),
+		}
+		fileList = append(fileList, newFile)
+	}
+	dir.Close()
+	si.PrepAndInsert(fileList, path)
+	return nil
+}
+
+func (si *Index) PrepAndInsert(fileList []File, path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
 	// Create a buffer for the directory
 	var buffer bytes.Buffer
 	// Iterate over the files and directories
-	for _, file := range files {
-		si.Insert(adjustedPath, file.Name(), file.IsDir(), &buffer)
-		if file.IsDir() {
-			// Recursively index the directory
-			dir.Close()
-			if si.indexRunning {
-				si.pauseMutex.Unlock()
-				si.indexRunning = false
-			}
-			err := si.indexFiles(path + "/" + file.Name())
+	for _, f := range fileList {
+		// Assuming si.Insert takes a pointer to bytes.Buffer
+		si.Insert(adjustedPath, f.Name, f.IsDir, &buffer)
+		if f.IsDir {
+			err := si.indexFiles(path + "/" + f.Name)
 			if err != nil {
 				log.Printf("Could not index \"%v\": %v \n", path, err)
-				si.pauseMutex.Lock()
-				si.indexRunning = true
 			}
 		}
 	}
@@ -161,15 +159,11 @@ func (si *Index) indexFiles(path string) error {
 	// Store the buffer in the directory's Files field
 	directory.Files = buffer.String()
 	si.Directories[adjustedPath] = directory
-	dir.Close()
-	if len(files) == 0 {
-		si.indexRunning = false
-		si.pauseMutex.Unlock()
-	}
-	return nil
 }
 
 func (si *Index) Insert(path string, fileName string, isDir bool, buffer *bytes.Buffer) {
+	si.mu.Lock()
+	defer si.mu.Unlock()
 	if isDir {
 		if _, exists := si.Directories[path]; !exists {
 			si.NumDirs++
