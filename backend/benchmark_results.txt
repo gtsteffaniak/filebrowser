@@ -1,63 +1,65 @@
 
  == Running benchmark == 
+/usr/local/go/bin/go
 ?   	github.com/gtsteffaniak/filebrowser	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/cmd	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.818s
+ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
-goos: darwin
-goarch: arm64
+goos: linux
+goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/files
-BenchmarkFillIndex-10           	      10	   6229858 ns/op	   22788 B/op	     499 allocs/op
-BenchmarkSearchAllIndexes-10    	      10	   5229650 ns/op	 3316321 B/op	   58904 allocs/op
+cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
+BenchmarkFillIndex-8          	      10	   3228972 ns/op	   22740 B/op	     499 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	   5449559 ns/op	 3429984 B/op	   60528 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/files	0.380s
+ok  	github.com/gtsteffaniak/filebrowser/files	0.113s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.497s
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:33 Saving new user: username
-2023/11/11 10:58:34 h: 401  <nil>
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 h: 401  <nil>
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 h: 401  <nil>
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 h: 401  <nil>
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 using old file info
-2023/11/11 10:58:34 Saving new user: username
-2023/11/11 10:58:34 Saving new user: username
-2023/11/11 10:58:34 h: 401  <nil>
-2023/11/11 10:58:34 h: 401  <nil>
+ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 h: 401  <nil>
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 h: 401  <nil>
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 Saving new user: username
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 h: 401  <nil>
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 h: 401  <nil>
+2023/11/11 11:00:22 h: 401  <nil>
+2023/11/11 11:00:22 h: 401  <nil>
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 using old file info
+2023/11/11 11:00:22 using old file info
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	1.309s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.157s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.682s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.120s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/rules	0.460s
+ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/runner	0.706s
+ok  	github.com/gtsteffaniak/filebrowser/runner	0.003s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/settings	0.733s
+ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage/bolt	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/users	0.725s
+ok  	github.com/gtsteffaniak/filebrowser/users	0.003s
 ?   	github.com/gtsteffaniak/filebrowser/version	[no test files]
