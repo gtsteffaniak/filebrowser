@@ -33,9 +33,8 @@ type Index struct {
 }
 
 var (
-	rootPath   string = "/srv"
-	indexMutex sync.Mutex
-	indexes    []*Index
+	rootPath string = "/srv"
+	indexes  []*Index
 )
 
 func InitializeIndex(intervalMinutes uint32, schedule bool) {
