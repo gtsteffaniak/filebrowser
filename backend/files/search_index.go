@@ -1,7 +1,6 @@
 package files
 
 import (
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -54,7 +53,6 @@ func (si *Index) searchEachDirectory(searchTerm, scope, sourceSession string, ru
 	defer si.mu.Unlock()
 	matching := []string{}
 	for dirName, dir := range si.Directories {
-		log.Println("searching", dirName)
 		isDir := true
 		files := strings.Split(dir.Files, ";")
 		pathName := scopedPathNameFilter(dirName, scope, isDir)
@@ -90,8 +88,6 @@ func (si *Index) searchEachDirectory(searchTerm, scope, sourceSession string, ru
 			if file == "" {
 				continue
 			}
-			log.Println("searching file", file)
-
 			sessionMutex.Lock()
 			value, found := sessionInProgress[sourceSession]
 			sessionMutex.Unlock()
