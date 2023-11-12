@@ -6,21 +6,23 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 func BenchmarkFillIndex(b *testing.B) {
 	InitializeIndex(5, false)
+	si := GetIndex(settings.Config.Server.Root)
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		createMockData(50, 3) // 1000 dirs, 3 files per dir
+		si.createMockData(50, 3) // 1000 dirs, 3 files per dir
 	}
 }
-func createMockData(numDirs, numFilesPerDir int) {
-	index := GetIndex(rootPath)
+
+func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
 		fileList := []File{}
-
 		dirName := generateRandomPath(rand.Intn(3) + 1)
 		// Append a new Directory to the slice
 		for j := 0; j < numFilesPerDir; j++ {
@@ -30,7 +32,8 @@ func createMockData(numDirs, numFilesPerDir int) {
 			}
 			fileList = append(fileList, newFile)
 		}
-		index.PrepAndInsert(fileList, dirName)
+		si.InsertFiles(fileList, dirName)
+		si.InsertDirs(fileList, dirName)
 	}
 }
 

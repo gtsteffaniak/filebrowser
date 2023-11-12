@@ -122,9 +122,14 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		go refreshFileInfo(opts)
 		return &info, nil
 	} else {
-		refreshFileInfo(opts)
+		updated := refreshFileInfo(opts)
+		if !updated {
+			file, err := NewFileInfo(opts)
+			return file, err
+		}
 		info, exists = index.GetMetadataInfo(adjustedPath)
 		if !exists || info.Name == "" {
+			log.Println("I guess not in index? ", info.Name)
 			return &FileInfo{}, errors.ErrEmptyKey
 		}
 		return &info, nil
@@ -147,16 +152,17 @@ func refreshFileInfo(opts FileOptions) bool {
 	}
 	adjustedPath := makeIndexPath(trimmed, index.Root)
 	if file.IsDir {
-		if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil {
+		err := file.readListing(opts.Checker, opts.ReadHeader)
+		if err != nil {
 			return false
 		}
-		if _, exists := index.GetFileMetadata(adjustedPath); exists {
-			if file.Path == opts.Path {
-				if !index.UpdateFileMetadata(adjustedPath, *file) {
-					log.Println("unable to update!!!!", file)
-				}
-			}
+		_, exists := index.GetFileMetadata(adjustedPath)
+		if exists {
+			log.Println("updating existing")
+		} else {
+			log.Println("its new, adding")
 		}
+		return index.UpdateFileMetadata(adjustedPath, *file)
 	}
 	err = file.detectType(opts.Modify, opts.Content, true)
 	if err == nil {

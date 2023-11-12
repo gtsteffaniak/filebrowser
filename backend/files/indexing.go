@@ -7,8 +7,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 type Directory struct {
@@ -31,33 +29,12 @@ type Index struct {
 }
 
 var (
-	rootPath string = "/srv"
-	indexes  []*Index
+	rootPath   string = "/srv"
+	indexMap          = make(map[string]*Index)
+	indexMutex sync.Mutex
 )
 
-func GetIndex(root string) *Index {
-	for _, index := range indexes {
-		if index.Root == root {
-			return index
-		}
-	}
-	return &Index{}
-}
 func InitializeIndex(intervalMinutes uint32, schedule bool) {
-	// Initialize the index
-	if settings.Config.Server.Root != "" {
-		rootPath = settings.Config.Server.Root
-	}
-	indexes = []*Index{
-		&Index{
-			Root:        rootPath,
-			Directories: make(map[string]Directory), // Initialize the map
-			NumDirs:     0,
-			NumFiles:    0,
-			inProgress:  false,
-		},
-	}
-
 	if schedule {
 		go indexingScheduler(intervalMinutes)
 	}
@@ -103,8 +80,7 @@ func (si *Index) indexFiles(path string) error {
 	if err != nil {
 		adjustedPath := makeIndexPath(path, si.Root)
 		// Directory must have been deleted, remove it from the index
-		delete(si.Directories, adjustedPath)
-
+		si.RemoveDirectory(adjustedPath)
 	}
 	dirInfo, err := dir.Stat()
 	if err != nil {
@@ -134,51 +110,41 @@ func (si *Index) indexFiles(path string) error {
 		fileList = append(fileList, newFile)
 	}
 	dir.Close()
-	si.PrepAndInsert(fileList, path)
+	si.InsertFiles(fileList, path)
+	// done separately for memory efficiency on recursion
+	si.InsertDirs(fileList, path)
 	return nil
 }
 
-func (si *Index) PrepAndInsert(fileList []File, path string) {
+func (si *Index) InsertFiles(fileList []File, path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
-	// Create a buffer for the directory
 	var buffer bytes.Buffer
-	// Iterate over the files and directories
+	subDirectory := Directory{}
 	for _, f := range fileList {
-		// Assuming si.Insert takes a pointer to bytes.Buffer
-		si.Insert(adjustedPath, f.Name, f.IsDir, &buffer)
+		buffer.WriteString(f.Name + ";")
+		si.UpdateCount("files")
+	}
+	// Use GetMetadataInfo and SetFileMetadata for safer read and write operations
+	subDirectory.Files = buffer.String()
+	si.SetDirectoryInfo(adjustedPath, subDirectory)
+}
+
+func (si *Index) InsertDirs(fileList []File, path string) {
+	for _, f := range fileList {
 		if f.IsDir {
+			// Prevent data race
+			si.UpdateCount("dirs")
+			subDirectory := Directory{}
+			if path != "" {
+				si.SetDirectoryInfo(path+"/"+f.Name, subDirectory)
+			} else {
+				si.SetDirectoryInfo(f.Name, subDirectory)
+			}
 			err := si.indexFiles(path + "/" + f.Name)
 			if err != nil {
 				log.Printf("Could not index \"%v\": %v \n", path, err)
 			}
 		}
-	}
-
-	// Get the directory from the map
-	directory := si.Directories[adjustedPath]
-	// Store the buffer in the directory's Files field
-	directory.Files = buffer.String()
-	si.Directories[adjustedPath] = directory
-}
-
-func (si *Index) Insert(path string, fileName string, isDir bool, buffer *bytes.Buffer) {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	if isDir {
-		if _, exists := si.Directories[path]; !exists {
-			si.NumDirs++
-			subDirectory := Directory{} // No need for Name here
-			// Add or update the directory in the map
-			if path != "" {
-				si.Directories[path+"/"+fileName] = subDirectory
-			} else {
-				si.Directories[fileName] = subDirectory
-			}
-		}
-	} else {
-		// Use the buffer for this directory to concatenate file names
-		buffer.WriteString(fileName + ";")
-		si.NumFiles++
 	}
 }
 
