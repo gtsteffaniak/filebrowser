@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 type Directory struct {
@@ -24,14 +26,16 @@ type Index struct {
 	NumDirs     int
 	NumFiles    int
 	inProgress  bool
+	buffer      bytes.Buffer
+	quickList   []File
 	LastIndexed time.Time
 	mu          sync.RWMutex
 }
 
 var (
 	rootPath   string = "/srv"
-	indexMap          = make(map[string]*Index)
 	indexMutex sync.Mutex
+	indexes    []*Index
 )
 
 func InitializeIndex(intervalMinutes uint32, schedule bool) {
@@ -41,17 +45,20 @@ func InitializeIndex(intervalMinutes uint32, schedule bool) {
 }
 
 func indexingScheduler(intervalMinutes uint32) {
+	if settings.Config.Server.Root != "" {
+		rootPath = settings.Config.Server.Root
+	}
 	si := GetIndex(rootPath)
 	log.Printf("Indexing Files...")
 	log.Printf("Configured to run every %v minutes", intervalMinutes)
 	log.Printf("Indexing from root: %s", si.Root)
-
 	for {
 		startTime := time.Now()
 		// Set the indexing flag to indicate that indexing is in progress
 		si.inProgress = true
 		// Perform the indexing operation
 		err := si.indexFiles(si.Root)
+		si.quickList = []File{}
 		// Reset the indexing flag to indicate that indexing has finished
 		si.inProgress = false
 		// Update the LastIndexed time
@@ -66,7 +73,6 @@ func indexingScheduler(intervalMinutes uint32) {
 			log.Printf("Files found: %v\n", si.NumFiles)
 			log.Printf("Directories found: %v\n", si.NumDirs)
 		}
-
 		// Sleep for the specified interval
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 	}
@@ -101,36 +107,29 @@ func (si *Index) indexFiles(path string) error {
 		dir.Close()
 		return err
 	}
-	fileList := []File{}
-	for _, file := range files {
-		newFile := File{
-			Name:  file.Name(),
-			IsDir: file.IsDir(),
-		}
-		fileList = append(fileList, newFile)
-	}
+	si.UpdateQuickList(files)
 	dir.Close()
-	si.InsertFiles(fileList, path)
+	si.InsertFiles(path)
 	// done separately for memory efficiency on recursion
-	si.InsertDirs(fileList, path)
+	si.InsertDirs(path)
 	return nil
 }
 
-func (si *Index) InsertFiles(fileList []File, path string) {
+func (si *Index) InsertFiles(path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
-	var buffer bytes.Buffer
 	subDirectory := Directory{}
-	for _, f := range fileList {
-		buffer.WriteString(f.Name + ";")
+	si.buffer = bytes.Buffer{}
+	for _, f := range si.quickList {
+		si.buffer.WriteString(f.Name + ";")
 		si.UpdateCount("files")
 	}
 	// Use GetMetadataInfo and SetFileMetadata for safer read and write operations
-	subDirectory.Files = buffer.String()
+	subDirectory.Files = si.buffer.String()
 	si.SetDirectoryInfo(adjustedPath, subDirectory)
 }
 
-func (si *Index) InsertDirs(fileList []File, path string) {
-	for _, f := range fileList {
+func (si *Index) InsertDirs(path string) {
+	for _, f := range si.quickList {
 		if f.IsDir {
 			// Prevent data race
 			si.UpdateCount("dirs")

@@ -3,7 +3,7 @@ server:
   baseURL:  "/"
   root: "/Users/steffag"
 auth:
-  method: password
+  method: noauth
   signup: false
 userDefaults:
   darkMode: true

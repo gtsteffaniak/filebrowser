@@ -1,6 +1,11 @@
 package files
 
-import "log"
+import (
+	"io/fs"
+	"log"
+
+	"github.com/gtsteffaniak/filebrowser/settings"
+)
 
 // GetFileMetadata retrieves the FileInfo from the specified directory in the index.
 func (si *Index) GetFileMetadata(adjustedPath string) (FileInfo, bool) {
@@ -72,6 +77,17 @@ func (si *Index) SetDirectoryInfo(adjustedPath string, dir Directory) {
 	si.mu.Unlock()
 }
 
+// SetDirectoryInfo sets the directory information in the index.
+func (si *Index) GetDirectoryInfo(adjustedPath string) (Directory, bool) {
+	si.mu.RLock()
+	dir, exists := si.Directories[adjustedPath]
+	si.mu.RUnlock()
+	if exists {
+		return dir, true
+	}
+	return Directory{}, false
+}
+
 func (si *Index) RemoveDirectory(path string) {
 	si.mu.Lock()
 	defer si.mu.Unlock()
@@ -92,11 +108,13 @@ func (si *Index) UpdateCount(given string) {
 }
 
 func GetIndex(root string) *Index {
-	indexMutex.Lock()
-	defer indexMutex.Unlock()
-
-	if index, ok := indexMap[root]; ok {
-		return index
+	for _, index := range indexes {
+		if index.Root == root {
+			return index
+		}
+	}
+	if settings.Config.Server.Root != "" {
+		rootPath = settings.Config.Server.Root
 	}
 	newIndex := &Index{
 		Root:        rootPath,
@@ -105,12 +123,32 @@ func GetIndex(root string) *Index {
 		NumFiles:    0,
 		inProgress:  false,
 	}
-	indexMap[root] = newIndex
+	indexes = append(indexes, newIndex)
 	return newIndex
 }
 
-func updateTypes(t map[string]map[string]bool, pathName string, types map[string]bool) {
-	sessionMutex.Lock()
-	defer sessionMutex.Unlock()
-	t[pathName] = types
+func (si *Index) UpdateQuickList(files []fs.FileInfo) {
+	si.mu.Lock()
+	defer si.mu.Unlock()
+	si.quickList = []File{}
+	for _, file := range files {
+		newFile := File{
+			Name:  file.Name(),
+			IsDir: file.IsDir(),
+		}
+		si.quickList = append(si.quickList, newFile)
+	}
+}
+
+func (si *Index) UpdateQuickListForTests(files []File) {
+	si.mu.Lock()
+	defer si.mu.Unlock()
+	si.quickList = []File{}
+	for _, file := range files {
+		newFile := File{
+			Name:  file.Name,
+			IsDir: file.IsDir,
+		}
+		si.quickList = append(si.quickList, newFile)
+	}
 }
