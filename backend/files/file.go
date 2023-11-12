@@ -165,10 +165,7 @@ func refreshFileInfo(opts FileOptions) bool {
 		return index.UpdateFileMetadata(adjustedPath, *file)
 	}
 	err = file.detectType(opts.Modify, opts.Content, true)
-	if err == nil {
-		return true
-	}
-	return false
+	return err == nil
 }
 
 func stat(opts FileOptions) (*FileInfo, error) {
