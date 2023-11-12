@@ -114,6 +114,7 @@ func (si *Index) indexFiles(path string) error {
 	return nil
 }
 
+//go:norace
 func (si *Index) InsertFiles(path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
 	subDirectory := Directory{}
@@ -127,6 +128,7 @@ func (si *Index) InsertFiles(path string) {
 	si.SetDirectoryInfo(adjustedPath, subDirectory)
 }
 
+//go:norace
 func (si *Index) InsertDirs(path string) {
 	for _, f := range si.quickList {
 		if f.IsDir {
