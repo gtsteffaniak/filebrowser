@@ -78,22 +78,9 @@ type Listing struct {
 // object will be automatically filled depending on if it is a directory
 // or a file. If it's a video file, it will also detect any subtitles.
 func NewFileInfo(opts FileOptions) (*FileInfo, error) {
+	log.Println("using old file info")
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
-	}
-	index := GetIndex(rootPath)
-	trimmed := strings.TrimPrefix(opts.Path, "/")
-	adjustedPath := makeIndexPath(trimmed, index.Root)
-	if dir, exists := index.Directories[adjustedPath]; exists {
-		// Initialize the Metadata map if it is nil
-		if dir.Metadata == nil {
-			dir.Metadata = make(map[string]FileInfo)
-			index.Directories[adjustedPath] = dir
-		}
-		info, metadataExists := dir.Metadata[adjustedPath]
-		if metadataExists && info.Path == trimmed {
-			return &info, nil // Return the pointer directly
-		}
 	}
 
 	file, err := stat(opts)
@@ -103,25 +90,82 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 
 	if opts.Expand {
 		if file.IsDir {
-			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil {
+			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
 				return nil, err
 			}
-		} else {
-			err = file.detectType(opts.Modify, opts.Content, true)
+			return file, nil
 		}
-	}
 
-	if file.IsDir {
-		if _, exists := index.Directories[adjustedPath]; exists {
-			if file.Path == trimmed {
-				index.Directories[adjustedPath].Metadata[adjustedPath] = *file
-				newInfo := index.Directories[adjustedPath].Metadata[adjustedPath]
-				return &newInfo, nil
-			}
+		err = file.detectType(opts.Modify, opts.Content, true)
+		if err != nil {
+			return nil, err
 		}
 	}
 
 	return file, err
+}
+func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
+	log.Println("using faster file info")
+	if !opts.Checker.Check(opts.Path) {
+		return nil, os.ErrPermission
+	}
+	index := GetIndex(rootPath)
+	trimmed := strings.TrimPrefix(opts.Path, "/")
+	if trimmed == "" {
+		trimmed = "/"
+	}
+	adjustedPath := makeIndexPath(trimmed, index.Root)
+	var info FileInfo
+	info, exists := index.GetMetadataInfo(adjustedPath)
+	if exists {
+		// refresh cache after
+		go refreshFileInfo(opts)
+		return &info, nil
+	} else {
+		updated := refreshFileInfo(opts)
+		if !updated {
+			file, err := NewFileInfo(opts)
+			return file, err
+		}
+		info, exists = index.GetMetadataInfo(adjustedPath)
+		if !exists || info.Name == "" {
+			log.Println("I guess not in index? ", info.Name)
+			return &FileInfo{}, errors.ErrEmptyKey
+		}
+		return &info, nil
+	}
+}
+
+func refreshFileInfo(opts FileOptions) bool {
+	if !opts.Checker.Check(opts.Path) {
+		return false
+	}
+	file, err := stat(opts)
+	if err != nil {
+		return false
+	}
+
+	index := GetIndex(rootPath)
+	trimmed := strings.TrimPrefix(opts.Path, "/")
+	if trimmed == "" {
+		trimmed = "/"
+	}
+	adjustedPath := makeIndexPath(trimmed, index.Root)
+	if file.IsDir {
+		err := file.readListing(opts.Checker, opts.ReadHeader)
+		if err != nil {
+			return false
+		}
+		_, exists := index.GetFileMetadata(adjustedPath)
+		if exists {
+			log.Println("updating existing")
+		} else {
+			log.Println("its new, adding")
+		}
+		return index.UpdateFileMetadata(adjustedPath, *file)
+	}
+	err = file.detectType(opts.Modify, opts.Content, true)
+	return err == nil
 }
 
 func stat(opts FileOptions) (*FileInfo, error) {

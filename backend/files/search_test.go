@@ -9,9 +9,9 @@ import (
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
 	InitializeIndex(5, false)
-	index := GetIndex(rootPath)
+	si := GetIndex(rootPath)
 
-	createMockData(50, 3) // 1000 dirs, 3 files per dir
+	si.createMockData(50, 3) // 1000 dirs, 3 files per dir
 
 	// Generate 100 random search terms
 	searchTerms := generateRandomSearchTerms(100)
@@ -21,7 +21,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			index.Search(term, "/", "test")
+			si.Search(term, "/", "test")
 		}
 	}
 }
@@ -71,6 +71,21 @@ func TestParseSearch(t *testing.T) {
 	}
 	if !reflect.DeepEqual(value, want) {
 		t.Fatalf("\n got:  %+v\n want: %+v", value, want)
+	}
+}
+
+func TestSearchWhileIndexing(t *testing.T) {
+	InitializeIndex(5, false)
+	si := GetIndex(rootPath)
+	// Generate 100 random search terms
+	// Generate 100 random search terms
+	searchTerms := generateRandomSearchTerms(10)
+	for i := 0; i < 5; i++ {
+		// Execute the SearchAllIndexes function
+		go si.createMockData(100, 100) // 1000 dirs, 3 files per dir
+		for _, term := range searchTerms {
+			go si.Search(term, "/", "test")
+		}
 	}
 }
 

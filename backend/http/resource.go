@@ -20,7 +20,7 @@ import (
 )
 
 var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	file, err := files.NewFileInfo(files.FileOptions{
+	file, err := files.FileInfoFaster(files.FileOptions{
 		Fs:         d.user.Fs,
 		Path:       r.URL.Path,
 		Modify:     d.user.Perm.Modify,
@@ -31,7 +31,6 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 	if err != nil {
 		return errToStatus(err), err
 	}
-
 	if file.IsDir {
 		file.Listing.Sorting = d.user.Sorting
 		return renderJSON(w, r, file)
@@ -55,7 +54,7 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 			return http.StatusForbidden, nil
 		}
 
-		file, err := files.NewFileInfo(files.FileOptions{
+		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         d.user.Fs,
 			Path:       r.URL.Path,
 			Modify:     d.user.Perm.Modify,
@@ -97,7 +96,7 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			return errToStatus(err), err
 		}
 
-		file, err := files.NewFileInfo(files.FileOptions{
+		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         d.user.Fs,
 			Path:       r.URL.Path,
 			Modify:     d.user.Perm.Modify,
@@ -303,7 +302,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *data, fileCach
 		src = path.Clean("/" + src)
 		dst = path.Clean("/" + dst)
 
-		file, err := files.NewFileInfo(files.FileOptions{
+		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         d.user.Fs,
 			Path:       src,
 			Modify:     d.user.Perm.Modify,
@@ -333,7 +332,7 @@ type DiskUsageResponse struct {
 }
 
 var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	file, err := files.NewFileInfo(files.FileOptions{
+	file, err := files.FileInfoFaster(files.FileOptions{
 		Fs:         d.user.Fs,
 		Path:       r.URL.Path,
 		Modify:     d.user.Perm.Modify,

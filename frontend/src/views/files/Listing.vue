@@ -209,7 +209,6 @@
 </template>
 
 <style>
-
 .header-items {
   width: 100% !important;
   max-width: 100% !important;
