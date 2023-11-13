@@ -80,9 +80,9 @@ func indexingScheduler(intervalMinutes uint32) {
 func (si *Index) indexFiles(path string) error {
 	// Check if the current directory has been modified since the last indexing
 	path = strings.TrimSuffix(path, "/")
+	adjustedPath := makeIndexPath(path, si.Root)
 	dir, err := os.Open(path)
 	if err != nil {
-		adjustedPath := makeIndexPath(path, si.Root)
 		// Directory must have been deleted, remove it from the index
 		si.RemoveDirectory(adjustedPath)
 	}
@@ -102,18 +102,16 @@ func (si *Index) indexFiles(path string) error {
 	// Read the directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
-		dir.Close()
 		return err
 	}
-	si.UpdateQuickList(files)
 	dir.Close()
+	si.UpdateQuickList(files)
 	si.InsertFiles(path)
 	// done separately for memory efficiency on recursion
 	si.InsertDirs(path)
 	return nil
 }
 
-//go:norace
 func (si *Index) InsertFiles(path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
 	subDirectory := Directory{}
@@ -127,21 +125,26 @@ func (si *Index) InsertFiles(path string) {
 	si.SetDirectoryInfo(adjustedPath, subDirectory)
 }
 
-//go:norace
 func (si *Index) InsertDirs(path string) {
+	adjustedPath := makeIndexPath(path, si.Root)
 	for _, f := range si.quickList {
 		if f.IsDir {
-			// Prevent data race
-			si.UpdateCount("dirs")
-			subDirectory := Directory{}
-			if path != "" {
-				si.SetDirectoryInfo(path+"/"+f.Name, subDirectory)
-			} else {
-				si.SetDirectoryInfo(f.Name, subDirectory)
+			if _, exists := si.Directories[adjustedPath]; exists {
+				si.UpdateCount("dirs")
+				// Add or update the directory in the map
+				if adjustedPath == "/" {
+					si.SetDirectoryInfo("/"+f.Name, Directory{})
+				} else {
+					si.SetDirectoryInfo(adjustedPath+"/"+f.Name, Directory{})
+				}
 			}
 			err := si.indexFiles(path + "/" + f.Name)
 			if err != nil {
-				log.Printf("Could not index \"%v\": %v \n", path, err)
+				if err.Error() == "invalid argument" {
+					log.Printf("Could not index \"%v\": %v \n", path, "Permission Denied")
+				} else {
+					log.Printf("Could not index \"%v\": %v \n", path, err)
+				}
 			}
 		}
 	}
