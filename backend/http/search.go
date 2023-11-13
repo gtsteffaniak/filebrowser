@@ -14,7 +14,7 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	userScope := r.Header.Get("UserScope")
-	index := *files.GetIndex(settings.Config.Server.Root)
+	index := files.GetIndex(settings.Config.Server.Root)
 	combinedScope := strings.TrimPrefix(userScope+r.URL.Path, ".")
 	combinedScope = strings.TrimPrefix(combinedScope, "/")
 	results, fileTypes := index.Search(query, combinedScope, sessionId)

@@ -1,9 +1,9 @@
 server:
-  port: 8080
+  port: 8081
   baseURL:  "/"
-  root: "/mnt/storage"
+  root: "/Users/steffag"
 auth:
-  method: password
+  method: noauth
   signup: false
 userDefaults:
   darkMode: true
