@@ -26,7 +26,6 @@ type Index struct {
 	NumDirs     int
 	NumFiles    int
 	inProgress  bool
-	buffer      bytes.Buffer
 	quickList   []File
 	LastIndexed time.Time
 	mu          sync.RWMutex
@@ -118,13 +117,13 @@ func (si *Index) indexFiles(path string) error {
 func (si *Index) InsertFiles(path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
 	subDirectory := Directory{}
-	si.buffer = bytes.Buffer{}
+	buffer := bytes.Buffer{}
 	for _, f := range si.quickList {
-		si.buffer.WriteString(f.Name + ";")
+		buffer.WriteString(f.Name + ";")
 		si.UpdateCount("files")
 	}
 	// Use GetMetadataInfo and SetFileMetadata for safer read and write operations
-	subDirectory.Files = si.buffer.String()
+	subDirectory.Files = buffer.String()
 	si.SetDirectoryInfo(adjustedPath, subDirectory)
 }
 
