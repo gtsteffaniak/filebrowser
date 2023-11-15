@@ -35,7 +35,6 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		file.Listing.Sorting = d.user.Sorting
 		return renderJSON(w, r, file)
 	}
-
 	if checksum := r.URL.Query().Get("checksum"); checksum != "" {
 		err := file.Checksum(checksum)
 		if err == errors.ErrInvalidOption {

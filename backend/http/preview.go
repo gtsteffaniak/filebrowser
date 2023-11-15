@@ -45,7 +45,7 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 			return http.StatusBadRequest, err
 		}
 
-		file, err := files.NewFileInfo(files.FileOptions{
+		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         d.user.Fs,
 			Path:       "/" + vars["path"],
 			Modify:     d.user.Perm.Modify,

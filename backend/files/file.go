@@ -32,14 +32,14 @@ var (
 type FileInfo struct {
 	*Listing
 	Fs        afero.Fs          `json:"-"`
-	Path      string            `json:"path"`
+	Path      string            `json:"path,omitempty"`
 	Name      string            `json:"name"`
 	Size      int64             `json:"size"`
-	Extension string            `json:"extension"`
+	Extension string            `json:"-"`
 	ModTime   time.Time         `json:"modified"`
-	Mode      os.FileMode       `json:"mode"`
-	IsDir     bool              `json:"isDir"`
-	IsSymlink bool              `json:"isSymlink"`
+	Mode      os.FileMode       `json:"-"`
+	IsDir     bool              `json:"isDir,omitempty"`
+	IsSymlink bool              `json:"isSymlink,omitempty"`
 	Type      string            `json:"type"`
 	Subtitles []string          `json:"subtitles,omitempty"`
 	Content   string            `json:"content,omitempty"`
@@ -69,6 +69,7 @@ const (
 // Listing is a collection of files.
 type Listing struct {
 	Items    []*FileInfo   `json:"items"`
+	Path     string        `json:"path"`
 	NumDirs  int           `json:"numDirs"`
 	NumFiles int           `json:"numFiles"`
 	Sorting  users.Sorting `json:"sorting"`
@@ -163,9 +164,15 @@ func refreshFileInfo(opts FileOptions) bool {
 			log.Println("its new, adding")
 		}
 		return index.UpdateFileMetadata(adjustedPath, *file)
+	} else {
+		_, exists := index.GetFileMetadata(adjustedPath)
+		if exists {
+			log.Println("updating existing")
+		} else {
+			log.Println("its new, adding")
+		}
+		return index.UpdateFileMetadata(adjustedPath, *file)
 	}
-	err = file.detectType(opts.Modify, opts.Content, true)
-	return err == nil
 }
 
 func stat(opts FileOptions) (*FileInfo, error) {
@@ -179,11 +186,15 @@ func stat(opts FileOptions) (*FileInfo, error) {
 				Name:      info.Name(),
 				ModTime:   info.ModTime(),
 				Mode:      info.Mode(),
-				IsDir:     info.IsDir(),
-				IsSymlink: IsSymlink(info.Mode()),
 				Size:      info.Size(),
 				Extension: filepath.Ext(info.Name()),
 				Token:     opts.Token,
+			}
+			if info.IsDir() {
+				file.IsDir = true
+			}
+			if IsSymlink(info.Mode()) {
+				file.IsSymlink = true
 			}
 		}
 	}
@@ -381,6 +392,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 
 	listing := &Listing{
 		Items:    []*FileInfo{},
+		Path:     i.Path,
 		NumDirs:  0,
 		NumFiles: 0,
 	}
@@ -405,15 +417,16 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 		}
 
 		file := &FileInfo{
-			Fs:        i.Fs,
-			Name:      name,
-			Size:      f.Size(),
-			ModTime:   f.ModTime(),
-			Mode:      f.Mode(),
-			IsDir:     f.IsDir(),
-			IsSymlink: isSymlink,
-			Extension: filepath.Ext(name),
-			Path:      fPath,
+			Name:    name,
+			Size:    f.Size(),
+			ModTime: f.ModTime(),
+			Mode:    f.Mode(),
+		}
+		if f.IsDir() {
+			file.IsDir = true
+		}
+		if isSymlink {
+			file.IsSymlink = true
 		}
 
 		if file.IsDir {
