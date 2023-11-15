@@ -106,6 +106,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	return file, err
 }
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
+	log.Printf("opts %+v", opts)
 	log.Println("using faster file info")
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
