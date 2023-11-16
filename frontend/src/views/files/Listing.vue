@@ -266,6 +266,7 @@ export default {
         if (item.isDir) {
           dirs.push(item);
         } else {
+          item.Path = this.req.Path
           files.push(item);
         }
       });

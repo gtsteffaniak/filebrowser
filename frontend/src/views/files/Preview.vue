@@ -43,7 +43,7 @@
           and watch it with your favorite video player!
         </video>
         <object
-          v-else-if="req.extension.toLowerCase() == '.pdf'"
+          v-else-if="req.type.toLowerCase() == 'pdf'"
           class="pdf"
           :data="raw"
         ></object>

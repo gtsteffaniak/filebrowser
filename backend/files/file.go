@@ -83,12 +83,10 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
-
 	file, err := stat(opts)
 	if err != nil {
 		return nil, err
 	}
-
 	if opts.Expand {
 		if file.IsDir {
 			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
@@ -96,13 +94,11 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			}
 			return file, nil
 		}
-
 		err = file.detectType(opts.Modify, opts.Content, true)
 		if err != nil {
 			return nil, err
 		}
 	}
-
 	return file, err
 }
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
@@ -290,41 +286,41 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 		i.Type = "blob"
 		return nil
 	}
-	mimetype := mime.TypeByExtension(i.Extension)
 	var buffer []byte
 	if readHeader {
 		buffer = i.readFirstBytes()
+		mimetype := mime.TypeByExtension(i.Extension)
 		if mimetype == "" {
 			http.DetectContentType(buffer)
 		}
 	}
-	switch {
-	case IsMatchingType(i.Extension, "video"):
-		i.Type = "video"
-		i.detectSubtitles()
-	case IsMatchingType(i.Extension, "audio"):
-		i.Type = "audio"
-	case IsMatchingType(i.Extension, "image"):
-		i.Type = "image"
-	case IsMatchingType(i.Extension, "pdf"):
-		i.Type = "pdf"
-	case (IsMatchingType(i.Extension, "text") || !isBinary(buffer)) && i.Size <= 10*bytesInMegabyte: // 10 MB
-		i.Type = "text"
-
-		if !modify {
-			i.Type = "textImmutable"
+	ext := filepath.Ext(i.Name)
+	for _, fileType := range AllFiletypeOptions {
+		if IsMatchingType(ext, fileType) {
+			i.Type = fileType
 		}
-
-		if saveContent {
-			afs := &afero.Afero{Fs: i.Fs}
-			content, err := afs.ReadFile(i.Path)
-			if err != nil {
-				return err
+		switch fileType {
+		case "text":
+			if !modify {
+				i.Type = "textImmutable"
 			}
-
-			i.Content = string(content)
+			if saveContent {
+				afs := &afero.Afero{Fs: i.Fs}
+				content, err := afs.ReadFile(i.Path)
+				if err != nil {
+					return err
+				}
+				i.Content = string(content)
+			}
+		case "video":
+			i.detectSubtitles()
+		case "doc":
+			if ext == ".pdf" {
+				i.Type = "pdf"
+			}
 		}
-	default:
+	}
+	if i.Type == "" {
 		i.Type = "blob"
 	}
 	return nil
