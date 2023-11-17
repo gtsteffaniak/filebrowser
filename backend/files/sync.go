@@ -125,7 +125,10 @@ func GetIndex(root string) *Index {
 		NumFiles:    0,
 		inProgress:  false,
 	}
+	indexesMutex.Lock()
 	indexes = append(indexes, newIndex)
+	indexesMutex.Unlock()
+
 	return newIndex
 }
 

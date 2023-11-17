@@ -175,7 +175,7 @@ func stat(opts FileOptions) (*FileInfo, error) {
 			if info.IsDir() {
 				file.IsDir = true
 			}
-			if IsSymlink(info.Mode()) {
+			if info.Mode()&os.ModeSymlink != 0 {
 				file.IsSymlink = true
 			}
 		}
@@ -429,4 +429,11 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 
 	i.Listing = listing
 	return nil
+}
+func IsNamedPipe(mode os.FileMode) bool {
+	return mode&os.ModeNamedPipe != 0
+}
+
+func IsSymlink(mode os.FileMode) bool {
+	return mode&os.ModeSymlink != 0
 }
