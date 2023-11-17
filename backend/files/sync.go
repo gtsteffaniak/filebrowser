@@ -154,3 +154,10 @@ func (si *Index) UpdateQuickListForTests(files []File) {
 		si.quickList = append(si.quickList, newFile)
 	}
 }
+
+func (si *Index) GetQuickList() []File {
+	si.mu.Lock()
+	defer si.mu.Unlock()
+	newQuickList := si.quickList
+	return newQuickList
+}

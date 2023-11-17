@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"hash"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"os"
@@ -79,7 +78,6 @@ type Listing struct {
 // object will be automatically filled depending on if it is a directory
 // or a file. If it's a video file, it will also detect any subtitles.
 func NewFileInfo(opts FileOptions) (*FileInfo, error) {
-	log.Println("using old file info")
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
@@ -102,8 +100,6 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	return file, err
 }
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
-	log.Printf("opts %+v", opts)
-	log.Println("using faster file info")
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
@@ -127,7 +123,6 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		}
 		info, exists = index.GetMetadataInfo(adjustedPath)
 		if !exists || info.Name == "" {
-			log.Println("I guess not in index? ", info.Name)
 			return &FileInfo{}, errors.ErrEmptyKey
 		}
 		return &info, nil
@@ -154,20 +149,10 @@ func refreshFileInfo(opts FileOptions) bool {
 		if err != nil {
 			return false
 		}
-		_, exists := index.GetFileMetadata(adjustedPath)
-		if exists {
-			log.Println("updating existing")
-		} else {
-			log.Println("its new, adding")
-		}
+		//_, exists := index.GetFileMetadata(adjustedPath)
 		return index.UpdateFileMetadata(adjustedPath, *file)
 	} else {
-		_, exists := index.GetFileMetadata(adjustedPath)
-		if exists {
-			log.Println("updating existing")
-		} else {
-			log.Println("its new, adding")
-		}
+		//_, exists := index.GetFileMetadata(adjustedPath)
 		return index.UpdateFileMetadata(adjustedPath, *file)
 	}
 }
@@ -330,7 +315,6 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 func (i *FileInfo) readFirstBytes() []byte {
 	reader, err := i.Fs.Open(i.Path)
 	if err != nil {
-		log.Print(err)
 		i.Type = "blob"
 		return nil
 	}
@@ -339,7 +323,6 @@ func (i *FileInfo) readFirstBytes() []byte {
 	buffer := make([]byte, 512) //nolint:gomnd
 	n, err := reader.Read(buffer)
 	if err != nil && err != io.EOF {
-		log.Print(err)
 		i.Type = "blob"
 		return nil
 	}

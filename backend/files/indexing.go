@@ -116,7 +116,8 @@ func (si *Index) InsertFiles(path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
 	subDirectory := Directory{}
 	buffer := bytes.Buffer{}
-	for _, f := range si.quickList {
+
+	for _, f := range si.GetQuickList() {
 		buffer.WriteString(f.Name + ";")
 		si.UpdateCount("files")
 	}
@@ -127,7 +128,7 @@ func (si *Index) InsertFiles(path string) {
 
 func (si *Index) InsertDirs(path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
-	for _, f := range si.quickList {
+	for _, f := range si.GetQuickList() {
 		if f.IsDir {
 			if _, exists := si.Directories[adjustedPath]; exists {
 				si.UpdateCount("dirs")
