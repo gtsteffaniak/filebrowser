@@ -128,7 +128,6 @@ func GetIndex(root string) *Index {
 	indexesMutex.Lock()
 	indexes = append(indexes, newIndex)
 	indexesMutex.Unlock()
-
 	return newIndex
 }
 
