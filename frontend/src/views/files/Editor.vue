@@ -8,12 +8,10 @@
 import { eventBus } from "@/main";
 import { mapState } from "vuex";
 import { files as api } from "@/api";
-import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";
-import modelist from "ace-builds/src-min-noconflict/ext-modelist.js";
 import { darkMode } from "@/utils/constants";
 
 export default {

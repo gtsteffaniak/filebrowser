@@ -23,7 +23,6 @@
 
 <script>
 import { mapState } from "vuex";
-import { files as api } from "@/api";
 import { eventBus } from "@/main";
 
 import buttons from "@/utils/buttons";
