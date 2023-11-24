@@ -47,7 +47,7 @@
           class="pdf"
           :data="raw"
         ></object>
-        <div v-else-if="req.type == 'blob'" class="info">
+        <div v-else-if="req.type == 'blob' || req.type == 'archive'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
             {{ $t("files.noPreview") }}

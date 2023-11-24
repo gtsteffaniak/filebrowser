@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"hash"
 	"io"
+	"log"
 	"mime"
 	"net/http"
 	"os"
@@ -284,12 +285,13 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 		if IsMatchingType(ext, fileType) {
 			i.Type = fileType
 		}
-		switch fileType {
+		switch i.Type {
 		case "text":
 			if !modify {
 				i.Type = "textImmutable"
 			}
 			if saveContent {
+				log.Println("saving content for ", i.Name)
 				afs := &afero.Afero{Fs: i.Fs}
 				content, err := afs.ReadFile(i.Path)
 				if err != nil {

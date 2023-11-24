@@ -7,6 +7,7 @@ import upload from "./modules/upload";
 Vue.use(Vuex);
 
 const state = {
+  editor: null,
   user: null,
   req: {
     sorting: {

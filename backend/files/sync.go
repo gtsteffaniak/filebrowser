@@ -96,7 +96,6 @@ func (si *Index) RemoveDirectory(path string) {
 	delete(si.Directories, path)
 }
 
-//go:norace
 func (si *Index) UpdateCount(given string) {
 	si.mu.Lock()
 	defer si.mu.Unlock()
@@ -107,6 +106,14 @@ func (si *Index) UpdateCount(given string) {
 	} else {
 		log.Println("could not update unknown type: ", given)
 	}
+}
+
+func (si *Index) resetCount() {
+	si.mu.Lock()
+	defer si.mu.Unlock()
+	si.NumDirs = 0
+	si.NumFiles = 0
+	si.inProgress = true
 }
 
 func GetIndex(root string) *Index {

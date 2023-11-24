@@ -54,7 +54,7 @@ func indexingScheduler(intervalMinutes uint32) {
 	for {
 		startTime := time.Now()
 		// Set the indexing flag to indicate that indexing is in progress
-		si.inProgress = true
+		si.resetCount()
 		// Perform the indexing operation
 		err := si.indexFiles(si.Root)
 		si.quickList = []File{}
