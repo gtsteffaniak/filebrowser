@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"hash"
 	"io"
+	"log"
 	"mime"
 	"net/http"
 	"os"
@@ -298,7 +299,10 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 				i.Content = string(content)
 			}
 		case "video":
-			i.detectSubtitles(path)
+			err := i.detectSubtitles(path)
+			if err != nil {
+				log.Println(err)
+			}
 		case "doc":
 			if ext == ".pdf" {
 				i.Type = "pdf"
