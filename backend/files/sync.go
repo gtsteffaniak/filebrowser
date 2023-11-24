@@ -47,7 +47,6 @@ func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
 	defer si.mu.Unlock()
 	_, exists := si.Directories[adjustedPath]
 	if !exists {
-		log.Println("oops I lied")
 		return false
 	}
 	si.Directories[adjustedPath].Metadata[adjustedPath] = info
