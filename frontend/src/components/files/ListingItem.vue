@@ -121,8 +121,12 @@ export default {
       return true;
     },
     thumbnailUrl() {
+      let path = this.req.path
+      if (this.req.path == "/") {
+        path = ""
+      }
       const file = {
-        path: this.path,
+        path: path +"/"+this.name,
         modified: this.modified,
       };
 

@@ -36,7 +36,7 @@ var withHashFile = func(fn handleFunc) handleFunc {
 
 		d.user = user
 
-		file, err := files.NewFileInfo(files.FileOptions{
+		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         d.user.Fs,
 			Path:       link.Path,
 			Modify:     d.user.Perm.Modify,
@@ -63,7 +63,7 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		// set fs root to the shared file/folder
 		d.user.Fs = afero.NewBasePathFs(d.user.Fs, basePath)
 
-		file, err = files.NewFileInfo(files.FileOptions{
+		file, err = files.FileInfoFaster(files.FileOptions{
 			Fs:      d.user.Fs,
 			Path:    filePath,
 			Modify:  d.user.Perm.Modify,

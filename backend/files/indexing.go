@@ -32,8 +32,9 @@ type Index struct {
 }
 
 var (
-	rootPath string = "/srv"
-	indexes  []*Index
+	rootPath     string = "/srv"
+	indexes      []*Index
+	indexesMutex sync.RWMutex
 )
 
 func InitializeIndex(intervalMinutes uint32, schedule bool) {
@@ -53,7 +54,7 @@ func indexingScheduler(intervalMinutes uint32) {
 	for {
 		startTime := time.Now()
 		// Set the indexing flag to indicate that indexing is in progress
-		si.inProgress = true
+		si.resetCount()
 		// Perform the indexing operation
 		err := si.indexFiles(si.Root)
 		si.quickList = []File{}
@@ -116,7 +117,8 @@ func (si *Index) InsertFiles(path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
 	subDirectory := Directory{}
 	buffer := bytes.Buffer{}
-	for _, f := range si.quickList {
+
+	for _, f := range si.GetQuickList() {
 		buffer.WriteString(f.Name + ";")
 		si.UpdateCount("files")
 	}
@@ -127,7 +129,7 @@ func (si *Index) InsertFiles(path string) {
 
 func (si *Index) InsertDirs(path string) {
 	adjustedPath := makeIndexPath(path, si.Root)
-	for _, f := range si.quickList {
+	for _, f := range si.GetQuickList() {
 		if f.IsDir {
 			if _, exists := si.Directories[adjustedPath]; exists {
 				si.UpdateCount("dirs")

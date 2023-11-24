@@ -32,14 +32,14 @@ var (
 type FileInfo struct {
 	*Listing
 	Fs        afero.Fs          `json:"-"`
-	Path      string            `json:"path"`
+	Path      string            `json:"path,omitempty"`
 	Name      string            `json:"name"`
 	Size      int64             `json:"size"`
-	Extension string            `json:"extension"`
+	Extension string            `json:"-"`
 	ModTime   time.Time         `json:"modified"`
-	Mode      os.FileMode       `json:"mode"`
-	IsDir     bool              `json:"isDir"`
-	IsSymlink bool              `json:"isSymlink"`
+	Mode      os.FileMode       `json:"-"`
+	IsDir     bool              `json:"isDir,omitempty"`
+	IsSymlink bool              `json:"isSymlink,omitempty"`
 	Type      string            `json:"type"`
 	Subtitles []string          `json:"subtitles,omitempty"`
 	Content   string            `json:"content,omitempty"`
@@ -69,6 +69,7 @@ const (
 // Listing is a collection of files.
 type Listing struct {
 	Items    []*FileInfo   `json:"items"`
+	Path     string        `json:"path"`
 	NumDirs  int           `json:"numDirs"`
 	NumFiles int           `json:"numFiles"`
 	Sorting  users.Sorting `json:"sorting"`
@@ -78,16 +79,13 @@ type Listing struct {
 // object will be automatically filled depending on if it is a directory
 // or a file. If it's a video file, it will also detect any subtitles.
 func NewFileInfo(opts FileOptions) (*FileInfo, error) {
-	log.Println("using old file info")
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
-
 	file, err := stat(opts)
 	if err != nil {
 		return nil, err
 	}
-
 	if opts.Expand {
 		if file.IsDir {
 			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
@@ -95,17 +93,14 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			}
 			return file, nil
 		}
-
 		err = file.detectType(opts.Modify, opts.Content, true)
 		if err != nil {
 			return nil, err
 		}
 	}
-
 	return file, err
 }
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
-	log.Println("using faster file info")
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
@@ -129,7 +124,6 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		}
 		info, exists = index.GetMetadataInfo(adjustedPath)
 		if !exists || info.Name == "" {
-			log.Println("I guess not in index? ", info.Name)
 			return &FileInfo{}, errors.ErrEmptyKey
 		}
 		return &info, nil
@@ -156,16 +150,12 @@ func refreshFileInfo(opts FileOptions) bool {
 		if err != nil {
 			return false
 		}
-		_, exists := index.GetFileMetadata(adjustedPath)
-		if exists {
-			log.Println("updating existing")
-		} else {
-			log.Println("its new, adding")
-		}
+		//_, exists := index.GetFileMetadata(adjustedPath)
+		return index.UpdateFileMetadata(adjustedPath, *file)
+	} else {
+		//_, exists := index.GetFileMetadata(adjustedPath)
 		return index.UpdateFileMetadata(adjustedPath, *file)
 	}
-	err = file.detectType(opts.Modify, opts.Content, true)
-	return err == nil
 }
 
 func stat(opts FileOptions) (*FileInfo, error) {
@@ -179,11 +169,15 @@ func stat(opts FileOptions) (*FileInfo, error) {
 				Name:      info.Name(),
 				ModTime:   info.ModTime(),
 				Mode:      info.Mode(),
-				IsDir:     info.IsDir(),
-				IsSymlink: IsSymlink(info.Mode()),
 				Size:      info.Size(),
 				Extension: filepath.Ext(info.Name()),
 				Token:     opts.Token,
+			}
+			if info.IsDir() {
+				file.IsDir = true
+			}
+			if info.Mode()&os.ModeSymlink != 0 {
+				file.IsSymlink = true
 			}
 		}
 	}
@@ -278,41 +272,42 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 		i.Type = "blob"
 		return nil
 	}
-	mimetype := mime.TypeByExtension(i.Extension)
 	var buffer []byte
 	if readHeader {
 		buffer = i.readFirstBytes()
+		mimetype := mime.TypeByExtension(i.Extension)
 		if mimetype == "" {
 			http.DetectContentType(buffer)
 		}
 	}
-	switch {
-	case IsMatchingType(i.Extension, "video"):
-		i.Type = "video"
-		i.detectSubtitles()
-	case IsMatchingType(i.Extension, "audio"):
-		i.Type = "audio"
-	case IsMatchingType(i.Extension, "image"):
-		i.Type = "image"
-	case IsMatchingType(i.Extension, "pdf"):
-		i.Type = "pdf"
-	case (IsMatchingType(i.Extension, "text") || !isBinary(buffer)) && i.Size <= 10*bytesInMegabyte: // 10 MB
-		i.Type = "text"
-
-		if !modify {
-			i.Type = "textImmutable"
+	ext := filepath.Ext(i.Name)
+	for _, fileType := range AllFiletypeOptions {
+		if IsMatchingType(ext, fileType) {
+			i.Type = fileType
 		}
-
-		if saveContent {
-			afs := &afero.Afero{Fs: i.Fs}
-			content, err := afs.ReadFile(i.Path)
-			if err != nil {
-				return err
+		switch i.Type {
+		case "text":
+			if !modify {
+				i.Type = "textImmutable"
 			}
-
-			i.Content = string(content)
+			if saveContent {
+				log.Println("saving content for ", i.Name)
+				afs := &afero.Afero{Fs: i.Fs}
+				content, err := afs.ReadFile(i.Path)
+				if err != nil {
+					return err
+				}
+				i.Content = string(content)
+			}
+		case "video":
+			i.detectSubtitles()
+		case "doc":
+			if ext == ".pdf" {
+				i.Type = "pdf"
+			}
 		}
-	default:
+	}
+	if i.Type == "" {
 		i.Type = "blob"
 	}
 	return nil
@@ -322,7 +317,6 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 func (i *FileInfo) readFirstBytes() []byte {
 	reader, err := i.Fs.Open(i.Path)
 	if err != nil {
-		log.Print(err)
 		i.Type = "blob"
 		return nil
 	}
@@ -331,7 +325,6 @@ func (i *FileInfo) readFirstBytes() []byte {
 	buffer := make([]byte, 512) //nolint:gomnd
 	n, err := reader.Read(buffer)
 	if err != nil && err != io.EOF {
-		log.Print(err)
 		i.Type = "blob"
 		return nil
 	}
@@ -381,6 +374,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 
 	listing := &Listing{
 		Items:    []*FileInfo{},
+		Path:     i.Path,
 		NumDirs:  0,
 		NumFiles: 0,
 	}
@@ -405,15 +399,16 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 		}
 
 		file := &FileInfo{
-			Fs:        i.Fs,
-			Name:      name,
-			Size:      f.Size(),
-			ModTime:   f.ModTime(),
-			Mode:      f.Mode(),
-			IsDir:     f.IsDir(),
-			IsSymlink: isSymlink,
-			Extension: filepath.Ext(name),
-			Path:      fPath,
+			Name:    name,
+			Size:    f.Size(),
+			ModTime: f.ModTime(),
+			Mode:    f.Mode(),
+		}
+		if f.IsDir() {
+			file.IsDir = true
+		}
+		if isSymlink {
+			file.IsSymlink = true
 		}
 
 		if file.IsDir {
@@ -436,4 +431,11 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 
 	i.Listing = listing
 	return nil
+}
+func IsNamedPipe(mode os.FileMode) bool {
+	return mode&os.ModeNamedPipe != 0
+}
+
+func IsSymlink(mode os.FileMode) bool {
+	return mode&os.ModeSymlink != 0
 }

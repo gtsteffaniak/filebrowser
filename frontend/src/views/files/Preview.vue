@@ -43,11 +43,11 @@
           and watch it with your favorite video player!
         </video>
         <object
-          v-else-if="req.extension.toLowerCase() == '.pdf'"
+          v-else-if="req.type == 'pdf'"
           class="pdf"
           :data="raw"
         ></object>
-        <div v-else-if="req.type == 'blob'" class="info">
+        <div v-else-if="req.type == 'blob' || req.type == 'archive'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
             {{ $t("files.noPreview") }}

@@ -1,7 +1,7 @@
 server:
-  port: 8081
+  port: 8050
   baseURL:  "/"
-  root: "/Users/steffag"
+  root: "/mnt/storage"
 auth:
   method: noauth
   signup: false

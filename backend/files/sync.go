@@ -31,14 +31,14 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
 	if exists {
+		log.Println("yeah it exists")
 		// Initialize the Metadata map if it is nil
 		if dir.Metadata == nil {
 			dir.Metadata = make(map[string]FileInfo)
 		}
 		// Release the read lock before calling SetFileMetadata
-		return si.SetFileMetadata(adjustedPath, info)
 	}
-	return false
+	return si.SetFileMetadata(adjustedPath, info)
 }
 
 // SetFileMetadata sets the FileInfo for the specified directory in the index.
@@ -50,6 +50,7 @@ func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
 		return false
 	}
 	si.Directories[adjustedPath].Metadata[adjustedPath] = info
+	log.Println("set", info)
 	return true
 }
 
@@ -94,7 +95,6 @@ func (si *Index) RemoveDirectory(path string) {
 	delete(si.Directories, path)
 }
 
-//go:norace
 func (si *Index) UpdateCount(given string) {
 	si.mu.Lock()
 	defer si.mu.Unlock()
@@ -105,6 +105,14 @@ func (si *Index) UpdateCount(given string) {
 	} else {
 		log.Println("could not update unknown type: ", given)
 	}
+}
+
+func (si *Index) resetCount() {
+	si.mu.Lock()
+	defer si.mu.Unlock()
+	si.NumDirs = 0
+	si.NumFiles = 0
+	si.inProgress = true
 }
 
 func GetIndex(root string) *Index {
@@ -123,7 +131,9 @@ func GetIndex(root string) *Index {
 		NumFiles:    0,
 		inProgress:  false,
 	}
+	indexesMutex.Lock()
 	indexes = append(indexes, newIndex)
+	indexesMutex.Unlock()
 	return newIndex
 }
 
@@ -151,4 +161,11 @@ func (si *Index) UpdateQuickListForTests(files []File) {
 		}
 		si.quickList = append(si.quickList, newFile)
 	}
+}
+
+func (si *Index) GetQuickList() []File {
+	si.mu.Lock()
+	defer si.mu.Unlock()
+	newQuickList := si.quickList
+	return newQuickList
 }
