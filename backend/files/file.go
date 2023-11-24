@@ -12,7 +12,6 @@ import (
 	"mime"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -88,12 +87,12 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	if opts.Expand {
 		if file.IsDir {
-			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
+			if err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
 				return nil, err
 			}
 			return file, nil
 		}
-		err = file.detectType(opts.Modify, opts.Content, true)
+		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +145,7 @@ func refreshFileInfo(opts FileOptions) bool {
 	}
 	adjustedPath := makeIndexPath(trimmed, index.Root)
 	if file.IsDir {
-		err := file.readListing(opts.Checker, opts.ReadHeader)
+		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
 		if err != nil {
 			return false
 		}
@@ -267,7 +266,8 @@ func (i *FileInfo) RealPath() string {
 }
 
 // detectType detects the file type.
-func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
+func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool) error {
+	path = rootPath + path
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		return nil
@@ -291,16 +291,18 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 				i.Type = "textImmutable"
 			}
 			if saveContent {
-				log.Println("saving content for ", i.Name)
 				afs := &afero.Afero{Fs: i.Fs}
-				content, err := afs.ReadFile(i.Path)
+				content, err := afs.ReadFile(path + "/" + i.Name)
 				if err != nil {
 					return err
 				}
 				i.Content = string(content)
 			}
 		case "video":
-			i.detectSubtitles()
+			err := i.detectSubtitles(path)
+			if err != nil {
+				log.Println(err)
+			}
 		case "doc":
 			if ext == ".pdf" {
 				i.Type = "pdf"
@@ -333,55 +335,61 @@ func (i *FileInfo) readFirstBytes() []byte {
 }
 
 // detectSubtitles detects subtitles for video files.
-func (i *FileInfo) detectSubtitles() {
+func (i *FileInfo) detectSubtitles(path string) error {
 	if i.Type != "video" {
-		return
+		return nil
 	}
-
 	i.Subtitles = []string{}
-	ext := filepath.Ext(i.Path)
+	ext := filepath.Ext(i.Name)
 
-	parentDir := strings.TrimRight(i.Path, i.Name)
-	dir, err := afero.ReadDir(i.Fs, parentDir)
+	dir, err := os.Open(path)
 	if err != nil {
-		return
+		return err
+	}
+	defer dir.Close()
+	// Read the directory contents
+	files, err := dir.Readdir(-1)
+	if err != nil {
+		return err
 	}
 
 	base := strings.TrimSuffix(i.Name, ext)
 	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
 
-	for _, f := range dir {
+	for _, f := range files {
 		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
 			continue
 		}
 
 		for _, subtitleExt := range subtitleExts {
 			if strings.HasSuffix(f.Name(), subtitleExt) {
-				i.Subtitles = append(i.Subtitles, path.Join(parentDir, f.Name()))
+				i.Subtitles = append(i.Subtitles, filepath.Join(path, f.Name()))
 				break
 			}
 		}
 	}
+
+	return nil
 }
 
 // readListing reads the contents of a directory and fills the listing.
-func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
+func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bool) error {
 	afs := &afero.Afero{Fs: i.Fs}
-	dir, err := afs.ReadDir(i.Path)
+	dir, err := afs.ReadDir(path)
 	if err != nil {
 		return err
 	}
 
 	listing := &Listing{
 		Items:    []*FileInfo{},
-		Path:     i.Path,
+		Path:     path,
 		NumDirs:  0,
 		NumFiles: 0,
 	}
 
 	for _, f := range dir {
 		name := f.Name()
-		fPath := path.Join(i.Path, name)
+		fPath := filepath.Join(path, name)
 
 		if !checker.Check(fPath) {
 			continue
@@ -419,7 +427,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 			if isInvalidLink {
 				file.Type = "invalid_link"
 			} else {
-				err := file.detectType(true, false, readHeader)
+				err := file.detectType(path, true, false, readHeader)
 				if err != nil {
 					return err
 				}
@@ -432,6 +440,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 	i.Listing = listing
 	return nil
 }
+
 func IsNamedPipe(mode os.FileMode) bool {
 	return mode&os.ModeNamedPipe != 0
 }
