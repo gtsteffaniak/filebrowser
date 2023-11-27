@@ -16,14 +16,18 @@ Intended for docker use only
 Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml` configuration file. `.filebrowser.json` and any flags other than `-c` and `-config` during execution WILL NO LONGER WORK. This is by design, in order to use the v0.2.0 You can mount your directory and initialize a new DB with a new default `filebrowser.yaml` which you can tweak and use in the future. Or you can copy and paste the default startup `filebrowser.yaml` below.
 
 This fork makes the following significant changes to filebrowser for origin:
-
- 1. [x] Improves search to use index instead of filesystem.
-    - Lightning fast, realtime results as you type
+   
+ 1. [x] Better search.
+    - Lightning fast
+    - realtime results as you type
     - Works with more type filters
- 1. [x] Improved and simplified GUI navbar and sidebar menu.
- 1. [x] Updated version and dependencies.
- 1. [x] **IMPORTANT** Moved all configurations to `filebrowser.yaml`.
-
+    - interactive results page.
+ 1. [x] Revamped and simplified GUI navbar and sidebar menu.
+ 1. [x] **IMPORTANT** Revamped configuration via `filebrowser.yml` config file.
+ 1. [x] More configurations possible at a per-user level
+    - <img width="450" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/625bd7c4-5ee9-4011-aaae-2a388ab0813b">
+ 1. [x] Additional compact view mode as well as refreshed view mode styles.
+    
 ## About
 
 Filebrowser provides a file managing interface within a specified directory
@@ -47,26 +51,6 @@ work better in terms of asthetics and performance. Improved search,
 
 </p>
 
-## Search Performance
-
-100x faster search. However, this will be at expense of RAM. if you have < 1 million
-files and folders in the given scope, the RAM usage should be less than 200MB total. RAM requirements
-should scale based on the number of directories.
-
-Also , the approx. time to fully index will vary widely based on performance. A sufficiently performant
-system should fully index within the first 5 minutes, potentially within the first few seconds.
-
-For example, a low end 11th gen i5 with SSD indexes 128K files within 1 second:
-
-```
-2023/09/09 21:38:50 Initializing with config file: filebrowser.yaml
-2023/09/09 21:38:50 Indexing files...
-2023/09/09 21:38:50 Listening on [::]:8080
-2023/09/09 21:38:51 Successfully indexed files.
-2023/09/09 21:38:51 Files found       : 123452
-2023/09/09 21:38:51 Directories found : 1768
-2023/09/09 21:38:51 Indexing scheduler will run every 5 minutes
-```
 
 ## Install
 
