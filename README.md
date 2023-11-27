@@ -9,14 +9,14 @@
   <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/b45683b0-bd55-4430-9831-650fe0d21eb8" title="Main Screenshot">
 </p>
 
-> **NOTE**
-Intended for docker use only
+> [!NOTE]  
+> Only intended to be used with docker.
 
-> **Warning**
-Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml` configuration file. `.filebrowser.json` and any flags other than `-c` and `-config` during execution WILL NO LONGER WORK. This is by design, in order to use the v0.2.0 You can mount your directory and initialize a new DB with a new default `filebrowser.yaml` which you can tweak and use in the future. Or you can copy and paste the default startup `filebrowser.yaml` below.
+> [!WARNING]
+> Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml` configuration file.
 
 This fork makes the following significant changes to filebrowser for origin:
-   
+
  1. [x] Better search.
     - Lightning fast
     - realtime results as you type
