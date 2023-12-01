@@ -1,4 +1,4 @@
-package index
+package files
 
 import (
 	"reflect"
@@ -8,12 +8,10 @@ import (
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	indexes = Index{
-		Dirs:  []string{},
-		Files: []string{},
-	}
-	// Create mock data
-	createMockData(50, 3) // 1000 dirs, 3 files per dir
+	InitializeIndex(5, false)
+	si := GetIndex(rootPath)
+
+	si.createMockData(50, 3) // 1000 dirs, 3 files per dir
 
 	// Generate 100 random search terms
 	searchTerms := generateRandomSearchTerms(100)
@@ -23,7 +21,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			indexes.Search(term, "/", "test")
+			si.Search(term, "/", "test")
 		}
 	}
 }
@@ -76,20 +74,37 @@ func TestParseSearch(t *testing.T) {
 	}
 }
 
+func TestSearchWhileIndexing(t *testing.T) {
+	InitializeIndex(5, false)
+	si := GetIndex(rootPath)
+	// Generate 100 random search terms
+	// Generate 100 random search terms
+	searchTerms := generateRandomSearchTerms(10)
+	for i := 0; i < 5; i++ {
+		// Execute the SearchAllIndexes function
+		go si.createMockData(100, 100) // 1000 dirs, 3 files per dir
+		for _, term := range searchTerms {
+			go si.Search(term, "/", "test")
+		}
+	}
+}
+
 func TestSearchIndexes(t *testing.T) {
-	indexes = Index{
-		Dirs: []string{
-			"/test",
-			"/test/path",
-			"/new/test/path",
-		},
-		Files: []string{
-			"/test/path/file.txt",
-			"/test/audio1.wav",
-			"/new/test/audio.wav",
-			"/new/test/video.mp4",
-			"/new/test/video.MP4",
-			"/new/test/path/archive.zip",
+	index := Index{
+		Directories: map[string]Directory{
+			"test": {
+				Files: "audio1.wav;",
+			},
+			"test/path": {
+				Files: "file.txt;",
+			},
+			"new": {},
+			"new/test": {
+				Files: "audio.wav;video.mp4;video.MP4;",
+			},
+			"new/test/path": {
+				Files: "archive.zip;",
+			},
 		},
 	}
 	tests := []struct {
@@ -109,9 +124,10 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search:         "test",
 			scope:          "/",
-			expectedResult: []string{"test/"},
+			expectedResult: []string{"test/", "new/test/"},
 			expectedTypes: map[string]map[string]bool{
-				"test/": map[string]bool{"dir": true},
+				"test/":     map[string]bool{"dir": true},
+				"new/test/": map[string]bool{"dir": true},
 			},
 		},
 		{
@@ -137,19 +153,35 @@ func TestSearchIndexes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
-			actualResult, actualTypes := indexes.Search(tt.search, tt.scope, "")
+			actualResult, actualTypes := index.Search(tt.search, tt.scope, "")
 			assert.Equal(t, tt.expectedResult, actualResult)
-			if len(tt.expectedTypes) > 0 {
-				for key, value := range tt.expectedTypes {
-					actualValue, exists := actualTypes[key]
-					assert.True(t, exists, "Expected type key '%s' not found in actual types", key)
-					assert.Equal(t, value, actualValue, "Type value mismatch for key '%s'", key)
-				}
+			if !reflect.DeepEqual(tt.expectedTypes, actualTypes) {
+				t.Fatalf("\n got:  %+v\n want: %+v", actualTypes, tt.expectedTypes)
 			}
 		})
 	}
 }
 
+func Test_scopedPathNameFilter(t *testing.T) {
+	type args struct {
+		pathName string
+		scope    string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := scopedPathNameFilter(tt.args.pathName, tt.args.scope, false); got != tt.want {
+				t.Errorf("scopedPathNameFilter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 func Test_isDoc(t *testing.T) {
 	type args struct {
 		extension string

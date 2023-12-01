@@ -7,8 +7,14 @@ import upload from "./modules/upload";
 Vue.use(Vuex);
 
 const state = {
+  editor: null,
   user: null,
-  req: {},
+  req: {
+    sorting: {
+      by: 'name', // Initial sorting field
+      asc: true,  // Initial sorting order
+    },
+  },
   oldReq: {},
   clipboard: {
     key: "",

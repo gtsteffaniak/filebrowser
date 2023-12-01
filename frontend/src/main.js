@@ -8,6 +8,7 @@ import Vue from "@/utils/vue";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
 import App from "@/App";
+export const eventBus = new Vue(); // creating an event bus.
 
 cssVars();
 

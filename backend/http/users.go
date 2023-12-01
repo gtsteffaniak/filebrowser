@@ -19,6 +19,11 @@ var (
 	NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm", "Commands", "Rules"}
 )
 
+// SortingSettings represents the sorting settings.
+type Sorting struct {
+	By  string `json:"by"`
+	Asc bool   `json:"asc"`
+}
 type modifyUserRequest struct {
 	modifyRequest
 	Data *users.User `json:"data"`

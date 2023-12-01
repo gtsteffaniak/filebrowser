@@ -83,7 +83,7 @@ func dbExists(path string) (bool, error) {
 func python(fn pythonFunc, cfg pythonConfig) cobraFunc {
 	return func(cmd *cobra.Command, args []string) {
 		data := pythonData{hadDB: true}
-		path := settings.GlobalConfiguration.Server.Database
+		path := settings.Config.Server.Database
 		exists, err := dbExists(path)
 
 		if err != nil {

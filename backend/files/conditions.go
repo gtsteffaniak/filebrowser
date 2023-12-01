@@ -1,4 +1,4 @@
-package index
+package files
 
 import (
 	"mime"
@@ -15,22 +15,31 @@ var AllFiletypeOptions = []string{
 	"video",
 	"doc",
 	"dir",
+	"text",
 }
 var documentTypes = []string{
 	".word",
 	".pdf",
-	".txt",
 	".doc",
 	".docx",
 }
-
+var textTypes = []string{
+	".text",
+	".sh",
+	".yaml",
+	".yml",
+	".json",
+	".bashrc",
+	".zshrc",
+	".env",
+}
 var compressedFile = []string{
 	".7z",
 	".rar",
 	".zip",
 	".tar",
-	".tar.gz",
-	".tar.xz",
+	".gz",
+	".xz",
 }
 
 type SearchOptions struct {
@@ -137,8 +146,21 @@ func IsMatchingType(extension string, matchType string) bool {
 	switch matchType {
 	case "doc":
 		return isDoc(extension)
+	case "pdf":
+		return extension == ".pdf"
+	case "text":
+		return isText(extension)
 	case "archive":
 		return isArchive(extension)
+	}
+	return false
+}
+
+func isText(extension string) bool {
+	for _, typefile := range textTypes {
+		if extension == typefile {
+			return true
+		}
 	}
 	return false
 }

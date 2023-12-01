@@ -2,7 +2,6 @@
   <header-bar>
     <action icon="close" :label="$t('buttons.close')" @action="close()" />
     <title class="topTitle">{{ req.name }}</title>
-
     <action v-if="user.perm.modify" id="save-button" icon="save" :label="$t('buttons.save')"
       @action="save()" />
   </header-bar>
@@ -24,7 +23,8 @@
 
 <script>
 import { mapState } from "vuex";
-import { files as api } from "@/api";
+import { eventBus } from "@/main";
+
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 
@@ -32,7 +32,7 @@ import HeaderBar from "@/components/header/HeaderBar";
 import Action from "@/components/header/Action";
 
 export default {
-  name: "editor",
+  name: "editorBar",
   components: {
     HeaderBar,
     Action,
@@ -77,7 +77,6 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
-    this.editor.destroy();
   },
   methods: {
     back() {
@@ -99,9 +98,8 @@ export default {
     async save() {
       const button = "save";
       buttons.loading("save");
-
       try {
-        await api.put(this.$route.path, this.editor.getValue());
+        eventBus.$emit("handleEditorValueRequest", "data");
         buttons.success(button);
       } catch (e) {
         buttons.done(button);

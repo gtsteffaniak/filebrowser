@@ -5,12 +5,14 @@
 </template>
 
 <script>
+import { eventBus } from "@/main";
 import { mapState } from "vuex";
 import { files as api } from "@/api";
-import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
-import modelist from "ace-builds/src-min-noconflict/ext-modelist.js";
+import "ace-builds/src-min-noconflict/theme-chrome";
+import "ace-builds/src-min-noconflict/theme-twilight";
+import { darkMode } from "@/utils/constants";
 
 export default {
   name: "editor",
@@ -18,6 +20,11 @@ export default {
     return {};
   },
   computed: {
+    isDarkMode() {
+      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
+        ? this.user.darkMode
+        : darkMode;
+    },
     ...mapState(["req", "user"]),
     breadcrumbs() {
       let parts = this.$route.path.split("/");
@@ -58,16 +65,29 @@ export default {
   },
   mounted: function () {
     const fileContent = this.req.content || "";
-
     this.editor = ace.edit("editor", {
       value: fileContent,
       showPrintMargin: false,
+      theme: "ace/theme/chrome",
       readOnly: this.req.type === "textImmutable",
-      mode: modelist.getModeForPath(this.req.name).mode,
-      wrap: true,
+      wrap: false,
     });
+    // Set the basePath for Ace Editor
+    ace.config.set("basePath", "/node_modules/ace-builds/src-min-noconflict");
+    if (this.isDarkMode) {
+      this.editor.setTheme("ace/theme/twilight");
+    }
+    eventBus.$on("handleEditorValueRequest", this.handleEditorValueRequest);
   },
   methods: {
+    handleEditorValueRequest() {
+      console.log("trying to save");
+      try {
+        api.put(this.$route.path, this.editor.getValue());
+      } catch (e) {
+        this.$showError(e);
+      }
+    },
     back() {
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
@@ -80,21 +100,8 @@ export default {
       if (String.fromCharCode(event.which).toLowerCase() !== "s") {
         return;
       }
-
       event.preventDefault();
       this.save();
-    },
-    async save() {
-      const button = "save";
-      buttons.loading("save");
-
-      try {
-        await api.put(this.$route.path, this.editor.getValue());
-        buttons.success(button);
-      } catch (e) {
-        buttons.done(button);
-        this.$showError(e);
-      }
     },
     close() {
       this.$store.commit("updateRequest", {});

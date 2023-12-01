@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - 'main'
+      - 'dev_v*'
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
@@ -43,7 +44,6 @@ jobs:
       - run: cd frontend && npm run lint
 
   push_pr_to_registry:
-    needs: [lint-frontend, lint-backend, test-backend, format-backend]
     name: Push PR
     runs-on: ubuntu-latest
     steps:
