@@ -39,6 +39,7 @@ type FileInfo struct {
 	Size      int64             `json:"size"`
 	Extension string            `json:"-"`
 	ModTime   time.Time         `json:"modified"`
+	CacheTime time.Time         `json:"-"`
 	Mode      os.FileMode       `json:"-"`
 	IsDir     bool              `json:"isDir,omitempty"`
 	IsSymlink bool              `json:"isSymlink,omitempty"`
@@ -120,8 +121,11 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	var info FileInfo
 	info, exists := index.GetMetadataInfo(adjustedPath)
 	if exists {
+		// Check if the cache time is less than 1 second
+		if time.Since(info.CacheTime) > time.Second {
+			go refreshFileInfo(opts)
+		}
 		// refresh cache after
-		go refreshFileInfo(opts)
 		return &info, nil
 	} else {
 		updated := refreshFileInfo(opts)

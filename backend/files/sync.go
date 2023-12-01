@@ -3,6 +3,7 @@ package files
 import (
 	"io/fs"
 	"log"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
@@ -48,6 +49,7 @@ func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
 	if !exists {
 		return false
 	}
+	info.CacheTime = time.Now()
 	si.Directories[adjustedPath].Metadata[adjustedPath] = info
 	return true
 }
