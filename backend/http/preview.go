@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -53,6 +54,8 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 			ReadHeader: d.server.TypeDetectionByHeader,
 			Checker:    d,
 		})
+		log.Println("updated", file.Type, file.Name)
+
 		if err != nil {
 			return errToStatus(err), err
 		}
@@ -76,6 +79,8 @@ func handleImagePreview(
 	previewSize PreviewSize,
 	enableThumbnails, resizePreview bool,
 ) (int, error) {
+	log.Println("handle preview ", file.Name)
+
 	if (previewSize == PreviewSizeBig && !resizePreview) ||
 		(previewSize == PreviewSizeThumb && !enableThumbnails) {
 		return rawFileHandler(w, r, file)
