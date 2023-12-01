@@ -1,7 +1,7 @@
 server:
   port: 8050
   baseURL:  "/"
-  root: "/mnt/storage"
+  root: "/Users/steffag/git/go"
 auth:
   method: noauth
   signup: false
