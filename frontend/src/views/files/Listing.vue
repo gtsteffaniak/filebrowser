@@ -236,7 +236,7 @@ export default {
   data: function () {
     return {
       sortField: "name",
-      showLimit: 500,
+      showLimit: 5000, // new directory limit
       columnWidth: 280,
       dragCounter: 0,
       width: window.innerWidth,
