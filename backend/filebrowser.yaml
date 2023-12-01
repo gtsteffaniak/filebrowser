@@ -1,7 +1,7 @@
 server:
   port: 8050
   baseURL:  "/"
-  root: "/Users/steffag/git/go"
+  root: "/Users/steffag/downloads"
 auth:
   method: noauth
   signup: false
