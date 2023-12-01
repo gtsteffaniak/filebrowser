@@ -1,9 +1,9 @@
 server:
-  port: 8050
+  port: 8080
   baseURL:  "/"
-  root: "/Users/steffag/downloads"
+  root: "/srv"
 auth:
-  method: noauth
+  method: password
   signup: false
 userDefaults:
   darkMode: true
