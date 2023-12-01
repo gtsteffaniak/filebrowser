@@ -18,11 +18,12 @@
       @click="toggleClick"
       :class="{ activetitle: this.isMaximized && this.isSelected }"
     >
-      <img
-        v-if="readOnly === undefined && type === 'image' && isThumbsEnabled"
-        v-lazy="thumbnailUrl"
-        :class="{ activeimg: this.isMaximized && this.isSelected }"
-      />
+    <img
+      v-if="readOnly === undefined && type === 'image' && isThumbsEnabled && isInView"
+      v-lazy="thumbnailUrl"
+      :class="{ activeimg: this.isMaximized && this.isSelected }"
+      ref="thumbnail"
+    />
       <i :class="{ iconActive: this.isMaximized && this.isSelected }" v-else class="material-icons"></i>
     </div>
 
@@ -72,6 +73,7 @@ export default {
   name: "item",
   data: function () {
     return {
+      isThumbnailInView: false,
       isMaximized: false,
       touches: 0,
     };
@@ -135,8 +137,33 @@ export default {
     isThumbsEnabled() {
       return enableThumbs;
     },
+    isInView() {
+      return enableThumbs;
+    },
+  },
+  mounted() {
+    const observer = new IntersectionObserver(this.handleIntersect, {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.5, // Adjust threshold as needed
+    });
+
+    // Get the thumbnail element and start observing
+    const thumbnailElement = this.$refs.thumbnail; // Add ref="thumbnail" to the <img> tag
+    if (thumbnailElement) {
+      observer.observe(thumbnailElement);
+    }
   },
   methods: {
+    handleIntersect(entries, observer) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.isThumbnailInView = true;
+          // Stop observing once thumbnail is in view
+          observer.unobserve(entry.target);
+        }
+      });
+    },
     toggleClick() {
       this.isMaximized = this.isClicked;
     },
