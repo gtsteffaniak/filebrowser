@@ -8,13 +8,13 @@ import (
 	"encoding/hex"
 	"hash"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/afero"
@@ -25,7 +25,9 @@ import (
 )
 
 var (
-	bytesInMegabyte int64 = 1000000
+	bytesInMegabyte int64      = 1000000
+	pathMutexes                = make(map[string]*sync.Mutex)
+	pathMutexesMu   sync.Mutex // Mutex to protect the pathMutexes map
 )
 
 // FileInfo describes a file.
@@ -82,7 +84,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
-	file, err := stat(opts)
+	file, err := stat(opts.Path, opts) // Pass opts.Path here
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +102,12 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	return file, err
 }
+
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
+	// Lock access for the specific path
+	pathMutex := getMutex(opts.Path)
+	pathMutex.Lock()
+	defer pathMutex.Unlock()
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
@@ -134,7 +141,7 @@ func refreshFileInfo(opts FileOptions) bool {
 	if !opts.Checker.Check(opts.Path) {
 		return false
 	}
-	file, err := stat(opts)
+	file, err := stat(opts.Path, opts) // Pass opts.Path here
 	if err != nil {
 		return false
 	}
@@ -158,10 +165,10 @@ func refreshFileInfo(opts FileOptions) bool {
 	}
 }
 
-func stat(opts FileOptions) (*FileInfo, error) {
+func stat(path string, opts FileOptions) (*FileInfo, error) {
 	var file *FileInfo
 	if lstaterFs, ok := opts.Fs.(afero.Lstater); ok {
-		info, _, err := lstaterFs.LstatIfPossible(opts.Path)
+		info, _, err := lstaterFs.LstatIfPossible(path)
 		if err == nil {
 			file = &FileInfo{
 				Fs:        opts.Fs,
@@ -227,19 +234,15 @@ func (i *FileInfo) Checksum(algo string) error {
 	}
 	defer reader.Close()
 
-	var h hash.Hash
+	hashFuncs := map[string]hash.Hash{
+		"md5":    md5.New(),
+		"sha1":   sha1.New(),
+		"sha256": sha256.New(),
+		"sha512": sha512.New(),
+	}
 
-	//nolint:gosec
-	switch algo {
-	case "md5":
-		h = md5.New()
-	case "sha1":
-		h = sha1.New()
-	case "sha256":
-		h = sha256.New()
-	case "sha512":
-		h = sha512.New()
-	default:
+	h, ok := hashFuncs[algo]
+	if !ok {
 		return errors.ErrInvalidOption
 	}
 
@@ -291,7 +294,6 @@ func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
 				i.Type = "textImmutable"
 			}
 			if saveContent {
-				log.Println("saving content for ", i.Name)
 				afs := &afero.Afero{Fs: i.Fs}
 				content, err := afs.ReadFile(i.Path)
 				if err != nil {
@@ -438,4 +440,17 @@ func IsNamedPipe(mode os.FileMode) bool {
 
 func IsSymlink(mode os.FileMode) bool {
 	return mode&os.ModeSymlink != 0
+}
+
+func getMutex(path string) *sync.Mutex {
+	// Lock access to pathMutexes map
+	pathMutexesMu.Lock()
+	defer pathMutexesMu.Unlock()
+
+	// Create a mutex for the path if it doesn't exist
+	if pathMutexes[path] == nil {
+		pathMutexes[path] = &sync.Mutex{}
+	}
+
+	return pathMutexes[path]
 }

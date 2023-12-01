@@ -31,7 +31,6 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
 	if exists {
-		log.Println("yeah it exists")
 		// Initialize the Metadata map if it is nil
 		if dir.Metadata == nil {
 			dir.Metadata = make(map[string]FileInfo)
@@ -50,7 +49,6 @@ func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
 		return false
 	}
 	si.Directories[adjustedPath].Metadata[adjustedPath] = info
-	log.Println("set", info)
 	return true
 }
 
