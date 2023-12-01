@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/afero"
@@ -24,7 +25,9 @@ import (
 )
 
 var (
-	bytesInMegabyte int64 = 1000000
+	bytesInMegabyte int64      = 1000000
+	pathMutexes                = make(map[string]*sync.Mutex)
+	pathMutexesMu   sync.Mutex // Mutex to protect the pathMutexes map
 )
 
 // FileInfo describes a file.
@@ -99,7 +102,12 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	return file, err
 }
+
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
+	// Lock access for the specific path
+	pathMutex := getMutex(opts.Path)
+	pathMutex.Lock()
+	defer pathMutex.Unlock()
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
@@ -432,4 +440,17 @@ func IsNamedPipe(mode os.FileMode) bool {
 
 func IsSymlink(mode os.FileMode) bool {
 	return mode&os.ModeSymlink != 0
+}
+
+func getMutex(path string) *sync.Mutex {
+	// Lock access to pathMutexes map
+	pathMutexesMu.Lock()
+	defer pathMutexesMu.Unlock()
+
+	// Create a mutex for the path if it doesn't exist
+	if pathMutexes[path] == nil {
+		pathMutexes[path] = &sync.Mutex{}
+	}
+
+	return pathMutexes[path]
 }
