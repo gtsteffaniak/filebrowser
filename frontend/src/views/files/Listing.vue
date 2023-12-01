@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="selectedCount > 0" id="file-selection">
-      <span >{{ selectedCount }} selected</span>
+      <span>{{ selectedCount }} selected</span>
       <template>
         <action
           v-if="headerButtons.select"
@@ -10,7 +10,7 @@
           show="info"
         />
         <action
-        v-if="headerButtons.select"
+          v-if="headerButtons.select"
           icon="check_circle"
           :label="$t('buttons.selectMultiple')"
           @action="toggleMultipleSelection"
@@ -137,7 +137,7 @@
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="req.numDirs > 0">
+        <div v-if="req.numDirs > 0" >
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -209,7 +209,6 @@
 </template>
 
 <style>
-
 .header-items {
   width: 100% !important;
   max-width: 100% !important;
@@ -220,13 +219,13 @@
 <script>
 import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
-import { users, files as api } from "@/api";
+import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "lodash.throttle";
 
 import Action from "@/components/header/Action";
-import Item from "@/components/files/ListingItem";
+import Item from "@/components/files/ListingItem.vue";
 
 export default {
   name: "listing",
@@ -236,7 +235,8 @@ export default {
   },
   data: function () {
     return {
-      showLimit: 50,
+      sortField: "name",
+      showLimit: 5000, // new directory limit
       columnWidth: 280,
       dragCounter: 0,
       width: window.innerWidth,
@@ -266,10 +266,10 @@ export default {
         if (item.isDir) {
           dirs.push(item);
         } else {
+          item.Path = this.req.Path
           files.push(item);
         }
       });
-
       return { dirs, files };
     },
     dirs() {
@@ -313,7 +313,7 @@ export default {
       return icons[this.user.viewMode];
     },
     listingViewMode() {
-      return this.user.viewMode
+      return this.user.viewMode;
     },
     headerButtons() {
       return {
@@ -679,31 +679,21 @@ export default {
         file.style.opacity = 1;
       });
     },
-    async sort(by) {
+    sort(field) {
       let asc = false;
-
-      if (by === "name") {
-        if (this.nameIcon === "arrow_upward") {
-          asc = true;
-        }
-      } else if (by === "size") {
-        if (this.sizeIcon === "arrow_upward") {
-          asc = true;
-        }
-      } else if (by === "modified") {
-        if (this.modifiedIcon === "arrow_upward") {
-          asc = true;
-        }
+      if (
+        (field === "name" && this.nameIcon === "arrow_upward") ||
+        (field === "size" && this.sizeIcon === "arrow_upward") ||
+        (field === "modified" && this.modifiedIcon === "arrow_upward")
+      ) {
+        asc = true;
       }
 
-      try {
-        await users.update({ id: this.user.id, sorting: { by, asc } }, ["sorting"]);
-      } catch (e) {
-        this.$showError(e);
-      }
-
-      this.$store.commit("setReload", true);
+      // Commit the updateSort mutation
+      this.$store.commit("updateListingSortConfig", { field, asc });
+      this.$store.commit("updateListingItems");
     },
+
     openSearch() {
       this.$store.commit("showHover", "search");
     },

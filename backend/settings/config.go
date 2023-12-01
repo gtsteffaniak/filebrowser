@@ -3,21 +3,23 @@ package settings
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-var GlobalConfiguration Settings
+var Config Settings
 
 func Initialize(configFile string) {
 	yamlData := loadConfigFile(configFile)
-	GlobalConfiguration = setDefaults()
-	err := yaml.Unmarshal(yamlData, &GlobalConfiguration)
+	Config = setDefaults()
+	err := yaml.Unmarshal(yamlData, &Config)
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
-	GlobalConfiguration.UserDefaults.Perm = GlobalConfiguration.UserDefaults.Permissions
+	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
+	Config.Server.Root = strings.TrimSuffix(Config.Server.Root, "/")
 }
 
 func loadConfigFile(configFile string) []byte {
@@ -25,7 +27,7 @@ func loadConfigFile(configFile string) []byte {
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
 		log.Printf("ERROR: opening config file\n %v\n WARNING: Using default config only\n If this was a mistake, please make sure the file exists and is accessible by the filebrowser binary.\n\n", err)
-		GlobalConfiguration = setDefaults()
+		Config = setDefaults()
 		return []byte{}
 	}
 	defer yamlFile.Close()

@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
@@ -44,8 +43,8 @@ func (a *HookAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
 	}
 
 	a.Users = usr
-	a.Settings = &settings.GlobalConfiguration
-	a.Server = &settings.GlobalConfiguration.Server
+	a.Settings = &settings.Config
+	a.Server = &settings.Config.Server
 	a.Cred = cred
 
 	action, err := a.RunCommand()
@@ -207,7 +206,7 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		Locale:      d.Locale,
 		ViewMode:    d.ViewMode,
 		SingleClick: d.SingleClick,
-		Sorting: files.Sorting{
+		Sorting: users.Sorting{
 			Asc: d.Sorting.Asc,
 			By:  d.Sorting.By,
 		},

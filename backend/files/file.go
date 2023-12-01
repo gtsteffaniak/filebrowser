@@ -8,33 +8,40 @@ import (
 	"encoding/hex"
 	"hash"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"os"
-	"path"
-	"path/filepath"
+	filepath "path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/afero"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/users"
+)
+
+var (
+	bytesInMegabyte int64      = 1000000
+	pathMutexes                = make(map[string]*sync.Mutex)
+	pathMutexesMu   sync.Mutex // Mutex to protect the pathMutexes map
 )
 
 // FileInfo describes a file.
 type FileInfo struct {
 	*Listing
 	Fs        afero.Fs          `json:"-"`
-	Path      string            `json:"path"`
+	Path      string            `json:"path,omitempty"`
 	Name      string            `json:"name"`
 	Size      int64             `json:"size"`
-	Extension string            `json:"extension"`
+	Extension string            `json:"-"`
 	ModTime   time.Time         `json:"modified"`
-	Mode      os.FileMode       `json:"mode"`
-	IsDir     bool              `json:"isDir"`
-	IsSymlink bool              `json:"isSymlink"`
+	CacheTime time.Time         `json:"-"`
+	Mode      os.FileMode       `json:"-"`
+	IsDir     bool              `json:"isDir,omitempty"`
+	IsSymlink bool              `json:"isSymlink,omitempty"`
 	Type      string            `json:"type"`
 	Subtitles []string          `json:"subtitles,omitempty"`
 	Content   string            `json:"content,omitempty"`
@@ -54,6 +61,22 @@ type FileOptions struct {
 	Content    bool
 }
 
+// Sorting constants
+const (
+	SortingByName     = "name"
+	SortingBySize     = "size"
+	SortingByModified = "modified"
+)
+
+// Listing is a collection of files.
+type Listing struct {
+	Items    []*FileInfo   `json:"items"`
+	Path     string        `json:"path"`
+	NumDirs  int           `json:"numDirs"`
+	NumFiles int           `json:"numFiles"`
+	Sorting  users.Sorting `json:"sorting"`
+}
+
 // NewFileInfo creates a File object from a path and a given user. This File
 // object will be automatically filled depending on if it is a directory
 // or a file. If it's a video file, it will also detect any subtitles.
@@ -61,37 +84,126 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
-
-	file, err := stat(opts)
+	file, err := stat(opts.Path, opts) // Pass opts.Path here
 	if err != nil {
 		return nil, err
 	}
-
 	if opts.Expand {
 		if file.IsDir {
-			if err := file.readListing(opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
+			if err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
 				return nil, err
 			}
 			return file, nil
 		}
-
-		err = file.detectType(opts.Modify, opts.Content, true)
+		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
 		if err != nil {
 			return nil, err
 		}
 	}
-
 	return file, err
 }
 
-func stat(opts FileOptions) (*FileInfo, error) {
-	var file *FileInfo
+func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
+	// Lock access for the specific path
+	pathMutex := getMutex(opts.Path)
+	pathMutex.Lock()
+	defer pathMutex.Unlock()
+	if !opts.Checker.Check(opts.Path) {
+		return nil, os.ErrPermission
+	}
+	index := GetIndex(rootPath)
+	trimmed := strings.TrimPrefix(opts.Path, "/")
+	if trimmed == "" {
+		trimmed = "/"
+	}
+	adjustedPath := makeIndexPath(trimmed, index.Root)
+	var info FileInfo
+	info, exists := index.GetMetadataInfo(adjustedPath)
+	if exists {
+		// Check if the cache time is less than 1 second
+		if time.Since(info.CacheTime) > time.Second {
+			go refreshFileInfo(opts)
+		}
+		// refresh cache after
+		return &info, nil
+	} else {
+		updated := refreshFileInfo(opts)
+		if !updated {
+			file, err := NewFileInfo(opts)
+			return file, err
+		}
+		info, exists = index.GetMetadataInfo(adjustedPath)
+		if !exists || info.Name == "" {
+			return &FileInfo{}, errors.ErrEmptyKey
+		}
+		return &info, nil
+	}
+}
 
+func refreshFileInfo(opts FileOptions) bool {
+	if !opts.Checker.Check(opts.Path) {
+		return false
+	}
+	file, err := stat(opts.Path, opts) // Pass opts.Path here
+	if err != nil {
+		return false
+	}
+
+	index := GetIndex(rootPath)
+	trimmed := strings.TrimPrefix(opts.Path, "/")
+	if trimmed == "" {
+		trimmed = "/"
+	}
+	adjustedPath := makeIndexPath(trimmed, index.Root)
+	if file.IsDir {
+		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
+		if err != nil {
+			return false
+		}
+		//_, exists := index.GetFileMetadata(adjustedPath)
+		return index.UpdateFileMetadata(adjustedPath, *file)
+	} else {
+		//_, exists := index.GetFileMetadata(adjustedPath)
+		return index.UpdateFileMetadata(adjustedPath, *file)
+	}
+}
+
+func stat(path string, opts FileOptions) (*FileInfo, error) {
+	var file *FileInfo
 	if lstaterFs, ok := opts.Fs.(afero.Lstater); ok {
-		info, _, err := lstaterFs.LstatIfPossible(opts.Path)
+		info, _, err := lstaterFs.LstatIfPossible(path)
+		if err == nil {
+			file = &FileInfo{
+				Fs:        opts.Fs,
+				Path:      opts.Path,
+				Name:      info.Name(),
+				ModTime:   info.ModTime(),
+				Mode:      info.Mode(),
+				Size:      info.Size(),
+				Extension: filepath.Ext(info.Name()),
+				Token:     opts.Token,
+			}
+			if info.IsDir() {
+				file.IsDir = true
+			}
+			if info.Mode()&os.ModeSymlink != 0 {
+				file.IsSymlink = true
+			}
+		}
+	}
+
+	if file == nil || file.IsSymlink {
+		info, err := opts.Fs.Stat(opts.Path)
 		if err != nil {
 			return nil, err
 		}
+
+		if file != nil && file.IsSymlink {
+			file.Size = info.Size()
+			file.IsDir = info.IsDir()
+			return file, nil
+		}
+
 		file = &FileInfo{
 			Fs:        opts.Fs,
 			Path:      opts.Path,
@@ -99,45 +211,10 @@ func stat(opts FileOptions) (*FileInfo, error) {
 			ModTime:   info.ModTime(),
 			Mode:      info.Mode(),
 			IsDir:     info.IsDir(),
-			IsSymlink: IsSymlink(info.Mode()),
 			Size:      info.Size(),
 			Extension: filepath.Ext(info.Name()),
 			Token:     opts.Token,
 		}
-	}
-
-	// regular file
-	if file != nil && !file.IsSymlink {
-		return file, nil
-	}
-
-	// fs doesn't support afero.Lstater interface or the file is a symlink
-	info, err := opts.Fs.Stat(opts.Path)
-	if err != nil {
-		// can't follow symlink
-		if file != nil && file.IsSymlink {
-			return file, nil
-		}
-		return nil, err
-	}
-
-	// set correct file size in case of symlink
-	if file != nil && file.IsSymlink {
-		file.Size = info.Size()
-		file.IsDir = info.IsDir()
-		return file, nil
-	}
-
-	file = &FileInfo{
-		Fs:        opts.Fs,
-		Path:      opts.Path,
-		Name:      info.Name(),
-		ModTime:   info.ModTime(),
-		Mode:      info.Mode(),
-		IsDir:     info.IsDir(),
-		Size:      info.Size(),
-		Extension: filepath.Ext(info.Name()),
-		Token:     opts.Token,
 	}
 
 	return file, nil
@@ -160,19 +237,15 @@ func (i *FileInfo) Checksum(algo string) error {
 	}
 	defer reader.Close()
 
-	var h hash.Hash
+	hashFuncs := map[string]hash.Hash{
+		"md5":    md5.New(),
+		"sha1":   sha1.New(),
+		"sha256": sha256.New(),
+		"sha512": sha512.New(),
+	}
 
-	//nolint:gosec
-	switch algo {
-	case "md5":
-		h = md5.New()
-	case "sha1":
-		h = sha1.New()
-	case "sha256":
-		h = sha256.New()
-	case "sha512":
-		h = sha512.New()
-	default:
+	h, ok := hashFuncs[algo]
+	if !ok {
 		return errors.ErrInvalidOption
 	}
 
@@ -185,6 +258,7 @@ func (i *FileInfo) Checksum(algo string) error {
 	return nil
 }
 
+// RealPath gets the real path for the file, resolving symlinks if supported.
 func (i *FileInfo) RealPath() string {
 	if realPathFs, ok := i.Fs.(interface {
 		RealPath(name string) (fPath string, err error)
@@ -198,72 +272,57 @@ func (i *FileInfo) RealPath() string {
 	return i.Path
 }
 
-// TODO: use constants
-//
-//nolint:goconst
-func (i *FileInfo) detectType(modify, saveContent, readHeader bool) error {
+// detectType detects the file type.
+func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool) error {
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		return nil
 	}
-	// failing to detect the type should not return error.
-	// imagine the situation where a file in a dir with thousands
-	// of files couldn't be opened: we'd have immediately
-	// a 500 even though it doesn't matter. So we just log it.
-
-	mimetype := mime.TypeByExtension(i.Extension)
-
 	var buffer []byte
 	if readHeader {
 		buffer = i.readFirstBytes()
-
+		mimetype := mime.TypeByExtension(i.Extension)
 		if mimetype == "" {
-			mimetype = http.DetectContentType(buffer)
+			http.DetectContentType(buffer)
 		}
 	}
-
-	switch {
-	case strings.HasPrefix(mimetype, "video"):
-		i.Type = "video"
-		i.detectSubtitles()
-		return nil
-	case strings.HasPrefix(mimetype, "audio"):
-		i.Type = "audio"
-		return nil
-	case strings.HasPrefix(mimetype, "image"):
-		i.Type = "image"
-		return nil
-	case strings.HasSuffix(mimetype, "pdf"):
-		i.Type = "pdf"
-		return nil
-	case (strings.HasPrefix(mimetype, "text") || !isBinary(buffer)) && i.Size <= 10*1024*1024: // 10 MB
-		i.Type = "text"
-
-		if !modify {
-			i.Type = "textImmutable"
+	ext := filepath.Ext(i.Name)
+	for _, fileType := range AllFiletypeOptions {
+		if IsMatchingType(ext, fileType) {
+			i.Type = fileType
 		}
-
-		if saveContent {
-			afs := &afero.Afero{Fs: i.Fs}
-			content, err := afs.ReadFile(i.Path)
-			if err != nil {
-				return err
+		switch i.Type {
+		case "text":
+			if !modify {
+				i.Type = "textImmutable"
 			}
-
-			i.Content = string(content)
+			if saveContent {
+				afs := &afero.Afero{Fs: i.Fs}
+				content, err := afs.ReadFile(path)
+				if err != nil {
+					return err
+				}
+				i.Content = string(content)
+			}
+		case "video":
+			parentDir := strings.TrimRight(path, i.Name)
+			i.detectSubtitles(parentDir)
+		case "doc":
+			if ext == ".pdf" {
+				i.Type = "pdf"
+			}
 		}
-		return nil
-	default:
+	}
+	if i.Type == "" {
 		i.Type = "blob"
 	}
-
 	return nil
 }
 
+// readFirstBytes reads the first bytes of the file.
 func (i *FileInfo) readFirstBytes() []byte {
 	reader, err := i.Fs.Open(i.Path)
 	if err != nil {
-		log.Print(err)
 		i.Type = "blob"
 		return nil
 	}
@@ -272,7 +331,6 @@ func (i *FileInfo) readFirstBytes() []byte {
 	buffer := make([]byte, 512) //nolint:gomnd
 	n, err := reader.Read(buffer)
 	if err != nil && err != io.EOF {
-		log.Print(err)
 		i.Type = "blob"
 		return nil
 	}
@@ -280,29 +338,43 @@ func (i *FileInfo) readFirstBytes() []byte {
 	return buffer[:n]
 }
 
-func (i *FileInfo) detectSubtitles() {
+// detectSubtitles detects subtitles for video files.
+func (i *FileInfo) detectSubtitles(parentDir string) {
 	if i.Type != "video" {
 		return
 	}
-
 	i.Subtitles = []string{}
-	ext := filepath.Ext(i.Path)
+	ext := filepath.Ext(i.Name)
+	dir, err := os.Open(parentDir)
+	if err != nil {
+		// Directory must have been deleted, remove it from the index
+		return
+	}
+	// Read the directory contents
+	files, err := dir.Readdir(-1)
+	if err != nil {
+		return
+	}
 
-	// detect multiple languages. Base*.vtt
-	// TODO: give subtitles descriptive names (lang) and track attributes
-	parentDir := strings.TrimRight(i.Path, i.Name)
-	dir, err := afero.ReadDir(i.Fs, parentDir)
-	if err == nil {
-		base := strings.TrimSuffix(i.Name, ext)
-		for _, f := range dir {
-			if !f.IsDir() && strings.HasPrefix(f.Name(), base) && strings.HasSuffix(f.Name(), ".vtt") {
-				i.Subtitles = append(i.Subtitles, path.Join(parentDir, f.Name()))
+	base := strings.TrimSuffix(i.Name, ext)
+	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
+
+	for _, f := range files {
+		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
+			continue
+		}
+
+		for _, subtitleExt := range subtitleExts {
+			if strings.HasSuffix(f.Name(), subtitleExt) {
+				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
+				break
 			}
 		}
 	}
 }
 
-func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
+// readListing reads the contents of a directory and fills the listing.
+func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bool) error {
 	afs := &afero.Afero{Fs: i.Fs}
 	dir, err := afs.ReadDir(i.Path)
 	if err != nil {
@@ -311,13 +383,14 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 
 	listing := &Listing{
 		Items:    []*FileInfo{},
+		Path:     i.Path,
 		NumDirs:  0,
 		NumFiles: 0,
 	}
 
 	for _, f := range dir {
 		name := f.Name()
-		fPath := path.Join(i.Path, name)
+		fPath := filepath.Join(i.Path, name)
 
 		if !checker.Check(fPath) {
 			continue
@@ -326,8 +399,6 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 		isSymlink, isInvalidLink := false, false
 		if IsSymlink(f.Mode()) {
 			isSymlink = true
-			// It's a symbolic link. We try to follow it. If it doesn't work,
-			// we stay with the link information instead of the target's.
 			info, err := i.Fs.Stat(fPath)
 			if err == nil {
 				f = info
@@ -337,15 +408,16 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 		}
 
 		file := &FileInfo{
-			Fs:        i.Fs,
-			Name:      name,
-			Size:      f.Size(),
-			ModTime:   f.ModTime(),
-			Mode:      f.Mode(),
-			IsDir:     f.IsDir(),
-			IsSymlink: isSymlink,
-			Extension: filepath.Ext(name),
-			Path:      fPath,
+			Name:    name,
+			Size:    f.Size(),
+			ModTime: f.ModTime(),
+			Mode:    f.Mode(),
+		}
+		if f.IsDir() {
+			file.IsDir = true
+		}
+		if isSymlink {
+			file.IsSymlink = true
 		}
 
 		if file.IsDir {
@@ -356,7 +428,7 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 			if isInvalidLink {
 				file.Type = "invalid_link"
 			} else {
-				err := file.detectType(true, false, readHeader)
+				err := file.detectType(path, true, false, readHeader)
 				if err != nil {
 					return err
 				}
@@ -368,4 +440,24 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 
 	i.Listing = listing
 	return nil
+}
+func IsNamedPipe(mode os.FileMode) bool {
+	return mode&os.ModeNamedPipe != 0
+}
+
+func IsSymlink(mode os.FileMode) bool {
+	return mode&os.ModeSymlink != 0
+}
+
+func getMutex(path string) *sync.Mutex {
+	// Lock access to pathMutexes map
+	pathMutexesMu.Lock()
+	defer pathMutexesMu.Unlock()
+
+	// Create a mutex for the path if it doesn't exist
+	if pathMutexes[path] == nil {
+		pathMutexes[path] = &sync.Mutex{}
+	}
+
+	return pathMutexes[path]
 }

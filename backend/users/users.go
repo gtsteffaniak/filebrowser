@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/rules"
 )
 
@@ -21,25 +20,31 @@ type Permissions struct {
 	Download bool `json:"download"`
 }
 
+// SortingSettings represents the sorting settings.
+type Sorting struct {
+	By  string `json:"by"`
+	Asc bool   `json:"asc"`
+}
+
 // User describes a user.
 type User struct {
-	DarkMode        bool          `json:"darkMode"`
-	DisableSettings bool          `json:"disableSettings"`
-	ID              uint          `storm:"id,increment" json:"id"`
-	Username        string        `storm:"unique" json:"username"`
-	Password        string        `json:"password"`
-	Scope           string        `json:"scope"`
-	Locale          string        `json:"locale"`
-	LockPassword    bool          `json:"lockPassword"`
-	ViewMode        string        `json:"viewMode"`
-	SingleClick     bool          `json:"singleClick"`
-	Perm            Permissions   `json:"perm"`
-	Commands        []string      `json:"commands"`
-	Sorting         files.Sorting `json:"sorting"`
-	Fs              afero.Fs      `json:"-" yaml:"-"`
-	Rules           []rules.Rule  `json:"rules"`
-	HideDotfiles    bool          `json:"hideDotfiles"`
-	DateFormat      bool          `json:"dateFormat"`
+	DarkMode        bool         `json:"darkMode"`
+	DisableSettings bool         `json:"disableSettings"`
+	ID              uint         `storm:"id,increment" json:"id"`
+	Username        string       `storm:"unique" json:"username"`
+	Password        string       `json:"password"`
+	Scope           string       `json:"scope"`
+	Locale          string       `json:"locale"`
+	LockPassword    bool         `json:"lockPassword"`
+	ViewMode        string       `json:"viewMode"`
+	SingleClick     bool         `json:"singleClick"`
+	Perm            Permissions  `json:"perm"`
+	Commands        []string     `json:"commands"`
+	Sorting         Sorting      `json:"sorting"`
+	Fs              afero.Fs     `json:"-" yaml:"-"`
+	Rules           []rules.Rule `json:"rules"`
+	HideDotfiles    bool         `json:"hideDotfiles"`
+	DateFormat      bool         `json:"dateFormat"`
 }
 
 // GetRules implements rules.Provider.

@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/index"
+	"github.com/gtsteffaniak/filebrowser/files"
+	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -13,7 +14,7 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	userScope := r.Header.Get("UserScope")
-	index := *index.GetIndex()
+	index := files.GetIndex(settings.Config.Server.Root)
 	combinedScope := strings.TrimPrefix(userScope+r.URL.Path, ".")
 	combinedScope = strings.TrimPrefix(combinedScope, "/")
 	results, fileTypes := index.Search(query, combinedScope, sessionId)
