@@ -81,7 +81,7 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 		return http.StatusAccepted, nil
 	}
 
-	file, err := files.NewFileInfo(files.FileOptions{
+	file, err := files.FileInfoFaster(files.FileOptions{
 		Fs:         d.user.Fs,
 		Path:       r.URL.Path,
 		Modify:     d.user.Perm.Modify,

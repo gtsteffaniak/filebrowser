@@ -1,7 +1,6 @@
 <template>
   <div>
     <breadcrumbs base="/files" />
-
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentView" :is="currentView"></component>
     <div v-else>
@@ -24,8 +23,9 @@ import { mapState, mapMutations } from "vuex";
 import HeaderBar from "@/components/header/HeaderBar";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";
-import Preview from "@/views/files/Preview";
-import Listing from "@/views/files/Listing";
+import Preview from "@/views/files/Preview.vue";
+import Listing from "@/views/files/Listing.vue";
+import Editor from "@/views/files/Editor.vue";
 
 function clean(path) {
   return path.endsWith("/") ? path.slice(0, -1) : path;
@@ -39,7 +39,7 @@ export default {
     Errors,
     Preview,
     Listing,
-    Editor: () => import("@/views/files/Editor"),
+    Editor,
   },
   data: function () {
     return {

@@ -1,4 +1,4 @@
-package index
+package files
 
 import (
 	"math/rand"
@@ -12,9 +12,7 @@ import (
 
 var (
 	sessionInProgress sync.Map
-	mutex             sync.RWMutex
-	maxSearchResults        = 100
-	bytesInMegabyte   int64 = 1000000
+	maxSearchResults  = 100
 )
 
 func (si *Index) Search(search string, scope string, sourceSession string) ([]string, map[string]map[string]bool) {
@@ -24,46 +22,61 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
-	mutex.RLock()
-	defer mutex.RUnlock()
 	fileListTypes := make(map[string]map[string]bool)
 	matching := []string{}
+	count := 0
+
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
 		}
-		// Iterate over the embedded index.Index fields Dirs and Files
-		for _, i := range []string{"Dirs", "Files"} {
-			isDir := false
-			count := 0
-			var paths []string
-
-			switch i {
-			case "Dirs":
-				isDir = true
-				paths = si.Dirs
-			case "Files":
-				paths = si.Files
+		si.mu.Lock()
+		defer si.mu.Unlock()
+		for dirName, dir := range si.Directories {
+			isDir := true
+			files := strings.Split(dir.Files, ";")
+			value, found := sessionInProgress.Load(sourceSession)
+			if !found || value != runningHash {
+				return []string{}, map[string]map[string]bool{}
 			}
-			for _, path := range paths {
+			if count > maxSearchResults {
+				break
+			}
+			pathName := scopedPathNameFilter(dirName, scope, isDir)
+			if pathName == "" {
+				continue // path not matched
+			}
+
+			fileTypes := map[string]bool{}
+			matches, fileType := containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
+			if matches {
+				fileListTypes[pathName] = fileType
+				matching = append(matching, pathName)
+				count++
+			}
+			isDir = false
+			for _, file := range files {
+				if file == "" {
+					continue
+				}
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					return []string{}, map[string]map[string]bool{}
 				}
+
 				if count > maxSearchResults {
 					break
 				}
-				pathName := scopedPathNameFilter(path, scope, isDir)
-				if pathName == "" {
-					continue
-				}
+				fullName := pathName + file
 				fileTypes := map[string]bool{}
-				matches, fileType := containsSearchTerm(path, searchTerm, *searchOptions, isDir, fileTypes)
+
+				matches, fileType := containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
 				if !matches {
 					continue
 				}
-				fileListTypes[pathName] = fileType
-				matching = append(matching, pathName)
+
+				fileListTypes[fullName] = fileType
+				matching = append(matching, fullName)
 				count++
 			}
 		}

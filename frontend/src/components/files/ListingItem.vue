@@ -1,5 +1,6 @@
 <template>
   <div
+    :class="{ activebutton: this.isMaximized && this.isSelected}"
     class="item"
     role="button"
     tabindex="0"
@@ -13,15 +14,20 @@
     :aria-label="name"
     :aria-selected="isSelected"
   >
-    <div>
-      <img
-        v-if="readOnly == undefined && type === 'image' && isThumbsEnabled"
-        v-lazy="thumbnailUrl"
-      />
-      <i v-else class="material-icons"></i>
+    <div
+      @click="toggleClick"
+      :class="{ activetitle: this.isMaximized && this.isSelected }"
+    >
+    <img
+      v-if="readOnly === undefined && type === 'image' && isThumbsEnabled && isInView"
+      v-lazy="thumbnailUrl"
+      :class="{ activeimg: this.isMaximized && this.isSelected }"
+      ref="thumbnail"
+    />
+      <i :class="{ iconActive: this.isMaximized && this.isSelected }" v-else class="material-icons"></i>
     </div>
 
-    <div>
+    <div :class="{ activecontent: this.isMaximized && this.isSelected }">
       <p class="name">{{ name }}</p>
 
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
@@ -33,6 +39,27 @@
     </div>
   </div>
 </template>
+
+<style>
+.activebutton {
+  height: 10em;
+}
+.activecontent {
+  height: 5em !important;
+  display: grid !important;
+}
+.activeimg {
+  width: 8em !important;
+  height: 8em !important;
+}
+.iconActive {
+  font-size: 6em !important;
+}
+.activetitle {
+  width: 9em !important;
+  margin-right: 1em !important;
+}
+</style>
 
 <script>
 import { enableThumbs } from "@/utils/constants";
@@ -46,6 +73,8 @@ export default {
   name: "item",
   data: function () {
     return {
+      isThumbnailInView: false,
+      isMaximized: false,
       touches: 0,
     };
   },
@@ -63,6 +92,16 @@ export default {
   computed: {
     ...mapState(["user", "selected", "req", "jwt"]),
     ...mapGetters(["selectedCount"]),
+    isClicked() {
+      if (this.user.singleClick || !this.allowedView ) {
+        return false;
+      }
+      // Assuming toggleClick returns a boolean value
+      return !this.isMaximized;
+    },
+    allowedView() {
+      return this.user.viewMode != "gallery" && this.user.viewMode != "normal"
+    },
     singleClick() {
       return this.readOnly == undefined && this.user.singleClick;
     },
@@ -84,8 +123,12 @@ export default {
       return true;
     },
     thumbnailUrl() {
+      let path = this.req.path
+      if (this.req.path == "/") {
+        path = ""
+      }
       const file = {
-        path: this.path,
+        path: path +"/"+this.name,
         modified: this.modified,
       };
 
@@ -94,11 +137,41 @@ export default {
     isThumbsEnabled() {
       return enableThumbs;
     },
+    isInView() {
+      return enableThumbs;
+    },
+  },
+  mounted() {
+    const observer = new IntersectionObserver(this.handleIntersect, {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.5, // Adjust threshold as needed
+    });
+
+    // Get the thumbnail element and start observing
+    const thumbnailElement = this.$refs.thumbnail; // Add ref="thumbnail" to the <img> tag
+    if (thumbnailElement) {
+      observer.observe(thumbnailElement);
+    }
   },
   methods: {
+    handleIntersect(entries, observer) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.isThumbnailInView = true;
+          // Stop observing once thumbnail is in view
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    toggleClick() {
+      this.isMaximized = this.isClicked;
+    },
     ...mapMutations(["addSelected", "removeSelected", "resetSelected"]),
     humanSize: function () {
-      return this.type == "invalid_link" ? "invalid link" : getHumanReadableFilesize(this.size);
+      return this.type == "invalid_link"
+        ? "invalid link"
+        : getHumanReadableFilesize(this.size);
     },
     humanTime: function () {
       if (this.readOnly == undefined && this.user.dateFormat) {
@@ -231,7 +304,6 @@ export default {
 
         return;
       }
-
       if (
         !this.singleClick &&
         !event.ctrlKey &&

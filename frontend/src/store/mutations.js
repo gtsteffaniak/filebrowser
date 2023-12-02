@@ -74,6 +74,25 @@ const mutations = {
     state.oldReq = state.req;
     state.req = value;
   },
+  // Inside your mutations object
+  updateListingSortConfig(state, { field, asc }) {
+    state.req.sorting.by = field;
+    state.req.sorting.asc = asc;
+  },
+
+  updateListingItems(state) {
+    // Sort the items array based on the sorting settings
+    state.req.items.sort((a, b) => {
+      const valueA = a[state.req.sorting.by];
+      const valueB = b[state.req.sorting.by];
+      if (state.req.sorting.asc) {
+        return valueA > valueB ? 1 : -1;
+      } else {
+        return valueA < valueB ? 1 : -1;
+      }
+    });
+  },
+
   updateClipboard: (state, value) => {
     state.clipboard.key = value.key;
     state.clipboard.items = value.items;

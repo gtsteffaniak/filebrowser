@@ -45,7 +45,7 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 			return http.StatusBadRequest, err
 		}
 
-		file, err := files.NewFileInfo(files.FileOptions{
+		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         d.user.Fs,
 			Path:       "/" + vars["path"],
 			Modify:     d.user.Perm.Modify,
@@ -53,10 +53,10 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 			ReadHeader: d.server.TypeDetectionByHeader,
 			Checker:    d,
 		})
+
 		if err != nil {
 			return errToStatus(err), err
 		}
-
 		setContentDisposition(w, r, file)
 
 		switch file.Type {
@@ -81,7 +81,6 @@ func handleImagePreview(
 		(previewSize == PreviewSizeThumb && !enableThumbnails) {
 		return rawFileHandler(w, r, file)
 	}
-
 	format, err := imgSvc.FormatFromExtension(file.Extension)
 	// Unsupported extensions directly return the raw data
 	if err == img.ErrUnsupportedFormat || format == img.FormatGif {

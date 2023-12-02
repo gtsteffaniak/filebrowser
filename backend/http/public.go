@@ -13,6 +13,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/share"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var withHashFile = func(fn handleFunc) handleFunc {
@@ -35,7 +36,7 @@ var withHashFile = func(fn handleFunc) handleFunc {
 
 		d.user = user
 
-		file, err := files.NewFileInfo(files.FileOptions{
+		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         d.user.Fs,
 			Path:       link.Path,
 			Modify:     d.user.Perm.Modify,
@@ -62,7 +63,7 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		// set fs root to the shared file/folder
 		d.user.Fs = afero.NewBasePathFs(d.user.Fs, basePath)
 
-		file, err = files.NewFileInfo(files.FileOptions{
+		file, err = files.FileInfoFaster(files.FileOptions{
 			Fs:      d.user.Fs,
 			Path:    filePath,
 			Modify:  d.user.Perm.Modify,
@@ -98,8 +99,7 @@ var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Reques
 	file := d.raw.(*files.FileInfo)
 
 	if file.IsDir {
-		file.Listing.Sorting = files.Sorting{By: "name", Asc: false}
-		file.Listing.ApplySort()
+		file.Listing.Sorting = users.Sorting{By: "name", Asc: false}
 		return renderJSON(w, r, file)
 	}
 
