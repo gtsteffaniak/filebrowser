@@ -236,7 +236,6 @@ export default {
   data: function () {
     return {
       sortField: "name",
-      showLimit: 5000, // new directory limit
       columnWidth: 280,
       dragCounter: 0,
       width: window.innerWidth,
@@ -273,14 +272,10 @@ export default {
       return { dirs, files };
     },
     dirs() {
-      return this.items.dirs.slice(0, this.showLimit);
+      return this.items.dirs;
     },
     files() {
-      let showLimit = this.showLimit - this.items.dirs.length;
-
-      if (showLimit < 0) showLimit = 0;
-
-      return this.items.files.slice(0, showLimit);
+      return this.items.files;
     },
     nameIcon() {
       if (this.nameSorted && !this.ascOrdered) {
@@ -330,16 +325,10 @@ export default {
   },
   watch: {
     req: function () {
-      // Reset the show value
-      this.showLimit = 50;
-
       // Ensures that the listing is displayed
       Vue.nextTick(() => {
         // How much every listing item affects the window height
         this.setItemWeight();
-
-        // Fill and fit the window with listing items
-        this.fillWindow(true);
       });
     },
   },
@@ -349,9 +338,6 @@ export default {
 
     // How much every listing item affects the window height
     this.setItemWeight();
-
-    // Fill and fit the window with listing items
-    this.fillWindow(true);
 
     // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
@@ -551,25 +537,6 @@ export default {
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },
-    scrollEvent: throttle(function () {
-      const totalItems = this.req.numDirs + this.req.numFiles;
-
-      // All items are displayed
-      if (this.showLimit >= totalItems) return;
-
-      const currentPos = window.innerHeight + window.scrollY;
-
-      // Trigger at the 75% of the window height
-      const triggerPos = document.body.offsetHeight - window.innerHeight * 0.25;
-
-      if (currentPos > triggerPos) {
-        // Quantity of items needed to fill 2x of the window height
-        const showQuantity = Math.ceil((window.innerHeight * 2) / this.itemWeight);
-
-        // Increase the number of displayed items
-        this.showLimit += showQuantity;
-      }
-    }, 100),
     dragEnter() {
       this.dragCounter++;
 
@@ -710,9 +677,6 @@ export default {
 
       // How much every listing item affects the window height
       this.setItemWeight();
-
-      // Fill but not fit the window
-      this.fillWindow();
     }, 100),
     download() {
       if (this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir) {
@@ -751,29 +715,8 @@ export default {
     setItemWeight() {
       // Listing element is not displayed
       if (this.$refs.listing == null) return;
-
-      let itemQuantity = this.req.numDirs + this.req.numFiles;
-      if (itemQuantity > this.showLimit) itemQuantity = this.showLimit;
-
       // How much every listing item affects the window height
       this.itemWeight = this.$refs.listing.offsetHeight / itemQuantity;
-    },
-    fillWindow(fit = false) {
-      const totalItems = this.req.numDirs + this.req.numFiles;
-
-      // More items are displayed than the total
-      if (this.showLimit >= totalItems && !fit) return;
-
-      const windowHeight = window.innerHeight;
-
-      // Quantity of items needed to fill 2x of the window height
-      const showQuantity = Math.ceil((windowHeight + windowHeight * 2) / this.itemWeight);
-
-      // Less items to display than current
-      if (this.showLimit > showQuantity && !fit) return;
-
-      // Set the number of displayed items
-      this.showLimit = showQuantity > totalItems ? totalItems : showQuantity;
     },
   },
 };
