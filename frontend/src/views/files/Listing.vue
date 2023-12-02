@@ -217,7 +217,6 @@
 </style>
 
 <script>
-import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
@@ -239,7 +238,6 @@ export default {
       columnWidth: 280,
       dragCounter: 0,
       width: window.innerWidth,
-      itemWeight: 0,
     };
   },
   computed: {
@@ -326,18 +324,11 @@ export default {
   watch: {
     req: function () {
       // Ensures that the listing is displayed
-      Vue.nextTick(() => {
-        // How much every listing item affects the window height
-        this.setItemWeight();
-      });
     },
   },
   mounted: function () {
     // Check the columns size for the first time.
     this.colunmsResize();
-
-    // How much every listing item affects the window height
-    this.setItemWeight();
 
     // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
@@ -675,8 +666,6 @@ export default {
       // Listing element is not displayed
       if (this.$refs.listing == null) return;
 
-      // How much every listing item affects the window height
-      this.setItemWeight();
     }, 100),
     download() {
       if (this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir) {
@@ -711,12 +700,6 @@ export default {
       } else {
         document.getElementById("upload-input").click();
       }
-    },
-    setItemWeight() {
-      // Listing element is not displayed
-      if (this.$refs.listing == null) return;
-      // How much every listing item affects the window height
-      this.itemWeight = this.$refs.listing.offsetHeight / itemQuantity;
     },
   },
 };
