@@ -6,7 +6,7 @@
 </p>
 <h3 align="center">Filebrowser - A modern file manager for the web</h3>
 <p align="center">
-  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/b45683b0-bd55-4430-9831-650fe0d21eb8" title="Main Screenshot">
+  <img width="800" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/899152cf-3e69-4179-aa82-752af2df3fc6" title="Main Screenshot">
 </p>
 
 > [!NOTE]  
