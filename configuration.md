@@ -7,8 +7,6 @@ This document covers the available configuration options, their defaults, and ho
 Here is an expanded config file which includes all possible configurations:
 
 ```
-adminUsername: admin
-adminPassword: admin
 server:
   CreateUserDir: false
   UserHomeBasePath: ""
@@ -27,6 +25,8 @@ server:
   database: "/database/database.db"
   root: "/srv"
 auth:
+  adminUsername: admin
+  adminPassword: admin
   recaptcha:
     host: ""
     key: ""
@@ -69,8 +69,6 @@ userDefaults:
 Here are the defaults if nothing is set:
 
 ```
-adminUsername: admin
-adminPassword: admin
 server:
   enableThumbnails: true
   enableExec: false
@@ -82,6 +80,8 @@ server:
   log: stdout
   root: /srv
 auth:
+  adminUsername: admin
+  adminPassword: admin
   method: password
   recaptcha:
     host: ""
