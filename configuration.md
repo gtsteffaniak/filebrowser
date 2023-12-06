@@ -31,7 +31,7 @@ auth:
     host: ""
     key: ""
     secret: ""
-  TokenExpirationTime: 2h
+  tokenExpirationTime: 2h
   header: ""
   method: json
   command: ""

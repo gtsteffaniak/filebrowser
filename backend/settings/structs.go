@@ -17,15 +17,16 @@ type Settings struct {
 }
 
 type Auth struct {
-	Recaptcha     Recaptcha `json:"recaptcha"`
-	Header        string    `json:"header"`
-	Method        string    `json:"method"`
-	Command       string    `json:"command"`
-	Signup        bool      `json:"signup"`
-	Shell         string    `json:"shell"`
-	AdminUsername string    `json:"adminUsername"`
-	AdminPassword string    `json:"adminPassword"`
-	Key           []byte    `json:"key"`
+	TokenExpirationTime string    `json:"tokenExpirationTime"`
+	Recaptcha           Recaptcha `json:"recaptcha"`
+	Header              string    `json:"header"`
+	Method              string    `json:"method"`
+	Command             string    `json:"command"`
+	Signup              bool      `json:"signup"`
+	Shell               string    `json:"shell"`
+	AdminUsername       string    `json:"adminUsername"`
+	AdminPassword       string    `json:"adminPassword"`
+	Key                 []byte    `json:"key"`
 }
 
 type Recaptcha struct {
