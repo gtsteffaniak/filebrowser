@@ -26,13 +26,15 @@
           <h3>Listing View Style</h3>
           <ViewMode
             class="input input--block"
-            :viewMode.sync="viewMode"
+            :viewMode="viewMode"
+            @update:viewMode="updateViewMode"
           ></ViewMode>
           <h3>{{ $t("settings.language") }}</h3>
-          <languages
+          <Languages
             class="input input--block"
-            :locale.sync="locale"
-          ></languages>
+            :locale="locale"
+            @update:locale="updateLocale"
+          ></Languages>
         </div>
 
         <div class="card-action">
@@ -93,7 +95,7 @@ export default {
     ViewMode,
     Languages,
   },
-  data: function () {
+  data() {
     return {
       password: "",
       passwordConf: "",
@@ -183,6 +185,12 @@ export default {
       } catch (e) {
         this.$showError(e);
       }
+    },
+    updateViewMode(updatedMode) {
+      this.viewMode = updatedMode;
+    },
+    updateLocale(updatedLocale) {
+      this.locale = updatedLocale;
     },
   },
 };

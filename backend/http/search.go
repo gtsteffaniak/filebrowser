@@ -1,6 +1,7 @@
 package http
 
 import (
+	"log"
 	"net/http"
 	"strings"
 
@@ -14,6 +15,7 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	userScope := r.Header.Get("UserScope")
+	log.Println(userScope, userScope+r.URL.Path)
 	index := files.GetIndex(settings.Config.Server.Root)
 	combinedScope := strings.TrimPrefix(userScope+r.URL.Path, ".")
 	combinedScope = strings.TrimPrefix(combinedScope, "/")
