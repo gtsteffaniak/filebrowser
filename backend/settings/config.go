@@ -60,10 +60,11 @@ func setDefaults() Settings {
 			Root:               "/srv",
 		},
 		Auth: Auth{
-			AdminUsername: "admin",
-			AdminPassword: "admin",
-			Method:        "password",
-			Signup:        false,
+			TokenExpirationTime: "2h",
+			AdminUsername:       "admin",
+			AdminPassword:       "admin",
+			Method:              "password",
+			Signup:              false,
 			Recaptcha: Recaptcha{
 				Host: "",
 			},

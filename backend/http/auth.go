@@ -16,10 +16,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-const (
-	TokenExpirationTime = time.Hour * 2
-)
-
 type authToken struct {
 	User users.User `json:"user"`
 	jwt.RegisteredClaims
@@ -162,7 +158,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 		User: *user,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExpirationTime)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(settings.Config.Auth.TokenExpirationTime)),
 			Issuer:    "File Browser",
 		},
 	}
