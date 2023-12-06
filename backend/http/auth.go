@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -154,11 +155,16 @@ var renewHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data
 })
 
 func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User) (int, error) {
+	duration, err := time.ParseDuration(settings.Config.Auth.TokenExpirationTime)
+	if err != nil {
+		fmt.Println("Error parsing duration:", err)
+		duration = time.Hour * 2
+	}
 	claims := &authToken{
 		User: *user,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(settings.Config.Auth.TokenExpirationTime)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 			Issuer:    "File Browser",
 		},
 	}
