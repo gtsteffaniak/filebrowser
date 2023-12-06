@@ -42,7 +42,7 @@
       <languages
         class="input input--block"
         id="locale"
-        :locale.sync="user.locale"
+        v-model:locale="user.locale"
       ></languages>
     </p>
 
@@ -55,13 +55,13 @@
       {{ $t("settings.lockPassword") }}
     </p>
 
-    <permissions :perm.sync="user.perm" />
-    <commands v-if="isExecEnabled" :commands.sync="user.commands" />
+    <permissions :perm="user.perm" />
+    <commands v-if="isExecEnabled" v-model:commands="user.commands" />
 
     <div v-if="!isDefault">
       <h3>{{ $t("settings.rules") }}</h3>
       <p class="small">{{ $t("settings.rulesHelp") }}</p>
-      <rules :rules.sync="user.rules" />
+      <rules v-model:rules="user.rules" />
     </div>
   </div>
 </template>
@@ -75,7 +75,7 @@ import { enableExec } from "@/utils/constants";
 
 export default {
   name: "user",
-  data: () => {
+  data() {
     return {
       createUserDirData: false,
       originalUserScope: "/",
@@ -104,15 +104,17 @@ export default {
     displayHomeDirectoryCheckbox() {
       return this.isNew && this.createUserDir;
     },
-    isExecEnabled: () => enableExec,
+    isExecEnabled() {
+      return enableExec; // Removed arrow function
+    },
   },
   watch: {
     "user.perm.admin": function () {
       if (!this.user.perm.admin) return;
       this.user.lockPassword = false;
     },
-    createUserDirData() {
-      this.user.scope = this.createUserDirData ? "" : this.originalUserScope;
+    createUserDirData(newVal) {
+      this.user.scope = newVal ? "" : this.originalUserScope;
     },
   },
 };
