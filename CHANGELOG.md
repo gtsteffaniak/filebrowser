@@ -2,15 +2,22 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.3
+
+- Feature: token expiration time now configurable
+- Feature: `running-config.yaml` gets updated when settings change, ensuring that running settings are up to date.
+- Feature: Move / Create Action Dialogs https://github.com/filebrowser/filebrowser/pull/2667
+- Feature: playable shared video https://github.com/filebrowser/filebrowser/issues/2537
+- FIX: Hidden files are still directly accessible. (https://github.com/filebrowser/filebrowser/issues/2698)
+- FIX: search context bug
+- FIX: user context bug
+
 ## v0.2.2
 
-- **Major Indexing Changes:**
-  - **Speed:** (0m57s) - Decreased by 78% compared to the previous release.
-  - **Memory Usage:** (41MB) - Reduced by 45% compared to the previous release.
-- Now utilizes the index for file browser listings!
-- **[Work in Progress]** Hidden files are still directly accessible.
-- **[Work in Progress]** Editor issues fixed on save and themes.
-- **[Work in Progress]** `running-config.yaml` gets updated when settings change, ensuring that running settings are up to date.
+- CHG: **Speed:** (0m57s) - Decreased by 78% compared to the previous release.
+- CHG: **Memory Usage:** (41MB) - Reduced by 45% compared to the previous release.
+- Feature: Now utilizes the index for file browser listings!
+- FIX: Editor issues fixed on save and themes.
 
 ## v0.2.1
 
