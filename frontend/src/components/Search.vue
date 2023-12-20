@@ -30,7 +30,7 @@
     <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
         <div class="button" style="width: 100%">
-          Search Context: {{ getContext(this.$route.path) }}
+          Search Context: {{ getContext }}
         </div>
         <ul v-show="results.length > 0">
           <li
