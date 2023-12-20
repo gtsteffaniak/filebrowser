@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -141,6 +142,7 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 
 var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Modify || !d.Check(r.URL.Path) {
+		log.Println("one place")
 		return http.StatusForbidden, nil
 	}
 
@@ -178,12 +180,14 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 		action := r.URL.Query().Get("action")
 		dst, err := url.QueryUnescape(dst)
 		if !d.Check(src) || !d.Check(dst) {
+			log.Println("two place")
 			return http.StatusForbidden, nil
 		}
 		if err != nil {
 			return errToStatus(err), err
 		}
 		if dst == "/" || src == "/" {
+			log.Println("three place")
 			return http.StatusForbidden, nil
 		}
 
