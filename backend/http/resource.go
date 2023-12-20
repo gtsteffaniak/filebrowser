@@ -180,14 +180,12 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 		action := r.URL.Query().Get("action")
 		dst, err := url.QueryUnescape(dst)
 		if !d.Check(src) || !d.Check(dst) {
-			log.Println("two place")
 			return http.StatusForbidden, nil
 		}
 		if err != nil {
 			return errToStatus(err), err
 		}
 		if dst == "/" || src == "/" {
-			log.Println("three place")
 			return http.StatusForbidden, nil
 		}
 

@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"hash"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"os"
@@ -98,7 +97,6 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 		}
 		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
 		if err != nil {
-			log.Println("I fail")
 			return nil, err
 		}
 	}
@@ -111,7 +109,6 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	pathMutex.Lock()
 	defer pathMutex.Unlock()
 	if !opts.Checker.Check(opts.Path) {
-		log.Println("I fail2")
 		return nil, os.ErrPermission
 	}
 	index := GetIndex(rootPath)
