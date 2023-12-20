@@ -16,6 +16,9 @@ var (
 )
 
 func (si *Index) Search(search string, scope string, sourceSession string) ([]string, map[string]map[string]bool) {
+	// Remove slashes
+	scope = strings.TrimLeft(scope, "/")
+	scope = strings.TrimRight(scope, "/")
 	if scope == "" {
 		scope = "/"
 	}
@@ -25,7 +28,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	fileListTypes := make(map[string]map[string]bool)
 	matching := []string{}
 	count := 0
-
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -46,7 +48,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			if pathName == "" {
 				continue // path not matched
 			}
-
 			fileTypes := map[string]bool{}
 			matches, fileType := containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
 			if matches {
@@ -74,7 +75,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if !matches {
 					continue
 				}
-
 				fileListTypes[fullName] = fileType
 				matching = append(matching, fullName)
 				count++

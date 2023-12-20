@@ -30,7 +30,7 @@
     <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
         <div class="button" style="width: 100%">
-          Search Context: {{ this.searchContext }}
+          Search Context: {{ getContext(this.$route.path) }}
         </div>
         <ul v-show="results.length > 0">
           <li
@@ -91,7 +91,7 @@
       </div>
     </div>
     <div v-show="!isMobile && active" id="result-desktop" ref="result">
-      <div class="searchContext">Search Context: {{ this.searchContext }}</div>
+      <div class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
         <template>
           <p v-show="isEmpty && isRunning" id="renew">
@@ -535,7 +535,6 @@ export default {
   name: "search",
   data: function () {
     return {
-      searchContext: "./",
       largerThan: "",
       smallerThan: "",
       noneMessage: "Start typing 3 or more characters to begin searching.",
@@ -632,10 +631,16 @@ export default {
     searchHelp() {
       return this.showHelp;
     },
+    getContext() {
+      let path = this.$route.path
+      path = path.slice(1);
+      path = "./" + path.substring(path.indexOf("/") + 1);
+      path = path.replace(/\/+$/, "") + "/";
+      return path
+    },
   },
   mounted() {
     window.addEventListener("resize", this.handleResize);
-    this.searchContext = this.getContext(this.$route.path)
     this.handleResize(); // Call this once to set the initial width
   },
   methods: {
@@ -646,11 +651,6 @@ export default {
       this.closeHovers();
       await this.$nextTick();
       setTimeout(() => this.$router.push(url), 0);
-    },
-    getContext(url) {
-      url = url.slice(1);
-      let path = "./" + url.substring(url.indexOf("/") + 1);
-      return path.replace(/\/+$/, "") + "/";
     },
     basePath(str,isDir) {
       let parts = str.replace(/(\/$|^\/)/, "").split("/");

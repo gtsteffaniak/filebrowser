@@ -119,8 +119,10 @@ func (si *Index) InsertFiles(path string) {
 	buffer := bytes.Buffer{}
 
 	for _, f := range si.GetQuickList() {
-		buffer.WriteString(f.Name + ";")
-		si.UpdateCount("files")
+		if !f.IsDir {
+			buffer.WriteString(f.Name + ";")
+			si.UpdateCount("files")
+		}
 	}
 	// Use GetMetadataInfo and SetFileMetadata for safer read and write operations
 	subDirectory.Files = buffer.String()
