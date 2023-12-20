@@ -163,25 +163,38 @@ func TestSearchIndexes(t *testing.T) {
 }
 
 func Test_scopedPathNameFilter(t *testing.T) {
-	type args struct {
-		pathName string
-		scope    string
-	}
 	tests := []struct {
 		name string
-		args args
+		args struct {
+			pathName string
+			scope    string
+			isDir    bool // Assuming isDir should be included in args
+		}
 		want string
 	}{
-		// TODO: Add test cases.
+		{
+			name: "scope test",
+			args: struct {
+				pathName string
+				scope    string
+				isDir    bool
+			}{
+				pathName: "/",
+				scope:    "/",
+				isDir:    false,
+			},
+			want: "", // Update this with the expected result
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := scopedPathNameFilter(tt.args.pathName, tt.args.scope, false); got != tt.want {
+			if got := scopedPathNameFilter(tt.args.pathName, tt.args.scope, tt.args.isDir); got != tt.want {
 				t.Errorf("scopedPathNameFilter() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
+
 func Test_isDoc(t *testing.T) {
 	type args struct {
 		extension string

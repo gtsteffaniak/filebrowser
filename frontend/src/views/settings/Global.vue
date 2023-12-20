@@ -29,7 +29,7 @@
 
           <h3>{{ $t("settings.rules") }}</h3>
           <p class="small">{{ $t("settings.globalRules") }}</p>
-          <rules :rules.sync="settings.rules" />
+          <rules :rules="settings.rules" @update:rules="updateRules" />
 
           <div v-if="isExecEnabled">
             <h3>{{ $t("settings.executeOnShell") }}</h3>
@@ -116,7 +116,8 @@
           <user-form
             :isNew="false"
             :isDefault="true"
-            :user.sync="settings.defaults"
+            :user="settings.defaults"
+            @update:user="updateUser"
           />
         </div>
 
@@ -149,8 +150,8 @@
           </i18n>
 
           <div
-            v-for="command in settings.commands"
-            :key="command.name"
+            v-for="(command, index) in settings.commands"
+            :key="index"
             class="collapsible"
           >
             <input :id="command.name" type="checkbox" />
@@ -231,6 +232,12 @@ export default {
   },
   methods: {
     ...mapMutations(["setLoading"]),
+    updateRules(updatedRules) {
+      this.settings.rules = updatedRules;
+    },
+    updateUser(updatedUser) {
+      this.settings.defaults = updatedUser;
+    },
     capitalize(name, where = "_") {
       if (where === "caps") where = /(?=[A-Z])/;
       let splitted = name.split(where);
