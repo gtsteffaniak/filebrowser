@@ -264,7 +264,6 @@
 
 /* Button group button */
 .dark-mode .button-group button {
-  background: var(--background);
   color: white;
 }
 
