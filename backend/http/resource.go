@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -142,7 +141,6 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 
 var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Modify || !d.Check(r.URL.Path) {
-		log.Println("one place")
 		return http.StatusForbidden, nil
 	}
 
