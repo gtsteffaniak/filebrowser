@@ -5,9 +5,6 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.2.3
 
 - Feature: token expiration time now configurable
-- Feature: config gets updated when settings change, ensuring that running settings are up to date.
-- Feature: Move / Create Action Dialogs https://github.com/filebrowser/filebrowser/pull/2667
-- Feature: playable shared video https://github.com/filebrowser/filebrowser/issues/2537
 - FIX: Hidden files are still directly accessible. (https://github.com/filebrowser/filebrowser/issues/2698)
 - FIX: search/user context bug
 
