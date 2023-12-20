@@ -654,12 +654,13 @@ export default {
     },
     basePath(str,isDir) {
       let parts = str.replace(/(\/$|^\/)/, "").split("/");
-      if (parts.length <= 2) {
+      if (parts.length <= 1) {
         if (isDir) {
           return "/"
         }
         return "";
       }
+      console.log("basePath",parts)
       parts.pop();
       parts = parts.join("/") + "/";
       if (isDir) {

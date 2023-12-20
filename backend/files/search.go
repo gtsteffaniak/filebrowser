@@ -1,6 +1,7 @@
 package files
 
 import (
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -19,9 +20,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 	// Remove slashes
 	scope = strings.TrimLeft(scope, "/")
 	scope = strings.TrimRight(scope, "/")
-	if scope == "" {
-		scope = "/"
-	}
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -54,6 +52,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				fileListTypes[pathName] = fileType
 				matching = append(matching, pathName)
 				count++
+				log.Println("matchesdir", pathName, scope)
 			}
 			isDir = false
 			for _, file := range files {
@@ -78,6 +77,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				fileListTypes[fullName] = fileType
 				matching = append(matching, fullName)
 				count++
+				log.Println("matchesfile", pathName, fullName, scope)
 			}
 		}
 	}
@@ -91,11 +91,11 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 }
 
 func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
-	scope = strings.TrimPrefix(scope, "/")
-	pathName = strings.TrimPrefix(pathName, "/")
-	pathName = strings.TrimSuffix(pathName, "/")
-	if strings.HasPrefix(pathName, scope) {
+	pathName = strings.TrimLeft(pathName, "/")
+	pathName = strings.TrimRight(pathName, "/")
+	if strings.HasPrefix(pathName, scope) || scope == "" {
 		pathName = strings.TrimPrefix(pathName, scope)
+		pathName = strings.TrimLeft(pathName, "/")
 		if isDir {
 			pathName = pathName + "/"
 		}
