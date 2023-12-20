@@ -1,19 +1,10 @@
 # Planned Roadmap
 
-Next release (0.2.1): 
+Next version : 
 
- - Improve browsing directory performance by utilizing the index.
- - Add editor themes back that were removed because of issues.
- - Add "running config" which is editable in filebrowser settings to add rules, users, settings which would normally be done via commands.
- - baseurl issue https://github.com/filebrowser/filebrowser/pull/2579
- - https://github.com/filebrowser/filebrowser/issues/2526
- - https://github.com/filebrowser/filebrowser/issues/2698
- - https://github.com/filebrowser/filebrowser/pull/2667
- - https://github.com/filebrowser/filebrowser/issues/2632
- - https://github.com/filebrowser/filebrowser/issues/2619
- - https://github.com/filebrowser/filebrowser/issues/2618
- - https://github.com/filebrowser/filebrowser/issues/2607
-
+- Feature: config gets updated when settings change, ensuring that running settings are up to date.
+- Feature: Move / Create Action Dialogs https://github.com/filebrowser/filebrowser/pull/2667
+- Feature: playable shared video https://github.com/filebrowser/filebrowser/issues/2537
 
 Future releases (within 6 months):
 
@@ -26,4 +17,3 @@ Future releases (within 6 months):
  - Use vite instead of webpack
  - upgrade to vue3
  - support minio/s3 https://github.com/filebrowser/filebrowser/issues/2544
- - https://github.com/filebrowser/filebrowser/issues/2537

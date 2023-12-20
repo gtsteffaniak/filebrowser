@@ -10,10 +10,12 @@
 
         <div class="card-content">
           <user-form
-            :user.sync="user"
-            :createUserDir.sync="createUserDir"
+            :user="user"
+            :createUserDir="createUserDir"
             :isDefault="false"
             :isNew="isNew"
+            @update:user="updatedUser => user = updatedUser"
+            @update:createUserDir="updatedDir => createUserDir = updatedDir"
           />
         </div>
 
@@ -73,7 +75,7 @@ export default {
     UserForm,
     Errors,
   },
-  data: () => {
+  data() {
     return {
       error: null,
       originalUser: null,
@@ -91,7 +93,7 @@ export default {
     },
     ...mapState(["loading"]),
     showDeletePrompt() {
-      return this.showDelete
+      return this.showDelete;
     },
   },
   watch: {
@@ -129,7 +131,7 @@ export default {
       }
     },
     deletePrompt() {
-      this.showDelete = true
+      this.showDelete = true;
     },
     async deleteUser(event) {
       event.preventDefault();

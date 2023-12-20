@@ -16,7 +16,6 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	userScope := r.Header.Get("UserScope")
 	index := files.GetIndex(settings.Config.Server.Root)
 	combinedScope := strings.TrimPrefix(userScope+r.URL.Path, ".")
-	combinedScope = strings.TrimPrefix(combinedScope, "/")
 	results, fileTypes := index.Search(query, combinedScope, sessionId)
 	for _, path := range results {
 		responseObj := map[string]interface{}{
