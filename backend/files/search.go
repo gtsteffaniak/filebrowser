@@ -1,7 +1,6 @@
 package files
 
 import (
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -52,7 +51,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				fileListTypes[pathName] = fileType
 				matching = append(matching, pathName)
 				count++
-				log.Println("matchesdir", pathName, scope)
 			}
 			isDir = false
 			for _, file := range files {
@@ -77,7 +75,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				fileListTypes[fullName] = fileType
 				matching = append(matching, fullName)
 				count++
-				log.Println("matchesfile", pathName, fullName, scope)
 			}
 		}
 	}
