@@ -260,6 +260,9 @@ export default {
       const files = [];
 
       this.req.items.forEach((item) => {
+        if (this.user.hideDotfiles && item.name.startsWith(".")) {
+          return;
+        }
         if (item.isDir) {
           dirs.push(item);
         } else {
