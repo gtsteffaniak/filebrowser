@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.4
+
+- In prep for vue3 migration, modules removed:
+  - js-base64
+
 ## v0.2.3
 
 - Feature: token expiration time now configurable
