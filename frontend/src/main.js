@@ -1,6 +1,5 @@
 import "whatwg-fetch";
 import cssVars from "css-vars-ponyfill";
-import { sync } from "vuex-router-sync";
 import store from "@/store";
 import router from "@/router";
 import i18n from "@/i18n";
@@ -12,7 +11,6 @@ export const eventBus = new Vue(); // creating an event bus.
 
 cssVars();
 
-sync(store, router);
 
 async function start() {
   try {
