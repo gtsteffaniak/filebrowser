@@ -1,0 +1,47 @@
+{
+  "name": "filebrowser-frontend",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    // vue 3 changes needed
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "fix": "npx vue-cli-service lint",
+    "watch": "vue-cli-service build --watch",
+    "lint": "eslint --ext .vue,.js src/",
+    "lint:fix": "eslint --ext .vue,.js --fix src/",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "ace-builds": "^1.24.2",
+    "clipboard": "^2.0.4",
+    "css-vars-ponyfill": "^2.4.3",
+    "file-loader": "^6.2.0", // UNNECESSARY IN VITE
+    "js-base64": "^2.5.1", // REPLACE WITH EQUIVALENT JS
+    "lodash.clonedeep": "^4.5.0", // TOO OLD - REPLACE WITH JS
+    "lodash.throttle": "^4.1.1", // TOO OLD - REPLACE WITH JS
+    "material-icons": "^1.10.5",
+    "moment": "^2.29.4", // REPLACE WITH EQUIVALENT JS
+    "normalize.css": "^8.0.1", // REPLACE WITH EQUIVALENT JS
+    "noty": "^3.2.0-beta", // REPLACE WITH EQUIVALENT JS
+    "pretty-bytes": "^6.0.0", // REPLACE WITH EQUIVALENT JS
+    "qrcode.vue": "^1.7.0", // UPDATE TO LATEST for VUE3
+    "utif": "^3.1.0", // SPIKE investigate replacement
+    "vue": "^2.6.10", // UPDATE to vue 3
+    "vue-async-computed": "^3.9.0", // REPLACE WITH EQUIVALENT JS
+    "vue-i18n": "^8.15.3", // REMOVE
+    "vue-lazyload": "^1.3.3", // REMOVE
+    "vue-router": "^3.1.3", // UPDATE to vue 3 @vue4 https://www.npmjs.com/package/vue-router
+    "vue-simple-progress": "^1.1.1", // REPLACE WITH EQUIVALENT JS
+    "vuex": "^3.1.2", // SPIKE: HOW TO REMOVE
+    "vuex-router-sync": "^5.0.0", // SPIKE: HOW TO REMOVE
+    "whatwg-fetch": "^3.6.2"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^5.0.8", // REMOVE for VUE3
+    "compression-webpack-plugin": "^10.0.0", // REPLACE VUE3
+    "eslint": "^8.51.0",
+    "eslint-plugin-vue": "^9.17.0",
+    "vue-template-compiler": "^2.6.10" // REPLACE VUE3
+  }
+}
