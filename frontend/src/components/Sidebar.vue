@@ -118,7 +118,7 @@ import {
 } from "@/utils/constants";
 import { files as api } from "@/api";
 import ProgressBar from "vue-simple-progress";
-import prettyBytes from "pretty-bytes";
+import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { darkMode } from "@/utils/constants";
 
 export default {
@@ -154,8 +154,8 @@ export default {
         try {
           let usage = await api.usage(path);
           usageStats = {
-            used: prettyBytes(usage.used / 1024, { binary: true }),
-            total: prettyBytes(usage.total / 1024, { binary: true }),
+            used: getHumanReadableFilesize(usage.used / 1024),
+            total: getHumanReadableFilesize(usage.total / 1024),
             usedPercentage: Math.round((usage.used / usage.total) * 100),
           };
         } catch (error) {
