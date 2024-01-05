@@ -1,4 +1,3 @@
-import "whatwg-fetch";
 import cssVars from "css-vars-ponyfill";
 import { sync } from "vuex-router-sync";
 import store from "@/store";

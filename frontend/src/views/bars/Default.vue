@@ -23,7 +23,7 @@ import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
-import throttle from "lodash.throttle";
+import throttle from "@/utils/throttle";
 
 export default {
   name: "listing",

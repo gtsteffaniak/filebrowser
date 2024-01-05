@@ -1,6 +1,6 @@
 import Vue from "vue";
 import { files as api } from "@/api";
-import throttle from "lodash.throttle";
+import throttle from "@/utils/throttle";
 import buttons from "@/utils/buttons";
 
 const UPLOADS_LIMIT = 5;

@@ -67,7 +67,8 @@ import { mapState, mapMutations } from "vuex";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm";
 import Errors from "@/views/Errors";
-import deepClone from "lodash.clonedeep";
+
+import deepClone from "@/utils/deepclone";
 
 export default {
   name: "user",

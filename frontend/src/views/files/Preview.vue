@@ -105,7 +105,7 @@ import { mapState } from "vuex";
 import { files as api } from "@/api";
 import { resizePreview, darkMode } from "@/utils/constants";
 import url from "@/utils/url";
-import throttle from "lodash.throttle";
+import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage";
 
 const mediaTypes = ["image", "video", "audio", "blob"];

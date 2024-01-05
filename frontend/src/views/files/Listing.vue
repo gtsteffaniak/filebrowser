@@ -221,7 +221,7 @@ import { mapState, mapGetters, mapMutations } from "vuex";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
-import throttle from "lodash.throttle";
+import throttle from "@/utils/throttle";
 
 import Action from "@/components/header/Action";
 import Item from "@/components/files/ListingItem.vue";
