@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. For commit 
 
 - In prep for vue3 migration, modules removed:
   - js-base64
+  - pretty-bytes
+  - whatwg-fetch
+  - lodash.throttle
+  - lodash.clonedeep
 
 ## v0.2.3
 
