@@ -1,15 +1,14 @@
 <template>
-  <header-bar>
+  <header>
     <action icon="close" :label="$t('buttons.close')" @action="close()" />
     <title class="topTitle">{{ req.name }}</title>
-
-  </header-bar>
+  </header>
 </template>
 
 <style>
 .flexbar {
-  display:flex;
-  flex-direction:block;
+  display: flex;
+  flex-direction: block;
   justify-content: space-between;
 }
 </style>
@@ -19,16 +18,14 @@ import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { users, files as api } from "@/api";
 import url from "@/utils/url";
-import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 
 export default {
-  name: "listing",
+  name: "listingView",
   components: {
-    HeaderBar,
     Action,
   },
   data: function () {
@@ -38,14 +35,14 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       itemWeight: 0,
-      viewModes: ['list', 'compact', 'normal', 'gallery'],
+      viewModes: ["list", "compact", "normal", "gallery"],
     };
   },
   computed: {
     ...mapState(["req", "selected", "user", "show", "multiple", "selected", "loading"]),
     ...mapGetters(["selectedCount"]),
     isSettings() {
-      return this.$route.path.includes("/settings/")
+      return this.$route.path.includes("/settings/");
     },
     nameSorted() {
       return this.req.sorting.by === "name";
@@ -370,7 +367,7 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listing .item", "#listing .item"]);
+      let items = css(["#listingView .item", "#listingView .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },
@@ -539,7 +536,7 @@ export default {
       this.width = window.innerWidth;
 
       // Listing element is not displayed
-      if (this.$refs.listing == null) return;
+      if (this.$refs.listingView == null) return;
 
       // How much every listing item affects the window height
       this.setItemWeight();
@@ -571,8 +568,9 @@ export default {
       });
     },
     close() {
-      if (this.isSettings) { // Use this.isSettings to access the computed property
-        this.$router.push({ path: "/files/" }, () => { });
+      if (this.isSettings) {
+        // Use this.isSettings to access the computed property
+        this.$router.push({ path: "/files/" }, () => {});
         this.$store.commit("closeHovers");
         return;
       }
@@ -592,13 +590,13 @@ export default {
     },
     setItemWeight() {
       // Listing element is not displayed
-      if (this.$refs.listing == null) return;
+      if (this.$refs.listingView == null) return;
 
       let itemQuantity = this.req.numDirs + this.req.numFiles;
       if (itemQuantity > this.showLimit) itemQuantity = this.showLimit;
 
       // How much every listing item affects the window height
-      this.itemWeight = this.$refs.listing.offsetHeight / itemQuantity;
+      this.itemWeight = this.$refs.listingView.offsetHeight / itemQuantity;
     },
     fillWindow(fit = false) {
       const totalItems = this.req.numDirs + this.req.numFiles;

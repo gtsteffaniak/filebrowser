@@ -129,9 +129,11 @@ export default {
   computed: {
     ...mapState(["user"]),
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
+      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
+        ? this.user.darkMode
+        : darkMode;
     },
-    ...mapGetters(["isLogged"]),
+    ...mapGetters(["isLogged", "currentPrompt"]),
     active() {
       return this.currentPrompt?.prompt === "sidebar";
     },

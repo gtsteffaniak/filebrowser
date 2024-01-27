@@ -4,7 +4,7 @@
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
 
-    <template v-if="listing">
+    <template v-if="listingView">
       <div class="card-content">
         <table>
           <tr>
@@ -17,9 +17,7 @@
           <tr v-for="link in links" :key="link.hash">
             <td>{{ link.hash }}</td>
             <td>
-              <template v-if="link.expire !== 0">{{
-                humanTime(link.expire)
-              }}</template>
+              <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
               <template v-else>{{ $t("permanent") }}</template>
             </td>
             <td class="small">
@@ -96,11 +94,7 @@
           </select>
         </div>
         <p>{{ $t("prompts.optionalPassword") }}</p>
-        <input
-          class="input input--block"
-          type="password"
-          v-model.trim="password"
-        />
+        <input class="input input--block" type="password" v-model.trim="password" />
       </div>
 
       <div class="card-action">
@@ -226,9 +220,7 @@ export default {
       return api.getShareURL(share);
     },
     hasDownloadLink() {
-      return (
-        this.selected.length === 1 && !this.req.items[this.selected[0]].isDir
-      );
+      return this.selected.length === 1 && !this.req.items[this.selected[0]].isDir;
     },
     buildDownloadLink(share) {
       return pub_api.getDownloadURL(share);

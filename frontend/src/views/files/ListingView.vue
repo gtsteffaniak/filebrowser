@@ -87,7 +87,12 @@
           multiple
         />
       </div>
-      <div v-else id="listing" ref="listing" :class="listingViewMode + ' file-icons'">
+      <div
+        v-else
+        id="listingView"
+        ref="listingView"
+        :class="listingViewMode + ' file-icons'"
+      >
         <div>
           <div class="item header">
             <div></div>
@@ -137,7 +142,7 @@
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="req.numDirs > 0" >
+        <div v-if="req.numDirs > 0">
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -227,7 +232,7 @@ import Action from "@/components/header/Action";
 import Item from "@/components/files/ListingItem.vue";
 
 export default {
-  name: "listing",
+  name: "listingView",
   components: {
     Action,
     Item,
@@ -266,7 +271,7 @@ export default {
         if (item.isDir) {
           dirs.push(item);
         } else {
-          item.Path = this.req.Path
+          item.Path = this.req.Path;
           files.push(item);
         }
       });
@@ -527,7 +532,7 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listing .item", "#listing .item"]);
+      let items = css(["#listingView .item", "#listingView .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },
@@ -667,8 +672,7 @@ export default {
       this.width = window.innerWidth;
 
       // Listing element is not displayed
-      if (this.$refs.listing == null) return;
-
+      if (this.$refs.listingView == null) return;
     }, 100),
     download() {
       if (this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir) {

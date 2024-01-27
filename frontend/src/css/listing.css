@@ -1,32 +1,32 @@
-#listing {
+#listingView {
   --item-selected: white;
   transition: all;
   animation-duration: 0.25s;
 }
 
-body.rtl #listing {
+body.rtl #listingView {
   margin-right: 16em;
 }
 
-#listing h2 {
+#listingView h2 {
   margin: 0 0 0 0.5em;
   font-size: .9em;
   color: rgba(0, 0, 0, 0.38);
   font-weight: 500;
 }
 
-#listing .item div:last-of-type * {
+#listingView .item div:last-of-type * {
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
-#listing>div {
+#listingView>div {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
 }
 
-#listing .item {
+#listingView .item {
   background-color: #fff;
   position: relative;
   display: flex;
@@ -38,32 +38,32 @@ body.rtl #listing {
   user-select: none;
 }
 
-#listing .item div:last-of-type {
+#listingView .item div:last-of-type {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
 }
 
-#listing .item p {
+#listingView .item p {
   margin: 0;
 }
 
-#listing .item .size,
-#listing .item .modified {
+#listingView .item .size,
+#listingView .item .modified {
   font-size: 0.9em;
 }
 
-#listing .item .name {
+#listingView .item .name {
   font-weight: bold;
 }
 
-#listing .item i {
+#listingView .item i {
   font-size: 4em;
   margin-right: 0.1em;
   vertical-align: bottom;
 }
 
-#listing .item img {
+#listingView .item img {
   width: 4em;
   height: 4em;
   object-fit: cover;
@@ -88,52 +88,52 @@ body.rtl #listing {
   display: block;
 }
 
-#listing {
+#listingView {
   padding-top: 1em;
   padding-bottom: 1em;
 }
 
-#listing.gallery .item,
-#listing.compact .item,
-#listing.normal .item,
-#listing.list .item {
+#listingView.gallery .item,
+#listingView.compact .item,
+#listingView.normal .item,
+#listingView.list .item {
   margin: .5em;
   padding: 0.5em;
   border-radius: 1em;
   box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
 }
 
-#listing.gallery .item {
+#listingView.gallery .item {
   max-width: 300px;
 }
-#listing.list .item,
-#listing.compact .item {
+#listingView.list .item,
+#listingView.compact .item {
   max-width: 100%;
   border-radius: 0em;
 }
 
-#listing .item:hover {
+#listingView .item:hover {
   box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .24) !important;
 }
 
-#listing .header {
+#listingView .header {
   display: none;
 }
 
-#listing .item div:first-of-type {
+#listingView .item div:first-of-type {
   width: 5em;
 }
 
-#listing .item div:last-of-type {
+#listingView .item div:last-of-type {
   width: calc(100% - 5vw);
 }
 
-#listing.gallery .item div:first-of-type {
+#listingView.gallery .item div:first-of-type {
   width: 100%;
   height: 12em;
 }
 
-#listing.gallery .item div:last-of-type {
+#listingView.gallery .item div:last-of-type {
   position: absolute;
   bottom: 0.5em;
   padding: 1em;
@@ -141,37 +141,37 @@ body.rtl #listing {
   text-align: center;
 }
 
-#listing.gallery .item[data-type=image] div:last-of-type {
+#listingView.gallery .item[data-type=image] div:last-of-type {
   color: white;
   background: linear-gradient(#0000, #0009);
 }
 
-#listing.gallery .item i {
+#listingView.gallery .item i {
     width: 100%;
     margin-right: 0;
     font-size: 8em;
     text-align: center;
 }
 
-#listing.gallery .item img {
+#listingView.gallery .item img {
   width: 100%;
   height: 100%;
   border-radius: 0.5em;
 }
 
-#listing.gallery .size,
-#listing.gallery .modified {
+#listingView.gallery .size,
+#listingView.gallery .modified {
   display: none;
 }
 
-#listing.compact {
+#listingView.compact {
   flex-direction: column;
   width: 100%;
   max-width: 100%;
   margin: 0;
 }
 
-#listing.compact .item {
+#listingView.compact .item {
   width: 100%;
   margin: 0;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -179,44 +179,44 @@ body.rtl #listing {
   border-top: 0;
 }
 
-#listing.compact h2 {
+#listingView.compact h2 {
   display: none;
 }
 
-#listing.compact .item div:first-of-type {
+#listingView.compact .item div:first-of-type {
   width: 3em;
 }
 
-#listing.compact .item div:first-of-type i {
+#listingView.compact .item div:first-of-type i {
   font-size: 2em;
 }
 
-#listing.compact .item div:first-of-type img {
+#listingView.compact .item div:first-of-type img {
   width: 2em;
   height: 2em;
 }
 
-#listing.compact .item div:last-of-type {
+#listingView.compact .item div:last-of-type {
   width: calc(100% - 3em);
   display: flex;
   align-items: center;
 }
 
-#listing.compact .item .name {
+#listingView.compact .item .name {
   width: 50%;
 }
 
-#listing.compact .item .size {
+#listingView.compact .item .size {
   width: 25%;
 }
 
-#listing.compact .header i {
+#listingView.compact .header i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
 }
 
-#listing.compact .header {
+#listingView.compact .header {
   display: flex !important;
   background: var(--surfacePrimary);
   z-index: 999;
@@ -225,56 +225,56 @@ body.rtl #listing {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-#listing.compact .header>div:first-child {
+#listingView.compact .header>div:first-child {
   width: 0;
 }
 
-#listing.compact .header .name {
+#listingView.compact .header .name {
   margin-right: 3em;
 }
 
-#listing.compact .header a {
+#listingView.compact .header a {
   color: inherit;
 }
 
-#listing.compact .header>div:first-child {
+#listingView.compact .header>div:first-child {
   width: 0;
 }
 
-#listing.compact .name {
+#listingView.compact .name {
   font-weight: normal;
 }
 
-#listing.compact .header .name {
+#listingView.compact .header .name {
   margin-right: 3em;
 }
 
-#listing.compact .header span {
+#listingView.compact .header span {
   vertical-align: middle;
 }
 
-#listing.compact .header i {
+#listingView.compact .header i {
   opacity: 0;
   transition: .1s ease all;
 }
 
-#listing.compact .header p:hover i,
-#listing.compact .header .active i {
+#listingView.compact .header p:hover i,
+#listingView.compact .header .active i {
   opacity: 1;
 }
 
-#listing.compact .header .active {
+#listingView.compact .header .active {
   font-weight: bold;
 }
 
-#listing.list {
+#listingView.list {
   flex-direction: column;
   width: 100%;
   max-width: 100%;
   margin: 0;
 }
 
-#listing.list .item {
+#listingView.list .item {
   width: 100%;
   margin: 0;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -282,52 +282,52 @@ body.rtl #listing {
   border-top: 0;
 }
 
-#listing .item[aria-selected=true] {
+#listingView .item[aria-selected=true] {
   background: var(--blue) !important;
   color: var(--item-selected) !important;
 }
 
-#listing.list .item div:first-of-type {
+#listingView.list .item div:first-of-type {
   width: 3em;
 }
 
-#listing.list .item div:first-of-type i {
+#listingView.list .item div:first-of-type i {
   font-size: 2em;
 }
 
-#listing.list .item div:first-of-type img {
+#listingView.list .item div:first-of-type img {
   width: 2em;
   height: 2em;
   border-radius: 0.25em;
 }
 
-#listing.list .item div:last-of-type {
+#listingView.list .item div:last-of-type {
   width: calc(100% - 3em);
   display: flex;
   align-items: center;
 }
 
-#listing.list .item .name {
+#listingView.list .item .name {
   width: 50%;
 }
 
-#listing.list .item .size {
+#listingView.list .item .size {
   width: 25%;
 }
 
-#listing .header {
+#listingView .header {
   display: none !important;
   background-color: #ccc;
 }
 
-#listing.list .header i {
+#listingView.list .header i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
 }
 
-#listing.compact .header,
-#listing.list .header {
+#listingView.compact .header,
+#listingView.list .header {
   display: flex !important;
   background: var(--surfacePrimary);
   border-top-left-radius: 1em;
@@ -338,60 +338,60 @@ body.rtl #listing {
   border: 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
-#listing.list .item:first-child {
+#listingView.list .item:first-child {
   margin-top: .5em;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
 }
 
-#listing.list .item:last-child  {
+#listingView.list .item:last-child  {
   margin-bottom: .5em;
    border-bottom-left-radius: 1em;
    border-bottom-right-radius: 1em;
 }
-#listing.list .header>div:first-child {
+#listingView.list .header>div:first-child {
   width: 0;
 }
 
-#listing.list .header .name {
+#listingView.list .header .name {
   margin-right: 3em;
 }
 
-#listing.list .header a {
+#listingView.list .header a {
   color: inherit;
 }
 
-#listing.list .header>div:first-child {
+#listingView.list .header>div:first-child {
   width: 0;
 }
 
-#listing.list .name {
+#listingView.list .name {
   font-weight: normal;
 }
 
-#listing.list .header .name {
+#listingView.list .header .name {
   margin-right: 3em;
 }
 
-#listing.list .header span {
+#listingView.list .header span {
   vertical-align: middle;
 }
 
-#listing.list .header i {
+#listingView.list .header i {
   opacity: 0;
   transition: .1s ease all;
 }
 
-#listing.list .header p:hover i,
-#listing.list .header .active i {
+#listingView.list .header p:hover i,
+#listingView.list .header .active i {
   opacity: 1;
 }
 
-#listing.list .header .active {
+#listingView.list .header .active {
   font-weight: bold;
 }
 
-#listing #multiple-selection {
+#listingView #multiple-selection {
   position: fixed;
   bottom: -4em;
   left: 0;
@@ -404,11 +404,11 @@ body.rtl #listing {
   transition: .2s ease bottom;
 }
 
-#listing #multiple-selection.active {
+#listingView #multiple-selection.active {
   bottom: 0;
 }
 
-#listing #multiple-selection p,
-#listing #multiple-selection i {
+#listingView #multiple-selection p,
+#listingView #multiple-selection i {
   color: var(--item-selected);
 }

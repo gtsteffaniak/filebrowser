@@ -3,8 +3,14 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar :class="{ 'dark-mode-header': isDarkMode }" v-if="currentView === 'listing'"></listingBar>
-    <editorBar :class="{ 'dark-mode-header': isDarkMode }" v-else-if="currentView === 'editor'"></editorBar>
+    <listingBar
+      :class="{ 'dark-mode-header': isDarkMode }"
+      v-if="currentView === 'listingView'"
+    ></listingBar>
+    <editorBar
+      :class="{ 'dark-mode-header': isDarkMode }"
+      v-else-if="currentView === 'editor'"
+    ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
     <main :class="{ 'dark-mode': isDarkMode }">
@@ -45,10 +51,12 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["isLogged", "progress", "isListing","currentPrompt"]),
+    ...mapGetters(["isLogged", "progress", "isListing", "currentPrompt"]),
     ...mapState(["req", "user", "state"]),
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
+      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
+        ? this.user.darkMode
+        : darkMode;
     },
     isExecEnabled: () => enableExec,
     currentView() {
@@ -57,7 +65,7 @@ export default {
       }
 
       if (this.req.isDir) {
-        return "listing";
+        return "listingView";
       } else if (this.req.type === "text" || this.req.type === "textImmutable") {
         return "editor";
       } else {
@@ -69,8 +77,7 @@ export default {
     $route: function () {
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
-      if (this.currentPrompt?.prompt !== "success")
-        this.$store.commit("closeHovers");
+      if (this.currentPrompt?.prompt !== "success") this.$store.commit("closeHovers");
     },
   },
   methods: {
@@ -86,13 +93,12 @@ export default {
 </script>
 
 <style>
-
 main {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
 }
-main::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+main::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 /* Use the class .dark-mode to apply styles conditionally */
 .dark-mode {
@@ -102,7 +108,7 @@ main::-webkit-scrollbar {
 
 /* Header */
 .dark-mode-header {
-  color:white;
+  color: white;
   background: var(--surfacePrimary);
 }
 
