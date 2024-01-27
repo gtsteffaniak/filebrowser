@@ -20,11 +20,10 @@
 import { files as api } from "@/api";
 import { mapState, mapMutations } from "vuex";
 
-import HeaderBar from "@/components/header/HeaderBar";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";
 import Preview from "@/views/files/Preview.vue";
-import Listing from "@/views/files/Listing.vue";
+import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 
 function clean(path) {
@@ -34,11 +33,10 @@ function clean(path) {
 export default {
   name: "files",
   components: {
-    HeaderBar,
     Breadcrumbs,
     Errors,
     Preview,
-    Listing,
+    ListingView,
     Editor,
   },
   data: function () {
@@ -55,11 +53,8 @@ export default {
       }
 
       if (this.req.isDir) {
-        return "listing";
-      } else if (
-        this.req.type === "text" ||
-        this.req.type === "textImmutable"
-      ) {
+        return "listingView";
+      } else if (this.req.type === "text" || this.req.type === "textImmutable") {
         return "editor";
       } else {
         return "preview";
@@ -94,7 +89,7 @@ export default {
     this.setCurrentValue(newView);
   },
   methods: {
-    ...mapMutations(["setLoading","setCurrentView"]),
+    ...mapMutations(["setLoading", "setCurrentView"]),
     async fetchData() {
       // Reset view information.
       this.$store.commit("setReload", false);

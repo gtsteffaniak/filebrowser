@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <breadcrumbs :base="'/share/' + hash" />
 
     <div v-if="loading">
@@ -50,11 +49,7 @@
       <div class="share">
         <div class="share__box share__box__info">
           <div class="share__box__header">
-            {{
-              req.isDir
-                ? $t("download.downloadFolder")
-                : $t("download.downloadFile")
-            }}
+            {{ req.isDir ? $t("download.downloadFolder") : $t("download.downloadFile") }}
           </div>
           <div class="share__box__element share__box__center share__box__icon">
             <i class="material-icons">{{ icon }}</i>
@@ -71,8 +66,7 @@
           <div class="share__box__element share__box__center">
             <a target="_blank" :href="link" class="button button--flat">
               <div>
-                <i class="material-icons">file_download</i
-                >{{ $t("buttons.download") }}
+                <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
               </div>
             </a>
             <a
@@ -82,8 +76,7 @@
               v-if="!req.isDir"
             >
               <div>
-                <i class="material-icons">open_in_new</i
-                >{{ $t("buttons.openFile") }}
+                <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
               </div>
             </a>
           </div>
@@ -98,7 +91,7 @@
           <div class="share__box__header" v-if="req.isDir">
             {{ $t("files.files") }}
           </div>
-          <div id="listing" class="list file-icons">
+          <div id="listingView" class="list file-icons">
             <item
               v-for="item in req.items.slice(0, this.showLimit)"
               :key="base64(item.name)"
@@ -122,10 +115,7 @@
               </div>
             </div>
 
-            <div
-              :class="{ active: $store.state.multiple }"
-              id="multiple-selection"
-            >
+            <div :class="{ active: $store.state.multiple }" id="multiple-selection">
               <p>{{ $t("files.multipleSelectionEnabled") }}</p>
               <div
                 @click="$store.commit('multiple', false)"
@@ -287,18 +277,11 @@ export default {
       this.$store.commit("multiple", !this.multiple);
     },
     isSingleFile: function () {
-      return (
-        this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir
-      );
+      return this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir;
     },
     download() {
       if (this.isSingleFile()) {
-        api.download(
-          null,
-          this.hash,
-          this.token,
-          this.req.items[this.selected[0]].path
-        );
+        api.download(null, this.hash, this.token, this.req.items[this.selected[0]].path);
         return;
       }
 

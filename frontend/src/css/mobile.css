@@ -7,7 +7,7 @@
 }
 
 @media (max-width: 800px) {
-  #listing.list .item div:last-of-type{
+  #listingView.list .item div:last-of-type{
     display:block;
     width:100%;
   }
@@ -15,7 +15,7 @@
     padding-bottom: 5em;
   }
 
-  #listing.list .item .name {
+  #listingView.list .item .name {
     width: 60%;
   }
 
@@ -33,13 +33,13 @@
     display: none;
   }
 
-  #listing {
+  #listingView {
     margin-bottom: 5em;
   }
-  #listing .item {
+  #listingView .item {
     width: 100%
   }
-  body.rtl #listing {
+  body.rtl #listingView {
     margin-right: unset;
   }
 
@@ -120,7 +120,7 @@
 
 @media (max-width: 450px) {
 
-  #listing.list .item .name {
+  #listingView.list .item .name {
     width: 100%;
   }
 }
