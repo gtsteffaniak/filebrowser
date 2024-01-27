@@ -329,7 +329,7 @@ body.rtl #listingView {
 #listingView.compact .header,
 #listingView.list .header {
   display: flex !important;
-  background: var(--surfacePrimary);
+  background: white;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
   z-index: 999;

@@ -66,5 +66,8 @@ export function getDownloadURL(share, inline = false) {
     ...(share.token && { token: share.token }),
   };
 
+  if (share.path == undefined) {
+    share.path = ""
+  }
   return createURL("api/public/dl/" + share.hash + share.path, params, false);
 }

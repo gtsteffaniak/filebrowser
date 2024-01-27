@@ -10,19 +10,25 @@
     </component>
 
     <span v-for="(link, index) in items" :key="index">
-      <span class="chevron"
-        ><i class="material-icons">keyboard_arrow_right</i></span
-      >
+      <span class="chevron"><i class="material-icons">keyboard_arrow_right</i></span>
       <component :is="element" :to="link.url">{{ link.name }}</component>
     </span>
+    <action style="display: contents" v-if="showShare" icon="share" show="share" />
   </div>
 </template>
 
 <script>
+import Action from "@/components/header/Action";
+import { mapState } from "vuex";
+
 export default {
   name: "breadcrumbs",
+  components: {
+    Action,
+  },
   props: ["base", "noLink"],
   computed: {
+    ...mapState(["user"]),
     items() {
       const relativePath = this.$route.path.replace(this.base, "");
       let parts = relativePath.split("/");
@@ -67,6 +73,9 @@ export default {
       }
 
       return "router-link";
+    },
+    showShare() {
+      return this.user.perm.share && !this.$route.path.startsWith("/share");
     },
   },
 };
