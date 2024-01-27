@@ -572,9 +572,9 @@ export default {
         resultList.classList.add("active");
       }, 100);
     },
-    show(val, old) {
-      this.active = val === "search";
-      if (old === "search" && !this.active) {
+    currentPrompt(val, old) {
+      this.active = val?.prompt === "search";
+      if (old?.prompt === "search" && !this.active) {
         if (this.reload) {
           this.setReload(true);
         }
@@ -599,8 +599,8 @@ export default {
     },
   },
   computed: {
-    ...mapState(["user", "show"]),
-    ...mapGetters(["isListing"]),
+    ...mapState(["user"]),
+    ...mapGetters(["isListing", "currentPrompt"]),
     isDarkMode() {
       return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
     },

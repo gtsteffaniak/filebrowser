@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
   - whatwg-fetch
   - lodash.throttle
   - lodash.clonedeep
+- added [create-folder-feature](https://github.com/gtsteffaniak/filebrowser/pull/105)
 
 ## v0.2.3
 
