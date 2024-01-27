@@ -43,6 +43,16 @@ import url from "@/utils/url";
 
 export default {
   name: "new-dir",
+  props: {
+    redirect: {
+      type: Boolean,
+      default: true,
+    },
+    base: {
+      type: [String, null],
+      default: null,
+    },
+  },
   data: function () {
     return {
       name: "",
@@ -57,7 +67,10 @@ export default {
       if (this.new === "") return;
 
       // Build the path of the new directory.
-      let uri = this.isFiles ? this.$route.path + "/" : "/";
+      let uri;
+      if (this.base) uri = this.base;
+      else if (this.isFiles) uri = this.$route.path + "/";
+      else uri = "/";
 
       if (!this.isListing) {
         uri = url.removeLastDir(uri) + "/";
@@ -68,7 +81,12 @@ export default {
 
       try {
         await api.post(uri);
-        this.$router.push({ path: uri });
+        if (this.redirect) {
+          this.$router.push({ path: uri });
+        } else if (!this.base) {
+          const res = await api.fetch(url.removeLastDir(uri) + "/");
+          this.$store.commit("updateRequest", res);
+        }
       } catch (e) {
         this.$showError(e);
       }

@@ -133,7 +133,7 @@ export default {
     },
     ...mapGetters(["isLogged"]),
     active() {
-      return this.$store.state.show === "sidebar";
+      return this.currentPrompt?.prompt === "sidebar";
     },
     signup: () => signup,
     version: () => version,

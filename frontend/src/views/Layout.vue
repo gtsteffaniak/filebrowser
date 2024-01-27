@@ -45,7 +45,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["isLogged", "progress", "isListing"]),
+    ...mapGetters(["isLogged", "progress", "isListing","currentPrompt"]),
     ...mapState(["req", "user", "state"]),
     isDarkMode() {
       return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
@@ -69,7 +69,8 @@ export default {
     $route: function () {
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
-      if (this.$store.state.show !== "success") this.$store.commit("closeHovers");
+      if (this.currentPrompt?.prompt !== "success")
+        this.$store.commit("closeHovers");
     },
   },
   methods: {

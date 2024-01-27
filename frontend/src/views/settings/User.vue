@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from "vuex";
+import { mapState, mapMutations, mapGetters } from "vuex";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm";
 import Errors from "@/views/Errors";
@@ -93,8 +93,9 @@ export default {
       return this.$route.path === "/settings/users/new";
     },
     ...mapState(["loading"]),
+    ...mapGetters(["currentPrompt", "currentPromptName"]),
     showDeletePrompt() {
-      return this.showDelete;
+      return this.currentPromptName == 'deleteUser';
     },
   },
   watch: {

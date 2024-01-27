@@ -11,7 +11,7 @@
     <div class="card-action">
       <button
         class="button button--flat button--grey"
-        @click="$store.commit('closeHovers')"
+        @click="(event) => currentPrompt.confirm(event, 'rename')"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
       >
@@ -19,7 +19,7 @@
       </button>
       <button
         class="button button--flat button--blue"
-        @click="(event) => showConfirm(event, 'rename')"
+        @click="(event) => currentPrompt.confirm(event, 'overwrite')"
         :aria-label="$t('buttons.rename')"
         :title="$t('buttons.rename')"
       >
@@ -38,10 +38,9 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
-
+import { mapGetters } from "vuex";
 export default {
   name: "replace-rename",
-  computed: mapState(["showConfirm"]),
+  computed: mapGetters(["currentPrompt"]),
 };
 </script>

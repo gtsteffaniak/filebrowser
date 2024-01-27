@@ -26,6 +26,7 @@ const state = {
   reload: false,
   selected: [],
   multiple: false,
+  prompts: [],
   show: null,
   showShell: false,
   showConfirm: null,
