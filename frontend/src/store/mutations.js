@@ -30,7 +30,7 @@ const mutations = {
     state.prompts.push("error");
   },
   showSuccess: (state) => {
-    tate.prompts.push("success");
+    state.prompts.push("success");
   },
   setLoading: (state, value) => {
     state.loading = value;
