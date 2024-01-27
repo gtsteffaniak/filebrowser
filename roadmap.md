@@ -3,7 +3,6 @@
 Next version : 
 
 - Feature: config gets updated when settings change, ensuring that running settings are up to date.
-- Feature: Move / Create Action Dialogs https://github.com/filebrowser/filebrowser/pull/2667
 - Feature: playable shared video https://github.com/filebrowser/filebrowser/issues/2537
 
 Future releases (within 6 months):
