@@ -5,40 +5,60 @@
 ?   	github.com/gtsteffaniak/filebrowser/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/cmd	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
 goos: linux
 goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/files
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkFillIndex-8          	      10	   3295862 ns/op	  230448 B/op	    1927 allocs/op
-BenchmarkSearchAllIndexes-8   	      10	  30033386 ns/op	19647893 B/op	  298702 allocs/op
+BenchmarkFillIndex-8          	      10	   3452475 ns/op	  238938 B/op	    1990 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	  30199570 ns/op	20147437 B/op	  306022 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/files	0.392s
+ok  	github.com/gtsteffaniak/filebrowser/files	0.401s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 h: 401  <nil>
-2023/11/24 13:57:20 h: 401  <nil>
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 Saving new user: username
-2023/11/24 13:57:20 h: 401  <nil>
-2023/11/24 13:57:20 h: 401  <nil>
-2023/11/24 13:57:20 h: 401  <nil>
-2023/11/24 13:57:20 h: 401  <nil>
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 h: 401  <nil>
+2024/02/03 12:16:41 h: 404  the resource does not exist
+2024/02/03 12:16:41 h: 401  <nil>
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 h: 401  <nil>
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 Saving new user: username
+2024/02/03 12:16:41 h: 401  <nil>
+2024/02/03 12:16:41 h: 401  <nil>
+2024/02/03 12:16:41 h: 404  the resource does not exist
+2024/02/03 12:16:41 h: 404  the resource does not exist
+2024/02/03 12:16:41 h: 404  the resource does not exist
+2024/02/03 12:16:41 h: 404  the resource does not exist
+2024/02/03 12:16:41 h: 401  <nil>
+2024/02/03 12:16:41 h: 404  the resource does not exist
+--- FAIL: TestPublicShareHandlerAuthentication (0.00s)
+    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Public_share,_no_auth_required (0.07s)
+        public_test.go:108: expected status code 200, got status code 404
+    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Private_share,_authentication_via_password (0.13s)
+        public_test.go:108: expected status code 200, got status code 404
+    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Private_share,_authentication_via_password (0.13s)
+        public_test.go:108: expected status code 200, got status code 404
+    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Private_share,_authentication_via_token (0.07s)
+        public_test.go:108: expected status code 200, got status code 404
+    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Public_share,_no_auth_required (0.07s)
+        public_test.go:108: expected status code 200, got status code 404
+    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Private_share,_authentication_via_token (0.07s)
+        public_test.go:108: expected status code 200, got status code 404
+FAIL
+exit status 1
+FAIL	github.com/gtsteffaniak/filebrowser/http	0.159s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	0.208s
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.118s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.139s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
@@ -51,3 +71,4 @@ ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/users	0.003s
 ?   	github.com/gtsteffaniak/filebrowser/version	[no test files]
+FAIL
