@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 func withPermShare(fn handleFunc) handleFunc {
@@ -56,6 +57,7 @@ var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 })
 
 var shareGetsHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	log.Println("from share gets")
 	s, err := d.store.Share.Gets(r.URL.Path, d.user.ID)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
@@ -136,13 +138,33 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		}
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 	}
+
 	publicUser, err := d.store.Users.Get("", "publicUser")
 	if err != nil {
-		log.Println("error getting user")
+		// create share user
+		publicUser = &users.User{}
+		settings.Config.UserDefaults.Apply(publicUser)
+		publicUser.Username = "publicUser"
+		publicUser.Password = "publicUser"
+		publicUser.Scope = "./"
+		publicUser.ViewMode = "normal"
+		publicUser.LockPassword = true
+		publicUser.Perm = users.Permissions{
+			Create:   true,
+			Rename:   false,
+			Modify:   false,
+			Delete:   false,
+			Share:    false,
+			Download: true,
+			Admin:    false,
+		}
+		err = d.store.Users.Save(publicUser)
+		if err != nil {
+			log.Println("error handling share user profile")
+		}
 	}
-
 	s = &share.Link{
-		Path:         settings.Config.Server.Root + r.URL.Path, // fix this for multiple indexes
+		Path:         strings.TrimSuffix(r.URL.Path, "/"),
 		Hash:         str,
 		Expire:       expire,
 		UserID:       publicUser.ID,

@@ -207,9 +207,12 @@ export default {
       return "insert_drive_file";
     },
     link: function () {
+      console.log(this.req.path);
       return api.getDownloadURL(this.req);
     },
     inlineLink: function () {
+      console.log(this.req.path);
+
       return api.getDownloadURL(this.req, true);
     },
     humanSize: function () {
@@ -250,9 +253,10 @@ export default {
       if (url[0] !== "/") url = "/" + url;
 
       try {
+        console.log("req url", url);
         let file = await api.fetch(url, this.password);
         file.hash = this.hash;
-
+        console.log("req file", file);
         this.token = file.token || "";
 
         this.updateRequest(file);

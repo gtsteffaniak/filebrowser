@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -10,13 +11,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/files"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
 )
 
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		id, _ := ifPathWithName(r)
+		id, subpath := ifPathWithName(r)
 		link, err := d.store.Share.GetByHash(id)
+		linkPath := strings.TrimSuffix(settings.Config.Server.Root, "/") + link.Path + subpath
 		if err != nil {
 			return errToStatus(err), err
 		}
@@ -29,10 +32,45 @@ var withHashFile = func(fn handleFunc) handleFunc {
 			return errToStatus(err), err
 		}
 		d.user = publicUser
-
+		log.Println("linkPath", linkPath)
 		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         publicUser.Fs,
-			Path:       link.Path,
+			Path:       linkPath,
+			Modify:     publicUser.Perm.Modify,
+			Expand:     false,
+			ReadHeader: d.server.TypeDetectionByHeader,
+			Checker:    d,
+			Token:      link.Token,
+		})
+		if err != nil {
+			return errToStatus(err), err
+		}
+		d.raw = file
+		return fn(w, r, d)
+	}
+}
+
+var withHashFileShort = func(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		id, subpath := ifPathWithName(r)
+		link, err := d.store.Share.GetByHash(id)
+		linkPath := link.Path + subpath
+		if err != nil {
+			return errToStatus(err), err
+		}
+		status, err := authenticateShareRequest(r, link)
+		if status != 0 || err != nil {
+			return status, err
+		}
+		publicUser, err := d.store.Users.Get("", "publicUser")
+		if err != nil {
+			return errToStatus(err), err
+		}
+		d.user = publicUser
+		log.Println("linkPath", linkPath)
+		file, err := files.FileInfoFaster(files.FileOptions{
+			Fs:         publicUser.Fs,
+			Path:       linkPath,
 			Modify:     publicUser.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -71,7 +109,7 @@ var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Reques
 	return renderJSON(w, r, file)
 })
 
-var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+var publicDlHandler = withHashFileShort(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file := d.raw.(*files.FileInfo)
 	if !file.IsDir {
 		return rawFileHandler(w, r, file)
