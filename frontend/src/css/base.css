@@ -6,7 +6,6 @@ body {
   color: #333333;
   overflow:auto;
   overflow:initial;
-
 }
 body::-webkit-scrollbar {
   z-index: 1000;

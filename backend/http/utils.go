@@ -13,7 +13,6 @@ import (
 
 func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
 	marsh, err := json.Marshal(data)
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

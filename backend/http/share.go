@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
 )
 
@@ -22,7 +24,6 @@ func withPermShare(fn handleFunc) handleFunc {
 		if !d.user.Perm.Share {
 			return http.StatusForbidden, nil
 		}
-
 		return fn(w, r, d)
 	})
 }
@@ -51,7 +52,6 @@ var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		}
 		return s[i].Expire < s[j].Expire
 	})
-
 	return renderJSON(w, r, s)
 })
 
@@ -81,6 +81,7 @@ var shareDeleteHandler = withPermShare(func(w http.ResponseWriter, r *http.Reque
 })
 
 var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+
 	var s *share.Link
 	var body share.CreateBody
 	if r.Body != nil {
@@ -135,12 +136,16 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		}
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 	}
+	publicUser, err := d.store.Users.Get("", "publicUser")
+	if err != nil {
+		log.Println("error getting user")
+	}
 
 	s = &share.Link{
-		Path:         r.URL.Path,
+		Path:         settings.Config.Server.Root + r.URL.Path, // fix this for multiple indexes
 		Hash:         str,
 		Expire:       expire,
-		UserID:       d.user.ID,
+		UserID:       publicUser.ID,
 		PasswordHash: string(hash),
 		Token:        token,
 	}
@@ -153,6 +158,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 })
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
+
 	if body.Password == "" {
 		return nil, 0, nil
 	}

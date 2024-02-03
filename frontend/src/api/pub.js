@@ -3,7 +3,6 @@ import { baseURL } from "@/utils/constants";
 
 export async function fetch(url, password = "") {
   url = removePrefix(url);
-
   const res = await fetchURL(
     `/api/public/share${url}`,
     {
@@ -14,7 +13,8 @@ export async function fetch(url, password = "") {
 
   let data = await res.json();
   data.url = `/share${url}`;
-
+  console.log(url)
+  console.log(data)
   if (data.isDir) {
     if (!data.url.endsWith("/")) data.url += "/";
     data.items = data.items.map((item, index) => {

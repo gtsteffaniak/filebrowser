@@ -144,17 +144,16 @@ func refreshFileInfo(opts FileOptions) bool {
 	if !opts.Checker.Check(opts.Path) {
 		return false
 	}
-	file, err := stat(opts.Path, opts) // Pass opts.Path here
-	if err != nil {
-		return false
-	}
-
 	index := GetIndex(rootPath)
 	trimmed := strings.TrimPrefix(opts.Path, "/")
 	if trimmed == "" {
 		trimmed = "/"
 	}
 	adjustedPath := makeIndexPath(trimmed, index.Root)
+	file, err := stat(opts.Path, opts) // Pass opts.Path here
+	if err != nil {
+		return false
+	}
 	if file.IsDir {
 		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
 		if err != nil {

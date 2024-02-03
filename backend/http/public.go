@@ -5,41 +5,35 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"path/filepath"
 	"strings"
 
-	"github.com/spf13/afero"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/share"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		id, ifPath := ifPathWithName(r)
+		id, _ := ifPathWithName(r)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {
 			return errToStatus(err), err
 		}
-
 		status, err := authenticateShareRequest(r, link)
 		if status != 0 || err != nil {
 			return status, err
 		}
-
-		user, err := d.store.Users.Get(d.server.Root, link.UserID)
+		publicUser, err := d.store.Users.Get("", "publicUser")
 		if err != nil {
 			return errToStatus(err), err
 		}
-
-		d.user = user
+		d.user = publicUser
 
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         d.user.Fs,
+			Fs:         publicUser.Fs,
 			Path:       link.Path,
-			Modify:     d.user.Perm.Modify,
+			Modify:     publicUser.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
 			Checker:    d,
@@ -48,33 +42,6 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		if err != nil {
 			return errToStatus(err), err
 		}
-
-		// share base path
-		basePath := link.Path
-
-		// file relative path
-		filePath := ""
-
-		if file.IsDir {
-			basePath = filepath.Dir(basePath)
-			filePath = ifPath
-		}
-
-		// set fs root to the shared file/folder
-		d.user.Fs = afero.NewBasePathFs(d.user.Fs, basePath)
-
-		file, err = files.FileInfoFaster(files.FileOptions{
-			Fs:      d.user.Fs,
-			Path:    filePath,
-			Modify:  d.user.Perm.Modify,
-			Expand:  true,
-			Checker: d,
-			Token:   link.Token,
-		})
-		if err != nil {
-			return errToStatus(err), err
-		}
-
 		d.raw = file
 		return fn(w, r, d)
 	}
@@ -97,9 +64,7 @@ func ifPathWithName(r *http.Request) (id, filePath string) {
 
 var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file := d.raw.(*files.FileInfo)
-
 	if file.IsDir {
-		file.Listing.Sorting = users.Sorting{By: "name", Asc: false}
 		return renderJSON(w, r, file)
 	}
 
@@ -138,7 +103,6 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		}
 		return 0, err
 	}
-
 	return 0, nil
 }
 

@@ -31,11 +31,12 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
-	if exists {
+	if !exists {
 		// Initialize the Metadata map if it is nil
 		if dir.Metadata == nil {
 			dir.Metadata = make(map[string]FileInfo)
 		}
+		si.Directories[adjustedPath] = dir
 		// Release the read lock before calling SetFileMetadata
 	}
 	return si.SetFileMetadata(adjustedPath, info)

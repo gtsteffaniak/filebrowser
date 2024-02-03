@@ -150,5 +150,23 @@ func quickSetup(d pythonData) {
 		Admin:    true,
 	}
 	err = d.store.Users.Save(user)
+	// create share user
+	user = &users.User{}
+	settings.Config.UserDefaults.Apply(user)
+	user.Username = "publicUser"
+	user.Password = "publicUser"
+	user.Scope = "./"
+	user.ViewMode = "normal"
+	user.LockPassword = true
+	user.Perm = users.Permissions{
+		Create:   true,
+		Rename:   false,
+		Modify:   false,
+		Delete:   false,
+		Share:    false,
+		Download: true,
+		Admin:    false,
+	}
+	err = d.store.Users.Save(user)
 	checkErr(err)
 }
