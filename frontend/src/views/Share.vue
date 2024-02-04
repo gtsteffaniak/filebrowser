@@ -56,16 +56,16 @@
             v-if="isImage"
             class="share__box__element share__box__center share__box__icon"
           >
-            <img :src="inlineLink" width="500px" ></img>
+            <img :src="inlineLink" width="500px" />
           </div>
           <div
             v-if="isVideo"
             class="share__box__element share__box__center share__box__icon"
           >
-              <video width="500" height="500" controls>
-              <source :src="inlineLink" type="video/mp4">
-            </video> 
-         </div>
+            <video width="500" height="500" controls>
+              <source :src="inlineLink" type="video/mp4" />
+            </video>
+          </div>
           <div v-else class="share__box__element share__box__center share__box__icon">
             <i class="material-icons">{{ icon }}</i>
           </div>
@@ -240,14 +240,10 @@ export default {
       return new Date(Date.parse(this.req.modified)).toLocaleString();
     },
     isImage: function () {
-      return (
-        this.req.type == "image"
-      );
+      return this.req.type == "image";
     },
     isVideo: function () {
-      return (
-        this.req.type == "video"
-      );
+      return this.req.type == "video";
     },
   },
   methods: {
