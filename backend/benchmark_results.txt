@@ -11,54 +11,54 @@ goos: linux
 goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/files
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkFillIndex-8          	      10	   3452475 ns/op	  238938 B/op	    1990 allocs/op
-BenchmarkSearchAllIndexes-8   	      10	  30199570 ns/op	20147437 B/op	  306022 allocs/op
+BenchmarkFillIndex-8          	      10	   3628128 ns/op	  244428 B/op	    2016 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	  30914217 ns/op	20300409 B/op	  310416 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/files	0.401s
+ok  	github.com/gtsteffaniak/filebrowser/files	0.409s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 h: 401  <nil>
-2024/02/03 12:16:41 h: 404  the resource does not exist
-2024/02/03 12:16:41 h: 401  <nil>
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 h: 401  <nil>
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 Saving new user: username
-2024/02/03 12:16:41 h: 401  <nil>
-2024/02/03 12:16:41 h: 401  <nil>
-2024/02/03 12:16:41 h: 404  the resource does not exist
-2024/02/03 12:16:41 h: 404  the resource does not exist
-2024/02/03 12:16:41 h: 404  the resource does not exist
-2024/02/03 12:16:41 h: 404  the resource does not exist
-2024/02/03 12:16:41 h: 401  <nil>
-2024/02/03 12:16:41 h: 404  the resource does not exist
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 h: 401  <nil>
+2024/02/04 08:48:16 h: 404  the resource does not exist
+2024/02/04 08:48:16 h: 404  the resource does not exist
+2024/02/04 08:48:16 h: 404  the resource does not exist
+2024/02/04 08:48:16 h: 401  <nil>
+2024/02/04 08:48:16 h: 404  the resource does not exist
+2024/02/04 08:48:16 h: 401  <nil>
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 Saving new user: username
+2024/02/04 08:48:16 h: 401  <nil>
+2024/02/04 08:48:16 h: 401  <nil>
+2024/02/04 08:48:16 h: 404  the resource does not exist
+2024/02/04 08:48:16 h: 404  the resource does not exist
+2024/02/04 08:48:16 h: 401  <nil>
 --- FAIL: TestPublicShareHandlerAuthentication (0.00s)
-    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Public_share,_no_auth_required (0.07s)
-        public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Private_share,_authentication_via_password (0.13s)
-        public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Private_share,_authentication_via_password (0.13s)
-        public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Private_share,_authentication_via_token (0.07s)
+    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Private_share,_authentication_via_token (0.07s)
         public_test.go:108: expected status code 200, got status code 404
     --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Public_share,_no_auth_required (0.07s)
         public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Private_share,_authentication_via_token (0.07s)
+    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Public_share,_no_auth_required (0.08s)
+        public_test.go:108: expected status code 200, got status code 404
+    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Private_share,_authentication_via_token (0.08s)
+        public_test.go:108: expected status code 200, got status code 404
+    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Private_share,_authentication_via_password (0.12s)
+        public_test.go:108: expected status code 200, got status code 404
+    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Private_share,_authentication_via_password (0.12s)
         public_test.go:108: expected status code 200, got status code 404
 FAIL
 exit status 1
-FAIL	github.com/gtsteffaniak/filebrowser/http	0.159s
+FAIL	github.com/gtsteffaniak/filebrowser/http	0.201s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.139s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.120s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
