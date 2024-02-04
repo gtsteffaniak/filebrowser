@@ -14,8 +14,6 @@ export async function fetch(url, password = "") {
 
   let data = await res.json();
   data.url = `/share${url}`;
-  console.log(url)
-  console.log(data)
   if (data.isDir) {
     if (!data.url.endsWith("/")) data.url += "/";
     data.items = data.items.map((item, index) => {
@@ -35,7 +33,7 @@ export async function fetch(url, password = "") {
 
 export function download(format, hash, token, ...files) {
   let url = `${baseURL}/api/public/dl/${hash}`;
-
+  log.Println(url)
   if (files.length === 1) {
     url += encodeURIComponent(files[0]) + "?";
   } else {

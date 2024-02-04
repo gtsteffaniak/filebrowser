@@ -207,11 +207,11 @@ export default {
       return "insert_drive_file";
     },
     link: function () {
-      console.log(this.req.path);
+      console.log("download url from", this.req);
       return api.getDownloadURL(this.req);
     },
     inlineLink: function () {
-      console.log(this.req.path);
+      console.log("download url inline from", this.req);
 
       return api.getDownloadURL(this.req, true);
     },
@@ -285,6 +285,7 @@ export default {
     },
     download() {
       if (this.isSingleFile()) {
+        log.Println("single file ", this.hash, this.req.items[this.selected[0]].path);
         api.download(null, this.hash, this.token, this.req.items[this.selected[0]].path);
         return;
       }
