@@ -1,9 +1,9 @@
 server:
   port: 8080
   baseURL:  "/"
-  root: "/home/graham"
+  root: "/srv"
 auth:
-  method: noauth
+  method: password
   signup: false
 userDefaults:
   darkMode: true

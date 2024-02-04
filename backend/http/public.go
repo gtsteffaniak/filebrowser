@@ -85,8 +85,6 @@ var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, 
 	return rawDirHandler(w, r, d, file)
 })
 
-// http://vdebian.ghome.net:8080/api/public/dl/J06PsKgp/Pictures/2023/05/20230515_011801_1CACC659.mp4?inline=true
-// http://vdebian.ghome.net:8080/api/public/dl/Vv6RHMYv/Pictures/2023/05/20230513_203846_8313230F.png?inline=true
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	if l.PasswordHash == "" {
 		return 0, nil
