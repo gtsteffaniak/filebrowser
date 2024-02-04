@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/files"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
 )
 
@@ -39,7 +40,7 @@ var withHashFile = func(fn handleFunc) handleFunc {
 
 		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         publicUser.Fs,
-			Path:       "/home/graham" + path,
+			Path:       settings.Config.Server.Root + path,
 			Modify:     publicUser.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,

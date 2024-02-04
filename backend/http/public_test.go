@@ -82,7 +82,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				if err := storage.Share.Save(tc.share); err != nil {
 					t.Fatalf("failed to save share: %v", err)
 				}
-				if err := storage.Users.Save(&users.User{Username: "username", Password: "pw"}); err != nil {
+				if err := storage.Users.Save(&users.User{Username: "publicUser", Password: "publicUser"}); err != nil {
 					t.Fatalf("failed to save user: %v", err)
 				}
 				if err := storage.Settings.Save(&settings.Settings{
@@ -100,7 +100,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 				recorder := httptest.NewRecorder()
 				handler := handle(handler, "", storage, &settings.Server{})
-
 				handler.ServeHTTP(recorder, tc.req)
 				result := recorder.Result()
 				defer result.Body.Close()

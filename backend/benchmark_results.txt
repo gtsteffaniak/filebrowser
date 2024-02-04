@@ -11,64 +11,43 @@ goos: linux
 goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/files
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkFillIndex-8          	      10	   3628128 ns/op	  244428 B/op	    2016 allocs/op
-BenchmarkSearchAllIndexes-8   	      10	  30914217 ns/op	20300409 B/op	  310416 allocs/op
+BenchmarkFillIndex-8          	      10	   3697667 ns/op	  258187 B/op	    2111 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	  30964230 ns/op	20067573 B/op	  305789 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/files	0.409s
+ok  	github.com/gtsteffaniak/filebrowser/files	0.407s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 h: 401  <nil>
-2024/02/04 08:48:16 h: 404  the resource does not exist
-2024/02/04 08:48:16 h: 404  the resource does not exist
-2024/02/04 08:48:16 h: 404  the resource does not exist
-2024/02/04 08:48:16 h: 401  <nil>
-2024/02/04 08:48:16 h: 404  the resource does not exist
-2024/02/04 08:48:16 h: 401  <nil>
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 Saving new user: username
-2024/02/04 08:48:16 h: 401  <nil>
-2024/02/04 08:48:16 h: 401  <nil>
-2024/02/04 08:48:16 h: 404  the resource does not exist
-2024/02/04 08:48:16 h: 404  the resource does not exist
-2024/02/04 08:48:16 h: 401  <nil>
---- FAIL: TestPublicShareHandlerAuthentication (0.00s)
-    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Private_share,_authentication_via_token (0.07s)
-        public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Public_share,_no_auth_required (0.07s)
-        public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Public_share,_no_auth_required (0.08s)
-        public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Private_share,_authentication_via_token (0.08s)
-        public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_dl_handler:_Private_share,_authentication_via_password (0.12s)
-        public_test.go:108: expected status code 200, got status code 404
-    --- FAIL: TestPublicShareHandlerAuthentication/public_share_handler:_Private_share,_authentication_via_password (0.12s)
-        public_test.go:108: expected status code 200, got status code 404
-FAIL
-exit status 1
-FAIL	github.com/gtsteffaniak/filebrowser/http	0.201s
+ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.004s
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 h: 401  <nil>
+2024/02/04 09:08:08 h: 401  <nil>
+2024/02/04 09:08:08 h: 401  <nil>
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 Saving new user: publicUser
+2024/02/04 09:08:08 h: 401  <nil>
+2024/02/04 09:08:08 h: 401  <nil>
+2024/02/04 09:08:08 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.120s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.203s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/img	0.153s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/runner	0.003s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
+ok  	github.com/gtsteffaniak/filebrowser/settings	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/storage/bolt	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/users	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/users	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/version	[no test files]
-FAIL

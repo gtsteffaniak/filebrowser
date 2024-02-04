@@ -133,7 +133,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 			return file, err
 		}
 		info, exists = index.GetMetadataInfo(adjustedPath)
-		if !exists || info.Name == "" {
+		if !exists {
 			return &FileInfo{}, errors.ErrEmptyKey
 		}
 		return &info, nil
