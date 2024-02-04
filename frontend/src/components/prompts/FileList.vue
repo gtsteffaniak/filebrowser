@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div class="searchContext">Path: {{ nav }}</div>
     <ul class="file-list">
       <li
         @click="itemClick"
@@ -16,11 +17,6 @@
         {{ item.name }}
       </li>
     </ul>
-
-    <p>
-      {{ $t("prompts.currentlyNavigating") }} <code>{{ nav }}</code
-      >.
-    </p>
   </div>
 </template>
 

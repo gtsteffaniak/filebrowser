@@ -81,7 +81,6 @@ export default {
   },
   methods: {
     handleEditorValueRequest() {
-      console.log("trying to save");
       try {
         api.put(this.$route.path, this.editor.getValue());
       } catch (e) {

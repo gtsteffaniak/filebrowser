@@ -101,18 +101,18 @@ func (r *Runner) exec(raw, evt, path, dst string, user *users.User) error {
 	cmd.Stderr = os.Stderr
 
 	if !blocking {
-		log.Printf("[INFO] Nonblocking Command: \"%s\"", strings.Join(command, " "))
+		log.Printf("Nonblocking Command: \"%s\"", strings.Join(command, " "))
 		defer func() {
 			go func() {
 				err := cmd.Wait()
 				if err != nil {
-					log.Printf("[INFO] Nonblocking Command \"%s\" failed: %s", strings.Join(command, " "), err)
+					log.Printf("Nonblocking Command \"%s\" failed: %s", strings.Join(command, " "), err)
 				}
 			}()
 		}()
 		return cmd.Start()
 	}
 
-	log.Printf("[INFO] Blocking Command: \"%s\"", strings.Join(command, " "))
+	log.Printf("Blocking Command: \"%s\"", strings.Join(command, " "))
 	return cmd.Run()
 }

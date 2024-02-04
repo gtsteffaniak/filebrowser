@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -14,7 +15,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 func withPermShare(fn handleFunc) handleFunc {
@@ -22,7 +25,6 @@ func withPermShare(fn handleFunc) handleFunc {
 		if !d.user.Perm.Share {
 			return http.StatusForbidden, nil
 		}
-
 		return fn(w, r, d)
 	})
 }
@@ -51,7 +53,6 @@ var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		}
 		return s[i].Expire < s[j].Expire
 	})
-
 	return renderJSON(w, r, s)
 })
 
@@ -81,6 +82,7 @@ var shareDeleteHandler = withPermShare(func(w http.ResponseWriter, r *http.Reque
 })
 
 var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+
 	var s *share.Link
 	var body share.CreateBody
 	if r.Body != nil {
@@ -136,11 +138,35 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 	}
 
+	publicUser, err := d.store.Users.Get("", "publicUser")
+	if err != nil {
+		// create share user
+		publicUser = &users.User{}
+		settings.Config.UserDefaults.Apply(publicUser)
+		publicUser.Username = "publicUser"
+		publicUser.Password = "publicUser"
+		publicUser.Scope = "./"
+		publicUser.ViewMode = "normal"
+		publicUser.LockPassword = true
+		publicUser.Perm = users.Permissions{
+			Create:   true,
+			Rename:   false,
+			Modify:   false,
+			Delete:   false,
+			Share:    false,
+			Download: true,
+			Admin:    false,
+		}
+		err = d.store.Users.Save(publicUser)
+		if err != nil {
+			log.Println("error handling share user profile")
+		}
+	}
 	s = &share.Link{
-		Path:         r.URL.Path,
+		Path:         strings.TrimSuffix(r.URL.Path, "/"),
 		Hash:         str,
 		Expire:       expire,
-		UserID:       d.user.ID,
+		UserID:       publicUser.ID,
 		PasswordHash: string(hash),
 		Token:        token,
 	}
@@ -153,6 +179,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 })
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
+
 	if body.Password == "" {
 		return nil, 0, nil
 	}

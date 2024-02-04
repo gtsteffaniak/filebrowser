@@ -265,6 +265,7 @@
 /* Button group button */
 .dark-mode .button-group button {
   color: white;
+  background-color:var(--background);
 }
 
 /* Result desktop */

@@ -33,7 +33,6 @@ func (d *data) Check(path string) bool {
 			allow = rule.Allow
 		}
 	}
-
 	for _, rule := range d.user.Rules {
 		if rule.Matches(path) {
 			allow = rule.Allow

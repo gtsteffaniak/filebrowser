@@ -3,8 +3,9 @@
     <div class="card-title">
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
+    <div class="searchContext">Path: {{ getContext }}</div>
 
-    <template v-if="listingView">
+    <template v-if="listing">
       <div class="card-content">
         <table>
           <tr>
@@ -139,18 +140,23 @@ export default {
   },
   computed: {
     ...mapState(["req", "selected", "selectedCount"]),
-    ...mapGetters(["isListing"]),
+    ...mapGetters(["isListing", "selectedCount"]),
     url() {
       if (!this.isListing) {
         return this.$route.path;
       }
-
-      if (this.selectedCount === 0 || this.selectedCount > 1) {
-        // This shouldn't happen.
-        return;
+      if (this.selectedCount != 1) {
+        // selecting current view image
+        return this.$route.path;
       }
-
       return this.req.items[this.selected[0]].url;
+    },
+    getContext() {
+      let path = this.$route.path.replace("/files/", "./");
+      if (this.selectedCount == 1) {
+        path = path + this.req.items[this.selected[0]].name;
+      }
+      return path;
     },
   },
   async beforeMount() {

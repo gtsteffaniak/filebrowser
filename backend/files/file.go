@@ -133,7 +133,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 			return file, err
 		}
 		info, exists = index.GetMetadataInfo(adjustedPath)
-		if !exists || info.Name == "" {
+		if !exists {
 			return &FileInfo{}, errors.ErrEmptyKey
 		}
 		return &info, nil
@@ -144,23 +144,25 @@ func refreshFileInfo(opts FileOptions) bool {
 	if !opts.Checker.Check(opts.Path) {
 		return false
 	}
-	file, err := stat(opts.Path, opts) // Pass opts.Path here
-	if err != nil {
-		return false
-	}
-
 	index := GetIndex(rootPath)
 	trimmed := strings.TrimPrefix(opts.Path, "/")
 	if trimmed == "" {
 		trimmed = "/"
 	}
 	adjustedPath := makeIndexPath(trimmed, index.Root)
+	file, err := stat(opts.Path, opts) // Pass opts.Path here
+	if err != nil {
+		return false
+	}
+	_ = file.detectType(adjustedPath, true, false, opts.ReadHeader)
+
 	if file.IsDir {
 		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
 		if err != nil {
 			return false
 		}
 		//_, exists := index.GetFileMetadata(adjustedPath)
+
 		return index.UpdateFileMetadata(adjustedPath, *file)
 	} else {
 		//_, exists := index.GetFileMetadata(adjustedPath)

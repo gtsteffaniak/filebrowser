@@ -51,7 +51,22 @@
           <div class="share__box__header">
             {{ req.isDir ? $t("download.downloadFolder") : $t("download.downloadFile") }}
           </div>
-          <div class="share__box__element share__box__center share__box__icon">
+
+          <div
+            v-if="isImage"
+            class="share__box__element share__box__center share__box__icon"
+          >
+            <img :src="inlineLink" width="500px" />
+          </div>
+          <div
+            v-if="isVideo"
+            class="share__box__element share__box__center share__box__icon"
+          >
+            <video width="500" height="500" controls>
+              <source :src="inlineLink" type="video/mp4" />
+            </video>
+          </div>
+          <div v-else class="share__box__element share__box__center share__box__icon">
             <i class="material-icons">{{ icon }}</i>
           </div>
           <div class="share__box__element">
@@ -224,6 +239,12 @@ export default {
     modTime: function () {
       return new Date(Date.parse(this.req.modified)).toLocaleString();
     },
+    isImage: function () {
+      return this.req.type == "image";
+    },
+    isVideo: function () {
+      return this.req.type == "video";
+    },
   },
   methods: {
     ...mapMutations(["resetSelected", "updateRequest", "setLoading"]),
@@ -252,7 +273,6 @@ export default {
       try {
         let file = await api.fetch(url, this.password);
         file.hash = this.hash;
-
         this.token = file.token || "";
 
         this.updateRequest(file);
