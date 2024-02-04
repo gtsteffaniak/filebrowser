@@ -162,7 +162,6 @@ export default {
   async beforeMount() {
     try {
       const links = await api.get(this.url);
-      console.log("links:", links);
       this.links = links;
       this.sort();
 

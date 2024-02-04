@@ -2,7 +2,6 @@ package http
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -32,7 +31,12 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		d.user = publicUser
 		if path == "/" {
 			path = link.Path
+		} else if strings.HasPrefix("/"+path, link.Path) {
+			path = "/" + path
+		} else {
+			path = link.Path + "/" + path
 		}
+
 		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         publicUser.Fs,
 			Path:       "/home/graham" + path,
@@ -50,27 +54,20 @@ var withHashFile = func(fn handleFunc) handleFunc {
 	}
 }
 
-// ref to https://github.com/filebrowser/filebrowser/pull/727
-// `/api/public/dl/MEEuZK-v/file-name.txt` for old browsers to save file with correct name
 func ifPathWithName(r *http.Request) (id, filePath string) {
 	pathElements := strings.Split(r.URL.Path, "/")
-	// prevent maliciously constructed parameters like `/api/public/dl/XZzCDnK2_not_exists_hash_name`
-	// len(pathElements) will be 1, and golang will panic `runtime error: index out of range`
-
-	switch len(pathElements) {
-	case 1:
-		return r.URL.Path, "/"
-	default:
-		return pathElements[0], path.Join("/", path.Join(pathElements[1:]...))
+	id = pathElements[0]
+	allButFirst := path.Join(pathElements[1:]...)
+	if len(pathElements) == 1 {
+		allButFirst = "/"
 	}
+	return id, allButFirst
 }
 
 var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	log.Println("direct share ")
 
 	file := d.raw.(*files.FileInfo)
 	file.Path = strings.TrimPrefix(file.Path, "/home/graham")
-	log.Println("direct share ", file.Path)
 	if file.IsDir {
 		return renderJSON(w, r, file)
 	}
@@ -79,10 +76,7 @@ var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Reques
 })
 
 var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	log.Println("direct download ")
 	file := d.raw.(*files.FileInfo)
-	file.Path = strings.TrimPrefix(file.Path, "/home/graham")
-	log.Println("direct download ", file.Path)
 	if !file.IsDir {
 		return rawFileHandler(w, r, file)
 	}
@@ -90,6 +84,8 @@ var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, 
 	return rawDirHandler(w, r, d, file)
 })
 
+// http://vdebian.ghome.net:8080/api/public/dl/J06PsKgp/Pictures/2023/05/20230515_011801_1CACC659.mp4?inline=true
+// http://vdebian.ghome.net:8080/api/public/dl/Vv6RHMYv/Pictures/2023/05/20230513_203846_8313230F.png?inline=true
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	if l.PasswordHash == "" {
 		return 0, nil

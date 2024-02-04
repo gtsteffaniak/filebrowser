@@ -2,7 +2,6 @@ import { fetchURL, removePrefix, createURL } from "./utils";
 import { baseURL } from "@/utils/constants";
 
 export async function fetch(url, password = "") {
-  console.log("within api",url)
   url = removePrefix(url);
   const res = await fetchURL(
     `/api/public/share${url}`,
@@ -33,7 +32,6 @@ export async function fetch(url, password = "") {
 
 export function download(format, hash, token, ...files) {
   let url = `${baseURL}/api/public/dl/${hash}`;
-  log.Println(url)
   if (files.length === 1) {
     url += encodeURIComponent(files[0]) + "?";
   } else {
@@ -68,6 +66,5 @@ export function getDownloadURL(share, inline = false) {
   if (share.path == undefined) {
     share.path = ""
   }
-  console.log(share.hash, share.path, params, false)
   return createURL("api/public/dl/" + share.hash + share.path, params, false);
 }

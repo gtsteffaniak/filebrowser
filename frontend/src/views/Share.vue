@@ -51,7 +51,22 @@
           <div class="share__box__header">
             {{ req.isDir ? $t("download.downloadFolder") : $t("download.downloadFile") }}
           </div>
-          <div class="share__box__element share__box__center share__box__icon">
+
+          <div
+            v-if="isImage"
+            class="share__box__element share__box__center share__box__icon"
+          >
+            <img :src="inlineLink" width="500px" ></img>
+          </div>
+          <div
+            v-if="isVideo"
+            class="share__box__element share__box__center share__box__icon"
+          >
+              <video width="500" height="500" controls>
+              <source :src="inlineLink" type="video/mp4">
+            </video> 
+         </div>
+          <div v-else class="share__box__element share__box__center share__box__icon">
             <i class="material-icons">{{ icon }}</i>
           </div>
           <div class="share__box__element">
@@ -207,12 +222,9 @@ export default {
       return "insert_drive_file";
     },
     link: function () {
-      console.log("download url from", this.req);
       return api.getDownloadURL(this.req);
     },
     inlineLink: function () {
-      console.log("download url inline from", this.req);
-
       return api.getDownloadURL(this.req, true);
     },
     humanSize: function () {
@@ -226,6 +238,16 @@ export default {
     },
     modTime: function () {
       return new Date(Date.parse(this.req.modified)).toLocaleString();
+    },
+    isImage: function () {
+      return (
+        this.req.type == "image"
+      );
+    },
+    isVideo: function () {
+      return (
+        this.req.type == "video"
+      );
     },
   },
   methods: {
@@ -253,10 +275,8 @@ export default {
       if (url[0] !== "/") url = "/" + url;
 
       try {
-        console.log("req url", url);
         let file = await api.fetch(url, this.password);
         file.hash = this.hash;
-        console.log("req file", file);
         this.token = file.token || "";
 
         this.updateRequest(file);
@@ -285,7 +305,6 @@ export default {
     },
     download() {
       if (this.isSingleFile()) {
-        log.Println("single file ", this.hash, this.req.items[this.selected[0]].path);
         api.download(null, this.hash, this.token, this.req.items[this.selected[0]].path);
         return;
       }

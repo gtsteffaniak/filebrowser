@@ -32,16 +32,13 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 	defer si.mu.Unlock()
 	dir, exists := si.Directories[adjustedPath]
 	if !exists {
-		log.Println("not exists")
 		// Initialize the Metadata map if it is nil
 		if dir.Metadata == nil {
 			dir.Metadata = make(map[string]FileInfo)
 		}
 		si.Directories[adjustedPath] = dir
-		log.Println("made exist")
 		// Release the read lock before calling SetFileMetadata
 	}
-	log.Println(adjustedPath, info)
 	return si.SetFileMetadata(adjustedPath, info)
 }
 
@@ -53,7 +50,6 @@ func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
 	if !exists {
 		return false
 	}
-	log.Println("caching", adjustedPath, "type", info.Type)
 	info.CacheTime = time.Now()
 	si.Directories[adjustedPath].Metadata[adjustedPath] = info
 	return true

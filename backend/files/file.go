@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"hash"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"os"
@@ -163,7 +162,6 @@ func refreshFileInfo(opts FileOptions) bool {
 			return false
 		}
 		//_, exists := index.GetFileMetadata(adjustedPath)
-		log.Println("refresh", file, file.Type)
 
 		return index.UpdateFileMetadata(adjustedPath, *file)
 	} else {

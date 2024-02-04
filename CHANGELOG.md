@@ -10,7 +10,10 @@ All notable changes to this project will be documented in this file. For commit 
   - whatwg-fetch
   - lodash.throttle
   - lodash.clonedeep
-- added [create-folder-feature](https://github.com/gtsteffaniak/filebrowser/pull/105)
+- Faature: [create-folder-feature](https://github.com/gtsteffaniak/filebrowser/pull/105)
+- Feature: [playable shared video](https://github.com/filebrowser/filebrowser/issues/2537)
+- Feature: photos and videos get embedded preview on share instead of icon
+- FIX: sharable link bug, now uses publicUser with rules
 
 ## v0.2.3
 
