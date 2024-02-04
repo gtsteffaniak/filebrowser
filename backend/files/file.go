@@ -154,6 +154,8 @@ func refreshFileInfo(opts FileOptions) bool {
 	if err != nil {
 		return false
 	}
+	_ = file.detectType(adjustedPath, true, false, opts.ReadHeader)
+
 	if file.IsDir {
 		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
 		if err != nil {
