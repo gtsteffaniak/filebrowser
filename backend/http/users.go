@@ -72,18 +72,6 @@ func withSelfOrAdmin(fn handleFunc) handleFunc {
 	})
 }
 
-var publicUserGetHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	publicUser, err := d.store.Users.Get("", "publicUser")
-	log.Println(publicUser.Username, publicUser)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	publicUser.Password = ""
-	// Call the actual handler logic here (e.g., renderJSON, etc.)
-	// You may need to replace `fn` with the actual handler logic.
-	return renderJSON(w, r, publicUser)
-}
-
 var usersGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	users, err := d.store.Users.Gets(d.server.Root)
 	if err != nil {

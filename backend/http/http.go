@@ -48,7 +48,6 @@ func NewHandler(
 	api.Handle("/renew", monkey(renewHandler, ""))
 	users := api.PathPrefix("/users").Subrouter()
 	users.Handle("", monkey(usersGetHandler, "")).Methods("GET")
-	users.Handle("/publicUser", monkey(publicUserGetHandler, "")).Methods("GET")
 	users.Handle("", monkey(userPostHandler, "")).Methods("POST")
 	users.Handle("/{id:[0-9]+}", monkey(userPutHandler, "")).Methods("PUT")
 	users.Handle("/{id:[0-9]+}", monkey(userGetHandler, "")).Methods("GET")
@@ -70,6 +69,7 @@ func NewHandler(
 		Handler(monkey(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview), "/api/preview")).Methods("GET")
 	api.PathPrefix("/search").Handler(monkey(searchHandler, "/api/search")).Methods("GET")
 	public := api.PathPrefix("/public").Subrouter()
+	public.Handle("/publicUser", monkey(publicUserGetHandler, "")).Methods("GET")
 	public.PathPrefix("/dl").Handler(monkey(publicDlHandler, "/api/public/dl/")).Methods("GET")
 	public.PathPrefix("/share").Handler(monkey(publicShareHandler, "/api/public/share/")).Methods("GET")
 	return stripPrefix(server.BaseURL, r), nil

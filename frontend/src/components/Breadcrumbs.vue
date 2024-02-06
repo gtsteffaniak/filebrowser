@@ -79,7 +79,10 @@ export default {
       return "router-link";
     },
     showShare() {
-      return this.user.perm.share && !this.$route.path.startsWith("/share");
+      if (this.$route.path.startsWith("/share")) {
+        return;
+      }
+      return this.user.perm.share;
     },
   },
 };

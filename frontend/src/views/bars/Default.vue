@@ -137,8 +137,6 @@ export default {
     },
   },
   mounted: function () {
-    console.log("graham");
-
     // Check the columns size for the first time.
     this.colunmsResize();
 
@@ -152,7 +150,9 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
-
+    if (this.$route.path.startsWith("/share")) {
+      return;
+    }
     if (!this.user.perm.create) return;
     document.addEventListener("dragover", this.preventDefault);
     document.addEventListener("dragenter", this.dragEnter);
