@@ -163,6 +163,8 @@
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
+import { users as userApi } from "@/api";
+
 import moment from "moment";
 
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -252,6 +254,20 @@ export default {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     fetchData: async function () {
+      if (this.req.user == undefined) {
+        console.log("getting user");
+        let response = await userApi.get("publicUser");
+        console.log(response);
+        this.req.user = {
+          username: "publicUser",
+          passsword: "",
+          perm: { share: true },
+          rules: [],
+          lockPassword: false,
+          id: 0,
+        };
+        this.setUser(this.req.user);
+      }
       // Reset view information.
       this.$store.commit("setReload", false);
       this.$store.commit("resetSelected");

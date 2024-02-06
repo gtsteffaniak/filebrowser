@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
+	"github.com/gtsteffaniak/filebrowser/rules"
 )
 
 // StorageBackend is the interface to implement for a users storage.
@@ -18,6 +19,7 @@ type StorageBackend interface {
 	DeleteByUsername(string) error
 }
 
+// Store is an interface for user storage.
 type Store interface {
 	Get(baseScope string, id interface{}) (user *User, err error)
 	Gets(baseScope string) ([]*User, error)
@@ -25,6 +27,8 @@ type Store interface {
 	Save(user *User) error
 	Delete(id interface{}) error
 	LastUpdate(id uint) int64
+	AddRule(username string, rule rules.Rule) error
+	DeleteRule(username string, ruleID string) error
 }
 
 // Storage is a users storage.
@@ -53,7 +57,7 @@ func (s *Storage) Get(baseScope string, id interface{}) (user *User, err error) 
 	if err := user.Clean(baseScope); err != nil {
 		return nil, err
 	}
-	return
+	return user, err
 }
 
 // Gets gets a list of all users.
@@ -87,6 +91,48 @@ func (s *Storage) Update(user *User, fields ...string) error {
 	s.mux.Lock()
 	s.updated[user.ID] = time.Now().Unix()
 	s.mux.Unlock()
+	return nil
+}
+
+// AddRule adds a rule to the user's rules list and updates the user in the database.
+func (s *Storage) AddRule(userID string, rule rules.Rule) error {
+	user, err := s.Get("", userID)
+	if err != nil {
+		return err
+	}
+
+	user.Rules = append(user.Rules, rule)
+
+	err = s.Update(user, "Rules")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteRule deletes a rule specified by ID from the user's rules list and updates the user in the database.
+func (s *Storage) DeleteRule(userID string, ruleID string) error {
+	user, err := s.Get("", userID)
+	if err != nil {
+		return err
+	}
+
+	// Find and remove the rule with the specified ID
+	var updatedRules []rules.Rule
+	for _, r := range user.Rules {
+		if r.Id != ruleID {
+			updatedRules = append(updatedRules, r)
+		}
+	}
+
+	user.Rules = updatedRules
+
+	err = s.Update(user, "Rules")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

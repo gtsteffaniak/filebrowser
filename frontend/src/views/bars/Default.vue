@@ -38,6 +38,7 @@ export default {
       viewModes: ["list", "compact", "normal", "gallery"],
     };
   },
+
   computed: {
     ...mapState(["req", "selected", "user", "show", "multiple", "selected", "loading"]),
     ...mapGetters(["selectedCount"]),
@@ -125,9 +126,6 @@ export default {
   },
   watch: {
     req: function () {
-      // Reset the show value
-      this.showLimit = 50;
-
       // Ensures that the listing is displayed
       Vue.nextTick(() => {
         // How much every listing item affects the window height
@@ -139,6 +137,8 @@ export default {
     },
   },
   mounted: function () {
+    console.log("graham");
+
     // Check the columns size for the first time.
     this.colunmsResize();
 

@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -16,6 +17,8 @@ import (
 
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		log.Println("status of request")
+
 		id, path := ifPathWithName(r)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {

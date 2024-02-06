@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
+	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -78,6 +79,11 @@ var shareDeleteHandler = withPermShare(func(w http.ResponseWriter, r *http.Reque
 	}
 
 	err := d.store.Share.Delete(hash)
+	if err != nil {
+		return errToStatus(err), err
+	}
+
+	err = d.store.Users.DeleteRule("publicUser", string(hash))
 	return errToStatus(err), err
 })
 
@@ -149,14 +155,23 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		publicUser.ViewMode = "normal"
 		publicUser.LockPassword = true
 		publicUser.Perm = users.Permissions{
-			Create:   true,
+			Create:   false,
 			Rename:   false,
 			Modify:   false,
 			Delete:   false,
-			Share:    false,
+			Share:    true,
 			Download: true,
 			Admin:    false,
 		}
+		publicUser.Rules = append(
+			publicUser.Rules,
+			rules.Rule{
+				Regex: true,
+				Allow: true,
+				Path:  r.URL.Path + ".+",
+				Id:    string(hash),
+			},
+		)
 		err = d.store.Users.Save(publicUser)
 		if err != nil {
 			log.Println("error handling share user profile")

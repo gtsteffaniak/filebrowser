@@ -18,8 +18,8 @@
 </template>
 
 <script>
+import { mapState, mapMutations } from "vuex";
 import Action from "@/components/header/Action";
-import { mapState } from "vuex";
 
 export default {
   name: "breadcrumbs",
@@ -28,8 +28,12 @@ export default {
   },
   props: ["base", "noLink"],
   computed: {
-    ...mapState(["user"]),
+    ...mapState(["req", "user"]),
     items() {
+      if (this.req.user == undefined) {
+        return;
+      }
+
       const relativePath = this.$route.path.replace(this.base, "");
       let parts = relativePath.split("/");
 
