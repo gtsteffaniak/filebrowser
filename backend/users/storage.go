@@ -66,7 +66,6 @@ func (s *Storage) Gets(baseScope string) ([]*User, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	for _, user := range users {
 		if err := user.Clean(baseScope); err != nil { //nolint:govet
 			return nil, err

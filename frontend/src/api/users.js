@@ -1,7 +1,8 @@
 import { fetchURL, fetchJSON } from "./utils";
 
 export async function getAll() {
-  return fetchJSON(`/api/users`, {});
+  let users = await fetchJSON(`/api/users`, {});
+  return users.filter(user => user.username !== "publicUser");  
 }
 
 export async function get(id) {

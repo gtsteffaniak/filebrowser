@@ -45,11 +45,9 @@ func (st usersBackend) Gets() ([]*users.User, error) {
 	if err == storm.ErrNotFound {
 		return nil, errors.ErrNotExist
 	}
-
 	if err != nil {
 		return allUsers, err
 	}
-
 	return allUsers, err
 }
 

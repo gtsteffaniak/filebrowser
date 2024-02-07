@@ -62,7 +62,6 @@ func withSelfOrAdmin(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
 		if d.user.ID != id && !d.user.Perm.Admin {
 			return http.StatusForbidden, nil
 		}
