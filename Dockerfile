@@ -5,7 +5,7 @@ RUN npm ci --maxsockets 1
 COPY  ./frontend/ ./
 RUN npm run build
 
-FROM golang:1.21-alpine as base
+FROM golang:1.22-alpine as base
 WORKDIR /app
 COPY  ./backend ./
 RUN go get -u golang.org/x/net
