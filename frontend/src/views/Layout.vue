@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
@@ -51,8 +52,17 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["isLogged", "progress", "isListing", "currentPrompt"]),
+    ...mapGetters([
+      "isLogged",
+      "progress",
+      "isListing",
+      "currentPrompt",
+      "currentPromptName",
+    ]),
     ...mapState(["req", "user", "state"]),
+    showOverlay: function () {
+      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
+    },
     isDarkMode() {
       return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
         ? this.user.darkMode
@@ -81,6 +91,9 @@ export default {
     },
   },
   methods: {
+    resetPrompts() {
+      this.$store.commit("closeHovers");
+    },
     getTitle() {
       let title = "Title";
       if (this.$route.path.startsWith("/settings/")) {
