@@ -5,44 +5,44 @@
 ?   	github.com/gtsteffaniak/filebrowser/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/cmd	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.005s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
 goos: linux
 goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/files
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkFillIndex-8          	      10	   3629928 ns/op	  279088 B/op	    2052 allocs/op
-BenchmarkSearchAllIndexes-8   	      10	  32793211 ns/op	20723857 B/op	  314958 allocs/op
+BenchmarkFillIndex-8          	      10	   3773496 ns/op	  284208 B/op	    2069 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	  32121789 ns/op	19714097 B/op	  300426 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/files	0.426s
+ok  	github.com/gtsteffaniak/filebrowser/files	0.425s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 h: 401  <nil>
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 Saving new user: publicUser
-2024/02/07 07:09:26 h: 401  <nil>
-2024/02/07 07:09:26 h: 401  <nil>
-2024/02/07 07:09:26 h: 401  <nil>
-2024/02/07 07:09:26 h: 401  <nil>
-2024/02/07 07:09:26 h: 401  <nil>
+ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.005s
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:05 h: 401  <nil>
+2024/02/07 07:14:05 h: 401  <nil>
+2024/02/07 07:14:05 Saving new user: publicUser
+2024/02/07 07:14:06 Saving new user: publicUser
+2024/02/07 07:14:06 Saving new user: publicUser
+2024/02/07 07:14:06 Saving new user: publicUser
+2024/02/07 07:14:06 h: 401  <nil>
+2024/02/07 07:14:06 h: 401  <nil>
+2024/02/07 07:14:06 h: 401  <nil>
+2024/02/07 07:14:06 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	0.154s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.181s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.140s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.136s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/runner	0.004s
+ok  	github.com/gtsteffaniak/filebrowser/runner	0.003s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/settings	0.005s
 ?   	github.com/gtsteffaniak/filebrowser/share	[no test files]
