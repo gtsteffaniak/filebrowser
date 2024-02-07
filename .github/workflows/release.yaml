@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: 1.22.0
-      - run: cd backend && go test -race -v ./...s
+      - run: cd backend && go test -race -v ./...
   lint-backend:
     runs-on: ubuntu-latest
     steps:
