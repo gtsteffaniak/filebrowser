@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from "vuex";
+import { mapState } from "vuex";
 import Action from "@/components/header/Action";
 
 export default {
