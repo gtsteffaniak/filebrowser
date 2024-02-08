@@ -18,8 +18,8 @@
 </template>
 
 <script>
-import Action from "@/components/header/Action";
 import { mapState } from "vuex";
+import Action from "@/components/header/Action";
 
 export default {
   name: "breadcrumbs",
@@ -28,8 +28,12 @@ export default {
   },
   props: ["base", "noLink"],
   computed: {
-    ...mapState(["user"]),
+    ...mapState(["req", "user"]),
     items() {
+      if (this.req.user == undefined) {
+        return;
+      }
+
       const relativePath = this.$route.path.replace(this.base, "");
       let parts = relativePath.split("/");
 
@@ -75,7 +79,10 @@ export default {
       return "router-link";
     },
     showShare() {
-      return this.user.perm.share && !this.$route.path.startsWith("/share");
+      if (this.$route.path.startsWith("/share")) {
+        return;
+      }
+      return this.user.perm.share;
     },
   },
 };

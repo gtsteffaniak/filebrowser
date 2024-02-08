@@ -26,7 +26,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		expectedStatusCode int
 	}{
 		"Public share, no auth required": {
-			share:              &share.Link{Hash: "h", UserID: 1},
+			share:              &share.Link{Hash: "h"},
 			req:                newHTTPRequest(t),
 			expectedStatusCode: 200,
 		},
@@ -81,9 +81,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				}
 				if err := storage.Share.Save(tc.share); err != nil {
 					t.Fatalf("failed to save share: %v", err)
-				}
-				if err := storage.Users.Save(&users.User{Username: "publicUser", Password: "publicUser"}); err != nil {
-					t.Fatalf("failed to save user: %v", err)
 				}
 				if err := storage.Settings.Save(&settings.Settings{
 					Auth: settings.Auth{

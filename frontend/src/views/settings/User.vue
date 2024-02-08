@@ -14,8 +14,8 @@
             :createUserDir="createUserDir"
             :isDefault="false"
             :isNew="isNew"
-            @update:user="updatedUser => user = updatedUser"
-            @update:createUserDir="updatedDir => createUserDir = updatedDir"
+            @update:user="(updatedUser) => (user = updatedUser)"
+            @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
           />
         </div>
 
@@ -30,11 +30,7 @@
           >
             {{ $t("buttons.delete") }}
           </button>
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="$t('buttons.save')"
-          />
+          <input class="button button--flat" type="submit" :value="$t('buttons.save')" />
         </div>
       </form>
     </div>
@@ -95,7 +91,7 @@ export default {
     ...mapState(["loading"]),
     ...mapGetters(["currentPrompt", "currentPromptName"]),
     showDeletePrompt() {
-      return this.currentPromptName == 'deleteUser';
+      return this.currentPromptName == "deleteUser";
     },
   },
   watch: {

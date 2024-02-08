@@ -1,10 +1,11 @@
 import { fetchURL, fetchJSON } from "./utils";
 
 export async function getAll() {
-  return fetchJSON(`/api/users`, {});
+  return await fetchJSON(`/api/users`, {});
 }
 
 export async function get(id) {
+  console.log("user getting",id)
   return fetchJSON(`/api/users/${id}`, {});
 }
 

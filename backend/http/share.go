@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -15,9 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 func withPermShare(fn handleFunc) handleFunc {
@@ -78,6 +75,10 @@ var shareDeleteHandler = withPermShare(func(w http.ResponseWriter, r *http.Reque
 	}
 
 	err := d.store.Share.Delete(hash)
+	if err != nil {
+		return errToStatus(err), err
+	}
+
 	return errToStatus(err), err
 })
 
@@ -138,35 +139,11 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 	}
 
-	publicUser, err := d.store.Users.Get("", "publicUser")
-	if err != nil {
-		// create share user
-		publicUser = &users.User{}
-		settings.Config.UserDefaults.Apply(publicUser)
-		publicUser.Username = "publicUser"
-		publicUser.Password = "publicUser"
-		publicUser.Scope = "./"
-		publicUser.ViewMode = "normal"
-		publicUser.LockPassword = true
-		publicUser.Perm = users.Permissions{
-			Create:   true,
-			Rename:   false,
-			Modify:   false,
-			Delete:   false,
-			Share:    false,
-			Download: true,
-			Admin:    false,
-		}
-		err = d.store.Users.Save(publicUser)
-		if err != nil {
-			log.Println("error handling share user profile")
-		}
-	}
 	s = &share.Link{
 		Path:         strings.TrimSuffix(r.URL.Path, "/"),
 		Hash:         str,
 		Expire:       expire,
-		UserID:       publicUser.ID,
+		UserID:       d.user.ID,
 		PasswordHash: string(hash),
 		Token:        token,
 	}

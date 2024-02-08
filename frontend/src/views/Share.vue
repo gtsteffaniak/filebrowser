@@ -163,6 +163,7 @@
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
+
 import moment from "moment";
 
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -181,7 +182,6 @@ export default {
   },
   data: () => ({
     error: null,
-    showLimit: 100,
     password: "",
     attemptedPasswordLogin: false,
     hash: null,
@@ -190,15 +190,19 @@ export default {
   }),
   watch: {
     $route: function () {
-      this.showLimit = 100;
-
       this.fetchData();
     },
   },
-  created: async function () {
+  created: function () {
+    if (this.req.user == undefined) {
+      console.log("getting user");
+      let userData = api.getPublicUser();
+      console.log(userData);
+      this.$store.commit("updateRequest", this.req);
+    }
     const hash = this.$route.params.pathMatch.split("/")[0];
     this.hash = hash;
-    await this.fetchData();
+    this.fetchData();
   },
   mounted() {
     window.addEventListener("keydown", this.keyEvent);
@@ -253,6 +257,11 @@ export default {
     },
     fetchData: async function () {
       // Reset view information.
+      console.log(this.user);
+      if (this.user == undefined) {
+        this.setLoading(true);
+        return;
+      }
       this.$store.commit("setReload", false);
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
@@ -271,10 +280,9 @@ export default {
       if (url[0] !== "/") url = "/" + url;
 
       try {
-        let file = await api.fetch(url, this.password);
+        let file = await api.fetchPub(url, this.password);
         file.hash = this.hash;
         this.token = file.token || "";
-
         this.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;
       } catch (e) {

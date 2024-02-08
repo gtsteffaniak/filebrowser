@@ -1,7 +1,7 @@
 import { fetchURL, removePrefix, createURL } from "./utils";
 import { baseURL } from "@/utils/constants";
 
-export async function fetch(url, password = "") {
+export async function fetchPub(url, password = "") {
   url = removePrefix(url);
   const res = await fetchURL(
     `/api/public/share${url}`,
@@ -55,6 +55,21 @@ export function download(format, hash, token, ...files) {
   }
 
   window.open(url);
+}
+
+export function getPublicUser() {
+  return fetch("/api/public/publicUser")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      console.log("valid!")
+      return response.json();
+    })
+    .catch(error => {
+      console.error("Error fetching public user:", error);
+      throw error;
+    });
 }
 
 export function getDownloadURL(share, inline = false) {
