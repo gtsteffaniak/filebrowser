@@ -3,7 +3,7 @@ import moment from "moment";
 
 const mutations = {
   closeHovers: (state) => {
-    state.prompts.pop();
+    state.prompts = [];
   },
   toggleShell: (state) => {
     state.showShell = !state.showShell;

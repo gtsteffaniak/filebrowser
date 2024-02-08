@@ -7,7 +7,6 @@
       v-bind="currentPrompt.props"
     >
     </component>
-    <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
   </div>
 </template>
 
@@ -47,7 +46,7 @@ export default {
     ReplaceRename,
     Upload,
     ShareDelete,
-    Sidebar
+    Sidebar,
   },
   data: function () {
     return {
@@ -93,17 +92,9 @@ export default {
     ...mapState(["plugins"]),
     ...mapGetters(["currentPrompt", "currentPromptName"]),
     showOverlay: function () {
-      return (
-        this.currentPrompt !== null &&
-        this.currentPrompt.prompt !== "search" &&
-        this.currentPrompt.prompt !== "more"
-      );
+      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
     },
   },
-  methods: {
-    resetPrompts() {
-      this.$store.commit("closeHovers");
-    },
-  },
+  methods: {},
 };
 </script>

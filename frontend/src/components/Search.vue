@@ -598,7 +598,10 @@ export default {
   },
   computed: {
     ...mapState(["user"]),
-    ...mapGetters(["isListing", "currentPrompt"]),
+    ...mapGetters(["isListing", "currentPrompt", "currentPromptName"]),
+    showOverlay: function () {
+      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
+    },
     isDarkMode() {
       return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
         ? this.user.darkMode
@@ -644,6 +647,7 @@ export default {
     this.handleResize(); // Call this once to set the initial width
   },
   methods: {
+    ...mapMutations(["showHover", "closeHovers", "setReload"]),
     handleResize() {
       this.width = window.innerWidth;
     },
@@ -671,9 +675,8 @@ export default {
       let parts = str.replace(/(\/$|^\/)/, "").split("/");
       return parts.pop();
     },
-    ...mapMutations(["showHover", "closeHovers", "setReload"]),
     open() {
-      this.showHover("search");
+      this.$store.commit("showHover", "search");
     },
     close(event) {
       event.stopPropagation();
