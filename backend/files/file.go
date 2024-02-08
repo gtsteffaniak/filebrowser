@@ -193,7 +193,6 @@ func stat(path string, opts FileOptions) (*FileInfo, error) {
 			}
 		}
 	}
-
 	if file == nil || file.IsSymlink {
 		info, err := opts.Fs.Stat(opts.Path)
 		if err != nil {

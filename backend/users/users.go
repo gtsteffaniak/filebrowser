@@ -47,6 +47,24 @@ type User struct {
 	DateFormat      bool         `json:"dateFormat"`
 }
 
+var PublicUser = User{
+	Username:     "publicUser", // temp user not registered
+	Password:     "publicUser", // temp user not registered
+	Scope:        "./",
+	ViewMode:     "normal",
+	LockPassword: true,
+	Fs:           afero.NewMemMapFs(),
+	Perm: Permissions{
+		Create:   false,
+		Rename:   false,
+		Modify:   false,
+		Delete:   false,
+		Share:    true,
+		Download: true,
+		Admin:    false,
+	},
+}
+
 // GetRules implements rules.Provider.
 func (u *User) GetRules() []rules.Rule {
 	return u.Rules

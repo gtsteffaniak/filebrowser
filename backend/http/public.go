@@ -8,11 +8,13 @@ import (
 	"path"
 	"strings"
 
+	"github.com/spf13/afero"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var withHashFile = func(fn handleFunc) handleFunc {
@@ -28,11 +30,7 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		if status != 0 || err != nil {
 			return status, err
 		}
-		publicUser, err := d.store.Users.Get("", "publicUser")
-		if err != nil {
-			return errToStatus(err), err
-		}
-		d.user = publicUser
+		d.user = &users.PublicUser
 		if path == "/" {
 			path = link.Path
 		} else if strings.HasPrefix("/"+path, link.Path) {
@@ -40,11 +38,12 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		} else {
 			path = link.Path + "/" + path
 		}
-
+		sharePath := settings.Config.Server.Root + path
+		fsPath := afero.NewBasePathFs(afero.NewOsFs(), sharePath)
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         publicUser.Fs,
-			Path:       settings.Config.Server.Root + path,
-			Modify:     publicUser.Perm.Modify,
+			Fs:         fsPath,
+			Path:       sharePath,
+			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
 			Checker:    d,
@@ -80,15 +79,9 @@ var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Reques
 })
 
 var publicUserGetHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	publicUser, err := d.store.Users.Get("", "publicUser")
-	log.Println(publicUser.Username, publicUser)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	publicUser.Password = ""
 	// Call the actual handler logic here (e.g., renderJSON, etc.)
 	// You may need to replace `fn` with the actual handler logic.
-	return renderJSON(w, r, publicUser)
+	return renderJSON(w, r, users.PublicUser)
 }
 
 var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {

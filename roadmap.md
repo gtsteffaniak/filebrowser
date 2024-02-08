@@ -3,6 +3,7 @@
 Next version (v0.2.5) : 
 
 - Replace http routes for gorilla/mux with std library
+- Replace afero requests with std library
 - Add Job status to the sidebar - index status.
 - Use vite instead of webpack
 - upgrade to vue3

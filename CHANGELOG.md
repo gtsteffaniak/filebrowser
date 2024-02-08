@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
 - Feature: [playable shared video](https://github.com/filebrowser/filebrowser/issues/2537)
 - Feature: photos, videos, and audio get embedded preview on share instead of icon
 - Feature: config gets updated when settings change, ensuring that running settings are up to date.
-- FIX: sharable link bug, now uses publicUser with rules
+- FIX: sharable link bug, now uses special publicUser
 - Bump go version to 1.22
 - In prep for vue3 migration, npm modules removed:
   - js-base64
