@@ -53,7 +53,7 @@ export default {
       }
       if (this.req.isDir) {
         return "listingView";
-      } else if (this.req.hasOwnProperty('content')) {
+      } else if (Object.prototype.hasOwnProperty.call(this.req, 'content')) {
         return "editor";
       } else {
         return "preview";

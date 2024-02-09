@@ -1,7 +1,6 @@
 <template>
   <div>
     <breadcrumbs :base="'/share/' + hash" />
-
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
