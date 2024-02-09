@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/spf13/afero"
 
@@ -119,7 +120,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	adjustedPath := makeIndexPath(trimmed, index.Root)
 	var info FileInfo
 	info, exists := index.GetMetadataInfo(adjustedPath)
-	if exists {
+	if exists && !opts.Content {
 		// Check if the cache time is less than 1 second
 		if time.Since(info.CacheTime) > time.Second {
 			go refreshFileInfo(opts)
@@ -127,6 +128,11 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		// refresh cache after
 		return &info, nil
 	} else {
+		// don't bother caching content
+		if opts.Content {
+			file, err := NewFileInfo(opts)
+			return file, err
+		}
 		updated := refreshFileInfo(opts)
 		if !updated {
 			file, err := NewFileInfo(opts)
@@ -154,8 +160,7 @@ func refreshFileInfo(opts FileOptions) bool {
 	if err != nil {
 		return false
 	}
-	_ = file.detectType(adjustedPath, true, false, opts.ReadHeader)
-
+	_ = file.detectType(adjustedPath, true, opts.Content, opts.ReadHeader)
 	if file.IsDir {
 		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
 		if err != nil {
@@ -273,12 +278,33 @@ func (i *FileInfo) RealPath() string {
 	return i.Path
 }
 
+// addContent reads and sets content based on the file type.
+func (i *FileInfo) addContent(path string) error {
+	if !i.IsDir {
+		afs := &afero.Afero{Fs: i.Fs}
+		content, err := afs.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		c := string(string(content))
+		if !utf8.ValidString(c) {
+			return nil
+		}
+		i.Content = string(c)
+	}
+	return nil
+}
+
 // detectType detects the file type.
 func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool) error {
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
+		if saveContent {
+			return i.addContent(path)
+		}
 		return nil
 	}
+
 	var buffer []byte
 	if readHeader {
 		buffer = i.readFirstBytes()
@@ -287,23 +313,20 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 			http.DetectContentType(buffer)
 		}
 	}
+
 	ext := filepath.Ext(i.Name)
 	for _, fileType := range AllFiletypeOptions {
 		if IsMatchingType(ext, fileType) {
 			i.Type = fileType
 		}
+
 		switch i.Type {
 		case "text":
 			if !modify {
 				i.Type = "textImmutable"
 			}
 			if saveContent {
-				afs := &afero.Afero{Fs: i.Fs}
-				content, err := afs.ReadFile(path)
-				if err != nil {
-					return err
-				}
-				i.Content = string(content)
+				return i.addContent(path)
 			}
 		case "video":
 			parentDir := strings.TrimRight(path, i.Name)
@@ -311,12 +334,21 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 		case "doc":
 			if ext == ".pdf" {
 				i.Type = "pdf"
+				return nil
+			}
+			if saveContent {
+				return i.addContent(path)
 			}
 		}
 	}
+
 	if i.Type == "" {
 		i.Type = "blob"
+		if saveContent {
+			return i.addContent(path)
+		}
 	}
+
 	return nil
 }
 

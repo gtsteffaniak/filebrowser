@@ -1,20 +1,20 @@
 <template>
-  <div>
+  <div >
     <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
     <listingBar
       :class="{ 'dark-mode-header': isDarkMode }"
-      v-if="currentView === 'listingView'"
+      v-if="currentView == 'listingView'"
     ></listingBar>
     <editorBar
       :class="{ 'dark-mode-header': isDarkMode }"
-      v-else-if="currentView === 'editor'"
+      v-else-if="currentView == 'editor'"
     ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
-    <main :class="{ 'dark-mode': isDarkMode }">
+    <main :class="{ 'dark-mode': isDarkMode }" >
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -73,10 +73,9 @@ export default {
       if (this.req.type == undefined) {
         return null;
       }
-
       if (this.req.isDir) {
         return "listingView";
-      } else if (this.req.type === "text" || this.req.type === "textImmutable") {
+      } else if (Object.prototype.hasOwnProperty.call(this.req, 'content')) {
         return "editor";
       } else {
         return "preview";

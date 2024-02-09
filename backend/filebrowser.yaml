@@ -1,7 +1,7 @@
 server:
-  port: 9050
+  port: 8080
   baseURL:  "/"
-  root: "/Users/steffag/go"
+  root: "/srv"
 auth:
   method: password
   signup: false

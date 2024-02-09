@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="padding-bottom: 5em;">
     <div v-if="selectedCount > 0" id="file-selection">
       <span>{{ selectedCount }} selected</span>
       <template>
