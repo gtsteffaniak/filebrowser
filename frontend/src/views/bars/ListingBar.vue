@@ -161,7 +161,7 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
-
+    if (!this.user) return
     if (!this.user.perm.create) return;
     document.addEventListener("dragover", this.preventDefault);
     document.addEventListener("dragenter", this.dragEnter);

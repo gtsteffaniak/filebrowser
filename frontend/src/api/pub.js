@@ -1,15 +1,21 @@
-import { fetchURL, removePrefix, createURL } from "./utils";
+import { removePrefix, createURL } from "./utils";
 import { baseURL } from "@/utils/constants";
 
 export async function fetchPub(url, password = "") {
   url = removePrefix(url);
-  const res = await fetchURL(
-    `/api/public/share${url}`,
-    {
-      headers: { "X-SHARE-PASSWORD": encodeURIComponent(password) },
-    },
-    false
+  const res = await fetch(
+      `/api/public/share${url}`,
+      {
+        headers: {
+          "X-SHARE-PASSWORD": encodeURIComponent(password),
+        },
+      }
   );
+  if (res.status != 200) {
+    const error = new Error("000 No connection");
+    error.status = res.status;
+    throw error;
+  }
 
   let data = await res.json();
   data.url = `/share${url}`;
@@ -36,7 +42,6 @@ export function download(format, hash, token, ...files) {
     url += encodeURIComponent(files[0]) + "?";
   } else {
     let arg = "";
-
     for (let file of files) {
       arg += encodeURIComponent(file) + ",";
     }
@@ -63,7 +68,6 @@ export function getPublicUser() {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      console.log("valid!")
       return response.json();
     })
     .catch(error => {
@@ -77,9 +81,8 @@ export function getDownloadURL(share, inline = false) {
     ...(inline && { inline: "true" }),
     ...(share.token && { token: share.token }),
   };
-
   if (share.path == undefined) {
     share.path = ""
   }
-  return createURL("api/public/dl/" + share.hash + share.path, params, false);
+  return createURL("api/public/dl/" + share.hash + "/"+share.path, params, false);
 }

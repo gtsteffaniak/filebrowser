@@ -1,7 +1,7 @@
 server:
   port: 9050
   baseURL:  "/"
-  root: "/home/graham"
+  root: "/Users/steffag/go"
 auth:
   method: password
   signup: false

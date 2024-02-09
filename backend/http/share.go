@@ -129,7 +129,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return status, err
 	}
-
+	stringHash := ""
 	var token string
 	if len(hash) > 0 {
 		tokenBuffer := make([]byte, 24) //nolint:gomnd
@@ -137,14 +137,14 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 			return http.StatusInternalServerError, err
 		}
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
+		stringHash = string(hash)
 	}
-
 	s = &share.Link{
 		Path:         strings.TrimSuffix(r.URL.Path, "/"),
 		Hash:         str,
 		Expire:       expire,
 		UserID:       d.user.ID,
-		PasswordHash: string(hash),
+		PasswordHash: stringHash,
 		Token:        token,
 	}
 
