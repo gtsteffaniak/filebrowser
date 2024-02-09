@@ -2,10 +2,10 @@ package http
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"net/url"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -19,16 +19,16 @@ import (
 
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		log.Println("status of request")
-
 		id, path := ifPathWithName(r)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {
 			return errToStatus(err), err
 		}
-		status, err := authenticateShareRequest(r, link)
-		if status != 0 || err != nil {
-			return status, err
+		if link.Hash != "" {
+			status, err := authenticateShareRequest(r, link)
+			if status != 0 || err != nil {
+				return status, err
+			}
 		}
 		d.user = &users.PublicUser
 		if path == "/" {
@@ -39,10 +39,12 @@ var withHashFile = func(fn handleFunc) handleFunc {
 			path = link.Path + "/" + path
 		}
 		sharePath := settings.Config.Server.Root + path
-		fsPath := afero.NewBasePathFs(afero.NewOsFs(), sharePath)
+		lastComponent := filepath.Base(sharePath)
+		basePath := filepath.Dir(sharePath)
+		fsPath := afero.NewBasePathFs(afero.NewOsFs(), basePath)
 		file, err := files.FileInfoFaster(files.FileOptions{
 			Fs:         fsPath,
-			Path:       sharePath,
+			Path:       lastComponent,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -68,9 +70,8 @@ func ifPathWithName(r *http.Request) (id, filePath string) {
 }
 
 var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-
 	file := d.raw.(*files.FileInfo)
-	file.Path = strings.TrimPrefix(file.Path, "/home/graham")
+	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
 	if file.IsDir {
 		return renderJSON(w, r, file)
 	}

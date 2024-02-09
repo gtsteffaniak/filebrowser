@@ -108,7 +108,7 @@
           </div>
           <div id="listingView" class="list file-icons">
             <item
-              v-for="item in req.items.slice(0, this.showLimit)"
+              v-for="item in req.items"
               :key="base64(item.name)"
               v-bind:index="item.index"
               v-bind:name="item.name"
@@ -120,15 +120,6 @@
               readOnly
             >
             </item>
-            <div
-              v-if="req.items.length > showLimit"
-              class="item"
-              @click="showLimit += 100"
-            >
-              <div>
-                <p class="name">+ {{ req.items.length - showLimit }}</p>
-              </div>
-            </div>
 
             <div :class="{ active: $store.state.multiple }" id="multiple-selection">
               <p>{{ $t("files.multipleSelectionEnabled") }}</p>
@@ -194,12 +185,6 @@ export default {
     },
   },
   created: function () {
-    if (this.req.user == undefined) {
-      console.log("getting user");
-      let userData = api.getPublicUser();
-      console.log(userData);
-      this.$store.commit("updateRequest", this.req);
-    }
     const hash = this.$route.params.pathMatch.split("/")[0];
     this.hash = hash;
     this.fetchData();
@@ -256,29 +241,23 @@ export default {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     fetchData: async function () {
+      // Set loading to true and reset the error.
+      this.setLoading(true);
+      this.error = null;
       // Reset view information.
-      console.log(this.user);
       if (this.user == undefined) {
-        this.setLoading(true);
-        return;
+        let userData = await api.getPublicUser();
+        this.req.user = userData
+        this.$store.commit("updateRequest", this.req);
       }
       this.$store.commit("setReload", false);
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
       this.$store.commit("closeHovers");
 
-      // Set loading to true and reset the error.
-      this.setLoading(true);
-      this.error = null;
-
-      if (this.password !== "") {
-        this.attemptedPasswordLogin = true;
-      }
-
       let url = this.$route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
-
       try {
         let file = await api.fetchPub(url, this.password);
         file.hash = this.hash;
