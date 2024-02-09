@@ -9,11 +9,9 @@
   <img width="800" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/899152cf-3e69-4179-aa82-752af2df3fc6" title="Main Screenshot">
 </p>
 
-> [!NOTE]  
-> Only intended to be used with docker.
-
 > [!WARNING]
 > Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml` configuration file.
+> Starting with v0.2.4 *ALL* share links need to be re-created (due to security fix).
 
 This fork makes the following significant changes to filebrowser for origin:
 
@@ -22,12 +20,12 @@ This fork makes the following significant changes to filebrowser for origin:
     - realtime results as you type
     - Works with more type filters
     - interactive results page.
- 1. [x] Revamped and simplified GUI navbar and sidebar menu.
- 1. [x] **IMPORTANT** Revamped configuration via `filebrowser.yml` config file.
- 1. [x] More configurations possible at a per-user level
+ 2. [x] Revamped and simplified GUI navbar and sidebar menu.
+ 3. [x] **IMPORTANT** Revamped configuration via `filebrowser.yml` config file.
+ 4. [x] More configurations possible at a per-user level
     - <img width="450" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/625bd7c4-5ee9-4011-aaae-2a388ab0813b">
- 1. [x] Additional compact view mode as well as refreshed view mode styles.
-    
+ 5. [x] Additional compact view mode as well as refreshed view mode styles.
+
 ## About
 
 Filebrowser provides a file managing interface within a specified directory
@@ -103,11 +101,32 @@ volumes:
 
 ```
 
+Not using docker (not recommended)
+
+```
+./filebrowser -f <filebrowser.yml or other /path/to/config.yaml>
+```
+
 ## Configuration
 
 All configuration is now done via a single configuration file: `filebrowser.yaml`, here is an example minimal [configuration file](./backend/filebrowser.yaml).
 
 View the [Configuration Help Page](./configuration.md) for available configuration options and other help.
+
+
+## Migration from filebrowser/filebrowser
+
+If you are currently using filebrowser from the filebrowser/filebrowser repo, but want to try using this. I recommend you start fresh without reusing the database, but there are a few things you'll need to do if you must migrate:
+
+1. Create a configuration file as mentioned above.
+2. Copy your database file from the original filebrowser to the path of the new one.
+3. Update the configuration file to use the database (under server in filebrowser.yml)
+4. Update the configuration or dockerfile to match ports. (internal default ports have been changed from 80 to 8080, This can be updated in the filebrowser.yml config file.)
+5. If you are using docker, update the docker-compose file or docker run command to use the config file as described in the install section above.
+6. If you are not using docker, just make sure you run filebrowser -f filebrowser.yml and have valid filebrowser config.
+
+
+The filebrowser application should run with the same user and rules that you have from the original. But keep in mind the differences that are mentioned at the top of this readme.
 
 ### background & help
 
