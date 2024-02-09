@@ -2,10 +2,10 @@ import { createURL, fetchURL, removePrefix } from "./utils";
 import { baseURL } from "@/utils/constants";
 import store from "@/store";
 
-export async function fetch(url) {
+export async function fetch(url,content=false) {
   url = removePrefix(url);
 
-  const res = await fetchURL(`/api/resources${url}`, {});
+  const res = await fetchURL(`/api/resources${url}?content=${content}`, {});
 
   let data = await res.json();
   data.url = `/files${url}`;

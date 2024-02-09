@@ -51,10 +51,9 @@ export default {
       if (this.req.type == undefined) {
         return null;
       }
-
       if (this.req.isDir) {
         return "listingView";
-      } else if (this.req.type === "text" || this.req.type === "textImmutable") {
+      } else if (this.req.hasOwnProperty('content')) {
         return "editor";
       } else {
         return "preview";
@@ -106,7 +105,11 @@ export default {
       if (url[0] !== "/") url = "/" + url;
 
       try {
-        const res = await api.fetch(url);
+        let res = await api.fetch(url);
+        if (!res.isDir) {
+          // get content of file if possible
+          res = await api.fetch(url,true);
+        }
 
         if (clean(res.path) !== clean(`/${this.$route.params.pathMatch}`)) {
           return;

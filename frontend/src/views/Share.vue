@@ -59,7 +59,7 @@
             <img :src="inlineLink" width="500px" />
           </div>
           <div
-            v-if="isVideo"
+            v-if="isMedia"
             class="share__box__element share__box__center share__box__icon"
           >
             <video width="500" height="500" controls>
@@ -231,8 +231,8 @@ export default {
     isImage: function () {
       return this.req.type == "image";
     },
-    isVideo: function () {
-      return this.req.type == "video";
+    isMedia: function () {
+      return this.req.type == "video" || this.req.type == "audio";
     },
   },
   methods: {
