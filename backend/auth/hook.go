@@ -145,7 +145,6 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 	}
 
 	if u == nil {
-		log.Println("creds", a.Cred.Password)
 		// create user with the provided credentials
 		d := &users.User{
 			Username:     a.Cred.Username,

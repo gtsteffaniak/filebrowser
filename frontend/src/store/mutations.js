@@ -3,26 +3,34 @@ import moment from "moment";
 
 const mutations = {
   closeHovers: (state) => {
-    state.show = null;
-    state.showConfirm = null;
+    state.prompts = [];
   },
   toggleShell: (state) => {
     state.showShell = !state.showShell;
   },
   showHover: (state, value) => {
     if (typeof value !== "object") {
-      state.show = value;
+      state.prompts.push({
+        prompt: value,
+        confirm: null,
+        action: null,
+        props: null,
+      });
       return;
     }
 
-    state.show = value.prompt;
-    state.showConfirm = value.confirm;
+    state.prompts.push({
+      prompt: value.prompt, // Should not be null
+      confirm: value?.confirm,
+      action: value?.action,
+      props: value?.props,
+    });
   },
   showError: (state) => {
-    state.show = "error";
+    state.prompts.push("error");
   },
   showSuccess: (state) => {
-    state.show = "success";
+    state.prompts.push("success");
   },
   setLoading: (state, value) => {
     state.loading = value;
@@ -60,19 +68,27 @@ const mutations = {
   },
   updateUser: (state, value) => {
     if (typeof value !== "object") return;
-
+    if (state.user === null) {
+      state.user = {};
+    }
     for (let field in value) {
       if (field === "locale") {
         moment.locale(value[field]);
         i18n.default.locale = value[field];
       }
-
       state.user[field] = value[field];
     }
   },
   updateRequest: (state, value) => {
+    const selectedItems = state.selected.map((i) => state.req.items[i]);
     state.oldReq = state.req;
     state.req = value;
+    state.selected = [];
+
+    if (!state.req?.items) return;
+    state.selected = state.req.items
+      .filter((item) => selectedItems.some((rItem) => rItem.url === item.url))
+      .map((item) => item.index);
   },
   // Inside your mutations object
   updateListingSortConfig(state, { field, asc }) {

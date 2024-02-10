@@ -1,20 +1,24 @@
-import { fetchURL, removePrefix, createURL } from "./utils";
+import { removePrefix, createURL } from "./utils";
 import { baseURL } from "@/utils/constants";
 
-export async function fetch(url, password = "") {
+export async function fetchPub(url, password = "") {
   url = removePrefix(url);
-
-  const res = await fetchURL(
-    `/api/public/share${url}`,
-    {
-      headers: { "X-SHARE-PASSWORD": encodeURIComponent(password) },
-    },
-    false
+  const res = await fetch(
+      `/api/public/share${url}`,
+      {
+        headers: {
+          "X-SHARE-PASSWORD": encodeURIComponent(password),
+        },
+      }
   );
+  if (res.status != 200) {
+    const error = new Error("000 No connection");
+    error.status = res.status;
+    throw error;
+  }
 
   let data = await res.json();
   data.url = `/share${url}`;
-
   if (data.isDir) {
     if (!data.url.endsWith("/")) data.url += "/";
     data.items = data.items.map((item, index) => {
@@ -34,12 +38,10 @@ export async function fetch(url, password = "") {
 
 export function download(format, hash, token, ...files) {
   let url = `${baseURL}/api/public/dl/${hash}`;
-
   if (files.length === 1) {
     url += encodeURIComponent(files[0]) + "?";
   } else {
     let arg = "";
-
     for (let file of files) {
       arg += encodeURIComponent(file) + ",";
     }
@@ -60,11 +62,27 @@ export function download(format, hash, token, ...files) {
   window.open(url);
 }
 
+export function getPublicUser() {
+  return fetch("/api/public/publicUser")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .catch(error => {
+      console.error("Error fetching public user:", error);
+      throw error;
+    });
+}
+
 export function getDownloadURL(share, inline = false) {
   const params = {
     ...(inline && { inline: "true" }),
     ...(share.token && { token: share.token }),
   };
-
-  return createURL("api/public/dl/" + share.hash + share.path, params, false);
+  if (share.path == undefined) {
+    share.path = ""
+  }
+  return createURL("api/public/dl/" + share.hash + "/"+share.path, params, false);
 }

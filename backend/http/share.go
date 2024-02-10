@@ -22,7 +22,6 @@ func withPermShare(fn handleFunc) handleFunc {
 		if !d.user.Perm.Share {
 			return http.StatusForbidden, nil
 		}
-
 		return fn(w, r, d)
 	})
 }
@@ -51,7 +50,6 @@ var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		}
 		return s[i].Expire < s[j].Expire
 	})
-
 	return renderJSON(w, r, s)
 })
 
@@ -77,10 +75,15 @@ var shareDeleteHandler = withPermShare(func(w http.ResponseWriter, r *http.Reque
 	}
 
 	err := d.store.Share.Delete(hash)
+	if err != nil {
+		return errToStatus(err), err
+	}
+
 	return errToStatus(err), err
 })
 
 var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+
 	var s *share.Link
 	var body share.CreateBody
 	if r.Body != nil {
@@ -126,7 +129,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return status, err
 	}
-
+	stringHash := ""
 	var token string
 	if len(hash) > 0 {
 		tokenBuffer := make([]byte, 24) //nolint:gomnd
@@ -134,14 +137,14 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 			return http.StatusInternalServerError, err
 		}
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
+		stringHash = string(hash)
 	}
-
 	s = &share.Link{
-		Path:         r.URL.Path,
+		Path:         strings.TrimSuffix(r.URL.Path, "/"),
 		Hash:         str,
 		Expire:       expire,
 		UserID:       d.user.ID,
-		PasswordHash: string(hash),
+		PasswordHash: stringHash,
 		Token:        token,
 	}
 
@@ -153,6 +156,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 })
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
+
 	if body.Password == "" {
 		return nil, 0, nil
 	}

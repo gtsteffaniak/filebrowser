@@ -1,13 +1,20 @@
 <template>
-  <div>
+  <div >
+    <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar :class="{ 'dark-mode-header': isDarkMode }" v-if="currentView === 'listing'"></listingBar>
-    <editorBar :class="{ 'dark-mode-header': isDarkMode }" v-else-if="currentView === 'editor'"></editorBar>
+    <listingBar
+      :class="{ 'dark-mode-header': isDarkMode }"
+      v-if="currentView == 'listingView'"
+    ></listingBar>
+    <editorBar
+      :class="{ 'dark-mode-header': isDarkMode }"
+      v-else-if="currentView == 'editor'"
+    ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
-    <main :class="{ 'dark-mode': isDarkMode }">
+    <main :class="{ 'dark-mode': isDarkMode }" >
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -45,20 +52,30 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["isLogged", "progress", "isListing"]),
+    ...mapGetters([
+      "isLogged",
+      "progress",
+      "isListing",
+      "currentPrompt",
+      "currentPromptName",
+    ]),
     ...mapState(["req", "user", "state"]),
+    showOverlay: function () {
+      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
+    },
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
+      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
+        ? this.user.darkMode
+        : darkMode;
     },
     isExecEnabled: () => enableExec,
     currentView() {
       if (this.req.type == undefined) {
         return null;
       }
-
       if (this.req.isDir) {
-        return "listing";
-      } else if (this.req.type === "text" || this.req.type === "textImmutable") {
+        return "listingView";
+      } else if (Object.prototype.hasOwnProperty.call(this.req, 'content')) {
         return "editor";
       } else {
         return "preview";
@@ -69,10 +86,13 @@ export default {
     $route: function () {
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
-      if (this.$store.state.show !== "success") this.$store.commit("closeHovers");
+      if (this.currentPrompt?.prompt !== "success") this.$store.commit("closeHovers");
     },
   },
   methods: {
+    resetPrompts() {
+      this.$store.commit("closeHovers");
+    },
     getTitle() {
       let title = "Title";
       if (this.$route.path.startsWith("/settings/")) {
@@ -85,13 +105,12 @@ export default {
 </script>
 
 <style>
-
 main {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
 }
-main::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+main::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 /* Use the class .dark-mode to apply styles conditionally */
 .dark-mode {
@@ -101,7 +120,7 @@ main::-webkit-scrollbar {
 
 /* Header */
 .dark-mode-header {
-  color:white;
+  color: white;
   background: var(--surfacePrimary);
 }
 

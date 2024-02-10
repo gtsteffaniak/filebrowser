@@ -29,10 +29,9 @@ var textTypes = []string{
 	".yaml",
 	".yml",
 	".json",
-	".bashrc",
-	".zshrc",
 	".env",
 }
+
 var compressedFile = []string{
 	".7z",
 	".rar",

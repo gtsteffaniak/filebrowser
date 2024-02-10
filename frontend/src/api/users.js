@@ -1,7 +1,7 @@
 import { fetchURL, fetchJSON } from "./utils";
 
 export async function getAll() {
-  return fetchJSON(`/api/users`, {});
+  return await fetchJSON(`/api/users`, {});
 }
 
 export async function get(id) {

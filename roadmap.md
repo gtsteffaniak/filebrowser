@@ -1,10 +1,13 @@
 # Planned Roadmap
 
-Next version : 
+Next version (v0.2.5) :
 
 - Feature: config gets updated when settings change, ensuring that running settings are up to date.
-- Feature: Move / Create Action Dialogs https://github.com/filebrowser/filebrowser/pull/2667
-- Feature: playable shared video https://github.com/filebrowser/filebrowser/issues/2537
+- Replace http routes for gorilla/mux with std library
+- Replace afero requests with std library
+- Add Job status to the sidebar - index status.
+- Use vite instead of webpack
+- upgrade to vue3
 
 Future releases (within 6 months):
 
@@ -13,7 +16,5 @@ Future releases (within 6 months):
  - Add tools to sidebar
    - duplicate file detector.
    - bulk rename https://github.com/filebrowser/filebrowser/issues/2473
- - Add Job status to the sidebar - index status.
- - Use vite instead of webpack
- - upgrade to vue3
+
  - support minio/s3 https://github.com/filebrowser/filebrowser/issues/2544

@@ -19,7 +19,7 @@
   </div>
 </template>
 <script>
-import throttle from "lodash.throttle";
+import throttle from "@/utils/throttle";
 import UTIF from "utif";
 
 export default {

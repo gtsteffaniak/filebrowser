@@ -97,20 +97,20 @@
 }
 
 /* Listing items */
-.dark-mode #listing .item {
+.dark-mode #listingView .item {
   background: var(--surfacePrimary);
   color: var(--textPrimary);
   border-color: var(--divider) !important;
 }
 
 /* Listing item modified text */
-.dark-mode #listing .item .modified {
+.dark-mode #listingView .item .modified {
   color: var(--textSecondary);
 }
 
 /* Listing header and span */
-.dark-mode #listing h2,
-.dark-mode #listing.list .header span {
+.dark-mode #listingView h2,
+.dark-mode #listingView.list .header span {
   color: var(--textPrimary) !important;
 }
 
@@ -265,6 +265,7 @@
 /* Button group button */
 .dark-mode .button-group button {
   color: white;
+  background-color:var(--background);
 }
 
 /* Result desktop */

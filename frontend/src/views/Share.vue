@@ -1,8 +1,6 @@
 <template>
   <div>
-
     <breadcrumbs :base="'/share/' + hash" />
-
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -50,13 +48,24 @@
       <div class="share">
         <div class="share__box share__box__info">
           <div class="share__box__header">
-            {{
-              req.isDir
-                ? $t("download.downloadFolder")
-                : $t("download.downloadFile")
-            }}
+            {{ req.isDir ? $t("download.downloadFolder") : $t("download.downloadFile") }}
           </div>
-          <div class="share__box__element share__box__center share__box__icon">
+
+          <div
+            v-if="isImage"
+            class="share__box__element share__box__center share__box__icon"
+          >
+            <img :src="inlineLink" width="500px" />
+          </div>
+          <div
+            v-if="isMedia"
+            class="share__box__element share__box__center share__box__icon"
+          >
+            <video width="500" height="500" controls>
+              <source :src="inlineLink" type="video/mp4" />
+            </video>
+          </div>
+          <div v-else class="share__box__element share__box__center share__box__icon">
             <i class="material-icons">{{ icon }}</i>
           </div>
           <div class="share__box__element">
@@ -71,8 +80,7 @@
           <div class="share__box__element share__box__center">
             <a target="_blank" :href="link" class="button button--flat">
               <div>
-                <i class="material-icons">file_download</i
-                >{{ $t("buttons.download") }}
+                <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
               </div>
             </a>
             <a
@@ -82,8 +90,7 @@
               v-if="!req.isDir"
             >
               <div>
-                <i class="material-icons">open_in_new</i
-                >{{ $t("buttons.openFile") }}
+                <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
               </div>
             </a>
           </div>
@@ -98,9 +105,9 @@
           <div class="share__box__header" v-if="req.isDir">
             {{ $t("files.files") }}
           </div>
-          <div id="listing" class="list file-icons">
+          <div id="listingView" class="list file-icons">
             <item
-              v-for="item in req.items.slice(0, this.showLimit)"
+              v-for="item in req.items"
               :key="base64(item.name)"
               v-bind:index="item.index"
               v-bind:name="item.name"
@@ -112,20 +119,8 @@
               readOnly
             >
             </item>
-            <div
-              v-if="req.items.length > showLimit"
-              class="item"
-              @click="showLimit += 100"
-            >
-              <div>
-                <p class="name">+ {{ req.items.length - showLimit }}</p>
-              </div>
-            </div>
 
-            <div
-              :class="{ active: $store.state.multiple }"
-              id="multiple-selection"
-            >
+            <div :class="{ active: $store.state.multiple }" id="multiple-selection">
               <p>{{ $t("files.multipleSelectionEnabled") }}</p>
               <div
                 @click="$store.commit('multiple', false)"
@@ -158,6 +153,7 @@
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
+
 import moment from "moment";
 
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -176,7 +172,6 @@ export default {
   },
   data: () => ({
     error: null,
-    showLimit: 100,
     password: "",
     attemptedPasswordLogin: false,
     hash: null,
@@ -185,15 +180,13 @@ export default {
   }),
   watch: {
     $route: function () {
-      this.showLimit = 100;
-
       this.fetchData();
     },
   },
-  created: async function () {
+  created: function () {
     const hash = this.$route.params.pathMatch.split("/")[0];
     this.hash = hash;
-    await this.fetchData();
+    this.fetchData();
   },
   mounted() {
     window.addEventListener("keydown", this.keyEvent);
@@ -234,6 +227,12 @@ export default {
     modTime: function () {
       return new Date(Date.parse(this.req.modified)).toLocaleString();
     },
+    isImage: function () {
+      return this.req.type == "image";
+    },
+    isMedia: function () {
+      return this.req.type == "video" || this.req.type == "audio";
+    },
   },
   methods: {
     ...mapMutations(["resetSelected", "updateRequest", "setLoading"]),
@@ -241,30 +240,27 @@ export default {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     fetchData: async function () {
+      // Set loading to true and reset the error.
+      this.setLoading(true);
+      this.error = null;
       // Reset view information.
+      if (this.user == undefined) {
+        let userData = await api.getPublicUser();
+        this.req.user = userData
+        this.$store.commit("updateRequest", this.req);
+      }
       this.$store.commit("setReload", false);
       this.$store.commit("resetSelected");
       this.$store.commit("multiple", false);
       this.$store.commit("closeHovers");
 
-      // Set loading to true and reset the error.
-      this.setLoading(true);
-      this.error = null;
-
-      if (this.password !== "") {
-        this.attemptedPasswordLogin = true;
-      }
-
       let url = this.$route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
-
       try {
-        let file = await api.fetch(url, this.password);
+        let file = await api.fetchPub(url, this.password);
         file.hash = this.hash;
-
         this.token = file.token || "";
-
         this.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;
       } catch (e) {
@@ -287,18 +283,11 @@ export default {
       this.$store.commit("multiple", !this.multiple);
     },
     isSingleFile: function () {
-      return (
-        this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir
-      );
+      return this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir;
     },
     download() {
       if (this.isSingleFile()) {
-        api.download(
-          null,
-          this.hash,
-          this.token,
-          this.req.items[this.selected[0]].path
-        );
+        api.download(null, this.hash, this.token, this.req.items[this.selected[0]].path);
         return;
       }
 

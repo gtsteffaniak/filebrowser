@@ -12,33 +12,39 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/files"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		id, ifPath := ifPathWithName(r)
+		id, path := ifPathWithName(r)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {
 			return errToStatus(err), err
 		}
-
-		status, err := authenticateShareRequest(r, link)
-		if status != 0 || err != nil {
-			return status, err
+		if link.Hash != "" {
+			status, err := authenticateShareRequest(r, link)
+			if status != 0 || err != nil {
+				return status, err
+			}
 		}
-
-		user, err := d.store.Users.Get(d.server.Root, link.UserID)
-		if err != nil {
-			return errToStatus(err), err
+		d.user = &users.PublicUser
+		if path == "/" {
+			path = link.Path
+		} else if strings.HasPrefix("/"+path, link.Path) {
+			path = "/" + path
+		} else {
+			path = link.Path + "/" + path
 		}
-
-		d.user = user
-
+		sharePath := settings.Config.Server.Root + path
+		lastComponent := filepath.Base(sharePath)
+		basePath := filepath.Dir(sharePath)
+		fsPath := afero.NewBasePathFs(afero.NewOsFs(), basePath)
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         d.user.Fs,
-			Path:       link.Path,
+			Fs:         fsPath,
+			Path:       lastComponent,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -48,63 +54,36 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		if err != nil {
 			return errToStatus(err), err
 		}
-
-		// share base path
-		basePath := link.Path
-
-		// file relative path
-		filePath := ""
-
-		if file.IsDir {
-			basePath = filepath.Dir(basePath)
-			filePath = ifPath
-		}
-
-		// set fs root to the shared file/folder
-		d.user.Fs = afero.NewBasePathFs(d.user.Fs, basePath)
-
-		file, err = files.FileInfoFaster(files.FileOptions{
-			Fs:      d.user.Fs,
-			Path:    filePath,
-			Modify:  d.user.Perm.Modify,
-			Expand:  true,
-			Checker: d,
-			Token:   link.Token,
-		})
-		if err != nil {
-			return errToStatus(err), err
-		}
-
 		d.raw = file
 		return fn(w, r, d)
 	}
 }
 
-// ref to https://github.com/filebrowser/filebrowser/pull/727
-// `/api/public/dl/MEEuZK-v/file-name.txt` for old browsers to save file with correct name
 func ifPathWithName(r *http.Request) (id, filePath string) {
 	pathElements := strings.Split(r.URL.Path, "/")
-	// prevent maliciously constructed parameters like `/api/public/dl/XZzCDnK2_not_exists_hash_name`
-	// len(pathElements) will be 1, and golang will panic `runtime error: index out of range`
-
-	switch len(pathElements) {
-	case 1:
-		return r.URL.Path, "/"
-	default:
-		return pathElements[0], path.Join("/", path.Join(pathElements[1:]...))
+	id = pathElements[0]
+	allButFirst := path.Join(pathElements[1:]...)
+	if len(pathElements) == 1 {
+		allButFirst = "/"
 	}
+	return id, allButFirst
 }
 
 var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file := d.raw.(*files.FileInfo)
-
+	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
 	if file.IsDir {
-		file.Listing.Sorting = users.Sorting{By: "name", Asc: false}
 		return renderJSON(w, r, file)
 	}
 
 	return renderJSON(w, r, file)
 })
+
+var publicUserGetHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	// Call the actual handler logic here (e.g., renderJSON, etc.)
+	// You may need to replace `fn` with the actual handler logic.
+	return renderJSON(w, r, users.PublicUser)
+}
 
 var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file := d.raw.(*files.FileInfo)
@@ -138,7 +117,6 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		}
 		return 0, err
 	}
-
 	return 0, nil
 }
 

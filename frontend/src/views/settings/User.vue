@@ -14,8 +14,8 @@
             :createUserDir="createUserDir"
             :isDefault="false"
             :isNew="isNew"
-            @update:user="updatedUser => user = updatedUser"
-            @update:createUserDir="updatedDir => createUserDir = updatedDir"
+            @update:user="(updatedUser) => (user = updatedUser)"
+            @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
           />
         </div>
 
@@ -30,11 +30,7 @@
           >
             {{ $t("buttons.delete") }}
           </button>
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="$t('buttons.save')"
-          />
+          <input class="button button--flat" type="submit" :value="$t('buttons.save')" />
         </div>
       </form>
     </div>
@@ -63,11 +59,12 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from "vuex";
+import { mapState, mapMutations, mapGetters } from "vuex";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm";
 import Errors from "@/views/Errors";
-import deepClone from "lodash.clonedeep";
+
+import deepClone from "@/utils/deepclone";
 
 export default {
   name: "user",
@@ -92,8 +89,9 @@ export default {
       return this.$route.path === "/settings/users/new";
     },
     ...mapState(["loading"]),
+    ...mapGetters(["currentPrompt", "currentPromptName"]),
     showDeletePrompt() {
-      return this.showDelete;
+      return this.currentPromptName == "deleteUser";
     },
   },
   watch: {

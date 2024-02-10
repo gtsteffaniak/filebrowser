@@ -17,6 +17,7 @@ type Rule struct {
 	Allow  bool    `json:"allow"`
 	Path   string  `json:"path"`
 	Regexp *Regexp `json:"regexp"`
+	Id     string  `json:"id"`
 }
 
 // MatchHidden matches paths with a basename
