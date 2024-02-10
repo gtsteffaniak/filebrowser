@@ -30,9 +30,6 @@ export default {
   computed: {
     ...mapState(["req", "user"]),
     items() {
-      if (this.req.user == undefined) {
-        return;
-      }
 
       const relativePath = this.$route.path.replace(this.base, "");
       let parts = relativePath.split("/");
