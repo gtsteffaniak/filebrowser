@@ -1,5 +1,5 @@
 <template>
-  <header-bar>
+  <header>
     <action
       class="menu-button"
       icon="menu"
@@ -13,13 +13,13 @@
       :label="$t('buttons.switchView')"
       @action="switchView"
     />
-  </header-bar>
+  </header>
 </template>
 
 <style>
 .flexbar {
-  display:flex;
-  flex-direction:block;
+  display: flex;
+  flex-direction: block;
   justify-content: space-between;
 }
 </style>
@@ -28,18 +28,15 @@
 import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { users, files as api } from "@/api";
-import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
-import throttle from "lodash.throttle";
+import throttle from "@/utils/throttle";
 import Search from "@/components/Search.vue";
 
-
 export default {
-  name: "listing",
+  name: "listingView",
   components: {
-    HeaderBar,
     Action,
     Search,
   },
@@ -50,12 +47,12 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       itemWeight: 0,
-      viewModes: ['list', 'compact', 'normal', 'gallery'],
+      viewModes: ["list", "compact", "normal", "gallery"],
     };
   },
   computed: {
     ...mapState(["req", "selected", "user", "show", "multiple", "selected", "loading"]),
-    ...mapGetters(["selectedCount"]),
+    ...mapGetters(["selectedCount", "currentPrompt"]),
     nameSorted() {
       return this.req.sorting.by === "name";
     },
@@ -164,7 +161,7 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
-
+    if (!this.user) return
     if (!this.user.perm.create) return;
     document.addEventListener("dragover", this.preventDefault);
     document.addEventListener("dragenter", this.dragEnter);
@@ -192,7 +189,7 @@ export default {
       this.$emit("action");
     },
     toggleSidebar() {
-      if (this.$store.state.show == "sidebar") {
+      if (this.currentPrompt?.prompt === "sidebar") {
         this.$store.commit("closeHovers");
       } else {
         this.$store.commit("showHover", "sidebar");
@@ -379,7 +376,7 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listing .item", "#listing .item"]);
+      let items = css(["#listingView .item", "#listingView .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },
@@ -548,7 +545,7 @@ export default {
       this.width = window.innerWidth;
 
       // Listing element is not displayed
-      if (this.$refs.listing == null) return;
+      if (this.$refs.listingView == null) return;
 
       // How much every listing item affects the window height
       this.setItemWeight();
@@ -592,13 +589,13 @@ export default {
     },
     setItemWeight() {
       // Listing element is not displayed
-      if (this.$refs.listing == null) return;
+      if (this.$refs.listingView == null) return;
 
       let itemQuantity = this.req.numDirs + this.req.numFiles;
       if (itemQuantity > this.showLimit) itemQuantity = this.showLimit;
 
       // How much every listing item affects the window height
-      this.itemWeight = this.$refs.listing.offsetHeight / itemQuantity;
+      this.itemWeight = this.$refs.listingView.offsetHeight / itemQuantity;
     },
     fillWindow(fit = false) {
       const totalItems = this.req.numDirs + this.req.numFiles;

@@ -27,7 +27,7 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		Expand:     true,
 		ReadHeader: d.server.TypeDetectionByHeader,
 		Checker:    d,
-		Content:    true,
+		Content:    r.URL.Query().Get("content") == "true",
 	})
 	if err != nil {
 		return errToStatus(err), err

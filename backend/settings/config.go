@@ -52,7 +52,7 @@ func setDefaults() Settings {
 			ResizePreview:      false,
 			EnableExec:         false,
 			IndexingInterval:   5,
-			Port:               8080,
+			Port:               80,
 			NumImageProcessors: 4,
 			BaseURL:            "",
 			Database:           "database.db",

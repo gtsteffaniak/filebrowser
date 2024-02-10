@@ -16,14 +16,10 @@
     "clipboard": "^2.0.4",
     "css-vars-ponyfill": "^2.4.3",
     "file-loader": "^6.2.0",
-    "js-base64": "^2.5.1",
-    "lodash.clonedeep": "^4.5.0",
-    "lodash.throttle": "^4.1.1",
     "material-icons": "^1.10.5",
     "moment": "^2.29.4",
     "normalize.css": "^8.0.1",
     "noty": "^3.2.0-beta",
-    "pretty-bytes": "^6.0.0",
     "qrcode.vue": "^1.7.0",
     "utif": "^3.1.0",
     "vue": "^2.6.10",
@@ -33,8 +29,7 @@
     "vue-router": "^3.1.3",
     "vue-simple-progress": "^1.1.1",
     "vuex": "^3.1.2",
-    "vuex-router-sync": "^5.0.0",
-    "whatwg-fetch": "^3.6.2"
+    "vuex-router-sync": "^5.0.0"
   },
   "devDependencies": {
     "@vue/cli-service": "^5.0.8",
@@ -42,10 +37,5 @@
     "eslint": "^8.51.0",
     "eslint-plugin-vue": "^9.17.0",
     "vue-template-compiler": "^2.6.10"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie < 11"
-  ]
+  }
 }

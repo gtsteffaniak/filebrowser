@@ -20,7 +20,7 @@ func (s settingsBackend) Save(set *settings.Settings) error {
 
 func (s settingsBackend) GetServer() (*settings.Server, error) {
 	server := &settings.Server{
-		Port:               8080,
+		Port:               80,
 		NumImageProcessors: 1,
 	}
 	return server, get(s.db, "server", server)

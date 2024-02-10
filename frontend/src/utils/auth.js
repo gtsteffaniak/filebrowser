@@ -1,6 +1,5 @@
 import store from "@/store";
 import router from "@/router";
-import { Base64 } from "js-base64";
 import { baseURL } from "@/utils/constants";
 
 export function parseToken(token) {
@@ -10,7 +9,7 @@ export function parseToken(token) {
     throw new Error("token malformed");
   }
 
-  const data = JSON.parse(Base64.decode(parts[1]));
+  const data = JSON.parse(atob(parts[1]));
   document.cookie = `auth=${token}; path=/`;
   localStorage.setItem("jwt", token);
   store.commit("setJWT", token);

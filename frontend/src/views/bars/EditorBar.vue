@@ -1,10 +1,15 @@
 <template>
-  <header-bar>
+  <header>
     <action icon="close" :label="$t('buttons.close')" @action="close()" />
     <title class="topTitle">{{ req.name }}</title>
-    <action v-if="user.perm.modify" id="save-button" icon="save" :label="$t('buttons.save')"
-      @action="save()" />
-  </header-bar>
+    <action
+      v-if="user.perm.modify"
+      id="save-button"
+      icon="save"
+      :label="$t('buttons.save')"
+      @action="save()"
+    />
+  </header>
 </template>
 
 <style>
@@ -17,7 +22,6 @@
 .topTitle {
   display: flex;
   justify-content: center;
-
 }
 </style>
 
@@ -28,13 +32,11 @@ import { eventBus } from "@/main";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 
-import HeaderBar from "@/components/header/HeaderBar";
 import Action from "@/components/header/Action";
 
 export default {
   name: "editorBar",
   components: {
-    HeaderBar,
     Action,
   },
   data: function () {

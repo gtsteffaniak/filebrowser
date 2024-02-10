@@ -18,6 +18,14 @@ const getters = {
       Object.keys(state.upload.uploads).length + state.upload.queue.length;
     return total;
   },
+  currentPrompt: (state) => {
+    return state.prompts.length > 0
+      ? state.prompts[state.prompts.length - 1]
+      : null;
+  },
+  currentPromptName: (_, getters) => {
+    return getters.currentPrompt?.prompt;
+  },
   filesInUpload: (state) => {
     let files = [];
 

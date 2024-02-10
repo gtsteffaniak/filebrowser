@@ -92,7 +92,6 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if err != nil {
 		return errToStatus(err), err
 	}
-
 	if files.IsNamedPipe(file.Mode) {
 		setContentDisposition(w, r, file)
 		return 0, nil
@@ -109,7 +108,6 @@ func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
 	if !d.Check(path) {
 		return nil
 	}
-
 	info, err := d.user.Fs.Stat(path)
 	if err != nil {
 		return err

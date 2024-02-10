@@ -7,7 +7,7 @@ server:
   enableThumbnails: false
   resizePreview: true
   typeDetectionByHeader: true
-  port: 8080
+  port: 80
   baseURL: "/"
   address: ""
   log: "stdout"

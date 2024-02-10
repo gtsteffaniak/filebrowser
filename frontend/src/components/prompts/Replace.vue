@@ -11,7 +11,7 @@
     <div class="card-action">
       <button
         class="button button--flat button--grey"
-        @click="$store.commit('closeHovers')"
+        @click="currentPrompt.action"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
       >
@@ -19,7 +19,7 @@
       </button>
       <button
         class="button button--flat button--red"
-        @click="showConfirm"
+        @click="currentPrompt.confirm"
         :aria-label="$t('buttons.replace')"
         :title="$t('buttons.replace')"
       >
@@ -30,10 +30,10 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapGetters } from "vuex";
 
 export default {
   name: "replace",
-  computed: mapState(["showConfirm"]),
+  computed: mapGetters(["currentPrompt"]),
 };
 </script>

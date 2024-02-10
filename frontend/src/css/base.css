@@ -2,11 +2,10 @@
 body {
   font-family: "Roboto", sans-serif;
   padding-top: 4em;
-  background-color: #fafafa;
+  background-color: #f5f5f5;
   color: #333333;
   overflow:auto;
   overflow:initial;
-
 }
 body::-webkit-scrollbar {
   z-index: 1000;

@@ -15,7 +15,6 @@ export default {
       if (this.show) {
         this.$store.commit("showHover", this.show);
       }
-
       this.$emit("action");
     },
   },

@@ -29,9 +29,7 @@
     </div>
     <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
-        <div class="button" style="width: 100%">
-          Search Context: {{ getContext }}
-        </div>
+        <div class="button" style="width: 100%">Search Context: {{ getContext }}</div>
         <ul v-show="results.length > 0">
           <li
             v-for="(s, k) in results"
@@ -47,7 +45,7 @@
               <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
               <i v-else class="material-icons file-icons"> insert_drive_file </i>
               <span class="text-container">
-                {{ basePath(s.path,s.dir) }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.dir) }}<b>{{ baseName(s.path) }}</b>
               </span>
             </router-link>
           </li>
@@ -178,7 +176,7 @@
               <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
               <i v-else class="material-icons file-icons"> insert_drive_file </i>
               <span class="text-container">
-                {{ basePath(s.path,s.dir) }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.dir) }}<b>{{ baseName(s.path) }}</b>
               </span>
             </router-link>
           </li>
@@ -572,9 +570,9 @@ export default {
         resultList.classList.add("active");
       }, 100);
     },
-    show(val, old) {
-      this.active = val === "search";
-      if (old === "search" && !this.active) {
+    currentPrompt(val, old) {
+      this.active = val?.prompt === "search";
+      if (old?.prompt === "search" && !this.active) {
         if (this.reload) {
           this.setReload(true);
         }
@@ -599,10 +597,15 @@ export default {
     },
   },
   computed: {
-    ...mapState(["user", "show"]),
-    ...mapGetters(["isListing"]),
+    ...mapState(["user"]),
+    ...mapGetters(["isListing", "currentPrompt", "currentPromptName"]),
+    showOverlay: function () {
+      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
+    },
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
+      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
+        ? this.user.darkMode
+        : darkMode;
     },
     showBoxes() {
       return this.searchTypes == "";
@@ -632,11 +635,11 @@ export default {
       return this.showHelp;
     },
     getContext() {
-      let path = this.$route.path
+      let path = this.$route.path;
       path = path.slice(1);
       path = "./" + path.substring(path.indexOf("/") + 1);
       path = path.replace(/\/+$/, "") + "/";
-      return path
+      return path;
     },
   },
   mounted() {
@@ -644,6 +647,7 @@ export default {
     this.handleResize(); // Call this once to set the initial width
   },
   methods: {
+    ...mapMutations(["showHover", "closeHovers", "setReload"]),
     handleResize() {
       this.width = window.innerWidth;
     },
@@ -652,15 +656,14 @@ export default {
       await this.$nextTick();
       setTimeout(() => this.$router.push(url), 0);
     },
-    basePath(str,isDir) {
+    basePath(str, isDir) {
       let parts = str.replace(/(\/$|^\/)/, "").split("/");
       if (parts.length <= 1) {
         if (isDir) {
-          return "/"
+          return "/";
         }
         return "";
       }
-      console.log("basePath",parts)
       parts.pop();
       parts = parts.join("/") + "/";
       if (isDir) {
@@ -672,9 +675,8 @@ export default {
       let parts = str.replace(/(\/$|^\/)/, "").split("/");
       return parts.pop();
     },
-    ...mapMutations(["showHover", "closeHovers", "setReload"]),
     open() {
-      this.showHover("search");
+      this.$store.commit("showHover", "search");
     },
     close(event) {
       event.stopPropagation();

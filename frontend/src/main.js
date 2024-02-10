@@ -1,4 +1,3 @@
-import "whatwg-fetch";
 import cssVars from "css-vars-ponyfill";
 import { sync } from "vuex-router-sync";
 import store from "@/store";
@@ -7,6 +6,7 @@ import i18n from "@/i18n";
 import Vue from "@/utils/vue";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
+
 import App from "@/App";
 export const eventBus = new Vue(); // creating an event bus.
 
@@ -19,7 +19,7 @@ async function start() {
     if (loginPage) {
       await validateLogin();
     } else {
-      await login("", "", "");
+      await login("publicUser", "publicUser", "");
     }
   } catch (e) {
     console.log(e);

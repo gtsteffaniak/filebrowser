@@ -28,23 +28,24 @@ func (si *Index) GetFileMetadata(adjustedPath string) (FileInfo, bool) {
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
-	si.mu.RLock()
+	si.mu.Lock()
+	defer si.mu.Unlock()
 	dir, exists := si.Directories[adjustedPath]
-	si.mu.RUnlock()
-	if exists {
+	if !exists {
 		// Initialize the Metadata map if it is nil
 		if dir.Metadata == nil {
 			dir.Metadata = make(map[string]FileInfo)
 		}
+		si.Directories[adjustedPath] = dir
 		// Release the read lock before calling SetFileMetadata
 	}
 	return si.SetFileMetadata(adjustedPath, info)
 }
 
 // SetFileMetadata sets the FileInfo for the specified directory in the index.
+// internal use only
 func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
-	si.mu.Lock()
-	defer si.mu.Unlock()
+
 	_, exists := si.Directories[adjustedPath]
 	if !exists {
 		return false
