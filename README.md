@@ -57,7 +57,7 @@ Using docker:
 1. docker run (no persistent db):
 
 ```
-docker run -it -v /path/to/folder:/srv -p 80:8080 gtstef/filebrowser
+docker run -it -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
 ```
 
 1. docker-compose:
@@ -73,7 +73,7 @@ services:
       - './database:/database'  # optional if you want db to persist - configure a path under "database" dir in config file.
       - './filebrowser.yaml:/filebrowser.yaml' # required
     ports:
-      - '80:8080'
+      - '80:80'
     image: gtstef/filebrowser
     restart: always
 ```
@@ -89,7 +89,7 @@ services:
       - './database:/database'  # optional if you want db to persist - configure a path under "database" dir in config file.
       - './filebrowser.yaml:/filebrowser.yaml' # required
     ports:
-      - '80:8080'
+      - '80:80'
     image: gtstef/filebrowser
     restart: always
 volumes:
@@ -121,9 +121,8 @@ If you are currently using filebrowser from the filebrowser/filebrowser repo, bu
 1. Create a configuration file as mentioned above.
 2. Copy your database file from the original filebrowser to the path of the new one.
 3. Update the configuration file to use the database (under server in filebrowser.yml)
-4. Update the configuration or dockerfile to match ports. (internal default ports have been changed from 80 to 8080, This can be updated in the filebrowser.yml config file.)
-5. If you are using docker, update the docker-compose file or docker run command to use the config file as described in the install section above.
-6. If you are not using docker, just make sure you run filebrowser -f filebrowser.yml and have valid filebrowser config.
+4. If you are using docker, update the docker-compose file or docker run command to use the config file as described in the install section above.
+5. If you are not using docker, just make sure you run filebrowser -f filebrowser.yml and have valid filebrowser config.
 
 
 The filebrowser application should run with the same user and rules that you have from the original. But keep in mind the differences that are mentioned at the top of this readme.

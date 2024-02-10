@@ -18,7 +18,7 @@ server:
   enableThumbnails: false
   resizePreview: true
   typeDetectionByHeader: true
-  port: 8080
+  port: 80
   baseURL: "/"
   address: ""
   log: "stdout"
@@ -74,7 +74,7 @@ server:
   enableThumbnails: true
   enableExec: false
   indexingInterval: 5
-  port: 8080
+  port: 80
   numImageProcessors: 4
   baseURL: ""
   database: database.db
@@ -127,7 +127,7 @@ userDefaults:
 
 - `typeDetectionByHeader`: This boolean value determines whether type detection is based on headers.
 
-- `port`: This is the port number on which the server is running. Default: `8080`
+- `port`: This is the port number on which the server is running. Default: `80`
 
 - `baseURL`: This is the base URL for the server. Default: `""`
 
