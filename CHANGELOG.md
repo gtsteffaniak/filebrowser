@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.5
+
+- Feature: config gets updated when settings change, ensuring that running settings are up to date.
+- 
+
 ## v0.2.4
 
 - Faature: [create-folder-feature](https://github.com/gtsteffaniak/filebrowser/pull/105)

@@ -2,8 +2,7 @@
 
 Next version (v0.2.5) :
 
-- Feature: config gets updated when settings change, ensuring that running settings are up to date.
-- Replace http routes for gorilla/mux with std library
+- Replace http routes for gorilla/mux
 - Replace afero requests with std library
 - Add Job status to the sidebar - index status.
 - Use vite instead of webpack
