@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.21.1
+          go-version: 1.22.0
       - run: cd backend && go test -race -v ./...
   lint-backend:
     runs-on: ubuntu-latest
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.21.1
+          go-version: 1.22.0
       - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
       - run: cd backend && golangci-lint run
   format-backend:
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.21.1
+          go-version: 1.22.0
       - run: cd backend && go fmt ./...
   lint-frontend:
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: '21'
       - run: cd frontend && npm i eslint
       - run: cd frontend && npm run lint
 
