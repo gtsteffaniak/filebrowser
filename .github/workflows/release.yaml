@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
 jobs:
   create_release:
     name: Create Release
