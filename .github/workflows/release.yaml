@@ -18,6 +18,9 @@ on:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
+          body: |
+            Please see usage on [readme](https://github.com/gtsteffaniak/filebrowser).
+            Docker repo: https://hub.docker.com/r/gtstef/filebrowser/tags
           draft: false
           prerelease: false
 jobs:
