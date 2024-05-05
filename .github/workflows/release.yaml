@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'v[0-9]+.[0-9]+.[0-9]+'
+jobs:
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
@@ -23,7 +24,6 @@ on:
             Docker repo: https://hub.docker.com/r/gtstef/filebrowser/tags
           draft: false
           prerelease: false
-jobs:
   test-backend:
     runs-on: ubuntu-latest
     steps:
