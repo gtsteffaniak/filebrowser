@@ -14,68 +14,58 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT }}
+        uses: actions/checkout@v2
       - name: Extract branch name
         shell: bash
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: extract_branch
-      - uses: actions/setup-go@v5
-        with:
-          path: backend
-          go-version: 1.22.2
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          token: ${{ secrets.PAT }}
           tag_name: ${{ steps.extract_branch.outputs.branch }}
-          prerelease: false
+          release_name: ${{ steps.extract_branch.outputs.branch }}
+          body: |
+            Please see usage on [readme](https://github.com/gtsteffaniak/filebrowser).
+            Docker repo: https://hub.docker.com/r/gtstef/filebrowser/tags
           draft: false
-          generate_release_notes: true
-          name: ${{ steps.extract_branch.outputs.branch }}
-
+          prerelease: false
   test-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.22.4
-      - run: go test --timeout 30 -race -v ./...
-        working-directory: backend
+          go-version: 1.22.0
+      - run: cd backend && go test -race -v ./...
   lint-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.22.4
+          go-version: 1.22.0
       - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
-      - run: golangci-lint run
-        working-directory: backend
-
+      - run: cd backend && golangci-lint run
   format-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.22.4
-      - run: go fmt ./...
-        working-directory: backend
+          go-version: 1.22.0
+      - run: cd backend && go fmt ./...
   lint-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '22'
-      - run: npm i eslint
-        working-directory: frontend
-      - run: npm run lint
-        working-directory: frontend
-
+          node-version: '20'
+      - run: cd frontend && npm i eslint
+      - run: cd frontend && npm run lint
   push_release_to_registry:
     needs: [lint-frontend, lint-backend, test-backend, format-backend]
     name: Push release
