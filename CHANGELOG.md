@@ -4,8 +4,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.2.5
 
-- Feature: config gets updated when settings change, ensuring that running settings are up to date.
-- 
+- Fix: delete user prompt works using native hovers.
 
 ## v0.2.4
 

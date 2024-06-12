@@ -1,7 +1,7 @@
 server:
   port: 80
   baseURL:  "/"
-  root: "/Users/steffag/gcp"
+  root: "/srv"
 auth:
   method: password
   signup: false
