@@ -34,27 +34,6 @@
         </div>
       </form>
     </div>
-
-    <div v-if="showDeletePrompt" class="card floating">
-      <div class="card-content">
-        <p>Are you sure you want to delete this user?</p>
-      </div>
-
-      <div class="card-action">
-        <button
-          class="button button--flat button--grey"
-          @click="closeHovers"
-          v-focus
-          :aria-label="$t('buttons.cancel')"
-          :title="$t('buttons.cancel')"
-        >
-          {{ $t("buttons.cancel") }}
-        </button>
-        <button class="button button--flat" @click="deleteUser">
-          {{ $t("buttons.delete") }}
-        </button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -90,9 +69,6 @@ export default {
     },
     ...mapState(["loading"]),
     ...mapGetters(["currentPrompt", "currentPromptName"]),
-    showDeletePrompt() {
-      return this.currentPromptName == "deleteUser";
-    },
   },
   watch: {
     $route: "fetchData",
@@ -129,20 +105,7 @@ export default {
       }
     },
     deletePrompt() {
-      this.showDelete = true;
-    },
-    async deleteUser(event) {
-      event.preventDefault();
-
-      try {
-        await api.remove(this.user.id);
-        this.$router.push({ path: "/settings/users" });
-        this.$showSuccess(this.$t("settings.userDeleted"));
-      } catch (e) {
-        e.message === "403"
-          ? this.$showError(this.$t("errors.forbidden"), false)
-          : this.$showError(e);
-      }
+      this.$store.commit("showHover", { prompt: "deleteUser", props: { "user": this.user } });
     },
     async save(event) {
       event.preventDefault();
