@@ -8,7 +8,9 @@ Vue.use(Vuex);
 
 const state = {
   editor: null,
-  user: null,
+  user: {
+    rules: [],
+  },
   req: {
     sorting: {
       by: 'name', // Initial sorting field

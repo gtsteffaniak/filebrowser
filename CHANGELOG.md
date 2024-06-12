@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.5
+
+- Fix: delete user prompt works using native hovers.
+
 ## v0.2.4
 
 - Faature: [create-folder-feature](https://github.com/gtsteffaniak/filebrowser/pull/105)
