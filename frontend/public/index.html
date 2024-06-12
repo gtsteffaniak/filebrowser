@@ -121,7 +121,7 @@
   <div id="app"></div>
 
   [{[ if .darkMode -]}]
-  <div id="loading dark-mode">
+  <div id="loading" class="dark-mode">
     <div class="spinner">
       <div class="bounce1"></div>
       <div class="bounce2"></div>
@@ -136,6 +136,8 @@
       <div class="bounce3"></div>
     </div>
   </div>  [{[ end ]}]
+  <script type="module" src="/src/main.ts"></script>
+
   [{[ if .CSS -]}]
     <link rel="stylesheet" href="[{[ .StaticURL ]}]/custom.css" />
   [{[ end ]}]

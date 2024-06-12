@@ -18,7 +18,6 @@
 
 <script>
 import { files as api } from "@/api";
-import { mapState, mapMutations } from "vuex";
 
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";

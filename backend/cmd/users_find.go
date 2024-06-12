@@ -46,6 +46,6 @@ var findUsers = python(func(cmd *cobra.Command, args []string, d pythonData) {
 		list, err = d.store.Users.Gets("")
 	}
 
-	checkErr(err)
+	checkErr("findUsers", err)
 	printUsers(list)
 }, pythonConfig{})

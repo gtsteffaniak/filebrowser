@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 import { users as api } from "@/api";
 import buttons from "@/utils/buttons";
 

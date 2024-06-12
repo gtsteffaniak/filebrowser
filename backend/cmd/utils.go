@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,33 +18,33 @@ import (
 	"github.com/gtsteffaniak/filebrowser/storage/bolt"
 )
 
-func checkErr(err error) {
+func checkErr(source string, err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(fmt.Sprintf("%s: %v", source, err))
 	}
 }
 
 func mustGetString(flags *pflag.FlagSet, flag string) string {
 	s, err := flags.GetString(flag)
-	checkErr(err)
+	checkErr("mustGetString", err)
 	return s
 }
 
 func mustGetBool(flags *pflag.FlagSet, flag string) bool {
 	b, err := flags.GetBool(flag)
-	checkErr(err)
+	checkErr("mustGetBool", err)
 	return b
 }
 
 func mustGetUint(flags *pflag.FlagSet, flag string) uint {
 	b, err := flags.GetUint(flag)
-	checkErr(err)
+	checkErr("mustGetUint", err)
 	return b
 }
 
 func generateKey() []byte {
 	k, err := settings.GenerateKey()
-	checkErr(err)
+	checkErr("generateKey", err)
 	return k
 }
 
@@ -96,18 +97,19 @@ func python(fn pythonFunc, cfg pythonConfig) cobraFunc {
 
 		data.hadDB = exists
 		db, err := storm.Open(path)
-		checkErr(err)
+		checkErr(fmt.Sprintf("storm.Open path %v", path), err)
 
 		defer db.Close()
 		data.store, err = bolt.NewStorage(db)
-		checkErr(err)
+		checkErr("bolt.NewStorage", err)
 		fn(cmd, args, data)
 	}
 }
 
 func marshal(filename string, data interface{}) error {
 	fd, err := os.Create(filename)
-	checkErr(err)
+
+	checkErr("os.Create", err)
 	defer fd.Close()
 
 	switch ext := filepath.Ext(filename); ext {
@@ -125,7 +127,7 @@ func marshal(filename string, data interface{}) error {
 
 func unmarshal(filename string, data interface{}) error {
 	fd, err := os.Open(filename)
-	checkErr(err)
+	checkErr("os.Open", err)
 	defer fd.Close()
 
 	switch ext := filepath.Ext(filename); ext {

@@ -27,7 +27,6 @@ import editorBar from "./bars/EditorBar.vue";
 import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts";
-import { mapState, mapGetters } from "vuex";
 import Sidebar from "@/components/Sidebar.vue";
 import UploadFiles from "../components/prompts/UploadFiles";
 import { enableExec } from "@/utils/constants";
