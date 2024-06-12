@@ -7,8 +7,8 @@
     "build": "vue-cli-service build",
     "fix": "npx vue-cli-service lint",
     "watch": "vue-cli-service build --watch",
-    "lint": "eslint --ext .vue,.js src/",
-    "lint:fix": "eslint --ext .vue,.js --fix src/",
+    "lint": "eslint src/",
+    "lint:fix": "eslint --fix src/",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -34,8 +34,8 @@
   "devDependencies": {
     "@vue/cli-service": "^5.0.8",
     "compression-webpack-plugin": "^10.0.0",
-    "eslint": "^8.51.0",
-    "eslint-plugin-vue": "^9.17.0",
-    "vue-template-compiler": "^2.6.10"
+    "eslint": "^9.4.0",
+    "eslint-plugin-vue": "^9.26.0",
+    "vue-template-compiler": "^2.6.17"
   }
 }
