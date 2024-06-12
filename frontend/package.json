@@ -1,15 +1,20 @@
 {
   "name": "filebrowser-frontend",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
+  "type": "module",
+  "engines": {
+    "npm": ">=7.0.0",
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "fix": "npx vue-cli-service lint",
-    "watch": "vue-cli-service build --watch",
-    "lint": "eslint src/",
-    "lint:fix": "eslint --fix src/",
-    "format": "prettier --write ."
+    "dev": "vite dev",
+    "build": "npm run typecheck && vite build",
+    "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
+    "lint": "npm run typecheck && eslint --ext .vue,.ts src/",
+    "lint:fix": "eslint --ext .vue,.ts --fix src/",
+    "format": "prettier --write .",
+    "test": "playwright test"
   },
   "dependencies": {
     "ace-builds": "^1.24.2",
@@ -20,20 +25,21 @@
     "moment": "^2.29.4",
     "normalize.css": "^8.0.1",
     "noty": "^3.2.0-beta",
-    "qrcode.vue": "^1.7.0",
+    "qrcode.vue": "^3.4.1",
     "utif": "^3.1.0",
-    "vue": "^2.6.10",
-    "vue-async-computed": "^3.9.0",
+    "vue": "^3.4.21",
     "vue-i18n": "^8.15.3",
-    "vue-lazyload": "^1.3.3",
-    "vue-router": "^3.1.3",
     "vue-simple-progress": "^1.1.1",
-    "vuex": "^3.1.2",
-    "vuex-router-sync": "^5.0.0"
+    "vue-lazyload": "^3.0.0",
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
-    "@vue/cli-service": "^5.0.8",
-    "compression-webpack-plugin": "^10.0.0",
+    "@intlify/unplugin-vue-i18n": "^4.0.0",
+    "@vitejs/plugin-legacy": "^5.3.2",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "vite": "^5.2.7",
+    "vue-tsc": "^2.0.7",
+    "vite-plugin-compression2": "^1.0.0",
     "eslint": "^9.4.0",
     "eslint-plugin-vue": "^9.26.0",
     "vue-template-compiler": "^2.6.17"
