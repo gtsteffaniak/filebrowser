@@ -39,15 +39,14 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapState, mapGetters } from "vuex";
 import url from "@/utils/url";
 import { files as api } from "@/api";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "rename",
-  data: function () {
+  data() {
     return {
       name: "",
     };
@@ -56,14 +55,24 @@ export default {
     this.name = this.oldName();
   },
   computed: {
-    ...mapState(["req", "selected", "selectedCount"]),
-    ...mapGetters(["isListing"]),
+    req() {
+      return state.req;
+    },
+    selected() {
+      return state.selected;
+    },
+    selectedCount() {
+      return state.selectedCount;
+    },
+    isListing() {
+      return getters.isListing();
+    },
   },
   methods: {
-    cancel: function () {
-      this.$store.commit("closeHovers");
+    cancel() {
+      mutations.closeHovers();
     },
-    oldName: function () {
+    oldName() {
       if (!this.isListing) {
         return this.req.name;
       }
@@ -75,7 +84,7 @@ export default {
 
       return this.req.items[this.selected[0]].name;
     },
-    submit: async function () {
+    async submit() {
       let oldLink = "";
       let newLink = "";
 
@@ -85,8 +94,7 @@ export default {
         oldLink = this.req.items[this.selected[0]].url;
       }
 
-      newLink =
-        url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
+      newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
 
       try {
         await api.move([{ from: oldLink, to: newLink }]);
@@ -95,12 +103,12 @@ export default {
           return;
         }
 
-        this.$store.commit("setReload", true);
+        mutations.setReload(true);
       } catch (e) {
         this.$showError(e);
       }
 
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();
     },
   },
 };

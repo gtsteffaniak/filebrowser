@@ -35,28 +35,32 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters } from "vuex";
 import { files as api } from "@/api";
 import url from "@/utils/url";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "new-file",
-  data: function () {
+  data() {
     return {
       name: "",
     };
   },
   computed: {
-    ...mapGetters(["isFiles", "isListing"]),
+    isFiles() {
+      return getters.isFiles();
+    },
+    isListing() {
+      return getters.isListing();
+    },
   },
   methods: {
-    submit: async function (event) {
+    async submit(event) {
       event.preventDefault();
-      if (this.new === "") return;
+      if (this.name === "") return;
 
-      // Build the path of the new directory.
+      // Build the path of the new file.
       let uri = this.isFiles ? this.$route.path + "/" : "/";
 
       if (!this.isListing) {
@@ -73,7 +77,7 @@ export default {
         this.$showError(e);
       }
 
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();
     },
   },
 };

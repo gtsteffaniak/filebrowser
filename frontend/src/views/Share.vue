@@ -148,19 +148,18 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapState, mapMutations, mapGetters } from "vuex";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
-
 import moment from "moment";
-
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Errors from "@/views/Errors";
 import QrcodeVue from "qrcode.vue";
 import Item from "@/components/files/ListingItem.vue";
 import Clipboard from "clipboard";
+
+// Import custom store methods
+import { state, getters, commit } from "@/store";
 
 export default {
   name: "share",
@@ -170,20 +169,22 @@ export default {
     QrcodeVue,
     Errors,
   },
-  data: () => ({
-    error: null,
-    password: "",
-    attemptedPasswordLogin: false,
-    hash: null,
-    token: null,
-    clip: null,
-  }),
+  data() {
+    return {
+      error: null,
+      password: "",
+      attemptedPasswordLogin: false,
+      hash: null,
+      token: null,
+      clip: null,
+    };
+  },
   watch: {
-    $route: function () {
+    $route() {
       this.fetchData();
     },
   },
-  created: function () {
+  created() {
     const hash = this.$route.params.pathMatch.split("/")[0];
     this.hash = hash;
     this.fetchData();
@@ -200,89 +201,102 @@ export default {
     this.clip.destroy();
   },
   computed: {
-    ...mapState(["req", "loading", "multiple", "selected"]),
-    ...mapGetters(["selectedCount"]),
-    icon: function () {
+    req() {
+      return state.req; // Access state directly from the store
+    },
+    loading() {
+      return state.loading; // Access state directly from the store
+    },
+    multiple() {
+      return state.multiple; // Access state directly from the store
+    },
+    selected() {
+      return state.selected; // Access state directly from the store
+    },
+    selectedCount() {
+      return getters.selectedCount(); // Access getter directly from the store
+    },
+    icon() {
       if (this.req.isDir) return "folder";
       if (this.req.type === "image") return "insert_photo";
       if (this.req.type === "audio") return "volume_up";
       if (this.req.type === "video") return "movie";
       return "insert_drive_file";
     },
-    link: function () {
+    link() {
       return api.getDownloadURL(this.req);
     },
-    inlineLink: function () {
+    inlineLink() {
       return api.getDownloadURL(this.req, true);
     },
-    humanSize: function () {
+    humanSize() {
       if (this.req.isDir) {
         return this.req.items.length;
       }
       return getHumanReadableFilesize(this.req.size);
     },
-    humanTime: function () {
+    humanTime() {
       return moment(this.req.modified).fromNow();
     },
-    modTime: function () {
+    modTime() {
       return new Date(Date.parse(this.req.modified)).toLocaleString();
     },
-    isImage: function () {
-      return this.req.type == "image";
+    isImage() {
+      return this.req.type === "image";
     },
-    isMedia: function () {
-      return this.req.type == "video" || this.req.type == "audio";
+    isMedia() {
+      return this.req.type === "video" || this.req.type === "audio";
     },
   },
   methods: {
-    ...mapMutations(["resetSelected", "updateRequest", "setLoading"]),
-    base64: function (name) {
+    base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
-    fetchData: async function () {
+    async fetchData() {
       // Set loading to true and reset the error.
-      this.setLoading(true);
+      commit("setLoading", true);
       this.error = null;
+
       // Reset view information.
-      if (this.user == undefined) {
+      if (state.user === undefined) {
         let userData = await api.getPublicUser();
-        this.req.user = userData
-        this.$store.commit("updateRequest", this.req);
+        state.req.user = userData;
+        commit("updateRequest", state.req);
       }
-      this.$store.commit("setReload", false);
-      this.$store.commit("resetSelected");
-      this.$store.commit("multiple", false);
-      this.$store.commit("closeHovers");
+      commit("setReload", false);
+      commit("resetSelected");
+      commit("multiple", false);
+      commit("closeHovers");
 
       let url = this.$route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
+
       try {
         let file = await api.fetchPub(url, this.password);
         file.hash = this.hash;
         this.token = file.token || "";
-        this.updateRequest(file);
+        commit("updateRequest", file);
         document.title = `${file.name} - ${document.title}`;
       } catch (e) {
         this.error = e;
       } finally {
-        this.setLoading(false);
+        commit("setLoading", false);
       }
     },
     keyEvent(event) {
       // Esc!
       if (event.keyCode === 27) {
-        // If we're on a listing, unselect all
-        // files and folders.
+        // If we're on a listing, unselect all files and folders.
         if (this.selectedCount > 0) {
-          this.resetSelected();
+          commit("resetSelected");
         }
       }
     },
     toggleMultipleSelection() {
-      this.$store.commit("multiple", !this.multiple);
+      commit("multiple", !this.multiple);
     },
-    isSingleFile: function () {
+    isSingleFile() {
       return this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir;
     },
     download() {
@@ -291,10 +305,10 @@ export default {
         return;
       }
 
-      this.$store.commit("showHover", {
+      commit("showHover", {
         prompt: "download",
         confirm: (format) => {
-          this.$store.commit("closeHovers");
+          commit("closeHovers");
 
           let files = [];
 
@@ -306,7 +320,7 @@ export default {
         },
       });
     },
-    linkSelected: function () {
+    linkSelected() {
       return this.isSingleFile()
         ? api.getDownloadURL({
             hash: this.hash,

@@ -19,22 +19,35 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters, mapMutations, mapState } from "vuex";
 import { users as api } from "@/api";
 import buttons from "@/utils/buttons";
+import { state, mutations, getters } from "@/store"; // Import your custom store
 
 export default {
   name: "delete",
   computed: {
-    ...mapState(["prompts"]),
+    prompts() {
+      return state.prompts;
+    },
     currentPrompt() {
       return this.prompts.length ? this.prompts[this.prompts.length - 1] : null;
     },
     user() {
       return this.currentPrompt?.props?.user;
-    }
+    },
+    isListing() {
+      return getters.isListing();
+    },
+    selectedCount() {
+      return getters.selectedCount();
+    },
+    req() {
+      return state.req;
+    },
+    selected() {
+      return state.selected;
+    },
   },
   methods: {
     async deleteUser(event) {
@@ -49,7 +62,9 @@ export default {
           : this.$showError(e);
       }
     },
-    ...mapMutations(["closeHovers"]),
+    closeHovers() {
+      mutations.closeHovers();
+    },
     submit: async function () {
       buttons.loading("delete");
 
@@ -76,11 +91,11 @@ export default {
 
         await Promise.all(promises);
         buttons.success("delete");
-        this.$store.commit("setReload", true);
+        mutations.setReload(true); // Handle reload as needed
       } catch (e) {
         buttons.done("delete");
         this.$showError(e);
-        if (this.isListing) this.$store.commit("setReload", true);
+        if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },
   },

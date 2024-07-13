@@ -23,16 +23,18 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters } from "vuex";
+import { getters } from "@/store"; // Import your custom store
+
 export default {
   name: "share-delete",
   computed: {
-    ...mapGetters(["currentPrompt"]),
+    currentPrompt() {
+      return getters.currentPrompt(); // Access getter directly from the store
+    },
   },
   methods: {
-    submit: function () {
+    submit() {
       this.currentPrompt?.confirm();
     },
   },

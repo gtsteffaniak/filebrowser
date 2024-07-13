@@ -9,7 +9,6 @@
     </component>
   </div>
 </template>
-
 <script>
 import Help from "./Help.vue";
 import Info from "./Info.vue";
@@ -27,8 +26,8 @@ import Upload from "./Upload.vue";
 import ShareDelete from "./ShareDelete.vue";
 import DeleteUser from "./DeleteUser.vue";
 import Sidebar from "../Sidebar.vue";
-import { mapGetters, mapState } from "vuex";
 import buttons from "@/utils/buttons";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "prompts",
@@ -50,30 +49,30 @@ export default {
     Sidebar,
     DeleteUser,
   },
-  data: function () {
+  data() {
     return {
       pluginData: {
         buttons,
-        store: this.$store,
+        store: state, // Directly use state
         router: this.$router,
       },
     };
   },
   created() {
     window.addEventListener("keydown", (event) => {
-      if (this.currentPrompt == null) return;
+      if (!getters.currentPrompt()) return;
 
       let prompt = this.$refs.currentComponent;
 
       // Esc!
       if (event.keyCode === 27) {
         event.stopImmediatePropagation();
-        this.$store.commit("closeHovers");
+        mutations.closeHovers();
       }
 
       // Enter
-      if (event.keyCode == 13) {
-        switch (this.currentPrompt.prompt) {
+      if (event.keyCode === 13) {
+        switch (getters.currentPrompt().prompt) {
           case "delete":
             prompt.submit();
             break;
@@ -91,10 +90,13 @@ export default {
     });
   },
   computed: {
-    ...mapState(["plugins"]),
-    ...mapGetters(["currentPrompt", "currentPromptName"]),
-    showOverlay: function () {
-      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
+    plugins() {
+      return state.plugins;
+    },
+    showOverlay() {
+      return (
+        getters.currentPrompt() !== null && getters.currentPrompt().prompt !== "more"
+      );
     },
   },
   methods: {},

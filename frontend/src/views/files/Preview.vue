@@ -1,9 +1,5 @@
 <template>
-  <div
-    id="previewer"
-    @mousemove="toggleNavigation"
-    @touchstart="toggleNavigation"
-  >
+  <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="loading delayed" :class="{ 'dark-mode': isDarkMode }" v-if="loading">
       <div class="spinner">
         <div class="bounce1"></div>
@@ -38,15 +34,11 @@
             :label="'Subtitle ' + index"
             :default="index === 0"
           />
-          Sorry, your browser doesn't support embedded videos, but don't worry,
-          you can <a :href="downloadUrl">download it</a>
+          Sorry, your browser doesn't support embedded videos, but don't worry, you can
+          <a :href="downloadUrl">download it</a>
           and watch it with your favorite video player!
         </video>
-        <object
-          v-else-if="req.type == 'pdf'"
-          class="pdf"
-          :data="raw"
-        ></object>
+        <object v-else-if="req.type == 'pdf'" class="pdf" :data="raw"></object>
         <div v-else-if="req.type == 'blob' || req.type == 'archive'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
@@ -55,19 +47,12 @@
           <div>
             <a target="_blank" :href="downloadUrl" class="button button--flat">
               <div>
-                <i class="material-icons">file_download</i
-                >{{ $t("buttons.download") }}
+                <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
               </div>
             </a>
-            <a
-              target="_blank"
-              :href="raw"
-              class="button button--flat"
-              v-if="!req.isDir"
-            >
+            <a target="_blank" :href="raw" class="button button--flat" v-if="!req.isDir">
               <div>
-                <i class="material-icons">open_in_new</i
-                >{{ $t("buttons.openFile") }}
+                <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
               </div>
             </a>
           </div>
@@ -99,9 +84,7 @@
     <link rel="prefetch" :href="nextRaw" />
   </div>
 </template>
-
 <script>
-import { mapGetters, mapState } from "vuex";
 import { files as api } from "@/api";
 import { resizePreview, darkMode } from "@/utils/constants";
 import url from "@/utils/url";
@@ -115,7 +98,7 @@ export default {
   components: {
     ExtendedImage,
   },
-  data: function () {
+  data() {
     return {
       previousLink: "",
       nextLink: "",
@@ -128,13 +111,19 @@ export default {
       autoPlay: false,
       previousRaw: "",
       nextRaw: "",
+      currentPrompt: null, // Replaces Vuex getter `currentPrompt`
+      user: { darkMode }, // Initialize with default dark mode
+      req: {}, // Replace with your actual initial state
+      oldReq: {}, // Replace with your actual initial state
+      jwt: "", // Replace with your actual initial state
+      loading: false, // Replace with your actual initial state
     };
   },
   computed: {
-    ...mapState(["req", "user", "oldReq", "jwt", "loading"]),
-    ...mapGetters(["currentPrompt"]),
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode") ? this.user.darkMode : darkMode;
+      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
+        ? this.user.darkMode
+        : darkMode;
     },
     hasPrevious() {
       return this.previousLink !== "";
@@ -149,7 +138,6 @@ export default {
       if (this.req.type === "image" && !this.fullSize) {
         return api.getPreviewURL(this.req, "big");
       }
-
       return api.getDownloadURL(this.req, true);
     },
     showMore() {
@@ -166,7 +154,7 @@ export default {
     },
   },
   watch: {
-    $route: function () {
+    $route() {
       this.updatePreview();
       this.toggleNavigation();
     },
@@ -181,7 +169,7 @@ export default {
   },
   methods: {
     deleteFile() {
-      this.$store.commit("showHover", {
+      this.currentPrompt = {
         prompt: "delete",
         confirm: () => {
           this.listing = this.listing.filter((item) => item.name !== this.name);
@@ -194,7 +182,7 @@ export default {
             this.prev();
           }
         },
-      });
+      };
     },
     prev() {
       this.hoverNav = false;
@@ -221,11 +209,7 @@ export default {
       }
     },
     async updatePreview() {
-      if (
-        this.$refs.player &&
-        this.$refs.player.paused &&
-        !this.$refs.player.ended
-      ) {
+      if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
         this.autoPlay = false;
       }
 
@@ -278,10 +262,10 @@ export default {
         : api.getPreviewURL(item, "big");
     },
     openMore() {
-      this.$store.commit("showHover", "more");
+      this.currentPrompt = "more";
     },
     resetPrompts() {
-      this.$store.commit("closeHovers");
+      this.currentPrompt = null;
     },
     toggleSize() {
       this.fullSize = !this.fullSize;
@@ -299,7 +283,7 @@ export default {
       }, 1500);
     }, 500),
     close() {
-      this.$store.commit("updateRequest", {});
+      this.req = {}; // Reset request data
 
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });

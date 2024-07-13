@@ -33,33 +33,25 @@
         <p>
           <strong>MD5: </strong
           ><code
-            ><a @click="checksum($event, 'md5')">{{
-              $t("prompts.show")
-            }}</a></code
+            ><a @click="checksum($event, 'md5')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
           <strong>SHA1: </strong
           ><code
-            ><a @click="checksum($event, 'sha1')">{{
-              $t("prompts.show")
-            }}</a></code
+            ><a @click="checksum($event, 'sha1')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
           <strong>SHA256: </strong
           ><code
-            ><a @click="checksum($event, 'sha256')">{{
-              $t("prompts.show")
-            }}</a></code
+            ><a @click="checksum($event, 'sha256')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
           <strong>SHA512: </strong
           ><code
-            ><a @click="checksum($event, 'sha512')">{{
-              $t("prompts.show")
-            }}</a></code
+            ><a @click="checksum($event, 'sha512')">{{ $t("prompts.show") }}</a></code
           >
         </p>
       </template>
@@ -78,19 +70,28 @@
     </div>
   </div>
 </template>
-
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { mapState, mapGetters } from "vuex";
 import moment from "moment";
 import { files as api } from "@/api";
+import { state, getters } from "@/store"; // Import your custom store
 
 export default {
   name: "info",
   computed: {
-    ...mapState(["req", "selected"]),
-    ...mapGetters(["selectedCount", "isListing"]),
-    humanSize: function () {
+    req() {
+      return state.req;
+    },
+    selected() {
+      return state.selected;
+    },
+    selectedCount() {
+      return getters.selectedCount();
+    },
+    isListing() {
+      return getters.isListing();
+    },
+    humanSize() {
       if (this.selectedCount === 0 || !this.isListing) {
         return getHumanReadableFilesize(this.req.size);
       }
@@ -103,22 +104,22 @@ export default {
 
       return getHumanReadableFilesize(sum);
     },
-    humanTime: function () {
+    humanTime() {
       if (this.selectedCount === 0) {
         return moment(this.req.modified).fromNow();
       }
 
       return moment(this.req.items[this.selected[0]].modified).fromNow();
     },
-    modTime: function () {
+    modTime() {
       return new Date(Date.parse(this.req.modified)).toLocaleString();
     },
-    name: function () {
+    name() {
       return this.selectedCount === 0
         ? this.req.name
         : this.req.items[this.selected[0]].name;
     },
-    dir: function () {
+    dir() {
       return (
         this.selectedCount > 1 ||
         (this.selectedCount === 0
@@ -128,7 +129,7 @@ export default {
     },
   },
   methods: {
-    checksum: async function (event, algo) {
+    async checksum(event, algo) {
       event.preventDefault();
 
       let link;
@@ -141,8 +142,7 @@ export default {
 
       try {
         const hash = await api.checksum(link, algo);
-        // eslint-disable-next-line
-        event.target.innerHTML = hash
+        event.target.innerHTML = hash;
       } catch (e) {
         this.$showError(e);
       }

@@ -38,9 +38,14 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { state, getters } from "@/store"; // Import your custom store
+
 export default {
   name: "replace-rename",
-  computed: mapGetters(["currentPrompt"]),
+  computed: {
+    currentPrompt() {
+      return getters.currentPrompt(); // Access the getter directly from the store
+    },
+  },
 };
 </script>

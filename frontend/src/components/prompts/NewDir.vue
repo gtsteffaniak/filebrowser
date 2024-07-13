@@ -35,11 +35,10 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters } from "vuex";
 import { files as api } from "@/api";
 import url from "@/utils/url";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "new-dir",
@@ -53,18 +52,23 @@ export default {
       default: null,
     },
   },
-  data: function () {
+  data() {
     return {
       name: "",
     };
   },
   computed: {
-    ...mapGetters(["isFiles", "isListing"]),
+    isFiles() {
+      return getters.isFiles();
+    },
+    isListing() {
+      return getters.isListing();
+    },
   },
   methods: {
-    submit: async function (event) {
+    async submit(event) {
       event.preventDefault();
-      if (this.new === "") return;
+      if (this.name === "") return;
 
       // Build the path of the new directory.
       let uri;
@@ -85,13 +89,13 @@ export default {
           this.$router.push({ path: uri });
         } else if (!this.base) {
           const res = await api.fetch(url.removeLastDir(uri) + "/");
-          this.$store.commit("updateRequest", res);
+          mutations.updateRequest(res);
         }
       } catch (e) {
         this.$showError(e);
       }
 
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();
     },
   },
 };
