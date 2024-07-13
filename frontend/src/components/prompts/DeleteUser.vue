@@ -34,7 +34,7 @@ export default {
     },
     user() {
       return this.currentPrompt?.props?.user;
-    }
+    },
   },
   methods: {
     async deleteUser(event) {

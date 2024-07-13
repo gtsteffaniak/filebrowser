@@ -1,16 +1,13 @@
 import { disableExternal } from "@/utils/constants";
 import { createApp } from "vue";
-import createPinia from "@/stores";
 import router from "@/router";
 import App from "@/App.vue";
 
 import "./css/styles.css";
 
-const pinia = createPinia(router);
 
 const app = createApp(App);
 
-app.use(pinia);
 app.use(router);
 
 app.mixin({
