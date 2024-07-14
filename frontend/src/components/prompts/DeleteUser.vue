@@ -22,7 +22,7 @@
 <script>
 import { users as api } from "@/api";
 import buttons from "@/utils/buttons";
-import { state, mutations, getters } from "@/store"; // Import your custom store
+import { state, mutations, getters } from "@/store";
 
 export default {
   name: "delete",

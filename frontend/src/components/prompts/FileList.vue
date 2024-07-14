@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { state } from "@/store";
 import url from "@/utils/url";
 import { files } from "@/api";
 
@@ -39,13 +39,12 @@ export default {
     };
   },
   computed: {
-    ...mapState(["req", "user"]),
     nav() {
       return decodeURIComponent(this.current);
     },
   },
   mounted() {
-    this.fillOptions(this.req);
+    this.fillOptions(state.req);
   },
   methods: {
     fillOptions(req) {

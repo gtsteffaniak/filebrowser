@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { state } from "@/store";
 import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
@@ -62,7 +62,6 @@ export default {
       dest: null,
     };
   },
-  computed: mapState(["req", "selected", "user"]),
   methods: {
     move: async function (event) {
       event.preventDefault();

@@ -1,4 +1,4 @@
-import store from "@/store";
+import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
 import { encodePath } from "@/utils/url";
@@ -13,9 +13,9 @@ export async function fetchURL(url, opts, auth = true) {
   try {
     res = await fetch(`${baseURL}${url}`, {
       headers: {
-        "X-Auth": store.state.jwt,
-        "sessionId": store.state.sessionId,
-        "userScope": store.state.user.scope,
+        "X-Auth": state.jwt,
+        "sessionId": state.sessionId,
+        "userScope": state.user.scope,
         ...headers,
       },
       ...rest,
@@ -27,7 +27,7 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (auth && res.headers.get("X-Renew-Token") === "true") {
-    await renew(store.state.jwt);
+    await renew(state.jwt);
   }
 
   if (res.status < 200 || res.status > 299) {
@@ -70,7 +70,7 @@ export function createURL(endpoint, params = {}, auth = true) {
   const url = new URL(prefix + encodePath(endpoint), origin);
 
   const searchParams = {
-    ...(auth && { auth: store.state.jwt }),
+    ...(auth && { auth: state.jwt }),
     ...params,
   };
 

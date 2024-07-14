@@ -159,7 +159,7 @@ import Item from "@/components/files/ListingItem.vue";
 import Clipboard from "clipboard";
 
 // Import custom store methods
-import { state, getters, commit } from "@/store";
+import { state, getters, mutations } from "@/store";
 
 export default {
   name: "share",
@@ -254,19 +254,19 @@ export default {
     },
     async fetchData() {
       // Set loading to true and reset the error.
-      commit("setLoading", true);
+      mutations.setLoading(true);
       this.error = null;
 
       // Reset view information.
       if (state.user === undefined) {
         let userData = await api.getPublicUser();
         state.req.user = userData;
-        commit("updateRequest", state.req);
+        mutations.updateRequest(state.req);
       }
-      commit("setReload", false);
-      commit("resetSelected");
-      commit("multiple", false);
-      commit("closeHovers");
+      mutations.setReload(false);
+      mutations.resetSelected();
+      mutations.multiple(false);
+      mutations.closeHovers();
 
       let url = this.$route.path;
       if (url === "") url = "/";
@@ -276,12 +276,12 @@ export default {
         let file = await api.fetchPub(url, this.password);
         file.hash = this.hash;
         this.token = file.token || "";
-        commit("updateRequest", file);
+        mutations.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;
       } catch (e) {
         this.error = e;
       } finally {
-        commit("setLoading", false);
+        mutations.setLoading(false);
       }
     },
     keyEvent(event) {
@@ -289,12 +289,12 @@ export default {
       if (event.keyCode === 27) {
         // If we're on a listing, unselect all files and folders.
         if (this.selectedCount > 0) {
-          commit("resetSelected");
+          mutations.resetSelected();
         }
       }
     },
     toggleMultipleSelection() {
-      commit("multiple", !this.multiple);
+      mutations.multiple(!this.multiple);
     },
     isSingleFile() {
       return this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir;
@@ -305,10 +305,10 @@ export default {
         return;
       }
 
-      commit("showHover", {
+      mutations.showHover({
         prompt: "download",
         confirm: (format) => {
-          commit("closeHovers");
+          mutations.closeHovers();
 
           let files = [];
 

@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { state } from "@/store";
 import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
@@ -62,7 +62,6 @@ export default {
       dest: null,
     };
   },
-  computed: mapState(["req", "selected", "user"]),
   methods: {
     copy: async function (event) {
       event.preventDefault();
@@ -71,9 +70,9 @@ export default {
       // Create a new promise for each file.
       for (let item of this.selected) {
         items.push({
-          from: this.req.items[item].url,
-          to: this.dest + encodeURIComponent(this.req.items[item].name),
-          name: this.req.items[item].name,
+          from: store.req.items[item].url,
+          to: this.dest + encodeURIComponent(store.req.items[item].name),
+          name: store.req.items[item].name,
         });
       }
 

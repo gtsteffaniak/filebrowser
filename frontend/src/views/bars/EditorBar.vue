@@ -26,7 +26,7 @@
 </style>
 
 <script>
-import { mapState } from "vuex";
+import { state } from "@/store";
 import { eventBus } from "@/main";
 
 import buttons from "@/utils/buttons";
@@ -43,7 +43,6 @@ export default {
     return {};
   },
   computed: {
-    ...mapState(["req", "user", "currentView"]),
     breadcrumbs() {
       let parts = this.$route.path.split("/");
 

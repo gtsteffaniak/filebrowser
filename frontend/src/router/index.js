@@ -11,7 +11,7 @@ import GlobalSettings from "@/views/settings/Global";
 import ProfileSettings from "@/views/settings/Profile";
 import Shares from "@/views/settings/Shares";
 import Errors from "@/views/Errors";
-import store from "@/store";
+import { state, getters } from "@/store";
 import { baseURL, name } from "@/utils/constants";
 import i18n, { rtlLanguages } from "@/i18n";
 
@@ -41,7 +41,7 @@ const router = new Router({
       name: "Login",
       component: Login,
       beforeEnter: (to, from, next) => {
-        if (store.getters.isLogged) {
+        if (getters.isLogged) {
           return next({ path: "/files" });
         }
 
@@ -171,7 +171,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!store.getters.isLogged) {
+    if (!getters.isLogged) {
       next({
         path: "/login",
         query: { redirect: to.fullPath },
@@ -181,7 +181,7 @@ router.beforeEach((to, from, next) => {
     }
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
-      if (!store.state.user.perm.admin) {
+      if (!state.user.perm.admin) {
         next({ path: "/403" });
         return;
       }

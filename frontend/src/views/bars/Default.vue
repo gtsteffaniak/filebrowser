@@ -12,15 +12,16 @@
   justify-content: space-between;
 }
 </style>
+
 <script>
 import Vue from "vue";
-import Action from "@/components/header/Action.vue";
+import { state, getters, mutations } from "@/store";
 import { users, files as api } from "@/api";
 import url from "@/utils/url";
+import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
-import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "listingView",
@@ -39,6 +40,17 @@ export default {
   },
 
   computed: {
+    // Map state and getters
+    req() {
+      return state.req;
+    },
+    user() {
+      return state.user;
+    },
+    selected() {
+      return state.selected;
+    },
+
     isSettings() {
       return this.$route.path.includes("/settings/");
     },
@@ -106,66 +118,121 @@ export default {
         normal: "grid_view",
         gallery: "view_list",
       };
-      return icons[state.user.viewMode];
+      return icons[this.user.viewMode];
     },
     headerButtons() {
       return {
-        select: getters.selectedCount > 0,
-        upload: state.user.perm.create && getters.selectedCount > 0,
-        download: state.user.perm.download && getters.selectedCount > 0,
-        delete: getters.selectedCount > 0 && state.user.perm.delete,
-        rename: getters.selectedCount === 1 && state.user.perm.rename,
-        share: getters.selectedCount === 1 && state.user.perm.share,
-        move: getters.selectedCount > 0 && state.user.perm.rename,
-        copy: getters.selectedCount > 0 && state.user.perm.create,
+        select: this.selectedCount > 0,
+        upload: this.user.perm?.create && this.selectedCount > 0,
+        download: this.user.perm?.download && this.selectedCount > 0,
+        delete: this.selectedCount > 0 && this.user.perm.delete,
+        rename: this.selectedCount === 1 && this.user.perm.rename,
+        share: this.selectedCount === 1 && this.user.perm.share,
+        move: this.selectedCount > 0 && this.user.perm.rename,
+        copy: this.selectedCount > 0 && this.user.perm?.create,
       };
     },
   },
+
   watch: {
-    req() {
-      Vue.nextTick(() => {
-        this.setItemWeight();
-        this.fillWindow(true);
-      });
+    req: {
+      handler() {
+        // Ensures that the listing is displayed
+        Vue.nextTick(() => {
+          // How much every listing item affects the window height
+          this.setItemWeight();
+
+          // Fill and fit the window with listing items
+          this.fillWindow(true);
+        });
+      },
+      deep: true,
     },
   },
+
   mounted() {
+    // Check the columns size for the first time.
     this.colunmsResize();
+
+    // How much every listing item affects the window height
     this.setItemWeight();
+
+    // Fill and fit the window with listing items
     this.fillWindow(true);
 
+    // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
-
-    if (!this.$route.path.startsWith("/share") && state.user.perm.create) {
-      document.addEventListener("dragover", this.preventDefault);
-      document.addEventListener("dragenter", this.dragEnter);
-      document.addEventListener("dragleave", this.dragLeave);
-      document.addEventListener("drop", this.drop);
+    if (this.$route.path.startsWith("/share")) {
+      return;
     }
+    if (!this.user.perm?.create) return;
+    document.addEventListener("dragover", this.preventDefault);
+    document.addEventListener("dragenter", this.dragEnter);
+    document.addEventListener("dragleave", this.dragLeave);
+    document.addEventListener("drop", this.drop);
   },
+
   beforeUnmount() {
+    // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
 
-    if (state.user.perm.create) {
-      document.removeEventListener("dragover", this.preventDefault);
-      document.removeEventListener("dragenter", this.dragEnter);
-      document.removeEventListener("dragleave", this.dragLeave);
-      document.removeEventListener("drop", this.drop);
-    }
+    if (this.user && !this.user.perm?.create) return;
+    document.removeEventListener("dragover", this.preventDefault);
+    document.removeEventListener("dragenter", this.dragEnter);
+    document.removeEventListener("dragleave", this.dragLeave);
+    document.removeEventListener("drop", this.drop);
   },
+
   methods: {
+    fillWindow(fit = false) {
+      const totalItems = this.req.numDirs + this.req.numFiles;
+
+      // More items are displayed than the total
+      if (this.showLimit >= totalItems && !fit) return;
+
+      const windowHeight = window.innerHeight;
+
+      // Quantity of items needed to fill 2x of the window height
+      const showQuantity = Math.ceil((windowHeight + windowHeight * 2) / this.itemWeight);
+
+      // Less items to display than current
+      if (this.showLimit > showQuantity && !fit) return;
+
+      // Set the number of displayed items
+      this.showLimit = showQuantity > totalItems ? totalItems : showQuantity;
+    },
+    setItemWeight() {
+      // Listing element is not displayed
+      if (this.$refs.listingView == null) return;
+
+      let itemQuantity = this.req.numDirs + this.req.numFiles;
+      if (itemQuantity > this.showLimit) itemQuantity = this.showLimit;
+
+      // How much every listing item affects the window height
+      this.itemWeight = this.$refs.listingView.offsetHeight / itemQuantity;
+    },
+    colunmsResize() {
+      // Update the columns size based on the window width.
+      let columns = Math.floor(
+        document.querySelector("main").offsetWidth / this.columnWidth
+      );
+      let items = css(["#listingView .item", "#listingView .item"]);
+      if (columns === 0) columns = 1;
+      items.style.width = `calc(${100 / columns}% - 1em)`;
+    },
     action() {
-      if (state.show) {
-        mutations.showHover(state.show);
+      if (this.show) {
+        mutations.showHover(this.show);
       }
+
       this.$emit("action");
     },
     toggleSidebar() {
-      if (state.show === "sidebar") {
+      if (state.show == "sidebar") {
         mutations.closeHovers();
       } else {
         mutations.showHover("sidebar");
@@ -175,23 +242,37 @@ export default {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     keyEvent(event) {
-      if (state.show !== null) return;
+      // No prompts are shown
+      if (this.show !== null) {
+        return;
+      }
 
+      // Esc!
       if (event.keyCode === 27) {
+        // Reset files selection.
         mutations.resetSelected();
       }
 
+      // Del!
       if (event.keyCode === 46) {
-        if (!state.user.perm.delete || getters.selectedCount === 0) return;
+        if (!this.user.perm.delete || this.selectedCount == 0) return;
+
+        // Show delete prompt.
         mutations.showHover("delete");
       }
 
+      // F2!
       if (event.keyCode === 113) {
-        if (!state.user.perm.rename || getters.selectedCount !== 1) return;
+        if (!this.user.perm.rename || this.selectedCount !== 1) return;
+
+        // Show rename prompt.
         mutations.showHover("rename");
       }
 
-      if (!event.ctrlKey && !event.metaKey) return;
+      // Ctrl is pressed
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
 
       let key = String.fromCharCode(event.which).toLowerCase();
 
@@ -209,16 +290,16 @@ export default {
           break;
         case "a":
           event.preventDefault();
-          this.items.files.forEach((file) => {
-            if (!state.selected.includes(file.index)) {
-              mutations.addSelected(file.index);
+          for (let file of this.items.files) {
+            if (state.selected.indexOf(file.index) === -1) {
+              this.addSelected(file.index);
             }
-          });
-          this.items.dirs.forEach((dir) => {
-            if (!state.selected.includes(dir.index)) {
-              mutations.addSelected(dir.index);
+          }
+          for (let dir of this.items.dirs) {
+            if (state.selected.indexOf(dir.index) === -1) {
+              this.addSelected(dir.index);
             }
-          });
+          }
           break;
         case "s":
           event.preventDefault();
@@ -226,30 +307,38 @@ export default {
           break;
       }
     },
-    switchView() {
+    switchView: async function () {
       mutations.closeHovers();
-      const currentIndex = this.viewModes.indexOf(state.user.viewMode);
+      const currentIndex = this.viewModes.indexOf(this.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const data = {
-        id: state.user.id,
+        id: this.user.id,
         viewMode: this.viewModes[nextIndex],
       };
       users.update(data, ["viewMode"]).catch(this.$showError);
       mutations.updateUser(data);
     },
     preventDefault(event) {
+      // Wrapper around prevent default.
       event.preventDefault();
     },
     copyCut(event, key) {
-      if (event.target.tagName.toLowerCase() === "input") return;
+      if (event.target.tagName.toLowerCase() === "input") {
+        return;
+      }
 
-      const items = getters.selected.map((index) => ({
-        from: state.req.items[index].url,
-        name: state.req.items[index].name,
-      }));
+      let items = [];
 
-      if (items.length === 0) return;
+      for (let i of state.selected) {
+        items.push({
+          from: state.req.items[i].url,
+          name: state.req.items[i].name,
+        });
+      }
 
+      if (items.length == 0) {
+        return;
+      }
       mutations.updateClipboard({
         key: key,
         items: items,
@@ -257,174 +346,57 @@ export default {
       });
     },
     paste(event) {
-      if (event.target.tagName.toLowerCase() === "input") return;
+      if (event.target.tagName.toLowerCase() === "input") {
+        return;
+      }
 
-      const items = mutations.getClipboardItems().map((item) => {
+      let items = [];
+
+      for (let item of state.clipboard.items) {
         const from = item.from.endsWith("/") ? item.from.slice(0, -1) : item.from;
         const to = this.$route.path + encodeURIComponent(item.name);
-        return { from, to, name: item.name };
-      });
+        items.push({ from, to, name: item.name });
+      }
 
-      if (items.length === 0) return;
+      if (items.length === 0) {
+        return;
+      }
 
-      const action = (overwrite, rename) => {
-        api
-          .copy(items, overwrite, rename)
-          .then(() => mutations.setReload(true))
-          .catch(this.$showError);
+      let action = (overwrite, rename) => {
+        const promises = [];
+
+        items.forEach((item) => {
+          promises.push(
+            api.copy({
+              from: item.from,
+              to: item.to,
+              name: item.name,
+              overwrite: overwrite,
+              rename: rename,
+            })
+          );
+        });
+
+        Promise.all(promises).then(() => {
+          mutations.resetClipboard();
+          mutations.resetSelected();
+          this.$showMessage("success", "Copied successfully");
+        });
       };
 
-      if (mutations.getClipboardKey() === "x") {
-        action = (overwrite, rename) => {
-          api
-            .move(items, overwrite, rename)
-            .then(() => {
-              mutations.resetClipboard();
-              mutations.setReload(true);
-            })
-            .catch(this.$showError);
-        };
-      }
-
-      if (mutations.getClipboardPath() === this.$route.path) {
-        action(false, true);
-        return;
-      }
-
-      const conflict = upload.checkConflict(items, state.req.items);
-
-      let overwrite = false;
-      let rename = false;
-
-      if (conflict) {
-        mutations.showHover({
-          prompt: "replace-rename",
-          confirm: (event, option) => {
-            overwrite = option === "overwrite";
-            rename = option === "rename";
-
-            event.preventDefault();
-            mutations.closeHovers();
-            action(overwrite, rename);
-          },
-        });
-        return;
-      }
-
-      action(overwrite, rename);
-    },
-    colunmsResize() {
-      const columns = Math.floor(
-        document.querySelector("main").offsetWidth / this.columnWidth
+      this.$confirm(
+        "Are you sure you want to copy these items?",
+        "Copy",
+        () => {
+          action(false, false);
+        },
+        () => {
+          action(true, false);
+        },
+        () => {
+          action(true, true);
+        }
       );
-      mutations.updateColumns(columns);
-    },
-    scrollEvent() {
-      if (
-        document.documentElement.scrollTop + window.innerHeight >
-        document.documentElement.scrollHeight - 100
-      ) {
-        mutations.loadMore();
-      }
-    },
-    dragEnter(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.dragCounter++;
-      if (this.dragCounter > 0) {
-        document.querySelector("main").classList.add("dragging");
-      }
-    },
-    dragLeave(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.dragCounter--;
-      if (this.dragCounter === 0) {
-        document.querySelector("main").classList.remove("dragging");
-      }
-    },
-    drop(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.dragCounter = 0;
-      document.querySelector("main").classList.remove("dragging");
-
-      if (event.dataTransfer.files.length) {
-        upload
-          .upload(event.dataTransfer.files, this.$route.path)
-          .then(() => mutations.setReload(true))
-          .catch(this.$showError);
-      }
-    },
-    uploadInput(event) {
-      upload
-        .upload(event.target.files, this.$route.path)
-        .then(() => mutations.setReload(true))
-        .catch(this.$showError);
-    },
-    resetOpacity() {
-      Array.from(document.querySelectorAll(".item")).forEach((item) => {
-        item.style.opacity = 1;
-      });
-    },
-    sort(by) {
-      mutations.updateSorting({
-        by,
-        asc: state.req.sorting.by === by ? !state.req.sorting.asc : true,
-      });
-    },
-    openSearch() {
-      mutations.showHover("search");
-    },
-    toggleMultipleSelection() {
-      mutations.toggleMultipleSelection();
-    },
-    windowsResize() {
-      this.width = window.innerWidth;
-      this.colunmsResize();
-      this.setItemWeight();
-    },
-    download() {
-      const items = getters.selected.map((index) => state.req.items[index]);
-      if (items.length === 0) return;
-
-      items.forEach((item) => {
-        const link = document.createElement("a");
-        link.href = item.url;
-        link.download = item.name;
-        link.click();
-      });
-    },
-    close() {
-      if (this.$route.path.endsWith("/")) {
-        const parent = this.$route.path.split("/").slice(0, -2).join("/");
-        this.$router.push(parent || "/");
-      } else {
-        this.$router.push(this.$route.path + "/");
-      }
-    },
-    upload() {
-      if (this.$route.path.startsWith("/share")) {
-        document.querySelector(".upload-container input[type=file]").click();
-      } else {
-        document.querySelector(".upload-container").classList.add("active");
-      }
-    },
-    setItemWeight() {
-      const itemCount = state.req.items.length;
-      const totalHeight =
-        window.innerHeight - document.querySelector(".header").offsetHeight - 40;
-      this.itemWeight = totalHeight / itemCount;
-    },
-    fillWindow(fit = false) {
-      const itemCount = state.req.items.length;
-      const totalHeight =
-        window.innerHeight - document.querySelector(".header").offsetHeight - 40;
-      this.itemWeight = totalHeight / (itemCount || 1);
-
-      if (fit) {
-        this.showLimit = Math.floor(totalHeight / this.itemWeight);
-      }
     },
   },
 };

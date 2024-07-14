@@ -208,7 +208,7 @@
 import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { darkMode } from "@/utils/constants";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -233,81 +233,176 @@ export default {
       searchTypes: "",
       isTypeSelectDisabled: false,
       showHelp: false,
-      folderSelectClicked: false,
-      showBoxes: true,
-      boxes,
+      folderSelect: [
+        { label: "Only Folders", value: "type:folder" },
+        { label: "Only Files", value: "type:file" },
+      ],
+      typeSelect: [
+        { label: "Photos", value: "type:image" },
+        { label: "Audio", value: "type:audio" },
+        { label: "Videos", value: "type:video" },
+        { label: "Documents", value: "type:doc" },
+        { label: "Archives", value: "type:archive" },
+      ],
+      value: "",
+      width: window.innerWidth,
+      active: false,
+      ongoing: false,
+      results: [],
+      reload: false,
+      scrollable: null,
     };
   },
   computed: {
-    isMobile() {
-      return state.App.device.isMobile;
+    showOverlay: function () {
+      return state.prompts.length > 0 && state.prompts[0].prompt !== "more";
     },
     isDarkMode() {
-      return state.App.darkMode === darkMode.DARK;
+      return state.user && Object.prototype.hasOwnProperty.call(state.user, "darkMode")
+        ? state.user.darkMode
+        : darkMode;
     },
-    getContext() {
-      return getters.getContext();
+    showBoxes() {
+      return this.searchTypes == "";
     },
-    results() {
-      return getters.results();
-    },
-    isRunning() {
-      return getters.isRunning();
+    boxes() {
+      return boxes;
     },
     isEmpty() {
-      return getters.isEmpty();
+      return this.results.length === 0;
+    },
+    text() {
+      if (this.ongoing) {
+        return "";
+      }
+
+      return this.value === ""
+        ? this.$t("search.typeToSearch")
+        : this.$t("search.pressToSearch");
+    },
+    isMobile() {
+      return this.width <= 800;
+    },
+    isRunning() {
+      return this.ongoing;
+    },
+    searchHelp() {
+      return this.showHelp;
+    },
+    getContext() {
+      let path = this.$route.path;
+      path = path.slice(1);
+      path = "./" + path.substring(path.indexOf("/") + 1);
+      path = path.replace(/\/+$/, "") + "/";
+      return path;
     },
   },
   methods: {
-    searching() {
-      mutations.searching();
+    handleResize() {
+      this.width = window.innerWidth;
     },
-    setSearchResults(results) {
-      mutations.setSearchResults(results);
+    async navigateTo(url) {
+      mutations.closeHovers();
+      await this.$nextTick();
+      setTimeout(() => this.$router.push(url), 0);
     },
-    keyup(e) {
-      if (e.keyCode === 13) {
-        this.search();
+    basePath(str, isDir) {
+      let parts = str.replace(/(\/$|^\/)/, "").split("/");
+      if (parts.length <= 1) {
+        if (isDir) {
+          return "/";
+        }
+        return "";
       }
+      parts.pop();
+      parts = parts.join("/") + "/";
+      if (isDir) {
+        parts = "/" + parts; // fix weird rtl thing
+      }
+      return parts;
     },
-    submit() {
-      this.searching();
-      search({
-        query: this.value,
-        context: this.getContext,
-        largerThan: this.largerThan,
-        smallerThan: this.smallerThan,
-        types: this.searchTypes,
-      }).then((results) => {
-        this.setSearchResults(results);
-      });
+    baseName(str) {
+      let parts = str.replace(/(\/$|^\/)/, "").split("/");
+      return parts.pop();
     },
-    addToTypes(type) {
-      this.searchTypes += ` ${type}`;
-      this.search();
+    open() {
+      mutations.showHover("search");
     },
-    removeFromTypes(type) {
-      this.searchTypes = this.searchTypes.replace(` ${type}`, "");
-      this.search();
+    close(event) {
+      event.stopPropagation();
+      mutations.closeHovers();
     },
-    navigateTo(url) {
-      this.$router.push(url);
+    keyup(event) {
+      if (event.keyCode === 27) {
+        this.close(event);
+        return;
+      }
+      this.results.length === 0;
+    },
+    addToTypes(string) {
+      if (this.searchTypes.includes(string)) {
+        return true;
+      }
+      if (string == null || string == "") {
+        return false;
+      }
+      this.searchTypes = this.searchTypes + string + " ";
     },
     resetSearchFilters() {
-      this.largerThan = "";
-      this.smallerThan = "";
       this.searchTypes = "";
-      this.search();
+    },
+    removeFromTypes(string) {
+      if (string == null || string == "") {
+        return false;
+      }
+      this.searchTypes = this.searchTypes.replace(string + " ", "");
+      if (this.isMobile) {
+        this.$refs.input.focus();
+      }
+    },
+    folderSelectClicked() {
+      this.isTypeSelectDisabled = true; // Disable the other ButtonGroup
+    },
+    resetButtonGroups() {
+      this.isTypeSelectDisabled = false;
+    },
+    async submit(event) {
+      this.showHelp = false;
+      event.preventDefault();
+      if (this.value === "" || this.value.length < 3) {
+        this.ongoing = false;
+        this.results = [];
+        this.noneMessage = "Not enough characters to search (min 3)";
+        return;
+      }
+      let searchTypesFull = this.searchTypes;
+      if (this.largerThan != "") {
+        searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " ";
+      }
+      if (this.smallerThan != "") {
+        searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
+      }
+      let path = this.$route.path;
+      this.ongoing = true;
+      try {
+        this.results = await search(path, searchTypesFull + this.value);
+      } catch (error) {
+        this.$showError(error);
+      }
+      this.ongoing = false;
+      if (this.results.length == 0) {
+        this.noneMessage = "No results found in indexed search.";
+      }
     },
     toggleHelp() {
       this.showHelp = !this.showHelp;
     },
-    open() {
-      this.active = true;
-    },
-    close() {
-      this.active = false;
-    },
+  },
+  mounted() {
+    window.addEventListener("resize", this.handleResize);
+  },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.handleResize);
   },
 };
 </script>

@@ -1,4 +1,4 @@
-import store from "@/store";
+import { state } from "@/store";
 import url from "@/utils/url";
 
 export function checkConflict(files, items) {
@@ -102,7 +102,7 @@ export function scanFiles(dt) {
 
 export function handleFiles(files, base, overwrite = false) {
   for (let i = 0; i < files.length; i++) {
-    let id = store.state.upload.id;
+    let id = state.upload.id;
     let path = base;
     let file = files[i];
 

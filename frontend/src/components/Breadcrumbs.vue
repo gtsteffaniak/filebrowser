@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { state, mutations } from "@/store"; // Import mutations as well
 import Action from "@/components/header/Action";
 
 export default {
@@ -28,9 +28,7 @@ export default {
   },
   props: ["base", "noLink"],
   computed: {
-    ...mapState(["req", "user"]),
     items() {
-
       const relativePath = this.$route.path.replace(this.base, "");
       let parts = relativePath.split("/");
 
@@ -76,13 +74,18 @@ export default {
       return "router-link";
     },
     showShare() {
+      // Ensure user properties are accessed safely
       if (this.$route.path.startsWith("/share")) {
-        return;
+        return false;
       }
-      return this.user.perm.share;
+      return state.user.perm && state.user.perm.share; // Access from state directly
+    },
+  },
+  methods: {
+    // Example of a method using mutations
+    updateUserPermissions(newPerms) {
+      mutations.setUserPermissions(newPerms); // Use a mutation to update user permissions
     },
   },
 };
 </script>
-
-<style></style>

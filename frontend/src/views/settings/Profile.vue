@@ -83,7 +83,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from "vuex";
+import { state, mutations } from "@/store";
 import { users as api } from "@/api";
 import Languages from "@/components/settings/Languages";
 import ViewMode from "@/components/settings/ViewMode";
@@ -108,7 +108,6 @@ export default {
     };
   },
   computed: {
-    ...mapState(["user"]),
     passwordClass() {
       const baseClass = "input input--block";
 
@@ -124,12 +123,12 @@ export default {
     },
   },
   created() {
-    if (typeof this.user.darkMode === 'undefined') {
+    if (typeof this.user.darkMode === "undefined") {
       this.darkMode = false;
     } else {
-      this.darkMode = this.user.darkMode
+      this.darkMode = this.user.darkMode;
     }
-    this.setLoading(false);
+    mutations.setLoading(false);
     this.locale = this.user.locale;
     this.viewMode = this.user.viewMode;
     this.hideDotfiles = this.user.hideDotfiles;
@@ -137,7 +136,6 @@ export default {
     this.dateFormat = this.user.dateFormat;
   },
   methods: {
-    ...mapMutations(["updateUser", "setLoading"]),
     async updatePassword(event) {
       event.preventDefault();
 
@@ -167,8 +165,7 @@ export default {
           dateFormat: this.dateFormat,
         };
         const shouldReload =
-          rtlLanguages.includes(data.locale) !==
-          rtlLanguages.includes(i18n.locale);
+          rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
         await api.update(data, [
           "locale",
           "darkMode",

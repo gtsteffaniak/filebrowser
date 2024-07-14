@@ -29,7 +29,7 @@ import Prompts from "@/components/prompts/Prompts";
 import Sidebar from "@/components/Sidebar.vue";
 import UploadFiles from "../components/prompts/UploadFiles";
 import { enableExec, darkMode } from "@/utils/constants";
-import { state, getters, commit } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
 
 export default {
   name: "layout",
@@ -100,14 +100,14 @@ export default {
   },
   watch: {
     $route() {
-      commit("resetSelected"); // Commit mutations directly to the store
-      commit("multiple", false);
-      if (this.currentPrompt?.prompt !== "success") commit("closeHovers");
+      mutations.resetSelected();
+      mutations.multiple(false);
+      if (this.currentPrompt?.prompt !== "success") mutations.closeHovers();
     },
   },
   methods: {
     resetPrompts() {
-      commit("closeHovers");
+      mutations.closeHovers();
     },
     getTitle() {
       let title = "Title";

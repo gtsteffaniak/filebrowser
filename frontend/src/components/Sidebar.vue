@@ -14,7 +14,7 @@
       </button>
 
       <!-- Buttons visible if user has create permission -->
-      <div v-if="user.perm.create">
+      <div v-if="user.perm?.create">
         <!-- New Folder button -->
         <button
           @click="$store.commit('showHover', 'newDir')"

@@ -6,7 +6,7 @@
 
 <script>
 import { eventBus } from "@/main";
-import { mapState } from "vuex";
+import { state } from "@/store";
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
@@ -25,7 +25,6 @@ export default {
         ? this.user.darkMode
         : darkMode;
     },
-    ...mapState(["req", "user"]),
     breadcrumbs() {
       let parts = this.$route.path.split("/");
 
