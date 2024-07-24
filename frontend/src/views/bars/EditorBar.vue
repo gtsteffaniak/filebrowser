@@ -27,12 +27,11 @@
 
 <script>
 import { state , mutations } from "@/store";
-import { eventBus } from "@/main";
-
+import { eventBus } from "@/store/eventBus";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 
-import Action from "@/components/header/Action";
+import Action from "@/components/header/Action.vue";
 
 export default {
   name: "editorBar",

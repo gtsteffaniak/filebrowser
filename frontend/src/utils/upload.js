@@ -124,6 +124,6 @@ export function handleFiles(files, base, overwrite = false) {
       ...(!file.isDir && { type: file.type }),
     };
 
-    store.dispatch("upload/upload", item);
+    state.dispatch("upload/upload", item);
   }
 }

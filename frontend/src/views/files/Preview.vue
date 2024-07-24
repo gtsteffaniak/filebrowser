@@ -89,7 +89,7 @@ import { files as api } from "@/api";
 import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url";
 import throttle from "@/utils/throttle";
-import ExtendedImage from "@/components/files/ExtendedImage";
+import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 const mediaTypes = ["image", "video", "audio", "blob"];

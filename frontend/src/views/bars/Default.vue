@@ -14,8 +14,7 @@
 </style>
 
 <script>
-import Vue from "vue";
-import { state, getters, mutations } from "@/store";
+import { state, mutations } from "@/store";
 import { users, files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
 import css from "@/utils/css";

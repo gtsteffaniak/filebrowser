@@ -48,7 +48,7 @@ export default {
     },
     t() {
       // You might want to implement a translation function here
-      return (key, params) => key; // Placeholder implementation
+      return (key) => key; // Placeholder implementation
     },
   },
   methods: {

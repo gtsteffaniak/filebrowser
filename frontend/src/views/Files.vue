@@ -18,8 +18,8 @@
 <script>
 import { files as api } from "@/api";
 
-import Breadcrumbs from "@/components/Breadcrumbs";
-import Errors from "@/views/Errors";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";

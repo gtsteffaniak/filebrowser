@@ -35,7 +35,7 @@ export const mutations = {
     emitStateChanged();
   },
   showSuccess: () => {
-    showHover("success");
+    this.showHover("success");
     emitStateChanged();
   },
   setLoading: (value) => {

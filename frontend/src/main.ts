@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
 import router from './router'; // Adjust the path as per your setup
 import App from './App.vue'; // Adjust the path as per your setup
-import { state } from './store'; // Adjust the path as per your setup
-import i18n from './i18n'; // Adjust the path as per your setup
+import { state } from '@/store'; // Adjust the path as per your setup
+//import i18n from './i18n';
 
 import './css/styles.css';
 
@@ -28,7 +28,7 @@ app.directive('focus', {
 app.use(router);
 
 // Install i18n
-app.use(i18n);
+//app.use(i18n);
 
 // Provide state to the entire application
 app.provide('state', state);

@@ -166,15 +166,13 @@ export default {
   },
   methods: {
     action() {
-      console.log("state.show",state.show)
-      if (state.show) {
+      if (this.show) {
         // Assuming `showHover` is a method on a component
         this.$emit("action");
       }
     },
     toggleSidebar() {
       if (getters.currentPromptName() === "sidebar") {
-        console.log("should close")
         mutations.closeHovers();
       } else {
         mutations.showHover("sidebar");
@@ -293,7 +291,7 @@ export default {
         return;
       }
 
-      const action = (overwrite, rename) => {
+      let action = (overwrite, rename) => {
         api
           .copy(items, overwrite, rename)
           .then(() => {
@@ -329,14 +327,14 @@ export default {
             const rename = option === "rename";
 
             event.preventDefault();
-            mutations.closeHovers();;
+            mutations.closeHovers();
             action(overwrite, rename);
           },
         });
         return;
       }
 
-      action(false, false);
+      action(overwrite, rename);
     },
     colunmsResize() {
       let columns = Math.floor(
@@ -420,7 +418,7 @@ export default {
       upload.handleFiles(files, path);
     },
     uploadInput(event) {
-      mutations.closeHovers();;
+      mutations.closeHovers();
 
       let files = event.currentTarget.files;
       let folder_upload =
@@ -508,7 +506,7 @@ export default {
       mutations.showHover({
         name: "download",
         confirm: (format) => {
-          mutations.closeHovers();;
+          mutations.closeHovers();
           let files = [];
           if (state.selected.length > 0) {
             for (let i of state.selected) {

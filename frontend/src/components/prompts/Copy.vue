@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { state,mutations } from "@/store";
+import { mutations } from "@/store";
 import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";

@@ -227,7 +227,7 @@ import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import { state, mutations } from "@/store";
 
-import Action from "@/components/header/Action";
+import Action from "@/components/header/Action.vue";
 import Item from "@/components/files/ListingItem.vue";
 
 export default {
@@ -349,7 +349,7 @@ export default {
       return this.selected.length;
     },
     req() {
-      state.req;
+      return state.req;
     }
   },
   watch: {

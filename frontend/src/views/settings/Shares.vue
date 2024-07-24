@@ -63,7 +63,7 @@ import { share as api, users } from "@/api";
 import { state, mutations } from "@/store";
 import moment from "moment";
 import Clipboard from "clipboard";
-import Errors from "@/views/Errors";
+import Errors from "@/views/Errors.vue";
 
 export default {
   name: "shares",

@@ -216,14 +216,7 @@ export default {
     },
     // Handle file upload
     upload(event) {
-      if (
-        typeof window.DataTransferItem !== "undefined" &&
-        typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
-      ) {
-        mutations.showHover("upload");
-      } else {
-        document.getElementById("upload-input").click();
-      }
+      return this.$upload(event);
     },
     // Handle files selected for upload
     uploadInput(event) {

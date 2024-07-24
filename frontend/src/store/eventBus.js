@@ -1,7 +1,16 @@
-import Vue from 'vue';
+// eventBus.ts
+class EventBus extends EventTarget {
+  emit(event, data) {
+    this.dispatchEvent(new CustomEvent(event, { detail: data }));
+  }
 
-export const EventBus = new Vue();
+  on(event, callback) {
+    this.addEventListener(event, (e) => callback(e.detail));
+  }
+}
+
+export const eventBus = new EventBus();
 
 export function emitStateChanged() {
-  EventBus.$emit('stateChanged');
+  eventBus.emit('stateChanged');
 }

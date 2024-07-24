@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { eventBus } from "@/main";
+import { eventBus } from "@/store/eventBus";
 import { state,mutations } from "@/store";
 import { files as api } from "@/api";
 import url from "@/utils/url";

@@ -1,10 +1,10 @@
-import { locale } from "moment";
+import { detectLocale } from "@/i18n";
 
 // state.js
 export const state = {
     editor: null,
     user: {
-        locale: 'en', // Default to the locale from moment
+        locale: detectLocale(), // Default to the locale from moment
         viewMode: 'mosaic', // Default to mosaic view
         hideDotfiles: false, // Default to false, assuming this is a boolean
         perm: {},

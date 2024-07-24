@@ -85,8 +85,8 @@
 <script>
 import { state, mutations } from "@/store";
 import { users as api } from "@/api";
-import Languages from "@/components/settings/Languages";
-import ViewMode from "@/components/settings/ViewMode";
+import Languages from "@/components/settings/Languages.vue";
+import ViewMode from "@/components/settings/ViewMode.vue";
 import i18n, { rtlLanguages } from "@/i18n";
 
 export default {

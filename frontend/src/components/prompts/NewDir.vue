@@ -38,7 +38,7 @@
 <script>
 import { files as api } from "@/api";
 import url from "@/utils/url";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "new-dir",

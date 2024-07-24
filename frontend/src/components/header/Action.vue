@@ -7,15 +7,13 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "action",
   props: ["icon", "label", "counter", "show"],
   methods: {
     action: function () {
-      console.log("show",this.show)
-
       if (this.show) {
         mutations.showHover(this.show);
       }

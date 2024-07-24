@@ -182,9 +182,9 @@
 import { state, mutations } from "@/store";
 import { settings as api } from "@/api";
 import { enableExec } from "@/utils/constants";
-import UserForm from "@/components/settings/UserForm";
-import Rules from "@/components/settings/Rules";
-import Errors from "@/views/Errors";
+import UserForm from "@/components/settings/UserForm.vue";
+import Rules from "@/components/settings/Rules.vue";
+import Errors from "@/views/Errors.vue";
 
 export default {
   name: "settings",

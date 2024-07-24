@@ -25,9 +25,9 @@
 import editorBar from "./bars/EditorBar.vue";
 import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
-import Prompts from "@/components/prompts/Prompts";
+import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/Sidebar.vue";
-import UploadFiles from "../components/prompts/UploadFiles";
+import UploadFiles from "../components/prompts/UploadFiles.vue";
 import { enableExec, darkMode } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 

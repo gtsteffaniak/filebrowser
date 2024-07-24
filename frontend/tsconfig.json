@@ -9,16 +9,17 @@
       "strict": true,
       "sourceMap": true,
       "noImplicitReturns": true,
-      "resolveJsonModule": true,
       "isolatedModules": true,
       "esModuleInterop": true,
       "lib": ["ESNext", "DOM"],
       "skipLibCheck": true,
+      "resolveJsonModule": true,
       "types": ["vite/client", "@intlify/unplugin-vue-i18n/messages"],
       "paths": {
         "@/*": ["./src/*"]
-      }
+      },
+      "checkJs": false, // check later
     },
-    "include": ["src/**/*.ts", "src/**/*.vue"],
+    "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.vue"],
     "exclude": ["node_modules", "dist"]
   }

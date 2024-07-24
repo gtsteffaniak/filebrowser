@@ -20,7 +20,6 @@
   </div>
 </template>
 <script>
-import { mapMutations, mapState } from "vuex";
 import { users as api } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, mutations, getters } from "@/store";
