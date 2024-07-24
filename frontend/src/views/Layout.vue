@@ -75,7 +75,7 @@ export default {
       return state.state; // Access state directly from the store
     },
     showOverlay() {
-      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
+      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
       return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
@@ -102,7 +102,9 @@ export default {
     $route() {
       mutations.resetSelected();
       mutations.multiple(false);
-      if (this.currentPrompt?.prompt !== "success") mutations.closeHovers();
+      if (getters.currentPromptName() !== "success") {
+        mutations.closeHovers();
+      }
     },
   },
   methods: {

@@ -26,7 +26,7 @@
 </style>
 
 <script>
-import { state } from "@/store";
+import { state , mutations } from "@/store";
 import { eventBus } from "@/main";
 
 import buttons from "@/utils/buttons";
@@ -108,7 +108,7 @@ export default {
       }
     },
     close() {
-      this.$store.commit("updateRequest", {});
+      mutations.updateRequest({});
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
     },

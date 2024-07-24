@@ -17,7 +17,7 @@
       <div v-if="user.perm?.create">
         <!-- New Folder button -->
         <button
-          @click="$store.commit('showHover', 'newDir')"
+          @click="showHover('newDir')"
           class="action"
           :aria-label="$t('sidebar.newFolder')"
           :title="$t('sidebar.newFolder')"
@@ -27,7 +27,7 @@
         </button>
         <!-- New File button -->
         <button
-          @click="$store.commit('showHover', 'newFile')"
+          @click="showHover('newFile')"
           class="action"
           :aria-label="$t('sidebar.newFile')"
           :title="$t('sidebar.newFile')"
@@ -160,7 +160,7 @@ export default {
       return getters.currentPrompt();
     },
     active() {
-      return this.currentPrompt?.prompt === "sidebar";
+      return getters.currentPromptName() === "sidebar";
     },
     signup: () => signup,
     version: () => version,
@@ -197,6 +197,9 @@ export default {
     },
   },
   methods: {
+    showHover(value) {
+      return mutations.showHover(value);
+    },
     // Navigate to the root files directory
     toRoot() {
       this.$router.push({ path: "/files/" }, () => {});
@@ -244,7 +247,7 @@ export default {
 
       if (conflict) {
         mutations.showHover({
-          prompt: "replace",
+          name: "replace",
           confirm: (event) => {
             event.preventDefault();
             mutations.closeHovers();

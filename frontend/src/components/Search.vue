@@ -255,7 +255,7 @@ export default {
   },
   computed: {
     showOverlay: function () {
-      return state.prompts.length > 0 && state.prompts[0].prompt !== "more";
+      return state.prompts.length > 0 && state.prompts[0].name !== "more";
     },
     isDarkMode() {
       return state.user && Object.prototype.hasOwnProperty.call(state.user, "darkMode")

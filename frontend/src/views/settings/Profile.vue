@@ -108,6 +108,9 @@ export default {
     };
   },
   computed: {
+    user() {
+      return state.user;
+    },
     passwordClass() {
       const baseClass = "input input--block";
 
@@ -123,17 +126,13 @@ export default {
     },
   },
   created() {
-    if (typeof this.user.darkMode === "undefined") {
-      this.darkMode = false;
-    } else {
-      this.darkMode = this.user.darkMode;
-    }
+    this.darkMode = state.user.darkMode;
+    this.locale = state.user.locale;
+    this.viewMode = state.user.viewMode;
+    this.hideDotfiles = state.user.hideDotfiles;
+    this.singleClick = state.user.singleClick;
+    this.dateFormat = state.user.dateFormat;
     mutations.setLoading(false);
-    this.locale = this.user.locale;
-    this.viewMode = this.user.viewMode;
-    this.hideDotfiles = this.user.hideDotfiles;
-    this.singleClick = this.user.singleClick;
-    this.dateFormat = this.user.dateFormat;
   },
   methods: {
     async updatePassword(event) {
@@ -144,12 +143,12 @@ export default {
       }
 
       try {
-        const data = { id: this.user.id, password: this.password };
+        const data = { id: state.user.id, password: this.password };
         await api.update(data, ["password"]);
-        this.updateUser(data);
-        this.$showSuccess(this.$t("settings.passwordUpdated"));
+        mutations.updateUser(data);
+        mutations.showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
-        this.$showError(e);
+        mutations.showError(e);
       }
     },
     async updateSettings(event) {
@@ -160,7 +159,7 @@ export default {
           locale: this.locale,
           darkMode: this.darkMode,
           viewMode: this.viewMode,
-          hideDotfiles: this.hideDotfiles,
+          hideDotfiles: state.user.hideDotfiles,
           singleClick: this.singleClick,
           dateFormat: this.dateFormat,
         };
@@ -174,13 +173,13 @@ export default {
           "singleClick",
           "dateFormat",
         ]);
-        this.updateUser(data);
+        mutations.updateUser(data);
         if (shouldReload) {
           location.reload();
         }
         this.$showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        this.$showError(e);
+        mutations.showError(e);
       }
     },
     updateViewMode(updatedMode) {

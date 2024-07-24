@@ -141,7 +141,7 @@ export default {
       return api.getDownloadURL(this.req, true);
     },
     showMore() {
-      return this.currentPrompt?.prompt === "more";
+      return getters.currentPromptName() === "more";
     },
     isResizeEnabled() {
       return resizePreview;
@@ -170,7 +170,7 @@ export default {
   methods: {
     deleteFile() {
       this.currentPrompt = {
-        prompt: "delete",
+        name: "delete",
         confirm: () => {
           this.listing = this.listing.filter((item) => item.name !== this.name);
 

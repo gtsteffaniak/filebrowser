@@ -262,7 +262,7 @@ export default {
 
       if (conflict) {
         mutations.showHover({
-          prompt: "replace-rename",
+          name: "replace-rename",
           confirm: (event, option) => {
             overwrite = option == "overwrite";
             rename = option == "rename";

@@ -66,7 +66,7 @@
       </h2>
     </div>
     <template v-else>
-      <div v-if="req.numDirs + req.numFiles == 0">
+      <div v-if="numDirs + numFiles == 0">
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
@@ -137,12 +137,12 @@
             </div>
           </div>
         </div>
-        <div v-if="req.numDirs > 0">
+        <div v-if="numDirs > 0">
           <div class="header-items">
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="req.numDirs > 0">
+        <div v-if="numDirs > 0">
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -158,12 +158,12 @@
           </item>
         </div>
 
-        <div v-if="req.numFiles > 0">
+        <div v-if="numFiles > 0">
           <div class="header-items">
             <h2>{{ $t("files.files") }}</h2>
           </div>
         </div>
-        <div v-if="req.numFiles > 0">
+        <div v-if="numFiles > 0">
           <item
             v-for="item in files"
             :key="base64(item.name)"
@@ -195,10 +195,10 @@
           multiple
         />
 
-        <div :class="{ active: $store.state.multiple }" id="multiple-selection">
+        <div :class="{ active: getMultiple }" id="multiple-selection">
           <p>{{ $t("files.multipleSelectionEnabled") }}</p>
           <div
-            @click="$store.commit('multiple', false)"
+            @click="setMultiple(false)"
             tabindex="0"
             role="button"
             :title="$t('files.clear')"
@@ -225,6 +225,7 @@ import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
+import { state, mutations } from "@/store";
 
 import Action from "@/components/header/Action";
 import Item from "@/components/files/ListingItem.vue";
@@ -241,7 +242,6 @@ export default {
       columnWidth: 280,
       dragCounter: 0,
       width: window.innerWidth,
-      req: {}, // Replace with your actual initial state
       selected: [], // Replace with your actual initial state
       user: {}, // Replace with your actual initial state
       multiple: false,
@@ -253,34 +253,46 @@ export default {
     };
   },
   computed: {
+    getMultiple() {
+      return state.multiple;
+    },
+    setMultipleFalse(val) {
+      return mutations.multiple(val === true)
+    },
     nameSorted() {
-      return this.req.sorting.by === "name";
+      return state.req.sorting.by === "name";
     },
     sizeSorted() {
-      return this.req.sorting.by === "size";
+      return state.req.sorting.by === "size";
     },
     modifiedSorted() {
-      return this.req.sorting.by === "modified";
+      return state.req.sorting.by === "modified";
     },
     ascOrdered() {
-      return this.req.sorting.asc;
+      return state.req.sorting.asc;
     },
     items() {
       const dirs = [];
       const files = [];
 
-      this.req.items.forEach((item) => {
+      state.req.items.forEach((item) => {
         if (this.user.hideDotfiles && item.name.startsWith(".")) {
           return;
         }
         if (item.isDir) {
           dirs.push(item);
         } else {
-          item.Path = this.req.Path;
+          item.Path = state.req.Path;
           files.push(item);
         }
       });
       return { dirs, files };
+    },
+    numDirs() {
+      return state.req.numDirs;
+    },
+    numFiles() {
+      return state.req.numDirs;
     },
     dirs() {
       return this.items.dirs;
@@ -324,15 +336,22 @@ export default {
     headerButtons() {
       return {
         select: this.selected.length > 0,
-        upload: this.user.perm.create && this.selected.length > 0,
+        upload: this.user.perm?.create && this.selected.length > 0,
         download: this.user.perm.download && this.selected.length > 0,
         delete: this.selected.length > 0 && this.user.perm.delete,
         rename: this.selected.length === 1 && this.user.perm.rename,
         share: this.selected.length === 1 && this.user.perm.share,
         move: this.selected.length > 0 && this.user.perm.rename,
-        copy: this.selected.length > 0 && this.user.perm.create,
+        copy: this.selected.length > 0 && this.user.perm?.create,
       };
     },
+    selectedCount() {
+      return this.selected.length;
+    },
+    req() {
+      console.log(state.req)
+      state.req;
+    }
   },
   watch: {
     req() {
@@ -348,7 +367,7 @@ export default {
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
 
-    if (!this.user.perm.create) return;
+    if (!this.user.perm?.create) return;
     document.addEventListener("dragover", this.preventDefault);
     document.addEventListener("dragenter", this.dragEnter);
     document.addEventListener("dragleave", this.dragLeave);
@@ -360,7 +379,7 @@ export default {
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
 
-    if (this.user && !this.user.perm.create) return;
+    if (this.user && !this.user.perm?.create) return;
     document.removeEventListener("dragover", this.preventDefault);
     document.removeEventListener("dragenter", this.dragEnter);
     document.removeEventListener("dragleave", this.dragLeave);
@@ -437,8 +456,8 @@ export default {
       }
 
       let items = this.selected.map((i) => ({
-        from: this.req.items[i].url,
-        name: this.req.items[i].name,
+        from: state.req.items[i].url,
+        name: state.req.items[i].name,
       }));
 
       if (items.length === 0) {
@@ -492,11 +511,11 @@ export default {
         return;
       }
 
-      const conflict = upload.checkConflict(items, this.req.items);
+      const conflict = upload.checkConflict(items, state.req.items);
 
       if (conflict) {
         this.currentPrompt = {
-          prompt: "replace-rename",
+          name: "replace-rename",
           confirm: (event, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
@@ -550,7 +569,7 @@ export default {
       }
 
       let files = await upload.scanFiles(dt);
-      let items = this.req.items;
+      let items = state.req.items;
       let path = this.$route.path.endsWith("/")
         ? this.$route.path
         : this.$route.path + "/";
@@ -569,7 +588,7 @@ export default {
 
       if (conflict) {
         this.currentPrompt = {
-          prompt: "replace",
+          name: "replace",
           confirm: (event) => {
             event.preventDefault();
             this.currentPrompt = null;
@@ -597,11 +616,11 @@ export default {
       let path = this.$route.path.endsWith("/")
         ? this.$route.path
         : this.$route.path + "/";
-      const conflict = upload.checkConflict(files, this.req.items);
+      const conflict = upload.checkConflict(files, state.req.items);
 
       if (conflict) {
         this.currentPrompt = {
-          prompt: "replace",
+          name: "replace",
           confirm: (event) => {
             event.preventDefault();
             this.currentPrompt = null;
@@ -630,8 +649,8 @@ export default {
       }
 
       // Directly update the sort configuration
-      this.req.sorting.by = field;
-      this.req.sorting.asc = asc;
+      state.req.sorting.by = field;
+      state.req.sorting.asc = asc;
       this.updateListingItems();
     },
     updateListingItems() {
@@ -657,19 +676,19 @@ export default {
       if (this.$refs.listingView == null) return;
     }, 100),
     download() {
-      if (this.selected.length === 1 && !this.req.items[this.selected[0]].isDir) {
-        api.download(null, this.req.items[this.selected[0]].url);
+      if (this.selected.length === 1 && !state.req.items[this.selected[0]].isDir) {
+        api.download(null, state.req.items[this.selected[0]].url);
         return;
       }
 
       this.currentPrompt = {
-        prompt: "download",
+        name: "download",
         confirm: (format) => {
           this.currentPrompt = null;
           let files = [];
           if (this.selected.length > 0) {
             for (let i of this.selected) {
-              files.push(this.req.items[i].url);
+              files.push(state.req.items[i].url);
             }
           } else {
             files.push(this.$route.path);

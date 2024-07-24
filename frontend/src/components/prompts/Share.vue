@@ -58,7 +58,7 @@
       <div class="card-action">
         <button
           class="button button--flat button--grey"
-          @click="$store.commit('closeHovers')"
+          @click="closeHovers"
           :aria-label="$t('buttons.close')"
           :title="$t('buttons.close')"
         >
@@ -120,7 +120,7 @@
   </div>
 </template>
 <script>
-import { state, getters } from "@/store"; // Import your custom store
+import { state, getters,mutations } from "@/store"; // Import your custom store
 import { share as api, pub as pub_api } from "@/api";
 import moment from "moment";
 import Clipboard from "clipboard";
@@ -138,6 +138,9 @@ export default {
     };
   },
   computed: {
+    closeHovers() {
+      return mutations.closeHovers;
+    },
     req() {
       return state.req; // Access state directly
     },
@@ -250,7 +253,7 @@ export default {
     switchListing() {
       if (this.links.length === 0 && !this.listing) {
         // Access the store directly if needed
-        this.$store.commit("closeHovers");
+        mutations.closeHovers();
       }
 
       this.listing = !this.listing;

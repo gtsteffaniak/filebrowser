@@ -5,7 +5,7 @@
     </div>
     <div class="card-action">
       <button
-        @click="$store.commit('closeHovers')"
+        @click="closeHovers"
         class="button button--flat button--grey"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
@@ -29,8 +29,11 @@ import { getters } from "@/store"; // Import your custom store
 export default {
   name: "share-delete",
   computed: {
+    closeHovers() {
+      return mutations.closeHovers();
+    },
     currentPrompt() {
-      return getters.currentPrompt(); // Access getter directly from the store
+      return getters.currentPrompt();
     },
   },
   methods: {

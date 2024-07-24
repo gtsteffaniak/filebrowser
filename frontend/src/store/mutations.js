@@ -13,16 +13,16 @@ export const mutations = {
     emitStateChanged();
   },
   showHover: (value) => {
-    if (typeof value !== "object") {
+    if (typeof value === "object") {
       state.prompts.push({
-        prompt: value,
-        confirm: null,
-        action: null,
-        props: null,
+        name: value?.name,
+        confirm: value?.confirm,
+        action: value?.action,
+        props: value?.props,
       });
     } else {
       state.prompts.push({
-        prompt: value.prompt, // Should not be null
+        name: value,
         confirm: value?.confirm,
         action: value?.action,
         props: value?.props,
@@ -35,7 +35,7 @@ export const mutations = {
     emitStateChanged();
   },
   showSuccess: () => {
-    state.prompts.push("success");
+    showHover("success");
     emitStateChanged();
   },
   setLoading: (value) => {
@@ -108,12 +108,10 @@ export const mutations = {
     state.oldReq = state.req;
     state.req = value;
     state.selected = [];
-
     if (!state.req?.items) return;
     state.selected = state.req.items
       .filter((item) => selectedItems.some((rItem) => rItem.url === item.url))
       .map((item) => item.index);
-
     emitStateChanged();
   },
   updateListingSortConfig: ({ field, asc }) => {

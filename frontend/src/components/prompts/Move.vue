@@ -26,7 +26,7 @@
       <div>
         <button
           class="button button--flat button--grey"
-          @click="$store.commit('closeHovers')"
+          @click="closeHovers"
           :aria-label="$t('buttons.cancel')"
           :title="$t('buttons.cancel')"
         >
@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { state } from "@/store";
+import { state,mutations} from "@/store";
 import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
@@ -61,6 +61,11 @@ export default {
       current: window.location.pathname,
       dest: null,
     };
+  },
+  computed: {
+    closeHovers() {
+      return mutations.closeHovers()
+    },
   },
   methods: {
     move: async function (event) {
@@ -97,14 +102,14 @@ export default {
       let rename = false;
 
       if (conflict) {
-        this.$store.commit("showHover", {
-          prompt: "replace-rename",
+        mutations.showHover({
+          name: "replace-rename",
           confirm: (event, option) => {
             overwrite = option == "overwrite";
             rename = option == "rename";
 
             event.preventDefault();
-            this.$store.commit("closeHovers");
+            mutations.closeHovers();
             action(overwrite, rename);
           },
         });

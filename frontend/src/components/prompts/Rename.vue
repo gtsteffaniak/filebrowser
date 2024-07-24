@@ -21,7 +21,7 @@
     <div class="card-action">
       <button
         class="button button--flat button--grey"
-        @click="$store.commit('closeHovers')"
+        @click="closeHovers"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
       >
@@ -66,6 +66,9 @@ export default {
     },
     isListing() {
       return getters.isListing();
+    },
+    closeHovers() {
+      return mutations.closeHovers;
     },
   },
   methods: {

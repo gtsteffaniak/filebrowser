@@ -18,7 +18,7 @@
     <div class="card-action">
       <button
         class="button button--flat button--grey"
-        @click="$store.commit('closeHovers')"
+        @click="closeHovers"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
       >
@@ -66,6 +66,9 @@ export default {
     },
   },
   methods: {
+    closeHovers() {
+      return mutations.closeHovers();
+    },
     async submit(event) {
       event.preventDefault();
       if (this.name === "") return;
@@ -73,7 +76,7 @@ export default {
       // Build the path of the new directory.
       let uri;
       if (this.base) uri = this.base;
-      else if (this.isFiles) uri = this.$route.path + "/";
+      else if (getters.isFiles()) uri = this.$route.path + "/";
       else uri = "/";
 
       if (!this.isListing) {

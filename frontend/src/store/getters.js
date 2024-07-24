@@ -2,22 +2,25 @@ import { state } from "./state.js";
 
 export const getters = {
   isLogged: () => state.user !== null,
-  
-  isFiles: () => !state.loading && state.route.name === "Files",
-  
+
+  isFiles: () => {
+    console.log("states", state.route); // Adjusted to correctly log the state.route
+    return !state.loading && state.route.name === "Files";
+  },
+
   isListing: (getters) => getters.isFiles && state.req.isDir,
 
   selectedCount: () => {
     // Ensure state.selected is an array
     return Array.isArray(state.selected) ? state.selected.length : 0;
   },
-  
+
   progress: () => {
     // Check if state.upload is defined and valid
     if (!state.upload || !Array.isArray(state.upload.progress) || !Array.isArray(state.upload.sizes)) {
       return 0;
     }
-    
+
     // Handle cases where progress or sizes arrays might be empty
     if (state.upload.progress.length === 0 || state.upload.sizes.length === 0) {
       return 0;
@@ -32,7 +35,7 @@ export const getters = {
     // Return progress as a percentage
     return Math.ceil((sum / totalSize) * 100);
   },
-  
+
   filesInUploadCount: () => {
     // Ensure state.upload.uploads is an object and state.upload.queue is an array
     const uploadsCount = typeof state.upload.uploads === 'object' ? Object.keys(state.upload.uploads).length : 0;
@@ -40,18 +43,29 @@ export const getters = {
 
     return uploadsCount + queueCount;
   },
-  
+
   currentPrompt: () => {
     // Ensure state.prompts is an array
-    return Array.isArray(state.prompts) && state.prompts.length > 0
-      ? state.prompts[state.prompts.length - 1]
-      : null;
+    if (!Array.isArray(state.prompts)) {
+      return null;
+    }
+    if (state.prompts.length === 0) {
+      return null;
+    }
+    return state.prompts[state.prompts.length - 1]
   },
-  
-  currentPromptName: (getters) => {
-    return getters.currentPrompt?.prompt || null;
+
+  currentPromptName: () => {
+    // Ensure state.prompts is an array
+    if (!Array.isArray(state.prompts)) {
+      return null;
+    }
+    if (state.prompts.length === 0) {
+      return null;
+    }
+    return state.prompts[state.prompts.length - 1].name;
   },
-  
+
   filesInUpload: () => {
     // Ensure state.upload.uploads is an object and state.upload.sizes is an array
     if (typeof state.upload.uploads !== 'object' || !Array.isArray(state.upload.sizes)) {

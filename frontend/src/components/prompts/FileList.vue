@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { state } from "@/store";
+import { state,mutations } from "@/store";
 import url from "@/utils/url";
 import { files } from "@/api";
 
@@ -129,8 +129,8 @@ export default {
       this.$emit("update:selected", this.selected);
     },
     createDir: async function () {
-      this.$store.commit("showHover", {
-        prompt: "newDir",
+      mutations.showHover({
+        name: "newDir",
         action: null,
         confirm: null,
         props: {

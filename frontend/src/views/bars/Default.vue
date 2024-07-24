@@ -231,6 +231,9 @@ export default {
 
       this.$emit("action");
     },
+    close() {
+      mutations.closeHovers();
+    },
     toggleSidebar() {
       if (state.show == "sidebar") {
         mutations.closeHovers();

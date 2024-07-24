@@ -5,10 +5,10 @@
       :ref="currentPromptName"
       :is="currentPromptName"
       v-bind="currentPrompt.props"
-    >
-    </component>
+    />
   </div>
 </template>
+
 <script>
 import Help from "./Help.vue";
 import Info from "./Info.vue";
@@ -60,9 +60,10 @@ export default {
   },
   created() {
     window.addEventListener("keydown", (event) => {
-      if (!getters.currentPrompt()) return;
+      let currentPrompt = getters.currentPrompt();
+      if (!currentPrompt) return;
 
-      let prompt = this.$refs.currentComponent;
+      let prompt = this.$refs[currentPrompt.name];
 
       // Esc!
       if (event.keyCode === 27) {
@@ -72,7 +73,7 @@ export default {
 
       // Enter
       if (event.keyCode === 13) {
-        switch (getters.currentPrompt().prompt) {
+        switch (currentPrompt.name) {
           case "delete":
             prompt.submit();
             break;
@@ -90,13 +91,25 @@ export default {
     });
   },
   computed: {
+    currentPromptName() {
+      if (getters.currentPromptName() == null) {
+        return "";
+      }
+      return getters.currentPromptName();
+    },
+    currentPrompt() {
+      if (getters.currentPrompt() == null) {
+        return {
+          props: {},
+        };
+      }
+      return getters.currentPrompt()
+    },
     plugins() {
       return state.plugins;
     },
     showOverlay() {
-      return (
-        getters.currentPrompt() !== null && getters.currentPrompt().prompt !== "more"
-      );
+      return getters.currentPromptName() !== "more";
     },
   },
   methods: {},

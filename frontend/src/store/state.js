@@ -1,7 +1,12 @@
+import { locale } from "moment";
+
 // state.js
 export const state = {
     editor: null,
     user: {
+        locale: 'en', // Default to the locale from moment
+        viewMode: 'mosaic', // Default to mosaic view
+        hideDotfiles: false, // Default to false, assuming this is a boolean
         perm: {},
         rules: [], // Default to an empty array
         permissions: {}, // Default to an empty object for permissions
@@ -17,6 +22,8 @@ export const state = {
             by: 'name', // Initial sorting field
             asc: true,  // Initial sorting order
         },
+        numDirs: 0,
+        numFiles: 0,
     },
     oldReq: {},
     clipboard: {

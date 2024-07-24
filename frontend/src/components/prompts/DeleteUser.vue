@@ -31,10 +31,10 @@ export default {
       return state.prompts;
     },
     currentPrompt() {
-      return this.prompts.length ? this.prompts[this.prompts.length - 1] : null;
+      return getters.currentPrompt();
     },
     user() {
-      return this.currentPrompt?.props?.user;
+      return getters.currentPrompt().props?.user;
     },
     isListing() {
       return getters.isListing();

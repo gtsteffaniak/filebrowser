@@ -201,12 +201,17 @@ export default {
     };
   },
   computed: {
+    loading() {
+      return state.loading;
+  },
+    user() {
+      return state.user;
+    },
     isExecEnabled: () => enableExec,
   },
   async created() {
     try {
       mutations.setLoading(true);
-
       const original = await api.get();
       let settings = { ...original, commands: [] };
 
@@ -216,9 +221,7 @@ export default {
           value: original.commands[key].join("\n"),
         });
       }
-
       settings.shell = settings.shell.join(" ");
-
       this.originalSettings = original;
       this.settings = settings;
     } catch (e) {
@@ -261,9 +264,9 @@ export default {
 
       try {
         await api.update(settings);
-        this.$showSuccess(this.$t("settings.settingsUpdated"));
+        mutations.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        this.$showError(e);
+        mutations.showError(e);
       }
     },
   },

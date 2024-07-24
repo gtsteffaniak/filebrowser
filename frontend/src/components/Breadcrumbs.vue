@@ -78,7 +78,7 @@ export default {
       if (this.$route.path.startsWith("/share")) {
         return false;
       }
-      return state.user.perm && state.user.perm.share; // Access from state directly
+      return state.user?.perm && state.user?.perm.share; // Access from state directly
     },
   },
   methods: {

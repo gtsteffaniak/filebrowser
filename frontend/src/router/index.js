@@ -41,7 +41,7 @@ const router = new Router({
       name: "Login",
       component: Login,
       beforeEnter: (to, from, next) => {
-        if (getters.isLogged) {
+        if (getters.isLogged()) {
           return next({ path: "/files" });
         }
 
@@ -171,7 +171,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!getters.isLogged) {
+    if (!getters.isLogged()) {
       next({
         path: "/login",
         query: { redirect: to.fullPath },

@@ -6,7 +6,7 @@
 
 <script>
 import { eventBus } from "@/main";
-import { state } from "@/store";
+import { state,mutations } from "@/store";
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
@@ -102,8 +102,7 @@ export default {
       this.save();
     },
     close() {
-      this.$store.commit("updateRequest", {});
-
+      mutations.updateRequest({});
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
     },

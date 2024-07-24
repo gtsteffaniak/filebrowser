@@ -24,7 +24,7 @@
 }
 </style>
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations,getters } from "@/store";
 import { users, files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
@@ -166,16 +166,18 @@ export default {
   },
   methods: {
     action() {
+      console.log("state.show",state.show)
       if (state.show) {
         // Assuming `showHover` is a method on a component
         this.$emit("action");
       }
     },
     toggleSidebar() {
-      if (this.currentPrompt?.prompt === "sidebar") {
-        mutations.setShow(null);
+      if (getters.currentPromptName() === "sidebar") {
+        console.log("should close")
+        mutations.closeHovers();
       } else {
-        mutations.setShow("sidebar");
+        mutations.showHover("sidebar");
       }
     },
     base64(name) {
@@ -192,12 +194,12 @@ export default {
 
       if (event.keyCode === 46) {
         if (!state.user.perm.delete || state.selected.length === 0) return;
-        mutations.setShow("delete");
+        mutations.showHover("delete");
       }
 
       if (event.keyCode === 113) {
         if (!state.user.perm.rename || state.selected.length !== 1) return;
-        mutations.setShow("rename");
+        mutations.showHover("rename");
       }
 
       if (!event.ctrlKey && !event.metaKey) {
@@ -209,7 +211,7 @@ export default {
       switch (key) {
         case "f":
           event.preventDefault();
-          mutations.setShow("search");
+          mutations.showHover("search");
           break;
         case "c":
         case "x":
@@ -238,7 +240,7 @@ export default {
       }
     },
     async switchView() {
-      mutations.setShow(null);
+      mutations.closeHovers();
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const data = {
@@ -319,14 +321,14 @@ export default {
       const conflict = upload.checkConflict(items, state.req.items);
 
       if (conflict) {
-        mutations.setShow({
-          prompt: "replace-rename",
+        mutations.showHover({
+          name: "replace-rename",
           confirm: (event, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
 
             event.preventDefault();
-            mutations.setShow(null);
+            mutations.closeHovers();;
             action(overwrite, rename);
           },
         });
@@ -403,11 +405,11 @@ export default {
       const conflict = upload.checkConflict(files, items);
 
       if (conflict) {
-        mutations.setShow({
-          prompt: "replace",
+        mutations.showHover({
+          name: "replace",
           confirm: (event) => {
             event.preventDefault();
-            mutations.setShow(null);
+            mutations.closeHovers();
             upload.handleFiles(files, path, true);
           },
         });
@@ -417,7 +419,7 @@ export default {
       upload.handleFiles(files, path);
     },
     uploadInput(event) {
-      mutations.setShow(null);
+      mutations.closeHovers();;
 
       let files = event.currentTarget.files;
       let folder_upload =
@@ -436,11 +438,11 @@ export default {
       const conflict = upload.checkConflict(files, state.req.items);
 
       if (conflict) {
-        mutations.setShow({
-          prompt: "replace",
+        mutations.showHover({
+          name: "replace",
           confirm: (event) => {
             event.preventDefault();
-            mutations.setShow(null);
+            mutations.closeHovers();
             upload.handleFiles(files, path, true);
           },
         });
@@ -481,11 +483,11 @@ export default {
       }
     },
     openSearch() {
-      mutations.setShow("search");
+      mutations.showHover("search");
     },
     toggleMultipleSelection() {
       mutations.toggleMultiple();
-      mutations.setShow(null);
+      mutations.closeHovers();
     },
     windowsResize: throttle(function () {
       this.colunmsResize();
@@ -502,10 +504,10 @@ export default {
         return;
       }
 
-      mutations.setShow({
-        prompt: "download",
+      mutations.showHover({
+        name: "download",
         confirm: (format) => {
-          mutations.setShow(null);
+          mutations.closeHovers();;
           let files = [];
           if (state.selected.length > 0) {
             for (let i of state.selected) {
@@ -524,7 +526,7 @@ export default {
         typeof window.DataTransferItem !== "undefined" &&
         typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
       ) {
-        mutations.setShow("upload");
+        mutations.showHover("upload");
       } else {
         document.getElementById("upload-input").click();
       }

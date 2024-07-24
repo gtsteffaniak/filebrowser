@@ -37,6 +37,7 @@
   </div>
 </template>
 <script>
+import { mutations } from "@/store";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm";
 import Errors from "@/views/Errors";
@@ -102,7 +103,7 @@ export default {
       }
     },
     deletePrompt() {
-      this.currentPrompt = { prompt: "deleteUser", props: { user: this.user } };
+      mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
       event.preventDefault();

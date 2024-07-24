@@ -13,7 +13,6 @@ async function start() {
   console.log("state",state)
   try {
     if (loginPage) {
-      console.log("validating")
       await validateLogin();
     } else {
       await login("publicUser", "publicUser", "");
@@ -21,7 +20,6 @@ async function start() {
   } catch (e) {
     console.log(e);
   }
-
   if (recaptcha) {
     await new Promise((resolve) => {
       const check = () => {
@@ -31,7 +29,6 @@ async function start() {
           resolve();
         }
       };
-
       check();
     });
   }

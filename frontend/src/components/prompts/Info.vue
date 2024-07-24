@@ -60,7 +60,7 @@
     <div class="card-action">
       <button
         type="submit"
-        @click="$store.commit('closeHovers')"
+        @click="closeHovers"
         class="button button--flat"
         :aria-label="$t('buttons.ok')"
         :title="$t('buttons.ok')"
@@ -74,11 +74,14 @@
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import moment from "moment";
 import { files as api } from "@/api";
-import { state, getters } from "@/store"; // Import your custom store
+import { state, getters,mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "info",
   computed: {
+    closeHovers() {
+      return mutations.closeHovers;
+    },
     req() {
       return state.req;
     },

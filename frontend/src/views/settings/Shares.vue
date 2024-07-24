@@ -104,21 +104,28 @@ export default {
   beforeUnmount() {
     this.clip.destroy();
   },
+  computed: {
+    user() {
+      return state.user;
+    },
+    loading() {
+      return state.loading;
+    },
+  },
   methods: {
     deleteLink: async function (event, link) {
       event.preventDefault();
-
-      this.$store.commit("showHover", {
-        prompt: "share-delete",
+      mutations.showHover({
+        name: "share-delete",
         confirm: () => {
-          this.$store.commit("closeHovers");
+          mutations.closeHovers();
 
           try {
             api.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
-            this.$showSuccess(this.$t("settings.shareDeleted"));
+            mutations.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
-            this.$showError(e);
+            mutations.showError(e);
           }
         },
       });

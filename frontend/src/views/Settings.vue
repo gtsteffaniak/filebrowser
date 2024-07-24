@@ -47,17 +47,23 @@
 </template>
 
 <script>
-import { state } from "@/store";
+import { state, mutations } from "@/store";
 
 export default {
   name: "settings",
   mounted() {
     // Update the req name property
-    this.$store.commit("updateRequest", { name: "Settings" });
+    mutations.updateRequest({ name: "Settings" });
   },
   computed: {
+    loading() {
+      return state.loading;
+    },
+    user() {
+      return state.user;
+    },
     settingsEnabled() {
-      return this.user.disableSettings == false;
+      return state.user.disableSettings == false;
     },
   },
 };

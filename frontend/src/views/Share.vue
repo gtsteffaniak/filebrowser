@@ -123,7 +123,7 @@
             <div :class="{ active: $store.state.multiple }" id="multiple-selection">
               <p>{{ $t("files.multipleSelectionEnabled") }}</p>
               <div
-                @click="$store.commit('multiple', false)"
+                @click="setMultipleFalse"
                 tabindex="0"
                 role="button"
                 :title="$t('files.clear')"
@@ -201,6 +201,9 @@ export default {
     this.clip.destroy();
   },
   computed: {
+    setMultipleFalse() {
+      return mutations.multiple(false);
+    },
     req() {
       return state.req; // Access state directly from the store
     },
@@ -306,7 +309,7 @@ export default {
       }
 
       mutations.showHover({
-        prompt: "download",
+        name: "download",
         confirm: (format) => {
           mutations.closeHovers();
 

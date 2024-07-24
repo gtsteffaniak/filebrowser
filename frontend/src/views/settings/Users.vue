@@ -74,7 +74,7 @@ export default {
   computed: {
     // Access the loading state directly from the store
     loading() {
-      return store.state.loading;
+      return state.loading;
     },
   },
   methods: {
