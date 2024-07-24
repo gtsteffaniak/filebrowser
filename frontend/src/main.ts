@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import router from './router'; // Adjust the path as per your setup
 import App from './App.vue'; // Adjust the path as per your setup
 import { state } from '@/store'; // Adjust the path as per your setup
-import i18n, { isRtl } from "@/i18n";
+import i18n from "@/i18n";
 import VueLazyload from "vue-lazyload";
 
 import './css/styles.css';

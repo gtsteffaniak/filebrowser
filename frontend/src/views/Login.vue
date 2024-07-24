@@ -115,10 +115,10 @@ export default {
 
       try {
         if (this.createMode) {
-          await auth.signup(this.username, this.password);
+          await auth.signup(state.username, this.password);
         }
 
-        await auth.login(this.username, this.password, captcha);
+        await auth.login(state.username, this.password, captcha);
         this.$router.push({ path: redirect });
       } catch (e) {
         if (e.message == 409) {

@@ -89,7 +89,7 @@ export default {
   },
   props: ["user", "createUserDir", "isNew", "isDefault"],
   created() {
-    this.originalUserScope = this.user.scope;
+    this.originalUserScope = state.user.scope;
     this.createUserDirData = this.createUserDir;
   },
   computed: {
@@ -110,11 +110,11 @@ export default {
   },
   watch: {
     "user.perm.admin": function () {
-      if (!this.user.perm.admin) return;
-      this.user.lockPassword = false;
+      if (!state.user.perm.admin) return;
+      state.user.lockPassword = false;
     },
     createUserDirData(newVal) {
-      this.user.scope = newVal ? "" : this.originalUserScope;
+      state.user.scope = newVal ? "" : this.originalUserScope;
     },
   },
 };

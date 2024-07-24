@@ -104,15 +104,17 @@ export const mutations = {
     emitStateChanged();
   },
   updateRequest: (value) => {
-    const selectedItems = state.selected.map((i) => state.req.items[i]);
-    state.oldReq = state.req;
-    state.req = value;
+    state.oldReq = { ...state.req };
+    // Ensure the update is reactive
+    state.req = { ...state.req, ...value };
     state.selected = [];
+    console.log("updateRequest", state.req);
+    emitStateChanged();
     if (!state.req?.items) return;
+    const selectedItems = state.selected.map((i) => state.req.items[i]);
     state.selected = state.req.items
       .filter((item) => selectedItems.some((rItem) => rItem.url === item.url))
       .map((item) => item.index);
-    emitStateChanged();
   },
   updateListingSortConfig: ({ field, asc }) => {
     state.req.sorting.by = field;

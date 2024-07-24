@@ -74,9 +74,9 @@ export default {
 
       for (let item of this.selected) {
         items.push({
-          from: this.req.items[item].url,
-          to: this.dest + encodeURIComponent(this.req.items[item].name),
-          name: this.req.items[item].name,
+          from: state.req.items[item].url,
+          to: this.dest + encodeURIComponent(state.req.items[item].name),
+          name: state.req.items[item].name,
         });
       }
 

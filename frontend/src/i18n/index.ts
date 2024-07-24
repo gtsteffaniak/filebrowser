@@ -114,14 +114,14 @@ export const rtlLanguages: string[] = ['he', 'ar'];
 
 // Function to check if locale is RTL
 export const isRtl = (locale?: string): boolean => {
-  // Ensure rtlLanguages is defined and is an array
-  if (!Array.isArray(rtlLanguages)) {
-    console.error('rtlLanguages is not defined or not an array');
+  // Determine the current locale, defaulting to i18n's locale if not provided
+  const currentLocale = locale || i18n.global.locale;
+
+  // Ensure the locale is a valid string before checking
+  if (typeof currentLocale !== 'string') {
+    console.error('Current locale is not a valid string');
     return false;
   }
-
-  // Ensure locale is a string
-  const currentLocale = typeof locale === 'string' ? locale : (i18n.global?.locale?.value || '');
 
   // Check if the locale is in the rtlLanguages array
   return rtlLanguages.includes(currentLocale);

@@ -62,7 +62,7 @@ export default {
 
     try {
       // Fetch all users from the API
-      this.users = await api.getAll();
+      state.users = await api.getAll();
     } catch (e) {
       // Handle errors
       this.error = e;

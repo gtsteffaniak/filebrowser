@@ -96,38 +96,38 @@ export default {
     },
     humanSize() {
       if (this.selectedCount === 0 || !this.isListing) {
-        return getHumanReadableFilesize(this.req.size);
+        return getHumanReadableFilesize(state.req.size);
       }
 
       let sum = 0;
 
       for (let selected of this.selected) {
-        sum += this.req.items[selected].size;
+        sum += state.req.items[selected].size;
       }
 
       return getHumanReadableFilesize(sum);
     },
     humanTime() {
       if (this.selectedCount === 0) {
-        return moment(this.req.modified).fromNow();
+        return moment(state.req.modified).fromNow();
       }
 
-      return moment(this.req.items[this.selected[0]].modified).fromNow();
+      return moment(state.req.items[this.selected[0]].modified).fromNow();
     },
     modTime() {
-      return new Date(Date.parse(this.req.modified)).toLocaleString();
+      return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
     name() {
       return this.selectedCount === 0
-        ? this.req.name
-        : this.req.items[this.selected[0]].name;
+        ? state.req.name
+        : state.req.items[this.selected[0]].name;
     },
     dir() {
       return (
         this.selectedCount > 1 ||
         (this.selectedCount === 0
-          ? this.req.isDir
-          : this.req.items[this.selected[0]].isDir)
+          ? state.req.isDir
+          : state.req.items[this.selected[0]].isDir)
       );
     },
   },
@@ -138,7 +138,7 @@ export default {
       let link;
 
       if (this.selectedCount) {
-        link = this.req.items[this.selected[0]].url;
+        link = state.req.items[this.selected[0]].url;
       } else {
         link = this.$route.path;
       }

@@ -157,24 +157,24 @@ const router = createRouter({
 
 
 async function initAuth() {
-    if (loginPage) {
+  if (loginPage) {
       await validateLogin();
-    } else {
+  } else {
       await login("publicUser", "publicUser", "");
-    }
+  }
 
   if (recaptcha) {
-    await new Promise<void>((resolve) => {
-      const check = () => {
-        if (typeof window.grecaptcha === "undefined") {
-          setTimeout(check, 100);
-        } else {
-          resolve();
-        }
-      };
+      await new Promise<void>((resolve) => {
+          const check = () => {
+              if (typeof window.grecaptcha === "undefined") {
+                  setTimeout(check, 100);
+              } else {
+                  resolve();
+              }
+          };
 
-      check();
-    });
+          check();
+      });
   }
 }
 

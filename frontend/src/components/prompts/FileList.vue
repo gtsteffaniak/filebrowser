@@ -113,7 +113,7 @@ export default {
       }
     },
     itemClick: function (event) {
-      if (this.user.singleClick) this.next(event);
+      if (state.user.singleClick) this.next(event);
       else this.select(event);
     },
     select: function (event) {

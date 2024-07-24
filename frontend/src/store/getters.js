@@ -16,6 +16,19 @@ export const getters = {
     return Array.isArray(state.selected) ? state.selected.length : 0;
   },
 
+
+  currentView: () => {
+      if (state.req.type === undefined) {
+        return null;
+      }
+      if (state.req.isDir) {
+        return "listingView";
+      } else if (Object.prototype.hasOwnProperty.call(state.req, "content")) {
+        return "editor";
+      } else {
+        return "preview";
+      }
+  },
   progress: () => {
     // Check if state.upload is defined and valid
     if (!state.upload || !Array.isArray(state.upload.progress) || !Array.isArray(state.upload.sizes)) {

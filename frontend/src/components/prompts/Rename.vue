@@ -77,7 +77,7 @@ export default {
     },
     oldName() {
       if (!this.isListing) {
-        return this.req.name;
+        return state.req.name;
       }
 
       if (this.selectedCount === 0 || this.selectedCount > 1) {
@@ -85,16 +85,16 @@ export default {
         return;
       }
 
-      return this.req.items[this.selected[0]].name;
+      return state.req.items[this.selected[0]].name;
     },
     async submit() {
       let oldLink = "";
       let newLink = "";
 
       if (!this.isListing) {
-        oldLink = this.req.url;
+        oldLink = state.req.url;
       } else {
-        oldLink = this.req.items[this.selected[0]].url;
+        oldLink = state.req.items[this.selected[0]].url;
       }
 
       newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);

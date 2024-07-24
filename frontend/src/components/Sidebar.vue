@@ -152,8 +152,8 @@ export default {
       return state.user;
     },
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
-        ? this.user.darkMode
+      return state.user && Object.prototype.hasOwnProperty.call(state.user, "darkMode")
+        ? state.user.darkMode
         : darkMode;
     },
     isLoggedIn() {

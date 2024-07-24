@@ -229,7 +229,6 @@ import { state, mutations } from "@/store";
 
 import Action from "@/components/header/Action.vue";
 import Item from "@/components/files/ListingItem.vue";
-
 export default {
   name: "listingView",
   components: {
@@ -354,13 +353,13 @@ export default {
   },
   watch: {
     req() {
-      // Ensures that the listing is displayed
+      console.log("watching req")
     },
   },
   mounted() {
+    console.log("mounted2")
     // Check the columns size for the first time.
     this.colunmsResize();
-
     // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);

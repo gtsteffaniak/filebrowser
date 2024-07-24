@@ -32,6 +32,7 @@ import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import Search from "@/components/Search.vue";
 
+console.log("state",state)
 export default {
   name: "listingView",
   components: {
@@ -132,7 +133,6 @@ export default {
   watch: {
     req() {
       this.showLimit = 50;
-
       this.$nextTick(() => {
         this.setItemWeight();
         this.fillWindow(true);

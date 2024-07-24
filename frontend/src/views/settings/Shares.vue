@@ -82,7 +82,7 @@ export default {
 
     try {
       let links = await api.list();
-      if (this.user.perm.admin) {
+      if (state.user.perm.admin) {
         let userMap = new Map();
         for (let user of await users.getAll()) userMap.set(user.id, user.username);
         for (let link of links)

@@ -220,35 +220,35 @@ export default {
       return getters.selectedCount(); // Access getter directly from the store
     },
     icon() {
-      if (this.req.isDir) return "folder";
-      if (this.req.type === "image") return "insert_photo";
-      if (this.req.type === "audio") return "volume_up";
-      if (this.req.type === "video") return "movie";
+      if (state.req.isDir) return "folder";
+      if (state.req.type === "image") return "insert_photo";
+      if (state.req.type === "audio") return "volume_up";
+      if (state.req.type === "video") return "movie";
       return "insert_drive_file";
     },
     link() {
-      return api.getDownloadURL(this.req);
+      return api.getDownloadURL(state.req);
     },
     inlineLink() {
-      return api.getDownloadURL(this.req, true);
+      return api.getDownloadURL(state.req, true);
     },
     humanSize() {
-      if (this.req.isDir) {
-        return this.req.items.length;
+      if (state.req.isDir) {
+        return state.req.items.length;
       }
-      return getHumanReadableFilesize(this.req.size);
+      return getHumanReadableFilesize(state.req.size);
     },
     humanTime() {
-      return moment(this.req.modified).fromNow();
+      return moment(state.req.modified).fromNow();
     },
     modTime() {
-      return new Date(Date.parse(this.req.modified)).toLocaleString();
+      return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
     isImage() {
-      return this.req.type === "image";
+      return state.req.type === "image";
     },
     isMedia() {
-      return this.req.type === "video" || this.req.type === "audio";
+      return state.req.type === "video" || state.req.type === "audio";
     },
   },
   methods: {
@@ -300,11 +300,11 @@ export default {
       mutations.multiple(!this.multiple);
     },
     isSingleFile() {
-      return this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir;
+      return this.selectedCount === 1 && !state.req.items[this.selected[0]].isDir;
     },
     download() {
       if (this.isSingleFile()) {
-        api.download(null, this.hash, this.token, this.req.items[this.selected[0]].path);
+        api.download(null, this.hash, this.token, state.req.items[this.selected[0]].path);
         return;
       }
 
@@ -316,7 +316,7 @@ export default {
           let files = [];
 
           for (let i of this.selected) {
-            files.push(this.req.items[i].path);
+            files.push(state.req.items[i].path);
           }
 
           api.download(format, this.hash, this.token, ...files);
@@ -327,7 +327,7 @@ export default {
       return this.isSingleFile()
         ? api.getDownloadURL({
             hash: this.hash,
-            path: this.req.items[this.selected[0]].path,
+            path: state.req.items[this.selected[0]].path,
           })
         : "";
     },

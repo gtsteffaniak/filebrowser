@@ -2,7 +2,7 @@
   <div>
     <breadcrumbs base="/files" />
     <errors v-if="error" :errorCode="error.status" />
-    <component v-else-if="currentView" :is="currentView"></component>
+    <component v-else-if="true" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
         <div class="spinner">
@@ -23,7 +23,7 @@ import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 
 function clean(path) {
   return path.endsWith("/") ? path.slice(0, -1) : path;
@@ -41,21 +41,16 @@ export default {
   data() {
     return {
       error: null,
+      currentViewObj: null,
       width: window.innerWidth,
     };
   },
   computed: {
     currentView() {
-      if (state.req.type === undefined) {
-        return null;
-      }
-      if (state.req.isDir) {
-        return "listingView";
-      } else if (Object.prototype.hasOwnProperty.call(state.req, "content")) {
-        return "editor";
-      } else {
-        return "preview";
-      }
+      return this.currentViewObj;
+    },
+    currentViewLoaded() {
+      return this.currentViewObj !== null;
     },
     reload() {
       return state.reload; // Access reload from state
@@ -99,27 +94,30 @@ export default {
       let url = this.$route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
-
+      let data = {};
       try {
+        // Fetch initial data
         let res = await api.fetch(url);
+        // If not a directory, fetch content
         if (!res.isDir) {
-          // Get content of file if possible
           res = await api.fetch(url, true);
         }
-
-        if (clean(res.path) !== clean(`/${this.$route.params.pathMatch}`)) {
-          return;
+        data = res;
+        // Verify if the fetched path matches the current route
+        if (clean(res.path) === clean(`/${this.$route.params.pathMatch}`)) {
+          document.title = `${res.name} - ${document.title}`;
         }
-
-        mutations.updateRequest(res); // Use mutation
-        document.title = `${res.name} - ${document.title}`;
       } catch (e) {
+        console.error("Error fetching data:", e);
         this.error = e;
-      } finally {
-        mutations.setLoading(false);
       }
-    },
+      mutations.setLoading(false);
+      console.log("Data fetched:", data);
+      mutations.updateRequest(data);
+      this.currentViewObj = getters.currentView();
+      console.log("Current view object:", this.currentViewObj);
 
+    },
     keyEvent(event) {
       // F1!
       if (event.keyCode === 112) {

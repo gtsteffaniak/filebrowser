@@ -110,28 +110,28 @@ export default {
       return getters.selectedCount();
     },
     isClicked() {
-      if (this.user.singleClick || !this.allowedView) {
+      if (state.user.singleClick || !this.allowedView) {
         return false;
       }
       return !this.isMaximized;
     },
     allowedView() {
-      return this.user.viewMode != "gallery" && this.user.viewMode != "normal";
+      return state.user.viewMode != "gallery" && state.user.viewMode != "normal";
     },
     singleClick() {
-      return this.readOnly == undefined && this.user.singleClick;
+      return this.readOnly == undefined && state.user.singleClick;
     },
     isSelected() {
       return this.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      return this.readOnly == undefined && this.user.perm?.rename;
+      return this.readOnly == undefined && state.user.perm?.rename;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
 
       for (let i of this.selected) {
-        if (this.req.items[i].url === this.url) {
+        if (state.req.items[i].url === this.url) {
           return false;
         }
       }
@@ -139,8 +139,8 @@ export default {
       return true;
     },
     thumbnailUrl() {
-      let path = this.req.path;
-      if (this.req.path == "/") {
+      let path = state.req.path;
+      if (state.req.path == "/") {
         path = "";
       }
       const file = {
@@ -189,7 +189,7 @@ export default {
         : getHumanReadableFilesize(this.size);
     },
     humanTime: function () {
-      if (this.readOnly == undefined && this.user.dateFormat) {
+      if (this.readOnly == undefined && state.user.dateFormat) {
         return moment(this.modified).format("L LT");
       }
       return moment(this.modified).fromNow();
@@ -236,9 +236,9 @@ export default {
 
       for (let i of this.selected) {
         items.push({
-          from: this.req.items[i].url,
-          to: this.url + encodeURIComponent(this.req.items[i].name),
-          name: this.req.items[i].name,
+          from: state.req.items[i].url,
+          to: this.url + encodeURIComponent(state.req.items[i].name),
+          name: state.req.items[i].name,
         });
       }
 

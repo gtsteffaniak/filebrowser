@@ -41,7 +41,7 @@ export default {
     async deleteUser(event) {
       event.preventDefault();
       try {
-        await api.remove(this.user.id);
+        await api.remove(state.user.id);
         this.$router.push({ path: "/settings/users" });
         this.$showSuccess(this.$t("settings.userDeleted"));
       } catch (e) {
@@ -74,7 +74,7 @@ export default {
 
         let promises = [];
         for (let index of this.selected) {
-          promises.push(api.remove(this.req.items[index].url));
+          promises.push(api.remove(state.req.items[index].url));
         }
 
         await Promise.all(promises);

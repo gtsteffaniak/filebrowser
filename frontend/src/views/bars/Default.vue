@@ -114,18 +114,18 @@ export default {
         normal: "grid_view",
         gallery: "view_list",
       };
-      return icons[this.user.viewMode];
+      return icons[state.user.viewMode];
     },
     headerButtons() {
       return {
         select: this.selectedCount > 0,
-        upload: this.user.perm?.create && this.selectedCount > 0,
-        download: this.user.perm?.download && this.selectedCount > 0,
-        delete: this.selectedCount > 0 && this.user.perm.delete,
-        rename: this.selectedCount === 1 && this.user.perm.rename,
-        share: this.selectedCount === 1 && this.user.perm.share,
-        move: this.selectedCount > 0 && this.user.perm.rename,
-        copy: this.selectedCount > 0 && this.user.perm?.create,
+        upload: state.user.perm?.create && this.selectedCount > 0,
+        download: state.user.perm?.download && this.selectedCount > 0,
+        delete: this.selectedCount > 0 && state.user.perm.delete,
+        rename: this.selectedCount === 1 && state.user.perm.rename,
+        share: this.selectedCount === 1 && state.user.perm.share,
+        move: this.selectedCount > 0 && state.user.perm.rename,
+        copy: this.selectedCount > 0 && state.user.perm?.create,
       };
     },
   },
@@ -163,7 +163,7 @@ export default {
     if (this.$route.path.startsWith("/share")) {
       return;
     }
-    if (!this.user.perm?.create) return;
+    if (!state.user.perm?.create) return;
     document.addEventListener("dragover", this.preventDefault);
     document.addEventListener("dragenter", this.dragEnter);
     document.addEventListener("dragleave", this.dragLeave);
@@ -176,7 +176,7 @@ export default {
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
 
-    if (this.user && !this.user.perm?.create) return;
+    if (state.user && !state.user.perm?.create) return;
     document.removeEventListener("dragover", this.preventDefault);
     document.removeEventListener("dragenter", this.dragEnter);
     document.removeEventListener("dragleave", this.dragLeave);
@@ -185,7 +185,7 @@ export default {
 
   methods: {
     fillWindow(fit = false) {
-      const totalItems = this.req.numDirs + this.req.numFiles;
+      const totalItems = state.req.numDirs + state.req.numFiles;
 
       // More items are displayed than the total
       if (this.showLimit >= totalItems && !fit) return;
@@ -205,7 +205,7 @@ export default {
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
 
-      let itemQuantity = this.req.numDirs + this.req.numFiles;
+      let itemQuantity = state.req.numDirs + state.req.numFiles;
       if (itemQuantity > this.showLimit) itemQuantity = this.showLimit;
 
       // How much every listing item affects the window height
@@ -262,7 +262,7 @@ export default {
 
       // Del!
       if (event.keyCode === 46) {
-        if (!this.user.perm.delete || this.selectedCount == 0) return;
+        if (!state.user.perm.delete || this.selectedCount == 0) return;
 
         // Show delete prompt.
         mutations.showHover("delete");
@@ -270,7 +270,7 @@ export default {
 
       // F2!
       if (event.keyCode === 113) {
-        if (!this.user.perm.rename || this.selectedCount !== 1) return;
+        if (!state.user.perm.rename || this.selectedCount !== 1) return;
 
         // Show rename prompt.
         mutations.showHover("rename");
@@ -316,10 +316,10 @@ export default {
     },
     switchView: async function () {
       mutations.closeHovers();
-      const currentIndex = this.viewModes.indexOf(this.user.viewMode);
+      const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const data = {
-        id: this.user.id,
+        id: state.user.id,
         viewMode: this.viewModes[nextIndex],
       };
       users.update(data, ["viewMode"]).catch(this.$showError);

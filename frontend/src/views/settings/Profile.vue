@@ -155,7 +155,7 @@ export default {
       event.preventDefault();
       try {
         const data = {
-          id: this.user.id,
+          id: state.user.id,
           locale: this.locale,
           darkMode: this.darkMode,
           viewMode: this.viewMode,

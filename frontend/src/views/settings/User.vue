@@ -72,8 +72,8 @@ export default {
   watch: {
     $route: "fetchData",
     "user.perm.admin": function () {
-      if (!this.user.perm.admin) return;
-      this.user.lockPassword = false;
+      if (!state.user.perm.admin) return;
+      state.user.lockPassword = false;
     },
   },
   methods: {
@@ -84,7 +84,7 @@ export default {
         if (this.isNew) {
           let { defaults, createUserDir } = await settings.get();
           this.createUserDir = createUserDir;
-          this.user = {
+          state.user = {
             ...defaults,
             username: "",
             password: "", // Fixed typo `passsword` to `password`
@@ -94,7 +94,7 @@ export default {
           };
         } else {
           const id = this.$route.params.pathMatch;
-          this.user = { ...(await api.get(id)) };
+          state.user = { ...(await api.get(id)) };
         }
       } catch (e) {
         this.error = e;
@@ -103,13 +103,13 @@ export default {
       }
     },
     deletePrompt() {
-      mutations.showHover({ name: "deleteUser", props: { user: this.user } });
+      mutations.showHover({ name: "deleteUser", props: { user: state.user } });
     },
     async save(event) {
       event.preventDefault();
       let user = {
         ...this.originalUser,
-        ...this.user,
+        ...state.user,
       };
 
       try {
@@ -120,10 +120,10 @@ export default {
         } else {
           await api.update(user);
 
-          if (user.id === this.user.id) {
+          if (user.id === state.user.id) {
             // Replaces Vuex state `user`
             // Assuming there's a method to update local user data in your component
-            this.user = { ...deepClone(user) };
+            state.user = { ...deepClone(user) };
           }
 
           this.$showSuccess(this.$t("settings.userUpdated"));

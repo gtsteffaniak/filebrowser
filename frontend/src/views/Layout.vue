@@ -75,24 +75,16 @@ export default {
       return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
-        ? this.user.darkMode
+      return state.user && Object.prototype.hasOwnProperty.call(state.user, "darkMode")
+        ? state.user.darkMode
         : darkMode;
     },
     isExecEnabled() {
       return enableExec;
     },
     currentView() {
-      if (this.req.type === undefined) {
-        return null;
-      }
-      if (this.req.isDir) {
-        return "listingView";
-      } else if (Object.prototype.hasOwnProperty.call(this.req, "content")) {
-        return "editor";
-      } else {
-        return "preview";
-      }
+      console.log("uh oh",getters.currentView());
+      return getters.currentView();
     },
   },
   watch: {

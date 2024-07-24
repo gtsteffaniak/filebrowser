@@ -161,12 +161,12 @@ export default {
         // selecting current view image
         return this.$route.path;
       }
-      return this.req.items[this.selected[0]].url;
+      return state.req.items[this.selected[0]].url;
     },
     getContext() {
       let path = this.$route.path.replace("/files/", "./");
       if (this.selectedCount === 1) {
-        path = path + this.req.items[this.selected[0]].name;
+        path = path + state.req.items[this.selected[0]].name;
       }
       return path;
     },
@@ -238,7 +238,7 @@ export default {
       return api.getShareURL(share);
     },
     hasDownloadLink() {
-      return this.selected.length === 1 && !this.req.items[this.selected[0]].isDir;
+      return this.selected.length === 1 && !state.req.items[this.selected[0]].isDir;
     },
     buildDownloadLink(share) {
       return pub_api.getDownloadURL(share);
