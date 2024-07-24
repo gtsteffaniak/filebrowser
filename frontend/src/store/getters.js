@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 
 export const getters = {
+  isDarkMode: () => state.user.darkMode == true ,
   isLogged: () => state.user !== null,
 
   isFiles: () => {

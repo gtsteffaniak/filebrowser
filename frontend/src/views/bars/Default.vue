@@ -17,11 +17,8 @@
 import Vue from "vue";
 import { state, getters, mutations } from "@/store";
 import { users, files as api } from "@/api";
-import url from "@/utils/url";
 import Action from "@/components/header/Action.vue";
-import * as upload from "@/utils/upload";
 import css from "@/utils/css";
-import throttle from "@/utils/throttle";
 
 export default {
   name: "listingView",
@@ -232,7 +229,15 @@ export default {
       this.$emit("action");
     },
     close() {
-      mutations.closeHovers();
+      if (this.isSettings) {
+        // Use this.isSettings to access the computed property
+        this.$router.push({ path: "/files/" }, () => {});
+        mutations.closeHovers();
+        return;
+      }
+      mutations.updateRequest({});
+      let uri = url.removeLastDir(this.$route.path) + "/";
+      this.$router.push({ path: uri });
     },
     toggleSidebar() {
       if (state.show == "sidebar") {

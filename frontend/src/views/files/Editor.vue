@@ -63,12 +63,12 @@ export default {
     this.editor.destroy();
   },
   mounted: function () {
-    const fileContent = this.req.content || "";
+    const fileContent = state.req.content || "";
     this.editor = ace.edit("editor", {
       value: fileContent,
       showPrintMargin: false,
       theme: "ace/theme/chrome",
-      readOnly: this.req.type === "textImmutable",
+      readOnly: state.req.type === "textImmutable",
       wrap: false,
     });
     // Set the basePath for Ace Editor

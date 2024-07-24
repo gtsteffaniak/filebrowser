@@ -86,10 +86,11 @@
 </template>
 <script>
 import { files as api } from "@/api";
-import { resizePreview, darkMode } from "@/utils/constants";
+import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 
 const mediaTypes = ["image", "video", "audio", "blob"];
 
@@ -112,18 +113,17 @@ export default {
       previousRaw: "",
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
-      user: { darkMode }, // Initialize with default dark mode
-      req: {}, // Replace with your actual initial state
       oldReq: {}, // Replace with your actual initial state
       jwt: "", // Replace with your actual initial state
       loading: false, // Replace with your actual initial state
     };
   },
   computed: {
+    req() {
+      return state.req;
+    },
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
-        ? this.user.darkMode
-        : darkMode;
+      return getters.isDarkMode();
     },
     hasPrevious() {
       return this.previousLink !== "";
@@ -132,13 +132,13 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return api.getDownloadURL(this.req);
+      return api.getDownloadURL(state.req);
     },
     raw() {
-      if (this.req.type === "image" && !this.fullSize) {
-        return api.getPreviewURL(this.req, "big");
+      if (state.req.type === "image" && !this.fullSize) {
+        return api.getPreviewURL(state.req, "big");
       }
-      return api.getDownloadURL(this.req, true);
+      return api.getDownloadURL(state.req, true);
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -147,8 +147,8 @@ export default {
       return resizePreview;
     },
     subtitles() {
-      if (this.req.subtitles) {
-        return api.getSubtitlesURL(this.req);
+      if (state.req.subtitles) {
+        return api.getSubtitlesURL(state.req);
       }
       return [];
     },
@@ -283,7 +283,8 @@ export default {
       }, 1500);
     }, 500),
     close() {
-      this.req = {}; // Reset request data
+      mutations.
+      state.updateRequest({}); // Reset request data
 
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });

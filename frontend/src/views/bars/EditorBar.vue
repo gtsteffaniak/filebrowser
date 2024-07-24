@@ -43,6 +43,12 @@ export default {
     return {};
   },
   computed: {
+    user() {
+      return state.user
+    },
+    req() {
+      return state.req;
+    },
     breadcrumbs() {
       let parts = this.$route.path.split("/");
 

@@ -246,6 +246,7 @@ export default {
       const data = {
         id: state.user.id,
         viewMode: this.viewModes[nextIndex],
+        locale: state.user.locale,
       };
       try {
         await users.update(data, ["viewMode"]);

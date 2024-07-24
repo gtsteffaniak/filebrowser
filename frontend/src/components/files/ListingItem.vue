@@ -125,7 +125,7 @@ export default {
       return this.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      return this.readOnly == undefined && this.user.perm.rename;
+      return this.readOnly == undefined && this.user.perm?.rename;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;

@@ -276,7 +276,7 @@ export default {
       const files = [];
 
       state.req.items.forEach((item) => {
-        if (this.user.hideDotfiles && item.name.startsWith(".")) {
+        if (state.user.hideDotfiles && item.name.startsWith(".")) {
           return;
         }
         if (item.isDir) {
@@ -328,28 +328,27 @@ export default {
         normal: "grid_view",
         gallery: "view_list",
       };
-      return icons[this.user.viewMode];
+      return icons[state.user.viewMode];
     },
     listingViewMode() {
-      return this.user.viewMode;
+      return state.user.viewMode;
     },
     headerButtons() {
       return {
         select: this.selected.length > 0,
-        upload: this.user.perm?.create && this.selected.length > 0,
-        download: this.user.perm.download && this.selected.length > 0,
-        delete: this.selected.length > 0 && this.user.perm.delete,
-        rename: this.selected.length === 1 && this.user.perm.rename,
-        share: this.selected.length === 1 && this.user.perm.share,
-        move: this.selected.length > 0 && this.user.perm.rename,
-        copy: this.selected.length > 0 && this.user.perm?.create,
+        upload: state.user.perm?.create && this.selected.length > 0,
+        download: state.user.perm.download && this.selected.length > 0,
+        delete: this.selected.length > 0 && state.user.perm.delete,
+        rename: this.selected.length === 1 && state.user.perm.rename,
+        share: this.selected.length === 1 && state.user.perm.share,
+        move: this.selected.length > 0 && state.user.perm.rename,
+        copy: this.selected.length > 0 && state.user.perm?.create,
       };
     },
     selectedCount() {
       return this.selected.length;
     },
     req() {
-      console.log(state.req)
       state.req;
     }
   },
@@ -367,7 +366,7 @@ export default {
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
 
-    if (!this.user.perm?.create) return;
+    if (!state.user.perm?.create) return;
     document.addEventListener("dragover", this.preventDefault);
     document.addEventListener("dragenter", this.dragEnter);
     document.addEventListener("dragleave", this.dragLeave);
@@ -379,7 +378,7 @@ export default {
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
 
-    if (this.user && !this.user.perm?.create) return;
+    if (state.user && !state.user.perm?.create) return;
     document.removeEventListener("dragover", this.preventDefault);
     document.removeEventListener("dragenter", this.dragEnter);
     document.removeEventListener("dragleave", this.dragLeave);
@@ -403,7 +402,7 @@ export default {
 
       // Del!
       if (event.keyCode === 46) {
-        if (!this.user.perm.delete || this.selected.length === 0) return;
+        if (!state.user.perm.delete || this.selected.length === 0) return;
 
         // Show delete prompt.
         this.currentPrompt = "delete";
@@ -411,7 +410,7 @@ export default {
 
       // F2!
       if (event.keyCode === 113) {
-        if (!this.user.perm.rename || this.selected.length !== 1) return;
+        if (!state.user.perm.rename || this.selected.length !== 1) return;
 
         // Show rename prompt.
         this.currentPrompt = "rename";
