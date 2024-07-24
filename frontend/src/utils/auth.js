@@ -1,4 +1,4 @@
-import store from "@/store";
+import { mutations } from "@/store";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
 
@@ -8,13 +8,14 @@ export function parseToken(token) {
   if (parts.length !== 3) {
     throw new Error("token malformed");
   }
-
+  console.log("token")
   const data = JSON.parse(atob(parts[1]));
   document.cookie = `auth=${token}; path=/`;
   localStorage.setItem("jwt", token);
-  store.commit("setJWT", token);
-  store.commit("setSession", generateRandomCode(8));
-  store.commit("setUser", data.user);
+  mutations.setJWT(token);
+  mutations.setSession(generateRandomCode(8));
+  console.log("setting user")
+  mutations.setUser(data.user);
 }
 
 export async function validateLogin() {
@@ -57,7 +58,7 @@ export async function renew(jwt) {
   const body = await res.text();
 
   if (res.status === 200) {
-    store.commit("setSession", generateRandomCode(8));
+    mutations.setSession(generateRandomCode(8));
     parseToken(body);
   } else {
     throw new Error(body);
@@ -95,8 +96,8 @@ export async function signup(username, password) {
 export function logout() {
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
 
-  store.commit("setJWT", "");
-  store.commit("setUser", null);
+  mutations.setJWT("");
+  mutations.setUser(null);
   localStorage.setItem("jwt", null);
   router.push({ path: "/login" });
 }

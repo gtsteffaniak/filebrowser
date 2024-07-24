@@ -58,7 +58,7 @@
       <div class="card-action">
         <button
           class="button button--flat button--grey"
-          @click="$store.commit('closeHovers')"
+          @click="closeHovers"
           :aria-label="$t('buttons.close')"
           :title="$t('buttons.close')"
         >
@@ -119,16 +119,15 @@
     </template>
   </div>
 </template>
-
 <script>
-import { mapState, mapGetters } from "vuex";
+import { state, getters,mutations } from "@/store"; // Import your custom store
 import { share as api, pub as pub_api } from "@/api";
 import moment from "moment";
 import Clipboard from "clipboard";
 
 export default {
   name: "share",
-  data: function () {
+  data() {
     return {
       time: "",
       unit: "hours",
@@ -139,13 +138,26 @@ export default {
     };
   },
   computed: {
-    ...mapState(["req", "selected", "selectedCount"]),
-    ...mapGetters(["isListing", "selectedCount"]),
+    closeHovers() {
+      return mutations.closeHovers;
+    },
+    req() {
+      return state.req; // Access state directly
+    },
+    selected() {
+      return state.selected; // Access state directly
+    },
+    selectedCount() {
+      return state.selected.length; // Compute selectedCount directly from state
+    },
+    isListing() {
+      return getters.isListing(); // Access getter directly from the store
+    },
     url() {
       if (!this.isListing) {
         return this.$route.path;
       }
-      if (this.selectedCount != 1) {
+      if (this.selectedCount !== 1) {
         // selecting current view image
         return this.$route.path;
       }
@@ -153,7 +165,7 @@ export default {
     },
     getContext() {
       let path = this.$route.path.replace("/files/", "./");
-      if (this.selectedCount == 1) {
+      if (this.selectedCount === 1) {
         path = path + this.req.items[this.selected[0]].name;
       }
       return path;
@@ -165,7 +177,7 @@ export default {
       this.links = links;
       this.sort();
 
-      if (this.links.length == 0) {
+      if (this.links.length === 0) {
         this.listing = false;
       }
     } catch (e) {
@@ -182,8 +194,8 @@ export default {
     this.clip.destroy();
   },
   methods: {
-    submit: async function () {
-      let isPermanent = !this.time || this.time == 0;
+    async submit() {
+      let isPermanent = !this.time || this.time === 0;
 
       try {
         let res = null;
@@ -206,13 +218,13 @@ export default {
         this.$showError(e);
       }
     },
-    deleteLink: async function (event, link) {
+    async deleteLink(event, link) {
       event.preventDefault();
       try {
         await api.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
 
-        if (this.links.length == 0) {
+        if (this.links.length === 0) {
           this.listing = false;
         }
       } catch (e) {
@@ -239,8 +251,9 @@ export default {
       });
     },
     switchListing() {
-      if (this.links.length == 0 && !this.listing) {
-        this.$store.commit("closeHovers");
+      if (this.links.length === 0 && !this.listing) {
+        // Access the store directly if needed
+        mutations.closeHovers();
       }
 
       this.listing = !this.listing;

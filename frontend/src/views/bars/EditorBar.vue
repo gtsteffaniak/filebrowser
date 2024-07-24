@@ -26,7 +26,7 @@
 </style>
 
 <script>
-import { mapState } from "vuex";
+import { state , mutations } from "@/store";
 import { eventBus } from "@/main";
 
 import buttons from "@/utils/buttons";
@@ -43,7 +43,12 @@ export default {
     return {};
   },
   computed: {
-    ...mapState(["req", "user", "currentView"]),
+    user() {
+      return state.user
+    },
+    req() {
+      return state.req;
+    },
     breadcrumbs() {
       let parts = this.$route.path.split("/");
 
@@ -109,7 +114,7 @@ export default {
       }
     },
     close() {
-      this.$store.commit("updateRequest", {});
+      mutations.updateRequest({});
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
     },

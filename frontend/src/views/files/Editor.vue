@@ -6,7 +6,7 @@
 
 <script>
 import { eventBus } from "@/main";
-import { mapState } from "vuex";
+import { state,mutations } from "@/store";
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
@@ -25,7 +25,6 @@ export default {
         ? this.user.darkMode
         : darkMode;
     },
-    ...mapState(["req", "user"]),
     breadcrumbs() {
       let parts = this.$route.path.split("/");
 
@@ -64,12 +63,12 @@ export default {
     this.editor.destroy();
   },
   mounted: function () {
-    const fileContent = this.req.content || "";
+    const fileContent = state.req.content || "";
     this.editor = ace.edit("editor", {
       value: fileContent,
       showPrintMargin: false,
       theme: "ace/theme/chrome",
-      readOnly: this.req.type === "textImmutable",
+      readOnly: state.req.type === "textImmutable",
       wrap: false,
     });
     // Set the basePath for Ace Editor
@@ -103,8 +102,7 @@ export default {
       this.save();
     },
     close() {
-      this.$store.commit("updateRequest", {});
-
+      mutations.updateRequest({});
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
     },

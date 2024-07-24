@@ -5,8 +5,7 @@
       :ref="currentPromptName"
       :is="currentPromptName"
       v-bind="currentPrompt.props"
-    >
-    </component>
+    />
   </div>
 </template>
 
@@ -27,8 +26,8 @@ import Upload from "./Upload";
 import ShareDelete from "./ShareDelete";
 import DeleteUser from "./DeleteUser";
 import Sidebar from "../Sidebar";
-import { mapGetters, mapState } from "vuex";
 import buttons from "@/utils/buttons";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "prompts",
@@ -50,30 +49,31 @@ export default {
     Sidebar,
     DeleteUser,
   },
-  data: function () {
+  data() {
     return {
       pluginData: {
         buttons,
-        store: this.$store,
+        store: state, // Directly use state
         router: this.$router,
       },
     };
   },
   created() {
     window.addEventListener("keydown", (event) => {
-      if (this.currentPrompt == null) return;
+      let currentPrompt = getters.currentPrompt();
+      if (!currentPrompt) return;
 
-      let prompt = this.$refs.currentComponent;
+      let prompt = this.$refs[currentPrompt.name];
 
       // Esc!
       if (event.keyCode === 27) {
         event.stopImmediatePropagation();
-        this.$store.commit("closeHovers");
+        mutations.closeHovers();
       }
 
       // Enter
-      if (event.keyCode == 13) {
-        switch (this.currentPrompt.prompt) {
+      if (event.keyCode === 13) {
+        switch (currentPrompt.name) {
           case "delete":
             prompt.submit();
             break;
@@ -91,10 +91,25 @@ export default {
     });
   },
   computed: {
-    ...mapState(["plugins"]),
-    ...mapGetters(["currentPrompt", "currentPromptName"]),
-    showOverlay: function () {
-      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
+    currentPromptName() {
+      if (getters.currentPromptName() == null) {
+        return "";
+      }
+      return getters.currentPromptName();
+    },
+    currentPrompt() {
+      if (getters.currentPrompt() == null) {
+        return {
+          props: {},
+        };
+      }
+      return getters.currentPrompt()
+    },
+    plugins() {
+      return state.plugins;
+    },
+    showOverlay() {
+      return getters.currentPromptName() !== "more";
     },
   },
   methods: {},

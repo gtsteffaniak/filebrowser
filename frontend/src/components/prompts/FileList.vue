@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { state,mutations } from "@/store";
 import url from "@/utils/url";
 import { files } from "@/api";
 
@@ -39,13 +39,12 @@ export default {
     };
   },
   computed: {
-    ...mapState(["req", "user"]),
     nav() {
       return decodeURIComponent(this.current);
     },
   },
   mounted() {
-    this.fillOptions(this.req);
+    this.fillOptions(state.req);
   },
   methods: {
     fillOptions(req) {
@@ -130,8 +129,8 @@ export default {
       this.$emit("update:selected", this.selected);
     },
     createDir: async function () {
-      this.$store.commit("showHover", {
-        prompt: "newDir",
+      mutations.showHover({
+        name: "newDir",
         action: null,
         confirm: null,
         props: {

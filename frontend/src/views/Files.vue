@@ -15,7 +15,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import { files as api } from "@/api";
 
@@ -38,25 +37,27 @@ export default {
     ListingView,
     Editor,
   },
-  data: function () {
+  data() {
     return {
       error: null,
       width: window.innerWidth,
     };
   },
   computed: {
-    ...mapState(["req", "reload", "loading"]),
     currentView() {
-      if (this.req.type == undefined) {
+      if (state.req.type === undefined) {
         return null;
       }
-      if (this.req.isDir) {
+      if (state.req.isDir) {
         return "listingView";
-      } else if (Object.prototype.hasOwnProperty.call(this.req, 'content')) {
+      } else if (Object.prototype.hasOwnProperty.call(state.req, "content")) {
         return "editor";
       } else {
         return "preview";
       }
+    },
+    reload() {
+      return state.reload; // Access reload from state
     },
   },
   created() {
@@ -64,7 +65,7 @@ export default {
   },
   watch: {
     $route: "fetchData",
-    reload: function (value) {
+    reload(value) {
       if (value === true) {
         this.fetchData();
       }
@@ -77,26 +78,21 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
   },
   unmounted() {
-    if (this.$store.state.showShell) {
-      this.$store.commit("toggleShell");
+    if (state.showShell) {
+      mutations.toggleShell(); // Use mutation
     }
-    this.$store.commit("updateRequest", {});
-  },
-  currentView(newView) {
-    // Commit the new value to the store
-    this.setCurrentValue(newView);
+    mutations.updateRequest({}); // Use mutation
   },
   methods: {
-    ...mapMutations(["setLoading", "setCurrentView"]),
     async fetchData() {
-      // Reset view information.
-      this.$store.commit("setReload", false);
-      this.$store.commit("resetSelected");
-      this.$store.commit("multiple", false);
-      this.$store.commit("closeHovers");
+      // Reset view information using mutations
+      mutations.setReload(false);
+      mutations.resetSelected();
+      mutations.multiple(false);
+      mutations.closeHovers();
 
       // Set loading to true and reset the error.
-      this.setLoading(true);
+      mutations.setLoading(true);
       this.error = null;
 
       let url = this.$route.path;
@@ -106,27 +102,28 @@ export default {
       try {
         let res = await api.fetch(url);
         if (!res.isDir) {
-          // get content of file if possible
-          res = await api.fetch(url,true);
+          // Get content of file if possible
+          res = await api.fetch(url, true);
         }
 
         if (clean(res.path) !== clean(`/${this.$route.params.pathMatch}`)) {
           return;
         }
 
-        this.$store.commit("updateRequest", res);
+        mutations.updateRequest(res); // Use mutation
         document.title = `${res.name} - ${document.title}`;
       } catch (e) {
         this.error = e;
       } finally {
-        this.setLoading(false);
+        mutations.setLoading(false);
       }
     },
+
     keyEvent(event) {
       // F1!
       if (event.keyCode === 112) {
         event.preventDefault();
-        this.$store.commit("showHover", "help");
+        mutations.showHover("help"); // Use mutation
       }
     },
   },

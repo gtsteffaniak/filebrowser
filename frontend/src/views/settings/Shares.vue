@@ -22,9 +22,7 @@
                 <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
               </td>
               <td>
-                <template v-if="link.expire !== 0">{{
-                  humanTime(link.expire)
-                }}</template>
+                <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
                 <template v-else>{{ $t("permanent") }}</template>
               </td>
               <td v-if="user.perm.admin">{{ link.username }}</td>
@@ -62,7 +60,7 @@
 
 <script>
 import { share as api, users } from "@/api";
-import { mapState, mapMutations } from "vuex";
+import { state, mutations } from "@/store";
 import moment from "moment";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors";
@@ -72,7 +70,6 @@ export default {
   components: {
     Errors,
   },
-  computed: mapState(["user", "loading"]),
   data: function () {
     return {
       error: null,
@@ -81,24 +78,21 @@ export default {
     };
   },
   async created() {
-    this.setLoading(true);
+    mutations.setLoading(true);
 
     try {
       let links = await api.list();
       if (this.user.perm.admin) {
         let userMap = new Map();
-        for (let user of await users.getAll())
-          userMap.set(user.id, user.username);
+        for (let user of await users.getAll()) userMap.set(user.id, user.username);
         for (let link of links)
-          link.username = userMap.has(link.userID)
-            ? userMap.get(link.userID)
-            : "";
+          link.username = userMap.has(link.userID) ? userMap.get(link.userID) : "";
       }
       this.links = links;
     } catch (e) {
       this.error = e;
     } finally {
-      this.setLoading(false);
+      mutations.setLoading(false);
     }
   },
   mounted() {
@@ -110,22 +104,28 @@ export default {
   beforeUnmount() {
     this.clip.destroy();
   },
+  computed: {
+    user() {
+      return state.user;
+    },
+    loading() {
+      return state.loading;
+    },
+  },
   methods: {
-    ...mapMutations(["setLoading"]),
     deleteLink: async function (event, link) {
       event.preventDefault();
-
-      this.$store.commit("showHover", {
-        prompt: "share-delete",
+      mutations.showHover({
+        name: "share-delete",
         confirm: () => {
-          this.$store.commit("closeHovers");
+          mutations.closeHovers();
 
           try {
             api.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
-            this.$showSuccess(this.$t("settings.shareDeleted"));
+            mutations.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
-            this.$showError(e);
+            mutations.showError(e);
           }
         },
       });

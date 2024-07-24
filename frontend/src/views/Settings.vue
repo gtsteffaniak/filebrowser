@@ -21,8 +21,7 @@
           <router-link to="/settings/users" v-if="user.perm.admin"
             ><li
               :class="{
-                active:
-                  $route.path === '/settings/users' || $route.name === 'User',
+                active: $route.path === '/settings/users' || $route.name === 'User',
               }"
             >
               {{ $t("settings.userManagement") }}
@@ -48,18 +47,23 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { state, mutations } from "@/store";
 
 export default {
   name: "settings",
   mounted() {
     // Update the req name property
-    this.$store.commit("updateRequest", { name: "Settings" });
+    mutations.updateRequest({ name: "Settings" });
   },
   computed: {
-    ...mapState(["user", "loading"]),
+    loading() {
+      return state.loading;
+    },
+    user() {
+      return state.user;
+    },
     settingsEnabled() {
-      return this.user.disableSettings == false;
+      return state.user.disableSettings == false;
     },
   },
 };

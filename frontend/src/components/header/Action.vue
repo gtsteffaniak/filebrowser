@@ -7,13 +7,17 @@
 </template>
 
 <script>
+import { state, getters, mutations } from "@/store"; // Import your custom store
+
 export default {
   name: "action",
   props: ["icon", "label", "counter", "show"],
   methods: {
     action: function () {
+      console.log("show",this.show)
+
       if (this.show) {
-        this.$store.commit("showHover", this.show);
+        mutations.showHover(this.show);
       }
       this.$emit("action");
     },

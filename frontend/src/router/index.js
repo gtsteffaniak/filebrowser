@@ -1,17 +1,17 @@
 import Vue from "vue";
 import Router from "vue-router";
-import Login from "@/views/Login.vue";
-import Layout from "@/views/Layout.vue";
-import Files from "@/views/Files.vue";
-import Share from "@/views/Share.vue";
-import Users from "@/views/settings/Users.vue";
-import User from "@/views/settings/User.vue";
-import Settings from "@/views/Settings.vue";
-import GlobalSettings from "@/views/settings/Global.vue";
-import ProfileSettings from "@/views/settings/Profile.vue";
-import Shares from "@/views/settings/Shares.vue";
-import Errors from "@/views/Errors.vue";
-import store from "@/store";
+import Login from "@/views/Login";
+import Layout from "@/views/Layout";
+import Files from "@/views/Files";
+import Share from "@/views/Share";
+import Users from "@/views/settings/Users";
+import User from "@/views/settings/User";
+import Settings from "@/views/Settings";
+import GlobalSettings from "@/views/settings/Global";
+import ProfileSettings from "@/views/settings/Profile";
+import Shares from "@/views/settings/Shares";
+import Errors from "@/views/Errors";
+import { state, getters } from "@/store";
 import { baseURL, name } from "@/utils/constants";
 import i18n, { rtlLanguages } from "@/i18n";
 
@@ -41,7 +41,7 @@ const router = new Router({
       name: "Login",
       component: Login,
       beforeEnter: (to, from, next) => {
-        if (store.getters.isLogged) {
+        if (getters.isLogged()) {
           return next({ path: "/files" });
         }
 
@@ -171,7 +171,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!store.getters.isLogged) {
+    if (!getters.isLogged()) {
       next({
         path: "/login",
         query: { redirect: to.fullPath },
@@ -181,7 +181,7 @@ router.beforeEach((to, from, next) => {
     }
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
-      if (!store.state.user.perm.admin) {
+      if (!state.user.perm.admin) {
         next({ path: "/403" });
         return;
       }

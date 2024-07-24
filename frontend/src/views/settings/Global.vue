@@ -82,9 +82,7 @@
           </p>
 
           <p>
-            <label for="branding-files">{{
-              $t("settings.brandingDirectoryPath")
-            }}</label>
+            <label for="branding-files">{{ $t("settings.brandingDirectoryPath") }}</label>
             <input
               class="input input--block"
               type="text"
@@ -181,7 +179,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from "vuex";
+import { state, mutations } from "@/store";
 import { settings as api } from "@/api";
 import { enableExec } from "@/utils/constants";
 import UserForm from "@/components/settings/UserForm";
@@ -203,13 +201,17 @@ export default {
     };
   },
   computed: {
-    ...mapState(["user", "loading"]),
+    loading() {
+      return state.loading;
+  },
+    user() {
+      return state.user;
+    },
     isExecEnabled: () => enableExec,
   },
   async created() {
     try {
-      this.setLoading(true);
-
+      mutations.setLoading(true);
       const original = await api.get();
       let settings = { ...original, commands: [] };
 
@@ -219,19 +221,16 @@ export default {
           value: original.commands[key].join("\n"),
         });
       }
-
       settings.shell = settings.shell.join(" ");
-
       this.originalSettings = original;
       this.settings = settings;
     } catch (e) {
       this.error = e;
     } finally {
-      this.setLoading(false);
+      mutations.setLoading(false);
     }
   },
   methods: {
-    ...mapMutations(["setLoading"]),
     updateRules(updatedRules) {
       this.settings.rules = updatedRules;
     },
@@ -244,8 +243,7 @@ export default {
       name = "";
 
       for (let i = 0; i < splitted.length; i++) {
-        name +=
-          splitted[i].charAt(0).toUpperCase() + splitted[i].slice(1) + " ";
+        name += splitted[i].charAt(0).toUpperCase() + splitted[i].slice(1) + " ";
       }
 
       return name.slice(0, -1);
@@ -266,9 +264,9 @@ export default {
 
       try {
         await api.update(settings);
-        this.$showSuccess(this.$t("settings.settingsUpdated"));
+        mutations.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        this.$showError(e);
+        mutations.showError(e);
       }
     },
   },

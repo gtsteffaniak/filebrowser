@@ -23,10 +23,8 @@
   justify-content: space-between;
 }
 </style>
-
 <script>
-import Vue from "vue";
-import { mapState, mapGetters, mapMutations } from "vuex";
+import { state, mutations,getters } from "@/store";
 import { users, files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
 import * as upload from "@/utils/upload";
@@ -51,25 +49,23 @@ export default {
     };
   },
   computed: {
-    ...mapState(["req", "selected", "user", "show", "multiple", "selected", "loading"]),
-    ...mapGetters(["selectedCount", "currentPrompt"]),
     nameSorted() {
-      return this.req.sorting.by === "name";
+      return state.req.sorting.by === "name";
     },
     sizeSorted() {
-      return this.req.sorting.by === "size";
+      return state.req.sorting.by === "size";
     },
     modifiedSorted() {
-      return this.req.sorting.by === "modified";
+      return state.req.sorting.by === "modified";
     },
     ascOrdered() {
-      return this.req.sorting.asc;
+      return state.req.sorting.asc;
     },
     items() {
       const dirs = [];
       const files = [];
 
-      this.req.items.forEach((item) => {
+      state.req.items.forEach((item) => {
         if (item.isDir) {
           dirs.push(item);
         } else {
@@ -117,117 +113,95 @@ export default {
         normal: "grid_view",
         gallery: "view_list",
       };
-      return icons[this.user.viewMode];
+      return icons[state.user.viewMode];
     },
     headerButtons() {
+      const selectedCount = state.selected.length;
       return {
-        select: this.selectedCount > 0,
-        upload: this.user.perm.create && this.selectedCount > 0,
-        download: this.user.perm.download && this.selectedCount > 0,
-        delete: this.selectedCount > 0 && this.user.perm.delete,
-        rename: this.selectedCount === 1 && this.user.perm.rename,
-        share: this.selectedCount === 1 && this.user.perm.share,
-        move: this.selectedCount > 0 && this.user.perm.rename,
-        copy: this.selectedCount > 0 && this.user.perm.create,
+        select: selectedCount > 0,
+        upload: state.user.perm.create && selectedCount > 0,
+        download: state.user.perm.download && selectedCount > 0,
+        delete: selectedCount > 0 && state.user.perm.delete,
+        rename: selectedCount === 1 && state.user.perm.rename,
+        share: selectedCount === 1 && state.user.perm.share,
+        move: selectedCount > 0 && state.user.perm.rename,
+        copy: selectedCount > 0 && state.user.perm.create,
       };
     },
   },
   watch: {
-    req: function () {
-      // Reset the show value
+    req() {
       this.showLimit = 50;
 
-      // Ensures that the listing is displayed
-      Vue.nextTick(() => {
-        // How much every listing item affects the window height
+      this.$nextTick(() => {
         this.setItemWeight();
-
-        // Fill and fit the window with listing items
         this.fillWindow(true);
       });
     },
   },
-  mounted: function () {
-    // Check the columns size for the first time.
+  mounted() {
     this.colunmsResize();
-
-    // How much every listing item affects the window height
     this.setItemWeight();
-
-    // Fill and fit the window with listing items
     this.fillWindow(true);
 
-    // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
-    if (!this.user) return
-    if (!this.user.perm.create) return;
+    if (!state.user || !state.user.perm.create) return;
     document.addEventListener("dragover", this.preventDefault);
     document.addEventListener("dragenter", this.dragEnter);
     document.addEventListener("dragleave", this.dragLeave);
     document.addEventListener("drop", this.drop);
   },
   beforeUnmount() {
-    // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
 
-    if (this.user && !this.user.perm.create) return;
+    if (state.user && !state.user.perm.create) return;
     document.removeEventListener("dragover", this.preventDefault);
     document.removeEventListener("dragenter", this.dragEnter);
     document.removeEventListener("dragleave", this.dragLeave);
     document.removeEventListener("drop", this.drop);
   },
   methods: {
-    action: function () {
-      if (this.show) {
-        this.$store.commit("showHover", this.show);
+    action() {
+      console.log("state.show",state.show)
+      if (state.show) {
+        // Assuming `showHover` is a method on a component
+        this.$emit("action");
       }
-
-      this.$emit("action");
     },
     toggleSidebar() {
-      if (this.currentPrompt?.prompt === "sidebar") {
-        this.$store.commit("closeHovers");
+      if (getters.currentPromptName() === "sidebar") {
+        console.log("should close")
+        mutations.closeHovers();
       } else {
-        this.$store.commit("showHover", "sidebar");
+        mutations.showHover("sidebar");
       }
     },
-    ...mapMutations(["updateUser", "addSelected"]),
-    base64: function (name) {
+    base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     keyEvent(event) {
-      // No prompts are shown
-      if (this.show !== null) {
+      if (state.show !== null) {
         return;
       }
 
-      // Esc!
       if (event.keyCode === 27) {
-        // Reset files selection.
-        this.$store.commit("resetSelected");
+        mutations.resetSelected();
       }
 
-      // Del!
       if (event.keyCode === 46) {
-        if (!this.user.perm.delete || this.selectedCount == 0) return;
-
-        // Show delete prompt.
-        this.$store.commit("showHover", "delete");
+        if (!state.user.perm.delete || state.selected.length === 0) return;
+        mutations.showHover("delete");
       }
 
-      // F2!
       if (event.keyCode === 113) {
-        if (!this.user.perm.rename || this.selectedCount !== 1) return;
-
-        // Show rename prompt.
-        this.$store.commit("showHover", "rename");
+        if (!state.user.perm.rename || state.selected.length !== 1) return;
+        mutations.showHover("rename");
       }
 
-      // Ctrl is pressed
       if (!event.ctrlKey && !event.metaKey) {
         return;
       }
@@ -237,7 +211,7 @@ export default {
       switch (key) {
         case "f":
           event.preventDefault();
-          this.$store.commit("showHover", "search");
+          mutations.showHover("search");
           break;
         case "c":
         case "x":
@@ -249,13 +223,13 @@ export default {
         case "a":
           event.preventDefault();
           for (let file of this.items.files) {
-            if (this.$store.state.selected.indexOf(file.index) === -1) {
-              this.addSelected(file.index);
+            if (!state.selected.includes(file.index)) {
+              mutations.setSelected([...state.selected, file.index]);
             }
           }
           for (let dir of this.items.dirs) {
-            if (this.$store.state.selected.indexOf(dir.index) === -1) {
-              this.addSelected(dir.index);
+            if (!state.selected.includes(dir.index)) {
+              mutations.setSelected([...state.selected, dir.index]);
             }
           }
           break;
@@ -265,19 +239,23 @@ export default {
           break;
       }
     },
-    switchView: async function () {
-      this.$store.commit("closeHovers");
-      const currentIndex = this.viewModes.indexOf(this.user.viewMode);
+    async switchView() {
+      mutations.closeHovers();
+      const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const data = {
-        id: this.user.id,
+        id: state.user.id,
         viewMode: this.viewModes[nextIndex],
+        locale: state.user.locale,
       };
-      users.update(data, ["viewMode"]).catch(this.$showError);
-      this.$store.commit("updateUser", data);
+      try {
+        await users.update(data, ["viewMode"]);
+        mutations.setUser(data);
+      } catch (e) {
+        this.$showError(e);
+      }
     },
     preventDefault(event) {
-      // Wrapper around prevent default.
       event.preventDefault();
     },
     copyCut(event, key) {
@@ -285,94 +263,82 @@ export default {
         return;
       }
 
-      let items = [];
-
-      for (let i of this.selected) {
-        items.push({
-          from: this.req.items[i].url,
-          name: this.req.items[i].name,
-        });
-      }
-
-      if (items.length == 0) {
-        return;
-      }
-
-      this.$store.commit("updateClipboard", {
-        key: key,
-        items: items,
-        path: this.$route.path,
-      });
-    },
-    paste(event) {
-      if (event.target.tagName.toLowerCase() === "input") {
-        return;
-      }
-
-      let items = [];
-
-      for (let item of this.$store.state.clipboard.items) {
-        const from = item.from.endsWith("/") ? item.from.slice(0, -1) : item.from;
-        const to = this.$route.path + encodeURIComponent(item.name);
-        items.push({ from, to, name: item.name });
-      }
+      let items = state.selected.map((i) => ({
+        from: state.req.items[i].url,
+        name: state.req.items[i].name,
+      }));
 
       if (items.length === 0) {
         return;
       }
 
-      let action = (overwrite, rename) => {
+      mutations.updateClipboard({
+        key,
+        items,
+        path: this.$route.path,
+      });
+    },
+    async paste(event) {
+      if (event.target.tagName.toLowerCase() === "input") {
+        return;
+      }
+
+      let items = state.clipboard.items.map((item) => ({
+        from: item.from.endsWith("/") ? item.from.slice(0, -1) : item.from,
+        to: this.$route.path + encodeURIComponent(item.name),
+        name: item.name,
+      }));
+
+      if (items.length === 0) {
+        return;
+      }
+
+      const action = (overwrite, rename) => {
         api
           .copy(items, overwrite, rename)
           .then(() => {
-            this.$store.commit("setReload", true);
+            mutations.setReload(true);
           })
           .catch(this.$showError);
       };
 
-      if (this.$store.state.clipboard.key === "x") {
+      if (state.clipboard.key === "x") {
         action = (overwrite, rename) => {
           api
             .move(items, overwrite, rename)
             .then(() => {
-              this.$store.commit("resetClipboard");
-              this.$store.commit("setReload", true);
+              mutations.resetClipboard();
+              mutations.setReload(true);
             })
             .catch(this.$showError);
         };
       }
 
-      if (this.$store.state.clipboard.path == this.$route.path) {
+      if (state.clipboard.path === this.$route.path) {
         action(false, true);
-
         return;
       }
 
-      let conflict = upload.checkConflict(items, this.req.items);
-
-      let overwrite = false;
-      let rename = false;
+      const conflict = upload.checkConflict(items, state.req.items);
 
       if (conflict) {
-        this.$store.commit("showHover", {
-          prompt: "replace-rename",
+        mutations.showHover({
+          name: "replace-rename",
           confirm: (event, option) => {
-            overwrite = option == "overwrite";
-            rename = option == "rename";
+            const overwrite = option === "overwrite";
+            const rename = option === "rename";
 
             event.preventDefault();
-            this.$store.commit("closeHovers");
+            mutations.closeHovers();;
             action(overwrite, rename);
           },
         });
-
         return;
       }
 
-      action(overwrite, rename);
+      action(false, false);
     },
     colunmsResize() {
-      // Update the columns size based on the window width.
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
@@ -381,29 +347,19 @@ export default {
       items.style.width = `calc(${100 / columns}% - 1em)`;
     },
     scrollEvent: throttle(function () {
-      const totalItems = this.req.numDirs + this.req.numFiles;
-
-      // All items are displayed
+      const totalItems = state.req.numDirs + state.req.numFiles;
       if (this.showLimit >= totalItems) return;
 
       const currentPos = window.innerHeight + window.scrollY;
-
-      // Trigger at the 75% of the window height
       const triggerPos = document.body.offsetHeight - window.innerHeight * 0.25;
 
       if (currentPos > triggerPos) {
-        // Quantity of items needed to fill 2x of the window height
         const showQuantity = Math.ceil((window.innerHeight * 2) / this.itemWeight);
-
-        // Increase the number of displayed items
         this.showLimit += showQuantity;
       }
     }, 100),
     dragEnter() {
       this.dragCounter++;
-
-      // When the user starts dragging an item, put every
-      // file on the listing with 50% opacity.
       let items = document.getElementsByClassName("item");
 
       Array.from(items).forEach((file) => {
@@ -412,12 +368,11 @@ export default {
     },
     dragLeave() {
       this.dragCounter--;
-
-      if (this.dragCounter == 0) {
+      if (this.dragCounter === 0) {
         this.resetOpacity();
       }
     },
-    drop: async function (event) {
+    async drop(event) {
       event.preventDefault();
       this.dragCounter = 0;
       this.resetOpacity();
@@ -434,15 +389,13 @@ export default {
       }
 
       let files = await upload.scanFiles(dt);
-      let items = this.req.items;
+      let items = state.req.items;
       let path = this.$route.path.endsWith("/")
         ? this.$route.path
         : this.$route.path + "/";
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
-        // Get url from ListingItem instance
         path = el.__vue__.url;
-
         try {
           items = (await api.fetch(path)).items;
         } catch (error) {
@@ -450,25 +403,24 @@ export default {
         }
       }
 
-      let conflict = upload.checkConflict(files, items);
+      const conflict = upload.checkConflict(files, items);
 
       if (conflict) {
-        this.$store.commit("showHover", {
-          prompt: "replace",
+        mutations.showHover({
+          name: "replace",
           confirm: (event) => {
             event.preventDefault();
-            this.$store.commit("closeHovers");
+            mutations.closeHovers();
             upload.handleFiles(files, path, true);
           },
         });
-
         return;
       }
 
       upload.handleFiles(files, path);
     },
     uploadInput(event) {
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();;
 
       let files = event.currentTarget.files;
       let folder_upload =
@@ -484,18 +436,17 @@ export default {
       let path = this.$route.path.endsWith("/")
         ? this.$route.path
         : this.$route.path + "/";
-      let conflict = upload.checkConflict(files, this.req.items);
+      const conflict = upload.checkConflict(files, state.req.items);
 
       if (conflict) {
-        this.$store.commit("showHover", {
-          prompt: "replace",
+        mutations.showHover({
+          name: "replace",
           confirm: (event) => {
             event.preventDefault();
-            this.$store.commit("closeHovers");
+            mutations.closeHovers();
             upload.handleFiles(files, path, true);
           },
         });
-
         return;
       }
 
@@ -526,47 +477,42 @@ export default {
       }
 
       try {
-        await users.update({ id: this.user.id, sorting: { by, asc } }, ["sorting"]);
+        await users.update({ id: state.user.id, sorting: { by, asc } }, ["sorting"]);
+        mutations.setReload(true);
       } catch (e) {
         this.$showError(e);
       }
-
-      this.$store.commit("setReload", true);
     },
     openSearch() {
-      this.$store.commit("showHover", "search");
+      mutations.showHover("search");
     },
     toggleMultipleSelection() {
-      this.$store.commit("multiple", !this.multiple);
-      this.$store.commit("closeHovers");
+      mutations.toggleMultiple();
+      mutations.closeHovers();
     },
     windowsResize: throttle(function () {
       this.colunmsResize();
       this.width = window.innerWidth;
 
-      // Listing element is not displayed
       if (this.$refs.listingView == null) return;
 
-      // How much every listing item affects the window height
       this.setItemWeight();
-
-      // Fill but not fit the window
       this.fillWindow();
     }, 100),
     download() {
-      if (this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir) {
-        api.download(null, this.req.items[this.selected[0]].url);
+      if (state.selected.length === 1 && !state.req.items[state.selected[0]].isDir) {
+        api.download(null, state.req.items[state.selected[0]].url);
         return;
       }
 
-      this.$store.commit("showHover", {
-        prompt: "download",
+      mutations.showHover({
+        name: "download",
         confirm: (format) => {
-          this.$store.commit("closeHovers");
+          mutations.closeHovers();;
           let files = [];
-          if (this.selectedCount > 0) {
-            for (let i of this.selected) {
-              files.push(this.req.items[i].url);
+          if (state.selected.length > 0) {
+            for (let i of state.selected) {
+              files.push(state.req.items[i].url);
             }
           } else {
             files.push(this.$route.path);
@@ -576,42 +522,33 @@ export default {
         },
       });
     },
-
-    upload: function () {
+    upload() {
       if (
         typeof window.DataTransferItem !== "undefined" &&
         typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
       ) {
-        this.$store.commit("showHover", "upload");
+        mutations.showHover("upload");
       } else {
         document.getElementById("upload-input").click();
       }
     },
     setItemWeight() {
-      // Listing element is not displayed
       if (this.$refs.listingView == null) return;
 
-      let itemQuantity = this.req.numDirs + this.req.numFiles;
+      let itemQuantity = state.req.numDirs + state.req.numFiles;
       if (itemQuantity > this.showLimit) itemQuantity = this.showLimit;
 
-      // How much every listing item affects the window height
       this.itemWeight = this.$refs.listingView.offsetHeight / itemQuantity;
     },
     fillWindow(fit = false) {
-      const totalItems = this.req.numDirs + this.req.numFiles;
-
-      // More items are displayed than the total
+      const totalItems = state.req.numDirs + state.req.numFiles;
       if (this.showLimit >= totalItems && !fit) return;
 
       const windowHeight = window.innerHeight;
-
-      // Quantity of items needed to fill 2x of the window height
       const showQuantity = Math.ceil((windowHeight + windowHeight * 2) / this.itemWeight);
 
-      // Less items to display than current
       if (this.showLimit > showQuantity && !fit) return;
 
-      // Set the number of displayed items
       this.showLimit = showQuantity > totalItems ? totalItems : showQuantity;
     },
   },

@@ -36,13 +36,11 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapState, mapMutations, mapGetters } from "vuex";
+import { mutations } from "@/store";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm";
 import Errors from "@/views/Errors";
-
 import deepClone from "@/utils/deepclone";
 
 export default {
@@ -58,6 +56,9 @@ export default {
       user: {},
       showDelete: false,
       createUserDir: false,
+      loading: false, // Replaces Vuex state `loading`
+      currentPrompt: null, // Replaces Vuex getter `currentPrompt`
+      currentPromptName: null, // Replaces Vuex getter `currentPromptName`
     };
   },
   created() {
@@ -67,8 +68,6 @@ export default {
     isNew() {
       return this.$route.path === "/settings/users/new";
     },
-    ...mapState(["loading"]),
-    ...mapGetters(["currentPrompt", "currentPromptName"]),
   },
   watch: {
     $route: "fetchData",
@@ -78,9 +77,8 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["closeHovers", "showHover", "setUser", "setLoading"]),
     async fetchData() {
-      this.setLoading(true);
+      this.loading = true;
 
       try {
         if (this.isNew) {
@@ -89,7 +87,7 @@ export default {
           this.user = {
             ...defaults,
             username: "",
-            passsword: "",
+            password: "", // Fixed typo `passsword` to `password`
             rules: [],
             lockPassword: false,
             id: 0,
@@ -101,11 +99,11 @@ export default {
       } catch (e) {
         this.error = e;
       } finally {
-        this.setLoading(false);
+        this.loading = false;
       }
     },
     deletePrompt() {
-      this.$store.commit("showHover", { prompt: "deleteUser", props: { "user": this.user } });
+      mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
       event.preventDefault();
@@ -122,8 +120,10 @@ export default {
         } else {
           await api.update(user);
 
-          if (user.id === this.$store.state.user.id) {
-            this.setUser({ ...deepClone(user) });
+          if (user.id === this.user.id) {
+            // Replaces Vuex state `user`
+            // Assuming there's a method to update local user data in your component
+            this.user = { ...deepClone(user) };
           }
 
           this.$showSuccess(this.$t("settings.userUpdated"));

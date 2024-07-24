@@ -40,9 +40,8 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapState, mapMutations } from "vuex";
+import { state, mutations } from "@/store";
 import { users as api } from "@/api";
 import Errors from "@/views/Errors";
 
@@ -58,21 +57,31 @@ export default {
     };
   },
   async created() {
-    this.setLoading(true);
+    // Set loading state to true
+    mutations.setLoading(true);
 
     try {
+      // Fetch all users from the API
       this.users = await api.getAll();
     } catch (e) {
+      // Handle errors
       this.error = e;
     } finally {
-      this.setLoading(false);
+      // Set loading state to false
+      mutations.setLoading(false);
     }
   },
   computed: {
-    ...mapState(["loading"]),
+    // Access the loading state directly from the store
+    loading() {
+      return state.loading;
+    },
   },
   methods: {
-    ...mapMutations(["setLoading"]),
+    // Define methods to call mutations directly
+    setLoading(value) {
+      mutations.setLoading(value);
+    },
   },
 };
 </script>
