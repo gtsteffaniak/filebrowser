@@ -23,6 +23,7 @@ import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
+import { state, mutations } from "@/store";
 
 function clean(path) {
   return path.endsWith("/") ? path.slice(0, -1) : path;

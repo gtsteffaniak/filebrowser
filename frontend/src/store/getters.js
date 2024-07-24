@@ -2,8 +2,8 @@ import { state } from "./state.js";
 
 export const getters = {
   isDarkMode: () => state.user.darkMode == true ,
-  isLogged: () => state.user !== null,
-
+  isLoggedIn: () => state.user !== null,
+  isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => {
     console.log("states", state.route); // Adjusted to correctly log the state.route
     return !state.loading && state.route.name === "Files";

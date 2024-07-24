@@ -2,7 +2,6 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
-import legacy from "@vitejs/plugin-legacy";
 import { compression } from "vite-plugin-compression2";
 
 const plugins = [
@@ -10,17 +9,13 @@ const plugins = [
   VueI18nPlugin({
     include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
   }),
-  legacy({
-    // defaults already drop IE support
-    targets: ["defaults"],
-  }),
   compression({ include: /\.js$/i, deleteOriginalAssets: true }),
 ];
 
 const resolve = {
   alias: {
     // vue: "@vue/compat",
-    "@/": `${path.resolve(__dirname, "src")}/`,
+    "@": path.resolve(__dirname, "src"),
   },
 };
 

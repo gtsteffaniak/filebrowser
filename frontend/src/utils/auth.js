@@ -8,13 +8,11 @@ export function parseToken(token) {
   if (parts.length !== 3) {
     throw new Error("token malformed");
   }
-  console.log("token")
   const data = JSON.parse(atob(parts[1]));
   document.cookie = `auth=${token}; path=/`;
   localStorage.setItem("jwt", token);
   mutations.setJWT(token);
   mutations.setSession(generateRandomCode(8));
-  console.log("setting user")
   mutations.setUser(data.user);
 }
 

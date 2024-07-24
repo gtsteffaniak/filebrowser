@@ -1,7 +1,7 @@
 <template>
   <nav :class="{ active, 'dark-mode': isDarkMode }">
     <!-- Section for logged-in users -->
-    <template v-if="isLogged">
+    <template v-if="isLoggedIn">
       <!-- My Files button -->
       <button
         class="action"
@@ -97,7 +97,7 @@
     <!-- Credits and usage information section -->
     <div
       class="credits"
-      v-if="$router.currentRoute.path.includes('/files/') && !disableUsedPercentage"
+      v-if="isFiles && !disableUsedPercentage && usage"
     >
       <!-- Progress bar for used storage -->
       <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
@@ -145,6 +145,9 @@ export default {
     ProgressBar,
   },
   computed: {
+    isFiles() {
+      return this.$route.path.includes("/files/");
+    },
     user() {
       return state.user;
     },
@@ -153,8 +156,8 @@ export default {
         ? this.user.darkMode
         : darkMode;
     },
-    isLogged() {
-      return getters.isLogged();
+    isLoggedIn() {
+      return getters.isLoggedIn();
     },
     currentPrompt() {
       return getters.currentPrompt();

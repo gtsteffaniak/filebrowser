@@ -2,38 +2,42 @@ import { createApp } from 'vue';
 import router from './router'; // Adjust the path as per your setup
 import App from './App.vue'; // Adjust the path as per your setup
 import { state } from '@/store'; // Adjust the path as per your setup
-//import i18n from './i18n';
+import i18n, { isRtl } from "@/i18n";
+import VueLazyload from "vue-lazyload";
 
 import './css/styles.css';
 
 const app = createApp(App);
 
-// Global mixin to expose Vue instance to components
-app.mixin({
-  mounted() {
-    // Expose Vue instance to components
-    (this.$el as any).__vue__ = this;
-  },
-});
-
-// Global directive v-focus
-app.directive('focus', {
-  mounted(el) {
-    // Initiate focus for the element
+// provide v-focus for components
+app.directive("focus", {
+  mounted: async (el) => {
+    // initiate focus for the element
     el.focus();
   },
 });
 
-// Install router
+// Install additionals
+app.use(VueLazyload);
+app.use(i18n);
 app.use(router);
-
-// Install i18n
-//app.use(i18n);
 
 // Provide state to the entire application
 app.provide('state', state);
 
-// Wait for router to be ready before mounting the app
-router.isReady().then(() => {
-  app.mount('#app');
+// provide v-focus for components
+app.directive("focus", {
+  mounted: async (el) => {
+    // initiate focus for the element
+    el.focus();
+  },
 });
+
+app.mixin({
+  mounted() {
+    // expose vue instance to components
+    this.$el.__vue__ = this;
+  },
+});
+
+router.isReady().then(() => app.mount("#app"));

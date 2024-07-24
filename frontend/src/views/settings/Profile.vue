@@ -87,7 +87,7 @@ import { state, mutations } from "@/store";
 import { users as api } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ViewMode from "@/components/settings/ViewMode.vue";
-import i18n, { rtlLanguages } from "@/i18n";
+import i18n, { rtlLanguages } from '@/i18n';
 
 export default {
   name: "settings",

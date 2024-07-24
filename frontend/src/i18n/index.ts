@@ -25,6 +25,7 @@ import svSE from './sv-se.json';
 import zhCN from './zh-cn.json';
 import zhTW from './zh-tw.json';
 
+// Function to detect locale
 export function detectLocale() {
   let locale = navigator.language.toLowerCase();
   switch (true) {
@@ -109,8 +110,24 @@ export function detectLocale() {
 }
 
 // List of RTL languages
-export const rtlLanguages = ['he', 'ar'];
+export const rtlLanguages: string[] = ['he', 'ar'];
 
+// Function to check if locale is RTL
+export const isRtl = (locale?: string): boolean => {
+  // Ensure rtlLanguages is defined and is an array
+  if (!Array.isArray(rtlLanguages)) {
+    console.error('rtlLanguages is not defined or not an array');
+    return false;
+  }
+
+  // Ensure locale is a string
+  const currentLocale = typeof locale === 'string' ? locale : (i18n.global?.locale?.value || '');
+
+  // Check if the locale is in the rtlLanguages array
+  return rtlLanguages.includes(currentLocale);
+};
+
+// Create i18n instance
 const i18n = createI18n({
   locale: detectLocale(),
   fallbackLocale: 'en',

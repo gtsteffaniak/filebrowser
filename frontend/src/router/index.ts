@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { RouteLocation, createRouter, createWebHistory } from "vue-router";
 import Login from "@/views/Login.vue";
 import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
@@ -10,9 +10,12 @@ import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import Shares from "@/views/settings/Shares.vue";
 import Errors from "@/views/Errors.vue";
-import { state, getters } from "@/store";
 import { baseURL, name } from "@/utils/constants";
-import i18n, { rtlLanguages } from "@/i18n";
+import { getters, state } from "@/store";
+import { recaptcha, loginPage } from "@/utils/constants";
+import { login, validateLogin } from "@/utils/auth";
+
+import i18n from "@/i18n";
 
 const titles = {
   Login: "sidebar.login",
@@ -34,54 +37,59 @@ const routes = [
     path: "/login",
     name: "Login",
     component: Login,
-    beforeEnter: (to, from, next) => {
-      if (getters.isLogged()) {
-        return next({ path: "/files" });
-      }
-
-      next();
-    },
   },
   {
-    path: "/*",
+    path: "/share",
     component: Layout,
     children: [
       {
-        path: "/share/*",
+        path: ":path*",
         name: "Share",
         component: Share,
       },
+    ],
+  },
+  {
+    path: "/files",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
       {
-        path: "/files/*",
+        path: ":path*",
         name: "Files",
         component: Files,
-        meta: {
-          requiresAuth: true,
-        },
       },
+    ],
+  },
+  {
+    path: "/settings",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
       {
-        path: "/settings",
+        path: "",
         name: "Settings",
         component: Settings,
         redirect: {
           path: "/settings/profile",
         },
-        meta: {
-          requiresAuth: true,
-        },
         children: [
           {
-            path: "/settings/profile",
+            path: "profile",
             name: "ProfileSettings",
             component: ProfileSettings,
           },
           {
-            path: "/settings/shares",
+            path: "shares",
             name: "Shares",
             component: Shares,
           },
           {
-            path: "/settings/global",
+            path: "global",
             name: "GlobalSettings",
             component: GlobalSettings,
             meta: {
@@ -89,7 +97,7 @@ const routes = [
             },
           },
           {
-            path: "/settings/users",
+            path: "users",
             name: "Users",
             component: Users,
             meta: {
@@ -97,7 +105,7 @@ const routes = [
             },
           },
           {
-            path: "/settings/users/*",
+            path: "users/:id",
             name: "User",
             component: User,
             meta: {
@@ -106,44 +114,39 @@ const routes = [
           },
         ],
       },
-      {
-        path: "/403",
-        name: "Forbidden",
-        component: Errors,
-        props: {
-          errorCode: 403,
-          showHeader: true,
-        },
-      },
-      {
-        path: "/404",
-        name: "NotFound",
-        component: Errors,
-        props: {
-          errorCode: 404,
-          showHeader: true,
-        },
-      },
-      {
-        path: "/500",
-        name: "InternalServerError",
-        component: Errors,
-        props: {
-          errorCode: 500,
-          showHeader: true,
-        },
-      },
-      {
-        path: "/files",
-        redirect: {
-          path: "/files/",
-        },
-      },
-      {
-        path: "/*",
-        redirect: (to) => `/files${to.path}`,
-      },
     ],
+  },
+  {
+    path: "/403",
+    name: "Forbidden",
+    component: Errors,
+    props: {
+      errorCode: 403,
+      showHeader: true,
+    },
+  },
+  {
+    path: "/404",
+    name: "NotFound",
+    component: Errors,
+    props: {
+      errorCode: 404,
+      showHeader: true,
+    },
+  },
+  {
+    path: "/500",
+    name: "InternalServerError",
+    component: Errors,
+    props: {
+      errorCode: 500,
+      showHeader: true,
+    },
+  },
+  {
+    path: "/:catchAll(.*)*",
+    redirect: (to: RouteLocation) =>
+      `/files/${[...to.params.catchAll].join("/")}`,
   },
 ];
 
@@ -152,24 +155,50 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const title = i18n.global.t(titles[to.name]);
-  document.title = `${title} - ${name}`;
 
-  // RTL related settings per route
-  const rtlSet = document.body.classList.contains("rtl");
-  const shouldSetRtl = rtlLanguages.includes(i18n.global.locale);
-  switch (true) {
-    case shouldSetRtl && !rtlSet:
-      document.body.classList.add("rtl");
-      break;
-    case !shouldSetRtl && rtlSet:
-      document.body.classList.remove("rtl");
-      break;
+async function initAuth() {
+    if (loginPage) {
+      await validateLogin();
+    } else {
+      await login("publicUser", "publicUser", "");
+    }
+
+  if (recaptcha) {
+    await new Promise<void>((resolve) => {
+      const check = () => {
+        if (typeof window.grecaptcha === "undefined") {
+          setTimeout(check, 100);
+        } else {
+          resolve();
+        }
+      };
+
+      check();
+    });
+  }
+}
+
+
+router.beforeResolve(async (to, from, next) => {
+  const title = i18n.global.t(titles[to.name as keyof typeof titles]);
+  document.title = title + " - " + name;
+
+  // this will only be null on first route
+  if (from.name == null) {
+    try {
+      await initAuth();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  if (to.path.endsWith("/login") && getters.isLoggedIn()) {
+    next({ path: "/files/" });
+    return;
   }
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!getters.isLogged()) {
+    if (!getters.isLoggedIn()) {
       next({
         path: "/login",
         query: { redirect: to.fullPath },
@@ -178,7 +207,7 @@ router.beforeEach((to, from, next) => {
     }
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
-      if (!state.user.perm.admin) {
+      if (state.user === null || !getters.isAdmin()) {
         next({ path: "/403" });
         return;
       }
@@ -188,4 +217,4 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-export default router;
+export { router, router as default };

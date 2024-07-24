@@ -50,9 +50,6 @@ export default {
     };
   },
   computed: {
-    isLogged() {
-      return getters.isLogged(); // Access getter directly from the store
-    },
     progress() {
       return getters.progress(); // Access getter directly from the store
     },
@@ -132,7 +129,7 @@ main::-webkit-scrollbar {
 }
 /* Use the class .dark-mode to apply styles conditionally */
 .dark-mode {
-  background: var(--background);
+  background: var(--background) !important;
   color: var(--textPrimary);
 }
 
