@@ -246,7 +246,6 @@ export default {
       ],
       value: "",
       width: window.innerWidth,
-      active: false,
       ongoing: false,
       results: [],
       reload: false,
@@ -254,8 +253,11 @@ export default {
     };
   },
   computed: {
-    showOverlay: function () {
-      return state.prompts.length > 0 && state.prompts[0].name !== "more";
+    active() {
+      return getters.currentPromptName() == "search";
+    },
+    showOverlay(){
+      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
       return state.user && Object.prototype.hasOwnProperty.call(state.user, "darkMode")
@@ -406,3 +408,285 @@ export default {
   },
 };
 </script>
+
+<style>
+.main-input {
+  width: 100%;
+}
+.searchContext {
+  width: 100%;
+  padding: 0.5em 1em;
+  background: var(--blue);
+  color: white;
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
+}
+#result-desktop > #result-list {
+  max-height: 80vh;
+  width: 35em;
+  overflow: scroll;
+  padding-bottom: 1em;
+  -webkit-transition: width 0.3s ease 0s;
+  transition: width 0.3s ease 0s;
+  background-color: unset;
+}
+#result-desktop {
+  -webkit-animation: SlideDown 0.5s forwards;
+  animation: SlideDown 0.5s forwards;
+  border-radius: 1m;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 1em;
+  max-height: 100%;
+  border-top: none;
+  border-top-width: initial;
+  border-top-style: none;
+  border-top-color: initial;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
+  background-color: lightgray;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#search.active #result-desktop ul li a {
+  display: flex;
+  align-items: center;
+  padding: 0.3em 0;
+  margin-right: 0.3em;
+}
+#search #result-list.active {
+  width: 65em !important;
+  max-width: 85vw !important;
+}
+/* Animations */
+@keyframes SlideDown {
+  0% {
+    transform: translateY(-3em);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+/* Search */
+#search {
+  background-color: unset;
+  z-index: 3;
+  position: fixed;
+  top: 0.5em;
+  min-width: 35em;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+#search #input {
+  background-color: rgba(100, 100, 100, 0.2);
+  display: flex;
+  height: 100%;
+  padding: 0em 0.75em;
+  border-style: solid;
+  border-radius: 1em;
+  border-style: unset;
+  border-width: 1px;
+  align-items: center;
+  height: 3em;
+}
+#search input {
+  border: 0;
+  background-color: transparent;
+  padding: 0;
+}
+#result-list p {
+  margin: 1em;
+}
+/* Hiding scrollbar for Chrome, Safari and Opera */
+#result-list::-webkit-scrollbar {
+  display: none;
+}
+/* Hiding scrollbar for IE, Edge and Firefox */
+#result-list {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+.text-container {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: left;
+  direction: rtl;
+}
+#search #result {
+  padding-top: 1em;
+  overflow: hidden;
+  background: white;
+  display: flex;
+  top: -4em;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+  color: rgba(0, 0, 0, 0.6);
+  height: 0;
+  transition: 2s ease height, 2s ease padding;
+  transition: 2s ease width, 2s ease padding;
+  z-index: 3;
+}
+body.rtl #search #result {
+  direction: ltr;
+}
+#search #result > div > *:first-child {
+  margin-top: 0;
+}
+body.rtl #search #result {
+  direction: rtl;
+  text-align: right;
+}
+/* Search Results */
+body.rtl #search #result ul > * {
+  direction: ltr;
+  text-align: left;
+}
+#search ul {
+  margin-top: 1em;
+  padding: 0;
+  list-style: none;
+}
+#search li {
+  margin: 0.5em;
+}
+#search #renew {
+  width: 100%;
+  text-align: center;
+  display: none;
+  margin: 1em;
+  max-width: none;
+}
+#search.ongoing #renew {
+  display: block;
+}
+#search.active #input {
+  background-color: var(--background);
+  border-color: black;
+  border-style: solid;
+  border-bottom-style: none;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+/* Search Input Placeholder */
+#search::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+#search:-moz-placeholder {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.5);
+}
+#search::-moz-placeholder {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.5);
+}
+#search:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+/* Search Boxes */
+#search .boxes {
+  margin: 1em;
+  text-align: center;
+}
+#search .boxes h3 {
+  margin: 0;
+  font-weight: 500;
+  font-size: 1em;
+  color: #212121;
+  padding: 0.5em;
+}
+body.rtl #search .boxes h3 {
+  text-align: right;
+}
+#search .boxes p {
+  margin: 1em 0 0;
+}
+#search .boxes i {
+  color: #fff !important;
+  font-size: 3.5em;
+}
+.mobile-boxes {
+  cursor: pointer;
+  overflow: hidden;
+  margin-bottom: 1em;
+  background: var(--blue);
+  color: white;
+  padding: 1em;
+  border-radius: 1em;
+  text-align: center;
+}
+/* Hiding scrollbar for Chrome, Safari and Opera */
+.mobile-boxes::-webkit-scrollbar {
+  display: none;
+}
+/* Hiding scrollbar for IE, Edge and Firefox */
+.mobile-boxes {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+.helpText {
+  padding: 1em;
+}
+.sizeConstraints {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-content: center;
+  margin: 1em;
+  justify-content: center;
+}
+.sizeInput {
+  height: 100%;
+  text-align: center;
+  width: 5em;
+  border-radius: 1em;
+  padding: 1em;
+  backdrop-filter: invert(0.1);
+  border: none !important;
+}
+.sizeInputWrapper {
+  border-radius: 1em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  display: -ms-flexbox;
+  display: flex;
+  background-color: rgb(245, 245, 245);
+  padding: 0.25em;
+  height: 3em;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border: 1px solid #ccc;
+}
+.helpButton {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  text-align: center;
+  background: rgb(211, 211, 211);
+  padding: 0.25em;
+  border-radius: 0.25em;
+}
+.searchPrompt {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+}
+</style>
