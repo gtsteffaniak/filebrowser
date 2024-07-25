@@ -136,7 +136,6 @@ import {
 import { files as api } from "@/api";
 import ProgressBar from "vue-simple-progress";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { darkMode } from "@/utils/constants";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {

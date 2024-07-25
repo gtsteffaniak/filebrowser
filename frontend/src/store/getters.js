@@ -19,7 +19,7 @@ export const getters = {
     if (state.req.type !== undefined) {
       if (state.req.isDir) {
         returnVal = "listingView";
-      } else if (state.req.hasOwnProperty("content")) {
+      } else if ("content" in state.req) {
         returnVal = "editor";
       } else {
         returnVal = "preview";

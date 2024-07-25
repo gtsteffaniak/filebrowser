@@ -67,7 +67,7 @@ var rootCmd = &cobra.Command{
 		// initialize indexing and schedule indexing ever n minutes (default 5)
 		go files.InitializeIndex(serverConfig.IndexingInterval, true)
 		_, err := os.Stat(serverConfig.Root)
-		checkErr(fmt.Sprintf("cmd os.Stat ", serverConfig.Root), err)
+		checkErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
 		var listener net.Listener
 		address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
 		switch {

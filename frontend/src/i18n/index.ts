@@ -114,12 +114,8 @@ export function detectLocale() {
 export const rtlLanguages = ['he', 'ar'];
 
 // Function to check if locale is RTL
-export const isRtl = (locale) => {
+export const isRtl = (locale: string) => {
   const currentLocale = locale || i18n.global.locale;
-  if (typeof currentLocale !== 'string') {
-    console.error('Current locale is not a valid string');
-    return false;
-  }
   return rtlLanguages.includes(currentLocale);
 };
 
