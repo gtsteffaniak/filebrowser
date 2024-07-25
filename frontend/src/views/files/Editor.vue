@@ -21,9 +21,7 @@ export default {
   },
   computed: {
     isDarkMode() {
-      return state.user && Object.prototype.hasOwnProperty.call(state.user, "darkMode")
-        ? state.user.darkMode
-        : darkMode;
+      return getters.isDarkMode();
     },
     breadcrumbs() {
       let parts = this.$route.path.split("/");

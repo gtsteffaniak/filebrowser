@@ -4,7 +4,7 @@ export default function deepClone(obj) {
     }
     let clone = Array.isArray(obj) ? [] : {};
     for (let key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (obj.hasOwnProperty(key)) {
             clone[key] = deepClone(obj[key]);
         }
     }

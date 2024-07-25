@@ -5,7 +5,6 @@ export const getters = {
   isLoggedIn: () => state.user !== null,
   isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => {
-    console.log("states", state.route); // Adjusted to correctly log the state.route
     return !state.loading && state.route.name === "Files";
   },
 
@@ -15,19 +14,18 @@ export const getters = {
     // Ensure state.selected is an array
     return Array.isArray(state.selected) ? state.selected.length : 0;
   },
-
-
   currentView: () => {
-      if (state.req.type === undefined) {
-        return null;
-      }
+    let returnVal = null;
+    if (state.req.type !== undefined) {
       if (state.req.isDir) {
-        return "listingView";
-      } else if (Object.prototype.hasOwnProperty.call(state.req, "content")) {
-        return "editor";
+        returnVal = "listingView";
+      } else if (state.req.hasOwnProperty("content")) {
+        returnVal = "editor";
       } else {
-        return "preview";
+        returnVal = "preview";
       }
+    }
+    return returnVal;
   },
   progress: () => {
     // Check if state.upload is defined and valid

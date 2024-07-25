@@ -2,7 +2,7 @@
   <div>
     <breadcrumbs base="/files" />
     <errors v-if="error" :errorCode="error.status" />
-    <component v-else-if="true" :is="currentView"></component>
+    <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
         <div class="spinner">
@@ -41,16 +41,15 @@ export default {
   data() {
     return {
       error: null,
-      currentViewObj: null,
       width: window.innerWidth,
     };
   },
   computed: {
     currentView() {
-      return this.currentViewObj;
+      return getters.currentView();
     },
     currentViewLoaded() {
-      return this.currentViewObj !== null;
+      return getters.currentView() !== null;
     },
     reload() {
       return state.reload; // Access reload from state
@@ -112,11 +111,7 @@ export default {
         this.error = e;
       }
       mutations.setLoading(false);
-      console.log("Data fetched:", data);
       mutations.updateRequest(data);
-      this.currentViewObj = getters.currentView();
-      console.log("Current view object:", this.currentViewObj);
-
     },
     keyEvent(event) {
       // F1!

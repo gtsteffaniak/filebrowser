@@ -130,22 +130,6 @@ export default {
     },
   },
 
-  watch: {
-    req: {
-      handler() {
-        // Ensures that the listing is displayed
-        Vue.nextTick(() => {
-          // How much every listing item affects the window height
-          this.setItemWeight();
-
-          // Fill and fit the window with listing items
-          this.fillWindow(true);
-        });
-      },
-      deep: true,
-    },
-  },
-
   mounted() {
     // Check the columns size for the first time.
     this.colunmsResize();

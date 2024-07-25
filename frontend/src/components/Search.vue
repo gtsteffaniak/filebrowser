@@ -260,9 +260,7 @@ export default {
       return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
-      return state.user && Object.prototype.hasOwnProperty.call(state.user, "darkMode")
-        ? state.user.darkMode
-        : darkMode;
+      return getters.isDarkMode();
     },
     showBoxes() {
       return this.searchTypes == "";

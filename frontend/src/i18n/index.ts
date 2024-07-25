@@ -1,3 +1,4 @@
+// i18n.js
 import { createI18n } from 'vue-i18n';
 
 // Import translations
@@ -110,20 +111,15 @@ export function detectLocale() {
 }
 
 // List of RTL languages
-export const rtlLanguages: string[] = ['he', 'ar'];
+export const rtlLanguages = ['he', 'ar'];
 
 // Function to check if locale is RTL
-export const isRtl = (locale?: string): boolean => {
-  // Determine the current locale, defaulting to i18n's locale if not provided
+export const isRtl = (locale) => {
   const currentLocale = locale || i18n.global.locale;
-
-  // Ensure the locale is a valid string before checking
   if (typeof currentLocale !== 'string') {
     console.error('Current locale is not a valid string');
     return false;
   }
-
-  // Check if the locale is in the rtlLanguages array
   return rtlLanguages.includes(currentLocale);
 };
 

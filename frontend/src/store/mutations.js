@@ -108,7 +108,6 @@ export const mutations = {
     // Ensure the update is reactive
     state.req = { ...state.req, ...value };
     state.selected = [];
-    console.log("updateRequest", state.req);
     emitStateChanged();
     if (!state.req?.items) return;
     const selectedItems = state.selected.map((i) => state.req.items[i]);

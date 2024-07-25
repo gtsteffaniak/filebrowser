@@ -126,7 +126,7 @@ export default {
     },
   },
   created() {
-    this.darkMode = state.user.darkMode;
+    this.darkMode = getters.isDarkMode();
     this.locale = state.user.locale;
     this.viewMode = state.user.viewMode;
     this.hideDotfiles = state.user.hideDotfiles;

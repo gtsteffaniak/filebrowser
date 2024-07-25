@@ -11,7 +11,6 @@ export default {
   computed: {},
   setup() {
     onMounted(() => {
-      console.log("mounted")
       mutations.setLoading(false); // Call your mutation or method to set loading to false
       // Query the loading element and remove it from the DOM
       const loadingDiv = document.getElementById('loading');
