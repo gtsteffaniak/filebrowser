@@ -66,6 +66,7 @@ jobs:
       - uses: actions/setup-node@v4
       - working-directory: frontend
         run: npm i eslint && npm run lint
+
   push_release_to_registry:
     needs: [lint-frontend, lint-backend, test-backend, format-backend]
     name: Push release
