@@ -20,7 +20,7 @@ import (
 
 func checkErr(source string, err error) {
 	if err != nil {
-		log.Fatal(fmt.Sprintf("%s: %v", source, err))
+		log.Fatalf("%s: %v", source, err)
 	}
 }
 
