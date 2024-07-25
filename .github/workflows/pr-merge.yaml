@@ -28,7 +28,6 @@ jobs:
         with:
           version: v1.59
           working-directory: backend
-
   format-backend:
     runs-on: ubuntu-latest
     steps:
