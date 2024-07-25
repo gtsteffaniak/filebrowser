@@ -12,42 +12,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          sparse-checkout: 'backend'
-          path: 'backend'
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
-      - run: go test -race -v ./...
+      - working-directory: backend
+        run: go test -race -v ./...
   lint-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: 'backend'
       - uses: actions/setup-go@v5
         with:
             go-version: 'stable'
-      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
-      - run: golangci-lint run
+      - working-directory: backend
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2 && golangci-lint run
   format-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: 'backend'
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
-      - run: go fmt ./...
+      - working-directory: backend
+        run: go fmt ./...
   lint-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: 'frontend'
       - uses: actions/setup-node@v4
-      - run: npm i eslint && npm run lint
+      - working-directory: frontend
+        run: npm i eslint && npm run lint
 
   push_pr_to_registry:
     name: Push PR
