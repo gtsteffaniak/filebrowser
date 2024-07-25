@@ -13,6 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
       - working-directory: backend
         run: go test -race -v ./...
   lint-backend:
@@ -20,14 +22,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
-      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
+        with:
+            go-version: 'stable'
       - working-directory: backend
-        run: golangci-lint run
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2 && golangci-lint run
   format-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
       - working-directory: backend
         run: go fmt ./...
   lint-frontend:
