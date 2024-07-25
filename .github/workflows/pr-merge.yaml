@@ -11,37 +11,37 @@ jobs:
   test-backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.22.0
-      - run: cd backend && go test -race -v ./...
+          go-version: 'stable'
+      - working-directory: backend
+        run: go test -race -v ./...
   lint-backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.22.0
-      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
-      - run: cd backend && golangci-lint run
+            go-version: 'stable'
+      - working-directory: backend
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2 && golangci-lint run
   format-backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.22.0
-      - run: cd backend && go fmt ./...
+          go-version: 'stable'
+      - working-directory: backend
+        run: go fmt ./...
   lint-frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '20'
-      - run: cd frontend && npm i eslint
-      - run: cd frontend && npm run lint
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - working-directory: frontend
+        run: npm i eslint && npm run lint
 
   push_pr_to_registry:
     name: Push PR
@@ -66,7 +66,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@v5
         with:
           images: gtstef/filebrowser
       - name: Build and push
