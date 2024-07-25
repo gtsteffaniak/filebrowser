@@ -207,8 +207,7 @@
 <script>
 import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
-import { darkMode } from "@/utils/constants";
-import { state, getters, mutations } from "@/store";
+import { getters, mutations } from "@/store";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },

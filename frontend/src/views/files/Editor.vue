@@ -12,7 +12,6 @@ import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";
-import { darkMode } from "@/utils/constants";
 
 export default {
   name: "editor",
