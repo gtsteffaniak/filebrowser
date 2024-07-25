@@ -48,8 +48,10 @@ jobs:
       - uses: actions/setup-go@v5
         with:
             go-version: 'stable'
-      - working-directory: backend
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2 && golangci-lint run
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.59
+          working-directory: backend
   format-backend:
     runs-on: ubuntu-latest
     steps:
