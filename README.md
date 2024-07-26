@@ -45,10 +45,7 @@ work better in terms of asthetics and performance. Improved search,
 <img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/c76f4100-949b-4e17-a3e6-e410fb8ec08f">
 <img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/0bde26f3-fa90-411e-bd0b-abaa47506d62">
 <img width="560" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/71d8f2b8-6fe6-4fdc-8aac-503d08c28d86">
-
-
 </p>
-
 
 ## Install
 
@@ -101,7 +98,7 @@ volumes:
 
 ```
 
-Not using docker (not recommended)
+Not using docker (not recommended) (Must donwload asset with frontend directory next to filebrowser binary)
 
 ```
 ./filebrowser -f <filebrowser.yml or other /path/to/config.yaml>

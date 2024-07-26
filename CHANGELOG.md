@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.6
+
+- Migrated to Vite / Vue 3
+- Replaced npm modules with simpler javascript
+  - replaced vuex with custom state management via src/store 
+  - replaced noty with simple card popup notifications
+- improved error logging
+  - backend errors show the root function that called them during the error.
+  - frontend errors print errors to console that fail try/catch
+  - all frontend errors via popup notificationprint to console as well.
+
 ## v0.2.5
 
 - Fix: delete user prompt works using native hovers.

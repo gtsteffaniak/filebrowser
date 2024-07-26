@@ -1,12 +1,12 @@
 # Planned Roadmap
 
-Next version (v0.2.5) :
+Next version (v0.2.7) :
 
 - Replace http routes for gorilla/mux
 - Replace afero requests with std library
-- Add Job status to the sidebar - index status.
-- Use vite instead of webpack
-- upgrade to vue3
+- Add Job status to the sidebar
+  - index status.
+  - new jobs as they come
 
 Future releases (within 6 months):
 
@@ -15,5 +15,6 @@ Future releases (within 6 months):
  - Add tools to sidebar
    - duplicate file detector.
    - bulk rename https://github.com/filebrowser/filebrowser/issues/2473
-
- - support minio/s3 https://github.com/filebrowser/filebrowser/issues/2544
+   - job manager - folder sync, copy, lifecycle operations
+   - metrics tracker - user access, file access, download count, last login, etc
+ - support minio s3 and backblaze sources https://github.com/filebrowser/filebrowser/issues/2544
