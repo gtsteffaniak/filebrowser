@@ -20,7 +20,8 @@ export async function fetchURL(url, opts, auth = true) {
       },
       ...rest,
     });
-  } catch {
+  } catch (e) {
+    console.error(e)
     const error = new Error("000 No connection");
     error.status = res.status;
     throw error;

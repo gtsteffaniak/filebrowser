@@ -226,6 +226,7 @@ import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import { state, mutations } from "@/store";
+import { showError } from "@/notify";
 
 import Action from "@/components/header/Action.vue";
 import Item from "@/components/files/ListingItem.vue";
@@ -483,7 +484,7 @@ export default {
           .then(() => {
             this.loading = true;
           })
-          .catch(this.$showError);
+          .catch(showError);
       };
 
       if (this.clipboard.key === "x") {
@@ -494,7 +495,7 @@ export default {
               this.clipboard = {};
               this.loading = true;
             })
-            .catch(this.$showError);
+            .catch(showError);
         };
       }
 
@@ -572,7 +573,7 @@ export default {
         try {
           items = (await api.fetch(path)).items;
         } catch (error) {
-          this.$showError(error);
+          showError(error);
         }
       }
 

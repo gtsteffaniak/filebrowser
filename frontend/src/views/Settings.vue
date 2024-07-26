@@ -53,7 +53,7 @@ export default {
   name: "settings",
   mounted() {
     // Update the req name property
-    mutations.updateRequest({ name: "Settings" });
+    mutations.replaceRequest({ name: "Settings" });
   },
   computed: {
     loading() {

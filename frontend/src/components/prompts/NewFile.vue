@@ -77,7 +77,7 @@ export default {
         await api.post(uri);
         this.$router.push({ path: uri });
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
 
       mutations.closeHovers();

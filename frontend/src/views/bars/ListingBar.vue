@@ -31,6 +31,7 @@ import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import Search from "@/components/Search.vue";
+import { showError } from "@/notify";
 
 export default {
   name: "listingView",
@@ -240,16 +241,13 @@ export default {
       mutations.closeHovers();
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
-      const data = {
-        id: state.user.id,
-        viewMode: this.viewModes[nextIndex],
-        locale: state.user.locale,
-      };
+      let data = state.user;
+      data.viewMode = this.viewModes[nextIndex];
       try {
         await users.update(data, ["viewMode"]);
         mutations.setUser(data);
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     preventDefault(event) {
@@ -296,7 +294,7 @@ export default {
           .then(() => {
             mutations.setReload(true);
           })
-          .catch(this.$showError);
+          .catch(showError);
       };
 
       if (state.clipboard.key === "x") {
@@ -307,7 +305,7 @@ export default {
               mutations.resetClipboard();
               mutations.setReload(true);
             })
-            .catch(this.$showError);
+            .catch(showError);
         };
       }
 
@@ -396,7 +394,7 @@ export default {
         try {
           items = (await api.fetch(path)).items;
         } catch (error) {
-          this.$showError(error);
+          showError(error);
         }
       }
 
@@ -477,7 +475,7 @@ export default {
         await users.update({ id: state.user.id, sorting: { by, asc } }, ["sorting"]);
         mutations.setReload(true);
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     openSearch() {

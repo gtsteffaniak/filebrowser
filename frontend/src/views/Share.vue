@@ -149,6 +149,7 @@
   </div>
 </template>
 <script>
+import { showSuccess } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
 import moment from "moment";
@@ -193,7 +194,7 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      this.$showSuccess(this.$t("success.linkCopied"));
+      showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
@@ -220,35 +221,35 @@ export default {
       return getters.selectedCount(); // Access getter directly from the store
     },
     icon() {
-      if (state.req.isDir) return "folder";
-      if (state.req.type === "image") return "insert_photo";
-      if (state.req.type === "audio") return "volume_up";
-      if (state.req.type === "video") return "movie";
+      if (this.req.isDir) return "folder";
+      if (this.req.type === "image") return "insert_photo";
+      if (this.req.type === "audio") return "volume_up";
+      if (this.req.type === "video") return "movie";
       return "insert_drive_file";
     },
     link() {
-      return api.getDownloadURL(state.req);
+      return api.getDownloadURL(this.req);
     },
     inlineLink() {
-      return api.getDownloadURL(state.req, true);
+      return api.getDownloadURL(this.req, true);
     },
     humanSize() {
-      if (state.req.isDir) {
-        return state.req.items.length;
+      if (this.req.isDir) {
+        return this.req.items.length;
       }
-      return getHumanReadableFilesize(state.req.size);
+      return getHumanReadableFilesize(this.req.size);
     },
     humanTime() {
-      return moment(state.req.modified).fromNow();
+      return moment(this.req.modified).fromNow();
     },
     modTime() {
-      return new Date(Date.parse(state.req.modified)).toLocaleString();
+      return new Date(Date.parse(this.req.modified)).toLocaleString();
     },
     isImage() {
-      return state.req.type === "image";
+      return this.req.type === "image";
     },
     isMedia() {
-      return state.req.type === "video" || state.req.type === "audio";
+      return this.req.type === "video" || this.req.type === "audio";
     },
   },
   methods: {
@@ -263,8 +264,9 @@ export default {
       // Reset view information.
       if (state.user === undefined) {
         let userData = await api.getPublicUser();
-        state.req.user = userData;
-        mutations.updateRequest(state.req);
+        let req = state.req
+        req.user = userData;
+        mutations.replaceRequest(req);
       }
       mutations.setReload(false);
       mutations.resetSelected();
@@ -300,11 +302,11 @@ export default {
       mutations.multiple(!this.multiple);
     },
     isSingleFile() {
-      return this.selectedCount === 1 && !state.req.items[this.selected[0]].isDir;
+      return this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir;
     },
     download() {
       if (this.isSingleFile()) {
-        api.download(null, this.hash, this.token, state.req.items[this.selected[0]].path);
+        api.download(null, this.hash, this.token, this.req.items[this.selected[0]].path);
         return;
       }
 
@@ -316,7 +318,7 @@ export default {
           let files = [];
 
           for (let i of this.selected) {
-            files.push(state.req.items[i].path);
+            files.push(this.req.items[i].path);
           }
 
           api.download(format, this.hash, this.token, ...files);
@@ -327,7 +329,7 @@ export default {
       return this.isSingleFile()
         ? api.getDownloadURL({
             hash: this.hash,
-            path: state.req.items[this.selected[0]].path,
+            path: this.req.items[this.selected[0]].path,
           })
         : "";
     },

@@ -13,6 +13,7 @@ export const mutations = {
     emitStateChanged();
   },
   showHover: (value) => {
+    console.log("hover",value)
     if (typeof value === "object") {
       state.prompts.push({
         name: value?.name,
@@ -32,10 +33,6 @@ export const mutations = {
   },
   showError: () => {
     state.prompts.push("error");
-    emitStateChanged();
-  },
-  showSuccess: () => {
-    this.showHover("success");
     emitStateChanged();
   },
   setLoading: (value) => {
@@ -114,6 +111,14 @@ export const mutations = {
     state.selected = state.req.items
       .filter((item) => selectedItems.some((rItem) => rItem.url === item.url))
       .map((item) => item.index);
+  },
+  replaceRequest: (value) => {
+    state.req = value;
+    emitStateChanged();
+  },
+  setRoute: (value) => {
+    state.route = value;
+    emitStateChanged();
   },
   updateListingSortConfig: ({ field, asc }) => {
     state.req.sorting.by = field;

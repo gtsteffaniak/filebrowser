@@ -52,6 +52,7 @@ import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
+import { showError } from "@/notify";
 
 export default {
   name: "move",
@@ -91,7 +92,7 @@ export default {
           })
           .catch((e) => {
             buttons.done("move");
-            this.$showError(e);
+            showError(e);
           });
       };
 

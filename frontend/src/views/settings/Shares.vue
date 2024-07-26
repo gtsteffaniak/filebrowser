@@ -59,6 +59,7 @@
 </template>
 
 <script>
+import { showSuccess,showError } from "@/notify";
 import { share as api, users } from "@/api";
 import { state, mutations } from "@/store";
 import moment from "moment";
@@ -98,7 +99,7 @@ export default {
   mounted() {
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      this.$showSuccess(this.$t("success.linkCopied"));
+      showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
@@ -123,7 +124,7 @@ export default {
           try {
             api.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
-            mutations.showSuccess(this.$t("settings.shareDeleted"));
+            showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
             mutations.showError(e);
           }

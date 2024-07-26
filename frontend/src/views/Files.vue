@@ -76,7 +76,7 @@ export default {
     if (state.showShell) {
       mutations.toggleShell(); // Use mutation
     }
-    mutations.updateRequest({}); // Use mutation
+    mutations.replaceRequest({}); // Use mutation
   },
   methods: {
     async fetchData() {
@@ -107,7 +107,6 @@ export default {
           document.title = `${res.name} - ${document.title}`;
         }
       } catch (e) {
-        console.error("Error fetching data:", e);
         this.error = e;
       }
       mutations.setLoading(false);

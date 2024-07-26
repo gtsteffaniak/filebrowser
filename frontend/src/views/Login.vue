@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import * as auth from "@/utils/auth";
+import { signupLogin,login} from "@/utils/auth";
 import {
   name,
   logoURL,
@@ -76,7 +76,6 @@ export default {
   },
   mounted() {
     if (!recaptcha) return;
-
     window.grecaptcha.ready(function () {
       window.grecaptcha.render("recaptcha", {
         sitekey: recaptchaKey,
@@ -99,7 +98,6 @@ export default {
       let captcha = "";
       if (recaptcha) {
         captcha = window.grecaptcha.getResponse();
-
         if (captcha === "") {
           this.error = this.$t("login.wrongCredentials");
           return;
@@ -112,15 +110,14 @@ export default {
           return;
         }
       }
-
       try {
         if (this.createMode) {
-          await auth.signup(state.username, this.password);
+          await signupLogin(this.username, this.password);
         }
-
-        await auth.login(state.username, this.password, captcha);
+        await login(this.username, this.password, captcha);
         this.$router.push({ path: redirect });
       } catch (e) {
+        console.log(e)
         if (e.message == 409) {
           this.error = this.$t("login.usernameTaken");
         } else {

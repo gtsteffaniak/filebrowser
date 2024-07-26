@@ -75,6 +75,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import moment from "moment";
 import { files as api } from "@/api";
 import { state, getters,mutations } from "@/store"; // Import your custom store
+import { showError } from "@/notify";
 
 export default {
   name: "info",
@@ -147,7 +148,7 @@ export default {
         const hash = await api.checksum(link, algo);
         event.target.innerHTML = hash;
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
   },

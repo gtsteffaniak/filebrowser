@@ -20,6 +20,7 @@
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
     <upload-files></upload-files>
   </div>
+  <div class="card" id="popup-notification" ></div>
 </template>
 <script>
 import editorBar from "./bars/EditorBar.vue";
@@ -81,6 +82,7 @@ export default {
       return enableExec;
     },
     currentView() {
+      console.log("Current view changed", getters.currentView());
       return getters.currentView();
     },
   },

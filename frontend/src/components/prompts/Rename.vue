@@ -108,7 +108,7 @@ export default {
 
         mutations.setReload(true);
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
 
       mutations.closeHovers();

@@ -179,6 +179,7 @@
 </template>
 
 <script>
+import { showSuccess } from "@/notify";
 import { state, mutations } from "@/store";
 import { settings as api } from "@/api";
 import { enableExec } from "@/utils/constants";
@@ -264,7 +265,7 @@ export default {
 
       try {
         await api.update(settings);
-        mutations.showSuccess(this.$t("settings.settingsUpdated"));
+        showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
         mutations.showError(e);
       }
