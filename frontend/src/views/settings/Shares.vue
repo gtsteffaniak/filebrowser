@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import { showSuccess,showError } from "@/notify";
+import { showSuccess, showError } from "@/notify";
 import { share as api, users } from "@/api";
 import { state, mutations } from "@/store";
 import moment from "moment";
@@ -126,7 +126,7 @@ export default {
             this.links = this.links.filter((item) => item.hash !== link.hash);
             showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
-            mutations.showError(e);
+            showError(e);
           }
         },
       });
