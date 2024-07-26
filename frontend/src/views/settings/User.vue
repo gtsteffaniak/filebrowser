@@ -42,6 +42,7 @@ import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
 import deepClone from "@/utils/deepclone";
+import { showSuccess,showError } from "@/notify";
 
 export default {
   name: "user",
@@ -116,7 +117,7 @@ export default {
         if (this.isNew) {
           const loc = await api.create(user);
           this.$router.push({ path: loc });
-          this.$showSuccess(this.$t("settings.userCreated"));
+          showSuccess(this.$t("settings.userCreated"));
         } else {
           await api.update(user);
 
@@ -126,10 +127,10 @@ export default {
             state.user = { ...deepClone(user) };
           }
 
-          this.$showSuccess(this.$t("settings.userUpdated"));
+          showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
   },

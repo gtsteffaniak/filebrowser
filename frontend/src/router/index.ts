@@ -14,7 +14,7 @@ import { baseURL, name } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
-
+import { mutations } from "@/store";
 import i18n from "@/i18n";
 
 const titles = {
@@ -162,7 +162,6 @@ async function initAuth() {
   } else {
       await login("publicUser", "publicUser", "");
   }
-
   if (recaptcha) {
       await new Promise<void>((resolve) => {
           const check = () => {
@@ -178,11 +177,10 @@ async function initAuth() {
   }
 }
 
-
 router.beforeResolve(async (to, from, next) => {
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;
-
+  mutations.setRoute(to)
   // this will only be null on first route
   if (from.name == null) {
     try {
@@ -191,7 +189,6 @@ router.beforeResolve(async (to, from, next) => {
       console.error(error);
     }
   }
-
   if (to.path.endsWith("/login") && getters.isLoggedIn()) {
     next({ path: "/files/" });
     return;

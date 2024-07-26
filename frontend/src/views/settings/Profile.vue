@@ -83,7 +83,8 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { showSuccess,showError } from "@/notify"
+import { state, mutations,getters } from "@/store";
 import { users as api } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ViewMode from "@/components/settings/ViewMode.vue";
@@ -146,7 +147,7 @@ export default {
         const data = { id: state.user.id, password: this.password };
         await api.update(data, ["password"]);
         mutations.updateUser(data);
-        mutations.showSuccess(this.$t("settings.passwordUpdated"));
+        showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
         mutations.showError(e);
       }
@@ -177,9 +178,9 @@ export default {
         if (shouldReload) {
           location.reload();
         }
-        this.$showSuccess(this.$t("settings.settingsUpdated"));
+        showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        mutations.showError(e);
+        showError(e);
       }
     },
     updateViewMode(updatedMode) {

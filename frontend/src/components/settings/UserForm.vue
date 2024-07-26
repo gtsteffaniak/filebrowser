@@ -72,6 +72,7 @@ import Rules from "./Rules.vue";
 import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
 import { enableExec } from "@/utils/constants";
+import { state } from "@/store";
 
 export default {
   name: "user",

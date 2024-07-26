@@ -1,14 +1,16 @@
 import { state } from "./state.js";
 
 export const getters = {
-  isDarkMode: () => state.user.darkMode == true ,
+  isDarkMode: () => {
+    if (state.user == null) {
+      return true;
+    }
+    return state.user.darkMode === true;
+  },
   isLoggedIn: () => state.user !== null,
   isAdmin: () => state.user.perm?.admin == true,
-  isFiles: () => {
-    return !state.loading && state.route.name === "Files";
-  },
-
-  isListing: (getters) => getters.isFiles && state.req.isDir,
+  isFiles: () => state.loading && state.route.name === "Files",
+  isListing: () => getters.isFiles() && state.req.isDir,
 
   selectedCount: () => {
     // Ensure state.selected is an array

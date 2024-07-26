@@ -6,7 +6,8 @@
 
 <script>
 import { eventBus } from "@/store/eventBus";
-import { state,mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
+import { showError } from "@/notify";
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
@@ -80,7 +81,7 @@ export default {
       try {
         api.put(this.$route.path, this.editor.getValue());
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     back() {
@@ -99,7 +100,7 @@ export default {
       this.save();
     },
     close() {
-      mutations.updateRequest({});
+      mutations.replaceRequest({});
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
     },

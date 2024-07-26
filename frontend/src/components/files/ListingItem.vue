@@ -252,7 +252,7 @@ export default {
           .then(() => {
             mutations.setReload(true);
           })
-          .catch(this.$showError);
+          .catch(showError);
       };
 
       let conflict = upload.checkConflict(items, baseItems);

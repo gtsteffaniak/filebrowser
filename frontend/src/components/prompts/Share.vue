@@ -120,6 +120,7 @@
   </div>
 </template>
 <script>
+import { showSuccess,showError } from "@/notify";
 import { state, getters,mutations } from "@/store"; // Import your custom store
 import { share as api, pub as pub_api } from "@/api";
 import moment from "moment";
@@ -181,13 +182,13 @@ export default {
         this.listing = false;
       }
     } catch (e) {
-      this.$showError(e);
+      showError(e);
     }
   },
   mounted() {
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      this.$showSuccess(this.$t("success.linkCopied"));
+      showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
@@ -215,7 +216,7 @@ export default {
 
         this.listing = true;
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     async deleteLink(event, link) {
@@ -228,7 +229,7 @@ export default {
           this.listing = false;
         }
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     humanTime(time) {

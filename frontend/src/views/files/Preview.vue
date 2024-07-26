@@ -222,7 +222,7 @@ export default {
           const res = await api.fetch(path);
           this.listing = res.items;
         } catch (e) {
-          this.$showError(e);
+          showError(e);
         }
       }
 
@@ -283,9 +283,7 @@ export default {
       }, 1500);
     }, 500),
     close() {
-      mutations.
-      state.updateRequest({}); // Reset request data
-
+      mutations.replaceRequest({}); // Reset request data
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
     },

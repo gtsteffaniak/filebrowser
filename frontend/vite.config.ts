@@ -9,12 +9,11 @@ const plugins = [
   VueI18nPlugin({
     include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
   }),
-  compression({ include: /\.js$/i, deleteOriginalAssets: true }),
+  compression({}),
 ];
 
 const resolve = {
   alias: {
-    // vue: "@vue/compat",
     "@": path.resolve(__dirname, "src"),
   },
 };
@@ -48,12 +47,7 @@ export default defineConfig(({ command }) => {
           },
           output: {
             manualChunks: (id) => {
-              // bundle dayjs files in a single chunk
-              // this avoids having small files for each locale
-              if (id.includes("dayjs/")) {
-                return "dayjs";
-                // bundle i18n in a separate chunk
-              } else if (id.includes("i18n/")) {
+              if (id.includes("i18n/")) {
                 return "i18n";
               }
             },

@@ -137,6 +137,7 @@ import { files as api } from "@/api";
 import ProgressBar from "vue-simple-progress";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
+import { showError } from "@/notify";
 
 export default {
   name: "sidebar",
@@ -186,7 +187,7 @@ export default {
             usedPercentage: Math.round((usage.used / usage.total) * 100),
           };
         } catch (error) {
-          this.$showError(error);
+          showError(error);
         }
         return usageStats;
       },

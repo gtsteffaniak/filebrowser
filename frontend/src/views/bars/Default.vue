@@ -218,7 +218,7 @@ export default {
         mutations.closeHovers();
         return;
       }
-      mutations.updateRequest({});
+      mutations.replaceRequest({});
       let uri = url.removeLastDir(this.$route.path) + "/";
       this.$router.push({ path: uri });
     },
@@ -306,7 +306,7 @@ export default {
         id: state.user.id,
         viewMode: this.viewModes[nextIndex],
       };
-      users.update(data, ["viewMode"]).catch(this.$showError);
+      users.update(data, ["viewMode"]).catch(showError);
       mutations.updateUser(data);
     },
     preventDefault(event) {

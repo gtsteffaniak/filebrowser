@@ -238,3 +238,20 @@ button {
 #file-selection .action span {
   display: none;
 }
+
+#popup-notification {
+  position: fixed;
+  width: 18em;
+  height: 4em;
+  bottom: 0;
+  right: 1em;
+  display: none;
+  padding: 1em;
+}
+
+#popup-notification.success {
+  background: var(--blue);
+}
+#popup-notification.error {
+  background: var(--red);
+}

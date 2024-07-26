@@ -28,7 +28,6 @@ export async function validateLogin() {
 
 export async function login(username, password, recaptcha) {
   const data = { username, password, recaptcha };
-
   const res = await fetch(`${baseURL}/api/login`, {
     method: "POST",
     headers: {
@@ -52,9 +51,7 @@ export async function renew(jwt) {
       "X-Auth": jwt,
     },
   });
-
   const body = await res.text();
-
   if (res.status === 200) {
     mutations.setSession(generateRandomCode(8));
     parseToken(body);
@@ -66,7 +63,6 @@ export async function renew(jwt) {
 function generateRandomCode(length) {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let code = '';
-
   for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * charset.length);
       code += charset[randomIndex];
@@ -75,9 +71,8 @@ function generateRandomCode(length) {
   return code;
 }
 
-export async function signup(username, password) {
+export async function signupLogin(username, password) {
   const data = { username, password };
-
   const res = await fetch(`${baseURL}/api/signup`, {
     method: "POST",
     headers: {
@@ -93,7 +88,6 @@ export async function signup(username, password) {
 
 export function logout() {
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
-
   mutations.setJWT("");
   mutations.setUser(null);
   localStorage.setItem("jwt", null);

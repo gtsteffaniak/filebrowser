@@ -98,7 +98,7 @@
 
 /* Listing items */
 .dark-mode #listingView .item {
-  background: var(--surfacePrimary);
+  background: var(--surfacePrimary) !important;
   color: var(--textPrimary);
   border-color: var(--divider) !important;
 }

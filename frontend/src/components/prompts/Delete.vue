@@ -33,6 +33,7 @@
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
+import { showError } from "@/notify";
 
 export default {
   name: "delete",
@@ -84,7 +85,7 @@ export default {
         mutations.setReload(true); // Handle reload as needed
       } catch (e) {
         buttons.done("delete");
-        this.$showError(e);
+        showError(e);
         if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },

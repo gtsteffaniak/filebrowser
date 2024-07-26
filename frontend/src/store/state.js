@@ -44,4 +44,5 @@ export const state = reactive({
   show: null,
   showShell: false,
   showConfirm: null,
+  route: {},
 });

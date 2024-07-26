@@ -208,6 +208,7 @@
 import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations } from "@/store";
+import { showError } from "@/notify";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -386,7 +387,7 @@ export default {
       try {
         this.results = await search(path, searchTypesFull + this.value);
       } catch (error) {
-        this.$showError(error);
+        showError(error);
       }
       this.ongoing = false;
       if (this.results.length == 0) {
