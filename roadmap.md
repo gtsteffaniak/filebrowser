@@ -3,6 +3,7 @@
 Next version (v0.2.7) :
 
 - Replace http routes for gorilla/mux
+- Theme configuration from settings
 - Replace afero requests with std library
 - Add Job status to the sidebar
   - index status.
