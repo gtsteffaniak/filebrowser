@@ -1,9 +1,5 @@
 <template>
-  <div
-    id="search"
-    @click="open"
-    v-bind:class="{ active, ongoing, 'dark-mode': isDarkMode }"
-  >
+  <div id="search" @click="open" :class="{ active, ongoing, 'dark-mode': isDarkMode }">
     <!-- Search input section -->
     <div id="input">
       <!-- Close button visible when search is active -->
@@ -67,7 +63,7 @@
             <p>{{ noneMessage }}</p>
           </div>
         </div>
-        <template v-if="isEmpty">
+        <div v-if="isEmpty">
           <!-- Reset filters button -->
           <button
             class="mobile-boxes"
@@ -77,7 +73,7 @@
             Reset filters
           </button>
           <!-- Box types when no search input is present -->
-          <template v-if="value.length === 0 && showBoxes">
+          <div v-if="value.length === 0 && showBoxes">
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
@@ -95,8 +91,8 @@
                 </div>
               </div>
             </div>
-          </template>
-        </template>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -104,7 +100,7 @@
     <div v-show="!isMobile && active" id="result-desktop" ref="result">
       <div class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
-        <template>
+        <div>
           <!-- Loading icon when search is ongoing -->
           <p v-show="isEmpty && isRunning" id="renew">
             <i class="material-icons spin">autorenew</i>
@@ -138,7 +134,7 @@
               search times.
             </p>
           </div>
-          <template>
+          <div>
             <!-- Button groups for filtering search results -->
             <ButtonGroup
               :buttons="folderSelect"
@@ -177,8 +173,8 @@
                 <p>MB</p>
               </div>
             </div>
-          </template>
-        </template>
+          </div>
+        </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li
@@ -252,11 +248,48 @@ export default {
       scrollable: null,
     };
   },
+  watch: {
+    active(active) {
+      const resultList = document.getElementById("result-list");
+      if (!active) {
+        resultList.classList.remove("active");
+        return;
+      }
+      setTimeout(() => {
+        resultList.classList.add("active");
+      }, 100);
+    },
+    currentPrompt(val, old) {
+      this.active = val?.prompt === "search";
+      if (old?.prompt === "search" && !this.active) {
+        if (this.reload) {
+          this.setReload(true);
+        }
+
+        document.body.style.overflow = "auto";
+        this.ongoing = false;
+        this.results = [];
+        this.value = "";
+        this.active = false;
+        this.$refs.input.blur();
+      } else if (this.active) {
+        this.reload = false;
+        this.$refs.input.focus();
+        document.body.style.overflow = "hidden";
+      }
+    },
+    value() {
+      if (this.results.length) {
+        this.ongoing = false;
+        this.results = [];
+      }
+    },
+  },
   computed: {
     active() {
-      return getters.currentPromptName() == "search";
+      return getters.currentPromptName() === "search";
     },
-    showOverlay(){
+    showOverlay() {
       return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
@@ -297,6 +330,7 @@ export default {
       return path;
     },
   },
+
   methods: {
     handleResize() {
       this.width = window.innerWidth;
@@ -304,7 +338,7 @@ export default {
     async navigateTo(url) {
       mutations.closeHovers();
       await this.$nextTick();
-      setTimeout(() => this.$router.push(url), 0);
+      setTimeout(() => this.$router.push(url), 10);
     },
     basePath(str, isDir) {
       let parts = str.replace(/(\/$|^\/)/, "").split("/");
@@ -411,6 +445,7 @@ export default {
 .main-input {
   width: 100%;
 }
+
 .searchContext {
   width: 100%;
   padding: 0.5em 1em;
@@ -419,6 +454,7 @@ export default {
   border-left: 1px solid gray;
   border-right: 1px solid gray;
 }
+
 #result-desktop > #result-list {
   max-height: 80vh;
   width: 35em;
@@ -428,6 +464,7 @@ export default {
   transition: width 0.3s ease 0s;
   background-color: unset;
 }
+
 #result-desktop {
   -webkit-animation: SlideDown 0.5s forwards;
   animation: SlideDown 0.5s forwards;
@@ -452,30 +489,35 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 #search.active #result-desktop ul li a {
   display: flex;
   align-items: center;
   padding: 0.3em 0;
   margin-right: 0.3em;
 }
+
 #search #result-list.active {
   width: 65em !important;
   max-width: 85vw !important;
 }
+
 /* Animations */
 @keyframes SlideDown {
   0% {
     transform: translateY(-3em);
     opacity: 0;
   }
+
   100% {
     transform: translateY(0);
     opacity: 1;
   }
 }
+
 /* Search */
 #search {
-  background-color: unset;
+  background-color: unset !important;
   z-index: 3;
   position: fixed;
   top: 0.5em;
@@ -484,6 +526,7 @@ export default {
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
 }
+
 #search #input {
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
@@ -496,18 +539,22 @@ export default {
   align-items: center;
   height: 3em;
 }
+
 #search input {
   border: 0;
   background-color: transparent;
   padding: 0;
 }
+
 #result-list p {
   margin: 1em;
 }
+
 /* Hiding scrollbar for Chrome, Safari and Opera */
 #result-list::-webkit-scrollbar {
   display: none;
 }
+
 /* Hiding scrollbar for IE, Edge and Firefox */
 #result-list {
   scrollbar-width: none;
@@ -515,6 +562,7 @@ export default {
   -ms-overflow-style: none;
   /* IE and Edge */
 }
+
 .text-container {
   white-space: nowrap;
   overflow: hidden;
@@ -523,6 +571,7 @@ export default {
   text-align: left;
   direction: rtl;
 }
+
 #search #result {
   padding-top: 1em;
   overflow: hidden;
@@ -538,29 +587,36 @@ export default {
   transition: 2s ease width, 2s ease padding;
   z-index: 3;
 }
+
 body.rtl #search #result {
   direction: ltr;
 }
+
 #search #result > div > *:first-child {
   margin-top: 0;
 }
+
 body.rtl #search #result {
   direction: rtl;
   text-align: right;
 }
+
 /* Search Results */
 body.rtl #search #result ul > * {
   direction: ltr;
   text-align: left;
 }
+
 #search ul {
   margin-top: 1em;
   padding: 0;
   list-style: none;
 }
+
 #search li {
   margin: 0.5em;
 }
+
 #search #renew {
   width: 100%;
   text-align: center;
@@ -568,9 +624,11 @@ body.rtl #search #result ul > * {
   margin: 1em;
   max-width: none;
 }
+
 #search.ongoing #renew {
   display: block;
 }
+
 #search.active #input {
   background-color: var(--background);
   border-color: black;
@@ -579,26 +637,32 @@ body.rtl #search #result ul > * {
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
 }
+
 /* Search Input Placeholder */
 #search::-webkit-input-placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
+
 #search:-moz-placeholder {
   opacity: 1;
   color: rgba(255, 255, 255, 0.5);
 }
+
 #search::-moz-placeholder {
   opacity: 1;
   color: rgba(255, 255, 255, 0.5);
 }
+
 #search:-ms-input-placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
+
 /* Search Boxes */
 #search .boxes {
   margin: 1em;
   text-align: center;
 }
+
 #search .boxes h3 {
   margin: 0;
   font-weight: 500;
@@ -606,16 +670,20 @@ body.rtl #search #result ul > * {
   color: #212121;
   padding: 0.5em;
 }
+
 body.rtl #search .boxes h3 {
   text-align: right;
 }
+
 #search .boxes p {
   margin: 1em 0 0;
 }
+
 #search .boxes i {
   color: #fff !important;
   font-size: 3.5em;
 }
+
 .mobile-boxes {
   cursor: pointer;
   overflow: hidden;
@@ -626,10 +694,12 @@ body.rtl #search .boxes h3 {
   border-radius: 1em;
   text-align: center;
 }
+
 /* Hiding scrollbar for Chrome, Safari and Opera */
 .mobile-boxes::-webkit-scrollbar {
   display: none;
 }
+
 /* Hiding scrollbar for IE, Edge and Firefox */
 .mobile-boxes {
   scrollbar-width: none;
@@ -637,9 +707,11 @@ body.rtl #search .boxes h3 {
   -ms-overflow-style: none;
   /* IE and Edge */
 }
+
 .helpText {
   padding: 1em;
 }
+
 .sizeConstraints {
   display: flex;
   flex-direction: row;
@@ -648,6 +720,7 @@ body.rtl #search .boxes h3 {
   margin: 1em;
   justify-content: center;
 }
+
 .sizeInput {
   height: 100%;
   text-align: center;
@@ -657,6 +730,7 @@ body.rtl #search .boxes h3 {
   backdrop-filter: invert(0.1);
   border: none !important;
 }
+
 .sizeInputWrapper {
   border-radius: 1em;
   margin-left: 0.5em;
@@ -671,6 +745,7 @@ body.rtl #search .boxes h3 {
   align-items: center;
   border: 1px solid #ccc;
 }
+
 .helpButton {
   position: absolute;
   right: 10px;
@@ -680,6 +755,7 @@ body.rtl #search .boxes h3 {
   padding: 0.25em;
   border-radius: 0.25em;
 }
+
 .searchPrompt {
   display: flex;
   flex-direction: column;

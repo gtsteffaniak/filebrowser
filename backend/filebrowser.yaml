@@ -1,7 +1,7 @@
 server:
   port: 8080
   baseURL:  "/"
-  root: "/Users/steffag/git/gcp"
+  root: "/home/graham/"
 auth:
   method: password
   signup: false
