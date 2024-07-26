@@ -9,7 +9,10 @@ const plugins = [
   VueI18nPlugin({
     include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
   }),
-  compression({}),
+  compression({
+    include: /\.(js|css|json|txt|ico|svg)(\?.*)?$/i,
+    deleteOriginalAssets: true,
+  }),
 ];
 
 const resolve = {
