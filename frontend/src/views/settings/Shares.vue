@@ -123,9 +123,9 @@ export default {
           try {
             api.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
-            mutations.showSuccess(this.$t("settings.shareDeleted"));
+            showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
-            mutations.showError(e);
+            showError(e);
           }
         },
       });
