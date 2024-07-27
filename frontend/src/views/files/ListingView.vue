@@ -281,7 +281,7 @@ export default {
       return state.req.numDirs;
     },
     numFiles() {
-      return state.req.numDirs;
+      return state.req.numFiles;
     },
     dirs() {
       return this.items.dirs;

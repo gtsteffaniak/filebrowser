@@ -29,6 +29,7 @@ import zhTW from './zh-tw.json';
 // Function to detect locale
 export function detectLocale() {
   let locale = navigator.language.toLowerCase();
+  console.log("locale",locale)
   switch (true) {
     case /^he\b/.test(locale):
       locale = 'he';
