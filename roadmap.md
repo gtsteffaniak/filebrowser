@@ -3,6 +3,7 @@
 Next version (v0.2.7) :
 
 - Replace http routes for gorilla/mux
+- Replace vue-router with simple vanilla js
 - Theme configuration from settings
 - Replace afero requests with std library
 - Add Job status to the sidebar

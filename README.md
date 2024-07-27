@@ -4,7 +4,7 @@
 <p align="center">
 <img src="frontend/public/img/icons/favicon-256x256.png" width="100" title="Login With Custom URL">
 </p>
-<h3 align="center">Filebrowser - A modern file manager for the web</h3>
+<h3 align="center">Filebrowser - A modern web-based file manager</h3>
 <p align="center">
   <img width="800" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/899152cf-3e69-4179-aa82-752af2df3fc6" title="Main Screenshot">
 </p>
@@ -15,30 +15,51 @@
 
 This fork makes the following significant changes to filebrowser for origin:
 
- 1. [x] Better search.
-    - Lightning fast
-    - realtime results as you type
-    - Works with more type filters
-    - interactive results page.
- 2. [x] Revamped and simplified GUI navbar and sidebar menu.
- 3. [x] **IMPORTANT** Revamped configuration via `filebrowser.yml` config file.
- 4. [x] More configurations possible at a per-user level
+  1. [x] Better search
+     - Lightning fast
+     - realtime results as you type
+     - Works with more type filters
+     - interactive results page.
+  2. [x] Revamped and simplified GUI navbar and sidebar menu.
+     - Additional compact view mode as well as refreshed view mode styles.
+  3. [x] Revamped configuration via `filebrowser.yml` config file.
+    - More configurations possible at a per-user level
     - <img width="450" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/625bd7c4-5ee9-4011-aaae-2a388ab0813b">
- 5. [x] Additional compact view mode as well as refreshed view mode styles.
 
 ## About
 
 Filebrowser provides a file managing interface within a specified directory
 and it can be used to upload, delete, preview, rename and edit your files.
 It allows the creation of multiple users and each user can have its own
-directory. It can be used as a standalone app.
+directory.
 
 This repository is a fork, a collection of changes that make this program
-work better in terms of asthetics and performance. Improved search,
- simplified ui (without removing features) and more secure and up-to-date
- build are just a few examples.
+work better in terms of asthetics and performance. Improved search, 
+simplified ui (without removing features) and more secure and up-to-date 
+build are just a few examples.
+
+This Implementation of filebrowser differs significantly to the original. 
+There are hundereds of thousands of lines changed and they are generally 
+no longer compatible with eachother. This has been intentional -- the
+focus of this fork is on a few key principles:
+  - Simplicity and improved user experience
+  - Efficiency of operations and performance
+  - Minimizing external dependancies and usage of standard libraries.
+  - Of course -- adding much needed features.
 
 ## Look
+
+One way you can observe the improved user experience is how I changed the UI. 
+The Navbar is simplified to a three component system : 
+
+  1. (Left) The slide-out action panel button
+  2. (Middle) The powerful search bar.
+  3. (Right) The view change toggle.
+   
+All other functions are moved either into the action menu or popup menus. 
+If the action is does not depend on context, it will exist in the slide-out action panel. 
+If the action is available based on context, it will showup as a popup menu.
+
 <p align="center">
   <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb" title="Dark mode">
 <img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/55fa4f5c-440e-4a97-b711-96139208a163">
