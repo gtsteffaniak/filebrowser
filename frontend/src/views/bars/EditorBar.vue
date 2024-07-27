@@ -106,7 +106,7 @@ export default {
       const button = "save";
       buttons.loading("save");
       try {
-        eventBus.emit("handleEditorValueRequest", "data"); // how to replace?
+        eventBus.emit("handleEditorValueRequest", "data");
         buttons.success(button);
       } catch (e) {
         buttons.done(button);
