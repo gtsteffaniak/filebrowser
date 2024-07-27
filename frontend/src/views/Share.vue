@@ -152,7 +152,7 @@
 import { showSuccess } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
-import moment from "@/utils/moment";
+import { fromNow } from "@/utils/moment";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import QrcodeVue from "qrcode.vue";
@@ -238,7 +238,7 @@ export default {
       return getHumanReadableFilesize(state.req.size);
     },
     humanTime() {
-      return moment(state.req.modified, state.user.locale).fromNow();
+      return fromNow(state.req.modified, state.user.locale);
     },
     modTime() {
       return new Date(Date.parse(state.req.modified)).toLocaleString();

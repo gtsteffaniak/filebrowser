@@ -72,7 +72,7 @@
 </template>
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import moment from "@/utils/moment";
+import { fromNow } from "@/utils/moment";
 import { files as api } from "@/api";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { showError } from "@/notify";
@@ -110,12 +110,9 @@ export default {
     },
     humanTime() {
       if (this.selectedCount === 0) {
-        return moment.fromNow(state.req.modified, state.user.locale);
+        return fromNow(state.req.modified, state.user.locale);
       }
-      return moment.fromNow(
-        state.req.items[this.selected[0]].modified,
-        state.user.locale
-      );
+      return fromNow(state.req.items[this.selected[0]].modified, state.user.locale);
     },
     modTime() {
       return new Date(Date.parse(state.req.modified)).toLocaleString();
