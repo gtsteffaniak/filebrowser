@@ -1,5 +1,4 @@
 import * as i18n from "@/i18n";
-import moment from "moment";
 import { state } from "./state.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 
@@ -49,13 +48,10 @@ export const mutations = {
       emitStateChanged();
       return;
     }
-
     let locale = value.locale;
     if (locale === "") {
       locale = i18n.detectLocale();
     }
-
-    moment.locale(locale);
     i18n.default.locale = locale;
     state.user = value;
     emitStateChanged();
@@ -94,7 +90,6 @@ export const mutations = {
     }
     for (let field in value) {
       if (field === "locale") {
-        moment.locale(value[field]);
         i18n.default.locale = value[field];
       }
       state.user[field] = value[field];

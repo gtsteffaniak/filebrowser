@@ -68,7 +68,7 @@
 <script>
 import { enableThumbs } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import moment from "moment";
+import moment from "@/utils/moment";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -190,9 +190,9 @@ export default {
     },
     humanTime: function () {
       if (this.readOnly == undefined && state.user.dateFormat) {
-        return moment(this.modified).format("L LT");
+        return moment.fromNow(this.modified, state.user.locale).format("L LT");
       }
-      return moment(this.modified).fromNow();
+      return moment.fromNow(this.modified, state.user.locale);
     },
     dragStart: function () {
       if (this.selectedCount === 0) {

@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
 This change focuses on removing unnecessary frontend dependancies.
 
 - Migrated to Vite / Vue 3
-- Replaced npm modules with simpler javascript
+- Replaced npm modules with simple javascript
   - replaced vuex with custom state management via src/store 
   - replaced noty with simple card popup notifications
   - replaced moment with simple date formatter where needed. Moment

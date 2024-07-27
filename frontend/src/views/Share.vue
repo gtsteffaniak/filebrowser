@@ -152,14 +152,12 @@
 import { showSuccess } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
-import moment from "moment";
+import moment from "@/utils/moment";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import QrcodeVue from "qrcode.vue";
 import Item from "@/components/files/ListingItem.vue";
 import Clipboard from "clipboard";
-
-// Import custom store methods
 import { state, getters, mutations } from "@/store";
 
 export default {
@@ -240,7 +238,7 @@ export default {
       return getHumanReadableFilesize(state.req.size);
     },
     humanTime() {
-      return moment(state.req.modified).fromNow();
+      return moment(state.req.modified, state.user.locale).fromNow();
     },
     modTime() {
       return new Date(Date.parse(state.req.modified)).toLocaleString();

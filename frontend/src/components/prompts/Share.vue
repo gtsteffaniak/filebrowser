@@ -123,7 +123,7 @@
 import { showSuccess, showError } from "@/notify";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { share as api, pub as pub_api } from "@/api";
-import moment from "moment";
+import moment from "@/utils/moment";
 import Clipboard from "clipboard";
 
 export default {
@@ -233,7 +233,7 @@ export default {
       }
     },
     humanTime(time) {
-      return moment(time * 1000).fromNow();
+      return moment.fromNow(time * 1000, state.user.locale);
     },
     buildLink(share) {
       return api.getShareURL(share);

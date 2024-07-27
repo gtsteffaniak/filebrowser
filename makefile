@@ -11,3 +11,9 @@ dev:
 	cd backend && go run . & BACKEND_PID=$$!; \
 	cd frontend && npm run watch & FRONTEND_PID=$$!; \
 	wait $$BACKEND_PID $$FRONTEND_PID
+
+make lint-frontend:
+	cd frontend && npm run lint
+
+make lint-backend:
+	cd backend && golangci-lint run

@@ -62,7 +62,7 @@
 import { showSuccess, showError } from "@/notify";
 import { share as api, users } from "@/api";
 import { state, mutations } from "@/store";
-import moment from "moment";
+import moment from "@/utils/moment";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
 
@@ -132,7 +132,7 @@ export default {
       });
     },
     humanTime(time) {
-      return moment(time * 1000).fromNow();
+      return moment.fromNow(time * 1000, state.user.locale);
     },
     buildLink(share) {
       return api.getShareURL(share);
