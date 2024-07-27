@@ -20,7 +20,7 @@
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
     <upload-files></upload-files>
   </div>
-  <div class="card" id="popup-notification" ></div>
+  <div class="card" id="popup-notification"></div>
 </template>
 <script>
 import editorBar from "./bars/EditorBar.vue";
@@ -89,7 +89,7 @@ export default {
   watch: {
     $route() {
       mutations.resetSelected();
-      mutations.multiple(false);
+      mutations.setMultiple(false);
       if (getters.currentPromptName() !== "success") {
         mutations.closeHovers();
       }

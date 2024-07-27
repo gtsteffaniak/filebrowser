@@ -74,10 +74,10 @@ export default {
     if (this.isDarkMode) {
       this.editor.setTheme("ace/theme/twilight");
     }
-    eventBus.$on("handleEditorValueRequest", this.handleEditorValueRequest);
+    eventBus.on("handleEditorValueRequest", this.handleEditorValueRequest);
   },
   methods: {
-    handleEditorValueRequest() {
+    handleEditorValueRequest(data) {
       try {
         api.put(this.$route.path, this.editor.getValue());
       } catch (e) {

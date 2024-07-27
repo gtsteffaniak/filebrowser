@@ -68,7 +68,7 @@ export const mutations = {
     state.sessionId = value;
     emitStateChanged();
   },
-  multiple: (value) => {
+  setMultiple: (value) => {
     state.multiple = value;
     emitStateChanged();
   },
@@ -84,6 +84,7 @@ export const mutations = {
   },
   resetSelected: () => {
     state.selected = [];
+    mutations.setMultiple(false);
     emitStateChanged();
   },
   updateUser: (value) => {

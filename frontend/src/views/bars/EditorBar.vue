@@ -26,7 +26,7 @@
 </style>
 
 <script>
-import { state , mutations } from "@/store";
+import { state, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
@@ -44,7 +44,7 @@ export default {
   },
   computed: {
     user() {
-      return state.user
+      return state.user;
     },
     req() {
       return state.req;
@@ -106,7 +106,7 @@ export default {
       const button = "save";
       buttons.loading("save");
       try {
-        eventBus.$emit("handleEditorValueRequest", "data");
+        eventBus.emit("handleEditorValueRequest", "data"); // how to replace?
         buttons.success(button);
       } catch (e) {
         buttons.done(button);

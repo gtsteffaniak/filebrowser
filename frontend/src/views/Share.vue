@@ -203,7 +203,7 @@ export default {
   },
   computed: {
     setMultipleFalse() {
-      return mutations.multiple(false);
+      return mutations.setMultiple(false);
     },
     req() {
       return state.req; // Access state directly from the store
@@ -264,13 +264,13 @@ export default {
       // Reset view information.
       if (state.user === undefined) {
         let userData = await api.getPublicUser();
-        let req = state.req
+        let req = state.req;
         req.user = userData;
         mutations.replaceRequest(req);
       }
       mutations.setReload(false);
       mutations.resetSelected();
-      mutations.multiple(false);
+      mutations.setMultiple(false);
       mutations.closeHovers();
 
       let url = this.$route.path;
@@ -299,7 +299,7 @@ export default {
       }
     },
     toggleMultipleSelection() {
-      mutations.multiple(!this.multiple);
+      mutations.setMultiple(!state.multiple);
     },
     isSingleFile() {
       return this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir;

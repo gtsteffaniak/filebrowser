@@ -2,7 +2,7 @@
   <div style="padding-bottom: 5em">
     <div v-if="selectedCount > 0" id="file-selection">
       <span>{{ selectedCount }} selected</span>
-      <template>
+      <div>
         <action
           v-if="headerButtons.select"
           icon="info"
@@ -52,7 +52,7 @@
           :label="$t('buttons.delete')"
           show="delete"
         />
-      </template>
+      </div>
     </div>
 
     <div v-if="loading">
@@ -65,7 +65,7 @@
         <span>{{ $t("files.loading") }}</span>
       </h2>
     </div>
-    <template v-else>
+    <div v-else>
       <div v-if="numDirs + numFiles == 0">
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
@@ -184,7 +184,7 @@
           type="file"
           id="upload-input"
           @change="uploadInput($event)"
-          multiple
+          getMultiple
         />
         <input
           style="display: none"
@@ -192,13 +192,13 @@
           id="upload-folder-input"
           @change="uploadInput($event)"
           webkitdirectory
-          multiple
+          getMultiple
         />
 
         <div :class="{ active: getMultiple }" id="multiple-selection">
           <p>{{ $t("files.multipleSelectionEnabled") }}</p>
           <div
-            @click="setMultiple(false)"
+            @click="this.setMultiple(false)"
             tabindex="0"
             role="button"
             :title="$t('files.clear')"
@@ -209,7 +209,7 @@
           </div>
         </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -242,22 +242,11 @@ export default {
       columnWidth: 280,
       dragCounter: 0,
       width: window.innerWidth,
-      selected: [], // Replace with your actual initial state
-      user: {}, // Replace with your actual initial state
-      multiple: false,
-      loading: false,
-      clipboard: {},
-      showLimit: 0,
-      itemWeight: 0,
-      currentPrompt: null,
     };
   },
   computed: {
     getMultiple() {
       return state.multiple;
-    },
-    setMultipleFalse(val) {
-      return mutations.multiple(val === true)
     },
     nameSorted() {
       return state.req.sorting.by === "name";
@@ -335,22 +324,25 @@ export default {
     },
     headerButtons() {
       return {
-        select: this.selected.length > 0,
-        upload: state.user.perm?.create && this.selected.length > 0,
-        download: state.user.perm.download && this.selected.length > 0,
-        delete: this.selected.length > 0 && state.user.perm.delete,
-        rename: this.selected.length === 1 && state.user.perm.rename,
-        share: this.selected.length === 1 && state.user.perm.share,
-        move: this.selected.length > 0 && state.user.perm.rename,
-        copy: this.selected.length > 0 && state.user.perm?.create,
+        select: state.selected.length > 0,
+        upload: state.user.perm?.create && state.selected.length > 0,
+        download: state.user.perm.download && state.selected.length > 0,
+        delete: state.selected.length > 0 && state.user.perm.delete,
+        rename: state.selected.length === 1 && state.user.perm.rename,
+        share: state.selected.length === 1 && state.user.perm.share,
+        move: state.selected.length > 0 && state.user.perm.rename,
+        copy: state.selected.length > 0 && state.user.perm?.create,
       };
     },
     selectedCount() {
-      return this.selected.length;
+      return state.selected.length;
     },
     req() {
       return state.req;
-    }
+    },
+    loading() {
+      return state.loading;
+    },
   },
   mounted() {
     // Check the columns size for the first time.
@@ -383,31 +375,21 @@ export default {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     keyEvent(event) {
-      // No prompts are shown
-      if (this.currentPrompt !== null) {
-        return;
-      }
-
       // Esc!
       if (event.keyCode === 27) {
-        // Reset files selection.
-        this.selected = [];
+        mutations.resetSelected();
       }
 
       // Del!
       if (event.keyCode === 46) {
-        if (!state.user.perm.delete || this.selected.length === 0) return;
-
-        // Show delete prompt.
-        this.currentPrompt = "delete";
+        if (!state.user.perm.delete || state.selected.length === 0) return;
+        mutations.showHover("delete");
       }
 
       // F2!
       if (event.keyCode === 113) {
-        if (!state.user.perm.rename || this.selected.length !== 1) return;
-
-        // Show rename prompt.
-        this.currentPrompt = "rename";
+        if (!state.user.perm.rename || state.selected.length !== 1) return;
+        mutations.showHover("rename");
       }
 
       // Ctrl is pressed
@@ -420,7 +402,7 @@ export default {
       switch (key) {
         case "f":
           event.preventDefault();
-          this.currentPrompt = "search";
+          mutations.showHover("search");
           break;
         case "c":
         case "x":
@@ -431,7 +413,16 @@ export default {
           break;
         case "a":
           event.preventDefault();
-          this.selectAllItems();
+          for (let file of this.items.files) {
+            if (state.selected.indexOf(file.index) === -1) {
+              mutations.addSelected(file.index);
+            }
+          }
+          for (let dir of this.items.dirs) {
+            if (state.selected.indexOf(dir.index) === -1) {
+              mutations.addSelected(dir.index);
+            }
+          }
           break;
         case "s":
           event.preventDefault();
@@ -448,7 +439,7 @@ export default {
         return;
       }
 
-      let items = this.selected.map((i) => ({
+      let items = state.selected.map((i) => ({
         from: state.req.items[i].url,
         name: state.req.items[i].name,
       }));
@@ -482,7 +473,7 @@ export default {
         api
           .copy(items, overwrite, rename)
           .then(() => {
-            this.loading = true;
+            mutations.setLoading(true);
           })
           .catch(showError);
       };
@@ -493,7 +484,7 @@ export default {
             .move(items, overwrite, rename)
             .then(() => {
               this.clipboard = {};
-              this.loading = true;
+              mutations.setLoading(true);
             })
             .catch(showError);
         };
@@ -514,7 +505,7 @@ export default {
             const rename = option === "rename";
 
             event.preventDefault();
-            this.currentPrompt = null;
+            mutations.closeHovers();
             action(overwrite, rename);
           },
         };
@@ -580,21 +571,21 @@ export default {
       const conflict = upload.checkConflict(files, items);
 
       if (conflict) {
-        this.currentPrompt = {
+        mutations.showHover({
           name: "replace",
           confirm: (event) => {
             event.preventDefault();
-            this.currentPrompt = null;
+            mutations.closeHovers();
             upload.handleFiles(files, path, true);
           },
-        };
+        });
         return;
       }
 
       upload.handleFiles(files, path);
     },
     uploadInput(event) {
-      this.currentPrompt = null;
+      mutations.closeHovers();
 
       let files = event.currentTarget.files;
       let folder_upload =
@@ -612,14 +603,14 @@ export default {
       const conflict = upload.checkConflict(files, state.req.items);
 
       if (conflict) {
-        this.currentPrompt = {
+        mutations.showHover({
           name: "replace",
           confirm: (event) => {
             event.preventDefault();
-            this.currentPrompt = null;
+            mutations.closeHovers();
             upload.handleFiles(files, path, true);
           },
-        };
+        });
         return;
       }
 
@@ -641,26 +632,19 @@ export default {
         asc = true;
       }
 
-      // Directly update the sort configuration
-      state.req.sorting.by = field;
-      state.req.sorting.asc = asc;
-      this.updateListingItems();
+      // Commit the updateSort mutation
+      mutations.updateListingSortConfig({ field, asc });
+      mutations.updateListingItems();
     },
-    updateListingItems() {
-      // Call your API or method to update listing items
-    },
-    selectAllItems() {
-      this.selected = [
-        ...this.items.files.map((file) => file.index),
-        ...this.items.dirs.map((dir) => dir.index),
-      ];
+    setMultiple(val) {
+      mutations.setMultiple(val == true);
     },
     openSearch() {
       this.currentPrompt = "search";
     },
     toggleMultipleSelection() {
-      this.multiple = !this.multiple;
-      this.currentPrompt = null;
+      mutations.setMultiple(!state.multiple);
+      mutations.closeHovers();
     },
     windowsResize: throttle(function () {
       this.colunmsResize();
@@ -669,18 +653,17 @@ export default {
       if (this.$refs.listingView == null) return;
     }, 100),
     download() {
-      if (this.selected.length === 1 && !state.req.items[this.selected[0]].isDir) {
+      if (state.selected.length === 1 && !state.req.items[this.selected[0]].isDir) {
         api.download(null, state.req.items[this.selected[0]].url);
         return;
       }
-
-      this.currentPrompt = {
+      mutations.showHover({
         name: "download",
         confirm: (format) => {
-          this.currentPrompt = null;
+          mutations.closeHovers();
           let files = [];
-          if (this.selected.length > 0) {
-            for (let i of this.selected) {
+          if (state.selected.length > 0) {
+            for (let i of state.selected) {
               files.push(state.req.items[i].url);
             }
           } else {
@@ -689,14 +672,14 @@ export default {
 
           api.download(format, ...files);
         },
-      };
+      });
     },
     upload() {
       if (
         typeof window.DataTransferItem !== "undefined" &&
         typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
       ) {
-        this.currentPrompt = "upload";
+        mutations.closeHovers();
       } else {
         document.getElementById("upload-input").click();
       }

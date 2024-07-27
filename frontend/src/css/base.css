@@ -195,14 +195,12 @@ body.rtl .breadcrumbs a {
   bottom: 1em;
   left: 50%;
   transform: translateX(-50%);
-  display: -ms-flexbox;
-  -ms-flex-align: center;
   align-items: center;
   background: #fff;
-  width: 95%;
   max-width: 30em;
   z-index: 1;
   border-radius: 1em;
+  display: flex
 }
 
 button {

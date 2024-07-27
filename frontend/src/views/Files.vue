@@ -83,7 +83,7 @@ export default {
       // Reset view information using mutations
       mutations.setReload(false);
       mutations.resetSelected();
-      mutations.multiple(false);
+      mutations.setMultiple(false);
       mutations.closeHovers();
 
       // Set loading to true and reset the error.
@@ -110,7 +110,7 @@ export default {
         this.error = e;
       }
       mutations.setLoading(false);
-      mutations.updateRequest(data);
+      mutations.replaceRequest(data);
     },
     keyEvent(event) {
       // F1!
