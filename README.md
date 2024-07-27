@@ -23,8 +23,8 @@ This fork makes the following significant changes to filebrowser for origin:
   2. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode styles.
   3. [x] Revamped configuration via `filebrowser.yml` config file.
-    - More configurations possible at a per-user level
-    - <img width="450" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/625bd7c4-5ee9-4011-aaae-2a388ab0813b">
+     - More configurations possible at a per-user level
+     - <img width="450" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/625bd7c4-5ee9-4011-aaae-2a388ab0813b">
 
 ## About
 
