@@ -103,7 +103,7 @@ export default {
           props: {},
         };
       }
-      return getters.currentPrompt()
+      return getters.currentPrompt();
     },
     plugins() {
       return state.plugins;

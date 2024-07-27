@@ -24,7 +24,7 @@ export default {
       return getters.isDarkMode();
     },
     breadcrumbs() {
-      let parts = this.$route.path.split("/");
+      let parts = state.route.path.split("/");
 
       if (parts[0] === "") {
         parts.shift();
@@ -79,13 +79,13 @@ export default {
   methods: {
     handleEditorValueRequest(data) {
       try {
-        api.put(this.$route.path, this.editor.getValue());
+        api.put(state.route.path, this.editor.getValue());
       } catch (e) {
         showError(e);
       }
     },
     back() {
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
     keyEvent(event) {

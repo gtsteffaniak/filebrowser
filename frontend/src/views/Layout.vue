@@ -101,7 +101,7 @@ export default {
     },
     getTitle() {
       let title = "Title";
-      if (this.$route.path.startsWith("/settings/")) {
+      if (state.route.path.startsWith("/settings/")) {
         title = "Settings";
       }
       return title;

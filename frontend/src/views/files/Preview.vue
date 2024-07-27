@@ -213,12 +213,12 @@ export default {
         this.autoPlay = false;
       }
 
-      let dirs = this.$route.fullPath.split("/");
+      let dirs = state.route.fullPath.split("/");
       this.name = decodeURIComponent(dirs[dirs.length - 1]);
 
       if (!this.listing) {
         try {
-          const path = url.removeLastDir(this.$route.path);
+          const path = url.removeLastDir(state.route.path);
           const res = await api.fetch(path);
           this.listing = res.items;
         } catch (e) {
@@ -284,7 +284,7 @@ export default {
     }, 500),
     close() {
       mutations.replaceRequest({}); // Reset request data
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
     download() {

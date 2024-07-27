@@ -120,8 +120,8 @@
   </div>
 </template>
 <script>
-import { showSuccess,showError } from "@/notify";
-import { state, getters,mutations } from "@/store"; // Import your custom store
+import { showSuccess, showError } from "@/notify";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 import { share as api, pub as pub_api } from "@/api";
 import moment from "moment";
 import Clipboard from "clipboard";
@@ -156,16 +156,16 @@ export default {
     },
     url() {
       if (!this.isListing) {
-        return this.$route.path;
+        return state.route.path;
       }
       if (this.selectedCount !== 1) {
         // selecting current view image
-        return this.$route.path;
+        return state.route.path;
       }
       return state.req.items[this.selected[0]].url;
     },
     getContext() {
-      let path = this.$route.path.replace("/files/", "./");
+      let path = state.route.path.replace("/files/", "./");
       if (this.selectedCount === 1) {
         path = path + state.req.items[this.selected[0]].name;
       }

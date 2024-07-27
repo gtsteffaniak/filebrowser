@@ -48,7 +48,7 @@ export default {
     },
 
     isSettings() {
-      return this.$route.path.includes("/settings/");
+      return state.route.path.includes("/settings/");
     },
     nameSorted() {
       return state.req.sorting.by === "name";
@@ -144,7 +144,7 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
-    if (this.$route.path.startsWith("/share")) {
+    if (state.route.path.startsWith("/share")) {
       return;
     }
     if (!state.user.perm?.create) return;
@@ -219,7 +219,7 @@ export default {
         return;
       }
       mutations.replaceRequest({});
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
     toggleSidebar() {
@@ -333,7 +333,7 @@ export default {
       mutations.updateClipboard({
         key: key,
         items: items,
-        path: this.$route.path,
+        path: state.route.path,
       });
     },
     paste(event) {
@@ -345,7 +345,7 @@ export default {
 
       for (let item of state.clipboard.items) {
         const from = item.from.endsWith("/") ? item.from.slice(0, -1) : item.from;
-        const to = this.$route.path + encodeURIComponent(item.name);
+        const to = state.route.path + encodeURIComponent(item.name);
         items.push({ from, to, name: item.name });
       }
 

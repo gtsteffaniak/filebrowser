@@ -50,7 +50,7 @@ export default {
       return state.req;
     },
     breadcrumbs() {
-      let parts = this.$route.path.split("/");
+      let parts = state.route.path.split("/");
 
       if (parts[0] === "") {
         parts.shift();
@@ -87,7 +87,7 @@ export default {
   },
   methods: {
     back() {
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
     keyEvent(event) {
@@ -115,7 +115,7 @@ export default {
     },
     close() {
       mutations.replaceRequest({});
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
   },

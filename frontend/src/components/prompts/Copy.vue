@@ -65,8 +65,8 @@ export default {
   },
   computed: {
     closeHovers() {
-      return mutations.closeHovers()
-    }
+      return mutations.closeHovers();
+    },
   },
   methods: {
     copy: async function (event) {
@@ -90,7 +90,7 @@ export default {
           .then(() => {
             buttons.success("copy");
 
-            if (this.$route.path === this.dest) {
+            if (state.route.path === this.dest) {
               mutations.setReload(true);
               return;
             }
@@ -103,7 +103,7 @@ export default {
           });
       };
 
-      if (this.$route.path === this.dest) {
+      if (state.route.path === this.dest) {
         mutations.closeHovers();
         action(false, true);
 

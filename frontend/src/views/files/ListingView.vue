@@ -451,7 +451,7 @@ export default {
       this.clipboard = {
         key: key,
         items: items,
-        path: this.$route.path,
+        path: state.route.path,
       };
     },
     async paste(event) {
@@ -461,7 +461,7 @@ export default {
 
       let items = this.clipboard.items.map((item) => ({
         from: item.from.endsWith("/") ? item.from.slice(0, -1) : item.from,
-        to: this.$route.path + encodeURIComponent(item.name),
+        to: state.route.path + encodeURIComponent(item.name),
         name: item.name,
       }));
 
@@ -490,7 +490,7 @@ export default {
         };
       }
 
-      if (this.clipboard.path === this.$route.path) {
+      if (this.clipboard.path === state.route.path) {
         action(false, true);
         return;
       }
@@ -554,9 +554,7 @@ export default {
 
       let files = await upload.scanFiles(dt);
       let items = state.req.items;
-      let path = this.$route.path.endsWith("/")
-        ? this.$route.path
-        : this.$route.path + "/";
+      let path = getters.getRoutePath();
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         path = el.__vue__.url;
@@ -597,9 +595,7 @@ export default {
         }
       }
 
-      let path = this.$route.path.endsWith("/")
-        ? this.$route.path
-        : this.$route.path + "/";
+      let path = getters.getRoutePath();
       const conflict = upload.checkConflict(files, state.req.items);
 
       if (conflict) {
@@ -667,7 +663,7 @@ export default {
               files.push(state.req.items[i].url);
             }
           } else {
-            files.push(this.$route.path);
+            files.push(state.route.path);
           }
 
           api.download(format, ...files);

@@ -203,7 +203,7 @@
 <script>
 import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
-import { getters, mutations } from "@/store";
+import { getters, mutations, state } from "@/store";
 import { showError } from "@/notify";
 
 var boxes = {
@@ -323,7 +323,7 @@ export default {
       return this.showHelp;
     },
     getContext() {
-      let path = this.$route.path;
+      let path = state.route.path;
       path = path.slice(1);
       path = "./" + path.substring(path.indexOf("/") + 1);
       path = path.replace(/\/+$/, "") + "/";
@@ -416,7 +416,7 @@ export default {
       if (this.smallerThan != "") {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
-      let path = this.$route.path;
+      let path = state.route.path;
       this.ongoing = true;
       try {
         this.results = await search(path, searchTypesFull + this.value);
@@ -453,6 +453,7 @@ export default {
   color: white;
   border-left: 1px solid gray;
   border-right: 1px solid gray;
+  word-wrap: break-word;
 }
 
 #result-desktop > #result-list {

@@ -90,7 +90,7 @@ export default {
       mutations.setLoading(true);
       this.error = null;
 
-      let url = this.$route.path;
+      let url = state.route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
       let data = {};
@@ -103,7 +103,7 @@ export default {
         }
         data = res;
         // Verify if the fetched path matches the current route
-        if (clean(res.path) === clean(`/${this.$route.params.pathMatch}`)) {
+        if (clean(res.path) === clean(`/${state.route.params.pathMatch}`)) {
           document.title = `${res.name} - ${document.title}`;
         }
       } catch (e) {

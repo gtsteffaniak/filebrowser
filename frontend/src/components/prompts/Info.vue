@@ -74,7 +74,7 @@
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import moment from "moment";
 import { files as api } from "@/api";
-import { state, getters,mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store"; // Import your custom store
 import { showError } from "@/notify";
 
 export default {
@@ -141,7 +141,7 @@ export default {
       if (this.selectedCount) {
         link = state.req.items[this.selected[0]].url;
       } else {
-        link = this.$route.path;
+        link = state.route.path;
       }
 
       try {
