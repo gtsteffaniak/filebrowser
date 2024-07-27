@@ -16,6 +16,11 @@ export const getters = {
     // Ensure state.selected is an array
     return Array.isArray(state.selected) ? state.selected.length : 0;
   },
+  getRoutePath: () => {
+    return state.route.path.endsWith("/")
+    ? state.route.path
+    : state.route.path + "/";
+  },
   currentView: () => {
     let returnVal = null;
     if (state.req.type !== undefined) {

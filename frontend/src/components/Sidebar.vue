@@ -95,10 +95,7 @@
     </template>
 
     <!-- Credits and usage information section -->
-    <div
-      class="credits"
-      v-if="isFiles && !disableUsedPercentage && usage"
-    >
+    <div class="credits" v-if="isFiles && !disableUsedPercentage && usage">
       <!-- Progress bar for used storage -->
       <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
       <span style="text-align: center">{{ usage.usedPercentage }}%</span>
@@ -146,7 +143,7 @@ export default {
   },
   computed: {
     isFiles() {
-      return this.$route.path.includes("/files/");
+      return state.route.path.includes("/files/");
     },
     user() {
       return state.user;
@@ -172,9 +169,7 @@ export default {
   asyncComputed: {
     usage: {
       async get() {
-        let path = this.$route.path.endsWith("/")
-          ? this.$route.path
-          : this.$route.path + "/";
+        let path = getters.getRoutePath();
         let usageStats = { used: 0, total: 0, usedPercentage: 0 };
         if (this.disableUsedPercentage) {
           return usageStats;
@@ -193,7 +188,7 @@ export default {
       },
       default: { used: "0 B", total: "0 B", usedPercentage: 0 },
       shouldUpdate() {
-        return this.$router.currentRoute.path.includes("/files/");
+        return state.route.currentRoute.path.includes("/files/");
       },
     },
   },
@@ -234,9 +229,7 @@ export default {
         }
       }
 
-      let path = this.$route.path.endsWith("/")
-        ? this.$route.path
-        : this.$route.path + "/";
+      let path = getters.getRoutePath();
       let conflict = upload.checkConflict(files, state.req.items);
 
       if (conflict) {

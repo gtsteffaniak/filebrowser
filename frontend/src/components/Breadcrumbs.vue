@@ -29,7 +29,7 @@ export default {
   props: ["base", "noLink"],
   computed: {
     items() {
-      const relativePath = this.$route.path.replace(this.base, "");
+      const relativePath = state.route.path.replace(this.base, "");
       let parts = relativePath.split("/");
 
       if (parts[0] === "") {
@@ -75,7 +75,7 @@ export default {
     },
     showShare() {
       // Ensure user properties are accessed safely
-      if (this.$route.path.startsWith("/share")) {
+      if (state.route.path.startsWith("/share")) {
         return false;
       }
       return state.user?.perm && state.user?.perm.share; // Access from state directly

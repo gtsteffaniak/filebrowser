@@ -35,16 +35,14 @@
       />
 
       <p @click="toggleMode" v-if="signup">
-        {{
-          createMode ? $t("login.loginInstead") : $t("login.createAnAccount")
-        }}
+        {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
       </p>
     </form>
   </div>
 </template>
 
 <script>
-import { signupLogin,login} from "@/utils/auth";
+import { signupLogin, login } from "@/utils/auth";
 import {
   name,
   logoURL,
@@ -61,7 +59,7 @@ export default {
     name: () => name,
     logoURL: () => logoURL,
     isDarkMode() {
-      return darkMode === true
+      return darkMode === true;
     },
   },
   data: function () {
@@ -90,7 +88,7 @@ export default {
       event.preventDefault();
       event.stopPropagation();
 
-      let redirect = this.$route.query.redirect;
+      let redirect = state.route.query.redirect;
       if (redirect === "" || redirect === undefined || redirect === null) {
         redirect = "/files/";
       }
@@ -117,7 +115,7 @@ export default {
         await login(this.username, this.password, captcha);
         this.$router.push({ path: redirect });
       } catch (e) {
-        console.log(e)
+        console.log(e);
         if (e.message == 409) {
           this.error = this.$t("login.usernameTaken");
         } else {

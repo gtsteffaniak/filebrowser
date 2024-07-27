@@ -42,7 +42,7 @@ import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
 import deepClone from "@/utils/deepclone";
-import { showSuccess,showError } from "@/notify";
+import { showSuccess, showError } from "@/notify";
 
 export default {
   name: "user",
@@ -94,7 +94,7 @@ export default {
             id: 0,
           };
         } else {
-          const id = this.$route.params.pathMatch;
+          const id = state.route.params.pathMatch;
           state.user = { ...(await api.get(id)) };
         }
       } catch (e) {

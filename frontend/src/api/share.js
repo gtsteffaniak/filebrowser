@@ -18,6 +18,7 @@ export async function remove(hash) {
 export async function create(url, password = "", expires = "", unit = "hours") {
   url = removePrefix(url);
   url = `/api/share${url}`;
+  expires = String(expires);
   if (expires !== "") {
     url += `?expires=${expires}&unit=${unit}`;
   }

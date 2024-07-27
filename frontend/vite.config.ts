@@ -10,7 +10,7 @@ const plugins = [
     include: [path.resolve(__dirname, "./src/i18n/**/*.json")],
   }),
   compression({
-    include: /\.(js|json|txt|ico|svg)(\?.*)?$/i,
+    include: /\.(js|woff2|woff)(\?.*)?$/i,
     deleteOriginalAssets: true,
   }),
 ];

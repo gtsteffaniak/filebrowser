@@ -83,14 +83,14 @@ export default {
       // Reset view information using mutations
       mutations.setReload(false);
       mutations.resetSelected();
-      mutations.multiple(false);
+      mutations.setMultiple(false);
       mutations.closeHovers();
 
       // Set loading to true and reset the error.
       mutations.setLoading(true);
       this.error = null;
 
-      let url = this.$route.path;
+      let url = state.route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
       let data = {};
@@ -103,14 +103,14 @@ export default {
         }
         data = res;
         // Verify if the fetched path matches the current route
-        if (clean(res.path) === clean(`/${this.$route.params.pathMatch}`)) {
+        if (clean(res.path) === clean(`/${state.route.params.pathMatch}`)) {
           document.title = `${res.name} - ${document.title}`;
         }
       } catch (e) {
         this.error = e;
       }
       mutations.setLoading(false);
-      mutations.updateRequest(data);
+      mutations.replaceRequest(data);
     },
     keyEvent(event) {
       // F1!

@@ -26,7 +26,7 @@
 </style>
 
 <script>
-import { state , mutations } from "@/store";
+import { state, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
@@ -44,13 +44,13 @@ export default {
   },
   computed: {
     user() {
-      return state.user
+      return state.user;
     },
     req() {
       return state.req;
     },
     breadcrumbs() {
-      let parts = this.$route.path.split("/");
+      let parts = state.route.path.split("/");
 
       if (parts[0] === "") {
         parts.shift();
@@ -87,7 +87,7 @@ export default {
   },
   methods: {
     back() {
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
     keyEvent(event) {
@@ -106,7 +106,7 @@ export default {
       const button = "save";
       buttons.loading("save");
       try {
-        eventBus.$emit("handleEditorValueRequest", "data");
+        eventBus.emit("handleEditorValueRequest", "data");
         buttons.success(button);
       } catch (e) {
         buttons.done(button);
@@ -115,7 +115,7 @@ export default {
     },
     close() {
       mutations.replaceRequest({});
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
   },

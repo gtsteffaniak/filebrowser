@@ -77,7 +77,7 @@ export default {
       // Build the path of the new directory.
       let uri;
       if (this.base) uri = this.base;
-      else if (getters.isFiles()) uri = this.$route.path + "/";
+      else if (getters.isFiles()) uri = state.route.path + "/";
       else uri = "/";
 
       if (!this.isListing) {

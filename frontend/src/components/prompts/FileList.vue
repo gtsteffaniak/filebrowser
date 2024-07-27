@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { state,mutations } from "@/store";
+import { state, mutations } from "@/store";
 import url from "@/utils/url";
 import { files } from "@/api";
 
@@ -135,7 +135,7 @@ export default {
         confirm: null,
         props: {
           redirect: false,
-          base: this.current === this.$route.path ? null : this.current,
+          base: this.current === state.route.path ? null : this.current,
         },
       });
     },

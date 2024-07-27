@@ -61,7 +61,7 @@ export default {
 
       try {
         if (!this.isListing) {
-          await api.remove(this.$route.path);
+          await api.remove(state.route.path);
           buttons.success("delete");
 
           this.currentPrompt?.confirm();

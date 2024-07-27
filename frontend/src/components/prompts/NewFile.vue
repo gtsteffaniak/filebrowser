@@ -64,7 +64,7 @@ export default {
       if (this.name === "") return;
 
       // Build the path of the new file.
-      let uri = getters.isFiles() ? this.$route.path + "/" : "/";
+      let uri = getters.isFiles() ? state.route.path + "/" : "/";
 
       if (!this.isListing) {
         uri = url.removeLastDir(uri) + "/";
