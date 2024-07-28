@@ -29,9 +29,7 @@ import zhTW from './zh-tw.json';
 type LocaleMap = { [key: string]: string };
 
 export function detectLocale(): string {
-  let locale = navigator.language.toLowerCase();
-  console.log("locale", locale);
-
+  let locale = navigator.language.toLowerCase(); 
   const localeMap: LocaleMap = {
     'he': 'he',
     'hu': 'hu',
@@ -67,7 +65,6 @@ export function detectLocale(): string {
     }
   }
 
-  console.log("is default");
   return 'en'; // Default fallback
 }
 

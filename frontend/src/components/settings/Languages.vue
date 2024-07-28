@@ -1,17 +1,24 @@
 <template>
   <select v-on:change="change" :value="locale">
-    <option v-for="(language, value) in locales" :key="value" :value="value">
-      {{ $t("languages." + language) }}
+    <option v-for="(label, value) in locales" :key="value" :value="value">
+      {{ $t("languages." + label) }}
     </option>
   </select>
 </template>
 
-<script>
-export default {
-  name: "languages",
-  props: ["locale"],
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  name: "Languages",
+  props: {
+    locale: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
-    let dataObj = {
+    return {
       locales: {
         he: "he",
         hu: "hu",
@@ -38,18 +45,12 @@ export default {
         "zh-tw": "zhTW",
       },
     };
-
-    Object.defineProperty(dataObj, "locales", {
-      configurable: false,
-      writable: false,
-    });
-
-    return dataObj;
   },
   methods: {
-    change(event) {
-      this.$emit("update:locale", event.target.value);
+    change(event: Event) {
+      const target = event.target as HTMLSelectElement;
+      this.$emit("update:locale", target.value);
     },
   },
-};
+});
 </script>

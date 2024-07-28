@@ -88,8 +88,7 @@ export default {
     async submit(event) {
       event.preventDefault();
       event.stopPropagation();
-
-      let redirect = state.route?.query?.redirect;
+      let redirect = state.route.query.redirect;
       if (redirect === "" || redirect === undefined || redirect === null) {
         redirect = "/files/";
       }
@@ -114,6 +113,7 @@ export default {
           await signupLogin(this.username, this.password);
         }
         await login(this.username, this.password, captcha);
+        console.log("succeded loggin", redirect);
         this.$router.push({ path: redirect });
       } catch (e) {
         console.log(e);
