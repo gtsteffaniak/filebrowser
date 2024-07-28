@@ -69,13 +69,12 @@ export default {
     user() {
       return state.user; // Access state directly from the store
     },
-    state() {
-      return state.state; // Access state directly from the store
-    },
     showOverlay() {
       return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
+      console.log("state", state);
+
       return getters.isDarkMode();
     },
     isExecEnabled() {

@@ -22,6 +22,7 @@ export const state = reactive({
       by: 'name', // Initial sorting field
       asc: true,  // Initial sorting order
     },
+    items: [],
     numDirs: 0,
     numFiles: 0,
   },

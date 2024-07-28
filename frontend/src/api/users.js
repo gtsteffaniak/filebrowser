@@ -5,6 +5,7 @@ export async function getAll() {
 }
 
 export async function get(id) {
+  console.log("getting user")
   return fetchJSON(`/api/users/${id}`, {});
 }
 

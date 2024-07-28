@@ -77,7 +77,7 @@ export default {
     eventBus.on("handleEditorValueRequest", this.handleEditorValueRequest);
   },
   methods: {
-    handleEditorValueRequest(data) {
+    handleEditorValueRequest() {
       try {
         api.put(state.route.path, this.editor.getValue());
       } catch (e) {
@@ -101,7 +101,7 @@ export default {
     },
     close() {
       mutations.replaceRequest({});
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
   },

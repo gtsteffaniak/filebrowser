@@ -83,12 +83,12 @@
 </template>
 
 <script>
-import { showSuccess,showError } from "@/notify"
-import { state, mutations,getters } from "@/store";
+import { showSuccess, showError } from "@/notify";
+import { state, mutations } from "@/store";
 import { users as api } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ViewMode from "@/components/settings/ViewMode.vue";
-import i18n, { rtlLanguages } from '@/i18n';
+import i18n, { rtlLanguages } from "@/i18n";
 
 export default {
   name: "settings",
@@ -127,13 +127,13 @@ export default {
     },
   },
   created() {
-    this.darkMode = getters.isDarkMode();
+    mutations.setLoading(false);
+    this.darkMode = state.user.darkMode;
     this.locale = state.user.locale;
     this.viewMode = state.user.viewMode;
     this.hideDotfiles = state.user.hideDotfiles;
     this.singleClick = state.user.singleClick;
     this.dateFormat = state.user.dateFormat;
-    mutations.setLoading(false);
   },
   methods: {
     async updatePassword(event) {
@@ -144,23 +144,26 @@ export default {
       }
 
       try {
-        const data = { id: state.user.id, password: this.password };
-        await api.update(data, ["password"]);
-        mutations.updateUser(data);
+        let newUserSettings = state.user;
+        newUserSettings.id = state.user.id;
+        newUserSettings.password = this.password;
+        await api.update(newUserSettings, ["password"]);
+        muations.updateUser(newUserSettings);
         showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
-        mutations.showError(e);
+        showError(e);
       }
     },
     async updateSettings(event) {
       event.preventDefault();
       try {
+        console.log("update?", this.locale);
         const data = {
           id: state.user.id,
           locale: this.locale,
           darkMode: this.darkMode,
           viewMode: this.viewMode,
-          hideDotfiles: state.user.hideDotfiles,
+          hideDotfiles: this.hideDotfiles,
           singleClick: this.singleClick,
           dateFormat: this.dateFormat,
         };
@@ -187,6 +190,7 @@ export default {
       this.viewMode = updatedMode;
     },
     updateLocale(updatedLocale) {
+      console.log("updated locale", updatedLocale);
       this.locale = updatedLocale;
     },
   },
