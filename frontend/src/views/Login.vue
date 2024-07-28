@@ -42,6 +42,7 @@
 </template>
 
 <script>
+import { state } from "@/store";
 import { signupLogin, login } from "@/utils/auth";
 import {
   name,
@@ -88,7 +89,7 @@ export default {
       event.preventDefault();
       event.stopPropagation();
 
-      let redirect = state.route.query.redirect;
+      let redirect = state.route?.query?.redirect;
       if (redirect === "" || redirect === undefined || redirect === null) {
         redirect = "/files/";
       }

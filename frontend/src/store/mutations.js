@@ -48,10 +48,7 @@ export const mutations = {
       emitStateChanged();
       return;
     }
-    let locale = value.locale;
-    if (locale === "") {
-      locale = i18n.detectLocale();
-    }
+    locale = value.locale || state.user.locale || i18n.detectLocale();
     i18n.default.locale = locale;
     state.user = value;
     emitStateChanged();

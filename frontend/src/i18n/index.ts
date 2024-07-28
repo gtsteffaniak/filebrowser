@@ -26,90 +26,51 @@ import svSE from './sv-se.json';
 import zhCN from './zh-cn.json';
 import zhTW from './zh-tw.json';
 
-// Function to detect locale
-export function detectLocale() {
+type LocaleMap = { [key: string]: string };
+
+export function detectLocale(): string {
   let locale = navigator.language.toLowerCase();
-  console.log("locale",locale)
-  switch (true) {
-    case /^he\b/.test(locale):
-      locale = 'he';
-      break;
-    case /^hu\b/.test(locale):
-      locale = 'hu';
-      break;
-    case /^ar\b/.test(locale):
-      locale = 'ar';
-      break;
-    case /^el.*/i.test(locale):
-      locale = 'el';
-      break;
-    case /^es\b/.test(locale):
-      locale = 'es';
-      break;
-    case /^en\b/.test(locale):
-      locale = 'en';
-      break;
-    case /^is\b/.test(locale):
-      locale = 'is';
-      break;
-    case /^it\b/.test(locale):
-      locale = 'it';
-      break;
-    case /^fr\b/.test(locale):
-      locale = 'fr';
-      break;
-    case /^pt-br\b/.test(locale):
-      locale = 'pt-br';
-      break;
-    case /^pt\b/.test(locale):
-      locale = 'pt';
-      break;
-    case /^ja\b/.test(locale):
-      locale = 'ja';
-      break;
-    case /^zh-tw\b/.test(locale):
-      locale = 'zh-tw';
-      break;
-    case /^zh-cn\b/.test(locale):
-    case /^zh\b/.test(locale):
-      locale = 'zh-cn';
-      break;
-    case /^de\b/.test(locale):
-      locale = 'de';
-      break;
-    case /^ro\b/.test(locale):
-      locale = 'ro';
-      break;
-    case /^ru\b/.test(locale):
-      locale = 'ru';
-      break;
-    case /^pl\b/.test(locale):
-      locale = 'pl';
-      break;
-    case /^ko\b/.test(locale):
-      locale = 'ko';
-      break;
-    case /^sk\b/.test(locale):
-      locale = 'sk';
-      break;
-    case /^tr\b/.test(locale):
-      locale = 'tr';
-      break;
-    case /^uk\b/.test(locale):
-      locale = 'uk';
-      break;
-    case /^sv-se\b/.test(locale):
-    case /^sv\b/.test(locale):
-      locale = 'sv';
-      break;
-    case /^nl-be\b/.test(locale):
-      locale = 'nl-be';
-      break;
-    default:
-      locale = 'en';
+  console.log("locale", locale);
+
+  const localeMap: LocaleMap = {
+    'he': 'he',
+    'hu': 'hu',
+    'ar': 'ar',
+    'el': 'el',
+    'es': 'es',
+    'en': 'en',
+    'is': 'is',
+    'it': 'it',
+    'fr': 'fr',
+    'pt-br': 'pt-br',
+    'pt': 'pt',
+    'ja': 'ja',
+    'zh-tw': 'zh-tw',
+    'zh-cn': 'zh-cn',
+    'zh': 'zh-cn',
+    'de': 'de',
+    'ro': 'ro',
+    'ru': 'ru',
+    'pl': 'pl',
+    'ko': 'ko',
+    'sk': 'sk',
+    'tr': 'tr',
+    'uk': 'uk',
+    'sv-se': 'sv',
+    'sv': 'sv',
+    'nl-be': 'nl-be',
+  };
+
+  for (const key in localeMap) {
+    if (locale.startsWith(key)) {
+      return localeMap[key];
+    }
   }
-  return locale;
+
+  console.log("is default");
+  return 'en'; // Default fallback
 }
+
 
 // List of RTL languages
 export const rtlLanguages = ['he', 'ar'];
