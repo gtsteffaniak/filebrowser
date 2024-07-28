@@ -261,6 +261,9 @@ export default {
       return state.req.sorting.asc;
     },
     items() {
+      if (state.user == null) {
+        return {};
+      }
       const dirs = [];
       const files = [];
 
@@ -320,7 +323,7 @@ export default {
       return icons[state.user.viewMode];
     },
     listingViewMode() {
-      return state.user.viewMode;
+      return state.user?.viewMode;
     },
     headerButtons() {
       return {

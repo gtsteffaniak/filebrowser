@@ -29,7 +29,7 @@ import zhTW from './zh-tw.json';
 type LocaleMap = { [key: string]: string };
 
 export function detectLocale(): string {
-  let locale = navigator.language.toLowerCase(); 
+  const locale = navigator.language.toLowerCase(); 
   const localeMap: LocaleMap = {
     'he': 'he',
     'hu': 'hu',
@@ -68,7 +68,6 @@ export function detectLocale(): string {
   return 'en'; // Default fallback
 }
 
-
 // List of RTL languages
 export const rtlLanguages = ['he', 'ar'];
 
@@ -78,10 +77,20 @@ export const isRtl = (locale: string) => {
   return rtlLanguages.includes(currentLocale);
 };
 
+export function setLocale(locale: string) {
+  // according to doc u only need .value if legacy: false but they lied
+  // https://vue-i18n.intlify.dev/guide/essentials/scope.html#local-scope-1
+  //@ts-ignore
+  i18n.global.locale.value = locale;
+}
+
+
 // Create i18n instance
 const i18n = createI18n({
   locale: detectLocale(),
   fallbackLocale: 'en',
+  // expose i18n.global for outside components
+  legacy: true,
   messages: {
     he,
     hu,

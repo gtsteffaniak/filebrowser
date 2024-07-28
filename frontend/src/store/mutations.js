@@ -12,7 +12,7 @@ export const mutations = {
     emitStateChanged();
   },
   showHover: (value) => {
-    console.log("hover", value)
+    console.log("hover",value)
     if (typeof value === "object") {
       state.prompts.push({
         name: value?.name,
@@ -48,16 +48,12 @@ export const mutations = {
       emitStateChanged();
       return;
     }
-    if (state.user == null) {
-      i18n.default.locale = i18n.detectLocale();
-      emitStateChanged();
-      return 
+
+    let locale = value.locale;
+    if (locale === "") {
+      locale = i18n.detectLocale();
     }
-    if (value?.locale) {
-      state.user.locale = value.locale
-    } else if (!state.user?.locale) {
-      state.user.locale = i18n.detectLocale();
-    }
+    i18n.setLocale(locale);
     i18n.default.locale = locale;
     state.user = value;
     emitStateChanged();
@@ -96,7 +92,7 @@ export const mutations = {
     }
     for (let field in value) {
       if (field === "locale") {
-        i18n.default.locale = value[field];
+        i18n.setLocale(value[field]);
       }
       state.user[field] = value[field];
     }

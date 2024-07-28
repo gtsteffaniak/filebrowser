@@ -48,7 +48,7 @@
     </div>
 
     <div class="column">
-      <form class="card" v-if="!user?.lockPassword" @submit="updatePassword">
+      <form class="card" v-if="!user.lockPassword" @submit="updatePassword">
         <div class="card-title">
           <h2>{{ $t("settings.changePassword") }}</h2>
         </div>
@@ -84,7 +84,7 @@
 
 <script>
 import { showSuccess, showError } from "@/notify";
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import { users as api } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ViewMode from "@/components/settings/ViewMode.vue";
@@ -109,6 +109,9 @@ export default {
     };
   },
   computed: {
+    user() {
+      return state.user;
+    },
     passwordClass() {
       const baseClass = "input input--block";
 
