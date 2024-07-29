@@ -79,6 +79,8 @@ export default {
       return enableExec;
     },
     currentView() {
+      console.log("state,", state)
+      console.log(getters.currentView())
       return getters.currentView();
     },
   },

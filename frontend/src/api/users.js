@@ -1,6 +1,7 @@
-import { fetchURL, fetchJSON } from "./utils";
+import { fetchURL, fetchJSON } from "@/api/utils";
 
-export async function getAll() {
+export async function getAllUsers() {
+  console.log("fetching all users");
   return await fetchJSON(`/api/users`, {});
 }
 

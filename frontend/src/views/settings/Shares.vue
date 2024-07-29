@@ -85,7 +85,7 @@ export default {
       let links = await api.list();
       if (state.user.perm.admin) {
         let userMap = new Map();
-        for (let user of await users.getAll()) userMap.set(user.id, user.username);
+        for (let user of await users.getAllUsers()) userMap.set(user.id, user.username);
         for (let link of links)
           link.username = userMap.has(link.userID) ? userMap.get(link.userID) : "";
       }

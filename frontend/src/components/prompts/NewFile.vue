@@ -36,6 +36,7 @@
   </div>
 </template>
 <script>
+import { state } from "@/store";
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import { getters, mutations } from "@/store"; // Import your custom store
@@ -62,9 +63,10 @@ export default {
     async submit(event) {
       event.preventDefault();
       if (this.name === "") return;
-
+      console.log("state.route",state.route)
       // Build the path of the new file.
       let uri = getters.isFiles() ? state.route.path + "/" : "/";
+      console.log("new path",uri)
 
       if (!this.isListing) {
         uri = url.removeLastDir(uri) + "/";
@@ -72,6 +74,7 @@ export default {
 
       uri += encodeURIComponent(this.name);
       uri = uri.replace("//", "/");
+      console.log("new path cleaned",uri)
 
       try {
         await api.post(uri);

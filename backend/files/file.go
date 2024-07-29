@@ -286,11 +286,15 @@ func (i *FileInfo) addContent(path string) error {
 		if err != nil {
 			return err
 		}
-		c := string(string(content))
-		if !utf8.ValidString(c) {
+		stringContent := string(content)
+		if !utf8.ValidString(stringContent) {
 			return nil
 		}
-		i.Content = string(c)
+		if stringContent == "" {
+			i.Content = "empty-file-x6OlSil"
+			return nil
+		}
+		i.Content = stringContent
 	}
 	return nil
 }

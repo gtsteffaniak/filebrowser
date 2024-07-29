@@ -84,7 +84,7 @@ export default {
   methods: {
     // Example of a method using mutations
     updateUserPermissions(newPerms) {
-      mutations.setUserPermissions(newPerms); // Use a mutation to update user permissions
+      mutations.updateUser({ perm: newPerms })
     },
   },
 };

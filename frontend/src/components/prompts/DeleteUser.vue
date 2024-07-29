@@ -21,16 +21,13 @@
 </template>
 <script>
 import { users as api } from "@/api";
-import { showSuccess } from "@/notify";
+import { showSuccess,showError } from "@/notify";
 import buttons from "@/utils/buttons";
 import { state, mutations, getters } from "@/store";
 
 export default {
   name: "delete",
   computed: {
-    prompts() {
-      return state.prompts;
-    },
     currentPrompt() {
       return getters.currentPrompt();
     },
@@ -42,7 +39,7 @@ export default {
     async deleteUser(event) {
       event.preventDefault();
       try {
-        await api.remove(state.user.id);
+        await api.remove(this.user.id);
         this.$router.push({ path: "/settings/users" });
         showSuccess(this.$t("settings.userDeleted"));
       } catch (e) {

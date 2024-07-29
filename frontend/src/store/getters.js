@@ -9,7 +9,7 @@ export const getters = {
   },
   isLoggedIn: () => state.user !== null,
   isAdmin: () => state.user.perm?.admin == true,
-  isFiles: () => state.loading && state.route.name === "Files",
+  isFiles: () => state.route.name === "Files",
   isListing: () => getters.isFiles() && state.req.isDir,
 
   selectedCount: () => {
