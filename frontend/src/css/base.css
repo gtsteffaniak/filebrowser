@@ -239,13 +239,22 @@ button {
 }
 
 #popup-notification {
+  color: white;
   position: fixed;
-  width: 18em;
+  max-width: 90vw;
   height: 4em;
   bottom: 0;
-  right: 1em;
-  display: none;
+  right: -20em; /* Start off-screen */
+  display: flex;
   padding: 1em;
+  align-items: center;
+  transition: right 1s ease; /* Animate the 'right' property */
+}
+
+#popup-notification-content {
+  color: white;
+  padding: 0;
+  padding-left: .5em;
 }
 
 #popup-notification.success {
@@ -253,4 +262,9 @@ button {
 }
 #popup-notification.error {
   background: var(--red);
+}
+
+#popup-notification > i {
+  cursor: pointer;
+  font-size: 1.75em;
 }

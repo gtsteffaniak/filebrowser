@@ -20,7 +20,10 @@
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
     <upload-files></upload-files>
   </div>
-  <div class="card" id="popup-notification"></div>
+  <div class="card" id="popup-notification">
+    <i v-on:click="closePopUp" class="material-icons">close</i>
+    <div id="popup-notification-content">no info</div>
+  </div>
 </template>
 <script>
 import editorBar from "./bars/EditorBar.vue";
@@ -29,6 +32,7 @@ import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/Sidebar.vue";
 import UploadFiles from "../components/prompts/UploadFiles.vue";
+import { closePopUp } from "@/notify";
 import { enableExec } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 
@@ -51,6 +55,9 @@ export default {
     };
   },
   computed: {
+    closePopUp() {
+      return closePopUp;
+    },
     progress() {
       return getters.progress(); // Access getter directly from the store
     },

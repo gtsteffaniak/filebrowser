@@ -1,18 +1,38 @@
 export function showPopup(type, message) {
-    const popup = document.getElementById('popup-notification');
-    if (popup === null) {
-        console.error('Popup notification :',type,message);
-        return;
-    }
+    const [popup, popupContent] = getElements();
+    popup.classList.remove('success', 'error'); // Clear previous types
     popup.classList.add(type);
-    popup.textContent = message;
-    popup.style.display = 'block'; // Make it visible
+    popupContent.textContent = message;
 
-    // Automatically hide after 3 seconds
+    // Start animation: bring the popup into view
+    popup.style.right = '1em';
+
+    // Automatically hide after 10 seconds
     setTimeout(() => {
-        popup.classList.remove(type);
-        popup.style.display = 'none';
-    }, 3000);
+        closePopUp()
+    }, 10000);
+}
+
+export function closePopUp() {
+    const [popup, popupContent] = getElements();
+    popup.style.right = '-50em'; // Slide out
+    popupContent.textContent = "no content";
+}
+
+function getElements() {
+    const popup = document.getElementById('popup-notification');
+    if (!popup) {
+        console.error('Popup notification element not found');
+        return [null, null];
+    }
+
+    const popupContent = popup.querySelector('#popup-notification-content');
+    if (!popupContent) {
+        console.error('Popup notification content element not found');
+        return [null, null];
+    }
+
+    return [popup, popupContent];
 }
 
 export function showSuccess(message) {
