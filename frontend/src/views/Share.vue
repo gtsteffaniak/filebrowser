@@ -58,7 +58,7 @@
             <img :src="inlineLink" width="500px" />
           </div>
           <div
-            v-if="isMedia"
+            v-else-if="isMedia"
             class="share__box__element share__box__center share__box__icon"
           >
             <video width="500" height="500" controls>
@@ -120,7 +120,7 @@
             >
             </item>
 
-            <div :class="{ active: $store.state.multiple }" id="multiple-selection">
+            <div :class="{ active: multiple }" id="multiple-selection">
               <p>{{ $t("files.multipleSelectionEnabled") }}</p>
               <div
                 @click="setMultipleFalse"
@@ -184,7 +184,7 @@ export default {
     },
   },
   created() {
-    const hash = state.route.params.pathMatch.split("/")[0];
+    const hash = state.route.params.path.at(-1);
     this.hash = hash;
     this.fetchData();
   },
@@ -238,6 +238,7 @@ export default {
       return getHumanReadableFilesize(state.req.size);
     },
     humanTime() {
+      if (state.req.modified === undefined) return 0;
       return fromNow(state.req.modified, state.user.locale);
     },
     modTime() {
@@ -260,7 +261,7 @@ export default {
       this.error = null;
 
       // Reset view information.
-      if (state.user === undefined) {
+      if (state.user == undefined) {
         let userData = await api.getPublicUser();
         let req = state.req;
         req.user = userData;

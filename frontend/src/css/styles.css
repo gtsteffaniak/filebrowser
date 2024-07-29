@@ -167,7 +167,9 @@ main .spinner .bounce2 {
 
 #previewer .preview {
   text-align: center;
-  height: calc(100vh - 4em);
+  max-height: 100%;
+  max-width: 100%;
+  height: 100%;
 }
 
 #previewer .preview pre {

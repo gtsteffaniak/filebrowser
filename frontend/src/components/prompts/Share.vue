@@ -233,7 +233,7 @@ export default {
       }
     },
     humanTime(time) {
-      return fromNow(time * 1000, state.user.locale);
+      return fromNow(time, state.user.locale);
     },
     buildLink(share) {
       return api.getShareURL(share);

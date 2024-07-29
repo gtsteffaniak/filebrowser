@@ -29,7 +29,18 @@ export function encodePath(str) {
     .join("/");
 }
 
+// Function to remove trailing slash
+export function removeTrailingSlash(url) {
+  return url.endsWith("/") ? url.slice(0, -1) : url;
+}
+
+export function pathsMatch(url1, url2) {
+  return removeTrailingSlash(url1) == removeTrailingSlash(url2);
+}
+
 export default {
+  pathsMatch,
+  removeTrailingSlash,
   encodeRFC5987ValueChars,
   removeLastDir,
   encodePath,

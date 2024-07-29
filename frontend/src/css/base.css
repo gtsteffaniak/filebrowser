@@ -200,7 +200,8 @@ body.rtl .breadcrumbs a {
   max-width: 30em;
   z-index: 1;
   border-radius: 1em;
-  display: flex
+  display: flex;
+  width: 90%;
 }
 
 button {

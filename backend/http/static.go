@@ -64,9 +64,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
 		auther := raw.(*auth.JSONAuth)
-
 		if auther.ReCaptcha != nil {
 			data["ReCaptcha"] = auther.ReCaptcha.Key != "" && auther.ReCaptcha.Secret != ""
 			data["ReCaptchaHost"] = auther.ReCaptcha.Host

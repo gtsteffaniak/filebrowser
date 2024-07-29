@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
   [{[ if .ReCaptcha -]}]
-    <script src="[{[ .ReCaptchaHost ]}]/recaptcha/api.js?render=explicit"></script>
+    <script src="[{[ .ReCaptchaHost ]}]/recaptcha/api.js?render=explicit" data-vite-ignore></script>
   [{[ end ]}]
 
   <title>[{[ if .Name -]}][{[ .Name ]}][{[ else ]}]File Browser[{[ end ]}]</title>

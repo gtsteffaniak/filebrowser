@@ -157,7 +157,6 @@ export default {
     async updateSettings(event) {
       event.preventDefault();
       try {
-        console.log("update?", this.locale);
         const data = {
           id: state.user.id,
           locale: this.locale,
@@ -190,7 +189,6 @@ export default {
       this.viewMode = updatedMode;
     },
     updateLocale(updatedLocale) {
-      console.log("updated locale", updatedLocale);
       this.locale = updatedLocale;
     },
   },

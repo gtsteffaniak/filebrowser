@@ -64,7 +64,6 @@ export function detectLocale(): string {
       return localeMap[key];
     }
   }
-  console.log("defaulting to en-us")
   return 'en-us'; // Default fallback
 }
 
