@@ -1,13 +1,7 @@
-export function fromNow(date, locale = 'en-us') {
-    // Convert date to Date object if it is a string
-    const inputDate = typeof date === 'string' ? new Date(date) : date;
-
-    if (!(inputDate instanceof Date) || isNaN(inputDate.getTime())) {
-        throw new Error("Invalid date provided");
-    }
-
+export function fromNow(date, locale) {
+    date = normalizeDate(date);
     const now = new Date();
-    const diffInSeconds = Math.floor((now - inputDate) / 1000);
+    const diffInSeconds = Math.floor((now - date) / 1000);
     const intervals = [
         { label: 'year', seconds: 31536000 },
         { label: 'month', seconds: 2592000 },
@@ -17,7 +11,6 @@ export function fromNow(date, locale = 'en-us') {
         { label: 'minute', seconds: 60 },
         { label: 'second', seconds: 1 },
     ];
-
     const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
 
     for (let interval of intervals) {
@@ -30,13 +23,7 @@ export function fromNow(date, locale = 'en-us') {
 }
 
 export function formatTimestamp(date, locale = 'en-us') {
-    // Convert date to Date object if it is a string
-    const inputDate = typeof date === 'string' ? new Date(date) : date;
-
-    if (!(inputDate instanceof Date) || isNaN(inputDate.getTime())) {
-        throw new Error("Invalid date provided");
-    }
-
+    date = normalizeDate(date);
     // Define options for formatting
     const dateOptions = {
         day: '2-digit',
@@ -55,8 +42,8 @@ export function formatTimestamp(date, locale = 'en-us') {
     const timeFormatter = new Intl.DateTimeFormat(locale, timeOptions);
 
     // Extract date and time components
-    const dateParts = dateFormatter.formatToParts(inputDate);
-    const timeParts = timeFormatter.formatToParts(inputDate);
+    const dateParts = dateFormatter.formatToParts(date);
+    const timeParts = timeFormatter.formatToParts(date);
 
     // Construct formatted timestamp
     const dateMap = new Map(dateParts.map(part => [part.type, part.value]));
@@ -72,3 +59,39 @@ export function formatTimestamp(date, locale = 'en-us') {
     // Combine date and time
     return `${formattedDate} ${formattedTime}`;
 }
+
+function normalizeDate(date) {
+    if (typeof date === 'string') {
+        date = new Date(date);
+    } else if (typeof date === 'number') {
+        date = new Date(date * 1000);
+    } else {
+        if (!(date instanceof Date) || isNaN(date.getTime())) {
+            throw new Error("Invalid date provided");
+        }
+    }
+
+    // Convert the time to milliseconds if it's in seconds
+    if (date < 1e12) {
+        date *= 1000;
+    }
+    // Create a Date object from the timestamp
+    date = new Date(date);
+    // Format the date as an ISO 8601 string with timezone offset
+    const formattedDate = date.toISOString().replace('Z', getTimeZoneOffset(date));
+    return formattedDate;
+}
+
+function getTimeZoneOffset(date) {
+    const offset = -date.getTimezoneOffset();
+    const sign = offset >= 0 ? '+' : '-';
+    const pad = (num) => String(num).padStart(2, '0');
+    const hours = pad(Math.floor(Math.abs(offset) / 60));
+    const minutes = pad(Math.abs(offset) % 60);
+    return `${sign}${hours}:${minutes}`;
+}
+
+export default {
+    formatTimestamp,
+    fromNow,
+};

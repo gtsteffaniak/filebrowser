@@ -12,7 +12,6 @@ export const mutations = {
     emitStateChanged();
   },
   showHover: (value) => {
-    console.log("hover",value)
     if (typeof value === "object") {
       state.prompts.push({
         name: value?.name,
@@ -99,13 +98,12 @@ export const mutations = {
     emitStateChanged();
   },
   updateRequest: (value) => {
-    state.oldReq = { ...state.req };
-    // Ensure the update is reactive
-    state.req = { ...state.req, ...value };
-    state.selected = [];
-    emitStateChanged();
-    if (!state.req?.items) return;
     const selectedItems = state.selected.map((i) => state.req.items[i]);
+    state.oldReq = state.req;
+    state.req = value;
+    state.selected = [];
+
+    if (!state.req?.items) return;
     state.selected = state.req.items
       .filter((item) => selectedItems.some((rItem) => rItem.url === item.url))
       .map((item) => item.index);

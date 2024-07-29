@@ -24,10 +24,7 @@ import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 import { state, mutations, getters } from "@/store";
-
-function clean(path) {
-  return path.endsWith("/") ? path.slice(0, -1) : path;
-}
+import { pathsMatch } from "@/utils/url";
 
 export default {
   name: "files",
@@ -103,7 +100,7 @@ export default {
         }
         data = res;
         // Verify if the fetched path matches the current route
-        if (clean(res.path) === clean(`/${state.route.params.pathMatch}`)) {
+        if (pathsMatch(res.path, `/${state.route.params.path}`)) {
           document.title = `${res.name} - ${document.title}`;
         }
       } catch (e) {

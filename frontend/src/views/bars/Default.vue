@@ -14,6 +14,7 @@
 </style>
 
 <script>
+import url from "@/utils/url"
 import { state, mutations } from "@/store";
 import { users, files as api } from "@/api";
 import Action from "@/components/header/Action.vue";

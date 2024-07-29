@@ -73,15 +73,12 @@ export default {
       return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
-      console.log("state", state);
-
       return getters.isDarkMode();
     },
     isExecEnabled() {
       return enableExec;
     },
     currentView() {
-      console.log("Current view changed", getters.currentView());
       return getters.currentView();
     },
   },
