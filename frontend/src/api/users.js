@@ -1,7 +1,6 @@
 import { fetchURL, fetchJSON } from "@/api/utils";
 
 export async function getAllUsers() {
-  console.log("fetching all users");
   return await fetchJSON(`/api/users`, {});
 }
 

@@ -78,7 +78,6 @@ export default {
       try {
         if (this.isNew) {
           let { defaults, createUserDir } = await settings.get();
-          console.log("defaults",defaults)
           this.createUserDir = createUserDir;
           this.user = {
             ...defaults,
@@ -90,7 +89,6 @@ export default {
           };
         } else {
           const id = state.route.params.id;
-          console.log("should be 2:", state.route.params.id)
           this.user = { ...(await api.get(id)) };
         }
       } catch (e) {
@@ -101,7 +99,6 @@ export default {
       }
     },
     deletePrompt() {
-      console.log("this.user",this.user)
       mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {

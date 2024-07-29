@@ -61,7 +61,6 @@ export default {
     this.editor.destroy();
   },
   mounted: function () {
-    console.log(state.req.content)
     // this is empty content string "empty-file-x6OlSil" which is used to represent empty text file
     const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
     this.editor = ace.edit("editor", {
@@ -81,7 +80,6 @@ export default {
   methods: {
     handleEditorValueRequest() {
       try {
-        console.log("path put", state.route.path)
         api.put(state.route.path, this.editor.getValue());
       } catch (e) {
         showError(e);

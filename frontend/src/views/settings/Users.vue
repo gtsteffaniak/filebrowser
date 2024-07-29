@@ -44,7 +44,7 @@
 import { state, mutations } from "@/store";
 import { getAllUsers } from "@/api/users";
 import Errors from "@/views/Errors.vue";
-import { showError,showSuccess } from "@/notify";
+import { showError } from "@/notify";
 
 export default {
   name: "users",
@@ -61,7 +61,6 @@ export default {
     // Set loading state to true
     mutations.setLoading(true);
     try {
-      console.log("trying")
       // Fetch all users from the API
       this.users = await getAllUsers();
     } catch (e) {

@@ -110,7 +110,7 @@ export default {
   },
   watch: {
     "user.perm.admin": function () {
-      if (true) return;
+      if (!this.user.perm.admin) return;
       this.user.lockPassword = false;
     },
     createUserDirData(newVal) {

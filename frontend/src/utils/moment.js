@@ -91,15 +91,6 @@ function normalizeDate(date) {
     return normalizedDate;
 }
 
-function getTimeZoneOffset(date) {
-    const offset = -date.getTimezoneOffset();
-    const sign = offset >= 0 ? '+' : '-';
-    const pad = (num) => String(num).padStart(2, '0');
-    const hours = pad(Math.floor(Math.abs(offset) / 60));
-    const minutes = pad(Math.abs(offset) % 60);
-    return `${sign}${hours}:${minutes}`;
-}
-
 export default {
     formatTimestamp,
     fromNow,
