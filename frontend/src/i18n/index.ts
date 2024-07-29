@@ -29,7 +29,7 @@ import zhTW from './zh-tw.json';
 type LocaleMap = { [key: string]: string };
 
 export function detectLocale(): string {
-  const locale = navigator.language.toLowerCase(); 
+  const locale = navigator.language.toLowerCase();
   const localeMap: LocaleMap = {
     'he': 'he',
     'hu': 'hu',
@@ -64,8 +64,8 @@ export function detectLocale(): string {
       return localeMap[key];
     }
   }
-
-  return 'en'; // Default fallback
+  console.log("defaulting to en-us")
+  return 'en-us'; // Default fallback
 }
 
 // List of RTL languages

@@ -1,4 +1,11 @@
-export function fromNow(date, locale = 'en-us') {
+export function fromNow(date, locale) {
+    if (locale === undefined) {
+        locale = 'en-us';
+    }
+    if (locale == "") {
+        locale = 'en-us';
+    }
+    console.log(locale)
     // Convert date to Date object if it is a string
     const inputDate = typeof date === 'string' ? new Date(date) : date;
 
