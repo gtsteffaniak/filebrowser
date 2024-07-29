@@ -61,7 +61,8 @@ export default {
     this.editor.destroy();
   },
   mounted: function () {
-    const fileContent = state.req.content || "";
+    // this is empty content string "empty-file-x6OlSil" which is used to represent empty text file
+    const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
     this.editor = ace.edit("editor", {
       value: fileContent,
       showPrintMargin: false,

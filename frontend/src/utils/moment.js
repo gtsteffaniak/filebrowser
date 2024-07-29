@@ -23,7 +23,14 @@ export function fromNow(date, locale) {
 }
 
 export function formatTimestamp(date, locale = 'en-us') {
+    // Ensure `normalizeDate` returns a valid Date object
     date = normalizeDate(date);
+
+    if (!(date instanceof Date) || isNaN(date)) {
+        console.error('Invalid date object:', date);
+        return 'Invalid Date';
+    }
+
     // Define options for formatting
     const dateOptions = {
         day: '2-digit',
@@ -41,54 +48,47 @@ export function formatTimestamp(date, locale = 'en-us') {
     const dateFormatter = new Intl.DateTimeFormat(locale, dateOptions);
     const timeFormatter = new Intl.DateTimeFormat(locale, timeOptions);
 
-    // Extract date and time components
-    const dateParts = dateFormatter.formatToParts(date);
-    const timeParts = timeFormatter.formatToParts(date);
+    try {
+        // Extract date and time components
+        const dateParts = dateFormatter.formatToParts(date);
+        const timeParts = timeFormatter.formatToParts(date);
 
-    // Construct formatted timestamp
-    const dateMap = new Map(dateParts.map(part => [part.type, part.value]));
-    const timeMap = new Map(timeParts.map(part => [part.type, part.value]));
+        // Construct formatted timestamp
+        const dateMap = new Map(dateParts.map(part => [part.type, part.value]));
+        const timeMap = new Map(timeParts.map(part => [part.type, part.value]));
 
-    const formattedDate = locale.includes('en')
-        ? `${dateMap.get('month')}/${dateMap.get('day')}/${dateMap.get('year')}`
-        : `${dateMap.get('day')}/${dateMap.get('month')}/${dateMap.get('year')}`;
+        const formattedDate = locale.includes('en')
+            ? `${dateMap.get('month')}/${dateMap.get('day')}/${dateMap.get('year')}`
+            : `${dateMap.get('day')}/${dateMap.get('month')}/${dateMap.get('year')}`;
 
-    // Time formatting: hh:mm:ss
-    const formattedTime = `${timeMap.get('hour')}:${timeMap.get('minute')}:${timeMap.get('second')}`;
+        // Time formatting: hh:mm:ss
+        const formattedTime = `${timeMap.get('hour')}:${timeMap.get('minute')}:${timeMap.get('second')}`;
 
-    // Combine date and time
-    return `${formattedDate} ${formattedTime}`;
+        // Combine date and time
+        return `${formattedDate} ${formattedTime}`;
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'Invalid Date';
+    }
 }
 
 function normalizeDate(date) {
+    let normalizedDate;
+
     if (typeof date === 'string') {
-        date = new Date(date);
+        // Parse the date string
+        normalizedDate = new Date(date);
     } else if (typeof date === 'number') {
-        date = new Date(date * 1000);
+        // Convert seconds to milliseconds if necessary
+        normalizedDate = new Date(date * (date < 1e12 ? 1000 : 1));
+    } else if (date instanceof Date && !isNaN(date.getTime())) {
+        // It's already a valid Date object
+        normalizedDate = date;
     } else {
-        if (!(date instanceof Date) || isNaN(date.getTime())) {
-            throw new Error("Invalid date provided");
-        }
+        throw new Error("Invalid date provided");
     }
 
-    // Convert the time to milliseconds if it's in seconds
-    if (date < 1e12) {
-        date *= 1000;
-    }
-    // Create a Date object from the timestamp
-    date = new Date(date);
-    // Format the date as an ISO 8601 string with timezone offset
-    const formattedDate = date.toISOString().replace('Z', getTimeZoneOffset(date));
-    return formattedDate;
-}
-
-function getTimeZoneOffset(date) {
-    const offset = -date.getTimezoneOffset();
-    const sign = offset >= 0 ? '+' : '-';
-    const pad = (num) => String(num).padStart(2, '0');
-    const hours = pad(Math.floor(Math.abs(offset) / 60));
-    const minutes = pad(Math.abs(offset) % 60);
-    return `${sign}${hours}:${minutes}`;
+    return normalizedDate;
 }
 
 export default {

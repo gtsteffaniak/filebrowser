@@ -42,8 +42,9 @@
 </template>
 <script>
 import { state, mutations } from "@/store";
-import { users as api } from "@/api";
+import { getAllUsers } from "@/api/users";
 import Errors from "@/views/Errors.vue";
+import { showError } from "@/notify";
 
 export default {
   name: "users",
@@ -59,11 +60,11 @@ export default {
   async created() {
     // Set loading state to true
     mutations.setLoading(true);
-
     try {
       // Fetch all users from the API
-      this.users = await api.getAll();
+      this.users = await getAllUsers();
     } catch (e) {
+      showError(e);
       // Handle errors
       this.error = e;
     } finally {
@@ -75,12 +76,6 @@ export default {
     // Access the loading state directly from the store
     loading() {
       return state.loading;
-    },
-  },
-  methods: {
-    // Define methods to call mutations directly
-    setLoading(value) {
-      mutations.setLoading(value);
     },
   },
 };

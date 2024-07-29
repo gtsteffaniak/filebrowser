@@ -267,7 +267,7 @@ export default {
         await api.update(settings);
         showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        mutations.showError(e);
+        showError(e);
       }
     },
   },

@@ -1,5 +1,9 @@
 export function showPopup(type, message) {
     const popup = document.getElementById('popup-notification');
+    if (popup === null) {
+        console.error('Popup notification :',type,message);
+        return;
+    }
     popup.classList.add(type);
     popup.textContent = message;
     popup.style.display = 'block'; // Make it visible

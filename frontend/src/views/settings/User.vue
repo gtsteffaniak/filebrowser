@@ -37,11 +37,10 @@
   </div>
 </template>
 <script>
-import { mutations } from "@/store";
+import { mutations,state } from "@/store";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
-import deepClone from "@/utils/deepclone";
 import { showSuccess, showError } from "@/notify";
 
 export default {
@@ -54,7 +53,7 @@ export default {
     return {
       error: null,
       originalUser: null,
-      user: {},
+      user: { perm: {admin: false} },
       showDelete: false,
       createUserDir: false,
       loading: false, // Replaces Vuex state `loading`
@@ -67,50 +66,46 @@ export default {
   },
   computed: {
     isNew() {
-      return this.$route.path === "/settings/users/new";
+      return state.route.path === "/settings/users/new";
     },
   },
   watch: {
     $route: "fetchData",
-    "user.perm.admin": function () {
-      if (!state.user.perm.admin) return;
-      state.user.lockPassword = false;
-    },
   },
   methods: {
     async fetchData() {
-      this.loading = true;
-
+      mutations.setLoading(true);
       try {
         if (this.isNew) {
           let { defaults, createUserDir } = await settings.get();
           this.createUserDir = createUserDir;
-          state.user = {
+          this.user = {
             ...defaults,
             username: "",
-            password: "", // Fixed typo `passsword` to `password`
+            password: "",
             rules: [],
             lockPassword: false,
             id: 0,
           };
         } else {
-          const id = state.route.params.pathMatch;
-          state.user = { ...(await api.get(id)) };
+          const id = state.route.params.id;
+          this.user = { ...(await api.get(id)) };
         }
       } catch (e) {
+        showError(e)
         this.error = e;
       } finally {
-        this.loading = false;
+        mutations.setLoading(false);
       }
     },
     deletePrompt() {
-      mutations.showHover({ name: "deleteUser", props: { user: state.user } });
+      mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
       event.preventDefault();
       let user = {
         ...this.originalUser,
-        ...state.user,
+        ...this.user,
       };
 
       try {
@@ -120,13 +115,9 @@ export default {
           showSuccess(this.$t("settings.userCreated"));
         } else {
           await api.update(user);
-
           if (user.id === state.user.id) {
-            // Replaces Vuex state `user`
-            // Assuming there's a method to update local user data in your component
-            state.user = { ...deepClone(user) };
+            mutations.setUser(user);
           }
-
           showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {

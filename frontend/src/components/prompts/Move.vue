@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { mutations} from "@/store";
+import { mutations, state } from "@/store";
 import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
@@ -64,6 +64,9 @@ export default {
     };
   },
   computed: {
+    user() {
+      return state.user;
+    },
     closeHovers() {
       return mutations.closeHovers()
     },

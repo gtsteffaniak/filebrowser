@@ -72,7 +72,6 @@ import Rules from "./Rules.vue";
 import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
 import { enableExec } from "@/utils/constants";
-import { state } from "@/store";
 
 export default {
   name: "user",
@@ -90,7 +89,7 @@ export default {
   },
   props: ["user", "createUserDir", "isNew", "isDefault"],
   created() {
-    this.originalUserScope = state.user.scope;
+    this.originalUserScope = this.user.scope;
     this.createUserDirData = this.createUserDir;
   },
   computed: {
@@ -111,11 +110,11 @@ export default {
   },
   watch: {
     "user.perm.admin": function () {
-      if (!state.user.perm.admin) return;
-      state.user.lockPassword = false;
+      if (!this.user.perm.admin) return;
+      this.user.lockPassword = false;
     },
     createUserDirData(newVal) {
-      state.user.scope = newVal ? "" : this.originalUserScope;
+      this.user.scope = newVal ? "" : this.originalUserScope;
     },
   },
 };
