@@ -1,8 +1,7 @@
 server:
   port: 8080
   baseURL:  "/"
-  root: "/Users/steffag/"
-  indexing: false
+  root: "/srv"
 auth:
   method: password
   signup: false
