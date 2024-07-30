@@ -300,12 +300,9 @@ export default {
     toggleMultipleSelection() {
       mutations.setMultiple(!state.multiple);
     },
-    isSingleFile() {
-      return this.selectedCount === 1 && !state.req.items[this.selected[0]].isDir;
-    },
     download() {
-      if (this.isSingleFile()) {
-        api.download(null, this.hash, this.token, state.req.items[this.selected[0]].path);
+      if (getters.isSingleFileSelected()) {
+        api.download(null, this.hash, this.token, getters.selectedDownloadUrl());
         return;
       }
 
@@ -325,7 +322,7 @@ export default {
       });
     },
     linkSelected() {
-      return this.isSingleFile()
+      return getters.isSingleFileSelected()
         ? api.getDownloadURL({
             hash: this.hash,
             path: state.req.items[this.selected[0]].path,

@@ -47,9 +47,7 @@ export async function fetchURL(url, opts, auth = true) {
 }
 
 export async function fetchJSON(url, opts) {
-  console.log("fetching", url);
   const res = await fetchURL(url, opts);
-
   if (res.status === 200) {
     return res.json();
   } else {
@@ -60,7 +58,6 @@ export async function fetchJSON(url, opts) {
 
 export function removePrefix(url) {
   url = url.split("/").splice(2).join("/");
-
   if (url === "") url = "/";
   if (url[0] !== "/") url = "/" + url;
   return url;

@@ -1,6 +1,7 @@
 
-import { showSuccess, showError } from "./message.js";
+import { showSuccess, showError, closePopUp } from "./message.js";
 export {
-showSuccess,
-showError,
+    showSuccess,
+    showError,
+    closePopUp,
 };

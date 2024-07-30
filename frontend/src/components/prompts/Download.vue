@@ -3,7 +3,6 @@
     <div class="card-title">
       <h2>{{ $t("prompts.download") }}</h2>
     </div>
-
     <div class="card-content">
       <p>{{ $t("prompts.downloadMessage") }}</p>
 
@@ -21,7 +20,7 @@
 </template>
 
 <script>
-import {  getters } from "@/store"; // Import your custom store
+import { getters } from "@/store"; // Import your custom store
 
 export default {
   name: "download",
