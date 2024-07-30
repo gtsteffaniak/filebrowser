@@ -292,7 +292,7 @@ export default {
       // Esc!
       if (event.keyCode === 27) {
         // If we're on a listing, unselect all files and folders.
-        if (this.selectedCount > 0) {
+        if (getters.selectedCount() > 0) {
           mutations.resetSelected();
         }
       }

@@ -96,7 +96,7 @@ export default {
       return getters.isListing();
     },
     humanSize() {
-      if (this.selectedCount === 0 || !this.isListing) {
+      if (getters.selectedCount() === 0 || !this.isListing) {
         return getHumanReadableFilesize(state.req.size);
       }
 
@@ -109,7 +109,7 @@ export default {
       return getHumanReadableFilesize(sum);
     },
     humanTime() {
-      if (this.selectedCount === 0) {
+      if (getters.selectedCount() === 0) {
         return formatTimestamp(state.req.modified, state.user.locale);
       }
       return formatTimestamp(
@@ -121,14 +121,14 @@ export default {
       return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
     name() {
-      return this.selectedCount === 0
+      return getters.selectedCount() === 0
         ? state.req.name
         : state.req.items[this.selected[0]].name;
     },
     dir() {
       return (
-        this.selectedCount > 1 ||
-        (this.selectedCount === 0
+        getters.selectedCount() > 1 ||
+        (getters.selectedCount() === 0
           ? state.req.isDir
           : state.req.items[this.selected[0]].isDir)
       );
@@ -140,7 +140,7 @@ export default {
 
       let link;
 
-      if (this.selectedCount) {
+      if (getters.selectedCount()) {
         link = state.req.items[this.selected[0]].url;
       } else {
         link = state.route.path;

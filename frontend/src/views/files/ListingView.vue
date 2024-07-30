@@ -94,9 +94,7 @@
         :class="listingViewMode + ' file-icons'"
       >
         <div>
-          <div class="item header">
-            <div></div>
-            <div>
+          <div class="header">
               <p
                 :class="{ active: nameSorted }"
                 class="name"
@@ -134,15 +132,14 @@
                 <span>{{ $t("files.lastModified") }}</span>
                 <i class="material-icons">{{ modifiedIcon }}</i>
               </p>
-            </div>
           </div>
         </div>
-        <div v-if="numDirs > 0">
+        <div v-if="numDirs > 0" >
           <div class="header-items">
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="numDirs > 0">
+        <div v-if="numDirs > 0" class="folder-items" :class="{ lastGroup: numFiles === 0 }" >
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -157,13 +154,12 @@
           >
           </item>
         </div>
-
         <div v-if="numFiles > 0">
           <div class="header-items">
             <h2>{{ $t("files.files") }}</h2>
           </div>
         </div>
-        <div v-if="numFiles > 0">
+        <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }">
           <item
             v-for="item in files"
             :key="base64(item.name)"

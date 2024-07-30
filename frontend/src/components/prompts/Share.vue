@@ -158,7 +158,7 @@ export default {
       if (!this.isListing) {
         return state.route.path;
       }
-      if (this.selectedCount !== 1) {
+      if (getters.selectedCount() !== 1) {
         // selecting current view image
         return state.route.path;
       }
@@ -166,7 +166,7 @@ export default {
     },
     getContext() {
       let path = state.route.path.replace("/files/", "./");
-      if (this.selectedCount === 1) {
+      if (getters.selectedCount() === 1) {
         path = path + state.req.items[this.selected[0]].name;
       }
       return path;

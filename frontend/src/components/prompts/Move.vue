@@ -76,7 +76,7 @@ export default {
       event.preventDefault();
       let items = [];
 
-      for (let item of this.selected) {
+      for (let item of state.selected) {
         items.push({
           from: state.req.items[item].url,
           to: this.dest + encodeURIComponent(state.req.items[item].name),
@@ -86,7 +86,6 @@ export default {
 
       let action = async (overwrite, rename) => {
         buttons.loading("move");
-
         await api
           .move(items, overwrite, rename)
           .then(() => {

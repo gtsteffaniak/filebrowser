@@ -66,7 +66,7 @@ export default {
 
         this.closeHovers();
 
-        if (this.selectedCount === 0) {
+        if (getters.selectedCount() === 0) {
           return;
         }
 

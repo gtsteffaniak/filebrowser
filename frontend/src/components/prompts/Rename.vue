@@ -42,7 +42,7 @@
 <script>
 import url from "@/utils/url";
 import { files as api } from "@/api";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
 
 export default {
   name: "rename",
@@ -80,8 +80,7 @@ export default {
         return state.req.name;
       }
 
-      if (this.selectedCount === 0 || this.selectedCount > 1) {
-        // This shouldn't happen.
+      if (getters.selectedCount() === 0 || getters.selectedCount() > 1) {
         return;
       }
 

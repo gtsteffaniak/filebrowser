@@ -195,7 +195,7 @@ export default {
       return fromNow(this.modified, state.user.locale);
     },
     dragStart: function () {
-      if (this.selectedCount === 0) {
+      if (getters.selectedCount() === 0) {
         mutations.addSelected(this.index);
         return;
       }
@@ -223,7 +223,7 @@ export default {
       if (!this.canDrop) return;
       event.preventDefault();
 
-      if (this.selectedCount === 0) return;
+      if (getters.selectedCount() === 0) return;
 
       let el = event.target;
       for (let i = 0; i < 5; i++) {
@@ -283,7 +283,7 @@ export default {
       else this.click(event);
     },
     click: function (event) {
-      if (!this.singleClick && this.selectedCount !== 0) event.preventDefault();
+      if (!this.singleClick && getters.selectedCount() !== 0) event.preventDefault();
 
       setTimeout(() => {
         this.touches = 0;

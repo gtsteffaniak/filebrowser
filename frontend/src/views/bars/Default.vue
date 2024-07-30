@@ -27,9 +27,7 @@ export default {
   },
   data() {
     return {
-      showLimit: 50,
       columnWidth: 280,
-      dragCounter: 0,
       width: window.innerWidth,
       itemWeight: 0,
       viewModes: ["list", "compact", "normal", "gallery"],
@@ -119,14 +117,14 @@ export default {
     },
     headerButtons() {
       return {
-        select: this.selectedCount > 0,
-        upload: state.user.perm?.create && this.selectedCount > 0,
-        download: state.user.perm?.download && this.selectedCount > 0,
-        delete: this.selectedCount > 0 && state.user.perm.delete,
-        rename: this.selectedCount === 1 && state.user.perm.rename,
-        share: this.selectedCount === 1 && state.user.perm.share,
-        move: this.selectedCount > 0 && state.user.perm.rename,
-        copy: this.selectedCount > 0 && state.user.perm?.create,
+        select: getters.selectedCount() > 0,
+        upload: state.user.perm?.create && getters.selectedCount() > 0,
+        download: state.user.perm?.download && getters.selectedCount() > 0,
+        delete: getters.selectedCount() > 0 && state.user.perm.delete,
+        rename: getters.selectedCount() === 1 && state.user.perm.rename,
+        share: getters.selectedCount() === 1 && state.user.perm.share,
+        move: getters.selectedCount() > 0 && state.user.perm.rename,
+        copy: getters.selectedCount() > 0 && state.user.perm?.create,
       };
     },
   },
@@ -247,7 +245,7 @@ export default {
 
       // Del!
       if (event.keyCode === 46) {
-        if (!state.user.perm.delete || this.selectedCount == 0) return;
+        if (!state.user.perm.delete || getters.selectedCount() == 0) return;
 
         // Show delete prompt.
         mutations.showHover("delete");
@@ -255,7 +253,7 @@ export default {
 
       // F2!
       if (event.keyCode === 113) {
-        if (!state.user.perm.rename || this.selectedCount !== 1) return;
+        if (!state.user.perm.rename || getters.selectedCount() !== 1) return;
 
         // Show rename prompt.
         mutations.showHover("rename");
