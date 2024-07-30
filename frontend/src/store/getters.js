@@ -11,10 +11,11 @@ export const getters = {
   isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => state.route.name === "Files",
   isListing: () => getters.isFiles() && state.req.isDir,
-
-  selectedCount: () => {
-    // Ensure state.selected is an array
-    return Array.isArray(state.selected) ? state.selected.length : 0;
+  selectedCount: () => Array.isArray(state.selected) ? state.selected.length : 0,
+  isSingleFileSelected: () => getters.selectedCount() === 1 && !state.req.items[state.selected[0]]?.isDir,
+  selectedDownloadUrl() {
+    let selectedItem = state.selected[0]
+    return state.req.items[selectedItem].url;
   },
   getRoutePath: () => {
     return state.route.path.endsWith("/")

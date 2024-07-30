@@ -225,7 +225,7 @@ import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 import { showError } from "@/notify";
 
 import Action from "@/components/header/Action.vue";
@@ -652,8 +652,8 @@ export default {
       if (this.$refs.listingView == null) return;
     }, 100),
     download() {
-      if (state.selected.length === 1 && !state.req.items[this.selected[0]].isDir) {
-        api.download(null, state.req.items[this.selected[0]].url);
+      if (getters.isSingleFileSelected()) {
+        api.download(null, getters.selectedDownloadUrl());
         return;
       }
       mutations.showHover({

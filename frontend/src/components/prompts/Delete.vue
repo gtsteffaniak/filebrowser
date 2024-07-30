@@ -2,28 +2,28 @@
   <div class="card floating">
     <div class="card-content">
       <p v-if="selectedCount === 1">
-        {{ t("prompts.deleteMessageSingle") }}
+        {{ $t("prompts.deleteMessageSingle") }}
       </p>
       <p v-else>
-        {{ t("prompts.deleteMessageMultiple", { count: selectedCount }) }}
+        {{ $t("prompts.deleteMessageMultiple", { count: selectedCount }) }}
       </p>
     </div>
     <div class="card-action">
       <button
         @click="closeHovers"
         class="button button--flat button--grey"
-        :aria-label="t('buttons.cancel')"
-        :title="t('buttons.cancel')"
+        :aria-label="$t('buttons.cancel')"
+        :title="$t('buttons.cancel')"
       >
-        {{ t("buttons.cancel") }}
+        {{ $t("buttons.cancel") }}
       </button>
       <button
         @click="submit"
         class="button button--flat button--red"
-        :aria-label="t('buttons.delete')"
-        :title="t('buttons.delete')"
+        :aria-label="$t('buttons.delete')"
+        :title="$t('buttons.delete')"
       >
-        {{ t("buttons.delete") }}
+        {{ $t("buttons.delete") }}
       </button>
     </div>
   </div>
@@ -46,10 +46,6 @@ export default {
     },
     currentPrompt() {
       return getters.currentPrompt();
-    },
-    t() {
-      // You might want to implement a translation function here
-      return (key) => key; // Placeholder implementation
     },
   },
   methods: {

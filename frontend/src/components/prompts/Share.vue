@@ -121,7 +121,7 @@
 </template>
 <script>
 import { showSuccess, showError } from "@/notify";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
 import { share as api, pub as pub_api } from "@/api";
 import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
