@@ -91,6 +91,7 @@ export default {
           .then(() => {
             buttons.success("move");
             this.$router.push({ path: this.dest });
+            mutations.setReload(true)
           })
           .catch((e) => {
             buttons.done("move");
@@ -114,6 +115,7 @@ export default {
             event.preventDefault();
             mutations.closeHovers();
             action(overwrite, rename);
+            mutations.setReload(true)
           },
         });
 

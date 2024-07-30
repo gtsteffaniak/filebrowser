@@ -65,7 +65,7 @@ var rootCmd = &cobra.Command{
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
 		// initialize indexing and schedule indexing ever n minutes (default 5)
-		go files.InitializeIndex(serverConfig.IndexingInterval, true)
+		go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
 		_, err := os.Stat(serverConfig.Root)
 		checkErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
 		var listener net.Listener

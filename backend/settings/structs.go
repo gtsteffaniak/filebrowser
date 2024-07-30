@@ -54,6 +54,7 @@ type Server struct {
 	Root                  string `json:"root"`
 	UserHomeBasePath      string `json:"userHomeBasePath"`
 	CreateUserDir         bool   `json:"createUserDir"`
+	Indexing              bool   `json:"indexing"`
 }
 
 type Frontend struct {

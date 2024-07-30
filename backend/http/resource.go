@@ -271,6 +271,10 @@ func writeFile(fs afero.Fs, dst string, in io.Reader) (os.FileInfo, error) {
 		return nil, err
 	}
 
+	//files.RefreshFileInfo(files.FileOptions{
+	//	Fs: info,
+	//})
+
 	return info, nil
 }
 

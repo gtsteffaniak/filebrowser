@@ -26,7 +26,6 @@
     "normalize.css": "^8.0.1",
     "qrcode.vue": "^3.4.1",
     "vue": "^3.4.21",
-    "vue-simple-progress": "^1.1.1",
     "vue-i18n": "^9.10.2",
     "vue-lazyload": "^3.0.0",
     "vue-router": "^4.3.0"

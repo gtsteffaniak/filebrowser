@@ -96,7 +96,6 @@
 
     <!-- Credits and usage information section -->
     <div class="credits" v-if="isFiles && !disableUsedPercentage && usage">
-      <!-- Progress bar for used storage -->
       <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
       <span style="text-align: center">{{ usage.usedPercentage }}%</span>
       <span>{{ usage.used }} of {{ usage.total }} used</span>
@@ -131,7 +130,7 @@ import {
   loginPage,
 } from "@/utils/constants";
 import { files as api } from "@/api";
-import ProgressBar from "vue-simple-progress";
+import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { showError } from "@/notify";
@@ -141,9 +140,12 @@ export default {
   components: {
     ProgressBar,
   },
+  mounted() {
+    this.updateUsage();
+  },
   computed: {
     isFiles() {
-      return state.route.path.includes("/files/");
+      return getters.isFiles();
     },
     user() {
       return state.user;
@@ -165,34 +167,30 @@ export default {
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,
-  },
-  asyncComputed: {
-    usage: {
-      async get() {
-        let path = getters.getRoutePath();
-        let usageStats = { used: 0, total: 0, usedPercentage: 0 };
-        if (this.disableUsedPercentage) {
-          return usageStats;
-        }
-        try {
-          let usage = await api.usage(path);
-          usageStats = {
-            used: getHumanReadableFilesize(usage.used / 1024),
-            total: getHumanReadableFilesize(usage.total / 1024),
-            usedPercentage: Math.round((usage.used / usage.total) * 100),
-          };
-        } catch (error) {
-          showError(error);
-        }
-        return usageStats;
-      },
-      default: { used: "0 B", total: "0 B", usedPercentage: 0 },
-      shouldUpdate() {
-        return state.route.currentRoute.path.includes("/files/");
-      },
-    },
+    usage: () => state.usage,
   },
   methods: {
+    async updateUsage() {
+      console.log("updating usage");
+
+      let path = getters.getRoutePath();
+      let usageStats = { used: "0 B", total: "0 B", usedPercentage: 0 };
+      if (this.disableUsedPercentage) {
+        return usageStats;
+      }
+      try {
+        let usage = await api.usage(path);
+        usageStats = {
+          used: getHumanReadableFilesize(usage.used / 1024),
+          total: getHumanReadableFilesize(usage.total / 1024),
+          usedPercentage: Math.round((usage.used / usage.total) * 100),
+        };
+      } catch (error) {
+        showError("Error fetching usage:", error);
+      }
+      console.log(usageStats);
+      mutations.setUsage(usageStats);
+    },
     showHover(value) {
       return mutations.showHover(value);
     },

@@ -24,6 +24,7 @@
 import { state, mutations } from "@/store";
 import url from "@/utils/url";
 import { files } from "@/api";
+import { showError } from "@/notify";
 
 export default {
   name: "file-list",

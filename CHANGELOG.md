@@ -7,15 +7,18 @@ All notable changes to this project will be documented in this file. For commit 
 This change focuses on minimizing and simplifying build process.
 
 - **Change**: Migrated to Vite / Vue 3
-- **Change**: Replaced npm modules with simple javascript
+- **Change**: removed npm modules
   - replaced vuex with custom state management via src/store
   - replaced noty with simple card popup notifications
-  - replaced moment with simple date formatter where needed.
+  - replaced moment with simple date formatter where needed
+  - replaced vue-simple-progress with vue component
 - **Feature**: improved error logging
-  - backend errors show the root function that called them during the error.
+  - backend errors show the root function that called them during the error
   - frontend errors print errors to console that fail try/catch
-  - all frontend errors via popup notification & print to console as well.
-- **Fix**: Allow editing blank text based files in editor.
+  - all frontend errors via popup notification & print to console as well
+- **Fix**: Allow editing blank text based files in editor
+- tweaked listing styles
+- Feature: Allow disabling the index via configuration yaml
 
 ## v0.2.5
 

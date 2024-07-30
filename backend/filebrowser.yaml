@@ -1,7 +1,8 @@
 server:
   port: 8080
   baseURL:  "/"
-  root: "/Users/steffag/Downloads"
+  root: "/Users/steffag/"
+  indexing: false
 auth:
   method: password
   signup: false

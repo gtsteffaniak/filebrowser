@@ -2,6 +2,11 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  usage: {
+    used: "0 B",
+    total: "0 B",
+    usedPercentage: 0
+  },
   editor: null,
   user: {
     locale: detectLocale(), // Default to the locale from moment

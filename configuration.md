@@ -11,6 +11,7 @@ server:
   CreateUserDir: false
   UserHomeBasePath: ""
   indexingInterval: 5
+  indexing: true
   numImageProcessors: 4
   socket: ""
   tlsKey: ""
@@ -112,6 +113,8 @@ userDefaults:
 ### Server configuration settings
 
 - `indexingInterval`: This is the time in minutes the system waits before checking for filesystem changes. Default: `5`
+
+- `indexing`: This enables or disables indexing. (Note: search will not work without indexing) Default: `true`
 
 - `numImageProcessors`: This is the number of image processors available. Default: `4`
 

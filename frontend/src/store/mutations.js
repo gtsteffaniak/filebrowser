@@ -3,6 +3,10 @@ import { state } from "./state.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 
 export const mutations = {
+  setUsage: (value) => {
+    state.usage = value;
+    emitStateChanged();
+  },
   closeHovers: () => {
     state.prompts = [];
     emitStateChanged();
