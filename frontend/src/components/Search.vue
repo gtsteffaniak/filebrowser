@@ -1,10 +1,8 @@
 <template>
-  <div
-    id="search"
-    @click="open"
-    v-bind:class="{ active, ongoing, 'dark-mode': isDarkMode }"
-  >
+  <div id="search" @click="open" :class="{ active, ongoing, 'dark-mode': isDarkMode }">
+    <!-- Search input section -->
     <div id="input">
+      <!-- Close button visible when search is active -->
       <button
         v-if="active"
         class="action"
@@ -14,7 +12,9 @@
       >
         <i class="material-icons">close</i>
       </button>
+      <!-- Search icon when search is not active -->
       <i v-else class="material-icons">search</i>
+      <!-- Input field for search -->
       <input
         class="main-input"
         type="text"
@@ -27,9 +27,12 @@
         :placeholder="$t('search.search')"
       />
     </div>
+
+    <!-- Search results for mobile -->
     <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
       <div id="result-list">
         <div class="button" style="width: 100%">Search Context: {{ getContext }}</div>
+        <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li
             v-for="(s, k) in results"
@@ -50,15 +53,18 @@
             </router-link>
           </li>
         </ul>
+        <!-- Loading icon when search is ongoing -->
         <p v-show="isEmpty && isRunning" id="renew">
           <i class="material-icons spin">autorenew</i>
         </p>
+        <!-- Message when no results are found -->
         <div v-show="isEmpty && !isRunning">
           <div class="searchPrompt" v-show="isEmpty && !isRunning">
             <p>{{ noneMessage }}</p>
           </div>
         </div>
-        <template v-if="isEmpty">
+        <div v-if="isEmpty">
+          <!-- Reset filters button -->
           <button
             class="mobile-boxes"
             v-if="value.length === 0 && !showBoxes"
@@ -66,7 +72,8 @@
           >
             Reset filters
           </button>
-          <template v-if="value.length === 0 && showBoxes">
+          <!-- Box types when no search input is present -->
+          <div v-if="value.length === 0 && showBoxes">
             <div class="boxes">
               <h3>{{ $t("search.types") }}</h3>
               <div>
@@ -84,21 +91,26 @@
                 </div>
               </div>
             </div>
-          </template>
-        </template>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Search results for desktop -->
     <div v-show="!isMobile && active" id="result-desktop" ref="result">
       <div class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
-        <template>
+        <div>
+          <!-- Loading icon when search is ongoing -->
           <p v-show="isEmpty && isRunning" id="renew">
             <i class="material-icons spin">autorenew</i>
           </p>
+          <!-- Message when no results are found -->
           <div class="searchPrompt" v-show="isEmpty && !isRunning">
             <p>{{ noneMessage }}</p>
             <div class="helpButton" @click="toggleHelp()">Help</div>
           </div>
+          <!-- Help text section -->
           <div class="helpText" v-if="showHelp">
             <p>
               Search occurs on each character you type (3 character minimum for search
@@ -122,7 +134,8 @@
               search times.
             </p>
           </div>
-          <template>
+          <div>
+            <!-- Button groups for filtering search results -->
             <ButtonGroup
               :buttons="folderSelect"
               @button-clicked="addToTypes"
@@ -136,6 +149,7 @@
               @remove-button-clicked="removeFromTypes"
               :isDisabled="isTypeSelectDisabled"
             />
+            <!-- Inputs for filtering by file size -->
             <div class="sizeConstraints">
               <div class="sizeInputWrapper">
                 <p>Smaller Than:</p>
@@ -159,8 +173,9 @@
                 <p>MB</p>
               </div>
             </div>
-          </template>
-        </template>
+          </div>
+        </div>
+        <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li
             v-for="(s, k) in results"
@@ -185,6 +200,246 @@
     </div>
   </div>
 </template>
+<script>
+import ButtonGroup from "./ButtonGroup.vue";
+import { search } from "@/api";
+import { getters, mutations, state } from "@/store";
+import { showError } from "@/notify";
+
+var boxes = {
+  folder: { label: "folders", icon: "folder" },
+  file: { label: "files", icon: "insert_drive_file" },
+  archive: { label: "archives", icon: "archive" },
+  image: { label: "images", icon: "photo" },
+  audio: { label: "audio files", icon: "volume_up" },
+  video: { label: "videos", icon: "movie" },
+  doc: { label: "documents", icon: "picture_as_pdf" },
+};
+
+export default {
+  components: {
+    ButtonGroup,
+  },
+  name: "search",
+  data: function () {
+    return {
+      largerThan: "",
+      smallerThan: "",
+      noneMessage: "Start typing 3 or more characters to begin searching.",
+      searchTypes: "",
+      isTypeSelectDisabled: false,
+      showHelp: false,
+      folderSelect: [
+        { label: "Only Folders", value: "type:folder" },
+        { label: "Only Files", value: "type:file" },
+      ],
+      typeSelect: [
+        { label: "Photos", value: "type:image" },
+        { label: "Audio", value: "type:audio" },
+        { label: "Videos", value: "type:video" },
+        { label: "Documents", value: "type:doc" },
+        { label: "Archives", value: "type:archive" },
+      ],
+      value: "",
+      width: window.innerWidth,
+      ongoing: false,
+      results: [],
+      reload: false,
+      scrollable: null,
+    };
+  },
+  watch: {
+    active(active) {
+      const resultList = document.getElementById("result-list");
+      if (!active) {
+        resultList.classList.remove("active");
+        return;
+      }
+      setTimeout(() => {
+        resultList.classList.add("active");
+      }, 100);
+    },
+    currentPrompt(val, old) {
+      this.active = val?.prompt === "search";
+      if (old?.prompt === "search" && !this.active) {
+        if (this.reload) {
+          this.setReload(true);
+        }
+
+        document.body.style.overflow = "auto";
+        this.ongoing = false;
+        this.results = [];
+        this.value = "";
+        this.active = false;
+        this.$refs.input.blur();
+      } else if (this.active) {
+        this.reload = false;
+        this.$refs.input.focus();
+        document.body.style.overflow = "hidden";
+      }
+    },
+    value() {
+      if (this.results.length) {
+        this.ongoing = false;
+        this.results = [];
+      }
+    },
+  },
+  computed: {
+    active() {
+      return getters.currentPromptName() === "search";
+    },
+    showOverlay() {
+      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
+    },
+    isDarkMode() {
+      return getters.isDarkMode();
+    },
+    showBoxes() {
+      return this.searchTypes == "";
+    },
+    boxes() {
+      return boxes;
+    },
+    isEmpty() {
+      return this.results.length === 0;
+    },
+    text() {
+      if (this.ongoing) {
+        return "";
+      }
+
+      return this.value === ""
+        ? this.$t("search.typeToSearch")
+        : this.$t("search.pressToSearch");
+    },
+    isMobile() {
+      return this.width <= 800;
+    },
+    isRunning() {
+      return this.ongoing;
+    },
+    searchHelp() {
+      return this.showHelp;
+    },
+    getContext() {
+      let path = state.route.path;
+      path = path.slice(1);
+      path = "./" + path.substring(path.indexOf("/") + 1);
+      path = path.replace(/\/+$/, "") + "/";
+      return path;
+    },
+  },
+
+  methods: {
+    handleResize() {
+      this.width = window.innerWidth;
+    },
+    async navigateTo(url) {
+      mutations.closeHovers();
+      await this.$nextTick();
+      setTimeout(() => this.$router.push(url), 10);
+    },
+    basePath(str, isDir) {
+      let parts = str.replace(/(\/$|^\/)/, "").split("/");
+      if (parts.length <= 1) {
+        if (isDir) {
+          return "/";
+        }
+        return "";
+      }
+      parts.pop();
+      parts = parts.join("/") + "/";
+      if (isDir) {
+        parts = "/" + parts; // fix weird rtl thing
+      }
+      return parts;
+    },
+    baseName(str) {
+      let parts = str.replace(/(\/$|^\/)/, "").split("/");
+      return parts.pop();
+    },
+    open() {
+      mutations.showHover("search");
+    },
+    close(event) {
+      event.stopPropagation();
+      mutations.closeHovers();
+    },
+    keyup(event) {
+      if (event.keyCode === 27) {
+        this.close(event);
+        return;
+      }
+      this.results.length === 0;
+    },
+    addToTypes(string) {
+      if (this.searchTypes.includes(string)) {
+        return true;
+      }
+      if (string == null || string == "") {
+        return false;
+      }
+      this.searchTypes = this.searchTypes + string + " ";
+    },
+    resetSearchFilters() {
+      this.searchTypes = "";
+    },
+    removeFromTypes(string) {
+      if (string == null || string == "") {
+        return false;
+      }
+      this.searchTypes = this.searchTypes.replace(string + " ", "");
+      if (this.isMobile) {
+        this.$refs.input.focus();
+      }
+    },
+    folderSelectClicked() {
+      this.isTypeSelectDisabled = true; // Disable the other ButtonGroup
+    },
+    resetButtonGroups() {
+      this.isTypeSelectDisabled = false;
+    },
+    async submit(event) {
+      this.showHelp = false;
+      event.preventDefault();
+      if (this.value === "" || this.value.length < 3) {
+        this.ongoing = false;
+        this.results = [];
+        this.noneMessage = "Not enough characters to search (min 3)";
+        return;
+      }
+      let searchTypesFull = this.searchTypes;
+      if (this.largerThan != "") {
+        searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " ";
+      }
+      if (this.smallerThan != "") {
+        searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
+      }
+      let path = state.route.path;
+      this.ongoing = true;
+      try {
+        this.results = await search(path, searchTypesFull + this.value);
+      } catch (error) {
+        showError(error);
+      }
+      this.ongoing = false;
+      if (this.results.length == 0) {
+        this.noneMessage = "No results found in indexed search.";
+      }
+    },
+    toggleHelp() {
+      this.showHelp = !this.showHelp;
+    },
+  },
+  mounted() {
+    window.addEventListener("resize", this.handleResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.handleResize);
+  },
+};
+</script>
 
 <style>
 .main-input {
@@ -198,6 +453,7 @@
   color: white;
   border-left: 1px solid gray;
   border-right: 1px solid gray;
+  word-wrap: break-word;
 }
 
 #result-desktop > #result-list {
@@ -262,7 +518,7 @@
 
 /* Search */
 #search {
-  background-color: unset;
+  background-color: unset !important;
   z-index: 3;
   position: fixed;
   top: 0.5em;
@@ -509,244 +765,3 @@ body.rtl #search .boxes h3 {
   align-items: center;
 }
 </style>
-
-<script>
-import ButtonGroup from "./ButtonGroup.vue";
-import { mapState, mapGetters, mapMutations } from "vuex";
-import { search } from "@/api";
-import { darkMode } from "@/utils/constants";
-
-var boxes = {
-  folder: { label: "folders", icon: "folder" },
-  file: { label: "files", icon: "insert_drive_file" },
-  archive: { label: "archives", icon: "archive" },
-  image: { label: "images", icon: "photo" },
-  audio: { label: "audio files", icon: "volume_up" },
-  video: { label: "videos", icon: "movie" },
-  doc: { label: "documents", icon: "picture_as_pdf" },
-};
-
-export default {
-  components: {
-    ButtonGroup,
-  },
-  name: "search",
-  data: function () {
-    return {
-      largerThan: "",
-      smallerThan: "",
-      noneMessage: "Start typing 3 or more characters to begin searching.",
-      searchTypes: "",
-      isTypeSelectDisabled: false,
-      showHelp: false,
-      folderSelect: [
-        { label: "Only Folders", value: "type:folder" },
-        { label: "Only Files", value: "type:file" },
-      ],
-      typeSelect: [
-        { label: "Photos", value: "type:image" },
-        { label: "Audio", value: "type:audio" },
-        { label: "Videos", value: "type:video" },
-        { label: "Documents", value: "type:doc" },
-        { label: "Archives", value: "type:archive" },
-      ],
-      value: "",
-      width: window.innerWidth,
-      active: false,
-      ongoing: false,
-      results: [],
-      reload: false,
-      scrollable: null,
-    };
-  },
-  watch: {
-    active(active) {
-      const resultList = document.getElementById("result-list");
-      if (!active) {
-        resultList.classList.remove("active");
-        return;
-      }
-      setTimeout(() => {
-        resultList.classList.add("active");
-      }, 100);
-    },
-    currentPrompt(val, old) {
-      this.active = val?.prompt === "search";
-      if (old?.prompt === "search" && !this.active) {
-        if (this.reload) {
-          this.setReload(true);
-        }
-
-        document.body.style.overflow = "auto";
-        this.ongoing = false;
-        this.results = [];
-        this.value = "";
-        this.active = false;
-        this.$refs.input.blur();
-      } else if (this.active) {
-        this.reload = false;
-        this.$refs.input.focus();
-        document.body.style.overflow = "hidden";
-      }
-    },
-    value() {
-      if (this.results.length) {
-        this.ongoing = false;
-        this.results = [];
-      }
-    },
-  },
-  computed: {
-    ...mapState(["user"]),
-    ...mapGetters(["isListing", "currentPrompt", "currentPromptName"]),
-    showOverlay: function () {
-      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
-    },
-    isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
-        ? this.user.darkMode
-        : darkMode;
-    },
-    showBoxes() {
-      return this.searchTypes == "";
-    },
-    boxes() {
-      return boxes;
-    },
-    isEmpty() {
-      return this.results.length === 0;
-    },
-    text() {
-      if (this.ongoing) {
-        return "";
-      }
-
-      return this.value === ""
-        ? this.$t("search.typeToSearch")
-        : this.$t("search.pressToSearch");
-    },
-    isMobile() {
-      return this.width <= 800;
-    },
-    isRunning() {
-      return this.ongoing;
-    },
-    searchHelp() {
-      return this.showHelp;
-    },
-    getContext() {
-      let path = this.$route.path;
-      path = path.slice(1);
-      path = "./" + path.substring(path.indexOf("/") + 1);
-      path = path.replace(/\/+$/, "") + "/";
-      return path;
-    },
-  },
-  mounted() {
-    window.addEventListener("resize", this.handleResize);
-    this.handleResize(); // Call this once to set the initial width
-  },
-  methods: {
-    ...mapMutations(["showHover", "closeHovers", "setReload"]),
-    handleResize() {
-      this.width = window.innerWidth;
-    },
-    async navigateTo(url) {
-      this.closeHovers();
-      await this.$nextTick();
-      setTimeout(() => this.$router.push(url), 0);
-    },
-    basePath(str, isDir) {
-      let parts = str.replace(/(\/$|^\/)/, "").split("/");
-      if (parts.length <= 1) {
-        if (isDir) {
-          return "/";
-        }
-        return "";
-      }
-      parts.pop();
-      parts = parts.join("/") + "/";
-      if (isDir) {
-        parts = "/" + parts; // fix weird rtl thing
-      }
-      return parts;
-    },
-    baseName(str) {
-      let parts = str.replace(/(\/$|^\/)/, "").split("/");
-      return parts.pop();
-    },
-    open() {
-      this.$store.commit("showHover", "search");
-    },
-    close(event) {
-      event.stopPropagation();
-      this.closeHovers();
-    },
-    keyup(event) {
-      if (event.keyCode === 27) {
-        this.close(event);
-        return;
-      }
-      this.results.length === 0;
-    },
-    addToTypes(string) {
-      if (this.searchTypes.includes(string)) {
-        return true;
-      }
-      if (string == null || string == "") {
-        return false;
-      }
-      this.searchTypes = this.searchTypes + string + " ";
-    },
-    resetSearchFilters() {
-      this.searchTypes = "";
-    },
-    removeFromTypes(string) {
-      if (string == null || string == "") {
-        return false;
-      }
-      this.searchTypes = this.searchTypes.replace(string + " ", "");
-      if (this.isMobile) {
-        this.$refs.input.focus();
-      }
-    },
-    folderSelectClicked() {
-      this.isTypeSelectDisabled = true; // Disable the other ButtonGroup
-    },
-    resetButtonGroups() {
-      this.isTypeSelectDisabled = false;
-    },
-    async submit(event) {
-      this.showHelp = false;
-      event.preventDefault();
-      if (this.value === "" || this.value.length < 3) {
-        this.ongoing = false;
-        this.results = [];
-        this.noneMessage = "Not enough characters to search (min 3)";
-        return;
-      }
-      let searchTypesFull = this.searchTypes;
-      if (this.largerThan != "") {
-        searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " ";
-      }
-      if (this.smallerThan != "") {
-        searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
-      }
-      let path = this.$route.path;
-      this.ongoing = true;
-      try {
-        this.results = await search(path, searchTypesFull + this.value);
-      } catch (error) {
-        this.$showError(error);
-      }
-      this.ongoing = false;
-      if (this.results.length == 0) {
-        this.noneMessage = "No results found in indexed search.";
-      }
-    },
-    toggleHelp() {
-      this.showHelp = !this.showHelp;
-    },
-  },
-};
-</script>

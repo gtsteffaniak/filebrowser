@@ -28,12 +28,15 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters } from "vuex";
+import { getters } from "@/store"; // Import your custom store
 
 export default {
   name: "replace",
-  computed: mapGetters(["currentPrompt"]),
+  computed: {
+    currentPrompt() {
+      return getters.currentPrompt(); // Access the getter directly from the store
+    },
+  },
 };
 </script>

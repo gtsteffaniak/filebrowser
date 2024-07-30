@@ -27,7 +27,7 @@
       <div>
         <button
           class="button button--flat button--grey"
-          @click="$store.commit('closeHovers')"
+          @click="closeHovers"
           :aria-label="$t('buttons.cancel')"
           :title="$t('buttons.cancel')"
         >
@@ -47,11 +47,12 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mutations, state } from "@/store";
 import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
+import { showError } from "@/notify";
 
 export default {
   name: "copy",
@@ -62,7 +63,14 @@ export default {
       dest: null,
     };
   },
-  computed: mapState(["req", "selected", "user"]),
+  computed: {
+    user() {
+      return state.user;
+    },
+    closeHovers() {
+      return mutations.closeHovers();
+    },
+  },
   methods: {
     copy: async function (event) {
       event.preventDefault();
@@ -71,9 +79,9 @@ export default {
       // Create a new promise for each file.
       for (let item of this.selected) {
         items.push({
-          from: this.req.items[item].url,
-          to: this.dest + encodeURIComponent(this.req.items[item].name),
-          name: this.req.items[item].name,
+          from: store.req.items[item].url,
+          to: this.dest + encodeURIComponent(store.req.items[item].name),
+          name: store.req.items[item].name,
         });
       }
 
@@ -85,9 +93,8 @@ export default {
           .then(() => {
             buttons.success("copy");
 
-            if (this.$route.path === this.dest) {
-              this.$store.commit("setReload", true);
-
+            if (state.route.path === this.dest) {
+              mutations.setReload(true);
               return;
             }
 
@@ -95,12 +102,12 @@ export default {
           })
           .catch((e) => {
             buttons.done("copy");
-            this.$showError(e);
+            showError(e);
           });
       };
 
-      if (this.$route.path === this.dest) {
-        this.$store.commit("closeHovers");
+      if (state.route.path === this.dest) {
+        mutations.closeHovers();
         action(false, true);
 
         return;
@@ -113,14 +120,14 @@ export default {
       let rename = false;
 
       if (conflict) {
-        this.$store.commit("showHover", {
-          prompt: "replace-rename",
+        mutations.showHover({
+          name: "replace-rename",
           confirm: (event, option) => {
             overwrite = option == "overwrite";
             rename = option == "rename";
 
             event.preventDefault();
-            this.$store.commit("closeHovers");
+            mutations.closeHovers();
             action(overwrite, rename);
           },
         });

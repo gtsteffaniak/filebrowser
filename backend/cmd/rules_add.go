@@ -44,13 +44,13 @@ var rulesAddCmd = &cobra.Command{
 		user := func(u *users.User) {
 			u.Rules = append(u.Rules, rule)
 			err := d.store.Users.Save(u)
-			checkErr(err)
+			checkErr("d.store.Users.Save", err)
 		}
 
 		global := func(s *settings.Settings) {
 			s.Rules = append(s.Rules, rule)
 			err := d.store.Settings.Save(s)
-			checkErr(err)
+			checkErr("d.store.Settings.Save", err)
 		}
 
 		runRules(d.store, cmd, user, global)

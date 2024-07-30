@@ -3,6 +3,7 @@ package cmd
 import (
 	"crypto/tls"
 	"flag"
+	"fmt"
 	"io/fs"
 	"log"
 	"net"
@@ -64,49 +65,49 @@ var rootCmd = &cobra.Command{
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
 		// initialize indexing and schedule indexing ever n minutes (default 5)
-		go files.InitializeIndex(serverConfig.IndexingInterval, true)
+		go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
 		_, err := os.Stat(serverConfig.Root)
-		checkErr(err)
+		checkErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
 		var listener net.Listener
 		address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
 		switch {
 		case serverConfig.Socket != "":
 			listener, err = net.Listen("unix", serverConfig.Socket)
-			checkErr(err)
+			checkErr("net.Listen", err)
 			socketPerm, err := cmd.Flags().GetUint32("socket-perm") //nolint:govet
-			checkErr(err)
+			checkErr("cmd.Flags().GetUint32", err)
 			err = os.Chmod(serverConfig.Socket, os.FileMode(socketPerm))
-			checkErr(err)
+			checkErr("os.Chmod", err)
 		case serverConfig.TLSKey != "" && serverConfig.TLSCert != "":
 			cer, err := tls.LoadX509KeyPair(serverConfig.TLSCert, serverConfig.TLSKey) //nolint:govet
-			checkErr(err)
+			checkErr("tls.LoadX509KeyPair", err)
 			listener, err = tls.Listen("tcp", address, &tls.Config{
 				MinVersion:   tls.VersionTLS12,
 				Certificates: []tls.Certificate{cer}},
 			)
-			checkErr(err)
+			checkErr("tls.Listen", err)
 		default:
 			listener, err = net.Listen("tcp", address)
-			checkErr(err)
+			checkErr("net.Listen", err)
 		}
 		sigc := make(chan os.Signal, 1)
 		signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
 		go cleanupHandler(listener, sigc)
 		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
 		handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
-		checkErr(err)
+		checkErr("fbhttp.NewHandler", err)
 		defer listener.Close()
 		log.Println("Listening on", listener.Addr().String())
 		//nolint: gosec
 		if err := http.Serve(listener, handler); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
 		}
 	}, pythonConfig{allowNoDB: true}),
 }
 
 func StartFilebrowser() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		log.Fatal("Error starting filebrowser:", err)
 	}
 }
 
@@ -121,16 +122,16 @@ func quickSetup(d pythonData) {
 	settings.Config.Auth.Key = generateKey()
 	if settings.Config.Auth.Method == "noauth" {
 		err := d.store.Auth.Save(&auth.NoAuth{})
-		checkErr(err)
+		checkErr("d.store.Auth.Save", err)
 	} else {
 		settings.Config.Auth.Method = "password"
 		err := d.store.Auth.Save(&auth.JSONAuth{})
-		checkErr(err)
+		checkErr("d.store.Auth.Save", err)
 	}
 	err := d.store.Settings.Save(&settings.Config)
-	checkErr(err)
+	checkErr("d.store.Settings.Save", err)
 	err = d.store.Settings.SaveServer(&settings.Config.Server)
-	checkErr(err)
+	checkErr("d.store.Settings.SaveServer", err)
 	user := &users.User{}
 	settings.Config.UserDefaults.Apply(user)
 	user.Username = settings.Config.Auth.AdminUsername
@@ -150,5 +151,5 @@ func quickSetup(d pythonData) {
 		Admin:    true,
 	}
 	err = d.store.Users.Save(user)
-	checkErr(err)
+	checkErr("d.store.Users.Save", err)
 }

@@ -21,9 +21,10 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { state, mutations } from "@/store";
 import url from "@/utils/url";
 import { files } from "@/api";
+import { showError } from "@/notify";
 
 export default {
   name: "file-list",
@@ -39,13 +40,12 @@ export default {
     };
   },
   computed: {
-    ...mapState(["req", "user"]),
     nav() {
       return decodeURIComponent(this.current);
     },
   },
   mounted() {
-    this.fillOptions(this.req);
+    this.fillOptions(state.req);
   },
   methods: {
     fillOptions(req) {
@@ -86,7 +86,7 @@ export default {
       // content.
       let uri = event.currentTarget.dataset.url;
 
-      files.fetch(uri).then(this.fillOptions).catch(this.$showError);
+      files.fetch(uri).then(this.fillOptions).catch(showError);
     },
     touchstart(event) {
       let url = event.currentTarget.dataset.url;
@@ -114,7 +114,7 @@ export default {
       }
     },
     itemClick: function (event) {
-      if (this.user.singleClick) this.next(event);
+      if (state.user.singleClick) this.next(event);
       else this.select(event);
     },
     select: function (event) {
@@ -130,13 +130,13 @@ export default {
       this.$emit("update:selected", this.selected);
     },
     createDir: async function () {
-      this.$store.commit("showHover", {
-        prompt: "newDir",
+      mutations.showHover({
+        name: "newDir",
         action: null,
         confirm: null,
         props: {
           redirect: false,
-          base: this.current === this.$route.path ? null : this.current,
+          base: this.current === state.route.path ? null : this.current,
         },
       });
     },

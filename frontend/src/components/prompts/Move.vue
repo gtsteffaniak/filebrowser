@@ -26,7 +26,7 @@
       <div>
         <button
           class="button button--flat button--grey"
-          @click="$store.commit('closeHovers')"
+          @click="closeHovers"
           :aria-label="$t('buttons.cancel')"
           :title="$t('buttons.cancel')"
         >
@@ -47,11 +47,12 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mutations, state } from "@/store";
 import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
+import { showError } from "@/notify";
 
 export default {
   name: "move",
@@ -62,32 +63,39 @@ export default {
       dest: null,
     };
   },
-  computed: mapState(["req", "selected", "user"]),
+  computed: {
+    user() {
+      return state.user;
+    },
+    closeHovers() {
+      return mutations.closeHovers()
+    },
+  },
   methods: {
     move: async function (event) {
       event.preventDefault();
       let items = [];
 
-      for (let item of this.selected) {
+      for (let item of state.selected) {
         items.push({
-          from: this.req.items[item].url,
-          to: this.dest + encodeURIComponent(this.req.items[item].name),
-          name: this.req.items[item].name,
+          from: state.req.items[item].url,
+          to: this.dest + encodeURIComponent(state.req.items[item].name),
+          name: state.req.items[item].name,
         });
       }
 
       let action = async (overwrite, rename) => {
         buttons.loading("move");
-
         await api
           .move(items, overwrite, rename)
           .then(() => {
             buttons.success("move");
             this.$router.push({ path: this.dest });
+            mutations.setReload(true)
           })
           .catch((e) => {
             buttons.done("move");
-            this.$showError(e);
+            showError(e);
           });
       };
 
@@ -98,15 +106,16 @@ export default {
       let rename = false;
 
       if (conflict) {
-        this.$store.commit("showHover", {
-          prompt: "replace-rename",
+        mutations.showHover({
+          name: "replace-rename",
           confirm: (event, option) => {
             overwrite = option == "overwrite";
             rename = option == "rename";
 
             event.preventDefault();
-            this.$store.commit("closeHovers");
+            mutations.closeHovers();
             action(overwrite, rename);
+            mutations.setReload(true)
           },
         });
 

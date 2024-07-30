@@ -1,15 +1,24 @@
 <template>
-    <router-view></router-view>
+  <router-view></router-view>
 </template>
 
 <script>
-
-// eslint-disable-next-line no-undef
-__webpack_public_path__ = window.FileBrowser.StaticURL + "/";
+import { onMounted } from 'vue';
+import { mutations } from "@/store"; // Import your store's mutations
 
 export default {
   name: "app",
   computed: {},
+  setup() {
+    onMounted(() => {
+      mutations.setLoading(false); // Call your mutation or method to set loading to false
+      // Query the loading element and remove it from the DOM
+      const loadingDiv = document.getElementById('loading');
+      if (loadingDiv) {
+        loadingDiv.remove();
+      }
+    });
+  },
 };
 </script>
 

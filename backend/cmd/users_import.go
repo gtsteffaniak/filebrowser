@@ -27,28 +27,28 @@ list or set it to 0.`,
 	Args: jsonYamlArg,
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
 		fd, err := os.Open(args[0])
-		checkErr(err)
+		checkErr("os.Open", err)
 		defer fd.Close()
 
 		list := []*users.User{}
 		err = unmarshal(args[0], &list)
-		checkErr(err)
+		checkErr("unmarshal", err)
 
 		for _, user := range list {
 			err = user.Clean("")
-			checkErr(err)
+			checkErr("Clean", err)
 		}
 
 		if mustGetBool(cmd.Flags(), "replace") {
 			oldUsers, err := d.store.Users.Gets("")
-			checkErr(err)
+			checkErr("d.store.Users.Gets", err)
 
 			err = marshal("users.backup.json", list)
-			checkErr(err)
+			checkErr("marshal users.backup.json", err)
 
 			for _, user := range oldUsers {
 				err = d.store.Users.Delete(user.ID)
-				checkErr(err)
+				checkErr("d.store.Users.Delete", err)
 			}
 		}
 
@@ -60,7 +60,8 @@ list or set it to 0.`,
 			// User exists in DB.
 			if err == nil {
 				if !overwrite {
-					checkErr(errors.New("user " + strconv.Itoa(int(user.ID)) + " is already registred"))
+					newErr := errors.New("user " + strconv.Itoa(int(user.ID)) + " is already registered")
+					checkErr("", newErr)
 				}
 
 				// If the usernames mismatch, check if there is another one in the DB
@@ -68,7 +69,8 @@ list or set it to 0.`,
 				// operation
 				if user.Username != onDB.Username {
 					if conflictuous, err := d.store.Users.Get("", user.Username); err == nil { //nolint:govet
-						checkErr(usernameConflictError(user.Username, conflictuous.ID, user.ID))
+						newErr := usernameConflictError(user.Username, conflictuous.ID, user.ID)
+						checkErr("usernameConflictError", newErr)
 					}
 				}
 			} else {
@@ -78,7 +80,7 @@ list or set it to 0.`,
 			}
 
 			err = d.store.Users.Save(user)
-			checkErr(err)
+			checkErr("d.store.Users.Save", err)
 		}
 	}, pythonConfig{}),
 }

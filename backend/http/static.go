@@ -64,9 +64,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
 		auther := raw.(*auth.JSONAuth)
-
 		if auther.ReCaptcha != nil {
 			data["ReCaptcha"] = auther.ReCaptcha.Key != "" && auther.ReCaptcha.Secret != ""
 			data["ReCaptchaHost"] = auther.ReCaptcha.Host
@@ -104,7 +102,7 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 		}
 
 		w.Header().Set("x-xss-protection", "1; mode=block")
-		return handleWithStaticData(w, r, d, assetsFs, "index.html", "text/html; charset=utf-8")
+		return handleWithStaticData(w, r, d, assetsFs, "public/index.html", "text/html; charset=utf-8")
 	}, "", store, server)
 
 	static = handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {

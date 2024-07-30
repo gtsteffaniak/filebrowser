@@ -16,9 +16,9 @@ path to the file where you want to write the users.`,
 	Args: jsonYamlArg,
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
 		list, err := d.store.Users.Gets("")
-		checkErr(err)
+		checkErr("d.store.Users.Gets", err)
 
 		err = marshal(args[0], list)
-		checkErr(err)
+		checkErr("marshal", err)
 	}, pythonConfig{}),
 }

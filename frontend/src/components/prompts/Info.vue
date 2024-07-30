@@ -33,33 +33,25 @@
         <p>
           <strong>MD5: </strong
           ><code
-            ><a @click="checksum($event, 'md5')">{{
-              $t("prompts.show")
-            }}</a></code
+            ><a @click="checksum($event, 'md5')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
           <strong>SHA1: </strong
           ><code
-            ><a @click="checksum($event, 'sha1')">{{
-              $t("prompts.show")
-            }}</a></code
+            ><a @click="checksum($event, 'sha1')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
           <strong>SHA256: </strong
           ><code
-            ><a @click="checksum($event, 'sha256')">{{
-              $t("prompts.show")
-            }}</a></code
+            ><a @click="checksum($event, 'sha256')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
           <strong>SHA512: </strong
           ><code
-            ><a @click="checksum($event, 'sha512')">{{
-              $t("prompts.show")
-            }}</a></code
+            ><a @click="checksum($event, 'sha512')">{{ $t("prompts.show") }}</a></code
           >
         </p>
       </template>
@@ -68,7 +60,7 @@
     <div class="card-action">
       <button
         type="submit"
-        @click="$store.commit('closeHovers')"
+        @click="closeHovers"
         class="button button--flat"
         :aria-label="$t('buttons.ok')"
         :title="$t('buttons.ok')"
@@ -78,73 +70,87 @@
     </div>
   </div>
 </template>
-
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { mapState, mapGetters } from "vuex";
-import moment from "moment";
+import { formatTimestamp } from "@/utils/moment";
 import { files as api } from "@/api";
+import { state, getters, mutations } from "@/store"; // Import your custom store
+import { showError } from "@/notify";
 
 export default {
   name: "info",
   computed: {
-    ...mapState(["req", "selected"]),
-    ...mapGetters(["selectedCount", "isListing"]),
-    humanSize: function () {
-      if (this.selectedCount === 0 || !this.isListing) {
-        return getHumanReadableFilesize(this.req.size);
+    closeHovers() {
+      return mutations.closeHovers;
+    },
+    req() {
+      return state.req;
+    },
+    selected() {
+      return state.selected;
+    },
+    selectedCount() {
+      return getters.selectedCount();
+    },
+    isListing() {
+      return getters.isListing();
+    },
+    humanSize() {
+      if (getters.selectedCount() === 0 || !this.isListing) {
+        return getHumanReadableFilesize(state.req.size);
       }
 
       let sum = 0;
 
       for (let selected of this.selected) {
-        sum += this.req.items[selected].size;
+        sum += state.req.items[selected].size;
       }
 
       return getHumanReadableFilesize(sum);
     },
-    humanTime: function () {
-      if (this.selectedCount === 0) {
-        return moment(this.req.modified).fromNow();
+    humanTime() {
+      if (getters.selectedCount() === 0) {
+        return formatTimestamp(state.req.modified, state.user.locale);
       }
-
-      return moment(this.req.items[this.selected[0]].modified).fromNow();
+      return formatTimestamp(
+        state.req.items[this.selected[0]].modified,
+        state.user.locale
+      );
     },
-    modTime: function () {
-      return new Date(Date.parse(this.req.modified)).toLocaleString();
+    modTime() {
+      return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
-    name: function () {
-      return this.selectedCount === 0
-        ? this.req.name
-        : this.req.items[this.selected[0]].name;
+    name() {
+      return getters.selectedCount() === 0
+        ? state.req.name
+        : state.req.items[this.selected[0]].name;
     },
-    dir: function () {
+    dir() {
       return (
-        this.selectedCount > 1 ||
-        (this.selectedCount === 0
-          ? this.req.isDir
-          : this.req.items[this.selected[0]].isDir)
+        getters.selectedCount() > 1 ||
+        (getters.selectedCount() === 0
+          ? state.req.isDir
+          : state.req.items[this.selected[0]].isDir)
       );
     },
   },
   methods: {
-    checksum: async function (event, algo) {
+    async checksum(event, algo) {
       event.preventDefault();
 
       let link;
 
-      if (this.selectedCount) {
-        link = this.req.items[this.selected[0]].url;
+      if (getters.selectedCount()) {
+        link = state.req.items[this.selected[0]].url;
       } else {
-        link = this.$route.path;
+        link = state.route.path;
       }
 
       try {
         const hash = await api.checksum(link, algo);
-        // eslint-disable-next-line
-        event.target.innerHTML = hash
+        event.target.innerHTML = hash;
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
   },

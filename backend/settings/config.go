@@ -58,6 +58,7 @@ func setDefaults() Settings {
 			Database:           "database.db",
 			Log:                "stdout",
 			Root:               "/srv",
+			Indexing:           true,
 		},
 		Auth: Auth{
 			TokenExpirationTime: "2h",

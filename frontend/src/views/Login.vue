@@ -35,16 +35,15 @@
       />
 
       <p @click="toggleMode" v-if="signup">
-        {{
-          createMode ? $t("login.loginInstead") : $t("login.createAnAccount")
-        }}
+        {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
       </p>
     </form>
   </div>
 </template>
 
 <script>
-import * as auth from "@/utils/auth";
+import { state } from "@/store";
+import { signupLogin, login } from "@/utils/auth";
 import {
   name,
   logoURL,
@@ -61,7 +60,7 @@ export default {
     name: () => name,
     logoURL: () => logoURL,
     isDarkMode() {
-      return darkMode === true
+      return darkMode === true;
     },
   },
   data: function () {
@@ -76,7 +75,6 @@ export default {
   },
   mounted() {
     if (!recaptcha) return;
-
     window.grecaptcha.ready(function () {
       window.grecaptcha.render("recaptcha", {
         sitekey: recaptchaKey,
@@ -90,8 +88,7 @@ export default {
     async submit(event) {
       event.preventDefault();
       event.stopPropagation();
-
-      let redirect = this.$route.query.redirect;
+      let redirect = state.route.query.redirect;
       if (redirect === "" || redirect === undefined || redirect === null) {
         redirect = "/files/";
       }
@@ -99,7 +96,6 @@ export default {
       let captcha = "";
       if (recaptcha) {
         captcha = window.grecaptcha.getResponse();
-
         if (captcha === "") {
           this.error = this.$t("login.wrongCredentials");
           return;
@@ -112,15 +108,14 @@ export default {
           return;
         }
       }
-
       try {
         if (this.createMode) {
-          await auth.signup(this.username, this.password);
+          await signupLogin(this.username, this.password);
         }
-
-        await auth.login(this.username, this.password, captcha);
+        await login(this.username, this.password, captcha);
         this.$router.push({ path: redirect });
       } catch (e) {
+        console.error(e);
         if (e.message == 409) {
           this.error = this.$t("login.usernameTaken");
         } else {

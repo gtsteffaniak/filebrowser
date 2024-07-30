@@ -1,6 +1,6 @@
 import { createURL, fetchURL, removePrefix } from "./utils";
 import { baseURL } from "@/utils/constants";
-import store from "@/store";
+import { state } from "@/store";
 
 export async function fetch(url,content=false) {
   url = removePrefix(url);
@@ -70,8 +70,8 @@ export function download(format, ...files) {
     url += `algo=${format}&`;
   }
 
-  if (store.state.jwt) {
-    url += `auth=${store.state.jwt}&`;
+  if (state.jwt) {
+    url += `auth=${state.jwt}&`;
   }
 
   window.open(url);
@@ -95,7 +95,7 @@ export async function post(url, content = "", overwrite = false, onupload) {
       `${baseURL}/api/resources${url}?override=${overwrite}`,
       true
     );
-    request.setRequestHeader("X-Auth", store.state.jwt);
+    request.setRequestHeader("X-Auth", state.jwt);
 
     if (typeof onupload === "function") {
       request.upload.onprogress = onupload;

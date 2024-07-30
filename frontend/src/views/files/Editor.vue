@@ -5,14 +5,14 @@
 </template>
 
 <script>
-import { eventBus } from "@/main";
-import { mapState } from "vuex";
+import { eventBus } from "@/store/eventBus";
+import { state, mutations, getters } from "@/store";
+import { showError } from "@/notify";
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";
-import { darkMode } from "@/utils/constants";
 
 export default {
   name: "editor",
@@ -21,13 +21,10 @@ export default {
   },
   computed: {
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
-        ? this.user.darkMode
-        : darkMode;
+      return getters.isDarkMode();
     },
-    ...mapState(["req", "user"]),
     breadcrumbs() {
-      let parts = this.$route.path.split("/");
+      let parts = state.route.path.split("/");
 
       if (parts[0] === "") {
         parts.shift();
@@ -64,12 +61,13 @@ export default {
     this.editor.destroy();
   },
   mounted: function () {
-    const fileContent = this.req.content || "";
+    // this is empty content string "empty-file-x6OlSil" which is used to represent empty text file
+    const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
     this.editor = ace.edit("editor", {
       value: fileContent,
       showPrintMargin: false,
       theme: "ace/theme/chrome",
-      readOnly: this.req.type === "textImmutable",
+      readOnly: state.req.type === "textImmutable",
       wrap: false,
     });
     // Set the basePath for Ace Editor
@@ -77,18 +75,18 @@ export default {
     if (this.isDarkMode) {
       this.editor.setTheme("ace/theme/twilight");
     }
-    eventBus.$on("handleEditorValueRequest", this.handleEditorValueRequest);
+    eventBus.on("handleEditorValueRequest", this.handleEditorValueRequest);
   },
   methods: {
     handleEditorValueRequest() {
       try {
-        api.put(this.$route.path, this.editor.getValue());
+        api.put(state.route.path, this.editor.getValue());
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     back() {
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
     keyEvent(event) {
@@ -103,9 +101,8 @@ export default {
       this.save();
     },
     close() {
-      this.$store.commit("updateRequest", {});
-
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      mutations.replaceRequest({});
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
   },

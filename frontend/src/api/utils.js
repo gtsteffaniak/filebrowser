@@ -1,7 +1,8 @@
-import store from "@/store";
+import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
 import { encodePath } from "@/utils/url";
+import { showError } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
@@ -13,21 +14,22 @@ export async function fetchURL(url, opts, auth = true) {
   try {
     res = await fetch(`${baseURL}${url}`, {
       headers: {
-        "X-Auth": store.state.jwt,
-        "sessionId": store.state.sessionId,
-        "userScope": store.state.user.scope,
+        "X-Auth": state.jwt,
+        "sessionId": state.sessionId,
+        "userScope": state.user.scope,
         ...headers,
       },
       ...rest,
     });
-  } catch {
+  } catch (e) {
+    console.error(e)
     const error = new Error("000 No connection");
     error.status = res.status;
     throw error;
   }
 
   if (auth && res.headers.get("X-Renew-Token") === "true") {
-    await renew(store.state.jwt);
+    await renew(state.jwt);
   }
 
   if (res.status < 200 || res.status > 299) {
@@ -46,17 +48,16 @@ export async function fetchURL(url, opts, auth = true) {
 
 export async function fetchJSON(url, opts) {
   const res = await fetchURL(url, opts);
-
   if (res.status === 200) {
     return res.json();
   } else {
+    showError("unable to fetch : " + url + "status" + res.status);
     throw new Error(res.status);
   }
 }
 
 export function removePrefix(url) {
   url = url.split("/").splice(2).join("/");
-
   if (url === "") url = "/";
   if (url[0] !== "/") url = "/" + url;
   return url;
@@ -70,7 +71,7 @@ export function createURL(endpoint, params = {}, auth = true) {
   const url = new URL(prefix + encodePath(endpoint), origin);
 
   const searchParams = {
-    ...(auth && { auth: store.state.jwt }),
+    ...(auth && { auth: state.jwt }),
     ...params,
   };
 

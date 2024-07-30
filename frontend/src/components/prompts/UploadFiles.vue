@@ -29,9 +29,7 @@
           :data-type="file.type"
           :aria-label="file.name"
         >
-          <div class="file-name">
-            <i class="material-icons"></i> {{ file.name }}
-          </div>
+          <div class="file-name"><i class="material-icons"></i> {{ file.name }}</div>
           <div class="file-progress">
             <div v-bind:style="{ width: file.progress + '%' }"></div>
           </div>
@@ -40,22 +38,26 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters } from "vuex";
+import { getters } from "@/store"; // Import your custom store
 
 export default {
   name: "uploadFiles",
-  data: function () {
+  data() {
     return {
       open: false,
     };
   },
   computed: {
-    ...mapGetters(["filesInUpload", "filesInUploadCount"]),
+    filesInUpload() {
+      return getters.filesInUpload(); // Access the getter directly from the store
+    },
+    filesInUploadCount() {
+      return getters.filesInUploadCount(); // Access the getter directly from the store
+    },
   },
   methods: {
-    toggle: function () {
+    toggle() {
       this.open = !this.open;
     },
   },

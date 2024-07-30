@@ -3,7 +3,6 @@
     <div class="card-title">
       <h2>{{ $t("prompts.download") }}</h2>
     </div>
-
     <div class="card-content">
       <p>{{ $t("prompts.downloadMessage") }}</p>
 
@@ -21,7 +20,7 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { getters } from "@/store"; // Import your custom store
 
 export default {
   name: "download",
@@ -39,6 +38,9 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["currentPrompt"]),
-  },};
+    currentPrompt() {
+      return getters.currentPrompt();
+    },
+  },
+};
 </script>

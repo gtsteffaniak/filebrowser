@@ -26,13 +26,13 @@
 </style>
 
 <script>
-import { mapState } from "vuex";
-import { eventBus } from "@/main";
-
+import { state, mutations } from "@/store";
+import { eventBus } from "@/store/eventBus";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
+import { showError } from "@/notify";
 
-import Action from "@/components/header/Action";
+import Action from "@/components/header/Action.vue";
 
 export default {
   name: "editorBar",
@@ -43,9 +43,14 @@ export default {
     return {};
   },
   computed: {
-    ...mapState(["req", "user", "currentView"]),
+    user() {
+      return state.user;
+    },
+    req() {
+      return state.req;
+    },
     breadcrumbs() {
-      let parts = this.$route.path.split("/");
+      let parts = state.route.path.split("/");
 
       if (parts[0] === "") {
         parts.shift();
@@ -82,7 +87,7 @@ export default {
   },
   methods: {
     back() {
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
     keyEvent(event) {
@@ -101,16 +106,16 @@ export default {
       const button = "save";
       buttons.loading("save");
       try {
-        eventBus.$emit("handleEditorValueRequest", "data");
+        eventBus.emit("handleEditorValueRequest", "data");
         buttons.success(button);
       } catch (e) {
         buttons.done(button);
-        this.$showError(e);
+        showError(e);
       }
     },
     close() {
-      this.$store.commit("updateRequest", {});
-      let uri = url.removeLastDir(this.$route.path) + "/";
+      mutations.replaceRequest({});
+      let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
   },

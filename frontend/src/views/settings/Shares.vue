@@ -22,9 +22,7 @@
                 <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
               </td>
               <td>
-                <template v-if="link.expire !== 0">{{
-                  humanTime(link.expire)
-                }}</template>
+                <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
                 <template v-else>{{ $t("permanent") }}</template>
               </td>
               <td v-if="user.perm.admin">{{ link.username }}</td>
@@ -61,18 +59,18 @@
 </template>
 
 <script>
+import { showSuccess, showError } from "@/notify";
 import { share as api, users } from "@/api";
-import { mapState, mapMutations } from "vuex";
-import moment from "moment";
+import { state, mutations } from "@/store";
+import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
-import Errors from "@/views/Errors";
+import Errors from "@/views/Errors.vue";
 
 export default {
   name: "shares",
   components: {
     Errors,
   },
-  computed: mapState(["user", "loading"]),
   data: function () {
     return {
       error: null,
@@ -81,57 +79,60 @@ export default {
     };
   },
   async created() {
-    this.setLoading(true);
+    mutations.setLoading(true);
 
     try {
       let links = await api.list();
-      if (this.user.perm.admin) {
+      if (state.user.perm.admin) {
         let userMap = new Map();
-        for (let user of await users.getAll())
-          userMap.set(user.id, user.username);
+        for (let user of await users.getAllUsers()) userMap.set(user.id, user.username);
         for (let link of links)
-          link.username = userMap.has(link.userID)
-            ? userMap.get(link.userID)
-            : "";
+          link.username = userMap.has(link.userID) ? userMap.get(link.userID) : "";
       }
       this.links = links;
     } catch (e) {
       this.error = e;
     } finally {
-      this.setLoading(false);
+      mutations.setLoading(false);
     }
   },
   mounted() {
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      this.$showSuccess(this.$t("success.linkCopied"));
+      showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
     this.clip.destroy();
   },
+  computed: {
+    user() {
+      return state.user;
+    },
+    loading() {
+      return state.loading;
+    },
+  },
   methods: {
-    ...mapMutations(["setLoading"]),
     deleteLink: async function (event, link) {
       event.preventDefault();
-
-      this.$store.commit("showHover", {
-        prompt: "share-delete",
+      mutations.showHover({
+        name: "share-delete",
         confirm: () => {
-          this.$store.commit("closeHovers");
+          mutations.closeHovers();
 
           try {
             api.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
-            this.$showSuccess(this.$t("settings.shareDeleted"));
+            showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
-            this.$showError(e);
+            showError(e);
           }
         },
       });
     },
     humanTime(time) {
-      return moment(time * 1000).fromNow();
+      return fromNow(time * 1000, state.user.locale);
     },
     buildLink(share) {
       return api.getShareURL(share);

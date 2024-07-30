@@ -195,14 +195,13 @@ body.rtl .breadcrumbs a {
   bottom: 1em;
   left: 50%;
   transform: translateX(-50%);
-  display: -ms-flexbox;
-  -ms-flex-align: center;
   align-items: center;
   background: #fff;
-  width: 95%;
   max-width: 30em;
   z-index: 1;
   border-radius: 1em;
+  display: flex;
+  width: 90%;
 }
 
 button {
@@ -237,4 +236,35 @@ button {
 
 #file-selection .action span {
   display: none;
+}
+
+#popup-notification {
+  color: white;
+  position: fixed;
+  max-width: 90vw;
+  height: 4em;
+  bottom: 0;
+  right: -20em; /* Start off-screen */
+  display: flex;
+  padding: 1em;
+  align-items: center;
+  transition: right 1s ease; /* Animate the 'right' property */
+}
+
+#popup-notification-content {
+  color: white;
+  padding: 0;
+  padding-left: .5em;
+}
+
+#popup-notification.success {
+  background: var(--blue);
+}
+#popup-notification.error {
+  background: var(--red);
+}
+
+#popup-notification > i {
+  cursor: pointer;
+  font-size: 1.75em;
 }

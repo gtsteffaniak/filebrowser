@@ -29,10 +29,10 @@ options you want to change.`,
 		} else {
 			user, err = d.store.Users.Get("", username)
 		}
-		checkErr(err)
+		checkErr("d.store.Users.Get", err)
 
 		err = d.store.Users.Update(user)
-		checkErr(err)
+		checkErr("d.store.Users.Update", err)
 		printUsers([]*users.User{user})
 	}, pythonConfig{}),
 }

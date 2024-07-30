@@ -1,4 +1,4 @@
-import store from "@/store";
+import { mutations } from "@/store";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
 
@@ -8,13 +8,12 @@ export function parseToken(token) {
   if (parts.length !== 3) {
     throw new Error("token malformed");
   }
-
   const data = JSON.parse(atob(parts[1]));
   document.cookie = `auth=${token}; path=/`;
   localStorage.setItem("jwt", token);
-  store.commit("setJWT", token);
-  store.commit("setSession", generateRandomCode(8));
-  store.commit("setUser", data.user);
+  mutations.setJWT(token);
+  mutations.setSession(generateRandomCode(8));
+  mutations.setUser(data.user);
 }
 
 export async function validateLogin() {
@@ -29,7 +28,6 @@ export async function validateLogin() {
 
 export async function login(username, password, recaptcha) {
   const data = { username, password, recaptcha };
-
   const res = await fetch(`${baseURL}/api/login`, {
     method: "POST",
     headers: {
@@ -53,11 +51,9 @@ export async function renew(jwt) {
       "X-Auth": jwt,
     },
   });
-
   const body = await res.text();
-
   if (res.status === 200) {
-    store.commit("setSession", generateRandomCode(8));
+    mutations.setSession(generateRandomCode(8));
     parseToken(body);
   } else {
     throw new Error(body);
@@ -67,7 +63,6 @@ export async function renew(jwt) {
 function generateRandomCode(length) {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let code = '';
-
   for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * charset.length);
       code += charset[randomIndex];
@@ -76,9 +71,8 @@ function generateRandomCode(length) {
   return code;
 }
 
-export async function signup(username, password) {
+export async function signupLogin(username, password) {
   const data = { username, password };
-
   const res = await fetch(`${baseURL}/api/signup`, {
     method: "POST",
     headers: {
@@ -94,9 +88,8 @@ export async function signup(username, password) {
 
 export function logout() {
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
-
-  store.commit("setJWT", "");
-  store.commit("setUser", null);
+  mutations.setJWT("");
+  mutations.setUser(null);
   localStorage.setItem("jwt", null);
   router.push({ path: "/login" });
 }

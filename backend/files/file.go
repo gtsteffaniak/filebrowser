@@ -123,7 +123,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	if exists && !opts.Content {
 		// Check if the cache time is less than 1 second
 		if time.Since(info.CacheTime) > time.Second {
-			go refreshFileInfo(opts)
+			go RefreshFileInfo(opts)
 		}
 		// refresh cache after
 		return &info, nil
@@ -133,7 +133,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 			file, err := NewFileInfo(opts)
 			return file, err
 		}
-		updated := refreshFileInfo(opts)
+		updated := RefreshFileInfo(opts)
 		if !updated {
 			file, err := NewFileInfo(opts)
 			return file, err
@@ -146,7 +146,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	}
 }
 
-func refreshFileInfo(opts FileOptions) bool {
+func RefreshFileInfo(opts FileOptions) bool {
 	if !opts.Checker.Check(opts.Path) {
 		return false
 	}
@@ -286,11 +286,15 @@ func (i *FileInfo) addContent(path string) error {
 		if err != nil {
 			return err
 		}
-		c := string(string(content))
-		if !utf8.ValidString(c) {
+		stringContent := string(content)
+		if !utf8.ValidString(stringContent) {
 			return nil
 		}
-		i.Content = string(c)
+		if stringContent == "" {
+			i.Content = "empty-file-x6OlSil"
+			return nil
+		}
+		i.Content = stringContent
 	}
 	return nil
 }

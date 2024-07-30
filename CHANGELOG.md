@@ -2,16 +2,34 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.6
+
+This change focuses on minimizing and simplifying build process.
+
+- **Change**: Migrated to Vite / Vue 3
+- **Change**: removed npm modules
+  - replaced vuex with custom state management via src/store
+  - replaced noty with simple card popup notifications
+  - replaced moment with simple date formatter where needed
+  - replaced vue-simple-progress with vue component
+- **Feature**: improved error logging
+  - backend errors show the root function that called them during the error
+  - frontend errors print errors to console that fail try/catch
+  - all frontend errors via popup notification & print to console as well
+- **Fix**: Allow editing blank text based files in editor
+- tweaked listing styles
+- Feature: Allow disabling the index via configuration yaml
+
 ## v0.2.5
 
 - Fix: delete user prompt works using native hovers.
 
 ## v0.2.4
 
-- Faature: [create-folder-feature](https://github.com/gtsteffaniak/filebrowser/pull/105)
+- Feature: [create-folder-feature](https://github.com/gtsteffaniak/filebrowser/pull/105)
 - Feature: [playable shared video](https://github.com/filebrowser/filebrowser/issues/2537)
 - Feature: photos, videos, and audio get embedded preview on share instead of icon
-- FIX: sharable link bug, now uses special publicUser
+- Fix: sharable link bug, now uses special publicUser
 - Bump go version to 1.22
 - In prep for vue3 migration, npm modules removed:
   - js-base64

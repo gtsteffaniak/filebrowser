@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="{ activebutton: this.isMaximized && this.isSelected}"
+    :class="{ activebutton: this.isMaximized && this.isSelected }"
     class="item"
     role="button"
     tabindex="0"
@@ -18,13 +18,17 @@
       @click="toggleClick"
       :class="{ activetitle: this.isMaximized && this.isSelected }"
     >
-    <img
-      v-if="readOnly === undefined && type === 'image' && isThumbsEnabled && isInView"
-      v-lazy="thumbnailUrl"
-      :class="{ activeimg: this.isMaximized && this.isSelected }"
-      ref="thumbnail"
-    />
-      <i :class="{ iconActive: this.isMaximized && this.isSelected }" v-else class="material-icons"></i>
+      <img
+        v-if="readOnly === undefined && type === 'image' && isThumbsEnabled && isInView"
+        v-lazy="thumbnailUrl"
+        :class="{ activeimg: this.isMaximized && this.isSelected }"
+        ref="thumbnail"
+      />
+      <i
+        :class="{ iconActive: this.isMaximized && this.isSelected }"
+        v-else
+        class="material-icons"
+      ></i>
     </div>
 
     <div :class="{ activecontent: this.isMaximized && this.isSelected }">
@@ -64,10 +68,10 @@
 <script>
 import { enableThumbs } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { mapMutations, mapGetters, mapState } from "vuex";
-import moment from "moment";
+import { fromNow } from "@/utils/moment";
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "item",
@@ -90,32 +94,44 @@ export default {
     "path",
   ],
   computed: {
-    ...mapState(["user", "selected", "req", "jwt"]),
-    ...mapGetters(["selectedCount"]),
+    user() {
+      return state.user;
+    },
+    selected() {
+      return state.selected;
+    },
+    req() {
+      return state.req;
+    },
+    jwt() {
+      return state.jwt;
+    },
+    selectedCount() {
+      return getters.selectedCount();
+    },
     isClicked() {
-      if (this.user.singleClick || !this.allowedView ) {
+      if (state.user.singleClick || !this.allowedView) {
         return false;
       }
-      // Assuming toggleClick returns a boolean value
       return !this.isMaximized;
     },
     allowedView() {
-      return this.user.viewMode != "gallery" && this.user.viewMode != "normal"
+      return state.user.viewMode != "gallery" && state.user.viewMode != "normal";
     },
     singleClick() {
-      return this.readOnly == undefined && this.user.singleClick;
+      return this.readOnly == undefined && state.user.singleClick;
     },
     isSelected() {
       return this.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      return this.readOnly == undefined && this.user.perm.rename;
+      return this.readOnly == undefined && state.user.perm?.rename;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
 
       for (let i of this.selected) {
-        if (this.req.items[i].url === this.url) {
+        if (state.req.items[i].url === this.url) {
           return false;
         }
       }
@@ -123,12 +139,12 @@ export default {
       return true;
     },
     thumbnailUrl() {
-      let path = this.req.path
-      if (this.req.path == "/") {
-        path = ""
+      let path = state.req.path;
+      if (state.req.path == "/") {
+        path = "";
       }
       const file = {
-        path: path +"/"+this.name,
+        path: path + "/" + this.name,
         modified: this.modified,
       };
 
@@ -144,7 +160,7 @@ export default {
   mounted() {
     const observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
-      rootMargin: '0px',
+      rootMargin: "0px",
       threshold: 0.5, // Adjust threshold as needed
     });
 
@@ -156,7 +172,7 @@ export default {
   },
   methods: {
     handleIntersect(entries, observer) {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
           this.isThumbnailInView = true;
           // Stop observing once thumbnail is in view
@@ -167,27 +183,26 @@ export default {
     toggleClick() {
       this.isMaximized = this.isClicked;
     },
-    ...mapMutations(["addSelected", "removeSelected", "resetSelected"]),
     humanSize: function () {
       return this.type == "invalid_link"
         ? "invalid link"
         : getHumanReadableFilesize(this.size);
     },
     humanTime: function () {
-      if (this.readOnly == undefined && this.user.dateFormat) {
-        return moment(this.modified).format("L LT");
+      if (this.readOnly == undefined && state.user.dateFormat) {
+        return fromNow(this.modified, state.user.locale).format("L LT");
       }
-      return moment(this.modified).fromNow();
+      return fromNow(this.modified, state.user.locale);
     },
     dragStart: function () {
-      if (this.selectedCount === 0) {
-        this.addSelected(this.index);
+      if (getters.selectedCount() === 0) {
+        mutations.addSelected(this.index);
         return;
       }
 
       if (!this.isSelected) {
-        this.resetSelected();
-        this.addSelected(this.index);
+        mutations.resetSelected();
+        mutations.addSelected(this.index);
       }
     },
     dragOver: function (event) {
@@ -208,7 +223,7 @@ export default {
       if (!this.canDrop) return;
       event.preventDefault();
 
-      if (this.selectedCount === 0) return;
+      if (getters.selectedCount() === 0) return;
 
       let el = event.target;
       for (let i = 0; i < 5; i++) {
@@ -221,9 +236,9 @@ export default {
 
       for (let i of this.selected) {
         items.push({
-          from: this.req.items[i].url,
-          to: this.url + encodeURIComponent(this.req.items[i].name),
-          name: this.req.items[i].name,
+          from: state.req.items[i].url,
+          to: this.url + encodeURIComponent(state.req.items[i].name),
+          name: state.req.items[i].name,
         });
       }
 
@@ -235,9 +250,9 @@ export default {
         api
           .move(items, overwrite, rename)
           .then(() => {
-            this.$store.commit("setReload", true);
+            mutations.setReload(true);
           })
-          .catch(this.$showError);
+          .catch(showError);
       };
 
       let conflict = upload.checkConflict(items, baseItems);
@@ -246,14 +261,14 @@ export default {
       let rename = false;
 
       if (conflict) {
-        this.$store.commit("showHover", {
-          prompt: "replace-rename",
+        mutations.showHover({
+          name: "replace-rename",
           confirm: (event, option) => {
             overwrite = option == "overwrite";
             rename = option == "rename";
 
             event.preventDefault();
-            this.$store.commit("closeHovers");
+            mutations.closeHovers();
             action(overwrite, rename);
           },
         });
@@ -264,11 +279,11 @@ export default {
       action(overwrite, rename);
     },
     itemClick: function (event) {
-      if (this.singleClick && !this.$store.state.multiple) this.open();
+      if (this.singleClick && !state.multiple) this.open();
       else this.click(event);
     },
     click: function (event) {
-      if (!this.singleClick && this.selectedCount !== 0) event.preventDefault();
+      if (!this.singleClick && getters.selectedCount() !== 0) event.preventDefault();
 
       setTimeout(() => {
         this.touches = 0;
@@ -279,8 +294,8 @@ export default {
         this.open();
       }
 
-      if (this.$store.state.selected.indexOf(this.index) !== -1) {
-        this.removeSelected(this.index);
+      if (state.selected.indexOf(this.index) !== -1) {
+        mutations.removeSelected(this.index);
         return;
       }
 
@@ -297,21 +312,16 @@ export default {
         }
 
         for (; fi <= la; fi++) {
-          if (this.$store.state.selected.indexOf(fi) == -1) {
-            this.addSelected(fi);
+          if (state.selected.indexOf(fi) == -1) {
+            mutations.addSelected(fi);
           }
         }
 
         return;
       }
-      if (
-        !this.singleClick &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !this.$store.state.multiple
-      )
-        this.resetSelected();
-      this.addSelected(this.index);
+      if (!this.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple)
+        mutations.resetSelected();
+      mutations.addSelected(this.index);
     },
     open: function () {
       this.$router.push({ path: this.url });

@@ -1,5 +1,5 @@
 <template>
-  <div >
+  <div>
     <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
@@ -14,24 +14,27 @@
     ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
-    <main :class="{ 'dark-mode': isDarkMode }" >
+    <main :class="{ 'dark-mode': isDarkMode }">
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
     <upload-files></upload-files>
   </div>
+  <div class="card" id="popup-notification">
+    <i v-on:click="closePopUp" class="material-icons">close</i>
+    <div id="popup-notification-content">no info</div>
+  </div>
 </template>
-
 <script>
 import editorBar from "./bars/EditorBar.vue";
 import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
-import Prompts from "@/components/prompts/Prompts";
-import { mapState, mapGetters } from "vuex";
+import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/Sidebar.vue";
-import UploadFiles from "../components/prompts/UploadFiles";
+import UploadFiles from "../components/prompts/UploadFiles.vue";
+import { closePopUp } from "@/notify";
 import { enableExec } from "@/utils/constants";
-import { darkMode } from "@/utils/constants";
+import { state, getters, mutations } from "@/store";
 
 export default {
   name: "layout",
@@ -43,7 +46,7 @@ export default {
     Prompts,
     UploadFiles,
   },
-  data: function () {
+  data() {
     return {
       showContexts: true,
       dragCounter: 0,
@@ -52,50 +55,56 @@ export default {
     };
   },
   computed: {
-    ...mapGetters([
-      "isLogged",
-      "progress",
-      "isListing",
-      "currentPrompt",
-      "currentPromptName",
-    ]),
-    ...mapState(["req", "user", "state"]),
-    showOverlay: function () {
-      return this.currentPrompt !== null && this.currentPrompt.prompt !== "more";
+    closePopUp() {
+      return closePopUp;
+    },
+    progress() {
+      return getters.progress(); // Access getter directly from the store
+    },
+    isListing() {
+      return getters.isListing(); // Access getter directly from the store
+    },
+    currentPrompt() {
+      return getters.currentPrompt(); // Access getter directly from the store
+    },
+    currentPromptName() {
+      return getters.currentPromptName(); // Access getter directly from the store
+    },
+    req() {
+      return state.req; // Access state directly from the store
+    },
+    user() {
+      return state.user; // Access state directly from the store
+    },
+    showOverlay() {
+      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
-        ? this.user.darkMode
-        : darkMode;
+      return getters.isDarkMode();
     },
-    isExecEnabled: () => enableExec,
+    isExecEnabled() {
+      return enableExec;
+    },
     currentView() {
-      if (this.req.type == undefined) {
-        return null;
-      }
-      if (this.req.isDir) {
-        return "listingView";
-      } else if (Object.prototype.hasOwnProperty.call(this.req, 'content')) {
-        return "editor";
-      } else {
-        return "preview";
-      }
+      return getters.currentView();
     },
   },
   watch: {
-    $route: function () {
-      this.$store.commit("resetSelected");
-      this.$store.commit("multiple", false);
-      if (this.currentPrompt?.prompt !== "success") this.$store.commit("closeHovers");
+    $route() {
+      mutations.resetSelected();
+      mutations.setMultiple(false);
+      if (getters.currentPromptName() !== "success") {
+        mutations.closeHovers();
+      }
     },
   },
   methods: {
     resetPrompts() {
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();
     },
     getTitle() {
       let title = "Title";
-      if (this.$route.path.startsWith("/settings/")) {
+      if (state.route.path.startsWith("/settings/")) {
         title = "Settings";
       }
       return title;
@@ -114,7 +123,7 @@ main::-webkit-scrollbar {
 }
 /* Use the class .dark-mode to apply styles conditionally */
 .dark-mode {
-  background: var(--background);
+  background: var(--background) !important;
   color: var(--textPrimary);
 }
 

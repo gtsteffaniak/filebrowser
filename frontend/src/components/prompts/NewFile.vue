@@ -18,7 +18,7 @@
     <div class="card-action">
       <button
         class="button button--flat button--grey"
-        @click="$store.commit('closeHovers')"
+        @click="closeHovers"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
       >
@@ -35,29 +35,36 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters } from "vuex";
+import { state } from "@/store";
 import { files as api } from "@/api";
 import url from "@/utils/url";
+import { getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "new-file",
-  data: function () {
+  data() {
     return {
       name: "",
     };
   },
   computed: {
-    ...mapGetters(["isFiles", "isListing"]),
+    isFiles() {
+      return getters.isFiles();
+    },
+    isListing() {
+      return getters.isListing();
+    },
+    closeHovers() {
+      return mutations.closeHovers;
+    },
   },
   methods: {
-    submit: async function (event) {
+    async submit(event) {
       event.preventDefault();
-      if (this.new === "") return;
-
-      // Build the path of the new directory.
-      let uri = this.isFiles ? this.$route.path + "/" : "/";
+      if (this.name === "") return;
+      // Build the path of the new file.
+      let uri = getters.isFiles() ? state.route.path + "/" : "/";
 
       if (!this.isListing) {
         uri = url.removeLastDir(uri) + "/";
@@ -70,10 +77,10 @@ export default {
         await api.post(uri);
         this.$router.push({ path: uri });
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
 
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();
     },
   },
 };

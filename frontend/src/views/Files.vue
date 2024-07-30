@@ -2,7 +2,7 @@
   <div>
     <breadcrumbs base="/files" />
     <errors v-if="error" :errorCode="error.status" />
-    <component v-else-if="currentView" :is="currentView"></component>
+    <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
       <h2 class="message delayed">
         <div class="spinner">
@@ -15,20 +15,16 @@
     </div>
   </div>
 </template>
-
 <script>
 import { files as api } from "@/api";
-import { mapState, mapMutations } from "vuex";
 
-import Breadcrumbs from "@/components/Breadcrumbs";
-import Errors from "@/views/Errors";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
-
-function clean(path) {
-  return path.endsWith("/") ? path.slice(0, -1) : path;
-}
+import { state, mutations, getters } from "@/store";
+import { pathsMatch } from "@/utils/url";
 
 export default {
   name: "files",
@@ -39,25 +35,21 @@ export default {
     ListingView,
     Editor,
   },
-  data: function () {
+  data() {
     return {
       error: null,
       width: window.innerWidth,
     };
   },
   computed: {
-    ...mapState(["req", "reload", "loading"]),
     currentView() {
-      if (this.req.type == undefined) {
-        return null;
-      }
-      if (this.req.isDir) {
-        return "listingView";
-      } else if (Object.prototype.hasOwnProperty.call(this.req, 'content')) {
-        return "editor";
-      } else {
-        return "preview";
-      }
+      return getters.currentView();
+    },
+    currentViewLoaded() {
+      return getters.currentView() !== null;
+    },
+    reload() {
+      return state.reload; // Access reload from state
     },
   },
   created() {
@@ -65,8 +57,9 @@ export default {
   },
   watch: {
     $route: "fetchData",
-    reload: function (value) {
+    reload(value) {
       if (value === true) {
+        console.log("reloading")
         this.fetchData();
       }
     },
@@ -78,56 +71,50 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
   },
   unmounted() {
-    if (this.$store.state.showShell) {
-      this.$store.commit("toggleShell");
+    if (state.showShell) {
+      mutations.toggleShell(); // Use mutation
     }
-    this.$store.commit("updateRequest", {});
-  },
-  currentView(newView) {
-    // Commit the new value to the store
-    this.setCurrentValue(newView);
+    mutations.replaceRequest({}); // Use mutation
   },
   methods: {
-    ...mapMutations(["setLoading", "setCurrentView"]),
     async fetchData() {
-      // Reset view information.
-      this.$store.commit("setReload", false);
-      this.$store.commit("resetSelected");
-      this.$store.commit("multiple", false);
-      this.$store.commit("closeHovers");
+      // Reset view information using mutations
+      mutations.setReload(false);
+      mutations.resetSelected();
+      mutations.setMultiple(false);
+      mutations.closeHovers();
 
       // Set loading to true and reset the error.
-      this.setLoading(true);
+      mutations.setLoading(true);
       this.error = null;
 
-      let url = this.$route.path;
+      let url = state.route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
-
+      let data = {};
       try {
+        // Fetch initial data
         let res = await api.fetch(url);
+        // If not a directory, fetch content
         if (!res.isDir) {
-          // get content of file if possible
-          res = await api.fetch(url,true);
+          res = await api.fetch(url, true);
         }
-
-        if (clean(res.path) !== clean(`/${this.$route.params.pathMatch}`)) {
-          return;
+        data = res;
+        // Verify if the fetched path matches the current route
+        if (pathsMatch(res.path, `/${state.route.params.path}`)) {
+          document.title = `${res.name} - ${document.title}`;
         }
-
-        this.$store.commit("updateRequest", res);
-        document.title = `${res.name} - ${document.title}`;
       } catch (e) {
         this.error = e;
-      } finally {
-        this.setLoading(false);
       }
+      mutations.setLoading(false);
+      mutations.replaceRequest(data);
     },
     keyEvent(event) {
       // F1!
       if (event.keyCode === 112) {
         event.preventDefault();
-        this.$store.commit("showHover", "help");
+        mutations.showHover("help"); // Use mutation
       }
     },
   },

@@ -1,85 +1,107 @@
 import * as i18n from "@/i18n";
-import moment from "moment";
+import { state } from "./state.js";
+import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 
-const mutations = {
-  closeHovers: (state) => {
+export const mutations = {
+  setUsage: (value) => {
+    state.usage = value;
+    emitStateChanged();
+  },
+  closeHovers: () => {
     state.prompts = [];
+    emitStateChanged();
   },
-  toggleShell: (state) => {
+  toggleShell: () => {
     state.showShell = !state.showShell;
+    emitStateChanged();
   },
-  showHover: (state, value) => {
-    if (typeof value !== "object") {
+  showHover: (value) => {
+    if (typeof value === "object") {
       state.prompts.push({
-        prompt: value,
-        confirm: null,
-        action: null,
-        props: null,
+        name: value?.name,
+        confirm: value?.confirm,
+        action: value?.action,
+        props: value?.props,
       });
-      return;
+    } else {
+      state.prompts.push({
+        name: value,
+        confirm: value?.confirm,
+        action: value?.action,
+        props: value?.props,
+      });
     }
-
-    state.prompts.push({
-      prompt: value.prompt, // Should not be null
-      confirm: value?.confirm,
-      action: value?.action,
-      props: value?.props,
-    });
+    emitStateChanged();
   },
-  showError: (state) => {
+  showError: () => {
     state.prompts.push("error");
+    emitStateChanged();
   },
-  showSuccess: (state) => {
-    state.prompts.push("success");
-  },
-  setLoading: (state, value) => {
+  setLoading: (value) => {
     state.loading = value;
+    emitStateChanged();
   },
-  setReload: (state, value) => {
+  setReload: (value) => {
     state.reload = value;
+    emitStateChanged();
   },
-  setUser: (state, value) => {
+  setUser: (value) => {
     if (value === null) {
       state.user = null;
+      emitStateChanged();
       return;
     }
 
     let locale = value.locale;
-
     if (locale === "") {
       locale = i18n.detectLocale();
     }
-
-    moment.locale(locale);
+    i18n.setLocale(locale);
     i18n.default.locale = locale;
     state.user = value;
+    emitStateChanged();
   },
-  setJWT: (state, value) => (state.jwt = value),
-  setSession: (state, value) => (state.sessionId = value),
-  multiple: (state, value) => (state.multiple = value),
-  addSelected: (state, value) => state.selected.push(value),
-  removeSelected: (state, value) => {
+  setJWT: (value) => {
+    state.jwt = value;
+    emitStateChanged();
+  },
+  setSession: (value) => {
+    state.sessionId = value;
+    emitStateChanged();
+  },
+  setMultiple: (value) => {
+    state.multiple = value;
+    emitStateChanged();
+  },
+  addSelected: (value) => {
+    state.selected.push(value);
+    emitStateChanged();
+  },
+  removeSelected: (value) => {
     let i = state.selected.indexOf(value);
     if (i === -1) return;
     state.selected.splice(i, 1);
+    emitStateChanged();
   },
-  resetSelected: (state) => {
+  resetSelected: () => {
     state.selected = [];
+    mutations.setMultiple(false);
+    emitStateChanged();
   },
-  updateUser: (state, value) => {
+  updateUser: (value) => {
     if (typeof value !== "object") return;
     if (state.user === null) {
       state.user = {};
     }
     for (let field in value) {
       if (field === "locale") {
-        moment.locale(value[field]);
-        i18n.default.locale = value[field];
+        i18n.setLocale(value[field]);
       }
       state.user[field] = value[field];
     }
+    emitStateChanged();
   },
-  updateRequest: (state, value) => {
+  updateRequest: (value) => {
     const selectedItems = state.selected.map((i) => state.req.items[i]);
     state.oldReq = state.req;
     state.req = value;
@@ -90,14 +112,20 @@ const mutations = {
       .filter((item) => selectedItems.some((rItem) => rItem.url === item.url))
       .map((item) => item.index);
   },
-  // Inside your mutations object
-  updateListingSortConfig(state, { field, asc }) {
+  replaceRequest: (value) => {
+    state.req = value;
+    emitStateChanged();
+  },
+  setRoute: (value) => {
+    state.route = value;
+    emitStateChanged();
+  },
+  updateListingSortConfig: ({ field, asc }) => {
     state.req.sorting.by = field;
     state.req.sorting.asc = asc;
+    emitStateChanged();
   },
-
-  updateListingItems(state) {
-    // Sort the items array based on the sorting settings
+  updateListingItems: () => {
     state.req.items.sort((a, b) => {
       const valueA = a[state.req.sorting.by];
       const valueB = b[state.req.sorting.by];
@@ -107,17 +135,18 @@ const mutations = {
         return valueA < valueB ? 1 : -1;
       }
     });
+    emitStateChanged();
   },
-
-  updateClipboard: (state, value) => {
+  updateClipboard: (value) => {
     state.clipboard.key = value.key;
     state.clipboard.items = value.items;
     state.clipboard.path = value.path;
+    emitStateChanged();
   },
-  resetClipboard: (state) => {
+  resetClipboard: () => {
     state.clipboard.key = "";
     state.clipboard.items = [];
+    emitStateChanged();
   },
 };
 
-export default mutations;

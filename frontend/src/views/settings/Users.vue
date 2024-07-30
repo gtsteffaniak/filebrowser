@@ -40,11 +40,11 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapState, mapMutations } from "vuex";
-import { users as api } from "@/api";
-import Errors from "@/views/Errors";
+import { state, mutations } from "@/store";
+import { getAllUsers } from "@/api/users";
+import Errors from "@/views/Errors.vue";
+import { showError } from "@/notify";
 
 export default {
   name: "users",
@@ -58,21 +58,25 @@ export default {
     };
   },
   async created() {
-    this.setLoading(true);
-
+    // Set loading state to true
+    mutations.setLoading(true);
     try {
-      this.users = await api.getAll();
+      // Fetch all users from the API
+      this.users = await getAllUsers();
     } catch (e) {
+      showError(e);
+      // Handle errors
       this.error = e;
     } finally {
-      this.setLoading(false);
+      // Set loading state to false
+      mutations.setLoading(false);
     }
   },
   computed: {
-    ...mapState(["loading"]),
-  },
-  methods: {
-    ...mapMutations(["setLoading"]),
+    // Access the loading state directly from the store
+    loading() {
+      return state.loading;
+    },
   },
 };
 </script>

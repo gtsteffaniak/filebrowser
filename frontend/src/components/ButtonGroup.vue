@@ -36,15 +36,12 @@ export default {
   methods: {
     setActiveButton(index, label) {
       if (label == "Only Folders" && this.activeButton != index) {
-        console.log("Only Folders && this.activeButton != index");
         this.$emit("disableAll");
       }
       if (label == "Only Folders" && this.activeButton == index) {
-        console.log("Only Folders && this.activeButton == index");
         this.$emit("enableAll");
       }
       if (label == "Only Files" && this.activeButton != index) {
-        console.log("Only Files && this.activeButton != index");
         this.$emit("enableAll");
       }
       // If the clicked button is already active, de-select it

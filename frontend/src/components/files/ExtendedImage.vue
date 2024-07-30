@@ -11,17 +11,19 @@
     @wheel="wheelMove"
   >
     <img
-      src=""
+      v-if="!isTiff"
+      :src="src"
       class="image-ex-img image-ex-img-center"
       ref="imgex"
       @load="onLoad"
     />
+    <canvas v-else ref="imgex" class="image-ex-img"></canvas>
   </div>
 </template>
+
 <script>
 import throttle from "@/utils/throttle";
-import UTIF from "utif";
-
+import { showError } from "@/notify";
 export default {
   props: {
     src: String,
@@ -55,15 +57,18 @@ export default {
       },
       maxScale: 4,
       minScale: 0.25,
+      isTiff: false, // Determine if the image is a TIFF
     };
   },
   mounted() {
-    if (!this.decodeUTIF()) {
+    this.isTiff = this.checkIfTiff(this.src);
+    if (this.isTiff) {
+      this.decodeTiff(this.src);
+    } else {
       this.$refs.imgex.src = this.src;
     }
     let container = this.$refs.container;
     this.classList.forEach((className) => container.classList.add(className));
-    // set width and height if they are zero
     if (getComputedStyle(container).width === "0px") {
       container.style.width = "100%";
     }
@@ -79,7 +84,10 @@ export default {
   },
   watch: {
     src: function () {
-      if (!this.decodeUTIF()) {
+      this.isTiff = this.checkIfTiff(this.src);
+      if (this.isTiff) {
+        this.decodeTiff(this.src);
+      } else {
         this.$refs.imgex.src = this.src;
       }
 
@@ -89,19 +97,29 @@ export default {
     },
   },
   methods: {
-    // Modified from UTIF.replaceIMG
-    decodeUTIF() {
+    checkIfTiff(src) {
       const sufs = ["tif", "tiff", "dng", "cr2", "nef"];
-      let suff = document.location.pathname.split(".").pop().toLowerCase();
-      if (sufs.indexOf(suff) == -1) return false;
-      let xhr = new XMLHttpRequest();
-      UTIF._xhrs.push(xhr);
-      UTIF._imgs.push(this.$refs.imgex);
-      xhr.open("GET", this.src);
-      xhr.responseType = "arraybuffer";
-      xhr.onload = UTIF._imgLoaded;
-      xhr.send();
-      return true;
+      const suff = src.split(".").pop().toLowerCase();
+      return sufs.includes(suff);
+    },
+    async decodeTiff(src) {
+      try {
+        const response = await fetch(src);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const blob = await response.blob(); // Convert response to a blob
+        const imgex = this.$refs.imgex;
+
+        if (imgex) {
+          // Create a URL for the blob and set it as the image source
+          imgex.src = URL.createObjectURL(blob);
+          imgex.onload = () => URL.revokeObjectURL(imgex.src); // Clean up URL object after loading
+        }
+      } catch (error) {
+        showError("Error decoding TIFF");
+        console.error("Error decoding TIFF:", error);
+      }
     },
     onLoad() {
       let img = this.$refs.imgex;
@@ -146,9 +164,7 @@ export default {
       let container = this.$refs.container;
       let img = this.$refs.imgex;
 
-      this.position.center.x = Math.floor(
-        (container.clientWidth - img.clientWidth) / 2
-      );
+      this.position.center.x = Math.floor((container.clientWidth - img.clientWidth) / 2);
       this.position.center.y = Math.floor(
         (container.clientHeight - img.clientHeight) / 2
       );
@@ -275,6 +291,7 @@ export default {
   },
 };
 </script>
+
 <style>
 .image-ex-container {
   margin: auto;

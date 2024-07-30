@@ -1,6 +1,8 @@
 <template>
   <nav :class="{ active, 'dark-mode': isDarkMode }">
-    <template v-if="isLogged">
+    <!-- Section for logged-in users -->
+    <template v-if="isLoggedIn">
+      <!-- My Files button -->
       <button
         class="action"
         @click="toRoot"
@@ -10,9 +12,12 @@
         <i class="material-icons">folder</i>
         <span>{{ $t("sidebar.myFiles") }}</span>
       </button>
-      <div v-if="user.perm.create">
+
+      <!-- Buttons visible if user has create permission -->
+      <div v-if="user.perm?.create">
+        <!-- New Folder button -->
         <button
-          @click="$store.commit('showHover', 'newDir')"
+          @click="showHover('newDir')"
           class="action"
           :aria-label="$t('sidebar.newFolder')"
           :title="$t('sidebar.newFolder')"
@@ -20,8 +25,9 @@
           <i class="material-icons">create_new_folder</i>
           <span>{{ $t("sidebar.newFolder") }}</span>
         </button>
+        <!-- New File button -->
         <button
-          @click="$store.commit('showHover', 'newFile')"
+          @click="showHover('newFile')"
           class="action"
           :aria-label="$t('sidebar.newFile')"
           :title="$t('sidebar.newFile')"
@@ -29,12 +35,16 @@
           <i class="material-icons">note_add</i>
           <span>{{ $t("sidebar.newFile") }}</span>
         </button>
+        <!-- Upload button -->
         <button id="upload-button" @click="upload($event)" class="action">
           <i class="material-icons">file_upload</i>
           <span>Upload file</span>
         </button>
       </div>
+
+      <!-- Settings and Logout buttons -->
       <div>
+        <!-- Settings button -->
         <button
           class="action"
           @click="toSettings"
@@ -44,7 +54,7 @@
           <i class="material-icons">settings_applications</i>
           <span>{{ $t("sidebar.settings") }}</span>
         </button>
-
+        <!-- Logout button -->
         <button
           v-if="canLogout"
           @click="logout"
@@ -58,7 +68,10 @@
         </button>
       </div>
     </template>
+
+    <!-- Section for non-logged-in users -->
     <template v-else>
+      <!-- Login button -->
       <router-link
         class="action"
         to="/login"
@@ -68,6 +81,7 @@
         <i class="material-icons">exit_to_app</i>
         <span>{{ $t("sidebar.login") }}</span>
       </router-link>
+      <!-- Signup button, if signup is enabled -->
       <router-link
         v-if="signup"
         class="action"
@@ -79,10 +93,9 @@
         <span>{{ $t("sidebar.signup") }}</span>
       </router-link>
     </template>
-    <div
-      class="credits"
-      v-if="$router.currentRoute.path.includes('/files/') && !disableUsedPercentage"
-    >
+
+    <!-- Credits and usage information section -->
+    <div class="credits" v-if="isFiles && !disableUsedPercentage && usage">
       <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
       <span style="text-align: center">{{ usage.usedPercentage }}%</span>
       <span>{{ usage.used }} of {{ usage.total }} used</span>
@@ -104,8 +117,8 @@
     </div>
   </nav>
 </template>
+
 <script>
-import { mapState, mapGetters } from "vuex";
 import * as upload from "@/utils/upload";
 import * as auth from "@/utils/auth";
 import {
@@ -117,84 +130,91 @@ import {
   loginPage,
 } from "@/utils/constants";
 import { files as api } from "@/api";
-import ProgressBar from "vue-simple-progress";
+import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { darkMode } from "@/utils/constants";
+import { state, getters, mutations } from "@/store"; // Import your custom store
+import { showError } from "@/notify";
 
 export default {
   name: "sidebar",
   components: {
     ProgressBar,
   },
+  mounted() {
+    this.updateUsage();
+  },
   computed: {
-    ...mapState(["user"]),
-    isDarkMode() {
-      return this.user && Object.prototype.hasOwnProperty.call(this.user, "darkMode")
-        ? this.user.darkMode
-        : darkMode;
+    isFiles() {
+      return getters.isFiles();
     },
-    ...mapGetters(["isLogged", "currentPrompt"]),
+    user() {
+      return state.user;
+    },
+    isDarkMode() {
+      return getters.isDarkMode();
+    },
+    isLoggedIn() {
+      return getters.isLoggedIn();
+    },
+    currentPrompt() {
+      return getters.currentPrompt();
+    },
     active() {
-      return this.currentPrompt?.prompt === "sidebar";
+      return getters.currentPromptName() === "sidebar";
     },
     signup: () => signup,
     version: () => version,
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,
-  },
-  asyncComputed: {
-    usage: {
-      async get() {
-        let path = this.$route.path.endsWith("/")
-          ? this.$route.path
-          : this.$route.path + "/";
-        let usageStats = { used: 0, total: 0, usedPercentage: 0 };
-        if (this.disableUsedPercentage) {
-          return usageStats;
-        }
-        try {
-          let usage = await api.usage(path);
-          usageStats = {
-            used: getHumanReadableFilesize(usage.used / 1024),
-            total: getHumanReadableFilesize(usage.total / 1024),
-            usedPercentage: Math.round((usage.used / usage.total) * 100),
-          };
-        } catch (error) {
-          this.$showError(error);
-        }
-        return usageStats;
-      },
-      default: { used: "0 B", total: "0 B", usedPercentage: 0 },
-      shouldUpdate() {
-        return this.$router.currentRoute.path.includes("/files/");
-      },
-    },
+    usage: () => state.usage,
   },
   methods: {
+    async updateUsage() {
+      console.log("updating usage");
+
+      let path = getters.getRoutePath();
+      let usageStats = { used: "0 B", total: "0 B", usedPercentage: 0 };
+      if (this.disableUsedPercentage) {
+        return usageStats;
+      }
+      try {
+        let usage = await api.usage(path);
+        usageStats = {
+          used: getHumanReadableFilesize(usage.used / 1024),
+          total: getHumanReadableFilesize(usage.total / 1024),
+          usedPercentage: Math.round((usage.used / usage.total) * 100),
+        };
+      } catch (error) {
+        showError("Error fetching usage:", error);
+      }
+      console.log(usageStats);
+      mutations.setUsage(usageStats);
+    },
+    showHover(value) {
+      return mutations.showHover(value);
+    },
+    // Navigate to the root files directory
     toRoot() {
       this.$router.push({ path: "/files/" }, () => {});
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();
     },
+    // Navigate to the settings page
     toSettings() {
       this.$router.push({ path: "/settings" }, () => {});
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();
     },
+    // Show the help overlay
     help() {
-      this.$store.commit("showHover", "help");
+      mutations.showHover("help");
     },
-    upload: function () {
-      if (
-        typeof window.DataTransferItem !== "undefined" &&
-        typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
-      ) {
-        this.$store.commit("showHover", "upload");
-      } else {
-        document.getElementById("upload-input").click();
-      }
+    // Handle file upload
+    upload(event) {
+      return this.$upload(event);
     },
+    // Handle files selected for upload
     uploadInput(event) {
-      this.$store.commit("closeHovers");
+      mutations.closeHovers();
 
       let files = event.currentTarget.files;
       let folder_upload =
@@ -207,17 +227,15 @@ export default {
         }
       }
 
-      let path = this.$route.path.endsWith("/")
-        ? this.$route.path
-        : this.$route.path + "/";
-      let conflict = upload.checkConflict(files, this.req.items);
+      let path = getters.getRoutePath();
+      let conflict = upload.checkConflict(files, state.req.items);
 
       if (conflict) {
-        this.$store.commit("showHover", {
-          prompt: "replace",
+        mutations.showHover({
+          name: "replace",
           confirm: (event) => {
             event.preventDefault();
-            this.$store.commit("closeHovers");
+            mutations.closeHovers();
             upload.handleFiles(files, path, true);
           },
         });
@@ -227,6 +245,7 @@ export default {
 
       upload.handleFiles(files, path);
     },
+    // Logout the user
     logout: auth.logout,
   },
 };

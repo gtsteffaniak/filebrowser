@@ -83,10 +83,11 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from "vuex";
+import { showSuccess, showError } from "@/notify";
+import { state, mutations } from "@/store";
 import { users as api } from "@/api";
-import Languages from "@/components/settings/Languages";
-import ViewMode from "@/components/settings/ViewMode";
+import Languages from "@/components/settings/Languages.vue";
+import ViewMode from "@/components/settings/ViewMode.vue";
 import i18n, { rtlLanguages } from "@/i18n";
 
 export default {
@@ -108,7 +109,9 @@ export default {
     };
   },
   computed: {
-    ...mapState(["user"]),
+    user() {
+      return state.user;
+    },
     passwordClass() {
       const baseClass = "input input--block";
 
@@ -124,20 +127,15 @@ export default {
     },
   },
   created() {
-    if (typeof this.user.darkMode === 'undefined') {
-      this.darkMode = false;
-    } else {
-      this.darkMode = this.user.darkMode
-    }
-    this.setLoading(false);
-    this.locale = this.user.locale;
-    this.viewMode = this.user.viewMode;
-    this.hideDotfiles = this.user.hideDotfiles;
-    this.singleClick = this.user.singleClick;
-    this.dateFormat = this.user.dateFormat;
+    mutations.setLoading(false);
+    this.darkMode = state.user.darkMode;
+    this.locale = state.user.locale;
+    this.viewMode = state.user.viewMode;
+    this.hideDotfiles = state.user.hideDotfiles;
+    this.singleClick = state.user.singleClick;
+    this.dateFormat = state.user.dateFormat;
   },
   methods: {
-    ...mapMutations(["updateUser", "setLoading"]),
     async updatePassword(event) {
       event.preventDefault();
 
@@ -146,19 +144,21 @@ export default {
       }
 
       try {
-        const data = { id: this.user.id, password: this.password };
-        await api.update(data, ["password"]);
-        this.updateUser(data);
-        this.$showSuccess(this.$t("settings.passwordUpdated"));
+        let newUserSettings = state.user;
+        newUserSettings.id = state.user.id;
+        newUserSettings.password = this.password;
+        await api.update(newUserSettings, ["password"]);
+        muations.updateUser(newUserSettings);
+        showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     async updateSettings(event) {
       event.preventDefault();
       try {
         const data = {
-          id: this.user.id,
+          id: state.user.id,
           locale: this.locale,
           darkMode: this.darkMode,
           viewMode: this.viewMode,
@@ -167,8 +167,7 @@ export default {
           dateFormat: this.dateFormat,
         };
         const shouldReload =
-          rtlLanguages.includes(data.locale) !==
-          rtlLanguages.includes(i18n.locale);
+          rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
         await api.update(data, [
           "locale",
           "darkMode",
@@ -177,13 +176,13 @@ export default {
           "singleClick",
           "dateFormat",
         ]);
-        this.updateUser(data);
+        mutations.updateUser(data);
         if (shouldReload) {
           location.reload();
         }
-        this.$showSuccess(this.$t("settings.settingsUpdated"));
+        showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     updateViewMode(updatedMode) {

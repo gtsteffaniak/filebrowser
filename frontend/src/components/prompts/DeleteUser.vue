@@ -19,22 +19,21 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters, mapMutations, mapState } from "vuex";
 import { users as api } from "@/api";
+import { showSuccess,showError } from "@/notify";
 import buttons from "@/utils/buttons";
+import { state, mutations, getters } from "@/store";
 
 export default {
   name: "delete",
   computed: {
-    ...mapState(["prompts"]),
     currentPrompt() {
-      return this.prompts.length ? this.prompts[this.prompts.length - 1] : null;
+      return getters.currentPrompt();
     },
     user() {
       return this.currentPrompt?.props?.user;
-    }
+    },
   },
   methods: {
     async deleteUser(event) {
@@ -42,14 +41,16 @@ export default {
       try {
         await api.remove(this.user.id);
         this.$router.push({ path: "/settings/users" });
-        this.$showSuccess(this.$t("settings.userDeleted"));
+        showSuccess(this.$t("settings.userDeleted"));
       } catch (e) {
         e.message === "403"
-          ? this.$showError(this.$t("errors.forbidden"), false)
-          : this.$showError(e);
+          ? showError(this.$t("errors.forbidden"), false)
+          : showError(e);
       }
     },
-    ...mapMutations(["closeHovers"]),
+    closeHovers() {
+      mutations.closeHovers();
+    },
     submit: async function () {
       buttons.loading("delete");
 
@@ -65,22 +66,22 @@ export default {
 
         this.closeHovers();
 
-        if (this.selectedCount === 0) {
+        if (getters.selectedCount() === 0) {
           return;
         }
 
         let promises = [];
         for (let index of this.selected) {
-          promises.push(api.remove(this.req.items[index].url));
+          promises.push(api.remove(state.req.items[index].url));
         }
 
         await Promise.all(promises);
         buttons.success("delete");
-        this.$store.commit("setReload", true);
+        mutations.setReload(true); // Handle reload as needed
       } catch (e) {
         buttons.done("delete");
-        this.$showError(e);
-        if (this.isListing) this.$store.commit("setReload", true);
+        showError(e);
+        if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },
   },

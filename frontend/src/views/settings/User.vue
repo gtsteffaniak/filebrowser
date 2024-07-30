@@ -36,14 +36,12 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapState, mapMutations, mapGetters } from "vuex";
+import { mutations,state } from "@/store";
 import { users as api, settings } from "@/api";
-import UserForm from "@/components/settings/UserForm";
-import Errors from "@/views/Errors";
-
-import deepClone from "@/utils/deepclone";
+import UserForm from "@/components/settings/UserForm.vue";
+import Errors from "@/views/Errors.vue";
+import { showSuccess, showError } from "@/notify";
 
 export default {
   name: "user",
@@ -55,9 +53,12 @@ export default {
     return {
       error: null,
       originalUser: null,
-      user: {},
+      user: { perm: {admin: false} },
       showDelete: false,
       createUserDir: false,
+      loading: false, // Replaces Vuex state `loading`
+      currentPrompt: null, // Replaces Vuex getter `currentPrompt`
+      currentPromptName: null, // Replaces Vuex getter `currentPromptName`
     };
   },
   created() {
@@ -65,23 +66,15 @@ export default {
   },
   computed: {
     isNew() {
-      return this.$route.path === "/settings/users/new";
+      return state.route.path === "/settings/users/new";
     },
-    ...mapState(["loading"]),
-    ...mapGetters(["currentPrompt", "currentPromptName"]),
   },
   watch: {
     $route: "fetchData",
-    "user.perm.admin": function () {
-      if (!this.user.perm.admin) return;
-      this.user.lockPassword = false;
-    },
   },
   methods: {
-    ...mapMutations(["closeHovers", "showHover", "setUser", "setLoading"]),
     async fetchData() {
-      this.setLoading(true);
-
+      mutations.setLoading(true);
       try {
         if (this.isNew) {
           let { defaults, createUserDir } = await settings.get();
@@ -89,23 +82,24 @@ export default {
           this.user = {
             ...defaults,
             username: "",
-            passsword: "",
+            password: "",
             rules: [],
             lockPassword: false,
             id: 0,
           };
         } else {
-          const id = this.$route.params.pathMatch;
+          const id = state.route.params.id;
           this.user = { ...(await api.get(id)) };
         }
       } catch (e) {
+        showError(e)
         this.error = e;
       } finally {
-        this.setLoading(false);
+        mutations.setLoading(false);
       }
     },
     deletePrompt() {
-      this.$store.commit("showHover", { prompt: "deleteUser", props: { "user": this.user } });
+      mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
       event.preventDefault();
@@ -118,18 +112,16 @@ export default {
         if (this.isNew) {
           const loc = await api.create(user);
           this.$router.push({ path: loc });
-          this.$showSuccess(this.$t("settings.userCreated"));
+          showSuccess(this.$t("settings.userCreated"));
         } else {
           await api.update(user);
-
-          if (user.id === this.$store.state.user.id) {
-            this.setUser({ ...deepClone(user) });
+          if (user.id === state.user.id) {
+            mutations.setUser(user);
           }
-
-          this.$showSuccess(this.$t("settings.userUpdated"));
+          showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
   },

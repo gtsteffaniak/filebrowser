@@ -22,19 +22,19 @@ var usersAddCmd = &cobra.Command{
 			LockPassword: mustGetBool(cmd.Flags(), "lockPassword"),
 		}
 		servSettings, err := d.store.Settings.GetServer()
-		checkErr(err)
+		checkErr("d.store.Settings.GetServer()", err)
 		// since getUserDefaults() polluted s.Defaults.Scope
 		// which makes the Scope not the one saved in the db
 		// we need the right s.Defaults.Scope here
 		s2, err := d.store.Settings.Get()
-		checkErr(err)
+		checkErr("d.store.Settings.Get()", err)
 
 		userHome, err := s2.MakeUserDir(user.Username, user.Scope, servSettings.Root)
-		checkErr(err)
+		checkErr("s2.MakeUserDir", err)
 		user.Scope = userHome
 
 		err = d.store.Users.Save(user)
-		checkErr(err)
+		checkErr("d.store.Users.Save", err)
 		printUsers([]*users.User{user})
 	}, pythonConfig{}),
 }

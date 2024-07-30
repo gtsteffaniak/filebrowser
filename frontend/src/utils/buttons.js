@@ -2,7 +2,6 @@ function loading(button) {
   let el = document.querySelector(`#${button}-button > i`);
 
   if (el === undefined || el === null) {
-    console.log('Error getting button ' + button)
     return;
   }
 
@@ -24,7 +23,6 @@ function done(button) {
   let el = document.querySelector(`#${button}-button > i`);
 
   if (el === undefined || el === null) {
-    console.log('Error getting button ' + button)
     return;
   }
 
@@ -41,7 +39,6 @@ function success(button) {
   let el = document.querySelector(`#${button}-button > i`);
 
   if (el === undefined || el === null) {
-    console.log('Error getting button ' + button)
     return;
   }
 

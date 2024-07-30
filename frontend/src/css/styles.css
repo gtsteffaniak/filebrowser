@@ -1,6 +1,4 @@
-@import "~normalize.css/normalize.css";
-@import "~noty/lib/noty.css";
-@import "~noty/lib/themes/mint.css";
+@import "normalize.css/normalize.css";
 @import "./_variables.css";
 @import "./_buttons.css";
 @import "./_inputs.css";
@@ -13,6 +11,7 @@
 @import "./upload-files.css";
 @import "./dashboard.css";
 @import "./login.css";
+@import './mobile.css';
 
 .link {
   color: var(--blue);
@@ -168,7 +167,9 @@ main .spinner .bounce2 {
 
 #previewer .preview {
   text-align: center;
-  height: calc(100vh - 4em);
+  max-height: 100%;
+  max-width: 100%;
+  height: 100%;
 }
 
 #previewer .preview pre {
@@ -384,8 +385,6 @@ body.rtl .breadcrumbs .chevron {
   padding: .2rem .5rem;
   margin-left: .5rem;
 }
-
-@import './mobile.css';
 
 /* * * * * * * * * * * * * * * *
  *         RTL overrides       *

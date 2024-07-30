@@ -17,7 +17,6 @@ const resizePreview = window.FileBrowser.ResizePreview;
 const enableExec = window.FileBrowser.EnableExec;
 const origin = window.location.origin;
 
-console.log(window.FileBrowser)
 export {
   name,
   disableExternal,

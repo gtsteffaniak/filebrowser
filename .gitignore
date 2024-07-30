@@ -6,6 +6,8 @@ rice-box.go
 /filebrowser
 /filebrowser.exe
 /frontend/dist
+/frontend/pkg
+/frontend/package-lock.json
 /backend/vendor
 /backend/*.cov
 

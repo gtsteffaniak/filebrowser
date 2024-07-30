@@ -42,23 +42,23 @@ including 'index_end'.`,
 	},
 	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
 		i, err := strconv.Atoi(args[0])
-		checkErr(err)
+		checkErr("strconv.Atoi", err)
 		f := i
 		if len(args) == 2 { //nolint:gomnd
 			f, err = strconv.Atoi(args[1])
-			checkErr(err)
+			checkErr("strconv.Atoi", err)
 		}
 
 		user := func(u *users.User) {
 			u.Rules = append(u.Rules[:i], u.Rules[f+1:]...)
 			err := d.store.Users.Save(u)
-			checkErr(err)
+			checkErr("d.store.Users.Save", err)
 		}
 
 		global := func(s *settings.Settings) {
 			s.Rules = append(s.Rules[:i], s.Rules[f+1:]...)
 			err := d.store.Settings.Save(s)
-			checkErr(err)
+			checkErr("d.store.Settings.Save", err)
 		}
 
 		runRules(d.store, cmd, user, global)

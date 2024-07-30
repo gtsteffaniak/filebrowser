@@ -58,7 +58,7 @@
             <img :src="inlineLink" width="500px" />
           </div>
           <div
-            v-if="isMedia"
+            v-else-if="isMedia"
             class="share__box__element share__box__center share__box__icon"
           >
             <video width="500" height="500" controls>
@@ -120,10 +120,10 @@
             >
             </item>
 
-            <div :class="{ active: $store.state.multiple }" id="multiple-selection">
+            <div :class="{ active: multiple }" id="multiple-selection">
               <p>{{ $t("files.multipleSelectionEnabled") }}</p>
               <div
-                @click="$store.commit('multiple', false)"
+                @click="setMultipleFalse"
                 tabindex="0"
                 role="button"
                 :title="$t('files.clear')"
@@ -148,19 +148,17 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapState, mapMutations, mapGetters } from "vuex";
+import { showSuccess } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
-
-import moment from "moment";
-
-import Breadcrumbs from "@/components/Breadcrumbs";
-import Errors from "@/views/Errors";
+import { fromNow } from "@/utils/moment";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import Errors from "@/views/Errors.vue";
 import QrcodeVue from "qrcode.vue";
 import Item from "@/components/files/ListingItem.vue";
 import Clipboard from "clipboard";
+import { state, getters, mutations } from "@/store";
 
 export default {
   name: "share",
@@ -170,21 +168,23 @@ export default {
     QrcodeVue,
     Errors,
   },
-  data: () => ({
-    error: null,
-    password: "",
-    attemptedPasswordLogin: false,
-    hash: null,
-    token: null,
-    clip: null,
-  }),
+  data() {
+    return {
+      error: null,
+      password: "",
+      attemptedPasswordLogin: false,
+      hash: null,
+      token: null,
+      clip: null,
+    };
+  },
   watch: {
-    $route: function () {
+    $route() {
       this.fetchData();
     },
   },
-  created: function () {
-    const hash = this.$route.params.pathMatch.split("/")[0];
+  created() {
+    const hash = state.route.params.path.at(-1);
     this.hash = hash;
     this.fetchData();
   },
@@ -192,7 +192,7 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      this.$showSuccess(this.$t("success.linkCopied"));
+      showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
@@ -200,117 +200,132 @@ export default {
     this.clip.destroy();
   },
   computed: {
-    ...mapState(["req", "loading", "multiple", "selected"]),
-    ...mapGetters(["selectedCount"]),
-    icon: function () {
-      if (this.req.isDir) return "folder";
-      if (this.req.type === "image") return "insert_photo";
-      if (this.req.type === "audio") return "volume_up";
-      if (this.req.type === "video") return "movie";
+    setMultipleFalse() {
+      return mutations.setMultiple(false);
+    },
+    req() {
+      return state.req; // Access state directly from the store
+    },
+    loading() {
+      return state.loading; // Access state directly from the store
+    },
+    multiple() {
+      return state.multiple; // Access state directly from the store
+    },
+    selected() {
+      return state.selected; // Access state directly from the store
+    },
+    selectedCount() {
+      return getters.selectedCount(); // Access getter directly from the store
+    },
+    icon() {
+      if (state.req.isDir) return "folder";
+      if (state.req.type === "image") return "insert_photo";
+      if (state.req.type === "audio") return "volume_up";
+      if (state.req.type === "video") return "movie";
       return "insert_drive_file";
     },
-    link: function () {
-      return api.getDownloadURL(this.req);
+    link() {
+      return api.getDownloadURL(state.req);
     },
-    inlineLink: function () {
-      return api.getDownloadURL(this.req, true);
+    inlineLink() {
+      return api.getDownloadURL(state.req, true);
     },
-    humanSize: function () {
-      if (this.req.isDir) {
-        return this.req.items.length;
+    humanSize() {
+      if (state.req.isDir) {
+        return state.req.items.length;
       }
-      return getHumanReadableFilesize(this.req.size);
+      return getHumanReadableFilesize(state.req.size);
     },
-    humanTime: function () {
-      return moment(this.req.modified).fromNow();
+    humanTime() {
+      if (state.req.modified === undefined) return 0;
+      return fromNow(state.req.modified, state.user.locale);
     },
-    modTime: function () {
-      return new Date(Date.parse(this.req.modified)).toLocaleString();
+    modTime() {
+      return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
-    isImage: function () {
-      return this.req.type == "image";
+    isImage() {
+      return state.req.type === "image";
     },
-    isMedia: function () {
-      return this.req.type == "video" || this.req.type == "audio";
+    isMedia() {
+      return state.req.type === "video" || state.req.type === "audio";
     },
   },
   methods: {
-    ...mapMutations(["resetSelected", "updateRequest", "setLoading"]),
-    base64: function (name) {
+    base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
-    fetchData: async function () {
+    async fetchData() {
       // Set loading to true and reset the error.
-      this.setLoading(true);
+      mutations.setLoading(true);
       this.error = null;
-      // Reset view information.
-      if (this.user == undefined) {
-        let userData = await api.getPublicUser();
-        this.req.user = userData
-        this.$store.commit("updateRequest", this.req);
-      }
-      this.$store.commit("setReload", false);
-      this.$store.commit("resetSelected");
-      this.$store.commit("multiple", false);
-      this.$store.commit("closeHovers");
 
-      let url = this.$route.path;
+      // Reset view information.
+      if (state.user == undefined) {
+        let userData = await api.getPublicUser();
+        let req = state.req;
+        req.user = userData;
+        mutations.replaceRequest(req);
+      }
+      mutations.setReload(false);
+      mutations.resetSelected();
+      mutations.setMultiple(false);
+      mutations.closeHovers();
+
+      let url = state.route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
+
       try {
         let file = await api.fetchPub(url, this.password);
         file.hash = this.hash;
         this.token = file.token || "";
-        this.updateRequest(file);
+        mutations.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;
       } catch (e) {
         this.error = e;
       } finally {
-        this.setLoading(false);
+        mutations.setLoading(false);
       }
     },
     keyEvent(event) {
       // Esc!
       if (event.keyCode === 27) {
-        // If we're on a listing, unselect all
-        // files and folders.
-        if (this.selectedCount > 0) {
-          this.resetSelected();
+        // If we're on a listing, unselect all files and folders.
+        if (getters.selectedCount() > 0) {
+          mutations.resetSelected();
         }
       }
     },
     toggleMultipleSelection() {
-      this.$store.commit("multiple", !this.multiple);
-    },
-    isSingleFile: function () {
-      return this.selectedCount === 1 && !this.req.items[this.selected[0]].isDir;
+      mutations.setMultiple(!state.multiple);
     },
     download() {
-      if (this.isSingleFile()) {
-        api.download(null, this.hash, this.token, this.req.items[this.selected[0]].path);
+      if (getters.isSingleFileSelected()) {
+        api.download(null, this.hash, this.token, getters.selectedDownloadUrl());
         return;
       }
 
-      this.$store.commit("showHover", {
-        prompt: "download",
+      mutations.showHover({
+        name: "download",
         confirm: (format) => {
-          this.$store.commit("closeHovers");
+          mutations.closeHovers();
 
           let files = [];
 
           for (let i of this.selected) {
-            files.push(this.req.items[i].path);
+            files.push(state.req.items[i].path);
           }
 
           api.download(format, this.hash, this.token, ...files);
         },
       });
     },
-    linkSelected: function () {
-      return this.isSingleFile()
+    linkSelected() {
+      return getters.isSingleFileSelected()
         ? api.getDownloadURL({
             hash: this.hash,
-            path: this.req.items[this.selected[0]].path,
+            path: state.req.items[this.selected[0]].path,
           })
         : "";
     },

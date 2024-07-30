@@ -167,7 +167,6 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		w.Header().Set("ETag", etag)
 		return nil
 	}, "save", r.URL.Path, "", d.user)
-
 	return errToStatus(err), err
 })
 
@@ -271,6 +270,10 @@ func writeFile(fs afero.Fs, dst string, in io.Reader) (os.FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//files.RefreshFileInfo(files.FileOptions{
+	//	Fs: info,
+	//})
 
 	return info, nil
 }

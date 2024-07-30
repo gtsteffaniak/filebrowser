@@ -5,7 +5,7 @@
     </div>
     <div class="card-action">
       <button
-        @click="$store.commit('closeHovers')"
+        @click="closeHovers"
         class="button button--flat button--grey"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
@@ -23,16 +23,21 @@
     </div>
   </div>
 </template>
-
 <script>
-import { mapGetters } from "vuex";
+import { getters } from "@/store"; // Import your custom store
+
 export default {
   name: "share-delete",
   computed: {
-    ...mapGetters(["currentPrompt"]),
+    closeHovers() {
+      return mutations.closeHovers();
+    },
+    currentPrompt() {
+      return getters.currentPrompt();
+    },
   },
   methods: {
-    submit: function () {
+    submit() {
       this.currentPrompt?.confirm();
     },
   },

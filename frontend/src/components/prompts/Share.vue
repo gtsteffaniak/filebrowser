@@ -58,7 +58,7 @@
       <div class="card-action">
         <button
           class="button button--flat button--grey"
-          @click="$store.commit('closeHovers')"
+          @click="closeHovers"
           :aria-label="$t('buttons.close')"
           :title="$t('buttons.close')"
         >
@@ -119,16 +119,16 @@
     </template>
   </div>
 </template>
-
 <script>
-import { mapState, mapGetters } from "vuex";
+import { showSuccess, showError } from "@/notify";
+import { state, getters, mutations } from "@/store";
 import { share as api, pub as pub_api } from "@/api";
-import moment from "moment";
+import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 
 export default {
   name: "share",
-  data: function () {
+  data() {
     return {
       time: "",
       unit: "hours",
@@ -139,22 +139,35 @@ export default {
     };
   },
   computed: {
-    ...mapState(["req", "selected", "selectedCount"]),
-    ...mapGetters(["isListing", "selectedCount"]),
+    closeHovers() {
+      return mutations.closeHovers;
+    },
+    req() {
+      return state.req; // Access state directly
+    },
+    selected() {
+      return state.selected; // Access state directly
+    },
+    selectedCount() {
+      return state.selected.length; // Compute selectedCount directly from state
+    },
+    isListing() {
+      return getters.isListing(); // Access getter directly from the store
+    },
     url() {
       if (!this.isListing) {
-        return this.$route.path;
+        return state.route.path;
       }
-      if (this.selectedCount != 1) {
+      if (getters.selectedCount() !== 1) {
         // selecting current view image
-        return this.$route.path;
+        return state.route.path;
       }
-      return this.req.items[this.selected[0]].url;
+      return state.req.items[this.selected[0]].url;
     },
     getContext() {
-      let path = this.$route.path.replace("/files/", "./");
-      if (this.selectedCount == 1) {
-        path = path + this.req.items[this.selected[0]].name;
+      let path = state.route.path.replace("/files/", "./");
+      if (getters.selectedCount() === 1) {
+        path = path + state.req.items[this.selected[0]].name;
       }
       return path;
     },
@@ -165,25 +178,25 @@ export default {
       this.links = links;
       this.sort();
 
-      if (this.links.length == 0) {
+      if (this.links.length === 0) {
         this.listing = false;
       }
     } catch (e) {
-      this.$showError(e);
+      showError(e);
     }
   },
   mounted() {
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      this.$showSuccess(this.$t("success.linkCopied"));
+      showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
     this.clip.destroy();
   },
   methods: {
-    submit: async function () {
-      let isPermanent = !this.time || this.time == 0;
+    async submit() {
+      let isPermanent = !this.time || this.time === 0;
 
       try {
         let res = null;
@@ -203,30 +216,30 @@ export default {
 
         this.listing = true;
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
-    deleteLink: async function (event, link) {
+    async deleteLink(event, link) {
       event.preventDefault();
       try {
         await api.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
 
-        if (this.links.length == 0) {
+        if (this.links.length === 0) {
           this.listing = false;
         }
       } catch (e) {
-        this.$showError(e);
+        showError(e);
       }
     },
     humanTime(time) {
-      return moment(time * 1000).fromNow();
+      return fromNow(time, state.user.locale);
     },
     buildLink(share) {
       return api.getShareURL(share);
     },
     hasDownloadLink() {
-      return this.selected.length === 1 && !this.req.items[this.selected[0]].isDir;
+      return this.selected.length === 1 && !state.req.items[this.selected[0]].isDir;
     },
     buildDownloadLink(share) {
       return pub_api.getDownloadURL(share);
@@ -239,8 +252,9 @@ export default {
       });
     },
     switchListing() {
-      if (this.links.length == 0 && !this.listing) {
-        this.$store.commit("closeHovers");
+      if (this.links.length === 0 && !this.listing) {
+        // Access the store directly if needed
+        mutations.closeHovers();
       }
 
       this.listing = !this.listing;

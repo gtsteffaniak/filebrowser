@@ -7,13 +7,15 @@
 </template>
 
 <script>
+import { mutations } from "@/store"; // Import your custom store
+
 export default {
   name: "action",
   props: ["icon", "label", "counter", "show"],
   methods: {
     action: function () {
       if (this.show) {
-        this.$store.commit("showHover", this.show);
+        mutations.showHover(this.show);
       }
       this.$emit("action");
     },
