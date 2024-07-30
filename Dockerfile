@@ -1,7 +1,7 @@
 FROM node:slim as nbuild
 WORKDIR /app
 COPY ./frontend/package*.json ./
-RUN npm ci --maxsockets 1
+RUN npm i --maxsockets 1
 COPY  ./frontend/ ./
 RUN npm run build
 
