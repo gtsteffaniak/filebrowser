@@ -15,6 +15,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import { files as api } from "@/api";
 
@@ -88,12 +89,15 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
 
+      let url = state.route.path;
+      if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
       let data = {};
       try {
         // Fetch initial data
         let res = await api.fetch(url);
         // If not a directory, fetch content
+        if (!res.isDir) {
           res = await api.fetch(url, true);
         }
         data = res;
@@ -107,8 +111,6 @@ export default {
         mutations.setLoading(false);
         mutations.replaceRequest(data);
       }
-      mutations.setLoading(false);
-      mutations.replaceRequest(data);
     },
     keyEvent(event) {
       // F1!

@@ -36,11 +36,7 @@
           <span>{{ $t("sidebar.newFile") }}</span>
         </button>
         <!-- Upload button -->
-<<<<<<< HEAD
-        <button id="upload-button" @click="upload($event)" class="action">
-=======
         <button id="upload-button" @click="uploadFunc" class="action">
->>>>>>> patch-bugfix
           <i class="material-icons">file_upload</i>
           <span>Upload file</span>
         </button>
@@ -123,7 +119,6 @@
 </template>
 
 <script>
-import * as upload from "@/utils/upload";
 import * as auth from "@/utils/auth";
 import {
   version,

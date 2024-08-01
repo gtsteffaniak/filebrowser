@@ -25,7 +25,6 @@
 </style>
 <script>
 import { state, mutations, getters } from "@/store";
-import { users, files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
 import Search from "@/components/Search.vue";
 import { showError } from "@/notify";
