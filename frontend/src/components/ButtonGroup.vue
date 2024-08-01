@@ -1,14 +1,18 @@
 <template>
   <div class="button-group">
-    <button
-      v-for="(btn, index) in buttons"
-      :key="index"
-      :disabled="isDisabled"
-      :class="{ active: activeButton === index && !isDisabled }"
-      @click="setActiveButton(index, btn.label)"
-    >
-      {{ btn.label }}
+    <button v-if="isDisabled" disabled>
+      No options for folders
     </button>
+    <template v-else>
+      <button
+        v-for="(btn, index) in buttons"
+        :key="index"
+        :class="{ active: activeButton === index }"
+        @click="setActiveButton(index, btn.label)"
+      >
+        {{ btn.label }}
+      </button>
+    </template>
   </div>
 </template>
 
@@ -101,6 +105,10 @@ button {
 
 button:hover {
   background: #e0e0e0;
+}
+
+button:disabled {
+  cursor: not-allowed !important;
 }
 
 button.active {
