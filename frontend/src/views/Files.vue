@@ -49,7 +49,7 @@ export default {
       return getters.currentView() !== null;
     },
     reload() {
-      return state.reload; // Access reload from state
+      return state.reload;
     },
   },
   created() {
@@ -58,8 +58,8 @@ export default {
   watch: {
     $route: "fetchData",
     reload(value) {
-      if (value === true) {
-        console.log("reloading")
+      if (value) {
+        console.log("reloading");
         this.fetchData();
       }
     },
@@ -78,25 +78,22 @@ export default {
   },
   methods: {
     async fetchData() {
+      // Set loading to true and reset the error.
+      mutations.setLoading(true);
+      this.error = null;
+
       // Reset view information using mutations
       mutations.setReload(false);
       mutations.resetSelected();
       mutations.setMultiple(false);
       mutations.closeHovers();
 
-      // Set loading to true and reset the error.
-      mutations.setLoading(true);
-      this.error = null;
-
-      let url = state.route.path;
-      if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
       let data = {};
       try {
         // Fetch initial data
         let res = await api.fetch(url);
         // If not a directory, fetch content
-        if (!res.isDir) {
           res = await api.fetch(url, true);
         }
         data = res;
@@ -106,6 +103,9 @@ export default {
         }
       } catch (e) {
         this.error = e;
+      } finally {
+        mutations.setLoading(false);
+        mutations.replaceRequest(data);
       }
       mutations.setLoading(false);
       mutations.replaceRequest(data);
@@ -120,3 +120,4 @@ export default {
   },
 };
 </script>
+

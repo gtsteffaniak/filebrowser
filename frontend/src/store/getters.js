@@ -57,10 +57,8 @@ export const getters = {
   },
 
   filesInUploadCount: () => {
-    // Ensure state.upload.uploads is an object and state.upload.queue is an array
-    const uploadsCount = typeof state.upload.uploads === 'object' ? Object.keys(state.upload.uploads).length : 0;
-    const queueCount = Array.isArray(state.upload.queue) ? state.upload.queue.length : 0;
-
+    const uploadsCount = state.upload.length
+    const queueCount = state.queue.length
     return uploadsCount + queueCount;
   },
 

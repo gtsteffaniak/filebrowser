@@ -3,6 +3,10 @@ import { state } from "./state.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 
 export const mutations = {
+  setUpload(value) {
+    state.upload = value;
+    emitStateChanged();
+  },
   setUsage: (value) => {
     state.usage = value;
     emitStateChanged();

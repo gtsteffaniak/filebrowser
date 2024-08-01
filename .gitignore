@@ -10,6 +10,7 @@ rice-box.go
 /frontend/package-lock.json
 /backend/vendor
 /backend/*.cov
+/backend/test_config.yaml
 
 .DS_Store
 node_modules
