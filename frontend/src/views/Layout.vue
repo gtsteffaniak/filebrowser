@@ -18,7 +18,6 @@
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
-    <upload-files></upload-files>
   </div>
   <div class="card" id="popup-notification">
     <i v-on:click="closePopUp" class="material-icons">close</i>
@@ -31,7 +30,6 @@ import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/Sidebar.vue";
-import UploadFiles from "../components/prompts/UploadFiles.vue";
 import { closePopUp } from "@/notify";
 import { enableExec } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
@@ -44,7 +42,6 @@ export default {
     listingBar,
     Sidebar,
     Prompts,
-    UploadFiles,
   },
   data() {
     return {

@@ -43,8 +43,10 @@ export const state = reactive({
   selected: [],
   multiple: false,
   upload: {
-    progress: [], // Array of progress values
-    sizes: [],    // Array of sizes
+    uploads: {},
+    queue: [],
+    progress: [],
+    sizes: [],
   },
   prompts: [],
   show: null,

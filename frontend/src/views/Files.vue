@@ -15,6 +15,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import { files as api } from "@/api";
 
@@ -49,7 +50,7 @@ export default {
       return getters.currentView() !== null;
     },
     reload() {
-      return state.reload; // Access reload from state
+      return state.reload;
     },
   },
   created() {
@@ -58,8 +59,8 @@ export default {
   watch: {
     $route: "fetchData",
     reload(value) {
-      if (value === true) {
-        console.log("reloading")
+      if (value) {
+        console.log("reloading");
         this.fetchData();
       }
     },
@@ -78,15 +79,15 @@ export default {
   },
   methods: {
     async fetchData() {
+      // Set loading to true and reset the error.
+      mutations.setLoading(true);
+      this.error = null;
+
       // Reset view information using mutations
       mutations.setReload(false);
       mutations.resetSelected();
       mutations.setMultiple(false);
       mutations.closeHovers();
-
-      // Set loading to true and reset the error.
-      mutations.setLoading(true);
-      this.error = null;
 
       let url = state.route.path;
       if (url === "") url = "/";
@@ -106,9 +107,10 @@ export default {
         }
       } catch (e) {
         this.error = e;
+      } finally {
+        mutations.setLoading(false);
+        mutations.replaceRequest(data);
       }
-      mutations.setLoading(false);
-      mutations.replaceRequest(data);
     },
     keyEvent(event) {
       // F1!
@@ -120,3 +122,4 @@ export default {
   },
 };
 </script>
+

@@ -1,5 +1,6 @@
-import { state } from "@/store";
+import { state,mutations } from "@/store";
 import url from "@/utils/url";
+import { files as api } from "@/api";
 
 export function checkConflict(files, items) {
   if (typeof items === "undefined" || items === null) {
@@ -101,10 +102,9 @@ export function scanFiles(dt) {
 }
 
 export function handleFiles(files, base, overwrite = false) {
-  for (let i = 0; i < files.length; i++) {
-    let id = state.upload.id;
+  for (const file of files) {
+    const id = state.upload.id;
     let path = base;
-    let file = files[i];
 
     if (file.fullPath !== undefined) {
       path += url.encodePath(file.fullPath);
@@ -119,11 +119,19 @@ export function handleFiles(files, base, overwrite = false) {
     const item = {
       id,
       path,
-      file,
+      file: file.file, // Ensure `file.file` is the Blob or File
       overwrite,
-      ...(!file.isDir && { type: file.type }),
     };
 
-    state.dispatch("upload/upload", item);
+    // Upload the file using your API
+    api.post(item.path, item.file, item.overwrite, (event) => {
+      console.log(`Upload progress: ${Math.round((event.loaded / event.total) * 100)}%`);
+    })
+    .then(response => {
+      console.log("Upload successful:", response);
+    })
+    .catch(error => {
+      console.error("Upload error:", error);
+    });
   }
 }

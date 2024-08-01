@@ -36,7 +36,7 @@
           <span>{{ $t("sidebar.newFile") }}</span>
         </button>
         <!-- Upload button -->
-        <button id="upload-button" @click="upload($event)" class="action">
+        <button id="upload-button" @click="uploadFunc" class="action">
           <i class="material-icons">file_upload</i>
           <span>Upload file</span>
         </button>
@@ -208,42 +208,8 @@ export default {
     help() {
       mutations.showHover("help");
     },
-    // Handle file upload
-    upload(event) {
-      return this.$upload(event);
-    },
-    // Handle files selected for upload
-    uploadInput(event) {
-      mutations.closeHovers();
-
-      let files = event.currentTarget.files;
-      let folder_upload =
-        files[0].webkitRelativePath !== undefined && files[0].webkitRelativePath !== "";
-
-      if (folder_upload) {
-        for (let i = 0; i < files.length; i++) {
-          let file = files[i];
-          files[i].fullPath = file.webkitRelativePath;
-        }
-      }
-
-      let path = getters.getRoutePath();
-      let conflict = upload.checkConflict(files, state.req.items);
-
-      if (conflict) {
-        mutations.showHover({
-          name: "replace",
-          confirm: (event) => {
-            event.preventDefault();
-            mutations.closeHovers();
-            upload.handleFiles(files, path, true);
-          },
-        });
-
-        return;
-      }
-
-      upload.handleFiles(files, path);
+    uploadFunc() {
+      mutations.showHover("upload");
     },
     // Logout the user
     logout: auth.logout,
