@@ -1,11 +1,9 @@
 # Planned Roadmap
 
-Next version (v0.2.7) :
+Next version :
 
 - Replace http routes for gorilla/mux
-- Replace vue-router with simple vanilla js
 - Theme configuration from settings
-- Replace afero requests with std library
 - Add Job status to the sidebar
   - index status.
   - new jobs as they come

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.7
+
+ - **Fix**: [upload file bug](https://github.com/gtsteffaniak/filebrowser/issues/153)
+ - **Change**: make search view and button behavior more consistent.
+
 ## v0.2.6
 
 This change focuses on minimizing and simplifying build process.
