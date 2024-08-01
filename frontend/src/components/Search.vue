@@ -101,8 +101,49 @@
       <div class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
         <div>
-          <!-- Loading icon when search is ongoing -->
-          <p v-show="isEmpty && isRunning" id="renew">
+          <div>
+            <!-- Button groups for filtering search results -->
+            <ButtonGroup
+              :buttons="folderSelect"
+              @button-clicked="addToTypes"
+              @remove-button-clicked="removeFromTypes"
+              @disableAll="folderSelectClicked()"
+              @enableAll="resetButtonGroups()"
+            />
+            <ButtonGroup
+              :buttons="typeSelect"
+              @button-clicked="addToTypes"
+              @remove-button-clicked="removeFromTypes"
+              :isDisabled="isTypeSelectDisabled"
+            />
+            <!-- Inputs for filtering by file size -->
+            <div v-if="!foldersOnly" class="sizeConstraints">
+              <div class="sizeInputWrapper">
+                <p>Smaller Than:</p>
+                <input
+                  class="sizeInput"
+                  v-model="smallerThan"
+                  type="number"
+                  min="0"
+                  placeholder="number"
+                />
+                <p>MB</p>
+              </div>
+              <div class="sizeInputWrapper">
+                <p>Larger Than:</p>
+                <input
+                  class="sizeInput"
+                  v-model="largerThan"
+                  type="number"
+                  placeholder="number"
+                />
+                <p>MB</p>
+              </div>
+            </div>
+          </div>
+        </div>
+                  <!-- Loading icon when search is ongoing -->
+                  <p v-show="isEmpty && isRunning" id="renew">
             <i class="material-icons spin">autorenew</i>
           </p>
           <!-- Message when no results are found -->
@@ -134,47 +175,6 @@
               search times.
             </p>
           </div>
-          <div>
-            <!-- Button groups for filtering search results -->
-            <ButtonGroup
-              :buttons="folderSelect"
-              @button-clicked="addToTypes"
-              @remove-button-clicked="removeFromTypes"
-              @disableAll="folderSelectClicked()"
-              @enableAll="resetButtonGroups()"
-            />
-            <ButtonGroup
-              :buttons="typeSelect"
-              @button-clicked="addToTypes"
-              @remove-button-clicked="removeFromTypes"
-              :isDisabled="isTypeSelectDisabled"
-            />
-            <!-- Inputs for filtering by file size -->
-            <div class="sizeConstraints">
-              <div class="sizeInputWrapper">
-                <p>Smaller Than:</p>
-                <input
-                  class="sizeInput"
-                  v-model="smallerThan"
-                  type="number"
-                  min="0"
-                  placeholder="number"
-                />
-                <p>MB</p>
-              </div>
-              <div class="sizeInputWrapper">
-                <p>Larger Than:</p>
-                <input
-                  class="sizeInput"
-                  v-model="largerThan"
-                  type="number"
-                  placeholder="number"
-                />
-                <p>MB</p>
-              </div>
-            </div>
-          </div>
-        </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li
@@ -249,6 +249,15 @@ export default {
     };
   },
   watch: {
+    largerThan() {
+      this.submit();
+    },
+    smallerThan() {
+      this.submit();
+    },
+    searchTypes() {
+      this.submit();
+    },
     active(active) {
       const resultList = document.getElementById("result-list");
       if (!active) {
@@ -286,6 +295,9 @@ export default {
     },
   },
   computed: {
+    foldersOnly() {
+      return this.isTypeSelectDisabled
+    },
     active() {
       return getters.currentPromptName() === "search";
     },
@@ -363,6 +375,7 @@ export default {
       mutations.showHover("search");
     },
     close(event) {
+      this.value = "";
       event.stopPropagation();
       mutations.closeHovers();
     },
@@ -402,7 +415,9 @@ export default {
     },
     async submit(event) {
       this.showHelp = false;
-      event.preventDefault();
+      if (event != undefined) {
+        event.preventDefault();
+      }
       if (this.value === "" || this.value.length < 3) {
         this.ongoing = false;
         this.results = [];
@@ -637,6 +652,10 @@ body.rtl #search #result ul > * {
   border-bottom-style: none;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+input.sizeInput:disabled {
+  cursor: not-allowed;
 }
 
 /* Search Input Placeholder */
