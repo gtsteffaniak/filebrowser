@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  showSidebar: false,
   usage: {
     used: "0 B",
     total: "0 B",
@@ -9,6 +10,7 @@ export const state = reactive({
   },
   editor: null,
   user: {
+    stickySidebar: false,
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'mosaic', // Default to mosaic view
     hideDotfiles: false, // Default to false, assuming this is a boolean
@@ -37,7 +39,6 @@ export const state = reactive({
     items: [],
   },
   jwt: "",
-  progress: 0,
   loading: false,
   reload: false,
   selected: [],
@@ -50,7 +51,6 @@ export const state = reactive({
   },
   prompts: [],
   show: null,
-  showShell: false,
   showConfirm: null,
   route: {},
 });

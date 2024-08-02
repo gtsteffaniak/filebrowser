@@ -1,8 +1,28 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
+import { users } from "@/api";
 
 export const mutations = {
+  toggleDarkMode() {
+    mutations.updateUser({ "darkMode": !state.user.darkMode });
+    emitStateChanged();
+  },
+  toggleSidebar() {
+    if (!state.showSidebar && state.user.stickySidebar) {
+      state.user.stickySidebar = false;
+      mutations.updateUser({ "stickySidebar": false }); // turn off sticky when closed
+      return
+    }
+    state.showSidebar = !state.showSidebar;
+    emitStateChanged();
+  },
+  closeSidebar() {
+    if (state.showSidebar) {
+      state.showSidebar = false;
+      emitStateChanged();
+    }
+  },
   setUpload(value) {
     state.upload = value;
     emitStateChanged();
@@ -60,9 +80,12 @@ export const mutations = {
     if (locale === "") {
       locale = i18n.detectLocale();
     }
-    i18n.setLocale(locale);
-    i18n.default.locale = locale;
+    let previousUser = state.user
     state.user = value;
+    if (state.user != previousUser) {
+      console.log("diff check",state.user,previousUser)
+      users.update(state.user);
+    }
     emitStateChanged();
   },
   setJWT: (value) => {
@@ -97,11 +120,15 @@ export const mutations = {
     if (state.user === null) {
       state.user = {};
     }
-    for (let field in value) {
-      if (field === "locale") {
-        i18n.setLocale(value[field]);
-      }
-      state.user[field] = value[field];
+    let previousUser = state.user;
+    state.user = { ...state.user, ...value };
+    if (state.user.locale !== previousUser.locale) {
+      i18n.setLocale(state.user.locale);
+      i18n.default.locale = state.user.locale;
+    }
+    if (state.user != previousUser) {
+      console.log("diff check2",state.user,previousUser)
+      users.update(state.user);
     }
     emitStateChanged();
   },

@@ -1,6 +1,8 @@
 import { state } from "./state.js";
 
 export const getters = {
+  isMobile: () => window.innerWidth <= 800,
+  isSidebarVisible: () => state.showSidebar || state.user.stickySidebar,
   isDarkMode: () => {
     if (state.user == null) {
       return true;
@@ -16,6 +18,11 @@ export const getters = {
   selectedDownloadUrl() {
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
+  },
+  showOverlay: () => {
+    const hasPrompt = getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
+    const sidebarHover = (!state.user.stickySidebar && state.showSidebar) || getters.isMobile();
+    return hasPrompt || sidebarHover;
   },
   getRoutePath: () => {
     return state.route.path.endsWith("/")

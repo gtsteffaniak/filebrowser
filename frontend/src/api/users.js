@@ -24,6 +24,7 @@ export async function create(user) {
 }
 
 export async function update(user, which = ["all"]) {
+  console.log("updating user", which);
   await fetchURL(`/api/users/${user.id}`, {
     method: "PUT",
     body: JSON.stringify({

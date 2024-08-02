@@ -1,5 +1,6 @@
 <template>
   <div id="search" @click="open" :class="{ active, ongoing, 'dark-mode': isDarkMode }">
+  
     <!-- Search input section -->
     <div id="input">
       <!-- Close button visible when search is active -->
@@ -326,7 +327,8 @@ export default {
         : this.$t("search.pressToSearch");
     },
     isMobile() {
-      return this.width <= 800;
+      console.log("mobile is", getters.isMobile());
+      return getters.isMobile();
     },
     isRunning() {
       return this.ongoing;
@@ -534,7 +536,7 @@ export default {
 /* Search */
 #search {
   background-color: unset !important;
-  z-index: 3;
+  z-index: 5;
   position: fixed;
   top: 0.5em;
   min-width: 35em;
