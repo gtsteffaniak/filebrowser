@@ -29,7 +29,12 @@
     </div>
 
     <!-- Search results for mobile -->
-    <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
+    <div
+      v-if="state.isMobile && active"
+      id="result"
+      :class="{ hidden: !active }"
+      ref="result"
+    >
       <div id="result-list">
         <div class="button" style="width: 100%">Search Context: {{ getContext }}</div>
         <!-- List of search results -->
@@ -97,7 +102,7 @@
     </div>
 
     <!-- Search results for desktop -->
-    <div v-show="!isMobile && active" id="result-desktop" ref="result">
+    <div v-show="!state.isMobile && active" id="result-desktop" ref="result">
       <div class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
         <div>
@@ -241,7 +246,6 @@ export default {
         { label: "Archives", value: "type:archive" },
       ],
       value: "",
-      width: window.innerWidth,
       ongoing: false,
       results: [],
       reload: false,
@@ -299,7 +303,8 @@ export default {
       return this.isTypeSelectDisabled;
     },
     active() {
-      return getters.currentPromptName() === "search";
+      console.log("calling active ", getters.currentPromptName());
+      return getters.currentPromptName() == "search";
     },
     showOverlay() {
       return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
@@ -325,9 +330,6 @@ export default {
         ? this.$t("search.typeToSearch")
         : this.$t("search.pressToSearch");
     },
-    isMobile() {
-      return getters.isMobile();
-    },
     isRunning() {
       return this.ongoing;
     },
@@ -342,11 +344,7 @@ export default {
       return path;
     },
   },
-
   methods: {
-    handleResize() {
-      this.width = window.innerWidth;
-    },
     async navigateTo(url) {
       mutations.closeHovers();
       await this.$nextTick();
@@ -403,7 +401,7 @@ export default {
         return false;
       }
       this.searchTypes = this.searchTypes.replace(string + " ", "");
-      if (this.isMobile) {
+      if (state.isMobile) {
         this.$refs.input.focus();
       }
     },
@@ -446,12 +444,6 @@ export default {
     toggleHelp() {
       this.showHelp = !this.showHelp;
     },
-  },
-  mounted() {
-    window.addEventListener("resize", this.handleResize);
-  },
-  beforeUnmount() {
-    window.removeEventListener("resize", this.handleResize);
   },
 };
 </script>
