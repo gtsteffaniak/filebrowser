@@ -14,7 +14,7 @@
     ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
-    <search v-if="currentView == 'listingView'"></search>
+    <search v-if="showSearch"></search>
     <main :class="{ 'dark-mode': isDarkMode, moveWithSidebar: moveWithSidebar }">
       <router-view></router-view>
     </main>
@@ -58,7 +58,13 @@ export default {
       itemWeight: 0,
     };
   },
+  mounted() {
+    window.addEventListener("resize", this.updateIsMobile);
+  },
   computed: {
+    showSearch() {
+      return getters.isFiles() && getters.isLoggedIn();
+    },
     isLoggedIn() {
       return getters.isLoggedIn();
     },
@@ -114,6 +120,10 @@ export default {
     },
   },
   methods: {
+    updateIsMobile() {
+      console.log("setting");
+      mutations.setMobile();
+    },
     resetPrompts() {
       mutations.closeSidebar();
       mutations.closeHovers();

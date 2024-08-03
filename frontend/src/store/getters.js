@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 
 export const getters = {
-  isMobile: () => window.innerWidth <= 800,
+  isMobile: () => state.isMobile,
   isDarkMode: () => {
     if (state.user == null) {
       return true;
@@ -24,15 +24,23 @@ export const getters = {
     if (!getters.isLoggedIn()) {
       return false
     }
-    return state.showSidebar || state.user.stickySidebar
+    return state.showSidebar || getters.isStickySidebar()
+  },
+  isStickySidebar: () => {
+    if (getters.isMobile()) {
+      return false
+    }
+    if (!getters.isLoggedIn()) {
+      return true
+    }
+    return state.user?.stickySidebar
   },
   showOverlay: () => {
     if (!getters.isLoggedIn()) {
       return false
     }
     const hasPrompt = getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
-    const sidebarHover = (!state.user.stickySidebar && state.showSidebar) || getters.isMobile();
-    return hasPrompt || sidebarHover;
+    return hasPrompt || getters.isSidebarVisible();
   },
   getRoutePath: () => {
     return state.route.path.endsWith("/")

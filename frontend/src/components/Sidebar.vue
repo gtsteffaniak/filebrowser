@@ -4,45 +4,49 @@
     :class="{ active: active, 'dark-mode': isDarkMode, sticky: user?.stickySidebar }"
   >
     <div class="card">
-      <button
-        v-if="user.username"
-        @click="navigateTo('/settings/profile')"
-        class="action"
-      >
-        <i class="material-icons">person</i>
-        <span>{{ user.username }}</span>
-      </button>
+      <div class="card-wrapper">
+        <button
+          v-if="user.username"
+          @click="navigateTo('/settings/profile')"
+          class="action"
+        >
+          <i class="material-icons">person</i>
+          <span>{{ user.username }}</span>
+        </button>
+      </div>
     </div>
-
-    <div class="card card-wrapper" @mouseleave="resetHoverTextToDefault">
-      <span>{{ hoverText }}</span>
-      <div class="quick-toggles">
-        <div
-          :class="{ active: user?.singleClick }"
-          @click="toggleClick"
-          @mouseover="updateHoverText('Toggle single click')"
-        >
-          <i class="material-icons">ads_click</i>
-        </div>
-        <div
-          :class="{ active: user?.darkMode }"
-          @click="toggleDarkMode"
-          @mouseover="updateHoverText('Toggle dark mode')"
-        >
-          <i class="material-icons">dark_mode</i>
-        </div>
-        <div
-          :class="{ active: user?.stickySidebar }"
-          @click="toggleSticky"
-          @mouseover="updateHoverText('Toggle sticky sidebar')"
-        >
-          <i class="material-icons">push_pin</i>
+    <div class="card">
+      <div class="card-wrapper" @mouseleave="resetHoverTextToDefault">
+        <span>{{ hoverText }}</span>
+        <div class="quick-toggles">
+          <div
+            :class="{ active: user?.singleClick }"
+            @click="toggleClick"
+            @mouseover="updateHoverText('Toggle single click')"
+          >
+            <i class="material-icons">ads_click</i>
+          </div>
+          <div
+            :class="{ active: user?.darkMode }"
+            @click="toggleDarkMode"
+            @mouseover="updateHoverText('Toggle dark mode')"
+          >
+            <i class="material-icons">dark_mode</i>
+          </div>
+          <div
+            :class="{ active: user?.stickySidebar }"
+            @click="toggleSticky"
+            @mouseover="updateHoverText('Toggle sticky sidebar')"
+            v-if="!isMobile"
+          >
+            <i class="material-icons">push_pin</i>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Section for logged-in users -->
-    <div v-if="isLoggedIn">
+    <div v-if="isLoggedIn" class="sidebar-scroll-list">
       <!-- Buttons visible if user has create permission -->
       <div v-if="user.perm?.create">
         <!-- New Folder button -->
@@ -97,7 +101,7 @@
           <span>{{ $t("sidebar.logout") }}</span>
         </button>
       </div>
-      <div class="sources card card-wrapper">
+      <div v-if="isLoggedIn" class="sources card">
         <span>Sources</span>
         <div class="inner-card">
           <!-- My Files button -->
@@ -120,7 +124,7 @@
     </div>
 
     <!-- Section for non-logged-in users -->
-    <div v-else>
+    <div v-else class="sidebar-scroll-list">
       <!-- Login button -->
       <router-link
         class="action"
@@ -145,10 +149,8 @@
     </div>
 
     <div class="buffer"></div>
-    <!-- Credits and usage information section -->
-    <div class="credits" v-if="isFiles && !disableUsedPercentage && usage">
-      <span v-if="disableExternal">File Browser</span>
-      <span v-else>
+    <div class="credits">
+      <span>
         <a
           rel="noopener noreferrer"
           target="_blank"
@@ -192,9 +194,14 @@ export default {
     };
   },
   mounted() {
-    this.updateUsage();
+    if (getters.isLoggedIn()) {
+      this.updateUsage();
+    }
   },
   computed: {
+    isMobile() {
+      return getters.isMobile();
+    },
     isFiles() {
       return getters.isFiles();
     },
@@ -294,6 +301,10 @@ export default {
 </script>
 
 <style>
+.sidebar-scroll-list {
+  overflow: scroll;
+  margin-bottom: 0px !important;
+}
 #sidebar {
   top: 0;
   display: flex;
@@ -344,10 +355,13 @@ body.rtl nav {
   margin-bottom: 0.5em;
 }
 
+#sidebar .card {
+  overflow: unset !important;
+}
+
 #sidebar .action {
   width: 100%;
   display: block;
-  padding: 0.5em;
   white-space: nowrap;
   height: 100%;
   overflow: hidden;
@@ -369,7 +383,7 @@ body.rtl .action {
 .credits {
   font-size: 1em;
   color: var(--textSecondary);
-  padding: 1em;
+  padding-left: 1em;
 }
 
 .credits > span {
@@ -392,7 +406,7 @@ body.rtl .action {
   display: flex;
   justify-content: space-evenly;
   width: 100%;
-  padding-bottom: 1em !important;
+  margin-top: 0.5em !important;
 }
 
 .quick-toggles button {
@@ -402,16 +416,20 @@ body.rtl .action {
 }
 
 .card-wrapper {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 0.5em;
+  padding: 1em !important;
+  min-height: 4em;
+  box-shadow: 0 2px 2px #00000024, 0 1px 5px #0000001f, 0 3px 1px -2px #0003;
+  /* overflow: auto; */
+  border-radius: 1em;
+  height: 100%;
 }
 
 .sources {
-  padding: 0.5em;
-  margin-top: 0.5em;
+  padding: 1em;
 }
 
 .inner-card {

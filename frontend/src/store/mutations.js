@@ -4,6 +4,11 @@ import { emitStateChanged } from './eventBus'; // Import the function from event
 import { users } from "@/api";
 
 export const mutations = {
+  setMobile() {
+    state.mobile = window.innerWidth <= 800
+    console.log("state updated",state.mobile)
+    emitStateChanged();
+  },
   toggleDarkMode() {
     mutations.updateUser({ "darkMode": !state.user.darkMode });
     emitStateChanged();

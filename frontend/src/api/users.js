@@ -27,6 +27,9 @@ export async function update(user, which = ["all"]) {
   if (which[0] != "password") {
     user.password = "";
   }
+  if (user.username == "publicUser") {
+    return
+  }
   console.log("updating user",user,which)
   await fetchURL(`/api/users/${user.id}`, {
     method: "PUT",
