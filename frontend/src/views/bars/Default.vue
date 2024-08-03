@@ -221,13 +221,6 @@ export default {
       let uri = url.removeLastDir(state.route.path) + "/";
       this.$router.push({ path: uri });
     },
-    toggleSidebar() {
-      if (state.show == "sidebar") {
-        mutations.closeHovers();
-      } else {
-        mutations.showHover("sidebar");
-      }
-    },
     base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));
     },

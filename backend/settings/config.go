@@ -71,6 +71,7 @@ func setDefaults() Settings {
 			},
 		},
 		UserDefaults: UserDefaults{
+			StickySidebar:   true,
 			Scope:           ".",
 			LockPassword:    false,
 			HideDotfiles:    true,
@@ -92,6 +93,7 @@ func setDefaults() Settings {
 
 // Apply applies the default options to a user.
 func (d *UserDefaults) Apply(u *users.User) {
+	u.StickySidebar = d.StickySidebar
 	u.DisableSettings = d.DisableSettings
 	u.DarkMode = d.DarkMode
 	u.Scope = d.Scope

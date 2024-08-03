@@ -1,13 +1,16 @@
 import { state } from "./state.js";
 
 export const getters = {
+  isMobile: () => window.innerWidth <= 800,
   isDarkMode: () => {
     if (state.user == null) {
       return true;
     }
     return state.user.darkMode === true;
   },
-  isLoggedIn: () => state.user !== null,
+  isLoggedIn: () => {
+    return state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser";
+  },
   isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => state.route.name === "Files",
   isListing: () => getters.isFiles() && state.req.isDir,
@@ -16,6 +19,20 @@ export const getters = {
   selectedDownloadUrl() {
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
+  },
+  isSidebarVisible: () => {
+    if (!getters.isLoggedIn()) {
+      return false
+    }
+    return state.showSidebar || state.user.stickySidebar
+  },
+  showOverlay: () => {
+    if (!getters.isLoggedIn()) {
+      return false
+    }
+    const hasPrompt = getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
+    const sidebarHover = (!state.user.stickySidebar && state.showSidebar) || getters.isMobile();
+    return hasPrompt || sidebarHover;
   },
   getRoutePath: () => {
     return state.route.path.endsWith("/")
@@ -57,10 +74,8 @@ export const getters = {
   },
 
   filesInUploadCount: () => {
-    // Ensure state.upload.uploads is an object and state.upload.queue is an array
-    const uploadsCount = typeof state.upload.uploads === 'object' ? Object.keys(state.upload.uploads).length : 0;
-    const queueCount = Array.isArray(state.upload.queue) ? state.upload.queue.length : 0;
-
+    const uploadsCount = state.upload.length
+    const queueCount = state.queue.length
     return uploadsCount + queueCount;
   },
 

@@ -1,4 +1,12 @@
 /* Basic Styles */
+:root {
+  --background: white;
+  --surfacePrimary: gray;
+  --surfaceSecondary: lightgray;
+  --textPrimary: white;
+  --textSecondary: gray;
+}
+
 body {
   font-family: "Roboto", sans-serif;
   padding-top: 4em;
@@ -66,57 +74,6 @@ over
   padding-bottom: 4em;
 }
 
-/* Navigation Styles */
-nav {
-  width: 18em;
-  position: fixed;
-  top: 0;
-  padding-top: 4em;
-  left: -19em;
-  z-index: 4;
-  background: #fff;
-  height: 100%;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  transition: .1s ease left;
-}
-
-body.rtl nav {
-  left: unset;
-  right: -17em;
-}
-
-nav.active {
-  left: 0;
-}
-
-body.rtl nav.active {
-  left: unset;
-  right: 0;
-}
-
-nav > div {
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-nav .action {
-  width: 100%;
-  display: block;
-  border-radius: 0;
-  font-size: 1.1em;
-  padding: 0.5em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-body.rtl .action {
-  direction: rtl;
-  text-align: right;
-}
-
-nav .action > * {
-  vertical-align: middle;
-}
 
 /* Main Content */
 main {
@@ -188,22 +145,6 @@ body.rtl .breadcrumbs a {
 
 
 
-/* File Selection */
-#file-selection {
-  box-shadow: rgba(0, 0, 0, 0.3) 0px 2em 50px 10px;
-  position: fixed;
-  bottom: 1em;
-  left: 50%;
-  transform: translateX(-50%);
-  align-items: center;
-  background: #fff;
-  max-width: 30em;
-  z-index: 1;
-  border-radius: 1em;
-  display: flex;
-  width: 90%;
-}
-
 button {
   flex: 1;
   height: 3em;
@@ -211,31 +152,13 @@ button {
   border: none;
   background-color: #f5f5f5;
   transition: background-color 0.3s;
-
   /* Add borders */
   border-right: 1px solid #ccc;
 }
 
-@media (min-width: 800px) {
-  #file-selection {
-    bottom: 4em;
-  }
-}
-
-#file-selection .action {
-  border-radius: 50%;
-  width: auto;
-}
-
-#file-selection > span {
-  display: inline-block;
-  margin-left: 1em;
-  color: #6f6f6f;
-  margin-right: auto;
-}
-
-#file-selection .action span {
-  display: none;
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 #popup-notification {

@@ -5,13 +5,14 @@
       icon="menu"
       :label="$t('buttons.toggleSidebar')"
       @action="toggleSidebar()"
+      :disabled="showOverlay"
     />
-    <search />
     <action
       class="menu-button"
       icon="grid_view"
       :label="$t('buttons.switchView')"
       @action="switchView"
+      :disabled="showOverlay"
     />
   </header>
 </template>
@@ -25,16 +26,13 @@
 </style>
 <script>
 import { state, mutations, getters } from "@/store";
-import { users, files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
-import Search from "@/components/Search.vue";
 import { showError } from "@/notify";
 
 export default {
   name: "listingView",
   components: {
     Action,
-    Search,
   },
   data: function () {
     return {
@@ -43,6 +41,9 @@ export default {
     };
   },
   computed: {
+    showOverlay() {
+      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
+    },
     viewIcon() {
       const icons = {
         list: "view_module",
@@ -71,21 +72,15 @@ export default {
       }
     },
     toggleSidebar() {
-      if (getters.currentPromptName() === "sidebar") {
-        mutations.closeHovers();
-      } else {
-        mutations.showHover("sidebar");
-      }
+      mutations.toggleSidebar();
     },
     async switchView() {
       mutations.closeHovers();
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
-      let data = state.user;
-      data.viewMode = this.viewModes[nextIndex];
+      const newView = this.viewModes[nextIndex];
       try {
-        users.update(data, ["viewMode"]);
-        mutations.setUser(data);
+        mutations.updateUser({ viewMode: newView });
       } catch (e) {
         showError(e);
       }

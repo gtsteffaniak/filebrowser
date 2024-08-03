@@ -237,7 +237,6 @@ body.rtl #listingView {
 #listingView.compact .header,
 #listingView.list .header {
   border: 1px solid rgba(0, 0, 0, .1);
-  border-color: var(--divider);
 }
 
 #listingView.compact .header>div:first-child {
@@ -315,8 +314,9 @@ body.rtl #listingView {
 
 #listingView .header {
   display: none;
-  background: var(--surfacePrimary);
+  background: white;
   border-radius: 1em;
+  border: 1px solid rgba(0, 0, 0, .1);
 }
 
 #listingView.list .header i {
@@ -334,9 +334,7 @@ body.rtl #listingView {
   padding: .85em;
   width: 100%;
 }
-#listingView.compact .header {
 
-}
 #listingView.list .item:first-child {
   margin-top: .5em;
   border-top-left-radius: 1em;

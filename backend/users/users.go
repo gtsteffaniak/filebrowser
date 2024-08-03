@@ -28,6 +28,7 @@ type Sorting struct {
 
 // User describes a user.
 type User struct {
+	StickySidebar   bool         `json:"stickySidebar"`
 	DarkMode        bool         `json:"darkMode"`
 	DisableSettings bool         `json:"disableSettings"`
 	ID              uint         `storm:"id,increment" json:"id"`
