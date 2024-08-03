@@ -163,12 +163,10 @@ import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { showError } from "@/notify";
 
-import Action from "@/components/header/Action.vue";
 import Item from "@/components/files/ListingItem.vue";
 export default {
   name: "listingView",
   components: {
-    Action,
     Item,
   },
   data() {
@@ -567,10 +565,6 @@ export default {
     },
     openSearch() {
       this.currentPrompt = "search";
-    },
-    toggleMultipleSelection() {
-      mutations.setMultiple(!state.multiple);
-      mutations.closeHovers();
     },
     windowsResize: throttle(function () {
       this.colunmsResize();

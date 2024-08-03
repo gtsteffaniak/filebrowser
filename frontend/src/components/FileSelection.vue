@@ -85,6 +85,10 @@ export default {
     },
   },
   methods: {
+    toggleMultipleSelection() {
+      mutations.setMultiple(!state.multiple);
+      mutations.closeHovers();
+    },
     download() {
       if (getters.isSingleFileSelected()) {
         api.download(null, getters.selectedDownloadUrl());
