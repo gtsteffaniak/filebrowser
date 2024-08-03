@@ -1,60 +1,5 @@
 <template>
   <div style="padding-bottom: 5em">
-    <div v-if="selectedCount > 0" id="file-selection">
-      <span>{{ selectedCount }} selected</span>
-      <div>
-        <action
-          v-if="headerButtons.select"
-          icon="info"
-          :label="$t('buttons.info')"
-          show="info"
-        />
-        <action
-          v-if="headerButtons.select"
-          icon="check_circle"
-          :label="$t('buttons.selectMultiple')"
-          @action="toggleMultipleSelection"
-        />
-        <action
-          v-if="headerButtons.download"
-          icon="file_download"
-          :label="$t('buttons.download')"
-          @action="download"
-          :counter="selectedCount"
-        />
-        <action
-          v-if="headerButtons.share"
-          icon="share"
-          :label="$t('buttons.share')"
-          show="share"
-        />
-        <action
-          v-if="headerButtons.rename"
-          icon="mode_edit"
-          :label="$t('buttons.rename')"
-          show="rename"
-        />
-        <action
-          v-if="headerButtons.copy"
-          icon="content_copy"
-          :label="$t('buttons.copyFile')"
-          show="copy"
-        />
-        <action
-          v-if="headerButtons.move"
-          icon="forward"
-          :label="$t('buttons.moveFile')"
-          show="move"
-        />
-        <action
-          v-if="headerButtons.delete"
-          icon="delete"
-          :label="$t('buttons.delete')"
-          show="delete"
-        />
-      </div>
-    </div>
-
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -94,7 +39,7 @@
         :class="listingViewMode + ' file-icons'"
       >
         <div>
-          <div class="header">
+          <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }" >
               <p
                 :class="{ active: nameSorted }"
                 class="name"
@@ -209,13 +154,7 @@
   </div>
 </template>
 
-<style>
-.header-items {
-  width: 100% !important;
-  max-width: 100% !important;
-  justify-content: center;
-}
-</style>
+
 <script>
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
@@ -224,12 +163,10 @@ import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { showError } from "@/notify";
 
-import Action from "@/components/header/Action.vue";
 import Item from "@/components/files/ListingItem.vue";
 export default {
   name: "listingView",
   components: {
-    Action,
     Item,
   },
   data() {
@@ -241,6 +178,9 @@ export default {
     };
   },
   computed: {
+    isDarkMode() {
+      return state.user?.darkMode;
+    },
     getMultiple() {
       return state.multiple;
     },
@@ -321,18 +261,7 @@ export default {
     listingViewMode() {
       return state.user?.viewMode;
     },
-    headerButtons() {
-      return {
-        select: state.selected.length > 0,
-        upload: state.user.perm?.create && state.selected.length > 0,
-        download: state.user.perm.download && state.selected.length > 0,
-        delete: state.selected.length > 0 && state.user.perm.delete,
-        rename: state.selected.length === 1 && state.user.perm.rename,
-        share: state.selected.length === 1 && state.user.perm.share,
-        move: state.selected.length > 0 && state.user.perm.rename,
-        copy: state.selected.length > 0 && state.user.perm?.create,
-      };
-    },
+
     selectedCount() {
       return state.selected.length;
     },
@@ -637,38 +566,12 @@ export default {
     openSearch() {
       this.currentPrompt = "search";
     },
-    toggleMultipleSelection() {
-      mutations.setMultiple(!state.multiple);
-      mutations.closeHovers();
-    },
     windowsResize: throttle(function () {
       this.colunmsResize();
       this.width = window.innerWidth;
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
     }, 100),
-    download() {
-      if (getters.isSingleFileSelected()) {
-        api.download(null, getters.selectedDownloadUrl());
-        return;
-      }
-      mutations.showHover({
-        name: "download",
-        confirm: (format) => {
-          mutations.closeHovers();
-          let files = [];
-          if (state.selected.length > 0) {
-            for (let i of state.selected) {
-              files.push(state.req.items[i].url);
-            }
-          } else {
-            files.push(state.route.path);
-          }
-
-          api.download(format, ...files);
-        },
-      });
-    },
     upload() {
       if (
         typeof window.DataTransferItem !== "undefined" &&
@@ -682,3 +585,15 @@ export default {
   },
 };
 </script>
+
+<style>
+.dark-mode-item-header {
+  border-color: var(--divider) !important;
+  background: var(--surfacePrimary) !important;
+}
+.header-items {
+  width: 100% !important;
+  max-width: 100% !important;
+  justify-content: center;
+}
+</style>

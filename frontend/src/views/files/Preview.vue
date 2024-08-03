@@ -155,6 +155,9 @@ export default {
   },
   watch: {
     $route() {
+      if (!getters.isLoggedIn()) {
+        return;
+      }
       this.updatePreview();
       this.toggleNavigation();
     },

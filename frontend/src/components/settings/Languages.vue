@@ -1,12 +1,12 @@
 <template>
-  <select v-on:change="change" :value="locale">
+  <select @change="change" :value="locale">
     <option v-for="(value, label) in locales" :key="label" :value="label">
       {{ $t("languages." + label) }}
     </option>
   </select>
 </template>
 
-<script lang="ts">
+<script>
 import { defineComponent } from "vue";
 
 export default defineComponent({
@@ -47,8 +47,8 @@ export default defineComponent({
     };
   },
   methods: {
-    change(event: Event) {
-      const target = event.target as HTMLSelectElement;
+    change(event) {
+      const target = event.target;
       this.$emit("update:locale", target.value);
     },
   },

@@ -55,7 +55,6 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 	if len(fields) == 0 {
 		return st.Save(user)
 	}
-
 	for _, field := range fields {
 		userField := reflect.ValueOf(user).Elem().FieldByName(field)
 		if !userField.IsValid() {
@@ -63,10 +62,9 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 		}
 		val := userField.Interface()
 		if err := st.db.UpdateField(user, field, val); err != nil {
-			return err
+			return fmt.Errorf("Error updating user field: %s, error: %v", field, err.Error())
 		}
 	}
-
 	return nil
 }
 

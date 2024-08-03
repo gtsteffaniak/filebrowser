@@ -101,39 +101,6 @@
       <div class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
         <div>
-          <!-- Loading icon when search is ongoing -->
-          <p v-show="isEmpty && isRunning" id="renew">
-            <i class="material-icons spin">autorenew</i>
-          </p>
-          <!-- Message when no results are found -->
-          <div class="searchPrompt" v-show="isEmpty && !isRunning">
-            <p>{{ noneMessage }}</p>
-            <div class="helpButton" @click="toggleHelp()">Help</div>
-          </div>
-          <!-- Help text section -->
-          <div class="helpText" v-if="showHelp">
-            <p>
-              Search occurs on each character you type (3 character minimum for search
-              terms).
-            </p>
-            <p>
-              <b>The index:</b> Search utilizes the index which automatically gets updated
-              on the configured interval (default: 5 minutes). Searching when the program
-              has just started may result in incomplete results.
-            </p>
-            <p>
-              <b>Filter by type:</b> You can have multiple type filters by adding
-              <code>type:condition</code> followed by search terms.
-            </p>
-            <p>
-              <b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
-              for example <code>"test|not"</code> searches for both terms independently.
-            </p>
-            <p>
-              <b>File size:</b> Searching files by size may have significantly longer
-              search times.
-            </p>
-          </div>
           <div>
             <!-- Button groups for filtering search results -->
             <ButtonGroup
@@ -150,7 +117,7 @@
               :isDisabled="isTypeSelectDisabled"
             />
             <!-- Inputs for filtering by file size -->
-            <div class="sizeConstraints">
+            <div v-if="!foldersOnly" class="sizeConstraints">
               <div class="sizeInputWrapper">
                 <p>Smaller Than:</p>
                 <input
@@ -174,6 +141,39 @@
               </div>
             </div>
           </div>
+        </div>
+        <!-- Loading icon when search is ongoing -->
+        <p v-show="isEmpty && isRunning" id="renew">
+          <i class="material-icons spin">autorenew</i>
+        </p>
+        <!-- Message when no results are found -->
+        <div class="searchPrompt" v-show="isEmpty && !isRunning">
+          <p>{{ noneMessage }}</p>
+          <div class="helpButton" @click="toggleHelp()">Help</div>
+        </div>
+        <!-- Help text section -->
+        <div class="helpText" v-if="showHelp">
+          <p>
+            Search occurs on each character you type (3 character minimum for search
+            terms).
+          </p>
+          <p>
+            <b>The index:</b> Search utilizes the index which automatically gets updated
+            on the configured interval (default: 5 minutes). Searching when the program
+            has just started may result in incomplete results.
+          </p>
+          <p>
+            <b>Filter by type:</b> You can have multiple type filters by adding
+            <code>type:condition</code> followed by search terms.
+          </p>
+          <p>
+            <b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
+            for example <code>"test|not"</code> searches for both terms independently.
+          </p>
+          <p>
+            <b>File size:</b> Searching files by size may have significantly longer search
+            times.
+          </p>
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
@@ -249,6 +249,15 @@ export default {
     };
   },
   watch: {
+    largerThan() {
+      this.submit();
+    },
+    smallerThan() {
+      this.submit();
+    },
+    searchTypes() {
+      this.submit();
+    },
     active(active) {
       const resultList = document.getElementById("result-list");
       if (!active) {
@@ -286,6 +295,9 @@ export default {
     },
   },
   computed: {
+    foldersOnly() {
+      return this.isTypeSelectDisabled;
+    },
     active() {
       return getters.currentPromptName() === "search";
     },
@@ -314,7 +326,7 @@ export default {
         : this.$t("search.pressToSearch");
     },
     isMobile() {
-      return this.width <= 800;
+      return getters.isMobile();
     },
     isRunning() {
       return this.ongoing;
@@ -363,6 +375,7 @@ export default {
       mutations.showHover("search");
     },
     close(event) {
+      this.value = "";
       event.stopPropagation();
       mutations.closeHovers();
     },
@@ -402,7 +415,9 @@ export default {
     },
     async submit(event) {
       this.showHelp = false;
-      event.preventDefault();
+      if (event != undefined) {
+        event.preventDefault();
+      }
       if (this.value === "" || this.value.length < 3) {
         this.ongoing = false;
         this.results = [];
@@ -519,7 +534,7 @@ export default {
 /* Search */
 #search {
   background-color: unset !important;
-  z-index: 3;
+  z-index: 5;
   position: fixed;
   top: 0.5em;
   min-width: 35em;
@@ -637,6 +652,10 @@ body.rtl #search #result ul > * {
   border-bottom-style: none;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+input.sizeInput:disabled {
+  cursor: not-allowed;
 }
 
 /* Search Input Placeholder */

@@ -1,4 +1,4 @@
-<template>
+<template v-if="isLoggedIn">
   <div>
     <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
@@ -14,16 +14,17 @@
     ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
-    <main :class="{ 'dark-mode': isDarkMode }">
+    <search v-if="currentView == 'listingView'"></search>
+    <main :class="{ 'dark-mode': isDarkMode, moveWithSidebar: moveWithSidebar }">
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
-    <upload-files></upload-files>
   </div>
   <div class="card" id="popup-notification">
     <i v-on:click="closePopUp" class="material-icons">close</i>
     <div id="popup-notification-content">no info</div>
   </div>
+  <fileSelection> </fileSelection>
 </template>
 <script>
 import editorBar from "./bars/EditorBar.vue";
@@ -31,7 +32,9 @@ import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/Sidebar.vue";
-import UploadFiles from "../components/prompts/UploadFiles.vue";
+import Search from "@/components/Search.vue";
+import fileSelection from "@/components/FileSelection.vue";
+
 import { closePopUp } from "@/notify";
 import { enableExec } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
@@ -39,12 +42,13 @@ import { state, getters, mutations } from "@/store";
 export default {
   name: "layout",
   components: {
+    fileSelection,
+    Search,
     defaultBar,
     editorBar,
     listingBar,
     Sidebar,
     Prompts,
-    UploadFiles,
   },
   data() {
     return {
@@ -55,6 +59,14 @@ export default {
     };
   },
   computed: {
+    isLoggedIn() {
+      return getters.isLoggedIn();
+    },
+    moveWithSidebar() {
+      return (
+        getters.isSidebarVisible() && !getters.isMobile() && state.user?.stickySidebar
+      );
+    },
     closePopUp() {
       return closePopUp;
     },
@@ -77,7 +89,7 @@ export default {
       return state.user; // Access state directly from the store
     },
     showOverlay() {
-      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
+      return getters.showOverlay();
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -91,6 +103,9 @@ export default {
   },
   watch: {
     $route() {
+      if (!getters.isLoggedIn()) {
+        return;
+      }
       mutations.resetSelected();
       mutations.setMultiple(false);
       if (getters.currentPromptName() !== "success") {
@@ -100,6 +115,7 @@ export default {
   },
   methods: {
     resetPrompts() {
+      mutations.closeSidebar();
       mutations.closeHovers();
     },
     getTitle() {
@@ -117,7 +133,13 @@ export default {
 main {
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */
+  transition: 0.5s ease;
 }
+
+main.moveWithSidebar {
+  padding-left: 21em;
+}
+
 main::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }

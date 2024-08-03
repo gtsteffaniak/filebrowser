@@ -85,7 +85,7 @@
 <script>
 import { showSuccess, showError } from "@/notify";
 import { state, mutations } from "@/store";
-import { users as api } from "@/api";
+import { users } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ViewMode from "@/components/settings/ViewMode.vue";
 import i18n, { rtlLanguages } from "@/i18n";
@@ -135,6 +135,16 @@ export default {
     this.singleClick = state.user.singleClick;
     this.dateFormat = state.user.dateFormat;
   },
+  watch: {
+    user() {
+      this.darkMode = state.user.darkMode;
+      this.locale = state.user.locale;
+      this.viewMode = state.user.viewMode;
+      this.hideDotfiles = state.user.hideDotfiles;
+      this.singleClick = state.user.singleClick;
+      this.dateFormat = state.user.dateFormat;
+    },
+  },
   methods: {
     async updatePassword(event) {
       event.preventDefault();
@@ -147,8 +157,7 @@ export default {
         let newUserSettings = state.user;
         newUserSettings.id = state.user.id;
         newUserSettings.password = this.password;
-        await api.update(newUserSettings, ["password"]);
-        muations.updateUser(newUserSettings);
+        await users.update(newUserSettings, ["password"]);
         showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
         showError(e);
@@ -168,7 +177,7 @@ export default {
         };
         const shouldReload =
           rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
-        await api.update(data, [
+        await users.update(data, [
           "locale",
           "darkMode",
           "viewMode",

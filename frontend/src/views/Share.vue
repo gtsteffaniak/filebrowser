@@ -259,13 +259,10 @@ export default {
       // Set loading to true and reset the error.
       mutations.setLoading(true);
       this.error = null;
-
       // Reset view information.
-      if (state.user == undefined) {
+      if (!getters.isLoggedIn()) {
         let userData = await api.getPublicUser();
-        let req = state.req;
-        req.user = userData;
-        mutations.replaceRequest(req);
+        mutations.setUser(userData);
       }
       mutations.setReload(false);
       mutations.resetSelected();
@@ -276,17 +273,12 @@ export default {
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
 
-      try {
-        let file = await api.fetchPub(url, this.password);
-        file.hash = this.hash;
-        this.token = file.token || "";
-        mutations.updateRequest(file);
-        document.title = `${file.name} - ${document.title}`;
-      } catch (e) {
-        this.error = e;
-      } finally {
-        mutations.setLoading(false);
-      }
+      let file = await api.fetchPub(url, this.password);
+      file.hash = this.hash;
+      this.token = file.token || "";
+      mutations.updateRequest(file);
+      document.title = `${file.name} - ${document.title}`;
+      mutations.setLoading(false);
     },
     keyEvent(event) {
       // Esc!
