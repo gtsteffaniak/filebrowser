@@ -299,6 +299,9 @@ export default {
     },
   },
   computed: {
+    isMobile() {
+      return state.isMobile;
+    },
     foldersOnly() {
       return this.isTypeSelectDisabled;
     },
@@ -329,9 +332,6 @@ export default {
       return this.value === ""
         ? this.$t("search.typeToSearch")
         : this.$t("search.pressToSearch");
-    },
-    isMobile() {
-      return getters.isMobile();
     },
     isRunning() {
       return this.ongoing;
