@@ -1,5 +1,5 @@
 <template>
-  <div v-if="selectedCount > 0" id="file-selection" :class="{'dark-mode': isDarkMode}">
+  <div v-if="selectedCount > 0" id="file-selection" :class="{ 'dark-mode': isDarkMode }">
     <span>{{ selectedCount }} selected</span>
     <div>
       <action
@@ -57,6 +57,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store"; // Import your custom store
+import { files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
 
 export default {
@@ -106,8 +107,12 @@ export default {
           } else {
             files.push(state.route.path);
           }
-
-          api.download(format, ...files);
+          try {
+            api.download(format, ...files);
+            showSuccess("download started");
+          } catch (e) {
+            showError("error downloading", e);
+          }
         },
       });
     },
@@ -115,7 +120,6 @@ export default {
 };
 </script>
 <style>
-
 @media (min-width: 800px) {
   #file-selection {
     bottom: 4em;
@@ -154,11 +158,11 @@ export default {
   width: 90%;
 }
 /* File selection */
-#file-selection.dark-mode  {
+#file-selection.dark-mode {
   background: var(--surfaceSecondary) !important;
 }
 
-#file-selection.dark-mode  span {
+#file-selection.dark-mode span {
   color: var(--textPrimary) !important;
 }
 </style>

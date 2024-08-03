@@ -63,7 +63,9 @@ export default {
       return getters.isLoggedIn();
     },
     moveWithSidebar() {
-      return getters.isSidebarVisible() && !getters.isMobile();
+      return (
+        getters.isSidebarVisible() && !getters.isMobile() && state.user?.stickySidebar
+      );
     },
     closePopUp() {
       return closePopUp;

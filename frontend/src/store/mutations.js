@@ -83,7 +83,6 @@ export const mutations = {
     let previousUser = state.user
     state.user = value;
     if (state.user != previousUser && state.user.username != "publicUser") {
-      console.log("diff check",state.user,previousUser)
       users.update(state.user);
     }
     emitStateChanged();

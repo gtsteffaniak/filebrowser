@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.2.7
 
  - **Change**: New sidebar style and behavior
+ - **Change**: make search view and button behavior more consistent.
  - **Fix**: [upload file bug](https://github.com/gtsteffaniak/filebrowser/issues/153)
  - **Fix**: user lock out bug introduced in 0.2.6
- - **Change**: make search view and button behavior more consistent.
  - **Fix**: many minor state related issues.
 
 ## v0.2.6

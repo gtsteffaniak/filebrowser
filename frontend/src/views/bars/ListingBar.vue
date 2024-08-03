@@ -78,10 +78,9 @@ export default {
       mutations.closeHovers();
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
-      let data = state.user;
-      data.viewMode = this.viewModes[nextIndex];
+      const newView = this.viewModes[nextIndex];
       try {
-        mutations.setUser(data);
+        mutations.updateUser({ viewMode: newView });
       } catch (e) {
         showError(e);
       }
@@ -89,4 +88,3 @@ export default {
   },
 };
 </script>
-

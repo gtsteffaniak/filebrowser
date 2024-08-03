@@ -14,16 +14,28 @@
       </button>
     </div>
 
-    <div class="card card-wrapper">
-      <span>Quick Toggles</span>
+    <div class="card card-wrapper" @mouseleave="resetHoverTextToDefault">
+      <span>{{ hoverText }}</span>
       <div class="quick-toggles">
-        <div :class="{ active: user?.singleClick }" @click="toggleClick">
+        <div
+          :class="{ active: user?.singleClick }"
+          @click="toggleClick"
+          @mouseover="updateHoverText('Toggle single click')"
+        >
+          <i class="material-icons">ads_click</i>
+        </div>
+        <div
+          :class="{ active: user?.darkMode }"
+          @click="toggleDarkMode"
+          @mouseover="updateHoverText('Toggle dark mode')"
+        >
           <i class="material-icons">dark_mode</i>
         </div>
-        <div :class="{ active: user?.darkMode }" @click="toggleDarkMode">
-          <i class="material-icons">dark_mode</i>
-        </div>
-        <div :class="{ active: user?.stickySidebar }" @click="toggleSticky">
+        <div
+          :class="{ active: user?.stickySidebar }"
+          @click="toggleSticky"
+          @mouseover="updateHoverText('Toggle sticky sidebar')"
+        >
           <i class="material-icons">push_pin</i>
         </div>
       </div>
@@ -174,6 +186,11 @@ export default {
   components: {
     ProgressBar,
   },
+  data() {
+    return {
+      hoverText: "Quick Toggles", // Initially empty
+    };
+  },
   mounted() {
     this.updateUsage();
   },
@@ -191,14 +208,13 @@ export default {
       return getters.isDarkMode();
     },
     isLoggedIn() {
-      console.log(getters.isLoggedIn());
       return getters.isLoggedIn();
     },
     currentPrompt() {
       return getters.currentPrompt();
     },
     active() {
-      return getters.isSidebarVisible() && getters.currentPromptName() !== "search";
+      return getters.isSidebarVisible() && getters.currentPromptName() == null;
     },
     signup: () => signup,
     version: () => version,
@@ -219,6 +235,12 @@ export default {
     },
   },
   methods: {
+    updateHoverText(text) {
+      this.hoverText = text;
+    },
+    resetHoverTextToDefault() {
+      this.hoverText = "Quick Toggles"; // Reset to default hover text
+    },
     toggleClick() {
       mutations.updateUser({ singleClick: !state.user.singleClick });
     },
@@ -285,7 +307,7 @@ export default {
   height: 100%;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   transition: 0.5s ease;
-  background-color: white;
+  background-color: #ededed;
 }
 
 #sidebar.sticky {
@@ -370,6 +392,7 @@ body.rtl .action {
   display: flex;
   justify-content: space-evenly;
   width: 100%;
+  padding-bottom: 1em !important;
 }
 
 .quick-toggles button {
@@ -383,12 +406,14 @@ body.rtl .action {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-top: 0.5em;
+  padding: 0.5em;
 }
 
 .sources {
   padding: 0.5em;
+  margin-top: 0.5em;
 }
+
 .inner-card {
   border-radius: 0.5em;
   padding: 0px !important;
