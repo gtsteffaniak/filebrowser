@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  isMobile: window.innerWidth <= 800,
   showSidebar: false,
   usage: {
     used: "0 B",
