@@ -77,12 +77,12 @@ export const mutations = {
     }
 
     let locale = value.locale;
-    if (locale === "") {
-      locale = i18n.detectLocale();
+    if (locale === "") {      
+      value.locale = i18n.detectLocale();
     }
     let previousUser = state.user
     state.user = value;
-    if (state.user != previousUser) {
+    if (state.user != previousUser && state.user.username != "publicUser") {
       console.log("diff check",state.user,previousUser)
       users.update(state.user);
     }
@@ -123,11 +123,11 @@ export const mutations = {
     let previousUser = state.user;
     state.user = { ...state.user, ...value };
     if (state.user.locale !== previousUser.locale) {
+      state.user.locale = i18n.detectLocale();
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
     }
     if (state.user != previousUser) {
-      console.log("diff check2",state.user,previousUser)
       users.update(state.user);
     }
     emitStateChanged();

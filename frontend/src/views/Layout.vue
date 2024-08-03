@@ -1,4 +1,4 @@
-<template>
+<template v-if="isLoggedIn">
   <div>
     <div v-show="showOverlay" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
@@ -14,8 +14,8 @@
     ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
-    <search v-if="currentView == 'listingView'" ></search>
-    <main :class="{ 'dark-mode': isDarkMode, 'moveWithSidebar': moveWithSidebar }">
+    <search v-if="currentView == 'listingView'"></search>
+    <main :class="{ 'dark-mode': isDarkMode, moveWithSidebar: moveWithSidebar }">
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -59,8 +59,11 @@ export default {
     };
   },
   computed: {
+    isLoggedIn() {
+      return getters.isLoggedIn();
+    },
     moveWithSidebar() {
-      return getters.isSidebarVisible() && !getters.isMobile() && state.user.stickySidebar;
+      return getters.isSidebarVisible() && !getters.isMobile();
     },
     closePopUp() {
       return closePopUp;
@@ -98,6 +101,9 @@ export default {
   },
   watch: {
     $route() {
+      if (!getters.isLoggedIn()) {
+        return;
+      }
       mutations.resetSelected();
       mutations.setMultiple(false);
       if (getters.currentPromptName() !== "success") {
@@ -122,11 +128,10 @@ export default {
 </script>
 
 <style>
-
 main {
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */
-  transition: .5s ease;
+  transition: 0.5s ease;
 }
 
 main.moveWithSidebar {

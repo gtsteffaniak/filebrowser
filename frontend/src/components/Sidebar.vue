@@ -1,22 +1,31 @@
 <template>
   <nav
     id="sidebar"
-    :class="{ active: active, 'dark-mode': isDarkMode, sticky: user.stickySidebar }"
+    :class="{ active: active, 'dark-mode': isDarkMode, sticky: user?.stickySidebar }"
   >
-  <div class="card">
-      <button v-if="user.username" @click="navigateTo('/settings/profile')" class="action">
+    <div class="card">
+      <button
+        v-if="user.username"
+        @click="navigateTo('/settings/profile')"
+        class="action"
+      >
         <i class="material-icons">person</i>
         <span>{{ user.username }}</span>
       </button>
     </div>
 
-
     <div class="card card-wrapper">
       <span>Quick Toggles</span>
       <div class="quick-toggles">
-        <div :class="{'active':user.singleClick}" @click="toggleClick"><i class="material-icons">dark_mode</i></div>
-        <div :class="{'active':user.darkMode}" @click="toggleDarkMode"><i class="material-icons">dark_mode</i></div>
-        <div :class="{'active':user.stickySidebar}" @click="toggleSticky"><i class="material-icons">push_pin</i></div>
+        <div :class="{ active: user?.singleClick }" @click="toggleClick">
+          <i class="material-icons">dark_mode</i>
+        </div>
+        <div :class="{ active: user?.darkMode }" @click="toggleDarkMode">
+          <i class="material-icons">dark_mode</i>
+        </div>
+        <div :class="{ active: user?.stickySidebar }" @click="toggleSticky">
+          <i class="material-icons">push_pin</i>
+        </div>
       </div>
     </div>
 
@@ -76,6 +85,26 @@
           <span>{{ $t("sidebar.logout") }}</span>
         </button>
       </div>
+      <div class="sources card card-wrapper">
+        <span>Sources</span>
+        <div class="inner-card">
+          <!-- My Files button -->
+          <button
+            class="action"
+            @click="navigateTo('/files/')"
+            :aria-label="$t('sidebar.myFiles')"
+            :title="$t('sidebar.myFiles')"
+          >
+            <i class="material-icons">folder</i>
+            <span>{{ $t("sidebar.myFiles") }}</span>
+            <div class="usage-info">
+              <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
+              <span style="text-align: center">{{ usage.usedPercentage }}%</span>
+              <span>{{ usage.used }} of {{ usage.total }} used</span>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Section for non-logged-in users -->
@@ -101,26 +130,6 @@
         <i class="material-icons">person_add</i>
         <span>{{ $t("sidebar.signup") }}</span>
       </router-link>
-    </div>
-    <div class="sources card card-wrapper">
-      <span>Sources</span>
-      <div class="inner-card">
-        <!-- My Files button -->
-        <button
-          class="action"
-          @click="navigateTo('/files/')"
-          :aria-label="$t('sidebar.myFiles')"
-          :title="$t('sidebar.myFiles')"
-        >
-          <i class="material-icons">folder</i>
-          <span>{{ $t("sidebar.myFiles") }}</span>
-          <div class="usage-info">
-            <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
-            <span style="text-align: center">{{ usage.usedPercentage }}%</span>
-            <span>{{ usage.used }} of {{ usage.total }} used</span>
-          </div>
-        </button>
-      </div>
     </div>
 
     <div class="buffer"></div>
@@ -173,12 +182,16 @@ export default {
       return getters.isFiles();
     },
     user() {
+      if (!getters.isLoggedIn()) {
+        return {};
+      }
       return state.user;
     },
     isDarkMode() {
       return getters.isDarkMode();
     },
     isLoggedIn() {
+      console.log(getters.isLoggedIn());
       return getters.isLoggedIn();
     },
     currentPrompt() {
@@ -197,6 +210,9 @@ export default {
   },
   watch: {
     route() {
+      if (!getters.isLoggedIn()) {
+        return;
+      }
       if (!state.user.stickySidebar) {
         mutations.closeSidebar();
       }
@@ -212,13 +228,12 @@ export default {
     toggleSticky() {
       let newSettings = state.user;
       newSettings.stickySidebar = !state.user.stickySidebar;
-      console.log("sticky sidebar ", newSettings.stickySidebar);
       users.update(newSettings, ["stickySidebar"]);
-      console.log("toggle sticky");
     },
     async updateUsage() {
-      console.log("updating usage");
-
+      if (!getters.isLoggedIn()) {
+        return;
+      }
       let path = getters.getRoutePath();
       let usageStats = { used: "0 B", total: "0 B", usedPercentage: 0 };
       if (this.disableUsedPercentage) {
@@ -234,7 +249,6 @@ export default {
       } catch (error) {
         showError("Error fetching usage", error);
       }
-      console.log(usageStats);
       mutations.setUsage(usageStats);
     },
     showHover(value) {
@@ -373,7 +387,7 @@ body.rtl .action {
 }
 
 .sources {
-  padding: .5em;
+  padding: 0.5em;
 }
 .inner-card {
   border-radius: 0.5em;
@@ -387,7 +401,7 @@ body.rtl .action {
 
 .quick-toggles div i {
   font-size: 2em;
-  padding: .25em;
+  padding: 0.25em;
   border-radius: 10em;
   cursor: pointer;
 }
@@ -400,5 +414,4 @@ button.action {
   background-color: var(--blue) !important;
   border-radius: 10em;
 }
-
 </style>

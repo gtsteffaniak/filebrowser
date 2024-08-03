@@ -1,6 +1,5 @@
 <template>
   <div id="search" @click="open" :class="{ active, ongoing, 'dark-mode': isDarkMode }">
-  
     <!-- Search input section -->
     <div id="input">
       <!-- Close button visible when search is active -->
@@ -143,39 +142,39 @@
             </div>
           </div>
         </div>
-                  <!-- Loading icon when search is ongoing -->
-                  <p v-show="isEmpty && isRunning" id="renew">
-            <i class="material-icons spin">autorenew</i>
+        <!-- Loading icon when search is ongoing -->
+        <p v-show="isEmpty && isRunning" id="renew">
+          <i class="material-icons spin">autorenew</i>
+        </p>
+        <!-- Message when no results are found -->
+        <div class="searchPrompt" v-show="isEmpty && !isRunning">
+          <p>{{ noneMessage }}</p>
+          <div class="helpButton" @click="toggleHelp()">Help</div>
+        </div>
+        <!-- Help text section -->
+        <div class="helpText" v-if="showHelp">
+          <p>
+            Search occurs on each character you type (3 character minimum for search
+            terms).
           </p>
-          <!-- Message when no results are found -->
-          <div class="searchPrompt" v-show="isEmpty && !isRunning">
-            <p>{{ noneMessage }}</p>
-            <div class="helpButton" @click="toggleHelp()">Help</div>
-          </div>
-          <!-- Help text section -->
-          <div class="helpText" v-if="showHelp">
-            <p>
-              Search occurs on each character you type (3 character minimum for search
-              terms).
-            </p>
-            <p>
-              <b>The index:</b> Search utilizes the index which automatically gets updated
-              on the configured interval (default: 5 minutes). Searching when the program
-              has just started may result in incomplete results.
-            </p>
-            <p>
-              <b>Filter by type:</b> You can have multiple type filters by adding
-              <code>type:condition</code> followed by search terms.
-            </p>
-            <p>
-              <b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
-              for example <code>"test|not"</code> searches for both terms independently.
-            </p>
-            <p>
-              <b>File size:</b> Searching files by size may have significantly longer
-              search times.
-            </p>
-          </div>
+          <p>
+            <b>The index:</b> Search utilizes the index which automatically gets updated
+            on the configured interval (default: 5 minutes). Searching when the program
+            has just started may result in incomplete results.
+          </p>
+          <p>
+            <b>Filter by type:</b> You can have multiple type filters by adding
+            <code>type:condition</code> followed by search terms.
+          </p>
+          <p>
+            <b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
+            for example <code>"test|not"</code> searches for both terms independently.
+          </p>
+          <p>
+            <b>File size:</b> Searching files by size may have significantly longer search
+            times.
+          </p>
+        </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li
@@ -297,7 +296,7 @@ export default {
   },
   computed: {
     foldersOnly() {
-      return this.isTypeSelectDisabled
+      return this.isTypeSelectDisabled;
     },
     active() {
       return getters.currentPromptName() === "search";
@@ -327,7 +326,6 @@ export default {
         : this.$t("search.pressToSearch");
     },
     isMobile() {
-      console.log("mobile is", getters.isMobile());
       return getters.isMobile();
     },
     isRunning() {

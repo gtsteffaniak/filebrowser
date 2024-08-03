@@ -2,14 +2,15 @@ import { state } from "./state.js";
 
 export const getters = {
   isMobile: () => window.innerWidth <= 800,
-  isSidebarVisible: () => state.showSidebar || state.user.stickySidebar,
   isDarkMode: () => {
     if (state.user == null) {
       return true;
     }
     return state.user.darkMode === true;
   },
-  isLoggedIn: () => state.user !== null,
+  isLoggedIn: () => {
+    return state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser";
+  },
   isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => state.route.name === "Files",
   isListing: () => getters.isFiles() && state.req.isDir,
@@ -19,7 +20,16 @@ export const getters = {
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
   },
+  isSidebarVisible: () => {
+    if (!getters.isLoggedIn()) {
+      return false
+    }
+    return state.showSidebar || state.user.stickySidebar
+  },
   showOverlay: () => {
+    if (!getters.isLoggedIn()) {
+      return false
+    }
     const hasPrompt = getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     const sidebarHover = (!state.user.stickySidebar && state.showSidebar) || getters.isMobile();
     return hasPrompt || sidebarHover;
