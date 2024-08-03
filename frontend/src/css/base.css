@@ -1,4 +1,12 @@
 /* Basic Styles */
+:root {
+  --background: white;
+  --surfacePrimary: gray;
+  --surfaceSecondary: lightgray;
+  --textPrimary: white;
+  --textSecondary: gray;
+}
+
 body {
   font-family: "Roboto", sans-serif;
   padding-top: 4em;

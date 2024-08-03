@@ -137,7 +137,6 @@ export const mutations = {
     state.oldReq = state.req;
     state.req = value;
     state.selected = [];
-
     if (!state.req?.items) return;
     state.selected = state.req.items
       .filter((item) => selectedItems.some((rItem) => rItem.url === item.url))

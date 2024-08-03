@@ -158,7 +158,6 @@ export default {
         newUserSettings.id = state.user.id;
         newUserSettings.password = this.password;
         await users.update(newUserSettings, ["password"]);
-        muations.updateUser(newUserSettings);
         showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
         showError(e);

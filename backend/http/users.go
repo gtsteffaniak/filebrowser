@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"reflect"
 	"sort"
 	"strconv"
 
@@ -155,30 +156,24 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 		return http.StatusBadRequest, nil
 	}
 
-	if len(req.Which) == 0 || (len(req.Which) == 1 && req.Which[0] == "all") {
-		if !d.user.Perm.Admin {
-			return http.StatusForbidden, nil
-		}
-
-		if req.Data.Password != "" {
-			req.Data.Password, err = users.HashPwd(req.Data.Password)
-		} else {
-			var suser *users.User
-			suser, err = d.store.Users.Get(d.server.Root, d.raw.(uint))
-			req.Data.Password = suser.Password
-		}
-
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-
+	if len(req.Which) == 0 || req.Which[0] == "all" {
 		req.Which = []string{}
+		v := reflect.ValueOf(req.Data)
+		if v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+		t := v.Type()
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+			if field.Name != "Password" && field.Name != "Fs" {
+				req.Which = append(req.Which, field.Name)
+			}
+		}
 	}
 
 	for k, v := range req.Which {
 		v = cases.Title(language.English, cases.NoLower).String(v)
 		req.Which[k] = v
-
 		if v == "Password" {
 			if !d.user.Perm.Admin && d.user.LockPassword {
 				return http.StatusForbidden, nil
@@ -195,7 +190,6 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 			}
 		}
 	}
-
 	err = d.store.Users.Update(req.Data, req.Which...)
 	if err != nil {
 		return http.StatusInternalServerError, err

@@ -3,19 +3,20 @@
     id="sidebar"
     :class="{ active: active, 'dark-mode': isDarkMode, sticky: user.stickySidebar }"
   >
-    <div class="card">
-      <button v-if="user.username" @click="toAccountSettings" class="action">
+  <div class="card">
+      <button v-if="user.username" @click="navigateTo('/settings/profile')" class="action">
         <i class="material-icons">person</i>
         <span>{{ user.username }}</span>
       </button>
     </div>
 
+
     <div class="card card-wrapper">
       <span>Quick Toggles</span>
       <div class="quick-toggles">
-        <button @click=""><i class="material-icons">folder</i></button>
-        <button @click="toggleDarkMode"><i class="material-icons">folder</i></button>
-        <button @click="toggleSticky"><i class="material-icons">folder</i></button>
+        <div :class="{'active':user.singleClick}" @click="toggleClick"><i class="material-icons">dark_mode</i></div>
+        <div :class="{'active':user.darkMode}" @click="toggleDarkMode"><i class="material-icons">dark_mode</i></div>
+        <div :class="{'active':user.stickySidebar}" @click="toggleSticky"><i class="material-icons">push_pin</i></div>
       </div>
     </div>
 
@@ -55,7 +56,7 @@
         <!-- Settings button -->
         <button
           class="action"
-          @click="toSettings"
+          @click="navigateTo('/settings/global')"
           :aria-label="$t('sidebar.settings')"
           :title="$t('sidebar.settings')"
         >
@@ -107,7 +108,7 @@
         <!-- My Files button -->
         <button
           class="action"
-          @click="toRoot"
+          @click="navigateTo('/files/')"
           :aria-label="$t('sidebar.myFiles')"
           :title="$t('sidebar.myFiles')"
         >
@@ -120,10 +121,6 @@
           </div>
         </button>
       </div>
-    </div>
-    <div class="jobs card card-wrapper">
-        <span>jobs</span>
-        <div class="inner-card"><span>sample</span></div>
     </div>
 
     <div class="buffer"></div>
@@ -188,7 +185,7 @@ export default {
       return getters.currentPrompt();
     },
     active() {
-      return getters.isSidebarVisible();
+      return getters.isSidebarVisible() && getters.currentPromptName() !== "search";
     },
     signup: () => signup,
     version: () => version,
@@ -206,6 +203,9 @@ export default {
     },
   },
   methods: {
+    toggleClick() {
+      mutations.updateUser({ singleClick: !state.user.singleClick });
+    },
     toggleDarkMode() {
       mutations.toggleDarkMode();
     },
@@ -240,14 +240,8 @@ export default {
     showHover(value) {
       return mutations.showHover(value);
     },
-    // Navigate to the root files directory
-    toRoot() {
-      this.$router.push({ path: "/files/" }, () => {});
-      mutations.closeHovers();
-    },
-    // Navigate to the settings page
-    toSettings() {
-      this.$router.push({ path: "/settings" }, () => {});
+    navigateTo(path) {
+      this.$router.push({ path: path }, () => {});
       mutations.closeHovers();
     },
     // Show the help overlay
@@ -317,7 +311,6 @@ body.rtl nav {
 #sidebar .action {
   width: 100%;
   display: block;
-  border-radius: 0;
   padding: 0.5em;
   white-space: nowrap;
   height: 100%;
@@ -379,9 +372,33 @@ body.rtl .action {
   padding-top: 0.5em;
 }
 
+.sources {
+  padding: .5em;
+}
 .inner-card {
-  background-color: var(--surfaceSecondary);
+  border-radius: 0.5em;
   padding: 0px !important;
+}
+
+.quick-toggles div {
+  border-radius: 10em;
+  background-color: var(--surfaceSecondary);
+}
+
+.quick-toggles div i {
+  font-size: 2em;
+  padding: .25em;
+  border-radius: 10em;
+  cursor: pointer;
+}
+
+button.action {
+  border-radius: 0.5em;
+}
+
+.quick-toggles .active {
+  background-color: var(--blue) !important;
+  border-radius: 10em;
 }
 
 </style>
