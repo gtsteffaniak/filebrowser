@@ -328,9 +328,6 @@ export default {
         ? this.$t("search.typeToSearch")
         : this.$t("search.pressToSearch");
     },
-    isMobile() {
-      return getters.isMobile();
-    },
     isRunning() {
       return this.ongoing;
     },
