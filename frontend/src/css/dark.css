@@ -226,15 +226,6 @@
   background: var(--surfaceSecondary) !important;
 }
 
-/* File selection */
-.dark-mode #file-selection {
-  background: var(--surfaceSecondary) !important;
-}
-
-.dark-mode #file-selection span {
-  color: var(--textPrimary) !important;
-}
-
 /* Dropdown */
 .dark-mode #dropdown {
   background: var(--surfaceSecondary) !important;

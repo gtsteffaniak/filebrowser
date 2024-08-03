@@ -14,7 +14,8 @@
     ></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
-    <main :class="{ 'dark-mode': isDarkMode }">
+    <search v-if="currentView == 'listingView'" ></search>
+    <main :class="{ 'dark-mode': isDarkMode, 'moveWithSidebar': moveWithSidebar }">
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -23,10 +24,7 @@
     <i v-on:click="closePopUp" class="material-icons">close</i>
     <div id="popup-notification-content">no info</div>
   </div>
-  <div class="card" id="popup-notification">
-    <i v-on:click="closePopUp" class="material-icons">close</i>
-    <div id="popup-notification-content">no info</div>
-  </div>
+  <fileSelection> </fileSelection>
 </template>
 <script>
 import editorBar from "./bars/EditorBar.vue";
@@ -34,6 +32,9 @@ import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/Sidebar.vue";
+import Search from "@/components/Search.vue";
+import fileSelection from "@/components/FileSelection.vue";
+
 import { closePopUp } from "@/notify";
 import { enableExec } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
@@ -41,6 +42,8 @@ import { state, getters, mutations } from "@/store";
 export default {
   name: "layout",
   components: {
+    fileSelection,
+    Search,
     defaultBar,
     editorBar,
     listingBar,
@@ -56,6 +59,9 @@ export default {
     };
   },
   computed: {
+    moveWithSidebar() {
+      return getters.isSidebarVisible() && !getters.isMobile() && state.user.stickySidebar;
+    },
     closePopUp() {
       return closePopUp;
     },
@@ -78,7 +84,7 @@ export default {
       return state.user; // Access state directly from the store
     },
     showOverlay() {
-      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
+      return getters.showOverlay();
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -101,6 +107,7 @@ export default {
   },
   methods: {
     resetPrompts() {
+      mutations.closeSidebar();
       mutations.closeHovers();
     },
     getTitle() {
@@ -115,10 +122,17 @@ export default {
 </script>
 
 <style>
+
 main {
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */
+  transition: .5s ease;
 }
+
+main.moveWithSidebar {
+  padding-left: 21em;
+}
+
 main::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }

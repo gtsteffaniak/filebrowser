@@ -1,18 +1,27 @@
 <template>
-  <nav :class="{ active, 'dark-mode': isDarkMode }">
-    <!-- Section for logged-in users -->
-    <template v-if="isLoggedIn">
-      <!-- My Files button -->
-      <button
-        class="action"
-        @click="toRoot"
-        :aria-label="$t('sidebar.myFiles')"
-        :title="$t('sidebar.myFiles')"
-      >
-        <i class="material-icons">folder</i>
-        <span>{{ $t("sidebar.myFiles") }}</span>
+  <nav
+    id="sidebar"
+    :class="{ active: active, 'dark-mode': isDarkMode, sticky: user.stickySidebar }"
+  >
+  <div class="card">
+      <button v-if="user.username" @click="navigateTo('/settings/profile')" class="action">
+        <i class="material-icons">person</i>
+        <span>{{ user.username }}</span>
       </button>
+    </div>
 
+
+    <div class="card card-wrapper">
+      <span>Quick Toggles</span>
+      <div class="quick-toggles">
+        <div :class="{'active':user.singleClick}" @click="toggleClick"><i class="material-icons">dark_mode</i></div>
+        <div :class="{'active':user.darkMode}" @click="toggleDarkMode"><i class="material-icons">dark_mode</i></div>
+        <div :class="{'active':user.stickySidebar}" @click="toggleSticky"><i class="material-icons">push_pin</i></div>
+      </div>
+    </div>
+
+    <!-- Section for logged-in users -->
+    <div v-if="isLoggedIn">
       <!-- Buttons visible if user has create permission -->
       <div v-if="user.perm?.create">
         <!-- New Folder button -->
@@ -47,7 +56,7 @@
         <!-- Settings button -->
         <button
           class="action"
-          @click="toSettings"
+          @click="navigateTo('/settings/global')"
           :aria-label="$t('sidebar.settings')"
           :title="$t('sidebar.settings')"
         >
@@ -67,10 +76,10 @@
           <span>{{ $t("sidebar.logout") }}</span>
         </button>
       </div>
-    </template>
+    </div>
 
     <!-- Section for non-logged-in users -->
-    <template v-else>
+    <div v-else>
       <!-- Login button -->
       <router-link
         class="action"
@@ -92,14 +101,31 @@
         <i class="material-icons">person_add</i>
         <span>{{ $t("sidebar.signup") }}</span>
       </router-link>
-    </template>
+    </div>
+    <div class="sources card card-wrapper">
+      <span>Sources</span>
+      <div class="inner-card">
+        <!-- My Files button -->
+        <button
+          class="action"
+          @click="navigateTo('/files/')"
+          :aria-label="$t('sidebar.myFiles')"
+          :title="$t('sidebar.myFiles')"
+        >
+          <i class="material-icons">folder</i>
+          <span>{{ $t("sidebar.myFiles") }}</span>
+          <div class="usage-info">
+            <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
+            <span style="text-align: center">{{ usage.usedPercentage }}%</span>
+            <span>{{ usage.used }} of {{ usage.total }} used</span>
+          </div>
+        </button>
+      </div>
+    </div>
 
+    <div class="buffer"></div>
     <!-- Credits and usage information section -->
     <div class="credits" v-if="isFiles && !disableUsedPercentage && usage">
-      <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
-      <span style="text-align: center">{{ usage.usedPercentage }}%</span>
-      <span>{{ usage.used }} of {{ usage.total }} used</span>
-      <br />
       <span v-if="disableExternal">File Browser</span>
       <span v-else>
         <a
@@ -128,7 +154,7 @@ import {
   noAuth,
   loginPage,
 } from "@/utils/constants";
-import { files as api } from "@/api";
+import { files, users } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -159,7 +185,7 @@ export default {
       return getters.currentPrompt();
     },
     active() {
-      return getters.currentPromptName() === "sidebar";
+      return getters.isSidebarVisible() && getters.currentPromptName() !== "search";
     },
     signup: () => signup,
     version: () => version,
@@ -167,8 +193,29 @@ export default {
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,
     usage: () => state.usage,
+    route: () => state.route,
+  },
+  watch: {
+    route() {
+      if (!state.user.stickySidebar) {
+        mutations.closeSidebar();
+      }
+    },
   },
   methods: {
+    toggleClick() {
+      mutations.updateUser({ singleClick: !state.user.singleClick });
+    },
+    toggleDarkMode() {
+      mutations.toggleDarkMode();
+    },
+    toggleSticky() {
+      let newSettings = state.user;
+      newSettings.stickySidebar = !state.user.stickySidebar;
+      console.log("sticky sidebar ", newSettings.stickySidebar);
+      users.update(newSettings, ["stickySidebar"]);
+      console.log("toggle sticky");
+    },
     async updateUsage() {
       console.log("updating usage");
 
@@ -178,14 +225,14 @@ export default {
         return usageStats;
       }
       try {
-        let usage = await api.usage(path);
+        let usage = await files.usage(path);
         usageStats = {
           used: getHumanReadableFilesize(usage.used / 1024),
           total: getHumanReadableFilesize(usage.total / 1024),
           usedPercentage: Math.round((usage.used / usage.total) * 100),
         };
       } catch (error) {
-        showError("Error fetching usage:", error);
+        showError("Error fetching usage", error);
       }
       console.log(usageStats);
       mutations.setUsage(usageStats);
@@ -193,14 +240,8 @@ export default {
     showHover(value) {
       return mutations.showHover(value);
     },
-    // Navigate to the root files directory
-    toRoot() {
-      this.$router.push({ path: "/files/" }, () => {});
-      mutations.closeHovers();
-    },
-    // Navigate to the settings page
-    toSettings() {
-      this.$router.push({ path: "/settings" }, () => {});
+    navigateTo(path) {
+      this.$router.push({ path: path }, () => {});
       mutations.closeHovers();
     },
     // Show the help overlay
@@ -215,3 +256,149 @@ export default {
   },
 };
 </script>
+
+<style>
+#sidebar {
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  padding-top: 5em;
+  width: 20em;
+  position: fixed;
+  z-index: 4;
+  left: -20em;
+  height: 100%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  transition: 0.5s ease;
+  background-color: white;
+}
+
+#sidebar.sticky {
+  z-index: 3;
+}
+
+@supports (backdrop-filter: none) {
+  nav {
+    background-color: transparent;
+    backdrop-filter: blur(16px) invert(0.1);
+  }
+}
+
+.usage-info {
+  padding: 0.5em;
+}
+
+body.rtl nav {
+  left: unset;
+  right: -17em;
+}
+
+#sidebar.active {
+  left: 0;
+}
+
+#sidebar.rtl nav.active {
+  left: unset;
+  right: 0;
+}
+
+#sidebar > div {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 0.5em;
+}
+
+#sidebar .action {
+  width: 100%;
+  display: block;
+  padding: 0.5em;
+  white-space: nowrap;
+  height: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.rtl .action {
+  direction: rtl;
+  text-align: right;
+}
+
+#sidebar .action > * {
+  vertical-align: middle;
+}
+/* * * * * * * * * * * * * * * *
+ *            FOOTER           *
+ * * * * * * * * * * * * * * * */
+
+.credits {
+  font-size: 1em;
+  color: var(--textSecondary);
+  padding: 1em;
+}
+
+.credits > span {
+  display: block;
+  margin-top: 0.5em;
+  margin-left: 0;
+}
+
+.credits a,
+.credits a:hover {
+  color: inherit;
+  cursor: pointer;
+}
+
+.buffer {
+  flex-grow: 1;
+}
+
+.quick-toggles {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+}
+
+.quick-toggles button {
+  border-radius: 10em;
+  cursor: pointer;
+  flex: none;
+}
+
+.card-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 0.5em;
+}
+
+.sources {
+  padding: .5em;
+}
+.inner-card {
+  border-radius: 0.5em;
+  padding: 0px !important;
+}
+
+.quick-toggles div {
+  border-radius: 10em;
+  background-color: var(--surfaceSecondary);
+}
+
+.quick-toggles div i {
+  font-size: 2em;
+  padding: .25em;
+  border-radius: 10em;
+  cursor: pointer;
+}
+
+button.action {
+  border-radius: 0.5em;
+}
+
+.quick-toggles .active {
+  background-color: var(--blue) !important;
+  border-radius: 10em;
+}
+
+</style>
