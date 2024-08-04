@@ -30,7 +30,7 @@
 
     <!-- Search results for mobile -->
     <div
-      v-if="state.isMobile && active"
+      v-if="isMobile && active"
       id="result"
       :class="{ hidden: !active }"
       ref="result"
