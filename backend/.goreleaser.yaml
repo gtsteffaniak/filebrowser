@@ -1,0 +1,22 @@
+project_name: filebrowser
+
+builds:
+  - ldflags:
+      - -s -w
+    main: main.go
+    binary: filebrowser
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 6
+      - 7
+
+archives:
+  - name_template: "{{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{ .ProjectName }}"
+    format: binary
