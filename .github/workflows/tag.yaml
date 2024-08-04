@@ -16,7 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Build frontend
-        uses: actions/checkout@v4
         uses: actions/setup-node@v4
         working-directory: frontend
         run: npm i && npm run build
