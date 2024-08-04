@@ -11,7 +11,6 @@ rice-box.go
 /backend/vendor
 /backend/*.cov
 /backend/test_config.yaml
-/backend/cmd/dist
 
 .DS_Store
 node_modules
