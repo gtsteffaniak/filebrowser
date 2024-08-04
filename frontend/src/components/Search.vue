@@ -29,7 +29,12 @@
     </div>
 
     <!-- Search results for mobile -->
-    <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
+    <div
+      v-if="state.isMobile && active"
+      id="result"
+      :class="{ hidden: !active }"
+      ref="result"
+    >
       <div id="result-list">
         <div class="button" style="width: 100%">Search Context: {{ getContext }}</div>
         <!-- List of search results -->
@@ -97,7 +102,7 @@
     </div>
 
     <!-- Search results for desktop -->
-    <div v-show="!isMobile && active" id="result-desktop" ref="result">
+    <div v-show="!state.isMobile && active" id="result-desktop" ref="result">
       <div class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
         <div>
