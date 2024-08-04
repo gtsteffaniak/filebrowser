@@ -35,8 +35,20 @@ Single sign on support        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Long-live API key support     |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Mobile App                    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-tagging?                 |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-
+tagging?                      |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+sharable web links?           |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Event-based notifications     |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Metrics                       |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+file space quotas             |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Event-based notifications     |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+text-based files editor       |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+office file support           |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Themes                        |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Branding support              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Last active date              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+activity log             |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Comments support          |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+collaboration on same file         |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 
 > [!WARNING]
 > Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml`
