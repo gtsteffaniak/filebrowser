@@ -14,12 +14,29 @@
 
 --- | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" >   | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" > |google / one driive| FileRun
 --- | --- | --- | --- | --- | --- | --- |
-Filesystem support|  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-S3 support |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-has docker image |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-has standalone binary |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-price |  free | free | free  | free tier | free tier | free tier |
-open source? |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Filesystem support            |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Linux                         |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Windows                       |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Mac                           |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Self hosted                   |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Has Stable Release?           |  ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+S3 support                    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Multiple soures support       |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+has docker image              |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+has standalone binary         |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+price                         |  free | free | free  | free tier | free tier | free tier |
+rich media preview            |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+uplaod files from web?        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Advanced Search?              |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Indexed Search?               |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Run job support               |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Multiple users                |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Single sign on support        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Long-live API key support     |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+
 
 > [!WARNING]
 > Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml`
