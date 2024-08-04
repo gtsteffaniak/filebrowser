@@ -22,9 +22,17 @@ export const getters = {
   },
   isSidebarVisible: () => {
     if (!getters.isLoggedIn()) {
-      return false
+      return false;
     }
-    return state.showSidebar || getters.isStickySidebar()
+    console.log(getters.currentPromptName());
+    if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
+      return false;
+    }
+    console.log(getters.currentView());
+    if (getters.currentView() !== "listingView") {
+      return false;
+    }
+    return state.showSidebar || getters.isStickySidebar();
   },
   isStickySidebar: () => {
     if (getters.isMobile()) {
@@ -101,13 +109,15 @@ export const getters = {
 
   currentPromptName: () => {
     // Ensure state.prompts is an array
-    if (!Array.isArray(state.prompts)) {
+    if (!Array.isArray(state.prompts) || state.prompts.length === 0) {
       return null;
     }
-    if (state.prompts.length === 0) {
+    // Check if the name property is a string
+    const lastPrompt = state.prompts[state.prompts.length - 1];
+    if (typeof lastPrompt?.name !== "string") {
       return null;
     }
-    return state.prompts[state.prompts.length - 1].name;
+    return lastPrompt.name;
   },
 
   filesInUpload: () => {
