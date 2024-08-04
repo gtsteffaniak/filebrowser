@@ -1,7 +1,7 @@
 server:
   port: 80
   baseURL:  "/"
-  root: "/srv"
+  root: "./srv"
 auth:
   method: password
   signup: false

@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"syscall"
 
+	"embed"
+
 	"github.com/spf13/pflag"
 
 	"github.com/spf13/afero"
@@ -26,6 +28,11 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
+
+//go:embed dist/*
+var assets embed.FS
+
+var nonEmbededFS = os.Getenv("FILEBROWSER_NO_EMBEDED") == "true"
 
 type dirFS struct {
 	http.Dir
@@ -42,6 +49,7 @@ func init() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 	log.Println("Initializing with config file:", *configFlag)
+	log.Println("Embeded Frontend:", !nonEmbededFS)
 	settings.Initialize(*configFlag)
 }
 
@@ -93,15 +101,31 @@ var rootCmd = &cobra.Command{
 		sigc := make(chan os.Signal, 1)
 		signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
 		go cleanupHandler(listener, sigc)
-		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
-		handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
-		checkErr("fbhttp.NewHandler", err)
-		defer listener.Close()
-		log.Println("Listening on", listener.Addr().String())
-		//nolint: gosec
-		if err := http.Serve(listener, handler); err != nil {
-			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
+		if !nonEmbededFS {
+			assetsFs, err := fs.Sub(assets, "dist")
+			if err != nil {
+				log.Fatal("Could not embed frontend. Does backend/cmd/dist exist? Must be built and exist first")
+			}
+			handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
+			checkErr("fbhttp.NewHandler", err)
+			defer listener.Close()
+			log.Println("Listening on", listener.Addr().String())
+			//nolint: gosec
+			if err := http.Serve(listener, handler); err != nil {
+				log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
+			}
+		} else {
+			assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
+			handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
+			checkErr("fbhttp.NewHandler", err)
+			defer listener.Close()
+			log.Println("Listening on", listener.Addr().String())
+			//nolint: gosec
+			if err := http.Serve(listener, handler); err != nil {
+				log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
+			}
 		}
+
 	}, pythonConfig{allowNoDB: true}),
 }
 
