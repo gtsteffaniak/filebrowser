@@ -40,7 +40,8 @@ export const getters = {
       return false
     }
     const hasPrompt = getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
-    return hasPrompt || getters.isSidebarVisible();
+    const shouldOverlaySidebar = getters.isSidebarVisible() && !getters.isStickySidebar()
+    return hasPrompt || shouldOverlaySidebar;
   },
   getRoutePath: () => {
     return state.route.path.endsWith("/")

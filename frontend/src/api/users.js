@@ -30,7 +30,6 @@ export async function update(user, which = ["all"]) {
   if (user.username == "publicUser") {
     return
   }
-  console.log("updating user",user,which)
   await fetchURL(`/api/users/${user.id}`, {
     method: "PUT",
     body: JSON.stringify({
