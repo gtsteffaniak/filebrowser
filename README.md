@@ -11,9 +11,12 @@
 
 ## Comparison Chart
 
+
+Nextcloud
+
 --- | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" >   | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" > |google / one driive| FileRun
 --- | --- | --- | --- | --- | --- | --- |
-Filesystem support            |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Storage backend support            |  filesystem | filesystem | ✅ | ❌ | ❌ | ❌ |
 Linux                         |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Windows                       |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Mac                           |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
@@ -22,17 +25,19 @@ Has Stable Release?           |  ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 S3 support                    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 webdav support                   |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 ftp support                   |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Dedicated docs site?          |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Multiple soures support       |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 has docker image              |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 has standalone binary         |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 price                         |  free | free | free  | free tier | free tier | free tier |
 rich media preview            |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-uplaod files from web?        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+upload files from the web?    |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Advanced Search?              |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Indexed Search?               |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Content-aware search?         | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Custom job support            | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Multiple users                |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-Single sign on support        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Single sign-on support        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Long-live API key support     |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Mobile App                    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
@@ -47,12 +52,12 @@ office file support           |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Themes                        |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Branding support              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Last active date              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-activity log             |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-Comments support          |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-collaboration on same file         |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-trash support         |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-Starred/pinned files    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-Content preview icons   |  images only  | images only  | ❌  | ❌ | ❌  | ❌ |
+activity log                  |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Comments support              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+collaboration on same file    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+trash support                 |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Starred/pinned files          |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Content preview icons         |  images only  | images only  | ❌  | ❌ | ❌  | ❌ |
 
 > [!WARNING]
 > Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml`
