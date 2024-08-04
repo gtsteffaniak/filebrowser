@@ -6,7 +6,6 @@ import { users } from "@/api";
 export const mutations = {
   setMobile() {
     state.mobile = window.innerWidth <= 800
-    console.log("state updated",state.mobile)
     emitStateChanged();
   },
   toggleDarkMode() {

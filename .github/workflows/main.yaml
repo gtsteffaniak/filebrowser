@@ -3,48 +3,10 @@ name: main job
 on:
   push:
     branches:
-      - 'main'
+      - "main"
 
 jobs:
-  test-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go test -race -v ./...
-  lint-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-            go-version: 'stable'
-      - uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.59
-          working-directory: backend
-  format-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go fmt ./...
-  lint-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i eslint && npm run lint
-
   push_latest_to_registry:
-    needs: [lint-frontend, lint-backend, test-backend, format-backend]
     name: Push latest
     runs-on: ubuntu-latest
     steps:

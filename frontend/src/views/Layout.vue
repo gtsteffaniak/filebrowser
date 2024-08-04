@@ -63,7 +63,7 @@ export default {
   },
   computed: {
     showSearch() {
-      return getters.isFiles() && getters.isLoggedIn();
+      return getters.isLoggedIn() && this.currentView == "listingView";
     },
     isLoggedIn() {
       return getters.isLoggedIn();
@@ -121,7 +121,6 @@ export default {
   },
   methods: {
     updateIsMobile() {
-      console.log("setting");
       mutations.setMobile();
     },
     resetPrompts() {
