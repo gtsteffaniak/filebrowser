@@ -430,6 +430,7 @@ body.rtl .action {
 
 .sources {
   padding: 1em;
+  margin-top: 0.5em !important;
 }
 
 .inner-card {

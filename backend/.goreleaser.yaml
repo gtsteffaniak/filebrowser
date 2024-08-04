@@ -1,14 +1,17 @@
+# .goreleaser.yaml
 project_name: filebrowser
+version: 2
 
 builds:
-  - ldflags:
+  # Build configuration for darwin and linux
+  - id: default
+    ldflags:
       - -s -w
     main: main.go
     binary: filebrowser
     goos:
       - darwin
       - linux
-      - windows
     goarch:
       - amd64
       - arm
@@ -16,7 +19,26 @@ builds:
     goarm:
       - 6
       - 7
+    hooks:
+      post: 
+        - upx {{ .Path }}  # Compress the binary with UPX
+
+  # Build configuration for windows without arm
+  - id: windows
+    ldflags:
+      - -s -w
+    main: main.go
+    binary: filebrowser
+    goos:
+      - windows
+    goarch:
+      - amd64
+      - arm64
 
 archives:
   - name_template: "{{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{ .ProjectName }}"
     format: binary
+
+checksum:
+  disable: true
+

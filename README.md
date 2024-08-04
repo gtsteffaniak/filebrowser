@@ -122,9 +122,7 @@ volumes:
 
 ```
 
-Not using docker (not recommended)
-
-Note: Must download asset with frontend directory next to filebrowser binary
+Not using docker (not recommended), download your binary from releases and run with your custom config file:
 
 ```
 ./filebrowser -c <filebrowser.yml or other /path/to/config.yaml>
