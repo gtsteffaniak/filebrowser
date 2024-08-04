@@ -3,14 +3,15 @@ project_name: filebrowser
 version: 2
 
 builds:
-  - ldflags:
+  # Build configuration for darwin and linux
+  - id: default
+    ldflags:
       - -s -w
     main: main.go
     binary: filebrowser
     goos:
       - darwin
       - linux
-      - windows
     goarch:
       - amd64
       - arm
@@ -19,20 +20,20 @@ builds:
       - 6
       - 7
     hooks:
-      post:
-        # Run UPX for non-Windows binaries
-        - goos: darwin
-          action: upx {{ .Path }}
-        - goos: linux
-          action: upx {{ .Path }}
-    ignore:
-      # Exclude arm6 and arm7 for Windows
-      - goos: windows
-        goarch: arm
-        goarm: 6
-      - goos: windows
-        goarch: arm
-        goarm: 7
+      post: 
+        - upx {{ .Path }}  # Compress the binary with UPX
+
+  # Build configuration for windows without arm
+  - id: windows
+    ldflags:
+      - -s -w
+    main: main.go
+    binary: filebrowser
+    goos:
+      - windows
+    goarch:
+      - amd64
+      - arm64
 
 archives:
   - name_template: "{{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{ .ProjectName }}"
