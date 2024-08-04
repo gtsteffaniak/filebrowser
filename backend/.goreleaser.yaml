@@ -1,5 +1,6 @@
 # .goreleaser.yaml
 project_name: filebrowser
+version: 2
 
 builds:
   # Build configuration for darwin and linux
