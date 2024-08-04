@@ -5,13 +5,13 @@ setup:
 	fi
 
 build:
-	docker build -t gtstef/filebrwoser .
+	docker build -t gtstef/filebrowser .
 
 dev:
 	# Kill processes matching exe/filebrowser, ignore errors if process does not exist
 	-pkill -f "exe/filebrowser" || true
 	# Start backend and frontend concurrently
-	cd backend && go run . -c test_config.yaml & BACKEND_PID=$$!; \
+	cd backend && FILEBROWSER_NO_EMBEDED=true go run . -c test_config.yaml & BACKEND_PID=$$!; \
 	cd frontend && npm run watch & FRONTEND_PID=$$!; \
 	wait $$BACKEND_PID $$FRONTEND_PID
 

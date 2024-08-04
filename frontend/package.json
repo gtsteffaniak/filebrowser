@@ -9,7 +9,8 @@
   },
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && cp -R dist/ ../backend/cmd/",
+    "build-docker": "vite build",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
     "lint": "npm run typecheck && eslint src/",
