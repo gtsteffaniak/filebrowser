@@ -221,7 +221,7 @@ export default {
       return getters.currentPrompt();
     },
     active() {
-      return getters.isSidebarVisible() && getters.currentPromptName() == null;
+      return getters.isSidebarVisible();
     },
     signup: () => signup,
     version: () => version,
