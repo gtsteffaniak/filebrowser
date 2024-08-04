@@ -29,13 +29,13 @@ rich media preview            |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 uplaod files from web?        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Advanced Search?              |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Indexed Search?               |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-Run job support               |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Custom job support            | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Multiple users                |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Single sign on support        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-Long-live API key support     |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Long-live API key support     |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Mobile App                    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+tagging?                 |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 
 
 > [!WARNING]
