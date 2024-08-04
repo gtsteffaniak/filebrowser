@@ -15,6 +15,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Build frontend
+        uses: actions/checkout@v4
+        uses: actions/setup-node@v4
+        working-directory: frontend
+        run: npm i && npm run build
+      - name: Install UPX
+        run: sudo apt-get install -y upx
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
