@@ -18,8 +18,12 @@ builds:
       - 6
       - 7
     hooks:
-      post: 
-        - upx {{ .Path }}  # Compress the binary with UPX
+      post:
+        # Run UPX for non-Windows binaries
+        - goos: darwin
+          action: upx {{ .Path }}
+        - goos: linux
+          action: upx {{ .Path }}
     ignore:
       # Exclude arm6 and arm7 for Windows
       - goos: windows
