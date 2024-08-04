@@ -35,7 +35,6 @@ jobs:
           generate_release_notes: true
           name: ${{ steps.extract_branch.outputs.branch }}
   push_release_to_registry:
-    needs: [lint-frontend, lint-backend, test-backend, format-backend]
     name: Push release
     runs-on: ubuntu-latest
     steps:
