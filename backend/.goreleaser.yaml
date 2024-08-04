@@ -1,3 +1,4 @@
+# .goreleaser.yaml
 project_name: filebrowser
 
 builds:
