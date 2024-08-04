@@ -6,12 +6,12 @@
 </p>
 <h3 align="center">Filebrowser - A modern web-based file manager</h3>
 <p align="center">
-  <img width="800" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/899152cf-3e69-4179-aa82-752af2df3fc6" title="Main Screenshot">
+  <img width="800" src="https://github.com/user-attachments/assets/8ba93582-aba2-4996-8ac3-25f763a2e596" title="Main Screenshot">
 </p>
 
 > [!WARNING]
 > Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml`
-> configuration file.
+> Configuration file.
 > Starting with v0.2.4 *ALL* share links need to be re-created (due to
 > security fix).
 
@@ -20,7 +20,7 @@ origin:
 
   1. [x] Better search
      - Lightning fast
-     - realtime results as you type
+     - real-time results as you type
      - Works with more type filters
      - interactive results page.
   2. [x] Revamped and simplified GUI navbar and sidebar menu.
@@ -28,49 +28,47 @@ origin:
        styles.
   3. [x] Revamped configuration via `filebrowser.yml` config file.
      - More configurations possible at a per-user level
-     - <img width="450" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/625bd7c4-5ee9-4011-aaae-2a388ab0813b">
 
 ## About
 
 Filebrowser provides a file managing interface within a specified directory
-and it can be used to upload, delete, preview, rename and edit your files.
-It allows the creation of multiple users and each user can have its own
+and can be used to upload, delete, preview, rename, and edit your files.
+It allows the creation of multiple users and each user can have its 
 directory.
 
 This repository is a fork, a collection of changes that make this program
-work better in terms of asthetics and performance. Improved search,
+work better in terms of aesthetics and performance. Improved search,
 simplified ui (without removing features) and more secure and up-to-date
 build are just a few examples.
 
 This Implementation of filebrowser differs significantly to the original.
-There are hundereds of thousands of lines changed and they are generally
-no longer compatible with eachother. This has been intentional -- the
+There are hundreds of thousands of lines changed and they are generally
+no longer compatible with each other. This has been intentional -- the
 focus of this fork is on a few key principles:
   - Simplicity and improved user experience
   - Efficiency of operations and performance
-  - Minimizing external dependancies and usage of standard libraries.
-  - Of course -- adding much needed features.
+  - Minimize external dependencies and standard library usage.
+  - Of course -- adding much-needed features.
 
 ## Look
 
 One way you can observe the improved user experience is how I changed
-the UI. The Navbar is simplified to a three component system :
+the UI. The Navbar is simplified to a three-component system :
 
   1. (Left) The slide-out action panel button
   2. (Middle) The powerful search bar.
   3. (Right) The view change toggle.
 
 All other functions are moved either into the action menu or popup menus.
-If the action is does not depend on context, it will exist in the slide-out
-action panel. If the action is available based on context, it will showup as
+If the action does not depend on context, it will exist in the slide-out
+action panel. If the action is available based on context, it will show up as
 a popup menu.
 
 <p align="center">
-  <img width="500" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/35cdeb3b-ab79-4b04-8001-8f51f6ea06bb" title="Dark mode">
-  <img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/55fa4f5c-440e-4a97-b711-96139208a163">
-  <img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/c76f4100-949b-4e17-a3e6-e410fb8ec08f">
-  <img width="500" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/0bde26f3-fa90-411e-bd0b-abaa47506d62">
-  <img width="560" alt="image" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/71d8f2b8-6fe6-4fdc-8aac-503d08c28d86">
+  <img width="800" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/899152cf-3e69-4179-aa82-752af2df3fc6" title="Main Screenshot">
+    <img width="800" src="https://github.com/user-attachments/assets/18c02d03-5c60-4e15-9c32-3cfe058a0c49" title="Main Screenshot">
+      <img width="800" src="https://github.com/user-attachments/assets/75226dc4-9802-46f0-9e3c-e4403d3275da" title="Main Screenshot">
+
 </p>
 
 ## Install
@@ -135,7 +133,7 @@ Note: Must download asset with frontend directory next to filebrowser binary
 ## Configuration
 
 All configuration is now done via a single configuration file:
-`filebrowser.yaml`, here is an example minimal [configuration
+`filebrowser.yaml`, here is an example of minimal [configuration
 file](./backend/filebrowser.yaml).
 
 View the [Configuration Help Page](./configuration.md) for available
@@ -144,8 +142,8 @@ configuration options and other help.
 
 ## Migration from filebrowser/filebrowser
 
-If you are currently using filebrowser from the filebrowser/filebrowser
-repo, but want to try using this. I recommend you start fresh without
+If you currently use filebrowser from the filebrowser/filebrowser
+repo but want to try using this. I recommend you start fresh without
 reusing the database, but there are a few things you'll need to do if you
 must migrate:
 
@@ -158,32 +156,12 @@ must migrate:
    command to use the config file as described in the install section
    above.
 5. If you are not using docker, just make sure you run filebrowser -c
-   filebrowser.yml and have valid filebrowser config.
+   filebrowser.yml and have a valid filebrowser config.
 
 
 The filebrowser application should run with the same user and rules that
 you have from the original. But keep in mind the differences that are
 mentioned at the top of this readme.
-
-### background & help
-
-The original project filebrowser/filebrowser used multiple different ways
-to configure the server. This was confusing and difficult to work with
-from a user and from a developer's perspective. So I completely redesigned
-the program to use one single human-readable config file.
-
-I understand many coming from the original fork may notice differences
-which make using this improved version more difficult. If you notice
-issues that you believe should be fixed, please open an issue here and it
-will very likely be addressed with a PR within a few weeks.
-
-This version of filebrowser is going through a configuration overhaul as
-mentioned above. Certain features related to rules and commands may not
-work as they do on the original filebrowser. The purpose of this is to
-create a more consistent experience where configuration is done via files
-rather than running commands, so that it's very clear what the current
-state of the configuration is. When running commands its not clear what
-the configuration is.
 
 ## Roadmap
 
