@@ -20,6 +20,8 @@ Mac                           |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Self hosted                   |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Has Stable Release?           |  ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 S3 support                    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+webdav support                   |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+ftp support                   |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Multiple soures support       |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 has docker image              |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 has standalone binary         |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
@@ -50,6 +52,7 @@ Comments support          |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 collaboration on same file         |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 trash support         |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Starred/pinned files    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Content preview icons   |  images only  | images only  | ❌  | ❌ | ❌  | ❌ |
 
 > [!WARNING]
 > Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml`
