@@ -9,7 +9,6 @@
   <img width="800" src="https://github.com/user-attachments/assets/8ba93582-aba2-4996-8ac3-25f763a2e596" title="Main Screenshot">
 </p>
 
-
 ## Comparison Chart
 
 --- | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" >   | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" > |google / one driive| FileRun
@@ -49,6 +48,8 @@ Last active date              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 activity log             |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Comments support          |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 collaboration on same file         |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+trash support         |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Starred/pinned files    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 
 > [!WARNING]
 > Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml`
