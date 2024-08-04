@@ -161,6 +161,14 @@ The filebrowser application should run with the same user and rules that
 you have from the original. But keep in mind the differences that are
 mentioned at the top of this readme.
 
+## Comparison Chart
+
+| ![](https://img.shields.io/badge/License-Apache_2.0-blue.svg) | ![]() | ![]() 
+reference url | gtstefaniak/filebrowser | filebrowser/filebrowser | --- | --- |
+--- | --- | --- | --- | --- |
+ has docker image |  ✅ | ✅ | ✅ | ❌ |
+ has standalone binary |  ✅ | ✅ | ✅ | ❌ |
+
 ## Roadmap
 
 see [Roadmap Page](./roadmap.md)
