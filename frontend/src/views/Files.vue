@@ -60,7 +60,6 @@ export default {
     $route: "fetchData",
     reload(value) {
       if (value) {
-        console.log("reloading");
         this.fetchData();
       }
     },

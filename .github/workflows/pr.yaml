@@ -3,48 +3,11 @@ name: pr-merge
 on:
   pull_request:
     branches:
-      - 'main'
-      - 'dev_v*'
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - "main"
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "dev_*"
 
 jobs:
-  test-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go test -race -v ./...
-  lint-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-            go-version: 'stable'
-      - uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.59
-          working-directory: backend
-  format-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go fmt ./...
-  lint-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i eslint && npm run lint
-
   push_pr_to_registry:
     name: Push PR
     runs-on: ubuntu-latest

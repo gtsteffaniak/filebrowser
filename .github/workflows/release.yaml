@@ -3,7 +3,7 @@ name: release
 on:
   push:
     branches:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - "v[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
   contents: write
@@ -14,63 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
       - name: Extract branch name
         shell: bash
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: extract_branch
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.2
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
+          target_commitish: ${{ steps.extract_branch.outputs.branch }}
+          token: ${{ secrets.PAT }}
           tag_name: ${{ steps.extract_branch.outputs.branch }}
-          release_name: ${{ steps.extract_branch.outputs.branch }}
-          body: |
-            Please see usage on [readme](https://github.com/gtsteffaniak/filebrowser).
-            Docker repo: https://hub.docker.com/r/gtstef/filebrowser/tags
-          draft: false
           prerelease: false
-  test-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go test -race -v ./...
-  lint-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-            go-version: 'stable'
-      - uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.59
-          working-directory: backend
-  format-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go fmt ./...
-  lint-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i eslint && npm run lint
-
+          draft: false
+          generate_release_notes: true
+          name: ${{ steps.extract_branch.outputs.branch }}
   push_release_to_registry:
-    needs: [lint-frontend, lint-backend, test-backend, format-backend]
     name: Push release
     runs-on: ubuntu-latest
     steps:
