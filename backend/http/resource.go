@@ -20,9 +20,14 @@ import (
 )
 
 var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	path := filepath.Join(d.user.Scope, r.URL.Path)
+	realPath, err := files.GetRealPath(path)
+	if err != nil {
+		fmt.Println("could not get real path for:", path)
+		return http.StatusNotFound, err
+	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Fs:         d.user.Fs,
-		Path:       r.URL.Path,
+		Path:       realPath,
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: d.server.TypeDetectionByHeader,
@@ -53,10 +58,14 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 		if r.URL.Path == "/" || !d.user.Perm.Delete {
 			return http.StatusForbidden, nil
 		}
-
+		path := filepath.Join(d.user.Scope, r.URL.Path)
+		realPath, err := files.GetRealPath(path)
+		if err != nil {
+			fmt.Println("could not get real path for:", path)
+			return http.StatusNotFound, err
+		}
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         d.user.Fs,
-			Path:       r.URL.Path,
+			Path:       realPath,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -95,10 +104,14 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			err := d.user.Fs.MkdirAll(r.URL.Path, 0775) //nolint:gomnd
 			return errToStatus(err), err
 		}
-
+		path := filepath.Join(d.user.Scope, r.URL.Path)
+		realPath, err := files.GetRealPath(path)
+		if err != nil {
+			fmt.Println("could not get real path for:", path)
+			return http.StatusNotFound, err
+		}
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         d.user.Fs,
-			Path:       r.URL.Path,
+			Path:       realPath,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -304,10 +317,14 @@ func patchAction(ctx context.Context, action, src, dst string, d *data, fileCach
 		}
 		src = path.Clean("/" + src)
 		dst = path.Clean("/" + dst)
-
+		path := filepath.Join(d.user.Scope, src)
+		realPath, err := files.GetRealPath(path)
+		if err != nil {
+			fmt.Println("could not get real path for:", path)
+			return err
+		}
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         d.user.Fs,
-			Path:       src,
+			Path:       realPath,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: false,
@@ -335,9 +352,14 @@ type DiskUsageResponse struct {
 }
 
 var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	path := filepath.Join(d.user.Scope, r.URL.Path)
+	realPath, err := files.GetRealPath(path)
+	if err != nil {
+		fmt.Println("could not get real path for:", path)
+		return http.StatusNotFound, err
+	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Fs:         d.user.Fs,
-		Path:       r.URL.Path,
+		Path:       realPath,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: false,

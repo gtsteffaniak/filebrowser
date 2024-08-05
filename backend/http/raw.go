@@ -2,9 +2,11 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	gopath "path"
 	"path/filepath"
 	"strings"
@@ -80,10 +82,14 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-
+	path := filepath.Join(d.user.Scope, r.URL.Path)
+	realPath, err := files.GetRealPath(path)
+	if err != nil {
+		fmt.Println("couldn't get real path", path)
+		return http.StatusInternalServerError, err
+	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Fs:         d.user.Fs,
-		Path:       r.URL.Path,
+		Path:       realPath,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: d.server.TypeDetectionByHeader,
@@ -198,7 +204,7 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
-	fd, err := file.Fs.Open(file.Path)
+	fd, err := os.Open(file.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

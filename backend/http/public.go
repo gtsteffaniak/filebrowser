@@ -5,10 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"path/filepath"
 	"strings"
 
-	"github.com/spf13/afero"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/files"
@@ -38,13 +36,9 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		} else {
 			path = link.Path + "/" + path
 		}
-		sharePath := settings.Config.Server.Root + path
-		lastComponent := filepath.Base(sharePath)
-		basePath := filepath.Dir(sharePath)
-		fsPath := afero.NewBasePathFs(afero.NewOsFs(), basePath)
+		realSharePath := settings.Config.Server.Root + path
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         fsPath,
-			Path:       lastComponent,
+			Path:       realSharePath,
 			Modify:     d.user.Perm.Modify,
 			Expand:     true,
 			ReadHeader: d.server.TypeDetectionByHeader,

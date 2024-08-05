@@ -10,13 +10,17 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-
-	"github.com/spf13/afero"
 )
 
-type FileCache struct {
-	fs afero.Fs
+// Cache interface for caching operations
+type Cache interface {
+	Get(key string) ([]byte, error)
+	Set(key string, value []byte) error
+}
 
+// FileCache struct for file-based caching
+type FileCache struct {
+	dir string
 	// granular locks
 	scopedLocks struct {
 		sync.Mutex
@@ -25,10 +29,12 @@ type FileCache struct {
 	}
 }
 
-func New(fs afero.Fs, root string) *FileCache {
-	return &FileCache{
-		fs: afero.NewBasePathFs(fs, root),
+// NewFileCache creates a new FileCache
+func NewFileCache(dir string) (*FileCache, error) {
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return nil, fmt.Errorf("can't make directory %s: %v", dir, err)
 	}
+	return &FileCache{dir: dir}, nil
 }
 
 func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
@@ -37,11 +43,11 @@ func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
 	defer mu.Unlock()
 
 	fileName := f.getFileName(key)
-	if err := f.fs.MkdirAll(filepath.Dir(fileName), 0700); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(filepath.Dir(fileName), 0700); err != nil {
 		return err
 	}
 
-	if err := afero.WriteFile(f.fs, fileName, value, 0700); err != nil { //nolint:gomnd
+	if err := os.WriteFile(fileName, value, 0600); err != nil {
 		return err
 	}
 
@@ -68,15 +74,15 @@ func (f *FileCache) Delete(ctx context.Context, key string) error {
 	defer mu.Unlock()
 
 	fileName := f.getFileName(key)
-	if err := f.fs.Remove(fileName); err != nil && !errors.Is(err, os.ErrNotExist) {
+	if err := os.Remove(fileName); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 	return nil
 }
 
-func (f *FileCache) open(key string) (afero.File, bool, error) {
+func (f *FileCache) open(key string) (*os.File, bool, error) {
 	fileName := f.getFileName(key)
-	file, err := f.fs.Open(fileName)
+	file, err := os.Open(fileName)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, false, nil
@@ -106,5 +112,5 @@ func (f *FileCache) getFileName(key string) string {
 	hasher := sha1.New() //nolint:gosec
 	_, _ = hasher.Write([]byte(key))
 	hash := hex.EncodeToString(hasher.Sum(nil))
-	return fmt.Sprintf("%s/%s/%s", hash[:1], hash[1:3], hash)
+	return filepath.Join(f.dir, fmt.Sprintf("%s/%s/%s", hash[:1], hash[1:3], hash))
 }

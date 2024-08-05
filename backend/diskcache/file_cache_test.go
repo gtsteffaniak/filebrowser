@@ -2,10 +2,11 @@ package diskcache
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,35 +16,39 @@ func TestFileCache(t *testing.T) {
 		key            = "key"
 		value          = "some text"
 		newValue       = "new text"
-		cacheRoot      = "/cache"
+		cacheRoot      = "test_cache" // Use a relative path for a temporary directory
 		cachedFilePath = "a/62/a62f2225bf70bfaccbc7f1ef2a397836717377de"
 	)
 
-	fs := afero.NewMemMapFs()
-	cache := New(fs, "/cache")
+	// Create temporary directory for the cache
+	cacheDir, err := ioutil.TempDir("", cacheRoot)
+	require.NoError(t, err)
+	defer os.RemoveAll(cacheDir) // Clean up
+
+	cache, err := NewFileCache(cacheDir)
+	require.NoError(t, err)
 
 	// store new key
-	err := cache.Store(ctx, key, []byte(value))
+	err = cache.Store(ctx, key, []byte(value))
 	require.NoError(t, err)
-	checkValue(t, ctx, fs, filepath.Join(cacheRoot, cachedFilePath), cache, key, value)
+	checkValue(t, ctx, cache, filepath.Join(cacheDir, cachedFilePath), key, value)
 
 	// update existing key
 	err = cache.Store(ctx, key, []byte(newValue))
 	require.NoError(t, err)
-	checkValue(t, ctx, fs, filepath.Join(cacheRoot, cachedFilePath), cache, key, newValue)
+	checkValue(t, ctx, cache, filepath.Join(cacheDir, cachedFilePath), key, newValue)
 
 	// delete key
 	err = cache.Delete(ctx, key)
 	require.NoError(t, err)
-	exists, err := afero.Exists(fs, filepath.Join(cacheRoot, cachedFilePath))
-	require.NoError(t, err)
+	exists := fileExists(filepath.Join(cacheDir, cachedFilePath))
 	require.False(t, exists)
 }
 
-func checkValue(t *testing.T, ctx context.Context, fs afero.Fs, fileFullPath string, cache *FileCache, key, wantValue string) { //nolint:golint
+func checkValue(t *testing.T, ctx context.Context, cache *FileCache, fileFullPath string, key, wantValue string) {
 	t.Helper()
 	// check actual file content
-	b, err := afero.ReadFile(fs, fileFullPath)
+	b, err := ioutil.ReadFile(fileFullPath)
 	require.NoError(t, err)
 	require.Equal(t, wantValue, string(b))
 
@@ -52,4 +57,12 @@ func checkValue(t *testing.T, ctx context.Context, fs afero.Fs, fileFullPath str
 	require.NoError(t, err)
 	require.True(t, ok)
 	require.Equal(t, wantValue, string(b))
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
