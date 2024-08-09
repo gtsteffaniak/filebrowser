@@ -197,30 +197,13 @@ export default {
       return state.req.sorting.asc;
     },
     items() {
-      if (state.user == null) {
-        return {};
-      }
-      const dirs = [];
-      const files = [];
-
-      state.req.items.forEach((item) => {
-        if (state.user.hideDotfiles && item.name.startsWith(".")) {
-          return;
-        }
-        if (item.isDir) {
-          dirs.push(item);
-        } else {
-          item.Path = state.req.Path;
-          files.push(item);
-        }
-      });
-      return { dirs, files };
+      return getters.reqItems();
     },
     numDirs() {
-      return state.req.numDirs;
+      return getters.reqNumDirs();
     },
     numFiles() {
-      return state.req.numFiles;
+      return getters.reqNumFiles();
     },
     dirs() {
       return this.items.dirs;

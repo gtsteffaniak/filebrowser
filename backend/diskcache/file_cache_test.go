@@ -16,7 +16,7 @@ func TestFileCache(t *testing.T) {
 		key            = "key"
 		value          = "some text"
 		newValue       = "new text"
-		cacheRoot      = "test_cache" // Use a relative path for a temporary directory
+		cacheRoot      = "cache"
 		cachedFilePath = "a/62/a62f2225bf70bfaccbc7f1ef2a397836717377de"
 	)
 

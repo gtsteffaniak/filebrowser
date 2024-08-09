@@ -81,7 +81,7 @@ export const mutations = {
     }
 
     let locale = value.locale;
-    if (locale === "") {      
+    if (locale === "") {
       value.locale = i18n.detectLocale();
     }
     let previousUser = state.user

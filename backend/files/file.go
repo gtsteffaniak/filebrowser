@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"mime"
@@ -19,6 +20,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -246,15 +248,83 @@ func (i *FileInfo) RealPath() string {
 	return i.Path
 }
 
-func GetRealPath(relativePath string) (string, error) {
+func GetRealPath(relativePath ...string) (string, error) {
+	combined := append([]string{settings.Config.Server.Root}, relativePath...)
+	joinedPath := filepath.Join(combined...)
 	// Convert relative path to absolute path
-	absolutePath, err := filepath.Abs(relativePath)
+	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
 		return "", err
 	}
-
+	if !Exists(absolutePath) {
+		return absolutePath, nil // return without error
+	}
 	// Resolve symlinks and get the real path
 	return resolveSymlinks(absolutePath)
+}
+
+func DeleteFiles(absPath string, opts FileOptions) error {
+	err := os.RemoveAll(absPath)
+	if err != nil {
+		return err
+	}
+	parentDir := filepath.Dir(absPath)
+	opts.Path = parentDir
+	updated := RefreshFileInfo(opts)
+	if !updated {
+		return errors.ErrEmptyKey
+	}
+	return nil
+}
+
+func WriteDirectory(opts FileOptions) error {
+	// Ensure the parent directories exist
+	err := os.MkdirAll(opts.Path, 0775)
+	if err != nil {
+		return err
+	}
+	opts.Path = filepath.Dir(opts.Path)
+	updated := RefreshFileInfo(opts)
+	if !updated {
+		return errors.ErrEmptyKey
+	}
+
+	return nil
+}
+
+func WriteFile(opts FileOptions, in io.Reader) error {
+	fmt.Println("writing file", opts.Path)
+	dst := opts.Path
+	parentDir := filepath.Dir(dst)
+	// Split the directory from the destination path
+	dir := filepath.Dir(dst)
+
+	// Create the directory and all necessary parents
+	err := os.MkdirAll(dir, 0775)
+	if err != nil {
+		return err
+	}
+
+	// Open the file for writing (create if it doesn't exist, truncate if it does)
+	file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0775)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Copy the contents from the reader to the file
+	_, err = io.Copy(file, in)
+	if err != nil {
+		return err
+	}
+	fmt.Println("refreshing info for ", parentDir)
+	opts.Path = parentDir
+	updated := RefreshFileInfo(opts)
+	if !updated {
+		return errors.ErrEmptyKey
+	}
+
+	return nil
 }
 
 // resolveSymlinks resolves symlinks in the given path
@@ -286,11 +356,13 @@ func resolveSymlinks(path string) (string, error) {
 // addContent reads and sets content based on the file type.
 func (i *FileInfo) addContent(path string) error {
 	if !i.IsDir {
+		fmt.Println("getting content for ", path)
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 		stringContent := string(content)
+		fmt.Println("Content: ", stringContent)
 		if !utf8.ValidString(stringContent) {
 			return nil
 		}
@@ -305,6 +377,9 @@ func (i *FileInfo) addContent(path string) error {
 
 // detectType detects the file type.
 func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool) error {
+	if i.IsDir {
+		return nil
+	}
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		if saveContent {
@@ -318,9 +393,8 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 		buffer = i.readFirstBytes()
 		mimetype := mime.TypeByExtension(i.Extension)
 		if mimetype == "" {
-			mimetype = http.DetectContentType(buffer)
+			http.DetectContentType(buffer)
 		}
-		i.Type = mimetype
 	}
 
 	ext := filepath.Ext(i.Name)
@@ -350,7 +424,6 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 			}
 		}
 	}
-
 	if i.Type == "" {
 		i.Type = "blob"
 		if saveContent {
@@ -509,4 +582,15 @@ func getMutex(path string) *sync.Mutex {
 	}
 
 	return pathMutexes[path]
+}
+
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }

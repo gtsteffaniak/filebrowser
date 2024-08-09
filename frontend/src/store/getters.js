@@ -20,15 +20,65 @@ export const getters = {
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
   },
+  reqNumDirs: () => {
+    let dirCount = 0;
+    state.req.items.forEach((item) => {
+      // Check if the item is a directory
+      if (item.isDir) {
+        // If hideDotfiles is enabled and the item is a dotfile, skip it
+        if (state.user.hideDotfiles && item.name.startsWith(".")) {
+          return;
+        }
+        // Otherwise, count this directory
+        dirCount++;
+      }
+    });
+    // Return the directory count
+    return dirCount;
+  },
+  reqNumFiles: () => {
+    let fileCount = 0;
+    state.req.items.forEach((item) => {
+      // Check if the item is a directory
+      if (!item.isDir) {
+        // If hideDotfiles is enabled and the item is a dotfile, skip it
+        if (state.user.hideDotfiles && item.name.startsWith(".")) {
+          return;
+        }
+        // Otherwise, count this directory
+        fileCount++;
+      }
+    });
+    // Return the directory count
+    return fileCount;
+  },
+  reqItems: () => {
+    if (state.user == null) {
+      return {};
+    }
+    const dirs = [];
+    const files = [];
+
+    state.req.items.forEach((item) => {
+      if (state.user.hideDotfiles && item.name.startsWith(".")) {
+        return;
+      }
+      if (item.isDir) {
+        dirs.push(item);
+      } else {
+        item.Path = state.req.Path;
+        files.push(item);
+      }
+    });
+    return { dirs, files };
+  },
   isSidebarVisible: () => {
     if (!getters.isLoggedIn()) {
       return false;
     }
-    console.log(getters.currentPromptName());
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       return false;
     }
-    console.log(getters.currentView());
     if (getters.currentView() !== "listingView") {
       return false;
     }

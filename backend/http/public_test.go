@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/asdine/storm/v3"
-	"github.com/spf13/afero"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
@@ -92,7 +91,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 				storage.Users = &customFSUser{
 					Store: storage.Users,
-					fs:    &afero.MemMapFs{},
 				}
 
 				recorder := httptest.NewRecorder()
@@ -122,7 +120,6 @@ func newHTTPRequest(t *testing.T, requestModifiers ...func(*http.Request)) *http
 
 type customFSUser struct {
 	users.Store
-	fs afero.Fs
 }
 
 func (cu *customFSUser) Get(baseScope string, id interface{}) (*users.User, error) {
@@ -130,7 +127,5 @@ func (cu *customFSUser) Get(baseScope string, id interface{}) (*users.User, erro
 	if err != nil {
 		return nil, err
 	}
-	user.Fs = cu.fs
-
 	return user, nil
 }

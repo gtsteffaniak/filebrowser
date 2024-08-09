@@ -6,16 +6,14 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/spf13/afero"
 )
 
 var (
 	invalidFilenameChars = regexp.MustCompile(`[^0-9A-Za-z@_\-.]`)
-
-	dashes = regexp.MustCompile(`[\-]+`)
+	dashes               = regexp.MustCompile(`[\-]+`)
 )
 
 // MakeUserDir makes the user directory according to settings.
@@ -32,8 +30,8 @@ func (s *Settings) MakeUserDir(username, userScope, serverRoot string) (string, 
 
 	userScope = path.Join("/", userScope)
 
-	fs := afero.NewBasePathFs(afero.NewOsFs(), serverRoot)
-	if err := fs.MkdirAll(userScope, os.ModePerm); err != nil {
+	fullPath := filepath.Join(serverRoot, userScope)
+	if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create user home dir: [%s]: %w", userScope, err)
 	}
 	return userScope, nil

@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -18,6 +19,7 @@ import (
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		id, path := ifPathWithName(r)
+		fmt.Println(id, path)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {
 			return errToStatus(err), err
@@ -29,16 +31,12 @@ var withHashFile = func(fn handleFunc) handleFunc {
 			}
 		}
 		d.user = &users.PublicUser
-		if path == "/" {
-			path = link.Path
-		} else if strings.HasPrefix("/"+path, link.Path) {
-			path = "/" + path
-		} else {
-			path = link.Path + "/" + path
+		realPath, err := files.GetRealPath(d.user.Scope, link.Path, path)
+		if err != nil {
+			return http.StatusNotFound, err
 		}
-		realSharePath := settings.Config.Server.Root + path
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Path:       realSharePath,
+			Path:       realPath,
 			Modify:     d.user.Perm.Modify,
 			Expand:     true,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -57,9 +55,6 @@ func ifPathWithName(r *http.Request) (id, filePath string) {
 	pathElements := strings.Split(r.URL.Path, "/")
 	id = pathElements[0]
 	allButFirst := path.Join(pathElements[1:]...)
-	if len(pathElements) == 1 {
-		allButFirst = "/"
-	}
 	return id, allButFirst
 }
 

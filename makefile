@@ -22,7 +22,7 @@ lint-backend:
 	cd backend && golangci-lint run
 
 test-backend:
-	cd backend && go test ./...
+	cd backend && go test -race ./...
 
 test-frontend:
 	# Kill processes matching exe/filebrowser, ignore errors if process does not exist

@@ -2,7 +2,6 @@ package http
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -82,10 +81,8 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-	path := filepath.Join(d.user.Scope, r.URL.Path)
-	realPath, err := files.GetRealPath(path)
+	realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
-		fmt.Println("couldn't get real path", path)
 		return http.StatusInternalServerError, err
 	}
 	file, err := files.FileInfoFaster(files.FileOptions{
