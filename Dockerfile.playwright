@@ -9,7 +9,7 @@ FROM node:slim as nbuild
 WORKDIR /app
 COPY ./frontend/package.json ./
 RUN npm i --maxsockets 1
-RUN npx playwright install --with-deps chromium
+RUN npx playwright install --with-deps firefox
 COPY [ "backend/filebrowser.yaml", "./" ]
 COPY  ./frontend/ ./frontend
 WORKDIR /app/frontend
