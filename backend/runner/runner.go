@@ -21,7 +21,7 @@ type Runner struct {
 // RunHook runs the hooks for the before and after event.
 func (r *Runner) RunHook(fn func() error, evt, path, dst string, user *users.User) error {
 	path, _ = files.GetRealPath(user.Scope, path)
-	dst, _ = files.GetRealPath(user.Scope, path)
+	dst, _ = files.GetRealPath(user.Scope, dst)
 
 	if r.Enabled {
 		if val, ok := r.Commands["before_"+evt]; ok {
