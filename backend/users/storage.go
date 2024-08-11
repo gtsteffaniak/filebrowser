@@ -54,9 +54,6 @@ func (s *Storage) Get(baseScope string, id interface{}) (user *User, err error) 
 	if err != nil {
 		return
 	}
-	if err := user.Clean(baseScope); err != nil {
-		return nil, err
-	}
 	return user, err
 }
 
@@ -66,23 +63,12 @@ func (s *Storage) Gets(baseScope string) ([]*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, user := range users {
-		if err := user.Clean(baseScope); err != nil { //nolint:govet
-			return nil, err
-		}
-	}
-
 	return users, err
 }
 
 // Update updates a user in the database.
 func (s *Storage) Update(user *User, fields ...string) error {
-	err := user.Clean("")
-	if err != nil {
-		return err
-	}
-
-	err = s.back.Update(user, fields...)
+	err := s.back.Update(user, fields...)
 	if err != nil {
 		return err
 	}
@@ -138,10 +124,6 @@ func (s *Storage) DeleteRule(userID string, ruleID string) error {
 // Save saves the user in a storage.
 func (s *Storage) Save(user *User) error {
 	log.Println("Saving new user:", user.Username)
-	if err := user.Clean(""); err != nil {
-		return err
-	}
-
 	return s.back.Save(user)
 }
 

@@ -362,7 +362,6 @@ func (i *FileInfo) addContent(path string) error {
 			return err
 		}
 		stringContent := string(content)
-		fmt.Println("Content: ", stringContent)
 		if !utf8.ValidString(stringContent) {
 			return nil
 		}

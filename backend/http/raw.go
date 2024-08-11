@@ -111,7 +111,7 @@ func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
 	if !d.Check(path) {
 		return nil
 	}
-	info, err := d.user.Fs.Stat(path)
+	info, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
 		return nil
 	}
 
-	file, err := d.user.Fs.Open(path)
+	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
