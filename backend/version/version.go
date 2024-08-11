@@ -1,8 +1,7 @@
 package version
 
 var (
-	// Version is the current File Browser version.
-	Version = "(untracked)"
-	// CommitSHA is the commmit sha.
-	CommitSHA = "(untracked)"
+	// Dynamically updated during build via build args
+	Version   = "untracked"
+	CommitSHA = "untracked"
 )

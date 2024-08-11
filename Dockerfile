@@ -5,7 +5,7 @@ WORKDIR /app
 COPY ./backend ./
 RUN go build -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/version.Version=${version}' \
-  -X 'github.com/gtsteffaniak/filebrowser/version.commitSHA=${commitSHA}'" \
+  -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=${commitSHA}'" \
   -o filebrowser .
 
 FROM node:slim AS nbuild

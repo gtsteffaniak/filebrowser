@@ -164,7 +164,7 @@
           :href="'https://github.com/gtsteffaniak/filebrowser/releases/'"
           :title="commitSHA"
         >
-          {{ version }}
+          ({{ version }})
         </a>
       </span>
       <span>
