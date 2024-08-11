@@ -160,7 +160,10 @@
         </a>
       </span>
       <span>
-        <a :href="'https://github.com/gtsteffaniak/filebrowser/commit/' + commitSHA">
+        <a
+          :href="'https://github.com/gtsteffaniak/filebrowser/releases/'"
+          :title="commitSHA"
+        >
           {{ version }}
         </a>
       </span>
