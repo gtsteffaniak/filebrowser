@@ -2,7 +2,6 @@ package diskcache
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,7 +20,7 @@ func TestFileCache(t *testing.T) {
 	)
 
 	// Create temporary directory for the cache
-	cacheDir, err := ioutil.TempDir("", cacheRoot)
+	cacheDir, err := os.MkdirTemp("", cacheRoot)
 	require.NoError(t, err)
 	defer os.RemoveAll(cacheDir) // Clean up
 
@@ -48,7 +47,7 @@ func TestFileCache(t *testing.T) {
 func checkValue(t *testing.T, ctx context.Context, cache *FileCache, fileFullPath string, key, wantValue string) {
 	t.Helper()
 	// check actual file content
-	b, err := ioutil.ReadFile(fileFullPath)
+	b, err := os.ReadFile(fileFullPath)
 	require.NoError(t, err)
 	require.Equal(t, wantValue, string(b))
 

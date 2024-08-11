@@ -177,7 +177,7 @@ import {
   noAuth,
   loginPage,
 } from "@/utils/constants";
-import { files, users } from "@/api";
+import { files } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -200,7 +200,7 @@ export default {
   },
   computed: {
     isSticky() {
-      getters.isStickySidebar();
+      return getters.isStickySidebar();
     },
     isMobile() {
       return getters.isMobile();

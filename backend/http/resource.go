@@ -139,6 +139,9 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 	}
 
 	realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	if err != nil {
+		return errToStatus(err), err
+	}
 	fileOpts := files.FileOptions{
 		Path:       realPath,
 		Modify:     d.user.Perm.Modify,
