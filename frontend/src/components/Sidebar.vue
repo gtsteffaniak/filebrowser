@@ -159,7 +159,11 @@
           File Browser
         </a>
       </span>
-      <span>{{ version }}</span>
+      <span>
+        <a :href="'https://github.com/gtsteffaniak/filebrowser/commit/' + commitSHA">
+          {{ version }}
+        </a>
+      </span>
       <span>
         <a @click="help">{{ $t("sidebar.help") }}</a>
       </span>
@@ -171,6 +175,7 @@
 import * as auth from "@/utils/auth";
 import {
   version,
+  commitSHA,
   signup,
   disableExternal,
   disableUsedPercentage,
@@ -199,35 +204,17 @@ export default {
     }
   },
   computed: {
-    isSticky() {
-      return getters.isStickySidebar();
-    },
-    isMobile() {
-      return getters.isMobile();
-    },
-    isFiles() {
-      return getters.isFiles();
-    },
-    user() {
-      if (!getters.isLoggedIn()) {
-        return {};
-      }
-      return state.user;
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
-    isLoggedIn() {
-      return getters.isLoggedIn();
-    },
-    currentPrompt() {
-      return getters.currentPrompt();
-    },
-    active() {
-      return getters.isSidebarVisible();
-    },
+    isSticky: () => getters.isStickySidebar(),
+    isMobile: () => getters.isMobile(),
+    isFiles: () => getters.isFiles(),
+    user: () => (getters.isLoggedIn() ? state.user : {}),
+    isDarkMode: () => getters.isDarkMode(),
+    isLoggedIn: () => getters.isLoggedIn(),
+    currentPrompt: () => getters.currentPrompt(),
+    active: () => getters.isSidebarVisible(),
     signup: () => signup,
     version: () => version,
+    commitSHA: () => commitSHA,
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,

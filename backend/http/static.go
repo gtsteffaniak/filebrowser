@@ -34,6 +34,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		"Color":                 d.settings.Frontend.Color,
 		"BaseURL":               d.server.BaseURL,
 		"Version":               version.Version,
+		"CommitSHA":             version.CommitSHA,
 		"StaticURL":             path.Join(d.server.BaseURL, "/static"),
 		"Signup":                settings.Config.Auth.Signup,
 		"NoAuth":                d.settings.Auth.Method == "noauth",
