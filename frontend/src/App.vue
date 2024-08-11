@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { onMounted } from 'vue';
+import { onMounted } from "vue";
 import { mutations } from "@/store"; // Import your store's mutations
 
 export default {
@@ -11,9 +11,10 @@ export default {
   computed: {},
   setup() {
     onMounted(() => {
+      console.log("static vars", window.FileBrowser);
       mutations.setLoading(false); // Call your mutation or method to set loading to false
       // Query the loading element and remove it from the DOM
-      const loadingDiv = document.getElementById('loading');
+      const loadingDiv = document.getElementById("loading");
       if (loadingDiv) {
         loadingDiv.remove();
       }
