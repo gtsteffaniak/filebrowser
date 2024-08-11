@@ -34,11 +34,6 @@ list or set it to 0.`,
 		err = unmarshal(args[0], &list)
 		checkErr("unmarshal", err)
 
-		for _, user := range list {
-			err = user.Clean("")
-			checkErr("Clean", err)
-		}
-
 		if mustGetBool(cmd.Flags(), "replace") {
 			oldUsers, err := d.store.Users.Gets("")
 			checkErr("d.store.Users.Gets", err)

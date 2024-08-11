@@ -52,7 +52,7 @@ import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { showError } from "@/notify";
+import { showError,showSuccess } from "@/notify";
 
 export default {
   name: "move",
@@ -111,18 +111,17 @@ export default {
           confirm: (event, option) => {
             overwrite = option == "overwrite";
             rename = option == "rename";
-
             event.preventDefault();
             mutations.closeHovers();
             action(overwrite, rename);
             mutations.setReload(true);
           },
         });
-
         return;
       }
 
       action(overwrite, rename);
+
     },
   },
 };

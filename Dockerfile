@@ -1,9 +1,9 @@
-FROM golang:1.22-alpine as base
+FROM golang:1.22-alpine AS base
 WORKDIR /app
 COPY ./backend ./
 RUN go build -ldflags="-w -s" -o filebrowser .
 
-FROM node:slim as nbuild
+FROM node:slim AS nbuild
 WORKDIR /app
 COPY ./frontend/package.json ./
 RUN npm i --maxsockets 1
