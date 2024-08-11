@@ -11,7 +11,7 @@ export const state = reactive({
   },
   editor: null,
   user: {
-    stickySidebar: false,
+    stickySidebar: stickyStartup(),
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'mosaic', // Default to mosaic view
     hideDotfiles: false, // Default to false, assuming this is a boolean
@@ -40,7 +40,7 @@ export const state = reactive({
     items: [],
   },
   jwt: "",
-  loading: false,
+  loading: true,
   reload: false,
   selected: [],
   multiple: false,
@@ -55,3 +55,8 @@ export const state = reactive({
   showConfirm: null,
   route: {},
 });
+
+function stickyStartup() {
+  const stickyStatus = localStorage.getItem("stickySidebar");
+  return stickyStatus == "true"
+}

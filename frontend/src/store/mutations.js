@@ -15,6 +15,8 @@ export const mutations = {
   toggleSidebar() {
     if (!state.showSidebar && state.user.stickySidebar) {
       state.user.stickySidebar = false;
+      localStorage.setItem("stickySidebar", "false");
+
       mutations.updateUser({ "stickySidebar": false }); // turn off sticky when closed
       return
     }
@@ -130,6 +132,7 @@ export const mutations = {
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
     }
+    localStorage.setItem("stickySidebar", state.user.stickySidebar);
     if (state.user != previousUser) {
       users.update(state.user);
     }

@@ -107,17 +107,21 @@ export const getters = {
     : state.route.path + "/";
   },
   currentView: () => {
-    let returnVal = null;
-    if (state.req.type !== undefined) {
-      if (state.req.isDir) {
-        returnVal = "listingView";
-      } else if ("content" in state.req) {
-        returnVal = "editor";
-      } else {
-        returnVal = "preview";
+    const pathname = state.route.path.toLowerCase()
+    if (pathname.includes("settings")) {
+      return "settings"
+    } else if (pathname.includes("files")) {
+      if (state.req.type !== undefined) {
+        if (state.req.isDir) {
+          return "listingView";
+        } else if ("content" in state.req) {
+          return "editor";
+        } else {
+          return "preview";
+        }
       }
     }
-    return returnVal;
+    return null
   },
   progress: () => {
     // Check if state.upload is defined and valid

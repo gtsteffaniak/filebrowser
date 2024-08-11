@@ -1,7 +1,7 @@
 <template>
   <nav
     id="sidebar"
-    :class="{ active: active, 'dark-mode': isDarkMode, sticky: user?.stickySidebar }"
+    :class="{ active: active, 'dark-mode': isDarkMode, sticky: isSticky }"
   >
     <div class="card">
       <div class="card-wrapper">
@@ -199,6 +199,9 @@ export default {
     }
   },
   computed: {
+    isSticky() {
+      getters.isStickySidebar();
+    },
     isMobile() {
       return getters.isMobile();
     },
@@ -255,9 +258,7 @@ export default {
       mutations.toggleDarkMode();
     },
     toggleSticky() {
-      let newSettings = state.user;
-      newSettings.stickySidebar = !state.user.stickySidebar;
-      users.update(newSettings, ["stickySidebar"]);
+      mutations.updateUser({ stickySidebar: !state.user.stickySidebar });
     },
     async updateUsage() {
       if (!getters.isLoggedIn()) {

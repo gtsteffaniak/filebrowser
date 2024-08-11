@@ -18,16 +18,18 @@
 This fork makes the following significant changes to filebrowser for
 origin:
 
-  1. [x] Better search
-     - Lightning fast
-     - real-time results as you type
+  1. [x] Enhanced lightning fast indexed search
+     - Real-time results as you type
      - Works with more type filters
-     - interactive results page.
+     - Enhanced interactive results page.
   2. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode
        styles.
-  3. [x] Revamped configuration via `filebrowser.yml` config file.
-     - More configurations possible at a per-user level
+  3. [x] Revamped and simplified configuration via `filebrowser.yml` config file.
+  4. [x] Faster listing browsing
+     - Switching view modes is instant
+     - Changing Sort order is instant
+     - The entire directory is loaded in 1/3 the time
 
 ## About
 
@@ -36,9 +38,10 @@ and can be used to upload, delete, preview, rename, and edit your files.
 It allows the creation of multiple users and each user can have its 
 directory.
 
-This repository is a fork, a collection of changes that make this program
-work better in terms of aesthetics and performance. Improved search,
-simplified ui (without removing features) and more secure and up-to-date
+This repository is a fork of the original [filebrowser](https://github.com/filebrowser/filebrowser) 
+with a collection of changes that make this program work better in terms of 
+aesthetics and performance. Improved search, simplified ui 
+(without removing features) and more secure and up-to-date
 build are just a few examples.
 
 This Implementation of filebrowser differs significantly to the original.
@@ -46,7 +49,7 @@ There are hundreds of thousands of lines changed and they are generally
 no longer compatible with each other. This has been intentional -- the
 focus of this fork is on a few key principles:
   - Simplicity and improved user experience
-  - Efficiency of operations and performance
+  - Improving performance and faster feedback when making changes.
   - Minimize external dependencies and standard library usage.
   - Of course -- adding much-needed features.
 
