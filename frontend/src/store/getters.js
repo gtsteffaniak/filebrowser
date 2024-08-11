@@ -79,7 +79,7 @@ export const getters = {
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       return false;
     }
-    if (getters.currentView() !== "listingView") {
+    if (getters.currentView() !== "listingView" && state.loading == false) {
       return false;
     }
     return state.showSidebar || getters.isStickySidebar();
