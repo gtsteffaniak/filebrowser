@@ -31,7 +31,7 @@ import editorBar from "./bars/EditorBar.vue";
 import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
-import Sidebar from "@/components/Sidebar.vue";
+import Sidebar from "@/components/sidebar/Sidebar.vue";
 import Search from "@/components/Search.vue";
 import fileSelection from "@/components/FileSelection.vue";
 
@@ -70,7 +70,7 @@ export default {
     },
     moveWithSidebar() {
       return (
-        getters.isSidebarVisible() && !getters.isMobile() && state.user?.stickySidebar
+        getters.isStickySidebar()
       );
     },
     closePopUp() {
@@ -126,14 +126,7 @@ export default {
     resetPrompts() {
       mutations.closeSidebar();
       mutations.closeHovers();
-    },
-    getTitle() {
-      let title = "Title";
-      if (state.route.path.startsWith("/settings/")) {
-        title = "Settings";
-      }
-      return title;
-    },
+    }
   },
 };
 </script>
@@ -146,7 +139,7 @@ main {
 }
 
 main.moveWithSidebar {
-  padding-left: 21em;
+  padding-left: 20em;
 }
 
 main::-webkit-scrollbar {

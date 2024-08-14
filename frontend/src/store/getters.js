@@ -2,6 +2,7 @@ import { state } from "./state.js";
 
 export const getters = {
   isMobile: () => state.isMobile,
+  isSettings: () => getters.currentView() === "settings",
   isDarkMode: () => {
     if (state.user == null) {
       return true;
@@ -73,13 +74,13 @@ export const getters = {
     return { dirs, files };
   },
   isSidebarVisible: () => {
-    if (!getters.isLoggedIn()) {
-      return false;
+    if (getters.currentView() == "settings") {
+      return !getters.isMobile();
     }
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       return false;
     }
-    if (getters.currentView() !== "listingView" && state.loading == false) {
+    if ( (getters.currentView() !== "listingView") && state.loading == false) {
       return false;
     }
     return state.showSidebar || getters.isStickySidebar();
@@ -87,6 +88,9 @@ export const getters = {
   isStickySidebar: () => {
     if (getters.isMobile()) {
       return false
+    }
+    if (getters.currentView() === "settings") {
+      return true
     }
     if (!getters.isLoggedIn()) {
       return true

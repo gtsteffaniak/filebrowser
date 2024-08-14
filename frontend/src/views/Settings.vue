@@ -1,34 +1,11 @@
 <template>
   <div class="dashboard">
-    <div id="nav">
-      <div v-if="settingsEnabled" class="wrapper">
-        <ul>
-          <router-link to="/settings/profile"
-            ><li :class="{ active: $route.path === '/settings/profile' }">
-              {{ $t("settings.profileSettings") }}
-            </li></router-link
-          >
-          <router-link to="/settings/shares" v-if="user.perm.share"
-            ><li :class="{ active: $route.path === '/settings/shares' }">
-              {{ $t("settings.shareManagement") }}
-            </li></router-link
-          >
-          <router-link to="/settings/global" v-if="user.perm.admin"
-            ><li :class="{ active: $route.path === '/settings/global' }">
-              {{ $t("settings.globalSettings") }}
-            </li></router-link
-          >
-          <router-link to="/settings/users" v-if="user.perm.admin"
-            ><li
-              :class="{
-                active: $route.path === '/settings/users' || $route.name === 'User',
-              }"
-            >
-              {{ $t("settings.userManagement") }}
-            </li></router-link
-          >
-        </ul>
-      </div>
+    <div class="settings-views">
+      <UserColumnSettings></UserColumnSettings>
+      <ProfileSettings></ProfileSettings>
+      <ShareSettings></ShareSettings>
+      <GlobalSettings></GlobalSettings>
+      <UserDefaultSettings></UserDefaultSettings>
     </div>
 
     <div v-if="loading">
@@ -41,19 +18,28 @@
         <span>{{ $t("files.loading") }}</span>
       </h2>
     </div>
-
-    <router-view></router-view>
   </div>
 </template>
 
 <script>
 import { state, mutations } from "@/store";
+import GlobalSettings from "@/views/settings/Global.vue";
+import UserDefaultSettings from "@/views/settings/UserDefaults.vue";
+import UserColumnSettings from "@/views/settings/UserColumn.vue";
+import ProfileSettings from "@/views/settings/Profile.vue";
+import ShareSettings from "@/views/settings/Shares.vue";
+import UserSettings from "@/views/settings/User.vue";
+import UsersSettings from "@/views/settings/Users.vue";
 
 export default {
   name: "settings",
-  mounted() {
-    // Update the req name property
-    mutations.replaceRequest({ name: "Settings" });
+  components: {
+    GlobalSettings,
+    UserDefaultSettings,
+    UserColumnSettings,
+    ProfileSettings,
+    ShareSettings,
+    UsersSettings,
   },
   computed: {
     loading() {
@@ -68,3 +54,16 @@ export default {
   },
 };
 </script>
+
+<style>
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+}
+.settings-views {
+  max-width: 1000px;
+  padding-bottom: 35vh;
+}
+</style>

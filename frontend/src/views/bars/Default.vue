@@ -1,7 +1,8 @@
 <template>
   <header>
     <action icon="close" :label="$t('buttons.close')" @action="close()" />
-    <title class="topTitle">{{ req.name }}</title>
+    <title v-if="isSettings" class="topTitle">Settings</title>
+    <title v-else class="topTitle">{{ req.name }}</title>
   </header>
 </template>
 
@@ -45,9 +46,8 @@ export default {
     selected() {
       return state.selected;
     },
-
     isSettings() {
-      return state.route.path.includes("/settings/");
+      return state.route.path.includes("/settings");
     },
     nameSorted() {
       return state.req.sorting.by === "name";
