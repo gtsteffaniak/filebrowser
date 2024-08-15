@@ -14,7 +14,7 @@
 
 Nextcloud
 
---- | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" >   | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > | nextcloud | google / one driive| FileRun
+ Application Name | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" > | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > OG filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > filestash | nextcloud | google / one driive| FileRun
 --- | --- | --- | --- | --- | --- | --- |
 Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
