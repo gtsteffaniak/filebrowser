@@ -42,7 +42,7 @@ Single sign-on support        | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 2FA sign-on support           | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Long-live API key support     | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
-Mobile App                    | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
 open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 tags support                  | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
 sharable web links?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
