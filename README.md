@@ -58,7 +58,7 @@ Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 collaboration on same file    | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 trash support                 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-Content preview icons         | images only | images only | ❌ | ❌ | ❌ | ✅ |
+Content preview icons         | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
 Plugins support               | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 
