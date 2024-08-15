@@ -33,8 +33,8 @@ has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 price                         | free | free | free | free tier | free tier | $99+ |
 rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 upload files from the web?    | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-Advanced Search?              | ✅ | ❌ | ❌ | configurable | ✅ | ❌ |
-Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ❌ |
+Advanced Search?              | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
+Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
 Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
 Custom job support            | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
 Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -44,11 +44,11 @@ LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Long-live API key support     | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
 open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-tags support                  | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
+tags support                  | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 sharable web links?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Event-based notifications     | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Metrics                       | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-file space quotas             | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+file space quotas             | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 office file support           | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
@@ -57,8 +57,8 @@ activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 collaboration on same file    | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 trash support                 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-Content preview icons         | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
+Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+Content preview icons         | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
 Plugins support               | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 
