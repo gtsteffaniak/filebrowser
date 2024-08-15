@@ -16,42 +16,41 @@ Nextcloud
 
 --- | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" >   | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" > |google / one driive| FileRun
 --- | --- | --- | --- | --- | --- | --- |
-Storage backend support            |  filesystem | filesystem | ✅ | ❌ | ❌ | ❌ |
+Storage backend support       |  filesystem | filesystem | ✅ | ❌ | ❌ | ❌ |
 Linux                         |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Windows                       |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Mac                           |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Self hosted                   |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Has Stable Release?           |  ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 S3 support                    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-webdav support                   |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+webdav support                |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 ftp support                   |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Dedicated docs site?          |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-Multiple soures support       |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Multiple sources at once      |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 has docker image              |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 has standalone binary         |  ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 price                         |  free | free | free  | free tier | free tier | free tier |
-rich media preview            |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-upload files from the web?    |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-Advanced Search?              |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-Indexed Search?               |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+rich media preview            | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+upload files from the web?    | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Advanced Search?              | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ |
+Indexed Search?               | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ |
 Content-aware search?         | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Custom job support            | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ |
-Multiple users                |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-Single sign-on support        |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Multiple users                | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Single sign-on support        | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
 Long-live API key support     |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Mobile App                    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 open source?                  |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-tagging?                      |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+tags support                  |  ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
 sharable web links?           |  ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 Event-based notifications     |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Metrics                       |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 file space quotas             |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-Event-based notifications     |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-text-based files editor       |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+text-based files editor       |  ✅  | ✅  | ❌  | ❌ | ❌  | ❌ |
 office file support           |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-Themes                        |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-Branding support              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
-Last active date              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
+Themes                        |  ✅  | ✅  | ❌  | ❌ | ❌  | ❌ |
+Branding support              |  ❌  | ✅  | ❌  | ❌ | ❌  | ❌ |
+Last active date              |  recent  | recent  | ❌  | ❌ | ❌  | ❌ |
 activity log                  |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 Comments support              |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
 collaboration on same file    |  ❌  | ❌  | ❌  | ❌ | ❌  | ❌ |
