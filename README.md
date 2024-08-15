@@ -17,35 +17,35 @@ Nextcloud
 --- | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" >   | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > | nextcloud | google / one driive| FileRun
 --- | --- | --- | --- | --- | --- | --- |
 Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-Linux                         | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Windows                       | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-Self hosted                   | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-Has Stable Release?           | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ |
+Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+Has Stable Release?           | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
 S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
-webdav support                | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
-ftp support                   | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
+webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+ftp support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Docker image size             | 22 MB  | 31 MB  | 240 MB (without office) | 250 MB | ❌ | > 2 GB |
-Min. Memory Requirements      | 128 MB | 128 MB | 128 MB (without office) | 128 MB | ❌ | 4 GB |
-has standalone binary         |  ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-price                         |  free | free | free  | free tier | free tier | $99+ |
+Docker image size             | 22 MB  | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
+Min. Memory Requirements      | 128 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 4 GB   |
+has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+price                         | free | free | free | free tier | free tier | $99+ |
 rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 upload files from the web?    | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 Advanced Search?              | ✅ | ❌ | ❌ | configurable | ✅ | ❌ |
 Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ❌ |
 Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
-Custom job support            | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
-Multiple users                | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+Custom job support            | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
+Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Single sign-on support        | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 2FA sign-on support           | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Long-live API key support     | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Mobile App                    | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-open source?                  | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 tags support                  | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
-sharable web links?           | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+sharable web links?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Event-based notifications     | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Metrics                       | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 file space quotas             | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
@@ -53,13 +53,12 @@ text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 office file support           | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
 Branding support              | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ |
-github active?                |  recent  | recent  | recent | ❌ | ❌  | recent |
-activity log                  |  ❌  | ❌  | ❌  | ✅ | ✅  | ✅ |
-Comments support              |  ❌  | ❌  | ❌  | ✅ | ✅  | ✅ |
-collaboration on same file    |  ❌  | ❌  | ❌  | ✅ | ✅  | ✅ |
-trash support                 |  ❌  | ❌  | ❌  | ✅ | ✅  | ✅ |
-Starred/pinned files          |  ❌  | ❌  | ❌  | ❌ | ❌  | ✅ |
-Content preview icons         |  images only  | images only  | ❌ | ❌ | ❌ | ✅ |
+activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+collaboration on same file    | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+trash support                 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+Content preview icons         | images only | images only | ❌ | ❌ | ❌ | ✅ |
 Plugins support               | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 
