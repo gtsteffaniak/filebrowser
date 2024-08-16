@@ -1,31 +1,24 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="row" v-else-if="!loading">
+  <div class="card">
+    <div class="card-title">
+      <h2>{{ $t("settings.userDefaults") }}</h2>
+    </div>
 
-      <form class="card" @submit.prevent="save">
-        <div class="card-title">
-          <h2>{{ $t("settings.userDefaults") }}</h2>
-        </div>
+    <div class="card-content">
+      <p class="small">{{ $t("settings.defaultUserDescription") }}</p>
 
-        <div class="card-content">
-          <p class="small">{{ $t("settings.defaultUserDescription") }}</p>
+      <user-form
+        :isNew="false"
+        :isDefault="true"
+        :user="settings.defaults"
+        @update:user="updateUser"
+      />
+    </div>
 
-          <user-form
-            :isNew="false"
-            :isDefault="true"
-            :user="settings.defaults"
-            @update:user="updateUser"
-          />
-        </div>
-
-        <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="$t('buttons.update')"
-          />
-        </div>
-      </form>
+    <div class="card-action">
+      <input class="button button--flat" type="submit" :value="$t('buttons.update')" />
+    </div>
   </div>
 </template>
 
@@ -55,7 +48,7 @@ export default {
   computed: {
     loading() {
       return state.loading;
-  },
+    },
     user() {
       return state.user;
     },

@@ -139,7 +139,7 @@ main {
 }
 
 main.moveWithSidebar {
-  padding-left: 20em;
+  padding-left: 21em;
 }
 
 main::-webkit-scrollbar {
@@ -164,4 +164,5 @@ main::-webkit-scrollbar {
     backdrop-filter: blur(16px) invert(0.1);
   }
 }
+
 </style>

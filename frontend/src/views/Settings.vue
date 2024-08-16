@@ -66,4 +66,11 @@ export default {
   max-width: 1000px;
   padding-bottom: 35vh;
 }
+.settings-views .card.active {
+  border-style: solid;
+  opacity: 1;
+}
+.settings-views .card {
+  opacity: 0.3;
+}
 </style>

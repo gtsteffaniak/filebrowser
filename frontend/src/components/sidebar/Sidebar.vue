@@ -3,19 +3,15 @@
     id="sidebar"
     :class="{ active: active, 'dark-mode': isDarkMode, sticky: isSticky }"
   >
-    <div class="card">
-      <div class="card-wrapper">
-        <button
-          v-if="user.username"
-          @click="navigateTo('/settings#profile-main')"
-          class="action"
-        >
-          <i class="material-icons">person</i>
-          <span>{{ user.username }}</span>
-        </button>
+    <div class="card clickable">
+      <div @click="navigateTo('/settings#profile-main')" class="card-wrapper">
+        <div class="inner-card">
+          {{ user.username }}
+          <i class="material-icons">settings</i>
+        </div>
       </div>
     </div>
-    <SidebarSettings v-if="isSettings" ></SidebarSettings>
+    <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-else></SidebarGeneral>
 
     <div class="buffer"></div>
@@ -149,7 +145,7 @@ export default {
       return mutations.showHover(value);
     },
     navigateTo(path) {
-      const hashIndex = path.indexOf('#');
+      const hashIndex = path.indexOf("#");
       if (hashIndex !== -1) {
         // Extract the hash
         const hash = path.substring(hashIndex);
@@ -176,15 +172,13 @@ export default {
 
 <style>
 .sidebar-scroll-list {
-  overflow: scroll;
+  overflow: auto;
   margin-bottom: 0px !important;
 }
 #sidebar {
-  top: 0;
   display: flex;
   flex-direction: column;
   padding: 1em;
-  padding-top: 5em;
   width: 20em;
   position: fixed;
   z-index: 4;
@@ -192,7 +186,12 @@ export default {
   height: 100%;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   transition: 0.5s ease;
-  background-color: #ededed;
+  top: 4em;
+  padding-bottom: 4em;
+  background-color: rgb(255 255 255 / 50%) !important;
+}
+#sidebar.dark-mode {
+  background-color: rgb(37 49 55 / 33%) !important;
 }
 
 #sidebar.sticky {
@@ -201,7 +200,6 @@ export default {
 
 @supports (backdrop-filter: none) {
   nav {
-    background-color: transparent;
     backdrop-filter: blur(16px) invert(0.1);
   }
 }
@@ -222,15 +220,6 @@ body.rtl nav {
 #sidebar.rtl nav.active {
   left: unset;
   right: 0;
-}
-
-#sidebar > div {
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  margin-bottom: 0.5em;
-}
-
-#sidebar .card {
-  overflow: unset !important;
 }
 
 #sidebar .action {
@@ -307,11 +296,6 @@ body.rtl .action {
   margin-top: 0.5em !important;
 }
 
-.inner-card {
-  border-radius: 0.5em;
-  padding: 0px !important;
-}
-
 .quick-toggles div {
   border-radius: 10em;
   background-color: var(--surfaceSecondary);
@@ -331,5 +315,16 @@ button.action {
 .quick-toggles .active {
   background-color: var(--blue) !important;
   border-radius: 10em;
+}
+.inner-card {
+  display: flex;
+  align-items: center;
+}
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover {
+  font-weight: bold;
+  box-shadow: 0 2px 2px #00000024, 0 1px 5px #0000001f, 0 3px 1px -2px #0003;
 }
 </style>

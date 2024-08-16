@@ -1,47 +1,44 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="row" v-else-if="!loading">
-    <form v-if="isExecEnabled" class="card" @submit.prevent="save">
-      <div class="card-title">
-        <h2>{{ $t("settings.commandRunner") }}</h2>
-      </div>
+  <div v-if="isExecEnabled" class="card">
+    <form  @submit.prevent="save">
+    <div class="card-title">
+      <h2>{{ $t("settings.commandRunner") }}</h2>
+    </div>
 
-      <div class="card-content">
-        <i18n path="settings.commandRunnerHelp" tag="p" class="small">
-          <code>FILE</code>
-          <code>SCOPE</code>
-          <a
-            class="link"
-            target="_blank"
-            href="https://filebrowser.org/configuration/command-runner"
-            >{{ $t("settings.documentation") }}</a
-          >
-        </i18n>
-
-        <div
-          v-for="(command, index) in settings.commands"
-          :key="index"
-          class="collapsible"
+    <div class="card-content">
+      <i18n path="settings.commandRunnerHelp" tag="p" class="small">
+        <code>FILE</code>
+        <code>SCOPE</code>
+        <a
+          class="link"
+          target="_blank"
+          href="https://filebrowser.org/configuration/command-runner"
+          >{{ $t("settings.documentation") }}</a
         >
-          <input :id="command.name" type="checkbox" />
-          <label :for="command.name">
-            <p>{{ capitalize(command.name) }}</p>
-            <i class="material-icons">arrow_drop_down</i>
-          </label>
-          <div class="collapse">
-            <textarea
-              class="input input--block input--textarea"
-              v-model.trim="command.value"
-            ></textarea>
-          </div>
+      </i18n>
+
+      <div v-for="(command, index) in settings.commands" :key="index" class="collapsible">
+        <input :id="command.name" type="checkbox" />
+        <label :for="command.name">
+          <p>{{ capitalize(command.name) }}</p>
+          <i class="material-icons">arrow_drop_down</i>
+        </label>
+        <div class="collapse">
+          <textarea
+            class="input input--block input--textarea"
+            v-model.trim="command.value"
+          ></textarea>
         </div>
       </div>
+    </div>
 
-      <div class="card-action">
-        <input class="button button--flat" type="submit" :value="$t('buttons.update')" />
-      </div>
-    </form>
+    <div class="card-action">
+      <input class="button button--flat" type="submit" :value="$t('buttons.update')" />
+    </div>
+  </form>
   </div>
+
 </template>
 
 <script>

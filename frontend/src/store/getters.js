@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 
 export const getters = {
+  currentHash: () => state.route.hash.replace("#", ""),
   isMobile: () => state.isMobile,
   isSettings: () => getters.currentView() === "settings",
   isDarkMode: () => {

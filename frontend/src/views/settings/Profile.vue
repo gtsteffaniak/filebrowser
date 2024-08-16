@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card active">
     <div class="card-title">
           <h2>{{ $t("settings.profileSettings") }}</h2>
         </div>

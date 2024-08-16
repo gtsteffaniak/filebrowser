@@ -1,5 +1,18 @@
 <template>
-    settings!
+  <div class="card">
+    <div id="profile-sidebar" class="card-wrapper" :class="{ activesettings }">
+      Profile
+    </div>
+  </div>
+  <div id="share-sidebar" class="card">
+    <div class="card-wrapper">Share Management</div>
+  </div>
+  <div id="global-sidebar" class="card">
+    <div class="card-wrapper">Global</div>
+  </div>
+  <div id="user-defaults-sidebar" class="card">
+    <div class="card-wrapper">User defaults</div>
+  </div>
 </template>
 
 <script>
@@ -35,6 +48,7 @@ export default {
     }
   },
   computed: {
+    activesettings: () => getters.isSettings() ? "activesettings" : "",
     isSettings: () => getters.isSettings(),
     isSticky: () => getters.isStickySidebar(),
     isMobile: () => getters.isMobile(),
@@ -51,16 +65,11 @@ export default {
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,
     usage: () => state.usage,
-    route: () => state.route,
+    hashChange: () => getters.currentHash(),
   },
   watch: {
-    route() {
-      if (!getters.isLoggedIn()) {
-        return;
-      }
-      if (!state.user.stickySidebar) {
-        mutations.closeSidebar();
-      }
+    hashChange() {
+      console.log("hash", getters.currentHash());
     },
   },
   methods: {
@@ -128,3 +137,10 @@ export default {
   },
 };
 </script>
+<style>
+.activesettings {
+  font-weight: bold;
+  /* border-color: white; */
+  border-style: solid;
+}
+</style>
