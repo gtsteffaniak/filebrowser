@@ -27,16 +27,12 @@ import {
   loginPage,
 } from "@/utils/constants";
 import { files } from "@/api";
-import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { showError } from "@/notify";
 
 export default {
   name: "SidebarSettings",
-  components: {
-    ProgressBar,
-  },
   data() {
     return {
       hoverText: "Quick Toggles", // Initially empty

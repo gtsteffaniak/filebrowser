@@ -22,14 +22,14 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state } from "@/store";
 import GlobalSettings from "@/views/settings/Global.vue";
 import UserDefaultSettings from "@/views/settings/UserDefaults.vue";
 import UserColumnSettings from "@/views/settings/UserColumn.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import ShareSettings from "@/views/settings/Shares.vue";
-import UserSettings from "@/views/settings/User.vue";
-import UsersSettings from "@/views/settings/Users.vue";
+//import UserSettings from "@/views/settings/User.vue";
+//import UsersSettings from "@/views/settings/Users.vue";
 
 export default {
   name: "settings",
@@ -39,7 +39,7 @@ export default {
     UserColumnSettings,
     ProfileSettings,
     ShareSettings,
-    UsersSettings,
+    //UsersSettings,
   },
   computed: {
     loading() {

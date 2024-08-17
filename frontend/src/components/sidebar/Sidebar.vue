@@ -10,7 +10,7 @@
           <i class="material-icons">settings</i>
           <i v-if="canLogout"
           @click="logout" class="material-icons">exit_to_app</i>
-          
+
         </div>
       </div>
     </div>
@@ -55,7 +55,6 @@ import {
   loginPage,
 } from "@/utils/constants";
 import { files } from "@/api";
-import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { showError } from "@/notify";
