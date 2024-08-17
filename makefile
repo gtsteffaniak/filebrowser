@@ -21,7 +21,7 @@ lint-frontend:
 	cd frontend && npm run lint
 
 lint-backend:
-	cd backend && golangci-lint run
+	cd backend && golangci-lint run --path-prefix=backend
 
 test-backend:
 	cd backend && go test -race ./...
