@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
             go-version: 'stable'
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v5
         with:
           version: v1.59
           working-directory: backend
