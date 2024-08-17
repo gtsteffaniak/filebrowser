@@ -25,8 +25,9 @@ var withHashFile = func(fn handleFunc) handleFunc {
 			return errToStatus(err), err
 		}
 		if link.Hash != "" {
-			status, err := authenticateShareRequest(r, link)
-			if status != 0 || err != nil {
+			var status int
+			status, err = authenticateShareRequest(r, link) // Assign to the existing `err` variable
+			if err != nil || status != 0 {
 				return status, err
 			}
 		}
@@ -59,7 +60,11 @@ func ifPathWithName(r *http.Request) (id, filePath string) {
 }
 
 var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	file := d.raw.(*files.FileInfo)
+	file, ok := d.raw.(*files.FileInfo)
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
+	}
+
 	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
 	if file.IsDir {
 		return renderJSON(w, r, file)
@@ -75,7 +80,11 @@ var publicUserGetHandler = func(w http.ResponseWriter, r *http.Request, d *data)
 }
 
 var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	file := d.raw.(*files.FileInfo)
+	file, ok := d.raw.(*files.FileInfo)
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
+	}
+
 	if !file.IsDir {
 		return rawFileHandler(w, r, file)
 	}
