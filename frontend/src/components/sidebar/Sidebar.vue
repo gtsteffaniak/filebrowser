@@ -3,11 +3,14 @@
     id="sidebar"
     :class="{ active: active, 'dark-mode': isDarkMode, sticky: isSticky }"
   >
-    <div class="card clickable">
+    <div class="card clickable" style="min-height: 4em">
       <div @click="navigateTo('/settings#profile-main')" class="card-wrapper">
         <div class="inner-card">
           {{ user.username }}
           <i class="material-icons">settings</i>
+          <i v-if="canLogout"
+          @click="logout" class="material-icons">exit_to_app</i>
+          
         </div>
       </div>
     </div>
@@ -319,6 +322,7 @@ button.action {
 .inner-card {
   display: flex;
   align-items: center;
+  padding: 0px !important;
 }
 .clickable {
   cursor: pointer;

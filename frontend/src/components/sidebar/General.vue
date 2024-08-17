@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card" style="min-height: 6em">
     <div class="card-wrapper" @mouseleave="resetHoverTextToDefault">
       <span>{{ hoverText }}</span>
       <div class="quick-toggles">
@@ -60,31 +60,6 @@
       </button>
     </div>
 
-    <!-- Settings and Logout buttons -->
-    <div>
-      <!-- Settings button -->
-      <button
-        class="action"
-        @click="navigateTo('/settings#global-main')"
-        :aria-label="$t('sidebar.settings')"
-        :title="$t('sidebar.settings')"
-      >
-        <i class="material-icons">settings_applications</i>
-        <span>{{ $t("sidebar.settings") }}</span>
-      </button>
-      <!-- Logout button -->
-      <button
-        v-if="canLogout"
-        @click="logout"
-        class="action"
-        id="logout"
-        :aria-label="$t('sidebar.logout')"
-        :title="$t('sidebar.logout')"
-      >
-        <i class="material-icons">exit_to_app</i>
-        <span>{{ $t("sidebar.logout") }}</span>
-      </button>
-    </div>
     <div v-if="isLoggedIn" class="sources card">
       <span>Sources</span>
       <div class="inner-card">

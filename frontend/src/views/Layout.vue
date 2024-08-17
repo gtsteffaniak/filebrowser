@@ -154,15 +154,85 @@ main::-webkit-scrollbar {
 /* Header */
 .dark-mode-header {
   color: white;
-  background: var(--surfacePrimary);
+  background-color: rgb(255 255 255 / 50%) !important;
 }
 
 /* Header with backdrop-filter support */
 @supports (backdrop-filter: none) {
   .dark-mode-header {
-    background: transparent;
+    background-color: rgb(37 49 55 / 33%) !important;
     backdrop-filter: blur(16px) invert(0.1);
   }
 }
+
+/* Header */
+header {
+  z-index: 5;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgb(255 255 255 / 50%) !important;
+  padding: 0.5em;
+}
+
+
+header>* {
+  flex: 0 0 auto;
+}
+
+header title {
+  display: block;
+  flex: 1 1 auto;
+  padding: 0 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1.2em;
+}
+
+header a,
+header a:hover {
+  color: inherit;
+}
+
+header>div:first-child>.action,
+header img {
+  margin-right: 1em;
+}
+
+header img {
+  height: 2.5em;
+}
+
+header .action span {
+  display: none;
+}
+
+/* Icon Colors */
+.folder-icons {
+  color: var(--icon-blue);
+}
+
+.video-icons {
+  color: lightskyblue;
+}
+
+.image-icons {
+  color: lightcoral;
+}
+
+.archive-icons {
+  color: tan;
+}
+
+.audio-icons {
+  color: plum;
+}
+
+
 
 </style>
