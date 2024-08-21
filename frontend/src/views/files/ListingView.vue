@@ -172,7 +172,7 @@ export default {
   data() {
     return {
       sortField: "name",
-      columnWidth: 280,
+      columnWidth: 350,
       dragCounter: 0,
       width: window.innerWidth,
     };

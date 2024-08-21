@@ -1,8 +1,5 @@
 <template>
-  <nav
-    id="sidebar"
-    :class="{ active: active, 'dark-mode': isDarkMode }"
-  >
+  <nav id="sidebar" :class="{ active: active, 'dark-mode': isDarkMode }">
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-else-if="isLoggedIn"></SidebarGeneral>
 
@@ -33,7 +30,8 @@
 </template>
 
 <script>
-import { getters, mutations } from "@/store"; // Import your custom store
+import { version, commitSHA } from "@/utils/constants";
+import { state, getters, mutations } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
 
@@ -43,13 +41,8 @@ export default {
     SidebarGeneral,
     SidebarSettings,
   },
-  data() {
-    return {
-      hoverText: "Quick Toggles", // Initially empty
-      version,
-    };
-  },
   computed: {
+    version: () => version,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
@@ -188,6 +181,9 @@ body.rtl .action {
 .sources {
   padding: 1em;
   margin-top: 0.5em !important;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 .quick-toggles div {

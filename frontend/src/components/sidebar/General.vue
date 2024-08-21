@@ -1,9 +1,13 @@
 <template>
   <div class="card clickable" style="min-height: 4em">
-    <div @click="navigateTo('/settings#profile-main')" class="card-wrapper">
+    <div  class="card-wrapper user-card">
+    <div @click="navigateTo('/settings#profile-main')" class="inner-card">
+      {{ user.username }}
+      <i class="material-icons">settings</i>
+    </div>
+
+
       <div class="inner-card">
-        {{ user.username }}
-        <i class="material-icons">settings</i>
         <i v-if="canLogout" @click="logout" class="material-icons">exit_to_app</i>
       </div>
     </div>
@@ -142,7 +146,6 @@ export default {
   data() {
     return {
       hoverText: "Quick Toggles", // Initially empty
-      versions,
     };
   },
   mounted() {
@@ -245,3 +248,10 @@ export default {
   },
 };
 </script>
+
+<style>
+.user-card {
+  flex-direction: row !important;
+  justify-content: space-between !important;
+}
+</style>
