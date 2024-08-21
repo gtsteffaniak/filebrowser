@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <form @submit="save" class="card">
+  <form @submit="save" id="user-main"  class="card">
     <div class="card-title">
       <h2 v-if="user.id === 0">{{ $t("settings.newUser") }}</h2>
       <h2 v-else>{{ $t("settings.user") }} {{ user.username }}</h2>
@@ -61,6 +61,9 @@ export default {
     this.fetchData();
   },
   computed: {
+    settings() {
+      return state.settings;
+    },
     isNew() {
       return state.route.path === "/settings/users/new";
     },
@@ -112,6 +115,7 @@ export default {
         } else {
           await api.update(user);
           if (user.id === state.user.id) {
+            consoel.log('set user')
             mutations.setUser(user);
           }
           showSuccess(this.$t("settings.userUpdated"));

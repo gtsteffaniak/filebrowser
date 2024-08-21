@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="card">
+  <div class="card" id="users-main">
     <div class="card-title">
       <h2>{{ $t("settings.users") }}</h2>
       <router-link to="/settings/users/new"
@@ -69,6 +69,9 @@ export default {
     }
   },
   computed: {
+    settings() {
+      return state.settings;
+    },
     // Access the loading state directly from the store
     loading() {
       return state.loading;

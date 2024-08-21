@@ -67,6 +67,7 @@
 </template>
 
 <script>
+import { state } from "@/store"
 import Languages from "./Languages.vue";
 import Rules from "./Rules.vue";
 import Permissions from "./Permissions.vue";
@@ -89,10 +90,13 @@ export default {
   },
   props: ["user", "createUserDir", "isNew", "isDefault"],
   created() {
-    this.originalUserScope = this.user.scope;
+    this.originalUserScope = state.user.scope;
     this.createUserDirData = this.createUserDir;
   },
   computed: {
+    user() {
+      return state.user;
+    },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
@@ -109,12 +113,8 @@ export default {
     },
   },
   watch: {
-    "user.perm.admin": function () {
-      if (!this.user.perm.admin) return;
-      this.user.lockPassword = false;
-    },
     createUserDirData(newVal) {
-      this.user.scope = newVal ? "" : this.originalUserScope;
+      state.user.scope = newVal ? "" : this.originalUserScope;
     },
   },
 };

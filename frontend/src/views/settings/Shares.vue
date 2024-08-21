@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="card">
+  <div class="card" id="shares-main" :class="{active:active}">
     <div class="card-title">
       <h2>{{ $t("settings.shareManagement") }}</h2>
     </div>
@@ -102,6 +102,12 @@ export default {
     this.clip.destroy();
   },
   computed: {
+    settings() {
+      return state.settings;
+    },
+    active() {
+      return state.activeSettingsView === "shares-main";
+    },
     user() {
       return state.user;
     },

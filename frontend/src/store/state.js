@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  activeSettingsView: "",
   isMobile: window.innerWidth <= 800,
   showSidebar: false,
   usage: {
@@ -54,6 +55,18 @@ export const state = reactive({
   show: null,
   showConfirm: null,
   route: {},
+  settings: {
+    signup: false,
+    createUserDir: false,
+    userHomeBasePath: "",
+    rules: [],
+    frontend: {
+      disableExternal: false,
+      disableUsedPercentage: false,
+      name: "",
+      files: "",
+    },
+  },
 });
 
 function stickyStartup() {

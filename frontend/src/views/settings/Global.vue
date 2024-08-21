@@ -7,12 +7,12 @@
 
     <div class="card-content">
       <p>
-        <input type="checkbox" v-model="settings.signup" />
+        <input type="checkbox" v-model="selectedSettings.signup" />
         {{ $t("settings.allowSignup") }}
       </p>
 
       <p>
-        <input type="checkbox" v-model="settings.createUserDir" />
+        <input type="checkbox" v-model="selectedSettings.createUserDir" />
         {{ $t("settings.createUserDir") }}
       </p>
 
@@ -21,24 +21,13 @@
         <input
           class="input input--block"
           type="text"
-          v-model="settings.userHomeBasePath"
+          v-model="selectedSettings.userHomeBasePath"
         />
       </div>
 
       <h3>{{ $t("settings.rules") }}</h3>
       <p class="small">{{ $t("settings.globalRules") }}</p>
-      <rules :rules="settings.rules" @update:rules="updateRules" />
-
-      <div v-if="isExecEnabled">
-        <h3>{{ $t("settings.executeOnShell") }}</h3>
-        <p class="small">{{ $t("settings.executeOnShellDescription") }}</p>
-        <input
-          class="input input--block"
-          type="text"
-          placeholder="bash -c, cmd /c, ..."
-          v-model="settings.shell"
-        />
-      </div>
+      <rules :rules="selectedSettings.rules" @update:rules="updateRules" />
 
       <h3>{{ $t("settings.branding") }}</h3>
 
@@ -54,7 +43,7 @@
       <p>
         <input
           type="checkbox"
-          v-model="settings.frontend.disableExternal"
+          v-model="selectedSettings.frontend.disableExternal"
           id="branding-links"
         />
         {{ $t("settings.disableExternalLinks") }}
@@ -63,7 +52,7 @@
       <p>
         <input
           type="checkbox"
-          v-model="settings.frontend.disableUsedPercentage"
+          v-model="selectedSettings.frontend.disableUsedPercentage"
           id="branding-links"
         />
         {{ $t("settings.disableUsedDiskPercentage") }}
@@ -74,7 +63,7 @@
         <input
           class="input input--block"
           type="text"
-          v-model="settings.frontend.name"
+          v-model="selectedSettings.frontend.name"
           id="branding-name"
         />
       </p>
@@ -84,7 +73,7 @@
         <input
           class="input input--block"
           type="text"
-          v-model="settings.frontend.files"
+          v-model="selectedSettings.frontend.files"
           id="branding-files"
         />
       </p>
@@ -97,7 +86,7 @@
 </template>
 
 <script>
-import { showSuccess } from "@/notify";
+import { showSuccess,showError } from "@/notify";
 import { state, mutations } from "@/store";
 import { settings as api } from "@/api";
 import { enableExec } from "@/utils/constants";
@@ -114,7 +103,7 @@ export default {
     return {
       error: null,
       originalSettings: null,
-      settings: null,
+      selectedSettings: state.settings,
     };
   },
   computed: {
@@ -127,32 +116,14 @@ export default {
     isExecEnabled: () => enableExec,
   },
   async created() {
-    try {
-      mutations.setLoading(true);
-      const original = await api.get();
-      let settings = { ...original, commands: [] };
-
-      for (const key in original.commands) {
-        settings.commands.push({
-          name: key,
-          value: original.commands[key].join("\n"),
-        });
-      }
-      settings.shell = settings.shell.join(" ");
-      this.originalSettings = original;
-      this.settings = settings;
-    } catch (e) {
-      this.error = e;
-    } finally {
-      mutations.setLoading(false);
-    }
+    mutations.setLoading(true);
+    const original = await api.get();
+    mutations.setSettings(original);
+    mutations.setLoading(false);
   },
   methods: {
     updateRules(updatedRules) {
-      this.settings.rules = updatedRules;
-    },
-    updateUser(updatedUser) {
-      this.settings.defaults = updatedUser;
+      this.selectedSettings = { ...this.selectedSettings, rules: updatedRules };
     },
     capitalize(name, where = "_") {
       if (where === "caps") where = /(?=[A-Z])/;
@@ -166,21 +137,9 @@ export default {
       return name.slice(0, -1);
     },
     async save() {
-      let settings = {
-        ...this.settings,
-        shell: this.settings.shell
-          .trim()
-          .split(" ")
-          .filter((s) => s !== ""),
-        commands: {},
-      };
-
-      for (const { name, value } of this.settings.commands) {
-        settings.commands[name] = value.split("\n").filter((cmd) => cmd !== "");
-      }
-
       try {
-        await api.update(settings);
+        mutations.setSettings(this.selectedSettings);
+        await api.update(state.settings);
         showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
         showError(e);

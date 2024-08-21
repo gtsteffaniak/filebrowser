@@ -35,9 +35,7 @@ auth:
   tokenExpirationTime: 2h
   header: ""
   method: json
-  command: ""
   signup: false
-  shell: ""
 frontend:
   name: ""
   disableExternal: false
@@ -63,7 +61,6 @@ userDefaults:
     delete: true
     share: true
     download: true
-  commands: []
   hideDotfiles: false
   dateFormat: false
 ```
@@ -165,10 +162,6 @@ userDefaults:
   - `oath` - oath authentication
   - `noauth` - no authentication/login required.
 
-- `command`: Deprecated: This is the authentication command.
-
-- `shell`: This is the shell configuration.
-
 - `Signup`: This boolean value indicates whether user signup is enabled on the login page. NOTE: Be mindful of `userDefaults` settings if enabled. Default: `false`
 
 - `AdminUsername`: This is the username of the admin user. Default: `admin`
@@ -227,7 +220,6 @@ userDefaults:
 
   - `download`: This boolean value determines whether download permissions are granted.
 
-- `commands`: Deprecated: This is a list of commands.
 
 - `hideDotfiles`: This boolean value determines whether dotfiles are hidden. (`true` or `false`)
 

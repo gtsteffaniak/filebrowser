@@ -18,6 +18,13 @@ const resizePreview = window.FileBrowser.ResizePreview;
 const enableExec = window.FileBrowser.EnableExec;
 const origin = window.location.origin;
 
+const settings = [
+  { id: 'profile', label: 'Profile Management', component: 'ProfileSettings' },
+  { id: 'shares', label: 'Share Management', component: 'SharesSettings' },
+  { id: 'global', label: 'Global', component: 'GlobalSettings' },
+  { id: 'user-defaults', label: 'User Defaults', component: 'UserDefaultSettings' },
+]
+
 export {
   name,
   disableExternal,
@@ -36,5 +43,6 @@ export {
   resizePreview,
   enableExec,
   origin,
-  darkMode
+  darkMode,
+  settings
 };

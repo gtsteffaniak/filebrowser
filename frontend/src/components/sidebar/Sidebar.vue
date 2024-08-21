@@ -1,21 +1,10 @@
 <template>
   <nav
     id="sidebar"
-    :class="{ active: active, 'dark-mode': isDarkMode, sticky: isSticky }"
+    :class="{ active: active, 'dark-mode': isDarkMode }"
   >
-    <div class="card clickable" style="min-height: 4em">
-      <div @click="navigateTo('/settings#profile-main')" class="card-wrapper">
-        <div class="inner-card">
-          {{ user.username }}
-          <i class="material-icons">settings</i>
-          <i v-if="canLogout"
-          @click="logout" class="material-icons">exit_to_app</i>
-
-        </div>
-      </div>
-    </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
-    <SidebarGeneral v-else></SidebarGeneral>
+    <SidebarGeneral v-else-if="isLoggedIn"></SidebarGeneral>
 
     <div class="buffer"></div>
     <div class="credits">
@@ -44,20 +33,8 @@
 </template>
 
 <script>
-import * as auth from "@/utils/auth";
-import {
-  version,
-  commitSHA,
-  signup,
-  disableExternal,
-  disableUsedPercentage,
-  noAuth,
-  loginPage,
-} from "@/utils/constants";
-import { files } from "@/api";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { version, commitSHA } from "@/utils/constants";
 import { state, getters, mutations } from "@/store"; // Import your custom store
-import { showError } from "@/notify";
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
 
@@ -70,104 +47,20 @@ export default {
   data() {
     return {
       hoverText: "Quick Toggles", // Initially empty
+      version,
     };
   },
-  mounted() {
-    if (getters.isLoggedIn()) {
-      this.updateUsage();
-    }
-  },
   computed: {
-    isSettings: () => getters.isSettings(),
-    isSticky: () => getters.isStickySidebar(),
-    isMobile: () => getters.isMobile(),
-    isFiles: () => getters.isFiles(),
-    user: () => (getters.isLoggedIn() ? state.user : {}),
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
-    currentPrompt: () => getters.currentPrompt(),
+    isSettings: () => getters.isSettings(),
     active: () => getters.isSidebarVisible(),
-    signup: () => signup,
-    version: () => version,
-    commitSHA: () => commitSHA,
-    disableExternal: () => disableExternal,
-    disableUsedPercentage: () => disableUsedPercentage,
-    canLogout: () => !noAuth && loginPage,
-    usage: () => state.usage,
-    route: () => state.route,
-  },
-  watch: {
-    route() {
-      if (!getters.isLoggedIn()) {
-        return;
-      }
-      if (!state.user.stickySidebar) {
-        mutations.closeSidebar();
-      }
-    },
   },
   methods: {
-    updateHoverText(text) {
-      this.hoverText = text;
-    },
-    resetHoverTextToDefault() {
-      this.hoverText = "Quick Toggles"; // Reset to default hover text
-    },
-    toggleClick() {
-      mutations.updateUser({ singleClick: !state.user.singleClick });
-    },
-    toggleDarkMode() {
-      mutations.toggleDarkMode();
-    },
-    toggleSticky() {
-      mutations.updateUser({ stickySidebar: !state.user.stickySidebar });
-    },
-    async updateUsage() {
-      if (!getters.isLoggedIn()) {
-        return;
-      }
-      let path = getters.getRoutePath();
-      let usageStats = { used: "0 B", total: "0 B", usedPercentage: 0 };
-      if (this.disableUsedPercentage) {
-        return usageStats;
-      }
-      try {
-        let usage = await files.usage(path);
-        usageStats = {
-          used: getHumanReadableFilesize(usage.used / 1024),
-          total: getHumanReadableFilesize(usage.total / 1024),
-          usedPercentage: Math.round((usage.used / usage.total) * 100),
-        };
-      } catch (error) {
-        showError("Error fetching usage", error);
-      }
-      mutations.setUsage(usageStats);
-    },
-    showHover(value) {
-      return mutations.showHover(value);
-    },
-    navigateTo(path) {
-      const hashIndex = path.indexOf("#");
-      if (hashIndex !== -1) {
-        // Extract the hash
-        const hash = path.substring(hashIndex);
-        // Remove the hash from the path
-        const cleanPath = path.substring(0, hashIndex);
-        this.$router.push({ path: cleanPath, hash: hash }, () => {});
-      } else {
-        this.$router.push({ path: path }, () => {});
-      }
-      mutations.closeHovers();
-    },
     // Show the help overlay
     help() {
       mutations.showHover("help");
     },
-    uploadFunc() {
-      mutations.showHover("upload");
-    },
-    // Logout the user
-    logout: auth.logout,
   },
 };
 </script>
@@ -327,7 +220,6 @@ button.action {
   cursor: pointer;
 }
 .clickable:hover {
-  font-weight: bold;
   box-shadow: 0 2px 2px #00000024, 0 1px 5px #0000001f, 0 3px 1px -2px #0003;
 }
 </style>

@@ -71,9 +71,6 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
   },
   unmounted() {
-    if (state.showShell) {
-      mutations.toggleShell(); // Use mutation
-    }
     mutations.replaceRequest({}); // Use mutation
   },
   methods: {

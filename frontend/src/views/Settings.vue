@@ -1,11 +1,16 @@
 <template>
   <div class="dashboard">
     <div class="settings-views">
-      <UserColumnSettings></UserColumnSettings>
-      <ProfileSettings></ProfileSettings>
-      <ShareSettings></ShareSettings>
-      <GlobalSettings></GlobalSettings>
-      <UserDefaultSettings></UserDefaultSettings>
+      <div
+        v-for="setting in settings"
+        :key="setting.id + '-main'"
+        :id="setting.id + '-main'"
+        :class="{ 'active': active(setting.id + '-main'), clickable: !active(setting.id + '-main') }"
+        @click="!active(setting.id + '-main') && setView(setting.id + '-main')"
+      >
+      <!-- Dynamically render the component based on the setting -->
+        <component :is="setting.component"></component>
+      </div>
     </div>
 
     <div v-if="loading">
@@ -15,21 +20,20 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t('files.loading') }}</span>
       </h2>
     </div>
   </div>
 </template>
 
 <script>
-import { state } from "@/store";
+import { state, getters, mutations } from "@/store";
+import { settings } from "@/utils/constants";
 import GlobalSettings from "@/views/settings/Global.vue";
 import UserDefaultSettings from "@/views/settings/UserDefaults.vue";
 import UserColumnSettings from "@/views/settings/UserColumn.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
-import ShareSettings from "@/views/settings/Shares.vue";
-//import UserSettings from "@/views/settings/User.vue";
-//import UsersSettings from "@/views/settings/Users.vue";
+import SharesSettings from "@/views/settings/Shares.vue";
 
 export default {
   name: "settings",
@@ -38,8 +42,12 @@ export default {
     UserDefaultSettings,
     UserColumnSettings,
     ProfileSettings,
-    ShareSettings,
-    //UsersSettings,
+    SharesSettings,
+  },
+  data() {
+    return {
+      settings // Initialize the settings array in data
+    };
   },
   computed: {
     loading() {
@@ -48,8 +56,20 @@ export default {
     user() {
       return state.user;
     },
-    settingsEnabled() {
-      return state.user.disableSettings == false;
+    currentHash() {
+      return getters.currentHash();
+    },
+  },
+  mounted() {
+    mutations.setActiveSettingsView(getters.currentHash());
+  },
+  methods: {
+    active(id) {
+      return state.activeSettingsView === id;
+    },
+    setView(view) {
+      if (state.activeSettingsView === view) return;
+      mutations.setActiveSettingsView(view);
     },
   },
 };
@@ -66,7 +86,7 @@ export default {
   max-width: 1000px;
   padding-bottom: 35vh;
 }
-.settings-views .card.active {
+.settings-views > .active > .card {
   border-style: solid;
   opacity: 1;
 }

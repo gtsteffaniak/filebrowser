@@ -1,4 +1,13 @@
 <template>
+  <div class="card clickable" style="min-height: 4em">
+    <div @click="navigateTo('/settings#profile-main')" class="card-wrapper">
+      <div class="inner-card">
+        {{ user.username }}
+        <i class="material-icons">settings</i>
+        <i v-if="canLogout" @click="logout" class="material-icons">exit_to_app</i>
+      </div>
+    </div>
+  </div>
   <div class="card" style="min-height: 6em">
     <div class="card-wrapper" @mouseleave="resetHoverTextToDefault">
       <span>{{ hoverText }}</span>
@@ -194,6 +203,7 @@ export default {
       if (this.disableUsedPercentage) {
         return usageStats;
       }
+      console.log("Fetching usage for", path,state.user);
       try {
         let usage = await files.usage(path);
         usageStats = {

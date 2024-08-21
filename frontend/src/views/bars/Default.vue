@@ -16,7 +16,8 @@
 
 <script>
 import url from "@/utils/url"
-import { state, mutations } from "@/store";
+import router from "@/router";
+import { state, mutations, getters } from "@/store";
 import { files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
 import css from "@/utils/css";
@@ -36,6 +37,9 @@ export default {
   },
 
   computed: {
+    isSettings() {
+      return getters.isSettings();
+    },
     // Map state and getters
     req() {
       return state.req;
@@ -45,9 +49,6 @@ export default {
     },
     selected() {
       return state.selected;
-    },
-    isSettings() {
-      return state.route.path.includes("/settings");
     },
     nameSorted() {
       return state.req.sorting.by === "name";
@@ -211,15 +212,16 @@ export default {
       this.$emit("action");
     },
     close() {
-      if (this.isSettings) {
+      if (getters.isSettings()) {
         // Use this.isSettings to access the computed property
-        this.$router.push({ path: "/files/" }, () => {});
+        router.push({ path: "/files/",hash: "" });
         mutations.closeHovers();
         return;
       }
       mutations.replaceRequest({});
       let uri = url.removeLastDir(state.route.path) + "/";
-      this.$router.push({ path: uri });
+      router.push({ path: uri });
+      mutations.closeHovers();
     },
     base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));

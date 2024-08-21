@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="card">
+  <div class="card" id="user-defaults-main">
     <div class="card-title">
       <h2>{{ $t("settings.userDefaults") }}</h2>
     </div>
@@ -42,10 +42,12 @@ export default {
     return {
       error: null,
       originalSettings: null,
-      settings: null,
     };
   },
   computed: {
+    settings() {
+      return state.settings;
+    },
     loading() {
       return state.loading;
     },
@@ -54,33 +56,12 @@ export default {
     },
     isExecEnabled: () => enableExec,
   },
-  async created() {
-    try {
-      mutations.setLoading(true);
-      const original = await api.get();
-      let settings = { ...original, commands: [] };
-
-      for (const key in original.commands) {
-        settings.commands.push({
-          name: key,
-          value: original.commands[key].join("\n"),
-        });
-      }
-      settings.shell = settings.shell.join(" ");
-      this.originalSettings = original;
-      this.settings = settings;
-    } catch (e) {
-      this.error = e;
-    } finally {
-      mutations.setLoading(false);
-    }
-  },
   methods: {
     updateRules(updatedRules) {
-      this.settings.rules = updatedRules;
+      state.settings.rules = updatedRules;
     },
     updateUser(updatedUser) {
-      this.settings.defaults = updatedUser;
+      state.settings.defaults = updatedUser;
     },
     capitalize(name, where = "_") {
       if (where === "caps") where = /(?=[A-Z])/;
@@ -94,21 +75,9 @@ export default {
       return name.slice(0, -1);
     },
     async save() {
-      let settings = {
-        ...this.settings,
-        shell: this.settings.shell
-          .trim()
-          .split(" ")
-          .filter((s) => s !== ""),
-        commands: {},
-      };
-
-      for (const { name, value } of this.settings.commands) {
-        settings.commands[name] = value.split("\n").filter((cmd) => cmd !== "");
-      }
 
       try {
-        await api.update(settings);
+        await api.update(state.settings);
         showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
         showError(e);

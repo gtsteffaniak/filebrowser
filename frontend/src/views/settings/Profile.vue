@@ -1,5 +1,5 @@
 <template>
-  <div class="card active">
+  <div class="card" id="profile-main" :class="{active:active}">
     <div class="card-title">
           <h2>{{ $t("settings.profileSettings") }}</h2>
         </div>
@@ -108,6 +108,12 @@ export default {
     };
   },
   computed: {
+    settings() {
+      return state.settings;
+    },
+    active() {
+      return state.activeSettingsView === "profile-main";
+    },
     user() {
       return state.user;
     },

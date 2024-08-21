@@ -65,10 +65,6 @@ func (s *Storage) Save(set *Settings) error {
 		set.Rules = []rules.Rule{}
 	}
 
-	if set.Shell == nil {
-		set.Shell = []string{}
-	}
-
 	if set.Commands == nil {
 		set.Commands = map[string][]string{}
 	}
