@@ -103,8 +103,11 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 		}
 		// Directories creation on POST.
 		if strings.HasSuffix(r.URL.Path, "/") {
-			err := files.WriteDirectory(fileOpts)
-			return errToStatus(err), err
+			err = files.WriteDirectory(fileOpts) // Assign to the existing `err` variable
+			if err != nil {
+				return errToStatus(err), err
+			}
+			return http.StatusOK, nil
 		}
 
 		file, err := files.FileInfoFaster(fileOpts)

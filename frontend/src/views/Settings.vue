@@ -1,33 +1,15 @@
 <template>
   <div class="dashboard">
-    <div id="nav">
-      <div v-if="settingsEnabled" class="wrapper">
-        <ul>
-          <router-link to="/settings/profile"
-            ><li :class="{ active: $route.path === '/settings/profile' }">
-              {{ $t("settings.profileSettings") }}
-            </li></router-link
-          >
-          <router-link to="/settings/shares" v-if="user.perm.share"
-            ><li :class="{ active: $route.path === '/settings/shares' }">
-              {{ $t("settings.shareManagement") }}
-            </li></router-link
-          >
-          <router-link to="/settings/global" v-if="user.perm.admin"
-            ><li :class="{ active: $route.path === '/settings/global' }">
-              {{ $t("settings.globalSettings") }}
-            </li></router-link
-          >
-          <router-link to="/settings/users" v-if="user.perm.admin"
-            ><li
-              :class="{
-                active: $route.path === '/settings/users' || $route.name === 'User',
-              }"
-            >
-              {{ $t("settings.userManagement") }}
-            </li></router-link
-          >
-        </ul>
+    <div class="settings-views">
+      <div
+        v-for="setting in settings"
+        :key="setting.id + '-main'"
+        :id="setting.id + '-main'"
+        :class="{ 'active': active(setting.id + '-main'), clickable: !active(setting.id + '-main') }"
+        @click="!active(setting.id + '-main') && setView(setting.id + '-main')"
+      >
+      <!-- Dynamically render the component based on the setting -->
+        <component :is="setting.component"></component>
       </div>
     </div>
 
@@ -38,22 +20,34 @@
           <div class="bounce2"></div>
           <div class="bounce3"></div>
         </div>
-        <span>{{ $t("files.loading") }}</span>
+        <span>{{ $t('files.loading') }}</span>
       </h2>
     </div>
-
-    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, getters, mutations } from "@/store";
+import { settings } from "@/utils/constants";
+import GlobalSettings from "@/views/settings/Global.vue";
+import UserDefaultSettings from "@/views/settings/UserDefaults.vue";
+import UserColumnSettings from "@/views/settings/UserColumn.vue";
+import ProfileSettings from "@/views/settings/Profile.vue";
+import SharesSettings from "@/views/settings/Shares.vue";
 
 export default {
   name: "settings",
-  mounted() {
-    // Update the req name property
-    mutations.replaceRequest({ name: "Settings" });
+  components: {
+    GlobalSettings,
+    UserDefaultSettings,
+    UserColumnSettings,
+    ProfileSettings,
+    SharesSettings,
+  },
+  data() {
+    return {
+      settings // Initialize the settings array in data
+    };
   },
   computed: {
     loading() {
@@ -62,9 +56,41 @@ export default {
     user() {
       return state.user;
     },
-    settingsEnabled() {
-      return state.user.disableSettings == false;
+    currentHash() {
+      return getters.currentHash();
+    },
+  },
+  mounted() {
+    mutations.setActiveSettingsView(getters.currentHash());
+  },
+  methods: {
+    active(id) {
+      return state.activeSettingsView === id;
+    },
+    setView(view) {
+      if (state.activeSettingsView === view) return;
+      mutations.setActiveSettingsView(view);
     },
   },
 };
 </script>
+
+<style>
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+}
+.settings-views {
+  max-width: 1000px;
+  padding-bottom: 35vh;
+}
+.settings-views > .active > .card {
+  border-style: solid;
+  opacity: 1;
+}
+.settings-views .card {
+  opacity: 0.3;
+}
+</style>

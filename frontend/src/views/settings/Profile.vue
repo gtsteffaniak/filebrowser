@@ -1,10 +1,11 @@
 <template>
-  <div class="row">
-    <div class="column">
-      <form class="card" @submit="updateSettings">
-        <div class="card-title">
+  <div class="card" id="profile-main" :class="{active:active}">
+    <div class="card-title">
           <h2>{{ $t("settings.profileSettings") }}</h2>
         </div>
+    <div class="card-content">
+      <form @submit="updateSettings">
+
 
         <div class="card-content">
           <p>
@@ -45,10 +46,8 @@
           />
         </div>
       </form>
-    </div>
 
-    <div class="column">
-      <form class="card" v-if="!user.lockPassword" @submit="updatePassword">
+      <form v-if="!user.lockPassword" @submit="updatePassword">
         <div class="card-title">
           <h2>{{ $t("settings.changePassword") }}</h2>
         </div>
@@ -109,6 +108,12 @@ export default {
     };
   },
   computed: {
+    settings() {
+      return state.settings;
+    },
+    active() {
+      return state.activeSettingsView === "profile-main";
+    },
     user() {
       return state.user;
     },

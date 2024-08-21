@@ -89,7 +89,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	if opts.Expand {
 		if file.IsDir {
-			if err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
+			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
 				return nil, err
 			}
 			return file, nil

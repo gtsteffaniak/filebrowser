@@ -52,7 +52,7 @@ import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { showError,showSuccess } from "@/notify";
+import { showError } from "@/notify";
 
 export default {
   name: "move",

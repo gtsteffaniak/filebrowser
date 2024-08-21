@@ -1,43 +1,39 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="row" v-else-if="!loading">
-    <div class="column">
-      <form @submit="save" class="card">
-        <div class="card-title">
-          <h2 v-if="user.id === 0">{{ $t("settings.newUser") }}</h2>
-          <h2 v-else>{{ $t("settings.user") }} {{ user.username }}</h2>
-        </div>
-
-        <div class="card-content">
-          <user-form
-            :user="user"
-            :createUserDir="createUserDir"
-            :isDefault="false"
-            :isNew="isNew"
-            @update:user="(updatedUser) => (user = updatedUser)"
-            @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
-          />
-        </div>
-
-        <div class="card-action">
-          <button
-            v-if="!isNew"
-            @click.prevent="deletePrompt"
-            type="button"
-            class="button button--flat button--red"
-            :aria-label="$t('buttons.delete')"
-            :title="$t('buttons.delete')"
-          >
-            {{ $t("buttons.delete") }}
-          </button>
-          <input class="button button--flat" type="submit" :value="$t('buttons.save')" />
-        </div>
-      </form>
+  <form @submit="save" id="user-main"  class="card">
+    <div class="card-title">
+      <h2 v-if="user.id === 0">{{ $t("settings.newUser") }}</h2>
+      <h2 v-else>{{ $t("settings.user") }} {{ user.username }}</h2>
     </div>
-  </div>
+
+    <div class="card-content">
+      <user-form
+        :user="user"
+        :createUserDir="createUserDir"
+        :isDefault="false"
+        :isNew="isNew"
+        @update:user="(updatedUser) => (user = updatedUser)"
+        @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
+      />
+    </div>
+
+    <div class="card-action">
+      <button
+        v-if="!isNew"
+        @click.prevent="deletePrompt"
+        type="button"
+        class="button button--flat button--red"
+        :aria-label="$t('buttons.delete')"
+        :title="$t('buttons.delete')"
+      >
+        {{ $t("buttons.delete") }}
+      </button>
+      <input class="button button--flat" type="submit" :value="$t('buttons.save')" />
+    </div>
+  </form>
 </template>
 <script>
-import { mutations,state } from "@/store";
+import { mutations, state } from "@/store";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
@@ -53,7 +49,7 @@ export default {
     return {
       error: null,
       originalUser: null,
-      user: { perm: {admin: false} },
+      user: { perm: { admin: false } },
       showDelete: false,
       createUserDir: false,
       loading: false, // Replaces Vuex state `loading`
@@ -65,6 +61,9 @@ export default {
     this.fetchData();
   },
   computed: {
+    settings() {
+      return state.settings;
+    },
     isNew() {
       return state.route.path === "/settings/users/new";
     },
@@ -92,7 +91,7 @@ export default {
           this.user = { ...(await api.get(id)) };
         }
       } catch (e) {
-        showError(e)
+        showError(e);
         this.error = e;
       } finally {
         mutations.setLoading(false);
@@ -116,6 +115,7 @@ export default {
         } else {
           await api.update(user);
           if (user.id === state.user.id) {
+            consoel.log('set user')
             mutations.setUser(user);
           }
           showSuccess(this.$t("settings.userUpdated"));
