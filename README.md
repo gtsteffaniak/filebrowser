@@ -4,7 +4,7 @@
 <p align="center">
   <img src="frontend/public/img/icons/favicon-256x256.png" width="100" title="Login With Custom URL">
 </p>
-<h3 align="center">Filebrowser - A modern web-based file manager</h3>
+<h3 align="center">Filebrowser Quantum - A modern web-based file manager</h3>
 <p align="center">
   <img width="800" src="https://github.com/user-attachments/assets/8ba93582-aba2-4996-8ac3-25f763a2e596" title="Main Screenshot">
 </p>
@@ -15,8 +15,8 @@
 > Starting with v0.2.4 *ALL* share links need to be re-created (due to
 > security fix).
 
-This fork makes the following significant changes to filebrowser for
-origin:
+Filebrowser Quantum is a fork of the filebrowser opensource project with the 
+following changes:
 
   1. [x] Enhanced lightning fast indexed search
      - Real-time results as you type
@@ -33,7 +33,7 @@ origin:
 
 ## About
 
-Filebrowser provides a file managing interface within a specified directory
+Filebrowser Quantum provides a file managing interface within a specified directory
 and can be used to upload, delete, preview, rename, and edit your files.
 It allows the creation of multiple users and each user can have its 
 directory.
@@ -44,7 +44,7 @@ aesthetics and performance. Improved search, simplified ui
 (without removing features) and more secure and up-to-date
 build are just a few examples.
 
-This Implementation of filebrowser differs significantly to the original.
+Filebrowser Quantum differs significantly to the original.
 There are hundreds of thousands of lines changed and they are generally
 no longer compatible with each other. This has been intentional -- the
 focus of this fork is on a few key principles:
@@ -84,7 +84,7 @@ Using docker:
 docker run -it -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
 ```
 
-1. docker-compose:
+1. docker compose:
 
   - with local storage
 
@@ -143,8 +143,8 @@ configuration options and other help.
 
 ## Migration from filebrowser/filebrowser
 
-If you currently use filebrowser from the filebrowser/filebrowser
-repo but want to try using this. I recommend you start fresh without
+If you currently use the original opensource filebrowser 
+but want to try using this. I recommend you start fresh without
 reusing the database, but there are a few things you'll need to do if you
 must migrate:
 
@@ -160,7 +160,7 @@ must migrate:
    filebrowser.yml and have a valid filebrowser config.
 
 
-The filebrowser application should run with the same user and rules that
+The filebrowser Quantum application should run with the same user and rules that
 you have from the original. But keep in mind the differences that are
 mentioned at the top of this readme.
 

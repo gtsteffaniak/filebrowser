@@ -14,7 +14,7 @@
           target="_blank"
           href="https://github.com/gtsteffaniak/filebrowser"
         >
-          File Browser
+          FileBrowser Quantum
         </a>
       </span>
       <span>

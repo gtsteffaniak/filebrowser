@@ -142,6 +142,7 @@ export default {
   data() {
     return {
       hoverText: "Quick Toggles", // Initially empty
+      versions,
     };
   },
   mounted() {
