@@ -88,7 +88,7 @@ export default {
     Rules,
     Commands,
   },
-  props: ["user", "createUserDir", "isNew", "isDefault"],
+  props: [ "createUserDir", "isNew", "isDefault"],
   created() {
     this.originalUserScope = state.user.scope;
     this.createUserDirData = this.createUserDir;

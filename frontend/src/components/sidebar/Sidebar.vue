@@ -33,8 +33,7 @@
 </template>
 
 <script>
-import { version, commitSHA } from "@/utils/constants";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { getters, mutations } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
 

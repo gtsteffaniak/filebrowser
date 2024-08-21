@@ -24,7 +24,7 @@
 
 <script>
 import { showSuccess } from "@/notify";
-import { state, mutations } from "@/store";
+import { state } from "@/store";
 import { settings as api } from "@/api";
 import { enableExec } from "@/utils/constants";
 import UserForm from "@/components/settings/UserForm.vue";
