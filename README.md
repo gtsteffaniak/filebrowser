@@ -9,6 +9,59 @@
   <img width="800" src="https://github.com/user-attachments/assets/8ba93582-aba2-4996-8ac3-25f763a2e596" title="Main Screenshot">
 </p>
 
+## Comparison Chart
+
+
+Nextcloud
+
+ Application Name | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" > | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  nextcloud | <img width="48" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google_Drive_logo.png/480px-Google_Drive_logo.png" > google_drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
+--- | --- | --- | --- | --- | --- | --- |
+Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+Windows                       | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+Has Stable Release?           | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+ftp support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+Dedicated docs site?          | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
+Multiple sources at once      | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+Docker image size             | 22 MB  | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
+Min. Memory Requirements      | 128 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 4 GB   |
+has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+price                         | free | free | free | free tier | free tier | $99+ |
+rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+upload files from the web?    | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+Advanced Search?              | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
+Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
+Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
+Custom job support            | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
+Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+Single sign-on support        | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+2FA sign-on support           | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Long-live API key support     | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+tags support                  | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
+sharable web links?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+Event-based notifications     | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+Metrics                       | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+file space quotas             | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+office file support           | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
+Branding support              | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ |
+activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+collaboration on same file    | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+trash support                 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+Content preview icons         | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
+Plugins support               | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+
 > [!WARNING]
 > Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml`
 > Configuration file.
@@ -163,6 +216,8 @@ must migrate:
 The filebrowser application should run with the same user and rules that
 you have from the original. But keep in mind the differences that are
 mentioned at the top of this readme.
+
+
 
 ## Roadmap
 
