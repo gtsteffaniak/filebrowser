@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "v[0-9]+.[0-9]+.[0-9]+"
+      - "dev_v[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
   contents: write
@@ -21,10 +22,18 @@ jobs:
         shell: bash
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: extract_branch
+      - name: Check branch pattern
+        id: check_branch
+        run: |
+          if [[ "${{ steps.extract_branch.outputs.branch }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "matches=true" >> $GITHUB_OUTPUT
+          else
+            echo "matches=false" >> $GITHUB_OUTPUT
       - uses: actions/setup-go@v5
         with:
           go-version: 1.22.2
       - name: Create Release
+        if: ${{ steps.check_branch.outputs.matches == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
           target_commitish: ${{ steps.extract_branch.outputs.branch }}
