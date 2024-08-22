@@ -29,7 +29,7 @@ export default {
   },
   data() {
     return {
-      columnWidth: 280,
+      columnWidth: 350,
       width: window.innerWidth,
       itemWeight: 0,
       viewModes: ["list", "compact", "normal", "gallery"],
@@ -202,7 +202,7 @@ export default {
       );
       let items = css(["#listingView .item", "#listingView .item"]);
       if (columns === 0) columns = 1;
-      items.style.width = `calc(${100 / columns}% - 1em)`;
+      items.style.width = `calc(${100 / columns}%)`;
     },
     action() {
       if (this.show) {
