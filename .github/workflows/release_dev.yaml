@@ -3,38 +3,12 @@ name: release
 on:
   push:
     branches:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "dev_v[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
   contents: write
 
 jobs:
-  create_release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT }}
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        id: extract_branch
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 1.22.2
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          target_commitish: ${{ steps.extract_branch.outputs.branch }}
-          token: ${{ secrets.PAT }}
-          tag_name: ${{ steps.extract_branch.outputs.branch }}
-          prerelease: false
-          draft: false
-          generate_release_notes: true
-          name: ${{ steps.extract_branch.outputs.branch }}
-
   push_release_to_registry:
     name: Push release
     runs-on: ubuntu-latest
@@ -66,7 +40,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64
           file: ./Dockerfile
           push: true
           tags: ${{ steps.modify-json.outputs.cleaned_tag }}
