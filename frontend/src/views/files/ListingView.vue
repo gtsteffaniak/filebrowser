@@ -39,52 +39,56 @@
         :class="listingViewMode + ' file-icons'"
       >
         <div>
-          <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }" >
-              <p
-                :class="{ active: nameSorted }"
-                class="name"
-                role="button"
-                tabindex="0"
-                @click="sort('name')"
-                :title="$t('files.sortByName')"
-                :aria-label="$t('files.sortByName')"
-              >
-                <span>{{ $t("files.name") }}</span>
-                <i class="material-icons">{{ nameIcon }}</i>
-              </p>
+          <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }">
+            <p
+              :class="{ active: nameSorted }"
+              class="name"
+              role="button"
+              tabindex="0"
+              @click="sort('name')"
+              :title="$t('files.sortByName')"
+              :aria-label="$t('files.sortByName')"
+            >
+              <span>{{ $t("files.name") }}</span>
+              <i class="material-icons">{{ nameIcon }}</i>
+            </p>
 
-              <p
-                :class="{ active: sizeSorted }"
-                class="size"
-                role="button"
-                tabindex="0"
-                @click="sort('size')"
-                :title="$t('files.sortBySize')"
-                :aria-label="$t('files.sortBySize')"
-              >
-                <span>{{ $t("files.size") }}</span>
-                <i class="material-icons">{{ sizeIcon }}</i>
-              </p>
-              <p
-                :class="{ active: modifiedSorted }"
-                class="modified"
-                role="button"
-                tabindex="0"
-                @click="sort('modified')"
-                :title="$t('files.sortByLastModified')"
-                :aria-label="$t('files.sortByLastModified')"
-              >
-                <span>{{ $t("files.lastModified") }}</span>
-                <i class="material-icons">{{ modifiedIcon }}</i>
-              </p>
+            <p
+              :class="{ active: sizeSorted }"
+              class="size"
+              role="button"
+              tabindex="0"
+              @click="sort('size')"
+              :title="$t('files.sortBySize')"
+              :aria-label="$t('files.sortBySize')"
+            >
+              <span>{{ $t("files.size") }}</span>
+              <i class="material-icons">{{ sizeIcon }}</i>
+            </p>
+            <p
+              :class="{ active: modifiedSorted }"
+              class="modified"
+              role="button"
+              tabindex="0"
+              @click="sort('modified')"
+              :title="$t('files.sortByLastModified')"
+              :aria-label="$t('files.sortByLastModified')"
+            >
+              <span>{{ $t("files.lastModified") }}</span>
+              <i class="material-icons">{{ modifiedIcon }}</i>
+            </p>
           </div>
         </div>
-        <div v-if="numDirs > 0" >
+        <div v-if="numDirs > 0">
           <div class="header-items">
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="numDirs > 0" class="folder-items" :class="{ lastGroup: numFiles === 0 }" >
+        <div
+          v-if="numDirs > 0"
+          class="folder-items"
+          :class="{ lastGroup: numFiles === 0 }"
+        >
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -153,7 +157,6 @@
     </div>
   </div>
 </template>
-
 
 <script>
 import { files as api } from "@/api";
@@ -432,6 +435,7 @@ export default {
       let items = css(["#listingView .item", "#listingView .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
+      items.style.height = `${this.columnWidth / 20}em`;
     },
     dragEnter() {
       this.dragCounter++;

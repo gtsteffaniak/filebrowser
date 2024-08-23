@@ -69,7 +69,7 @@ export default {
       return getters.isLoggedIn();
     },
     moveWithSidebar() {
-      return getters.isSidebarVisible();
+      return getters.isSidebarVisible() && getters.isStickySidebar();
     },
     closePopUp() {
       return closePopUp;
@@ -124,7 +124,7 @@ export default {
     resetPrompts() {
       mutations.closeSidebar();
       mutations.closeHovers();
-    }
+    },
   },
 };
 </script>
@@ -162,5 +162,4 @@ main::-webkit-scrollbar {
     backdrop-filter: blur(16px) invert(0.1);
   }
 }
-
 </style>
