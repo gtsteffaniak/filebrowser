@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 
 export const getters = {
+  isResizableView: () => state.user.viewMode == "gallery" || state.user.viewMode == "normal",
   currentHash: () => state.route.hash.replace("#", ""),
   isMobile: () => state.isMobile,
   isSettings: () => getters.currentView() === "settings",

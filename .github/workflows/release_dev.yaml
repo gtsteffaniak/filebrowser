@@ -1,4 +1,4 @@
-name: release
+name: dev release
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   push_release_to_registry:
-    name: Push release
+    name: Push dev release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,6 +39,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          build-args: |
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           context: .
           platforms: linux/amd64
           file: ./Dockerfile

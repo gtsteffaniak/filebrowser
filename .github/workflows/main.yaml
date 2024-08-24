@@ -1,4 +1,4 @@
-name: main job
+name: main release
 
 on:
   push:
@@ -37,11 +37,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          build-args: |
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./Dockerfile
           push: true
           tags: 'gtstef/filebrowser:latest'
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            version=${{ env.latest_tag }}
-            commitSHA=${{ env.latest_commit }}

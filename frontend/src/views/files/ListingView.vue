@@ -175,12 +175,22 @@ export default {
   data() {
     return {
       sortField: "name",
-      columnWidth: 350,
+      columnWidth: 250 + state.user.gallerySize * 50,
       dragCounter: 0,
       width: window.innerWidth,
     };
   },
+  watch: {
+    gallerySize() {
+      this.columnWidth = 250 + state.user.gallerySize * 50; // Update columnWidth based on new gallery size\
+      this.colunmsResize();
+    },
+  },
   computed: {
+    // Create a computed property that references the Vuex state
+    gallerySize() {
+      return state.user.gallerySize;
+    },
     isDarkMode() {
       return state.user?.darkMode;
     },
@@ -245,7 +255,8 @@ export default {
       return icons[state.user.viewMode];
     },
     listingViewMode() {
-      return state.user?.viewMode;
+      this.colunmsResize();
+      return state.user.viewMode;
     },
 
     selectedCount() {
@@ -435,7 +446,11 @@ export default {
       let items = css(["#listingView .item", "#listingView .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
-      items.style.height = `${this.columnWidth / 20}em`;
+      if (state.user.viewMode == "gallery") {
+        items.style.height = `${this.columnWidth / 20}em`;
+      } else {
+        items.style.height = `auto`;
+      }
     },
     dragEnter() {
       this.dragCounter++;

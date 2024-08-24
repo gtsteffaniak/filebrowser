@@ -12,9 +12,10 @@ export const state = reactive({
   },
   editor: null,
   user: {
+    gallarySize: 0,
     stickySidebar: stickyStartup(),
     locale: detectLocale(), // Default to the locale from moment
-    viewMode: 'mosaic', // Default to mosaic view
+    viewMode: 'normal', // Default to mosaic view
     hideDotfiles: false, // Default to false, assuming this is a boolean
     perm: {},
     rules: [], // Default to an empty array

@@ -42,6 +42,7 @@ type User struct {
 	Rules           []rules.Rule `json:"rules"`
 	HideDotfiles    bool         `json:"hideDotfiles"`
 	DateFormat      bool         `json:"dateFormat"`
+	GallerySize     int          `json:"gallerySize"`
 }
 
 var PublicUser = User{

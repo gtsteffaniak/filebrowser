@@ -5,7 +5,7 @@ setup:
 	fi
 
 build:
-	docker build -t gtstef/filebrowser .
+	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a"  -t gtstef/filebrowser .
 
 dev:
 	# Kill processes matching exe/filebrowser, ignore errors if process does not exist

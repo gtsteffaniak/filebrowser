@@ -1,11 +1,11 @@
 FROM golang:1.22-alpine AS base
-ARG version
-ARG commitSHA
+ARG VERSION
+ARG REVISION
 WORKDIR /app
 COPY ./backend ./
 RUN go build -ldflags="-w -s \
-  -X 'github.com/gtsteffaniak/filebrowser/version.Version=${version}' \
-  -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=${commitSHA}'" \
+  -X 'github.com/gtsteffaniak/filebrowser/version.Version=${VERSION}' \
+  -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
 FROM node:slim AS nbuild

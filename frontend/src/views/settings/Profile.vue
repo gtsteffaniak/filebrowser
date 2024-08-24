@@ -1,12 +1,10 @@
 <template>
-  <div class="card" id="profile-main" :class="{active:active}">
+  <div class="card" id="profile-main" :class="{ active: active }">
     <div class="card-title">
-          <h2>{{ $t("settings.profileSettings") }}</h2>
-        </div>
+      <h2>{{ $t("settings.profileSettings") }}</h2>
+    </div>
     <div class="card-content">
       <form @submit="updateSettings">
-
-
         <div class="card-content">
           <p>
             <input type="checkbox" v-model="darkMode" />
@@ -30,6 +28,23 @@
             :viewMode="viewMode"
             @update:viewMode="updateViewMode"
           ></ViewMode>
+          <br />
+          <h3>Default View Size</h3>
+          <p>
+            Note: only applicable for normal and gallery views. Changes here will persist
+            accross logins.
+          </p>
+          <div>
+            <input
+              v-model="gallerySize"
+              type="range"
+              id="gallary-size"
+              name="gallary-size"
+              :value="gallerySize"
+              min="0"
+              max="10"
+            />
+          </div>
           <h3>{{ $t("settings.language") }}</h3>
           <Languages
             class="input input--block"
@@ -46,7 +61,7 @@
           />
         </div>
       </form>
-
+      <hr />
       <form v-if="!user.lockPassword" @submit="updatePassword">
         <div class="card-title">
           <h2>{{ $t("settings.changePassword") }}</h2>
@@ -105,6 +120,7 @@ export default {
       darkMode: false,
       viewMode: "list",
       locale: "",
+      gallerySize: 0,
     };
   },
   computed: {
@@ -139,15 +155,11 @@ export default {
     this.hideDotfiles = state.user.hideDotfiles;
     this.singleClick = state.user.singleClick;
     this.dateFormat = state.user.dateFormat;
+    this.gallerySize = state.user.gallerySize;
   },
   watch: {
-    user() {
-      this.darkMode = state.user.darkMode;
-      this.locale = state.user.locale;
-      this.viewMode = state.user.viewMode;
-      this.hideDotfiles = state.user.hideDotfiles;
-      this.singleClick = state.user.singleClick;
-      this.dateFormat = state.user.dateFormat;
+    gallerySize(newValue) {
+      this.gallerySize = parseInt(newValue, 0); // Update the user object
     },
   },
   methods: {
@@ -179,6 +191,7 @@ export default {
           hideDotfiles: this.hideDotfiles,
           singleClick: this.singleClick,
           dateFormat: this.dateFormat,
+          gallerySize: this.gallerySize,
         };
         const shouldReload =
           rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
@@ -189,6 +202,7 @@ export default {
           "hideDotfiles",
           "singleClick",
           "dateFormat",
+          "gallerySize",
         ]);
         mutations.updateUser(data);
         if (shouldReload) {

@@ -5,6 +5,10 @@ import { emitStateChanged } from './eventBus'; // Import the function from event
 import { users } from "@/api";
 
 export const mutations = {
+  setGallerySize: (value) => {
+    state.user.gallerySize = value
+    emitStateChanged();
+  },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
     router.push({ hash: "#" + value });
