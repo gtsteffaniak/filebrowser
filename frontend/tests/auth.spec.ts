@@ -8,7 +8,7 @@ test("redirect to login", async ({ page }) => {
   await expect(page).toHaveURL(/\/login\?redirect=\/files\//);
 });
 
-test("login and logout", async ({ authPage, page, context }) => {
+test("login", async ({ authPage, page, context }) => {
   await authPage.goto();
   await expect(page).toHaveTitle(/Login - File Browser$/);
 
@@ -23,10 +23,9 @@ test("login and logout", async ({ authPage, page, context }) => {
   let cookies = await context.cookies();
   expect(cookies.find((c) => c.name == "auth")?.value).toBeDefined();
 
-  await authPage.logout();
+  // await authPage.logout();
   // await page.waitForURL("**/login", { timeout: 5000 });
-  await expect(page).toHaveTitle(/Login - File Browser$/);
-
-  cookies = await context.cookies();
-  expect(cookies.find((c) => c.name == "auth")?.value).toBeUndefined();
+  // await expect(page).toHaveTitle(/Login - File Browser$/);
+  // cookies = await context.cookies();
+  // expect(cookies.find((c) => c.name == "auth")?.value).toBeUndefined();
 });

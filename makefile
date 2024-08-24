@@ -27,10 +27,4 @@ test-backend:
 	cd backend && go test -race ./...
 
 test-frontend:
-	# Kill processes matching exe/filebrowser, ignore errors if process does not exist
-	-pkill -f "exe/filebrowser" || true
-	# Start backend and frontend concurrently
-	cd backend && ln -s ../frontend/tests srv || true && FILEBROWSER_NO_EMBEDED=true go run . & BACKEND_PID=$$!; \
-	cd frontend && npm run test & FRONTEND_PID=$$!; \
-	wait $$FRONTEND_PID
-	-pkill -f "exe/filebrowser" || true
+	docker build -t gtstef/filebrowser-tests -f Dockerfile.playwright .

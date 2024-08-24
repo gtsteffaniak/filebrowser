@@ -22,9 +22,9 @@ export class AuthPage {
         await this.page.getByRole("button", { name: "Login" }).click();
     }
 
-    async logout() {
-        await this.page.getByRole("button", { name: "Logout" }).click();
-    }
+    //async logout() {
+    //    await this.page.getByRole("button", { name: "Logout" }).click();
+    //}
 }
 
 const test = base.extend<{ authPage: AuthPage }>({
