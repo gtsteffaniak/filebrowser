@@ -4,7 +4,7 @@
 <p align="center">
   <img src="frontend/public/img/icons/favicon-256x256.png" width="100" title="Login With Custom URL">
 </p>
-<h3 align="center">Filebrowser - A modern web-based file manager</h3>
+<h3 align="center">Filebrowser Quantum - A modern web-based file manager</h3>
 <p align="center">
   <img width="800" src="https://github.com/user-attachments/assets/8ba93582-aba2-4996-8ac3-25f763a2e596" title="Main Screenshot">
 </p>
@@ -15,38 +15,41 @@
 > Starting with v0.2.4 *ALL* share links need to be re-created (due to
 > security fix).
 
-This fork makes the following significant changes to filebrowser for
-origin:
+Filebrowser Quantum is a fork of the filebrowser opensource project with the 
+following changes:
 
-  1. [x] Better search
-     - Lightning fast
-     - real-time results as you type
+  1. [x] Enhanced lightning fast indexed search
+     - Real-time results as you type
      - Works with more type filters
-     - interactive results page.
+     - Enhanced interactive results page.
   2. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode
        styles.
-  3. [x] Revamped configuration via `filebrowser.yml` config file.
-     - More configurations possible at a per-user level
+  3. [x] Revamped and simplified configuration via `filebrowser.yml` config file.
+  4. [x] Faster listing browsing
+     - Switching view modes is instant
+     - Changing Sort order is instant
+     - The entire directory is loaded in 1/3 the time
 
 ## About
 
-Filebrowser provides a file managing interface within a specified directory
+Filebrowser Quantum provides a file managing interface within a specified directory
 and can be used to upload, delete, preview, rename, and edit your files.
 It allows the creation of multiple users and each user can have its 
 directory.
 
-This repository is a fork, a collection of changes that make this program
-work better in terms of aesthetics and performance. Improved search,
-simplified ui (without removing features) and more secure and up-to-date
+This repository is a fork of the original [filebrowser](https://github.com/filebrowser/filebrowser) 
+with a collection of changes that make this program work better in terms of 
+aesthetics and performance. Improved search, simplified ui 
+(without removing features) and more secure and up-to-date
 build are just a few examples.
 
-This Implementation of filebrowser differs significantly to the original.
+Filebrowser Quantum differs significantly to the original.
 There are hundreds of thousands of lines changed and they are generally
 no longer compatible with each other. This has been intentional -- the
 focus of this fork is on a few key principles:
   - Simplicity and improved user experience
-  - Efficiency of operations and performance
+  - Improving performance and faster feedback when making changes.
   - Minimize external dependencies and standard library usage.
   - Of course -- adding much-needed features.
 
@@ -81,7 +84,7 @@ Using docker:
 docker run -it -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
 ```
 
-1. docker-compose:
+1. docker compose:
 
   - with local storage
 
@@ -140,8 +143,8 @@ configuration options and other help.
 
 ## Migration from filebrowser/filebrowser
 
-If you currently use filebrowser from the filebrowser/filebrowser
-repo but want to try using this. I recommend you start fresh without
+If you currently use the original opensource filebrowser 
+but want to try using this. I recommend you start fresh without
 reusing the database, but there are a few things you'll need to do if you
 must migrate:
 
@@ -157,9 +160,60 @@ must migrate:
    filebrowser.yml and have a valid filebrowser config.
 
 
-The filebrowser application should run with the same user and rules that
+The filebrowser Quantum application should run with the same user and rules that
 you have from the original. But keep in mind the differences that are
 mentioned at the top of this readme.
+
+
+## Comparison Chart
+
+ Application Name | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google_Drive_logo.png/480px-Google_Drive_logo.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
+--- | --- | --- | --- | --- | --- | --- |
+Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+Windows                       | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+Has Stable Release?           | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+ftp support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+Dedicated docs site?          | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
+Multiple sources at once      | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+Docker image size             | 22 MB  | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
+Min. Memory Requirements      | 128 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 4 GB   |
+has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+price                         | free | free | free | free tier | free tier | $99+ |
+rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+upload files from the web?    | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+Advanced Search?              | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
+Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
+Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
+Custom job support            | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
+Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+Single sign-on support        | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+2FA sign-on support           | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Long-live API key support     | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+tags support                  | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
+sharable web links?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+Event-based notifications     | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+Metrics                       | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+file space quotas             | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+office file support           | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
+Branding support              | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ |
+activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+collaboration on same file    | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+trash support                 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+Content preview icons         | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
+Plugins support               | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 
 ## Roadmap
 

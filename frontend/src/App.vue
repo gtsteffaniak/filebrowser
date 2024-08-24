@@ -3,17 +3,18 @@
 </template>
 
 <script>
-import { onMounted } from 'vue';
+import { onMounted } from "vue";
 import { mutations } from "@/store"; // Import your store's mutations
-
+mutations.setLoading("main-app", true);
 export default {
   name: "app",
   computed: {},
   setup() {
     onMounted(() => {
-      mutations.setLoading(false); // Call your mutation or method to set loading to false
+      console.log("static vars", window.FileBrowser);
+      mutations.setLoading("main-app", false);
       // Query the loading element and remove it from the DOM
-      const loadingDiv = document.getElementById('loading');
+      const loadingDiv = document.getElementById("loading");
       if (loadingDiv) {
         loadingDiv.remove();
       }

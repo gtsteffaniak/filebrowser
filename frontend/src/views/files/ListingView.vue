@@ -39,52 +39,56 @@
         :class="listingViewMode + ' file-icons'"
       >
         <div>
-          <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }" >
-              <p
-                :class="{ active: nameSorted }"
-                class="name"
-                role="button"
-                tabindex="0"
-                @click="sort('name')"
-                :title="$t('files.sortByName')"
-                :aria-label="$t('files.sortByName')"
-              >
-                <span>{{ $t("files.name") }}</span>
-                <i class="material-icons">{{ nameIcon }}</i>
-              </p>
+          <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }">
+            <p
+              :class="{ active: nameSorted }"
+              class="name"
+              role="button"
+              tabindex="0"
+              @click="sort('name')"
+              :title="$t('files.sortByName')"
+              :aria-label="$t('files.sortByName')"
+            >
+              <span>{{ $t("files.name") }}</span>
+              <i class="material-icons">{{ nameIcon }}</i>
+            </p>
 
-              <p
-                :class="{ active: sizeSorted }"
-                class="size"
-                role="button"
-                tabindex="0"
-                @click="sort('size')"
-                :title="$t('files.sortBySize')"
-                :aria-label="$t('files.sortBySize')"
-              >
-                <span>{{ $t("files.size") }}</span>
-                <i class="material-icons">{{ sizeIcon }}</i>
-              </p>
-              <p
-                :class="{ active: modifiedSorted }"
-                class="modified"
-                role="button"
-                tabindex="0"
-                @click="sort('modified')"
-                :title="$t('files.sortByLastModified')"
-                :aria-label="$t('files.sortByLastModified')"
-              >
-                <span>{{ $t("files.lastModified") }}</span>
-                <i class="material-icons">{{ modifiedIcon }}</i>
-              </p>
+            <p
+              :class="{ active: sizeSorted }"
+              class="size"
+              role="button"
+              tabindex="0"
+              @click="sort('size')"
+              :title="$t('files.sortBySize')"
+              :aria-label="$t('files.sortBySize')"
+            >
+              <span>{{ $t("files.size") }}</span>
+              <i class="material-icons">{{ sizeIcon }}</i>
+            </p>
+            <p
+              :class="{ active: modifiedSorted }"
+              class="modified"
+              role="button"
+              tabindex="0"
+              @click="sort('modified')"
+              :title="$t('files.sortByLastModified')"
+              :aria-label="$t('files.sortByLastModified')"
+            >
+              <span>{{ $t("files.lastModified") }}</span>
+              <i class="material-icons">{{ modifiedIcon }}</i>
+            </p>
           </div>
         </div>
-        <div v-if="numDirs > 0" >
+        <div v-if="numDirs > 0">
           <div class="header-items">
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="numDirs > 0" class="folder-items" :class="{ lastGroup: numFiles === 0 }" >
+        <div
+          v-if="numDirs > 0"
+          class="folder-items"
+          :class="{ lastGroup: numFiles === 0 }"
+        >
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -154,7 +158,6 @@
   </div>
 </template>
 
-
 <script>
 import { files as api } from "@/api";
 import * as upload from "@/utils/upload";
@@ -172,12 +175,22 @@ export default {
   data() {
     return {
       sortField: "name",
-      columnWidth: 280,
+      columnWidth: 250 + state.user.gallerySize * 50,
       dragCounter: 0,
       width: window.innerWidth,
     };
   },
+  watch: {
+    gallerySize() {
+      this.columnWidth = 250 + state.user.gallerySize * 50; // Update columnWidth based on new gallery size\
+      this.colunmsResize();
+    },
+  },
   computed: {
+    // Create a computed property that references the Vuex state
+    gallerySize() {
+      return state.user.gallerySize;
+    },
     isDarkMode() {
       return state.user?.darkMode;
     },
@@ -197,30 +210,13 @@ export default {
       return state.req.sorting.asc;
     },
     items() {
-      if (state.user == null) {
-        return {};
-      }
-      const dirs = [];
-      const files = [];
-
-      state.req.items.forEach((item) => {
-        if (state.user.hideDotfiles && item.name.startsWith(".")) {
-          return;
-        }
-        if (item.isDir) {
-          dirs.push(item);
-        } else {
-          item.Path = state.req.Path;
-          files.push(item);
-        }
-      });
-      return { dirs, files };
+      return getters.reqItems();
     },
     numDirs() {
-      return state.req.numDirs;
+      return getters.reqNumDirs();
     },
     numFiles() {
-      return state.req.numFiles;
+      return getters.reqNumFiles();
     },
     dirs() {
       return this.items.dirs;
@@ -259,7 +255,8 @@ export default {
       return icons[state.user.viewMode];
     },
     listingViewMode() {
-      return state.user?.viewMode;
+      this.colunmsResize();
+      return state.user.viewMode;
     },
 
     selectedCount() {
@@ -269,7 +266,7 @@ export default {
       return state.req;
     },
     loading() {
-      return state.loading;
+      return getters.isLoading();
     },
   },
   mounted() {
@@ -396,12 +393,12 @@ export default {
       if (items.length === 0) {
         return;
       }
-
+      mutations.setLoading("listing", true);
       let action = (overwrite, rename) => {
         api
           .copy(items, overwrite, rename)
           .then(() => {
-            mutations.setLoading(true);
+            mutations.setLoading("listing", false);
           })
           .catch(showError);
       };
@@ -412,7 +409,7 @@ export default {
             .move(items, overwrite, rename)
             .then(() => {
               this.clipboard = {};
-              mutations.setLoading(true);
+              mutations.setLoading("listing", false);
             })
             .catch(showError);
         };
@@ -449,6 +446,11 @@ export default {
       let items = css(["#listingView .item", "#listingView .item"]);
       if (columns === 0) columns = 1;
       items.style.width = `calc(${100 / columns}% - 1em)`;
+      if (state.user.viewMode == "gallery") {
+        items.style.height = `${this.columnWidth / 20}em`;
+      } else {
+        items.style.height = `auto`;
+      }
     },
     dragEnter() {
       this.dragCounter++;

@@ -75,6 +75,7 @@ type UserDefaults struct {
 	Scope           string       `json:"scope"`
 	Locale          string       `json:"locale"`
 	ViewMode        string       `json:"viewMode"`
+	GallerySize     int          `json:"gallerySize"`
 	SingleClick     bool         `json:"singleClick"`
 	Rules           []rules.Rule `json:"rules"`
 	Sorting         struct {

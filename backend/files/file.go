@@ -6,21 +6,21 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"mime"
 	"net/http"
 	"os"
-	filepath "path/filepath"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
 
-	"github.com/spf13/afero"
-
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -33,7 +33,6 @@ var (
 // FileInfo describes a file.
 type FileInfo struct {
 	*Listing
-	Fs        afero.Fs          `json:"-"`
 	Path      string            `json:"path,omitempty"`
 	Name      string            `json:"name"`
 	Size      int64             `json:"size"`
@@ -52,8 +51,7 @@ type FileInfo struct {
 
 // FileOptions are the options when getting a file info.
 type FileOptions struct {
-	Fs         afero.Fs
-	Path       string
+	Path       string // realpath
 	Modify     bool
 	Expand     bool
 	ReadHeader bool
@@ -91,7 +89,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	if opts.Expand {
 		if file.IsDir {
-			if err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil { //nolint:govet
+			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
 				return nil, err
 			}
 			return file, nil
@@ -166,60 +164,37 @@ func RefreshFileInfo(opts FileOptions) bool {
 		if err != nil {
 			return false
 		}
-		//_, exists := index.GetFileMetadata(adjustedPath)
-
 		return index.UpdateFileMetadata(adjustedPath, *file)
 	} else {
-		//_, exists := index.GetFileMetadata(adjustedPath)
 		return index.UpdateFileMetadata(adjustedPath, *file)
 	}
 }
 
 func stat(path string, opts FileOptions) (*FileInfo, error) {
-	var file *FileInfo
-	if lstaterFs, ok := opts.Fs.(afero.Lstater); ok {
-		info, _, err := lstaterFs.LstatIfPossible(path)
-		if err == nil {
-			file = &FileInfo{
-				Fs:        opts.Fs,
-				Path:      opts.Path,
-				Name:      info.Name(),
-				ModTime:   info.ModTime(),
-				Mode:      info.Mode(),
-				Size:      info.Size(),
-				Extension: filepath.Ext(info.Name()),
-				Token:     opts.Token,
-			}
-			if info.IsDir() {
-				file.IsDir = true
-			}
-			if info.Mode()&os.ModeSymlink != 0 {
-				file.IsSymlink = true
-			}
-		}
+	info, err := os.Lstat(path)
+	if err != nil {
+		return nil, err
 	}
-	if file == nil || file.IsSymlink {
-		info, err := opts.Fs.Stat(opts.Path)
-		if err != nil {
-			return nil, err
-		}
 
-		if file != nil && file.IsSymlink {
-			file.Size = info.Size()
-			file.IsDir = info.IsDir()
-			return file, nil
-		}
+	file := &FileInfo{
+		Path:      opts.Path,
+		Name:      info.Name(),
+		ModTime:   info.ModTime(),
+		Mode:      info.Mode(),
+		Size:      info.Size(),
+		Extension: filepath.Ext(info.Name()),
+		Token:     opts.Token,
+	}
 
-		file = &FileInfo{
-			Fs:        opts.Fs,
-			Path:      opts.Path,
-			Name:      info.Name(),
-			ModTime:   info.ModTime(),
-			Mode:      info.Mode(),
-			IsDir:     info.IsDir(),
-			Size:      info.Size(),
-			Extension: filepath.Ext(info.Name()),
-			Token:     opts.Token,
+	if info.IsDir() {
+		file.IsDir = true
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		file.IsSymlink = true
+		targetInfo, err := os.Stat(path)
+		if err == nil {
+			file.Size = targetInfo.Size()
+			file.IsDir = targetInfo.IsDir()
 		}
 	}
 
@@ -237,7 +212,7 @@ func (i *FileInfo) Checksum(algo string) error {
 		i.Checksums = map[string]string{}
 	}
 
-	reader, err := i.Fs.Open(i.Path)
+	reader, err := os.Open(i.Path)
 	if err != nil {
 		return err
 	}
@@ -266,23 +241,127 @@ func (i *FileInfo) Checksum(algo string) error {
 
 // RealPath gets the real path for the file, resolving symlinks if supported.
 func (i *FileInfo) RealPath() string {
-	if realPathFs, ok := i.Fs.(interface {
-		RealPath(name string) (fPath string, err error)
-	}); ok {
-		realPath, err := realPathFs.RealPath(i.Path)
-		if err == nil {
-			return realPath
-		}
+	realPath, err := filepath.EvalSymlinks(i.Path)
+	if err == nil {
+		return realPath
+	}
+	return i.Path
+}
+
+func GetRealPath(relativePath ...string) (string, error) {
+	combined := []string{settings.Config.Server.Root}
+	for _, path := range relativePath {
+		combined = append(combined, strings.TrimPrefix(path, settings.Config.Server.Root))
+	}
+	joinedPath := filepath.Join(combined...)
+
+	// Convert relative path to absolute path
+	absolutePath, err := filepath.Abs(joinedPath)
+	if err != nil {
+		return "", err
+	}
+	if !Exists(absolutePath) {
+		return absolutePath, nil // return without error
+	}
+	// Resolve symlinks and get the real path
+	return resolveSymlinks(absolutePath)
+}
+
+func DeleteFiles(absPath string, opts FileOptions) error {
+	err := os.RemoveAll(absPath)
+	if err != nil {
+		return err
+	}
+	parentDir := filepath.Dir(absPath)
+	opts.Path = parentDir
+	updated := RefreshFileInfo(opts)
+	if !updated {
+		return errors.ErrEmptyKey
+	}
+	return nil
+}
+
+func WriteDirectory(opts FileOptions) error {
+	// Ensure the parent directories exist
+	err := os.MkdirAll(opts.Path, 0775)
+	if err != nil {
+		return err
+	}
+	opts.Path = filepath.Dir(opts.Path)
+	updated := RefreshFileInfo(opts)
+	if !updated {
+		return errors.ErrEmptyKey
 	}
 
-	return i.Path
+	return nil
+}
+
+func WriteFile(opts FileOptions, in io.Reader) error {
+	fmt.Println("writing file", opts.Path)
+	dst := opts.Path
+	parentDir := filepath.Dir(dst)
+	// Split the directory from the destination path
+	dir := filepath.Dir(dst)
+
+	// Create the directory and all necessary parents
+	err := os.MkdirAll(dir, 0775)
+	if err != nil {
+		return err
+	}
+
+	// Open the file for writing (create if it doesn't exist, truncate if it does)
+	file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0775)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Copy the contents from the reader to the file
+	_, err = io.Copy(file, in)
+	if err != nil {
+		return err
+	}
+	fmt.Println("refreshing info for ", parentDir)
+	opts.Path = parentDir
+	updated := RefreshFileInfo(opts)
+	if !updated {
+		return errors.ErrEmptyKey
+	}
+
+	return nil
+}
+
+// resolveSymlinks resolves symlinks in the given path
+func resolveSymlinks(path string) (string, error) {
+	for {
+		// Get the file info
+		info, err := os.Lstat(path)
+		if err != nil {
+			return "", err
+		}
+
+		// Check if it's a symlink
+		if info.Mode()&os.ModeSymlink != 0 {
+			// Read the symlink target
+			target, err := os.Readlink(path)
+			if err != nil {
+				return "", err
+			}
+
+			// Resolve the target relative to the symlink's directory
+			path = filepath.Join(filepath.Dir(path), target)
+		} else {
+			// Not a symlink, so we are done
+			return path, nil
+		}
+	}
 }
 
 // addContent reads and sets content based on the file type.
 func (i *FileInfo) addContent(path string) error {
 	if !i.IsDir {
-		afs := &afero.Afero{Fs: i.Fs}
-		content, err := afs.ReadFile(path)
+		fmt.Println("getting content for ", path)
+		content, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -301,6 +380,9 @@ func (i *FileInfo) addContent(path string) error {
 
 // detectType detects the file type.
 func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool) error {
+	if i.IsDir {
+		return nil
+	}
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		if saveContent {
@@ -345,7 +427,6 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 			}
 		}
 	}
-
 	if i.Type == "" {
 		i.Type = "blob"
 		if saveContent {
@@ -358,15 +439,15 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 
 // readFirstBytes reads the first bytes of the file.
 func (i *FileInfo) readFirstBytes() []byte {
-	reader, err := i.Fs.Open(i.Path)
+	file, err := os.Open(i.Path)
 	if err != nil {
 		i.Type = "blob"
 		return nil
 	}
-	defer reader.Close()
+	defer file.Close()
 
 	buffer := make([]byte, 512) //nolint:gomnd
-	n, err := reader.Read(buffer)
+	n, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
 		i.Type = "blob"
 		return nil
@@ -387,7 +468,8 @@ func (i *FileInfo) detectSubtitles(parentDir string) {
 		// Directory must have been deleted, remove it from the index
 		return
 	}
-	// Read the directory contents
+	defer dir.Close() // Ensure directory handle is closed
+
 	files, err := dir.Readdir(-1)
 	if err != nil {
 		return
@@ -412,8 +494,13 @@ func (i *FileInfo) detectSubtitles(parentDir string) {
 
 // readListing reads the contents of a directory and fills the listing.
 func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bool) error {
-	afs := &afero.Afero{Fs: i.Fs}
-	dir, err := afs.ReadDir(i.Path)
+	dir, err := os.Open(i.Path)
+	if err != nil {
+		return err
+	}
+	defer dir.Close()
+
+	files, err := dir.Readdir(-1)
 	if err != nil {
 		return err
 	}
@@ -425,7 +512,7 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 		NumFiles: 0,
 	}
 
-	for _, f := range dir {
+	for _, f := range files {
 		name := f.Name()
 		fPath := filepath.Join(i.Path, name)
 
@@ -436,7 +523,7 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 		isSymlink, isInvalidLink := false, false
 		if IsSymlink(f.Mode()) {
 			isSymlink = true
-			info, err := i.Fs.Stat(fPath)
+			info, err := os.Stat(fPath)
 			if err == nil {
 				f = info
 			} else {
@@ -478,6 +565,7 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 	i.Listing = listing
 	return nil
 }
+
 func IsNamedPipe(mode os.FileMode) bool {
 	return mode&os.ModeNamedPipe != 0
 }
@@ -497,4 +585,15 @@ func getMutex(path string) *sync.Mutex {
 	}
 
 	return pathMutexes[path]
+}
+
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.8
+
+- **Feature**: New gallary view scaling options (closes [#141](https://github.com/gtsteffaniak/filebrowser/issues/141))
+- **Change**: Refactored backend files functions
+- **Change**: Improved UI response to filesystem changes
+- **Change**: Added frontend tests for deployment integrity
+- **Fix**: move/replace file prompt issue
+- **Fix**: opening files from search
+- **Fix**: Display count issue when hideDotFile is enabled.
+
 ## v0.2.7
 
  - **Change**: New sidebar style and behavior

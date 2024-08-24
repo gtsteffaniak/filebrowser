@@ -219,3 +219,14 @@ export default {
   },
 };
 </script>
+
+<style>
+.vue-simple-progress {
+  margin: 0.5em;
+}
+
+.vue-simple-progress,
+.vue-simple-progress-bar {
+  border-radius: 0.5em;
+}
+</style>

@@ -1,11 +1,17 @@
 # Planned Roadmap
 
-Next version :
+next 0.2.x release:
 
 - Theme configuration from settings
+- Better media and file viewer support
+
+
+initial 0.3.0 release :
+
+- drop in replace backend db with pocketbas
 - Add Job status to the sidebar
   - index status.
-  - new jobs as they come via pocketbase
+  - Job status from users
 
 Future releases:
   - Replace http routes for gorilla/mux with pocketbase

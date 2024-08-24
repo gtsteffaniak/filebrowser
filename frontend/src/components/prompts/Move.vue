@@ -111,18 +111,17 @@ export default {
           confirm: (event, option) => {
             overwrite = option == "overwrite";
             rename = option == "rename";
-
             event.preventDefault();
             mutations.closeHovers();
             action(overwrite, rename);
             mutations.setReload(true);
           },
         });
-
         return;
       }
 
       action(overwrite, rename);
+
     },
   },
 };

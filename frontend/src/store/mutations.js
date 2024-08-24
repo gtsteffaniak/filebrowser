@@ -1,11 +1,33 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
+import router from "@/router";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { users } from "@/api";
 
 export const mutations = {
+  setGallerySize: (value) => {
+    state.user.gallerySize = value
+    emitStateChanged();
+  },
+  setActiveSettingsView: (value) => {
+    state.activeSettingsView = value;
+    router.push({ hash: "#" + value });
+    const element = document.getElementById(value);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+    }
+    emitStateChanged();
+  },
+  setSettings: (value) => {
+    state.settings = value;
+    emitStateChanged();
+  },
   setMobile() {
-    state.mobile = window.innerWidth <= 800
+    state.isMobile = window.innerWidth <= 800
     emitStateChanged();
   },
   toggleDarkMode() {
@@ -13,12 +35,13 @@ export const mutations = {
     emitStateChanged();
   },
   toggleSidebar() {
-    if (!state.showSidebar && state.user.stickySidebar) {
-      state.user.stickySidebar = false;
+    if (state.user.stickySidebar) {
+      localStorage.setItem("stickySidebar", "false");
       mutations.updateUser({ "stickySidebar": false }); // turn off sticky when closed
-      return
+      state.showSidebar = false;
+    } else {
+      state.showSidebar = !state.showSidebar;
     }
-    state.showSidebar = !state.showSidebar;
     emitStateChanged();
   },
   closeSidebar() {
@@ -37,10 +60,9 @@ export const mutations = {
   },
   closeHovers: () => {
     state.prompts = [];
-    emitStateChanged();
-  },
-  toggleShell: () => {
-    state.showShell = !state.showShell;
+    if (!state.stickySidebar) {
+      state.showSidebar = false;
+    }
     emitStateChanged();
   },
   showHover: (value) => {
@@ -65,10 +87,14 @@ export const mutations = {
     state.prompts.push("error");
     emitStateChanged();
   },
-  setLoading: (value) => {
-    state.loading = value;
+  setLoading: (loadType, status) => {
+    if (status === false) {
+      delete state.loading[loadType];
+    } else {
+      state.loading = { ...state.loading, [loadType]: true };
+    }
     emitStateChanged();
-  },
+  },  
   setReload: (value) => {
     state.reload = value;
     emitStateChanged();
@@ -81,7 +107,7 @@ export const mutations = {
     }
 
     let locale = value.locale;
-    if (locale === "") {      
+    if (locale === "") {
       value.locale = i18n.detectLocale();
     }
     let previousUser = state.user
@@ -130,6 +156,7 @@ export const mutations = {
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
     }
+    localStorage.setItem("stickySidebar", state.user.stickySidebar);
     if (state.user != previousUser) {
       users.update(state.user);
     }

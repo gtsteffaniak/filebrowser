@@ -188,10 +188,12 @@ export default {
       };
     },
     prev() {
+      mutations.setLoading("preview-img", true);
       this.hoverNav = false;
       this.$router.replace({ path: this.previousLink });
     },
     next() {
+      mutations.setLoading("preview-img", true);
       this.hoverNav = false;
       this.$router.replace({ path: this.nextLink });
     },
@@ -231,23 +233,28 @@ export default {
 
       this.previousLink = "";
       this.nextLink = "";
-
+      const path = state.req.path;
+      const directoryPath = path.substring(0, path.lastIndexOf("/"));
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
           continue;
         }
 
         for (let j = i - 1; j >= 0; j--) {
-          if (mediaTypes.includes(this.listing[j].type)) {
-            this.previousLink = this.listing[j].url;
-            this.previousRaw = this.prefetchUrl(this.listing[j]);
+          let composedListing = this.listing[j];
+          composedListing.path = directoryPath + "/" + composedListing.name;
+          if (mediaTypes.includes(composedListing.type)) {
+            this.previousLink = composedListing.url;
+            this.previousRaw = this.prefetchUrl(composedListing);
             break;
           }
         }
         for (let j = i + 1; j < this.listing.length; j++) {
-          if (mediaTypes.includes(this.listing[j].type)) {
-            this.nextLink = this.listing[j].url;
-            this.nextRaw = this.prefetchUrl(this.listing[j]);
+          let composedListing = this.listing[j];
+          composedListing.path = directoryPath + "/" + composedListing.name;
+          if (mediaTypes.includes(composedListing.type)) {
+            this.nextLink = composedListing.url;
+            this.nextRaw = this.prefetchUrl(composedListing);
             break;
           }
         }
@@ -259,7 +266,6 @@ export default {
       if (item.type !== "image") {
         return "";
       }
-
       return this.fullSize
         ? api.getDownloadURL(item, true)
         : api.getPreviewURL(item, "big");
@@ -284,7 +290,7 @@ export default {
         this.showNav = false || this.hoverNav;
         this.navTimeout = null;
       }, 1500);
-    }, 500),
+    }, 100),
     close() {
       mutations.replaceRequest({}); // Reset request data
       let uri = url.removeLastDir(state.route.path) + "/";

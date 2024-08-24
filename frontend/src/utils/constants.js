@@ -8,6 +8,7 @@ const recaptcha = window.FileBrowser.ReCaptcha;
 const recaptchaKey = window.FileBrowser.ReCaptchaKey;
 const signup = window.FileBrowser.Signup;
 const version = window.FileBrowser.Version;
+const commitSHA = window.FileBrowser.CommitSHA;
 const logoURL = `${staticURL}/img/logo.png`;
 const noAuth = window.FileBrowser.NoAuth;
 const authMethod = window.FileBrowser.AuthMethod;
@@ -16,6 +17,13 @@ const enableThumbs = window.FileBrowser.EnableThumbs;
 const resizePreview = window.FileBrowser.ResizePreview;
 const enableExec = window.FileBrowser.EnableExec;
 const origin = window.location.origin;
+
+const settings = [
+  { id: 'profile', label: 'Profile Management', component: 'ProfileSettings' },
+  { id: 'shares', label: 'Share Management', component: 'SharesSettings' },
+  { id: 'global', label: 'Global', component: 'GlobalSettings' },
+  { id: 'user-defaults', label: 'User Defaults', component: 'UserDefaultSettings' },
+]
 
 export {
   name,
@@ -27,6 +35,7 @@ export {
   recaptchaKey,
   signup,
   version,
+  commitSHA,
   noAuth,
   authMethod,
   loginPage,
@@ -34,5 +43,6 @@ export {
   resizePreview,
   enableExec,
   origin,
-  darkMode
+  darkMode,
+  settings
 };

@@ -17,7 +17,6 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
 	"github.com/gtsteffaniak/filebrowser/auth"
@@ -64,13 +63,20 @@ var rootCmd = &cobra.Command{
 			log.Fatal("Image resize workers count could not be < 1")
 		}
 		imgSvc := img.New(serverConfig.NumImageProcessors)
-		var fileCache diskcache.Interface = diskcache.NewNoOp()
+
 		cacheDir := "/tmp"
+		var fileCache diskcache.Interface
+
+		// Use file cache if cacheDir is specified
 		if cacheDir != "" {
-			if err := os.MkdirAll(cacheDir, 0700); err != nil { //nolint:govet,gomnd
-				log.Fatalf("can't make directory %s: %s", cacheDir, err)
+			var err error
+			fileCache, err = diskcache.NewFileCache(cacheDir)
+			if err != nil {
+				log.Fatalf("failed to create file cache: %v", err)
 			}
-			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
+		} else {
+			// No-op cache if no cacheDir is specified
+			fileCache = diskcache.NewNoOp()
 		}
 		// initialize indexing and schedule indexing ever n minutes (default 5)
 		go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)

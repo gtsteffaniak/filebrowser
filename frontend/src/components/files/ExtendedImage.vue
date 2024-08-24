@@ -10,18 +10,21 @@
     @mouseup="mouseUp"
     @wheel="wheelMove"
   >
+    <div v-if="!isLoaded">Loading image...</div>
+
     <img
-      v-if="!isTiff"
+      v-if="!isTiff && isLoaded"
       :src="src"
-      class="image-ex-img image-ex-img-center"
+      class="image-ex-img"
       ref="imgex"
       @load="onLoad"
     />
-    <canvas v-else ref="imgex" class="image-ex-img"></canvas>
+    <canvas v-else-if="isLoaded" ref="imgex" class="image-ex-img"></canvas>
   </div>
 </template>
 
 <script>
+import { state, mutations, getters } from "@/store";
 import throttle from "@/utils/throttle";
 import { showError } from "@/notify";
 export default {
@@ -82,8 +85,18 @@ export default {
     window.removeEventListener("resize", this.onResize);
     document.removeEventListener("mouseup", this.onMouseUp);
   },
+  computed: {
+    isLoaded() {
+      console.log(state.loading);
+      return !("preview-img" in state.loading);
+    },
+  },
   watch: {
     src: function () {
+      if (this.src == undefined || this.$refs.imgex == undefined) {
+        mutations.setLoading("preview-img", false);
+        return;
+      }
       this.isTiff = this.checkIfTiff(this.src);
       if (this.isTiff) {
         this.decodeTiff(this.src);
@@ -94,6 +107,8 @@ export default {
       this.scale = 1;
       this.setZoom();
       this.setCenter();
+      mutations.setLoading("preview-img", false);
+      this.showSpinner = false;
     },
   },
   methods: {
@@ -120,36 +135,6 @@ export default {
         showError("Error decoding TIFF");
         console.error("Error decoding TIFF:", error);
       }
-    },
-    onLoad() {
-      let img = this.$refs.imgex;
-
-      this.imageLoaded = true;
-
-      if (img === undefined) {
-        return;
-      }
-
-      img.classList.remove("image-ex-img-center");
-      this.setCenter();
-      img.classList.add("image-ex-img-ready");
-
-      document.addEventListener("mouseup", this.onMouseUp);
-
-      let realSize = img.naturalWidth;
-      let displaySize = img.offsetWidth;
-
-      // Image is in portrait orientation
-      if (img.naturalHeight > img.naturalWidth) {
-        realSize = img.naturalHeight;
-        displaySize = img.offsetHeight;
-      }
-
-      // Scale needed to display the image on full size
-      const fullScale = realSize / displaySize;
-
-      // Full size plus additional zoom
-      this.maxScale = fullScale + 4;
     },
     onMouseUp() {
       this.inDrag = false;
@@ -258,32 +243,19 @@ export default {
       }
     },
     doMove(x, y) {
-      let style = this.$refs.imgex.style;
-      let posX = this.pxStringToNumber(style.left) + x;
-      let posY = this.pxStringToNumber(style.top) + y;
-
-      style.left = posX + "px";
-      style.top = posY + "px";
-
-      this.position.relative.x = Math.abs(this.position.center.x - posX);
-      this.position.relative.y = Math.abs(this.position.center.y - posY);
-
-      if (posX < this.position.center.x) {
-        this.position.relative.x = this.position.relative.x * -1;
-      }
-
-      if (posY < this.position.center.y) {
-        this.position.relative.y = this.position.relative.y * -1;
-      }
+      this.position.relative.x += x;
+      this.position.relative.y += y;
+      // Update the transform with separate translate and scale values
+      this.$refs.imgex.style.transform = `translate(${this.position.relative.x}px, ${this.position.relative.y}px) scale(${this.scale})`;
     },
     wheelMove(event) {
       this.scale += -Math.sign(event.deltaY) * this.zoomStep;
       this.setZoom();
     },
     setZoom() {
-      this.scale = this.scale < this.minScale ? this.minScale : this.scale;
-      this.scale = this.scale > this.maxScale ? this.maxScale : this.scale;
-      this.$refs.imgex.style.transform = `scale(${this.scale})`;
+      this.scale = Math.max(this.minScale, Math.min(this.maxScale, this.scale));
+      // Update the transform with both translate and scale values
+      this.$refs.imgex.style.transform = `translate(${this.position.relative.x}px, ${this.position.relative.y}px) scale(${this.scale})`;
     },
     pxStringToNumber(style) {
       return +style.replace("px", "");
@@ -294,26 +266,17 @@ export default {
 
 <style>
 .image-ex-container {
-  margin: auto;
-  overflow: hidden;
-  position: relative;
+  max-width: 100%; /* Image container max width */
+  max-height: 100%; /* Image container max height */
+  overflow: hidden; /* Hide overflow if image exceeds container */
+  position: relative; /* Required for absolute positioning of child */
+  display: flex;
+  justify-content: center;
 }
 
 .image-ex-img {
+  max-width: 100%; /* Image max width */
+  max-height: 100%; /* Image max height */
   position: absolute;
-}
-
-.image-ex-img-center {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  position: absolute;
-  transition: none;
-}
-
-.image-ex-img-ready {
-  left: 0;
-  top: 0;
-  transition: transform 0.1s ease;
 }
 </style>

@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  activeSettingsView: "",
   isMobile: window.innerWidth <= 800,
   showSidebar: false,
   usage: {
@@ -11,9 +12,10 @@ export const state = reactive({
   },
   editor: null,
   user: {
-    stickySidebar: false,
+    gallarySize: 0,
+    stickySidebar: stickyStartup(),
     locale: detectLocale(), // Default to the locale from moment
-    viewMode: 'mosaic', // Default to mosaic view
+    viewMode: 'normal', // Default to mosaic view
     hideDotfiles: false, // Default to false, assuming this is a boolean
     perm: {},
     rules: [], // Default to an empty array
@@ -40,7 +42,7 @@ export const state = reactive({
     items: [],
   },
   jwt: "",
-  loading: false,
+  loading: [],
   reload: false,
   selected: [],
   multiple: false,
@@ -54,4 +56,21 @@ export const state = reactive({
   show: null,
   showConfirm: null,
   route: {},
+  settings: {
+    signup: false,
+    createUserDir: false,
+    userHomeBasePath: "",
+    rules: [],
+    frontend: {
+      disableExternal: false,
+      disableUsedPercentage: false,
+      name: "",
+      files: "",
+    },
+  },
 });
+
+function stickyStartup() {
+  const stickyStatus = localStorage.getItem("stickySidebar");
+  return stickyStatus == "true"
+}

@@ -16,7 +16,7 @@
     "lint": "npm run typecheck && eslint src/",
     "lint:fix": "eslint --fix src/",
     "format": "prettier --write .",
-    "test": "playwright test"
+    "test": "npx playwright test"
   },
   "dependencies": {
     "ace-builds": "^1.24.2",
@@ -32,6 +32,7 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.42.1",
     "@intlify/unplugin-vue-i18n": "^4.0.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-typescript": "^13.0.0",

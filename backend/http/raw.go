@@ -2,9 +2,11 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	gopath "path"
 	"path/filepath"
 	"strings"
@@ -80,10 +82,13 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-
+	realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	fmt.Println("realpath", realPath, err)
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Fs:         d.user.Fs,
-		Path:       r.URL.Path,
+		Path:       realPath,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: d.server.TypeDetectionByHeader,
@@ -108,7 +113,7 @@ func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
 	if !d.Check(path) {
 		return nil
 	}
-	info, err := d.user.Fs.Stat(path)
+	info, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
@@ -117,7 +122,7 @@ func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
 		return nil
 	}
 
-	file, err := d.user.Fs.Open(path)
+	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
@@ -198,7 +203,7 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
-	fd, err := file.Fs.Open(file.Path)
+	fd, err := os.Open(file.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

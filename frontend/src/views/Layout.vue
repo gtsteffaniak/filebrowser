@@ -31,7 +31,7 @@ import editorBar from "./bars/EditorBar.vue";
 import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
-import Sidebar from "@/components/Sidebar.vue";
+import Sidebar from "@/components/sidebar/Sidebar.vue";
 import Search from "@/components/Search.vue";
 import fileSelection from "@/components/FileSelection.vue";
 
@@ -69,9 +69,7 @@ export default {
       return getters.isLoggedIn();
     },
     moveWithSidebar() {
-      return (
-        getters.isSidebarVisible() && !getters.isMobile() && state.user?.stickySidebar
-      );
+      return getters.isSidebarVisible() && getters.isStickySidebar();
     },
     closePopUp() {
       return closePopUp;
@@ -127,13 +125,6 @@ export default {
       mutations.closeSidebar();
       mutations.closeHovers();
     },
-    getTitle() {
-      let title = "Title";
-      if (state.route.path.startsWith("/settings/")) {
-        title = "Settings";
-      }
-      return title;
-    },
   },
 };
 </script>
@@ -161,13 +152,13 @@ main::-webkit-scrollbar {
 /* Header */
 .dark-mode-header {
   color: white;
-  background: var(--surfacePrimary);
+  background-color: rgb(255 255 255 / 50%) !important;
 }
 
 /* Header with backdrop-filter support */
 @supports (backdrop-filter: none) {
   .dark-mode-header {
-    background: transparent;
+    background-color: rgb(37 49 55 / 33%) !important;
     backdrop-filter: blur(16px) invert(0.1);
   }
 }

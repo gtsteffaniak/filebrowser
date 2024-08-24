@@ -2,27 +2,32 @@ package fileutils
 
 import (
 	"errors"
-
-	"github.com/spf13/afero"
+	"os"
+	"path/filepath"
 )
 
 // CopyDir copies a directory from source to dest and all
 // of its sub-directories. It doesn't stop if it finds an error
 // during the copy. Returns an error if any.
-func CopyDir(fs afero.Fs, source, dest string) error {
+func CopyDir(source, dest string) error {
 	// Get properties of source.
-	srcinfo, err := fs.Stat(source)
+	srcinfo, err := os.Stat(source)
 	if err != nil {
 		return err
 	}
 
 	// Create the destination directory.
-	err = fs.MkdirAll(dest, srcinfo.Mode())
+	err = os.MkdirAll(dest, srcinfo.Mode())
 	if err != nil {
 		return err
 	}
 
-	dir, _ := fs.Open(source)
+	dir, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer dir.Close()
+
 	obs, err := dir.Readdir(-1)
 	if err != nil {
 		return err
@@ -31,18 +36,18 @@ func CopyDir(fs afero.Fs, source, dest string) error {
 	var errs []error
 
 	for _, obj := range obs {
-		fsource := source + "/" + obj.Name()
-		fdest := dest + "/" + obj.Name()
+		fsource := filepath.Join(source, obj.Name())
+		fdest := filepath.Join(dest, obj.Name())
 
 		if obj.IsDir() {
 			// Create sub-directories, recursively.
-			err = CopyDir(fs, fsource, fdest)
+			err = CopyDir(fsource, fdest)
 			if err != nil {
 				errs = append(errs, err)
 			}
 		} else {
 			// Perform the file copy.
-			err = CopyFile(fs, fsource, fdest)
+			err = CopyFile(fsource, fdest)
 			if err != nil {
 				errs = append(errs, err)
 			}
