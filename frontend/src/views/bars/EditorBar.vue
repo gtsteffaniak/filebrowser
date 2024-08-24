@@ -30,7 +30,7 @@ import { state, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url";
-import { showError } from "@/notify";
+import { showError, showSuccess } from "@/notify";
 
 import Action from "@/components/header/Action.vue";
 
@@ -108,9 +108,10 @@ export default {
       try {
         eventBus.emit("handleEditorValueRequest", "data");
         buttons.success(button);
+        showSuccess("File Saved!");
       } catch (e) {
         buttons.done(button);
-        showError(e);
+        showError("Error saving file: ", e);
       }
     },
     close() {

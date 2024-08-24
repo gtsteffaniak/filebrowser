@@ -53,10 +53,6 @@ body.rtl #listingView {
   font-size: 0.9em;
 }
 
-#listingView .item .name {
-  font-weight: bold;
-}
-
 #listingView .item i {
   font-size: 4em;
   margin-right: 0.1em;
@@ -103,7 +99,6 @@ body.rtl #listingView {
   box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
 }
 
-
 #listingView.list .item,
 #listingView.compact .item {
   max-width: 100%;
@@ -122,25 +117,49 @@ body.rtl #listingView {
   width: 100%;
 }
 
-#listingView.gallery .item div:first-of-type {
+#listingView.gallery .item div {
   width: 100%;
-  height: 12em;
+  height: 100%;
+  position: absolute;
+  padding: 0.5em;
+}
+#listingView.gallery .item  {
+  min-width: 12em;
+  min-height: 12em;
+  padding: 0;
+}
+
+#listingView.normal .item,
+#listingView.gallery .item {
+  transition: width 0.25s, height 0.25s;
+}
+
+#listingView.gallery .item .text {
+  width: 100%;
+  height: 100%;
+  display:flex;
+  min-width: 12em;
+  min-height: 12em;
+  text-shadow: 0 0 2px black;
 }
 
 #listingView.gallery .item div:last-of-type {
   position: absolute;
-  bottom: 0.5em;
   padding: 1em;
-  width: calc(100% - 1em);
   text-align: center;
+  display: block;
 }
 
 #listingView.gallery .item[data-type=image] div:last-of-type {
   color: white;
-  background: linear-gradient(#0000, #0009);
 }
 
 #listingView.gallery .item i {
+  display:flex !important;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
   width: 100%;
   margin-right: 0;
   font-size: 8em;

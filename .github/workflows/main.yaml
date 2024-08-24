@@ -1,4 +1,4 @@
-name: main job
+name: main release
 
 on:
   push:
@@ -16,12 +16,6 @@ jobs:
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.0.0
-        # Workaround to fix error:
-        # failed to push: failed to copy: io: read/write on closed pipe
-        # See https://github.com/docker/build-push-action/issues/761
-        with:
-          driver-opts: |
-            image=moby/buildkit:v0.10.6
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -32,10 +26,20 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: gtstef/filebrowser
+      - name: Get latest release tag and commit SHA
+        id: get_tag_and_sha
+        run: |
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          latest_commit=$(git rev-list -n 1 $latest_tag)
+          echo "latest_tag=${latest_tag}" >> $GITHUB_ENV
+          echo "latest_commit=${latest_commit}" >> $GITHUB_ENV
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
+          build-args: |
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./Dockerfile
           push: true

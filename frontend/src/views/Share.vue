@@ -207,7 +207,7 @@ export default {
       return state.req; // Access state directly from the store
     },
     loading() {
-      return state.loading; // Access state directly from the store
+      return getters.isLoading(); // Access state directly from the store
     },
     multiple() {
       return state.multiple; // Access state directly from the store
@@ -257,7 +257,7 @@ export default {
     },
     async fetchData() {
       // Set loading to true and reset the error.
-      mutations.setLoading(true);
+      mutations.setLoading("share", true);
       this.error = null;
       // Reset view information.
       if (!getters.isLoggedIn()) {
@@ -278,7 +278,7 @@ export default {
       this.token = file.token || "";
       mutations.updateRequest(file);
       document.title = `${file.name} - ${document.title}`;
-      mutations.setLoading(false);
+      mutations.setLoading("share", false);
     },
     keyEvent(event) {
       // Esc!

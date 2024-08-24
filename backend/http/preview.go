@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 
@@ -46,7 +47,6 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		}
 
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         d.user.Fs,
 			Path:       "/" + vars["path"],
 			Modify:     d.user.Perm.Modify,
 			Expand:     true,
@@ -110,7 +110,7 @@ func handleImagePreview(
 
 func createPreview(imgSvc ImgService, fileCache FileCache,
 	file *files.FileInfo, previewSize PreviewSize) ([]byte, error) {
-	fd, err := file.Fs.Open(file.Path)
+	fd, err := os.Open(file.Path)
 	if err != nil {
 		return nil, err
 	}

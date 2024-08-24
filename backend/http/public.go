@@ -2,13 +2,12 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
-	"path/filepath"
 	"strings"
 
-	"github.com/spf13/afero"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/files"
@@ -20,31 +19,25 @@ import (
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		id, path := ifPathWithName(r)
+		fmt.Println(id, path)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {
 			return errToStatus(err), err
 		}
 		if link.Hash != "" {
-			status, err := authenticateShareRequest(r, link)
-			if status != 0 || err != nil {
+			var status int
+			status, err = authenticateShareRequest(r, link) // Assign to the existing `err` variable
+			if err != nil || status != 0 {
 				return status, err
 			}
 		}
 		d.user = &users.PublicUser
-		if path == "/" {
-			path = link.Path
-		} else if strings.HasPrefix("/"+path, link.Path) {
-			path = "/" + path
-		} else {
-			path = link.Path + "/" + path
+		realPath, err := files.GetRealPath(d.user.Scope, link.Path, path)
+		if err != nil {
+			return http.StatusNotFound, err
 		}
-		sharePath := settings.Config.Server.Root + path
-		lastComponent := filepath.Base(sharePath)
-		basePath := filepath.Dir(sharePath)
-		fsPath := afero.NewBasePathFs(afero.NewOsFs(), basePath)
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Fs:         fsPath,
-			Path:       lastComponent,
+			Path:       realPath,
 			Modify:     d.user.Perm.Modify,
 			Expand:     true,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -63,14 +56,15 @@ func ifPathWithName(r *http.Request) (id, filePath string) {
 	pathElements := strings.Split(r.URL.Path, "/")
 	id = pathElements[0]
 	allButFirst := path.Join(pathElements[1:]...)
-	if len(pathElements) == 1 {
-		allButFirst = "/"
-	}
 	return id, allButFirst
 }
 
 var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	file := d.raw.(*files.FileInfo)
+	file, ok := d.raw.(*files.FileInfo)
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
+	}
+
 	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
 	if file.IsDir {
 		return renderJSON(w, r, file)
@@ -86,7 +80,11 @@ var publicUserGetHandler = func(w http.ResponseWriter, r *http.Request, d *data)
 }
 
 var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	file := d.raw.(*files.FileInfo)
+	file, ok := d.raw.(*files.FileInfo)
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
+	}
+
 	if !file.IsDir {
 		return rawFileHandler(w, r, file)
 	}

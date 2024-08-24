@@ -1,7 +1,11 @@
 import { state } from "./state.js";
 
 export const getters = {
+  isResizableView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
+  currentHash: () => state.route.hash.replace("#", ""),
   isMobile: () => state.isMobile,
+  isLoading: () => Object.keys(state.loading).length > 0,
+  isSettings: () => getters.currentView() === "settings",
   isDarkMode: () => {
     if (state.user == null) {
       return true;
@@ -20,28 +24,80 @@ export const getters = {
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
   },
+  reqNumDirs: () => {
+    let dirCount = 0;
+    state.req.items.forEach((item) => {
+      // Check if the item is a directory
+      if (item.isDir) {
+        // If hideDotfiles is enabled and the item is a dotfile, skip it
+        if (state.user.hideDotfiles && item.name.startsWith(".")) {
+          return;
+        }
+        // Otherwise, count this directory
+        dirCount++;
+      }
+    });
+    // Return the directory count
+    return dirCount;
+  },
+  reqNumFiles: () => {
+    let fileCount = 0;
+    state.req.items.forEach((item) => {
+      // Check if the item is a directory
+      if (!item.isDir) {
+        // If hideDotfiles is enabled and the item is a dotfile, skip it
+        if (state.user.hideDotfiles && item.name.startsWith(".")) {
+          return;
+        }
+        // Otherwise, count this directory
+        fileCount++;
+      }
+    });
+    // Return the directory count
+    return fileCount;
+  },
+  reqItems: () => {
+    if (state.user == null) {
+      return {};
+    }
+    const dirs = [];
+    const files = [];
+
+    state.req.items.forEach((item) => {
+      if (state.user.hideDotfiles && item.name.startsWith(".")) {
+        return;
+      }
+      if (item.isDir) {
+        dirs.push(item);
+      } else {
+        item.Path = state.req.Path;
+        files.push(item);
+      }
+    });
+    return { dirs, files };
+  },
   isSidebarVisible: () => {
-    if (!getters.isLoggedIn()) {
-      return false;
+    let visible = state.showSidebar || getters.isStickySidebar()
+    if (getters.currentView() == "settings") {
+      visible = !getters.isMobile();
     }
-    console.log(getters.currentPromptName());
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
-      return false;
+      visible = false;
     }
-    console.log(getters.currentView());
-    if (getters.currentView() !== "listingView") {
-      return false;
-    }
-    return state.showSidebar || getters.isStickySidebar();
+    return visible
   },
   isStickySidebar: () => {
-    if (getters.isMobile()) {
-      return false
+    let sticky = state.user?.stickySidebar
+    if (getters.currentView() == "settings") {
+      sticky = true
     }
-    if (!getters.isLoggedIn()) {
-      return true
+    if (getters.currentView() == null && !getters.isLoading()) {
+      sticky = true
     }
-    return state.user?.stickySidebar
+    if (getters.isMobile() || getters.currentView() == "preview") {
+      sticky = false
+    }
+    return sticky
   },
   showOverlay: () => {
     if (!getters.isLoggedIn()) {
@@ -57,17 +113,21 @@ export const getters = {
     : state.route.path + "/";
   },
   currentView: () => {
-    let returnVal = null;
-    if (state.req.type !== undefined) {
-      if (state.req.isDir) {
-        returnVal = "listingView";
-      } else if ("content" in state.req) {
-        returnVal = "editor";
-      } else {
-        returnVal = "preview";
+    const pathname = state.route.path.toLowerCase()
+    if (pathname.includes("settings")) {
+      return "settings"
+    } else if (pathname.includes("files")) {
+      if (state.req.type !== undefined) {
+        if (state.req.isDir) {
+          return "listingView";
+        } else if ("content" in state.req) {
+          return "editor";
+        } else {
+          return "preview";
+        }
       }
     }
-    return returnVal;
+    return null
   },
   progress: () => {
     // Check if state.upload is defined and valid

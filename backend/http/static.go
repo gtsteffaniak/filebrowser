@@ -34,6 +34,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		"Color":                 d.settings.Frontend.Color,
 		"BaseURL":               d.server.BaseURL,
 		"Version":               version.Version,
+		"CommitSHA":             version.CommitSHA,
 		"StaticURL":             path.Join(d.server.BaseURL, "/static"),
 		"Signup":                settings.Config.Auth.Signup,
 		"NoAuth":                d.settings.Auth.Method == "noauth",
@@ -64,7 +65,12 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		auther := raw.(*auth.JSONAuth)
+
+		auther, ok := raw.(*auth.JSONAuth)
+		if !ok {
+			return http.StatusInternalServerError, fmt.Errorf("failed to assert type *auth.JSONAuth")
+		}
+
 		if auther.ReCaptcha != nil {
 			data["ReCaptcha"] = auther.ReCaptcha.Key != "" && auther.ReCaptcha.Secret != ""
 			data["ReCaptchaHost"] = auther.ReCaptcha.Host

@@ -1,10 +1,7 @@
 package users
 
 import (
-	"path/filepath"
 	"regexp"
-
-	"github.com/spf13/afero"
 
 	"github.com/gtsteffaniak/filebrowser/rules"
 )
@@ -42,10 +39,10 @@ type User struct {
 	Perm            Permissions  `json:"perm"`
 	Commands        []string     `json:"commands"`
 	Sorting         Sorting      `json:"sorting"`
-	Fs              afero.Fs     `json:"-" yaml:"-"`
 	Rules           []rules.Rule `json:"rules"`
 	HideDotfiles    bool         `json:"hideDotfiles"`
 	DateFormat      bool         `json:"dateFormat"`
+	GallerySize     int          `json:"gallerySize"`
 }
 
 var PublicUser = User{
@@ -54,7 +51,6 @@ var PublicUser = User{
 	Scope:        "./",
 	ViewMode:     "normal",
 	LockPassword: true,
-	Fs:           afero.NewMemMapFs(),
 	Perm: Permissions{
 		Create:   false,
 		Rename:   false,
@@ -69,26 +65,6 @@ var PublicUser = User{
 // GetRules implements rules.Provider.
 func (u *User) GetRules() []rules.Rule {
 	return u.Rules
-}
-
-// Clean cleans up a user and verifies if all its fields
-// are alright to be saved.
-//
-//nolint:gocyclo
-func (u *User) Clean(baseScope string) error {
-
-	if u.Fs == nil {
-		scope := u.Scope
-		scope = filepath.Join(baseScope, filepath.Join("/", scope)) //nolint:gocritic
-		u.Fs = afero.NewBasePathFs(afero.NewOsFs(), scope)
-	}
-
-	return nil
-}
-
-// FullPath gets the full path for a user's relative path.
-func (u *User) FullPath(path string) string {
-	return afero.FullBaseFsPath(u.Fs.(*afero.BasePathFs), path)
 }
 
 // CanExecute checks if an user can execute a specific command.

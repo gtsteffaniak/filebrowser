@@ -5,8 +5,8 @@ version: 2
 builds:
   # Build configuration for darwin and linux
   - id: default
-    ldflags:
-      - -s -w
+    ldflags: &ldflags
+      - -s -w -X github.com/gtsteffaniak/filebrowser/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/version.CommitSHA={{ .ShortCommit }}
     main: main.go
     binary: filebrowser
     goos:
@@ -25,8 +25,7 @@ builds:
 
   # Build configuration for windows without arm
   - id: windows
-    ldflags:
-      - -s -w
+    ldflags: *ldflags
     main: main.go
     binary: filebrowser
     goos:

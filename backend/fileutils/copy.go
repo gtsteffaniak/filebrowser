@@ -2,23 +2,23 @@ package fileutils
 
 import (
 	"os"
-	"path"
-
-	"github.com/spf13/afero"
+	"path/filepath"
 )
 
 // Copy copies a file or folder from one place to another.
-func Copy(fs afero.Fs, src, dst string) error {
-	if src = path.Clean("/" + src); src == "" {
+func Copy(src, dst string) error {
+	src = filepath.Clean(src)
+	if src == "" {
 		return os.ErrNotExist
 	}
 
-	if dst = path.Clean("/" + dst); dst == "" {
+	dst = filepath.Clean(dst)
+	if dst == "" {
 		return os.ErrNotExist
 	}
 
 	if src == "/" || dst == "/" {
-		// Prohibit copying from or to the virtual root directory.
+		// Prohibit copying from or to the root directory.
 		return os.ErrInvalid
 	}
 
@@ -26,14 +26,14 @@ func Copy(fs afero.Fs, src, dst string) error {
 		return os.ErrInvalid
 	}
 
-	info, err := fs.Stat(src)
+	info, err := os.Stat(src)
 	if err != nil {
 		return err
 	}
 
 	if info.IsDir() {
-		return CopyDir(fs, src, dst)
+		return CopyDir(src, dst)
 	}
 
-	return CopyFile(fs, src, dst)
+	return CopyFile(src, dst)
 }

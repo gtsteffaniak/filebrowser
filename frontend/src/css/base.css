@@ -172,6 +172,7 @@ button:disabled {
   padding: 1em;
   align-items: center;
   transition: right 1s ease; /* Animate the 'right' property */
+  z-index: 5;
 }
 
 #popup-notification-content {

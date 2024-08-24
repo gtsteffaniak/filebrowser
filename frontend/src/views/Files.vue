@@ -71,15 +71,12 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
   },
   unmounted() {
-    if (state.showShell) {
-      mutations.toggleShell(); // Use mutation
-    }
     mutations.replaceRequest({}); // Use mutation
   },
   methods: {
     async fetchData() {
       // Set loading to true and reset the error.
-      mutations.setLoading(true);
+      mutations.setLoading("files", true);
       this.error = null;
 
       // Reset view information using mutations
@@ -106,9 +103,10 @@ export default {
         }
       } catch (e) {
         this.error = e;
+        mutations.replaceRequest(null);
       } finally {
-        mutations.setLoading(false);
         mutations.replaceRequest(data);
+        mutations.setLoading("files", false);
       }
     },
     keyEvent(event) {

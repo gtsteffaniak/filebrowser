@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -13,6 +14,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
+	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -136,7 +138,11 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 	}
 	req.Data.Scope = userHome
 	log.Printf("user: %s, home dir: [%s].", req.Data.Username, userHome)
-
+	_, err = files.GetRealPath(d.server.Root, req.Data.Scope)
+	if err != nil {
+		fmt.Println("user path is not valid", req.Data.Scope)
+		return http.StatusBadRequest, nil
+	}
 	err = d.store.Users.Save(req.Data)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -153,6 +159,10 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 	}
 
 	if req.Data.ID != d.raw.(uint) {
+		return http.StatusBadRequest, nil
+	}
+	_, err = files.GetRealPath(d.server.Root, req.Data.Scope)
+	if err != nil {
 		return http.StatusBadRequest, nil
 	}
 

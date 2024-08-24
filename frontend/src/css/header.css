@@ -9,16 +9,13 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: white;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.075);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  background-color: rgb(255 255 255 / 50%) !important;
   padding: 0.5em;
 }
 
 @supports (backdrop-filter: none) {
   header {
-    background-color: transparent;
-    backdrop-filter: blur(16px) invert(0.1);
+    backdrop-filter: blur(16px);
   }
 }
 

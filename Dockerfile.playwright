@@ -1,0 +1,19 @@
+FROM golang:1.22-alpine AS base
+WORKDIR /app
+COPY ./backend ./
+RUN go build -ldflags="-w -s" -o filebrowser .
+
+FROM node:slim
+WORKDIR /app
+COPY ./frontend/package.json ./
+RUN npm i --maxsockets 1
+RUN npx playwright install --with-deps chromium
+COPY [ "backend/filebrowser.yaml", "./" ]
+COPY  ./frontend/ ./frontend
+WORKDIR /app/frontend
+RUN npm run build-docker
+WORKDIR /app
+COPY --from=base /app/filebrowser* ./
+RUN ln -s frontend/tests/ srv
+ENV FILEBROWSER_NO_EMBEDED="true"
+RUN ./filebrowser & sleep 2 && cd frontend && npx playwright test
