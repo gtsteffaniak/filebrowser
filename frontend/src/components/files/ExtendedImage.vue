@@ -87,7 +87,6 @@ export default {
   },
   computed: {
     isLoaded() {
-      console.log(state.loading);
       return !("preview-img" in state.loading);
     },
   },

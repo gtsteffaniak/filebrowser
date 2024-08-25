@@ -2,7 +2,6 @@ package http
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -86,7 +85,6 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	fmt.Println("realpath", realPath, err)
 	file, err := files.FileInfoFaster(files.FileOptions{
 		Path:       realPath,
 		Modify:     d.user.Perm.Modify,
