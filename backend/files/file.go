@@ -360,7 +360,6 @@ func resolveSymlinks(path string) (string, error) {
 // addContent reads and sets content based on the file type.
 func (i *FileInfo) addContent(path string) error {
 	if !i.IsDir {
-		fmt.Println("getting content for ", path)
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return err

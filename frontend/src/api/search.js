@@ -15,11 +15,6 @@ export default async function search(base, query) {
 
   data = data.map((item) => {
     item.url = `/files${base}` + url.encodePath(item.path);
-
-    if (item.dir) {
-      item.url += "/";
-    }
-
     return item;
   });
 
