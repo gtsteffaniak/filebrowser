@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
-	"fmt"
 	"hash"
 	"io"
 	"mime"
@@ -297,7 +296,6 @@ func WriteDirectory(opts FileOptions) error {
 }
 
 func WriteFile(opts FileOptions, in io.Reader) error {
-	fmt.Println("writing file", opts.Path)
 	dst := opts.Path
 	parentDir := filepath.Dir(dst)
 	// Split the directory from the destination path
@@ -321,7 +319,6 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("refreshing info for ", parentDir)
 	opts.Path = parentDir
 	updated := RefreshFileInfo(opts)
 	if !updated {

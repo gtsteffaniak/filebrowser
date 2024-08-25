@@ -100,8 +100,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-          >
-          </item>
+          />
         </div>
         <div v-if="numFiles > 0">
           <div class="header-items">
@@ -120,8 +119,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-          >
-          </item>
+          />
         </div>
 
         <input
@@ -129,7 +127,7 @@
           type="file"
           id="upload-input"
           @change="uploadInput($event)"
-          getMultiple
+          multiple
         />
         <input
           style="display: none"
@@ -137,7 +135,7 @@
           id="upload-folder-input"
           @change="uploadInput($event)"
           webkitdirectory
-          getMultiple
+          multiple
         />
 
         <div :class="{ active: getMultiple }" id="multiple-selection">
@@ -178,15 +176,36 @@ export default {
       columnWidth: 250 + state.user.gallerySize * 50,
       dragCounter: 0,
       width: window.innerWidth,
+      focusedItemIndex: -1, // Add this to track the currently focused item
     };
   },
   watch: {
     gallerySize() {
-      this.columnWidth = 250 + state.user.gallerySize * 50; // Update columnWidth based on new gallery size\
+      this.columnWidth = 250 + state.user.gallerySize * 50;
       this.colunmsResize();
     },
   },
   computed: {
+    lastFolderIndex() {
+      const allItems = [...this.items.dirs, ...this.items.files];
+      for (let i = 0; i < allItems.length; i++) {
+        if (!allItems[i].isDir) {
+          return i - 1;
+        }
+      }
+      if (allItems.length > 0) {
+        return allItems.length;
+      }
+
+      return null; // Return null if there are no files
+    },
+    numColumns() {
+      let columns = Math.floor(
+        document.querySelector("main").offsetWidth / this.columnWidth
+      );
+      if (columns === 0) columns = 1;
+      return columns;
+    },
     // Create a computed property that references the Vuex state
     gallerySize() {
       return state.user.gallerySize;
@@ -299,55 +318,170 @@ export default {
     base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
-    keyEvent(event) {
-      // Esc!
-      if (event.keyCode === 27) {
-        mutations.resetSelected();
+    // Helper method to select the first item if nothing is selected
+    selectFirstItem() {
+      mutations.resetSelected();
+      const allItems = [...this.items.dirs, ...this.items.files];
+      if (allItems.length > 0) {
+        mutations.addSelected(allItems[0].index);
       }
+    },
 
-      // Del!
-      if (event.keyCode === 46) {
-        if (!state.user.perm.delete || state.selected.length === 0) return;
-        mutations.showHover("delete");
-      }
+    // Helper method to select an item by index
+    selectItem(index) {
+      mutations.resetSelected();
+      mutations.addSelected(index);
+    },
+    // Helper method to handle selection based on arrow keys
+    navigateSelection(arrowKey) {
+      let selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
 
-      // F2!
-      if (event.keyCode === 113) {
-        if (!state.user.perm.rename || state.selected.length !== 1) return;
-        mutations.showHover("rename");
-      }
-
-      // Ctrl is pressed
-      if (!event.ctrlKey && !event.metaKey) {
+      if (selectedIndex === null) {
+        // If nothing is selected, select the first item
+        this.selectFirstItem();
         return;
       }
 
-      let key = String.fromCharCode(event.which).toLowerCase();
+      const allItems = [...this.items.dirs, ...this.items.files]; // Combine files and directories
 
-      switch (key) {
+      // Find the current index of the selected item
+      let currentIndex = allItems.findIndex((item) => item.index === selectedIndex);
+
+      // If no item is selected, select the first item
+      if (currentIndex === -1) {
+        // Check if there are any items to select
+        if (allItems.length > 0) {
+          currentIndex = 0;
+          this.selectItem(allItems[currentIndex].index);
+        }
+        return;
+      }
+      let newSelected = null;
+      switch (arrowKey) {
+        case "ArrowUp":
+          if (getters.isCardView()) {
+            if (currentIndex - this.numColumns > 0) {
+              if (
+                currentIndex > this.lastFolderIndex &&
+                currentIndex - this.numColumns <= this.lastFolderIndex
+              ) {
+                const thisColumnNum =
+                  ((currentIndex - this.lastFolderIndex - 1) % this.numColumns) + 1;
+                const lastFolderColumn = (this.lastFolderIndex % this.numColumns) + 1;
+                let newPos = currentIndex - lastFolderColumn;
+                if (lastFolderColumn < thisColumnNum) {
+                  newPos -= this.numColumns;
+                }
+                newSelected = allItems[newPos].index;
+              } else {
+                newSelected = allItems[currentIndex - this.numColumns].index;
+              }
+            }
+          } else if (currentIndex > 0) {
+            newSelected = allItems[currentIndex - 1].index;
+          }
+          break;
+
+        case "ArrowDown":
+          if (getters.isCardView()) {
+            if (currentIndex + this.numColumns < allItems.length) {
+              if (
+                currentIndex <= this.lastFolderIndex &&
+                currentIndex + this.numColumns > this.lastFolderIndex
+              ) {
+                const thisColumnNum = (currentIndex + 1) % this.numColumns;
+                let firstRowColumnPos = this.lastFolderIndex + thisColumnNum;
+                if (firstRowColumnPos <= this.lastFolderIndex) {
+                  firstRowColumnPos += this.numColumns;
+                }
+                newSelected = allItems[firstRowColumnPos].index;
+              } else {
+                newSelected = allItems[currentIndex + this.numColumns].index;
+              }
+            }
+          } else if (currentIndex < allItems.length - 1) {
+            newSelected = allItems[currentIndex + 1].index;
+          }
+          break;
+
+        case "ArrowLeft":
+          if (currentIndex > 0) {
+            newSelected = allItems[currentIndex - 1].index;
+          }
+          break;
+
+        case "ArrowRight":
+          if (currentIndex < allItems.length - 1) {
+            newSelected = allItems[currentIndex + 1].index;
+          }
+          break;
+      }
+      if (newSelected != null) {
+        this.selectItem(newSelected);
+        setTimeout(() => {
+          // Find the element with class "item" and aria-selected="true"
+          const element = document.querySelector('.item[aria-selected="true"]');
+          // Scroll the element into view if it exists
+          if (element) {
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "end",
+              inline: "nearest",
+            });
+          }
+        }, 50);
+      }
+    },
+    keyEvent(event) {
+      const { key, ctrlKey, metaKey, which } = event;
+      // Esc key
+      if (key === "Escape") {
+        mutations.resetSelected();
+        return;
+      }
+
+      // Delete key
+      if (key === "Delete") {
+        if (!state.user.perm.delete || state.selected.length === 0) return;
+        mutations.showHover("delete");
+        return;
+      }
+
+      // F2 key
+      if (key === "F2") {
+        if (!state.user.perm.rename || state.selected.length !== 1) return;
+        mutations.showHover("rename");
+        return;
+      }
+      // Arrow keys for navigation
+      if (key.startsWith("Arrow")) {
+        event.preventDefault();
+        this.navigateSelection(key);
+        return;
+      }
+
+      // Check if Ctrl or Meta key is pressed (Cmd on macOS)
+      if (!ctrlKey && !metaKey) {
+        return;
+      }
+
+      const charKey = String.fromCharCode(which).toLowerCase();
+
+      switch (charKey) {
         case "f":
           event.preventDefault();
           mutations.showHover("search");
           break;
         case "c":
         case "x":
-          this.copyCut(event, key);
+          this.copyCut(event, charKey);
           break;
         case "v":
           this.paste(event);
           break;
         case "a":
           event.preventDefault();
-          for (let file of this.items.files) {
-            if (state.selected.indexOf(file.index) === -1) {
-              mutations.addSelected(file.index);
-            }
-          }
-          for (let dir of this.items.dirs) {
-            if (state.selected.indexOf(dir.index) === -1) {
-              mutations.addSelected(dir.index);
-            }
-          }
+          this.selectAll();
           break;
         case "s":
           event.preventDefault();
@@ -355,6 +489,21 @@ export default {
           break;
       }
     },
+
+    // Helper method to select all files and directories
+    selectAll() {
+      for (let file of this.items.files) {
+        if (state.selected.indexOf(file.index) === -1) {
+          mutations.addSelected(file.index);
+        }
+      }
+      for (let dir of this.items.dirs) {
+        if (state.selected.indexOf(dir.index) === -1) {
+          mutations.addSelected(dir.index);
+        }
+      }
+    },
+
     preventDefault(event) {
       // Wrapper around prevent default.
       event.preventDefault();
@@ -440,12 +589,8 @@ export default {
       action(false, false);
     },
     colunmsResize() {
-      let columns = Math.floor(
-        document.querySelector("main").offsetWidth / this.columnWidth
-      );
       let items = css(["#listingView .item", "#listingView .item"]);
-      if (columns === 0) columns = 1;
-      items.style.width = `calc(${100 / columns}% - 1em)`;
+      items.style.width = `calc(${100 / this.numColumns}% - 1em)`;
       if (state.user.viewMode == "gallery") {
         items.style.height = `${this.columnWidth / 20}em`;
       } else {

@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 
 export const getters = {
-  isResizableView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
+  isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
   currentHash: () => state.route.hash.replace("#", ""),
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,

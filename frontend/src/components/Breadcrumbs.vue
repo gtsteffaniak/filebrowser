@@ -14,7 +14,7 @@
       <component :is="element" :to="link.url">{{ link.name }}</component>
     </span>
     <action style="display: contents" v-if="showShare" icon="share" show="share" />
-    <div v-if="isResizableView">
+    <div v-if="isCardView">
       Size:
       <input
         v-model="gallerySize"
@@ -51,8 +51,8 @@ export default {
   },
   props: ["base", "noLink"],
   computed: {
-    isResizableView() {
-      return getters.isResizableView();
+    isCardView() {
+      return getters.isCardView();
     },
     items() {
       const relativePath = state.route.path.replace(this.base, "");

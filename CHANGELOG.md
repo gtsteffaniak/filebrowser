@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.9
+
+  **New Features**:
+    - listings are middle-clickable, But only on selected listing or when in single-click mode.
+  **Bug Fixes**:
+    - 
+  **Other Changes**
+    -
+
 ## v0.2.8
 
 - **Feature**: New gallary view scaling options (closes [#141](https://github.com/gtsteffaniak/filebrowser/issues/141))

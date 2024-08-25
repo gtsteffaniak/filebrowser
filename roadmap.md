@@ -3,12 +3,13 @@
 next 0.2.x release:
 
 - Theme configuration from settings
-- Better media and file viewer support
-
+- File syncronization improvements
+- right-click context menu
+- navigate files with keys
 
 initial 0.3.0 release :
 
-- drop in replace backend db with pocketbas
+- database changes
 - Add Job status to the sidebar
   - index status.
   - Job status from users
