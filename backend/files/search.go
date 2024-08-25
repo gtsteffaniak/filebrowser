@@ -65,7 +65,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				if count > maxSearchResults {
 					break
 				}
-				fullName := pathName + file
+				fullName := strings.TrimLeft(pathName+file, "/")
 				fileTypes := map[string]bool{}
 
 				matches, fileType := containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)

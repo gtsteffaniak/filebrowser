@@ -1,7 +1,7 @@
 <template>
-  <div id="search" @click="open" :class="{ active, ongoing, 'dark-mode': isDarkMode }">
+  <div id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }">
     <!-- Search input section -->
-    <div id="input">
+    <div id="input" @click="open">
       <!-- Close button visible when search is active -->
       <button
         v-if="active"
@@ -34,13 +34,8 @@
         <div class="button" style="width: 100%">Search Context: {{ getContext }}</div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
-          <li
-            v-for="(s, k) in results"
-            :key="k"
-            @click.stop.prevent="navigateTo(s.url)"
-            style="cursor: pointer"
-          >
-            <router-link to="#" event="">
+          <li v-for="(s, k) in results" :key="k" style="cursor: pointer">
+            <router-link :to="s.url">
               <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
               <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
               <i v-else-if="s.image" class="material-icons image-icons"> photo </i>
@@ -177,13 +172,8 @@
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
-          <li
-            v-for="(s, k) in results"
-            :key="k"
-            @click.stop.prevent="navigateTo(s.url)"
-            style="cursor: pointer"
-          >
-            <router-link to="#" event="">
+          <li v-for="(s, k) in results" :key="k" style="cursor: pointer">
+            <router-link :to="s.url">
               <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
               <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
               <i v-else-if="s.image" class="material-icons image-icons"> photo </i>
@@ -267,25 +257,6 @@ export default {
         resultList.classList.add("active");
       }, 100);
     },
-    currentPrompt(val, old) {
-      this.active = val?.prompt === "search";
-      if (old?.prompt === "search" && !this.active) {
-        if (this.reload) {
-          this.setReload(true);
-        }
-
-        document.body.style.overflow = "auto";
-        this.ongoing = false;
-        this.results = [];
-        this.value = "";
-        this.active = false;
-        this.$refs.input.blur();
-      } else if (this.active) {
-        this.reload = false;
-        this.$refs.input.focus();
-        document.body.style.overflow = "hidden";
-      }
-    },
     value() {
       if (this.results.length) {
         this.ongoing = false;
@@ -302,9 +273,6 @@ export default {
     },
     active() {
       return getters.currentPromptName() == "search";
-    },
-    showOverlay() {
-      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -342,11 +310,6 @@ export default {
     },
   },
   methods: {
-    async navigateTo(url) {
-      mutations.closeHovers();
-      await this.$nextTick();
-      setTimeout(() => this.$router.push(url), 10);
-    },
     basePath(str, isDir) {
       let parts = str.replace(/(\/$|^\/)/, "").split("/");
       if (parts.length <= 1) {
@@ -360,6 +323,7 @@ export default {
       if (isDir) {
         parts = "/" + parts; // fix weird rtl thing
       }
+
       return parts;
     },
     baseName(str) {
@@ -367,7 +331,9 @@ export default {
       return parts.pop();
     },
     open() {
-      mutations.showHover("search");
+      if (!this.active) {
+        mutations.showHover("search");
+      }
     },
     close(event) {
       this.value = "";

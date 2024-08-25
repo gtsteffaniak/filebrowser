@@ -26,6 +26,13 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: gtstef/filebrowser
+      - name: Get latest release tag and commit SHA
+        id: get_tag_and_sha
+        run: |
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          latest_commit=$(git rev-list -n 1 $latest_tag)
+          echo "latest_tag=${latest_tag}" >> $GITHUB_ENV
+          echo "latest_commit=${latest_commit}" >> $GITHUB_ENV
       - name: Build and push
         uses: docker/build-push-action@v5
         with:

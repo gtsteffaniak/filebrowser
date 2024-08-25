@@ -2,6 +2,7 @@
   <div class="card clickable" style="min-height: 4em">
     <div class="card-wrapper user-card">
       <div @click="navigateTo('/settings#profile-main')" class="inner-card">
+        <i class="material-icons">person</i>
         {{ user.username }}
         <i class="material-icons">settings</i>
       </div>
@@ -208,7 +209,6 @@ export default {
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      console.log("Fetching usage for", path, state.user);
       try {
         let usage = await files.usage(path);
         usageStats = {

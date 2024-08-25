@@ -152,7 +152,6 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		ReadHeader: d.server.TypeDetectionByHeader,
 		Checker:    d,
 	}
-	fmt.Println("realPath", realPath)
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
 })

@@ -134,6 +134,7 @@ async function initAuth() {
 }
 
 router.beforeResolve(async (to, from, next) => {
+  mutations.closeHovers()
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;
   mutations.setRoute(to)
