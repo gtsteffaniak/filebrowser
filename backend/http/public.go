@@ -19,6 +19,7 @@ import (
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		id, path := ifPathWithName(r)
+		fmt.Println(id, path)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {
 			return errToStatus(err), err

@@ -187,6 +187,7 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 			return http.StatusForbidden, nil
 		}
 		err = d.RunHook(func() error {
+			fmt.Println("hook", src, dst)
 			return patchAction(r.Context(), action, src, dst, d, fileCache)
 		}, action, src, dst, d.user)
 
