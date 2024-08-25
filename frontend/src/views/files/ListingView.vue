@@ -200,6 +200,9 @@ export default {
       return null; // Return null if there are no files
     },
     numColumns() {
+      if (!getters.isCardView()) {
+        return 1;
+      }
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
@@ -359,49 +362,63 @@ export default {
       let newSelected = null;
       switch (arrowKey) {
         case "ArrowUp":
-          if (getters.isCardView()) {
-            if (currentIndex - this.numColumns > 0) {
-              if (
-                currentIndex > this.lastFolderIndex &&
-                currentIndex - this.numColumns <= this.lastFolderIndex
-              ) {
-                const thisColumnNum =
-                  ((currentIndex - this.lastFolderIndex - 1) % this.numColumns) + 1;
-                const lastFolderColumn = (this.lastFolderIndex % this.numColumns) + 1;
-                let newPos = currentIndex - lastFolderColumn;
-                if (lastFolderColumn < thisColumnNum) {
-                  newPos -= this.numColumns;
-                }
-                newSelected = allItems[newPos].index;
-              } else {
-                newSelected = allItems[currentIndex - this.numColumns].index;
-              }
-            }
-          } else if (currentIndex > 0) {
-            newSelected = allItems[currentIndex - 1].index;
+          if (currentIndex - this.numColumns < 0) {
+            // do nothing
+            break;
           }
+          if (!getters.isCardView) {
+            newSelected = allItems[currentIndex - 1].index;
+            break;
+          }
+          const fileSelected = currentIndex > this.lastFolderIndex;
+          const nextIsDir = currentIndex - this.numColumns <= this.lastFolderIndex;
+          // do normal move
+          if (!(fileSelected && nextIsDir)) {
+            newSelected = allItems[currentIndex - this.numColumns].index;
+            break;
+          }
+
+          // complex logic to move from files to folders
+          const thisColumnNum =
+            ((currentIndex - this.lastFolderIndex - 1) % this.numColumns) + 1;
+          const lastFolderColumn = (this.lastFolderIndex % this.numColumns) + 1;
+          let newPos = currentIndex - lastFolderColumn;
+          if (lastFolderColumn < thisColumnNum) {
+            newPos -= this.numColumns;
+          }
+          newSelected = allItems[newPos].index;
+
           break;
 
         case "ArrowDown":
-          if (getters.isCardView()) {
-            if (currentIndex + this.numColumns < allItems.length) {
-              if (
-                currentIndex <= this.lastFolderIndex &&
-                currentIndex + this.numColumns > this.lastFolderIndex
-              ) {
-                const thisColumnNum = (currentIndex + 1) % this.numColumns;
-                let firstRowColumnPos = this.lastFolderIndex + thisColumnNum;
-                if (firstRowColumnPos <= this.lastFolderIndex) {
-                  firstRowColumnPos += this.numColumns;
-                }
-                newSelected = allItems[firstRowColumnPos].index;
-              } else {
-                newSelected = allItems[currentIndex + this.numColumns].index;
-              }
-            }
-          } else if (currentIndex < allItems.length - 1) {
-            newSelected = allItems[currentIndex + 1].index;
+          if (currentIndex >= allItems.length) {
+            // do nothing - last item
+            break;
           }
+          if (!getters.isCardView) {
+            newSelected = allItems[currentIndex + 1].index;
+            break;
+          }
+          const nextHopExists = currentIndex + this.numColumns < allItems.length;
+          if (!nextHopExists) {
+            // do nothing - next item is out of bounds
+            break;
+          }
+
+          const folderSelected = currentIndex <= this.lastFolderIndex;
+          const nextIsFile = currentIndex + this.numColumns > this.lastFolderIndex;
+
+          if (!(folderSelected && nextIsFile)) {
+            newSelected = allItems[currentIndex + this.numColumns].index;
+            break;
+          }
+          // complex logic for moving from folders to files
+          const thisColumnNum2 = (currentIndex + 1) % this.numColumns;
+          let firstRowColumnPos = this.lastFolderIndex + thisColumnNum2;
+          if (firstRowColumnPos <= this.lastFolderIndex) {
+            firstRowColumnPos += this.numColumns;
+          }
+          newSelected = allItems[firstRowColumnPos].index;
           break;
 
         case "ArrowLeft":
