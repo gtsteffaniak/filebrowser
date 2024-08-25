@@ -272,7 +272,6 @@ export default {
       return this.isTypeSelectDisabled;
     },
     active() {
-      console.log(getters.currentPrompt());
       return getters.currentPromptName() == "search";
     },
     isDarkMode() {
@@ -333,7 +332,6 @@ export default {
     },
     open() {
       if (!this.active) {
-        console.log("opening back up");
         mutations.showHover("search");
       }
     },

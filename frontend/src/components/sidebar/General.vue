@@ -209,7 +209,6 @@ export default {
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      console.log("Fetching usage for", path, state.user);
       try {
         let usage = await files.usage(path);
         usageStats = {
