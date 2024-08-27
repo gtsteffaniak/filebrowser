@@ -7,7 +7,7 @@
 <script>
 import { router } from "@/router";
 import { eventBus } from "@/store/eventBus";
-import { state, mutations, getters } from "@/store";
+import { state, getters } from "@/store";
 import { showError } from "@/notify";
 import { files as api } from "@/api";
 import url from "@/utils/url";

@@ -58,7 +58,6 @@
 <script>
 import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store"; // Import your custom store
-import { files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
 
 export default {

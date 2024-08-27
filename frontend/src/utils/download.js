@@ -1,5 +1,5 @@
 import { state, mutations, getters } from "@/store"
-import { files as api } from "@/api";
+import { files as api } from "@/api"
 import { showError, showSuccess } from "@/notify"
 
 export default function download() {
@@ -27,4 +27,4 @@ export default function download() {
         }
       },
     });
-};
+}

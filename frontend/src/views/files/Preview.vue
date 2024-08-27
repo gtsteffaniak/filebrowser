@@ -201,7 +201,7 @@ export default {
       if (this.currentPrompt !== null) {
         return;
       }
-      const { key, ctrlKey, metaKey, which } = event;
+      const { key } = event;
 
       switch (key) {
         case "ArrowRight":
