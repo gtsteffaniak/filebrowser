@@ -116,9 +116,9 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	if opts.IsDir {
 		info, exists := index.GetMetadataInfo(adjustedPath)
 		if exists && !opts.Content {
-			// Check if the cache time is less than 1 second
+			// Let's not refresh if less than a second has passed
 			if time.Since(info.CacheTime) > time.Second {
-				go RefreshFileInfo(opts)
+				go RefreshFileInfo(opts) //nolint:errcheck
 			}
 			// refresh cache after
 			return &info, nil
@@ -168,10 +168,6 @@ func RefreshFileInfo(opts FileOptions) error {
 
 func stat(opts FileOptions) (*FileInfo, error) {
 	info, err := os.Lstat(opts.Path)
-	if err != nil {
-		return nil, err
-	}
-	info, err = os.Stat(opts.Path)
 	if err != nil {
 		return nil, err
 	}
