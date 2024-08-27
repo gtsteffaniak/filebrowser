@@ -157,7 +157,9 @@
 </template>
 
 <script>
+import download from "@/utils/download";
 import { files as api } from "@/api";
+import { router } from "@/router";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
@@ -336,7 +338,7 @@ export default {
       mutations.addSelected(index);
     },
     // Helper method to handle selection based on arrow keys
-    navigateSelection(arrowKey) {
+    navigateKeboardArrows(arrowKey) {
       let selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
 
       if (selectedIndex === null) {
@@ -360,6 +362,17 @@ export default {
         return;
       }
       let newSelected = null;
+      const fileSelected = currentIndex > this.lastFolderIndex;
+      const nextIsDir = currentIndex - this.numColumns <= this.lastFolderIndex;
+      const folderSelected = currentIndex <= this.lastFolderIndex;
+      const nextIsFile = currentIndex + this.numColumns > this.lastFolderIndex;
+      const nextHopExists = currentIndex + this.numColumns < allItems.length;
+      const thisColumnNum =
+        ((currentIndex - this.lastFolderIndex - 1) % this.numColumns) + 1;
+      const lastFolderColumn = (this.lastFolderIndex % this.numColumns) + 1;
+      const thisColumnNum2 = (currentIndex + 1) % this.numColumns;
+      let firstRowColumnPos = this.lastFolderIndex + thisColumnNum2;
+      let newPos = currentIndex - lastFolderColumn;
       switch (arrowKey) {
         case "ArrowUp":
           if (currentIndex - this.numColumns < 0) {
@@ -370,8 +383,6 @@ export default {
             newSelected = allItems[currentIndex - 1].index;
             break;
           }
-          const fileSelected = currentIndex > this.lastFolderIndex;
-          const nextIsDir = currentIndex - this.numColumns <= this.lastFolderIndex;
           // do normal move
           if (!(fileSelected && nextIsDir)) {
             newSelected = allItems[currentIndex - this.numColumns].index;
@@ -379,10 +390,6 @@ export default {
           }
 
           // complex logic to move from files to folders
-          const thisColumnNum =
-            ((currentIndex - this.lastFolderIndex - 1) % this.numColumns) + 1;
-          const lastFolderColumn = (this.lastFolderIndex % this.numColumns) + 1;
-          let newPos = currentIndex - lastFolderColumn;
           if (lastFolderColumn < thisColumnNum) {
             newPos -= this.numColumns;
           }
@@ -399,22 +406,16 @@ export default {
             newSelected = allItems[currentIndex + 1].index;
             break;
           }
-          const nextHopExists = currentIndex + this.numColumns < allItems.length;
           if (!nextHopExists) {
             // do nothing - next item is out of bounds
             break;
           }
-
-          const folderSelected = currentIndex <= this.lastFolderIndex;
-          const nextIsFile = currentIndex + this.numColumns > this.lastFolderIndex;
 
           if (!(folderSelected && nextIsFile)) {
             newSelected = allItems[currentIndex + this.numColumns].index;
             break;
           }
           // complex logic for moving from folders to files
-          const thisColumnNum2 = (currentIndex + 1) % this.numColumns;
-          let firstRowColumnPos = this.lastFolderIndex + thisColumnNum2;
           if (firstRowColumnPos <= this.lastFolderIndex) {
             firstRowColumnPos += this.numColumns;
           }
@@ -451,44 +452,73 @@ export default {
     },
     keyEvent(event) {
       const { key, ctrlKey, metaKey, which } = event;
-      // Esc key
-      if (key === "Escape") {
-        mutations.resetSelected();
-        return;
-      }
+      // Check if the key is alphanumeric
+      const isAlphanumeric = /^[a-z0-9]$/i.test(key);
+      const noModifierKeys = !ctrlKey && !metaKey;
 
-      // Delete key
-      if (key === "Delete") {
-        if (!state.user.perm.delete || state.selected.length === 0) return;
-        mutations.showHover("delete");
+      if (isAlphanumeric && noModifierKeys) {
+        this.alphanumericKeyPress(key); // Call the alphanumeric key press function
         return;
       }
-
-      // F2 key
-      if (key === "F2") {
-        if (!state.user.perm.rename || state.selected.length !== 1) return;
-        mutations.showHover("rename");
-        return;
-      }
-      // Arrow keys for navigation
-      if (key.startsWith("Arrow")) {
+      // Handle the space bar key
+      if (key === " ") {
         event.preventDefault();
-        this.navigateSelection(key);
+        if (getters.currentPromptName() == "search") {
+          mutations.closeHovers();
+        } else {
+          mutations.showHover("search");
+        }
+      }
+      if (getters.currentPromptName() != null) {
         return;
       }
+      // Handle key events using a switch statement
+      switch (key) {
+        case "Enter":
+          if (this.selectedCount === 1) {
+            console.log("selected", getters.getFirstSelected());
+            router.push({ path: getters.getFirstSelected().url });
+          }
+          break;
 
-      // Check if Ctrl or Meta key is pressed (Cmd on macOS)
-      if (!ctrlKey && !metaKey) {
-        return;
+        case "Backspace":
+          // go back
+          let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
+          let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+          router.push({ path: newPath });
+          break;
+
+        case "Escape":
+          mutations.resetSelected();
+          break;
+
+        case "Delete":
+          if (!state.user.perm.delete || state.selected.length === 0) return;
+          mutations.showHover("delete");
+          break;
+
+        case "F2":
+          if (!state.user.perm.rename || state.selected.length !== 1) return;
+          mutations.showHover("rename");
+          break;
+
+        case "ArrowUp":
+        case "ArrowDown":
+        case "ArrowLeft":
+        case "ArrowRight":
+          event.preventDefault();
+          this.navigateKeboardArrows(key);
+          break;
+
+        default:
+          // Handle keys with ctrl or meta keys
+          if (!ctrlKey && !metaKey) return;
+          break;
       }
 
       const charKey = String.fromCharCode(which).toLowerCase();
 
       switch (charKey) {
-        case "f":
-          event.preventDefault();
-          mutations.showHover("search");
-          break;
         case "c":
         case "x":
           this.copyCut(event, charKey);
@@ -502,7 +532,7 @@ export default {
           break;
         case "s":
           event.preventDefault();
-          document.getElementById("download-button").click();
+          download();
           break;
       }
     },
@@ -520,7 +550,51 @@ export default {
         }
       }
     },
+    alphanumericKeyPress(key) {
+      // Convert the key to uppercase to match the case-insensitive search
+      const searchLetter = key.toLowerCase();
+      const currentSelected = getters.getFirstSelected();
+      let currentName = null;
+      let findNextWithName = false;
 
+      if (currentSelected != undefined) {
+        currentName = currentSelected.name.toLowerCase();
+        if (currentName.startsWith(searchLetter)) {
+          findNextWithName = true;
+        }
+      }
+      // Combine directories and files (assuming they are stored in this.items.dirs and this.items.files)
+      const allItems = [...this.items.dirs, ...this.items.files];
+      let foundPrevious = false;
+      let firstFound = null;
+      // Iterate over all items to find the first one where the name starts with the searchLetter
+      for (let i = 0; i < allItems.length; i++) {
+        const itemName = allItems[i].name.toLowerCase();
+        if (!itemName.startsWith(searchLetter)) {
+          continue;
+        }
+        if (firstFound == null) {
+          firstFound = allItems[i].index;
+        }
+        if (!findNextWithName) {
+          // return first you find
+          this.selectItem(allItems[i].index);
+          return;
+        }
+        if (itemName == currentName) {
+          foundPrevious = true;
+          continue;
+        }
+        if (foundPrevious) {
+          this.selectItem(allItems[i].index);
+          return;
+        }
+      }
+      // select the first item again
+      if (firstFound != null) {
+        this.selectItem(firstFound);
+      }
+    },
     preventDefault(event) {
       // Wrapper around prevent default.
       event.preventDefault();

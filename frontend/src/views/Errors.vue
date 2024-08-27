@@ -8,7 +8,8 @@
 </template>
 
 <script>
-
+import { state } from "@/store";
+import { router } from "@/router";
 const errors = {
   0: {
     icon: "cloud_off",
@@ -30,12 +31,25 @@ const errors = {
 
 export default {
   name: "errors",
-  components: {
-  },
+  components: {},
   props: ["errorCode", "showHeader"],
   computed: {
     info() {
       return errors[this.errorCode] ? errors[this.errorCode] : errors[500];
+    },
+  },
+  mounted() {
+    window.addEventListener("keydown", this.keyEvent);
+  },
+  methods: {
+    keyEvent(event) {
+      const { key, ctrlKey, metaKey, which } = event;
+      if (key == "Backspace") {
+        // go back
+        let currentPath = state.route.path.replace(/\/+$/, "");
+        let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+        router.push({ path: newPath });
+      }
     },
   },
 };

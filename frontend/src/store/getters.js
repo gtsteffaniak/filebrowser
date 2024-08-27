@@ -19,6 +19,7 @@ export const getters = {
   isFiles: () => state.route.name === "Files",
   isListing: () => getters.isFiles() && state.req.isDir,
   selectedCount: () => Array.isArray(state.selected) ? state.selected.length : 0,
+  getFirstSelected: () => state.req.items[state.selected[0]],
   isSingleFileSelected: () => getters.selectedCount() === 1 && !state.req.items[state.selected[0]]?.isDir,
   selectedDownloadUrl() {
     let selectedItem = state.selected[0]
