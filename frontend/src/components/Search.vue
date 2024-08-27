@@ -16,6 +16,7 @@
       <i v-else class="material-icons">search</i>
       <!-- Input field for search -->
       <input
+        id="main-input"
         class="main-input"
         type="text"
         @keyup.exact="keyup"
@@ -248,6 +249,7 @@ export default {
       this.submit();
     },
     active(active) {
+      // this is hear to allow for animation
       const resultList = document.getElementById("result-list");
       if (!active) {
         resultList.classList.remove("active");
@@ -255,6 +257,7 @@ export default {
       }
       setTimeout(() => {
         resultList.classList.add("active");
+        document.getElementById("main-input").focus();
       }, 100);
     },
     value() {

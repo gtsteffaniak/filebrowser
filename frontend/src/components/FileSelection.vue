@@ -18,7 +18,7 @@
         v-if="headerButtons.download"
         icon="file_download"
         :label="$t('buttons.download')"
-        @action="download"
+        @action="startDownload"
         :counter="selectedCount"
       />
       <action
@@ -56,8 +56,8 @@
 </template>
 
 <script>
+import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store"; // Import your custom store
-import { files as api } from "@/api";
 import Action from "@/components/header/Action.vue";
 
 export default {
@@ -90,31 +90,8 @@ export default {
       mutations.setMultiple(!state.multiple);
       mutations.closeHovers();
     },
-    download() {
-      if (getters.isSingleFileSelected()) {
-        api.download(null, getters.selectedDownloadUrl());
-        return;
-      }
-      mutations.showHover({
-        name: "download",
-        confirm: (format) => {
-          mutations.closeHovers();
-          let files = [];
-          if (state.selected.length > 0) {
-            for (let i of state.selected) {
-              files.push(state.req.items[i].url);
-            }
-          } else {
-            files.push(state.route.path);
-          }
-          try {
-            api.download(format, ...files);
-            showSuccess("download started");
-          } catch (e) {
-            showError("error downloading", e);
-          }
-        },
-      });
+    startDownload() {
+      downloadFiles();
     },
   },
 };

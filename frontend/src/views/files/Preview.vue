@@ -201,16 +201,22 @@ export default {
       if (this.currentPrompt !== null) {
         return;
       }
+      const { key } = event;
 
-      if (event.which === 13 || event.which === 39) {
-        // right arrow
-        if (this.hasNext) this.next();
-      } else if (event.which === 37) {
-        // left arrow
-        if (this.hasPrevious) this.prev();
-      } else if (event.which === 27) {
-        // esc
-        this.close();
+      switch (key) {
+        case "ArrowRight":
+          if (this.hasNext) {
+            this.next();
+          }
+          break;
+        case "ArrowLeft":
+          if (this.hasPrevious) {
+            this.prev();
+          }
+          break;
+        case ("Escape", "Backspace"):
+          this.close();
+          break;
       }
     },
     async updatePreview() {

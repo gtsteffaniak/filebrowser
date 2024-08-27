@@ -5,8 +5,9 @@
 </template>
 
 <script>
+import { router } from "@/router";
 import { eventBus } from "@/store/eventBus";
-import { state, mutations, getters } from "@/store";
+import { state, getters } from "@/store";
 import { showError } from "@/notify";
 import { files as api } from "@/api";
 import url from "@/utils/url";
@@ -62,7 +63,8 @@ export default {
   },
   mounted: function () {
     // this is empty content string "empty-file-x6OlSil" which is used to represent empty text file
-    const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
+    const fileContent =
+      state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
     this.editor = ace.edit("editor", {
       value: fileContent,
       showPrintMargin: false,
@@ -90,20 +92,26 @@ export default {
       this.$router.push({ path: uri });
     },
     keyEvent(event) {
-      if (!event.ctrlKey && !event.metaKey) {
+      const { key, ctrlKey, metaKey } = event;
+      if (key == "Backspace") {
+        // go back
+        let currentPath = state.route.path.replace(/\/+$/, "");
+        let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+        router.push({ path: newPath });
+      }
+      if (!ctrlKey && !metaKey) {
         return;
       }
+      switch (key.toLowerCase()) {
+        case "s":
+          event.preventDefault();
+          this.save();
+          break;
 
-      if (String.fromCharCode(event.which).toLowerCase() !== "s") {
-        return;
+        default:
+          // No action for other keys
+          return;
       }
-      event.preventDefault();
-      this.save();
-    },
-    close() {
-      mutations.replaceRequest({});
-      let uri = url.removeLastDir(state.route.path) + "/";
-      this.$router.push({ path: uri });
     },
   },
 };

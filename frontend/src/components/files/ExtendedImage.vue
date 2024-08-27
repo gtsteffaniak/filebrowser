@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import throttle from "@/utils/throttle";
 import { showError } from "@/notify";
 export default {

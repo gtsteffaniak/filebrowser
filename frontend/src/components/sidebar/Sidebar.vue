@@ -31,7 +31,7 @@
 
 <script>
 import { version, commitSHA } from "@/utils/constants";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { getters, mutations } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
 
@@ -43,6 +43,7 @@ export default {
   },
   computed: {
     version: () => version,
+    commitSHA: () => commitSHA,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
