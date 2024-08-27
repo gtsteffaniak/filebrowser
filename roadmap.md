@@ -5,14 +5,15 @@ next 0.2.x release:
 - Theme configuration from settings
 - File syncronization improvements
 - right-click context menu
-- navigate files with keys
 
 initial 0.3.0 release :
 
 - database changes
+- introduce jobs as replacement to runners.
 - Add Job status to the sidebar
   - index status.
   - Job status from users
+  - upload status
 
 Future releases:
   - Replace http routes for gorilla/mux with pocketbase

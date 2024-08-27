@@ -138,7 +138,7 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 	}
 	req.Data.Scope = userHome
 	log.Printf("user: %s, home dir: [%s].", req.Data.Username, userHome)
-	_, err = files.GetRealPath(d.server.Root, req.Data.Scope)
+	_, _, err = files.GetRealPath(d.server.Root, req.Data.Scope)
 	if err != nil {
 		fmt.Println("user path is not valid", req.Data.Scope)
 		return http.StatusBadRequest, nil
@@ -161,7 +161,7 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 	if req.Data.ID != d.raw.(uint) {
 		return http.StatusBadRequest, nil
 	}
-	_, err = files.GetRealPath(d.server.Root, req.Data.Scope)
+	_, _, err = files.GetRealPath(d.server.Root, req.Data.Scope)
 	if err != nil {
 		return http.StatusBadRequest, nil
 	}

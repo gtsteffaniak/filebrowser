@@ -18,13 +18,13 @@ import (
 )
 
 var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
-		fmt.Println("unable to get real path", d.user.Scope, r.URL.Path)
 		return http.StatusNotFound, err
 	}
 	file, err := files.FileInfoFaster(files.FileOptions{
 		Path:       realPath,
+		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: d.server.TypeDetectionByHeader,
@@ -34,19 +34,16 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if file.IsDir {
-		file.Listing.Sorting = d.user.Sorting
-		return renderJSON(w, r, file)
-	}
-	if checksum := r.URL.Query().Get("checksum"); checksum != "" {
-		err := file.Checksum(checksum)
-		if err == errors.ErrInvalidOption {
-			return http.StatusBadRequest, nil
-		} else if err != nil {
-			return http.StatusInternalServerError, err
+	if !file.IsDir {
+		if checksum := r.URL.Query().Get("checksum"); checksum != "" {
+			err := file.Checksum(checksum)
+			if err == errors.ErrInvalidOption {
+				return http.StatusBadRequest, nil
+			} else if err != nil {
+				return http.StatusInternalServerError, err
+			}
 		}
 	}
-
 	return renderJSON(w, r, file)
 })
 
@@ -55,12 +52,13 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 		if r.URL.Path == "/" || !d.user.Perm.Delete {
 			return http.StatusForbidden, nil
 		}
-		realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+		realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 		if err != nil {
 			return http.StatusNotFound, err
 		}
 		fileOpts := files.FileOptions{
 			Path:       realPath,
+			IsDir:      isDir,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -90,12 +88,13 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
 			return http.StatusForbidden, nil
 		}
-		realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+		realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 		if err != nil {
 			return http.StatusNotFound, err
 		}
 		fileOpts := files.FileOptions{
 			Path:       realPath,
+			IsDir:      isDir,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: d.server.TypeDetectionByHeader,
@@ -109,7 +108,6 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			}
 			return http.StatusOK, nil
 		}
-
 		file, err := files.FileInfoFaster(fileOpts)
 		if err == nil {
 			if r.URL.Query().Get("override") != "true" {
@@ -141,12 +139,13 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		return http.StatusMethodNotAllowed, nil
 	}
 
-	realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 	fileOpts := files.FileOptions{
 		Path:       realPath,
+		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: d.server.TypeDetectionByHeader,
@@ -236,16 +235,17 @@ func patchAction(ctx context.Context, action, src, dst string, d *data, fileCach
 		}
 		src = path.Clean("/" + src)
 		dst = path.Clean("/" + dst)
-		realDest, err := files.GetRealPath(d.user.Scope, dst)
+		realDest, _, err := files.GetRealPath(d.user.Scope, dst)
 		if err != nil {
 			return err
 		}
-		realSrc, err := files.GetRealPath(d.user.Scope, src)
+		realSrc, isDir, err := files.GetRealPath(d.user.Scope, src)
 		if err != nil {
 			return err
 		}
 		file, err := files.FileInfoFaster(files.FileOptions{
 			Path:       realSrc,
+			IsDir:      isDir,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: false,
@@ -273,12 +273,13 @@ type DiskUsageResponse struct {
 }
 
 var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 	file, err := files.FileInfoFaster(files.FileOptions{
 		Path:       realPath,
+		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: false,
