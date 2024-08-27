@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -80,8 +81,7 @@ func indexingScheduler(intervalMinutes uint32) {
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
 	// Check if the current directory has been modified since the last indexing
-	path = strings.TrimSuffix(path, "/")
-	adjustedPath := makeIndexPath(path, si.Root)
+	adjustedPath := si.makeIndexPath(path, true)
 	dir, err := os.Open(path)
 	if err != nil {
 		// Directory must have been deleted, remove it from the index
@@ -114,7 +114,7 @@ func (si *Index) indexFiles(path string) error {
 }
 
 func (si *Index) InsertFiles(path string) {
-	adjustedPath := makeIndexPath(path, si.Root)
+	adjustedPath := si.makeIndexPath(path, false)
 	subDirectory := Directory{}
 	buffer := bytes.Buffer{}
 
@@ -130,9 +130,9 @@ func (si *Index) InsertFiles(path string) {
 }
 
 func (si *Index) InsertDirs(path string) {
-	adjustedPath := makeIndexPath(path, si.Root)
 	for _, f := range si.GetQuickList() {
 		if f.IsDir {
+			adjustedPath := si.makeIndexPath(path, true)
 			if _, exists := si.Directories[adjustedPath]; exists {
 				si.UpdateCount("dirs")
 				// Add or update the directory in the map
@@ -154,14 +154,21 @@ func (si *Index) InsertDirs(path string) {
 	}
 }
 
-func makeIndexPath(path string, root string) string {
-	if path == root {
+func (si *Index) makeIndexPath(subPath string, isDir bool) string {
+	if si.Root == subPath {
 		return "/"
 	}
-	adjustedPath := strings.TrimPrefix(path, root+"/")
+	// clean path
+	subPath = strings.TrimSuffix(subPath, "/")
+	// remove index prefix
+	adjustedPath := strings.TrimPrefix(subPath, si.Root)
+	// remove trailing slash
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
+	// add leading slash for root of index
 	if adjustedPath == "" {
 		adjustedPath = "/"
+	} else if !isDir {
+		adjustedPath = filepath.Dir(adjustedPath)
 	}
 	return adjustedPath
 }

@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. For commit 
     - listing view can jump to items using letters and number keys to cycle through files that start with that character.
     - You can use the enter key and backspace key to navigate backwards and forwards on selected items.
     - ctr-space will open/close the search (leaving ctr-f to browser default find prompt)
+  **Bugfixes**:
+    - Fixed drag to upload not working.
 
 ## v0.2.8
 

@@ -101,7 +101,7 @@ export function scanFiles(dt) {
   });
 }
 
-export function handleFiles(files, base, overwrite = false) {
+export async function handleFiles(files, base, overwrite = false) {
   for (const file of files) {
     const id = state.upload.id;
     let path = base;
@@ -123,8 +123,7 @@ export function handleFiles(files, base, overwrite = false) {
       overwrite,
     };
 
-    // Upload the file using your API
-    api.post(item.path, item.file, item.overwrite, (event) => {
+    await api.post(item.path, item.file, item.overwrite, (event) => {
       console.log(`Upload progress: ${Math.round((event.loaded / event.total) * 100)}%`);
     })
     .then(response => {

@@ -68,7 +68,7 @@ export default {
       handleFiles(event);
     };
 
-    const handleFiles = (event) => {
+    const handleFiles = async (event) => {
       mutations.closeHovers();
       const files = event.target.files;
       if (!files) return;
@@ -94,21 +94,20 @@ export default {
       if (conflict) {
         mutations.showHover({
           name: "replace",
-          action: (event) => {
+          action: async (event) => {
             event.preventDefault();
             mutations.closeHovers();
-            upload.handleFiles(uploadFiles, path, false);
+            await upload.handleFiles(uploadFiles, path, false);
           },
-          confirm: (event) => {
+          confirm: async (event) => {
             event.preventDefault();
             mutations.closeHovers();
-            upload.handleFiles(uploadFiles, path, true);
+            await upload.handleFiles(uploadFiles, path, true);
           },
         });
-        return;
+      } else {
+        await upload.handleFiles(uploadFiles, path, true);
       }
-
-      upload.handleFiles(uploadFiles, path, true);
       mutations.setReload(true);
     };
 
