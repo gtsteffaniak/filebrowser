@@ -31,13 +31,13 @@ var withHashFile = func(fn handleFunc) handleFunc {
 			}
 		}
 		d.user = &users.PublicUser
-
 		realPath, err := files.GetRealPath(d.user.Scope, link.Path)
 		if err != nil {
 			return http.StatusNotFound, err
 		}
 		file, err := files.FileInfoFaster(files.FileOptions{
 			Path:       realPath,
+			IsDir:      isDir,
 			Modify:     d.user.Perm.Modify,
 			Expand:     true,
 			ReadHeader: d.server.TypeDetectionByHeader,

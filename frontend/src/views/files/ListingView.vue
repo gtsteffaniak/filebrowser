@@ -718,6 +718,20 @@ export default {
       }
 
       let files = await upload.scanFiles(dt);
+      const folderUpload = !!files[0].webkitRelativePath;
+
+      const uploadFiles = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fullPath = folderUpload ? file.webkitRelativePath : undefined;
+        uploadFiles.push({
+          file, // File object directly
+          name: file.name,
+          size: file.size,
+          isDir: false,
+          fullPath,
+        });
+      }
       let items = state.req.items;
       let path = getters.getRoutePath();
 
@@ -731,21 +745,21 @@ export default {
         }
       }
 
-      const conflict = upload.checkConflict(files, items);
+      const conflict = upload.checkConflict(uploadFiles, items);
 
       if (conflict) {
         mutations.showHover({
           name: "replace",
-          confirm: (event) => {
+          confirm: async (event) => {
             event.preventDefault();
             mutations.closeHovers();
-            upload.handleFiles(files, path, true);
+            await upload.handleFiles(uploadFiles, path, true);
           },
         });
-        return;
+      } else {
+        await upload.handleFiles(uploadFiles, path);
       }
-
-      upload.handleFiles(files, path);
+      mutations.setReload(true);
     },
     uploadInput(event) {
       mutations.closeHovers();

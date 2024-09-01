@@ -253,6 +253,9 @@ export default {
       const resultList = document.getElementById("result-list");
       if (!active) {
         resultList.classList.remove("active");
+        this.value = "";
+        event.stopPropagation();
+        mutations.closeHovers();
         return;
       }
       setTimeout(() => {

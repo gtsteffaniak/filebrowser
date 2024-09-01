@@ -3,7 +3,7 @@ package settings
 import (
 	"log"
 	"os"
-	"strings"
+	"path/filepath"
 
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -19,7 +19,16 @@ func Initialize(configFile string) {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
-	Config.Server.Root = strings.TrimSuffix(Config.Server.Root, "/")
+	// Convert relative path to absolute path
+	realRoot, err := filepath.Abs(Config.Server.Root)
+	if err != nil {
+		log.Fatalf("Error getting root path: %v", err)
+	}
+	_, err = os.Stat(realRoot)
+	if err != nil {
+		log.Fatalf("ERROR: Configured Root Path does not exist! %v", err)
+	}
+	Config.Server.Root = realRoot
 }
 
 func loadConfigFile(configFile string) []byte {

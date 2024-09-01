@@ -67,11 +67,6 @@ func getUserIdentifier(flags *pflag.FlagSet) interface{} {
 }
 
 func printRules(rulez []rules.Rule, id interface{}) {
-	if id == nil {
-		fmt.Printf("Global Rules:\n\n")
-	} else {
-		fmt.Printf("Rules for user %v:\n\n", id)
-	}
 
 	for id, rule := range rulez {
 		fmt.Printf("(%d) ", id)

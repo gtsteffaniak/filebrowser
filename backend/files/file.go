@@ -1,11 +1,12 @@
 package files
 
 import (
-	"crypto/md5"  //nolint:gosec
-	"crypto/sha1" //nolint:gosec
+	"crypto/md5"
+	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"mime"
@@ -51,6 +52,7 @@ type FileInfo struct {
 // FileOptions are the options when getting a file info.
 type FileOptions struct {
 	Path       string // realpath
+	IsDir      bool
 	Modify     bool
 	Expand     bool
 	ReadHeader bool
@@ -82,7 +84,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
-	file, err := stat(opts.Path, opts) // Pass opts.Path here
+	file, err := stat(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -110,71 +112,65 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		return nil, os.ErrPermission
 	}
 	index := GetIndex(rootPath)
-	trimmed := strings.TrimPrefix(opts.Path, "/")
-	if trimmed == "" {
-		trimmed = "/"
+	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
+	if opts.IsDir {
+		info, exists := index.GetMetadataInfo(adjustedPath)
+		if exists && !opts.Content {
+			// Let's not refresh if less than a second has passed
+			if time.Since(info.CacheTime) > time.Second {
+				go RefreshFileInfo(opts) //nolint:errcheck
+			}
+			// refresh cache after
+			return &info, nil
+		}
 	}
-	adjustedPath := makeIndexPath(trimmed, index.Root)
-	var info FileInfo
+	// don't bother caching content
+	if opts.Content {
+		file, err := NewFileInfo(opts)
+		return file, err
+	}
+	err := RefreshFileInfo(opts)
+	if err != nil {
+		file, err := NewFileInfo(opts)
+		return file, err
+	}
 	info, exists := index.GetMetadataInfo(adjustedPath)
-	if exists && !opts.Content {
-		// Check if the cache time is less than 1 second
-		if time.Since(info.CacheTime) > time.Second {
-			go RefreshFileInfo(opts)
-		}
-		// refresh cache after
-		return &info, nil
-	} else {
-		// don't bother caching content
-		if opts.Content {
-			file, err := NewFileInfo(opts)
-			return file, err
-		}
-		updated := RefreshFileInfo(opts)
-		if !updated {
-			file, err := NewFileInfo(opts)
-			return file, err
-		}
-		info, exists = index.GetMetadataInfo(adjustedPath)
-		if !exists || info.Name == "" {
-			return &FileInfo{}, errors.ErrEmptyKey
-		}
-		return &info, nil
+	if !exists || info.Name == "" {
+		return &FileInfo{}, errors.ErrEmptyKey
 	}
+	return &info, nil
+
 }
 
-func RefreshFileInfo(opts FileOptions) bool {
+func RefreshFileInfo(opts FileOptions) error {
 	if !opts.Checker.Check(opts.Path) {
-		return false
+		return fmt.Errorf("permission denied: %s", opts.Path)
 	}
 	index := GetIndex(rootPath)
-	trimmed := strings.TrimPrefix(opts.Path, "/")
-	if trimmed == "" {
-		trimmed = "/"
-	}
-	adjustedPath := makeIndexPath(trimmed, index.Root)
-	file, err := stat(opts.Path, opts) // Pass opts.Path here
+	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
+	file, err := stat(opts)
 	if err != nil {
-		return false
+		return fmt.Errorf("File/folder does not exist to refresh data: %s", opts.Path)
 	}
-	_ = file.detectType(adjustedPath, true, opts.Content, opts.ReadHeader)
+	_ = file.detectType(opts.Path, true, opts.Content, opts.ReadHeader)
 	if file.IsDir {
 		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
 		if err != nil {
-			return false
+			return fmt.Errorf("Dir info could not be read: %s", opts.Path)
 		}
-		return index.UpdateFileMetadata(adjustedPath, *file)
-	} else {
-		return index.UpdateFileMetadata(adjustedPath, *file)
 	}
+	result := index.UpdateFileMetadata(adjustedPath, *file)
+	if !result {
+		return fmt.Errorf("File/folder does not exist in metadata: %s", adjustedPath)
+	}
+	return nil
 }
 
-func stat(path string, opts FileOptions) (*FileInfo, error) {
-	info, err := os.Lstat(path)
+func stat(opts FileOptions) (*FileInfo, error) {
+	info, err := os.Lstat(opts.Path)
 	if err != nil {
 		return nil, err
 	}
-
 	file := &FileInfo{
 		Path:      opts.Path,
 		Name:      info.Name(),
@@ -184,13 +180,12 @@ func stat(path string, opts FileOptions) (*FileInfo, error) {
 		Extension: filepath.Ext(info.Name()),
 		Token:     opts.Token,
 	}
-
 	if info.IsDir() {
 		file.IsDir = true
 	}
 	if info.Mode()&os.ModeSymlink != 0 {
 		file.IsSymlink = true
-		targetInfo, err := os.Stat(path)
+		targetInfo, err := os.Stat(opts.Path)
 		if err == nil {
 			file.Size = targetInfo.Size()
 			file.IsDir = targetInfo.IsDir()
@@ -247,7 +242,7 @@ func (i *FileInfo) RealPath() string {
 	return i.Path
 }
 
-func GetRealPath(relativePath ...string) (string, error) {
+func GetRealPath(relativePath ...string) (string, bool, error) {
 	combined := []string{settings.Config.Server.Root}
 	for _, path := range relativePath {
 		combined = append(combined, strings.TrimPrefix(path, settings.Config.Server.Root))
@@ -256,10 +251,10 @@ func GetRealPath(relativePath ...string) (string, error) {
 	// Convert relative path to absolute path
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 	if !Exists(absolutePath) {
-		return absolutePath, nil // return without error
+		return absolutePath, false, nil // return without error
 	}
 	// Resolve symlinks and get the real path
 	return resolveSymlinks(absolutePath)
@@ -272,8 +267,8 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	}
 	parentDir := filepath.Dir(absPath)
 	opts.Path = parentDir
-	updated := RefreshFileInfo(opts)
-	if !updated {
+	err = RefreshFileInfo(opts)
+	if err != nil {
 		return errors.ErrEmptyKey
 	}
 	return nil
@@ -286,11 +281,10 @@ func WriteDirectory(opts FileOptions) error {
 		return err
 	}
 	opts.Path = filepath.Dir(opts.Path)
-	updated := RefreshFileInfo(opts)
-	if !updated {
+	err = RefreshFileInfo(opts)
+	if err != nil {
 		return errors.ErrEmptyKey
 	}
-
 	return nil
 }
 
@@ -319,21 +313,20 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 		return err
 	}
 	opts.Path = parentDir
-	updated := RefreshFileInfo(opts)
-	if !updated {
+	err = RefreshFileInfo(opts)
+	if err != nil {
 		return errors.ErrEmptyKey
 	}
-
 	return nil
 }
 
 // resolveSymlinks resolves symlinks in the given path
-func resolveSymlinks(path string) (string, error) {
+func resolveSymlinks(path string) (string, bool, error) {
 	for {
 		// Get the file info
 		info, err := os.Lstat(path)
 		if err != nil {
-			return "", err
+			return "", false, err
 		}
 
 		// Check if it's a symlink
@@ -341,14 +334,14 @@ func resolveSymlinks(path string) (string, error) {
 			// Read the symlink target
 			target, err := os.Readlink(path)
 			if err != nil {
-				return "", err
+				return "", false, err
 			}
 
 			// Resolve the target relative to the symlink's directory
 			path = filepath.Join(filepath.Dir(path), target)
 		} else {
-			// Not a symlink, so we are done
-			return path, nil
+			// Not a symlink, so return the resolved path and check if it's a directory
+			return path, info.IsDir(), nil
 		}
 	}
 }

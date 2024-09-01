@@ -94,7 +94,7 @@ export const mutations = {
       state.loading = { ...state.loading, [loadType]: true };
     }
     emitStateChanged();
-  },  
+  },
   setReload: (value) => {
     state.reload = value;
     emitStateChanged();

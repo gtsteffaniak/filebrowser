@@ -81,7 +81,7 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-	realPath, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	realPath, _, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

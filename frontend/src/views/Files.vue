@@ -50,6 +50,7 @@ export default {
       return getters.currentView() !== null;
     },
     reload() {
+      console.log("reloading")
       return state.reload;
     },
   },
