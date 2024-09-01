@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard">
+  <div class="dashboard" style="padding-bottom: 30vh">
     <div class="settings-views">
       <div
         v-for="setting in settings"

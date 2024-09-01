@@ -1,5 +1,5 @@
 <template>
-  <div style="padding-bottom: 5em">
+  <div style="padding-bottom: 35vh">
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -476,7 +476,6 @@ export default {
       switch (key) {
         case "Enter":
           if (this.selectedCount === 1) {
-            console.log("selected", getters.getFirstSelected());
             router.push({ path: getters.getFirstSelected().url });
           }
           break;
