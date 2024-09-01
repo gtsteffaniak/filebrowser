@@ -11,8 +11,8 @@ All notable changes to this project will be documented in this file. For commit 
   - You can use the enter key and backspace key to navigate backwards and forwards on selected items.
   - ctr-space will open/close the search (leaving ctr-f to browser default find prompt)
   **Bugfixes**:
-    - Fixed drag to upload not working.
-    - fixed shared video link issues
+  - Fixed drag to upload not working.
+  - fixed shared video link issues
 
 ## v0.2.8
 
