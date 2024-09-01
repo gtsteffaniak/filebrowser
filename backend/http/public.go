@@ -31,7 +31,7 @@ var withHashFile = func(fn handleFunc) handleFunc {
 			}
 		}
 		d.user = &users.PublicUser
-		realPath, err := files.GetRealPath(d.user.Scope, link.Path)
+		realPath, isDir, err := files.GetRealPath(d.user.Scope, link.Path)
 		if err != nil {
 			return http.StatusNotFound, err
 		}
