@@ -18,7 +18,7 @@ import (
 
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		id, _ := ifPathWithName(r)
+		id, path := ifPathWithName(r)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {
 			return errToStatus(err), err
@@ -30,13 +30,11 @@ var withHashFile = func(fn handleFunc) handleFunc {
 				return status, err
 			}
 		}
-		fmt.Println("auth status")
 		d.user = &users.PublicUser
-		realPath, isDir, err := files.GetRealPath(d.user.Scope, link.Path)
+		realPath, isDir, err := files.GetRealPath(d.user.Scope, link.Path, path)
 		if err != nil {
 			return http.StatusNotFound, err
 		}
-		fmt.Println("realpath", realPath, isDir)
 		file, err := files.FileInfoFaster(files.FileOptions{
 			Path:       realPath,
 			IsDir:      isDir,

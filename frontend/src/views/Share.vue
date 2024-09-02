@@ -225,7 +225,6 @@ export default {
       return "insert_drive_file";
     },
     link() {
-      console.log("pathing", window.location.pathname);
       return api.getDownloadURL({
         hash: this.hash,
         path: window.location.pathname,
