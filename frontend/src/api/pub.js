@@ -84,5 +84,6 @@ export function getDownloadURL(share, inline = false) {
   if (share.path == undefined) {
     share.path = ""
   }
-  return createURL("api/public/dl/" + share.hash + "/"+share.path, params, false);
+  const path = share.path.replace("/share/"+share.hash +"/","")
+  return createURL("api/public/dl/" + share.hash + "/"+path, params, false);
 }

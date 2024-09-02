@@ -115,27 +115,26 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
 	if opts.IsDir {
 		fmt.Println(adjustedPath)
-		info, exists := index.GetDirMetadata(adjustedPath)
+		info, exists := index.GetMetadataInfo(adjustedPath)
+		fmt.Println(info)
 		if exists && !opts.Content {
 			// Let's not refresh if less than a second has passed
 			if time.Since(info.CacheTime) > time.Second {
 				go RefreshFileInfo(opts)
 			}
-			// refresh cache after
-			return &info, nil
-		}
-	} else {
-		err := RefreshFileInfo(opts)
-		if err != nil {
-			file, err := NewFileInfo(opts)
-			return file, err
-		}
-		info, exists := index.GetDirMetadata(adjustedPath)
-		if !exists || info.Name == "" {
-			return &FileInfo{}, errors.ErrEmptyKey
 		}
 		return &info, nil
 	}
+	err := RefreshFileInfo(opts)
+	if err != nil {
+		file, err := NewFileInfo(opts)
+		return file, err
+	}
+	info, exists := index.GetMetadataInfo(adjustedPath)
+	if !exists || info.Name == "" {
+		return &FileInfo{}, errors.ErrEmptyKey
+	}
+	return &info, nil
 
 }
 
@@ -145,6 +144,7 @@ func RefreshFileInfo(opts FileOptions) error {
 	}
 	index := GetIndex(rootPath)
 	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
+	fmt.Println("I messed up the adjustedPath", adjustedPath, opts.Path)
 	file, err := stat(opts)
 	if err != nil {
 		return fmt.Errorf("File/folder does not exist to refresh data: %s", opts.Path)

@@ -23,13 +23,15 @@ var withHashFile = func(fn handleFunc) handleFunc {
 		if err != nil {
 			return errToStatus(err), err
 		}
-		if link.Hash != "" {
-			var status int
-			status, err = authenticateShareRequest(r, link)
-			if err != nil || status != 0 {
-				return status, err
-			}
+		if link.Hash == "" {
+			return errToStatus(err), err
 		}
+		var status int
+		status, err = authenticateShareRequest(r, link)
+		if err != nil || status != 0 {
+			return status, err
+		}
+		fmt.Println("auth status")
 		d.user = &users.PublicUser
 		fmt.Println("ok passing", d.user.Scope, link.Path, path)
 		realPath, isDir, err := files.GetRealPath(d.user.Scope, link.Path, path)

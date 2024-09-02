@@ -184,8 +184,7 @@ export default {
     },
   },
   created() {
-    const hash = state.route.params.path.at(-1);
-    this.hash = hash;
+    this.hash = state.route.params.path.at(0);
     this.fetchData();
   },
   mounted() {
@@ -226,16 +225,20 @@ export default {
       return "insert_drive_file";
     },
     link() {
-      console.log("api.getDownloadURL(state.req)", api.getDownloadURL(state.req));
-      return api.getDownloadURL(state.req);
+      console.log("pathing", window.location.pathname);
+      return api.getDownloadURL({
+        hash: this.hash,
+        path: window.location.pathname,
+      });
     },
     inlineLink() {
-      console.log(
-        "api.getDownloadURL(state.req, true)",
-        api.getDownloadURL(state.req, true)
+      return api.getDownloadURL(
+        {
+          hash: this.hash,
+          path: window.location.pathname,
+        },
+        true
       );
-
-      return api.getDownloadURL(state.req, true);
     },
     humanSize() {
       if (state.req.isDir) {
@@ -320,15 +323,6 @@ export default {
       });
     },
     linkSelected() {
-      console.log(
-        "single",
-        getters.isSingleFileSelected()
-          ? api.getDownloadURL({
-              hash: this.hash,
-              path: state.req.items[this.selected[0]].path,
-            })
-          : ""
-      );
       return getters.isSingleFileSelected()
         ? api.getDownloadURL({
             hash: this.hash,
