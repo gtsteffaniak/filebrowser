@@ -18,23 +18,21 @@ import (
 
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		id, path := ifPathWithName(r)
+		id, _ := ifPathWithName(r)
 		link, err := d.store.Share.GetByHash(id)
 		if err != nil {
 			return errToStatus(err), err
 		}
-		if link.Hash == "" {
-			return errToStatus(err), err
-		}
-		var status int
-		status, err = authenticateShareRequest(r, link)
-		if err != nil || status != 0 {
-			return status, err
+		if link.Hash != "" {
+			var status int
+			status, err = authenticateShareRequest(r, link)
+			if err != nil || status != 0 {
+				return status, err
+			}
 		}
 		fmt.Println("auth status")
 		d.user = &users.PublicUser
-		fmt.Println("ok passing", d.user.Scope, link.Path, path)
-		realPath, isDir, err := files.GetRealPath(d.user.Scope, link.Path, path)
+		realPath, isDir, err := files.GetRealPath(d.user.Scope, link.Path)
 		if err != nil {
 			return http.StatusNotFound, err
 		}
