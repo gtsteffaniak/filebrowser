@@ -1,6 +1,7 @@
 package files
 
 import (
+	"fmt"
 	"io/fs"
 	"log"
 	"time"
@@ -9,21 +10,14 @@ import (
 )
 
 // GetFileMetadata retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetFileMetadata(adjustedPath string) (FileInfo, bool) {
-	si.mu.RLock()
-	dir, exists := si.Directories[adjustedPath]
-	si.mu.RUnlock()
-	if exists {
-		// Initialize the Metadata map if it is nil
-		if dir.Metadata == nil {
-			dir.Metadata = make(map[string]FileInfo)
-			si.SetDirectoryInfo(adjustedPath, dir)
-			return FileInfo{}, false
-		} else {
-			return dir.Metadata[adjustedPath], true
-		}
+func (si *Index) GetFileMetadata(adjustedPath, fileName string) (FileInfo, bool) {
+	dirMeta, exists := si.GetDirMetadata(adjustedPath)
+	if !exists {
+		return FileInfo{}, false
 	}
-	return FileInfo{}, false
+
+	fileMeta, exists := dirMeta[fileName]
+	return fileMeta, exists
 }
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
@@ -45,31 +39,31 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 // SetFileMetadata sets the FileInfo for the specified directory in the index.
 // internal use only
 func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
-
 	_, exists := si.Directories[adjustedPath]
 	if !exists {
 		return false
 	}
 	info.CacheTime = time.Now()
-	si.Directories[adjustedPath].Metadata[adjustedPath] = info
-	return true
+	_, exists = si.Directories[adjustedPath].Metadata[info.Name]
+	if !exists {
+		fmt.Println("does not exist", adjustedPath, info.Name)
+	} else {
+		si.Directories[adjustedPath].Metadata[info.Name] = info
+	}
+	return exists
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetMetadataInfo(adjustedPath string) (FileInfo, bool) {
+func (si *Index) GetDirMetadata(adjustedPath string) (map[string]FileInfo, bool) {
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
-	if exists {
-		// Initialize the Metadata map if it is nil
-		if dir.Metadata == nil {
-			dir.Metadata = make(map[string]FileInfo)
-			si.SetDirectoryInfo(adjustedPath, dir)
-		}
-		info, metadataExists := dir.Metadata[adjustedPath]
-		return info, metadataExists
+	// Initialize the Metadata map if it is nil
+	if dir.Metadata == nil {
+		dir.Metadata = make(map[string]FileInfo)
+		si.SetDirectoryInfo(adjustedPath, dir)
 	}
-	return FileInfo{}, false
+	return dir.Metadata, exists
 }
 
 // SetDirectoryInfo sets the directory information in the index.
@@ -84,10 +78,7 @@ func (si *Index) GetDirectoryInfo(adjustedPath string) (Directory, bool) {
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
-	if exists {
-		return dir, true
-	}
-	return Directory{}, false
+	return dir, exists
 }
 
 func (si *Index) RemoveDirectory(path string) {

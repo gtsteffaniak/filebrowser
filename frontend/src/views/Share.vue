@@ -226,9 +226,15 @@ export default {
       return "insert_drive_file";
     },
     link() {
+      console.log("api.getDownloadURL(state.req)", api.getDownloadURL(state.req));
       return api.getDownloadURL(state.req);
     },
     inlineLink() {
+      console.log(
+        "api.getDownloadURL(state.req, true)",
+        api.getDownloadURL(state.req, true)
+      );
+
       return api.getDownloadURL(state.req, true);
     },
     humanSize() {
@@ -314,6 +320,15 @@ export default {
       });
     },
     linkSelected() {
+      console.log(
+        "single",
+        getters.isSingleFileSelected()
+          ? api.getDownloadURL({
+              hash: this.hash,
+              path: state.req.items[this.selected[0]].path,
+            })
+          : ""
+      );
       return getters.isSingleFileSelected()
         ? api.getDownloadURL({
             hash: this.hash,
@@ -324,3 +339,8 @@ export default {
   },
 };
 </script>
+<style>
+.share {
+  padding-bottom: 35vh;
+}
+</style>

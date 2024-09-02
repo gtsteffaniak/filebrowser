@@ -9,7 +9,7 @@ checkExit() {
 if command -v go &> /dev/null
 then
     printf "\n == Running tests == \n"
-    go test -race -v ./...
+    go test -race -parallel -v ./...
     checkExit
 else
     echo "ERROR: unable to perform tests"

@@ -114,31 +114,28 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	index := GetIndex(rootPath)
 	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
 	if opts.IsDir {
-		info, exists := index.GetMetadataInfo(adjustedPath)
+		fmt.Println(adjustedPath)
+		info, exists := index.GetDirMetadata(adjustedPath)
 		if exists && !opts.Content {
 			// Let's not refresh if less than a second has passed
 			if time.Since(info.CacheTime) > time.Second {
-				go RefreshFileInfo(opts) //nolint:errcheck
+				go RefreshFileInfo(opts)
 			}
 			// refresh cache after
 			return &info, nil
 		}
+	} else {
+		err := RefreshFileInfo(opts)
+		if err != nil {
+			file, err := NewFileInfo(opts)
+			return file, err
+		}
+		info, exists := index.GetDirMetadata(adjustedPath)
+		if !exists || info.Name == "" {
+			return &FileInfo{}, errors.ErrEmptyKey
+		}
+		return &info, nil
 	}
-	// don't bother caching content
-	if opts.Content {
-		file, err := NewFileInfo(opts)
-		return file, err
-	}
-	err := RefreshFileInfo(opts)
-	if err != nil {
-		file, err := NewFileInfo(opts)
-		return file, err
-	}
-	info, exists := index.GetMetadataInfo(adjustedPath)
-	if !exists || info.Name == "" {
-		return &FileInfo{}, errors.ErrEmptyKey
-	}
-	return &info, nil
 
 }
 
@@ -265,8 +262,7 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	if err != nil {
 		return err
 	}
-	parentDir := filepath.Dir(absPath)
-	opts.Path = parentDir
+	opts.Path = filepath.Dir(absPath)
 	err = RefreshFileInfo(opts)
 	if err != nil {
 		return errors.ErrEmptyKey

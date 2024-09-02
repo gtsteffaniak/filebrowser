@@ -16,6 +16,7 @@ type Directory struct {
 	Metadata map[string]FileInfo
 	Files    string
 }
+
 type File struct {
 	Name  string
 	IsDir bool

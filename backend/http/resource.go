@@ -277,6 +277,7 @@ var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (
 	if err != nil {
 		return http.StatusNotFound, err
 	}
+	fmt.Println("usage", realPath)
 	file, err := files.FileInfoFaster(files.FileOptions{
 		Path:       realPath,
 		IsDir:      isDir,
