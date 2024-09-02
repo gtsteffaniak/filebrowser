@@ -93,6 +93,9 @@ export default {
     },
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
+      if (getters.currentPromptName() != null) {
+        return;
+      }
       if (key == "Backspace") {
         // go back
         let currentPath = state.route.path.replace(/\/+$/, "");

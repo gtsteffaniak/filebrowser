@@ -130,6 +130,9 @@ export default {
 </script>
 
 <style>
+#layout-container {
+  padding-bottom: 30% !important;
+}
 main {
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */

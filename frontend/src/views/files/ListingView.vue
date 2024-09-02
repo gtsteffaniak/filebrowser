@@ -1,5 +1,5 @@
 <template>
-  <div style="padding-bottom: 5em">
+  <div style="padding-bottom: 35vh">
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -455,6 +455,11 @@ export default {
       // Check if the key is alphanumeric
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const noModifierKeys = !ctrlKey && !metaKey;
+
+      if (isAlphanumeric && noModifierKeys) {
+        this.alphanumericKeyPress(key); // Call the alphanumeric key press function
+        return;
+      }
       // Handle the space bar key
       if (key === " ") {
         event.preventDefault();
@@ -467,23 +472,18 @@ export default {
       if (getters.currentPromptName() != null) {
         return;
       }
-      if (isAlphanumeric && noModifierKeys) {
-        this.alphanumericKeyPress(key); // Call the alphanumeric key press function
-        return;
-      }
-      let currentPath = getters.getRoutePath().replace(/\/+$/, ""); // Remove trailing slashes
+      let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-
       // Handle key events using a switch statement
       switch (key) {
         case "Enter":
           if (this.selectedCount === 1) {
-            console.log("selected", getters.getFirstSelected());
             router.push({ path: getters.getFirstSelected().url });
           }
           break;
 
         case "Backspace":
+          // go back
           router.push({ path: newPath });
           break;
 

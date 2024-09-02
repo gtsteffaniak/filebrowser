@@ -81,12 +81,13 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-	realPath, _, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	file, err := files.FileInfoFaster(files.FileOptions{
 		Path:       realPath,
+		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: d.server.TypeDetectionByHeader,

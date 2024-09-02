@@ -92,7 +92,9 @@ main > div {
 }
 
 .breadcrumbs {
-  height: 3em;
+  overflow-x: auto;
+  height: auto;
+  min-height: 3em;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;

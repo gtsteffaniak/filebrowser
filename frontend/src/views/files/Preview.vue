@@ -198,9 +198,10 @@ export default {
       this.$router.replace({ path: this.nextLink });
     },
     key(event) {
-      if (this.currentPrompt !== null) {
+      if (getters.currentPromptName() != null) {
         return;
       }
+
       const { key } = event;
 
       switch (key) {

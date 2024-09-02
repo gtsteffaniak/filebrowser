@@ -78,7 +78,7 @@ export const getters = {
     return { dirs, files };
   },
   isSidebarVisible: () => {
-    let visible = state.showSidebar || getters.isStickySidebar()
+    let visible = (state.showSidebar || getters.isStickySidebar()) && state.user.username != "publicUser"
     if (getters.currentView() == "settings") {
       visible = !getters.isMobile();
     }

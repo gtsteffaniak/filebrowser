@@ -248,7 +248,6 @@ func GetRealPath(relativePath ...string) (string, bool, error) {
 		combined = append(combined, strings.TrimPrefix(path, settings.Config.Server.Root))
 	}
 	joinedPath := filepath.Join(combined...)
-
 	// Convert relative path to absolute path
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
