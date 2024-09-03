@@ -52,14 +52,14 @@ func Test_GetRealPath(t *testing.T) {
 		{
 			name: "other test case",
 			paths: []string{
-				"/mnt/storage",
+				"/mnt/doesnt/exist",
 			},
 			want: struct {
 				path  string
 				isDir bool
 			}{
-				path:  "/mnt/storage",
-				isDir: true,
+				path:  "/mnt/doesnt/exist",
+				isDir: false,
 			},
 		},
 	}
