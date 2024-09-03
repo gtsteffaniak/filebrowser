@@ -472,6 +472,8 @@ export default {
       if (getters.currentPromptName() != null) {
         return;
       }
+      let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
+      let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
       // Handle key events using a switch statement
       switch (key) {
         case "Enter":
@@ -482,8 +484,6 @@ export default {
 
         case "Backspace":
           // go back
-          let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
-          let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
           router.push({ path: newPath });
           break;
 
