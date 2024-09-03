@@ -102,7 +102,6 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	return file, err
 }
-
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
@@ -265,8 +264,7 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	if err != nil {
 		return err
 	}
-	parentDir := filepath.Dir(absPath)
-	opts.Path = parentDir
+	opts.Path = filepath.Dir(absPath)
 	err = RefreshFileInfo(opts)
 	if err != nil {
 		return errors.ErrEmptyKey

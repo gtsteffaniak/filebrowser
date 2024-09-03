@@ -184,8 +184,7 @@ export default {
     },
   },
   created() {
-    const hash = state.route.params.path.at(-1);
-    this.hash = hash;
+    this.hash = state.route.params.path.at(0);
     this.fetchData();
   },
   mounted() {
@@ -226,10 +225,19 @@ export default {
       return "insert_drive_file";
     },
     link() {
-      return api.getDownloadURL(state.req);
+      return api.getDownloadURL({
+        hash: this.hash,
+        path: window.location.pathname,
+      });
     },
     inlineLink() {
-      return api.getDownloadURL(state.req, true);
+      return api.getDownloadURL(
+        {
+          hash: this.hash,
+          path: window.location.pathname,
+        },
+        true
+      );
     },
     humanSize() {
       if (state.req.isDir) {
@@ -324,3 +332,8 @@ export default {
   },
 };
 </script>
+<style>
+.share {
+  padding-bottom: 35vh;
+}
+</style>
