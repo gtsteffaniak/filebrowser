@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Get latest tag
+        id: latest_tag
+        run: echo "latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_OUTPUT
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
@@ -36,9 +39,6 @@ jobs:
           # Use jq to remove 'v' from the version field
           JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
-      - name: Get latest tag
-        id: latest_tag
-        run: echo "latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
