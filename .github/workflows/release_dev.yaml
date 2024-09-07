@@ -36,11 +36,17 @@ jobs:
           # Use jq to remove 'v' from the version field
           JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
+      - name: Fetch latest Git tag
+        id: git_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          echo "Latest tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_ENV
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           build-args: |
-            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            VERSION=${{ env.tag }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           context: .
           platforms: linux/amd64
