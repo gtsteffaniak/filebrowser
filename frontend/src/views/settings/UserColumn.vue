@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { showSuccess } from "@/notify";
+import { notify } from "@/notify";
 import { state, getters } from "@/store";
 import { settings as api } from "@/api";
 import { enableExec } from "@/utils/constants";
@@ -96,9 +96,9 @@ export default {
     async save() {
       try {
         await api.update(state.settings);
-        showSuccess(this.$t("settings.settingsUpdated"));
+        notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        showError(e);
+        notify.showError(e);
       }
     },
   },

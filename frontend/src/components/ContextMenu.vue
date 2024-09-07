@@ -10,9 +10,29 @@
     class="button"
     :class="{ 'dark-mode': isDarkMode, mobile: isMobile }"
   >
-    <div class="button selected-count-header" :class="{ hasButtons: selectedCount > 0 }">
+    <div v-if="selectedCount > 0" class="button selected-count-header">
       <span>{{ selectedCount }} selected</span>
     </div>
+
+    <action
+      v-if="!headerButtons.select"
+      icon="create_new_folder"
+      :label="$t('sidebar.newFolder')"
+      @action="showHover('newDir')"
+    />
+    <action
+      v-if="!headerButtons.select"
+      icon="note_add"
+      :label="$t('sidebar.newFile')"
+      @action="showHover('newFile')"
+    />
+    <action
+      v-if="!headerButtons.select"
+      icon="file_upload"
+      :label="$t('buttons.upload')"
+      @action="uploadFunc"
+    />
+
     <action
       v-if="headerButtons.select"
       icon="info"
@@ -20,7 +40,7 @@
       show="info"
     />
     <action
-      v-if="headerButtons.select"
+      v-if="!isMultiple"
       icon="check_circle"
       :label="$t('buttons.selectMultiple')"
       @action="toggleMultipleSelection"
@@ -82,6 +102,12 @@ export default {
     };
   },
   computed: {
+    isMultiple() {
+      return state.multiple;
+    },
+    user() {
+      return state.user;
+    },
     isMobile() {
       return getters.isMobile();
     },
@@ -127,6 +153,12 @@ export default {
     },
   },
   methods: {
+    uploadFunc() {
+      mutations.showHover("upload");
+    },
+    showHover(value) {
+      return mutations.showHover(value);
+    },
     setPositions() {
       const contextProps = getters.currentPrompt().props;
       this.posX = contextProps.posX;
@@ -157,10 +189,6 @@ export default {
   justify-content: center;
 }
 
-.hasButtons {
-  margin-bottom: 0.5em;
-}
-
 #context-menu.mobile {
   top: 50% !important;
   left: 50% !important;
@@ -171,10 +199,13 @@ export default {
 .selected-count-header {
   border-radius: 0.5em;
   cursor: unset;
+  margin-bottom: 0.5em;
 }
 
 #context-menu .action {
   width: auto;
+  display: flex;
+  align-items: center;
 }
 
 #context-menu > span {

@@ -73,12 +73,8 @@ export default {
       uri += encodeURIComponent(this.name);
       uri = uri.replace("//", "/");
 
-      try {
-        await api.post(uri);
-        this.$router.push({ path: uri });
-      } catch (e) {
-        showError(e);
-      }
+      await api.post(uri);
+      this.$router.push({ path: uri });
 
       mutations.closeHovers();
     },

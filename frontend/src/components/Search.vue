@@ -195,7 +195,6 @@
 import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
-import { showError } from "@/notify";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -400,11 +399,9 @@ export default {
       }
       let path = state.route.path;
       this.ongoing = true;
-      try {
-        this.results = await search(path, searchTypesFull + this.value);
-      } catch (error) {
-        showError(error);
-      }
+
+      this.results = await search(path, searchTypesFull + this.value);
+
       this.ongoing = false;
       if (this.results.length == 0) {
         this.noneMessage = "No results found in indexed search.";

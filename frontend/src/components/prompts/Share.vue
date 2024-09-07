@@ -120,7 +120,7 @@
   </div>
 </template>
 <script>
-import { showSuccess, showError } from "@/notify";
+import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { share as api, pub as pub_api } from "@/api";
 import { fromNow } from "@/utils/moment";
@@ -173,22 +173,18 @@ export default {
     },
   },
   async beforeMount() {
-    try {
-      const links = await api.get(this.url);
-      this.links = links;
-      this.sort();
+    const links = await api.get(this.url);
+    this.links = links;
+    this.sort();
 
-      if (this.links.length === 0) {
-        this.listing = false;
-      }
-    } catch (e) {
-      showError(e);
+    if (this.links.length === 0) {
+      this.listing = false;
     }
   },
   mounted() {
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      showSuccess(this.$t("success.linkCopied"));
+      notify.showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
@@ -198,38 +194,30 @@ export default {
     async submit() {
       let isPermanent = !this.time || this.time === 0;
 
-      try {
-        let res = null;
+      let res = null;
 
-        if (isPermanent) {
-          res = await api.create(this.url, this.password);
-        } else {
-          res = await api.create(this.url, this.password, this.time, this.unit);
-        }
-
-        this.links.push(res);
-        this.sort();
-
-        this.time = "";
-        this.unit = "hours";
-        this.password = "";
-
-        this.listing = true;
-      } catch (e) {
-        showError(e);
+      if (isPermanent) {
+        res = await api.create(this.url, this.password);
+      } else {
+        res = await api.create(this.url, this.password, this.time, this.unit);
       }
+
+      this.links.push(res);
+      this.sort();
+
+      this.time = "";
+      this.unit = "hours";
+      this.password = "";
+
+      this.listing = true;
     },
     async deleteLink(event, link) {
       event.preventDefault();
-      try {
-        await api.remove(link.hash);
-        this.links = this.links.filter((item) => item.hash !== link.hash);
+      await api.remove(link.hash);
+      this.links = this.links.filter((item) => item.hash !== link.hash);
 
-        if (this.links.length === 0) {
-          this.listing = false;
-        }
-      } catch (e) {
-        showError(e);
+      if (this.links.length === 0) {
+        this.listing = false;
       }
     },
     humanTime(time) {

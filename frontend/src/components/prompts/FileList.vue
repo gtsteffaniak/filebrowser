@@ -24,7 +24,6 @@
 import { state, mutations } from "@/store";
 import url from "@/utils/url";
 import { files } from "@/api";
-import { showError } from "@/notify";
 
 export default {
   name: "file-list",
@@ -86,7 +85,7 @@ export default {
       // content.
       let uri = event.currentTarget.dataset.url;
 
-      files.fetch(uri).then(this.fillOptions).catch(showError);
+      files.fetch(uri).then(this.fillOptions);
     },
     touchstart(event) {
       let url = event.currentTarget.dataset.url;

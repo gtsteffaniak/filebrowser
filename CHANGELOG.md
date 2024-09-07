@@ -4,12 +4,15 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.2.9
 
+  This release focused on UI navigation experience. Improving keyboard navigation and adds right click context menu.
+
   **New Features**:
   - listing view items are middle-clickable on selected listing or when in single-click mode.
   - listing view items can be navigated via arrow keys.
   - listing view can jump to items using letters and number keys to cycle through files that start with that character.
   - You can use the enter key and backspace key to navigate backwards and forwards on selected items.
   - ctr-space will open/close the search (leaving ctr-f to browser default find prompt)
+  - Added right-click context menu to replace the file selection prompt.
 
   **Bugfixes**:
   - Fixed drag to upload not working.

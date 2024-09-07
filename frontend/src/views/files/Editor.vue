@@ -8,7 +8,6 @@
 import { router } from "@/router";
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
-import { showError } from "@/notify";
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import ace from "ace-builds/src-min-noconflict/ace.js";
@@ -81,11 +80,7 @@ export default {
   },
   methods: {
     handleEditorValueRequest() {
-      try {
-        api.put(state.route.path, this.editor.getValue());
-      } catch (e) {
-        showError(e);
-      }
+      api.put(state.route.path, this.editor.getValue());
     },
     back() {
       let uri = url.removeLastDir(state.route.path) + "/";

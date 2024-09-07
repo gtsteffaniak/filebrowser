@@ -2,7 +2,7 @@ import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
 import { encodePath } from "@/utils/url";
-import { showError } from "@/notify";
+import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
@@ -51,7 +51,7 @@ export async function fetchJSON(url, opts) {
   if (res.status === 200) {
     return res.json();
   } else {
-    showError("unable to fetch : " + url + "status" + res.status);
+    notify.showError("unable to fetch : " + url + "status" + res.status);
     throw new Error(res.status);
   }
 }
