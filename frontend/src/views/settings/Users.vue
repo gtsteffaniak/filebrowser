@@ -55,17 +55,8 @@ export default {
   },
   async created() {
     // Set loading state to true
-
-    try {
-      // Fetch all users from the API
-      this.users = await getAllUsers();
-    } catch (e) {
-      showError(e);
-      // Handle errors
-      this.error = e;
-    } finally {
-      mutations.setLoading("users", false);
-    }
+    this.users = await getAllUsers();
+    mutations.setLoading("users", false);
   },
   computed: {
     settings() {

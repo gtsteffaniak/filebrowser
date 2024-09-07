@@ -103,6 +103,10 @@
   border-color: var(--divider) !important;
 }
 
+.dark-mode #listingView.gallery .item .text {
+  text-shadow: 0 0 2px black;
+}
+
 /* Listing item modified text */
 .dark-mode #listingView .item .modified {
   color: var(--textSecondary);

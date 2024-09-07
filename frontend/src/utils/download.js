@@ -1,6 +1,6 @@
 import { state, mutations, getters } from "@/store"
 import { files as api } from "@/api";
-import { showError, showSuccess } from "@/notify"
+import { notify } from "@/notify"
 
 export default function download() {
     if (getters.isSingleFileSelected()) {
@@ -21,9 +21,9 @@ export default function download() {
         }
         try {
           api.download(format, ...files);
-          showSuccess("download started");
+          notify.showSuccess("download started");
         } catch (e) {
-          showError("error downloading", e);
+          notify.showError("error downloading", e);
         }
       },
     });

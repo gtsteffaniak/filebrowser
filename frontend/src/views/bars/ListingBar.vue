@@ -26,8 +26,7 @@
 </style>
 <script>
 import { state, mutations, getters } from "@/store";
-import Action from "@/components/header/Action.vue";
-import { showError } from "@/notify";
+import Action from "@/components/Action.vue";
 
 export default {
   name: "listingView",
@@ -79,11 +78,7 @@ export default {
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const newView = this.viewModes[nextIndex];
-      try {
-        mutations.updateUser({ viewMode: newView });
-      } catch (e) {
-        showError(e);
-      }
+      mutations.updateUser({ viewMode: newView });
     },
   },
 };

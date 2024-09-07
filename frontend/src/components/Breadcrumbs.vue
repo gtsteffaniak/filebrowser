@@ -31,7 +31,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store"; // Import mutations as well
-import Action from "@/components/header/Action.vue";
+import Action from "@/components/Action.vue";
 
 export default {
   name: "breadcrumbs",

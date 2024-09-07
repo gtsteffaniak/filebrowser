@@ -119,20 +119,6 @@
               readOnly
             >
             </item>
-
-            <div :class="{ active: multiple }" id="multiple-selection">
-              <p>{{ $t("files.multipleSelectionEnabled") }}</p>
-              <div
-                @click="setMultipleFalse"
-                tabindex="0"
-                role="button"
-                :title="$t('files.clear')"
-                :aria-label="$t('files.clear')"
-                class="action"
-              >
-                <i class="material-icons">clear</i>
-              </div>
-            </div>
           </div>
         </div>
         <div
@@ -149,7 +135,7 @@
   </div>
 </template>
 <script>
-import { showSuccess } from "@/notify";
+import { notify } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
 import { fromNow } from "@/utils/moment";
@@ -191,7 +177,7 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      showSuccess(this.$t("success.linkCopied"));
+      notify.showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {

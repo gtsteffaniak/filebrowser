@@ -3,6 +3,7 @@ import { state } from "./state.js";
 import router from "@/router";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { users } from "@/api";
+import { notify } from "@/notify";
 
 export const mutations = {
   setGallerySize: (value) => {
@@ -127,6 +128,11 @@ export const mutations = {
   },
   setMultiple: (value) => {
     state.multiple = value;
+    if (value == true) {
+      notify.showMultipleSelection()
+    } else {
+      notify.closePopUp()
+    }
     emitStateChanged();
   },
   addSelected: (value) => {

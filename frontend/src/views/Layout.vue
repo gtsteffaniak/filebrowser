@@ -24,7 +24,7 @@
     <i v-on:click="closePopUp" class="material-icons">close</i>
     <div id="popup-notification-content">no info</div>
   </div>
-  <fileSelection> </fileSelection>
+  <ContextMenu></ContextMenu>
 </template>
 <script>
 import editorBar from "./bars/EditorBar.vue";
@@ -33,16 +33,16 @@ import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/sidebar/Sidebar.vue";
 import Search from "@/components/Search.vue";
-import fileSelection from "@/components/FileSelection.vue";
+import ContextMenu from "@/components/ContextMenu.vue";
 
-import { closePopUp } from "@/notify";
+import { notify } from "@/notify";
 import { enableExec } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 
 export default {
   name: "layout",
   components: {
-    fileSelection,
+    ContextMenu,
     Search,
     defaultBar,
     editorBar,
@@ -72,7 +72,7 @@ export default {
       return getters.isSidebarVisible() && getters.isStickySidebar();
     },
     closePopUp() {
-      return closePopUp;
+      return notify.closePopUp;
     },
     progress() {
       return getters.progress(); // Access getter directly from the store

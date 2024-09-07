@@ -97,7 +97,7 @@
 </template>
 
 <script>
-import { showSuccess, showError } from "@/notify";
+import { notify } from "@/notify";
 import { state, mutations } from "@/store";
 import { users } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -174,9 +174,9 @@ export default {
         newUserSettings.id = state.user.id;
         newUserSettings.password = this.password;
         await users.update(newUserSettings, ["password"]);
-        showSuccess(this.$t("settings.passwordUpdated"));
+        notify.showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
-        showError(e);
+        notify.showError(e);
       }
     },
     async updateSettings(event) {
@@ -207,9 +207,9 @@ export default {
         if (shouldReload) {
           location.reload();
         }
-        showSuccess(this.$t("settings.settingsUpdated"));
+        notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        showError(e);
+        notify.showError(e);
       }
     },
     updateViewMode(updatedMode) {

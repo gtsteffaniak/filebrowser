@@ -37,7 +37,7 @@ import { mutations, state } from "@/store";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
-import { showSuccess, showError } from "@/notify";
+import { notify } from "@/notify";
 
 export default {
   name: "user",
@@ -91,7 +91,7 @@ export default {
           this.user = { ...(await api.get(id)) };
         }
       } catch (e) {
-        showError(e);
+        notify.showError(e);
         this.error = e;
       } finally {
         mutations.setLoading("users", false);
@@ -111,17 +111,17 @@ export default {
         if (this.isNew) {
           const loc = await api.create(user);
           this.$router.push({ path: loc });
-          showSuccess(this.$t("settings.userCreated"));
+          notify.showSuccess(this.$t("settings.userCreated"));
         } else {
           await api.update(user);
           if (user.id === state.user.id) {
             consoel.log("set user");
             mutations.setUser(user);
           }
-          showSuccess(this.$t("settings.userUpdated"));
+          notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {
-        showError(e);
+        notify.showError(e);
       }
     },
   },

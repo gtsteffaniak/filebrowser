@@ -36,6 +36,7 @@ body.rtl #listingView {
   align-items: center;
   cursor: pointer;
   user-select: none;
+  overflow:hidden;
 }
 
 #listingView .item div:last-of-type {
@@ -140,7 +141,7 @@ body.rtl #listingView {
   display:flex;
   min-width: 12em;
   min-height: 12em;
-  text-shadow: 0 0 2px black;
+  text-shadow: 0 0 2px white;
 }
 
 #listingView.gallery .item div:last-of-type {
@@ -406,26 +407,4 @@ body.rtl #listingView {
 
 #listingView.list .header .active {
   font-weight: bold;
-}
-
-#listingView #multiple-selection {
-  position: fixed;
-  bottom: -4em;
-  left: 0;
-  z-index: 99999;
-  width: 100%;
-  background-color: var(--blue);
-  height: 4em;
-  padding: 0.5em 0.5em 0.5em 1em;
-  justify-content: space-between;
-  transition: .2s ease bottom;
-}
-
-#listingView #multiple-selection.active {
-  bottom: 0;
-}
-
-#listingView #multiple-selection p,
-#listingView #multiple-selection i {
-  color: var(--item-selected);
 }

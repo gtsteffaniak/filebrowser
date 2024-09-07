@@ -137,20 +137,6 @@
           webkitdirectory
           multiple
         />
-
-        <div :class="{ active: getMultiple }" id="multiple-selection">
-          <p>{{ $t("files.multipleSelectionEnabled") }}</p>
-          <div
-            @click="this.setMultiple(false)"
-            tabindex="0"
-            role="button"
-            :title="$t('files.clear')"
-            :aria-label="$t('files.clear')"
-            class="action"
-          >
-            <i class="material-icons">clear</i>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -164,7 +150,7 @@ import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
-import { showError } from "@/notify";
+import { notify } from "@/notify";
 
 import Item from "@/components/files/ListingItem.vue";
 export default {
@@ -178,7 +164,7 @@ export default {
       columnWidth: 250 + state.user.gallerySize * 50,
       dragCounter: 0,
       width: window.innerWidth,
-      focusedItemIndex: -1, // Add this to track the currently focused item
+      lastSelected: {}, // Add this to track the currently focused item
     };
   },
   watch: {
@@ -294,6 +280,7 @@ export default {
     },
   },
   mounted() {
+    this.lastSelected = state.selected;
     // Check the columns size for the first time.
     this.colunmsResize();
     // Add the needed event listeners to the window and document.
@@ -302,22 +289,18 @@ export default {
     window.addEventListener("resize", this.windowsResize);
 
     if (!state.user.perm?.create) return;
-    document.addEventListener("dragover", this.preventDefault);
-    document.addEventListener("dragenter", this.dragEnter);
-    document.addEventListener("dragleave", this.dragLeave);
-    document.addEventListener("drop", this.drop);
+    this.$el.addEventListener("dragover", this.preventDefault);
+    this.$el.addEventListener("dragenter", this.dragEnter);
+    this.$el.addEventListener("dragleave", this.dragLeave);
+    this.$el.addEventListener("drop", this.drop);
+    this.$el.addEventListener("contextmenu", this.openContext);
+    this.$el.addEventListener("click", this.clickClear);
   },
   beforeUnmount() {
     // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
-
-    if (state.user && !state.user.perm?.create) return;
-    document.removeEventListener("dragover", this.preventDefault);
-    document.removeEventListener("dragenter", this.dragEnter);
-    document.removeEventListener("dragleave", this.dragLeave);
-    document.removeEventListener("drop", this.drop);
   },
   methods: {
     base64(name) {
@@ -634,23 +617,17 @@ export default {
       }
       mutations.setLoading("listing", true);
       let action = (overwrite, rename) => {
-        api
-          .copy(items, overwrite, rename)
-          .then(() => {
-            mutations.setLoading("listing", false);
-          })
-          .catch(showError);
+        api.copy(items, overwrite, rename).then(() => {
+          mutations.setLoading("listing", false);
+        });
       };
 
       if (this.clipboard.key === "x") {
         action = (overwrite, rename) => {
-          api
-            .move(items, overwrite, rename)
-            .then(() => {
-              this.clipboard = {};
-              mutations.setLoading("listing", false);
-            })
-            .catch(showError);
+          api.move(items, overwrite, rename).then(() => {
+            this.clipboard = {};
+            mutations.setLoading("listing", false);
+          });
         };
       }
 
@@ -738,11 +715,7 @@ export default {
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         path = el.__vue__.url;
 
-        try {
-          items = (await api.fetch(path)).items;
-        } catch (error) {
-          showError(error);
-        }
+        items = (await api.fetch(path)).items;
       }
 
       const conflict = upload.checkConflict(uploadFiles, items);
@@ -813,6 +786,8 @@ export default {
     },
     setMultiple(val) {
       mutations.setMultiple(val == true);
+      console.log("setting multiple");
+      showMultipleSelection();
     },
     openSearch() {
       this.currentPrompt = "search";
@@ -832,6 +807,23 @@ export default {
       } else {
         document.getElementById("upload-input").click();
       }
+    },
+    openContext(event) {
+      event.preventDefault();
+      mutations.showHover({
+        name: "ContextMenu",
+        props: {
+          posX: event.clientX,
+          posY: event.clientY,
+        },
+      });
+    },
+    clickClear(event) {
+      const sameAsBefore = state.selected == this.lastSelected;
+      if (sameAsBefore && !state.multiple) {
+        mutations.resetSelected();
+      }
+      this.lastSelected = state.selected;
     },
   },
 };

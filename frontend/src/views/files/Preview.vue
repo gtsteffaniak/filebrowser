@@ -229,13 +229,9 @@ export default {
       this.name = decodeURIComponent(dirs[dirs.length - 1]);
 
       if (!this.listing) {
-        try {
-          const path = url.removeLastDir(state.route.path);
-          const res = await api.fetch(path);
-          this.listing = res.items;
-        } catch (e) {
-          showError(e);
-        }
+        const path = url.removeLastDir(state.route.path);
+        const res = await api.fetch(path);
+        this.listing = res.items;
       }
 
       this.previousLink = "";

@@ -1,47 +1,75 @@
 import { fetchURL, fetchJSON } from "@/api/utils";
+import { notify } from "@/notify";  // Import notify for error handling
 
 export async function getAllUsers() {
-  return await fetchJSON(`/api/users`, {});
+  try {
+    return await fetchJSON(`/api/users`, {});
+  } catch (err) {
+    notify.showError(err.message || "Failed to fetch users");
+    throw err; // Re-throw to handle further if needed
+  }
 }
 
 export async function get(id) {
-  return fetchJSON(`/api/users/${id}`, {});
+  try {
+    return await fetchJSON(`/api/users/${id}`, {});
+  } catch (err) {
+    notify.showError(err.message || `Failed to fetch user with ID: ${id}`);
+    throw err;
+  }
 }
 
 export async function create(user) {
-  const res = await fetchURL(`/api/users`, {
-    method: "POST",
-    body: JSON.stringify({
-      what: "user",
-      which: [],
-      data: user,
-    }),
-  });
+  try {
+    const res = await fetchURL(`/api/users`, {
+      method: "POST",
+      body: JSON.stringify({
+        what: "user",
+        which: [],
+        data: user,
+      }),
+    });
 
-  if (res.status === 201) {
-    return res.headers.get("Location");
+    if (res.status === 201) {
+      return res.headers.get("Location");
+    } else {
+      throw new Error("Failed to create user");
+    }
+  } catch (err) {
+    notify.showError(err.message || "Error creating user");
+    throw err;
   }
 }
 
 export async function update(user, which = ["all"]) {
-  if (which[0] != "password") {
-    user.password = "";
+  try {
+    if (which[0] !== "password") {
+      user.password = "";
+    }
+    if (user.username === "publicUser") {
+      return;
+    }
+    await fetchURL(`/api/users/${user.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        what: "user",
+        which: which,
+        data: user,
+      }),
+    });
+  } catch (err) {
+    notify.showError(err.message || `Failed to update user with ID: ${user.id}`);
+    throw err;
   }
-  if (user.username == "publicUser") {
-    return
-  }
-  await fetchURL(`/api/users/${user.id}`, {
-    method: "PUT",
-    body: JSON.stringify({
-      what: "user",
-      which: which,
-      data: user,
-    }),
-  });
 }
 
 export async function remove(id) {
-  await fetchURL(`/api/users/${id}`, {
-    method: "DELETE",
-  });
+  try {
+    await fetchURL(`/api/users/${id}`, {
+      method: "DELETE",
+    });
+  } catch (err) {
+    notify.showError(err.message || `Failed to delete user with ID: ${id}`);
+    throw err;
+  }
 }

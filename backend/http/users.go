@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -140,7 +139,7 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 	log.Printf("user: %s, home dir: [%s].", req.Data.Username, userHome)
 	_, _, err = files.GetRealPath(d.server.Root, req.Data.Scope)
 	if err != nil {
-		fmt.Println("user path is not valid", req.Data.Scope)
+		log.Println("user path is not valid", req.Data.Scope)
 		return http.StatusBadRequest, nil
 	}
 	err = d.store.Users.Save(req.Data)

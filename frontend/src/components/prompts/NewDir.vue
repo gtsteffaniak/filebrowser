@@ -39,7 +39,6 @@
 import { files as api } from "@/api";
 import url from "@/utils/url";
 import { getters, mutations, state } from "@/store"; // Import your custom store
-import { showError } from "@/notify";
 
 export default {
   name: "new-dir",
@@ -87,16 +86,12 @@ export default {
       uri += encodeURIComponent(this.name) + "/";
       uri = uri.replace("//", "/");
 
-      try {
-        await api.post(uri);
-        if (this.redirect) {
-          this.$router.push({ path: uri });
-        } else if (!this.base) {
-          const res = await api.fetch(url.removeLastDir(uri) + "/");
-          mutations.updateRequest(res);
-        }
-      } catch (e) {
-        showError(e);
+      await api.post(uri);
+      if (this.redirect) {
+        this.$router.push({ path: uri });
+      } else if (!this.base) {
+        const res = await api.fetch(url.removeLastDir(uri) + "/");
+        mutations.updateRequest(res);
       }
 
       mutations.closeHovers();
