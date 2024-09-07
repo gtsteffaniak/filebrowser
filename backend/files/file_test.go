@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,7 +10,6 @@ import (
 func Test_GetRealPath(t *testing.T) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println("Error getting current directory:", err)
 		return
 	}
 	trimPrefix := filepath.Dir(filepath.Dir(cwd)) + "/"

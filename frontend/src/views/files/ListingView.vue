@@ -306,6 +306,7 @@ export default {
     document.addEventListener("dragenter", this.dragEnter);
     document.addEventListener("dragleave", this.dragLeave);
     document.addEventListener("drop", this.drop);
+    document.addEventListener("contextmenu", this.openContext);
   },
   beforeUnmount() {
     // Remove event listeners before destroying this page.
@@ -318,6 +319,7 @@ export default {
     document.removeEventListener("dragenter", this.dragEnter);
     document.removeEventListener("dragleave", this.dragLeave);
     document.removeEventListener("drop", this.drop);
+    document.removeEventListener("contextmenu", this.openContext);
   },
   methods: {
     base64(name) {
@@ -832,6 +834,16 @@ export default {
       } else {
         document.getElementById("upload-input").click();
       }
+    },
+    openContext(event) {
+      event.preventDefault();
+      mutations.showHover({
+        name: "ContextMenu",
+        props: {
+          posX: event.clientX,
+          posY: event.clientY,
+        },
+      });
     },
   },
 };

@@ -26,7 +26,7 @@
 </style>
 <script>
 import { state, mutations, getters } from "@/store";
-import Action from "@/components/header/Action.vue";
+import Action from "@/components/Action.vue";
 import { showError } from "@/notify";
 
 export default {

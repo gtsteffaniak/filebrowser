@@ -36,6 +36,7 @@ body.rtl #listingView {
   align-items: center;
   cursor: pointer;
   user-select: none;
+  overflow:hidden;
 }
 
 #listingView .item div:last-of-type {
@@ -140,7 +141,7 @@ body.rtl #listingView {
   display:flex;
   min-width: 12em;
   min-height: 12em;
-  text-shadow: 0 0 2px black;
+  text-shadow: 0 0 2px white;
 }
 
 #listingView.gallery .item div:last-of-type {

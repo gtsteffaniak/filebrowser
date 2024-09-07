@@ -15,11 +15,11 @@
 </style>
 
 <script>
-import url from "@/utils/url"
+import url from "@/utils/url";
 import router from "@/router";
 import { state, mutations, getters } from "@/store";
 import { files as api } from "@/api";
-import Action from "@/components/header/Action.vue";
+import Action from "@/components/Action.vue";
 import css from "@/utils/css";
 
 export default {
@@ -214,7 +214,7 @@ export default {
     close() {
       if (getters.isSettings()) {
         // Use this.isSettings to access the computed property
-        router.push({ path: "/files/",hash: "" });
+        router.push({ path: "/files/", hash: "" });
         mutations.closeHovers();
         return;
       }

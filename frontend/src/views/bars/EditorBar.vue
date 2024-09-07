@@ -32,7 +32,7 @@ import buttons from "@/utils/buttons";
 import url from "@/utils/url";
 import { showError, showSuccess } from "@/notify";
 
-import Action from "@/components/header/Action.vue";
+import Action from "@/components/Action.vue";
 
 export default {
   name: "editorBar",

@@ -26,6 +26,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/version"
 )
 
 //go:embed dist/*
@@ -47,7 +48,7 @@ func init() {
 	// Bind the flags to the pflag command line parser
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	log.Println("Initializing with config file:", *configFlag)
+	log.Printf("Initializing Filebrowser Quantum (%v) with config file: %v \n", version.Version, *configFlag)
 	log.Println("Embeded Frontend:", !nonEmbededFS)
 	settings.Initialize(*configFlag)
 }
