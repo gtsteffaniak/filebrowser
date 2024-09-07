@@ -14,9 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        id: latest_tag
         uses: actions/checkout@v4
-        run: echo "latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_OUTPUT
+      - name: Find latest tag
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Latest tag: $LATEST_TAG"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
@@ -38,11 +40,14 @@ jobs:
           # Use jq to remove 'v' from the version field
           JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
+      - name: Get latest tag
+        id: latest_tag
+        run: echo ::set-output name=tag::$(git describe --tags `git rev-list --tags --max-count=1`)
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           build-args: |
-            VERSION=${{ steps.latest_tag.outputs.latest_tag }}
+            VERSION=${{ env.tag }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           context: .
           platforms: linux/amd64
