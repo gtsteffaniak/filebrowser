@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <form @submit="save" id="user-main" class="card">
+  <form @submit="save" class="card active">
     <div class="card-title">
       <h2 v-if="user.id === 0">{{ $t("settings.newUser") }}</h2>
       <h2 v-else>{{ $t("settings.user") }} {{ user.username }}</h2>
@@ -87,8 +87,7 @@ export default {
             id: 0,
           };
         } else {
-          const id = state.route.params.id;
-          this.user = { ...(await api.get(id)) };
+          this.user = { ...(await api.get(state.user.id)) };
         }
       } catch (e) {
         notify.showError(e);

@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard" style="padding-bottom: 30vh">
-    <div class="settings-views">
+    <div v-if="isRootSettings" class="settings-views">
       <div
         v-for="setting in settings"
         :key="setting.id + '-main'"
@@ -13,6 +13,11 @@
       >
         <!-- Dynamically render the component based on the setting -->
         <component :is="setting.component"></component>
+      </div>
+    </div>
+    <div v-else class="settings-views">
+      <div class="active">
+        <UserSettings />
       </div>
     </div>
 
@@ -34,16 +39,18 @@ import { state, getters, mutations } from "@/store";
 import { settings } from "@/utils/constants";
 import GlobalSettings from "@/views/settings/Global.vue";
 import UserDefaultSettings from "@/views/settings/UserDefaults.vue";
-import UserColumnSettings from "@/views/settings/UserColumn.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
+import UserManagement from "@/views/settings/Users.vue";
+import UserSettings from "@/views/settings/User.vue";
 
 export default {
   name: "settings",
   components: {
+    UserManagement,
+    UserSettings,
     GlobalSettings,
     UserDefaultSettings,
-    UserColumnSettings,
     ProfileSettings,
     SharesSettings,
   },
@@ -53,6 +60,12 @@ export default {
     };
   },
   computed: {
+    isRootSettings() {
+      return state.route.path == "/settings";
+    },
+    newUserPage() {
+      return state.route.path == "/settings/users/new";
+    },
     loading() {
       return getters.isLoading();
     },

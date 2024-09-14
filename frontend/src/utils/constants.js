@@ -22,7 +22,7 @@ const settings = [
   { id: 'profile', label: 'Profile Management', component: 'ProfileSettings' },
   { id: 'shares', label: 'Share Management', component: 'SharesSettings' },
   { id: 'global', label: 'Global', component: 'GlobalSettings' },
-  { id: 'user-defaults', label: 'User Defaults', component: 'UserDefaultSettings' },
+  { id: 'users', label: 'User Management', component: 'UserManagement' },
 ]
 
 export {

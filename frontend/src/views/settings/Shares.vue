@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="card" id="shares-main" :class="{ active: active }">
+  <div class="card" :class="{ active: active }">
     <div class="card-title">
       <h2>{{ $t("settings.shareManagement") }}</h2>
     </div>

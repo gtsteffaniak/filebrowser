@@ -50,7 +50,6 @@ export function showSuccess(message) {
 }
 
 export function showError(message) {
-    mutations.setMultiple(false)
     showPopup('error', message);
     console.error(message)
 } 

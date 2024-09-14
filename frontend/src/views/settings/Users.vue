@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="card" id="users-main">
+  <div class="card">
     <div class="card-title">
       <h2>{{ $t("settings.users") }}</h2>
       <router-link to="/settings/users/new"
@@ -36,11 +36,11 @@
     </div>
   </div>
 </template>
+
 <script>
 import { state, mutations, getters } from "@/store";
 import { getAllUsers } from "@/api/users";
 import Errors from "@/views/Errors.vue";
-import { showError } from "@/notify";
 mutations.setLoading("users", true);
 export default {
   name: "users",

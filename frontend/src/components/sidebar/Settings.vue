@@ -14,12 +14,13 @@
 <script>
 import { state, getters, mutations } from "@/store";
 import { settings } from "@/utils/constants";
+import { router } from "@/router";
 
 export default {
   name: "SidebarSettings",
   data() {
     return {
-      settings // Initialize the settings array in data
+      settings, // Initialize the settings array in data
     };
   },
   computed: {
@@ -28,7 +29,11 @@ export default {
   methods: {
     active: (view) => state.activeSettingsView === view,
     setView(view) {
-      mutations.setActiveSettingsView(view);
+      if (state.route.path != "/settings") {
+        router.push({ path: "/settings", hash: "#" + view }, () => {});
+      } else {
+        mutations.setActiveSettingsView(view);
+      }
     },
   },
 };

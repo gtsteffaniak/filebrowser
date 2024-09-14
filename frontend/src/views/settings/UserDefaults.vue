@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="card" id="user-defaults-main">
+  <div class="card">
     <div class="card-title">
       <h2>{{ $t("settings.userDefaults") }}</h2>
     </div>
