@@ -3,7 +3,7 @@
     <div v-if="isRootSettings" class="settings-views">
       <div
         v-for="setting in settings"
-        v-if="allowedFor(setting)"
+        :v-if="shouldShow(setting)"
         :key="setting.id + '-main'"
         :id="setting.id + '-main'"
         :class="{
@@ -13,7 +13,7 @@
         @click="!active(setting.id + '-main') && setView(setting.id + '-main')"
       >
         <!-- Dynamically render the component based on the setting -->
-        <component :is="setting.component"></component>
+        <component v-if="shouldShow(setting)" :is="setting.component"></component>
       </div>
     </div>
     <div v-else class="settings-views">
@@ -79,14 +79,14 @@ export default {
     mutations.setActiveSettingsView(getters.currentHash());
   },
   methods: {
-    allowedFor(val) {
-      const isAdmin = state.user.perm?.admin;
-      const adminOnly = val?.admin;
-      if (adminOnly) {
-        return isAdmin;
-      } else {
+    shouldShow(setting) {
+      if (state.isMobile) {
+        if (setting?.requiresAdmin == true) {
+          return state.user.perm?.admin == true;
+        }
         return true;
       }
+      return this.active(setting.id + "-main");
     },
     active(id) {
       return state.activeSettingsView === id;

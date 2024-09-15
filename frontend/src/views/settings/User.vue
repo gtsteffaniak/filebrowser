@@ -115,13 +115,9 @@ export default {
           this.$router.push({ path: loc });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
-          if (this.user.id == state.user.id) {
-            mutations.setUser(user);
-            if (this.user.password != "") {
-              await api.update(user, [password]);
-            }
-          } else {
-            await api.update(user);
+          await api.update(user);
+          if (this.user.password != "") {
+            await api.update(user, [password]);
           }
           notify.showSuccess(this.$t("settings.userUpdated"));
         }

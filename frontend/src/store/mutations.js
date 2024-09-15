@@ -100,24 +100,19 @@ export const mutations = {
     state.reload = value;
     emitStateChanged();
   },
-  setUser: (value) => {
+  setCurrentUser: (value) => {
     if (value === null) {
       state.user = null;
       emitStateChanged();
       return;
     }
-    if (value.id != "" && value.id != state.user.id) {
-      return
-    }
+
     let locale = value.locale;
     if (locale === "") {
       value.locale = i18n.detectLocale();
     }
     let previousUser = state.user
     state.user = value;
-    if (state.user != previousUser && state.user.username != "publicUser") {
-      users.update(state.user);
-    }
     emitStateChanged();
   },
   setJWT: (value) => {
