@@ -2,6 +2,9 @@ import { mutations, state } from "@/store";
 
 export function showPopup(type, message) {
     const [popup, popupContent] = getElements();
+    if (popup == undefined) {
+        return
+    }
     popup.classList.remove('success', 'error'); // Clear previous types
     popup.classList.add(type);
     popupContent.textContent = message;

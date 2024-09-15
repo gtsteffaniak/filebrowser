@@ -3,6 +3,7 @@
     <div v-if="isRootSettings" class="settings-views">
       <div
         v-for="setting in settings"
+        v-if="allowedFor(setting)"
         :key="setting.id + '-main'"
         :id="setting.id + '-main'"
         :class="{
@@ -38,7 +39,6 @@
 import { state, getters, mutations } from "@/store";
 import { settings } from "@/utils/constants";
 import GlobalSettings from "@/views/settings/Global.vue";
-import UserDefaultSettings from "@/views/settings/UserDefaults.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
 import UserManagement from "@/views/settings/Users.vue";
@@ -50,7 +50,6 @@ export default {
     UserManagement,
     UserSettings,
     GlobalSettings,
-    UserDefaultSettings,
     ProfileSettings,
     SharesSettings,
   },
@@ -80,6 +79,15 @@ export default {
     mutations.setActiveSettingsView(getters.currentHash());
   },
   methods: {
+    allowedFor(val) {
+      const isAdmin = state.user.perm?.admin;
+      const adminOnly = val?.admin;
+      if (adminOnly) {
+        return isAdmin;
+      } else {
+        return true;
+      }
+    },
     active(id) {
       return state.activeSettingsView === id;
     },

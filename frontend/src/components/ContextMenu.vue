@@ -137,6 +137,7 @@ export default {
       return getters.isDarkMode();
     },
     headerButtons() {
+      console.log(state.user);
       return {
         select: state.selected.length > 0,
         upload: state.user.perm?.create && state.selected.length > 0,

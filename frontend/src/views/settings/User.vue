@@ -49,12 +49,12 @@ export default {
     return {
       error: null,
       originalUser: null,
-      user: { perm: { admin: false } },
+      user: {
+        username: "",
+        perm: { admin: false },
+      },
       showDelete: false,
       createUserDir: false,
-      loading: false, // Replaces Vuex state `loading`
-      currentPrompt: null, // Replaces Vuex getter `currentPrompt`
-      currentPromptName: null, // Replaces Vuex getter `currentPromptName`
     };
   },
   created() {
@@ -65,7 +65,7 @@ export default {
       return state.settings;
     },
     isNew() {
-      return state.route.path === "/settings/users/new";
+      return state.route.path.startsWith("/settings/users/new");
     },
   },
   watch: {
@@ -87,7 +87,10 @@ export default {
             id: 0,
           };
         } else {
-          this.user = { ...(await api.get(state.user.id)) };
+          const id = Array.isArray(state.route.params.id)
+            ? state.route.params.id.join("")
+            : state.route.params.id;
+          this.user = { ...(await api.get(id)) };
         }
       } catch (e) {
         notify.showError(e);
@@ -112,10 +115,13 @@ export default {
           this.$router.push({ path: loc });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
-          await api.update(user);
-          if (user.id === state.user.id) {
-            consoel.log("set user");
+          if (this.user.id == state.user.id) {
             mutations.setUser(user);
+            if (this.user.password != "") {
+              await api.update(user, [password]);
+            }
+          } else {
+            await api.update(user);
           }
           notify.showSuccess(this.$t("settings.userUpdated"));
         }

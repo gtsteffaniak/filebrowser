@@ -20,9 +20,9 @@ const origin = window.location.origin;
 
 const settings = [
   { id: 'profile', label: 'Profile Management', component: 'ProfileSettings' },
-  { id: 'shares', label: 'Share Management', component: 'SharesSettings' },
-  { id: 'global', label: 'Global', component: 'GlobalSettings' },
-  { id: 'users', label: 'User Management', component: 'UserManagement' },
+  { id: 'shares', label: 'Share Management', component: 'SharesSettings'},
+  { id: 'global', label: 'Global', component: 'GlobalSettings', "requireAdmin": true },
+  { id: 'users', label: 'User Management', component: 'UserManagement', "requireAdmin": true },
 ]
 
 export {

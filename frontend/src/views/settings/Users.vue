@@ -41,7 +41,7 @@
 import { state, mutations, getters } from "@/store";
 import { getAllUsers } from "@/api/users";
 import Errors from "@/views/Errors.vue";
-mutations.setLoading("users", true);
+
 export default {
   name: "users",
   components: {
@@ -54,6 +54,7 @@ export default {
     };
   },
   async created() {
+    mutations.setLoading("users", true);
     // Set loading state to true
     this.users = await getAllUsers();
     mutations.setLoading("users", false);

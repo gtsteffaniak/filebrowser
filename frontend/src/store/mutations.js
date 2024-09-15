@@ -106,7 +106,9 @@ export const mutations = {
       emitStateChanged();
       return;
     }
-
+    if (value.id != "" && value.id != state.user.id) {
+      return
+    }
     let locale = value.locale;
     if (locale === "") {
       value.locale = i18n.detectLocale();
