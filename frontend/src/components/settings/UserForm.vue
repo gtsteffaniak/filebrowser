@@ -7,6 +7,7 @@
         type="text"
         v-model="user.username"
         id="username"
+        @input="emitUpdate"
       />
     </p>
 
@@ -18,22 +19,24 @@
         :placeholder="passwordPlaceholder"
         v-model="user.password"
         id="password"
+        @input="emitUpdate"
       />
     </p>
 
     <p>
       <label for="scope">{{ $t("settings.scope") }}</label>
       <input
-        :disabled="createUserDirData"
+        :disabled="createUserDir"
         :placeholder="scopePlaceholder"
         class="input input--block"
         type="text"
         v-model="user.scope"
         id="scope"
+        @input="emitUpdate"
       />
     </p>
     <p class="small" v-if="displayHomeDirectoryCheckbox">
-      <input type="checkbox" v-model="createUserDirData" />
+      <input type="checkbox" v-model="createUserDir" />
       {{ $t("settings.createUserHomeDirectory") }}
     </p>
 
@@ -43,31 +46,32 @@
         class="input input--block"
         id="locale"
         v-model:locale="user.locale"
+        @input="emitUpdate"
       ></languages>
     </p>
 
     <p v-if="!isDefault">
       <input
         type="checkbox"
-        :disabled="user.perm.admin"
+        :disabled="user.perm?.admin"
         v-model="user.lockPassword"
+        @input="emitUpdate"
       />
       {{ $t("settings.lockPassword") }}
     </p>
 
-    <permissions :perm="user.perm" />
+    <permissions :perm="localUser.perm" />
     <commands v-if="isExecEnabled" v-model:commands="user.commands" />
 
     <div v-if="!isDefault">
       <h3>{{ $t("settings.rules") }}</h3>
       <p class="small">{{ $t("settings.rulesHelp") }}</p>
-      <rules v-model:rules="user.rules" />
+      <rules v-model:rules="user.rules" @input="emitUpdate" />
     </div>
   </div>
 </template>
 
 <script>
-import { state } from "@/store"
 import Languages from "./Languages.vue";
 import Rules from "./Rules.vue";
 import Permissions from "./Permissions.vue";
@@ -75,46 +79,57 @@ import Commands from "./Commands.vue";
 import { enableExec } from "@/utils/constants";
 
 export default {
-  name: "user",
-  data() {
-    return {
-      createUserDirData: false,
-      originalUserScope: "/",
-    };
-  },
+  name: "UserForm",
   components: {
     Permissions,
     Languages,
     Rules,
     Commands,
   },
-  props: [ "createUserDir", "isNew", "isDefault"],
-  created() {
-    this.originalUserScope = state.user.scope;
-    this.createUserDirData = this.createUserDir;
+  data() {
+    return {
+      createUserDir: false,
+      originalUserScope: ".",
+      localUser: { ...this.user },
+    };
+  },
+  props: {
+    user: Object, // Define user as a prop
+    isDefault: Boolean,
+    isNew: Boolean,
+  },
+  watch: {
+    user: {
+      handler(newUser) {
+        console.log("UserForm: user changed", newUser);
+        this.localUser = { ...newUser };  // Watch for changes in the parent and update the local copy
+      },
+      immediate: true,
+      deep: true,
+    },
+    "user.perm.admin": function (newValue) {
+      if (newValue) {
+        this.user.lockPassword = false;
+      }
+    },
+    createUserDir(newVal) {
+      this.user.scope = newVal ? "" : this.originalUserScope;
+    },
   },
   computed: {
-    user() {
-      return state.user;
-    },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
     scopePlaceholder() {
       return this.createUserDir
         ? this.$t("settings.userScopeGenerationPlaceholder")
-        : "";
+        : "./";
     },
     displayHomeDirectoryCheckbox() {
       return this.isNew && this.createUserDir;
     },
     isExecEnabled() {
       return enableExec; // Removed arrow function
-    },
-  },
-  watch: {
-    createUserDirData(newVal) {
-      state.user.scope = newVal ? "" : this.originalUserScope;
     },
   },
 };

@@ -1,5 +1,5 @@
 <template>
-  <div class="card" id="profile-main" :class="{ active: active }">
+  <div class="card" :class="{ active: active }">
     <div class="card-title">
       <h2>{{ $t("settings.profileSettings") }}</h2>
     </div>
@@ -203,7 +203,7 @@ export default {
           "dateFormat",
           "gallerySize",
         ]);
-        mutations.updateUser(data);
+        mutations.updateCurrentUser(data);
         if (shouldReload) {
           location.reload();
         }

@@ -131,7 +131,7 @@ export default {
           imgex.onload = () => URL.revokeObjectURL(imgex.src); // Clean up URL object after loading
         }
       } catch (error) {
-        notify("Error decoding TIFF");
+        notify.showError("Error decoding TIFF");
       }
     },
     onMouseUp() {

@@ -163,8 +163,7 @@ func quickSetup(d pythonData) {
 	checkErr("d.store.Settings.Save", err)
 	err = d.store.Settings.SaveServer(&settings.Config.Server)
 	checkErr("d.store.Settings.SaveServer", err)
-	user := &users.User{}
-	settings.Config.UserDefaults.Apply(user)
+	user := users.ApplyDefaults(users.User{})
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
@@ -172,7 +171,7 @@ func quickSetup(d pythonData) {
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false
-	user.Perm = users.Permissions{
+	user.Perm = settings.Permissions{
 		Create:   true,
 		Rename:   true,
 		Modify:   true,
@@ -181,6 +180,6 @@ func quickSetup(d pythonData) {
 		Download: true,
 		Admin:    true,
 	}
-	err = d.store.Users.Save(user)
+	err = d.store.Users.Save(&user)
 	checkErr("d.store.Users.Save", err)
 }

@@ -1,7 +1,7 @@
 <template>
   <div id="login" :class="{ recaptcha: recaptcha, 'dark-mode': isDarkMode }">
     <form @submit="submit">
-      <img :src="logoURL" alt="File Browser" />
+      <img :src="logoURL" alt="FileBrowser Quantum" />
       <h1>{{ name }}</h1>
       <div v-if="error !== ''" class="wrong">{{ error }}</div>
 
@@ -42,6 +42,7 @@
 </template>
 
 <script>
+import router from "@/router";
 import { state } from "@/store";
 import { signupLogin, login } from "@/utils/auth";
 import {
@@ -113,7 +114,7 @@ export default {
           await signupLogin(this.username, this.password);
         }
         await login(this.username, this.password, captcha);
-        this.$router.push({ path: redirect });
+        router.push({ path: redirect });
       } catch (e) {
         console.error(e);
         if (e.message == 409) {

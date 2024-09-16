@@ -32,13 +32,13 @@ export const mutations = {
     emitStateChanged();
   },
   toggleDarkMode() {
-    mutations.updateUser({ "darkMode": !state.user.darkMode });
+    mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
     emitStateChanged();
   },
   toggleSidebar() {
     if (state.user.stickySidebar) {
       localStorage.setItem("stickySidebar", "false");
-      mutations.updateUser({ "stickySidebar": false }); // turn off sticky when closed
+      mutations.updateCurrentUser({ "stickySidebar": false }); // turn off sticky when closed
       state.showSidebar = false;
     } else {
       state.showSidebar = !state.showSidebar;
@@ -100,22 +100,18 @@ export const mutations = {
     state.reload = value;
     emitStateChanged();
   },
-  setUser: (value) => {
-    if (value === null) {
-      state.user = null;
+  setCurrentUser: (value) => {
+    state.user = value;
+    // If value is null or undefined, emit state change and exit early
+    if (!value) {
       emitStateChanged();
       return;
     }
-
-    let locale = value.locale;
-    if (locale === "") {
-      value.locale = i18n.detectLocale();
+    // Ensure locale exists and is valid
+    if (!value.locale) {
+      value.locale = i18n.detectLocale();  // Default to detected locale if missing
     }
-    let previousUser = state.user
-    state.user = value;
-    if (state.user != previousUser && state.user.username != "publicUser") {
-      users.update(state.user);
-    }
+    // Emit state change after setting the user and locale
     emitStateChanged();
   },
   setJWT: (value) => {
@@ -150,22 +146,38 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
-  updateUser: (value) => {
-    if (typeof value !== "object") return;
-    if (state.user === null) {
+  updateCurrentUser: (value) => {
+    // Ensure the input is a valid object
+    if (typeof value !== "object" || value === null) return;
+
+    // Initialize state.user if it's null
+    if (!state.user) {
       state.user = {};
     }
-    let previousUser = state.user;
+
+    // Store previous state for comparison
+    const previousUser = { ...state.user };
+
+    // Merge the new values into the current user state
     state.user = { ...state.user, ...value };
+
+    // Handle locale change
     if (state.user.locale !== previousUser.locale) {
       state.user.locale = i18n.detectLocale();
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
     }
-    localStorage.setItem("stickySidebar", state.user.stickySidebar);
-    if (state.user != previousUser) {
-      users.update(state.user);
+
+    // Update localStorage if stickySidebar exists
+    if ('stickySidebar' in state.user) {
+      localStorage.setItem("stickySidebar", state.user.stickySidebar);
     }
+    // Update users if there's any change in state.user
+    if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
+      users.update(state.user,Object.keys(value));
+    }
+
+    // Emit state change event
     emitStateChanged();
   },
   updateRequest: (value) => {

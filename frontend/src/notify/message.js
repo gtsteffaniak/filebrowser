@@ -2,6 +2,9 @@ import { mutations, state } from "@/store";
 
 export function showPopup(type, message) {
     const [popup, popupContent] = getElements();
+    if (popup == undefined) {
+        return
+    }
     popup.classList.remove('success', 'error'); // Clear previous types
     popup.classList.add(type);
     popupContent.textContent = message;
@@ -50,10 +53,9 @@ export function showSuccess(message) {
 }
 
 export function showError(message) {
-    mutations.setMultiple(false)
     showPopup('error', message);
     console.error(message)
-} 
+}
 
 export function showMultipleSelection() {
     showPopup("action","Multiple Selection Enabled");

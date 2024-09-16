@@ -78,7 +78,7 @@ export default {
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const newView = this.viewModes[nextIndex];
-      mutations.updateUser({ viewMode: newView });
+      mutations.updateCurrentUser({ "viewMode": newView });
     },
   },
 };

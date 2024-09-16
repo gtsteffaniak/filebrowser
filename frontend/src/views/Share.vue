@@ -256,7 +256,7 @@ export default {
       // Reset view information.
       if (!getters.isLoggedIn()) {
         let userData = await api.getPublicUser();
-        mutations.setUser(userData);
+        mutations.setCurrentUser(userData);
       }
       mutations.setReload(false);
       mutations.resetSelected();

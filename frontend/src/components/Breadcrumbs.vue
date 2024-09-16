@@ -107,11 +107,6 @@ export default {
       return state.user?.perm && state.user?.perm.share; // Access from state directly
     },
   },
-  methods: {
-    // Example of a method using mutations
-    updateUserPermissions(newPerms) {
-      mutations.updateUser({ perm: newPerms });
-    },
-  },
+  methods: { },
 };
 </script>
