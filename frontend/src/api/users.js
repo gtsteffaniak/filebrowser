@@ -43,7 +43,11 @@ export async function create(user) {
 
 export async function update(user, which = ["all"]) {
   try {
-    if (which[0] !== "password") {
+    // List of keys to exclude from the "which" array
+    const excludeKeys = ["id", "name"];
+    // Filter out the keys from "which"
+    which = which.filter(item => !excludeKeys.includes(item));
+    if (which.length > 0 && which.includes("password")) {
       user.password = "";
     }
     if (user.username === "publicUser") {

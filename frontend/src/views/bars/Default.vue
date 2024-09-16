@@ -296,7 +296,8 @@ export default {
       mutations.closeHovers();
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
-      mutations.updateUser({ viewMode: this.viewModes[nextIndex] });
+      const newView = this.viewModes[nextIndex];
+      mutations.updateCurrentUser({ "viewMode": newView });
     },
     preventDefault(event) {
       // Wrapper around prevent default.

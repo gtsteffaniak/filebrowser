@@ -150,7 +150,6 @@ import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
-import { notify } from "@/notify";
 
 import Item from "@/components/files/ListingItem.vue";
 export default {
@@ -817,7 +816,7 @@ export default {
         },
       });
     },
-    clickClear(event) {
+    clickClear() {
       const sameAsBefore = state.selected == this.lastSelected;
       if (sameAsBefore && !state.multiple) {
         mutations.resetSelected();

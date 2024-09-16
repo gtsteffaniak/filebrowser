@@ -57,7 +57,7 @@ export default {
       createUserDir: false,
     };
   },
-  created() {
+  onMounted() {
     this.fetchData();
   },
   computed: {
@@ -67,9 +67,6 @@ export default {
     isNew() {
       return state.route.path.startsWith("/settings/users/new");
     },
-  },
-  watch: {
-    $route: "fetchData",
   },
   methods: {
     async fetchData() {
