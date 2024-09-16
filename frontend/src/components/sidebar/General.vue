@@ -44,35 +44,6 @@
 
   <!-- Section for logged-in users -->
   <div v-if="isLoggedIn" class="sidebar-scroll-list">
-    <!-- Buttons visible if user has create permission -->
-    <div v-if="user.perm?.create">
-      <!-- New Folder button -->
-      <button
-        @click="showHover('newDir')"
-        class="action"
-        :aria-label="$t('sidebar.newFolder')"
-        :title="$t('sidebar.newFolder')"
-      >
-        <i class="material-icons">create_new_folder</i>
-        <span>{{ $t("sidebar.newFolder") }}</span>
-      </button>
-      <!-- New File button -->
-      <button
-        @click="showHover('newFile')"
-        class="action"
-        :aria-label="$t('sidebar.newFile')"
-        :title="$t('sidebar.newFile')"
-      >
-        <i class="material-icons">note_add</i>
-        <span>{{ $t("sidebar.newFile") }}</span>
-      </button>
-      <!-- Upload button -->
-      <button id="upload-button" @click="uploadFunc" class="action">
-        <i class="material-icons">file_upload</i>
-        <span>Upload file</span>
-      </button>
-    </div>
-
     <div v-if="isLoggedIn" class="sources card">
       <span>Sources</span>
       <div class="inner-card">
@@ -138,7 +109,6 @@ import { files } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
-import { showError } from "@/notify";
 
 export default {
   name: "SidebarGeneral",
@@ -192,13 +162,13 @@ export default {
       this.hoverText = "Quick Toggles"; // Reset to default hover text
     },
     toggleClick() {
-      mutations.updateUser({ singleClick: !state.user.singleClick });
+      mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
     },
     toggleDarkMode() {
       mutations.toggleDarkMode();
     },
     toggleSticky() {
-      mutations.updateUser({ stickySidebar: !state.user.stickySidebar });
+      mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     async updateUsage() {
       if (!getters.isLoggedIn()) {
@@ -209,21 +179,16 @@ export default {
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      try {
-        let usage = await files.usage(path);
-        usageStats = {
-          used: getHumanReadableFilesize(usage.used / 1024),
-          total: getHumanReadableFilesize(usage.total / 1024),
-          usedPercentage: Math.round((usage.used / usage.total) * 100),
-        };
-      } catch (error) {
-        showError("Error fetching usage", error);
-      }
+      let usage = await files.usage(path);
+      usageStats = {
+        used: getHumanReadableFilesize(usage.used / 1024),
+        total: getHumanReadableFilesize(usage.total / 1024),
+        usedPercentage: Math.round((usage.used / usage.total) * 100),
+      };
+
       mutations.setUsage(usageStats);
     },
-    showHover(value) {
-      return mutations.showHover(value);
-    },
+
     navigateTo(path) {
       const hashIndex = path.indexOf("#");
       if (hashIndex !== -1) {
@@ -241,9 +206,7 @@ export default {
     help() {
       mutations.showHover("help");
     },
-    uploadFunc() {
-      mutations.showHover("upload");
-    },
+
     // Logout the user
     logout: auth.logout,
   },

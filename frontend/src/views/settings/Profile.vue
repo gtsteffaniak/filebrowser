@@ -1,5 +1,5 @@
 <template>
-  <div class="card" id="profile-main" :class="{ active: active }">
+  <div class="card" :class="{ active: active }">
     <div class="card-title">
       <h2>{{ $t("settings.profileSettings") }}</h2>
     </div>
@@ -97,7 +97,7 @@
 </template>
 
 <script>
-import { showSuccess, showError } from "@/notify";
+import { notify } from "@/notify";
 import { state, mutations } from "@/store";
 import { users } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -174,9 +174,9 @@ export default {
         newUserSettings.id = state.user.id;
         newUserSettings.password = this.password;
         await users.update(newUserSettings, ["password"]);
-        showSuccess(this.$t("settings.passwordUpdated"));
+        notify.showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
-        showError(e);
+        notify.showError(e);
       }
     },
     async updateSettings(event) {
@@ -203,13 +203,13 @@ export default {
           "dateFormat",
           "gallerySize",
         ]);
-        mutations.updateUser(data);
+        mutations.updateCurrentUser(data);
         if (shouldReload) {
           location.reload();
         }
-        showSuccess(this.$t("settings.settingsUpdated"));
+        notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        showError(e);
+        notify.showError(e);
       }
     },
     updateViewMode(updatedMode) {

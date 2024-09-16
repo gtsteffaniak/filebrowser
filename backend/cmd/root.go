@@ -26,6 +26,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/version"
 )
 
 //go:embed dist/*
@@ -47,7 +48,7 @@ func init() {
 	// Bind the flags to the pflag command line parser
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	log.Println("Initializing with config file:", *configFlag)
+	log.Printf("Initializing FileBrowser Quantum (%v) with config file: %v \n", version.Version, *configFlag)
 	log.Println("Embeded Frontend:", !nonEmbededFS)
 	settings.Initialize(*configFlag)
 }
@@ -162,8 +163,7 @@ func quickSetup(d pythonData) {
 	checkErr("d.store.Settings.Save", err)
 	err = d.store.Settings.SaveServer(&settings.Config.Server)
 	checkErr("d.store.Settings.SaveServer", err)
-	user := &users.User{}
-	settings.Config.UserDefaults.Apply(user)
+	user := users.ApplyDefaults(users.User{})
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
@@ -171,7 +171,7 @@ func quickSetup(d pythonData) {
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false
-	user.Perm = users.Permissions{
+	user.Perm = settings.Permissions{
 		Create:   true,
 		Rename:   true,
 		Modify:   true,
@@ -180,6 +180,6 @@ func quickSetup(d pythonData) {
 		Download: true,
 		Admin:    true,
 	}
-	err = d.store.Users.Save(user)
+	err = d.store.Users.Save(&user)
 	checkErr("d.store.Users.Save", err)
 }

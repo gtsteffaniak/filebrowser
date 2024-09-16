@@ -33,7 +33,7 @@
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
-import { showError,showSuccess } from "@/notify";
+import { notify } from "@/notify";
 
 export default {
   name: "delete",
@@ -59,7 +59,7 @@ export default {
         if (!this.isListing) {
           await api.remove(state.route.path);
           buttons.success("delete");
-          showSuccess("Deleted item successfully")
+          showSuccess("Deleted item successfully");
 
           this.currentPrompt?.confirm();
           this.closeHovers();
@@ -79,11 +79,11 @@ export default {
 
         await Promise.all(promises);
         buttons.success("delete");
-        showSuccess("Deleted item successfully")
+        showSuccess("Deleted item successfully");
         mutations.setReload(true); // Handle reload as needed
       } catch (e) {
         buttons.done("delete");
-        showError(e);
+        notify.showError(e);
         if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },

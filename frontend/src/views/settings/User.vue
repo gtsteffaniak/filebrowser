@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <form @submit="save" id="user-main" class="card">
+  <form @submit="save" class="card active">
     <div class="card-title">
       <h2 v-if="user.id === 0">{{ $t("settings.newUser") }}</h2>
       <h2 v-else>{{ $t("settings.user") }} {{ user.username }}</h2>
@@ -37,7 +37,7 @@ import { mutations, state } from "@/store";
 import { users as api, settings } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
-import { showSuccess, showError } from "@/notify";
+import { notify } from "@/notify";
 
 export default {
   name: "user",
@@ -49,12 +49,13 @@ export default {
     return {
       error: null,
       originalUser: null,
-      user: { perm: { admin: false } },
+      user: {
+        scope: ".",
+        username: "",
+        perm: { admin: false },
+      },
       showDelete: false,
       createUserDir: false,
-      loading: false, // Replaces Vuex state `loading`
-      currentPrompt: null, // Replaces Vuex getter `currentPrompt`
-      currentPromptName: null, // Replaces Vuex getter `currentPromptName`
     };
   },
   created() {
@@ -65,14 +66,14 @@ export default {
       return state.settings;
     },
     isNew() {
-      return state.route.path === "/settings/users/new";
+      return state.route.path.startsWith("/settings/users/new");
     },
-  },
-  watch: {
-    $route: "fetchData",
   },
   methods: {
     async fetchData() {
+      if (!state.route.path.startsWith("/settings")) {
+        return
+      }
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
@@ -87,11 +88,13 @@ export default {
             id: 0,
           };
         } else {
-          const id = state.route.params.id;
+          const id = Array.isArray(state.route.params.id)
+            ? state.route.params.id.join("")
+            : state.route.params.id;
           this.user = { ...(await api.get(id)) };
         }
       } catch (e) {
-        showError(e);
+        notify.showError(e);
         this.error = e;
       } finally {
         mutations.setLoading("users", false);
@@ -101,27 +104,19 @@ export default {
       mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
+      let user = this.user
       event.preventDefault();
-      let user = {
-        ...this.originalUser,
-        ...this.user,
-      };
-
       try {
         if (this.isNew) {
           const loc = await api.create(user);
           this.$router.push({ path: loc });
-          showSuccess(this.$t("settings.userCreated"));
+          notify.showSuccess(this.$t("settings.userCreated"));
         } else {
           await api.update(user);
-          if (user.id === state.user.id) {
-            consoel.log("set user");
-            mutations.setUser(user);
-          }
-          showSuccess(this.$t("settings.userUpdated"));
+          notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {
-        showError(e);
+        notify.showError(e);
       }
     },
   },

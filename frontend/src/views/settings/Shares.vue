@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="card" id="shares-main" :class="{ active: active }">
+  <div class="card" :class="{ active: active }">
     <div class="card-title">
       <h2>{{ $t("settings.shareManagement") }}</h2>
     </div>
@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import { showSuccess, showError } from "@/notify";
+import { notify } from "@/notify";
 import { share as api, users } from "@/api";
 import { state, mutations, getters } from "@/store";
 import { fromNow } from "@/utils/moment";
@@ -95,7 +95,7 @@ export default {
   mounted() {
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      showSuccess(this.$t("success.linkCopied"));
+      notify.showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
@@ -126,9 +126,9 @@ export default {
           try {
             api.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
-            showSuccess(this.$t("settings.shareDeleted"));
+            notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
-            showError(e);
+            notify.showError(e);
           }
         },
       });

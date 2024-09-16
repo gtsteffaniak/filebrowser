@@ -198,19 +198,26 @@ export default {
       this.$router.replace({ path: this.nextLink });
     },
     key(event) {
-      if (this.currentPrompt !== null) {
+      if (getters.currentPromptName() != null) {
         return;
       }
 
-      if (event.which === 13 || event.which === 39) {
-        // right arrow
-        if (this.hasNext) this.next();
-      } else if (event.which === 37) {
-        // left arrow
-        if (this.hasPrevious) this.prev();
-      } else if (event.which === 27) {
-        // esc
-        this.close();
+      const { key } = event;
+
+      switch (key) {
+        case "ArrowRight":
+          if (this.hasNext) {
+            this.next();
+          }
+          break;
+        case "ArrowLeft":
+          if (this.hasPrevious) {
+            this.prev();
+          }
+          break;
+        case ("Escape", "Backspace"):
+          this.close();
+          break;
       }
     },
     async updatePreview() {
@@ -222,13 +229,9 @@ export default {
       this.name = decodeURIComponent(dirs[dirs.length - 1]);
 
       if (!this.listing) {
-        try {
-          const path = url.removeLastDir(state.route.path);
-          const res = await api.fetch(path);
-          this.listing = res.items;
-        } catch (e) {
-          showError(e);
-        }
+        const path = url.removeLastDir(state.route.path);
+        const res = await api.fetch(path);
+        this.listing = res.items;
       }
 
       this.previousLink = "";

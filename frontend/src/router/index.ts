@@ -70,6 +70,14 @@ const routes = [
         name: "Settings",
         component: Settings,
       },
+      {
+        path: "users/:id",
+        name: "User",
+        component: Settings,
+        meta: {
+          requiresAdmin: true,
+        },
+      },
     ],
   },
   {

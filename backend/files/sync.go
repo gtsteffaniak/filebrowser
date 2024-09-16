@@ -8,24 +8,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-// GetFileMetadata retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetFileMetadata(adjustedPath string) (FileInfo, bool) {
-	si.mu.RLock()
-	dir, exists := si.Directories[adjustedPath]
-	si.mu.RUnlock()
-	if exists {
-		// Initialize the Metadata map if it is nil
-		if dir.Metadata == nil {
-			dir.Metadata = make(map[string]FileInfo)
-			si.SetDirectoryInfo(adjustedPath, dir)
-			return FileInfo{}, false
-		} else {
-			return dir.Metadata[adjustedPath], true
-		}
-	}
-	return FileInfo{}, false
-}
-
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 	si.mu.Lock()
@@ -45,7 +27,6 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 // SetFileMetadata sets the FileInfo for the specified directory in the index.
 // internal use only
 func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
-
 	_, exists := si.Directories[adjustedPath]
 	if !exists {
 		return false
@@ -57,6 +38,7 @@ func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
 func (si *Index) GetMetadataInfo(adjustedPath string) (FileInfo, bool) {
+	fi := FileInfo{}
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
@@ -65,11 +47,11 @@ func (si *Index) GetMetadataInfo(adjustedPath string) (FileInfo, bool) {
 		if dir.Metadata == nil {
 			dir.Metadata = make(map[string]FileInfo)
 			si.SetDirectoryInfo(adjustedPath, dir)
+		} else {
+			fi = dir.Metadata[adjustedPath]
 		}
-		info, metadataExists := dir.Metadata[adjustedPath]
-		return info, metadataExists
 	}
-	return FileInfo{}, false
+	return fi, exists
 }
 
 // SetDirectoryInfo sets the directory information in the index.
@@ -84,10 +66,7 @@ func (si *Index) GetDirectoryInfo(adjustedPath string) (Directory, bool) {
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
-	if exists {
-		return dir, true
-	}
-	return Directory{}, false
+	return dir, exists
 }
 
 func (si *Index) RemoveDirectory(path string) {

@@ -13,7 +13,7 @@ export function parseToken(token) {
   localStorage.setItem("jwt", token);
   mutations.setJWT(token);
   mutations.setSession(generateRandomCode(8));
-  mutations.setUser(data.user);
+  mutations.setCurrentUser(data.user);
 }
 
 export async function validateLogin() {
@@ -89,7 +89,7 @@ export async function signupLogin(username, password) {
 export function logout() {
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
   mutations.setJWT("");
-  mutations.setUser(null);
+  mutations.setCurrentUser(null);
   localStorage.setItem("jwt", null);
   router.push({ path: "/login" });
 }

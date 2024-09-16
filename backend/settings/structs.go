@@ -2,7 +2,6 @@ package settings
 
 import (
 	"github.com/gtsteffaniak/filebrowser/rules"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 type Settings struct {
@@ -82,9 +81,20 @@ type UserDefaults struct {
 		By  string `json:"by"`
 		Asc bool   `json:"asc"`
 	} `json:"sorting"`
-	Perm         users.Permissions `json:"perm"`
-	Permissions  users.Permissions `json:"permissions"`
-	Commands     []string          `json:"commands,omitempty"`
-	HideDotfiles bool              `json:"hideDotfiles"`
-	DateFormat   bool              `json:"dateFormat"`
+	Perm         Permissions `json:"perm"`
+	Permissions  Permissions `json:"permissions"`
+	Commands     []string    `json:"commands,omitempty"`
+	HideDotfiles bool        `json:"hideDotfiles"`
+	DateFormat   bool        `json:"dateFormat"`
+}
+
+type Permissions struct {
+	Admin    bool `json:"admin"`
+	Execute  bool `json:"execute"`
+	Create   bool `json:"create"`
+	Rename   bool `json:"rename"`
+	Modify   bool `json:"modify"`
+	Delete   bool `json:"delete"`
+	Share    bool `json:"share"`
+	Download bool `json:"download"`
 }

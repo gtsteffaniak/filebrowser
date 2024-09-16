@@ -21,7 +21,7 @@
 </template>
 <script>
 import { users as api } from "@/api";
-import { showSuccess,showError } from "@/notify";
+import { notify } from "@/notify";
 import buttons from "@/utils/buttons";
 import { state, mutations, getters } from "@/store";
 
@@ -40,12 +40,12 @@ export default {
       event.preventDefault();
       try {
         await api.remove(this.user.id);
-        this.$router.push({ path: "/settings/users" });
-        showSuccess(this.$t("settings.userDeleted"));
+        this.$router.push({ path: "/settings",hash:"#users-main" });
+        notify.showSuccess(this.$t("settings.userDeleted"));
       } catch (e) {
         e.message === "403"
-          ? showError(this.$t("errors.forbidden"), false)
-          : showError(e);
+          ? notify.showError(this.$t("errors.forbidden"), false)
+          : notify.showError(e);
       }
     },
     closeHovers() {
@@ -80,7 +80,7 @@ export default {
         mutations.setReload(true); // Handle reload as needed
       } catch (e) {
         buttons.done("delete");
-        showError(e);
+        notify.showError(e);
         if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },

@@ -1,37 +1,38 @@
 <template>
-  <div
-    :class="{ activebutton: this.isMaximized && this.isSelected }"
-    class="item"
+  <component
+    :is="isSelected || user.singleClick ? 'a' : 'div'"
+    :href="isSelected || user.singleClick ? url : undefined"
+    :class="{
+      item: true,
+      activebutton: isMaximized && isSelected,
+    }"
     role="button"
     tabindex="0"
     :draggable="isDraggable"
     @dragstart="dragStart"
     @dragover="dragOver"
     @drop="drop"
-    @click="itemClick"
     :data-dir="isDir"
     :data-type="type"
     :aria-label="name"
     :aria-selected="isSelected"
+    @click="isSelected || user.singleClick ? toggleClick() : itemClick($event)"
   >
-    <div
-      @click="toggleClick"
-      :class="{ activetitle: this.isMaximized && this.isSelected }"
-    >
+    <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
         v-if="readOnly === undefined && type === 'image' && isThumbsEnabled && isInView"
         v-lazy="thumbnailUrl"
-        :class="{ activeimg: this.isMaximized && this.isSelected }"
+        :class="{ activeimg: isMaximized && isSelected }"
         ref="thumbnail"
       />
       <i
-        :class="{ iconActive: this.isMaximized && this.isSelected }"
+        :class="{ iconActive: isMaximized && isSelected }"
         v-else
         class="material-icons"
       ></i>
     </div>
 
-    <div class="text" :class="{ activecontent: this.isMaximized && this.isSelected }">
+    <div class="text" :class="{ activecontent: isMaximized && isSelected }">
       <p class="name">{{ name }}</p>
       <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
       <p v-else class="size" :data-order="humanSize()">{{ humanSize() }}</p>
@@ -39,7 +40,7 @@
         <time :datetime="modified">{{ humanTime() }}</time>
       </p>
     </div>
-  </div>
+  </component>
 </template>
 
 <style>
@@ -73,7 +74,7 @@ import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "item",
-  data: function () {
+  data() {
     return {
       isThumbnailInView: false,
       isMaximized: false,
@@ -98,26 +99,11 @@ export default {
     selected() {
       return state.selected;
     },
-    req() {
-      return state.req;
-    },
-    jwt() {
-      return state.jwt;
-    },
-    selectedCount() {
-      return getters.selectedCount();
-    },
     isClicked() {
       if (state.user.singleClick || !this.allowedView) {
         return false;
       }
       return !this.isMaximized;
-    },
-    allowedView() {
-      return state.user.viewMode != "gallery" && state.user.viewMode != "normal";
-    },
-    singleClick() {
-      return this.readOnly == undefined && state.user.singleClick;
     },
     isSelected() {
       return this.selected.indexOf(this.index) !== -1;
@@ -181,18 +167,18 @@ export default {
     toggleClick() {
       this.isMaximized = this.isClicked;
     },
-    humanSize: function () {
+    humanSize() {
       return this.type == "invalid_link"
         ? "invalid link"
         : getHumanReadableFilesize(this.size);
     },
-    humanTime: function () {
+    humanTime() {
       if (this.readOnly == undefined && state.user.dateFormat) {
         return fromNow(this.modified, state.user.locale).format("L LT");
       }
       return fromNow(this.modified, state.user.locale);
     },
-    dragStart: function () {
+    dragStart() {
       if (getters.selectedCount() === 0) {
         mutations.addSelected(this.index);
         return;
@@ -203,7 +189,7 @@ export default {
         mutations.addSelected(this.index);
       }
     },
-    dragOver: function (event) {
+    dragOver(event) {
       if (!this.canDrop) return;
 
       event.preventDefault();
@@ -217,7 +203,7 @@ export default {
 
       el.style.opacity = 1;
     },
-    drop: async function (event) {
+    async drop(event) {
       if (!this.canDrop) return;
       event.preventDefault();
 
@@ -276,11 +262,11 @@ export default {
 
       action(overwrite, rename);
     },
-    itemClick: function (event) {
+    itemClick(event) {
       if (this.singleClick && !state.multiple) this.open();
       else this.click(event);
     },
-    click: function (event) {
+    click(event) {
       if (!this.singleClick && getters.selectedCount() !== 0) event.preventDefault();
 
       setTimeout(() => {
@@ -321,7 +307,7 @@ export default {
         mutations.resetSelected();
       mutations.addSelected(this.index);
     },
-    open: function () {
+    open() {
       this.$router.push({ path: this.url });
     },
   },

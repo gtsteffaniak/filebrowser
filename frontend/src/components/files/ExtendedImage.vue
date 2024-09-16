@@ -24,9 +24,9 @@
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
+import { state, mutations } from "@/store";
 import throttle from "@/utils/throttle";
-import { showError } from "@/notify";
+import { notify } from "@/notify";
 export default {
   props: {
     src: String,
@@ -131,8 +131,7 @@ export default {
           imgex.onload = () => URL.revokeObjectURL(imgex.src); // Clean up URL object after loading
         }
       } catch (error) {
-        showError("Error decoding TIFF");
-        console.error("Error decoding TIFF:", error);
+        notify.showError("Error decoding TIFF");
       }
     },
     onMouseUp() {

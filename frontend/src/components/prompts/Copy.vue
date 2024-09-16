@@ -52,7 +52,7 @@ import FileList from "./FileList.vue";
 import { files as api } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { showError } from "@/notify";
+import { notify } from "@/notify";
 
 export default {
   name: "copy",
@@ -102,7 +102,7 @@ export default {
           })
           .catch((e) => {
             buttons.done("copy");
-            showError(e);
+            notify.showError(e);
           });
       };
 

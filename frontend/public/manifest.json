@@ -1,6 +1,6 @@
 {
-  "name": "File Browser",
-  "short_name": "File Browser",
+  "name": "FileBrowser",
+  "short_name": "FileBrowser",
   "icons": [
     {
       "src": "./img/icons/android-chrome-192x192.png",

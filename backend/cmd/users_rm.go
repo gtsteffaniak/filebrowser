@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -26,6 +26,6 @@ var usersRmCmd = &cobra.Command{
 		}
 
 		checkErr("usersRmCmd", err)
-		fmt.Println("user deleted successfully")
+		log.Println("user deleted successfully")
 	}, pythonConfig{}),
 }

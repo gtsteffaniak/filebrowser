@@ -14,7 +14,7 @@
       <component :is="element" :to="link.url">{{ link.name }}</component>
     </span>
     <action style="display: contents" v-if="showShare" icon="share" show="share" />
-    <div v-if="isResizableView">
+    <div v-if="isCardView">
       Size:
       <input
         v-model="gallerySize"
@@ -31,7 +31,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store"; // Import mutations as well
-import Action from "@/components/header/Action.vue";
+import Action from "@/components/Action.vue";
 
 export default {
   name: "breadcrumbs",
@@ -51,8 +51,8 @@ export default {
   },
   props: ["base", "noLink"],
   computed: {
-    isResizableView() {
-      return getters.isResizableView();
+    isCardView() {
+      return getters.isCardView();
     },
     items() {
       const relativePath = state.route.path.replace(this.base, "");
@@ -107,11 +107,6 @@ export default {
       return state.user?.perm && state.user?.perm.share; // Access from state directly
     },
   },
-  methods: {
-    // Example of a method using mutations
-    updateUserPermissions(newPerms) {
-      mutations.updateUser({ perm: newPerms });
-    },
-  },
+  methods: { },
 };
 </script>

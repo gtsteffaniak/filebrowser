@@ -3,10 +3,9 @@ package settings
 import (
 	"log"
 	"os"
-	"strings"
+	"path/filepath"
 
 	"github.com/goccy/go-yaml"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var Config Settings
@@ -19,7 +18,16 @@ func Initialize(configFile string) {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
-	Config.Server.Root = strings.TrimSuffix(Config.Server.Root, "/")
+	// Convert relative path to absolute path
+	realRoot, err := filepath.Abs(Config.Server.Root)
+	if err != nil {
+		log.Fatalf("Error getting root path: %v", err)
+	}
+	_, err = os.Stat(realRoot)
+	if err != nil {
+		log.Fatalf("ERROR: Configured Root Path does not exist! %v", err)
+	}
+	Config.Server.Root = realRoot
 }
 
 func loadConfigFile(configFile string) []byte {
@@ -77,8 +85,9 @@ func setDefaults() Settings {
 			HideDotfiles:    true,
 			DarkMode:        false,
 			DisableSettings: false,
+			ViewMode:        "normal",
 			Locale:          "en",
-			Permissions: users.Permissions{
+			Permissions: Permissions{
 				Create:   false,
 				Rename:   false,
 				Modify:   false,
@@ -89,20 +98,4 @@ func setDefaults() Settings {
 			},
 		},
 	}
-}
-
-// Apply applies the default options to a user.
-func (d *UserDefaults) Apply(u *users.User) {
-	u.StickySidebar = d.StickySidebar
-	u.DisableSettings = d.DisableSettings
-	u.DarkMode = d.DarkMode
-	u.Scope = d.Scope
-	u.Locale = d.Locale
-	u.ViewMode = d.ViewMode
-	u.SingleClick = d.SingleClick
-	u.Perm = d.Perm
-	u.Sorting = d.Sorting
-	u.Commands = d.Commands
-	u.HideDotfiles = d.HideDotfiles
-	u.DateFormat = d.DateFormat
 }

@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.9
+
+  This release focused on UI navigation experience. Improving keyboard navigation and adds right click context menu.
+
+  **New Features**:
+  - listing view items are middle-clickable on selected listing or when in single-click mode.
+  - listing view items can be navigated via arrow keys.
+  - listing view can jump to items using letters and number keys to cycle through files that start with that character.
+  - You can use the enter key and backspace key to navigate backwards and forwards on selected items.
+  - ctr-space will open/close the search (leaving ctr-f to browser default find prompt)
+  - Added right-click context menu to replace the file selection prompt.
+
+  **Bugfixes**:
+  - Fixed drag to upload not working.
+  - Fixed shared video link issues.
+  - Fixed user edit bug related to other user.
+  - Fixed password reset bug.
+  - Fixed loading state getting stuck.
+
 ## v0.2.8
 
 - **Feature**: New gallary view scaling options (closes [#141](https://github.com/gtsteffaniak/filebrowser/issues/141))

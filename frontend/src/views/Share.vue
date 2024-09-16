@@ -119,20 +119,6 @@
               readOnly
             >
             </item>
-
-            <div :class="{ active: multiple }" id="multiple-selection">
-              <p>{{ $t("files.multipleSelectionEnabled") }}</p>
-              <div
-                @click="setMultipleFalse"
-                tabindex="0"
-                role="button"
-                :title="$t('files.clear')"
-                :aria-label="$t('files.clear')"
-                class="action"
-              >
-                <i class="material-icons">clear</i>
-              </div>
-            </div>
           </div>
         </div>
         <div
@@ -149,7 +135,7 @@
   </div>
 </template>
 <script>
-import { showSuccess } from "@/notify";
+import { notify } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { pub as api } from "@/api";
 import { fromNow } from "@/utils/moment";
@@ -184,15 +170,14 @@ export default {
     },
   },
   created() {
-    const hash = state.route.params.path.at(-1);
-    this.hash = hash;
+    this.hash = state.route.params.path.at(0);
     this.fetchData();
   },
   mounted() {
     window.addEventListener("keydown", this.keyEvent);
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      showSuccess(this.$t("success.linkCopied"));
+      notify.showSuccess(this.$t("success.linkCopied"));
     });
   },
   beforeUnmount() {
@@ -226,10 +211,19 @@ export default {
       return "insert_drive_file";
     },
     link() {
-      return api.getDownloadURL(state.req);
+      return api.getDownloadURL({
+        hash: this.hash,
+        path: window.location.pathname,
+      });
     },
     inlineLink() {
-      return api.getDownloadURL(state.req, true);
+      return api.getDownloadURL(
+        {
+          hash: this.hash,
+          path: window.location.pathname,
+        },
+        true
+      );
     },
     humanSize() {
       if (state.req.isDir) {
@@ -262,7 +256,7 @@ export default {
       // Reset view information.
       if (!getters.isLoggedIn()) {
         let userData = await api.getPublicUser();
-        mutations.setUser(userData);
+        mutations.setCurrentUser(userData);
       }
       mutations.setReload(false);
       mutations.resetSelected();
@@ -324,3 +318,8 @@ export default {
   },
 };
 </script>
+<style>
+.share {
+  padding-bottom: 35vh;
+}
+</style>

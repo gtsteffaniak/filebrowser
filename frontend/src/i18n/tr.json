@@ -175,7 +175,7 @@
     "avoidChanges": "(değişiklikleri önlemek için boş bırakın)",
     "branding": "Marka",
     "brandingDirectoryPath": "Marka dizin yolu",
-    "brandingHelp": "Adını değiştirerek, logoyu değiştirerek, özel stiller ekleyerek ve hatta GitHub'a harici bağlantıları devre dışı bırakarak Filebrowser örneğinizin görünüşünü ve hissini özelleştirebilirsiniz.\nÖzel marka bilinci oluşturma hakkında daha fazla bilgi için lütfen {0} sayfasına göz atın.",
+    "brandingHelp": "Adını değiştirerek, logoyu değiştirerek, özel stiller ekleyerek ve hatta GitHub'a harici bağlantıları devre dışı bırakarak FileBrowser örneğinizin görünüşünü ve hissini özelleştirebilirsiniz.\nÖzel marka bilinci oluşturma hakkında daha fazla bilgi için lütfen {0} sayfasına göz atın.",
     "changePassword": "Şifre Değiştir",
     "commandRunner": "Komut satırı",
     "commandRunnerHelp": "Burada, adlandırılmış olaylarda yürütülen komutları ayarlayabilirsiniz. Her satıra bir tane yazmalısınız. {0} ve {1} ortam değişkenleri, {1}'ye göre {0} olacak şekilde kullanılabilir olacaktır. Bu özellik ve mevcut ortam değişkenleri hakkında daha fazla bilgi için lütfen {2}'yi okuyun.",

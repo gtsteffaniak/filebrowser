@@ -187,7 +187,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 func (a *HookAuth) GetUser(d *users.User) *users.User {
 	// adds all permissions when user is admin
 	isAdmin := d.Perm.Admin
-	perms := users.Permissions{
+	perms := settings.Permissions{
 		Admin:    isAdmin,
 		Execute:  isAdmin || d.Perm.Execute,
 		Create:   isAdmin || d.Perm.Create,

@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 
 export const getters = {
-  isResizableView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
+  isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
   currentHash: () => state.route.hash.replace("#", ""),
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
@@ -19,6 +19,7 @@ export const getters = {
   isFiles: () => state.route.name === "Files",
   isListing: () => getters.isFiles() && state.req.isDir,
   selectedCount: () => Array.isArray(state.selected) ? state.selected.length : 0,
+  getFirstSelected: () => state.req.items[state.selected[0]],
   isSingleFileSelected: () => getters.selectedCount() === 1 && !state.req.items[state.selected[0]]?.isDir,
   selectedDownloadUrl() {
     let selectedItem = state.selected[0]
@@ -77,7 +78,7 @@ export const getters = {
     return { dirs, files };
   },
   isSidebarVisible: () => {
-    let visible = state.showSidebar || getters.isStickySidebar()
+    let visible = (state.showSidebar || getters.isStickySidebar()) && state.user.username != "publicUser"
     if (getters.currentView() == "settings") {
       visible = !getters.isMobile();
     }

@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -127,11 +126,10 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 		return http.StatusBadRequest, nil
 	}
 
-	user := &users.User{
-		Username: info.Username,
-		Password: info.Password,
-	}
-	settings.Config.UserDefaults.Apply(user)
+	user := users.ApplyDefaults(users.User{})
+	user.Username = info.Username
+	user.Password = info.Password
+
 	userHome, err := d.settings.MakeUserDir(user.Username, user.Scope, d.server.Root)
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
@@ -139,8 +137,7 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 	}
 	user.Scope = userHome
 	log.Printf("new user: %s, home dir: [%s].", user.Username, userHome)
-	settings.Config.UserDefaults.Apply(user)
-	err = d.store.Users.Save(user)
+	err = d.store.Users.Save(&user)
 	if err == errors.ErrExist {
 		return http.StatusConflict, err
 	} else if err != nil {
@@ -157,7 +154,6 @@ var renewHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data
 func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User) (int, error) {
 	duration, err := time.ParseDuration(settings.Config.Auth.TokenExpirationTime)
 	if err != nil {
-		fmt.Println("Error parsing duration:", err)
 		duration = time.Hour * 2
 	}
 	claims := &authToken{

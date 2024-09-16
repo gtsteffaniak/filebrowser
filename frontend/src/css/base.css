@@ -92,7 +92,9 @@ main > div {
 }
 
 .breadcrumbs {
-  height: 3em;
+  overflow-x: auto;
+  height: auto;
+  min-height: 3em;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
@@ -162,23 +164,25 @@ button:disabled {
 }
 
 #popup-notification {
-  color: white;
+  border-radius: 1em;
+  color: #fff;
   position: fixed;
   max-width: 90vw;
   height: 4em;
   bottom: 0;
-  right: -20em; /* Start off-screen */
+  right: -20em;
   display: flex;
-  padding: 1em;
+  padding: 0.5em;
   align-items: center;
-  transition: right 1s ease; /* Animate the 'right' property */
+  transition: right 1s ease;
   z-index: 5;
+  margin: 1em;
+  height: auto;
 }
 
 #popup-notification-content {
   color: white;
-  padding: 0;
-  padding-left: .5em;
+  padding: 1em;
 }
 
 #popup-notification.success {
