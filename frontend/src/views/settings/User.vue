@@ -50,6 +50,7 @@ export default {
       error: null,
       originalUser: null,
       user: {
+        scope: ".",
         username: "",
         perm: { admin: false },
       },
@@ -57,7 +58,7 @@ export default {
       createUserDir: false,
     };
   },
-  onMounted() {
+  created() {
     this.fetchData();
   },
   computed: {
@@ -70,6 +71,9 @@ export default {
   },
   methods: {
     async fetchData() {
+      if (!state.route.path.startsWith("/settings")) {
+        return
+      }
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
@@ -100,25 +104,15 @@ export default {
       mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
+      let user = this.user
       event.preventDefault();
-      let user = {
-        ...this.originalUser,
-        ...this.user,
-      };
-      console.log(this.user);
-
       try {
         if (this.isNew) {
           const loc = await api.create(user);
           this.$router.push({ path: loc });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
-          console.log("user", user);
           await api.update(user);
-          if (this.user.password != "") {
-            console.log("password", user);
-            await api.update(user, ["password"]);
-          }
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {

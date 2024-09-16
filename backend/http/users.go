@@ -130,7 +130,7 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
-	newUser := users.GetUserWithDefaults(req.Data)
+	newUser := users.ApplyDefaults(*req.Data)
 
 	userHome, err := d.settings.MakeUserDir(req.Data.Username, req.Data.Scope, d.server.Root)
 	if err != nil {
@@ -176,7 +176,9 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 		t := v.Type()
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
-			if field.Name != "Password" && field.Name != "Fs" {
+			if field.Name == "Password" && req.Data.Password != "" {
+				req.Which = append(req.Which, field.Name)
+			} else if field.Name != "Password" && field.Name != "Fs" {
 				req.Which = append(req.Which, field.Name)
 			}
 		}

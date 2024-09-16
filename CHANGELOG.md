@@ -16,7 +16,8 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bugfixes**:
   - Fixed drag to upload not working.
-  - fixed shared video link issues
+  - Fixed shared video link issues.
+  - Fixed user edit bug related to other user.
 
 ## v0.2.8
 

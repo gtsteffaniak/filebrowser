@@ -40,7 +40,7 @@ export default {
       event.preventDefault();
       try {
         await api.remove(this.user.id);
-        this.$router.push({ path: "/settings/users" });
+        this.$router.push({ path: "/settings",hash:"#users-main" });
         notify.showSuccess(this.$t("settings.userDeleted"));
       } catch (e) {
         e.message === "403"

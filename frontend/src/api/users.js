@@ -47,13 +47,9 @@ export async function update(user, which = ["all"]) {
     const excludeKeys = ["id", "name"];
     // Filter out the keys from "which"
     which = which.filter(item => !excludeKeys.includes(item));
-    if (which.length > 0 && which.includes("password")) {
-      user.password = "";
-    }
     if (user.username === "publicUser") {
       return;
     }
-    console.log("putting",which,user)
     await fetchURL(`/api/users/${user.id}`, {
       method: "PUT",
       body: JSON.stringify({

@@ -5,8 +5,9 @@
       <input
         class="input input--block"
         type="text"
-        v-model="userData.username"
+        v-model="user.username"
         id="username"
+        @input="emitUpdate"
       />
     </p>
 
@@ -16,8 +17,9 @@
         class="input input--block"
         type="password"
         :placeholder="passwordPlaceholder"
-        v-model="userData.password"
+        v-model="user.password"
         id="password"
+        @input="emitUpdate"
       />
     </p>
 
@@ -28,8 +30,9 @@
         :placeholder="scopePlaceholder"
         class="input input--block"
         type="text"
-        v-model="userData.scope"
+        v-model="user.scope"
         id="scope"
+        @input="emitUpdate"
       />
     </p>
     <p class="small" v-if="displayHomeDirectoryCheckbox">
@@ -42,26 +45,28 @@
       <languages
         class="input input--block"
         id="locale"
-        v-model:locale="userData.locale"
+        v-model:locale="user.locale"
+        @input="emitUpdate"
       ></languages>
     </p>
 
     <p v-if="!isDefault">
       <input
         type="checkbox"
-        :disabled="userData.perm.admin"
-        v-model="userData.lockPassword"
+        :disabled="user.perm?.admin"
+        v-model="user.lockPassword"
+        @input="emitUpdate"
       />
       {{ $t("settings.lockPassword") }}
     </p>
 
-    <permissions :perm="userData.perm" />
-    <commands v-if="isExecEnabled" v-model:commands="userData.commands" />
+    <permissions :perm="localUser.perm" />
+    <commands v-if="isExecEnabled" v-model:commands="user.commands" />
 
     <div v-if="!isDefault">
       <h3>{{ $t("settings.rules") }}</h3>
       <p class="small">{{ $t("settings.rulesHelp") }}</p>
-      <rules v-model:rules="userData.rules" />
+      <rules v-model:rules="user.rules" @input="emitUpdate" />
     </div>
   </div>
 </template>
@@ -84,16 +89,23 @@ export default {
   data() {
     return {
       createUserDir: false,
-      originalUserScope: this.user.scope,
-      userData: { ...this.user }, // Create a local copy of the user object
+      originalUserScope: ".",
+      localUser: { ...this.user },
     };
   },
+  props: {
+    user: Object, // Define user as a prop
+    isDefault: Boolean,
+    isNew: Boolean,
+  },
   watch: {
-    userData: {
-      deep: true, // Watch nested changes
-      handler(newValue) {
-        this.$emit("update:user", newValue); // Emit the updated user data to the parent
+    user: {
+      handler(newUser) {
+        console.log("UserForm: user changed", newUser);
+        this.localUser = { ...newUser };  // Watch for changes in the parent and update the local copy
       },
+      immediate: true,
+      deep: true,
     },
     "user.perm.admin": function (newValue) {
       if (newValue) {

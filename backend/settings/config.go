@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/goccy/go-yaml"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var Config Settings
@@ -86,8 +85,9 @@ func setDefaults() Settings {
 			HideDotfiles:    true,
 			DarkMode:        false,
 			DisableSettings: false,
+			ViewMode:        "normal",
 			Locale:          "en",
-			Permissions: users.Permissions{
+			Permissions: Permissions{
 				Create:   false,
 				Rename:   false,
 				Modify:   false,
@@ -98,20 +98,4 @@ func setDefaults() Settings {
 			},
 		},
 	}
-}
-
-// Apply applies the default options to a user.
-func (d *UserDefaults) Apply(u *users.User) {
-	u.StickySidebar = d.StickySidebar
-	u.DisableSettings = d.DisableSettings
-	u.DarkMode = d.DarkMode
-	u.Scope = d.Scope
-	u.Locale = d.Locale
-	u.ViewMode = d.ViewMode
-	u.SingleClick = d.SingleClick
-	u.Perm = d.Perm
-	u.Sorting = d.Sorting
-	u.Commands = d.Commands
-	u.HideDotfiles = d.HideDotfiles
-	u.DateFormat = d.DateFormat
 }

@@ -55,7 +55,7 @@ export function showSuccess(message) {
 export function showError(message) {
     showPopup('error', message);
     console.error(message)
-} 
+}
 
 export function showMultipleSelection() {
     showPopup("action","Multiple Selection Enabled");
