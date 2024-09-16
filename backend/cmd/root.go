@@ -48,7 +48,7 @@ func init() {
 	// Bind the flags to the pflag command line parser
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	log.Printf("Initializing Filebrowser Quantum (%v) with config file: %v \n", version.Version, *configFlag)
+	log.Printf("Initializing FileBrowser Quantum (%v) with config file: %v \n", version.Version, *configFlag)
 	log.Println("Embeded Frontend:", !nonEmbededFS)
 	settings.Initialize(*configFlag)
 }

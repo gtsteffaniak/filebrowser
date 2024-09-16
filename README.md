@@ -4,7 +4,7 @@
 <p align="center">
   <img src="frontend/public/img/icons/favicon-256x256.png" width="100" title="Login With Custom URL">
 </p>
-<h3 align="center">Filebrowser Quantum - A modern web-based file manager</h3>
+<h3 align="center">FileBrowser Quantum - A modern web-based file manager</h3>
 <p align="center">
   <img width="800" src="https://github.com/user-attachments/assets/8ba93582-aba2-4996-8ac3-25f763a2e596" title="Main Screenshot">
 </p>
@@ -15,7 +15,7 @@
 > Starting with v0.2.4 *ALL* share links need to be re-created (due to
 > security fix).
 
-Filebrowser Quantum is a fork of the filebrowser opensource project with the 
+FileBrowser Quantum is a fork of the filebrowser opensource project with the 
 following changes:
 
   1. [x] Enhanced lightning fast indexed search
@@ -33,7 +33,7 @@ following changes:
 
 ## About
 
-Filebrowser Quantum provides a file managing interface within a specified directory
+FileBrowser Quantum provides a file managing interface within a specified directory
 and can be used to upload, delete, preview, rename, and edit your files.
 It allows the creation of multiple users and each user can have its 
 directory.
@@ -44,7 +44,7 @@ aesthetics and performance. Improved search, simplified ui
 (without removing features) and more secure and up-to-date
 build are just a few examples.
 
-Filebrowser Quantum differs significantly to the original.
+FileBrowser Quantum differs significantly to the original.
 There are hundreds of thousands of lines changed and they are generally
 no longer compatible with each other. This has been intentional -- the
 focus of this fork is on a few key principles:
