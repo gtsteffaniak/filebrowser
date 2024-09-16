@@ -108,6 +108,7 @@ export default {
         ...this.originalUser,
         ...this.user,
       };
+      console.log(this.user);
 
       try {
         if (this.isNew) {
@@ -115,9 +116,11 @@ export default {
           this.$router.push({ path: loc });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
+          console.log("user", user);
           await api.update(user);
           if (this.user.password != "") {
-            await api.update(user, [password]);
+            console.log("password", user);
+            await api.update(user, ["password"]);
           }
           notify.showSuccess(this.$t("settings.userUpdated"));
         }

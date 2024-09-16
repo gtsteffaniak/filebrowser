@@ -7,7 +7,7 @@
     @click="setView(setting.id + '-main')"
     :class="{ 'active-settings': active(setting.id + '-main') }"
   >
-    <div class="card-wrapper">{{ setting.label }}</div>
+    <div v-if="shouldShow(setting)" class="card-wrapper">{{ setting.label }}</div>
   </div>
 </template>
 
@@ -27,6 +27,11 @@ export default {
     currentHash: () => getters.currentHash(),
   },
   methods: {
+    shouldShow(setting) {
+      const perm = setting?.perm || {};
+      // Check if all keys in setting.perm exist in state.user.perm and have truthy values
+      return Object.keys(perm).every((key) => state.user.perm[key]);
+    },
     active: (view) => state.activeSettingsView === view,
     setView(view) {
       if (state.route.path != "/settings") {

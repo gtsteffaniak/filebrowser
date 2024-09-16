@@ -786,7 +786,6 @@ export default {
     },
     setMultiple(val) {
       mutations.setMultiple(val == true);
-      console.log("setting multiple");
       showMultipleSelection();
     },
     openSearch() {

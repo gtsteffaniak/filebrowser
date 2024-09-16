@@ -3,7 +3,6 @@
     <div v-if="isRootSettings" class="settings-views">
       <div
         v-for="setting in settings"
-        :v-if="shouldShow(setting)"
         :key="setting.id + '-main'"
         :id="setting.id + '-main'"
         :class="{
@@ -81,10 +80,9 @@ export default {
   methods: {
     shouldShow(setting) {
       if (state.isMobile) {
-        if (setting?.requiresAdmin == true) {
-          return state.user.perm?.admin == true;
-        }
-        return true;
+        const perm = setting?.perm || {};
+        // Check if all keys in setting.perm exist in state.user.perm and have truthy values
+        return Object.keys(perm).every((key) => state.user.perm[key]);
       }
       return this.active(setting.id + "-main");
     },
@@ -109,6 +107,7 @@ export default {
 .settings-views {
   max-width: 1000px;
   padding-bottom: 35vh;
+  width: 100%;
 }
 .settings-views > .active > .card {
   border-style: solid;
