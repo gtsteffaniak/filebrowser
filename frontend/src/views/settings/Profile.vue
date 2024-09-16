@@ -203,7 +203,7 @@ export default {
           "dateFormat",
           "gallerySize",
         ]);
-        mutations.updateUser(data);
+        mutations.updateCurrentUser(data);
         if (shouldReload) {
           location.reload();
         }

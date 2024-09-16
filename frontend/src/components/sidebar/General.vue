@@ -162,13 +162,13 @@ export default {
       this.hoverText = "Quick Toggles"; // Reset to default hover text
     },
     toggleClick() {
-      mutations.updateUser({ singleClick: !state.user.singleClick });
+      mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
     },
     toggleDarkMode() {
       mutations.toggleDarkMode();
     },
     toggleSticky() {
-      mutations.updateUser({ stickySidebar: !state.user.stickySidebar });
+      mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     async updateUsage() {
       if (!getters.isLoggedIn()) {

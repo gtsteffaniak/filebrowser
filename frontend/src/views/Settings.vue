@@ -109,6 +109,7 @@ export default {
 .settings-views {
   max-width: 1000px;
   padding-bottom: 35vh;
+  width: 100%;
 }
 .settings-views > .active > .card {
   border-style: solid;
