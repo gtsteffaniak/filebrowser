@@ -130,19 +130,21 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
+	newUser := users.GetUserWithDefaults(req.Data)
+
 	userHome, err := d.settings.MakeUserDir(req.Data.Username, req.Data.Scope, d.server.Root)
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
 		return http.StatusInternalServerError, err
 	}
-	req.Data.Scope = userHome
+	newUser.Scope = userHome
 	log.Printf("user: %s, home dir: [%s].", req.Data.Username, userHome)
 	_, _, err = files.GetRealPath(d.server.Root, req.Data.Scope)
 	if err != nil {
 		log.Println("user path is not valid", req.Data.Scope)
 		return http.StatusBadRequest, nil
 	}
-	err = d.store.Users.Save(req.Data)
+	err = d.store.Users.Save(&newUser)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

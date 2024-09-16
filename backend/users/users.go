@@ -1,9 +1,11 @@
 package users
 
 import (
+	"reflect"
 	"regexp"
 
 	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 type Permissions struct {
@@ -80,4 +82,33 @@ func (u *User) CanExecute(command string) bool {
 	}
 
 	return false
+}
+
+// Copy non-zero fields from req.Data to newUser
+func GetUserWithDefaults(reqData *User) User {
+	newUser := User{
+		Scope:        settings.Config.UserDefaults.Scope,
+		Locale:       settings.Config.UserDefaults.Locale,
+		ViewMode:     settings.Config.UserDefaults.ViewMode,
+		SingleClick:  settings.Config.UserDefaults.SingleClick,
+		Sorting:      settings.Config.UserDefaults.Sorting,
+		Perm:         settings.Config.UserDefaults.Perm,
+		Commands:     settings.Config.UserDefaults.Commands,
+		HideDotfiles: settings.Config.UserDefaults.HideDotfiles,
+	}
+
+	defaultValue := reflect.ValueOf(newUser).Elem()
+	reqValue := reflect.ValueOf(reqData).Elem()
+
+	for i := 0; i < defaultValue.NumField(); i++ {
+		field := defaultValue.Type().Field(i).Name
+		reqFieldValue := reqValue.FieldByName(field)
+
+		// Only copy over non-zero values from reqData
+		if !reqFieldValue.IsZero() {
+			defaultValue.FieldByName(field).Set(reqFieldValue)
+		}
+	}
+
+	return newUser
 }

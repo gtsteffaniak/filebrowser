@@ -9,7 +9,7 @@
     <script src="[{[ .ReCaptchaHost ]}]/recaptcha/api.js?render=explicit" data-vite-ignore></script>
   [{[ end ]}]
 
-  <title>[{[ if .Name -]}][{[ .Name ]}][{[ else ]}]File Browser[{[ end ]}]</title>
+  <title>[{[ if .Name -]}][{[ .Name ]}][{[ else ]}]FileBrowser Quantum[{[ end ]}]</title>
 
   <link rel="icon" type="image/png" sizes="256x256" href="[{[ .StaticURL ]}]/img/icons/favicon-256x256.png">
 
@@ -33,8 +33,8 @@
 
     var fullStaticURL = window.location.origin + window.FileBrowser.StaticURL;
     var dynamicManifest = {
-      "name": window.FileBrowser.Name || 'File Browser Quantum',
-      "short_name": window.FileBrowser.Name || 'File Browser',
+      "name": window.FileBrowser.Name || 'FileBrowser Quantum',
+      "short_name": window.FileBrowser.Name || 'FileBrowser',
       "icons": [
         {
           "src": fullStaticURL + "/img/icons/android-chrome-256x256.png",

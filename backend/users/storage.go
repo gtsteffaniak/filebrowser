@@ -1,7 +1,6 @@
 package users
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -123,7 +122,6 @@ func (s *Storage) DeleteRule(userID string, ruleID string) error {
 
 // Save saves the user in a storage.
 func (s *Storage) Save(user *User) error {
-	log.Println("Saving new user:", user.Username)
 	return s.back.Save(user)
 }
 

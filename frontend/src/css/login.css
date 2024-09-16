@@ -43,6 +43,8 @@
   padding: .5em;
   text-align: center;
   animation: .2s opac forwards;
+  margin-bottom: 0.5em;
+  border-radius: 1em;
 }
 
 @keyframes opac {
