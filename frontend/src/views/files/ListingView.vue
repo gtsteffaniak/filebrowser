@@ -286,14 +286,14 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
+    this.$el.addEventListener("click", this.clickClear);
+    this.$el.addEventListener("contextmenu", this.openContext);
 
     if (!state.user.perm?.create) return;
     this.$el.addEventListener("dragover", this.preventDefault);
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
-    this.$el.addEventListener("contextmenu", this.openContext);
-    this.$el.addEventListener("click", this.clickClear);
   },
   beforeUnmount() {
     // Remove event listeners before destroying this page.
@@ -441,6 +441,9 @@ export default {
       if (isAlphanumeric && noModifierKeys && getters.currentPromptName() == null) {
         this.alphanumericKeyPress(key); // Call the alphanumeric key press function
         return;
+      }
+      if (noModifierKeys && getters.currentPromptName() != null) {
+        return
       }
       // Handle the space bar key
       if (key === " ") {
