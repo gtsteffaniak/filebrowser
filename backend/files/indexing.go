@@ -82,7 +82,7 @@ func indexingScheduler(intervalMinutes uint32) {
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
 	// Check if the current directory has been modified since the last indexing
-	adjustedPath := si.makeIndexPath(path, false)
+	adjustedPath := si.makeIndexPath(path, true)
 	dir, err := os.Open(path)
 	if err != nil {
 		// Directory must have been deleted, remove it from the index
@@ -133,7 +133,7 @@ func (si *Index) InsertFiles(path string) {
 func (si *Index) InsertDirs(path string) {
 	for _, f := range si.GetQuickList() {
 		if f.IsDir {
-			adjustedPath := si.makeIndexPath(path, false)
+			adjustedPath := si.makeIndexPath(path, true)
 			if _, exists := si.Directories[adjustedPath]; exists {
 				si.UpdateCount("dirs")
 				// Add or update the directory in the map
