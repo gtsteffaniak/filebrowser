@@ -13,7 +13,7 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 	si.mu.Lock()
 	defer si.mu.Unlock()
 	dir, exists := si.Directories[adjustedPath]
-	if !exists {
+	if !exists || exists && dir.Metadata == nil {
 		// Initialize the Metadata map if it is nil
 		if dir.Metadata == nil {
 			dir.Metadata = make(map[string]FileInfo)
