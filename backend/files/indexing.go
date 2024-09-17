@@ -115,7 +115,7 @@ func (si *Index) indexFiles(path string) error {
 }
 
 func (si *Index) InsertFiles(path string) {
-	adjustedPath := si.makeIndexPath(path, false)
+	adjustedPath := si.makeIndexPath(path, true)
 	subDirectory := Directory{}
 	buffer := bytes.Buffer{}
 

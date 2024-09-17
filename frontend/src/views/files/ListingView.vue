@@ -438,7 +438,7 @@ export default {
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const noModifierKeys = !ctrlKey && !metaKey;
 
-      if (isAlphanumeric && noModifierKeys) {
+      if (isAlphanumeric && noModifierKeys && getters.currentPromptName() == null) {
         this.alphanumericKeyPress(key); // Call the alphanumeric key press function
         return;
       }
