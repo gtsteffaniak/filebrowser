@@ -137,33 +137,16 @@ All configuration is now done via a single configuration file:
 `filebrowser.yaml`, here is an example of minimal [configuration
 file](./backend/filebrowser.yaml).
 
-View the [Configuration Help Page](./configuration.md) for available
+View the [Configuration Help Page](./docs/configuration.md) for available
 configuration options and other help.
 
 
 ## Migration from filebrowser/filebrowser
 
-If you currently use the original opensource filebrowser 
-but want to try using this. I recommend you start fresh without
-reusing the database, but there are a few things you'll need to do if you
-must migrate:
-
-1. Create a configuration file as mentioned above.
-2. Copy your database file from the original filebrowser to the path of
-   the new one.
-3. Update the configuration file to use the database (under server in
-   filebrowser.yml)
-4. If you are using docker, update the docker-compose file or docker run
-   command to use the config file as described in the install section
-   above.
-5. If you are not using docker, just make sure you run filebrowser -c
-   filebrowser.yml and have a valid filebrowser config.
-
-
-The filebrowser Quantum application should run with the same user and rules that
-you have from the original. But keep in mind the differences that are
-mentioned at the top of this readme.
-
+If you currently use the original filebrowser but want to try using this. 
+I recommend you start fresh without reusing the database. If you want to 
+migrate your existing database to FileBrowser Quantum, visit the [migration 
+readme](./docs/migration.md)
 
 ## Comparison Chart
 
@@ -217,4 +200,4 @@ Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 
 ## Roadmap
 
-see [Roadmap Page](./roadmap.md)
+see [Roadmap Page](./docs/roadmap.md)

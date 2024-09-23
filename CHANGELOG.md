@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.10
+
+  **New Features**:
+  - Allows user creation command line arguments https://github.com/gtsteffaniak/filebrowser/issues/196
+
+  **Bugfixes**:
+  - fixes file selection usage when in single-click mode https://github.com/gtsteffaniak/filebrowser/issues/214
+
 ## v0.2.9
 
   This release focused on UI navigation experience. Improving keyboard navigation and adds right click context menu.
