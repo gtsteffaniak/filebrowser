@@ -18,7 +18,7 @@ var usersUpdateCmd = &cobra.Command{
 	Long: `Updates an existing user. Set the flags for the
 options you want to change.`,
 	Args: cobra.ExactArgs(1),
-	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		username, id := parseUsernameOrID(args[0])
 
 		var (
@@ -27,14 +27,14 @@ options you want to change.`,
 		)
 
 		if id != 0 {
-			user, err = d.store.Users.Get("", id)
+			user, err = store.Users.Get("", id)
 		} else {
-			user, err = d.store.Users.Get("", username)
+			user, err = store.Users.Get("", username)
 		}
-		utils.CheckErr("d.store.Users.Get", err)
+		utils.CheckErr("store.Users.Get", err)
 
-		err = d.store.Users.Update(user)
-		utils.CheckErr("d.store.Users.Update", err)
+		err = store.Users.Update(user)
+		utils.CheckErr("store.Users.Update", err)
 		printUsers([]*users.User{user})
 	}, pythonConfig{}),
 }

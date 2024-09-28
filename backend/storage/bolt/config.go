@@ -15,7 +15,7 @@ func (s settingsBackend) Get() (*settings.Settings, error) {
 }
 
 func (s settingsBackend) Save(set *settings.Settings) error {
-	return save(s.db, "settings", set)
+	return Save(s.db, "settings", set)
 }
 
 func (s settingsBackend) GetServer() (*settings.Server, error) {
@@ -27,5 +27,5 @@ func (s settingsBackend) GetServer() (*settings.Server, error) {
 }
 
 func (s settingsBackend) SaveServer(server *settings.Server) error {
-	return save(s.db, "server", server)
+	return Save(s.db, "server", server)
 }

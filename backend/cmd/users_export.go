@@ -16,9 +16,9 @@ var usersExportCmd = &cobra.Command{
 	Long: `Export all users to a json or yaml file. Please indicate the
 path to the file where you want to write the users.`,
 	Args: jsonYamlArg,
-	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
-		list, err := d.store.Users.Gets("")
-		utils.CheckErr("d.store.Users.Gets", err)
+	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+		list, err := store.Users.Gets("")
+		utils.CheckErr("store.Users.Gets", err)
 
 		err = marshal(args[0], list)
 		utils.CheckErr("marshal", err)

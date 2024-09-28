@@ -23,7 +23,7 @@ var rulesAddCmd = &cobra.Command{
 	Short: "Add a global rule or user rule",
 	Long:  `Add a global rule or user rule.`,
 	Args:  cobra.ExactArgs(1),
-	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		allow := mustGetBool(cmd.Flags(), "allow")
 		regex := mustGetBool(cmd.Flags(), "regex")
 		exp := args[0]
@@ -45,16 +45,16 @@ var rulesAddCmd = &cobra.Command{
 
 		user := func(u *users.User) {
 			u.Rules = append(u.Rules, rule)
-			err := d.store.Users.Save(u)
-			utils.CheckErr("d.store.Users.Save", err)
+			err := store.Users.Save(u)
+			utils.CheckErr("store.Users.Save", err)
 		}
 
 		global := func(s *settings.Settings) {
 			s.Rules = append(s.Rules, rule)
-			err := d.store.Settings.Save(s)
-			utils.CheckErr("d.store.Settings.Save", err)
+			err := store.Settings.Save(s)
+			utils.CheckErr("store.Settings.Save", err)
 		}
 
-		runRules(d.store, cmd, user, global)
+		runRules(store, cmd, user, global)
 	}, pythonConfig{}),
 }

@@ -28,7 +28,7 @@ var usersLsCmd = &cobra.Command{
 	Run:   findUsers,
 }
 
-var findUsers = initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+var findUsers = cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 	var (
 		list []*users.User
 		user *users.User
@@ -38,14 +38,14 @@ var findUsers = initDb(func(cmd *cobra.Command, args []string, store *storage.St
 	if len(args) == 1 {
 		username, id := parseUsernameOrID(args[0])
 		if username != "" {
-			user, err = d.store.Users.Get("", username)
+			user, err = store.Users.Get("", username)
 		} else {
-			user, err = d.store.Users.Get("", id)
+			user, err = store.Users.Get("", id)
 		}
 
 		list = []*users.User{user}
 	} else {
-		list, err = d.store.Users.Gets("")
+		list, err = store.Users.Gets("")
 	}
 
 	utils.CheckErr("findUsers", err)

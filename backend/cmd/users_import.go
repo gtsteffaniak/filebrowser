@@ -27,7 +27,7 @@ file. You can use this command to import new users to your
 installation. For that, just don't place their ID on the files
 list or set it to 0.`,
 	Args: jsonYamlArg,
-	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		fd, err := os.Open(args[0])
 		utils.CheckErr("os.Open", err)
 		defer fd.Close()
@@ -37,22 +37,22 @@ list or set it to 0.`,
 		utils.CheckErr("unmarshal", err)
 
 		if mustGetBool(cmd.Flags(), "replace") {
-			oldUsers, err := d.store.Users.Gets("")
-			utils.CheckErr("d.store.Users.Gets", err)
+			oldUsers, err := store.Users.Gets("")
+			utils.CheckErr("store.Users.Gets", err)
 
 			err = marshal("users.backup.json", list)
 			utils.CheckErr("marshal users.backup.json", err)
 
 			for _, user := range oldUsers {
-				err = d.store.Users.Delete(user.ID)
-				utils.CheckErr("d.store.Users.Delete", err)
+				err = store.Users.Delete(user.ID)
+				utils.CheckErr("store.Users.Delete", err)
 			}
 		}
 
 		overwrite := mustGetBool(cmd.Flags(), "overwrite")
 
 		for _, user := range list {
-			onDB, err := d.store.Users.Get("", user.ID)
+			onDB, err := store.Users.Get("", user.ID)
 
 			// User exists in DB.
 			if err == nil {
@@ -65,7 +65,7 @@ list or set it to 0.`,
 				// with the new username. If there is, print an error and cancel the
 				// operation
 				if user.Username != onDB.Username {
-					if conflictuous, err := d.store.Users.Get("", user.Username); err == nil { //nolint:govet
+					if conflictuous, err := store.Users.Get("", user.Username); err == nil { //nolint:govet
 						newErr := usernameConflictError(user.Username, conflictuous.ID, user.ID)
 						utils.CheckErr("usernameConflictError", newErr)
 					}
@@ -76,8 +76,8 @@ list or set it to 0.`,
 				user.ID = 0
 			}
 
-			err = d.store.Users.Save(user)
-			utils.CheckErr("d.store.Users.Save", err)
+			err = store.Users.Save(user)
+			utils.CheckErr("store.Users.Save", err)
 		}
 	}, pythonConfig{}),
 }

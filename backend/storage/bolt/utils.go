@@ -15,6 +15,6 @@ func get(db *storm.DB, name string, to interface{}) error {
 	return err
 }
 
-func save(db *storm.DB, name string, from interface{}) error {
+func Save(db *storm.DB, name string, from interface{}) error {
 	return db.Set("config", name, from)
 }

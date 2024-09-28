@@ -42,7 +42,7 @@ including 'index_end'.`,
 
 		return nil
 	},
-	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		i, err := strconv.Atoi(args[0])
 		utils.CheckErr("strconv.Atoi", err)
 		f := i
@@ -53,16 +53,16 @@ including 'index_end'.`,
 
 		user := func(u *users.User) {
 			u.Rules = append(u.Rules[:i], u.Rules[f+1:]...)
-			err := d.store.Users.Save(u)
-			utils.CheckErr("d.store.Users.Save", err)
+			err := store.Users.Save(u)
+			utils.CheckErr("store.Users.Save", err)
 		}
 
 		global := func(s *settings.Settings) {
 			s.Rules = append(s.Rules[:i], s.Rules[f+1:]...)
-			err := d.store.Settings.Save(s)
-			utils.CheckErr("d.store.Settings.Save", err)
+			err := store.Settings.Save(s)
+			utils.CheckErr("store.Settings.Save", err)
 		}
 
-		runRules(d.store, cmd, user, global)
+		runRules(store, cmd, user, global)
 	}, pythonConfig{}),
 }

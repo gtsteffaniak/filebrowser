@@ -14,7 +14,7 @@ var rulesLsCommand = &cobra.Command{
 	Short: "List global rules or user specific rules",
 	Long:  `List global rules or user specific rules.`,
 	Args:  cobra.NoArgs,
-	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		runRules(store, cmd, nil, nil)
 	}, pythonConfig{}),
 }
