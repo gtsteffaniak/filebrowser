@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/asdine/storm/v3"
+	"github.com/asdine/storm"
 	"github.com/goccy/go-yaml"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -49,16 +49,11 @@ func generateKey() []byte {
 }
 
 type cobraFunc func(cmd *cobra.Command, args []string)
-type pythonFunc func(cmd *cobra.Command, args []string, data pythonData)
+type pythonFunc func(cmd *cobra.Command, args []string, store *storage.Storage)
 
 type pythonConfig struct {
 	noDB      bool
 	allowNoDB bool
-}
-
-type pythonData struct {
-	hadDB bool
-	store *storage.Storage
 }
 
 func dbExists(path string) (bool, error) {
@@ -81,29 +76,30 @@ func dbExists(path string) (bool, error) {
 	return false, err
 }
 
-func python(fn pythonFunc, cfg pythonConfig) cobraFunc {
-	return func(cmd *cobra.Command, args []string) {
-		data := pythonData{hadDB: true}
-		path := settings.Config.Server.Database
-		exists, err := dbExists(path)
+func initDb() {
+	path := settings.Config.Server.Database
+	exists, err := dbExists(path)
 
-		if err != nil {
-			panic(err)
-		} else if exists && cfg.noDB {
-			log.Fatal(path + " already exists")
-		} else if !exists && !cfg.noDB && !cfg.allowNoDB {
-			log.Fatal(path + " does not exist. Please run 'filebrowser config init' first.")
-		}
-
-		data.hadDB = exists
-		db, err := storm.Open(path)
-		checkErr(fmt.Sprintf("storm.Open path %v", path), err)
-
-		defer db.Close()
-		data.store, err = bolt.NewStorage(db)
-		checkErr("bolt.NewStorage", err)
-		fn(cmd, args, data)
+	if !exists {
+		quickSetup(d)
 	}
+
+	if err != nil {
+		panic(err)
+	} else if exists && cfg.noDB {
+		log.Fatal(path + " already exists")
+	} else if !exists && !cfg.noDB && !cfg.allowNoDB {
+		log.Fatal(path + " does not exist. Please run 'filebrowser config init' first.")
+	}
+
+	data.hadDB = exists
+	db, err := storm.Open(path)
+	checkErr(fmt.Sprintf("storm.Open path %v", path), err)
+
+	defer db.Close()
+	data.store, err = bolt.NewStorage(db)
+	checkErr("bolt.NewStorage", err)
+	fn(cmd, args, data)
 }
 
 func marshal(filename string, data interface{}) error {

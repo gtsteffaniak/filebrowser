@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -40,7 +41,7 @@ including 'index_end'.`,
 
 		return nil
 	},
-	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
+	Run: python(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		i, err := strconv.Atoi(args[0])
 		checkErr("strconv.Atoi", err)
 		f := i

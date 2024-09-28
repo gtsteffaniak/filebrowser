@@ -3,6 +3,7 @@ package cmd
 import (
 	"log"
 
+	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +16,7 @@ var usersRmCmd = &cobra.Command{
 	Short: "Delete a user by username or id",
 	Long:  `Delete a user by username or id`,
 	Args:  cobra.ExactArgs(1),
-	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
+	Run: python(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		username, id := parseUsernameOrID(args[0])
 		var err error
 

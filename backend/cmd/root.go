@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"crypto/tls"
-	"flag"
 	"fmt"
 	"io/fs"
 	"log"
@@ -32,7 +31,10 @@ import (
 //go:embed dist/*
 var assets embed.FS
 
-var nonEmbededFS = os.Getenv("FILEBROWSER_NO_EMBEDED") == "true"
+var (
+	nonEmbededFS = os.Getenv("FILEBROWSER_NO_EMBEDED") == "true"
+	configPath   = "filebrowser.yaml"
+)
 
 type dirFS struct {
 	http.Dir
@@ -42,24 +44,10 @@ func (d dirFS) Open(name string) (fs.File, error) {
 	return d.Dir.Open(name)
 }
 
-func init() {
-	// Define a flag for the config option (-c or --config)
-	configFlag := pflag.StringP("config", "c", "filebrowser.yaml", "Path to the config file")
-	// Bind the flags to the pflag command line parser
-	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
-	pflag.Parse()
-	log.Printf("Initializing FileBrowser Quantum (%v) with config file: %v \n", version.Version, *configFlag)
-	log.Println("Embeded Frontend:", !nonEmbededFS)
-	settings.Initialize(*configFlag)
-}
-
 var rootCmd = &cobra.Command{
 	Use: "filebrowser",
-	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
+	Run: python(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		serverConfig := settings.Config.Server
-		if !d.hadDB {
-			quickSetup(d)
-		}
 		if serverConfig.NumImageProcessors < 1 {
 			log.Fatal("Image resize workers count could not be < 1")
 		}
@@ -137,9 +125,29 @@ var rootCmd = &cobra.Command{
 }
 
 func StartFilebrowser() {
-	if err := rootCmd.Execute(); err != nil {
+	// Define the flags using pflag
+	username := pflag.String("user", "", "Username")
+	password := pflag.String("password", "", "Password")
+	configFlag := pflag.StringP("config", "c", "filebrowser.yaml", "Path to the config file.")
+
+	// Parse the flags using pflag
+	pflag.Parse()
+
+	settings.Initialize(*configFlag)
+
+	if *username != "" {
+		fmt.Println(*username, *password)
+		return
+	}
+
+	log.Printf("Initializing FileBrowser Quantum (%v) with config file: %v \n", version.Version, configPath)
+	log.Println("Embeded Frontend:", !nonEmbededFS)
+	err := rootCmd.Execute()
+	if err != nil {
+
 		log.Fatal("Error starting filebrowser:", err)
 	}
+
 }
 
 func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfacer
@@ -149,7 +157,7 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 	os.Exit(0)
 }
 
-func quickSetup(d pythonData) {
+func quickSetup(store *) {
 	settings.Config.Auth.Key = generateKey()
 	if settings.Config.Auth.Method == "noauth" {
 		err := d.store.Auth.Save(&auth.NoAuth{})
