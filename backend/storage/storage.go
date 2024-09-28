@@ -24,8 +24,11 @@ type Storage struct {
 }
 
 func InitializeDb(path string) (*Storage, error) {
+	exists, err := dbExists(path)
+	if err != nil {
+		panic(err)
+	}
 	db, err := storm.Open(path)
-	defer db.Close()
 
 	utils.CheckErr(fmt.Sprintf("storm.Open path %v", path), err)
 	authStore, userStore, shareStore, settingsStore, err := bolt.NewStorage(db)
@@ -37,13 +40,16 @@ func InitializeDb(path string) (*Storage, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return &Storage{
+	store := &Storage{
 		Auth:     authStore,
 		Users:    userStore,
 		Share:    shareStore,
 		Settings: settingsStore,
-	}, nil
+	}
+	if !exists {
+		quickSetup(store)
+	}
+	return store, err
 }
 
 func dbExists(path string) (bool, error) {

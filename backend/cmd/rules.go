@@ -14,7 +14,6 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(rulesCmd)
 	rulesCmd.PersistentFlags().StringP("username", "u", "", "username of user to which the rules apply")
 	rulesCmd.PersistentFlags().UintP("id", "i", 0, "id of user to which the rules apply")
 }

@@ -14,7 +14,6 @@ import (
 
 	"embed"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"github.com/gtsteffaniak/filebrowser/diskcache"
@@ -53,7 +52,10 @@ func StartFilebrowser() {
 	pflag.Parse()
 
 	settings.Initialize(*configFlag)
-	storage.InitializeDb(settings.Config.Server.Database)
+	store, err := storage.InitializeDb(settings.Config.Server.Database)
+	if err != nil {
+		log.Fatal("could not load db")
+	}
 	if *username != "" {
 		fmt.Println(*username, *password)
 		return
@@ -61,11 +63,12 @@ func StartFilebrowser() {
 
 	log.Printf("Initializing FileBrowser Quantum (%v) with config file: %v \n", version.Version, configPath)
 	log.Println("Embeded Frontend:", !nonEmbededFS)
-	err := rootCmd
-	if err != nil {
+	serverConfig := settings.Config.Server
+	// initialize indexing and schedule indexing ever n minutes (default 5)
+	go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
+	if err := rootCMD(store); err != nil {
 		log.Fatal("Error starting filebrowser:", err)
 	}
-
 }
 
 func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfacer
@@ -75,82 +78,75 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 	os.Exit(0)
 }
 
-var rootCmd = &cobra.Command{
-	Use: "filebrowser",
-	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
-		serverConfig := settings.Config.Server
-		if serverConfig.NumImageProcessors < 1 {
-			log.Fatal("Image resize workers count could not be < 1")
-		}
-		imgSvc := img.New(serverConfig.NumImageProcessors)
+func rootCMD(store *storage.Storage) error {
+	serverConfig := settings.Config.Server
+	if serverConfig.NumImageProcessors < 1 {
+		log.Fatal("Image resize workers count could not be < 1")
+	}
+	imgSvc := img.New(serverConfig.NumImageProcessors)
 
-		cacheDir := "/tmp"
-		var fileCache diskcache.Interface
+	cacheDir := "/tmp"
+	var fileCache diskcache.Interface
 
-		// Use file cache if cacheDir is specified
-		if cacheDir != "" {
-			var err error
-			fileCache, err = diskcache.NewFileCache(cacheDir)
-			if err != nil {
-				log.Fatalf("failed to create file cache: %v", err)
-			}
-		} else {
-			// No-op cache if no cacheDir is specified
-			fileCache = diskcache.NewNoOp()
+	// Use file cache if cacheDir is specified
+	if cacheDir != "" {
+		var err error
+		fileCache, err = diskcache.NewFileCache(cacheDir)
+		if err != nil {
+			log.Fatalf("failed to create file cache: %v", err)
 		}
-		// initialize indexing and schedule indexing ever n minutes (default 5)
-		go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
-		_, err := os.Stat(serverConfig.Root)
-		utils.CheckErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
-		var listener net.Listener
-		address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
-		switch {
-		case serverConfig.Socket != "":
-			listener, err = net.Listen("unix", serverConfig.Socket)
-			utils.CheckErr("net.Listen", err)
-			socketPerm, err := cmd.Flags().GetUint32("socket-perm") //nolint:govet
-			utils.CheckErr("cmd.Flags().GetUint32", err)
-			err = os.Chmod(serverConfig.Socket, os.FileMode(socketPerm))
-			utils.CheckErr("os.Chmod", err)
-		case serverConfig.TLSKey != "" && serverConfig.TLSCert != "":
-			cer, err := tls.LoadX509KeyPair(serverConfig.TLSCert, serverConfig.TLSKey) //nolint:govet
-			utils.CheckErr("tls.LoadX509KeyPair", err)
-			listener, err = tls.Listen("tcp", address, &tls.Config{
-				MinVersion:   tls.VersionTLS12,
-				Certificates: []tls.Certificate{cer}},
-			)
-			utils.CheckErr("tls.Listen", err)
-		default:
-			listener, err = net.Listen("tcp", address)
-			utils.CheckErr("net.Listen", err)
+	} else {
+		// No-op cache if no cacheDir is specified
+		fileCache = diskcache.NewNoOp()
+	}
+	_, err := os.Stat(serverConfig.Root)
+	utils.CheckErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
+	var listener net.Listener
+	address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
+	switch {
+	case serverConfig.Socket != "":
+		listener, err = net.Listen("unix", serverConfig.Socket)
+		utils.CheckErr("net.Listen", err)
+		err = os.Chmod(serverConfig.Socket, os.FileMode(0666)) // socket-perm
+		utils.CheckErr("os.Chmod", err)
+	case serverConfig.TLSKey != "" && serverConfig.TLSCert != "":
+		cer, err := tls.LoadX509KeyPair(serverConfig.TLSCert, serverConfig.TLSKey) //nolint:govet
+		utils.CheckErr("tls.LoadX509KeyPair", err)
+		listener, err = tls.Listen("tcp", address, &tls.Config{
+			MinVersion:   tls.VersionTLS12,
+			Certificates: []tls.Certificate{cer}},
+		)
+		utils.CheckErr("tls.Listen", err)
+	default:
+		listener, err = net.Listen("tcp", address)
+		utils.CheckErr("net.Listen", err)
+	}
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
+	go cleanupHandler(listener, sigc)
+	if !nonEmbededFS {
+		assetsFs, err := fs.Sub(assets, "dist")
+		if err != nil {
+			log.Fatal("Could not embed frontend. Does backend/cmd/dist exist? Must be built and exist first")
 		}
-		sigc := make(chan os.Signal, 1)
-		signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
-		go cleanupHandler(listener, sigc)
-		if !nonEmbededFS {
-			assetsFs, err := fs.Sub(assets, "dist")
-			if err != nil {
-				log.Fatal("Could not embed frontend. Does backend/cmd/dist exist? Must be built and exist first")
-			}
-			handler, err := fbhttp.NewHandler(imgSvc, fileCache, store, &serverConfig, assetsFs)
-			utils.CheckErr("fbhttp.NewHandler", err)
-			defer listener.Close()
-			log.Println("Listening on", listener.Addr().String())
-			//nolint: gosec
-			if err := http.Serve(listener, handler); err != nil {
-				log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
-			}
-		} else {
-			assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
-			handler, err := fbhttp.NewHandler(imgSvc, fileCache, store, &serverConfig, assetsFs)
-			utils.CheckErr("fbhttp.NewHandler", err)
-			defer listener.Close()
-			log.Println("Listening on", listener.Addr().String())
-			//nolint: gosec
-			if err := http.Serve(listener, handler); err != nil {
-				log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
-			}
+		handler, err := fbhttp.NewHandler(imgSvc, fileCache, store, &serverConfig, assetsFs)
+		utils.CheckErr("fbhttp.NewHandler", err)
+		defer listener.Close()
+		log.Println("Listening on", listener.Addr().String())
+		//nolint: gosec
+		if err := http.Serve(listener, handler); err != nil {
+			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
 		}
-
-	}, pythonConfig{allowNoDB: true}),
+	} else {
+		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
+		handler, err := fbhttp.NewHandler(imgSvc, fileCache, store, &serverConfig, assetsFs)
+		utils.CheckErr("fbhttp.NewHandler", err)
+		defer listener.Close()
+		log.Println("Listening on", listener.Addr().String())
+		//nolint: gosec
+		if err := http.Serve(listener, handler); err != nil {
+			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
+		}
+	}
+	return nil
 }
