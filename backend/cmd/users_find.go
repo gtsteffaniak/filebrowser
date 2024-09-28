@@ -5,6 +5,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 func init() {
@@ -27,7 +28,7 @@ var usersLsCmd = &cobra.Command{
 	Run:   findUsers,
 }
 
-var findUsers = python(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+var findUsers = initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 	var (
 		list []*users.User
 		user *users.User
@@ -47,6 +48,6 @@ var findUsers = python(func(cmd *cobra.Command, args []string, store *storage.St
 		list, err = d.store.Users.Gets("")
 	}
 
-	checkErr("findUsers", err)
+	utils.CheckErr("findUsers", err)
 	printUsers(list)
 }, pythonConfig{})

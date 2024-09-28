@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gtsteffaniak/filebrowser/storage"
+	"github.com/gtsteffaniak/filebrowser/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +17,7 @@ var usersRmCmd = &cobra.Command{
 	Short: "Delete a user by username or id",
 	Long:  `Delete a user by username or id`,
 	Args:  cobra.ExactArgs(1),
-	Run: python(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		username, id := parseUsernameOrID(args[0])
 		var err error
 
@@ -26,7 +27,7 @@ var usersRmCmd = &cobra.Command{
 			err = d.store.Users.Delete(id)
 		}
 
-		checkErr("usersRmCmd", err)
+		utils.CheckErr("usersRmCmd", err)
 		log.Println("user deleted successfully")
 	}, pythonConfig{}),
 }

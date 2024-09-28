@@ -9,6 +9,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 func init() {
@@ -22,7 +23,7 @@ var rulesAddCmd = &cobra.Command{
 	Short: "Add a global rule or user rule",
 	Long:  `Add a global rule or user rule.`,
 	Args:  cobra.ExactArgs(1),
-	Run: python(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		allow := mustGetBool(cmd.Flags(), "allow")
 		regex := mustGetBool(cmd.Flags(), "regex")
 		exp := args[0]
@@ -45,13 +46,13 @@ var rulesAddCmd = &cobra.Command{
 		user := func(u *users.User) {
 			u.Rules = append(u.Rules, rule)
 			err := d.store.Users.Save(u)
-			checkErr("d.store.Users.Save", err)
+			utils.CheckErr("d.store.Users.Save", err)
 		}
 
 		global := func(s *settings.Settings) {
 			s.Rules = append(s.Rules, rule)
 			err := d.store.Settings.Save(s)
-			checkErr("d.store.Settings.Save", err)
+			utils.CheckErr("d.store.Settings.Save", err)
 		}
 
 		runRules(d.store, cmd, user, global)

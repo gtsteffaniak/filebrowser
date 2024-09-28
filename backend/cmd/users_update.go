@@ -5,6 +5,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 func init() {
@@ -17,7 +18,7 @@ var usersUpdateCmd = &cobra.Command{
 	Long: `Updates an existing user. Set the flags for the
 options you want to change.`,
 	Args: cobra.ExactArgs(1),
-	Run: python(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		username, id := parseUsernameOrID(args[0])
 
 		var (
@@ -30,10 +31,10 @@ options you want to change.`,
 		} else {
 			user, err = d.store.Users.Get("", username)
 		}
-		checkErr("d.store.Users.Get", err)
+		utils.CheckErr("d.store.Users.Get", err)
 
 		err = d.store.Users.Update(user)
-		checkErr("d.store.Users.Update", err)
+		utils.CheckErr("d.store.Users.Update", err)
 		printUsers([]*users.User{user})
 	}, pythonConfig{}),
 }

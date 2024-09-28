@@ -10,6 +10,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 func init() {
@@ -26,25 +27,25 @@ file. You can use this command to import new users to your
 installation. For that, just don't place their ID on the files
 list or set it to 0.`,
 	Args: jsonYamlArg,
-	Run: python(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+	Run: initDb(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		fd, err := os.Open(args[0])
-		checkErr("os.Open", err)
+		utils.CheckErr("os.Open", err)
 		defer fd.Close()
 
 		list := []*users.User{}
 		err = unmarshal(args[0], &list)
-		checkErr("unmarshal", err)
+		utils.CheckErr("unmarshal", err)
 
 		if mustGetBool(cmd.Flags(), "replace") {
 			oldUsers, err := d.store.Users.Gets("")
-			checkErr("d.store.Users.Gets", err)
+			utils.CheckErr("d.store.Users.Gets", err)
 
 			err = marshal("users.backup.json", list)
-			checkErr("marshal users.backup.json", err)
+			utils.CheckErr("marshal users.backup.json", err)
 
 			for _, user := range oldUsers {
 				err = d.store.Users.Delete(user.ID)
-				checkErr("d.store.Users.Delete", err)
+				utils.CheckErr("d.store.Users.Delete", err)
 			}
 		}
 
@@ -57,7 +58,7 @@ list or set it to 0.`,
 			if err == nil {
 				if !overwrite {
 					newErr := errors.New("user " + strconv.Itoa(int(user.ID)) + " is already registered")
-					checkErr("", newErr)
+					utils.CheckErr("", newErr)
 				}
 
 				// If the usernames mismatch, check if there is another one in the DB
@@ -66,7 +67,7 @@ list or set it to 0.`,
 				if user.Username != onDB.Username {
 					if conflictuous, err := d.store.Users.Get("", user.Username); err == nil { //nolint:govet
 						newErr := usernameConflictError(user.Username, conflictuous.ID, user.ID)
-						checkErr("usernameConflictError", newErr)
+						utils.CheckErr("usernameConflictError", newErr)
 					}
 				}
 			} else {
@@ -76,7 +77,7 @@ list or set it to 0.`,
 			}
 
 			err = d.store.Users.Save(user)
-			checkErr("d.store.Users.Save", err)
+			utils.CheckErr("d.store.Users.Save", err)
 		}
 	}, pythonConfig{}),
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 func init() {
@@ -33,7 +34,7 @@ func runRules(st *storage.Storage, cmd *cobra.Command, usersFn func(*users.User)
 	id := getUserIdentifier(cmd.Flags())
 	if id != nil {
 		user, err := st.Users.Get("", id)
-		checkErr("st.Users.Get", err)
+		utils.CheckErr("st.Users.Get", err)
 
 		if usersFn != nil {
 			usersFn(user)
@@ -44,7 +45,7 @@ func runRules(st *storage.Storage, cmd *cobra.Command, usersFn func(*users.User)
 	}
 
 	s, err := st.Settings.Get()
-	checkErr("st.Settings.Get", err)
+	utils.CheckErr("st.Settings.Get", err)
 
 	if globalFn != nil {
 		globalFn(s)

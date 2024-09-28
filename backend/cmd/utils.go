@@ -1,51 +1,49 @@
 package cmd
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
+	"net"
+	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"strconv"
+	"syscall"
 
-	"github.com/asdine/storm"
 	"github.com/goccy/go-yaml"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/gtsteffaniak/filebrowser/diskcache"
+	"github.com/gtsteffaniak/filebrowser/files"
+	fbhttp "github.com/gtsteffaniak/filebrowser/http"
+	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
-	"github.com/gtsteffaniak/filebrowser/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
-
-func checkErr(source string, err error) {
-	if err != nil {
-		log.Fatalf("%s: %v", source, err)
-	}
-}
 
 func mustGetString(flags *pflag.FlagSet, flag string) string {
 	s, err := flags.GetString(flag)
-	checkErr("mustGetString", err)
+	utils.CheckErr("mustGetString", err)
 	return s
 }
 
 func mustGetBool(flags *pflag.FlagSet, flag string) bool {
 	b, err := flags.GetBool(flag)
-	checkErr("mustGetBool", err)
+	utils.CheckErr("mustGetBool", err)
 	return b
 }
 
 func mustGetUint(flags *pflag.FlagSet, flag string) uint {
 	b, err := flags.GetUint(flag)
-	checkErr("mustGetUint", err)
+	utils.CheckErr("mustGetUint", err)
 	return b
-}
-
-func generateKey() []byte {
-	k, err := settings.GenerateKey()
-	checkErr("generateKey", err)
-	return k
 }
 
 type cobraFunc func(cmd *cobra.Command, args []string)
@@ -56,56 +54,87 @@ type pythonConfig struct {
 	allowNoDB bool
 }
 
-func dbExists(path string) (bool, error) {
-	stat, err := os.Stat(path)
-	if err == nil {
-		return stat.Size() != 0, nil
+func rootCMD() error {
+	serverConfig := settings.Config.Server
+	if serverConfig.NumImageProcessors < 1 {
+		log.Fatal("Image resize workers count could not be < 1")
 	}
+	imgSvc := img.New(serverConfig.NumImageProcessors)
 
-	if os.IsNotExist(err) {
-		d := filepath.Dir(path)
-		_, err = os.Stat(d)
-		if os.IsNotExist(err) {
-			if err := os.MkdirAll(d, 0700); err != nil { //nolint:govet,gomnd
-				return false, err
-			}
-			return false, nil
+	cacheDir := "/tmp"
+	var fileCache diskcache.Interface
+
+	// Use file cache if cacheDir is specified
+	if cacheDir != "" {
+		var err error
+		fileCache, err = diskcache.NewFileCache(cacheDir)
+		if err != nil {
+			log.Fatalf("failed to create file cache: %v", err)
+		}
+	} else {
+		// No-op cache if no cacheDir is specified
+		fileCache = diskcache.NewNoOp()
+	}
+	// initialize indexing and schedule indexing ever n minutes (default 5)
+	go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
+	_, err := os.Stat(serverConfig.Root)
+	utils.CheckErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
+	var listener net.Listener
+	address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
+	switch {
+	case serverConfig.Socket != "":
+		listener, err = net.Listen("unix", serverConfig.Socket)
+		utils.CheckErr("net.Listen", err)
+		socketPerm, err := cmd.Flags().GetUint32("socket-perm") //nolint:govet
+		utils.CheckErr("cmd.Flags().GetUint32", err)
+		err = os.Chmod(serverConfig.Socket, os.FileMode(socketPerm))
+		utils.CheckErr("os.Chmod", err)
+	case serverConfig.TLSKey != "" && serverConfig.TLSCert != "":
+		cer, err := tls.LoadX509KeyPair(serverConfig.TLSCert, serverConfig.TLSKey) //nolint:govet
+		utils.CheckErr("tls.LoadX509KeyPair", err)
+		listener, err = tls.Listen("tcp", address, &tls.Config{
+			MinVersion:   tls.VersionTLS12,
+			Certificates: []tls.Certificate{cer}},
+		)
+		utils.CheckErr("tls.Listen", err)
+	default:
+		listener, err = net.Listen("tcp", address)
+		utils.CheckErr("net.Listen", err)
+	}
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
+	go cleanupHandler(listener, sigc)
+	if !nonEmbededFS {
+		assetsFs, err := fs.Sub(assets, "dist")
+		if err != nil {
+			log.Fatal("Could not embed frontend. Does backend/cmd/dist exist? Must be built and exist first")
+		}
+		handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
+		utils.CheckErr("fbhttp.NewHandler", err)
+		defer listener.Close()
+		log.Println("Listening on", listener.Addr().String())
+		//nolint: gosec
+		if err := http.Serve(listener, handler); err != nil {
+			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
+		}
+	} else {
+		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
+		handler, err := fbhttp.NewHandler(imgSvc, fileCache, d.store, &serverConfig, assetsFs)
+		utils.CheckErr("fbhttp.NewHandler", err)
+		defer listener.Close()
+		log.Println("Listening on", listener.Addr().String())
+		//nolint: gosec
+		if err := http.Serve(listener, handler); err != nil {
+			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
 		}
 	}
-
-	return false, err
-}
-
-func initDb() {
-	path := settings.Config.Server.Database
-	exists, err := dbExists(path)
-
-	if !exists {
-		quickSetup(d)
-	}
-
-	if err != nil {
-		panic(err)
-	} else if exists && cfg.noDB {
-		log.Fatal(path + " already exists")
-	} else if !exists && !cfg.noDB && !cfg.allowNoDB {
-		log.Fatal(path + " does not exist. Please run 'filebrowser config init' first.")
-	}
-
-	data.hadDB = exists
-	db, err := storm.Open(path)
-	checkErr(fmt.Sprintf("storm.Open path %v", path), err)
-
-	defer db.Close()
-	data.store, err = bolt.NewStorage(db)
-	checkErr("bolt.NewStorage", err)
-	fn(cmd, args, data)
+	return nil
 }
 
 func marshal(filename string, data interface{}) error {
 	fd, err := os.Create(filename)
 
-	checkErr("os.Create", err)
+	utils.CheckErr("os.Create", err)
 	defer fd.Close()
 
 	switch ext := filepath.Ext(filename); ext {
@@ -123,7 +152,7 @@ func marshal(filename string, data interface{}) error {
 
 func unmarshal(filename string, data interface{}) error {
 	fd, err := os.Open(filename)
-	checkErr("os.Open", err)
+	utils.CheckErr("os.Open", err)
 	defer fd.Close()
 
 	switch ext := filepath.Ext(filename); ext {
