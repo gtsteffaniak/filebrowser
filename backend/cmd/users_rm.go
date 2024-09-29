@@ -29,5 +29,5 @@ var usersRmCmd = &cobra.Command{
 
 		utils.CheckErr("usersRmCmd", err)
 		log.Println("user deleted successfully")
-	}, pythonConfig{}),
+	}),
 }

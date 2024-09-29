@@ -79,7 +79,7 @@ list or set it to 0.`,
 			err = store.Users.Save(user)
 			utils.CheckErr("store.Users.Save", err)
 		}
-	}, pythonConfig{}),
+	}),
 }
 
 func usernameConflictError(username string, originalID, newID uint) error {

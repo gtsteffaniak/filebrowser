@@ -50,4 +50,4 @@ var findUsers = cobraCmd(func(cmd *cobra.Command, args []string, store *storage.
 
 	utils.CheckErr("findUsers", err)
 	printUsers(list)
-}, pythonConfig{})
+})

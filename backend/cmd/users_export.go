@@ -22,5 +22,5 @@ path to the file where you want to write the users.`,
 
 		err = marshal(args[0], list)
 		utils.CheckErr("marshal", err)
-	}, pythonConfig{}),
+	}),
 }

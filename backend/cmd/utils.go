@@ -35,11 +35,6 @@ func mustGetUint(flags *pflag.FlagSet, flag string) uint {
 type cobraFunc func(cmd *cobra.Command, args []string)
 type pythonFunc func(cmd *cobra.Command, args []string, store *storage.Storage)
 
-type pythonConfig struct {
-	noDB      bool
-	allowNoDB bool
-}
-
 func marshal(filename string, data interface{}) error {
 	fd, err := os.Create(filename)
 
@@ -87,7 +82,7 @@ func jsonYamlArg(cmd *cobra.Command, args []string) error {
 	}
 }
 
-func cobraCmd(fn pythonFunc, cfg pythonConfig) cobraFunc {
+func cobraCmd(fn pythonFunc) cobraFunc {
 	return func(cmd *cobra.Command, args []string) {
 	}
 }

@@ -16,5 +16,5 @@ var rulesLsCommand = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		runRules(store, cmd, nil, nil)
-	}, pythonConfig{}),
+	}),
 }

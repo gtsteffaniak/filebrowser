@@ -38,5 +38,5 @@ var usersAddCmd = &cobra.Command{
 		err = store.Users.Save(user)
 		utils.CheckErr("store.Users.Save", err)
 		printUsers([]*users.User{user})
-	}, pythonConfig{}),
+	}),
 }

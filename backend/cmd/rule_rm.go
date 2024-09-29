@@ -64,5 +64,5 @@ including 'index_end'.`,
 		}
 
 		runRules(store, cmd, user, global)
-	}, pythonConfig{}),
+	}),
 }

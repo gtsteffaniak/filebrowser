@@ -56,5 +56,5 @@ var rulesAddCmd = &cobra.Command{
 		}
 
 		runRules(store, cmd, user, global)
-	}, pythonConfig{}),
+	}),
 }

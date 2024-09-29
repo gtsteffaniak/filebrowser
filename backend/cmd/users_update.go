@@ -36,5 +36,5 @@ options you want to change.`,
 		err = store.Users.Update(user)
 		utils.CheckErr("store.Users.Update", err)
 		printUsers([]*users.User{user})
-	}, pythonConfig{}),
+	}),
 }
