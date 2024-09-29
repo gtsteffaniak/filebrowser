@@ -21,9 +21,9 @@ var (
 	fileCache FileCache
 )
 
-func SetupEnv(storage *storage.Storage, server *settings.Server, cache FileCache) {
+func SetupEnv(storage *storage.Storage, s *settings.Server, cache FileCache) {
 	store = storage
-	server = server
+	server = s
 	fileCache = cache
 }
 
