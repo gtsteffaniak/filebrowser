@@ -119,6 +119,11 @@ func rootCMD(store *storage.Storage) error {
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
+
+	// setup env requirements
+	storage.UseStore(store)
+	fbhttp.SetupEnv(store, &serverConfig, fileCache)
+
 	_, err := os.Stat(serverConfig.Root)
 	utils.CheckErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
 	var listener net.Listener
@@ -149,7 +154,7 @@ func rootCMD(store *storage.Storage) error {
 		if err != nil {
 			log.Fatal("Could not embed frontend. Does backend/cmd/dist exist? Must be built and exist first")
 		}
-		handler, err := fbhttp.NewHandler(imgSvc, fileCache, store, &serverConfig, assetsFs)
+		handler, err := fbhttp.NewHandler(imgSvc, assetsFs)
 		utils.CheckErr("fbhttp.NewHandler", err)
 		defer listener.Close()
 		log.Println("Listening on", listener.Addr().String())
@@ -159,7 +164,7 @@ func rootCMD(store *storage.Storage) error {
 		}
 	} else {
 		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
-		handler, err := fbhttp.NewHandler(imgSvc, fileCache, store, &serverConfig, assetsFs)
+		handler, err := fbhttp.NewHandler(imgSvc, assetsFs)
 		utils.CheckErr("fbhttp.NewHandler", err)
 		defer listener.Close()
 		log.Println("Listening on", listener.Addr().String())

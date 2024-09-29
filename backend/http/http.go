@@ -15,11 +15,20 @@ type modifyRequest struct {
 	Which []string `json:"which"` // Answer to: which fields?
 }
 
+var (
+	store     *storage.Storage
+	server    *settings.Server
+	fileCache FileCache
+)
+
+func SetupEnv(storage *storage.Storage, server *settings.Server, cache FileCache) {
+	store = storage
+	server = server
+	fileCache = cache
+}
+
 func NewHandler(
 	imgSvc ImgService,
-	fileCache FileCache,
-	store *storage.Storage,
-	server *settings.Server,
 	assetsFs fs.FS,
 ) (http.Handler, error) {
 	server.Clean()

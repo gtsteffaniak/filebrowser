@@ -2,11 +2,14 @@ package storage
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/auth"
+	"github.com/gtsteffaniak/filebrowser/errors"
+	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/storage/bolt"
@@ -105,4 +108,37 @@ func quickSetup(store *Storage) {
 	}
 	err = store.Users.Save(&user)
 	utils.CheckErr("store.Users.Save", err)
+}
+
+var store *Storage
+
+func UseStore(storage *Storage) {
+	store = storage
+}
+
+// create new user
+func CreateUser(userInfo users.User) error {
+	// must have username or password to create
+	if userInfo.Username == "" || userInfo.Password == "" {
+		return errors.ErrInvalidRequestParams
+	}
+	newUser := users.ApplyDefaults(userInfo)
+	// create new home directory
+	userHome, err := settings.Config.MakeUserDir(newUser.Username, newUser.Scope, settings.Config.Server.Root)
+	if err != nil {
+		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
+		return err
+	}
+	newUser.Scope = userHome
+	log.Printf("user: %s, home dir: [%s].", newUser.Username, userHome)
+	_, _, err = files.GetRealPath(settings.Config.Server.Root, newUser.Scope)
+	if err != nil {
+		log.Println("user path is not valid", newUser.Scope)
+		return nil
+	}
+	err = store.Users.Save(&newUser)
+	if err != nil {
+		return err
+	}
+	return nil
 }
