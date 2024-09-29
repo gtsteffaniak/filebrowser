@@ -50,9 +50,6 @@ func indexingScheduler(intervalMinutes uint32) {
 		rootPath = settings.Config.Server.Root
 	}
 	si := GetIndex(rootPath)
-	log.Printf("Indexing Files...")
-	log.Printf("Configured to run every %v minutes", intervalMinutes)
-	log.Printf("Indexing from root: %s", si.Root)
 	for {
 		startTime := time.Now()
 		// Set the indexing flag to indicate that indexing is in progress

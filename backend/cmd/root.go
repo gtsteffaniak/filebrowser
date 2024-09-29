@@ -44,25 +44,45 @@ func (d dirFS) Open(name string) (fs.File, error) {
 
 func StartFilebrowser() {
 	// Define the flags using pflag
-	username := pflag.String("user", "", "Username")
-	password := pflag.String("password", "", "Password")
+	username := pflag.String("username", "", "Username for new user")
+	versionCheck := pflag.Bool("version", false, "Get version information")
+	password := pflag.String("password", "", "Password for new user")
+	asAdmin := pflag.Bool("asAdmin", false, "Combine with username and password to create admin user")
 	configFlag := pflag.StringP("config", "c", "filebrowser.yaml", "Path to the config file.")
-
-	// Parse the flags using pflag
 	pflag.Parse()
 
-	settings.Initialize(*configFlag)
-	store, err := storage.InitializeDb(settings.Config.Server.Database)
-	if err != nil {
-		log.Fatal("could not load db")
-	}
-	if *username != "" {
-		fmt.Println(*username, *password)
+	if *versionCheck {
+		fmt.Println("FileBrowser Quantum - A modern web-based file manager")
+		fmt.Printf("Version        : %v\n", version.Version)
+		fmt.Printf("Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v\n", version.Version)
+		fmt.Printf("Commit         : https://github.com/gtsteffaniak/filebrowser/commit/%v\n", version.CommitSHA)
 		return
 	}
 
-	log.Printf("Initializing FileBrowser Quantum (%v) with config file: %v \n", version.Version, configPath)
-	log.Println("Embeded Frontend:", !nonEmbededFS)
+	settings.Initialize(*configFlag)
+	store, dbExists, err := storage.InitializeDb(settings.Config.Server.Database)
+	if err != nil {
+		log.Fatal("could not load db info: ", err)
+	}
+	if *username != "" && *password != "" {
+		fmt.Println(*username, *password, *asAdmin)
+		return
+	}
+	indexingInterval := fmt.Sprint(settings.Config.Server.IndexingInterval, " minutes")
+	if !settings.Config.Server.Indexing {
+		indexingInterval = "disabled"
+	}
+	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
+	if !dbExists {
+		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
+	}
+	log.Printf("Initializing FileBrowser Quantum (%v)\n", version.Version)
+	log.Println("Config file              :", configPath)
+	log.Println("Embeded frontend         :", !nonEmbededFS)
+	log.Println(database)
+	log.Println("Sources                  :", settings.Config.Server.Root)
+	log.Print("Indexing interval        : ", indexingInterval)
+
 	serverConfig := settings.Config.Server
 	// initialize indexing and schedule indexing ever n minutes (default 5)
 	go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
