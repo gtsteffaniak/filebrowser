@@ -26,6 +26,8 @@ type Storage struct {
 	Settings *settings.Storage
 }
 
+var store *Storage
+
 func InitializeDb(path string) (*Storage, bool, error) {
 	exists, err := dbExists(path)
 	if err != nil {
@@ -43,7 +45,7 @@ func InitializeDb(path string) (*Storage, bool, error) {
 	if err != nil {
 		return nil, exists, err
 	}
-	store := &Storage{
+	store = &Storage{
 		Auth:     authStore,
 		Users:    userStore,
 		Share:    shareStore,
@@ -52,6 +54,7 @@ func InitializeDb(path string) (*Storage, bool, error) {
 	if !exists {
 		quickSetup(store)
 	}
+
 	return store, exists, err
 }
 
@@ -97,32 +100,21 @@ func quickSetup(store *Storage) {
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false
-	user.Perm = settings.Permissions{
-		Create:   true,
-		Rename:   true,
-		Modify:   true,
-		Delete:   true,
-		Share:    true,
-		Download: true,
-		Admin:    true,
-	}
+	user.Perm = settings.AdminPerms()
 	err = store.Users.Save(&user)
 	utils.CheckErr("store.Users.Save", err)
 }
 
-var store *Storage
-
-func UseStore(storage *Storage) {
-	store = storage
-}
-
 // create new user
-func CreateUser(userInfo users.User) error {
+func CreateUser(userInfo users.User, asAdmin bool) error {
 	// must have username or password to create
 	if userInfo.Username == "" || userInfo.Password == "" {
 		return errors.ErrInvalidRequestParams
 	}
 	newUser := users.ApplyDefaults(userInfo)
+	if asAdmin {
+		newUser.Perm = settings.AdminPerms()
+	}
 	// create new home directory
 	userHome, err := settings.Config.MakeUserDir(newUser.Username, newUser.Scope, settings.Config.Server.Root)
 	if err != nil {

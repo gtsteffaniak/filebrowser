@@ -22,6 +22,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
+	"github.com/gtsteffaniak/filebrowser/users"
 	"github.com/gtsteffaniak/filebrowser/utils"
 	"github.com/gtsteffaniak/filebrowser/version"
 )
@@ -65,7 +66,14 @@ func StartFilebrowser() {
 		log.Fatal("could not load db info: ", err)
 	}
 	if *username != "" && *password != "" {
-		fmt.Println(*username, *password, *asAdmin)
+		fmt.Println("Creating user : ", *username)
+		err = storage.CreateUser(users.User{
+			Username: *username,
+			Password: *password,
+		}, *asAdmin)
+		if err != nil {
+			log.Fatal("Could not create user")
+		}
 		return
 	}
 	indexingInterval := fmt.Sprint(settings.Config.Server.IndexingInterval, " minutes")
@@ -86,7 +94,7 @@ func StartFilebrowser() {
 	serverConfig := settings.Config.Server
 	// initialize indexing and schedule indexing ever n minutes (default 5)
 	go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
-	if err := rootCMD(store); err != nil {
+	if err := rootCMD(store, &serverConfig); err != nil {
 		log.Fatal("Error starting filebrowser:", err)
 	}
 }
@@ -98,8 +106,7 @@ func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfac
 	os.Exit(0)
 }
 
-func rootCMD(store *storage.Storage) error {
-	serverConfig := settings.Config.Server
+func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
 	if serverConfig.NumImageProcessors < 1 {
 		log.Fatal("Image resize workers count could not be < 1")
 	}
@@ -120,9 +127,7 @@ func rootCMD(store *storage.Storage) error {
 		fileCache = diskcache.NewNoOp()
 	}
 
-	// setup env requirements
-	storage.UseStore(store)
-	fbhttp.SetupEnv(store, &serverConfig, fileCache)
+	fbhttp.SetupEnv(store, serverConfig, fileCache)
 
 	_, err := os.Stat(serverConfig.Root)
 	utils.CheckErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)

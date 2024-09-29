@@ -130,7 +130,7 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
-	err = storage.CreateUser(*req.Data)
+	err = storage.CreateUser(*req.Data, req.Data.Perm.Admin)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
