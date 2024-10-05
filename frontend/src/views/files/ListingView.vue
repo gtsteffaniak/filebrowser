@@ -283,9 +283,9 @@ export default {
     // Check the columns size for the first time.
     this.colunmsResize();
     // Add the needed event listeners to the window and document.
-    this.$el.addEventListener("keydown", this.keyEvent);
-    this.$el.addEventListener("scroll", this.scrollEvent);
-    this.$el.addEventListener("resize", this.windowsResize);
+    window.addEventListener("keydown", this.keyEvent);
+    window.addEventListener("scroll", this.scrollEvent);
+    window.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
     this.$el.addEventListener("contextmenu", this.openContext);
 
@@ -294,6 +294,12 @@ export default {
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
+  },
+  beforeUnmount() {
+    // Remove event listeners before destroying this page.
+    window.removeEventListener("keydown", this.keyEvent);
+    window.removeEventListener("scroll", this.scrollEvent);
+    window.removeEventListener("resize", this.windowsResize);
   },
   methods: {
     base64(name) {
