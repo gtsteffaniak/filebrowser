@@ -34,15 +34,14 @@ func loadConfigFile(configFile string) []byte {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		log.Printf("ERROR: opening config file\n %v\n WARNING: Using default config only\n If this was a mistake, please make sure the file exists and is accessible by the filebrowser binary.\n\n", err)
-		Config = setDefaults()
-		return []byte{}
+		log.Println(err)
+		os.Exit(1)
 	}
 	defer yamlFile.Close()
 
 	stat, err := yamlFile.Stat()
 	if err != nil {
-		log.Fatalf("Error getting file information: %s", err.Error())
+		log.Fatalf("error getting file information: %s", err.Error())
 	}
 
 	yamlData := make([]byte, stat.Size())
