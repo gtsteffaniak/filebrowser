@@ -19,18 +19,20 @@
       <input
         v-model="gallerySize"
         type="range"
-        id="gallary-size"
-        name="gallary-size"
+        id="gallery-size"
+        name="gallery-size"
         :value="gallerySize"
         min="0"
         max="10"
+        @input="updateGallerySize"
+        @change="commitGallerySize"
       />
     </div>
   </div>
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store"; // Import mutations as well
+import { state, mutations, getters } from "@/store";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -42,12 +44,6 @@ export default {
     return {
       gallerySize: state.user.gallerySize,
     };
-  },
-  watch: {
-    gallerySize(newValue) {
-      this.gallerySize = parseInt(newValue, 0); // Update the user object
-      mutations.setGallerySize(this.gallerySize);
-    },
   },
   props: ["base", "noLink"],
   computed: {
@@ -100,13 +96,16 @@ export default {
       return "router-link";
     },
     showShare() {
-      // Ensure user properties are accessed safely
-      if (state.route.path.startsWith("/share")) {
-        return false;
-      }
-      return state.user?.perm && state.user?.perm.share; // Access from state directly
+      return state.user?.perm && state.user?.perm.share;
     },
   },
-  methods: { },
+  methods: {
+    updateGallerySize(event) {
+      this.gallerySize = parseInt(event.target.value, 10);
+    },
+    commitGallerySize() {
+      mutations.setGallerySize(this.gallerySize);
+    },
+  },
 };
 </script>
