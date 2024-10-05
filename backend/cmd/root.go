@@ -32,7 +32,6 @@ var assets embed.FS
 
 var (
 	nonEmbededFS = os.Getenv("FILEBROWSER_NO_EMBEDED") == "true"
-	configPath   = "filebrowser.yaml"
 )
 
 type dirFS struct {
@@ -97,7 +96,11 @@ func StartFilebrowser() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "set":
-			setCmd.Parse(os.Args)
+			err := setCmd.Parse(os.Args)
+			if err != nil {
+				setCmd.PrintDefaults()
+				os.Exit(1)
+			}
 			userInfo := strings.Split(user, ",")
 			if len(userInfo) < 2 {
 				fmt.Println("not enough info to create user: \"set -u username,password\"")
@@ -120,7 +123,7 @@ func StartFilebrowser() {
 			if scope != "" {
 				newUser.Scope = scope
 			}
-			err := storage.CreateUser(newUser, asAdmin)
+			err = storage.CreateUser(newUser, asAdmin)
 			if err != nil {
 				log.Fatal("Could not create user: ", err)
 			}
