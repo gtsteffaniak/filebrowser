@@ -207,16 +207,16 @@ export default {
       return state.multiple;
     },
     nameSorted() {
-      return state.req.sorting.by === "name";
+      return state.user.sorting.by === "name";
     },
     sizeSorted() {
-      return state.req.sorting.by === "size";
+      return state.user.sorting.by === "size";
     },
     modifiedSorted() {
-      return state.req.sorting.by === "modified";
+      return state.user.sorting.by === "modified";
     },
     ascOrdered() {
-      return state.req.sorting.asc;
+      return state.user.sorting.asc;
     },
     items() {
       return getters.reqItems();
@@ -283,9 +283,9 @@ export default {
     // Check the columns size for the first time.
     this.colunmsResize();
     // Add the needed event listeners to the window and document.
-    window.addEventListener("keydown", this.keyEvent);
-    window.addEventListener("scroll", this.scrollEvent);
-    window.addEventListener("resize", this.windowsResize);
+    this.$el.addEventListener("keydown", this.keyEvent);
+    this.$el.addEventListener("scroll", this.scrollEvent);
+    this.$el.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
     this.$el.addEventListener("contextmenu", this.openContext);
 
@@ -294,12 +294,6 @@ export default {
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
-  },
-  beforeUnmount() {
-    // Remove event listeners before destroying this page.
-    window.removeEventListener("keydown", this.keyEvent);
-    window.removeEventListener("scroll", this.scrollEvent);
-    window.removeEventListener("resize", this.windowsResize);
   },
   methods: {
     base64(name) {
@@ -443,7 +437,7 @@ export default {
         return;
       }
       if (noModifierKeys && getters.currentPromptName() != null) {
-        return
+        return;
       }
       // Handle the space bar key
       if (key === " ") {
