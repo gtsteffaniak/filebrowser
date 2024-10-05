@@ -6,7 +6,7 @@
 </p>
 <h3 align="center">FileBrowser Quantum - A modern web-based file manager</h3>
 <p align="center">
-  <img width="800" src="https://github.com/user-attachments/assets/8ba93582-aba2-4996-8ac3-25f763a2e596" title="Main Screenshot">
+  <img width="800" src="https://private-user-images.githubusercontent.com/42989099/367975355-3d6f4619-4985-4ce3-952f-286510dff4f1.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjgxNTA2MjEsIm5iZiI6MTcyODE1MDMyMSwicGF0aCI6Ii80Mjk4OTA5OS8zNjc5NzUzNTUtM2Q2ZjQ2MTktNDk4NS00Y2UzLTk1MmYtMjg2NTEwZGZmNGYxLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDEwMDUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQxMDA1VDE3NDUyMVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTg1OGNlMWM3M2I1ZmY3MDcxMGU1ODc3N2ZkMjI5YWQ3YzEyODRmNDU0ZDkxMjJhNTU0ZGY1MDQ2YmIwOWRmMTgmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.mOl0Hm70XmQEk-DPzx1FbwrpxNMDAqb-WDprs1HK-mc" title="Main Screenshot">
 </p>
 
 > [!WARNING]
