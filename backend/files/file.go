@@ -21,7 +21,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var (
@@ -61,20 +60,12 @@ type FileOptions struct {
 	Content    bool
 }
 
-// Sorting constants
-const (
-	SortingByName     = "name"
-	SortingBySize     = "size"
-	SortingByModified = "modified"
-)
-
 // Listing is a collection of files.
 type Listing struct {
-	Items    []*FileInfo   `json:"items"`
-	Path     string        `json:"path"`
-	NumDirs  int           `json:"numDirs"`
-	NumFiles int           `json:"numFiles"`
-	Sorting  users.Sorting `json:"sorting"`
+	Items    []*FileInfo `json:"items"`
+	Path     string      `json:"path"`
+	NumDirs  int         `json:"numDirs"`
+	NumFiles int         `json:"numFiles"`
 }
 
 // NewFileInfo creates a File object from a path and a given user. This File

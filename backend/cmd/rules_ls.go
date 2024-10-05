@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ var rulesLsCommand = &cobra.Command{
 	Short: "List global rules or user specific rules",
 	Long:  `List global rules or user specific rules.`,
 	Args:  cobra.NoArgs,
-	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
-		runRules(d.store, cmd, nil, nil)
-	}, pythonConfig{}),
+	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
+		runRules(store, cmd, nil, nil)
+	}),
 }

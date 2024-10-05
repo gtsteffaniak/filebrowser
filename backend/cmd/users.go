@@ -11,10 +11,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-func init() {
-	rootCmd.AddCommand(usersCmd)
-}
-
 var usersCmd = &cobra.Command{
 	Use:   "users",
 	Short: "Users management utility",

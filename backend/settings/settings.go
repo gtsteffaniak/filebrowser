@@ -39,3 +39,15 @@ func GenerateKey() ([]byte, error) {
 func GetSettingsConfig(nameType string, Value string) string {
 	return nameType + Value
 }
+
+func AdminPerms() Permissions {
+	return Permissions{
+		Create:   true,
+		Rename:   true,
+		Modify:   true,
+		Delete:   true,
+		Share:    true,
+		Download: true,
+		Admin:    true,
+	}
+}
