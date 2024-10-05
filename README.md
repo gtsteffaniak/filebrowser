@@ -131,6 +131,14 @@ Not using docker (not recommended), download your binary from releases and run w
 ./filebrowser -c <filebrowser.yml or other /path/to/config.yaml>
 ```
 
+## Command Line Usage
+
+There are very few commands available. There are 3 actions done via command line:
+
+1. Running the program, as shown on install step. Only argument used is the config file, if you choose to override default "filebrowser.yaml"
+2. Checking the version info via `./filebrowser version`
+3. Updating the DB, which currently only supports adding users via `./filebrowser set -u username,password [-a] [-s "example/scope"]`
+
 ## Configuration
 
 All configuration is now done via a single configuration file:
