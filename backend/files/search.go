@@ -1,8 +1,8 @@
 package files
 
 import (
+	"fmt"
 	"math/rand"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -30,12 +30,12 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			continue
 		}
 		si.mu.Lock()
-		defer si.mu.Unlock()
 		for dirName, dir := range si.Directories {
 			isDir := true
 			files := strings.Split(dir.Files, ";")
 			value, found := sessionInProgress.Load(sourceSession)
 			if !found || value != runningHash {
+				si.mu.Unlock()
 				return []string{}, map[string]map[string]bool{}
 			}
 			if count > maxSearchResults {
@@ -46,7 +46,9 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				continue // path not matched
 			}
 			fileTypes := map[string]bool{}
-			matches, fileType := containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
+			si.mu.Unlock()
+			matches, fileType := si.containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
+			si.mu.Lock()
 			if matches {
 				fileListTypes[pathName] = fileType
 				matching = append(matching, pathName)
@@ -67,8 +69,9 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				}
 				fullName := strings.TrimLeft(pathName+file, "/")
 				fileTypes := map[string]bool{}
-
-				matches, fileType := containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
+				si.mu.Unlock()
+				matches, fileType := si.containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
+				si.mu.Lock()
 				if !matches {
 					continue
 				}
@@ -77,6 +80,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				count++
 			}
 		}
+		si.mu.Unlock()
 	}
 	// Sort the strings based on the number of elements after splitting by "/"
 	sort.Slice(matching, func(i, j int) bool {
@@ -102,9 +106,14 @@ func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
 	return pathName
 }
 
-func containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, map[string]bool) {
+func (si *Index) containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, map[string]bool) {
 	conditions := options.Conditions
+	adjustedPath := pathName
 	path := getLastPathComponent(pathName)
+	if !isDir {
+		adjustedPath = path
+	}
+
 	// Convert to lowercase once
 	if !conditions["exact"] {
 		path = strings.ToLower(path)
@@ -129,12 +138,25 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 			switch t {
 			case "larger":
 				if fileSize == 0 {
-					fileSize = getFileSize(pathName)
+					fmt.Println(pathName, "getting")
+					fileInfo, err := si.GetMetadataInfo(adjustedPath)
+					if err == false {
+						continue
+					}
+					fmt.Println(pathName, fileInfo.Size)
+					fileSize = fileInfo.Size
 				}
 				matchesCondition = fileSize > int64(options.LargerThan)*bytesInMegabyte
 			case "smaller":
 				if fileSize == 0 {
-					fileSize = getFileSize(pathName)
+					fmt.Println(pathName, "getting")
+					fileInfo, err := si.GetMetadataInfo(adjustedPath)
+					if err == false {
+						continue
+					}
+					fmt.Println(pathName, fileInfo.Size)
+
+					fileSize = fileInfo.Size
 				}
 				matchesCondition = fileSize < int64(options.SmallerThan)*bytesInMegabyte
 			default:
@@ -148,14 +170,6 @@ func containsSearchTerm(pathName string, searchTerm string, options SearchOption
 	}
 	// Clear variables and return
 	return false, map[string]bool{}
-}
-
-func getFileSize(filepath string) int64 {
-	fileInfo, err := os.Stat(rootPath + "/" + filepath)
-	if err != nil {
-		return 0
-	}
-	return fileInfo.Size()
 }
 
 func getLastPathComponent(path string) string {

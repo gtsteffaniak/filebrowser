@@ -14,12 +14,12 @@ import (
 
 type Directory struct {
 	Metadata map[string]FileInfo
-	Files    string
 }
 
 type File struct {
 	Name  string
 	IsDir bool
+	Size  int64
 }
 
 type Index struct {
@@ -113,12 +113,14 @@ func (si *Index) indexFiles(path string) error {
 
 func (si *Index) InsertFiles(path string) {
 	adjustedPath := si.makeIndexPath(path, true)
-	subDirectory := Directory{}
+	subDirectory := Directory{
+		Metadata: map[string]FileInfo{}
+	}
 	buffer := bytes.Buffer{}
 
 	for _, f := range si.GetQuickList() {
 		if !f.IsDir {
-			buffer.WriteString(f.Name + ";")
+			subDirectory.Metadata
 			si.UpdateCount("files")
 		}
 	}

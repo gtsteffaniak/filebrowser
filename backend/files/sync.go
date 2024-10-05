@@ -125,6 +125,7 @@ func (si *Index) UpdateQuickList(files []fs.FileInfo) {
 		newFile := File{
 			Name:  file.Name(),
 			IsDir: file.IsDir(),
+			Size:  file.Size(),
 		}
 		si.quickList = append(si.quickList, newFile)
 	}
@@ -138,6 +139,7 @@ func (si *Index) UpdateQuickListForTests(files []File) {
 		newFile := File{
 			Name:  file.Name,
 			IsDir: file.IsDir,
+			Size:  file.Size,
 		}
 		si.quickList = append(si.quickList, newFile)
 	}
