@@ -1,7 +1,7 @@
 <template>
   <component
-    :is="isSelected || user.singleClick ? 'a' : 'div'"
-    :href="isSelected || user.singleClick ? url : undefined"
+    :is="quickNav ? 'a' : 'div'"
+    :href="quickNav ? url : undefined"
     :class="{
       item: true,
       activebutton: isMaximized && isSelected,
@@ -16,7 +16,7 @@
     :data-type="type"
     :aria-label="name"
     :aria-selected="isSelected"
-    @click="isSelected || user.singleClick ? toggleClick() : itemClick($event)"
+    @click="quickNav ? toggleClick() : itemClick($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -93,6 +93,9 @@ export default {
     "path",
   ],
   computed: {
+    quickNav() {
+      return (this.isSelected || state.user.singleClick) && !state.multiple;
+    },
     user() {
       return state.user;
     },
