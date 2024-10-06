@@ -120,7 +120,9 @@ func (si *Index) InsertFiles(path string) {
 
 	for _, f := range si.GetQuickList() {
 		if !f.IsDir {
-			subDirectory.Metadata
+			subDirectory.Metadata[adjustedPath] = FileInfo{
+				Path: 
+			}
 			si.UpdateCount("files")
 		}
 	}
