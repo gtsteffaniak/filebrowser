@@ -140,7 +140,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		file, err := NewFileInfo(opts)
 		return file, err
 	}
-	info, exists := index.GetMetadataInfo(adjustedPath)
+	info, exists := index.GetMetadataInfo(adjustedPath + "/" + filepath.Base(opts.Path))
 	if !exists || info.Name == "" {
 		return NewFileInfo(opts)
 	}
