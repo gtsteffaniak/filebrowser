@@ -6,9 +6,15 @@ All notable changes to this project will be documented in this file. For commit 
 
   **New Features**:
   - Allows user creation command line arguments https://github.com/gtsteffaniak/filebrowser/issues/196
+  - Folder sizes are always shown, leveraging the index. https://github.com/gtsteffaniak/filebrowser/issues/138
+  - Searching files based on filesize is no longer slower 
 
   **Bugfixes**:
   - fixes file selection usage when in single-click mode https://github.com/gtsteffaniak/filebrowser/issues/214
+
+  **Notes**:
+    - Memory usage from index is reduced by ~40%
+    - Indexing time has increased 2x due to the extra processing time required to calculate sizes (worth it!) 
 
 ## v0.2.9
 
