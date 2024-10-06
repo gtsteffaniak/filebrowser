@@ -38,6 +38,7 @@ type ReducedItem struct {
 }
 
 // FileInfo describes a file.
+// reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
 	Items        []*FileInfo       `json:"-"`
 	ReducedItems []ReducedItem     `json:"items,omitempty"`
