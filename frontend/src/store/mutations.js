@@ -9,6 +9,7 @@ export const mutations = {
   setGallerySize: (value) => {
     state.user.gallerySize = value
     emitStateChanged();
+    users.update(state.user,['gallerySize']);
   },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
