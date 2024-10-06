@@ -67,7 +67,6 @@ func indexingScheduler(intervalMinutes uint32) {
 func (si *Index) indexFiles(path string) error {
 	// Ensure path is cleaned and normalized
 	adjustedPath := si.makeIndexPath(path, true)
-
 	// Open the directory
 	dir, err := os.Open(path)
 	if err != nil {
@@ -118,13 +117,14 @@ func (si *Index) indexFiles(path string) error {
 
 	// Create FileInfo for the current directory
 	dirFileInfo := &FileInfo{
-		Items:    fileInfos,
-		Name:     filepath.Base(path),
-		Size:     totalSize,
-		ModTime:  dirInfo.ModTime(),
-		IsDir:    true,
-		NumDirs:  numDirs,
-		NumFiles: numFiles,
+		Items:     fileInfos,
+		Name:      filepath.Base(path),
+		Size:      totalSize,
+		ModTime:   dirInfo.ModTime(),
+		CacheTime: time.Now(),
+		IsDir:     true,
+		NumDirs:   numDirs,
+		NumFiles:  numFiles,
 	}
 
 	// Add directory to index
@@ -133,7 +133,6 @@ func (si *Index) indexFiles(path string) error {
 	si.NumDirs += numDirs
 	si.NumFiles += numFiles
 	si.mu.Unlock()
-
 	return nil
 }
 

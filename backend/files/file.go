@@ -29,25 +29,34 @@ var (
 	pathMutexesMu   sync.Mutex // Mutex to protect the pathMutexes map
 )
 
+type ReducedItem struct {
+	Path      string    `json:"path,omitempty"`
+	Name      string    `json:"name"`
+	Size      int64     `json:"size"`
+	CacheTime time.Time `json:"-"`
+	IsDir     bool      `json:"isDir,omitempty"`
+}
+
 // FileInfo describes a file.
 type FileInfo struct {
-	Items     []*FileInfo       `json:"items"`
-	Path      string            `json:"path,omitempty"`
-	Name      string            `json:"name"`
-	Size      int64             `json:"size"`
-	Extension string            `json:"-"`
-	ModTime   time.Time         `json:"modified"`
-	CacheTime time.Time         `json:"-"`
-	Mode      os.FileMode       `json:"-"`
-	IsDir     bool              `json:"isDir,omitempty"`
-	IsSymlink bool              `json:"isSymlink,omitempty"`
-	Type      string            `json:"type"`
-	Subtitles []string          `json:"subtitles,omitempty"`
-	Content   string            `json:"content,omitempty"`
-	Checksums map[string]string `json:"checksums,omitempty"`
-	Token     string            `json:"token,omitempty"`
-	NumDirs   int               `json:"numDirs"`
-	NumFiles  int               `json:"numFiles"`
+	Items        []*FileInfo       `json:"-"`
+	ReducedItems []ReducedItem     `json:"items,omitempty"`
+	Path         string            `json:"path,omitempty"`
+	Name         string            `json:"name"`
+	Size         int64             `json:"size"`
+	Extension    string            `json:"-"`
+	ModTime      time.Time         `json:"modified"`
+	CacheTime    time.Time         `json:"-"`
+	Mode         os.FileMode       `json:"-"`
+	IsDir        bool              `json:"isDir,omitempty"`
+	IsSymlink    bool              `json:"isSymlink,omitempty"`
+	Type         string            `json:"type"`
+	Subtitles    []string          `json:"subtitles,omitempty"`
+	Content      string            `json:"content,omitempty"`
+	Checksums    map[string]string `json:"checksums,omitempty"`
+	Token        string            `json:"token,omitempty"`
+	NumDirs      int               `json:"numDirs"`
+	NumFiles     int               `json:"numFiles"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -87,6 +96,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	return file, err
 }
+
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
@@ -97,6 +107,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	}
 	index := GetIndex(rootPath)
 	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
+	fmt.Println(adjustedPath)
 	if opts.IsDir {
 		info, exists := index.GetMetadataInfo(adjustedPath)
 		if exists && !opts.Content {
@@ -119,6 +130,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		return file, err
 	}
 	info, exists := index.GetMetadataInfo(adjustedPath)
+
 	if !exists || info.Name == "" {
 		return &FileInfo{}, errors.ErrEmptyKey
 	}
