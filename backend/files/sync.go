@@ -39,14 +39,17 @@ func (si *Index) GetMetadataInfo(adjustedPath string) (FileInfo, bool) {
 	cleanedItems := []ReducedItem{}
 	for _, item := range dir.Items {
 		cleanedItems = append(cleanedItems, ReducedItem{
-			Name:  item.Name,
-			Size:  item.Size,
-			IsDir: item.IsDir,
+			Name:    item.Name,
+			Size:    item.Size,
+			IsDir:   item.IsDir,
+			ModTime: item.ModTime,
+			Type:    item.Type,
 		})
 	}
 	dir.Items = nil
 	dir.ReducedItems = cleanedItems
-
+	realPath, _, _ := GetRealPath(adjustedPath)
+	dir.Path = realPath
 	return dir, exists
 }
 

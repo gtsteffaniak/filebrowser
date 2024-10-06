@@ -112,6 +112,7 @@ func (si *Index) indexFiles(path string) error {
 		} else {
 			numFiles++
 		}
+		_ = childInfo.detectType(path, true, false, false)
 		fileInfos = append(fileInfos, childInfo)
 	}
 

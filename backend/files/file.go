@@ -30,11 +30,11 @@ var (
 )
 
 type ReducedItem struct {
-	Path      string    `json:"path,omitempty"`
-	Name      string    `json:"name"`
-	Size      int64     `json:"size"`
-	CacheTime time.Time `json:"-"`
-	IsDir     bool      `json:"isDir,omitempty"`
+	Name    string    `json:"name"`
+	Size    int64     `json:"size"`
+	ModTime time.Time `json:"modified"`
+	IsDir   bool      `json:"isDir,omitempty"`
+	Type    string    `json:"type"`
 }
 
 // FileInfo describes a file.
@@ -107,7 +107,6 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	}
 	index := GetIndex(rootPath)
 	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
-	fmt.Println(adjustedPath)
 	if opts.IsDir {
 		info, exists := index.GetMetadataInfo(adjustedPath)
 		if exists && !opts.Content {
