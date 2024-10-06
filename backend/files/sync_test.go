@@ -216,5 +216,4 @@ func init() {
 		mockFileInfo{name: "file1.txt", isDir: false},
 		mockFileInfo{name: "dir1", isDir: true},
 	}
-	testIndex.UpdateQuickList(files)
 }

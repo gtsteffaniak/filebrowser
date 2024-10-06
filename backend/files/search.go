@@ -32,7 +32,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 		si.mu.Lock()
 		for dirName, dir := range si.Directories {
 			isDir := true
-			files := strings.Split(dir.Files, ";")
+			files := strings.Split(dir.Path, ";")
 			value, found := sessionInProgress.Load(sourceSession)
 			if !found || value != runningHash {
 				si.mu.Unlock()

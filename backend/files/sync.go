@@ -1,7 +1,6 @@
 package files
 
 import (
-	"io/fs"
 	"log"
 	"time"
 
@@ -13,15 +12,10 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info FileInfo) bool {
 	si.mu.Lock()
 	defer si.mu.Unlock()
 	dir, exists := si.Directories[adjustedPath]
-	if !exists || exists && dir.Metadata == nil {
-		// Initialize the Metadata map if it is nil
-		if dir.Metadata == nil {
-			dir.Metadata = make(map[string]FileInfo)
-		}
-		si.Directories[adjustedPath] = dir
-		// Release the read lock before calling SetFileMetadata
+	if !exists {
+		si.Directories[adjustedPath] = FileInfo{}
 	}
-	return si.SetFileMetadata(adjustedPath, info)
+	return si.SetFileMetadata(adjustedPath, dir)
 }
 
 // SetFileMetadata sets the FileInfo for the specified directory in the index.
@@ -32,37 +26,27 @@ func (si *Index) SetFileMetadata(adjustedPath string, info FileInfo) bool {
 		return false
 	}
 	info.CacheTime = time.Now()
-	si.Directories[adjustedPath].Metadata[adjustedPath] = info
+	si.Directories[adjustedPath] = info
 	return true
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
 func (si *Index) GetMetadataInfo(adjustedPath string) (FileInfo, bool) {
-	fi := FileInfo{}
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
-	if exists {
-		// Initialize the Metadata map if it is nil
-		if dir.Metadata == nil {
-			dir.Metadata = make(map[string]FileInfo)
-			si.SetDirectoryInfo(adjustedPath, dir)
-		} else {
-			fi = dir.Metadata[adjustedPath]
-		}
-	}
-	return fi, exists
+	return dir, exists
 }
 
 // SetDirectoryInfo sets the directory information in the index.
-func (si *Index) SetDirectoryInfo(adjustedPath string, dir Directory) {
+func (si *Index) SetDirectoryInfo(adjustedPath string, dir FileInfo) {
 	si.mu.Lock()
 	si.Directories[adjustedPath] = dir
 	si.mu.Unlock()
 }
 
 // SetDirectoryInfo sets the directory information in the index.
-func (si *Index) GetDirectoryInfo(adjustedPath string) (Directory, bool) {
+func (si *Index) GetDirectoryInfo(adjustedPath string) (FileInfo, bool) {
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
@@ -106,7 +90,7 @@ func GetIndex(root string) *Index {
 	}
 	newIndex := &Index{
 		Root:        rootPath,
-		Directories: make(map[string]Directory), // Initialize the map
+		Directories: map[string]FileInfo{},
 		NumDirs:     0,
 		NumFiles:    0,
 		inProgress:  false,
@@ -115,39 +99,4 @@ func GetIndex(root string) *Index {
 	indexes = append(indexes, newIndex)
 	indexesMutex.Unlock()
 	return newIndex
-}
-
-func (si *Index) UpdateQuickList(files []fs.FileInfo) {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	si.quickList = []File{}
-	for _, file := range files {
-		newFile := File{
-			Name:  file.Name(),
-			IsDir: file.IsDir(),
-			Size:  file.Size(),
-		}
-		si.quickList = append(si.quickList, newFile)
-	}
-}
-
-func (si *Index) UpdateQuickListForTests(files []File) {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	si.quickList = []File{}
-	for _, file := range files {
-		newFile := File{
-			Name:  file.Name,
-			IsDir: file.IsDir,
-			Size:  file.Size,
-		}
-		si.quickList = append(si.quickList, newFile)
-	}
-}
-
-func (si *Index) GetQuickList() []File {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	newQuickList := si.quickList
-	return newQuickList
 }

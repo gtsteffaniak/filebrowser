@@ -31,7 +31,7 @@ var (
 
 // FileInfo describes a file.
 type FileInfo struct {
-	*Listing
+	Items     []*FileInfo       `json:"items"`
 	Path      string            `json:"path,omitempty"`
 	Name      string            `json:"name"`
 	Size      int64             `json:"size"`
@@ -46,6 +46,8 @@ type FileInfo struct {
 	Content   string            `json:"content,omitempty"`
 	Checksums map[string]string `json:"checksums,omitempty"`
 	Token     string            `json:"token,omitempty"`
+	NumDirs   int               `json:"numDirs"`
+	NumFiles  int               `json:"numFiles"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -58,14 +60,6 @@ type FileOptions struct {
 	Token      string
 	Checker    rules.Checker
 	Content    bool
-}
-
-// Listing is a collection of files.
-type Listing struct {
-	Items    []*FileInfo `json:"items"`
-	Path     string      `json:"path"`
-	NumDirs  int         `json:"numDirs"`
-	NumFiles int         `json:"numFiles"`
 }
 
 // NewFileInfo creates a File object from a path and a given user. This File
@@ -482,7 +476,7 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 		return err
 	}
 
-	listing := &Listing{
+	listing := &FileInfo{
 		Items:    []*FileInfo{},
 		Path:     i.Path,
 		NumDirs:  0,
@@ -539,7 +533,7 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 		listing.Items = append(listing.Items, file)
 	}
 
-	i.Listing = listing
+	i.Items = listing.Items
 	return nil
 }
 
