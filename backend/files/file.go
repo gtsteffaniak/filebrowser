@@ -87,6 +87,18 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
 				return nil, err
 			}
+			cleanedItems := []ReducedItem{}
+			for _, item := range file.Items {
+				cleanedItems = append(cleanedItems, ReducedItem{
+					Name:    item.Name,
+					Size:    item.Size,
+					IsDir:   item.IsDir,
+					ModTime: item.ModTime,
+					Type:    item.Type,
+				})
+			}
+			file.Items = nil
+			file.ReducedItems = cleanedItems
 			return file, nil
 		}
 		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
@@ -129,12 +141,10 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		return file, err
 	}
 	info, exists := index.GetMetadataInfo(adjustedPath)
-
 	if !exists || info.Name == "" {
-		return &FileInfo{}, errors.ErrEmptyKey
+		return NewFileInfo(opts)
 	}
 	return &info, nil
-
 }
 
 func RefreshFileInfo(opts FileOptions) error {
