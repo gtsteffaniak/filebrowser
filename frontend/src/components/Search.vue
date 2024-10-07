@@ -390,10 +390,10 @@ export default {
         return;
       }
       let searchTypesFull = this.searchTypes;
-      if (this.largerThan != "") {
+      if (this.largerThan != "" && !this.isTypeSelectDisabled) {
         searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " ";
       }
-      if (this.smallerThan != "") {
+      if (this.smallerThan != "" && !this.isTypeSelectDisabled) {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
       let path = state.route.path;

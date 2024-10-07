@@ -24,9 +24,8 @@ import (
 )
 
 var (
-	bytesInMegabyte int64      = 1000000
-	pathMutexes                = make(map[string]*sync.Mutex)
-	pathMutexesMu   sync.Mutex // Mutex to protect the pathMutexes map
+	pathMutexes   = make(map[string]*sync.Mutex)
+	pathMutexesMu sync.Mutex // Mutex to protect the pathMutexes map
 )
 
 type ReducedItem struct {

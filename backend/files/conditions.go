@@ -91,7 +91,7 @@ func ParseSearch(value string) *SearchOptions {
 			opts.LargerThan = updateSize(size)
 		}
 		if strings.HasPrefix(filter, "smallerThan=") {
-			opts.Conditions["larger"] = true
+			opts.Conditions["smaller"] = true
 			size := strings.TrimPrefix(filter, "smallerThan=")
 			opts.SmallerThan = updateSize(size)
 		}

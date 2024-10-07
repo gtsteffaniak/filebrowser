@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
   **Bugfixes**:
   - fixes file selection usage when in single-click mode https://github.com/gtsteffaniak/filebrowser/issues/214
   - Fixed displayed search context on root directory
+  - Fixed issue searching "smaller than" actually returned files "larger than"
 
   **Notes**:
     - Memory usage from index is reduced by ~40%

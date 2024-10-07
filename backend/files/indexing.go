@@ -191,5 +191,8 @@ func (si *Index) makeIndexPath(subPath string, isDir bool) string {
 	} else if !isDir {
 		adjustedPath = filepath.Dir(adjustedPath)
 	}
+	if !strings.HasPrefix(adjustedPath, "/") {
+		adjustedPath = "/" + adjustedPath
+	}
 	return adjustedPath
 }
