@@ -1,7 +1,7 @@
 <template>
   <component
-    :is="isSelected || user.singleClick ? 'a' : 'div'"
-    :href="isSelected || user.singleClick ? url : undefined"
+    :is="quickNav ? 'a' : 'div'"
+    :href="quickNav ? url : undefined"
     :class="{
       item: true,
       activebutton: isMaximized && isSelected,
@@ -16,7 +16,7 @@
     :data-type="type"
     :aria-label="name"
     :aria-selected="isSelected"
-    @click="isSelected || user.singleClick ? toggleClick() : itemClick($event)"
+    @click="quickNav ? toggleClick() : itemClick($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -34,8 +34,7 @@
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
       <p class="name">{{ name }}</p>
-      <p v-if="isDir" class="size" data-order="-1">&mdash;</p>
-      <p v-else class="size" :data-order="humanSize()">{{ humanSize() }}</p>
+      <p class="size" :data-order="humanSize()">{{ humanSize() }}</p>
       <p class="modified">
         <time :datetime="modified">{{ humanTime() }}</time>
       </p>
@@ -93,6 +92,9 @@ export default {
     "path",
   ],
   computed: {
+    quickNav() {
+      return state.user.singleClick && !state.multiple;
+    },
     user() {
       return state.user;
     },
@@ -263,6 +265,7 @@ export default {
       action(overwrite, rename);
     },
     itemClick(event) {
+      console.log("should say something");
       if (this.singleClick && !state.multiple) this.open();
       else this.click(event);
     },
@@ -271,7 +274,7 @@ export default {
 
       setTimeout(() => {
         this.touches = 0;
-      }, 300);
+      }, 500);
 
       this.touches++;
       if (this.touches > 1) {

@@ -9,6 +9,7 @@ export const mutations = {
   setGallerySize: (value) => {
     state.user.gallerySize = value
     emitStateChanged();
+    users.update(state.user,['gallerySize']);
   },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
@@ -195,19 +196,20 @@ export const mutations = {
     emitStateChanged();
   },
   setRoute: (value) => {
+    console.log("going...",value)
     state.route = value;
     emitStateChanged();
   },
   updateListingSortConfig: ({ field, asc }) => {
-    state.req.sorting.by = field;
-    state.req.sorting.asc = asc;
+    state.user.sorting.by = field;
+    state.user.sorting.asc = asc;
     emitStateChanged();
   },
   updateListingItems: () => {
     state.req.items.sort((a, b) => {
-      const valueA = a[state.req.sorting.by];
-      const valueB = b[state.req.sorting.by];
-      if (state.req.sorting.asc) {
+      const valueA = a[state.user.sorting.by];
+      const valueB = b[state.user.sorting.by];
+      if (state.user.sorting.asc) {
         return valueA > valueB ? 1 : -1;
       } else {
         return valueA < valueB ? 1 : -1;

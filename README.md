@@ -6,7 +6,7 @@
 </p>
 <h3 align="center">FileBrowser Quantum - A modern web-based file manager</h3>
 <p align="center">
-  <img width="800" src="https://github.com/user-attachments/assets/8ba93582-aba2-4996-8ac3-25f763a2e596" title="Main Screenshot">
+  <img width="800" src="https://private-user-images.githubusercontent.com/42989099/367975355-3d6f4619-4985-4ce3-952f-286510dff4f1.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjgxNTA2MjEsIm5iZiI6MTcyODE1MDMyMSwicGF0aCI6Ii80Mjk4OTA5OS8zNjc5NzUzNTUtM2Q2ZjQ2MTktNDk4NS00Y2UzLTk1MmYtMjg2NTEwZGZmNGYxLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDEwMDUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQxMDA1VDE3NDUyMVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTg1OGNlMWM3M2I1ZmY3MDcxMGU1ODc3N2ZkMjI5YWQ3YzEyODRmNDU0ZDkxMjJhNTU0ZGY1MDQ2YmIwOWRmMTgmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.mOl0Hm70XmQEk-DPzx1FbwrpxNMDAqb-WDprs1HK-mc" title="Main Screenshot">
 </p>
 
 > [!WARNING]
@@ -18,9 +18,9 @@
 FileBrowser Quantum is a fork of the filebrowser opensource project with the 
 following changes:
 
-  1. [x] Enhanced lightning fast indexed search
-     - Real-time results as you type
-     - Works with more type filters
+  1. [x] Efficiently indexed files
+     - Real-time search results as you type
+     - Search Works with more type filters
      - Enhanced interactive results page.
   2. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode
@@ -131,39 +131,30 @@ Not using docker (not recommended), download your binary from releases and run w
 ./filebrowser -c <filebrowser.yml or other /path/to/config.yaml>
 ```
 
+## Command Line Usage
+
+There are very few commands available. There are 3 actions done via command line:
+
+1. Running the program, as shown on install step. Only argument used is the config file, if you choose to override default "filebrowser.yaml"
+2. Checking the version info via `./filebrowser version`
+3. Updating the DB, which currently only supports adding users via `./filebrowser set -u username,password [-a] [-s "example/scope"]`
+
 ## Configuration
 
 All configuration is now done via a single configuration file:
 `filebrowser.yaml`, here is an example of minimal [configuration
 file](./backend/filebrowser.yaml).
 
-View the [Configuration Help Page](./configuration.md) for available
+View the [Configuration Help Page](./docs/configuration.md) for available
 configuration options and other help.
 
 
 ## Migration from filebrowser/filebrowser
 
-If you currently use the original opensource filebrowser 
-but want to try using this. I recommend you start fresh without
-reusing the database, but there are a few things you'll need to do if you
-must migrate:
-
-1. Create a configuration file as mentioned above.
-2. Copy your database file from the original filebrowser to the path of
-   the new one.
-3. Update the configuration file to use the database (under server in
-   filebrowser.yml)
-4. If you are using docker, update the docker-compose file or docker run
-   command to use the config file as described in the install section
-   above.
-5. If you are not using docker, just make sure you run filebrowser -c
-   filebrowser.yml and have a valid filebrowser config.
-
-
-The filebrowser Quantum application should run with the same user and rules that
-you have from the original. But keep in mind the differences that are
-mentioned at the top of this readme.
-
+If you currently use the original filebrowser but want to try using this. 
+I recommend you start fresh without reusing the database. If you want to 
+migrate your existing database to FileBrowser Quantum, visit the [migration 
+readme](./docs/migration.md)
 
 ## Comparison Chart
 
@@ -217,4 +208,4 @@ Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 
 ## Roadmap
 
-see [Roadmap Page](./roadmap.md)
+see [Roadmap Page](./docs/roadmap.md)

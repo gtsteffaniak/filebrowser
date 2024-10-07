@@ -28,5 +28,5 @@ func (s authBackend) Get(t string) (auth.Auther, error) {
 }
 
 func (s authBackend) Save(a auth.Auther) error {
-	return save(s.db, "auther", a)
+	return Save(s.db, "auther", a)
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
+	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
@@ -73,8 +74,13 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 						t.Errorf("failed to close db: %v", err)
 					}
 				})
-
-				storage, err := bolt.NewStorage(db)
+				authStore, userStore, shareStore, settingsStore, err := bolt.NewStorage(db)
+				storage := &storage.Storage{
+					Auth:     authStore,
+					Users:    userStore,
+					Share:    shareStore,
+					Settings: settingsStore,
+				}
 				if err != nil {
 					t.Fatalf("failed to get storage: %v", err)
 				}

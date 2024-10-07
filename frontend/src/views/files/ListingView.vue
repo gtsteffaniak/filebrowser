@@ -207,16 +207,16 @@ export default {
       return state.multiple;
     },
     nameSorted() {
-      return state.req.sorting.by === "name";
+      return state.user.sorting.by === "name";
     },
     sizeSorted() {
-      return state.req.sorting.by === "size";
+      return state.user.sorting.by === "size";
     },
     modifiedSorted() {
-      return state.req.sorting.by === "modified";
+      return state.user.sorting.by === "modified";
     },
     ascOrdered() {
-      return state.req.sorting.asc;
+      return state.user.sorting.asc;
     },
     items() {
       return getters.reqItems();
@@ -443,7 +443,7 @@ export default {
         return;
       }
       if (noModifierKeys && getters.currentPromptName() != null) {
-        return
+        return;
       }
       // Handle the space bar key
       if (key === " ") {

@@ -21,32 +21,42 @@ import (
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var (
-	bytesInMegabyte int64      = 1000000
-	pathMutexes                = make(map[string]*sync.Mutex)
-	pathMutexesMu   sync.Mutex // Mutex to protect the pathMutexes map
+	pathMutexes   = make(map[string]*sync.Mutex)
+	pathMutexesMu sync.Mutex // Mutex to protect the pathMutexes map
 )
 
+type ReducedItem struct {
+	Name    string    `json:"name"`
+	Size    int64     `json:"size"`
+	ModTime time.Time `json:"modified"`
+	IsDir   bool      `json:"isDir,omitempty"`
+	Type    string    `json:"type"`
+}
+
 // FileInfo describes a file.
+// reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
-	*Listing
-	Path      string            `json:"path,omitempty"`
-	Name      string            `json:"name"`
-	Size      int64             `json:"size"`
-	Extension string            `json:"-"`
-	ModTime   time.Time         `json:"modified"`
-	CacheTime time.Time         `json:"-"`
-	Mode      os.FileMode       `json:"-"`
-	IsDir     bool              `json:"isDir,omitempty"`
-	IsSymlink bool              `json:"isSymlink,omitempty"`
-	Type      string            `json:"type"`
-	Subtitles []string          `json:"subtitles,omitempty"`
-	Content   string            `json:"content,omitempty"`
-	Checksums map[string]string `json:"checksums,omitempty"`
-	Token     string            `json:"token,omitempty"`
+	Items        []*FileInfo       `json:"-"`
+	ReducedItems []ReducedItem     `json:"items,omitempty"`
+	Path         string            `json:"path,omitempty"`
+	Name         string            `json:"name"`
+	Size         int64             `json:"size"`
+	Extension    string            `json:"-"`
+	ModTime      time.Time         `json:"modified"`
+	CacheTime    time.Time         `json:"-"`
+	Mode         os.FileMode       `json:"-"`
+	IsDir        bool              `json:"isDir,omitempty"`
+	IsSymlink    bool              `json:"isSymlink,omitempty"`
+	Type         string            `json:"type"`
+	Subtitles    []string          `json:"subtitles,omitempty"`
+	Content      string            `json:"content,omitempty"`
+	Checksums    map[string]string `json:"checksums,omitempty"`
+	Token        string            `json:"token,omitempty"`
+	NumDirs      int               `json:"numDirs"`
+	NumFiles     int               `json:"numFiles"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -61,26 +71,11 @@ type FileOptions struct {
 	Content    bool
 }
 
-// Sorting constants
-const (
-	SortingByName     = "name"
-	SortingBySize     = "size"
-	SortingByModified = "modified"
-)
-
-// Listing is a collection of files.
-type Listing struct {
-	Items    []*FileInfo   `json:"items"`
-	Path     string        `json:"path"`
-	NumDirs  int           `json:"numDirs"`
-	NumFiles int           `json:"numFiles"`
-	Sorting  users.Sorting `json:"sorting"`
-}
-
-// NewFileInfo creates a File object from a path and a given user. This File
-// object will be automatically filled depending on if it is a directory
-// or a file. If it's a video file, it will also detect any subtitles.
+// Legacy file info method, only called on non-indexed directories.
+// Once indexing completes for the first time, NewFileInfo is never called.
 func NewFileInfo(opts FileOptions) (*FileInfo, error) {
+
+	index := GetIndex(rootPath)
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
@@ -93,6 +88,26 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
 				return nil, err
 			}
+			cleanedItems := []ReducedItem{}
+			for _, item := range file.Items {
+				// This is particularly useful for root of index, while indexing hasn't finished.
+				// adds the directory sizes for directories that have been indexed already.
+				if item.IsDir {
+					adjustedPath := index.makeIndexPath(opts.Path+"/"+item.Name, true)
+					info, _ := index.GetMetadataInfo(adjustedPath)
+					item.Size = info.Size
+				}
+				cleanedItems = append(cleanedItems, ReducedItem{
+					Name:    item.Name,
+					Size:    item.Size,
+					IsDir:   item.IsDir,
+					ModTime: item.ModTime,
+					Type:    item.Type,
+				})
+			}
+
+			file.Items = nil
+			file.ReducedItems = cleanedItems
 			return file, nil
 		}
 		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
@@ -102,6 +117,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	return file, err
 }
+
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
@@ -133,12 +149,11 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		file, err := NewFileInfo(opts)
 		return file, err
 	}
-	info, exists := index.GetMetadataInfo(adjustedPath)
+	info, exists := index.GetMetadataInfo(adjustedPath + "/" + filepath.Base(opts.Path))
 	if !exists || info.Name == "" {
-		return &FileInfo{}, errors.ErrEmptyKey
+		return NewFileInfo(opts)
 	}
 	return &info, nil
-
 }
 
 func RefreshFileInfo(opts FileOptions) error {
@@ -491,9 +506,8 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 		return err
 	}
 
-	listing := &Listing{
+	listing := &FileInfo{
 		Items:    []*FileInfo{},
-		Path:     i.Path,
 		NumDirs:  0,
 		NumFiles: 0,
 	}
@@ -548,7 +562,7 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 		listing.Items = append(listing.Items, file)
 	}
 
-	i.Listing = listing
+	i.Items = listing.Items
 	return nil
 }
 

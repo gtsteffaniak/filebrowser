@@ -6,7 +6,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 func init() {
@@ -40,27 +42,27 @@ including 'index_end'.`,
 
 		return nil
 	},
-	Run: python(func(cmd *cobra.Command, args []string, d pythonData) {
+	Run: cobraCmd(func(cmd *cobra.Command, args []string, store *storage.Storage) {
 		i, err := strconv.Atoi(args[0])
-		checkErr("strconv.Atoi", err)
+		utils.CheckErr("strconv.Atoi", err)
 		f := i
 		if len(args) == 2 { //nolint:gomnd
 			f, err = strconv.Atoi(args[1])
-			checkErr("strconv.Atoi", err)
+			utils.CheckErr("strconv.Atoi", err)
 		}
 
 		user := func(u *users.User) {
 			u.Rules = append(u.Rules[:i], u.Rules[f+1:]...)
-			err := d.store.Users.Save(u)
-			checkErr("d.store.Users.Save", err)
+			err := store.Users.Save(u)
+			utils.CheckErr("store.Users.Save", err)
 		}
 
 		global := func(s *settings.Settings) {
 			s.Rules = append(s.Rules[:i], s.Rules[f+1:]...)
-			err := d.store.Settings.Save(s)
-			checkErr("d.store.Settings.Save", err)
+			err := store.Settings.Save(s)
+			utils.CheckErr("store.Settings.Save", err)
 		}
 
-		runRules(d.store, cmd, user, global)
-	}, pythonConfig{}),
+		runRules(store, cmd, user, global)
+	}),
 }

@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.10
+
+  **New Features**:
+  - Allows user creation command line arguments https://github.com/gtsteffaniak/filebrowser/issues/196
+  - Folder sizes are always shown, leveraging the index. https://github.com/gtsteffaniak/filebrowser/issues/138
+  - Searching files based on filesize is no longer slower.
+
+  **Bugfixes**:
+  - fixes file selection usage when in single-click mode https://github.com/gtsteffaniak/filebrowser/issues/214
+  - Fixed displayed search context on root directory
+  - Fixed issue searching "smaller than" actually returned files "larger than"
+
+  **Notes**:
+    - Memory usage from index is reduced by ~40%
+    - Indexing time has increased 2x due to the extra processing time required to calculate directory sizes.
+    - File size calcuations use 1024 base vs previous 1000 base (matching windows explorer)
+
 ## v0.2.9
 
   This release focused on UI navigation experience. Improving keyboard navigation and adds right click context menu.

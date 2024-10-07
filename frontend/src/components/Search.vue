@@ -166,10 +166,6 @@
             <b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
             for example <code>"test|not"</code> searches for both terms independently.
           </p>
-          <p>
-            <b>File size:</b> Searching files by size may have significantly longer search
-            times.
-          </p>
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
@@ -311,6 +307,9 @@ export default {
       path = path.slice(1);
       path = "./" + path.substring(path.indexOf("/") + 1);
       path = path.replace(/\/+$/, "") + "/";
+      if (path == "./files/") {
+        path = "./";
+      }
       return path;
     },
   },
@@ -391,10 +390,10 @@ export default {
         return;
       }
       let searchTypesFull = this.searchTypes;
-      if (this.largerThan != "") {
+      if (this.largerThan != "" && !this.isTypeSelectDisabled) {
         searchTypesFull = searchTypesFull + "type:largerThan=" + this.largerThan + " ";
       }
-      if (this.smallerThan != "") {
+      if (this.smallerThan != "" && !this.isTypeSelectDisabled) {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
       let path = state.route.path;

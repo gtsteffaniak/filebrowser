@@ -51,13 +51,13 @@ export default {
       return state.selected;
     },
     nameSorted() {
-      return state.req.sorting.by === "name";
+      return state.user.sorting.by === "name";
     },
     sizeSorted() {
-      return state.req.sorting.by === "size";
+      return state.user.sorting.by === "size";
     },
     modifiedSorted() {
-      return state.req.sorting.by === "modified";
+      return state.user.sorting.by === "modified";
     },
     ascOrdered() {
       return state.req.sorting.asc;
@@ -297,7 +297,7 @@ export default {
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const newView = this.viewModes[nextIndex];
-      mutations.updateCurrentUser({ "viewMode": newView });
+      mutations.updateCurrentUser({ viewMode: newView });
     },
     preventDefault(event) {
       // Wrapper around prevent default.
