@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,18 +50,16 @@ func TestGetFileMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, exists := testIndex.GetMetadataInfo(tt.adjustedPath)
+			fileInfo, _ := testIndex.GetMetadataInfo(tt.adjustedPath)
 			found := false
 			// Iterate over fileInfo.Items to look for expectedName
 			for _, item := range fileInfo.ReducedItems {
 				// Assert the existence and the name
 				if item.Name == tt.expectedName {
-					fmt.Println("item found !", item.Name)
 					found = true
 					break
 				}
 			}
-			fmt.Println(tt.adjustedPath, exists, tt.expectedName, found)
 			assert.Equal(t, tt.expectedExists, found)
 		})
 	}

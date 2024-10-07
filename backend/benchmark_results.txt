@@ -7,26 +7,27 @@
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/diskcache	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/errors	[no test files]
+2024/10/07 11:34:59 could not update unknown type:  unknown
 goos: linux
 goarch: amd64
 pkg: github.com/gtsteffaniak/filebrowser/files
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkFillIndex-8          	      10	   3559830 ns/op	  274639 B/op	    2026 allocs/op
-BenchmarkSearchAllIndexes-8   	      10	  31912612 ns/op	20545741 B/op	  312477 allocs/op
+BenchmarkFillIndex-8          	      10	   3792353 ns/op	  741159 B/op	    5438 allocs/op
+BenchmarkSearchAllIndexes-8   	      10	    841865 ns/op	  202411 B/op	    2113 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/files	0.417s
+ok  	github.com/gtsteffaniak/filebrowser/files	0.072s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.002s
-2024/08/27 16:16:13 h: 401  <nil>
-2024/08/27 16:16:13 h: 401  <nil>
-2024/08/27 16:16:13 h: 401  <nil>
-2024/08/27 16:16:13 h: 401  <nil>
-2024/08/27 16:16:13 h: 401  <nil>
-2024/08/27 16:16:13 h: 401  <nil>
+ok  	github.com/gtsteffaniak/filebrowser/fileutils	0.003s
+2024/10/07 11:34:59 h: 401  <nil>
+2024/10/07 11:34:59 h: 401  <nil>
+2024/10/07 11:34:59 h: 401  <nil>
+2024/10/07 11:34:59 h: 401  <nil>
+2024/10/07 11:34:59 h: 401  <nil>
+2024/10/07 11:34:59 h: 401  <nil>
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/http	0.100s
+ok  	github.com/gtsteffaniak/filebrowser/http	0.085s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/img	0.124s
+ok  	github.com/gtsteffaniak/filebrowser/img	0.122s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/rules	0.002s
 PASS
@@ -38,4 +39,5 @@ ok  	github.com/gtsteffaniak/filebrowser/settings	0.004s
 ?   	github.com/gtsteffaniak/filebrowser/storage/bolt	[no test files]
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/users	0.002s
+?   	github.com/gtsteffaniak/filebrowser/utils	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/version	[no test files]
