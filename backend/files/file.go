@@ -30,7 +30,6 @@ var (
 
 type ReducedItem struct {
 	Name    string    `json:"name"`
-	Path    string    `json:"path"`
 	Size    int64     `json:"size"`
 	ModTime time.Time `json:"modified"`
 	IsDir   bool      `json:"isDir,omitempty"`
