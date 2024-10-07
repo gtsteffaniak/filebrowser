@@ -72,10 +72,10 @@ type FileOptions struct {
 	Content    bool
 }
 
-// NewFileInfo creates a File object from a path and a given user. This File
-// object will be automatically filled depending on if it is a directory
-// or a file. If it's a video file, it will also detect any subtitles.
+// Legacy file info method, only called on non-indexed directories.
+// Once indexing completes for the first time, NewFileInfo is never called.
 func NewFileInfo(opts FileOptions) (*FileInfo, error) {
+
 	index := GetIndex(rootPath)
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
@@ -91,8 +91,9 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			}
 			cleanedItems := []ReducedItem{}
 			for _, item := range file.Items {
+				// This is particularly useful for root of index, while indexing hasn't finished.
+				// adds the directory sizes for directories that have been indexed already.
 				if item.IsDir {
-
 					adjustedPath := index.makeIndexPath(opts.Path+"/"+item.Name, true)
 					info, _ := index.GetMetadataInfo(adjustedPath)
 					item.Size = info.Size

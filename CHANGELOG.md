@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Notes**:
     - Memory usage from index is reduced by ~40%
-    - Indexing time has increased 2x due to the extra processing time required to calculate sizes (worth it!) 
+    - Indexing time has increased 2x due to the extra processing time required to calculate directory sizes.
     - File size calcuations use 1024 base vs previous 1000 base (matching windows explorer)
 
 ## v0.2.9

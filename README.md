@@ -18,9 +18,9 @@
 FileBrowser Quantum is a fork of the filebrowser opensource project with the 
 following changes:
 
-  1. [x] Enhanced lightning fast indexed search
-     - Real-time results as you type
-     - Works with more type filters
+  1. [x] Efficiently indexed files
+     - Real-time search results as you type
+     - Search Works with more type filters
      - Enhanced interactive results page.
   2. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode
