@@ -48,7 +48,7 @@ func TestParseSearch(t *testing.T) {
 		{
 			input: "type:largerThan=100 type:smallerThan=1000 test",
 			want: &SearchOptions{
-				Conditions:  map[string]bool{"exact": false, "larger": true},
+				Conditions:  map[string]bool{"exact": false, "larger": true, "smaller": true},
 				Terms:       []string{"test"},
 				LargerThan:  100,
 				SmallerThan: 1000,
