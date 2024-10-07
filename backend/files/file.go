@@ -76,6 +76,7 @@ type FileOptions struct {
 // object will be automatically filled depending on if it is a directory
 // or a file. If it's a video file, it will also detect any subtitles.
 func NewFileInfo(opts FileOptions) (*FileInfo, error) {
+	index := GetIndex(rootPath)
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
@@ -90,6 +91,12 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			}
 			cleanedItems := []ReducedItem{}
 			for _, item := range file.Items {
+				if item.IsDir {
+
+					adjustedPath := index.makeIndexPath(opts.Path+"/"+item.Name, true)
+					info, _ := index.GetMetadataInfo(adjustedPath)
+					item.Size = info.Size
+				}
 				cleanedItems = append(cleanedItems, ReducedItem{
 					Name:    item.Name,
 					Size:    item.Size,
@@ -98,6 +105,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 					Type:    item.Type,
 				})
 			}
+
 			file.Items = nil
 			file.ReducedItems = cleanedItems
 			return file, nil

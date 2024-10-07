@@ -93,7 +93,7 @@ export default {
   ],
   computed: {
     quickNav() {
-      return (this.isSelected || state.user.singleClick) && !state.multiple;
+      return state.user.singleClick && !state.multiple;
     },
     user() {
       return state.user;
@@ -265,6 +265,7 @@ export default {
       action(overwrite, rename);
     },
     itemClick(event) {
+      console.log("should say something");
       if (this.singleClick && !state.multiple) this.open();
       else this.click(event);
     },
@@ -273,7 +274,7 @@ export default {
 
       setTimeout(() => {
         this.touches = 0;
-      }, 300);
+      }, 500);
 
       this.touches++;
       if (this.touches > 1) {

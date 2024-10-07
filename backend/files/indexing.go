@@ -99,16 +99,13 @@ func (si *Index) indexFiles(path string) error {
 	var numDirs, numFiles int
 
 	for _, file := range files {
-		// Create a new FileInfo instance for each entry
-		childInfo := &FileInfo{
+		parentInfo := &FileInfo{
 			Name:    file.Name(),
 			Size:    file.Size(),
 			ModTime: file.ModTime(),
 			IsDir:   file.IsDir(),
 		}
-
-		// Insert info into the index
-		_, err := si.InsertInfo(path, childInfo)
+		childInfo, err := si.InsertInfo(path, parentInfo)
 		if err != nil {
 			// Log error, but continue processing other files
 			continue

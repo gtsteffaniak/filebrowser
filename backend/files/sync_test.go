@@ -9,6 +9,43 @@ import (
 var testIndex Index
 
 // Test for GetFileMetadata// Test for GetFileMetadata
+func TestGetFileMetadataSize(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		adjustedPath string
+		expectedName string
+		expectedSize int64
+	}{
+		{
+			name:         "testpath exists",
+			adjustedPath: "/testpath",
+			expectedName: "testfile.txt",
+			expectedSize: 100,
+		},
+		{
+			name:         "testpath exists",
+			adjustedPath: "/testpath",
+			expectedName: "directory",
+			expectedSize: 100,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fileInfo, _ := testIndex.GetMetadataInfo(tt.adjustedPath)
+			// Iterate over fileInfo.Items to look for expectedName
+			for _, item := range fileInfo.ReducedItems {
+				// Assert the existence and the name
+				if item.Name == tt.expectedName {
+					assert.Equal(t, tt.expectedSize, item.Size)
+					break
+				}
+			}
+		})
+	}
+}
+
+// Test for GetFileMetadata// Test for GetFileMetadata
 func TestGetFileMetadata(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -205,8 +242,8 @@ func init() {
 				NumDirs:  1,
 				NumFiles: 2,
 				Items: []*FileInfo{
-					{Name: "testfile.txt"},
-					{Name: "anotherfile.txt"},
+					{Name: "testfile.txt", Size: 100},
+					{Name: "anotherfile.txt", Size: 100},
 				},
 			},
 			"/anotherpath": {
@@ -216,7 +253,8 @@ func init() {
 				NumDirs:  1,
 				NumFiles: 1,
 				Items: []*FileInfo{
-					{Name: "afile.txt"},
+					{Name: "directory", IsDir: true, Size: 100},
+					{Name: "afile.txt", Size: 100},
 				},
 			},
 		},
