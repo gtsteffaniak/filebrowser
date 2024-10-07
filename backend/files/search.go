@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"math/rand"
 	"path/filepath"
 	"sort"
@@ -116,7 +115,7 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 	smallerThan := int64(options.SmallerThan) * 1024 * 1024
 	conditions := options.Conditions
 	fileName := filepath.Base(pathName)
-	adjustedPath := si.makeIndexPath("/"+pathName, isDir)
+	adjustedPath := si.makeIndexPath(pathName, isDir)
 
 	// Convert to lowercase if not exact match
 	if !conditions["exact"] {
@@ -128,7 +127,6 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 	if !strings.Contains(fileName, searchTerm) {
 		return false, map[string]bool{}
 	}
-	fmt.Println()
 
 	// Initialize file size and fileTypes map
 	var fileSize int64
@@ -165,6 +163,7 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 			return false, fileTypes
 		}
 	}
+
 	// Evaluate all conditions
 	for t, v := range conditions {
 		if t == "exact" {

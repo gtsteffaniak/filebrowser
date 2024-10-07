@@ -97,6 +97,16 @@ func TestSearchIndexes(t *testing.T) {
 				{Name: "video.MP4"},
 			}},
 			"new/test/path": {Items: []*FileInfo{{Name: "archive.zip"}}},
+			"/firstDir": {Items: []*FileInfo{
+				{Name: "archive.zip", Size: 100},
+				{Name: "thisIsDir", IsDir: true, Size: 2 * 1024 * 1024},
+			}},
+			"/firstDir/thisIsDir": {
+				Items: []*FileInfo{
+					{Name: "hi.txt"},
+				},
+				Size: 2 * 1024 * 1024,
+			},
 		},
 	}
 
@@ -126,9 +136,34 @@ func TestSearchIndexes(t *testing.T) {
 		{
 			search:         "archive",
 			scope:          "/",
-			expectedResult: []string{"new/test/path/archive.zip"},
+			expectedResult: []string{"firstDir/archive.zip", "new/test/path/archive.zip"},
 			expectedTypes: map[string]map[string]bool{
 				"new/test/path/archive.zip": {"archive": true, "dir": false},
+				"firstDir/archive.zip":      {"archive": true, "dir": false},
+			},
+		},
+		{
+			search:         "arch",
+			scope:          "/firstDir",
+			expectedResult: []string{"archive.zip"},
+			expectedTypes: map[string]map[string]bool{
+				"archive.zip": {"archive": true, "dir": false},
+			},
+		},
+		{
+			search:         "isdir",
+			scope:          "/",
+			expectedResult: []string{"firstDir/thisIsDir/"},
+			expectedTypes: map[string]map[string]bool{
+				"firstDir/thisIsDir/": {"dir": true},
+			},
+		},
+		{
+			search:         "dir type:largerThan=1",
+			scope:          "/",
+			expectedResult: []string{"firstDir/thisIsDir/"},
+			expectedTypes: map[string]map[string]bool{
+				"firstDir/thisIsDir/": {"dir": true},
 			},
 		},
 		{
@@ -149,7 +184,7 @@ func TestSearchIndexes(t *testing.T) {
 		t.Run(tt.search, func(t *testing.T) {
 			actualResult, actualTypes := index.Search(tt.search, tt.scope, "")
 			assert.Equal(t, tt.expectedResult, actualResult)
-			assert.True(t, reflect.DeepEqual(tt.expectedTypes, actualTypes))
+			assert.Equal(t, tt.expectedTypes, actualTypes)
 		})
 	}
 }
