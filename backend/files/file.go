@@ -24,13 +24,13 @@ import (
 )
 
 var (
-	bytesInMegabyte int64      = 1000000
-	pathMutexes                = make(map[string]*sync.Mutex)
-	pathMutexesMu   sync.Mutex // Mutex to protect the pathMutexes map
+	pathMutexes   = make(map[string]*sync.Mutex)
+	pathMutexesMu sync.Mutex // Mutex to protect the pathMutexes map
 )
 
 type ReducedItem struct {
 	Name    string    `json:"name"`
+	Path    string    `json:"path"`
 	Size    int64     `json:"size"`
 	ModTime time.Time `json:"modified"`
 	IsDir   bool      `json:"isDir,omitempty"`

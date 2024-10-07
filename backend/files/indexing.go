@@ -1,6 +1,7 @@
 package files
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -134,6 +135,9 @@ func (si *Index) indexFiles(path string) error {
 		NumFiles:  numFiles,
 	}
 
+	if strings.Contains(adjustedPath, "GrahamVictus") {
+		fmt.Println(adjustedPath)
+	}
 	// Add directory to index
 	si.mu.Lock()
 	si.Directories[adjustedPath] = *dirFileInfo

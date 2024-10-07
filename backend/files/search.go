@@ -34,7 +34,9 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			isDir := true
 			files := []string{}
 			for _, item := range dir.Items {
-				files = append(files, item.Name)
+				if !item.IsDir {
+					files = append(files, item.Name)
+				}
 			}
 			value, found := sessionInProgress.Load(sourceSession)
 			if !found || value != runningHash {
@@ -110,74 +112,87 @@ func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
 }
 
 func (si *Index) containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, map[string]bool) {
+	largerThan := int64(options.LargerThan) * 1024 * 1024
+	smallerThan := int64(options.SmallerThan) * 1024 * 1024
 	conditions := options.Conditions
-	adjustedPath := pathName
-	path := getLastPathComponent(pathName)
-	if !isDir {
-		adjustedPath = path
-	}
+	fileName := filepath.Base(pathName)
+	adjustedPath := si.makeIndexPath("/"+pathName, isDir)
 
-	// Convert to lowercase once
+	// Convert to lowercase if not exact match
 	if !conditions["exact"] {
-		path = strings.ToLower(path)
+		fileName = strings.ToLower(fileName)
 		searchTerm = strings.ToLower(searchTerm)
 	}
-	if strings.Contains(path, searchTerm) {
-		// Calculate fileSize only if needed
-		var fileSize int64
-		matchesAllConditions := true
-		extension := filepath.Ext(path)
-		for _, k := range AllFiletypeOptions {
-			if IsMatchingType(extension, k) {
-				fileTypes[k] = true
-			}
-		}
-		fileTypes["dir"] = isDir
-		for t, v := range conditions {
-			if t == "exact" {
-				continue
-			}
-			var matchesCondition bool
-			switch t {
-			case "larger":
-				if fileSize == 0 {
-					fmt.Println(pathName, "getting")
-					fileInfo, err := si.GetMetadataInfo(adjustedPath)
-					if !err {
-						continue
-					}
-					fmt.Println(pathName, fileInfo.Size)
-					fileSize = fileInfo.Size
-				}
-				matchesCondition = fileSize > int64(options.LargerThan)*bytesInMegabyte
-			case "smaller":
-				if fileSize == 0 {
-					fmt.Println(pathName, "getting")
-					fileInfo, err := si.GetMetadataInfo(adjustedPath)
-					if !err {
-						continue
-					}
-					fmt.Println(pathName, fileInfo.Size)
 
-					fileSize = fileInfo.Size
-				}
-				matchesCondition = fileSize < int64(options.SmallerThan)*bytesInMegabyte
-			default:
-				matchesCondition = v == fileTypes[t]
-			}
-			if !matchesCondition {
-				matchesAllConditions = false
-			}
-		}
-		return matchesAllConditions, fileTypes
+	// Check if the file name contains the search term
+	if !strings.Contains(fileName, searchTerm) {
+		return false, map[string]bool{}
 	}
-	// Clear variables and return
-	return false, map[string]bool{}
-}
+	fmt.Println()
 
-func getLastPathComponent(path string) string {
-	// Use filepath.Base to extract the last component of the path
-	return filepath.Base(path)
+	// Initialize file size and fileTypes map
+	var fileSize int64
+	extension := filepath.Ext(fileName)
+
+	// Collect file types
+	for _, k := range AllFiletypeOptions {
+		if IsMatchingType(extension, k) {
+			fileTypes[k] = true
+		}
+	}
+	fileTypes["dir"] = isDir
+	// Get file info if needed for size-related conditions
+	if largerThan > 0 || smallerThan > 0 {
+		fileInfo, exists := si.GetMetadataInfo(adjustedPath)
+		if !exists {
+			return false, fileTypes
+		} else if !isDir {
+			// Look for specific file in ReducedItems
+			for _, item := range fileInfo.ReducedItems {
+				lower := strings.ToLower(item.Name)
+				if strings.Contains(lower, searchTerm) {
+					if item.Size == 0 {
+						return false, fileTypes
+					}
+					fileSize = item.Size
+					break
+				}
+			}
+		} else {
+			fileSize = fileInfo.Size
+		}
+		if fileSize == 0 {
+			return false, fileTypes
+		}
+	}
+	// Evaluate all conditions
+	for t, v := range conditions {
+		if t == "exact" {
+			continue
+		}
+		switch t {
+		case "larger":
+			if largerThan > 0 {
+				if fileSize <= largerThan {
+					return false, fileTypes
+				}
+			}
+		case "smaller":
+			if smallerThan > 0 {
+				if fileSize >= smallerThan {
+					return false, fileTypes
+				}
+			}
+		default:
+			// Handle other file type conditions
+			notMatchType := v != fileTypes[t]
+			if notMatchType {
+				return false, fileTypes
+			}
+		}
+	}
+
+	return true, fileTypes
 }
 
 func generateRandomHash(length int) string {
