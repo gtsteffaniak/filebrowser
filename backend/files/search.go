@@ -143,7 +143,7 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 				if fileSize == 0 {
 					fmt.Println(pathName, "getting")
 					fileInfo, err := si.GetMetadataInfo(adjustedPath)
-					if err == false {
+					if !err {
 						continue
 					}
 					fmt.Println(pathName, fileInfo.Size)
@@ -154,7 +154,7 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 				if fileSize == 0 {
 					fmt.Println(pathName, "getting")
 					fileInfo, err := si.GetMetadataInfo(adjustedPath)
-					if err == false {
+					if !err {
 						continue
 					}
 					fmt.Println(pathName, fileInfo.Size)

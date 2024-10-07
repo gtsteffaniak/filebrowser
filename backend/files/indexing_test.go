@@ -2,6 +2,7 @@ package files
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -23,18 +24,26 @@ func BenchmarkFillIndex(b *testing.B) {
 func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
 		dirName := generateRandomPath(rand.Intn(3) + 1)
-		files := []File{}
-		// Append a new Directory to the slice
+		files := []*FileInfo{} // Slice of FileInfo
+
+		// Simulating files and directories with FileInfo
 		for j := 0; j < numFilesPerDir; j++ {
-			newFile := File{
-				Name:  "file-" + getRandomTerm() + getRandomExtension(),
-				IsDir: false,
+			newFile := &FileInfo{
+				Name:    "file-" + getRandomTerm() + getRandomExtension(),
+				IsDir:   false,
+				Size:    rand.Int63n(1000),                                          // Random size
+				ModTime: time.Now().Add(-time.Duration(rand.Intn(100)) * time.Hour), // Random mod time
 			}
 			files = append(files, newFile)
 		}
-		si.UpdateQuickListForTests(files)
-		si.InsertFiles(dirName)
-		si.InsertDirs(dirName)
+
+		// Simulate inserting files into index
+		for _, file := range files {
+			_, err := si.InsertInfo(dirName, file)
+			if err != nil {
+				fmt.Println("Error inserting file:", err)
+			}
+		}
 	}
 }
 

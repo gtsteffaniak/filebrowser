@@ -500,7 +500,6 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 
 	listing := &FileInfo{
 		Items:    []*FileInfo{},
-		Path:     i.Path,
 		NumDirs:  0,
 		NumFiles: 0,
 	}

@@ -35,6 +35,9 @@ func (si *Index) GetMetadataInfo(adjustedPath string) (FileInfo, bool) {
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
+	if !exists {
+		return dir, exists
+	}
 	// remove recursive items, we only want this directories direct files
 	cleanedItems := []ReducedItem{}
 	for _, item := range dir.Items {

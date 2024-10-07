@@ -67,6 +67,7 @@ func indexingScheduler(intervalMinutes uint32) {
 func (si *Index) indexFiles(path string) error {
 	// Ensure path is cleaned and normalized
 	adjustedPath := si.makeIndexPath(path, true)
+
 	// Open the directory
 	dir, err := os.Open(path)
 	if err != nil {
@@ -98,8 +99,16 @@ func (si *Index) indexFiles(path string) error {
 	var numDirs, numFiles int
 
 	for _, file := range files {
-		// Create FileInfo for each entry and index recursively if necessary
-		childInfo, err := si.InsertInfo(path, file)
+		// Create a new FileInfo instance for each entry
+		childInfo := &FileInfo{
+			Name:    file.Name(),
+			Size:    file.Size(),
+			ModTime: file.ModTime(),
+			IsDir:   file.IsDir(),
+		}
+
+		// Insert info into the index
+		_, err := si.InsertInfo(path, childInfo)
 		if err != nil {
 			// Log error, but continue processing other files
 			continue
@@ -138,11 +147,11 @@ func (si *Index) indexFiles(path string) error {
 }
 
 // InsertInfo function to handle adding a file or directory into the index
-func (si *Index) InsertInfo(parentPath string, file os.FileInfo) (*FileInfo, error) {
-	filePath := filepath.Join(parentPath, file.Name())
+func (si *Index) InsertInfo(parentPath string, file *FileInfo) (*FileInfo, error) {
+	filePath := filepath.Join(parentPath, file.Name)
 
 	// Check if it's a directory and recursively index it
-	if file.IsDir() {
+	if file.IsDir {
 		// Recursively index directory
 		err := si.indexFiles(filePath)
 		if err != nil {
@@ -160,9 +169,9 @@ func (si *Index) InsertInfo(parentPath string, file os.FileInfo) (*FileInfo, err
 	// Create FileInfo for regular files
 	fileInfo := &FileInfo{
 		Path:    filePath,
-		Name:    file.Name(),
-		Size:    file.Size(),
-		ModTime: file.ModTime(),
+		Name:    file.Name,
+		Size:    file.Size,
+		ModTime: file.ModTime,
 		IsDir:   false,
 	}
 
