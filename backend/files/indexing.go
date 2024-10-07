@@ -1,7 +1,6 @@
 package files
 
 import (
-	"bytes"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,23 +11,12 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-type Directory struct {
-	Metadata map[string]FileInfo
-	Files    string
-}
-
-type File struct {
-	Name  string
-	IsDir bool
-}
-
 type Index struct {
 	Root        string
-	Directories map[string]Directory
+	Directories map[string]FileInfo
 	NumDirs     int
 	NumFiles    int
 	inProgress  bool
-	quickList   []File
 	LastIndexed time.Time
 	mu          sync.RWMutex
 }
@@ -56,7 +44,6 @@ func indexingScheduler(intervalMinutes uint32) {
 		si.resetCount()
 		// Perform the indexing operation
 		err := si.indexFiles(si.Root)
-		si.quickList = []File{}
 		// Reset the indexing flag to indicate that indexing has finished
 		si.inProgress = false
 		// Update the LastIndexed time
@@ -78,78 +65,117 @@ func indexingScheduler(intervalMinutes uint32) {
 
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
-	// Check if the current directory has been modified since the last indexing
+	// Ensure path is cleaned and normalized
 	adjustedPath := si.makeIndexPath(path, true)
+
+	// Open the directory
 	dir, err := os.Open(path)
 	if err != nil {
-		// Directory must have been deleted, remove it from the index
+		// If the directory can't be opened (e.g., deleted), remove it from the index
 		si.RemoveDirectory(adjustedPath)
+		return err
 	}
+	defer dir.Close()
+
 	dirInfo, err := dir.Stat()
 	if err != nil {
-		dir.Close()
 		return err
 	}
 
-	// Compare the last modified time of the directory with the last indexed time
-	lastIndexed := si.LastIndexed
-	if dirInfo.ModTime().Before(lastIndexed) {
-		dir.Close()
+	// Check if the directory is already up-to-date
+	if dirInfo.ModTime().Before(si.LastIndexed) {
 		return nil
 	}
 
-	// Read the directory contents
+	// Read directory contents
 	files, err := dir.Readdir(-1)
 	if err != nil {
 		return err
 	}
-	dir.Close()
-	si.UpdateQuickList(files)
-	si.InsertFiles(path)
-	// done separately for memory efficiency on recursion
-	si.InsertDirs(path)
+
+	// Recursively process files and directories
+	fileInfos := []*FileInfo{}
+	var totalSize int64
+	var numDirs, numFiles int
+
+	for _, file := range files {
+		// Create a new FileInfo instance for each entry
+		childInfo := &FileInfo{
+			Name:    file.Name(),
+			Size:    file.Size(),
+			ModTime: file.ModTime(),
+			IsDir:   file.IsDir(),
+		}
+
+		// Insert info into the index
+		_, err := si.InsertInfo(path, childInfo)
+		if err != nil {
+			// Log error, but continue processing other files
+			continue
+		}
+
+		// Accumulate directory size and items
+		totalSize += childInfo.Size
+		if childInfo.IsDir {
+			numDirs++
+		} else {
+			numFiles++
+		}
+		_ = childInfo.detectType(path, true, false, false)
+		fileInfos = append(fileInfos, childInfo)
+	}
+
+	// Create FileInfo for the current directory
+	dirFileInfo := &FileInfo{
+		Items:     fileInfos,
+		Name:      filepath.Base(path),
+		Size:      totalSize,
+		ModTime:   dirInfo.ModTime(),
+		CacheTime: time.Now(),
+		IsDir:     true,
+		NumDirs:   numDirs,
+		NumFiles:  numFiles,
+	}
+
+	// Add directory to index
+	si.mu.Lock()
+	si.Directories[adjustedPath] = *dirFileInfo
+	si.NumDirs += numDirs
+	si.NumFiles += numFiles
+	si.mu.Unlock()
 	return nil
 }
 
-func (si *Index) InsertFiles(path string) {
-	adjustedPath := si.makeIndexPath(path, true)
-	subDirectory := Directory{}
-	buffer := bytes.Buffer{}
+// InsertInfo function to handle adding a file or directory into the index
+func (si *Index) InsertInfo(parentPath string, file *FileInfo) (*FileInfo, error) {
+	filePath := filepath.Join(parentPath, file.Name)
 
-	for _, f := range si.GetQuickList() {
-		if !f.IsDir {
-			buffer.WriteString(f.Name + ";")
-			si.UpdateCount("files")
+	// Check if it's a directory and recursively index it
+	if file.IsDir {
+		// Recursively index directory
+		err := si.indexFiles(filePath)
+		if err != nil {
+			return nil, err
 		}
-	}
-	// Use GetMetadataInfo and SetFileMetadata for safer read and write operations
-	subDirectory.Files = buffer.String()
-	si.SetDirectoryInfo(adjustedPath, subDirectory)
-}
 
-func (si *Index) InsertDirs(path string) {
-	for _, f := range si.GetQuickList() {
-		if f.IsDir {
-			adjustedPath := si.makeIndexPath(path, true)
-			if _, exists := si.Directories[adjustedPath]; exists {
-				si.UpdateCount("dirs")
-				// Add or update the directory in the map
-				if adjustedPath == "/" {
-					si.SetDirectoryInfo("/"+f.Name, Directory{})
-				} else {
-					si.SetDirectoryInfo(adjustedPath+"/"+f.Name, Directory{})
-				}
-			}
-			err := si.indexFiles(path + "/" + f.Name)
-			if err != nil {
-				if err.Error() == "invalid argument" {
-					log.Printf("Could not index \"%v\": %v \n", path, "Permission Denied")
-				} else {
-					log.Printf("Could not index \"%v\": %v \n", path, err)
-				}
-			}
-		}
+		// Return directory info from the index
+		adjustedPath := si.makeIndexPath(filePath, true)
+		si.mu.RLock()
+		dirInfo := si.Directories[adjustedPath]
+		si.mu.RUnlock()
+		return &dirInfo, nil
 	}
+
+	// Create FileInfo for regular files
+	fileInfo := &FileInfo{
+		Path:    filePath,
+		Name:    file.Name,
+		Size:    file.Size,
+		ModTime: file.ModTime,
+		IsDir:   false,
+	}
+
+	return fileInfo, nil
 }
 
 func (si *Index) makeIndexPath(subPath string, isDir bool) string {

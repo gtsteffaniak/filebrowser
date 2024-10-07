@@ -29,23 +29,35 @@ var (
 	pathMutexesMu   sync.Mutex // Mutex to protect the pathMutexes map
 )
 
+type ReducedItem struct {
+	Name    string    `json:"name"`
+	Size    int64     `json:"size"`
+	ModTime time.Time `json:"modified"`
+	IsDir   bool      `json:"isDir,omitempty"`
+	Type    string    `json:"type"`
+}
+
 // FileInfo describes a file.
+// reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
-	*Listing
-	Path      string            `json:"path,omitempty"`
-	Name      string            `json:"name"`
-	Size      int64             `json:"size"`
-	Extension string            `json:"-"`
-	ModTime   time.Time         `json:"modified"`
-	CacheTime time.Time         `json:"-"`
-	Mode      os.FileMode       `json:"-"`
-	IsDir     bool              `json:"isDir,omitempty"`
-	IsSymlink bool              `json:"isSymlink,omitempty"`
-	Type      string            `json:"type"`
-	Subtitles []string          `json:"subtitles,omitempty"`
-	Content   string            `json:"content,omitempty"`
-	Checksums map[string]string `json:"checksums,omitempty"`
-	Token     string            `json:"token,omitempty"`
+	Items        []*FileInfo       `json:"-"`
+	ReducedItems []ReducedItem     `json:"items,omitempty"`
+	Path         string            `json:"path,omitempty"`
+	Name         string            `json:"name"`
+	Size         int64             `json:"size"`
+	Extension    string            `json:"-"`
+	ModTime      time.Time         `json:"modified"`
+	CacheTime    time.Time         `json:"-"`
+	Mode         os.FileMode       `json:"-"`
+	IsDir        bool              `json:"isDir,omitempty"`
+	IsSymlink    bool              `json:"isSymlink,omitempty"`
+	Type         string            `json:"type"`
+	Subtitles    []string          `json:"subtitles,omitempty"`
+	Content      string            `json:"content,omitempty"`
+	Checksums    map[string]string `json:"checksums,omitempty"`
+	Token        string            `json:"token,omitempty"`
+	NumDirs      int               `json:"numDirs"`
+	NumFiles     int               `json:"numFiles"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -58,14 +70,6 @@ type FileOptions struct {
 	Token      string
 	Checker    rules.Checker
 	Content    bool
-}
-
-// Listing is a collection of files.
-type Listing struct {
-	Items    []*FileInfo `json:"items"`
-	Path     string      `json:"path"`
-	NumDirs  int         `json:"numDirs"`
-	NumFiles int         `json:"numFiles"`
 }
 
 // NewFileInfo creates a File object from a path and a given user. This File
@@ -84,6 +88,18 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
 				return nil, err
 			}
+			cleanedItems := []ReducedItem{}
+			for _, item := range file.Items {
+				cleanedItems = append(cleanedItems, ReducedItem{
+					Name:    item.Name,
+					Size:    item.Size,
+					IsDir:   item.IsDir,
+					ModTime: item.ModTime,
+					Type:    item.Type,
+				})
+			}
+			file.Items = nil
+			file.ReducedItems = cleanedItems
 			return file, nil
 		}
 		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
@@ -93,6 +109,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 	}
 	return file, err
 }
+
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
@@ -124,12 +141,11 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		file, err := NewFileInfo(opts)
 		return file, err
 	}
-	info, exists := index.GetMetadataInfo(adjustedPath)
+	info, exists := index.GetMetadataInfo(adjustedPath + "/" + filepath.Base(opts.Path))
 	if !exists || info.Name == "" {
-		return &FileInfo{}, errors.ErrEmptyKey
+		return NewFileInfo(opts)
 	}
 	return &info, nil
-
 }
 
 func RefreshFileInfo(opts FileOptions) error {
@@ -482,9 +498,8 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 		return err
 	}
 
-	listing := &Listing{
+	listing := &FileInfo{
 		Items:    []*FileInfo{},
-		Path:     i.Path,
 		NumDirs:  0,
 		NumFiles: 0,
 	}
@@ -539,7 +554,7 @@ func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bo
 		listing.Items = append(listing.Items, file)
 	}
 
-	i.Listing = listing
+	i.Items = listing.Items
 	return nil
 }
 
