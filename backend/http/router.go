@@ -4,8 +4,6 @@ import (
 	"io/fs"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
 )
@@ -27,20 +25,78 @@ func SetupEnv(storage *storage.Storage, s *settings.Server, cache FileCache) {
 	fileCache = cache
 }
 
-func NewHandler(
-	imgSvc ImgService,
-	assetsFs fs.FS,
-) (http.Handler, error) {
+func Setup(imgSvc ImgService, assetsFs fs.FS) {
 	server.Clean()
-
-	r := mux.NewRouter()
-	r.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
-			next.ServeHTTP(w, r)
-		})
+	mux := http.NewServeMux()
+	// Middleware to set Content-Security-Policy
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
 	})
+	// Health endpoint
+	mux.HandleFunc("/health", healthHandler)
+
+	// API endpoints
+	api := mux.PathPrefix("/api").SubMux()
+	api.Handle("/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loginHandler(w, r, store, server)
+	})).Methods("POST")
+	api.Handle("/signup", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		signupHandler(w, r, store, server)
+	})).Methods("POST")
+	api.Handle("/renew", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		renewHandler(w, r, store, server)
+	})).Methods("POST")
+
+	// Users endpoints
+	users := api.PathPrefix("/users").SubMux()
+	users.Handle("/", http.HandlerFunc(usersGetHandler)).Methods("GET")
+	users.Handle("/", http.HandlerFunc(userPostHandler)).Methods("POST")
+	users.Handle("/{id:[0-9]+}", http.HandlerFunc(userPutHandler)).Methods("PUT")
+	users.Handle("/{id:[0-9]+}", http.HandlerFunc(userGetHandler)).Methods("GET")
+	users.Handle("/{id:[0-9]+}", http.HandlerFunc(userDeleteHandler)).Methods("DELETE")
+	// Static file server
 	index, static := getStaticHandlers(store, server, assetsFs)
+	mux.Handle("/static/", http.StripPrefix("/static/", static))
+	mux.Handle("/", index)
+	// Resources endpoints
+	api.Handle("/resources", http.HandlerFunc(resourceGetHandler)).Methods("GET")
+	api.Handle("/resources", http.HandlerFunc(resourceDeleteHandler(fileCache))).Methods("DELETE")
+	api.Handle("/resources", http.HandlerFunc(resourcePostHandler(fileCache))).Methods("POST")
+	api.Handle("/resources", http.HandlerFunc(resourcePutHandler)).Methods("PUT")
+	api.Handle("/resources", http.HandlerFunc(resourcePatchHandler(fileCache))).Methods("PATCH")
+
+	// Usage endpoint
+	api.Handle("/usage", http.HandlerFunc(diskUsage)).Methods("GET")
+
+	// Shares endpoints
+	api.Handle("/shares", http.HandlerFunc(shareListHandler)).Methods("GET")
+	api.Handle("/share", http.HandlerFunc(shareGetsHandler)).Methods("GET")
+	api.Handle("/share", http.HandlerFunc(sharePostHandler)).Methods("POST")
+	api.Handle("/share", http.HandlerFunc(shareDeleteHandler)).Methods("DELETE")
+
+	// Settings endpoints
+	api.Handle("/settings", http.HandlerFunc(settingsGetHandler)).Methods("GET")
+	api.Handle("/settings", http.HandlerFunc(settingsPutHandler)).Methods("PUT")
+
+	// Raw endpoint
+	api.Handle("/raw", http.HandlerFunc(rawHandler)).Methods("GET")
+
+	// Preview endpoint
+	api.Handle("/preview/{size}/{path:.*}", http.HandlerFunc(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview))).Methods("GET")
+
+	// Search endpoint
+	api.Handle("/search", http.HandlerFunc(searchHandler)).Methods("GET")
+
+	// Public endpoints
+	public := api.PathPrefix("/public").SubMux()
+	public.Handle("/publicUser", http.HandlerFunc(publicUserGetHandler)).Methods("GET")
+	public.Handle("/dl/", http.HandlerFunc(publicDlHandler)).Methods("GET")
+	public.Handle("/share/", http.HandlerFunc(publicShareHandler)).Methods("GET")
+
+	return mux, nil
+}
+
+func NewHandler() (http.Handler, error) {
 	// NOTE: This fixes the issue where it would redirect if people did not put a
 	// trailing slash in the end. I hate this decision since this allows some awful
 	// URLs https://www.gorillatoolkit.org/pkg/mux#Router.SkipClean
