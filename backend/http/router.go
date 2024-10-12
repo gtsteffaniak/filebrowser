@@ -1,7 +1,9 @@
 package http
 
 import (
+	"fmt"
 	"io/fs"
+	"log"
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
@@ -27,115 +29,147 @@ func SetupEnv(storage *storage.Storage, s *settings.Server, cache FileCache) {
 
 func Setup(imgSvc ImgService, assetsFs fs.FS) {
 	server.Clean()
-	mux := http.NewServeMux()
-	// Middleware to set Content-Security-Policy
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+	router := http.NewServeMux()
+	port := 9989
+
+	// Middleware for Content-Security-Policy
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+		http.NotFound(w, r)
 	})
-	// Health endpoint
-	mux.HandleFunc("/health", healthHandler)
 
-	// API endpoints
-	api := mux.PathPrefix("/api").SubMux()
-	api.Handle("/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		loginHandler(w, r, store, server)
-	})).Methods("POST")
-	api.Handle("/signup", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		signupHandler(w, r, store, server)
-	})).Methods("POST")
-	api.Handle("/renew", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		renewHandler(w, r, store, server)
-	})).Methods("POST")
-
-	// Users endpoints
-	users := api.PathPrefix("/users").SubMux()
-	users.Handle("/", http.HandlerFunc(usersGetHandler)).Methods("GET")
-	users.Handle("/", http.HandlerFunc(userPostHandler)).Methods("POST")
-	users.Handle("/{id:[0-9]+}", http.HandlerFunc(userPutHandler)).Methods("PUT")
-	users.Handle("/{id:[0-9]+}", http.HandlerFunc(userGetHandler)).Methods("GET")
-	users.Handle("/{id:[0-9]+}", http.HandlerFunc(userDeleteHandler)).Methods("DELETE")
-	// Static file server
+	// Static and index file handlers
 	index, static := getStaticHandlers(store, server, assetsFs)
-	mux.Handle("/static/", http.StripPrefix("/static/", static))
-	mux.Handle("/", index)
-	// Resources endpoints
-	api.Handle("/resources", http.HandlerFunc(resourceGetHandler)).Methods("GET")
-	api.Handle("/resources", http.HandlerFunc(resourceDeleteHandler(fileCache))).Methods("DELETE")
-	api.Handle("/resources", http.HandlerFunc(resourcePostHandler(fileCache))).Methods("POST")
-	api.Handle("/resources", http.HandlerFunc(resourcePutHandler)).Methods("PUT")
-	api.Handle("/resources", http.HandlerFunc(resourcePatchHandler(fileCache))).Methods("PATCH")
+	router.Handle("/static/", http.StripPrefix("/static", static))
+	router.Handle("/", index)
 
-	// Usage endpoint
-	api.Handle("/usage", http.HandlerFunc(diskUsage)).Methods("GET")
+	// API group routing
+	api := http.NewServeMux()
+	router.Handle("/api/", http.StripPrefix("/api", api))
 
-	// Shares endpoints
-	api.Handle("/shares", http.HandlerFunc(shareListHandler)).Methods("GET")
-	api.Handle("/share", http.HandlerFunc(shareGetsHandler)).Methods("GET")
-	api.Handle("/share", http.HandlerFunc(sharePostHandler)).Methods("POST")
-	api.Handle("/share", http.HandlerFunc(shareDeleteHandler)).Methods("DELETE")
+	// API routes
+	api.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		handle(loginHandler, "", store, server).ServeHTTP(w, r)
+	})
+	api.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+		handle(signupHandler, "", store, server).ServeHTTP(w, r)
+	})
+	api.HandleFunc("/renew", func(w http.ResponseWriter, r *http.Request) {
+		handle(renewHandler, "", store, server).ServeHTTP(w, r)
+	})
 
-	// Settings endpoints
-	api.Handle("/settings", http.HandlerFunc(settingsGetHandler)).Methods("GET")
-	api.Handle("/settings", http.HandlerFunc(settingsPutHandler)).Methods("PUT")
+	// Users routes
+	api.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handle(usersGetHandler, "", store, server).ServeHTTP(w, r)
+		case http.MethodPost:
+			handle(userPostHandler, "", store, server).ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 
-	// Raw endpoint
-	api.Handle("/raw", http.HandlerFunc(rawHandler)).Methods("GET")
+	// Handle user-specific routes with ID
+	api.HandleFunc("/users/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPut:
+			handle(userPutHandler, "", store, server).ServeHTTP(w, r)
+		case http.MethodGet:
+			handle(userGetHandler, "", store, server).ServeHTTP(w, r)
+		case http.MethodDelete:
+			handle(userDeleteHandler, "", store, server).ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 
-	// Preview endpoint
-	api.Handle("/preview/{size}/{path:.*}", http.HandlerFunc(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview))).Methods("GET")
+	// Resources routes
+	api.HandleFunc("/resources", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handle(resourceGetHandler, "/api/resources", store, server).ServeHTTP(w, r)
+		case http.MethodDelete:
+			handle(resourceDeleteHandler(fileCache), "/api/resources", store, server).ServeHTTP(w, r)
+		case http.MethodPost:
+			handle(resourcePostHandler(fileCache), "/api/resources", store, server).ServeHTTP(w, r)
+		case http.MethodPut:
+			handle(resourcePutHandler, "/api/resources", store, server).ServeHTTP(w, r)
+		case http.MethodPatch:
+			handle(resourcePatchHandler(fileCache), "/api/resources", store, server).ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 
-	// Search endpoint
-	api.Handle("/search", http.HandlerFunc(searchHandler)).Methods("GET")
+	// Additional API routes
+	api.HandleFunc("/usage", func(w http.ResponseWriter, r *http.Request) {
+		handle(diskUsage, "/api/usage", store, server).ServeHTTP(w, r)
+	})
 
-	// Public endpoints
-	public := api.PathPrefix("/public").SubMux()
-	public.Handle("/publicUser", http.HandlerFunc(publicUserGetHandler)).Methods("GET")
-	public.Handle("/dl/", http.HandlerFunc(publicDlHandler)).Methods("GET")
-	public.Handle("/share/", http.HandlerFunc(publicShareHandler)).Methods("GET")
+	api.HandleFunc("/shares", func(w http.ResponseWriter, r *http.Request) {
+		handle(shareListHandler, "/api/shares", store, server).ServeHTTP(w, r)
+	})
 
-	return mux, nil
-}
+	api.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handle(shareGetsHandler, "/api/share", store, server).ServeHTTP(w, r)
+		case http.MethodPost:
+			handle(sharePostHandler, "/api/share", store, server).ServeHTTP(w, r)
+		case http.MethodDelete:
+			handle(shareDeleteHandler, "/api/share", store, server).ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 
-func NewHandler() (http.Handler, error) {
-	// NOTE: This fixes the issue where it would redirect if people did not put a
-	// trailing slash in the end. I hate this decision since this allows some awful
-	// URLs https://www.gorillatoolkit.org/pkg/mux#Router.SkipClean
-	r = r.SkipClean(true)
-	monkey := func(fn handleFunc, prefix string) http.Handler {
-		return handle(fn, prefix, store, server)
+	// Settings routes
+	api.HandleFunc("/settings", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handle(settingsGetHandler, "", store, server).ServeHTTP(w, r)
+		case http.MethodPut:
+			handle(settingsPutHandler, "", store, server).ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+
+	// Raw and Preview routes
+	api.HandleFunc("/raw", func(w http.ResponseWriter, r *http.Request) {
+		handle(rawHandler, "/api/raw", store, server).ServeHTTP(w, r)
+	})
+
+	api.HandleFunc("/preview/{size}/{path:.*}", func(w http.ResponseWriter, r *http.Request) {
+		handle(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview), "/api/preview", store, server).ServeHTTP(w, r)
+	})
+
+	// Search route
+	api.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+		handle(searchHandler, "/api/search", store, server).ServeHTTP(w, r)
+	})
+
+	// Public routes
+	public := http.NewServeMux()
+	api.Handle("/public/", http.StripPrefix("/public", public))
+
+	public.HandleFunc("/publicUser", func(w http.ResponseWriter, r *http.Request) {
+		handle(publicUserGetHandler, "", store, server).ServeHTTP(w, r)
+	})
+
+	public.HandleFunc("/dl", func(w http.ResponseWriter, r *http.Request) {
+		handle(publicDlHandler, "/api/public/dl/", store, server).ServeHTTP(w, r)
+	})
+
+	public.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
+		handle(publicShareHandler, "/api/public/share/", store, server).ServeHTTP(w, r)
+	})
+
+	log.Printf("listing on port: %d", port)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", port), router)
+	if err != nil {
+		log.Fatalf("could not start server: %v", err)
 	}
-	r.HandleFunc("/health", healthHandler)
-	r.PathPrefix("/static").Handler(static)
-	r.NotFoundHandler = index
-	api := r.PathPrefix("/api").Subrouter()
-	api.Handle("/login", monkey(loginHandler, ""))
-	api.Handle("/signup", monkey(signupHandler, ""))
-	api.Handle("/renew", monkey(renewHandler, ""))
-	users := api.PathPrefix("/users").Subrouter()
-	users.Handle("", monkey(usersGetHandler, "")).Methods("GET")
-	users.Handle("", monkey(userPostHandler, "")).Methods("POST")
-	users.Handle("/{id:[0-9]+}", monkey(userPutHandler, "")).Methods("PUT")
-	users.Handle("/{id:[0-9]+}", monkey(userGetHandler, "")).Methods("GET")
-	users.Handle("/{id:[0-9]+}", monkey(userDeleteHandler, "")).Methods("DELETE")
-	api.PathPrefix("/resources").Handler(monkey(resourceGetHandler, "/api/resources")).Methods("GET")
-	api.PathPrefix("/resources").Handler(monkey(resourceDeleteHandler(fileCache), "/api/resources")).Methods("DELETE")
-	api.PathPrefix("/resources").Handler(monkey(resourcePostHandler(fileCache), "/api/resources")).Methods("POST")
-	api.PathPrefix("/resources").Handler(monkey(resourcePutHandler, "/api/resources")).Methods("PUT")
-	api.PathPrefix("/resources").Handler(monkey(resourcePatchHandler(fileCache), "/api/resources")).Methods("PATCH")
-	api.PathPrefix("/usage").Handler(monkey(diskUsage, "/api/usage")).Methods("GET")
-	api.Path("/shares").Handler(monkey(shareListHandler, "/api/shares")).Methods("GET")
-	api.PathPrefix("/share").Handler(monkey(shareGetsHandler, "/api/share")).Methods("GET")
-	api.PathPrefix("/share").Handler(monkey(sharePostHandler, "/api/share")).Methods("POST")
-	api.PathPrefix("/share").Handler(monkey(shareDeleteHandler, "/api/share")).Methods("DELETE")
-	api.Handle("/settings", monkey(settingsGetHandler, "")).Methods("GET")
-	api.Handle("/settings", monkey(settingsPutHandler, "")).Methods("PUT")
-	api.PathPrefix("/raw").Handler(monkey(rawHandler, "/api/raw")).Methods("GET")
-	api.PathPrefix("/preview/{size}/{path:.*}").
-		Handler(monkey(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview), "/api/preview")).Methods("GET")
-	api.PathPrefix("/search").Handler(monkey(searchHandler, "/api/search")).Methods("GET")
-	public := api.PathPrefix("/public").Subrouter()
-	public.Handle("/publicUser", monkey(publicUserGetHandler, "")).Methods("GET")
-	public.PathPrefix("/dl").Handler(monkey(publicDlHandler, "/api/public/dl/")).Methods("GET")
-	public.PathPrefix("/share").Handler(monkey(publicShareHandler, "/api/public/share/")).Methods("GET")
-	return stripPrefix(server.BaseURL, r), nil
 }

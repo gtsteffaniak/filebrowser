@@ -219,24 +219,10 @@ func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
 		if err != nil {
 			log.Fatal("Could not embed frontend. Does backend/cmd/dist exist? Must be built and exist first")
 		}
-		handler, err := fbhttp.NewHandler(imgSvc, assetsFs)
-		utils.CheckErr("fbhttp.NewHandler", err)
-		defer listener.Close()
-		log.Println("Listening on", listener.Addr().String())
-		//nolint: gosec
-		if err := http.Serve(listener, handler); err != nil {
-			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
-		}
+		fbhttp.Setup(imgSvc, assetsFs)
 	} else {
 		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
-		handler, err := fbhttp.NewHandler(imgSvc, assetsFs)
-		utils.CheckErr("fbhttp.NewHandler", err)
-		defer listener.Close()
-		log.Println("Listening on", listener.Addr().String())
-		//nolint: gosec
-		if err := http.Serve(listener, handler); err != nil {
-			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
-		}
+		fbhttp.Setup(imgSvc, assetsFs)
 	}
 	return nil
 }

@@ -101,20 +101,6 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 	return 0, nil
 }
 
-package http
-
-import (
-	"fmt"
-	"io/fs"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/storage"
-)
-
 func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs fs.FS) (http.Handler, http.Handler) {
 	// Index handler
 	index := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -134,7 +120,7 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 		defer file.Close()
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.ServeContent(w, r, "index.html", fs.ModTime(file), file)
+		http.FileServer(http.Dir("index.html"))
 	})
 
 	// Static file handler
@@ -146,22 +132,6 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 
 		const maxAge = 86400 // 1 day cache
 		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
-
-		// Serve custom static files if configured in settings
-		if store != nil && server != nil && server.Frontend.Files != "" {
-			filePath := filepath.Join(server.Frontend.Files, r.URL.Path)
-			if strings.HasPrefix(r.URL.Path, "/img/") {
-				// Serve image files
-				if _, err := os.Stat(filePath); err == nil {
-					http.ServeFile(w, r, filePath)
-					return
-				}
-			} else if r.URL.Path == "/custom.css" {
-				// Serve custom CSS file
-				http.ServeFile(w, r, filepath.Join(server.Frontend.Files, "custom.css"))
-				return
-			}
-		}
 
 		// Serve JavaScript files with gzip encoding if available
 		if strings.HasSuffix(r.URL.Path, ".js") {
@@ -184,4 +154,3 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 
 	return index, static
 }
-
