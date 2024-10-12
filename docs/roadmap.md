@@ -2,7 +2,6 @@
 
 upcoming 0.2.x releases:
 
-- Replace http routes for gorilla/mux with stdlib
 - Theme configuration from settings
 - File syncronization improvements
 - more filetype previews
