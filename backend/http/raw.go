@@ -77,7 +77,7 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 	}
 }
 
-var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func rawHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
@@ -106,7 +106,7 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	}
 
 	return rawDirHandler(w, r, d, file)
-})
+}
 
 func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
 	if !d.Check(path) {

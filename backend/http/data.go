@@ -42,22 +42,28 @@ func (d *data) Check(path string) bool {
 	return allow
 }
 
+// Main handler function wrapper
 func handle(fn handleFunc, prefix string, store *storage.Storage, server *settings.Server) http.Handler {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
+		// Initialize the settings and handle any errors
 		settings, err := store.Settings.Get()
 		if err != nil {
 			log.Fatalf("ERROR: couldn't get settings: %v\n", err)
 			return
 		}
 
-		status, err := fn(w, r, &data{
+		// Initialize the `data` object
+		d := &data{
 			Runner:   &runner.Runner{Enabled: server.EnableExec, Settings: settings},
 			store:    store,
 			settings: settings,
 			server:   server,
-		})
+		}
+
+		// Call the handler function
+		status, err := fn(w, r, d)
 
 		if status >= 400 || err != nil {
 			clientIP := realip.FromRequest(r)

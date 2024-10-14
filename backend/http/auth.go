@@ -48,58 +48,23 @@ func (e extractor) ExtractToken(r *http.Request) (string, error) {
 	return "", request.ErrNoTokenInRequest
 }
 
-func withUser(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		keyFunc := func(token *jwt.Token) (interface{}, error) {
-			return d.settings.Auth.Key, nil
-		}
-
-		var tk authToken
-		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk))
-
-		if err != nil || !token.Valid {
-			return http.StatusUnauthorized, nil
-		}
-
-		expired := !tk.VerifyExpiresAt(time.Now().Add(time.Hour), true)
-		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < d.store.Users.LastUpdate(tk.User.ID)
-
-		if expired || updated {
-			w.Header().Add("X-Renew-Token", "true")
-		}
-
-		d.user, err = d.store.Users.Get(d.server.Root, tk.User.ID)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		return fn(w, r, d)
-	}
-}
-
-func withAdmin(fn handleFunc) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if !d.user.Perm.Admin {
-			return http.StatusForbidden, nil
-		}
-
-		return fn(w, r, d)
-	})
-}
-
-var loginHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func loginHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	// Get the authentication method from the settings
 	auther, err := d.store.Auth.Get(d.settings.Auth.Method)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
+	// Authenticate the user based on the request
 	user, err := auther.Auth(r, d.store.Users)
 	if err == os.ErrPermission {
 		return http.StatusForbidden, nil
 	} else if err != nil {
 		return http.StatusInternalServerError, err
-	} else {
-		return printToken(w, r, d, user)
 	}
+
+	// Print and return the authentication token
+	return printToken(w, r, d, user) // Pass the data object
 }
 
 type signupBody struct {
@@ -107,7 +72,7 @@ type signupBody struct {
 	Password string `json:"password"`
 }
 
-var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func signupHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !settings.Config.Auth.Signup {
 		return http.StatusMethodNotAllowed, nil
 	}
@@ -147,14 +112,14 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 	return http.StatusOK, nil
 }
 
-var renewHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func renewHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	return printToken(w, r, d, d.user)
-})
+}
 
 func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User) (int, error) {
 	duration, err := time.ParseDuration(settings.Config.Auth.TokenExpirationTime)
 	if err != nil {
-		duration = time.Hour * 2
+		duration = time.Hour * 2 // Default duration if parsing fails
 	}
 	claims := &authToken{
 		User: *user,

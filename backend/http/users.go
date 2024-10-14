@@ -58,22 +58,8 @@ func getUser(_ http.ResponseWriter, r *http.Request) (*modifyUserRequest, error)
 	return req, nil
 }
 
-func withSelfOrAdmin(fn handleFunc) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		id, err := getUserID(r)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		if d.user.ID != id && !d.user.Perm.Admin {
-			return http.StatusForbidden, nil
-		}
-
-		d.raw = id
-		return fn(w, r, d)
-	})
-}
-
-var usersGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+// admin
+func usersGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	users, err := d.store.Users.Gets(d.server.Root)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -88,35 +74,47 @@ var usersGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 	})
 
 	return renderJSON(w, r, users)
-})
+}
+func userGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	// Ensure the requesting user is either the admin or the user themselves
+	if d.user.ID != d.raw.(uint) && !d.user.Perm.Admin {
+		return http.StatusForbidden, nil
+	}
 
-var userGetHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	// Fetch the user details
 	u, err := d.store.Users.Get(d.server.Root, d.raw.(uint))
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
+	// Remove the password from the response if the user is not an admin
 	u.Password = ""
 	if !d.user.Perm.Admin {
 		u.Scope = ""
 	}
-	return renderJSON(w, r, u)
-})
 
-var userDeleteHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	return renderJSON(w, r, u)
+}
+
+func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	// Check if the requesting user is either the admin or the user themselves
+	if d.user.ID != d.raw.(uint) && !d.user.Perm.Admin {
+		return http.StatusForbidden, nil
+	}
+
+	// Delete the user
 	err := d.store.Users.Delete(d.raw.(uint))
 	if err != nil {
 		return errToStatus(err), err
 	}
 
 	return http.StatusOK, nil
-})
+}
 
-var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func userPostHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	req, err := getUser(w, r)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -137,22 +135,27 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 
 	w.Header().Set("Location", "/settings/users/"+strconv.FormatUint(uint64(req.Data.ID), 10))
 	return http.StatusCreated, nil
-})
+}
 
-var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func userPutHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	// Extract user data from the request
 	req, err := getUser(w, r)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
+	// Ensure the requested user matches the current user (self)
 	if req.Data.ID != d.raw.(uint) {
-		return http.StatusBadRequest, nil
-	}
-	_, _, err = files.GetRealPath(d.server.Root, req.Data.Scope)
-	if err != nil {
-		return http.StatusBadRequest, nil
+		return http.StatusForbidden, nil
 	}
 
+	// Validate the user's scope
+	_, _, err = files.GetRealPath(d.server.Root, req.Data.Scope)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	// If `Which` is not specified, default to updating all fields
 	if len(req.Which) == 0 || req.Which[0] == "all" {
 		req.Which = []string{}
 		v := reflect.ValueOf(req.Data)
@@ -160,6 +163,8 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 			v = v.Elem()
 		}
 		t := v.Type()
+
+		// Dynamically populate fields to update
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 			if field.Name == "Password" && req.Data.Password != "" {
@@ -170,10 +175,13 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	for k, v := range req.Which {
-		v = cases.Title(language.English, cases.NoLower).String(v)
-		req.Which[k] = v
-		if v == "Password" {
+	// Process the fields to update
+	for _, field := range req.Which {
+		// Title case field names
+		field = cases.Title(language.English, cases.NoLower).String(field)
+
+		// Handle password update
+		if field == "Password" {
 			if !d.user.Perm.Admin && d.user.LockPassword {
 				return http.StatusForbidden, nil
 			}
@@ -183,16 +191,21 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 			}
 		}
 
-		for _, f := range NonModifiableFieldsForNonAdmin {
-			if !d.user.Perm.Admin && v == f {
+		// Prevent non-admins from modifying certain fields
+		for _, restrictedField := range NonModifiableFieldsForNonAdmin {
+			if !d.user.Perm.Admin && field == restrictedField {
 				return http.StatusForbidden, nil
 			}
 		}
 	}
+
+	// Perform the user update
 	err = d.store.Users.Update(req.Data, req.Which...)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	return http.StatusOK, nil
-})
+	// Return the updated user (with the password hidden) as JSON response
+	req.Data.Password = ""
+	return renderJSON(w, r, req.Data)
+}

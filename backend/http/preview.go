@@ -34,51 +34,33 @@ type FileCache interface {
 	Delete(ctx context.Context, key string) error
 }
 
-func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, resizePreview bool) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if !d.user.Perm.Download {
-			return http.StatusAccepted, nil
-		}
-		vars := mux.Vars(r)
-
-		previewSize, err := ParsePreviewSize(vars["size"])
-		if err != nil {
-			return http.StatusBadRequest, err
-		}
-
-		file, err := files.FileInfoFaster(files.FileOptions{
-			Path:       "/" + vars["path"],
-			Modify:     d.user.Perm.Modify,
-			Expand:     true,
-			ReadHeader: d.server.TypeDetectionByHeader,
-			Checker:    d,
-		})
-
-		if err != nil {
-			return errToStatus(err), err
-		}
-		setContentDisposition(w, r, file)
-
-		switch file.Type {
-		case "image":
-			return handleImagePreview(w, r, imgSvc, fileCache, file, previewSize, enableThumbnails, resizePreview)
-		default:
-			return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
-		}
+func previewHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	if !d.user.Perm.Download {
+		return http.StatusAccepted, nil
+	}
+	vars := mux.Vars(r)
+	previewSize, err := ParsePreviewSize(vars["size"])
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	file, err := files.FileInfoFaster(files.FileOptions{
+		Path:       "/" + vars["path"],
+		Modify:     d.user.Perm.Modify,
+		Expand:     true,
+		ReadHeader: d.server.TypeDetectionByHeader,
+		Checker:    d,
 	})
-}
 
-func handleImagePreview(
-	w http.ResponseWriter,
-	r *http.Request,
-	imgSvc ImgService,
-	fileCache FileCache,
-	file *files.FileInfo,
-	previewSize PreviewSize,
-	enableThumbnails, resizePreview bool,
-) (int, error) {
-	if (previewSize == PreviewSizeBig && !resizePreview) ||
-		(previewSize == PreviewSizeThumb && !enableThumbnails) {
+	if err != nil {
+		return errToStatus(err), err
+	}
+	setContentDisposition(w, r, file)
+	if file.Type != "image" {
+		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
+	}
+
+	if (previewSize == PreviewSizeBig && !server.ResizePreview) ||
+		(previewSize == PreviewSizeThumb && !server.EnableThumbnails) {
 		return rawFileHandler(w, r, file)
 	}
 	format, err := imgSvc.FormatFromExtension(file.Extension)

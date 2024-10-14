@@ -19,15 +19,17 @@ var (
 	store     *storage.Storage
 	server    *settings.Server
 	fileCache FileCache
+	imgSvc    ImgService
 )
 
-func SetupEnv(storage *storage.Storage, s *settings.Server, cache FileCache) {
+func SetupEnv(storage *storage.Storage, s *settings.Server, cache FileCache, imgService ImgService) {
 	store = storage
 	server = s
 	fileCache = cache
+	imgSvc = imgService
 }
 
-func Setup(imgSvc ImgService, assetsFs fs.FS) {
+func Setup(assetsFs fs.FS) {
 	server.Clean()
 
 	router := http.NewServeMux()
@@ -49,123 +51,53 @@ func Setup(imgSvc ImgService, assetsFs fs.FS) {
 	router.Handle("/api/", http.StripPrefix("/api", api))
 
 	// API routes
-	api.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		handle(loginHandler, "", store, server).ServeHTTP(w, r)
-	})
-	api.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
-		handle(signupHandler, "", store, server).ServeHTTP(w, r)
-	})
-	api.HandleFunc("/renew", func(w http.ResponseWriter, r *http.Request) {
-		handle(renewHandler, "", store, server).ServeHTTP(w, r)
-	})
+	api.HandleFunc("GET /login", withUser(loginHandler))
+	api.HandleFunc("GET /signup", withUser(signupHandler))
+	api.HandleFunc("GET /renew", withUser(renewHandler))
 
-	// Users routes
-	api.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			handle(usersGetHandler, "", store, server).ServeHTTP(w, r)
-		case http.MethodPost:
-			handle(userPostHandler, "", store, server).ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
+	api.HandleFunc("GET /users", withSelfOrAdmin(usersGetHandler))
+	api.HandleFunc("POST /users", withSelfOrAdmin(userPostHandler))
 
-	// Handle user-specific routes with ID
-	api.HandleFunc("/users/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPut:
-			handle(userPutHandler, "", store, server).ServeHTTP(w, r)
-		case http.MethodGet:
-			handle(userGetHandler, "", store, server).ServeHTTP(w, r)
-		case http.MethodDelete:
-			handle(userDeleteHandler, "", store, server).ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
+	api.HandleFunc("GET /users/{id:[0-9]+}", withSelfOrAdmin(userGetHandler))
+	api.HandleFunc("PUT /users/{id:[0-9]+}", withSelfOrAdmin(userPutHandler))
+	api.HandleFunc("POST /users/{id:[0-9]+}", withSelfOrAdmin(userPostHandler))
+	api.HandleFunc("DELETE /users/{id:[0-9]+}", withSelfOrAdmin(userDeleteHandler))
 
 	// Resources routes
-	api.HandleFunc("/resources", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			handle(resourceGetHandler, "/api/resources", store, server).ServeHTTP(w, r)
-		case http.MethodDelete:
-			handle(resourceDeleteHandler(fileCache), "/api/resources", store, server).ServeHTTP(w, r)
-		case http.MethodPost:
-			handle(resourcePostHandler(fileCache), "/api/resources", store, server).ServeHTTP(w, r)
-		case http.MethodPut:
-			handle(resourcePutHandler, "/api/resources", store, server).ServeHTTP(w, r)
-		case http.MethodPatch:
-			handle(resourcePatchHandler(fileCache), "/api/resources", store, server).ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
+	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
+	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
+	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
+	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
+	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
 
 	// Additional API routes
-	api.HandleFunc("/usage", func(w http.ResponseWriter, r *http.Request) {
-		handle(diskUsage, "/api/usage", store, server).ServeHTTP(w, r)
-	})
+	api.HandleFunc("GET /usage", withUser(diskUsage))
 
-	api.HandleFunc("/shares", func(w http.ResponseWriter, r *http.Request) {
-		handle(shareListHandler, "/api/shares", store, server).ServeHTTP(w, r)
-	})
+	api.HandleFunc("GET /shares", withUser(shareListHandler))
 
-	api.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			handle(shareGetsHandler, "/api/share", store, server).ServeHTTP(w, r)
-		case http.MethodPost:
-			handle(sharePostHandler, "/api/share", store, server).ServeHTTP(w, r)
-		case http.MethodDelete:
-			handle(shareDeleteHandler, "/api/share", store, server).ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
+	api.HandleFunc("GET /share", withUser(shareGetsHandler))
+	api.HandleFunc("POST /share", withUser(sharePostHandler))
+	api.HandleFunc("DELETE /share", withUser(shareDeleteHandler))
 
-	// Settings routes
-	api.HandleFunc("/settings", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			handle(settingsGetHandler, "", store, server).ServeHTTP(w, r)
-		case http.MethodPut:
-			handle(settingsPutHandler, "", store, server).ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
+	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
+	api.HandleFunc("PUT /settings", withUser(settingsPutHandler))
 
-	// Raw and Preview routes
-	api.HandleFunc("/raw", func(w http.ResponseWriter, r *http.Request) {
-		handle(rawHandler, "/api/raw", store, server).ServeHTTP(w, r)
-	})
+	api.HandleFunc("GET /raw", withUser(rawHandler))
 
-	api.HandleFunc("/preview/{size}/{path:.*}", func(w http.ResponseWriter, r *http.Request) {
-		handle(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview), "/api/preview", store, server).ServeHTTP(w, r)
-	})
+	api.HandleFunc("GET /preview/{size}/{path:.*}", withUser(previewHandler))
 
-	// Search route
-	api.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-		handle(searchHandler, "/api/search", store, server).ServeHTTP(w, r)
-	})
+	api.HandleFunc("GET /search", withUser(searchHandler))
 
 	// Public routes
 	public := http.NewServeMux()
-	api.Handle("/public/", http.StripPrefix("/public", public))
+	public.Handle("/public/", http.StripPrefix("/api/public", public))
 
-	public.HandleFunc("/publicUser", func(w http.ResponseWriter, r *http.Request) {
-		handle(publicUserGetHandler, "", store, server).ServeHTTP(w, r)
-	})
+	public.HandleFunc("GET /publicUser", withUser(publicUserGetHandler))
+	public.HandleFunc("GET /publicUser", withUser(publicUserGetHandler))
 
-	public.HandleFunc("/dl", func(w http.ResponseWriter, r *http.Request) {
-		handle(publicDlHandler, "/api/public/dl/", store, server).ServeHTTP(w, r)
-	})
+	public.HandleFunc("GET /dl", withUser(publicDlHandler))
 
-	public.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
-		handle(publicShareHandler, "/api/public/share/", store, server).ServeHTTP(w, r)
-	})
+	public.HandleFunc("GET /share", withUser(publicShareHandler))
 
 	log.Printf("listing on port: %d", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), router)

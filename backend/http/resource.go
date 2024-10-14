@@ -17,7 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/fileutils"
 )
 
-var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
 		return http.StatusNotFound, err
@@ -45,91 +45,88 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 		}
 	}
 	return renderJSON(w, r, file)
-})
+}
 
-func resourceDeleteHandler(fileCache FileCache) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if r.URL.Path == "/" || !d.user.Perm.Delete {
-			return http.StatusForbidden, nil
-		}
-		realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
-		if err != nil {
-			return http.StatusNotFound, err
-		}
-		fileOpts := files.FileOptions{
-			Path:       realPath,
-			IsDir:      isDir,
-			Modify:     d.user.Perm.Modify,
-			Expand:     false,
-			ReadHeader: d.server.TypeDetectionByHeader,
-			Checker:    d,
-		}
-		file, err := files.FileInfoFaster(fileOpts)
-		if err != nil {
-			return errToStatus(err), err
-		}
+func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	if r.URL.Path == "/" || !d.user.Perm.Delete {
+		return http.StatusForbidden, nil
+	}
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	fileOpts := files.FileOptions{
+		Path:       realPath,
+		IsDir:      isDir,
+		Modify:     d.user.Perm.Modify,
+		Expand:     false,
+		ReadHeader: d.server.TypeDetectionByHeader,
+		Checker:    d,
+	}
+	file, err := files.FileInfoFaster(fileOpts)
+	if err != nil {
+		return errToStatus(err), err
+	}
 
-		// delete thumbnails
-		err = delThumbs(r.Context(), fileCache, file)
-		if err != nil {
-			return errToStatus(err), err
-		}
+	// delete thumbnails
+	err = delThumbs(r.Context(), fileCache, file)
+	if err != nil {
+		return errToStatus(err), err
+	}
 
-		err = files.DeleteFiles(realPath, fileOpts)
+	err = files.DeleteFiles(realPath, fileOpts)
+	if err != nil {
+		return errToStatus(err), err
+	}
+	return http.StatusOK, nil
+
+}
+
+func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	if !d.user.Perm.Create || !d.Check(r.URL.Path) {
+		return http.StatusForbidden, nil
+	}
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	fileOpts := files.FileOptions{
+		Path:       realPath,
+		IsDir:      isDir,
+		Modify:     d.user.Perm.Modify,
+		Expand:     false,
+		ReadHeader: d.server.TypeDetectionByHeader,
+		Checker:    d,
+	}
+	// Directories creation on POST.
+	if strings.HasSuffix(r.URL.Path, "/") {
+		err = files.WriteDirectory(fileOpts) // Assign to the existing `err` variable
 		if err != nil {
 			return errToStatus(err), err
 		}
 		return http.StatusOK, nil
-	})
-}
+	}
+	file, err := files.FileInfoFaster(fileOpts)
+	if err == nil {
+		if r.URL.Query().Get("override") != "true" {
+			return http.StatusConflict, nil
+		}
 
-func resourcePostHandler(fileCache FileCache) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
+		// Permission for overwriting the file
+		if !d.user.Perm.Modify {
 			return http.StatusForbidden, nil
 		}
-		realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+
+		err = delThumbs(r.Context(), fileCache, file)
 		if err != nil {
-			return http.StatusNotFound, err
+			return errToStatus(err), err
 		}
-		fileOpts := files.FileOptions{
-			Path:       realPath,
-			IsDir:      isDir,
-			Modify:     d.user.Perm.Modify,
-			Expand:     false,
-			ReadHeader: d.server.TypeDetectionByHeader,
-			Checker:    d,
-		}
-		// Directories creation on POST.
-		if strings.HasSuffix(r.URL.Path, "/") {
-			err = files.WriteDirectory(fileOpts) // Assign to the existing `err` variable
-			if err != nil {
-				return errToStatus(err), err
-			}
-			return http.StatusOK, nil
-		}
-		file, err := files.FileInfoFaster(fileOpts)
-		if err == nil {
-			if r.URL.Query().Get("override") != "true" {
-				return http.StatusConflict, nil
-			}
-
-			// Permission for overwriting the file
-			if !d.user.Perm.Modify {
-				return http.StatusForbidden, nil
-			}
-
-			err = delThumbs(r.Context(), fileCache, file)
-			if err != nil {
-				return errToStatus(err), err
-			}
-		}
-		err = files.WriteFile(fileOpts, r.Body)
-		return errToStatus(err), err
-	})
+	}
+	err = files.WriteFile(fileOpts, r.Body)
+	return errToStatus(err), err
 }
 
-var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Modify || !d.Check(r.URL.Path) {
 		return http.StatusForbidden, nil
 	}
@@ -153,44 +150,42 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
-})
+}
 
 // TODO fix and verify this function still works in tests
-func resourcePatchHandler(fileCache FileCache) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		src := r.URL.Path
-		dst := r.URL.Query().Get("destination")
-		action := r.URL.Query().Get("action")
-		dst, err := url.QueryUnescape(dst)
-		if !d.Check(src) || !d.Check(dst) {
-			return http.StatusForbidden, nil
-		}
-		if err != nil {
-			return errToStatus(err), err
-		}
-		if dst == "/" || src == "/" {
-			return http.StatusForbidden, nil
-		}
-		override := r.URL.Query().Get("override") == "true"
-		rename := r.URL.Query().Get("rename") == "true"
-		if !override && !rename {
-			if _, err = os.Stat(dst); err == nil {
-				return http.StatusConflict, nil
-			}
-		}
-		if rename {
-			dst = addVersionSuffix(dst)
-		}
-		// Permission for overwriting the file
-		if override && !d.user.Perm.Modify {
-			return http.StatusForbidden, nil
-		}
-		err = d.RunHook(func() error {
-			return patchAction(r.Context(), action, src, dst, d, fileCache)
-		}, action, src, dst, d.user)
-
+func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	src := r.URL.Path
+	dst := r.URL.Query().Get("destination")
+	action := r.URL.Query().Get("action")
+	dst, err := url.QueryUnescape(dst)
+	if !d.Check(src) || !d.Check(dst) {
+		return http.StatusForbidden, nil
+	}
+	if err != nil {
 		return errToStatus(err), err
-	})
+	}
+	if dst == "/" || src == "/" {
+		return http.StatusForbidden, nil
+	}
+	override := r.URL.Query().Get("override") == "true"
+	rename := r.URL.Query().Get("rename") == "true"
+	if !override && !rename {
+		if _, err = os.Stat(dst); err == nil {
+			return http.StatusConflict, nil
+		}
+	}
+	if rename {
+		dst = addVersionSuffix(dst)
+	}
+	// Permission for overwriting the file
+	if override && !d.user.Perm.Modify {
+		return http.StatusForbidden, nil
+	}
+	err = d.RunHook(func() error {
+		return patchAction(r.Context(), action, src, dst, d, fileCache)
+	}, action, src, dst, d.user)
+
+	return errToStatus(err), err
 }
 
 func addVersionSuffix(source string) string {
@@ -272,7 +267,7 @@ type DiskUsageResponse struct {
 	Used  uint64 `json:"used"`
 }
 
-var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func diskUsage(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
 		return http.StatusNotFound, err
@@ -303,4 +298,4 @@ var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (
 		Total: usage.Total,
 		Used:  usage.Used,
 	})
-})
+}

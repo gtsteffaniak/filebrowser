@@ -18,7 +18,7 @@ type settingsData struct {
 	Commands         map[string][]string   `json:"commands"`
 }
 
-var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	data := &settingsData{
 		Signup:           d.settings.Auth.Signup,
 		CreateUserDir:    d.settings.Server.CreateUserDir,
@@ -29,9 +29,9 @@ var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 	}
 
 	return renderJSON(w, r, data)
-})
+}
 
-var settingsPutHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func settingsPutHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	req := &settingsData{}
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
@@ -46,4 +46,4 @@ var settingsPutHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 	d.settings.Auth.Signup = req.Signup
 	err = d.store.Settings.Save(d.settings)
 	return errToStatus(err), err
-})
+}
