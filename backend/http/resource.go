@@ -17,7 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/fileutils"
 )
 
-func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
 		return http.StatusNotFound, err
@@ -27,8 +27,8 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, e
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
-		ReadHeader: d.server.TypeDetectionByHeader,
-		Checker:    d,
+		ReadHeader: config.Server.TypeDetectionByHeader,
+		Checker:    d.user,
 		Content:    r.URL.Query().Get("content") == "true",
 	})
 	if err != nil {
@@ -47,7 +47,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, e
 	return renderJSON(w, r, file)
 }
 
-func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if r.URL.Path == "/" || !d.user.Perm.Delete {
 		return http.StatusForbidden, nil
 	}
@@ -60,8 +60,8 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *data) (int
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
-		ReadHeader: d.server.TypeDetectionByHeader,
-		Checker:    d,
+		ReadHeader: config.Server.TypeDetectionByHeader,
+		Checker:    d.user,
 	}
 	file, err := files.FileInfoFaster(fileOpts)
 	if err != nil {
@@ -82,8 +82,8 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *data) (int
 
 }
 
-func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if !d.user.Perm.Create || !d.Check(r.URL.Path) {
+func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Perm.Create || !d.user.Check(r.URL.Path) {
 		return http.StatusForbidden, nil
 	}
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
@@ -95,8 +95,8 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *data) (int, 
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
-		ReadHeader: d.server.TypeDetectionByHeader,
-		Checker:    d,
+		ReadHeader: config.Server.TypeDetectionByHeader,
+		Checker:    d.user,
 	}
 	// Directories creation on POST.
 	if strings.HasSuffix(r.URL.Path, "/") {
@@ -126,8 +126,8 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *data) (int, 
 	return errToStatus(err), err
 }
 
-func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if !d.user.Perm.Modify || !d.Check(r.URL.Path) {
+func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Perm.Modify || !d.user.Check(r.URL.Path) {
 		return http.StatusForbidden, nil
 	}
 
@@ -145,20 +145,20 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *data) (int, e
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
-		ReadHeader: d.server.TypeDetectionByHeader,
-		Checker:    d,
+		ReadHeader: config.Server.TypeDetectionByHeader,
+		Checker:    d.user,
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
 }
 
 // TODO fix and verify this function still works in tests
-func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	src := r.URL.Path
 	dst := r.URL.Query().Get("destination")
 	action := r.URL.Query().Get("action")
 	dst, err := url.QueryUnescape(dst)
-	if !d.Check(src) || !d.Check(dst) {
+	if !d.user.Check(src) || !d.user.Check(dst) {
 		return http.StatusForbidden, nil
 	}
 	if err != nil {
@@ -215,7 +215,7 @@ func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) e
 	return nil
 }
 
-func patchAction(ctx context.Context, action, src, dst string, d *data, fileCache FileCache) error {
+func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache) error {
 	switch action {
 	// TODO: use enum
 	case "copy":
@@ -244,7 +244,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *data, fileCach
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: false,
-			Checker:    d,
+			Checker:    d.user,
 		})
 		if err != nil {
 			return err
@@ -267,7 +267,7 @@ type DiskUsageResponse struct {
 	Used  uint64 `json:"used"`
 }
 
-func diskUsage(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
 	if err != nil {
 		return http.StatusNotFound, err
@@ -278,7 +278,7 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: false,
-		Checker:    d,
+		Checker:    d.user,
 	})
 	if err != nil {
 		return errToStatus(err), err

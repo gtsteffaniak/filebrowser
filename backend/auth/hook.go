@@ -153,7 +153,6 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 			Locale:       a.Settings.UserDefaults.Locale,
 			ViewMode:     a.Settings.UserDefaults.ViewMode,
 			SingleClick:  a.Settings.UserDefaults.SingleClick,
-			Sorting:      a.Settings.UserDefaults.Sorting,
 			Perm:         a.Settings.UserDefaults.Perm,
 			Commands:     a.Settings.UserDefaults.Commands,
 			HideDotfiles: a.Settings.UserDefaults.HideDotfiles,
@@ -187,7 +186,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 func (a *HookAuth) GetUser(d *users.User) *users.User {
 	// adds all permissions when user is admin
 	isAdmin := d.Perm.Admin
-	perms := settings.Permissions{
+	perms := users.Permissions{
 		Admin:    isAdmin,
 		Execute:  isAdmin || d.Perm.Execute,
 		Create:   isAdmin || d.Perm.Create,
@@ -198,17 +197,13 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		Download: isAdmin || d.Perm.Download,
 	}
 	user := users.User{
-		ID:          d.ID,
-		Username:    d.Username,
-		Password:    d.Password,
-		Scope:       d.Scope,
-		Locale:      d.Locale,
-		ViewMode:    d.ViewMode,
-		SingleClick: d.SingleClick,
-		Sorting: users.Sorting{
-			Asc: d.Sorting.Asc,
-			By:  d.Sorting.By,
-		},
+		ID:           d.ID,
+		Username:     d.Username,
+		Password:     d.Password,
+		Scope:        d.Scope,
+		Locale:       d.Locale,
+		ViewMode:     d.ViewMode,
+		SingleClick:  d.SingleClick,
 		Commands:     d.Commands,
 		HideDotfiles: d.HideDotfiles,
 		Perm:         perms,

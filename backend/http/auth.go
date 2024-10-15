@@ -48,23 +48,23 @@ func (e extractor) ExtractToken(r *http.Request) (string, error) {
 	return "", request.ErrNoTokenInRequest
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the authentication method from the settings
-	auther, err := d.store.Auth.Get(d.settings.Auth.Method)
+	auther, err := store.Auth.Get(config.Auth.Method)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
-
 	// Authenticate the user based on the request
-	user, err := auther.Auth(r, d.store.Users)
+	user, err := auther.Auth(r, store.Users)
 	if err == os.ErrPermission {
-		return http.StatusForbidden, nil
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
 	} else if err != nil {
-		return http.StatusInternalServerError, err
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
-
-	// Print and return the authentication token
-	return printToken(w, r, d, user) // Pass the data object
+	printToken(w, r, user) // Pass the data object
 }
 
 type signupBody struct {
@@ -72,7 +72,7 @@ type signupBody struct {
 	Password string `json:"password"`
 }
 
-func signupHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !settings.Config.Auth.Signup {
 		return http.StatusMethodNotAllowed, nil
 	}
@@ -91,18 +91,18 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error)
 		return http.StatusBadRequest, nil
 	}
 
-	user := users.ApplyDefaults(users.User{})
+	user := settings.ApplyUserDefaults(users.User{})
 	user.Username = info.Username
 	user.Password = info.Password
 
-	userHome, err := d.settings.MakeUserDir(user.Username, user.Scope, d.server.Root)
+	userHome, err := config.MakeUserDir(user.Username, user.Scope, config.Server.Root)
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
 		return http.StatusInternalServerError, err
 	}
 	user.Scope = userHome
 	log.Printf("new user: %s, home dir: [%s].", user.Username, userHome)
-	err = d.store.Users.Save(&user)
+	err = store.Users.Save(&user)
 	if err == errors.ErrExist {
 		return http.StatusConflict, err
 	} else if err != nil {
@@ -112,11 +112,11 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error)
 	return http.StatusOK, nil
 }
 
-func renewHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	return printToken(w, r, d, d.user)
+func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	return printToken(w, r, d.user)
 }
 
-func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User) (int, error) {
+func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
 	duration, err := time.ParseDuration(settings.Config.Auth.TokenExpirationTime)
 	if err != nil {
 		duration = time.Hour * 2 // Default duration if parsing fails
@@ -131,7 +131,7 @@ func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.Use
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString(d.settings.Auth.Key)
+	signed, err := token.SignedString(config.Auth.Key)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

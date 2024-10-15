@@ -1,4 +1,4 @@
-package rules
+package users
 
 import (
 	"path/filepath"
@@ -9,6 +9,18 @@ import (
 // Checker is a Rules checker.
 type Checker interface {
 	Check(path string) bool
+}
+
+// Check implements rules.Checker.
+func (user *User) Check(path string) bool {
+	allow := true
+	for _, rule := range user.Rules {
+		if rule.Matches(path) {
+			allow = rule.Allow
+		}
+	}
+
+	return allow
 }
 
 // Rule is a allow/disallow rule.

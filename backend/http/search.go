@@ -8,7 +8,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-func searchHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	response := []map[string]interface{}{}
 	query := r.URL.Query().Get("query")
 	// Retrieve the User-Agent and X-Auth headers from the request

@@ -77,7 +77,7 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 	}
 }
 
-func rawHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
@@ -90,8 +90,8 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
-		ReadHeader: d.server.TypeDetectionByHeader,
-		Checker:    d,
+		ReadHeader: config.Server.TypeDetectionByHeader,
+		Checker:    d.user,
 	})
 	if err != nil {
 		return errToStatus(err), err
@@ -108,8 +108,9 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	return rawDirHandler(w, r, d, file)
 }
 
-func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
-	if !d.Check(path) {
+func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) error {
+
+	if !d.user.Check(path) {
 		return nil
 	}
 	info, err := os.Stat(path)
@@ -160,7 +161,7 @@ func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
 	return nil
 }
 
-func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.FileInfo) (int, error) {
+func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, file *files.FileInfo) (int, error) {
 	filenames, err := parseQueryFiles(r, file, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err

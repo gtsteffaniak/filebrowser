@@ -59,8 +59,8 @@ func getUser(_ http.ResponseWriter, r *http.Request) (*modifyUserRequest, error)
 }
 
 // admin
-func usersGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	users, err := d.store.Users.Gets(d.server.Root)
+func usersGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	users, err := store.Users.Gets(config.Server.Root)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -75,14 +75,14 @@ func usersGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, erro
 
 	return renderJSON(w, r, users)
 }
-func userGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Ensure the requesting user is either the admin or the user themselves
 	if d.user.ID != d.raw.(uint) && !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 
 	// Fetch the user details
-	u, err := d.store.Users.Get(d.server.Root, d.raw.(uint))
+	u, err := store.Users.Get(config.Server.Root, d.raw.(uint))
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
@@ -99,14 +99,14 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error
 	return renderJSON(w, r, u)
 }
 
-func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Check if the requesting user is either the admin or the user themselves
 	if d.user.ID != d.raw.(uint) && !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 
 	// Delete the user
-	err := d.store.Users.Delete(d.raw.(uint))
+	err := store.Users.Delete(d.raw.(uint))
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -114,7 +114,7 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *data) (int, er
 	return http.StatusOK, nil
 }
 
-func userPostHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func userPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	req, err := getUser(w, r)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -137,7 +137,7 @@ func userPostHandler(w http.ResponseWriter, r *http.Request, d *data) (int, erro
 	return http.StatusCreated, nil
 }
 
-func userPutHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Extract user data from the request
 	req, err := getUser(w, r)
 	if err != nil {
@@ -150,7 +150,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error
 	}
 
 	// Validate the user's scope
-	_, _, err = files.GetRealPath(d.server.Root, req.Data.Scope)
+	_, _, err = files.GetRealPath(config.Server.Root, req.Data.Scope)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -200,7 +200,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *data) (int, error
 	}
 
 	// Perform the user update
-	err = d.store.Users.Update(req.Data, req.Which...)
+	err = store.Users.Update(req.Data, req.Which...)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

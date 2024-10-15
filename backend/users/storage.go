@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/rules"
 )
 
 // StorageBackend is the interface to implement for a users storage.
@@ -26,7 +25,7 @@ type Store interface {
 	Save(user *User) error
 	Delete(id interface{}) error
 	LastUpdate(id uint) int64
-	AddRule(username string, rule rules.Rule) error
+	AddRule(username string, rule Rule) error
 	DeleteRule(username string, ruleID string) error
 }
 
@@ -79,7 +78,7 @@ func (s *Storage) Update(user *User, fields ...string) error {
 }
 
 // AddRule adds a rule to the user's rules list and updates the user in the database.
-func (s *Storage) AddRule(userID string, rule rules.Rule) error {
+func (s *Storage) AddRule(userID string, rule Rule) error {
 	user, err := s.Get("", userID)
 	if err != nil {
 		return err
@@ -103,7 +102,7 @@ func (s *Storage) DeleteRule(userID string, ruleID string) error {
 	}
 
 	// Find and remove the rule with the specified ID
-	var updatedRules []rules.Rule
+	var updatedRules []Rule
 	for _, r := range user.Rules {
 		if r.Id != ruleID {
 			updatedRules = append(updatedRules, r)

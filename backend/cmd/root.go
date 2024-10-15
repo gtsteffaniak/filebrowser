@@ -1,20 +1,12 @@
 package cmd
 
 import (
-	"crypto/tls"
 	"flag"
 	"fmt"
-	"io/fs"
 	"log"
 	"net"
-	"net/http"
 	"os"
-	"os/signal"
-	"strconv"
 	"strings"
-	"syscall"
-
-	"embed"
 
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	"github.com/gtsteffaniak/filebrowser/files"
@@ -23,24 +15,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
-	"github.com/gtsteffaniak/filebrowser/utils"
 	"github.com/gtsteffaniak/filebrowser/version"
 )
-
-//go:embed dist/*
-var assets embed.FS
-
-var (
-	nonEmbededFS = os.Getenv("FILEBROWSER_NO_EMBEDED") == "true"
-)
-
-type dirFS struct {
-	http.Dir
-}
-
-func (d dirFS) Open(name string) (fs.File, error) {
-	return d.Dir.Open(name)
-}
 
 func getStore(config string) (*storage.Storage, bool) {
 	// Use the config file (global flag)
@@ -146,7 +122,7 @@ func StartFilebrowser() {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
 	log.Printf("Initializing FileBrowser Quantum (%v)\n", version.Version)
-	log.Println("Embeded frontend         :", !nonEmbededFS)
+	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
 	log.Println("Sources                  :", settings.Config.Server.Root)
 	log.Print("Indexing interval        : ", indexingInterval)
@@ -186,43 +162,7 @@ func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
+	fbhttp.StartHttp(imgSvc, store, fileCache)
 
-	fbhttp.SetupEnv(store, serverConfig, fileCache)
-
-	_, err := os.Stat(serverConfig.Root)
-	utils.CheckErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
-	var listener net.Listener
-	address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
-	switch {
-	case serverConfig.Socket != "":
-		listener, err = net.Listen("unix", serverConfig.Socket)
-		utils.CheckErr("net.Listen", err)
-		err = os.Chmod(serverConfig.Socket, os.FileMode(0666)) // socket-perm
-		utils.CheckErr("os.Chmod", err)
-	case serverConfig.TLSKey != "" && serverConfig.TLSCert != "":
-		cer, err := tls.LoadX509KeyPair(serverConfig.TLSCert, serverConfig.TLSKey) //nolint:govet
-		utils.CheckErr("tls.LoadX509KeyPair", err)
-		listener, err = tls.Listen("tcp", address, &tls.Config{
-			MinVersion:   tls.VersionTLS12,
-			Certificates: []tls.Certificate{cer}},
-		)
-		utils.CheckErr("tls.Listen", err)
-	default:
-		listener, err = net.Listen("tcp", address)
-		utils.CheckErr("net.Listen", err)
-	}
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
-	go cleanupHandler(listener, sigc)
-	if !nonEmbededFS {
-		assetsFs, err := fs.Sub(assets, "dist")
-		if err != nil {
-			log.Fatal("Could not embed frontend. Does backend/cmd/dist exist? Must be built and exist first")
-		}
-		fbhttp.Setup(imgSvc, assetsFs)
-	} else {
-		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
-		fbhttp.Setup(imgSvc, assetsFs)
-	}
 	return nil
 }

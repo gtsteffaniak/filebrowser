@@ -1,9 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
 	"log"
-
-	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 func CheckErr(source string, err error) {
@@ -13,7 +12,10 @@ func CheckErr(source string, err error) {
 }
 
 func GenerateKey() []byte {
-	k, err := settings.GenerateKey()
-	CheckErr("generateKey", err)
-	return k
+	b := make([]byte, 64)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil
+	}
+	return b
 }
