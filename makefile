@@ -9,6 +9,7 @@ build:
 
 dev:
 	# Kill processes matching exe/filebrowser, ignore errors if process does not exist
+	cd backend/http && rm -rf dist && ln -s ../../frontend/dist && \
 	-pkill -f "exe/filebrowser" || true
 	# Start backend and frontend concurrently
 	cd backend && FILEBROWSER_NO_EMBEDED=true go run \

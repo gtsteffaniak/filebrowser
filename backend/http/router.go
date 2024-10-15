@@ -16,11 +16,11 @@ import (
 
 // Embed the files in the frontend/dist directory
 //
-//go:embed dist/*
+//go:embed embed/*
 var assets embed.FS
 
 // Boolean flag to determine whether to use the embedded FS or not
-var nonEmbeddedFS = os.Getenv("FILEBROWSER_NO_EMBEDED") == "true"
+var embeddedFS = os.Getenv("FILEBROWSER_NO_EMBEDED") != "true"
 
 // Custom dirFS to handle both embedded and non-embedded file systems
 type dirFS struct {
@@ -53,22 +53,20 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	config = &settings.Config
 	config.Server.Clean()
 
-	var assetsFs fs.FS
 	var err error
 
-	if nonEmbeddedFS {
-		// Non-embedded mode: Serve files directly from the filesystem
-		assetsFs = dirFS{Dir: http.Dir("dist")}
-	} else {
+	if embeddedFS {
 		// Embedded mode: Serve files from the embedded assets
-		assetsFs, err = fs.Sub(assets, "dist")
+		assetFs, err = fs.Sub(assets, "embed")
 		if err != nil {
 			log.Fatal("Could not embed frontend. Does dist exist?")
 		}
+	} else {
+		assetFs = dirFS{Dir: http.Dir("http/dist")}
 	}
 
 	templateRenderer = &TemplateRenderer{
-		templates: template.Must(template.ParseFS(assetsFs, "index.html")),
+		templates: template.Must(template.ParseFS(assetFs, "index.html")),
 	}
 
 	router := http.NewServeMux()
@@ -120,7 +118,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	// Static and index file handlers
 	router.HandleFunc("GET /static/", staticFilesHandler)
-	router.HandleFunc("/", indexHandler)
+	router.HandleFunc("/", staticFilesHandler)
 
 	// health
 	router.HandleFunc("GET /health", healthHandler)

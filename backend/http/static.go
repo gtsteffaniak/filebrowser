@@ -1,10 +1,17 @@
 package http
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"text/template"
 
+	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/version"
 )
@@ -56,6 +63,48 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"ResizePreview":         config.Server.ResizePreview,
 		"EnableExec":            config.Server.EnableExec,
 	}
+
+	if config.Frontend.Files != "" {
+		fPath := filepath.Join(config.Frontend.Files, "custom.css")
+		_, err := os.Stat(fPath) //nolint:govet
+
+		if err != nil && !os.IsNotExist(err) {
+			log.Printf("couldn't load custom styles: %v", err)
+		}
+
+		if err == nil {
+			data["CSS"] = true
+		}
+	}
+
+	if config.Auth.Method == "password" {
+		raw, err := store.Auth.Get(config.Auth.Method) //nolint:govet
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		auther, ok := raw.(*auth.JSONAuth)
+		if !ok {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		if auther.ReCaptcha != nil {
+			data["ReCaptcha"] = auther.ReCaptcha.Key != "" && auther.ReCaptcha.Secret != ""
+			data["ReCaptchaHost"] = auther.ReCaptcha.Host
+			data["ReCaptchaKey"] = auther.ReCaptcha.Key
+		}
+	}
+
+	b, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	data["globalVars"] = strings.ReplaceAll(string(b), `'`, `\'`)
+
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -63,9 +112,11 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 }
 
 func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
-	handleWithStaticData(w, r, "index.html", "text/html")
-}
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	handleWithStaticData(w, r, "index.html", "text/html")
+	if r.URL.Path == "/" {
+		fmt.Println("indexHandler", r.URL.Path)
+		handleWithStaticData(w, r, "index.html", "text/html")
+	} else {
+		fmt.Println("FileServer", r.URL.Path)
+		http.FileServer(http.FS(assetFs)).ServeHTTP(w, r)
+	}
 }
