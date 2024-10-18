@@ -1,6 +1,8 @@
 package http
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -88,7 +90,11 @@ func withAdminHelper(fn handleFunc) handleFunc {
 
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
+	fmt.Println("withUserHelper start")
+
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		fmt.Println("withUserHelper start2", r.URL.Path)
+
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
@@ -112,6 +118,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
+		fmt.Println("withUserHelper", r.URL.Path, data.user.ID)
 
 		// Call the handler function, passing in the context
 		return fn(w, r, data)
@@ -140,31 +147,35 @@ func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 	})
 }
 
-// General middleware wrapper function
 func wrapHandler(fn handleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := &requestContext{
 			Runner: &runner.Runner{Enabled: config.Server.EnableExec, Settings: config},
 		}
 
-		// Set default status to 200
-		status := http.StatusOK
-		var err error
+		// Call the actual handler function and get status code and error
+		status, err := fn(w, r, data)
 
-		// Call the actual handler function
-		if status, err = fn(w, r, data); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		// Handle the error case if there is one
+		if err != nil {
+			// Log the actual error to the server logs
+			log.Printf("Error: %v", err)
+
+			// If the status is not explicitly set, default to 500
+			if status == http.StatusOK {
+				status = http.StatusInternalServerError
+			}
+
+			// Send the error response with the status and error message
+			http.Error(w, err.Error(), status)
 			return
 		}
 
-		// If the status is not 200, respond with that status
+		// If the status is not 200, return the appropriate status
 		if status != http.StatusOK {
 			http.Error(w, http.StatusText(status), status)
 			return
 		}
-
-		// No explicit error or non-200 status means successful handling
-		w.WriteHeader(http.StatusOK) // Ensure to send a 200 OK response
 	}
 }
 
@@ -196,4 +207,66 @@ func withUser(fn handleFunc) http.HandlerFunc {
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withSelfOrAdminHelper(fn))
+}
+
+func muxWithMiddleware(mux *http.ServeMux) *http.ServeMux {
+	wrappedMux := http.NewServeMux()
+	wrappedMux.Handle("/", LoggingMiddleware(mux))
+	return wrappedMux
+}
+
+// ResponseWriterWrapper wraps the standard http.ResponseWriter to capture the status code
+type ResponseWriterWrapper struct {
+	http.ResponseWriter
+	StatusCode  int
+	wroteHeader bool
+}
+
+// WriteHeader captures the status code and ensures it's only written once
+func (w *ResponseWriterWrapper) WriteHeader(statusCode int) {
+	if !w.wroteHeader { // Prevent WriteHeader from being called multiple times
+		w.StatusCode = statusCode
+		w.ResponseWriter.WriteHeader(statusCode)
+		w.wroteHeader = true
+	}
+}
+
+// Write is the method to write the response body and ensure WriteHeader is called
+func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
+	if !w.wroteHeader { // Default to 200 if WriteHeader wasn't called explicitly
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(b)
+}
+
+// LoggingMiddleware logs each request and its status code
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		// Wrap the ResponseWriter to capture the status code
+		wrappedWriter := &ResponseWriterWrapper{ResponseWriter: w, StatusCode: http.StatusOK}
+
+		// Call the next handler
+		next.ServeHTTP(wrappedWriter, r)
+
+		// Determine the color based on the status code
+		color := "\033[32m" // Default green color
+		if wrappedWriter.StatusCode >= 400 && wrappedWriter.StatusCode < 500 {
+			color = "\033[33m" // Yellow for client errors (4xx)
+		} else if wrappedWriter.StatusCode >= 500 {
+			color = "\033[31m" // Red for server errors (5xx)
+		}
+
+		// Log the request and its status code
+		log.Printf("%s%-7s | %3d | %-15s | %-12s | \"%s\"%s",
+			color,
+			r.Method,
+			wrappedWriter.StatusCode, // Now capturing the correct status
+			r.RemoteAddr,
+			time.Since(start).String(),
+			r.URL.Path,
+			"\033[0m", // Reset color
+		)
+	})
 }

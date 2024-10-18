@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"text/template"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
@@ -85,14 +84,14 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /signup", withUser(signupHandler))
 	api.HandleFunc("POST /renew", withUser(renewHandler))
 	// Resources routes
-	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
-	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
-	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
-	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
-	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
+	api.HandleFunc("GET /resources/", withUser(resourceGetHandler))
+	api.HandleFunc("DELETE /resources/", withUser(resourceDeleteHandler))
+	api.HandleFunc("POST /resources/", withUser(resourcePostHandler))
+	api.HandleFunc("PUT /resources/", withUser(resourcePutHandler))
+	api.HandleFunc("PATCH /resource/", withUser(resourcePatchHandler))
 
 	// Additional API routes
-	api.HandleFunc("GET /usage", withUser(diskUsage))
+	api.HandleFunc("GET /usage/", withUser(diskUsage))
 
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
 
@@ -128,51 +127,4 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	if err != nil {
 		log.Fatalf("could not start server: %v", err)
 	}
-}
-
-func muxWithMiddleware(mux *http.ServeMux) *http.ServeMux {
-	wrappedMux := http.NewServeMux()
-	wrappedMux.Handle("/", LoggingMiddleware(mux))
-	return wrappedMux
-}
-
-// ResponseWriterWrapper wraps the standard http.ResponseWriter to capture the status code
-type ResponseWriterWrapper struct {
-	http.ResponseWriter
-	StatusCode int
-}
-
-// LoggingMiddleware logs each request with consistent spacing and colorized output
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		// Wrap the ResponseWriter to capture the status code
-		wrappedWriter := &ResponseWriterWrapper{ResponseWriter: w, StatusCode: http.StatusOK}
-
-		// Call the next handler
-		next.ServeHTTP(wrappedWriter, r)
-
-		// Determine the color based on the status code
-		color := "\033[32m" // Default green color
-		if wrappedWriter.StatusCode >= 400 && wrappedWriter.StatusCode < 500 {
-			color = "\033[33m" // Yellow for client errors (4xx)
-		} else if wrappedWriter.StatusCode >= 500 {
-			color = "\033[31m" // Red for server errors (5xx)
-		}
-
-		// Reset color
-		reset := "\033[0m"
-
-		// Log the request details with consistent spacing and colorization
-		log.Printf("%s%-7s | %3d | %-15s | %-12s | \"%s\"%s",
-			color,                      // Start color
-			r.Method,                   // HTTP method
-			wrappedWriter.StatusCode,   // Status code
-			r.RemoteAddr,               // Remote IP address
-			time.Since(start).String(), // Time taken to process the request
-			r.URL.Path,                 // URL path
-			reset,                      // Reset color
-		)
-	})
 }
