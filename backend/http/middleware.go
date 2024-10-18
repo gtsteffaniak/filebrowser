@@ -1,8 +1,10 @@
 package http
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -25,15 +27,14 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// Extract the file ID and path from the request
-		id, path := ifPathWithName(r)
-
+		hash := strings.TrimPrefix(r.URL.Path, "/public/share/")
+		fmt.Println("id: ", hash)
 		// Get the file link by hash
-		link, err := store.Share.GetByHash(id)
+		link, err := store.Share.GetByHash(hash)
 		if err != nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err
 		}
-
 		// Authenticate the share request if needed
 		if link.Hash != "" {
 			status, err := authenticateShareRequest(r, link)
@@ -45,7 +46,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
-		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path, path)
+		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path, link.Path)
 		if err != nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err
@@ -219,6 +220,9 @@ type ResponseWriterWrapper struct {
 // WriteHeader captures the status code and ensures it's only written once
 func (w *ResponseWriterWrapper) WriteHeader(statusCode int) {
 	if !w.wroteHeader { // Prevent WriteHeader from being called multiple times
+		if statusCode == 0 {
+			statusCode = http.StatusInternalServerError
+		}
 		w.StatusCode = statusCode
 		w.ResponseWriter.WriteHeader(statusCode)
 		w.wroteHeader = true

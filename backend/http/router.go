@@ -99,9 +99,9 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
 
-	api.HandleFunc("GET /share", withPermShare(shareGetsHandler))
-	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
-	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
+	api.HandleFunc("GET /share/", withPermShare(shareGetsHandler))
+	api.HandleFunc("POST /share/", withPermShare(sharePostHandler))
+	api.HandleFunc("DELETE /share/", withPermShare(shareDeleteHandler))
 
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 	api.HandleFunc("PUT /settings", withUser(settingsPutHandler))
@@ -111,13 +111,12 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /preview/{size}/{path...}", withUser(previewHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
+
+	api.HandleFunc("GET /public/publicUser", withUser(publicUserGetHandler))
+	api.HandleFunc("GET /public/dl", withHashFile(publicDlHandler))
+	api.HandleFunc("GET /public/share/", withHashFile(publicShareHandler))
+
 	router.Handle("/api/", http.StripPrefix("/api", api))
-	// Public routes
-	public := http.NewServeMux()
-	public.HandleFunc("GET /publicUser", withUser(publicUserGetHandler))
-	public.HandleFunc("GET /dl", withHashFile(publicDlHandler))
-	public.HandleFunc("GET /share", withHashFile(publicShareHandler))
-	public.Handle("/api/public/", http.StripPrefix("/api/public", public))
 
 	// Static and index file handlers
 	router.HandleFunc("GET /static/", staticFilesHandler)

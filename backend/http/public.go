@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -16,13 +15,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
-
-func ifPathWithName(r *http.Request) (id, filePath string) {
-	pathElements := strings.Split(r.URL.Path, "/")
-	id = pathElements[0]
-	allButFirst := path.Join(pathElements[1:]...)
-	return id, allButFirst
-}
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	file, ok := d.raw.(*files.FileInfo)
@@ -59,18 +51,19 @@ func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	if l.PasswordHash == "" {
-		return 0, nil
+		return 200, nil
 	}
 
 	if r.URL.Query().Get("token") == l.Token {
-		return 0, nil
+		return 200, nil
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")
 	password, err := url.QueryUnescape(password)
 	if err != nil {
-		return 0, err
+		return 200, err
 	}
+	fmt.Println("given pass", password, "link pass", l.PasswordHash)
 	if password == "" {
 		return http.StatusUnauthorized, nil
 	}
@@ -78,9 +71,9 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return http.StatusUnauthorized, nil
 		}
-		return 0, err
+		return 200, err
 	}
-	return 0, nil
+	return 200, nil
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {

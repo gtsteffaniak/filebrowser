@@ -33,11 +33,10 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Parse the URL path
-	parts := strings.SplitN(r.URL.Path, "/", 3) // Splitting by "/"
-	if len(parts) < 3 {
+	parts := strings.SplitN(r.URL.Path, "/", 4) // Splitting by "/"
+	if len(parts) < 4 {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
-
 	// Extract size and path from URL
 	previewSize, err := ParsePreviewSize(parts[2]) // Assuming "size" is the third part
 	if err != nil {
@@ -45,7 +44,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       "/" + parts[1], // Assuming "path" is the second part
+		Path:       "/" + parts[3], // Assuming "path" is the third part
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: config.Server.TypeDetectionByHeader,

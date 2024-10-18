@@ -32,7 +32,6 @@ type modifyUserRequest struct {
 }
 
 func getUserID(r *http.Request) (uint, error) {
-	fmt.Println("finding user for request", r.URL.Path)
 	id := r.PathValue("id")
 	i, err := strconv.ParseUint(id, 10, 0)
 	if err != nil {
@@ -200,7 +199,6 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 			}
 		}
 	}
-
 	// Perform the user update
 	err = store.Users.Update(req.Data, req.Which...)
 	if err != nil {

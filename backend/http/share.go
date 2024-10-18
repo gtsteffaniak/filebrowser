@@ -130,8 +130,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 		stringHash = string(hash)
 	}
+
+	adjustedPath := strings.TrimPrefix(r.URL.Path, "/share/")
+	fmt.Println("adjustedPath: ", adjustedPath, " r.URL.Path: ", r.URL.Path)
 	s = &share.Link{
-		Path:         strings.TrimSuffix(r.URL.Path, "/"),
+		Path:         "/" + adjustedPath,
 		Hash:         str,
 		Expire:       expire,
 		UserID:       d.user.ID,
