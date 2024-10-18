@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"sort"
@@ -31,6 +32,7 @@ type modifyUserRequest struct {
 }
 
 func getUserID(r *http.Request) (uint, error) {
+	fmt.Println("finding user for request", r.URL.Path)
 	id := r.PathValue("id")
 	i, err := strconv.ParseUint(id, 10, 0)
 	if err != nil {
@@ -59,6 +61,7 @@ func getUser(_ http.ResponseWriter, r *http.Request) (*modifyUserRequest, error)
 
 // admin
 func usersGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	fmt.Println("usersGetHandler")
 	users, err := store.Users.Gets(config.Server.Root)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -113,7 +116,7 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	return http.StatusOK, nil
 }
 
-func userPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	req, err := getUser(w, r)
 	if err != nil {
 		return http.StatusBadRequest, err

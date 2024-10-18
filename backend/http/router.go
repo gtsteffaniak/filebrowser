@@ -72,11 +72,11 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	// API group routing
 	api := http.NewServeMux()
 
-	api.HandleFunc("GET /users", withSelfOrAdmin(usersGetHandler))
-	api.HandleFunc("POST /users", withSelfOrAdmin(userPostHandler))
+	api.HandleFunc("GET /users", withAdmin(usersGetHandler))
+	api.HandleFunc("POST /users", withAdmin(usersPostHandler))
 	api.HandleFunc("GET /users/{id}", withSelfOrAdmin(userGetHandler))
 	api.HandleFunc("PUT /users/{id}", withSelfOrAdmin(userPutHandler))
-	api.HandleFunc("POST /users/{id}", withSelfOrAdmin(userPostHandler))
+	//api.HandleFunc("POST /users/{id}", withSelfOrAdmin(userPostHandler))
 	api.HandleFunc("DELETE /users/{id}", withSelfOrAdmin(userDeleteHandler))
 
 	// API routes
@@ -108,7 +108,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 
-	api.HandleFunc("GET /preview/{size}/{path}", withUser(previewHandler))
+	api.HandleFunc("GET /preview/{size}/{path...}", withUser(previewHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
 	router.Handle("/api/", http.StripPrefix("/api", api))
