@@ -81,9 +81,9 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("DELETE /users/{id}", withSelfOrAdmin(userDeleteHandler))
 
 	// API routes
-	api.HandleFunc("GET /login", loginHandler)
+	api.HandleFunc("POST /login", loginHandler)
 	api.HandleFunc("GET /signup", withUser(signupHandler))
-	api.HandleFunc("GET /renew", withUser(renewHandler))
+	api.HandleFunc("POST /renew", withUser(renewHandler))
 	// Resources routes
 	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
 	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
@@ -118,7 +118,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	// Static and index file handlers
 	router.HandleFunc("GET /static/", staticFilesHandler)
-	router.HandleFunc("/", staticFilesHandler)
+	router.HandleFunc("/", indexHandler)
 
 	// health
 	router.HandleFunc("GET /health", healthHandler)
@@ -140,12 +140,6 @@ func muxWithMiddleware(mux *http.ServeMux) *http.ServeMux {
 type ResponseWriterWrapper struct {
 	http.ResponseWriter
 	StatusCode int
-}
-
-// WriteHeader captures the status code and calls the original WriteHeader
-func (rw *ResponseWriterWrapper) WriteHeader(code int) {
-	rw.StatusCode = code
-	rw.ResponseWriter.WriteHeader(code)
 }
 
 // LoggingMiddleware logs each request with consistent spacing and colorized output

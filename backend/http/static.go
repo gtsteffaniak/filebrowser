@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -114,19 +115,32 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 }
 
 func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+	// Remove "/static/" from the request path
+	adjustedPath := strings.TrimPrefix(r.URL.Path, "/static/")
+	adjustedCompressed := adjustedPath + ".gz"
+	if strings.HasSuffix(adjustedPath, ".js") {
+		w.Header().Set("Content-Type", "application/javascript; charset=utf-8") // Set the correct MIME type for JavaScript files
+	}
+	// Check if the gzipped version of the file exists
+	fileContents, err := fs.ReadFile(assetFs, adjustedCompressed)
+	if err == nil {
+
+		w.Header().Set("Content-Encoding", "gzip") // Let the browser know the file is compressed
+		w.Write(fileContents)                      // Write the gzipped file content to the response
+	} else {
+		// Otherwise, serve the regular file
+		http.StripPrefix("/static/", http.FileServer(http.FS(assetFs))).ServeHTTP(w, r)
+	}
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
-	if r.URL.Path == "/" {
-		fmt.Println("indexHandler", r.URL.Path)
-		handleWithStaticData(w, r, "index.html", "text/html")
-	} else {
-		//staticPath := strings.TrimPrefix(r.URL.Path, "/static/")
-		const maxAge = 86400 // 1 day
-		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	handleWithStaticData(w, r, "index.html", "text/html")
 
-		http.FileServer(http.FS(assetFs)).ServeHTTP(w, r)
-
-	}
 }
