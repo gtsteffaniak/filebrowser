@@ -66,7 +66,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	}
 
 	templateRenderer = &TemplateRenderer{
-		templates: template.Must(template.ParseFS(assetFs, "index.html")),
+		templates: template.Must(template.ParseFS(assetFs, "public/index.html")),
 	}
 
 	router := http.NewServeMux()

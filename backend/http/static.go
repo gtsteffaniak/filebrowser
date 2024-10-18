@@ -30,6 +30,7 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	w.Header().Set("X-Accel-Expires", "0")
 	w.Header().Set("Transfer-Encoding", "identity")
 
+	fmt.Println("executing template", name)
 	// Execute the template with the provided data
 	return t.templates.ExecuteTemplate(w, name, data)
 }
@@ -107,16 +108,25 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {
+		fmt.Println("could not render", file)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
 	if r.URL.Path == "/" {
 		fmt.Println("indexHandler", r.URL.Path)
 		handleWithStaticData(w, r, "index.html", "text/html")
 	} else {
-		fmt.Println("FileServer", r.URL.Path)
+		//staticPath := strings.TrimPrefix(r.URL.Path, "/static/")
+		const maxAge = 86400 // 1 day
+		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+
 		http.FileServer(http.FS(assetFs)).ServeHTTP(w, r)
+
 	}
 }
