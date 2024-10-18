@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -66,7 +65,7 @@ func getUserIdentifier(flags *pflag.FlagSet) interface{} {
 	return nil
 }
 
-func printRules(rulez []rules.Rule, id interface{}) {
+func printRules(rulez []users.Rule, id interface{}) {
 
 	for id, rule := range rulez {
 		fmt.Printf("(%d) ", id)

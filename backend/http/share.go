@@ -17,24 +17,15 @@ import (
 	"github.com/gtsteffaniak/filebrowser/share"
 )
 
-func withPermShare(fn handleFunc) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if !d.user.Perm.Share {
-			return http.StatusForbidden, nil
-		}
-		return fn(w, r, d)
-	})
-}
-
-var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var (
 		s   []*share.Link
 		err error
 	)
 	if d.user.Perm.Admin {
-		s, err = d.store.Share.All()
+		s, err = store.Share.All()
 	} else {
-		s, err = d.store.Share.FindByUserID(d.user.ID)
+		s, err = store.Share.FindByUserID(d.user.ID)
 	}
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
@@ -51,10 +42,10 @@ var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		return s[i].Expire < s[j].Expire
 	})
 	return renderJSON(w, r, s)
-})
+}
 
-var shareGetsHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	s, err := d.store.Share.Gets(r.URL.Path, d.user.ID)
+func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	s, err := store.Share.Gets(r.URL.Path, d.user.ID)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
 	}
@@ -64,9 +55,9 @@ var shareGetsHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 	}
 
 	return renderJSON(w, r, s)
-})
+}
 
-var shareDeleteHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := strings.TrimSuffix(r.URL.Path, "/")
 	hash = strings.TrimPrefix(hash, "/")
 
@@ -74,15 +65,15 @@ var shareDeleteHandler = withPermShare(func(w http.ResponseWriter, r *http.Reque
 		return http.StatusBadRequest, nil
 	}
 
-	err := d.store.Share.Delete(hash)
+	err := store.Share.Delete(hash)
 	if err != nil {
 		return errToStatus(err), err
 	}
 
 	return errToStatus(err), err
-})
+}
 
-var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 
 	var s *share.Link
 	var body share.CreateBody
@@ -139,8 +130,11 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 		stringHash = string(hash)
 	}
+
+	adjustedPath := strings.TrimPrefix(r.URL.Path, "/share/")
+	fmt.Println("adjustedPath: ", adjustedPath, " r.URL.Path: ", r.URL.Path)
 	s = &share.Link{
-		Path:         strings.TrimSuffix(r.URL.Path, "/"),
+		Path:         "/" + adjustedPath,
 		Hash:         str,
 		Expire:       expire,
 		UserID:       d.user.ID,
@@ -148,12 +142,12 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		Token:        token,
 	}
 
-	if err := d.store.Share.Save(s); err != nil {
+	if err := store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	return renderJSON(w, r, s)
-})
+}
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
 

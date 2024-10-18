@@ -5,7 +5,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -32,13 +31,13 @@ var rulesAddCmd = &cobra.Command{
 			regexp.MustCompile(exp)
 		}
 
-		rule := rules.Rule{
+		rule := users.Rule{
 			Allow: allow,
 			Regex: regex,
 		}
 
 		if regex {
-			rule.Regexp = &rules.Regexp{Raw: exp}
+			rule.Regexp = &users.Regexp{Raw: exp}
 		} else {
 			rule.Path = exp
 		}

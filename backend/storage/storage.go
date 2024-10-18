@@ -92,7 +92,7 @@ func quickSetup(store *Storage) {
 	utils.CheckErr("store.Settings.Save", err)
 	err = store.Settings.SaveServer(&settings.Config.Server)
 	utils.CheckErr("store.Settings.SaveServer", err)
-	user := users.ApplyDefaults(users.User{})
+	user := settings.ApplyUserDefaults(users.User{})
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
@@ -111,7 +111,7 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	if userInfo.Username == "" || userInfo.Password == "" {
 		return errors.ErrInvalidRequestParams
 	}
-	newUser := users.ApplyDefaults(userInfo)
+	newUser := settings.ApplyUserDefaults(userInfo)
 	if asAdmin {
 		newUser.Perm = settings.AdminPerms()
 	}

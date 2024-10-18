@@ -1,4 +1,3 @@
-//go:generate go-enum --sql --marshal --names --file $GOFILE
 package http
 
 import (
@@ -8,19 +7,12 @@ import (
 	"io"
 	"net/http"
 	"os"
-
-	"github.com/gorilla/mux"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/img"
 )
 
-/*
-ENUM(
-thumb
-big
-)
-*/
 type PreviewSize int
 
 type ImgService interface {
@@ -34,53 +26,45 @@ type FileCache interface {
 	Delete(ctx context.Context, key string) error
 }
 
-func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, resizePreview bool) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if !d.user.Perm.Download {
-			return http.StatusAccepted, nil
-		}
-		vars := mux.Vars(r)
+// Handles the preview request for images
+func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Perm.Download {
+		return http.StatusAccepted, nil
+	}
 
-		previewSize, err := ParsePreviewSize(vars["size"])
-		if err != nil {
-			return http.StatusBadRequest, err
-		}
+	// Parse the URL path
+	parts := strings.SplitN(r.URL.Path, "/", 4) // Splitting by "/"
+	if len(parts) < 4 {
+		return http.StatusBadRequest, fmt.Errorf("invalid request path")
+	}
+	// Extract size and path from URL
+	previewSize, err := ParsePreviewSize(parts[2]) // Assuming "size" is the third part
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 
-		file, err := files.FileInfoFaster(files.FileOptions{
-			Path:       "/" + vars["path"],
-			Modify:     d.user.Perm.Modify,
-			Expand:     true,
-			ReadHeader: d.server.TypeDetectionByHeader,
-			Checker:    d,
-		})
-
-		if err != nil {
-			return errToStatus(err), err
-		}
-		setContentDisposition(w, r, file)
-
-		switch file.Type {
-		case "image":
-			return handleImagePreview(w, r, imgSvc, fileCache, file, previewSize, enableThumbnails, resizePreview)
-		default:
-			return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
-		}
+	file, err := files.FileInfoFaster(files.FileOptions{
+		Path:       "/" + parts[3], // Assuming "path" is the third part
+		Modify:     d.user.Perm.Modify,
+		Expand:     true,
+		ReadHeader: config.Server.TypeDetectionByHeader,
+		Checker:    d.user,
 	})
-}
 
-func handleImagePreview(
-	w http.ResponseWriter,
-	r *http.Request,
-	imgSvc ImgService,
-	fileCache FileCache,
-	file *files.FileInfo,
-	previewSize PreviewSize,
-	enableThumbnails, resizePreview bool,
-) (int, error) {
-	if (previewSize == PreviewSizeBig && !resizePreview) ||
-		(previewSize == PreviewSizeThumb && !enableThumbnails) {
+	if err != nil {
+		return errToStatus(err), err
+	}
+
+	setContentDisposition(w, r, file)
+	if file.Type != "image" {
+		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
+	}
+
+	if (previewSize == PreviewSizeBig && !config.Server.ResizePreview) ||
+		(previewSize == PreviewSizeThumb && !config.Server.EnableThumbnails) {
 		return rawFileHandler(w, r, file)
 	}
+
 	format, err := imgSvc.FormatFromExtension(file.Extension)
 	// Unsupported extensions directly return the raw data
 	if err == img.ErrUnsupportedFormat || format == img.FormatGif {
@@ -108,8 +92,8 @@ func handleImagePreview(
 	return 0, nil
 }
 
-func createPreview(imgSvc ImgService, fileCache FileCache,
-	file *files.FileInfo, previewSize PreviewSize) ([]byte, error) {
+// Creates a preview image based on size
+func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo, previewSize PreviewSize) ([]byte, error) {
 	fd, err := os.Open(file.Path)
 	if err != nil {
 		return nil, err
@@ -150,6 +134,7 @@ func createPreview(imgSvc ImgService, fileCache FileCache,
 	return buf.Bytes(), nil
 }
 
+// Generates a cache key for the preview image
 func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
 	return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
 }

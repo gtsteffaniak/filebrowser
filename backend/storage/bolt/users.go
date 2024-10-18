@@ -8,6 +8,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 type usersBackend struct {
@@ -55,14 +56,24 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 	if len(fields) == 0 {
 		return st.Save(user)
 	}
+
+	val := reflect.ValueOf(user).Elem()
+
 	for _, field := range fields {
-		userField := reflect.ValueOf(user).Elem().FieldByName(field)
+		// Capitalize the first letter (you can adjust this based on your field naming convention)
+		correctedField := utils.CapitalizeFirst(field)
+
+		userField := val.FieldByName(correctedField)
 		if !userField.IsValid() {
 			return fmt.Errorf("invalid field: %s", field)
 		}
+		if !userField.CanSet() {
+			return fmt.Errorf("cannot update unexported field: %s", field)
+		}
+
 		val := userField.Interface()
-		if err := st.db.UpdateField(user, field, val); err != nil {
-			return fmt.Errorf("Error updating user field: %s, error: %v", field, err.Error())
+		if err := st.db.UpdateField(user, correctedField, val); err != nil {
+			return fmt.Errorf("Error updating user field: %s, error: %v", correctedField, err.Error())
 		}
 	}
 	return nil

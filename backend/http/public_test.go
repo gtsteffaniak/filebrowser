@@ -4,16 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
 	"testing"
 
-	"github.com/asdine/storm/v3"
-
-	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
-	"github.com/gtsteffaniak/filebrowser/storage"
-	"github.com/gtsteffaniak/filebrowser/storage/bolt"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 func TestPublicShareHandlerAuthentication(t *testing.T) {
@@ -58,60 +51,40 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		for handlerName, handler := range map[string]handleFunc{"public share handler": publicShareHandler, "public dl handler": publicDlHandler} {
-			name, tc, handlerName, handler := name, tc, handlerName, handler
+		for handlerName, handler := range map[string]handleFunc{
+			"public share handler": publicShareHandler,
+			"public dl handler":    publicDlHandler,
+		} {
 			t.Run(fmt.Sprintf("%s: %s", handlerName, name), func(t *testing.T) {
 				t.Parallel()
 
-				dbPath := filepath.Join(t.TempDir(), "db")
-				db, err := storm.Open(dbPath)
-				if err != nil {
-					t.Fatalf("failed to open db: %v", err)
-				}
-
-				t.Cleanup(func() {
-					if err := db.Close(); err != nil { //nolint:govet
-						t.Errorf("failed to close db: %v", err)
-					}
-				})
-				authStore, userStore, shareStore, settingsStore, err := bolt.NewStorage(db)
-				storage := &storage.Storage{
-					Auth:     authStore,
-					Users:    userStore,
-					Share:    shareStore,
-					Settings: settingsStore,
-				}
-				if err != nil {
-					t.Fatalf("failed to get storage: %v", err)
-				}
-				if err := storage.Share.Save(tc.share); err != nil {
-					t.Fatalf("failed to save share: %v", err)
-				}
-				if err := storage.Settings.Save(&settings.Settings{
-					Auth: settings.Auth{
-						Key: []byte("key"),
-					},
-				}); err != nil {
-					t.Fatalf("failed to save settings: %v", err)
-				}
-
-				storage.Users = &customFSUser{
-					Store: storage.Users,
-				}
-
+				// Create a response recorder to capture the handler's output
 				recorder := httptest.NewRecorder()
-				handler := handle(handler, "", storage, &settings.Server{})
-				handler.ServeHTTP(recorder, tc.req)
+
+				// Set up a mock requestContext
+				ctx := &requestContext{
+					raw: &share.Link{
+						Hash: tc.share.Hash,
+					},
+				}
+
+				// Call the handler with the test request and mock context
+				handler(recorder, tc.req, ctx)
+
+				// Get the result
 				result := recorder.Result()
 				defer result.Body.Close()
+
+				// Check the status code
 				if result.StatusCode != tc.expectedStatusCode {
-					t.Errorf("expected status code %d, got status code %d", tc.expectedStatusCode, result.StatusCode)
+					t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, result.StatusCode)
 				}
 			})
 		}
 	}
 }
 
+// Helper function to create an HTTP request with optional modifications
 func newHTTPRequest(t *testing.T, requestModifiers ...func(*http.Request)) *http.Request {
 	t.Helper()
 	r, err := http.NewRequest(http.MethodGet, "h", http.NoBody)
@@ -122,16 +95,4 @@ func newHTTPRequest(t *testing.T, requestModifiers ...func(*http.Request)) *http
 		modify(r)
 	}
 	return r
-}
-
-type customFSUser struct {
-	users.Store
-}
-
-func (cu *customFSUser) Get(baseScope string, id interface{}) (*users.User, error) {
-	user, err := cu.Store.Get(baseScope, id)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
 }
