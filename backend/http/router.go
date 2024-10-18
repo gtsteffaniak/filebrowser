@@ -84,14 +84,18 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /signup", withUser(signupHandler))
 	api.HandleFunc("POST /renew", withUser(renewHandler))
 	// Resources routes
-	api.HandleFunc("GET /resources/", withUser(resourceGetHandler))
+	api.HandleFunc("GET /resources/", func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/resources/", withUser(resourceGetHandler)).ServeHTTP(w, r)
+	})
 	api.HandleFunc("DELETE /resources/", withUser(resourceDeleteHandler))
 	api.HandleFunc("POST /resources/", withUser(resourcePostHandler))
 	api.HandleFunc("PUT /resources/", withUser(resourcePutHandler))
 	api.HandleFunc("PATCH /resource/", withUser(resourcePatchHandler))
 
 	// Additional API routes
-	api.HandleFunc("GET /usage/", withUser(diskUsage))
+	api.HandleFunc("GET /usage/", func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/usage/", withUser(diskUsage)).ServeHTTP(w, r)
+	})
 
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
 

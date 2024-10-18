@@ -67,19 +67,23 @@ type Frontend struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	StickySidebar   bool              `json:"stickySidebar"`
-	DarkMode        bool              `json:"darkMode"`
-	LockPassword    bool              `json:"lockPassword"`
-	DisableSettings bool              `json:"disableSettings,omitempty"`
-	Scope           string            `json:"scope"`
-	Locale          string            `json:"locale"`
-	ViewMode        string            `json:"viewMode"`
-	GallerySize     int               `json:"gallerySize"`
-	SingleClick     bool              `json:"singleClick"`
-	Rules           []users.Rule      `json:"rules"`
-	Perm            users.Permissions `json:"perm"`
-	Permissions     users.Permissions `json:"permissions"`
-	Commands        []string          `json:"commands,omitempty"`
-	HideDotfiles    bool              `json:"hideDotfiles"`
-	DateFormat      bool              `json:"dateFormat"`
+	StickySidebar   bool         `json:"stickySidebar"`
+	DarkMode        bool         `json:"darkMode"`
+	LockPassword    bool         `json:"lockPassword"`
+	DisableSettings bool         `json:"disableSettings,omitempty"`
+	Scope           string       `json:"scope"`
+	Locale          string       `json:"locale"`
+	ViewMode        string       `json:"viewMode"`
+	GallerySize     int          `json:"gallerySize"`
+	SingleClick     bool         `json:"singleClick"`
+	Rules           []users.Rule `json:"rules"`
+	Sorting         struct {
+		By  string `json:"by"`
+		Asc bool   `json:"asc"`
+	} `json:"sorting"`
+	Perm         users.Permissions `json:"perm"`
+	Permissions  users.Permissions `json:"permissions"`
+	Commands     []string          `json:"commands,omitempty"`
+	HideDotfiles bool              `json:"hideDotfiles"`
+	DateFormat   bool              `json:"dateFormat"`
 }

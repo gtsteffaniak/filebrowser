@@ -30,8 +30,6 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("X-Accel-Expires", "0")
 	w.Header().Set("Transfer-Encoding", "identity")
-
-	fmt.Println("executing template", name)
 	// Execute the template with the provided data
 	return t.templates.ExecuteTemplate(w, name, data)
 }
@@ -109,7 +107,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {
-		fmt.Println("could not render", file)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

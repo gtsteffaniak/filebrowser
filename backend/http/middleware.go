@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -90,11 +89,7 @@ func withAdminHelper(fn handleFunc) handleFunc {
 
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
-	fmt.Println("withUserHelper start")
-
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		fmt.Println("withUserHelper start2", r.URL.Path)
-
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
@@ -118,7 +113,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		fmt.Println("withUserHelper", r.URL.Path, data.user.ID)
 
 		// Call the handler function, passing in the context
 		return fn(w, r, data)

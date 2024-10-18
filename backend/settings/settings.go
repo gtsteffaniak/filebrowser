@@ -56,6 +56,7 @@ func ApplyUserDefaults(u users.User) users.User {
 	u.ViewMode = Config.UserDefaults.ViewMode
 	u.SingleClick = Config.UserDefaults.SingleClick
 	u.Perm = Config.UserDefaults.Perm
+	u.Sorting = Config.UserDefaults.Sorting
 	u.Commands = Config.UserDefaults.Commands
 	u.HideDotfiles = Config.UserDefaults.HideDotfiles
 	u.DateFormat = Config.UserDefaults.DateFormat

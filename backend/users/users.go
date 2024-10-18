@@ -15,6 +15,12 @@ type Permissions struct {
 	Download bool `json:"download"`
 }
 
+// SortingSettings represents the sorting settings.
+type Sorting struct {
+	By  string `json:"by"`
+	Asc bool   `json:"asc"`
+}
+
 // User describes a user.
 type User struct {
 	StickySidebar   bool        `json:"stickySidebar"`
@@ -28,6 +34,7 @@ type User struct {
 	LockPassword    bool        `json:"lockPassword"`
 	ViewMode        string      `json:"viewMode"`
 	SingleClick     bool        `json:"singleClick"`
+	Sorting         Sorting     `json:"sorting"`
 	Perm            Permissions `json:"perm"`
 	Commands        []string    `json:"commands"`
 	Rules           []Rule      `json:"rules"`
