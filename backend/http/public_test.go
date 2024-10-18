@@ -4,14 +4,41 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
+	"github.com/asdine/storm/v3"
+	"github.com/gtsteffaniak/filebrowser/diskcache"
+	"github.com/gtsteffaniak/filebrowser/img"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
+	"github.com/gtsteffaniak/filebrowser/storage"
+	"github.com/gtsteffaniak/filebrowser/storage/bolt"
 )
 
+func setupTestEnv(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "db")
+	db, err := storm.Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	authStore, userStore, shareStore, settingsStore, err := bolt.NewStorage(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store = &storage.Storage{
+		Auth:     authStore,
+		Users:    userStore,
+		Share:    shareStore,
+		Settings: settingsStore,
+	}
+	fileCache = diskcache.NewNoOp() // mocked
+	imgSvc = img.New(1)             // mocked
+	config = &settings.Config       // mocked
+}
 func TestPublicShareHandlerAuthentication(t *testing.T) {
 	t.Parallel()
-
+	setupTestEnv(t)
 	const passwordBcrypt = "$2y$10$TFAmdCbyd/mEZDe5fUeZJu.MaJQXRTwdqb/IQV.eTn6dWrF58gCSe" //nolint:gosec
 	testCases := map[string]struct {
 		share              *share.Link
@@ -51,9 +78,9 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 	}
 
 	for name, tc := range testCases {
-		for handlerName, handler := range map[string]handleFunc{
-			"public share handler": publicShareHandler,
-			"public dl handler":    publicDlHandler,
+		for handlerName, handler := range map[string]func(http.HandlerFunc) http.HandlerFunc{
+			"public share handler": func(h http.HandlerFunc) http.HandlerFunc { return withHashFile(publicShareHandler) },
+			"public dl handler":    func(h http.HandlerFunc) http.HandlerFunc { return withHashFile(publicDlHandler) },
 		} {
 			t.Run(fmt.Sprintf("%s: %s", handlerName, name), func(t *testing.T) {
 				t.Parallel()
@@ -61,15 +88,16 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				// Create a response recorder to capture the handler's output
 				recorder := httptest.NewRecorder()
 
-				// Set up a mock requestContext
-				ctx := &requestContext{
-					raw: &share.Link{
-						Hash: tc.share.Hash,
-					},
-				}
+				// Wrap the handler with the necessary middleware
+				wrappedHandler := handler(nil) // the handler expects http.HandlerFunc, but middleware already wraps
+				// Create a test server to serve the request
+				testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					wrappedHandler(w, r)
+				}))
+				defer testServer.Close()
 
 				// Call the handler with the test request and mock context
-				handler(recorder, tc.req, ctx)
+				wrappedHandler(recorder, tc.req)
 
 				// Get the result
 				result := recorder.Result()
