@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -27,8 +26,7 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// Extract the file ID and path from the request
-		hash := strings.TrimPrefix(r.URL.Path, "/public/share/")
-		fmt.Println("id: ", hash)
+		hash := strings.Split(strings.TrimPrefix(r.URL.Path, "/public/share/"), "/")[0]
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -43,10 +41,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, err
 			}
 		}
-
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
-		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path, link.Path)
+		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path)
 		if err != nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err

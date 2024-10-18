@@ -30,10 +30,10 @@ func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return renderJSON(w, r, file)
 }
 
-func publicUserGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
 	// Call the actual handler logic here (e.g., renderJSON, etc.)
 	// You may need to replace `fn` with the actual handler logic.
-	return renderJSON(w, r, users.PublicUser)
+	renderJSON(w, r, users.PublicUser)
 }
 
 func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -63,7 +63,6 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	if err != nil {
 		return 200, err
 	}
-	fmt.Println("given pass", password, "link pass", l.PasswordHash)
 	if password == "" {
 		return http.StatusUnauthorized, nil
 	}
