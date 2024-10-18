@@ -61,7 +61,7 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	password := r.Header.Get("X-SHARE-PASSWORD")
 	password, err := url.QueryUnescape(password)
 	if err != nil {
-		return 200, err
+		return http.StatusUnauthorized, err
 	}
 	if password == "" {
 		return http.StatusUnauthorized, nil
@@ -70,7 +70,7 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return http.StatusUnauthorized, nil
 		}
-		return 200, err
+		return 401, err
 	}
 	return 200, nil
 }
