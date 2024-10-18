@@ -1,13 +1,13 @@
 package settings
 
 import (
-	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 type Settings struct {
 	Commands     map[string][]string `json:"commands"`
 	Shell        []string            `json:"shell"`
-	Rules        []rules.Rule        `json:"rules"`
+	Rules        []users.Rule        `json:"rules"`
 	Server       Server              `json:"server"`
 	Auth         Auth                `json:"auth"`
 	Frontend     Frontend            `json:"frontend"`
@@ -67,34 +67,19 @@ type Frontend struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	StickySidebar   bool         `json:"stickySidebar"`
-	DarkMode        bool         `json:"darkMode"`
-	LockPassword    bool         `json:"lockPassword"`
-	DisableSettings bool         `json:"disableSettings,omitempty"`
-	Scope           string       `json:"scope"`
-	Locale          string       `json:"locale"`
-	ViewMode        string       `json:"viewMode"`
-	GallerySize     int          `json:"gallerySize"`
-	SingleClick     bool         `json:"singleClick"`
-	Rules           []rules.Rule `json:"rules"`
-	Sorting         struct {
-		By  string `json:"by"`
-		Asc bool   `json:"asc"`
-	} `json:"sorting"`
-	Perm         Permissions `json:"perm"`
-	Permissions  Permissions `json:"permissions"`
-	Commands     []string    `json:"commands,omitempty"`
-	HideDotfiles bool        `json:"hideDotfiles"`
-	DateFormat   bool        `json:"dateFormat"`
-}
-
-type Permissions struct {
-	Admin    bool `json:"admin"`
-	Execute  bool `json:"execute"`
-	Create   bool `json:"create"`
-	Rename   bool `json:"rename"`
-	Modify   bool `json:"modify"`
-	Delete   bool `json:"delete"`
-	Share    bool `json:"share"`
-	Download bool `json:"download"`
+	StickySidebar   bool              `json:"stickySidebar"`
+	DarkMode        bool              `json:"darkMode"`
+	LockPassword    bool              `json:"lockPassword"`
+	DisableSettings bool              `json:"disableSettings,omitempty"`
+	Scope           string            `json:"scope"`
+	Locale          string            `json:"locale"`
+	ViewMode        string            `json:"viewMode"`
+	GallerySize     int               `json:"gallerySize"`
+	SingleClick     bool              `json:"singleClick"`
+	Rules           []users.Rule      `json:"rules"`
+	Perm            users.Permissions `json:"perm"`
+	Permissions     users.Permissions `json:"permissions"`
+	Commands        []string          `json:"commands,omitempty"`
+	HideDotfiles    bool              `json:"hideDotfiles"`
+	DateFormat      bool              `json:"dateFormat"`
 }

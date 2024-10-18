@@ -3,7 +3,7 @@ package settings
 import (
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 func TestSettings_MakeUserDir(t *testing.T) {
@@ -15,7 +15,7 @@ func TestSettings_MakeUserDir(t *testing.T) {
 		Shell            []string
 		AdminUsername    string
 		AdminPassword    string
-		Rules            []rules.Rule
+		Rules            []users.Rule
 		Server           Server
 		Auth             Auth
 		Frontend         Frontend

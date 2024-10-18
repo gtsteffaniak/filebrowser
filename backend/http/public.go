@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -16,42 +17,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-var withHashFile = func(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		id, path := ifPathWithName(r)
-		link, err := d.store.Share.GetByHash(id)
-		if err != nil {
-			return errToStatus(err), err
-		}
-		if link.Hash != "" {
-			var status int
-			status, err = authenticateShareRequest(r, link)
-			if err != nil || status != 0 {
-				return status, err
-			}
-		}
-		d.user = &users.PublicUser
-		realPath, isDir, err := files.GetRealPath(d.user.Scope, link.Path, path)
-		if err != nil {
-			return http.StatusNotFound, err
-		}
-		file, err := files.FileInfoFaster(files.FileOptions{
-			Path:       realPath,
-			IsDir:      isDir,
-			Modify:     d.user.Perm.Modify,
-			Expand:     true,
-			ReadHeader: d.server.TypeDetectionByHeader,
-			Checker:    d,
-			Token:      link.Token,
-		})
-		if err != nil {
-			return errToStatus(err), err
-		}
-		d.raw = file
-		return fn(w, r, d)
-	}
-}
-
 func ifPathWithName(r *http.Request) (id, filePath string) {
 	pathElements := strings.Split(r.URL.Path, "/")
 	id = pathElements[0]
@@ -59,7 +24,7 @@ func ifPathWithName(r *http.Request) (id, filePath string) {
 	return id, allButFirst
 }
 
-var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	file, ok := d.raw.(*files.FileInfo)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
@@ -71,15 +36,15 @@ var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Reques
 	}
 
 	return renderJSON(w, r, file)
-})
+}
 
-var publicUserGetHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func publicUserGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Call the actual handler logic here (e.g., renderJSON, etc.)
 	// You may need to replace `fn` with the actual handler logic.
 	return renderJSON(w, r, users.PublicUser)
 }
 
-var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	file, ok := d.raw.(*files.FileInfo)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
@@ -90,7 +55,7 @@ var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, 
 	}
 
 	return rawDirHandler(w, r, d, file)
-})
+}
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	if l.PasswordHash == "" {
@@ -118,7 +83,7 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	return 0, nil
 }
 
-func healthHandler(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"status":"OK"}`))
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }

@@ -4,32 +4,30 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  {{ if .ReCaptcha }}
+    <script src="{{ .ReCaptchaHost }}/recaptcha/api.js?render=explicit" data-vite-ignore></script>
+  {{ end }}
 
-  [{[ if .ReCaptcha -]}]
-    <script src="[{[ .ReCaptchaHost ]}]/recaptcha/api.js?render=explicit" data-vite-ignore></script>
-  [{[ end ]}]
+  <title>{{ if .Name }}{{ .Name }}{{ else }}FileBrowser Quantum{{ end }}</title>
 
-  <title>[{[ if .Name -]}][{[ .Name ]}][{[ else ]}]FileBrowser Quantum[{[ end ]}]</title>
-
-  <link rel="icon" type="image/png" sizes="256x256" href="[{[ .StaticURL ]}]/img/icons/favicon-256x256.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="{{ .StaticURL }}/img/icons/favicon-256x256.png">
 
   <!-- Add to home screen for Android and modern mobile browsers -->
   <link rel="manifest" id="manifestPlaceholder" crossorigin="use-credentials">
-  <meta name="theme-color" content="[{[ if .Color -]}][{[ .Color ]}][{[ else ]}]#2979ff[{[ end ]}]">
+  <meta name="theme-color" content="{{ if .Color }}{{ .Color }}{{ else }}#2979ff{{ end }}">
 
   <!-- Add to home screen for Safari on iOS/iPadOS -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="assets">
-  <link rel="apple-touch-icon" href="[{[ .StaticURL ]}]/img/icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" href="{{ .StaticURL }}/img/icons/apple-touch-icon.png">
 
   <!-- Add to home screen for Windows -->
-  <meta name="msapplication-TileImage" content="[{[ .StaticURL ]}]/img/icons/mstile-144x144.png">
-  <meta name="msapplication-TileColor" content="[{[ if .Color -]}][{[ .Color ]}][{[ else ]}]#2979ff[{[ end ]}]">
+  <meta name="msapplication-TileImage" content="{{ .StaticURL }}/img/icons/mstile-144x144.png">
+  <meta name="msapplication-TileColor" content="{{ if .Color }}{{ .Color }}{{ else }}#2979ff{{ end }}">
 
   <!-- Inject Some Variables and generate the manifest json -->
   <script>
-    window.FileBrowser = JSON.parse('[{[ .Json ]}]');
+    window.FileBrowser =  JSON.parse('{{ .globalVars }}');
 
     var fullStaticURL = window.location.origin + window.FileBrowser.StaticURL;
     var dynamicManifest = {
@@ -120,7 +118,7 @@
 <body>
   <div id="app"></div>
 
-  [{[ if .darkMode -]}]
+  {{ if .darkMode -}}
   <div id="loading" class="dark-mode">
     <div class="spinner">
       <div class="bounce1"></div>
@@ -128,18 +126,19 @@
       <div class="bounce3"></div>
     </div>
   </div>
-  [{[ else ]}]
+  {{ else }}
   <div id="loading">
     <div class="spinner">
       <div class="bounce1"></div>
       <div class="bounce2"></div>
       <div class="bounce3"></div>
     </div>
-  </div>  [{[ end ]}]
+  </div>
+  {{end}}
   <script type="module" src="/src/main.ts"></script>
 
-  [{[ if .CSS -]}]
-    <link rel="stylesheet" href="[{[ .StaticURL ]}]/custom.css" />
-  [{[ end ]}]
+  {{ if .CSS }}
+    <link rel="stylesheet" href="{{ .StaticURL }}/custom.css" >
+  {{ end }}
 </body>
 </html>
