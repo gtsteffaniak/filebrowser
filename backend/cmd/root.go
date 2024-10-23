@@ -20,7 +20,6 @@ import (
 
 func getStore(config string) (*storage.Storage, bool) {
 	// Use the config file (global flag)
-	log.Printf("Using Config file        : %v", config)
 	settings.Initialize(config)
 	store, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
 	if err != nil {
@@ -122,6 +121,7 @@ func StartFilebrowser() {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
 	log.Printf("Initializing FileBrowser Quantum (%v)\n", version.Version)
+	log.Printf("Using Config file        : %v", configPath)
 	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
 	log.Println("Sources                  :", settings.Config.Server.Root)
