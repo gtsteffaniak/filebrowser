@@ -64,7 +64,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	printToken(w, r, user) // Pass the data object
+	status, err := printToken(w, r, user) // Pass the data object
+	if err != nil {
+		http.Error(w, http.StatusText(status), status)
+	}
 }
 
 type signupBody struct {

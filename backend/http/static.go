@@ -126,7 +126,11 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 
 		w.Header().Set("Content-Encoding", "gzip") // Let the browser know the file is compressed
-		w.Write(fileContents)                      // Write the gzipped file content to the response
+		status, err := w.Write(fileContents)       // Write the gzipped file content to the response
+		if err != nil {
+			http.Error(w, http.StatusText(status), status)
+		}
+
 	} else {
 		// Otherwise, serve the regular file
 		http.StripPrefix("/static/", http.FileServer(http.FS(assetFs))).ServeHTTP(w, r)

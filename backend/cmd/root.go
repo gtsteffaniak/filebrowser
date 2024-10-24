@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"strings"
 
@@ -133,13 +132,6 @@ func StartFilebrowser() {
 	if err := rootCMD(store, &serverConfig); err != nil {
 		log.Fatal("Error starting filebrowser:", err)
 	}
-}
-
-func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfacer
-	sig := <-c
-	log.Printf("Caught signal %s: shutting down.", sig)
-	listener.Close()
-	os.Exit(0)
 }
 
 func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {

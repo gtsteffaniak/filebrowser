@@ -33,7 +33,11 @@ func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
 	// Call the actual handler logic here (e.g., renderJSON, etc.)
 	// You may need to replace `fn` with the actual handler logic.
-	renderJSON(w, r, users.PublicUser)
+	status, err := renderJSON(w, r, users.PublicUser)
+	if err != nil {
+		http.Error(w, http.StatusText(status), status)
+	}
+
 }
 
 func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -77,5 +81,8 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 }

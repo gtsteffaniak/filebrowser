@@ -34,8 +34,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			return http.StatusNotFound, err
 		}
 		// Authenticate the share request if needed
+		var status int
 		if link.Hash != "" {
-			status, err := authenticateShareRequest(r, link)
+			status, err = authenticateShareRequest(r, link)
 			if err != nil || status != http.StatusOK {
 				http.Error(w, http.StatusText(status), status)
 				return status, err
