@@ -265,7 +265,6 @@ export default {
       action(overwrite, rename);
     },
     itemClick(event) {
-      console.log("should say something");
       if (this.singleClick && !state.multiple) this.open();
       else this.click(event);
     },

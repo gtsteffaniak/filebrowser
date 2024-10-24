@@ -1,11 +1,11 @@
 package http
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -16,70 +16,30 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-var withHashFile = func(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		id, path := ifPathWithName(r)
-		link, err := d.store.Share.GetByHash(id)
-		if err != nil {
-			return errToStatus(err), err
-		}
-		if link.Hash != "" {
-			var status int
-			status, err = authenticateShareRequest(r, link)
-			if err != nil || status != 0 {
-				return status, err
-			}
-		}
-		d.user = &users.PublicUser
-		realPath, isDir, err := files.GetRealPath(d.user.Scope, link.Path, path)
-		if err != nil {
-			return http.StatusNotFound, err
-		}
-		file, err := files.FileInfoFaster(files.FileOptions{
-			Path:       realPath,
-			IsDir:      isDir,
-			Modify:     d.user.Perm.Modify,
-			Expand:     true,
-			ReadHeader: d.server.TypeDetectionByHeader,
-			Checker:    d,
-			Token:      link.Token,
-		})
-		if err != nil {
-			return errToStatus(err), err
-		}
-		d.raw = file
-		return fn(w, r, d)
-	}
-}
-
-func ifPathWithName(r *http.Request) (id, filePath string) {
-	pathElements := strings.Split(r.URL.Path, "/")
-	id = pathElements[0]
-	allButFirst := path.Join(pathElements[1:]...)
-	return id, allButFirst
-}
-
-var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	file, ok := d.raw.(*files.FileInfo)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
 	}
-
 	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
 	if file.IsDir {
 		return renderJSON(w, r, file)
 	}
 
 	return renderJSON(w, r, file)
-})
-
-var publicUserGetHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	// Call the actual handler logic here (e.g., renderJSON, etc.)
-	// You may need to replace `fn` with the actual handler logic.
-	return renderJSON(w, r, users.PublicUser)
 }
 
-var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
+	// Call the actual handler logic here (e.g., renderJSON, etc.)
+	// You may need to replace `fn` with the actual handler logic.
+	status, err := renderJSON(w, r, users.PublicUser)
+	if err != nil {
+		http.Error(w, http.StatusText(status), status)
+	}
+
+}
+
+func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	file, ok := d.raw.(*files.FileInfo)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
@@ -90,21 +50,21 @@ var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, 
 	}
 
 	return rawDirHandler(w, r, d, file)
-})
+}
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	if l.PasswordHash == "" {
-		return 0, nil
+		return 200, nil
 	}
 
 	if r.URL.Query().Get("token") == l.Token {
-		return 0, nil
+		return 200, nil
 	}
 
 	password := r.Header.Get("X-SHARE-PASSWORD")
 	password, err := url.QueryUnescape(password)
 	if err != nil {
-		return 0, err
+		return http.StatusUnauthorized, err
 	}
 	if password == "" {
 		return http.StatusUnauthorized, nil
@@ -113,12 +73,15 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return http.StatusUnauthorized, nil
 		}
-		return 0, err
+		return 401, err
 	}
-	return 0, nil
+	return 200, nil
 }
 
-func healthHandler(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"status":"OK"}`))
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 }

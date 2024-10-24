@@ -8,14 +8,15 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	response := []map[string]interface{}{}
 	query := r.URL.Query().Get("query")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	userScope := r.Header.Get("UserScope")
 	index := files.GetIndex(settings.Config.Server.Root)
-	combinedScope := strings.TrimPrefix(userScope+r.URL.Path, ".")
+	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/search")
+	combinedScope := strings.TrimPrefix(userScope+adjustedRestPath, ".")
 	results, fileTypes := index.Search(query, combinedScope, sessionId)
 	for _, path := range results {
 		responseObj := map[string]interface{}{
@@ -33,4 +34,4 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 		response = append(response, responseObj)
 	}
 	return renderJSON(w, r, response)
-})
+}
