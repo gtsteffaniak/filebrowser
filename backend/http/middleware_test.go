@@ -36,17 +36,26 @@ func setupTestEnv(t *testing.T) {
 	config = &settings.Config       // mocked
 }
 
-func TestUsersGetHandlerWithAdmin(t *testing.T) {
-	t.Parallel()
-	setupTestEnv(t) // Ensure this is setting up the environment correctly
-
+func TestWithAdminMiddleware(t *testing.T) {
+	setupTestEnv(t)
 	// Mock a user who has admin permissions
 	adminUser := &users.User{
 		ID:       1,
 		Username: "admin",
 		Perm:     users.Permissions{Admin: true}, // Ensure the user is an admin
 	}
-
+	nonAdminUser := &users.User{
+		ID:       2,
+		Username: "non-admin",
+		Perm:     users.Permissions{Admin: false}, // Non-admin user
+	}
+	// Save the users to the mock database
+	if err := store.Users.Save(adminUser); err != nil {
+		t.Fatal("failed to save admin user:", err)
+	}
+	if err := store.Users.Save(nonAdminUser); err != nil {
+		t.Fatal("failed to save non-admin user:", err)
+	}
 	// Test cases for different scenarios
 	testCases := []struct {
 		name               string
@@ -60,12 +69,8 @@ func TestUsersGetHandlerWithAdmin(t *testing.T) {
 		},
 		{
 			name:               "Non-admin access forbidden",
-			expectedStatusCode: http.StatusUnauthorized, // Non-admin should be forbidden
-			user: &users.User{
-				ID:       2,
-				Username: "non-admin",
-				Perm:     users.Permissions{Admin: false}, // Non-admin user
-			},
+			expectedStatusCode: http.StatusForbidden, // Non-admin should be forbidden
+			user:               nonAdminUser,
 		},
 	}
 
@@ -77,39 +82,38 @@ func TestUsersGetHandlerWithAdmin(t *testing.T) {
 			}
 			token, err := makeSignedToken(tc.user)
 			if err != nil {
-				t.Fatalf("Error making token for request")
+				t.Fatalf("Error making token for request: %v", err)
 			}
+
 			// Wrap the usersGetHandler with the middleware
-			handler := withAdminHelper(usersGetHandler)
+			handler := withAdminHelper(mockHandler)
+
 			// Create a response recorder to capture the handler's output
 			recorder := httptest.NewRecorder()
-			// apply token to request, token should be set as cookie in request, as auth=${token}
-			// replace applyCookie with actual method of injecting cookies
-			req := newHTTPRequest(t, applyCookie("auth="+token))
+			// Create the request and apply the token as a cookie
+			req, err := http.NewRequest(http.MethodGet, "/users", http.NoBody)
+			if err != nil {
+				t.Fatalf("Error creating request: %v", err)
+			}
+			req.AddCookie(&http.Cookie{
+				Name:  "auth",
+				Value: token,
+			})
 
 			// Call the handler with the test request and mock context
 			status, err := handler(recorder, req, data)
 			if err != nil {
-				t.Fatalf("unexpected status (%v) error: %v", status, err)
+				t.Fatalf("unexpected error: %v", err)
 			}
 
 			// Verify the status code
 			if status != tc.expectedStatusCode {
-				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, status)
+				t.Errorf("\"%v\" expected status code %d, got %d", tc.name, tc.expectedStatusCode, status)
 			}
 		})
 	}
 }
 
-// Helper function to simulate HTTP requests
-func newHTTPRequest(t *testing.T, requestModifiers ...func(*http.Request)) *http.Request {
-	t.Helper()
-	r, err := http.NewRequest(http.MethodGet, "/users", http.NoBody)
-	if err != nil {
-		t.Fatalf("failed to construct request: %v", err)
-	}
-	for _, modify := range requestModifiers {
-		modify(r)
-	}
-	return r
+func mockHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	return http.StatusOK, nil // mock response
 }

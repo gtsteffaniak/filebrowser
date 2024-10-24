@@ -98,14 +98,12 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil || !token.Valid {
 			return http.StatusUnauthorized, nil
 		}
-
 		expired := !tk.VerifyExpiresAt(time.Now().Add(time.Hour), true)
 		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < store.Users.LastUpdate(tk.User.ID)
 
 		if expired || updated {
 			w.Header().Add("X-Renew-Token", "true")
 		}
-
 		// Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(config.Server.Root, tk.User.ID)
 		if err != nil {
