@@ -15,7 +15,8 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	sessionId := r.Header.Get("SessionId")
 	userScope := r.Header.Get("UserScope")
 	index := files.GetIndex(settings.Config.Server.Root)
-	combinedScope := strings.TrimPrefix(userScope+r.URL.Path, ".")
+	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/search")
+	combinedScope := strings.TrimPrefix(userScope+adjustedRestPath, ".")
 	results, fileTypes := index.Search(query, combinedScope, sessionId)
 	for _, path := range results {
 		responseObj := map[string]interface{}{

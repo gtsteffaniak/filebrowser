@@ -25,8 +25,13 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 // Middleware to handle file requests by hash and pass it to the handler
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		// Extract the file ID and path from the request
-		hash := strings.Split(strings.TrimPrefix(r.URL.Path, "/public/share/"), "/")[0]
+		adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/public/share/")
+		splitPath := strings.SplitN(adjustedRestPath, "/", 2)
+		hash := splitPath[0]
+		subPath := ""
+		if len(splitPath) > 1 {
+			subPath = splitPath[1]
+		}
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -44,7 +49,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
-		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path)
+		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+subPath)
 		if err != nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err

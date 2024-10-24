@@ -18,7 +18,8 @@ import (
 )
 
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/resources")
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, adjustedRestPath)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -268,7 +269,8 @@ type DiskUsageResponse struct {
 }
 
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/usage")
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, adjustedRestPath)
 	if err != nil {
 		return http.StatusNotFound, err
 	}

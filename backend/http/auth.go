@@ -75,23 +75,27 @@ type signupBody struct {
 	Password string `json:"password"`
 }
 
-func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+func signupHandler(w http.ResponseWriter, r *http.Request) {
 	if !settings.Config.Auth.Signup {
-		return http.StatusMethodNotAllowed, nil
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
 	}
 
 	if r.Body == nil {
-		return http.StatusBadRequest, nil
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
 	}
 
 	info := &signupBody{}
 	err := json.NewDecoder(r.Body).Decode(info)
 	if err != nil {
-		return http.StatusBadRequest, err
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
 	}
 
 	if info.Password == "" || info.Username == "" {
-		return http.StatusBadRequest, nil
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
 	}
 
 	user := settings.ApplyUserDefaults(users.User{})
@@ -101,18 +105,19 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	userHome, err := config.MakeUserDir(user.Username, user.Scope, config.Server.Root)
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
-		return http.StatusInternalServerError, err
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 	user.Scope = userHome
 	log.Printf("new user: %s, home dir: [%s].", user.Username, userHome)
 	err = store.Users.Save(&user)
 	if err == errors.ErrExist {
-		return http.StatusConflict, err
+		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
+		return
 	} else if err != nil {
-		return http.StatusInternalServerError, err
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
-
-	return http.StatusOK, nil
 }
 
 func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {

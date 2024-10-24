@@ -81,21 +81,17 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	// API routes
 	api.HandleFunc("POST /login", loginHandler)
-	api.HandleFunc("GET /signup", withUser(signupHandler))
+	api.HandleFunc("GET /signup", signupHandler)
 	api.HandleFunc("POST /renew", withUser(renewHandler))
 	// Resources routes
-	api.HandleFunc("GET /resources/", func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/resources/", withUser(resourceGetHandler)).ServeHTTP(w, r)
-	})
+	api.HandleFunc("GET /resources/", withUser(resourceGetHandler))
 	api.HandleFunc("DELETE /resources/", withUser(resourceDeleteHandler))
 	api.HandleFunc("POST /resources/", withUser(resourcePostHandler))
 	api.HandleFunc("PUT /resources/", withUser(resourcePutHandler))
 	api.HandleFunc("PATCH /resource/", withUser(resourcePatchHandler))
 
 	// Additional API routes
-	api.HandleFunc("GET /usage/", func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/usage/", withUser(diskUsage)).ServeHTTP(w, r)
-	})
+	api.HandleFunc("GET /usage/", withUser(diskUsage))
 
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
 
@@ -104,13 +100,13 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("DELETE /share/", withPermShare(shareDeleteHandler))
 
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
-	api.HandleFunc("PUT /settings", withUser(settingsPutHandler))
+	api.HandleFunc("PUT /settings", withAdmin(settingsPutHandler))
 
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 
 	api.HandleFunc("GET /preview/{size}/{path...}", withUser(previewHandler))
 
-	api.HandleFunc("GET /search", withUser(searchHandler))
+	api.HandleFunc("GET /search/", withUser(searchHandler))
 
 	api.HandleFunc("GET /public/publicUser", publicUserGetHandler)
 	api.HandleFunc("GET /public/dl", withHashFile(publicDlHandler))

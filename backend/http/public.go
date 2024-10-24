@@ -21,7 +21,6 @@ func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
 	}
-
 	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
 	if file.IsDir {
 		return renderJSON(w, r, file)
