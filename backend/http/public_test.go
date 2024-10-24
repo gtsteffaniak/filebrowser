@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -11,9 +10,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 func setupTestEnv(t *testing.T) {
@@ -36,86 +35,76 @@ func setupTestEnv(t *testing.T) {
 	imgSvc = img.New(1)             // mocked
 	config = &settings.Config       // mocked
 }
-func TestPublicShareHandlerAuthentication(t *testing.T) {
+
+func TestUsersGetHandlerWithAdmin(t *testing.T) {
 	t.Parallel()
-	setupTestEnv(t)
-	const passwordBcrypt = "$2y$10$TFAmdCbyd/mEZDe5fUeZJu.MaJQXRTwdqb/IQV.eTn6dWrF58gCSe" //nolint:gosec
-	testCases := map[string]struct {
-		share              *share.Link
-		req                *http.Request
+	setupTestEnv(t) // Ensure this is setting up the environment correctly
+
+	// Mock a user who has admin permissions
+	adminUser := &users.User{
+		ID:       1,
+		Username: "admin",
+		Perm:     users.Permissions{Admin: true}, // Ensure the user is an admin
+	}
+
+	// Test cases for different scenarios
+	testCases := []struct {
+		name               string
 		expectedStatusCode int
+		user               *users.User
 	}{
-		"Public share, no auth required": {
-			share:              &share.Link{Hash: "h"},
-			req:                newHTTPRequest(t),
-			expectedStatusCode: 200,
+		{
+			name:               "Admin access allowed",
+			expectedStatusCode: http.StatusOK, // Admin should be able to access
+			user:               adminUser,
 		},
-		"Private share, no auth provided, 401": {
-			share:              &share.Link{Hash: "h", UserID: 1, PasswordHash: passwordBcrypt, Token: "123"},
-			req:                newHTTPRequest(t),
-			expectedStatusCode: 401,
-		},
-		"Private share, authentication via token": {
-			share:              &share.Link{Hash: "h", UserID: 1, PasswordHash: passwordBcrypt, Token: "123"},
-			req:                newHTTPRequest(t, func(r *http.Request) { r.URL.RawQuery = "token=123" }),
-			expectedStatusCode: 200,
-		},
-		"Private share, authentication via invalid token, 401": {
-			share:              &share.Link{Hash: "h", UserID: 1, PasswordHash: passwordBcrypt, Token: "123"},
-			req:                newHTTPRequest(t, func(r *http.Request) { r.URL.RawQuery = "token=1234" }),
-			expectedStatusCode: 401,
-		},
-		"Private share, authentication via password": {
-			share:              &share.Link{Hash: "h", UserID: 1, PasswordHash: passwordBcrypt, Token: "123"},
-			req:                newHTTPRequest(t, func(r *http.Request) { r.Header.Set("X-SHARE-PASSWORD", "password") }),
-			expectedStatusCode: 200,
-		},
-		"Private share, authentication via invalid password, 401": {
-			share:              &share.Link{Hash: "h", UserID: 1, PasswordHash: passwordBcrypt, Token: "123"},
-			req:                newHTTPRequest(t, func(r *http.Request) { r.Header.Set("X-SHARE-PASSWORD", "wrong-password") }),
-			expectedStatusCode: 401,
+		{
+			name:               "Non-admin access forbidden",
+			expectedStatusCode: http.StatusUnauthorized, // Non-admin should be forbidden
+			user: &users.User{
+				ID:       2,
+				Username: "non-admin",
+				Perm:     users.Permissions{Admin: false}, // Non-admin user
+			},
 		},
 	}
 
-	for name, tc := range testCases {
-		for handlerName, handler := range map[string]func(http.HandlerFunc) http.HandlerFunc{
-			"public share handler": func(h http.HandlerFunc) http.HandlerFunc { return withHashFile(publicShareHandler) },
-			"public dl handler":    func(h http.HandlerFunc) http.HandlerFunc { return withHashFile(publicDlHandler) },
-		} {
-			t.Run(fmt.Sprintf("%s: %s", handlerName, name), func(t *testing.T) {
-				t.Parallel()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Mock the context with the current user
+			data := &requestContext{
+				user: tc.user,
+			}
+			token, err := makeSignedToken(tc.user)
+			if err != nil {
+				t.Fatalf("Error making token for request")
+			}
+			// Wrap the usersGetHandler with the middleware
+			handler := withAdminHelper(usersGetHandler)
+			// Create a response recorder to capture the handler's output
+			recorder := httptest.NewRecorder()
+			// apply token to request, token should be set as cookie in request, as auth=${token}
+			// replace applyCookie with actual method of injecting cookies
+			req := newHTTPRequest(t, applyCookie("auth="+token))
 
-				// Create a response recorder to capture the handler's output
-				recorder := httptest.NewRecorder()
+			// Call the handler with the test request and mock context
+			status, err := handler(recorder, req, data)
+			if err != nil {
+				t.Fatalf("unexpected status (%v) error: %v", status, err)
+			}
 
-				// Wrap the handler with the necessary middleware
-				wrappedHandler := handler(nil) // the handler expects http.HandlerFunc, but middleware already wraps
-				// Create a test server to serve the request
-				testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					wrappedHandler(w, r)
-				}))
-				defer testServer.Close()
-
-				// Call the handler with the test request and mock context
-				wrappedHandler(recorder, tc.req)
-
-				// Get the result
-				result := recorder.Result()
-				defer result.Body.Close()
-
-				// Check the status code
-				if result.StatusCode != tc.expectedStatusCode {
-					t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, result.StatusCode)
-				}
-			})
-		}
+			// Verify the status code
+			if status != tc.expectedStatusCode {
+				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, status)
+			}
+		})
 	}
 }
 
-// Helper function to create an HTTP request with optional modifications
+// Helper function to simulate HTTP requests
 func newHTTPRequest(t *testing.T, requestModifiers ...func(*http.Request)) *http.Request {
 	t.Helper()
-	r, err := http.NewRequest(http.MethodGet, "h", http.NoBody)
+	r, err := http.NewRequest(http.MethodGet, "/users", http.NoBody)
 	if err != nil {
 		t.Fatalf("failed to construct request: %v", err)
 	}

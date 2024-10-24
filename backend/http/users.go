@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"reflect"
 	"sort"
@@ -60,7 +59,6 @@ func getUser(_ http.ResponseWriter, r *http.Request) (*modifyUserRequest, error)
 
 // admin
 func usersGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	fmt.Println("usersGetHandler")
 	users, err := store.Users.Gets(config.Server.Root)
 	if err != nil {
 		return http.StatusInternalServerError, err

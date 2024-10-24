@@ -119,7 +119,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 	return printToken(w, r, d.user)
 }
 
-func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
+func makeSignedToken(user *users.User) (string, error) {
 	duration, err := time.ParseDuration(settings.Config.Auth.TokenExpirationTime)
 	if err != nil {
 		duration = time.Hour * 2 // Default duration if parsing fails
@@ -132,13 +132,15 @@ func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, 
 			Issuer:    "File Browser",
 		},
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString(config.Auth.Key)
+	return token.SignedString(config.Auth.Key)
+}
+
+func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
+	signed, err := makeSignedToken(user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte(signed)); err != nil {
 		return http.StatusInternalServerError, err
