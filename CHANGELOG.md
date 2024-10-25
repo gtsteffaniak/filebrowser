@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Notes**:
   - Replaced backend http framework with go standard library
-  - Right-click Context menu in single click mode can target the item that was right-clicked. (only on desktop)
+  - Right-click Context menu can target the item that was right-clicked.
   - adjusted settings menu for mobile, always shows all available cards rather than grayed out cards that need to be clicked.
 
   **Bugfixes**:
