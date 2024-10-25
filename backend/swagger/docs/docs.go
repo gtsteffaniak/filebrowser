@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/health": {
             "get": {
-                "description": "do ping",
+                "description": "Returns the health status of the API.",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,16 +25,28 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "api"
+                    "health"
                 ],
-                "summary": "Health check",
+                "summary": "Health Check",
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "successful health check response",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/http.HealthCheckResponse"
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "http.HealthCheckResponse": {
+            "description": "Response structure for health check",
+            "type": "object",
+            "properties": {
+                "status": {
+                    "description": "The status of the health check",
+                    "type": "string"
                 }
             }
         }

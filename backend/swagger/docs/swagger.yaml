@@ -1,3 +1,11 @@
+definitions:
+  http.HealthCheckResponse:
+    description: Response structure for health check
+    properties:
+      status:
+        description: The status of the health check
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -5,15 +13,15 @@ paths:
     get:
       consumes:
       - application/json
-      description: do ping
+      description: Returns the health status of the API.
       produces:
       - application/json
       responses:
         "200":
-          description: ok
+          description: successful health check response
           schema:
-            type: string
-      summary: Health check
+            $ref: '#/definitions/http.HealthCheckResponse'
+      summary: Health Check
       tags:
-      - api
+      - health
 swagger: "2.0"
