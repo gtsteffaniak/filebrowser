@@ -3,6 +3,8 @@ ARG VERSION
 ARG REVISION
 WORKDIR /app
 COPY ./backend ./
+#RUN swag init --output swagger/docs
+RUN ln -s swagger /usr/local/go/src/
 RUN go build -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=${REVISION}'" \

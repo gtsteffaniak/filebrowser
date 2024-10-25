@@ -11,6 +11,8 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
+
+	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
 )
 
 // Embed the files in the frontend/dist directory
@@ -120,6 +122,16 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	// health
 	router.HandleFunc("GET /health", healthHandler)
+
+	// Swagger
+	router.Handle("/swagger/",
+		httpSwagger.Handler(
+			httpSwagger.URL("/swagger/doc.json"), //The url pointing to API definition
+			httpSwagger.DeepLinking(true),
+			httpSwagger.DocExpansion("none"),
+			httpSwagger.DomID("swagger-ui"),
+		),
+	)
 
 	log.Printf("listing on port: %d", config.Server.Port)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), muxWithMiddleware(router))

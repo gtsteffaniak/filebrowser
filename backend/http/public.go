@@ -14,6 +14,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/users"
+
+	_ "github.com/gtsteffaniak/filebrowser/swagger/docs"
 )
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -78,6 +80,15 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	return 200, nil
 }
 
+// health godoc
+// @Summary Health check
+// @Schemes
+// @Description do ping
+// @Tags api
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "ok"
+// @Router /health [get]
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
