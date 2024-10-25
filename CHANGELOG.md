@@ -9,8 +9,9 @@ All notable changes to this project will be documented in this file. For commit 
   - Helpful swagger page for API usage.
 
   **Notes**:
-    - Replaced backend http framework with go standard library
-    - Right-click Context menu in single click mode can target the item that was right-clicked. (only on desktop)
+  - Replaced backend http framework with go standard library
+  - Right-click Context menu in single click mode can target the item that was right-clicked. (only on desktop)
+  - adjusted settings menu for mobile, always shows all available cards rather than grayed out cards that need to be clicked.
 
   **Bugfixes**:
   - Fixed ui bug with shares with password

@@ -16,6 +16,7 @@
     :data-type="type"
     :aria-label="name"
     :aria-selected="isSelected"
+    @contextmenu="onRightClick"
     @click="quickNav ? toggleClick() : itemClick($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
@@ -157,6 +158,21 @@ export default {
     }
   },
   methods: {
+    onRightClick(event) {
+      event.preventDefault(); // Prevent default context menu
+
+      // If no items are selected, select the right-clicked item
+      if (getters.selectedCount() === 0) {
+        mutations.addSelected(this.index);
+      }
+      mutations.showHover({
+        name: "ContextMenu",
+        props: {
+          posX: event.clientX,
+          posY: event.clientY,
+        },
+      });
+    },
     handleIntersect(entries, observer) {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {

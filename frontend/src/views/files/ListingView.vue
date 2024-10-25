@@ -810,6 +810,8 @@ export default {
       }
     },
     openContext(event) {
+      console.log("openContext");
+
       event.preventDefault();
       mutations.showHover({
         name: "ContextMenu",
