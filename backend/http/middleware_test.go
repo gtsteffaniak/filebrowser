@@ -10,6 +10,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -36,7 +37,7 @@ func setupTestEnv(t *testing.T) {
 	config = &settings.Config       // mocked
 }
 
-func TestWithAdminMiddleware(t *testing.T) {
+func TestWithAdminHelper(t *testing.T) {
 	setupTestEnv(t)
 	// Mock a user who has admin permissions
 	adminUser := &users.User{
@@ -114,6 +115,111 @@ func TestWithAdminMiddleware(t *testing.T) {
 	}
 }
 
+func TestPublicShareHandlerAuthentication(t *testing.T) {
+	setupTestEnv(t)
+
+	const passwordBcrypt = "$2y$10$TFAmdCbyd/mEZDe5fUeZJu.MaJQXRTwdqb/IQV.eTn6dWrF58gCSe" // bcrypt hashed password
+
+	testCases := []struct {
+		name               string
+		share              *share.Link
+		req                *http.Request
+		expectedStatusCode int
+	}{
+		{
+			name: "Public share, no auth required",
+			share: &share.Link{
+				Hash: "public_hash",
+			},
+			req:                newHTTPRequest(t, "public_hash"),
+			expectedStatusCode: 0, // zero means 200 on helpers
+		},
+		{
+			name: "Private share, no auth provided",
+			share: &share.Link{
+				Hash:         "private_hash",
+				UserID:       1,
+				PasswordHash: passwordBcrypt,
+				Token:        "123",
+			},
+			req:                newHTTPRequest(t, "private_hash"),
+			expectedStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name: "Private share, valid token",
+			share: &share.Link{
+				Hash:         "token_hash",
+				UserID:       1,
+				PasswordHash: passwordBcrypt,
+				Token:        "123",
+			},
+			req:                newHTTPRequest(t, "token_hash", func(r *http.Request) { r.URL.RawQuery = "token=123" }),
+			expectedStatusCode: 0, // zero means 200 on helpers
+		},
+		{
+			name: "Private share, invalid password",
+			share: &share.Link{
+				Hash:         "pw_hash",
+				UserID:       1,
+				PasswordHash: passwordBcrypt,
+				Token:        "123",
+			},
+			req:                newHTTPRequest(t, "pw_hash", func(r *http.Request) { r.Header.Set("X-SHARE-PASSWORD", "wrong-password") }),
+			expectedStatusCode: http.StatusUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Save the share in the mock store
+			if err := store.Share.Save(tc.share); err != nil {
+				t.Fatal("failed to save share:", err)
+			}
+
+			// Create a response recorder to capture handler output
+			recorder := httptest.NewRecorder()
+
+			// Wrap the handler with authentication middleware
+			handler := withHashFileHelper(publicShareHandler)
+			if err := store.Share.Save(tc.share); err != nil {
+				t.Fatalf("failed to save share: %v", err)
+			}
+			if err := store.Settings.Save(&settings.Settings{
+				Auth: settings.Auth{
+					Key: []byte("key"),
+				},
+			}); err != nil {
+				t.Fatalf("failed to save settings: %v", err)
+			}
+
+			// Serve the request
+			status, err := handler(recorder, tc.req, &requestContext{})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			// Check if the response matches the expected status code
+			if status != tc.expectedStatusCode {
+				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, status)
+			}
+		})
+	}
+}
+
 func mockHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	return http.StatusOK, nil // mock response
+}
+
+// Modify newHTTPRequest to accept the hash and use it in the URL path.
+func newHTTPRequest(t *testing.T, hash string, requestModifiers ...func(*http.Request)) *http.Request {
+	t.Helper()
+	url := "/public/share/" + hash + "/" // Dynamically include the hash in the URL path
+	r, err := http.NewRequest(http.MethodGet, url, http.NoBody)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+	for _, modify := range requestModifiers {
+		modify(r)
+	}
+	return r
 }
