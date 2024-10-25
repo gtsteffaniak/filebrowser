@@ -5,11 +5,7 @@
         v-for="setting in settings"
         :key="setting.id + '-main'"
         :id="setting.id + '-main'"
-        :class="{
-          active: active(setting.id + '-main'),
-          clickable: !active(setting.id + '-main'),
-        }"
-        @click="!active(setting.id + '-main') && setView(setting.id + '-main')"
+        @click="setView(setting.id + '-main')"
       >
         <!-- Dynamically render the component based on the setting -->
         <component v-if="shouldShow(setting)" :is="setting.component"></component>
@@ -86,9 +82,6 @@ export default {
       }
       return this.active(setting.id + "-main");
     },
-    active(id) {
-      return state.activeSettingsView === id;
-    },
     setView(view) {
       if (state.activeSettingsView === view) return;
       mutations.setActiveSettingsView(view);
@@ -109,11 +102,9 @@ export default {
   padding-bottom: 35vh;
   width: 100%;
 }
-.settings-views > .active > .card {
+
+.settings-views .card {
   border-style: solid;
   opacity: 1;
-}
-.settings-views .card {
-  opacity: 0.3;
 }
 </style>
