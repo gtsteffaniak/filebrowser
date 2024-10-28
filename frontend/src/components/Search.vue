@@ -35,17 +35,29 @@
         <div class="button" style="width: 100%">Search Context: {{ getContext }}</div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
-          <li v-for="(s, k) in results" :key="k" style="cursor: pointer">
-            <router-link :to="s.url">
-              <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
-              <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
-              <i v-else-if="s.image" class="material-icons image-icons"> photo </i>
-              <i v-else-if="s.video" class="material-icons video-icons"> movie </i>
-              <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
+          <li v-for="(s, k) in results" :key="k" class="search-entry">
+            <router-link :to="s.path">
+              <i v-if="s.type == 'directory'" class="material-icons folder-icons">
+                folder
+              </i>
+              <i v-else-if="s.type == 'audio'" class="material-icons audio-icons">
+                volume_up
+              </i>
+              <i v-else-if="s.type == 'image'" class="material-icons image-icons">
+                photo
+              </i>
+              <i v-else-if="s.type == 'video'" class="material-icons video-icons">
+                movie
+              </i>
+              <i v-else-if="s.type == 'archive'" class="material-icons archive-icons">
+                archive
+              </i>
               <i v-else class="material-icons file-icons"> insert_drive_file </i>
               <span class="text-container">
-                {{ basePath(s.path, s.dir) }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.type == "directory") }}<b>{{ baseName(s.path) }}</b>
               </span>
+              <div class="filesize">{{ humanSize(s.size) }}</div>
+
             </router-link>
           </li>
         </ul>
@@ -169,17 +181,28 @@
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
-          <li v-for="(s, k) in results" :key="k" style="cursor: pointer">
-            <router-link :to="s.url">
-              <i v-if="s.dir" class="material-icons folder-icons"> folder </i>
-              <i v-else-if="s.audio" class="material-icons audio-icons"> volume_up </i>
-              <i v-else-if="s.image" class="material-icons image-icons"> photo </i>
-              <i v-else-if="s.video" class="material-icons video-icons"> movie </i>
-              <i v-else-if="s.archive" class="material-icons archive-icons"> archive </i>
+          <li v-for="(s, k) in results" :key="k" class="search-entry">
+            <router-link :to="s.path">
+              <i v-if="s.type == 'directory'" class="material-icons folder-icons">
+                folder
+              </i>
+              <i v-else-if="s.type == 'audio'" class="material-icons audio-icons">
+                volume_up
+              </i>
+              <i v-else-if="s.type == 'image'" class="material-icons image-icons">
+                photo
+              </i>
+              <i v-else-if="s.type == 'video'" class="material-icons video-icons">
+                movie
+              </i>
+              <i v-else-if="s.type == 'archive'" class="material-icons archive-icons">
+                archive
+              </i>
               <i v-else class="material-icons file-icons"> insert_drive_file </i>
               <span class="text-container">
-                {{ basePath(s.path, s.dir) }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.type == "directory") }}<b>{{ baseName(s.path) }}</b>
               </span>
+              <div class="filesize">{{ humanSize(s.size) }}</div>
             </router-link>
           </li>
         </ul>
@@ -191,6 +214,7 @@
 import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
+import { getHumanReadableFilesize } from "@/utils/filesizes";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -314,6 +338,9 @@ export default {
     },
   },
   methods: {
+    humanSize(size) {
+      return getHumanReadableFilesize(size);
+    },
     basePath(str, isDir) {
       let parts = str.replace(/(\/$|^\/)/, "").split("/");
       if (parts.length <= 1) {
@@ -536,6 +563,15 @@ export default {
   /* IE and Edge */
 }
 
+.search-entry {
+  cursor: pointer;
+  border-radius: 0.25em;
+}
+
+.search-entry:hover {
+  background-color: var(--surfacePrimary);
+}
+
 .text-container {
   white-space: nowrap;
   overflow: hidden;
@@ -739,5 +775,14 @@ body.rtl #search .boxes h3 {
   align-content: center;
   justify-content: center;
   align-items: center;
+}
+
+.filesize {
+  background-color: var(--surfaceSecondary);
+  border-radius: 1em;
+  padding: 0.25em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  min-width: fit-content;
 }
 </style>

@@ -113,112 +113,106 @@ func TestSearchIndexes(t *testing.T) {
 	tests := []struct {
 		search         string
 		scope          string
-		expectedResult []string
-		expectedTypes  map[string]map[string]bool
+		expectedResult []searchResult
 	}{
 		{
-			search:         "audio",
-			scope:          "/new/",
-			expectedResult: []string{"test/audio.wav"},
-			expectedTypes: map[string]map[string]bool{
-				"test/audio.wav": {"audio": true, "dir": false},
+			search: "audio",
+			scope:  "/new/",
+			expectedResult: []searchResult{
+				{
+					Path: "test/audio.wav",
+					Type: "audio",
+					Size: 0,
+				},
 			},
 		},
 		{
-			search:         "test",
-			scope:          "/",
-			expectedResult: []string{"test/", "new/test/"},
-			expectedTypes: map[string]map[string]bool{
-				"test/":     {"dir": true},
-				"new/test/": {"dir": true},
+			search: "test",
+			scope:  "/",
+			expectedResult: []searchResult{
+				{
+					Path: "test",
+					Type: "directory",
+					Size: 0,
+				},
+				{
+					Path: "new/test",
+					Type: "directory",
+					Size: 0,
+				},
 			},
 		},
 		{
-			search:         "archive",
-			scope:          "/",
-			expectedResult: []string{"firstDir/archive.zip", "new/test/path/archive.zip"},
-			expectedTypes: map[string]map[string]bool{
-				"new/test/path/archive.zip": {"archive": true, "dir": false},
-				"firstDir/archive.zip":      {"archive": true, "dir": false},
+			search: "archive",
+			scope:  "/",
+			expectedResult: []searchResult{
+				{
+					Path: "firstDir/archive.zip",
+					Type: "archive",
+					Size: 100,
+				},
+				{
+					Path: "new/test/path/archive.zip",
+					Type: "archive",
+					Size: 0,
+				},
 			},
 		},
 		{
-			search:         "arch",
-			scope:          "/firstDir",
-			expectedResult: []string{"archive.zip"},
-			expectedTypes: map[string]map[string]bool{
-				"archive.zip": {"archive": true, "dir": false},
+			search: "arch",
+			scope:  "/firstDir",
+			expectedResult: []searchResult{
+				{
+					Path: "archive.zip",
+					Type: "archive",
+					Size: 100,
+				},
 			},
 		},
 		{
-			search:         "isdir",
-			scope:          "/",
-			expectedResult: []string{"firstDir/thisIsDir/"},
-			expectedTypes: map[string]map[string]bool{
-				"firstDir/thisIsDir/": {"dir": true},
+			search: "isdir",
+			scope:  "/",
+			expectedResult: []searchResult{
+				{
+					Path: "firstDir/thisIsDir",
+					Type: "directory",
+					Size: 2097152,
+				},
 			},
 		},
 		{
-			search:         "dir type:largerThan=1",
-			scope:          "/",
-			expectedResult: []string{"firstDir/thisIsDir/"},
-			expectedTypes: map[string]map[string]bool{
-				"firstDir/thisIsDir/": {"dir": true},
+			search: "isdir type:largerThan=1",
+			scope:  "/",
+			expectedResult: []searchResult{
+				{
+					Path: "firstDir/thisIsDir",
+					Type: "directory",
+					Size: 2097152,
+				},
 			},
 		},
 		{
 			search: "video",
 			scope:  "/",
-			expectedResult: []string{
-				"new/test/video.mp4",
-				"new/test/video.MP4",
-			},
-			expectedTypes: map[string]map[string]bool{
-				"new/test/video.MP4": {"video": true, "dir": false},
-				"new/test/video.mp4": {"video": true, "dir": false},
+			expectedResult: []searchResult{
+				{
+					Path: "new/test/video.mp4",
+					Type: "video",
+					Size: 0,
+				},
+				{
+					Path: "new/test/video.MP4",
+					Type: "video",
+					Size: 0,
+				},
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
-			actualResult, actualTypes := index.Search(tt.search, tt.scope, "")
-			assert.Equal(t, tt.expectedResult, actualResult)
-			assert.Equal(t, tt.expectedTypes, actualTypes)
-		})
-	}
-}
-
-func Test_scopedPathNameFilter(t *testing.T) {
-	tests := []struct {
-		name string
-		args struct {
-			pathName string
-			scope    string
-			isDir    bool // Assuming isDir should be included in args
-		}
-		want string
-	}{
-		{
-			name: "scope test",
-			args: struct {
-				pathName string
-				scope    string
-				isDir    bool
-			}{
-				pathName: "/",
-				scope:    "/",
-				isDir:    false,
-			},
-			want: "", // Update this with the expected result
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := scopedPathNameFilter(tt.args.pathName, tt.args.scope, tt.args.isDir); got != tt.want {
-				t.Errorf("scopedPathNameFilter() = %v, want %v", got, tt.want)
-			}
+			result := index.Search(tt.search, tt.scope, "")
+			assert.Equal(t, tt.expectedResult, result)
 		})
 	}
 }

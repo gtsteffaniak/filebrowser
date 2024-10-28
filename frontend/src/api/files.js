@@ -7,11 +7,10 @@ import { notify } from "@/notify";
 export async function fetch(url, content = false) {
   try {
     url = removePrefix(url);
-
     const res = await fetchURL(`/api/resources${url}?content=${content}`, {});
     const data = await res.json();
     data.url = `/files${url}`;
-
+    console.log(data)
     if (data.isDir) {
       if (!data.url.endsWith("/")) data.url += "/";
       data.items = data.items.map((item, index) => {

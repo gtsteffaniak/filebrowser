@@ -8,7 +8,7 @@ build:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a"  -t gtstef/filebrowser .
 
 run: run-frontend
-	cd backend && FILEBROWSER_NO_EMBEDED=true go run \
+	cd backend && swag init --output swagger/docs && FILEBROWSER_NO_EMBEDED=true go run \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/version.Version=testing'" . -c test_config.yaml
 
 run-frontend:

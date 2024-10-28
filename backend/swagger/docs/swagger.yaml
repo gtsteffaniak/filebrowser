@@ -1,0 +1,75 @@
+definitions:
+  files.searchResult:
+    properties:
+      path:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+    type: object
+  http.HealthCheckResponse:
+    description: Response structure for health check
+    properties:
+      status:
+        description: The status of the health check
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for files matching the provided query. Returns file paths
+        and metadata based on the user's session and scope.
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - description: path within user scope to search, for example '/first/second'
+          to search within the second directory only
+        in: query
+        name: scope
+        type: string
+      - description: User session ID, add unique value to prevent collisions
+        in: header
+        name: SessionId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of search results
+          schema:
+            items:
+              $ref: '#/definitions/files.searchResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search Files
+      tags:
+      - search
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Returns the health status of the API.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successful health check response
+          schema:
+            $ref: '#/definitions/http.HealthCheckResponse'
+      summary: Health Check
+      tags:
+      - health
+swagger: "2.0"
