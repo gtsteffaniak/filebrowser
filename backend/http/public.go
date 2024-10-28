@@ -89,7 +89,7 @@ type HealthCheckResponse struct {
 // @Summary Health Check
 // @Schemes
 // @Description Returns the health status of the API.
-// @Tags health
+// @Tags Health
 // @Accept json
 // @Produce json
 // @Success 200 {object} HealthCheckResponse "successful health check response"

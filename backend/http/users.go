@@ -57,7 +57,15 @@ func getUser(_ http.ResponseWriter, r *http.Request) (*modifyUserRequest, error)
 	return req, nil
 }
 
-// admin
+// usersGetHandler retrieves a list of all users.
+// @Summary Retrieve a list of users
+// @Description Returns a list of all registered users. Requires admin permissions.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Success 200 {array} users.User "List of users"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /api/users [get]
 func usersGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	users, err := store.Users.Gets(config.Server.Root)
 	if err != nil {
@@ -74,6 +82,19 @@ func usersGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 
 	return renderJSON(w, r, users)
 }
+
+// userGetHandler retrieves a user by ID.
+// @Summary Retrieve a user by ID
+// @Description Returns a user's details based on their ID.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} users.User "User details"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Not Found"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /api/users/{id} [get]
 func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Ensure the requesting user is either the admin or the user themselves
 	if d.user.ID != d.raw.(uint) && !d.user.Perm.Admin {
@@ -98,6 +119,17 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	return renderJSON(w, r, u)
 }
 
+// userDeleteHandler deletes a user by ID.
+// @Summary Delete a user by ID
+// @Description Deletes a user identified by their ID.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 "User deleted successfully"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /api/users/{id} [delete]
 func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Check if the requesting user is either the admin or the user themselves
 	if d.user.ID != d.raw.(uint) && !d.user.Perm.Admin {
@@ -113,6 +145,17 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	return http.StatusOK, nil
 }
 
+// usersPostHandler creates a new user.
+// @Summary Create a new user
+// @Description Adds a new user to the system.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param data body users.User true "User data to create a new user"
+// @Success 201 {object} users.User "Created user"
+// @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /api/users [post]
 func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	req, err := getUser(w, r)
 	if err != nil {
@@ -136,6 +179,19 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return http.StatusCreated, nil
 }
 
+// userPutHandler updates an existing user's details.
+// @Summary Update a user's details
+// @Description Updates the details of a user identified by ID.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param data body users.User true "User data to update"
+// @Success 200 {object} users.User "Updated user details"
+// @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /api/users/{id} [put]
 func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// Extract user data from the request
 	req, err := getUser(w, r)

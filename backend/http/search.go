@@ -43,7 +43,7 @@ import (
 //
 // @Summary Search Files
 // @Description Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope.
-// @Tags search
+// @Tags Search
 // @Accept json
 // @Produce json
 // @Param query query string true "Search query"
