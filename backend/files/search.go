@@ -89,7 +89,8 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				matches, fileType, fileSize := si.containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
 				si.mu.Lock()
 				if matches {
-					results = append(results, searchResult{Path: strings.TrimPrefix(fullName, "/"), Type: fileType, Size: fileSize})
+					scopedPath := strings.TrimPrefix(strings.TrimPrefix(fullName, "/"), scope)
+					results = append(results, searchResult{Path: strings.TrimPrefix(scopedPath, "/"), Type: fileType, Size: fileSize})
 					count++
 				}
 			}
@@ -150,6 +151,32 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 
 	fileTypes["dir"] = isDir
 
+	if !isDir {
+		// correct for root path issue
+		adjustedPath = filepath.Dir(adjustedPath)
+		if adjustedPath == "." {
+			adjustedPath = "/"
+		}
+	}
+
+	fileInfo, exists := si.GetMetadataInfo(adjustedPath)
+	// Get file info if needed for size-related conditions
+	if !exists {
+		return false, "", 0
+	}
+
+	if !isDir {
+		// Look for specific file in ReducedItems
+		for _, item := range fileInfo.ReducedItems {
+			if item.Name == fileName {
+				fileSize = item.Size
+				break
+			}
+		}
+	} else {
+		fileSize = fileInfo.Size
+	}
+
 	// Evaluate all conditions
 	for t, v := range conditions {
 		if t == "exact" {
@@ -175,32 +202,6 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 				return false, "", 0
 			}
 		}
-	}
-
-	if !isDir {
-		// correct for root path issue
-		adjustedPath = filepath.Dir(adjustedPath)
-		if adjustedPath == "." {
-			adjustedPath = "/"
-		}
-	}
-
-	fileInfo, exists := si.GetMetadataInfo(adjustedPath)
-	// Get file info if needed for size-related conditions
-	if !exists {
-		return false, "", 0
-	}
-
-	if !isDir {
-		// Look for specific file in ReducedItems
-		for _, item := range fileInfo.ReducedItems {
-			if item.Name == fileName {
-				fileSize = item.Size
-				break
-			}
-		}
-	} else {
-		fileSize = fileInfo.Size
 	}
 
 	return true, fileType, fileSize
