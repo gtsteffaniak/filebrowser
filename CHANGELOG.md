@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
   **New Features**:
   - Create long-live api tokens to interact with API.
   - Helpful swagger page for API usage.
+  - Add file size to search preview
 
   **Notes**:
   - Replaced backend http framework with go standard library

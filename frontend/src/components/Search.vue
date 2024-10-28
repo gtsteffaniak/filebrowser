@@ -56,6 +56,8 @@
               <span class="text-container">
                 {{ basePath(s.path, s.type == "directory") }}<b>{{ baseName(s.path) }}</b>
               </span>
+              <div class="filesize">{{ humanSize(s.size) }}</div>
+
             </router-link>
           </li>
         </ul>

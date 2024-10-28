@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -70,7 +69,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	userScope := strings.TrimPrefix(d.user.Scope, ".")
 	combinedScope := strings.TrimPrefix(userScope+"/"+searchScope, "/")
 
-	fmt.Println("combined scope ", combinedScope)
 	// Perform the search using the provided query and user scope
 	response := index.Search(query, combinedScope, sessionId)
 	// Set the Content-Type header to application/json
