@@ -132,7 +132,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	adjustedPath := strings.TrimPrefix(r.URL.Path, "/share/")
-	fmt.Println("adjustedPath: ", adjustedPath, " r.URL.Path: ", r.URL.Path)
 	s = &share.Link{
 		Path:         "/" + adjustedPath,
 		Hash:         str,

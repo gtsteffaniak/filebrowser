@@ -779,6 +779,8 @@ body.rtl #search .boxes h3 {
   background-color: var(--surfaceSecondary);
   border-radius: 1em;
   padding: 0.25em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
   min-width: fit-content;
 }
 </style>

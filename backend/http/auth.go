@@ -24,7 +24,11 @@ type authToken struct {
 type extractor []string
 
 func (e extractor) ExtractToken(r *http.Request) (string, error) {
-	token, _ := r.Cookie("auth")
+	tokenObj, err := r.Cookie("auth")
+	if err != nil {
+		return "", err
+	}
+	token := tokenObj.Value
 
 	// Checks if the token isn't empty and if it contains two dots.
 	// The former prevents incompatibility with URLs that previously

@@ -38,7 +38,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "relative scope within user scope to search",
+                        "description": "path within user scope to search, for example '/first/second' to search within the second directory only",
                         "name": "scope",
                         "in": "query"
                     },

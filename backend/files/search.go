@@ -35,6 +35,10 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 		}
 		si.mu.Lock()
 		for dirName, dir := range si.Directories {
+			adjustedDir := strings.TrimPrefix(dirName, "/")
+			if dirName == "/" {
+				adjustedDir = "/"
+			}
 			isDir := true
 			files := []string{}
 			for _, item := range dir.Items {
@@ -59,7 +63,8 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 			matches, fileType, fileSize := si.containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
 			si.mu.Lock()
 			if matches {
-				results = append(results, searchResult{Path: dirName, Type: fileType, Size: fileSize})
+				scopedPath := strings.TrimPrefix(strings.TrimPrefix(adjustedDir, scope), "/")
+				results = append(results, searchResult{Path: scopedPath, Type: fileType, Size: fileSize})
 				count++
 			}
 			isDir = false
@@ -76,12 +81,15 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 					break
 				}
 				fullName := dirName + "/" + file
+				if dirName == "/" {
+					fullName = file
+				}
 				fileTypes := map[string]bool{}
 				si.mu.Unlock()
 				matches, fileType, fileSize := si.containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
 				si.mu.Lock()
 				if matches {
-					results = append(results, searchResult{Path: fullName, Type: fileType, Size: fileSize})
+					results = append(results, searchResult{Path: strings.TrimPrefix(fullName, "/"), Type: fileType, Size: fileSize})
 					count++
 				}
 			}

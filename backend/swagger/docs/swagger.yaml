@@ -30,7 +30,8 @@ paths:
         name: query
         required: true
         type: string
-      - description: relative scope within user scope to search
+      - description: path within user scope to search, for example '/first/second'
+          to search within the second directory only
         in: query
         name: scope
         type: string

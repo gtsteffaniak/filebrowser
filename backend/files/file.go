@@ -40,7 +40,7 @@ type ReducedItem struct {
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
 	Items        []*FileInfo       `json:"-"`
-	ReducedItems []ReducedItem     `json:"items,omitempty"`
+	ReducedItems []ReducedItem     `json:"items"`
 	Path         string            `json:"path,omitempty"`
 	Name         string            `json:"name"`
 	Size         int64             `json:"size"`
