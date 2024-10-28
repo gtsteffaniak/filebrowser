@@ -15,6 +15,63 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/search": {
+            "get": {
+                "description": "Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Search Files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User session ID, add unique value to prevent collisions",
+                        "name": "SessionId",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User scope for the search",
+                        "name": "UserScope",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of search results",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/http.searchResult"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Returns the health status of the API.",
@@ -46,6 +103,20 @@ const docTemplate = `{
             "properties": {
                 "status": {
                     "description": "The status of the health check",
+                    "type": "string"
+                }
+            }
+        },
+        "http.searchResult": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "string"
                 }
             }

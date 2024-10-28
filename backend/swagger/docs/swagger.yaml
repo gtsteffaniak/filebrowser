@@ -6,9 +6,57 @@ definitions:
         description: The status of the health check
         type: string
     type: object
+  http.searchResult:
+    properties:
+      path:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
+  /api/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for files matching the provided query. Returns file paths
+        and metadata based on the user's session and scope.
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - description: User session ID, add unique value to prevent collisions
+        in: header
+        name: SessionId
+        type: string
+      - description: User scope for the search
+        in: header
+        name: UserScope
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of search results
+          schema:
+            items:
+              $ref: '#/definitions/http.searchResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search Files
+      tags:
+      - search
   /health:
     get:
       consumes:
