@@ -8,13 +8,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
-// swagger reference
-type searchResult struct {
-	Path string `json:"path"`
-	Type string `json:"type"`
-	Size int64  `json:"size"`
-}
-
 // searchHandler handles search requests for files based on the provided query.
 //
 // This endpoint processes a search query, retrieves relevant file paths, and
@@ -56,7 +49,7 @@ type searchResult struct {
 // @Param query query string true "Search query"
 // @Param scope query string false "path within user scope to search, for example '/first/second' to search within the second directory only"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
-// @Success 200 {array} searchResult "List of search results"
+// @Success 200 {array} files.searchResult "List of search results"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Router /api/search [get]
 func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {

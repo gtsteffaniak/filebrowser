@@ -55,7 +55,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/http.searchResult"
+                                "$ref": "#/definitions/files.searchResult"
                             }
                         }
                     },
@@ -96,17 +96,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "http.HealthCheckResponse": {
-            "description": "Response structure for health check",
-            "type": "object",
-            "properties": {
-                "status": {
-                    "description": "The status of the health check",
-                    "type": "string"
-                }
-            }
-        },
-        "http.searchResult": {
+        "files.searchResult": {
             "type": "object",
             "properties": {
                 "path": {
@@ -116,6 +106,16 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.HealthCheckResponse": {
+            "description": "Response structure for health check",
+            "type": "object",
+            "properties": {
+                "status": {
+                    "description": "The status of the health check",
                     "type": "string"
                 }
             }

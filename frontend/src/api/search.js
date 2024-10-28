@@ -1,5 +1,4 @@
 import { fetchURL, removePrefix } from "./utils";
-import url from "../utils/url";
 import { notify } from "@/notify";  // Import notify for error handling
 
 export default async function search(base, query) {
