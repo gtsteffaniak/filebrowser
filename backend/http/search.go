@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -54,20 +55,19 @@ type searchResult struct {
 // @Accept json
 // @Produce json
 // @Param query query string true "Search query"
+// @Param scope query string false "relative scope within user scope to search"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
-// @Param UserScope header string true "User scope for the search"
 // @Success 200 {array} searchResult "List of search results"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Router /api/search [get]
 func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	query := r.URL.Query().Get("query")
-
+	searchScope := r.URL.Query().Get("scope")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
-	userScope := r.Header.Get("UserScope")
 	index := files.GetIndex(settings.Config.Server.Root)
-	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/search")
-	combinedScope := strings.TrimPrefix(userScope+adjustedRestPath, ".")
+	combinedScope := strings.TrimPrefix(d.user.Scope+searchScope, ".")
+	fmt.Println(combinedScope)
 
 	// Perform the search using the provided query and user scope
 	response := index.Search(query, combinedScope, sessionId)

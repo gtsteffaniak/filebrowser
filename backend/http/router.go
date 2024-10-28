@@ -108,7 +108,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	api.HandleFunc("GET /preview/{size}/{path...}", withUser(previewHandler))
 
-	api.HandleFunc("GET /search/", withUser(searchHandler))
+	api.HandleFunc("GET /search", withUser(searchHandler))
 
 	api.HandleFunc("GET /public/publicUser", publicUserGetHandler)
 	api.HandleFunc("GET /public/dl", withHashFile(publicDlHandler))

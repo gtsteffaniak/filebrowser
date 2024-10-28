@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -110,7 +109,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if expired || updated {
 			w.Header().Add("X-Renew-Token", "true")
 		}
-		fmt.Println("user", tk.User.ID)
 		// Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(config.Server.Root, tk.User.ID)
 		if err != nil {

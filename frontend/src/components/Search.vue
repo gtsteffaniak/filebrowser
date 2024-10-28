@@ -36,7 +36,7 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry">
-            <router-link :to="s.url">
+            <router-link :to="s.path">
               <i v-if="s.type == 'directory'" class="material-icons folder-icons">
                 folder
               </i>
@@ -180,7 +180,7 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry">
-            <router-link :to="s.url">
+            <router-link :to="s.path">
               <i v-if="s.type == 'directory'" class="material-icons folder-icons">
                 folder
               </i>

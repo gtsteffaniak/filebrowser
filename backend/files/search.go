@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"math/rand"
 	"path/filepath"
 	"sort"
@@ -55,7 +54,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 			if !hasScope {
 				continue // path not matched
 			}
-			fmt.Println("this is pathName", dirName, scope, isDir)
 			fileTypes := map[string]bool{}
 			si.mu.Unlock()
 			matches, fileType, fileSize := si.containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
@@ -104,10 +102,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 func scopedPathNameFilter(pathName string, scope string, isDir bool) bool {
 	pathName = strings.TrimLeft(pathName, "/")
 	pathName = strings.TrimRight(pathName, "/")
-	if strings.HasPrefix(pathName, scope) {
-		return true // has scope
-	}
-	return false // does not skip
+	return strings.HasPrefix(pathName, scope)
 }
 
 // returns true if the file name contains the search term
@@ -181,20 +176,16 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 			adjustedPath = "/"
 		}
 	}
-	fmt.Println(pathName, adjustedPath, isDir)
 
 	fileInfo, exists := si.GetMetadataInfo(adjustedPath)
 	// Get file info if needed for size-related conditions
 	if !exists {
-		fmt.Println("not exists", adjustedPath, pathName)
 		return false, "", 0
 	}
-	fmt.Println("looking... ", fileInfo.Name, fileInfo.Size, adjustedPath)
 
 	if !isDir {
 		// Look for specific file in ReducedItems
 		for _, item := range fileInfo.ReducedItems {
-			fmt.Printf("these are files: \"%v\" \"%v\" %v \n", item.Name, fileName, item.Size)
 			if item.Name == fileName {
 				fileSize = item.Size
 				break

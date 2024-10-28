@@ -30,14 +30,13 @@ paths:
         name: query
         required: true
         type: string
+      - description: relative scope within user scope to search
+        in: query
+        name: scope
+        type: string
       - description: User session ID, add unique value to prevent collisions
         in: header
         name: SessionId
-        type: string
-      - description: User scope for the search
-        in: header
-        name: UserScope
-        required: true
         type: string
       produces:
       - application/json

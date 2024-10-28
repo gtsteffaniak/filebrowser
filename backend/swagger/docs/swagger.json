@@ -27,16 +27,15 @@
                     },
                     {
                         "type": "string",
-                        "description": "User session ID, add unique value to prevent collisions",
-                        "name": "SessionId",
-                        "in": "header"
+                        "description": "relative scope within user scope to search",
+                        "name": "scope",
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "User scope for the search",
-                        "name": "UserScope",
-                        "in": "header",
-                        "required": true
+                        "description": "User session ID, add unique value to prevent collisions",
+                        "name": "SessionId",
+                        "in": "header"
                     }
                 ],
                 "responses": {
