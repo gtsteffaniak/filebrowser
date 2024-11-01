@@ -1,5 +1,4 @@
 import { fetchURL, removePrefix } from "./utils";
-import url from "../utils/url";
 import { notify } from "@/notify";  // Import notify for error handling
 
 export default async function search(base, query) {
@@ -11,16 +10,10 @@ export default async function search(base, query) {
       base += "/";
     }
 
-    const res = await fetchURL(`/api/search${base}?query=${query}`, {});
-
+    const res = await fetchURL(`/api/search?scope=${base}&query=${query}`, {});
     let data = await res.json();
 
-    data = data.map((item) => {
-      item.url = `/files${base}` + url.encodePath(item.path);
-      return item;
-    });
-
-    return data;
+    return data
   } catch (err) {
     notify.showError(err.message || "Error occurred during search");
     throw err;

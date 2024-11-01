@@ -17,6 +17,15 @@ import (
 	"github.com/gtsteffaniak/filebrowser/share"
 )
 
+// shareListHandler returns a list of all share links.
+// @Summary List share links
+// @Description Returns a list of share links for the current user, or all links if the user is an admin.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Success 200 {array} share.Link "List of share links"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/shares [get]
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var (
 		s   []*share.Link
@@ -44,10 +53,21 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return renderJSON(w, r, s)
 }
 
+// shareGetsHandler retrieves share links for a specific resource path.
+// @Summary Get share links by path
+// @Description Retrieves all share links associated with a specific resource path for the current user.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param path query string true "Resource path for which to retrieve share links"
+// @Success 200 {array} share.Link "List of share links for the specified path"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/shares [get]
 func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	s, err := store.Share.Gets(r.URL.Path, d.user.ID)
+	path := r.URL.Query().Get("path")
+	s, err := store.Share.Gets(path, d.user.ID)
 	if err == errors.ErrNotExist {
-		return renderJSON(w, r, []*share.Link{})
+		return http.StatusNoContent, err
 	}
 
 	if err != nil {
@@ -57,6 +77,17 @@ func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return renderJSON(w, r, s)
 }
 
+// shareDeleteHandler deletes a specific share link by its hash.
+// @Summary Delete a share link
+// @Description Deletes a share link specified by its hash.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param hash path string true "Hash of the share link to delete"
+// @Success 200 "Share link deleted successfully"
+// @Failure 400 {object} map[string]string "Bad request - missing or invalid hash"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/shares/{hash} [delete]
 func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := strings.TrimSuffix(r.URL.Path, "/")
 	hash = strings.TrimPrefix(hash, "/")
@@ -73,8 +104,18 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return errToStatus(err), err
 }
 
+// sharePostHandler creates a new share link.
+// @Summary Create a share link
+// @Description Creates a new share link with an optional expiration time and password protection.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param body body share.CreateBody true "Share link creation parameters"
+// @Success 200 {object} share.Link "Created share link"
+// @Failure 400 {object} map[string]string "Bad request - failed to decode body"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/shares [post]
 func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-
 	var s *share.Link
 	var body share.CreateBody
 	if r.Body != nil {
@@ -132,7 +173,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	adjustedPath := strings.TrimPrefix(r.URL.Path, "/share/")
-	fmt.Println("adjustedPath: ", adjustedPath, " r.URL.Path: ", r.URL.Path)
 	s = &share.Link{
 		Path:         "/" + adjustedPath,
 		Hash:         str,
@@ -150,7 +190,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
-
 	if body.Password == "" {
 		return nil, 0, nil
 	}

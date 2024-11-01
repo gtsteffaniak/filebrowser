@@ -145,6 +145,7 @@ func (si *Index) indexFiles(path string) error {
 
 // InsertInfo function to handle adding a file or directory into the index
 func (si *Index) InsertInfo(parentPath string, file *FileInfo) (*FileInfo, error) {
+
 	filePath := filepath.Join(parentPath, file.Name)
 
 	// Check if it's a directory and recursively index it
@@ -154,7 +155,6 @@ func (si *Index) InsertInfo(parentPath string, file *FileInfo) (*FileInfo, error
 		if err != nil {
 			return nil, err
 		}
-
 		// Return directory info from the index
 		adjustedPath := si.makeIndexPath(filePath, true)
 		si.mu.RLock()
@@ -162,7 +162,6 @@ func (si *Index) InsertInfo(parentPath string, file *FileInfo) (*FileInfo, error
 		si.mu.RUnlock()
 		return &dirInfo, nil
 	}
-
 	// Create FileInfo for regular files
 	fileInfo := &FileInfo{
 		Path:    filePath,
@@ -188,11 +187,6 @@ func (si *Index) makeIndexPath(subPath string, isDir bool) string {
 	// add leading slash for root of index
 	if adjustedPath == "" {
 		adjustedPath = "/"
-	} else if !isDir {
-		adjustedPath = filepath.Dir(adjustedPath)
-	}
-	if !strings.HasPrefix(adjustedPath, "/") {
-		adjustedPath = "/" + adjustedPath
 	}
 	return adjustedPath
 }

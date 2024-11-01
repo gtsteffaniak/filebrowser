@@ -17,6 +17,19 @@ import (
 	"github.com/gtsteffaniak/filebrowser/fileutils"
 )
 
+// resourceGetHandler retrieves information about a resource.
+// @Summary Get resource information
+// @Description Returns metadata and optionally file contents for a specified resource path.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the resource"
+// @Param content query string false "Include file content if true"
+// @Param checksum query string false "Optional checksum validation"
+// @Success 200 {object} files.FileInfo "Resource metadata"
+// @Failure 404 {object} map[string]string "Resource not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/ [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/resources")
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, adjustedRestPath)
@@ -48,6 +61,18 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return renderJSON(w, r, file)
 }
 
+// resourceDeleteHandler deletes a resource at a specified path.
+// @Summary Delete a resource
+// @Description Deletes a resource located at the specified path.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the resource"
+// @Success 200 "Resource deleted successfully"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Resource not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/ [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if r.URL.Path == "/" || !d.user.Perm.Delete {
 		return http.StatusForbidden, nil
@@ -83,6 +108,20 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 
 }
 
+// resourcePostHandler creates or uploads a new resource.
+// @Summary Create or upload a resource
+// @Description Creates a new resource or uploads a file at the specified path. Supports file uploads and directory creation.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the resource"
+// @Param override query bool false "Override existing file if true"
+// @Success 200 "Resource created successfully"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Resource not found"
+// @Failure 409 {object} map[string]string "Conflict - Resource already exists"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/ [post]
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Perm.Create || !d.user.Check(r.URL.Path) {
 		return http.StatusForbidden, nil
@@ -127,6 +166,19 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	return errToStatus(err), err
 }
 
+// resourcePutHandler updates an existing file resource.
+// @Summary Update a file resource
+// @Description Updates an existing file at the specified path.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the resource"
+// @Success 200 "Resource updated successfully"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Resource not found"
+// @Failure 405 {object} map[string]string "Method not allowed"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/ [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Perm.Modify || !d.user.Check(r.URL.Path) {
 		return http.StatusForbidden, nil
@@ -153,7 +205,23 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return errToStatus(err), err
 }
 
-// TODO fix and verify this function still works in tests
+// resourcePatchHandler performs a patch operation (e.g., move, rename) on a resource.
+// @Summary Patch resource (move/rename)
+// @Description Moves or renames a resource to a new destination.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Source path of the resource"
+// @Param destination query string true "Destination path for the resource"
+// @Param action query string true "Action to perform (copy, rename)"
+// @Param override query bool false "Override if destination exists"
+// @Param rename query bool false "Rename if destination exists"
+// @Success 200 "Resource moved/renamed successfully"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Resource not found"
+// @Failure 409 {object} map[string]string "Conflict - Destination exists"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/resources/ [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	src := r.URL.Path
 	dst := r.URL.Query().Get("destination")
@@ -268,6 +336,17 @@ type DiskUsageResponse struct {
 	Used  uint64 `json:"used"`
 }
 
+// diskUsage returns the disk usage information for a given directory.
+// @Summary Get disk usage
+// @Description Returns the total and used disk space for a specified directory.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "Directory path to check usage"
+// @Success 200 {object} DiskUsageResponse "Disk usage details"
+// @Failure 404 {object} map[string]string "Directory not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/usage/ [get]
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/usage")
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, adjustedRestPath)

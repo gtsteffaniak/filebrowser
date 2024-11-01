@@ -14,15 +14,20 @@ var (
 	maxSearchResults  = 100
 )
 
-func (si *Index) Search(search string, scope string, sourceSession string) ([]string, map[string]map[string]bool) {
+type searchResult struct {
+	Path string `json:"path"`
+	Type string `json:"type"`
+	Size int64  `json:"size"`
+}
+
+func (si *Index) Search(search string, scope string, sourceSession string) []searchResult {
 	// Remove slashes
 	scope = strings.TrimLeft(scope, "/")
 	scope = strings.TrimRight(scope, "/")
 	runningHash := generateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
-	fileListTypes := make(map[string]map[string]bool)
-	matching := []string{}
+	results := make([]searchResult, 0)
 	count := 0
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
@@ -30,6 +35,10 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 		}
 		si.mu.Lock()
 		for dirName, dir := range si.Directories {
+			adjustedDir := strings.TrimPrefix(dirName, "/")
+			if dirName == "/" {
+				adjustedDir = "/"
+			}
 			isDir := true
 			files := []string{}
 			for _, item := range dir.Items {
@@ -40,22 +49,22 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 			value, found := sessionInProgress.Load(sourceSession)
 			if !found || value != runningHash {
 				si.mu.Unlock()
-				return []string{}, map[string]map[string]bool{}
+				return []searchResult{}
 			}
 			if count > maxSearchResults {
 				break
 			}
-			pathName := scopedPathNameFilter(dirName, scope, isDir)
-			if pathName == "" {
+			hasScope := scopedPathNameFilter(dirName, scope, isDir)
+			if !hasScope {
 				continue // path not matched
 			}
 			fileTypes := map[string]bool{}
 			si.mu.Unlock()
-			matches, fileType := si.containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
+			matches, fileType, fileSize := si.containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
 			si.mu.Lock()
 			if matches {
-				fileListTypes[pathName] = fileType
-				matching = append(matching, pathName)
+				scopedPath := strings.TrimPrefix(strings.TrimPrefix(adjustedDir, scope), "/")
+				results = append(results, searchResult{Path: scopedPath, Type: fileType, Size: fileSize})
 				count++
 			}
 			isDir = false
@@ -65,103 +74,107 @@ func (si *Index) Search(search string, scope string, sourceSession string) ([]st
 				}
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
-					return []string{}, map[string]map[string]bool{}
+					return []searchResult{}
 				}
 
 				if count > maxSearchResults {
 					break
 				}
-				fullName := strings.TrimLeft(pathName+file, "/")
+				fullName := dirName + "/" + file
+				if dirName == "/" {
+					fullName = file
+				}
 				fileTypes := map[string]bool{}
 				si.mu.Unlock()
-				matches, fileType := si.containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
+				matches, fileType, fileSize := si.containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
 				si.mu.Lock()
-				if !matches {
-					continue
+				if matches {
+					scopedPath := strings.TrimPrefix(strings.TrimPrefix(fullName, "/"), scope)
+					results = append(results, searchResult{Path: strings.TrimPrefix(scopedPath, "/"), Type: fileType, Size: fileSize})
+					count++
 				}
-				fileListTypes[fullName] = fileType
-				matching = append(matching, fullName)
-				count++
 			}
 		}
 		si.mu.Unlock()
 	}
-	// Sort the strings based on the number of elements after splitting by "/"
-	sort.Slice(matching, func(i, j int) bool {
-		parts1 := strings.Split(matching[i], "/")
-		parts2 := strings.Split(matching[j], "/")
+
+	// Sort by the number of elements in Path after splitting by "/"
+	sort.Slice(results, func(i, j int) bool {
+		parts1 := strings.Split(results[i].Path, "/")
+		parts2 := strings.Split(results[j].Path, "/")
 		return len(parts1) < len(parts2)
 	})
-	return matching, fileListTypes
+
+	return results
 }
 
-func scopedPathNameFilter(pathName string, scope string, isDir bool) string {
+func scopedPathNameFilter(pathName string, scope string, isDir bool) bool {
 	pathName = strings.TrimLeft(pathName, "/")
 	pathName = strings.TrimRight(pathName, "/")
-	if strings.HasPrefix(pathName, scope) || scope == "" {
-		pathName = strings.TrimPrefix(pathName, scope)
-		pathName = strings.TrimLeft(pathName, "/")
-		if isDir {
-			pathName = pathName + "/"
-		}
-	} else {
-		pathName = "" // return not matched
-	}
-	return pathName
+	return strings.HasPrefix(pathName, scope)
 }
 
-func (si *Index) containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, map[string]bool) {
+// returns true if the file name contains the search term
+// returns file type if the file name contains the search term
+// returns size of file/dir if the file name contains the search term
+func (si *Index) containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, string, int64) {
 	largerThan := int64(options.LargerThan) * 1024 * 1024
 	smallerThan := int64(options.SmallerThan) * 1024 * 1024
 	conditions := options.Conditions
 	fileName := filepath.Base(pathName)
+	lowerFileName := strings.ToLower(fileName)
+
 	adjustedPath := si.makeIndexPath(pathName, isDir)
 
 	// Convert to lowercase if not exact match
 	if !conditions["exact"] {
-		fileName = strings.ToLower(fileName)
 		searchTerm = strings.ToLower(searchTerm)
 	}
 
 	// Check if the file name contains the search term
-	if !strings.Contains(fileName, searchTerm) {
-		return false, map[string]bool{}
+	if !strings.Contains(lowerFileName, searchTerm) {
+		return false, "", 0
 	}
 
 	// Initialize file size and fileTypes map
 	var fileSize int64
-	extension := filepath.Ext(fileName)
+	extension := filepath.Ext(lowerFileName)
 
+	fileType := "directory"
 	// Collect file types
 	for _, k := range AllFiletypeOptions {
 		if IsMatchingType(extension, k) {
 			fileTypes[k] = true
+			fileType = k
 		}
 	}
+
 	fileTypes["dir"] = isDir
+
+	if !isDir {
+		// correct for root path issue
+		adjustedPath = filepath.Dir(adjustedPath)
+		if adjustedPath == "." {
+			adjustedPath = "/"
+		}
+	}
+
+	fileInfo, exists := si.GetMetadataInfo(adjustedPath)
 	// Get file info if needed for size-related conditions
-	if largerThan > 0 || smallerThan > 0 {
-		fileInfo, exists := si.GetMetadataInfo(adjustedPath)
-		if !exists {
-			return false, fileTypes
-		} else if !isDir {
-			// Look for specific file in ReducedItems
-			for _, item := range fileInfo.ReducedItems {
-				lower := strings.ToLower(item.Name)
-				if strings.Contains(lower, searchTerm) {
-					if item.Size == 0 {
-						return false, fileTypes
-					}
-					fileSize = item.Size
-					break
-				}
+	if !exists {
+		return false, "", 0
+	}
+
+	if !isDir {
+		// Look for specific file in ReducedItems
+		for _, item := range fileInfo.ReducedItems {
+			if item.Name == fileName {
+				fileSize = item.Size
+				break
 			}
-		} else {
-			fileSize = fileInfo.Size
 		}
-		if fileSize == 0 {
-			return false, fileTypes
-		}
+	} else {
+		fileSize = fileInfo.Size
 	}
 
 	// Evaluate all conditions
@@ -173,25 +186,25 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 		case "larger":
 			if largerThan > 0 {
 				if fileSize <= largerThan {
-					return false, fileTypes
+					return false, "", 0
 				}
 			}
 		case "smaller":
 			if smallerThan > 0 {
 				if fileSize >= smallerThan {
-					return false, fileTypes
+					return false, "", 0
 				}
 			}
 		default:
 			// Handle other file type conditions
 			notMatchType := v != fileTypes[t]
 			if notMatchType {
-				return false, fileTypes
+				return false, "", 0
 			}
 		}
 	}
 
-	return true, fileTypes
+	return true, fileType, fileSize
 }
 
 func generateRandomHash(length int) string {
