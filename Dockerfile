@@ -19,5 +19,5 @@ FROM alpine:latest
 ENV FILEBROWSER_NO_EMBEDED="true"
 RUN apk --no-cache add ca-certificates mailcap
 COPY --from=base /app/filebrowser* ./
-COPY --from=nbuild /app/dist/ ./frontend/dist/
+COPY --from=nbuild /app/dist/ ./http/dist/
 ENTRYPOINT [ "./filebrowser" ]
