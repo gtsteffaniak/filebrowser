@@ -135,7 +135,7 @@ export default {
         modified: this.modified,
       };
 
-      return api.getPreviewURL(file, "thumb");
+      return api.getPreviewURL(file, "small");
     },
     isThumbsEnabled() {
       return enableThumbs;

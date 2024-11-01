@@ -94,7 +94,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("PATCH /resource/", withUser(resourcePatchHandler))
 	api.HandleFunc("GET /usage/", withUser(diskUsage))
 	api.HandleFunc("GET /raw", withUser(rawHandler))
-	api.HandleFunc("GET /preview/{size}/{path...}", withUser(previewHandler))
+	api.HandleFunc("GET /preview", withUser(previewHandler))
 
 	// Share routes
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))

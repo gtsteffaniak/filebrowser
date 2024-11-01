@@ -255,6 +255,11 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		} else if wrappedWriter.StatusCode >= 500 {
 			color = "\033[31m" // Red for server errors (5xx)
 		}
+		// Capture the full URL path including the query parameters
+		fullURL := r.URL.Path
+		if r.URL.RawQuery != "" {
+			fullURL += "?" + r.URL.RawQuery
+		}
 
 		// Log the request and its status code
 		log.Printf("%s%-7s | %3d | %-15s | %-12s | \"%s\"%s",
@@ -263,7 +268,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			wrappedWriter.StatusCode, // Now capturing the correct status
 			r.RemoteAddr,
 			time.Since(start).String(),
-			r.URL.Path,
+			fullURL,
 			"\033[0m", // Reset color
 		)
 	})

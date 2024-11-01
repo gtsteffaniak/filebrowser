@@ -274,13 +274,9 @@ func addVersionSuffix(source string) string {
 }
 
 func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) error {
-	for _, previewSizeName := range PreviewSizeNames() {
-		size, _ := ParsePreviewSize(previewSizeName)
-		if err := fileCache.Delete(ctx, previewCacheKey(file, size)); err != nil {
-			return err
-		}
+	if err := fileCache.Delete(ctx, previewCacheKey(file, "small")); err != nil {
+		return err
 	}
-
 	return nil
 }
 
