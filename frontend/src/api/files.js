@@ -90,10 +90,6 @@ export function download(format, ...files) {
       url += `algo=${format}&`;
     }
 
-    if (state.jwt) {
-      url += `auth=${state.jwt}&`;
-    }
-
     window.open(url);
   } catch (err) {
     notify.showError(err.message || "Error downloading files");
@@ -199,11 +195,13 @@ export function getDownloadURL(file, inline) {
 export function getPreviewURL(file, size) {
   try {
     const params = {
+      path: file.path,
+      size: size,
       inline: "true",
       key: Date.parse(file.modified),
     };
 
-    return createURL("api/preview/" + size + file.path, params);
+    return createURL("api/preview", params);
   } catch (err) {
     notify.showError(err.message || "Error getting preview URL");
     throw err;

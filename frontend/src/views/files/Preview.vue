@@ -136,7 +136,7 @@ export default {
     },
     raw() {
       if (state.req.type === "image" && !this.fullSize) {
-        return api.getPreviewURL(state.req, "big");
+        return api.getPreviewURL(state.req, "large");
       }
       return api.getDownloadURL(state.req, true);
     },
@@ -271,7 +271,7 @@ export default {
       }
       return this.fullSize
         ? api.getDownloadURL(item, true)
-        : api.getPreviewURL(item, "big");
+        : api.getPreviewURL(item, "large");
     },
     openMore() {
       this.currentPrompt = "more";

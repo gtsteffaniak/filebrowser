@@ -7,13 +7,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/img"
 )
-
-type PreviewSize int
 
 type ImgService interface {
 	FormatFromExtension(ext string) (img.Format, error)
@@ -31,20 +28,18 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-
-	// Parse the URL path
-	parts := strings.SplitN(r.URL.Path, "/", 4) // Splitting by "/"
-	if len(parts) < 4 {
-		return http.StatusBadRequest, fmt.Errorf("invalid request path")
+	path := r.URL.Query().Get("path")
+	previewSize := r.URL.Query().Get("size")
+	if previewSize != "small" {
+		previewSize = "large"
 	}
-	// Extract size and path from URL
-	previewSize, err := ParsePreviewSize(parts[2]) // Assuming "size" is the third part
-	if err != nil {
-		return http.StatusBadRequest, err
+
+	if path == "" {
+		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
 
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       "/" + parts[3], // Assuming "path" is the third part
+		Path:       "/" + path, // Assuming "path" is the third part
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: config.Server.TypeDetectionByHeader,
@@ -60,8 +55,8 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
 	}
 
-	if (previewSize == PreviewSizeBig && !config.Server.ResizePreview) ||
-		(previewSize == PreviewSizeThumb && !config.Server.EnableThumbnails) {
+	if (previewSize == "large" && !config.Server.ResizePreview) ||
+		(previewSize == "small" && !config.Server.EnableThumbnails) {
 		return rawFileHandler(w, r, file)
 	}
 
@@ -92,8 +87,22 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	return 0, nil
 }
 
-// Creates a preview image based on size
-func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo, previewSize PreviewSize) ([]byte, error) {
+// previewHandler handles the preview request for images.
+// @Summary Get image preview
+// @Description Returns a preview image based on the requested path and size.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "File path of the image to preview"
+// @Param size query string false "Preview size ('small' or 'large'). Default is based on server config."
+// @Success 200 {file} file "Preview image content"
+// @Failure 202 {object} map[string]string "Download permissions required"
+// @Failure 400 {object} map[string]string "Invalid request path"
+// @Failure 404 {object} map[string]string "File not found"
+// @Failure 415 {object} map[string]string "Unsupported file type for preview"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/preview [get]
+func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo, previewSize string) ([]byte, error) {
 	fd, err := os.Open(file.Path)
 	if err != nil {
 		return nil, err
@@ -107,11 +116,11 @@ func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo,
 	)
 
 	switch {
-	case previewSize == PreviewSizeBig:
+	case previewSize == "large":
 		width = 1080
 		height = 1080
 		options = append(options, img.WithMode(img.ResizeModeFit), img.WithQuality(img.QualityMedium))
-	case previewSize == PreviewSizeThumb:
+	case previewSize == "small":
 		width = 256
 		height = 256
 		options = append(options, img.WithMode(img.ResizeModeFill), img.WithQuality(img.QualityLow), img.WithFormat(img.FormatJpeg))
@@ -135,6 +144,6 @@ func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo,
 }
 
 // Generates a cache key for the preview image
-func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
+func previewCacheKey(f *files.FileInfo, previewSize string) string {
 	return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
 }
