@@ -1,6 +1,5 @@
 import { removePrefix } from "./utils";
 import { baseURL } from "@/utils/constants";
-import { state } from "@/store";
 
 const ssl = window.location.protocol === "https:";
 const protocol = ssl ? "wss:" : "ws:";
