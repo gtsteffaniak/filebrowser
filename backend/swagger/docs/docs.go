@@ -25,7 +25,6 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Preview",
                     "Resources"
                 ],
                 "summary": "Get image preview",
@@ -39,7 +38,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Preview size ('small' or 'large'). Default is 'large'.",
+                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
                         "name": "size",
                         "in": "query"
                     }

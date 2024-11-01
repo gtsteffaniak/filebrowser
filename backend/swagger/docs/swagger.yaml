@@ -281,7 +281,8 @@ paths:
         name: path
         required: true
         type: string
-      - description: Preview size ('small' or 'large'). Default is 'large'.
+      - description: Preview size ('small' or 'large'). Default is based on server
+          config.
         in: query
         name: size
         type: string
@@ -324,7 +325,6 @@ paths:
             type: object
       summary: Get image preview
       tags:
-      - Preview
       - Resources
   /api/resources/:
     delete:
