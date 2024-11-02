@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -25,7 +26,8 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 // Middleware to handle file requests by hash and pass it to the handler
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/public/share")
+		adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/public/share/")
+		fmt.Println("adjustedRestPath", adjustedRestPath)
 		splitPath := strings.SplitN(adjustedRestPath, "/", 2)
 		hash := splitPath[0]
 		subPath := ""

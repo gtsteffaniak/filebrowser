@@ -173,7 +173,12 @@ export default {
     },
   },
   async beforeMount() {
-    const links = await api.get(this.url);
+    try {
+      const links = await api.get(this.url);
+    } catch (err) {
+      return
+    }
+
     this.links = links;
     this.sort();
 
