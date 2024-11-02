@@ -170,7 +170,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	path := r.URL.Query().Get("path")
 	s = &share.Link{
-		Path:         "/" + path,
+		Path:         path,
 		Hash:         secure_hash,
 		Expire:       expire,
 		UserID:       d.user.ID,
