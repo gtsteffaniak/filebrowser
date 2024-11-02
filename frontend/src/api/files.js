@@ -82,11 +82,11 @@ export function download(format, ...files) {
 
       arg = arg.substring(0, arg.length - 1);
       arg = encodeURIComponent(arg);
-      url += `?files=${arg}&`;
+      url += `?files=${arg}`;
     }
 
     if (format) {
-      url += `algo=${format}&`;
+      url += `&algo=${format}`;
     }
 
     window.open(url);

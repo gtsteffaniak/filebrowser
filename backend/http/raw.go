@@ -77,18 +77,21 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 	}
 }
 
-// rawHandler serves the raw content of a file or directory.
-// @Summary Get raw file or directory content
-// @Description Returns the raw content of a specified file or, if the path is a directory, returns the directory contents.
+// rawHandler serves the raw content of a file, multiple files, or directory in various formats.
+// @Summary Get raw content of a file, multiple files, or directory
+// @Description Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
 // @Tags Files
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the file or directory"
+// @Param files query string false "Comma-separated list of specific files within the directory (optional)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
-// @Success 200 {file} file "Raw file or directory content"
+// @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip', 'tar', 'targz', 'tarbz2', 'tarxz', 'tarlz4', 'tarsz'. Default is 'zip'."
+// @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
 // @Failure 202 {object} map[string]string "Download permissions required"
 // @Failure 400 {object} map[string]string "Invalid request path"
 // @Failure 404 {object} map[string]string "File or directory not found"
+// @Failure 415 {object} map[string]string "Unsupported file type for preview"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {

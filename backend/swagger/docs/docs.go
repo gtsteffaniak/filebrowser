@@ -100,7 +100,7 @@ const docTemplate = `{
         },
         "/api/raw": {
             "get": {
-                "description": "Returns the raw content of a specified file or, if the path is a directory, returns the directory contents.",
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.",
                 "consumes": [
                     "application/json"
                 ],
@@ -110,7 +110,7 @@ const docTemplate = `{
                 "tags": [
                     "Files"
                 ],
-                "summary": "Get raw file or directory content",
+                "summary": "Get raw content of a file, multiple files, or directory",
                 "parameters": [
                     {
                         "type": "string",
@@ -120,15 +120,27 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "Comma-separated list of specific files within the directory (optional)",
+                        "name": "files",
+                        "in": "query"
+                    },
+                    {
                         "type": "boolean",
                         "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
                         "name": "inline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip', 'tar', 'targz', 'tarbz2', 'tarxz', 'tarlz4', 'tarsz'. Default is 'zip'.",
+                        "name": "algo",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Raw file or directory content",
+                        "description": "Raw file or directory content, or archive for multiple files",
                         "schema": {
                             "type": "file"
                         }
@@ -153,6 +165,15 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "File or directory not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported file type for preview",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
