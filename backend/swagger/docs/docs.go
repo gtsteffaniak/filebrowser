@@ -98,6 +98,80 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/raw": {
+            "get": {
+                "description": "Returns the raw content of a specified file or, if the path is a directory, returns the directory contents.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Files"
+                ],
+                "summary": "Get raw file or directory content",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the file or directory",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
+                        "name": "inline",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file or directory content",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "202": {
+                        "description": "Download permissions required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File or directory not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/resources/": {
             "get": {
                 "description": "Returns metadata and optionally file contents for a specified resource path.",

@@ -77,11 +77,27 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 	}
 }
 
+// rawHandler serves the raw content of a file or directory.
+// @Summary Get raw file or directory content
+// @Description Returns the raw content of a specified file or, if the path is a directory, returns the directory contents.
+// @Tags Files
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the file or directory"
+// @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
+// @Success 200 {file} file "Raw file or directory content"
+// @Failure 202 {object} map[string]string "Download permissions required"
+// @Failure 400 {object} map[string]string "Invalid request path"
+// @Failure 404 {object} map[string]string "File or directory not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	path := r.URL.Query().Get("path")
+
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

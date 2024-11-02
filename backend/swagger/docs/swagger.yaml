@@ -326,6 +326,57 @@ paths:
       summary: Get image preview
       tags:
       - Resources
+  /api/raw:
+    get:
+      consumes:
+      - application/json
+      description: Returns the raw content of a specified file or, if the path is
+        a directory, returns the directory contents.
+      parameters:
+      - description: Path to the file or directory
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Raw file or directory content
+          schema:
+            type: file
+        "202":
+          description: Download permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File or directory not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get raw file or directory content
+      tags:
+      - Files
   /api/resources/:
     delete:
       consumes:

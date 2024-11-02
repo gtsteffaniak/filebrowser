@@ -71,9 +71,8 @@ export async function put(url, content = "") {
 export function download(format, ...files) {
   try {
     let url = `${baseURL}/api/raw`;
-
     if (files.length === 1) {
-      url += removePrefix(files[0]) + "?";
+      url +=  "?path="+removePrefix(files[0]);
     } else {
       let arg = "";
 
@@ -83,7 +82,7 @@ export function download(format, ...files) {
 
       arg = arg.substring(0, arg.length - 1);
       arg = encodeURIComponent(arg);
-      url += `/?files=${arg}&`;
+      url += `?files=${arg}&`;
     }
 
     if (format) {
@@ -182,10 +181,11 @@ export async function checksum(url, algo) {
 export function getDownloadURL(file, inline) {
   try {
     const params = {
+      path: file.path,
       ...(inline && { inline: "true" }),
     };
 
-    return createURL("api/raw" + file.path, params);
+    return createURL("api/raw", params);
   } catch (err) {
     notify.showError(err.message || "Error getting download URL");
     throw err;
