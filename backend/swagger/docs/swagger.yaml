@@ -707,7 +707,7 @@ paths:
       summary: Update system settings
       tags:
       - Settings
-  /api/shares:
+  /api/share:
     get:
       consumes:
       - application/json
@@ -735,6 +735,30 @@ paths:
               type: string
             type: object
       summary: Get share links by path
+      tags:
+      - Shares
+  /api/shares:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of share links for the current user, or all links
+        if the user is an admin.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of share links
+          schema:
+            items:
+              $ref: '#/definitions/share.Link'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List share links
       tags:
       - Shares
     post:

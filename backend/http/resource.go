@@ -74,10 +74,11 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/ [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if r.URL.Path == "/" || !d.user.Perm.Delete {
+	path := strings.TrimPrefix(r.URL.Path, "/resources")
+	if path == "/" || !d.user.Perm.Delete {
 		return http.StatusForbidden, nil
 	}
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
