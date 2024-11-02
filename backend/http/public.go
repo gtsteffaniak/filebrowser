@@ -19,10 +19,13 @@ import (
 )
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	fmt.Println("publicShareHandler starting")
+
 	file, ok := d.raw.(*files.FileInfo)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
 	}
+	fmt.Println("publicShareHandler", file.Path)
 	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
 	if file.IsDir {
 		return renderJSON(w, r, file)

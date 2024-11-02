@@ -10,14 +10,14 @@ export async function get(url) {
 }
 
 export async function remove(hash) {
-  await fetchURL(`/api/share/${hash}`, {
+  await fetchURL(`/api/share?hash=${hash}`, {
     method: "DELETE",
   });
 }
 
 export async function create(url, password = "", expires = "", unit = "hours") {
   url = removePrefix(url);
-  url = `/api/share${url}`;
+  url = `/api/share?path=${url}`;
   expires = String(expires);
   if (expires !== "") {
     url += `?expires=${expires}&unit=${unit}`;

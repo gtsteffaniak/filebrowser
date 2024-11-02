@@ -115,7 +115,7 @@ export const getters = {
   },
   currentView: () => {
     const pathname = state.route.path.toLowerCase()
-    if (pathname.includes("settings")) {
+    if (pathname.startsWith("/settings/")) {
       return "settings"
     } else if (pathname.includes("files")) {
       if (state.req.type !== undefined) {

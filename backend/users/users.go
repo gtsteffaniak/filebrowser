@@ -54,7 +54,7 @@ var PublicUser = User{
 		Rename:   false,
 		Modify:   false,
 		Delete:   false,
-		Share:    true,
+		Share:    false,
 		Download: true,
 		Admin:    false,
 	},

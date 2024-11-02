@@ -27,6 +27,7 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/shares [get]
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	fmt.Println("shareListHandler")
 	var (
 		s   []*share.Link
 		err error
@@ -62,9 +63,10 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Param path query string true "Resource path for which to retrieve share links"
 // @Success 200 {array} share.Link "List of share links for the specified path"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/shares [get]
+// @Router /api/share [get]
 func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	path := r.URL.Query().Get("path")
+	path := strings.TrimPrefix(r.URL.Path, "/share")
+	fmt.Println(path)
 	s, err := store.Share.Gets(path, d.user.ID)
 	if err == errors.ErrNotExist {
 		return http.StatusNoContent, err
@@ -73,7 +75,6 @@ func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	return renderJSON(w, r, s)
 }
 
@@ -89,8 +90,7 @@ func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/shares/{hash} [delete]
 func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	hash := strings.TrimSuffix(r.URL.Path, "/")
-	hash = strings.TrimPrefix(hash, "/")
+	hash := r.URL.Query().Get("hash")
 
 	if hash == "" {
 		return http.StatusBadRequest, nil
@@ -125,13 +125,10 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		defer r.Body.Close()
 	}
 
-	bytes := make([]byte, 6) //nolint:gomnd
-	_, err := rand.Read(bytes)
+	secure_hash, err := generateShortUUID()
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
-	str := base64.URLEncoding.EncodeToString(bytes)
 
 	var expire int64 = 0
 
@@ -171,11 +168,10 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 		stringHash = string(hash)
 	}
-
-	adjustedPath := strings.TrimPrefix(r.URL.Path, "/share/")
+	path := r.URL.Query().Get("path")
 	s = &share.Link{
-		Path:         "/" + adjustedPath,
-		Hash:         str,
+		Path:         path,
+		Hash:         secure_hash,
 		Expire:       expire,
 		UserID:       d.user.ID,
 		PasswordHash: stringHash,
@@ -200,4 +196,19 @@ func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, e
 	}
 
 	return hash, 0, nil
+}
+
+func generateShortUUID() (string, error) {
+	// Generate 16 random bytes (128 bits of entropy)
+	bytes := make([]byte, 16)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode the bytes to a URL-safe base64 string
+	uuid := base64.RawURLEncoding.EncodeToString(bytes)
+
+	// Trim the length to 22 characters for a shorter ID
+	return uuid[:22], nil
 }

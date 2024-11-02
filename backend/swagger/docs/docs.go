@@ -656,7 +656,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/shares": {
+        "/api/share": {
             "get": {
                 "description": "Retrieves all share links associated with a specific resource path for the current user.",
                 "consumes": [
@@ -681,6 +681,41 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "List of share links for the specified path",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/share.Link"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shares": {
+            "get": {
+                "description": "Returns a list of share links for the current user, or all links if the user is an admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shares"
+                ],
+                "summary": "List share links",
+                "responses": {
+                    "200": {
+                        "description": "List of share links",
                         "schema": {
                             "type": "array",
                             "items": {
