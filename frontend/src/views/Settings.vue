@@ -38,7 +38,7 @@ import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
 import UserManagement from "@/views/settings/Users.vue";
 import UserSettings from "@/views/settings/User.vue";
-
+import ApiKeys from "@/views/settings/Api.vue";
 export default {
   name: "settings",
   components: {
@@ -47,6 +47,7 @@ export default {
     GlobalSettings,
     ProfileSettings,
     SharesSettings,
+    ApiKeys,
   },
   data() {
     return {

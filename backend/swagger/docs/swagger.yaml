@@ -184,6 +184,8 @@ definitions:
     properties:
       admin:
         type: boolean
+      api:
+        type: boolean
       create:
         type: boolean
       delete:

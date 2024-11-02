@@ -95,6 +95,7 @@ func setDefaults() Settings {
 				Share:    false,
 				Download: false,
 				Admin:    false,
+				Api:      false,
 			},
 		},
 	}

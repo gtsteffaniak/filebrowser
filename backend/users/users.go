@@ -5,6 +5,7 @@ import (
 )
 
 type Permissions struct {
+	Api      bool `json:"api"`
 	Admin    bool `json:"admin"`
 	Execute  bool `json:"execute"`
 	Create   bool `json:"create"`
@@ -57,6 +58,7 @@ var PublicUser = User{
 		Share:    false,
 		Download: true,
 		Admin:    false,
+		Api:      false,
 	},
 }
 

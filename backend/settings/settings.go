@@ -43,6 +43,7 @@ func AdminPerms() users.Permissions {
 		Share:    true,
 		Download: true,
 		Admin:    true,
+		Api:      true,
 	}
 }
 
