@@ -10,7 +10,7 @@ export async function fetch(url, content = false) {
 
     const res = await fetchURL(`/api/resources${url}?content=${content}`, {});
     const data = await res.json();
-    data.url = `/files${url}`;
+    data.url = `${baseURL}/files${url}`;
 
     if (data.isDir) {
       if (!data.url.endsWith("/")) data.url += "/";
