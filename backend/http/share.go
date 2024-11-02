@@ -27,6 +27,7 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/shares [get]
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	fmt.Println("shareListHandler")
 	var (
 		s   []*share.Link
 		err error
@@ -74,7 +75,7 @@ func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
+	fmt.Println("success")
 	return renderJSON(w, r, s)
 }
 

@@ -75,12 +75,9 @@ export default {
   },
   methods: {
     shouldShow(setting) {
-      if (state.isMobile) {
-        const perm = setting?.perm || {};
-        // Check if all keys in setting.perm exist in state.user.perm and have truthy values
-        return Object.keys(perm).every((key) => state.user.perm[key]);
-      }
-      return this.active(setting.id + "-main");
+      const perm = setting?.perm || {};
+      // Check if all keys in setting.perm exist in state.user.perm and have truthy values
+      return Object.keys(perm).every((key) => state.user.perm[key]);
     },
     setView(view) {
       if (state.activeSettingsView === view) return;
