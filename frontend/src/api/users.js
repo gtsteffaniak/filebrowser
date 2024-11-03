@@ -19,6 +19,16 @@ export async function get(id) {
   }
 }
 
+export async function getApiKeys() {
+  try {
+    return await fetchJSON(`/api/user/apikeys`);
+  } catch (err) {
+    notify.showError(err.message || `Failed to fetch user with ID: ${id}`);
+    throw err;
+  }
+}
+
+
 export async function create(user) {
   try {
     const res = await fetchURL(`/api/users`, {

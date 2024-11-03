@@ -119,6 +119,10 @@ definitions:
     type: object
   settings.UserDefaults:
     properties:
+      apiKeys:
+        items:
+          type: string
+        type: array
       commands:
         items:
           type: string
@@ -189,6 +193,21 @@ definitions:
       userID:
         type: integer
     type: object
+  users.AuthToken:
+    properties:
+      Permissions:
+        $ref: '#/definitions/users.Permissions'
+      duration:
+        type: integer
+      expiresAt:
+        type: integer
+      key:
+        type: string
+      name:
+        type: string
+      user:
+        $ref: '#/definitions/users.User'
+    type: object
   users.Permissions:
     properties:
       admin:
@@ -237,6 +256,10 @@ definitions:
     type: object
   users.User:
     properties:
+      apiKeys:
+        items:
+          $ref: '#/definitions/users.AuthToken'
+        type: array
       commands:
         items:
           type: string

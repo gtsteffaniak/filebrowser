@@ -72,7 +72,7 @@ export default {
   methods: {
     async fetchData() {
       if (!state.route.path.startsWith("/settings")) {
-        return
+        return;
       }
       mutations.setLoading("users", true);
       try {
@@ -104,7 +104,7 @@ export default {
       mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
-      let user = this.user
+      let user = this.user;
       event.preventDefault();
       try {
         if (this.isNew) {

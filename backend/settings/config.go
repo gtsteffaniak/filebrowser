@@ -87,6 +87,7 @@ func setDefaults() Settings {
 			DisableSettings: false,
 			ViewMode:        "normal",
 			Locale:          "en",
+			ApiKeys:         []string{},
 			Permissions: users.Permissions{
 				Create:   false,
 				Rename:   false,

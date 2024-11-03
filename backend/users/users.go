@@ -2,7 +2,19 @@ package users
 
 import (
 	"regexp"
+
+	"github.com/golang-jwt/jwt/v4"
 )
+
+type AuthToken struct {
+	Key                  string      `json:"key"`
+	User                 User        `json:"user,omitempty"`
+	Name                 string      `json:"name"`
+	Duration             int64       `json:"duration"`
+	Expires              int64       `json:"expiresAt"`
+	Permissions          Permissions `json:"Permissions"`
+	jwt.RegisteredClaims `json:"-"`
+}
 
 type Permissions struct {
 	Api      bool `json:"api"`
@@ -39,6 +51,7 @@ type User struct {
 	Perm            Permissions `json:"perm"`
 	Commands        []string    `json:"commands"`
 	Rules           []Rule      `json:"rules"`
+	ApiKeys         []AuthToken `json:"apiKeys"`
 	HideDotfiles    bool        `json:"hideDotfiles"`
 	DateFormat      bool        `json:"dateFormat"`
 	GallerySize     int         `json:"gallerySize"`

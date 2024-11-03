@@ -3,45 +3,57 @@
   <div class="card" :class="{ active: active }">
     <div class="card-title">
       <h2>{{ $t("settings.api") }}</h2>
+      <div>
+        <button @click.prevent="createPrompt" class="button">
+          {{ $t("buttons.new") }}
+        </button>
+      </div>
     </div>
-
     <div class="card-content full" v-if="links.length > 0">
+      <p>
+        API keys are based on the user that creates the. See
+        <a class="link" href="/swagger/index.html">swagger page</a> for how to use them
+      </p>
       <table>
         <tr>
-          <th>{{ $t("settings.path") }}</th>
-          <th>{{ $t("settings.shareDuration") }}</th>
-          <th v-if="user.perm.admin">{{ $t("settings.username") }}</th>
-          <th></th>
-          <th></th>
+          <th>Copy Token</th>
+          <th>Name</th>
+          <th>Key Duration</th>
+          <th>Expires At</th>
+          <th>{{ $t("settings.permissions") }}</th>
+          <th>Delete</th>
         </tr>
 
-        <tr v-for="link in links" :key="link.hash">
-          <td>
-            <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
-          </td>
-          <td>
-            <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-            <template v-else>{{ $t("permanent") }}</template>
-          </td>
-          <td v-if="user.perm.admin">{{ link.username }}</td>
-          <td class="small">
-            <button
-              class="action"
-              @click="deleteLink($event, link)"
-              :aria-label="$t('buttons.delete')"
-              :title="$t('buttons.delete')"
-            >
-              <i class="material-icons">delete</i>
-            </button>
-          </td>
+        <tr v-for="link in links" :key="link.key">
           <td class="small">
             <button
               class="action copy-clipboard"
-              :data-clipboard-text="buildLink(link)"
+              :data-clipboard-text="link.key"
               :aria-label="$t('buttons.copyToClipboard')"
               :title="$t('buttons.copyToClipboard')"
             >
               <i class="material-icons">content_paste</i>
+            </button>
+          </td>
+          <td>{{ link.name }}</td>
+          <td>{{ humanTime(link.duration) }}</td>
+          <td>{{ formatExpiresAt(link.expiresAt) }}</td>
+          <td>
+            <div class="permissions-cell">
+              <!-- Placeholder text, always visible -->
+              <span class="permissions-placeholder">Hover to view permissions</span>
+
+              <!-- Permissions list, shown only on hover -->
+              <div class="permissions-list">
+                <div v-for="(value, perm) in link.Permissions" :key="perm">
+                  {{ perm }}: {{ value }}
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="small">
+            <button class="action delete">
+              <i class="material-icons">delete</i>
             </button>
           </td>
         </tr>
@@ -56,7 +68,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { share as api, users } from "@/api";
+import { users } from "@/api";
 import { state, mutations, getters } from "@/store";
 import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
@@ -78,14 +90,8 @@ export default {
     mutations.setLoading("shares", true);
 
     try {
-      let links = await api.list();
-      if (state.user.perm.admin) {
-        let userMap = new Map();
-        for (let user of await users.getAllUsers()) userMap.set(user.id, user.username);
-        for (let link of links)
-          link.username = userMap.has(link.userID) ? userMap.get(link.userID) : "";
-      }
-      this.links = links;
+      // Fetch the API keys from the specified endpoint
+      this.links = await users.getApiKeys(); // Updated to the correct API endpoint
     } catch (e) {
       this.error = e;
     } finally {
@@ -116,29 +122,42 @@ export default {
     },
   },
   methods: {
-    deleteLink: async function (event, link) {
-      event.preventDefault();
-      mutations.showHover({
-        name: "share-delete",
-        confirm: () => {
-          mutations.closeHovers();
-
-          try {
-            api.remove(link.hash);
-            this.links = this.links.filter((item) => item.hash !== link.hash);
-            notify.showSuccess(this.$t("settings.shareDeleted"));
-          } catch (e) {
-            notify.showError(e);
-          }
-        },
-      });
+    createPrompt() {
+      mutations.showHover({ name: "CreateApi", props: { user: this.user } });
     },
     humanTime(time) {
-      return fromNow(time * 1000, state.user.locale);
+      return fromNow(time, state.user.locale); // Adjust time as necessary
     },
-    buildLink(share) {
-      return api.getShareURL(share);
+    formatExpiresAt(expiresAt) {
+      return new Date(expiresAt * 1000).toLocaleString(); // Format the expiresAt value
     },
   },
 };
 </script>
+<style>
+.permissions-cell {
+  position: relative;
+  display: inline-block;
+}
+
+.permissions-placeholder {
+  color: #888; /* Styling for the placeholder text */
+}
+
+.permissions-list {
+  display: none;
+  position: absolute;
+  top: 100%; /* Position the popup below the cell */
+  left: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  width: max-content;
+}
+
+.permissions-cell:hover .permissions-list {
+  display: block;
+}
+</style>

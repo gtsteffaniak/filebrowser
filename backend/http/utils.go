@@ -1,27 +1,12 @@
 package http
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
 
 	libErrors "github.com/gtsteffaniak/filebrowser/errors"
 )
-
-func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
-	marsh, err := json.Marshal(data)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if _, err := w.Write(marsh); err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	return 0, nil
-}
 
 func errToStatus(err error) int {
 	switch {

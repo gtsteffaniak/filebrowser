@@ -28,7 +28,7 @@ export async function validateLogin() {
 
 export async function login(username, password, recaptcha) {
   const data = { username, password, recaptcha };
-  const res = await fetch(`${baseURL}/api/login`, {
+  const res = await fetch(`${baseURL}/api/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -45,7 +45,7 @@ export async function login(username, password, recaptcha) {
 }
 
 export async function renew(jwt) {
-  const res = await fetch(`${baseURL}/api/renew`, {
+  const res = await fetch(`${baseURL}/api/auth/renew`, {
     method: "POST",
     headers: {
       "X-Auth": jwt,
@@ -73,7 +73,7 @@ function generateRandomCode(length) {
 
 export async function signupLogin(username, password) {
   const data = { username, password };
-  const res = await fetch(`${baseURL}/api/signup`, {
+  const res = await fetch(`${baseURL}/api/auth/signup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

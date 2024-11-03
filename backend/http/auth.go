@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -16,10 +17,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-type authToken struct {
-	User users.User `json:"user"`
-	jwt.RegisteredClaims
-}
+var (
+	revokedApiKeyList map[string]bool
+	revokeMu          sync.Mutex
+)
 
 type extractor []string
 
@@ -133,7 +134,7 @@ func makeSignedToken(user *users.User) (string, error) {
 	if err != nil {
 		duration = time.Hour * 2 // Default duration if parsing fails
 	}
-	claims := &authToken{
+	claims := &users.AuthToken{
 		User: *user,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -142,7 +143,9 @@ func makeSignedToken(user *users.User) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(config.Auth.Key)
+	tokenString, err := token.SignedString(config.Auth.Key)
+	claims.Key = tokenString
+	return tokenString, err
 }
 
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
@@ -155,4 +158,37 @@ func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, 
 		return http.StatusInternalServerError, err
 	}
 	return 0, nil
+}
+
+func isRevokedApiKey(key string) bool {
+	_, exists := revokedApiKeyList[key]
+	return exists
+}
+
+func revokeAPIKey(key string) {
+	revokeMu.Lock()
+	delete(revokedApiKeyList, key)
+	revokeMu.Unlock()
+}
+
+func makeSignedTokenAPI(name string, user *users.User, duration time.Duration, perms users.Permissions) (*users.AuthToken, error) {
+	claims := &users.AuthToken{
+		User: users.User{
+			Username: user.Username,
+			ID:       user.ID,
+			Perm:     perms,
+		},
+		Duration: duration.Nanoseconds(),          // Converts duration to int64 in nanoseconds
+		Expires:  time.Now().Add(duration).Unix(), // Adds duration to the current time for expiration
+		Name:     name,
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+			Issuer:    user.Username,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(config.Auth.Key)
+	claims.Key = tokenString
+	return claims, err
 }

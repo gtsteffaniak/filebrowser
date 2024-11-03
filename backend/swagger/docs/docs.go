@@ -1345,6 +1345,12 @@ const docTemplate = `{
         "settings.UserDefaults": {
             "type": "object",
             "properties": {
+                "apiKeys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "commands": {
                     "type": "array",
                     "items": {
@@ -1447,6 +1453,29 @@ const docTemplate = `{
                 }
             }
         },
+        "users.AuthToken": {
+            "type": "object",
+            "properties": {
+                "Permissions": {
+                    "$ref": "#/definitions/users.Permissions"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "expiresAt": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/users.User"
+                }
+            }
+        },
         "users.Permissions": {
             "type": "object",
             "properties": {
@@ -1521,6 +1550,12 @@ const docTemplate = `{
         "users.User": {
             "type": "object",
             "properties": {
+                "apiKeys": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.AuthToken"
+                    }
+                },
                 "commands": {
                     "type": "array",
                     "items": {

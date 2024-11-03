@@ -80,14 +80,15 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /users/{id}", withSelfOrAdmin(userGetHandler))
 	api.HandleFunc("PUT /users/{id}", withSelfOrAdmin(userPutHandler))
 	api.HandleFunc("DELETE /users/{id}", withSelfOrAdmin(userDeleteHandler))
+	api.HandleFunc("GET /user/apikeys", withUser(listApiKeysHandler))
 
 	// Auth routes
-	api.HandleFunc("POST /login", loginHandler)
-	api.HandleFunc("GET /signup", signupHandler)
-	api.HandleFunc("POST /renew", withUser(renewHandler))
-	api.HandleFunc("POST /token", withUser(createApiHandler))
-	api.HandleFunc("GET /tokens", withUser(createApiHandler))
-	api.HandleFunc("DELETE /token", withUser(createApiHandler))
+	api.HandleFunc("POST /auth/login", loginHandler)
+	api.HandleFunc("GET /auth/signup", signupHandler)
+	api.HandleFunc("POST /auth/renew", withUser(renewHandler))
+	api.HandleFunc("PUT /auth/token", withUser(createApiKeyHandler))
+	api.HandleFunc("GET /auth/token", withUser(createApiKeyHandler))
+	api.HandleFunc("DELETE /auth/token", withUser(deleteApiKeyHandler))
 
 	// Resources routes
 	api.HandleFunc("GET /resources/", withUser(resourceGetHandler))

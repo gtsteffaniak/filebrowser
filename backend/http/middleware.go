@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -117,14 +118,18 @@ func withUserHelper(fn handleFunc) handleFunc {
 			tokenString = cookie.Value
 		}
 
+		if isRevokedApiKey(tokenString) {
+			return http.StatusUnauthorized, fmt.Errorf("Key has been deleted and is no longer valid")
+		}
 		// Parse and validate the token
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
-		var tk authToken
+		var tk users.AuthToken
 		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
 		if err != nil || !token.Valid {
-			return http.StatusUnauthorized, fmt.Errorf("Invalid token")
+
+			return http.StatusUnauthorized, fmt.Errorf("Invalid token : %v", err)
 		}
 
 		// Check if the token is outdated based on the last user update
@@ -132,7 +137,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if updated {
 			w.Header().Add("X-Renew-Token", "true")
 		}
-
+		fmt.Println(tk.User.ID)
 		// Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(config.Server.Root, tk.User.ID)
 		if err != nil {
@@ -196,6 +201,20 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
+	marsh, err := json.Marshal(data)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if _, err := w.Write(marsh); err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return 0, nil
 }
 
 func withPermShareHelper(fn handleFunc) handleFunc {
