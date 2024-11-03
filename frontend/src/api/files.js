@@ -7,11 +7,10 @@ import { notify } from "@/notify";
 export async function fetch(url, content = false) {
   try {
     url = removePrefix(url);
-
     const res = await fetchURL(`/api/resources${url}?content=${content}`, {});
     const data = await res.json();
     data.url = `${baseURL}/files${url}`;
-
+    console.log(data)
     if (data.isDir) {
       if (!data.url.endsWith("/")) data.url += "/";
       data.items = data.items.map((item, index) => {
@@ -72,9 +71,8 @@ export async function put(url, content = "") {
 export function download(format, ...files) {
   try {
     let url = `${baseURL}/api/raw`;
-
     if (files.length === 1) {
-      url += removePrefix(files[0]) + "?";
+      url +=  "?path="+removePrefix(files[0]);
     } else {
       let arg = "";
 
@@ -84,15 +82,11 @@ export function download(format, ...files) {
 
       arg = arg.substring(0, arg.length - 1);
       arg = encodeURIComponent(arg);
-      url += `/?files=${arg}&`;
+      url += `?files=${arg}`;
     }
 
     if (format) {
-      url += `algo=${format}&`;
-    }
-
-    if (state.jwt) {
-      url += `auth=${state.jwt}&`;
+      url += `&algo=${format}`;
     }
 
     window.open(url);
@@ -187,10 +181,11 @@ export async function checksum(url, algo) {
 export function getDownloadURL(file, inline) {
   try {
     const params = {
+      path: file.path,
       ...(inline && { inline: "true" }),
     };
 
-    return createURL("api/raw" + file.path, params);
+    return createURL("api/raw", params);
   } catch (err) {
     notify.showError(err.message || "Error getting download URL");
     throw err;
@@ -200,11 +195,13 @@ export function getDownloadURL(file, inline) {
 export function getPreviewURL(file, size) {
   try {
     const params = {
+      path: file.path,
+      size: size,
       inline: "true",
       key: Date.parse(file.modified),
     };
 
-    return createURL("api/preview/" + size + file.path, params);
+    return createURL("api/preview", params);
   } catch (err) {
     notify.showError(err.message || "Error getting preview URL");
     throw err;

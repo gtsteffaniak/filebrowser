@@ -92,7 +92,7 @@ export const getters = {
     if (getters.currentView() == "settings") {
       sticky = true
     }
-    if (getters.currentView() == null && !getters.isLoading()) {
+    if (getters.currentView() == null && !getters.isLoading() && !state.route.path.startsWith("/share")) {
       sticky = true
     }
     if (getters.isMobile() || getters.currentView() == "preview") {
@@ -115,7 +115,7 @@ export const getters = {
   },
   currentView: () => {
     const pathname = state.route.path.toLowerCase()
-    if (pathname.includes("settings")) {
+    if (pathname.startsWith("/settings/")) {
       return "settings"
     } else if (pathname.includes("files")) {
       if (state.req.type !== undefined) {

@@ -33,18 +33,18 @@ following changes:
 
 ## About
 
-FileBrowser Quantum provides a file managing interface within a specified directory
+FileBrowser Quantum provides a file-managing interface within a specified directory
 and can be used to upload, delete, preview, rename, and edit your files.
 It allows the creation of multiple users and each user can have its 
 directory.
 
 This repository is a fork of the original [filebrowser](https://github.com/filebrowser/filebrowser) 
 with a collection of changes that make this program work better in terms of 
-aesthetics and performance. Improved search, simplified ui 
+aesthetics and performance. Improved search, simplified UI 
 (without removing features) and more secure and up-to-date
 build are just a few examples.
 
-FileBrowser Quantum differs significantly to the original.
+FileBrowser Quantum differs significantly from the original.
 There are hundreds of thousands of lines changed and they are generally
 no longer compatible with each other. This has been intentional -- the
 focus of this fork is on a few key principles:
@@ -121,7 +121,7 @@ volumes:
     driver_opts:
       type: cifs
       o: "username=admin,password=password,rw" # enter valid info here
-      device: "//192.168.1.100/share/"         # enter valid hinfo here
+      device: "//192.168.1.100/share/"         # enter valid info here
 
 ```
 
@@ -135,9 +135,16 @@ Not using docker (not recommended), download your binary from releases and run w
 
 There are very few commands available. There are 3 actions done via command line:
 
-1. Running the program, as shown on install step. Only argument used is the config file, if you choose to override default "filebrowser.yaml"
+1. Running the program, as shown on the install step. The only argument used is the config file, if you choose to override default "filebrowser.yaml"
 2. Checking the version info via `./filebrowser version`
 3. Updating the DB, which currently only supports adding users via `./filebrowser set -u username,password [-a] [-s "example/scope"]`
+
+## API Usage
+
+FileBrowser Quantum comes with a swagger page that can be accessed from the API section of settings or by going to `/swagger` to see the full list:
+
+![image](https://github.com/user-attachments/assets/12abd1f6-21d3-4437-98ed-9b0da6cf2c73)
+
 
 ## Configuration
 
@@ -149,11 +156,12 @@ View the [Configuration Help Page](./docs/configuration.md) for available
 configuration options and other help.
 
 
-## Migration from filebrowser/filebrowser
+## Migration from the original filebrowser
 
 If you currently use the original filebrowser but want to try using this. 
-I recommend you start fresh without reusing the database. If you want to 
-migrate your existing database to FileBrowser Quantum, visit the [migration 
+I would recommend that you start fresh without reusing the database. However, 
+If you want to migrate your existing database to FileBrowser Quantum, 
+visit the [migration 
 readme](./docs/migration.md)
 
 ## Comparison Chart
@@ -185,7 +193,8 @@ Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Single sign-on support        | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 2FA sign-on support           | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-Long-live API key support     | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+Long-live API key support     | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+API documentation page        | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
 open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 tags support                  | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |

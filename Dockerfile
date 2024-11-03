@@ -3,6 +3,8 @@ ARG VERSION
 ARG REVISION
 WORKDIR /app
 COPY ./backend ./
+#RUN swag init --output swagger/docs
+RUN ln -s swagger /usr/local/go/src/
 RUN go build -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=${REVISION}'" \
@@ -19,5 +21,5 @@ FROM alpine:latest
 ENV FILEBROWSER_NO_EMBEDED="true"
 RUN apk --no-cache add ca-certificates mailcap
 COPY --from=base /app/filebrowser* ./
-COPY --from=nbuild /app/dist/ ./frontend/dist/
+COPY --from=nbuild /app/dist/ ./http/dist/
 ENTRYPOINT [ "./filebrowser" ]

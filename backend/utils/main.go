@@ -1,9 +1,9 @@
 package utils
 
 import (
+	"crypto/rand"
 	"log"
-
-	"github.com/gtsteffaniak/filebrowser/settings"
+	"strings"
 )
 
 func CheckErr(source string, err error) {
@@ -13,7 +13,18 @@ func CheckErr(source string, err error) {
 }
 
 func GenerateKey() []byte {
-	k, err := settings.GenerateKey()
-	CheckErr("generateKey", err)
-	return k
+	b := make([]byte, 64)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
+// CapitalizeFirst returns the input string with the first letter capitalized.
+func CapitalizeFirst(s string) string {
+	if len(s) == 0 {
+		return s // Return the empty string as is
+	}
+	return strings.ToUpper(string(s[0])) + s[1:]
 }

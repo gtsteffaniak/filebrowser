@@ -196,7 +196,6 @@ export const mutations = {
     emitStateChanged();
   },
   setRoute: (value) => {
-    console.log("going...",value)
     state.route = value;
     emitStateChanged();
   },

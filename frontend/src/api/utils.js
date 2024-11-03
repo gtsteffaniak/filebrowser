@@ -48,10 +48,10 @@ export async function fetchURL(url, opts, auth = true) {
 
 export async function fetchJSON(url, opts) {
   const res = await fetchURL(url, opts);
-  if (res.status === 200) {
+  if (res.status < 300) {
     return res.json();
   } else {
-    notify.showError("unable to fetch : " + url + "status" + res.status);
+    notify.showError("received status: "+res.status+" on url " + url);
     throw new Error(res.status);
   }
 }
@@ -63,7 +63,7 @@ export function removePrefix(url) {
   return url;
 }
 
-export function createURL(endpoint, params = {}, auth = true) {
+export function createURL(endpoint, params = {}) {
   let prefix = baseURL;
   if (!prefix.endsWith("/")) {
     prefix = prefix + "/";
@@ -71,7 +71,6 @@ export function createURL(endpoint, params = {}, auth = true) {
   const url = new URL(prefix + encodePath(endpoint), origin);
 
   const searchParams = {
-    ...(auth && { auth: state.jwt }),
     ...params,
   };
 

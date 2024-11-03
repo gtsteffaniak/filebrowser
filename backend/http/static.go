@@ -14,41 +14,58 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/auth"
 	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/version"
 )
 
-func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys fs.FS, file, contentType string) (int, error) {
+var templateRenderer *TemplateRenderer
+
+type TemplateRenderer struct {
+	templates *template.Template
+}
+
+// Render renders a template document with headers and data
+func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data interface{}) error {
+	// Set headers
+	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("X-Accel-Expires", "0")
+	w.Header().Set("Transfer-Encoding", "identity")
+	// Execute the template with the provided data
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentType string) {
 	w.Header().Set("Content-Type", contentType)
 
-	auther, err := d.store.Auth.Get(d.settings.Auth.Method)
+	auther, err := store.Auth.Get(config.Auth.Method)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
 	data := map[string]interface{}{
-		"Name":                  d.settings.Frontend.Name,
-		"DisableExternal":       d.settings.Frontend.DisableExternal,
-		"DisableUsedPercentage": d.settings.Frontend.DisableUsedPercentage,
+		"Name":                  config.Frontend.Name,
+		"DisableExternal":       config.Frontend.DisableExternal,
+		"DisableUsedPercentage": config.Frontend.DisableUsedPercentage,
 		"darkMode":              settings.Config.UserDefaults.DarkMode,
-		"Color":                 d.settings.Frontend.Color,
-		"BaseURL":               d.server.BaseURL,
+		"Color":                 config.Frontend.Color,
+		"BaseURL":               config.Server.BaseURL,
 		"Version":               version.Version,
 		"CommitSHA":             version.CommitSHA,
-		"StaticURL":             path.Join(d.server.BaseURL, "/static"),
+		"StaticURL":             path.Join(config.Server.BaseURL, "/static"),
 		"Signup":                settings.Config.Auth.Signup,
-		"NoAuth":                d.settings.Auth.Method == "noauth",
-		"AuthMethod":            d.settings.Auth.Method,
+		"NoAuth":                config.Auth.Method == "noauth",
+		"AuthMethod":            config.Auth.Method,
 		"LoginPage":             auther.LoginPage(),
 		"CSS":                   false,
 		"ReCaptcha":             false,
-		"EnableThumbs":          d.server.EnableThumbnails,
-		"ResizePreview":         d.server.ResizePreview,
-		"EnableExec":            d.server.EnableExec,
+		"EnableThumbs":          config.Server.EnableThumbnails,
+		"ResizePreview":         config.Server.ResizePreview,
+		"EnableExec":            config.Server.EnableExec,
 	}
 
-	if d.settings.Frontend.Files != "" {
-		fPath := filepath.Join(d.settings.Frontend.Files, "custom.css")
+	if config.Frontend.Files != "" {
+		fPath := filepath.Join(config.Frontend.Files, "custom.css")
 		_, err := os.Stat(fPath) //nolint:govet
 
 		if err != nil && !os.IsNotExist(err) {
@@ -60,15 +77,17 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		}
 	}
 
-	if d.settings.Auth.Method == "password" {
-		raw, err := d.store.Auth.Get(d.settings.Auth.Method) //nolint:govet
+	if config.Auth.Method == "password" {
+		raw, err := store.Auth.Get(config.Auth.Method) //nolint:govet
 		if err != nil {
-			return http.StatusInternalServerError, err
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
 
 		auther, ok := raw.(*auth.JSONAuth)
 		if !ok {
-			return http.StatusInternalServerError, fmt.Errorf("failed to assert type *auth.JSONAuth")
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
 
 		if auther.ReCaptcha != nil {
@@ -80,77 +99,49 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 
 	b, err := json.Marshal(data)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
-	data["Json"] = strings.ReplaceAll(string(b), `'`, `\'`)
+	data["globalVars"] = strings.ReplaceAll(string(b), `'`, `\'`)
 
-	fileContents, err := fs.ReadFile(fSys, file)
-	if err != nil {
-		if err == os.ErrNotExist {
-			return http.StatusNotFound, err
-		}
-		return http.StatusInternalServerError, err
+	// Render the template with global variables
+	if err := templateRenderer.Render(w, file, data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	index := template.Must(template.New("index").Delims("[{[", "]}]").Parse(string(fileContents)))
-	err = index.Execute(w, data)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	return 0, nil
 }
 
-func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs fs.FS) (index, static http.Handler) {
-	index = handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if r.Method != http.MethodGet {
-			return http.StatusNotFound, nil
-		}
-
-		w.Header().Set("x-xss-protection", "1; mode=block")
-		return handleWithStaticData(w, r, d, assetsFs, "public/index.html", "text/html; charset=utf-8")
-	}, "", store, server)
-
-	static = handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if r.Method != http.MethodGet {
-			return http.StatusNotFound, nil
-		}
-
-		const maxAge = 86400 // 1 day
-		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
-
-		if d.settings.Frontend.Files != "" {
-			if strings.HasPrefix(r.URL.Path, "img/") {
-				fPath := filepath.Join(d.settings.Frontend.Files, r.URL.Path)
-				if _, err := os.Stat(fPath); err == nil {
-					http.ServeFile(w, r, fPath)
-					return 0, nil
-				}
-			} else if r.URL.Path == "custom.css" && d.settings.Frontend.Files != "" {
-				http.ServeFile(w, r, filepath.Join(d.settings.Frontend.Files, "custom.css"))
-				return 0, nil
-			}
-		}
-
-		if !strings.HasSuffix(r.URL.Path, ".js") {
-			http.FileServer(http.FS(assetsFs)).ServeHTTP(w, r)
-			return 0, nil
-		}
-
-		fileContents, err := fs.ReadFile(assetsFs, r.URL.Path+".gz")
-		if err != nil {
-			return http.StatusNotFound, err
-		}
-
-		w.Header().Set("Content-Encoding", "gzip")
+func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
+	const maxAge = 86400 // 1 day
+	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
+	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+	// Remove "/static/" from the request path
+	adjustedPath := strings.TrimPrefix(r.URL.Path, "/static/")
+	adjustedCompressed := adjustedPath + ".gz"
+	if strings.HasSuffix(adjustedPath, ".js") {
 		w.Header().Set("Content-Type", "application/javascript; charset=utf-8") // Set the correct MIME type for JavaScript files
+	}
+	// Check if the gzipped version of the file exists
+	fileContents, err := fs.ReadFile(assetFs, adjustedCompressed)
+	if err == nil {
 
-		if _, err := w.Write(fileContents); err != nil {
-			return http.StatusInternalServerError, err
+		w.Header().Set("Content-Encoding", "gzip") // Let the browser know the file is compressed
+		status, err := w.Write(fileContents)       // Write the gzipped file content to the response
+		if err != nil {
+			http.Error(w, http.StatusText(status), status)
 		}
 
-		return 0, nil
-	}, "/static/", store, server)
+	} else {
+		// Otherwise, serve the regular file
+		http.StripPrefix("/static/", http.FileServer(http.FS(assetFs))).ServeHTTP(w, r)
+	}
+}
 
-	return index, static
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	handleWithStaticData(w, r, "index.html", "text/html")
+
 }

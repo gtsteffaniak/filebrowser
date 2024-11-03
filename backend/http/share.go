@@ -17,24 +17,25 @@ import (
 	"github.com/gtsteffaniak/filebrowser/share"
 )
 
-func withPermShare(fn handleFunc) handleFunc {
-	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if !d.user.Perm.Share {
-			return http.StatusForbidden, nil
-		}
-		return fn(w, r, d)
-	})
-}
-
-var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+// shareListHandler returns a list of all share links.
+// @Summary List share links
+// @Description Returns a list of share links for the current user, or all links if the user is an admin.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Success 200 {array} share.Link "List of share links"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/shares [get]
+func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	fmt.Println("shareListHandler")
 	var (
 		s   []*share.Link
 		err error
 	)
 	if d.user.Perm.Admin {
-		s, err = d.store.Share.All()
+		s, err = store.Share.All()
 	} else {
-		s, err = d.store.Share.FindByUserID(d.user.ID)
+		s, err = store.Share.FindByUserID(d.user.ID)
 	}
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
@@ -51,39 +52,70 @@ var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		return s[i].Expire < s[j].Expire
 	})
 	return renderJSON(w, r, s)
-})
+}
 
-var shareGetsHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	s, err := d.store.Share.Gets(r.URL.Path, d.user.ID)
+// shareGetsHandler retrieves share links for a specific resource path.
+// @Summary Get share links by path
+// @Description Retrieves all share links associated with a specific resource path for the current user.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param path query string true "Resource path for which to retrieve share links"
+// @Success 200 {array} share.Link "List of share links for the specified path"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/share [get]
+func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	path := strings.TrimPrefix(r.URL.Path, "/share")
+	fmt.Println(path)
+	s, err := store.Share.Gets(path, d.user.ID)
 	if err == errors.ErrNotExist {
-		return renderJSON(w, r, []*share.Link{})
+		return http.StatusNoContent, err
 	}
 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	return renderJSON(w, r, s)
-})
+}
 
-var shareDeleteHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	hash := strings.TrimSuffix(r.URL.Path, "/")
-	hash = strings.TrimPrefix(hash, "/")
+// shareDeleteHandler deletes a specific share link by its hash.
+// @Summary Delete a share link
+// @Description Deletes a share link specified by its hash.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param hash path string true "Hash of the share link to delete"
+// @Success 200 "Share link deleted successfully"
+// @Failure 400 {object} map[string]string "Bad request - missing or invalid hash"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/shares/{hash} [delete]
+func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	hash := r.URL.Query().Get("hash")
 
 	if hash == "" {
 		return http.StatusBadRequest, nil
 	}
 
-	err := d.store.Share.Delete(hash)
+	err := store.Share.Delete(hash)
 	if err != nil {
 		return errToStatus(err), err
 	}
 
 	return errToStatus(err), err
-})
+}
 
-var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-
+// sharePostHandler creates a new share link.
+// @Summary Create a share link
+// @Description Creates a new share link with an optional expiration time and password protection.
+// @Tags Shares
+// @Accept json
+// @Produce json
+// @Param body body share.CreateBody true "Share link creation parameters"
+// @Success 200 {object} share.Link "Created share link"
+// @Failure 400 {object} map[string]string "Bad request - failed to decode body"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/shares [post]
+func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var s *share.Link
 	var body share.CreateBody
 	if r.Body != nil {
@@ -93,13 +125,10 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		defer r.Body.Close()
 	}
 
-	bytes := make([]byte, 6) //nolint:gomnd
-	_, err := rand.Read(bytes)
+	secure_hash, err := generateShortUUID()
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
-	str := base64.URLEncoding.EncodeToString(bytes)
 
 	var expire int64 = 0
 
@@ -139,24 +168,24 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 		stringHash = string(hash)
 	}
+	path := r.URL.Query().Get("path")
 	s = &share.Link{
-		Path:         strings.TrimSuffix(r.URL.Path, "/"),
-		Hash:         str,
+		Path:         path,
+		Hash:         secure_hash,
 		Expire:       expire,
 		UserID:       d.user.ID,
 		PasswordHash: stringHash,
 		Token:        token,
 	}
 
-	if err := d.store.Share.Save(s); err != nil {
+	if err := store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	return renderJSON(w, r, s)
-})
+}
 
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
-
 	if body.Password == "" {
 		return nil, 0, nil
 	}
@@ -167,4 +196,19 @@ func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, e
 	}
 
 	return hash, 0, nil
+}
+
+func generateShortUUID() (string, error) {
+	// Generate 16 random bytes (128 bits of entropy)
+	bytes := make([]byte, 16)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode the bytes to a URL-safe base64 string
+	uuid := base64.RawURLEncoding.EncodeToString(bytes)
+
+	// Trim the length to 22 characters for a shorter ID
+	return uuid[:22], nil
 }

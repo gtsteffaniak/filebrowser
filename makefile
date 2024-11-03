@@ -7,15 +7,13 @@ setup:
 build:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a"  -t gtstef/filebrowser .
 
-dev:
-	# Kill processes matching exe/filebrowser, ignore errors if process does not exist
-	-pkill -f "exe/filebrowser" || true
-	# Start backend and frontend concurrently
-	cd backend && FILEBROWSER_NO_EMBEDED=true go run \
-	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/version.Version=testing'" \
-	. -c test_config.yaml & BACKEND_PID=$$!; \
-	cd frontend && npm run watch & FRONTEND_PID=$$!; \
-	wait $$BACKEND_PID $$FRONTEND_PID
+run: run-frontend
+	cd backend && swag init --output swagger/docs && FILEBROWSER_NO_EMBEDED=true go run \
+	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/version.Version=testing'" . -c test_config.yaml
+
+run-frontend:
+	cd backend/http && rm -rf dist && ln -s ../../frontend/dist && \
+	cd ../../frontend && npm run build
 
 lint-frontend:
 	cd frontend && npm run lint

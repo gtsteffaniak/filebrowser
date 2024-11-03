@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.2.11
+
+  This Release focuses on the API and making it more accessible.
+
+  **New Features**:
+  - You can now long-live api tokens to interact with API from the user settings page.
+    - These tokens have the same permissions as your user.
+  - Helpful swagger page for API usage.
+  - Some API's were refactored for friendlier API usage, moving some attributes to parameters and first looking for a api token, then using the stored cookie if none is found. This allows for all api requests from swagger page to work without a token.
+  - Add file size to search preview! Should have been in last release... sorry!
+
+  **Notes**:
+  - Replaced backend http framework with go standard library.
+  - Right-click Context menu can target the item that was right-clicked. To fully address https://github.com/gtsteffaniak/filebrowser/issues/214
+  - adjusted settings menu for mobile, always shows all available cards rather than grayed out cards that need to be clicked.
+  - longer and more cryptographically secure share links based on UUID rather than base64.
+
+  **Bugfixes**:
+  - Fixed ui bug with shares with password.
+  - Fix empty directory load issue.
+
 ## v0.2.10
 
   **New Features**:

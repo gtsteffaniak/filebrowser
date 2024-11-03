@@ -266,12 +266,16 @@ export default {
       let url = state.route.path;
       if (url === "") url = "/";
       if (url[0] !== "/") url = "/" + url;
+      try {
+        let file = await api.fetchPub(url, this.password);
+        file.hash = this.hash;
+        this.token = file.token || "";
+        mutations.updateRequest(file);
+        document.title = `${file.name} - ${document.title}`;
+      } catch (error) {
+        this.error = error;
+      }
 
-      let file = await api.fetchPub(url, this.password);
-      file.hash = this.hash;
-      this.token = file.token || "";
-      mutations.updateRequest(file);
-      document.title = `${file.name} - ${document.title}`;
       mutations.setLoading("share", false);
     },
     keyEvent(event) {
