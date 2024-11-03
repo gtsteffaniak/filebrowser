@@ -83,11 +83,6 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	return 200, nil
 }
 
-// @Description Response structure for health check
-type HealthCheckResponse struct {
-	Status string `json:"status"` // The status of the health check
-}
-
 // health godoc
 // @Summary Health Check
 // @Schemes
@@ -95,12 +90,12 @@ type HealthCheckResponse struct {
 // @Tags Health
 // @Accept json
 // @Produce json
-// @Success 200 {object} HealthCheckResponse "successful health check response"
+// @Success 200 {object} HttpResponse "successful health check response"
 // @Router /health [get]
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	response := HealthCheckResponse{Status: "ok"} // Create response with status "ok"
-	err := json.NewEncoder(w).Encode(response)    // Encode the response into JSON
+	response := HttpResponse{Message: "ok"}    // Create response with status "ok"
+	err := json.NewEncoder(w).Encode(response) // Encode the response into JSON
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}

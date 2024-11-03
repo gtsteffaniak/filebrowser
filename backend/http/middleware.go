@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/golang-jwt/jwt/v4/request"
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/runner"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -96,21 +95,44 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		var tokenString string
+		authHeader := r.Header.Get("Authorization")
 
+		// Check for Authorization header
+		if authHeader != "" {
+			// Split the header to get "Bearer {token}"
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				tokenString = parts[1]
+			} else {
+				return http.StatusUnauthorized, fmt.Errorf("Invalid Authorization header format")
+			}
+		} else {
+			// Fallback to cookie if Authorization header is missing
+			cookie, err := r.Cookie("auth")
+			if err != nil {
+				// If no cookie found, return unauthorized
+				return http.StatusUnauthorized, fmt.Errorf("Authorization header or token cookie required")
+			}
+			tokenString = cookie.Value
+		}
+
+		// Parse and validate the token
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
 		var tk authToken
-		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk))
+		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
 		if err != nil || !token.Valid {
-			return http.StatusUnauthorized, nil
+			return http.StatusUnauthorized, fmt.Errorf("Invalid token")
 		}
-		expired := !tk.VerifyExpiresAt(time.Now().Add(time.Hour), true)
-		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < store.Users.LastUpdate(tk.User.ID)
 
-		if expired || updated {
+		// Check if the token is outdated based on the last user update
+		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < store.Users.LastUpdate(tk.User.ID)
+		if updated {
 			w.Header().Add("X-Renew-Token", "true")
 		}
+
 		// Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(config.Server.Root, tk.User.ID)
 		if err != nil {
@@ -274,4 +296,13 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			"\033[0m", // Reset color
 		)
 	})
+}
+
+// @Description Response structure for http json reponses
+type HttpResponse struct {
+	User           string   `json:"user,omitempty"`
+	Error          string   `json:"error,omitempty"`
+	Message        string   `json:"message,omitempty"`
+	RequestPayload []string `json:"requestPayload,omitempty"`
+	Token          string   `json:"token,omitempty"`
 }

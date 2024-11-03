@@ -1154,7 +1154,7 @@ const docTemplate = `{
                     "200": {
                         "description": "successful health check response",
                         "schema": {
-                            "$ref": "#/definitions/http.HealthCheckResponse"
+                            "$ref": "#/definitions/http.HttpResponse"
                         }
                     }
                 }
@@ -1263,12 +1263,26 @@ const docTemplate = `{
                 }
             }
         },
-        "http.HealthCheckResponse": {
-            "description": "Response structure for health check",
+        "http.HttpResponse": {
+            "description": "Response structure for http json reponses",
             "type": "object",
             "properties": {
-                "status": {
-                    "description": "The status of the health check",
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "requestPayload": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "token": {
+                    "type": "string"
+                },
+                "user": {
                     "type": "string"
                 }
             }

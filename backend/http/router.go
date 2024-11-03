@@ -85,6 +85,9 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("POST /login", loginHandler)
 	api.HandleFunc("GET /signup", signupHandler)
 	api.HandleFunc("POST /renew", withUser(renewHandler))
+	api.HandleFunc("POST /token", withUser(createApiHandler))
+	api.HandleFunc("GET /tokens", withUser(createApiHandler))
+	api.HandleFunc("DELETE /token", withUser(createApiHandler))
 
 	// Resources routes
 	api.HandleFunc("GET /resources/", withUser(resourceGetHandler))

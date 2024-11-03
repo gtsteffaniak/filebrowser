@@ -65,11 +65,20 @@ definitions:
       used:
         type: integer
     type: object
-  http.HealthCheckResponse:
-    description: Response structure for health check
+  http.HttpResponse:
+    description: Response structure for http json reponses
     properties:
-      status:
-        description: The status of the health check
+      error:
+        type: string
+      message:
+        type: string
+      requestPayload:
+        items:
+          type: string
+        type: array
+      token:
+        type: string
+      user:
         type: string
     type: object
   http.settingsData:
@@ -1041,7 +1050,7 @@ paths:
         "200":
           description: successful health check response
           schema:
-            $ref: '#/definitions/http.HealthCheckResponse'
+            $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
       tags:
       - Health
