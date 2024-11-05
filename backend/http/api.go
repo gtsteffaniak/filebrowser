@@ -1,19 +1,11 @@
 package http
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
-
-func createApiHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// get request body like:
-
-	create
-	return renderJSON(w, r, response)
-}
 
 func makeSignedTokenAPI(user *users.User, duration time.Duration) (string, error) {
 	claims := &authToken{
