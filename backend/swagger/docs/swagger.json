@@ -1253,25 +1253,15 @@
             }
         },
         "http.HttpResponse": {
-            "description": "Response structure for http json reponses",
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string"
-                },
                 "message": {
                     "type": "string"
                 },
-                "requestPayload": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "status": {
+                    "type": "integer"
                 },
                 "token": {
-                    "type": "string"
-                },
-                "user": {
                     "type": "string"
                 }
             }
@@ -1448,7 +1438,10 @@
                 "Permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
-                "duration": {
+                "belongsTo": {
+                    "type": "integer"
+                },
+                "createdAt": {
                     "type": "integer"
                 },
                 "expiresAt": {
@@ -1459,9 +1452,6 @@
                 },
                 "name": {
                     "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/users.User"
                 }
             }
         },

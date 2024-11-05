@@ -14,6 +14,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	name := r.URL.Query().Get("name")
 	durationStr := r.URL.Query().Get("duration")
 	permissionsStr := r.URL.Query().Get("permissions")
+	fmt.Println("createApiKeyHandler", name, durationStr, permissionsStr, d.user.Perm)
 	// Parse permissions from the query parameter
 	permissions := users.Permissions{
 		Api:      strings.Contains(permissionsStr, "api") && d.user.Perm.Api,
@@ -40,7 +41,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	// get request body like:
-	token, err := makeSignedTokenAPI(name, d.user, duration, permissions)
+	token, err := makeSignedTokenAPI(*d.user, name, duration, permissions)
 	if err != nil {
 		return 500, err
 	}
@@ -73,8 +74,8 @@ func deleteApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 type AuthTokenMin struct {
 	Key         string            `json:"key"`
 	Name        string            `json:"name"`
-	Duration    int64             `json:"duration"`
-	Expires     int64             `json:"expiresAt"`
+	Created     int64             `json:"created"`
+	Expires     int64             `json:"expires"`
 	Permissions users.Permissions `json:"Permissions"`
 }
 
@@ -84,7 +85,7 @@ func listApiKeysHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		modifiedList = append(modifiedList, AuthTokenMin{
 			Name:        key.Name,
 			Key:         key.Key,
-			Duration:    key.Duration,
+			Created:     key.Created,
 			Expires:     key.Expires,
 			Permissions: key.Permissions,
 		})

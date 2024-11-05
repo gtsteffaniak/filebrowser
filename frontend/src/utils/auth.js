@@ -10,21 +10,21 @@ export function parseToken(token) {
   }
   const data = JSON.parse(atob(parts[1]));
   document.cookie = `auth=${token}; path=/`;
-  localStorage.setItem("jwt", token);
   mutations.setJWT(token);
   mutations.setSession(generateRandomCode(8));
   mutations.setCurrentUser(data.user);
 }
 
 export async function validateLogin() {
-  try {
-    if (localStorage.getItem("jwt")) {
-      await renew(localStorage.getItem("jwt"));
-    }
-  } catch (_) {
-    console.warn('Invalid JWT token in storage')
+  const authToken = getCookie("auth");
+  if (authToken != undefined) {
+    console.log("token", authToken);
+    await renew(authToken);
+  } else {
+    console.log("No token found");
   }
 }
+
 
 export async function login(username, password, recaptcha) {
   const data = { username, password, recaptcha };
@@ -92,4 +92,12 @@ export function logout() {
   mutations.setCurrentUser(null);
   localStorage.setItem("jwt", null);
   router.push({ path: "/login" });
+}
+
+// Helper function to retrieve the value of a specific cookie
+function getCookie(name) {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1];
 }

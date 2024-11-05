@@ -113,7 +113,10 @@ export default {
         if (this.createMode) {
           await signupLogin(this.username, this.password);
         }
+        console.log("pre");
+
         await login(this.username, this.password, captcha);
+        console.log("pushing!,", redirect);
         router.push({ path: redirect });
       } catch (e) {
         console.error(e);

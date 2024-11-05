@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"sort"
@@ -104,6 +105,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	// Fetch the user details
 	u, err := store.Users.Get(config.Server.Root, d.raw.(uint))
 	if err == errors.ErrNotExist {
+		fmt.Println("user error!")
 		return http.StatusNotFound, err
 	}
 	if err != nil {

@@ -1,4 +1,4 @@
-import { fetchURL, fetchJSON } from "@/api/utils";
+import { fetchURL, fetchJSON,createURL } from "@/api/utils";
 import { notify } from "@/notify";  // Import notify for error handling
 
 export async function getAllUsers() {
@@ -21,13 +21,25 @@ export async function get(id) {
 
 export async function getApiKeys() {
   try {
-    return await fetchJSON(`/api/user/apikeys`);
+    const url = createURL(`api/auth/tokens`)
+    return await fetchJSON(url);
   } catch (err) {
-    notify.showError(err.message || `Failed to fetch user with ID: ${id}`);
+    notify.showError(err.message || `Failed to get api keys`);
     throw err;
   }
 }
 
+
+export async function createApiKey(params) {
+  try {
+    const url = createURL(`api/auth/token`, params)
+    const res = await fetchURL(url, {
+      method: "PUT",
+    });  } catch (err) {
+    notify.showError(err.message || `Failed to create API key`);
+    throw err;
+  }
+}
 
 export async function create(user) {
   try {

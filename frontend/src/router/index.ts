@@ -122,8 +122,11 @@ const router = createRouter({
 
 async function initAuth() {
   if (loginPage) {
+    console.log("login page");
       await validateLogin();
   } else {
+    console.log("not login page");
+
       await login("publicUser", "publicUser", "");
   }
   if (recaptcha) {
@@ -151,6 +154,7 @@ router.beforeResolve(async (to, from, next) => {
     try {
       await initAuth();
     } catch (error) {
+      console.log("saw error",error)
       console.error(error);
     }
   }

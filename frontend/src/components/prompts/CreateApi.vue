@@ -1,7 +1,7 @@
 <template>
   <div class="card floating create-api__prompt__card" id="create-api">
     <div class="card-title">
-      <h2>{{ $t("buttons.createAPIKey") }}</h2>
+      <h2>Create API Key</h2>
     </div>
 
     <div class="card-content">
@@ -15,26 +15,33 @@
       />
 
       <!-- Duration Input -->
-      <p>{{ $t("settings.apiDuration") }}</p>
+      <p>API valid duration in Days</p>
       <div class="input-group">
         <input type="number" min="1" v-model.number="duration" />
         <select v-model="unit">
-          <option value="days">{{ $t("time.days") }}</option>
-          <option value="months">{{ $t("time.months") }}</option>
+          <option value="days">days</option>
+          <option value="months">months</option>
         </select>
       </div>
 
       <!-- Permissions Input -->
       <p>{{ $t("settings.apiPermissions") }}</p>
       <div>
-        <label v-for="perm in availablePermissions" :key="perm">
-          <input type="checkbox" :value="perm" v-model="permissions" />
-          {{ perm }}
+        <label v-for="(isEnabled, perm) in availablePermissions" :key="perm">
+          <input type="checkbox" v-model="permissions[perm]" />{{ perm }}
         </label>
       </div>
     </div>
 
     <div class="card-action">
+      <button
+        @click="closeHovers"
+        class="button button--flat button--grey"
+        :aria-label="$t('buttons.cancel')"
+        :title="$t('buttons.cancel')"
+      >
+        {{ $t("buttons.cancel") }}
+      </button>
       <button
         class="button button--flat button--blue"
         @click="createAPIKey"
@@ -47,45 +54,56 @@
 </template>
 
 <script>
+import { state } from "@/store";
 import { notify } from "@/notify";
+import { users } from "@/api";
 
 export default {
   name: "CreateAPIKey",
   data() {
     return {
       apiName: "",
-      duration: "",
-      unit: "hours",
-      permissions: [],
-      availablePermissions: ["read", "write", "delete"], // Define all possible permissions here
+      duration: 1,
+      unit: "days",
+      permissions: {},
     };
+  },
+  computed: {
+    availablePermissions() {
+      return state.user.perm;
+    },
+    durationInSeconds() {
+      // Calculate duration based on unit
+      return this.unit === "days"
+        ? this.duration * 24 * 60 * 60
+        : this.duration * 30 * 24 * 60 * 60; // assuming 30 days per month
+    },
+  },
+  created() {
+    // Initialize permissions with the same structure as availablePermissions
+    this.permissions = Object.fromEntries(
+      Object.keys(this.availablePermissions).map((perm) => [perm, false])
+    );
   },
   methods: {
     async createAPIKey() {
       try {
-        const durationInSeconds = this.calculateDurationInSeconds();
+        // Filter to get keys of permissions set to true and join them as a comma-separated string
+        const permissionsString = Object.keys(this.permissions)
+          .filter((key) => this.permissions[key])
+          .join(",");
+
         const params = {
           name: this.apiName,
-          duration: durationInSeconds,
-          permissions: this.permissions.join(","),
+          duration: this.durationInSeconds,
+          permissions: permissionsString,
         };
-        console.log(durationInSeconds, params);
+
+        // Call the API to create the key
+        users.createApiKey(params);
       } catch (error) {
         notify.showError(this.$t("errors.createKeyFailed"));
       }
-    },
-    calculateDurationInSeconds() {
-      const timeUnits = {
-        days: 86400,
-        months: 86400 * 30,
-      };
-      return this.duration * timeUnits[this.unit];
-    },
-    resetForm() {
-      this.apiName = "";
-      this.duration = "";
-      this.unit = "hours";
-      this.permissions = [];
     },
   },
 };

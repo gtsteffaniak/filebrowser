@@ -66,19 +66,12 @@ definitions:
         type: integer
     type: object
   http.HttpResponse:
-    description: Response structure for http json reponses
     properties:
-      error:
-        type: string
       message:
         type: string
-      requestPayload:
-        items:
-          type: string
-        type: array
+      status:
+        type: integer
       token:
-        type: string
-      user:
         type: string
     type: object
   http.settingsData:
@@ -197,7 +190,9 @@ definitions:
     properties:
       Permissions:
         $ref: '#/definitions/users.Permissions'
-      duration:
+      belongsTo:
+        type: integer
+      createdAt:
         type: integer
       expiresAt:
         type: integer
@@ -205,8 +200,6 @@ definitions:
         type: string
       name:
         type: string
-      user:
-        $ref: '#/definitions/users.User'
     type: object
   users.Permissions:
     properties:

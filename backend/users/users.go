@@ -8,10 +8,10 @@ import (
 
 type AuthToken struct {
 	Key                  string      `json:"key"`
-	User                 User        `json:"user,omitempty"`
 	Name                 string      `json:"name"`
-	Duration             int64       `json:"duration"`
+	Created              int64       `json:"createdAt"`
 	Expires              int64       `json:"expiresAt"`
+	BelongsTo            uint        `json:"belongsTo"`
 	Permissions          Permissions `json:"Permissions"`
 	jwt.RegisteredClaims `json:"-"`
 }

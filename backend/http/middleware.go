@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4/request"
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/runner"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -18,6 +19,12 @@ type requestContext struct {
 	user *users.User
 	*runner.Runner
 	raw interface{}
+}
+
+type HttpResponse struct {
+	Status  int
+	Message string
+	Token   string
 }
 
 // Updated handleFunc to match the new signature
@@ -96,51 +103,31 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		var tokenString string
-		authHeader := r.Header.Get("Authorization")
 
-		// Check for Authorization header
-		if authHeader != "" {
-			// Split the header to get "Bearer {token}"
-			parts := strings.Split(authHeader, " ")
-			if len(parts) == 2 && parts[0] == "Bearer" {
-				tokenString = parts[1]
-			} else {
-				return http.StatusUnauthorized, fmt.Errorf("Invalid Authorization header format")
-			}
-		} else {
-			// Fallback to cookie if Authorization header is missing
-			cookie, err := r.Cookie("auth")
-			if err != nil {
-				// If no cookie found, return unauthorized
-				return http.StatusUnauthorized, fmt.Errorf("Authorization header or token cookie required")
-			}
-			tokenString = cookie.Value
-		}
-
-		if isRevokedApiKey(tokenString) {
-			return http.StatusUnauthorized, fmt.Errorf("Key has been deleted and is no longer valid")
-		}
-		// Parse and validate the token
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
 		var tk users.AuthToken
-		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk))
 		if err != nil || !token.Valid {
-
-			return http.StatusUnauthorized, fmt.Errorf("Invalid token : %v", err)
+			return http.StatusUnauthorized, nil
 		}
+		fmt.Println("token belongs to", tk.BelongsTo)
+		expired := !tk.VerifyExpiresAt(time.Now().Add(time.Hour), true)
+		user, err := store.Users.LastUpdate(tk.BelongsTo)
+		if err != nil {
+			return http.StatusNotFound, err
+		}
+		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < user
 
-		// Check if the token is outdated based on the last user update
-		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < store.Users.LastUpdate(tk.User.ID)
-		if updated {
+		if expired || updated {
 			w.Header().Add("X-Renew-Token", "true")
 		}
-		fmt.Println(tk.User.ID)
+
 		// Retrieve the user from the store and store it in the context
-		data.user, err = store.Users.Get(config.Server.Root, tk.User.ID)
+		data.user, err = store.Users.Get(config.Server.Root, tk.BelongsTo)
 		if err != nil {
+			fmt.Println("could not find,", tk.BelongsTo)
 			return http.StatusInternalServerError, err
 		}
 
@@ -201,20 +188,6 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			return
 		}
 	}
-}
-
-func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
-	marsh, err := json.Marshal(data)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if _, err := w.Write(marsh); err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	return 0, nil
 }
 
 func withPermShareHelper(fn handleFunc) handleFunc {
@@ -317,11 +290,16 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// @Description Response structure for http json reponses
-type HttpResponse struct {
-	User           string   `json:"user,omitempty"`
-	Error          string   `json:"error,omitempty"`
-	Message        string   `json:"message,omitempty"`
-	RequestPayload []string `json:"requestPayload,omitempty"`
-	Token          string   `json:"token,omitempty"`
+func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
+	marsh, err := json.Marshal(data)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if _, err := w.Write(marsh); err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return 0, nil
 }

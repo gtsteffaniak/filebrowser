@@ -80,7 +80,6 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /users/{id}", withSelfOrAdmin(userGetHandler))
 	api.HandleFunc("PUT /users/{id}", withSelfOrAdmin(userPutHandler))
 	api.HandleFunc("DELETE /users/{id}", withSelfOrAdmin(userDeleteHandler))
-	api.HandleFunc("GET /user/apikeys", withUser(listApiKeysHandler))
 
 	// Auth routes
 	api.HandleFunc("POST /auth/login", loginHandler)
@@ -89,6 +88,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("PUT /auth/token", withUser(createApiKeyHandler))
 	api.HandleFunc("GET /auth/token", withUser(createApiKeyHandler))
 	api.HandleFunc("DELETE /auth/token", withUser(deleteApiKeyHandler))
+	api.HandleFunc("GET /auth/tokens", withUser(listApiKeysHandler))
 
 	// Resources routes
 	api.HandleFunc("GET /resources/", withUser(resourceGetHandler))

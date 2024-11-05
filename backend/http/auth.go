@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -129,34 +130,24 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 	return printToken(w, r, d.user)
 }
 
-func makeSignedToken(user *users.User) (string, error) {
-	duration, err := time.ParseDuration(settings.Config.Auth.TokenExpirationTime)
-	if err != nil {
-		duration = time.Hour * 2 // Default duration if parsing fails
-	}
-	claims := &users.AuthToken{
-		User: *user,
-		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
-			Issuer:    "File Browser",
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(config.Auth.Key)
-	claims.Key = tokenString
-	return tokenString, err
-}
-
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-	signed, err := makeSignedToken(user)
+	fmt.Println("updating user ")
+
+	signed, err := makeSignedTokenAPI(*user, "WEB_TOKEN", time.Hour*2, user.Perm)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	fmt.Println("updating user token", user.Username, signed.Key)
+	// Perform the user update
+	err = store.Users.AddApiKey(user.ID, *signed)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Content-Type", "text/plain")
-	if _, err := w.Write([]byte(signed)); err != nil {
+	if _, err := w.Write([]byte(signed.Key)); err != nil {
 		return http.StatusInternalServerError, err
 	}
+	fmt.Println("Done!")
 	return 0, nil
 }
 
@@ -171,20 +162,17 @@ func revokeAPIKey(key string) {
 	revokeMu.Unlock()
 }
 
-func makeSignedTokenAPI(name string, user *users.User, duration time.Duration, perms users.Permissions) (*users.AuthToken, error) {
+func makeSignedTokenAPI(user users.User, name string, duration time.Duration, perms users.Permissions) (*users.AuthToken, error) {
 	claims := &users.AuthToken{
-		User: users.User{
-			Username: user.Username,
-			ID:       user.ID,
-			Perm:     perms,
-		},
-		Duration: duration.Nanoseconds(),          // Converts duration to int64 in nanoseconds
-		Expires:  time.Now().Add(duration).Unix(), // Adds duration to the current time for expiration
-		Name:     name,
+		Permissions: perms,
+		Created:     time.Now().Unix(),
+		Expires:     time.Now().Add(duration).Unix(),
+		Name:        name,
+		BelongsTo:   user.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
-			Issuer:    user.Username,
+			Issuer:    "FileBrowser Quantum",
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -12,19 +12,31 @@
     <div class="card-content full" v-if="links.length > 0">
       <p>
         API keys are based on the user that creates the. See
-        <a class="link" href="/swagger/index.html">swagger page</a> for how to use them
+        <a class="link" href="/swagger/index.html">swagger page</a> for how to use them.
+
+        Keys are associated with your user and the user must have access to the permission level you want to use the key with.
       </p>
       <table>
         <tr>
-          <th>Copy Token</th>
           <th>Name</th>
-          <th>Key Duration</th>
-          <th>Expires At</th>
+          <th>Created</th>
+          <th>Expires</th>
           <th>{{ $t("settings.permissions") }}</th>
-          <th>Delete</th>
+          <th>Actions</th>
         </tr>
 
         <tr v-for="link in links" :key="link.key">
+          <td>{{ link.name }}</td>
+          <td>{{ formatTime(link.created) }}</td>
+          <td>{{ formatTime(link.expires) }}</td>
+          <td>
+            <span v-for="(value, perm) in link.Permissions" :key="perm">{{ showResult(value)}}</span>
+          </td>
+          <td class="small">
+            <button class="action">
+              <i class="material-icons">info</i>
+            </button>
+          </td>
           <td class="small">
             <button
               class="action copy-clipboard"
@@ -33,27 +45,6 @@
               :title="$t('buttons.copyToClipboard')"
             >
               <i class="material-icons">content_paste</i>
-            </button>
-          </td>
-          <td>{{ link.name }}</td>
-          <td>{{ humanTime(link.duration) }}</td>
-          <td>{{ formatExpiresAt(link.expiresAt) }}</td>
-          <td>
-            <div class="permissions-cell">
-              <!-- Placeholder text, always visible -->
-              <span class="permissions-placeholder">Hover to view permissions</span>
-
-              <!-- Permissions list, shown only on hover -->
-              <div class="permissions-list">
-                <div v-for="(value, perm) in link.Permissions" :key="perm">
-                  {{ perm }}: {{ value }}
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="small">
-            <button class="action delete">
-              <i class="material-icons">delete</i>
             </button>
           </td>
         </tr>
@@ -101,7 +92,7 @@ export default {
   mounted() {
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
-      notify.showSuccess(this.$t("success.linkCopied"));
+      notify.showSuccess("Copied API Key!");
     });
   },
   beforeUnmount() {
@@ -122,14 +113,18 @@ export default {
     },
   },
   methods: {
+    showResult(value) {
+      return value ? "✓" : "✗";
+    },
     createPrompt() {
       mutations.showHover({ name: "CreateApi", props: { user: this.user } });
     },
-    humanTime(time) {
-      return fromNow(time, state.user.locale); // Adjust time as necessary
-    },
-    formatExpiresAt(expiresAt) {
-      return new Date(expiresAt * 1000).toLocaleString(); // Format the expiresAt value
+    formatTime(time) {
+      return new Date(time*1000).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
     },
   },
 };
