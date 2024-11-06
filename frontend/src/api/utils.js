@@ -4,6 +4,8 @@ import { baseURL } from "@/utils/constants";
 import { encodePath } from "@/utils/url";
 import { notify } from "@/notify";
 
+const prefix = `${baseURL}/files`;
+
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
   opts.headers = opts.headers || {};
@@ -60,6 +62,7 @@ export function removePrefix(url) {
   url = url.split("/").splice(2).join("/");
   if (url === "") url = "/";
   if (url[0] !== "/") url = "/" + url;
+  if (url.startsWith(prefix)) url = url.slice(prefix.length);
   return url;
 }
 

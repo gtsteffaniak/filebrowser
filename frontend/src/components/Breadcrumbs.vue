@@ -33,6 +33,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
+import { removePrefix } from "@/api/utils";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -51,7 +52,7 @@ export default {
       return getters.isCardView();
     },
     items() {
-      const relativePath = state.route.path.replace(this.base, "");
+      const relativePath = removePrefix(state.route.path);
       let parts = relativePath.split("/");
 
       if (parts[0] === "") {
