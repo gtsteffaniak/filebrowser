@@ -25,7 +25,7 @@ type Store interface {
 	Update(user *User, fields ...string) error
 	Save(user *User) error
 	Delete(id interface{}) error
-	LastUpdate(id uint) (int64, error)
+	LastUpdate(id uint) int64
 	AddApiKey(username uint, key AuthToken) error
 	DeleteApiKey(username uint, key string) error
 	AddRule(username string, rule Rule) error
@@ -186,11 +186,11 @@ func (s *Storage) Delete(id interface{}) error {
 }
 
 // LastUpdate gets the timestamp for the last update of an user.
-func (s *Storage) LastUpdate(id uint) (int64, error) {
+func (s *Storage) LastUpdate(id uint) int64 {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 	if val, ok := s.updated[id]; ok {
-		return val, nil
+		return val
 	}
-	return 0, errors.ErrNotExist
+	return 0
 }

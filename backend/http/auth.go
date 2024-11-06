@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -131,13 +130,10 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 }
 
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-	fmt.Println("updating user ")
-
 	signed, err := makeSignedTokenAPI(*user, "WEB_TOKEN", time.Hour*2, user.Perm)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	fmt.Println("updating user token", user.Username, signed.Key)
 	// Perform the user update
 	err = store.Users.AddApiKey(user.ID, *signed)
 	if err != nil {
@@ -147,7 +143,6 @@ func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, 
 	if _, err := w.Write([]byte(signed.Key)); err != nil {
 		return http.StatusInternalServerError, err
 	}
-	fmt.Println("Done!")
 	return 0, nil
 }
 

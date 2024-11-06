@@ -17,12 +17,7 @@ export function parseToken(token) {
 
 export async function validateLogin() {
   const authToken = getCookie("auth");
-  if (authToken != undefined) {
-    console.log("token", authToken);
-    await renew(authToken);
-  } else {
-    console.log("No token found");
-  }
+  await renew(authToken);
 }
 
 

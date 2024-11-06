@@ -103,7 +103,6 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
@@ -112,25 +111,18 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil || !token.Valid {
 			return http.StatusUnauthorized, nil
 		}
-		fmt.Println("token belongs to", tk.BelongsTo)
 		expired := !tk.VerifyExpiresAt(time.Now().Add(time.Hour), true)
-		user, err := store.Users.LastUpdate(tk.BelongsTo)
-		if err != nil {
-			return http.StatusNotFound, err
-		}
-		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < user
-
+		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < store.Users.LastUpdate(tk.BelongsTo)
 		if expired || updated {
+			fmt.Println("expired or bad?")
 			w.Header().Add("X-Renew-Token", "true")
 		}
-
 		// Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(config.Server.Root, tk.BelongsTo)
 		if err != nil {
-			fmt.Println("could not find,", tk.BelongsTo)
 			return http.StatusInternalServerError, err
 		}
-
+		fmt.Println("all good")
 		// Call the handler function, passing in the context
 		return fn(w, r, data)
 	}
