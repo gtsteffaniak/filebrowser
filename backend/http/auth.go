@@ -126,6 +126,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// check if x-auth header is present and token is
 	return printToken(w, r, d.user)
 }
 

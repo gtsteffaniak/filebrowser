@@ -22,9 +22,9 @@ type requestContext struct {
 }
 
 type HttpResponse struct {
-	Status  int
-	Message string
-	Token   string
+	Status  int    `json:"status,omitempty"`
+	Message string `json:"message,omitempty"`
+	Token   string `json:"token,omitempty"`
 }
 
 // Updated handleFunc to match the new signature
@@ -114,7 +114,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 		expired := !tk.VerifyExpiresAt(time.Now().Add(time.Hour), true)
 		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < store.Users.LastUpdate(tk.BelongsTo)
 		if expired || updated {
-			fmt.Println("expired or bad?")
 			w.Header().Add("X-Renew-Token", "true")
 		}
 		// Retrieve the user from the store and store it in the context

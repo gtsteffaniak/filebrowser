@@ -14,7 +14,6 @@ export async function fetchURL(url, opts, auth = true) {
   try {
     res = await fetch(`${baseURL}${url}`, {
       headers: {
-        "X-Auth": state.jwt,
         "sessionId": state.sessionId,
         "userScope": state.user.scope,
         ...headers,
