@@ -883,39 +883,6 @@ const docTemplate = `{
             }
         },
         "/api/users": {
-            "get": {
-                "description": "Returns a list of all registered users. Requires admin permissions.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Retrieve a list of users",
-                "responses": {
-                    "200": {
-                        "description": "List of users",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/users.User"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Adds a new user to the system.",
                 "consumes": [

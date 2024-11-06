@@ -43,7 +43,8 @@
 
 <script>
 import router from "@/router";
-import { state } from "@/store";
+import { users as api } from "@/api";
+import { state, mutations } from "@/store";
 import { signupLogin, login } from "@/utils/auth";
 import {
   name,
@@ -113,10 +114,9 @@ export default {
         if (this.createMode) {
           await signupLogin(this.username, this.password);
         }
-        console.log("pre");
-
         await login(this.username, this.password, captcha);
-        console.log("pushing!,", redirect);
+        let userInfo = await api.get("self");
+        mutations.setCurrentUser(userInfo);
         router.push({ path: redirect });
       } catch (e) {
         console.error(e);

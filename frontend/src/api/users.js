@@ -1,4 +1,4 @@
-import { fetchURL, fetchJSON,createURL } from "@/api/utils";
+import { fetchURL, fetchJSON, createURL } from "@/api/utils";
 import { notify } from "@/notify";  // Import notify for error handling
 
 export async function getAllUsers() {
@@ -10,9 +10,10 @@ export async function getAllUsers() {
   }
 }
 
+
 export async function get(id) {
   try {
-    return await fetchJSON(`/api/users/${id}`, {});
+    return await fetchJSON(`/api/users?id=${id}`, {});
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user with ID: ${id}`);
     throw err;
@@ -72,7 +73,8 @@ export async function update(user, which = ["all"]) {
     if (user.username === "publicUser") {
       return;
     }
-    await fetchURL(`/api/users/${user.id}`, {
+
+    await fetchURL(`/api/users?id=${user.id}`, {
       method: "PUT",
       body: JSON.stringify({
         what: "user",
@@ -88,7 +90,7 @@ export async function update(user, which = ["all"]) {
 
 export async function remove(id) {
   try {
-    await fetchURL(`/api/users/${id}`, {
+    await fetchURL(`/api/users?id=${id}`, {
       method: "DELETE",
     });
   } catch (err) {

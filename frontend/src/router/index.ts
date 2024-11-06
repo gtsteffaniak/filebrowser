@@ -138,7 +138,6 @@ async function initAuth() {
                   resolve();
               }
           };
-
           check();
       });
   }
@@ -148,10 +147,12 @@ router.beforeResolve(async (to, from, next) => {
   mutations.closeHovers()
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;
+  console.log("from",from,"to",to)
   mutations.setRoute(to)
   // this will only be null on first route
   if (from.name == null) {
     try {
+      console.log("init auth")
       await initAuth();
     } catch (error) {
       console.log("saw error",error)
@@ -159,12 +160,15 @@ router.beforeResolve(async (to, from, next) => {
     }
   }
   if (to.path.endsWith("/login") && getters.isLoggedIn()) {
+    console.log("redirecting to files, logged in")
     next({ path: "/files/" });
     return;
   }
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!getters.isLoggedIn()) {
+      console.log("redirecting to login, not logged in")
+
       next({
         path: "/login",
         query: { redirect: to.fullPath },

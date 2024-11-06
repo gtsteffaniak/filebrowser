@@ -12,10 +12,14 @@ export async function fetchURL(url, opts, auth = true) {
 
   let res;
   try {
+    let userScope = "";
+    if (state.user) {
+      userScope = state.user.scope;
+    }
     res = await fetch(`${baseURL}${url}`, {
       headers: {
         "sessionId": state.sessionId,
-        "userScope": state.user.scope,
+        "userScope": userScope,
         ...headers,
       },
       ...rest,

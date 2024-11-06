@@ -30,7 +30,7 @@ type HookAuth struct {
 }
 
 // Auth authenticates the user via a json in content body.
-func (a *HookAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
+func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
 	var cred hookCred
 
 	if r.Body == nil {

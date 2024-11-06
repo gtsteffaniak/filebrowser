@@ -130,20 +130,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 // Middleware to ensure the user is either the requested user or an admin
 func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		// Extract user ID from the request (e.g., from URL parameters)
-		id, err := getUserID(r)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-
 		// Check if the current user is the same as the requested user or if they are an admin
-		if data.user.ID != id && !data.user.Perm.Admin {
+		if !data.user.Perm.Admin {
 			return http.StatusForbidden, nil
 		}
-
-		// If authorized, set the raw field with the requested ID
-		data.raw = id
-
 		// Call the actual handler function with the updated context
 		return fn(w, r, data)
 	})

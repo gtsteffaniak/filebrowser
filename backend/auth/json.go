@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -23,15 +24,18 @@ type JSONAuth struct {
 }
 
 // Auth authenticates the user via a json in content body.
-func (a JSONAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
+func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, error) {
 	config := &settings.Config
 	var cred jsonCred
 
 	if r.Body == nil {
+		fmt.Println("nil body")
+
 		return nil, os.ErrPermission
 	}
 	err := json.NewDecoder(r.Body).Decode(&cred)
 	if err != nil {
+		fmt.Println("error decoding body")
 		return nil, os.ErrPermission
 	}
 
@@ -44,12 +48,15 @@ func (a JSONAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
 		}
 
 		if !ok {
+			fmt.Println("error other")
 			return nil, os.ErrPermission
 		}
 	}
-
-	u, err := usr.Get(config.Server.Root, cred.Username)
+	fmt.Println("cred.Username: ", cred.Password)
+	u, err := userStore.Get(config.Server.Root, cred.Username)
+	fmt.Println("u: ", u.Password, u.Username)
 	if err != nil || !users.CheckPwd(cred.Password, u.Password) {
+		fmt.Println("error check password")
 		return nil, os.ErrPermission
 	}
 

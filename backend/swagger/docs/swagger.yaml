@@ -887,28 +887,6 @@ paths:
       tags:
       - Resources
   /api/users:
-    get:
-      consumes:
-      - application/json
-      description: Returns a list of all registered users. Requires admin permissions.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of users
-          schema:
-            items:
-              $ref: '#/definitions/users.User'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Retrieve a list of users
-      tags:
-      - Users
     post:
       consumes:
       - application/json
