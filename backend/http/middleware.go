@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -34,7 +33,6 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/public/share/")
-		fmt.Println("adjustedRestPath", adjustedRestPath)
 		splitPath := strings.SplitN(adjustedRestPath, "/", 2)
 		hash := splitPath[0]
 		subPath := ""
@@ -111,8 +109,8 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil || !token.Valid {
 			return http.StatusUnauthorized, nil
 		}
-		expired := !tk.VerifyExpiresAt(time.Now().Add(time.Hour), true)
-		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < store.Users.LastUpdate(tk.BelongsTo)
+		expired := tk.Expires < time.Now().Unix()
+		updated := tk.Created < store.Users.LastUpdate(tk.BelongsTo)
 		if expired || updated {
 			w.Header().Add("X-Renew-Token", "true")
 		}
@@ -121,7 +119,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		fmt.Println("all good")
 		// Call the handler function, passing in the context
 		return fn(w, r, data)
 	}

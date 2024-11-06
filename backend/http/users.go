@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"reflect"
@@ -86,7 +85,6 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	// Fetch the user details
 	u, err := store.Users.Get(config.Server.Root, givenUserId)
 	if err == errors.ErrNotExist {
-		fmt.Println("user error!")
 		return http.StatusNotFound, err
 	}
 	if err != nil {
@@ -226,8 +224,6 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err := json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
-
-	fmt.Println("updating user", req.Data.Password)
 
 	// If `Which` is not specified, default to updating all fields
 	if len(req.Which) == 0 || req.Which[0] == "all" {

@@ -115,8 +115,6 @@ export default {
           await signupLogin(this.username, this.password);
         }
         await login(this.username, this.password, captcha);
-        let userInfo = await api.get("self");
-        mutations.setCurrentUser(userInfo);
         router.push({ path: redirect });
       } catch (e) {
         console.error(e);

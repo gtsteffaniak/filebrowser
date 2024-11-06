@@ -51,7 +51,6 @@ func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("whatup ")
 	switch action {
 	case "auth":
 		u, err := a.SaveUser()

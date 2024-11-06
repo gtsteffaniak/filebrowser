@@ -131,12 +131,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 }
 
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-	signed, err := makeSignedTokenAPI(*user, "WEB_TOKEN", time.Hour*2, user.Perm)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	// Perform the user update
-	err = store.Users.AddApiKey(user.ID, *signed)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN", time.Hour*2, user.Perm)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -158,8 +153,8 @@ func revokeAPIKey(key string) {
 	revokeMu.Unlock()
 }
 
-func makeSignedTokenAPI(user users.User, name string, duration time.Duration, perms users.Permissions) (*users.AuthToken, error) {
-	claims := &users.AuthToken{
+func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {
+	claim := users.AuthToken{
 		Permissions: perms,
 		Created:     time.Now().Unix(),
 		Expires:     time.Now().Add(duration).Unix(),
@@ -171,8 +166,16 @@ func makeSignedTokenAPI(user users.User, name string, duration time.Duration, pe
 			Issuer:    "FileBrowser Quantum",
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 	tokenString, err := token.SignedString(config.Auth.Key)
-	claims.Key = tokenString
-	return claims, err
+	if err != nil {
+		return claim, err
+	}
+	claim.Key = tokenString
+	// Perform the user update
+	err = store.Users.AddApiKey(user.ID, name, claim)
+	if err != nil {
+		return claim, err
+	}
+	return claim, err
 }

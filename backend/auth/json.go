@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -29,13 +28,10 @@ func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, 
 	var cred jsonCred
 
 	if r.Body == nil {
-		fmt.Println("nil body")
-
 		return nil, os.ErrPermission
 	}
 	err := json.NewDecoder(r.Body).Decode(&cred)
 	if err != nil {
-		fmt.Println("error decoding body")
 		return nil, os.ErrPermission
 	}
 
@@ -48,15 +44,11 @@ func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, 
 		}
 
 		if !ok {
-			fmt.Println("error other")
 			return nil, os.ErrPermission
 		}
 	}
-	fmt.Println("cred.Username: ", cred.Password)
 	u, err := userStore.Get(config.Server.Root, cred.Username)
-	fmt.Println("u: ", u.Password, u.Username)
 	if err != nil || !users.CheckPwd(cred.Password, u.Password) {
-		fmt.Println("error check password")
 		return nil, os.ErrPermission
 	}
 

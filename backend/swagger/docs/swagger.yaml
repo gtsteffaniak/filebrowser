@@ -250,9 +250,9 @@ definitions:
   users.User:
     properties:
       apiKeys:
-        items:
+        additionalProperties:
           $ref: '#/definitions/users.AuthToken'
-        type: array
+        type: object
       commands:
         items:
           type: string

@@ -1508,8 +1508,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "apiKeys": {
-                    "type": "array",
-                    "items": {
+                    "type": "object",
+                    "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
                     }
                 },

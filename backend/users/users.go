@@ -36,25 +36,25 @@ type Sorting struct {
 
 // User describes a user.
 type User struct {
-	StickySidebar   bool        `json:"stickySidebar"`
-	DarkMode        bool        `json:"darkMode"`
-	DisableSettings bool        `json:"disableSettings"`
-	ID              uint        `storm:"id,increment" json:"id"`
-	Username        string      `storm:"unique" json:"username"`
-	Password        string      `json:"password"`
-	Scope           string      `json:"scope"`
-	Locale          string      `json:"locale"`
-	LockPassword    bool        `json:"lockPassword"`
-	ViewMode        string      `json:"viewMode"`
-	SingleClick     bool        `json:"singleClick"`
-	Sorting         Sorting     `json:"sorting"`
-	Perm            Permissions `json:"perm"`
-	Commands        []string    `json:"commands"`
-	Rules           []Rule      `json:"rules"`
-	ApiKeys         []AuthToken `json:"apiKeys"`
-	HideDotfiles    bool        `json:"hideDotfiles"`
-	DateFormat      bool        `json:"dateFormat"`
-	GallerySize     int         `json:"gallerySize"`
+	StickySidebar   bool                 `json:"stickySidebar"`
+	DarkMode        bool                 `json:"darkMode"`
+	DisableSettings bool                 `json:"disableSettings"`
+	ID              uint                 `storm:"id,increment" json:"id"`
+	Username        string               `storm:"unique" json:"username"`
+	Password        string               `json:"password"`
+	Scope           string               `json:"scope"`
+	Locale          string               `json:"locale"`
+	LockPassword    bool                 `json:"lockPassword"`
+	ViewMode        string               `json:"viewMode"`
+	SingleClick     bool                 `json:"singleClick"`
+	Sorting         Sorting              `json:"sorting"`
+	Perm            Permissions          `json:"perm"`
+	Commands        []string             `json:"commands"`
+	Rules           []Rule               `json:"rules"`
+	ApiKeys         map[string]AuthToken `json:"apiKeys"`
+	HideDotfiles    bool                 `json:"hideDotfiles"`
+	DateFormat      bool                 `json:"dateFormat"`
+	GallerySize     int                  `json:"gallerySize"`
 }
 
 var PublicUser = User{

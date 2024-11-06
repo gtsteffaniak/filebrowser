@@ -10,6 +10,7 @@ import { getters, state } from "@/store";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
 import { mutations } from "@/store";
+import {users as api} from "@/api";
 import i18n from "@/i18n";
 
 const titles = {
@@ -122,11 +123,8 @@ const router = createRouter({
 
 async function initAuth() {
   if (loginPage) {
-    console.log("login page");
-      await validateLogin();
+    await validateLogin();
   } else {
-    console.log("not login page");
-
       await login("publicUser", "publicUser", "");
   }
   if (recaptcha) {
@@ -147,28 +145,26 @@ router.beforeResolve(async (to, from, next) => {
   mutations.closeHovers()
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;
-  console.log("from",from,"to",to)
   mutations.setRoute(to)
+  if (from.path.endsWith("/login")) {
+    let userInfo = await api.get("self");
+    mutations.setCurrentUser(userInfo);
+  }
   // this will only be null on first route
   if (from.name == null) {
     try {
-      console.log("init auth")
       await initAuth();
     } catch (error) {
-      console.log("saw error",error)
       console.error(error);
     }
   }
   if (to.path.endsWith("/login") && getters.isLoggedIn()) {
-    console.log("redirecting to files, logged in")
     next({ path: "/files/" });
     return;
   }
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!getters.isLoggedIn()) {
-      console.log("redirecting to login, not logged in")
-
       next({
         path: "/login",
         query: { redirect: to.fullPath },

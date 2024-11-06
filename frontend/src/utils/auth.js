@@ -1,17 +1,10 @@
-import { mutations } from "@/store";
+import { mutations,state } from "@/store";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
 
-export function parseToken(token) {
-  const parts = token.split(".");
-
-  if (parts.length !== 3) {
-    throw new Error("token malformed");
-  }
-  const data = JSON.parse(atob(parts[1]));
+export function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
   mutations.setSession(generateRandomCode(8));
-  mutations.setCurrentUser(data.user);
 }
 
 export async function validateLogin() {
@@ -32,7 +25,7 @@ export async function login(username, password, recaptcha) {
   const body = await res.text();
 
   if (res.status === 200) {
-    parseToken(body);
+    setNewToken(body);
   } else {
     throw new Error(body);
   }
@@ -48,7 +41,7 @@ export async function renew(jwt) {
   const body = await res.text();
   if (res.status === 200) {
     mutations.setSession(generateRandomCode(8));
-    parseToken(body);
+    setNewToken(body);
   } else {
     throw new Error(body);
   }

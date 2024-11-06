@@ -1,7 +1,6 @@
 package users
 
 import (
-	"slices"
 	"sync"
 	"time"
 
@@ -26,8 +25,8 @@ type Store interface {
 	Save(user *User) error
 	Delete(id interface{}) error
 	LastUpdate(id uint) int64
-	AddApiKey(username uint, key AuthToken) error
-	DeleteApiKey(username uint, key string) error
+	AddApiKey(username uint, name string, key AuthToken) error
+	DeleteApiKey(username uint, name string) error
 	AddRule(username string, rule Rule) error
 	DeleteRule(username string, ruleID string) error
 }
@@ -97,14 +96,16 @@ func (s *Storage) AddRule(userID string, rule Rule) error {
 	return nil
 }
 
-func (s *Storage) AddApiKey(userID uint, key AuthToken) error {
+func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 	user, err := s.Get("", userID)
 	if err != nil {
 		return err
 	}
-
-	user.ApiKeys = append(user.ApiKeys, key)
-
+	// Initialize the ApiKeys map if it is nil
+	if user.ApiKeys == nil {
+		user.ApiKeys = make(map[string]AuthToken)
+	}
+	user.ApiKeys[name] = key
 	err = s.Update(user, "ApiKeys")
 	if err != nil {
 		return err
@@ -118,11 +119,11 @@ func (s *Storage) DeleteApiKey(userID uint, authKey string) error {
 	if err != nil {
 		return err
 	}
-
-	user.ApiKeys = slices.DeleteFunc(user.ApiKeys, func(n AuthToken) bool {
-		return n.Key == authKey
-	})
-
+	// Initialize the ApiKeys map if it is nil
+	if user.ApiKeys == nil {
+		user.ApiKeys = make(map[string]AuthToken)
+	}
+	delete(user.ApiKeys, authKey)
 	err = s.Update(user, "ApiKeys")
 	if err != nil {
 		return err

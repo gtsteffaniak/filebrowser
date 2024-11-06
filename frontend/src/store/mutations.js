@@ -104,6 +104,7 @@ export const mutations = {
   setCurrentUser: (value) => {
     // If value is null or undefined, emit state change and exit early
     if (!value) {
+      state.user = value;
       emitStateChanged();
       return;
     }
@@ -112,7 +113,6 @@ export const mutations = {
       value.locale = i18n.detectLocale();  // Default to detected locale if missing
     }
     state.user = value;
-    console.log("user",state.user)
     // Emit state change after setting the user and locale
     emitStateChanged();
   },
@@ -149,7 +149,6 @@ export const mutations = {
     emitStateChanged();
   },
   updateCurrentUser: (value) => {
-    console.log("updating user",value)
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;
 
