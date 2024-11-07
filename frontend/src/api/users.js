@@ -20,9 +20,14 @@ export async function get(id) {
   }
 }
 
-export async function getApiKeys() {
+export async function getApiKeys(key="") {
+
   try {
-    const url = createURL(`api/auth/tokens`)
+    let buildUrl =   "api/auth/tokens"
+    if (key != "") {
+      buildUrl = buildUrl + "?key="+key
+    }
+    const url = createURL(buildUrl)
     return await fetchJSON(url);
   } catch (err) {
     notify.showError(err.message || `Failed to get api keys`);

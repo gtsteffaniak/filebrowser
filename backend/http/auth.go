@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 var (
@@ -131,7 +133,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 }
 
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN", time.Hour*2, user.Perm)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.GenerateRandomHash(4), time.Hour*2, user.Perm)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -154,6 +156,11 @@ func revokeAPIKey(key string) {
 }
 
 func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {
+
+	_, ok := user.ApiKeys[name]
+	if ok {
+		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
+	}
 	claim := users.AuthToken{
 		Permissions: perms,
 		Created:     time.Now().Unix(),
@@ -172,6 +179,10 @@ func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 		return claim, err
 	}
 	claim.Key = tokenString
+	if strings.HasPrefix(name, "WEB_TOKEN") {
+		// don't add to api tokens, its a short lived web token
+		return claim, err
+	}
 	// Perform the user update
 	err = store.Users.AddApiKey(user.ID, name, claim)
 	if err != nil {

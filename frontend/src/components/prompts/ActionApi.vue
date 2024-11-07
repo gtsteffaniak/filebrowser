@@ -1,5 +1,5 @@
 <template>
-  <div class="card floating create-api__prompt__card" id="create-api">
+  <div class="card floating actionApi-api__prompt__card" id="action-api">
     <div class="card-title">
       <h2>Create API Key</h2>
     </div>
@@ -72,11 +72,11 @@ export default {
     availablePermissions() {
       return state.user.perm;
     },
-    durationInDays() {
+    durationInSeconds() {
       // Calculate duration based on unit
       return this.unit === "days"
-        ? this.duration
-        : this.duration * 30; // assuming 30 days per month
+        ? this.duration * 24 * 60 * 60
+        : this.duration * 30 * 24 * 60 * 60; // assuming 30 days per month
     },
   },
   created() {
@@ -95,7 +95,7 @@ export default {
 
         const params = {
           name: this.apiName,
-          duration: this.durationInDays,
+          duration: this.durationInSeconds,
           permissions: permissionsString,
         };
 

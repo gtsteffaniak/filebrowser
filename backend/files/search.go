@@ -1,12 +1,12 @@
 package files
 
 import (
-	"math/rand"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
-	"time"
+
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 var (
@@ -24,7 +24,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	// Remove slashes
 	scope = strings.TrimLeft(scope, "/")
 	scope = strings.TrimRight(scope, "/")
-	runningHash := generateRandomHash(4)
+	runningHash := utils.GenerateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
 	results := make([]searchResult, 0)
@@ -205,14 +205,4 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 	}
 
 	return true, fileType, fileSize
-}
-
-func generateRandomHash(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	result := make([]byte, length)
-	for i := range result {
-		result[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(result)
 }

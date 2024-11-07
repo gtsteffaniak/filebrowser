@@ -90,12 +90,12 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /auth/tokens", withUser(listApiKeysHandler))
 
 	// Resources routes
-	api.HandleFunc("GET /resources/", withUser(resourceGetHandler))
-	api.HandleFunc("DELETE /resources/", withUser(resourceDeleteHandler))
-	api.HandleFunc("POST /resources/", withUser(resourcePostHandler))
-	api.HandleFunc("PUT /resources/", withUser(resourcePutHandler))
-	api.HandleFunc("PATCH /resource/", withUser(resourcePatchHandler))
-	api.HandleFunc("GET /usage/", withUser(diskUsage))
+	api.HandleFunc("GET /resources", withUser(resourceGetHandler))
+	api.HandleFunc("DELETE /resources", withUser(resourceDeleteHandler))
+	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
+	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
+	api.HandleFunc("PATCH /resource", withUser(resourcePatchHandler))
+	api.HandleFunc("GET /usage", withUser(diskUsage))
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	api.HandleFunc("GET /preview", withUser(previewHandler))
 

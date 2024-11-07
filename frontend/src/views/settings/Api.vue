@@ -82,7 +82,7 @@ export default {
 
     try {
       // Fetch the API keys from the specified endpoint
-      this.links = await users.getApiKeys(); // Updated to the correct API endpoint
+      this.links = await users.getApiKeys(""); // Updated to the correct API endpoint
     } catch (e) {
       this.error = e;
     } finally {

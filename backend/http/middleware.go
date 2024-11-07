@@ -106,11 +106,12 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		var tk users.AuthToken
 		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk))
-		if err != nil || !token.Valid {
+		if err != nil || !token.Valid || isRevokedApiKey(tk.Key) {
 			return http.StatusUnauthorized, nil
 		}
 		expired := tk.Expires < time.Now().Unix()
 		updated := tk.Created < store.Users.LastUpdate(tk.BelongsTo)
+
 		if expired || updated {
 			w.Header().Add("X-Renew-Token", "true")
 		}

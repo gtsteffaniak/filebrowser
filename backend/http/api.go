@@ -12,8 +12,18 @@ import (
 
 func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	name := r.URL.Query().Get("name")
-	durationStr := r.URL.Query().Get("duration")
+	durationStr := r.URL.Query().Get("days")
 	permissionsStr := r.URL.Query().Get("permissions")
+
+	if name == "" {
+		return http.StatusInternalServerError, fmt.Errorf("api name must be valid")
+	}
+	if durationStr == "" {
+		return http.StatusInternalServerError, fmt.Errorf("api duration must be valid")
+	}
+	if permissionsStr == "" {
+		return http.StatusInternalServerError, fmt.Errorf("api permissions must be valid")
+	}
 	// Parse permissions from the query parameter
 	permissions := users.Permissions{
 		Api:      strings.Contains(permissionsStr, "api") && d.user.Perm.Api,
@@ -34,10 +44,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	// Here we assume the duration is in seconds; convert to time.Duration
-	duration := time.Duration(durationInt) * time.Second
-	if name == "" {
-		return http.StatusInternalServerError, fmt.Errorf("api name must be valid string")
-	}
+	duration := time.Duration(durationInt) * time.Hour * 24
 
 	// get request body like:
 	token, err := makeSignedTokenAPI(d.user, name, duration, permissions)
@@ -52,11 +59,11 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 }
 
 func deleteApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	apiKey := r.URL.Query().Get("apiKey")
+	apiKey := r.URL.Query().Get("key")
 	// Perform the user update
 	err := store.Users.DeleteApiKey(d.user.ID, apiKey)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusNotFound, err
 	}
 	revokeAPIKey(apiKey) // add to blacklist
 	response := HttpResponse{
@@ -74,6 +81,23 @@ type AuthTokenMin struct {
 }
 
 func listApiKeysHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	key := r.URL.Query().Get("key")
+
+	if key != "" {
+		keyInfo, ok := d.user.ApiKeys[key]
+		if !ok {
+			return http.StatusNotFound, fmt.Errorf("api key not found")
+		}
+		modifiedKey := AuthTokenMin{
+			Key:         keyInfo.Key,
+			Name:        key,
+			Created:     keyInfo.Created,
+			Expires:     keyInfo.Expires,
+			Permissions: keyInfo.Permissions,
+		}
+		return renderJSON(w, r, modifiedKey)
+	}
+
 	modifiedList := []AuthTokenMin{}
 	for key, value := range d.user.ApiKeys {
 		modifiedList = append(modifiedList, AuthTokenMin{

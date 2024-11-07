@@ -31,8 +31,8 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/ [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/resources")
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, adjustedRestPath)
+	path := r.URL.Query().Get("path")
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -74,7 +74,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/ [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	path := strings.TrimPrefix(r.URL.Path, "/resources")
+	path := r.URL.Query().Get("path")
 	if path == "/" || !d.user.Perm.Delete {
 		return http.StatusForbidden, nil
 	}
@@ -124,10 +124,11 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/ [post]
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Perm.Create || !d.user.Check(r.URL.Path) {
+	path := r.URL.Query().Get("path")
+	if !d.user.Perm.Create || !d.user.Check(path) {
 		return http.StatusForbidden, nil
 	}
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -140,7 +141,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		Checker:    d.user,
 	}
 	// Directories creation on POST.
-	if strings.HasSuffix(r.URL.Path, "/") {
+	if strings.HasSuffix(path, "/") {
 		err = files.WriteDirectory(fileOpts) // Assign to the existing `err` variable
 		if err != nil {
 			return errToStatus(err), err
@@ -181,16 +182,18 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/ [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Perm.Modify || !d.user.Check(r.URL.Path) {
+	path := r.URL.Query().Get("path")
+
+	if !d.user.Perm.Modify || !d.user.Check(path) {
 		return http.StatusForbidden, nil
 	}
 
 	// Only allow PUT for files.
-	if strings.HasSuffix(r.URL.Path, "/") {
+	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
 	}
 
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -224,7 +227,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources/ [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	src := r.URL.Path
+	src := r.URL.Query().Get("path")
 	dst := r.URL.Query().Get("destination")
 	action := r.URL.Query().Get("action")
 	dst, err := url.QueryUnescape(dst)
@@ -345,8 +348,8 @@ type DiskUsageResponse struct {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/usage/ [get]
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/usage")
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, adjustedRestPath)
+	path := r.URL.Query().Get("path")
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}

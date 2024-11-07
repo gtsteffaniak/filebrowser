@@ -3,7 +3,9 @@ package utils
 import (
 	"crypto/rand"
 	"log"
+	math "math/rand"
 	"strings"
+	"time"
 )
 
 func CheckErr(source string, err error) {
@@ -27,4 +29,14 @@ func CapitalizeFirst(s string) string {
 		return s // Return the empty string as is
 	}
 	return strings.ToUpper(string(s[0])) + s[1:]
+}
+
+func GenerateRandomHash(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	math.New(math.NewSource(time.Now().UnixNano()))
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[math.Intn(len(charset))]
+	}
+	return string(result)
 }
