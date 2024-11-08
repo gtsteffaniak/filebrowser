@@ -61,7 +61,6 @@
 import { notify } from "@/notify";
 import { users } from "@/api";
 import { state, mutations, getters } from "@/store";
-import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
 
@@ -82,7 +81,7 @@ export default {
 
     try {
       // Fetch the API keys from the specified endpoint
-      this.links = await users.getApiKeys(""); // Updated to the correct API endpoint
+      this.links = await users.getApiKeys(); // Updated to the correct API endpoint
     } catch (e) {
       this.error = e;
     } finally {

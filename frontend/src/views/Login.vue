@@ -43,8 +43,7 @@
 
 <script>
 import router from "@/router";
-import { users as api } from "@/api";
-import { state, mutations } from "@/store";
+import { state } from "@/store";
 import { signupLogin, login } from "@/utils/auth";
 import {
   name,

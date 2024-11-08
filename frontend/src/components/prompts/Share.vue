@@ -179,12 +179,13 @@ export default {
       console.log("subpath", subpath);
       console.log("hash", hash);
       // get last element of the path
-      const links = await api.get(this.url,hash);
+      const links = await api.get(this.url, hash);
+
+      this.links = links;
+
     } catch (err) {
       return
     }
-
-    this.links = links;
     this.sort();
 
     if (this.links.length === 0) {

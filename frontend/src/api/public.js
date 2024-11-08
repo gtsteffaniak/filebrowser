@@ -1,4 +1,4 @@
-import { removePrefix, createURL } from "./utils";
+import { createURL } from "./utils";
 import { baseURL } from "@/utils/constants";
 
 export async function fetchPub(path, hash, password = "") {
@@ -19,7 +19,7 @@ export async function fetchPub(path, hash, password = "") {
 }
 
 export function download(path, hash, token, format, ...files) {
-  let url = `${baseURL}/api/public/dl?path=${share.path}&hash=${share.hash}`;
+  let url = `${baseURL}/api/public/dl?path=${path}&hash=${hash}`;
   if (files.length === 1) {
     url += encodeURIComponent(files[0]) + "?";
   } else {

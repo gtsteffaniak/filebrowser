@@ -33,11 +33,6 @@ func (d dirFS) Open(name string) (fs.File, error) {
 	return d.Dir.Open(name)
 }
 
-type modifyRequest struct {
-	What  string   `json:"what"`  // Answer to: what data type?
-	Which []string `json:"which"` // Answer to: which fields?
-}
-
 var (
 	store     *storage.Storage
 	config    *settings.Settings

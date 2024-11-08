@@ -1,4 +1,4 @@
-import { mutations, state, getters } from "@/store";
+import { mutations, getters } from "@/store";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
 import {users as api} from "@/api";

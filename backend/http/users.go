@@ -26,10 +26,6 @@ type Sorting struct {
 	By  string `json:"by"`
 	Asc bool   `json:"asc"`
 }
-type modifyUserRequest struct {
-	modifyRequest
-	Data *users.User `json:"data"`
-}
 type UserRequest struct {
 	What  string      `json:"what"`
 	Which []string    `json:"which"`
@@ -50,12 +46,11 @@ type UserRequest struct {
 // @Router /api/users/{id} [get]
 func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	givenUserIdString := r.URL.Query().Get("id")
-	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
-	givenUserId := uint(num)
 
 	// since api self is used to validate a logged in user
 	w.Header().Add("X-Renew-Token", "false")
 
+	var givenUserId uint
 	if givenUserIdString == "self" {
 		givenUserId = d.user.ID
 	} else if givenUserIdString == "" {
@@ -162,7 +157,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	// Parse the JSON into the UserRequest struct
 	var req UserRequest
-	if err := json.Unmarshal(body, &req); err != nil {
+	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
 
@@ -220,7 +215,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	// Parse the JSON into the UserRequest struct
 	var req UserRequest
-	if err := json.Unmarshal(body, &req); err != nil {
+	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
 

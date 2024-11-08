@@ -39,7 +39,7 @@ export async function getApiKeys(key="") {
 export async function createApiKey(params) {
   try {
     const url = createURL(`api/auth/token`, params)
-    const res = await fetchURL(url, {
+    await fetchURL(url, {
       method: "PUT",
     });  } catch (err) {
     notify.showError(err.message || `Failed to create API key`);
