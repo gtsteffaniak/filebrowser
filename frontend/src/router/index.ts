@@ -10,7 +10,6 @@ import { getters, state } from "@/store";
 import { recaptcha, loginPage } from "@/utils/constants";
 import { login, validateLogin } from "@/utils/auth";
 import { mutations } from "@/store";
-import {users as api} from "@/api";
 import i18n from "@/i18n";
 
 const titles = {
@@ -122,6 +121,7 @@ const router = createRouter({
 
 
 async function initAuth() {
+
   if (loginPage) {
     await validateLogin();
   } else {
@@ -146,10 +146,6 @@ router.beforeResolve(async (to, from, next) => {
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;
   mutations.setRoute(to)
-  if (from.path.endsWith("/login")) {
-    let userInfo = await api.get("self");
-    mutations.setCurrentUser(userInfo);
-  }
   // this will only be null on first route
   if (from.name == null) {
     try {

@@ -53,6 +53,9 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
 	givenUserId := uint(num)
 
+	// since api self is used to validate a logged in user
+	w.Header().Add("X-Renew-Token", "false")
+
 	if givenUserIdString == "self" {
 		givenUserId = d.user.ID
 	} else if givenUserIdString == "" {

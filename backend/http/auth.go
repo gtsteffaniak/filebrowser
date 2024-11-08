@@ -161,15 +161,17 @@ func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 	if ok {
 		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
 	}
+	now := time.Now()
+	expires := now.Add(duration)
 	claim := users.AuthToken{
 		Permissions: perms,
-		Created:     time.Now().Unix(),
-		Expires:     time.Now().Add(duration).Unix(),
+		Created:     now.Unix(),
+		Expires:     expires.Unix(),
 		Name:        name,
 		BelongsTo:   user.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(expires),
 			Issuer:    "FileBrowser Quantum",
 		},
 	}

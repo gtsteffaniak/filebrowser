@@ -41,7 +41,7 @@ type User struct {
 	DisableSettings bool                 `json:"disableSettings"`
 	ID              uint                 `storm:"id,increment" json:"id"`
 	Username        string               `storm:"unique" json:"username"`
-	Password        string               `json:"password"`
+	Password        string               `json:"password,omitempty"`
 	Scope           string               `json:"scope"`
 	Locale          string               `json:"locale"`
 	LockPassword    bool                 `json:"lockPassword"`
@@ -51,7 +51,7 @@ type User struct {
 	Perm            Permissions          `json:"perm"`
 	Commands        []string             `json:"commands"`
 	Rules           []Rule               `json:"rules"`
-	ApiKeys         map[string]AuthToken `json:"apiKeys"`
+	ApiKeys         map[string]AuthToken `json:"-"`
 	HideDotfiles    bool                 `json:"hideDotfiles"`
 	DateFormat      bool                 `json:"dateFormat"`
 	GallerySize     int                  `json:"gallerySize"`

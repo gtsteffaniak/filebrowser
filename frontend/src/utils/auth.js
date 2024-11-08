@@ -1,17 +1,23 @@
-import { mutations,state } from "@/store";
+import { mutations, state, getters } from "@/store";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
+import {users as api} from "@/api";
 
-export function setNewToken(token) {
+export async function setNewToken(token) {
+  console.log("setNewToken");
   document.cookie = `auth=${token}; path=/`;
   mutations.setSession(generateRandomCode(8));
+  let userInfo = await api.get("self");
+  mutations.setCurrentUser(userInfo);
+  console.log("setNewToken done",getters.isLoggedIn());
+  return getters.isLoggedIn()
 }
 
 export async function validateLogin() {
-  const authToken = getCookie("auth");
-  await renew(authToken);
+  console.log("Validating login");
+    const authToken = getCookie("auth");
+    await renew(authToken);
 }
-
 
 export async function login(username, password, recaptcha) {
   const data = { username, password, recaptcha };
@@ -25,13 +31,14 @@ export async function login(username, password, recaptcha) {
   const body = await res.text();
 
   if (res.status === 200) {
-    setNewToken(body);
+    await setNewToken(body);
   } else {
     throw new Error(body);
   }
 }
 
 export async function renew(jwt) {
+  console.log("Renewing token");
   const res = await fetch(`${baseURL}/api/auth/renew`, {
     method: "POST",
     headers: {
@@ -41,7 +48,7 @@ export async function renew(jwt) {
   const body = await res.text();
   if (res.status === 200) {
     mutations.setSession(generateRandomCode(8));
-    setNewToken(body);
+    await setNewToken(body);
   } else {
     throw new Error(body);
   }

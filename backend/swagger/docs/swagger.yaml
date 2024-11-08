@@ -186,21 +186,6 @@ definitions:
       userID:
         type: integer
     type: object
-  users.AuthToken:
-    properties:
-      Permissions:
-        $ref: '#/definitions/users.Permissions'
-      belongsTo:
-        type: integer
-      createdAt:
-        type: integer
-      expiresAt:
-        type: integer
-      key:
-        type: string
-      name:
-        type: string
-    type: object
   users.Permissions:
     properties:
       admin:
@@ -249,10 +234,6 @@ definitions:
     type: object
   users.User:
     properties:
-      apiKeys:
-        additionalProperties:
-          $ref: '#/definitions/users.AuthToken'
-        type: object
       commands:
         items:
           type: string

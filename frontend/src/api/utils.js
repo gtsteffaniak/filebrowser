@@ -32,7 +32,7 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (auth && res.headers.get("X-Renew-Token") === "true") {
-    console.log("renewing because", res.headers.get("X-Renew-Token"),auth);
+    console.log("this request has renew header",url)
     await renew(state.jwt);
   }
 

@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -106,13 +107,23 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		var tk users.AuthToken
 		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk))
-		if err != nil || !token.Valid || isRevokedApiKey(tk.Key) {
-			return http.StatusUnauthorized, nil
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+				return http.StatusUnauthorized, fmt.Errorf("invalid token signature: %w", err)
+			} else if err == jwt.ErrTokenExpired {
+				return http.StatusUnauthorized, fmt.Errorf("token expired: %w", err)
+			} else {
+				return http.StatusInternalServerError, fmt.Errorf("error parsing token: %w", err)
+			}
 		}
-		expired := tk.Expires < time.Now().Unix()
-		updated := tk.Created < store.Users.LastUpdate(tk.BelongsTo)
-
-		if expired || updated {
+		if !token.Valid {
+			return http.StatusUnauthorized, fmt.Errorf("invalid token")
+		}
+		if isRevokedApiKey(tk.Key) || tk.Expires < time.Now().Unix() {
+			return http.StatusUnauthorized, fmt.Errorf("token expired or revoked")
+		}
+		// Check if the token is about to expire and send a header to renew it
+		if tk.Expires < time.Now().Add(time.Hour).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
 		}
 		// Retrieve the user from the store and store it in the context
@@ -149,15 +160,30 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 		// Handle the error case if there is one
 		if err != nil {
 			// Log the actual error to the server logs
-			log.Printf("Error: %v", err)
+			log.Printf("Error in middleware: %v", err)
 
-			// If the status is not explicitly set, default to 500
-			if status == http.StatusOK {
-				status = http.StatusInternalServerError
+			// Create an error response
+			response := &HttpResponse{
+				Status:  status, // Use the status code from the middleware
+				Message: err.Error(),
 			}
 
-			// Send the error response with the status and error message
-			http.Error(w, err.Error(), status)
+			// Set the content type to JSON
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+			// Marshal the error response to JSON
+			errorBytes, err := json.Marshal(response)
+			if err != nil {
+				log.Printf("Error marshalling error response: %v", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+
+			// Write the JSON error response
+			if _, err := w.Write(errorBytes); err != nil {
+				log.Printf("Error writing error response: %v", err)
+				return
+			}
 			return
 		}
 
