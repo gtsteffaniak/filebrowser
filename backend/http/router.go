@@ -108,7 +108,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	// Public routes
 	api.HandleFunc("GET /public/publicUser", publicUserGetHandler)
 	api.HandleFunc("GET /public/dl", withHashFile(publicDlHandler))
-	api.HandleFunc("GET /public/share/", withHashFile(publicShareHandler))
+	api.HandleFunc("GET /public/share", withHashFile(publicShareHandler))
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))

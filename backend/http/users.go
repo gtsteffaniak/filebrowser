@@ -81,7 +81,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		givenUserId = uint(num)
 	}
 
-	if givenUserId != d.user.ID || !d.user.Perm.Admin {
+	if givenUserId != d.user.ID && !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 
@@ -143,11 +143,7 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users [post]
 func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	givenUserIdString := r.URL.Query().Get("id")
-	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
-	givenUserId := uint(num)
-
-	if givenUserId != d.user.ID || !d.user.Perm.Admin {
+	if !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 

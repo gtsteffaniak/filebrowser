@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -33,13 +32,11 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 // Middleware to handle file requests by hash and pass it to the handler
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/public/share/")
-		splitPath := strings.SplitN(adjustedRestPath, "/", 2)
-		hash := splitPath[0]
-		subPath := ""
-		if len(splitPath) > 1 {
-			subPath = splitPath[1]
-		}
+		path := r.URL.Query().Get("path")
+		hash := r.URL.Query().Get("hash")
+
+		data.user = &users.PublicUser
+
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -57,7 +54,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
-		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+subPath)
+		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+path)
 		if err != nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err
@@ -159,9 +156,6 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 
 		// Handle the error case if there is one
 		if err != nil {
-			// Log the actual error to the server logs
-			log.Printf("Error in middleware: %v", err)
-
 			// Create an error response
 			response := &HttpResponse{
 				Status:  status, // Use the status code from the middleware

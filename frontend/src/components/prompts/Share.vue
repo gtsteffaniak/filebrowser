@@ -122,7 +122,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { share as api, pub as pub_api } from "@/api";
+import { share as api, publicApi as pub_api } from "@/api";
 import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 
@@ -174,7 +174,12 @@ export default {
   },
   async beforeMount() {
     try {
-      const links = await api.get(this.url);
+      const hash = this.url.substring(this.url.lastIndexOf("/") + 1);
+      const subpath = this.url.substring(0, this.url.lastIndexOf("/"));
+      console.log("subpath", subpath);
+      console.log("hash", hash);
+      // get last element of the path
+      const links = await api.get(this.url,hash);
     } catch (err) {
       return
     }

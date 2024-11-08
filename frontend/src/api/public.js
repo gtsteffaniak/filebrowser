@@ -1,10 +1,9 @@
 import { removePrefix, createURL } from "./utils";
 import { baseURL } from "@/utils/constants";
 
-export async function fetchPub(url, password = "") {
-  url = removePrefix(url);
+export async function fetchPub(path, hash, password = "") {
   const res = await fetch(
-      `/api/public/share${url}`,
+      `/api/public/share?path=${path}&hash=${hash}`,
       {
         headers: {
           "X-SHARE-PASSWORD": encodeURIComponent(password),
@@ -16,28 +15,11 @@ export async function fetchPub(url, password = "") {
     error.status = res.status;
     throw error;
   }
-
-  let data = await res.json();
-  data.url = `/share${url}`;
-  if (data.isDir) {
-    if (!data.url.endsWith("/")) data.url += "/";
-    data.items = data.items.map((item, index) => {
-      item.index = index;
-      item.url = `${data.url}${encodeURIComponent(item.name)}`;
-
-      if (item.isDir) {
-        item.url += "/";
-      }
-
-      return item;
-    });
-  }
-
-  return data;
+  return res.json();
 }
 
-export function download(format, hash, token, ...files) {
-  let url = `${baseURL}/api/public/dl/${hash}`;
+export function download(path, hash, token, format, ...files) {
+  let url = `${baseURL}/api/public/dl?path=${share.path}&hash=${share.hash}`;
   if (files.length === 1) {
     url += encodeURIComponent(files[0]) + "?";
   } else {
@@ -52,11 +34,11 @@ export function download(format, hash, token, ...files) {
   }
 
   if (format) {
-    url += `algo=${format}&`;
+    url += `&algo=${format}`;
   }
 
   if (token) {
-    url += `token=${token}&`;
+    url += `&token=${token}`;
   }
 
   window.open(url);
@@ -76,14 +58,12 @@ export function getPublicUser() {
     });
 }
 
-export function getDownloadURL(share, inline = false) {
+export function getDownloadURL(path,hash, token, inline = false) {
   const params = {
+    path: path,
+    hash: hash,
     ...(inline && { inline: "true" }),
-    ...(share.token && { token: share.token }),
+    ...(token && { token: token }),
   };
-  if (share.path == undefined) {
-    share.path = ""
-  }
-  const path = share.path.replace("/share/"+share.hash +"/","")
-  return createURL("api/public/dl/" + share.hash + "/"+path, params, false);
+  return createURL(`api/public/dl`, params, false);
 }

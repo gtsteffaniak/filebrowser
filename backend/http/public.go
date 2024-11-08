@@ -42,9 +42,12 @@ func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(*files.FileInfo)
-	if !ok {
+	file, _ := d.raw.(*files.FileInfo)
+	if file == nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
+	}
+	if d.user == nil {
+		return http.StatusUnauthorized, fmt.Errorf("failed to get user")
 	}
 
 	if !file.IsDir {

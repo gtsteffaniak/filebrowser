@@ -8,11 +8,10 @@
 
     <div class="card-content">
       <user-form
-        :user="user"
+        v-model:user="user"
         :createUserDir="createUserDir"
         :isDefault="false"
         :isNew="isNew"
-        @update:user="(updatedUser) => (user = updatedUser)"
         @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
       />
     </div>
@@ -32,6 +31,7 @@
     </div>
   </form>
 </template>
+
 <script>
 import { mutations, state } from "@/store";
 import { users as api, settings } from "@/api";
@@ -67,6 +67,9 @@ export default {
     },
     isNew() {
       return state.route.path.startsWith("/settings/users/new");
+    },
+    userPayload() {
+      return JSON.parse(JSON.stringify(this.user)); // Deep copy for safety
     },
   },
   methods: {
@@ -104,15 +107,14 @@ export default {
       mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
-      let user = this.user;
       event.preventDefault();
       try {
         if (this.isNew) {
-          const loc = await api.create(user);
+          const loc = await api.create(this.userPayload); // Use the computed property
           this.$router.push({ path: loc });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
-          await api.update(user);
+          await api.update(this.userPayload);
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {
