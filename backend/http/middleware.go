@@ -40,7 +40,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
-			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err
 		}
 		// Authenticate the share request if needed
@@ -48,7 +47,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.Hash != "" {
 			status, err = authenticateShareRequest(r, link)
 			if err != nil || status != http.StatusOK {
-				http.Error(w, http.StatusText(status), status)
 				return status, err
 			}
 		}
@@ -56,7 +54,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		user := &users.PublicUser
 		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+path)
 		if err != nil {
-			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err
 		}
 
@@ -71,7 +68,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Token:      link.Token,
 		})
 		if err != nil {
-			http.Error(w, http.StatusText(errToStatus(err)), errToStatus(err))
 			return errToStatus(err), err
 		}
 
@@ -156,35 +152,34 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 
 		// Handle the error case if there is one
 		if err != nil {
-			// Create an error response
+			// Create an error response in JSON format
 			response := &HttpResponse{
 				Status:  status, // Use the status code from the middleware
 				Message: err.Error(),
 			}
 
-			// Set the content type to JSON
+			// Set the content type to JSON and status code
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(status)
 
 			// Marshal the error response to JSON
-			errorBytes, err := json.Marshal(response)
-			if err != nil {
-				log.Printf("Error marshalling error response: %v", err)
+			errorBytes, marshalErr := json.Marshal(response)
+			if marshalErr != nil {
+				log.Printf("Error marshalling error response: %v", marshalErr)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 
 			// Write the JSON error response
-			if _, err := w.Write(errorBytes); err != nil {
-				log.Printf("Error writing error response: %v", err)
-				return
+			if _, writeErr := w.Write(errorBytes); writeErr != nil {
+				log.Printf("Error writing error response: %v", writeErr)
 			}
 			return
 		}
 
-		// If the status is not 200, return the appropriate status
-		if status != http.StatusOK {
-			http.Error(w, http.StatusText(status), status)
-			return
+		// No error, proceed to write status if non-zero
+		if status != 0 {
+			w.WriteHeader(status)
 		}
 	}
 }

@@ -122,7 +122,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { share as api, publicApi as pub_api } from "@/api";
+import { shareApi, publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 
@@ -179,7 +179,7 @@ export default {
       console.log("subpath", subpath);
       console.log("hash", hash);
       // get last element of the path
-      const links = await api.get(this.url, hash);
+      const links = await shareApi.get(this.url, hash);
 
       this.links = links;
 
@@ -208,9 +208,9 @@ export default {
       let res = null;
 
       if (isPermanent) {
-        res = await api.create(this.url, this.password);
+        res = await shareApi.create(this.url, this.password);
       } else {
-        res = await api.create(this.url, this.password, this.time, this.unit);
+        res = await shareApi.create(this.url, this.password, this.time, this.unit);
       }
 
       this.links.push(res);
@@ -224,7 +224,7 @@ export default {
     },
     async deleteLink(event, link) {
       event.preventDefault();
-      await api.remove(link.hash);
+      await publicApi.remove(link.hash);
       this.links = this.links.filter((item) => item.hash !== link.hash);
 
       if (this.links.length === 0) {
@@ -235,13 +235,13 @@ export default {
       return fromNow(time, state.user.locale);
     },
     buildLink(share) {
-      return api.getShareURL(share);
+      return shareApi.getShareURL(share);
     },
     hasDownloadLink() {
       return this.selected.length === 1 && !state.req.items[this.selected[0]].isDir;
     },
     buildDownloadLink(share) {
-      return pub_api.getDownloadURL(share);
+      return publicApi.getDownloadURL(share);
     },
     sort() {
       this.links = this.links.sort((a, b) => {

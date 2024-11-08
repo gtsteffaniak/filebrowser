@@ -36,7 +36,7 @@
   </div>
 </template>
 <script>
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import url from "@/utils/url";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 
@@ -86,11 +86,11 @@ export default {
       uri += encodeURIComponent(this.name) + "/";
       uri = uri.replace("//", "/");
 
-      await api.post(uri);
+      await filesApi.post(uri);
       if (this.redirect) {
         this.$router.push({ path: uri });
       } else if (!this.base) {
-        const res = await api.fetch(url.removeLastDir(uri) + "/");
+        const res = await filesApi.fetch(url.removeLastDir(uri) + "/");
         mutations.updateRequest(res);
       }
 

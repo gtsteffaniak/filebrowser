@@ -137,7 +137,7 @@
 <script>
 import { notify } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { publicApi as public_api } from "@/api";
+import { publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
@@ -238,7 +238,7 @@ export default {
   },
   methods: {
     getLink(inline=false) {
-      return public_api.getDownloadURL(this.subPath,this.hash,inline);
+      return publicApi.getDownloadURL(this.subPath,this.hash,inline);
     },
     base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));
@@ -249,7 +249,7 @@ export default {
       this.error = null;
       // Reset view information.
       if (!getters.isLoggedIn()) {
-        let userData = await public_api.getPublicUser();
+        let userData = await publicApi.getPublicUser();
         mutations.setCurrentUser(userData);
       }
       mutations.setReload(false);
@@ -257,12 +257,13 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
       try {
-        let file = await public_api.fetchPub(this.subPath,this.hash, this.password);
+        let file = await publicApi.fetchPub(this.subPath,this.hash, this.password);
         file.hash = this.hash;
         mutations.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;
       } catch (error) {
         this.error = error;
+        notify.showError(error);
       }
 
       mutations.setLoading("share", false);

@@ -1,6 +1,6 @@
 import { state } from "@/store";
 import url from "@/utils/url";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 
 export function checkConflict(files, items) {
   if (typeof items === "undefined" || items === null) {
@@ -123,7 +123,7 @@ export async function handleFiles(files, base, overwrite = false) {
       overwrite,
     };
 
-    await api.post(item.path, item.file, item.overwrite, (event) => {
+    await filesApi.post(item.path, item.file, item.overwrite, (event) => {
       console.log(`Upload progress: ${Math.round((event.loaded / event.total) * 100)}%`);
     })
     .then(response => {

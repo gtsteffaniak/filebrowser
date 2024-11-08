@@ -56,7 +56,7 @@
 <script>
 import { state } from "@/store";
 import { notify } from "@/notify";
-import { users } from "@/api";
+import { usersApi } from "@/api";
 
 export default {
   name: "CreateAPIKey",
@@ -100,7 +100,7 @@ export default {
         };
 
         // Call the API to create the key
-        users.createApiKey(params);
+        usersApi.createApiKey(params);
       } catch (error) {
         notify.showError(this.$t("errors.createKeyFailed"));
       }

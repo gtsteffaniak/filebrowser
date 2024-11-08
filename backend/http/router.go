@@ -96,7 +96,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	// Share routes
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
-	api.HandleFunc("GET /share/", withPermShare(shareGetsHandler))
+	api.HandleFunc("GET /share", withPermShare(shareGetsHandler))
 	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 

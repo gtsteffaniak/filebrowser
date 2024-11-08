@@ -99,7 +99,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
-import { users } from "@/api";
+import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ViewMode from "@/components/settings/ViewMode.vue";
 import i18n, { rtlLanguages } from "@/i18n";
@@ -173,7 +173,7 @@ export default {
         let newUserSettings = state.user;
         newUserSettings.id = state.user.id;
         newUserSettings.password = this.password;
-        await users.update(newUserSettings, ["password"]);
+        await usersApi.update(newUserSettings, ["password"]);
         notify.showSuccess(this.$t("settings.passwordUpdated"));
       } catch (e) {
         notify.showError(e);
@@ -194,7 +194,7 @@ export default {
         };
         const shouldReload =
           rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
-        await users.update(data, [
+        await usersApi.update(data, [
           "locale",
           "darkMode",
           "viewMode",

@@ -1,13 +1,13 @@
 import { mutations, getters } from "@/store";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
-import {users as api} from "@/api";
+import { usersApi } from "@/api";
 
 export async function setNewToken(token) {
   console.log("setNewToken");
   document.cookie = `auth=${token}; path=/`;
   mutations.setSession(generateRandomCode(8));
-  let userInfo = await api.get("self");
+  let userInfo = await usersApi.get("self");
   mutations.setCurrentUser(userInfo);
   console.log("setNewToken done",getters.isLoggedIn());
   return getters.isLoggedIn()

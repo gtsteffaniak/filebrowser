@@ -34,7 +34,7 @@
 
 <script>
 import { mutations, state } from "@/store";
-import { users as api, settings } from "@/api";
+import { usersApi, settingsApi } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
@@ -80,7 +80,7 @@ export default {
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
-          let { defaults, createUserDir } = await settings.get();
+          let { defaults, createUserDir } = await settingsApi.get();
           this.createUserDir = createUserDir;
           this.user = {
             ...defaults,
@@ -94,7 +94,7 @@ export default {
           const id = Array.isArray(state.route.params.id)
             ? state.route.params.id.join("")
             : state.route.params.id;
-          this.user = { ...(await api.get(id)) };
+          this.user = { ...(await usersApi.get(id)) };
         }
       } catch (e) {
         notify.showError(e);
@@ -110,11 +110,11 @@ export default {
       event.preventDefault();
       try {
         if (this.isNew) {
-          const loc = await api.create(this.userPayload); // Use the computed property
+          const loc = await usersApi.create(this.userPayload); // Use the computed property
           this.$router.push({ path: loc });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
-          await api.update(this.userPayload);
+          await usersApi.update(this.userPayload);
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {

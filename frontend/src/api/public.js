@@ -1,51 +1,50 @@
-import { createURL } from "./utils";
 import { baseURL } from "@/utils/constants";
+import { fetchURL, fetchJSON, removePrefix, createURL } from "./utils";
 
+// Fetch public share data
 export async function fetchPub(path, hash, password = "") {
-  const res = await fetch(
-      `/api/public/share?path=${path}&hash=${hash}`,
-      {
-        headers: {
-          "X-SHARE-PASSWORD": encodeURIComponent(password),
-        },
-      }
-  );
-  if (res.status != 200) {
-    const error = new Error("000 No connection");
-    error.status = res.status;
+  const params = {
+    path,
+    hash,
+  }
+  const url = createURL(`api/public/share`, params, false);
+
+  const response = await fetch(url, {
+    headers: {
+      "X-SHARE-PASSWORD": password ? encodeURIComponent(password) : "",
+    },
+  });
+
+  if (!response.ok) {
+    const error = new Error("Failed to connect to the server.");
+    error.status = response.status;
     throw error;
   }
-  return res.json();
+
+  return response.json();
 }
 
+// Download files with given parameters
 export function download(path, hash, token, format, ...files) {
-  let url = `${baseURL}/api/public/dl?path=${path}&hash=${hash}`;
-  if (files.length === 1) {
-    url += encodeURIComponent(files[0]) + "?";
-  } else {
-    let arg = "";
-    for (let file of files) {
-      arg += encodeURIComponent(file) + ",";
-    }
-
-    arg = arg.substring(0, arg.length - 1);
-    arg = encodeURIComponent(arg);
-    url += `/?files=${arg}&`;
+  let fileInfo = files[0]
+  if (files.length > 1) {
+    fileInfo = files.map(encodeURIComponent).join(",");
   }
-
-  if (format) {
-    url += `&algo=${format}`;
-  }
-
-  if (token) {
-    url += `&token=${token}`;
-  }
-
+  const params = {
+    path,
+    hash,
+    ...(format && { format}),
+    ...(token && { token }),
+    file
+  };
+  const url = createURL(`api/public/dl`, params, false);
   window.open(url);
 }
 
+// Get the public user data
 export function getPublicUser() {
-  return fetch("/api/public/publicUser")
+  const url = createURL(`api/public/publicUser`, {}, false);
+  return fetch(url)
     .then(response => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -58,12 +57,13 @@ export function getPublicUser() {
     });
 }
 
-export function getDownloadURL(path,hash, token, inline = false) {
+// Generate a download URL
+export function getDownloadURL(path, hash, token, inline = false) {
   const params = {
-    path: path,
-    hash: hash,
+    path,
+    hash,
     ...(inline && { inline: "true" }),
-    ...(token && { token: token }),
+    ...(token && { token }),
   };
   return createURL(`api/public/dl`, params, false);
 }
