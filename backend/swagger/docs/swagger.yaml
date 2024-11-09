@@ -65,11 +65,13 @@ definitions:
       used:
         type: integer
     type: object
-  http.HealthCheckResponse:
-    description: Response structure for health check
+  http.HttpResponse:
     properties:
+      message:
+        type: string
       status:
-        description: The status of the health check
+        type: integer
+      token:
         type: string
     type: object
   http.settingsData:
@@ -110,6 +112,10 @@ definitions:
     type: object
   settings.UserDefaults:
     properties:
+      apiKeys:
+        items:
+          type: string
+        type: array
       commands:
         items:
           type: string
@@ -180,9 +186,26 @@ definitions:
       userID:
         type: integer
     type: object
+  users.AuthToken:
+    properties:
+      Permissions:
+        $ref: '#/definitions/users.Permissions'
+      belongsTo:
+        type: integer
+      createdAt:
+        type: integer
+      expiresAt:
+        type: integer
+      key:
+        type: string
+      name:
+        type: string
+    type: object
   users.Permissions:
     properties:
       admin:
+        type: boolean
+      api:
         type: boolean
       create:
         type: boolean
@@ -226,6 +249,10 @@ definitions:
     type: object
   users.User:
     properties:
+      apiKeys:
+        additionalProperties:
+          $ref: '#/definitions/users.AuthToken'
+        type: object
       commands:
         items:
           type: string
@@ -860,28 +887,6 @@ paths:
       tags:
       - Resources
   /api/users:
-    get:
-      consumes:
-      - application/json
-      description: Returns a list of all registered users. Requires admin permissions.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of users
-          schema:
-            items:
-              $ref: '#/definitions/users.User'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Retrieve a list of users
-      tags:
-      - Users
     post:
       consumes:
       - application/json
@@ -1039,7 +1044,7 @@ paths:
         "200":
           description: successful health check response
           schema:
-            $ref: '#/definitions/http.HealthCheckResponse'
+            $ref: '#/definitions/http.HttpResponse'
       summary: Health Check
       tags:
       - Health

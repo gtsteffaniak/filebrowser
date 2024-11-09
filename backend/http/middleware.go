@@ -1,10 +1,10 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -20,24 +20,28 @@ type requestContext struct {
 	raw interface{}
 }
 
+type HttpResponse struct {
+	Status  int    `json:"status,omitempty"`
+	Message string `json:"message,omitempty"`
+	Token   string `json:"token,omitempty"`
+}
+
 // Updated handleFunc to match the new signature
 type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error)
 
 // Middleware to handle file requests by hash and pass it to the handler
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		adjustedRestPath := strings.TrimPrefix(r.URL.Path, "/public/share/")
-		fmt.Println("adjustedRestPath", adjustedRestPath)
-		splitPath := strings.SplitN(adjustedRestPath, "/", 2)
-		hash := splitPath[0]
-		subPath := ""
-		if len(splitPath) > 1 {
-			subPath = splitPath[1]
-		}
+		path := r.URL.Query().Get("path")
+		hash := r.URL.Query().Get("hash")
+
+		data.user = &users.PublicUser
+
+		fmt.Println("lets find that hash", hash)
+
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
-			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err
 		}
 		// Authenticate the share request if needed
@@ -45,15 +49,15 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if link.Hash != "" {
 			status, err = authenticateShareRequest(r, link)
 			if err != nil || status != http.StatusOK {
-				http.Error(w, http.StatusText(status), status)
 				return status, err
 			}
 		}
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
-		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+subPath)
+		fmt.Println("paths", link.Path, path, user.Scope)
+
+		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+path)
 		if err != nil {
-			http.Error(w, "Not Found", http.StatusNotFound)
 			return http.StatusNotFound, err
 		}
 
@@ -68,7 +72,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Token:      link.Token,
 		})
 		if err != nil {
-			http.Error(w, http.StatusText(errToStatus(err)), errToStatus(err))
 			return errToStatus(err), err
 		}
 
@@ -96,27 +99,35 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
-		var tk authToken
+		var tk users.AuthToken
 		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk))
-		if err != nil || !token.Valid {
-			return http.StatusUnauthorized, nil
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+				return http.StatusUnauthorized, fmt.Errorf("invalid token signature: %w", err)
+			} else if err == jwt.ErrTokenExpired {
+				return http.StatusUnauthorized, fmt.Errorf("token expired: %w", err)
+			} else {
+				return http.StatusInternalServerError, fmt.Errorf("error parsing token: %w", err)
+			}
 		}
-		expired := !tk.VerifyExpiresAt(time.Now().Add(time.Hour), true)
-		updated := tk.IssuedAt != nil && tk.IssuedAt.Unix() < store.Users.LastUpdate(tk.User.ID)
-
-		if expired || updated {
+		if !token.Valid {
+			return http.StatusUnauthorized, fmt.Errorf("invalid token")
+		}
+		if isRevokedApiKey(tk.Key) || tk.Expires < time.Now().Unix() {
+			return http.StatusUnauthorized, fmt.Errorf("token expired or revoked")
+		}
+		// Check if the token is about to expire and send a header to renew it
+		if tk.Expires < time.Now().Add(time.Hour).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
 		}
 		// Retrieve the user from the store and store it in the context
-		data.user, err = store.Users.Get(config.Server.Root, tk.User.ID)
+		data.user, err = store.Users.Get(config.Server.Root, tk.BelongsTo)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
 		// Call the handler function, passing in the context
 		return fn(w, r, data)
 	}
@@ -125,20 +136,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 // Middleware to ensure the user is either the requested user or an admin
 func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		// Extract user ID from the request (e.g., from URL parameters)
-		id, err := getUserID(r)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-
 		// Check if the current user is the same as the requested user or if they are an admin
-		if data.user.ID != id && !data.user.Perm.Admin {
+		if !data.user.Perm.Admin {
 			return http.StatusForbidden, nil
 		}
-
-		// If authorized, set the raw field with the requested ID
-		data.raw = id
-
 		// Call the actual handler function with the updated context
 		return fn(w, r, data)
 	})
@@ -155,23 +156,34 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 
 		// Handle the error case if there is one
 		if err != nil {
-			// Log the actual error to the server logs
-			log.Printf("Error: %v", err)
-
-			// If the status is not explicitly set, default to 500
-			if status == http.StatusOK {
-				status = http.StatusInternalServerError
+			// Create an error response in JSON format
+			response := &HttpResponse{
+				Status:  status, // Use the status code from the middleware
+				Message: err.Error(),
 			}
 
-			// Send the error response with the status and error message
-			http.Error(w, err.Error(), status)
+			// Set the content type to JSON and status code
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(status)
+
+			// Marshal the error response to JSON
+			errorBytes, marshalErr := json.Marshal(response)
+			if marshalErr != nil {
+				log.Printf("Error marshalling error response: %v", marshalErr)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+
+			// Write the JSON error response
+			if _, writeErr := w.Write(errorBytes); writeErr != nil {
+				log.Printf("Error writing error response: %v", writeErr)
+			}
 			return
 		}
 
-		// If the status is not 200, return the appropriate status
-		if status != http.StatusOK {
-			http.Error(w, http.StatusText(status), status)
-			return
+		// No error, proceed to write status if non-zero
+		if status != 0 {
+			w.WriteHeader(status)
 		}
 	}
 }
@@ -274,4 +286,18 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			"\033[0m", // Reset color
 		)
 	})
+}
+
+func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
+	marsh, err := json.Marshal(data)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if _, err := w.Write(marsh); err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return 0, nil
 }

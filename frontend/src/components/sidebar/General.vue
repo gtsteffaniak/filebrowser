@@ -80,7 +80,7 @@ import {
   noAuth,
   loginPage,
 } from "@/utils/constants";
-import { files } from "@/api";
+import { filesApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -155,7 +155,7 @@ export default {
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      let usage = await files.usage(path);
+      let usage = await filesApi.usage(path);
       usageStats = {
         used: getHumanReadableFilesize(usage.used / 1024),
         total: getHumanReadableFilesize(usage.total / 1024),

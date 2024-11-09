@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
@@ -14,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/storage"
 	"github.com/gtsteffaniak/filebrowser/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 func setupTestEnv(t *testing.T) {
@@ -81,7 +83,7 @@ func TestWithAdminHelper(t *testing.T) {
 			data := &requestContext{
 				user: tc.user,
 			}
-			token, err := makeSignedToken(tc.user)
+			token, err := makeSignedTokenAPI(tc.user, "WEB_TOKEN_"+utils.GenerateRandomHash(4), time.Hour*2, tc.user.Perm)
 			if err != nil {
 				t.Fatalf("Error making token for request: %v", err)
 			}
@@ -98,7 +100,7 @@ func TestWithAdminHelper(t *testing.T) {
 			}
 			req.AddCookie(&http.Cookie{
 				Name:  "auth",
-				Value: token,
+				Value: token.Key,
 			})
 
 			// Call the handler with the test request and mock context
@@ -123,7 +125,9 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 	testCases := []struct {
 		name               string
 		share              *share.Link
-		req                *http.Request
+		token              string
+		password           string
+		extraHeaders       map[string]string
 		expectedStatusCode int
 	}{
 		{
@@ -131,7 +135,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			share: &share.Link{
 				Hash: "public_hash",
 			},
-			req:                newHTTPRequest(t, "public_hash"),
 			expectedStatusCode: 0, // zero means 200 on helpers
 		},
 		{
@@ -142,7 +145,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
 			},
-			req:                newHTTPRequest(t, "private_hash"),
 			expectedStatusCode: http.StatusUnauthorized,
 		},
 		{
@@ -153,7 +155,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
 			},
-			req:                newHTTPRequest(t, "token_hash", func(r *http.Request) { r.URL.RawQuery = "token=123" }),
+			token:              "123",
 			expectedStatusCode: 0, // zero means 200 on helpers
 		},
 		{
@@ -164,7 +166,9 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
 			},
-			req:                newHTTPRequest(t, "pw_hash", func(r *http.Request) { r.Header.Set("X-SHARE-PASSWORD", "wrong-password") }),
+			extraHeaders: map[string]string{
+				"X-SHARE-PASSWORD": "wrong-password",
+			},
 			expectedStatusCode: http.StatusUnauthorized,
 		},
 	}
@@ -181,9 +185,6 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 
 			// Wrap the handler with authentication middleware
 			handler := withHashFileHelper(publicShareHandler)
-			if err := store.Share.Save(tc.share); err != nil {
-				t.Fatalf("failed to save share: %v", err)
-			}
 			if err := store.Settings.Save(&settings.Settings{
 				Auth: settings.Auth{
 					Key: []byte("key"),
@@ -192,8 +193,11 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				t.Fatalf("failed to save settings: %v", err)
 			}
 
+			// Prepare the request with query parameters and optional headers
+			req := newTestRequest(t, tc.share.Hash, tc.token, tc.password, tc.extraHeaders)
+
 			// Serve the request
-			status, err := handler(recorder, tc.req, &requestContext{})
+			status, err := handler(recorder, req, &requestContext{})
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -204,6 +208,28 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Helper function to create a new HTTP request with optional parameters
+func newTestRequest(t *testing.T, hash, token, password string, headers map[string]string) *http.Request {
+	req := newHTTPRequest(t, hash, func(r *http.Request) {
+		// Set query parameters based on provided values
+		q := r.URL.Query()
+		q.Set("hash", hash)
+		if token != "" {
+			q.Set("token", token)
+		}
+		if password != "" {
+			q.Set("password", password)
+		}
+		r.URL.RawQuery = q.Encode()
+
+		// Set any extra headers if provided
+		for key, value := range headers {
+			r.Header.Set(key, value)
+		}
+	})
+	return req
 }
 
 func mockHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {

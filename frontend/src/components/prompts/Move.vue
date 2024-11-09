@@ -49,7 +49,7 @@
 <script>
 import { mutations, state } from "@/store";
 import FileList from "./FileList.vue";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { notify } from "@/notify";
@@ -99,7 +99,7 @@ export default {
           });
       };
 
-      let dstItems = (await api.fetch(this.dest)).items;
+      let dstItems = (await filesApi.fetch(this.dest)).items;
       let conflict = upload.checkConflict(items, dstItems);
 
       let overwrite = false;

@@ -1,8 +1,6 @@
 package bolt
 
 import (
-	"fmt"
-
 	"github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
 
@@ -56,10 +54,8 @@ func (s shareBackend) GetPermanent(path string, id uint) (*share.Link, error) {
 
 func (s shareBackend) Gets(path string, id uint) ([]*share.Link, error) {
 	var v []*share.Link
-	fmt.Println("checking path: ", path)
 	err := s.db.Select(q.Eq("Path", path), q.Eq("UserID", id)).Find(&v)
 	if err == storm.ErrNotFound {
-		fmt.Println("Nope path: ", path)
 		return v, errors.ErrNotExist
 	}
 

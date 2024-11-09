@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -27,7 +26,6 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/shares [get]
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	fmt.Println("shareListHandler")
 	var (
 		s   []*share.Link
 		err error
@@ -65,13 +63,11 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/share [get]
 func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	path := strings.TrimPrefix(r.URL.Path, "/share")
-	fmt.Println(path)
+	path := r.URL.Query().Get("path")
 	s, err := store.Share.Gets(path, d.user.ID)
 	if err == errors.ErrNotExist {
-		return http.StatusNoContent, err
+		return renderJSON(w, r, []*share.Link{})
 	}
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

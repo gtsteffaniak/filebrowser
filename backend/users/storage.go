@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -25,6 +26,8 @@ type Store interface {
 	Save(user *User) error
 	Delete(id interface{}) error
 	LastUpdate(id uint) int64
+	AddApiKey(username uint, name string, key AuthToken) error
+	DeleteApiKey(username uint, name string) error
 	AddRule(username string, rule Rule) error
 	DeleteRule(username string, ruleID string) error
 }
@@ -87,6 +90,43 @@ func (s *Storage) AddRule(userID string, rule Rule) error {
 	user.Rules = append(user.Rules, rule)
 
 	err = s.Update(user, "Rules")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
+	user, err := s.Get("", userID)
+	if err != nil {
+		return err
+	}
+	// Initialize the ApiKeys map if it is nil
+	if user.ApiKeys == nil {
+		user.ApiKeys = make(map[string]AuthToken)
+	}
+	user.ApiKeys[name] = key
+	fmt.Println("add api key", user.ApiKeys)
+	err = s.Update(user, "ApiKeys")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) DeleteApiKey(userID uint, authKey string) error {
+	user, err := s.Get("", userID)
+	if err != nil {
+		return err
+	}
+	// Initialize the ApiKeys map if it is nil
+	if user.ApiKeys == nil {
+		user.ApiKeys = make(map[string]AuthToken)
+	}
+	delete(user.ApiKeys, authKey)
+	err = s.Update(user, "ApiKeys")
 	if err != nil {
 		return err
 	}

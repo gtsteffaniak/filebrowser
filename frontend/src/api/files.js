@@ -7,10 +7,9 @@ import { notify } from "@/notify";
 export async function fetch(url, content = false) {
   try {
     url = removePrefix(url);
-    const res = await fetchURL(`/api/resources${url}?content=${content}`, {});
+    const res = await fetchURL(`/api/resources?path=${url}&content=${content}`, {});
     const data = await res.json();
-    data.url = `${baseURL}/files${url}`;
-    console.log(data)
+    data.url = `/files${url}`;
     if (data.isDir) {
       if (!data.url.endsWith("/")) data.url += "/";
       data.items = data.items.map((item, index) => {
@@ -35,14 +34,13 @@ export async function fetch(url, content = false) {
 async function resourceAction(url, method, content) {
   try {
     url = removePrefix(url);
-
     let opts = { method };
 
     if (content) {
       opts.body = content;
     }
 
-    const res = await fetchURL(`/api/resources${url}`, opts);
+    const res = await fetchURL(`/api/resources?path=${url}`, opts);
     return res;
   } catch (err) {
     notify.showError(err.message || "Error performing resource action");
@@ -111,7 +109,7 @@ export async function post(url, content = "", overwrite = false, onupload) {
       let request = new XMLHttpRequest();
       request.open(
         "POST",
-        `${baseURL}/api/resources${url}?override=${overwrite}`,
+        `${baseURL}/api/resources?path=${url}&override=${overwrite}`,
         true
       );
       request.setRequestHeader("X-Auth", state.jwt);
@@ -229,8 +227,7 @@ export function getSubtitlesURL(file) {
 export async function usage(url) {
   try {
     url = removePrefix(url);
-
-    const res = await fetchURL(`/api/usage${url}`, {});
+    const res = await fetchURL(`/api/usage?path=${url}`, {});
     return await res.json();
   } catch (err) {
     notify.showError(err.message || "Error fetching usage data");

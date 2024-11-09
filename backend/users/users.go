@@ -2,9 +2,22 @@ package users
 
 import (
 	"regexp"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
+type AuthToken struct {
+	Key                  string      `json:"key"`
+	Name                 string      `json:"name"`
+	Created              int64       `json:"createdAt"`
+	Expires              int64       `json:"expiresAt"`
+	BelongsTo            uint        `json:"belongsTo"`
+	Permissions          Permissions `json:"Permissions"`
+	jwt.RegisteredClaims `json:"-"`
+}
+
 type Permissions struct {
+	Api      bool `json:"api"`
 	Admin    bool `json:"admin"`
 	Execute  bool `json:"execute"`
 	Create   bool `json:"create"`
@@ -23,24 +36,25 @@ type Sorting struct {
 
 // User describes a user.
 type User struct {
-	StickySidebar   bool        `json:"stickySidebar"`
-	DarkMode        bool        `json:"darkMode"`
-	DisableSettings bool        `json:"disableSettings"`
-	ID              uint        `storm:"id,increment" json:"id"`
-	Username        string      `storm:"unique" json:"username"`
-	Password        string      `json:"password"`
-	Scope           string      `json:"scope"`
-	Locale          string      `json:"locale"`
-	LockPassword    bool        `json:"lockPassword"`
-	ViewMode        string      `json:"viewMode"`
-	SingleClick     bool        `json:"singleClick"`
-	Sorting         Sorting     `json:"sorting"`
-	Perm            Permissions `json:"perm"`
-	Commands        []string    `json:"commands"`
-	Rules           []Rule      `json:"rules"`
-	HideDotfiles    bool        `json:"hideDotfiles"`
-	DateFormat      bool        `json:"dateFormat"`
-	GallerySize     int         `json:"gallerySize"`
+	StickySidebar   bool                 `json:"stickySidebar"`
+	DarkMode        bool                 `json:"darkMode"`
+	DisableSettings bool                 `json:"disableSettings"`
+	ID              uint                 `storm:"id,increment" json:"id"`
+	Username        string               `storm:"unique" json:"username"`
+	Password        string               `json:"password,omitempty"`
+	Scope           string               `json:"scope"`
+	Locale          string               `json:"locale"`
+	LockPassword    bool                 `json:"lockPassword"`
+	ViewMode        string               `json:"viewMode"`
+	SingleClick     bool                 `json:"singleClick"`
+	Sorting         Sorting              `json:"sorting"`
+	Perm            Permissions          `json:"perm"`
+	Commands        []string             `json:"commands"`
+	Rules           []Rule               `json:"rules"`
+	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"`
+	HideDotfiles    bool                 `json:"hideDotfiles"`
+	DateFormat      bool                 `json:"dateFormat"`
+	GallerySize     int                  `json:"gallerySize"`
 }
 
 var PublicUser = User{
@@ -57,6 +71,7 @@ var PublicUser = User{
 		Share:    false,
 		Download: true,
 		Admin:    false,
+		Api:      false,
 	},
 }
 

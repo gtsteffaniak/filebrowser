@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"reflect"
 	"sort"
@@ -25,62 +26,10 @@ type Sorting struct {
 	By  string `json:"by"`
 	Asc bool   `json:"asc"`
 }
-type modifyUserRequest struct {
-	modifyRequest
-	Data *users.User `json:"data"`
-}
-
-func getUserID(r *http.Request) (uint, error) {
-	id := r.PathValue("id")
-	i, err := strconv.ParseUint(id, 10, 0)
-	if err != nil {
-		return 0, err
-	}
-	return uint(i), err
-}
-
-func getUser(_ http.ResponseWriter, r *http.Request) (*modifyUserRequest, error) {
-	if r.Body == nil {
-		return nil, errors.ErrEmptyRequest
-	}
-
-	req := &modifyUserRequest{}
-	err := json.NewDecoder(r.Body).Decode(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if req.What != "user" {
-		return nil, errors.ErrInvalidDataType
-	}
-
-	return req, nil
-}
-
-// usersGetHandler retrieves a list of all users.
-// @Summary Retrieve a list of users
-// @Description Returns a list of all registered users. Requires admin permissions.
-// @Tags Users
-// @Accept json
-// @Produce json
-// @Success 200 {array} users.User "List of users"
-// @Failure 500 {object} map[string]string "Internal Server Error"
-// @Router /api/users [get]
-func usersGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	users, err := store.Users.Gets(config.Server.Root)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	for _, u := range users {
-		u.Password = ""
-	}
-
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].ID < users[j].ID
-	})
-
-	return renderJSON(w, r, users)
+type UserRequest struct {
+	What  string      `json:"what"`
+	Which []string    `json:"which"`
+	Data  *users.User `json:"data"`
 }
 
 // userGetHandler retrieves a user by ID.
@@ -89,20 +38,50 @@ func usersGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param id path int true "User ID"
+// @Param id path int true "User ID" or "self"
 // @Success 200 {object} users.User "User details"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Not Found"
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users/{id} [get]
 func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Ensure the requesting user is either the admin or the user themselves
-	if d.user.ID != d.raw.(uint) && !d.user.Perm.Admin {
+	givenUserIdString := r.URL.Query().Get("id")
+
+	// since api self is used to validate a logged in user
+	w.Header().Add("X-Renew-Token", "false")
+
+	var givenUserId uint
+	if givenUserIdString == "self" {
+		givenUserId = d.user.ID
+	} else if givenUserIdString == "" {
+		if !d.user.Perm.Admin {
+			return http.StatusForbidden, nil
+		}
+		users, err := store.Users.Gets(config.Server.Root)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		for _, u := range users {
+			u.Password = ""
+		}
+
+		sort.Slice(users, func(i, j int) bool {
+			return users[i].ID < users[j].ID
+		})
+
+		return renderJSON(w, r, users)
+	} else {
+		num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
+		givenUserId = uint(num)
+	}
+
+	if givenUserId != d.user.ID && !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 
 	// Fetch the user details
-	u, err := store.Users.Get(config.Server.Root, d.raw.(uint))
+	u, err := store.Users.Get(config.Server.Root, givenUserId)
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
@@ -112,6 +91,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	// Remove the password from the response if the user is not an admin
 	u.Password = ""
+	u.ApiKeys = nil
 	if !d.user.Perm.Admin {
 		u.Scope = ""
 	}
@@ -131,17 +111,19 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users/{id} [delete]
 func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Check if the requesting user is either the admin or the user themselves
-	if d.user.ID != d.raw.(uint) && !d.user.Perm.Admin {
+	givenUserIdString := r.URL.Query().Get("id")
+	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
+	givenUserId := uint(num)
+
+	if givenUserId == d.user.ID || !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 
 	// Delete the user
-	err := store.Users.Delete(d.raw.(uint))
+	err := store.Users.Delete(givenUserId)
 	if err != nil {
 		return errToStatus(err), err
 	}
-
 	return http.StatusOK, nil
 }
 
@@ -157,8 +139,26 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users [post]
 func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	req, err := getUser(w, r)
+	if !d.user.Perm.Admin {
+		return http.StatusForbidden, nil
+	}
+
+	// Validate the user's scope
+	_, _, err := files.GetRealPath(config.Server.Root, d.user.Scope)
 	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	// Read the JSON body
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer r.Body.Close()
+
+	// Parse the JSON into the UserRequest struct
+	var req UserRequest
+	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
 
@@ -193,20 +193,30 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users/{id} [put]
 func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// Extract user data from the request
-	req, err := getUser(w, r)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
+	givenUserIdString := r.URL.Query().Get("id")
+	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
+	givenUserId := uint(num)
 
-	// Ensure the requested user matches the current user (self)
-	if req.Data.ID != d.raw.(uint) {
+	if givenUserId != d.user.ID || !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 
 	// Validate the user's scope
-	_, _, err = files.GetRealPath(config.Server.Root, req.Data.Scope)
+	_, _, err := files.GetRealPath(config.Server.Root, d.user.Scope)
 	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	// Read the JSON body
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer r.Body.Close()
+
+	// Parse the JSON into the UserRequest struct
+	var req UserRequest
+	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
 

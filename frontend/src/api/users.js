@@ -1,4 +1,4 @@
-import { fetchURL, fetchJSON } from "@/api/utils";
+import { fetchURL, fetchJSON, createURL } from "@/api/utils";
 import { notify } from "@/notify";  // Import notify for error handling
 
 export async function getAllUsers() {
@@ -10,11 +10,39 @@ export async function getAllUsers() {
   }
 }
 
+
 export async function get(id) {
   try {
-    return await fetchJSON(`/api/users/${id}`, {});
+    return await fetchJSON(`/api/users?id=${id}`, {});
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user with ID: ${id}`);
+    throw err;
+  }
+}
+
+export async function getApiKeys(key="") {
+
+  try {
+    let buildUrl =   "api/auth/tokens"
+    if (key != "") {
+      buildUrl = buildUrl + "?key="+key
+    }
+    const url = createURL(buildUrl)
+    return await fetchJSON(url);
+  } catch (err) {
+    notify.showError(err.message || `Failed to get api keys`);
+    throw err;
+  }
+}
+
+
+export async function createApiKey(params) {
+  try {
+    const url = createURL(`api/auth/token`, params)
+    await fetchURL(url, {
+      method: "PUT",
+    });  } catch (err) {
+    notify.showError(err.message || `Failed to create API key`);
     throw err;
   }
 }
@@ -50,7 +78,8 @@ export async function update(user, which = ["all"]) {
     if (user.username === "publicUser") {
       return;
     }
-    await fetchURL(`/api/users/${user.id}`, {
+
+    await fetchURL(`/api/users?id=${user.id}`, {
       method: "PUT",
       body: JSON.stringify({
         what: "user",
@@ -66,7 +95,7 @@ export async function update(user, which = ["all"]) {
 
 export async function remove(id) {
   try {
-    await fetchURL(`/api/users/${id}`, {
+    await fetchURL(`/api/users?id=${id}`, {
       method: "DELETE",
     });
   } catch (err) {

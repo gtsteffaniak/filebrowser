@@ -1,8 +1,12 @@
 setup:
+	go install github.com/swaggo/swag/cmd/swag@latest && \
 	cd frontend && npm i && npx playwright install
 	if [ ! -f backend/test__config.yaml ]; then \
 		cp backend/filebrowser.yaml backend/test_config.yaml; \
 	fi
+
+update:
+	cd backend && go get -u && go mod tidy && cd ../frontend && npm update
 
 build:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a"  -t gtstef/filebrowser .
@@ -20,6 +24,10 @@ lint-frontend:
 
 lint-backend:
 	cd backend && golangci-lint run --path-prefix=backend
+
+lint: lint-backend lint-frontend
+
+test: test-backend test-frontend
 
 test-backend:
 	cd backend && go test -race ./...

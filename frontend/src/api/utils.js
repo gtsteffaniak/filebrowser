@@ -12,11 +12,14 @@ export async function fetchURL(url, opts, auth = true) {
 
   let res;
   try {
+    let userScope = "";
+    if (state.user) {
+      userScope = state.user.scope;
+    }
     res = await fetch(`${baseURL}${url}`, {
       headers: {
-        "X-Auth": state.jwt,
         "sessionId": state.sessionId,
-        "userScope": state.user.scope,
+        "userScope": userScope,
         ...headers,
       },
       ...rest,
@@ -29,6 +32,7 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (auth && res.headers.get("X-Renew-Token") === "true") {
+    console.log("this request has renew header",url)
     await renew(state.jwt);
   }
 

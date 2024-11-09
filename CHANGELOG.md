@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file. For commit 
   **Bugfixes**:
   - Fixed ui bug with shares with password.
   - Fix empty directory load issue.
+  - Fix image preview cutoff on mobile.
 
 ## v0.2.10
 

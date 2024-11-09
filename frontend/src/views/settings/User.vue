@@ -8,11 +8,10 @@
 
     <div class="card-content">
       <user-form
-        :user="user"
+        v-model:user="user"
         :createUserDir="createUserDir"
         :isDefault="false"
         :isNew="isNew"
-        @update:user="(updatedUser) => (user = updatedUser)"
         @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
       />
     </div>
@@ -32,9 +31,10 @@
     </div>
   </form>
 </template>
+
 <script>
 import { mutations, state } from "@/store";
-import { users as api, settings } from "@/api";
+import { usersApi, settingsApi } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
@@ -68,16 +68,19 @@ export default {
     isNew() {
       return state.route.path.startsWith("/settings/users/new");
     },
+    userPayload() {
+      return JSON.parse(JSON.stringify(this.user)); // Deep copy for safety
+    },
   },
   methods: {
     async fetchData() {
       if (!state.route.path.startsWith("/settings")) {
-        return
+        return;
       }
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
-          let { defaults, createUserDir } = await settings.get();
+          let { defaults, createUserDir } = await settingsApi.get();
           this.createUserDir = createUserDir;
           this.user = {
             ...defaults,
@@ -91,7 +94,7 @@ export default {
           const id = Array.isArray(state.route.params.id)
             ? state.route.params.id.join("")
             : state.route.params.id;
-          this.user = { ...(await api.get(id)) };
+          this.user = { ...(await usersApi.get(id)) };
         }
       } catch (e) {
         notify.showError(e);
@@ -104,15 +107,14 @@ export default {
       mutations.showHover({ name: "deleteUser", props: { user: this.user } });
     },
     async save(event) {
-      let user = this.user
       event.preventDefault();
       try {
         if (this.isNew) {
-          const loc = await api.create(user);
+          const loc = await usersApi.create(this.userPayload); // Use the computed property
           this.$router.push({ path: loc });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
-          await api.update(user);
+          await usersApi.update(this.userPayload);
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {

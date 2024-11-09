@@ -68,7 +68,7 @@
 import { enableThumbs } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { fromNow } from "@/utils/moment";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
@@ -135,7 +135,7 @@ export default {
         modified: this.modified,
       };
 
-      return api.getPreviewURL(file, "small");
+      return filesApi.getPreviewURL(file, "small");
     },
     isThumbsEnabled() {
       return enableThumbs;
@@ -246,7 +246,7 @@ export default {
 
       // Get url from ListingItem instance
       let path = el.__vue__.url;
-      let baseItems = (await api.fetch(path)).items;
+      let baseItems = (await filesApi.fetch(path)).items;
 
       let action = (overwrite, rename) => {
         api

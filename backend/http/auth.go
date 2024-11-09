@@ -2,10 +2,12 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -14,12 +16,13 @@ import (
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
-type authToken struct {
-	User users.User `json:"user"`
-	jwt.RegisteredClaims
-}
+var (
+	revokedApiKeyList map[string]bool
+	revokeMu          sync.Mutex
+)
 
 type extractor []string
 
@@ -125,34 +128,71 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// check if x-auth header is present and token is
 	return printToken(w, r, d.user)
 }
 
-func makeSignedToken(user *users.User) (string, error) {
-	duration, err := time.ParseDuration(settings.Config.Auth.TokenExpirationTime)
-	if err != nil {
-		duration = time.Hour * 2 // Default duration if parsing fails
-	}
-	claims := &authToken{
-		User: *user,
-		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
-			Issuer:    "File Browser",
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(config.Auth.Key)
-}
-
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-	signed, err := makeSignedToken(user)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.GenerateRandomHash(4), time.Hour*2, user.Perm)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Content-Type", "text/plain")
-	if _, err := w.Write([]byte(signed)); err != nil {
+	if _, err := w.Write([]byte(signed.Key)); err != nil {
 		return http.StatusInternalServerError, err
 	}
 	return 0, nil
+}
+
+func isRevokedApiKey(key string) bool {
+	_, exists := revokedApiKeyList[key]
+	return exists
+}
+
+func revokeAPIKey(key string) {
+	revokeMu.Lock()
+	delete(revokedApiKeyList, key)
+	revokeMu.Unlock()
+}
+
+func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {
+	fmt.Println("makeSignedTokenAPI", name)
+	_, ok := user.ApiKeys[name]
+	if ok {
+		fmt.Println("exists already")
+
+		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
+	}
+	fmt.Println("does not exist", user.ApiKeys)
+
+	now := time.Now()
+	expires := now.Add(duration)
+	claim := users.AuthToken{
+		Permissions: perms,
+		Created:     now.Unix(),
+		Expires:     expires.Unix(),
+		Name:        name,
+		BelongsTo:   user.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(expires),
+			Issuer:    "FileBrowser Quantum",
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
+	tokenString, err := token.SignedString(config.Auth.Key)
+	if err != nil {
+		return claim, err
+	}
+	claim.Key = tokenString
+	if strings.HasPrefix(name, "WEB_TOKEN") {
+		// don't add to api tokens, its a short lived web token
+		return claim, err
+	}
+	// Perform the user update
+	err = store.Users.AddApiKey(user.ID, name, claim)
+	if err != nil {
+		return claim, err
+	}
+	return claim, err
 }

@@ -128,7 +128,6 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 }
 
 func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) error {
-
 	if !d.user.Check(path) {
 		return nil
 	}
