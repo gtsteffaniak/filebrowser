@@ -122,7 +122,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { shareApi, publicApi, usersApi } from "@/api";
+import { shareApi, publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
 import { baseURL } from "@/utils/constants";
 import Clipboard from "clipboard";
@@ -167,7 +167,8 @@ export default {
       return state.req.items[this.selected[0]].url;
     },
     getContext() {
-      let path = state.route.path.replace("/files/", "./");
+      const prefix = `${baseURL}/files/`;
+      let path = state.route.path.replace(prefix, "./");
       if (getters.selectedCount() === 1) {
         path = path + state.req.items[this.selected[0]].name;
       }

@@ -1,5 +1,4 @@
-import { baseURL } from "@/utils/constants";
-import { fetchURL, fetchJSON, removePrefix, createURL } from "./utils";
+import { createURL } from "./utils";
 import { notify } from "@/notify";
 
 // Fetch public share data
@@ -42,7 +41,7 @@ export function download(path, hash, token, format, ...files) {
       hash,
       ...(format && { format}),
       ...(token && { token }),
-      file
+      fileInfo
     };
     const url = createURL(`api/public/dl`, params, false);
     window.open(url);
@@ -60,7 +59,7 @@ export async function getPublicUser() {
     const url = createURL(`api/public/publicUser`, {}, false);
     const response = await fetch(url);
     return response.json();
-  } catch {
+  } catch (err) {
     notify.showError(err.message || "Error fetching public user");
     throw err;
   }

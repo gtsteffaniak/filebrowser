@@ -8,7 +8,7 @@ import Errors from "@/views/Errors.vue";
 import { baseURL, name } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { recaptcha, loginPage } from "@/utils/constants";
-import { login, validateLogin } from "@/utils/auth";
+import { validateLogin } from "@/utils/auth";
 import { mutations } from "@/store";
 import i18n from "@/i18n";
 
