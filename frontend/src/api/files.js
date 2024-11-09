@@ -9,7 +9,8 @@ export async function fetch(url, content = false) {
     url = removePrefix(url);
     const res = await fetchURL(`/api/resources?path=${url}&content=${content}`, {});
     const data = await res.json();
-    data.url = `/files${url}`;
+
+    data.url = `${baseURL}/files${url}`;
     if (data.isDir) {
       if (!data.url.endsWith("/")) data.url += "/";
       data.items = data.items.map((item, index) => {
