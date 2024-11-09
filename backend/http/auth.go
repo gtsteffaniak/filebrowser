@@ -156,11 +156,15 @@ func revokeAPIKey(key string) {
 }
 
 func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {
-
+	fmt.Println("makeSignedTokenAPI", name)
 	_, ok := user.ApiKeys[name]
 	if ok {
+		fmt.Println("exists already")
+
 		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
 	}
+	fmt.Println("does not exist", user.ApiKeys)
+
 	now := time.Now()
 	expires := now.Add(duration)
 	claim := users.AuthToken{

@@ -76,9 +76,8 @@ export default {
   },
   async created() {
     mutations.setLoading("shares", true);
-
     try {
-      let links = await publicApi.list();
+      let links = await shareApi.list();
       if (state.user.perm.admin) {
         let userMap = new Map();
         for (let user of await usersApi.getAllUsers()) userMap.set(user.id, user.username);
@@ -88,6 +87,7 @@ export default {
       this.links = links;
     } catch (e) {
       this.error = e;
+      notify.showError(e);
     } finally {
       mutations.setLoading("shares", false);
     }
@@ -124,7 +124,7 @@ export default {
           mutations.closeHovers();
 
           try {
-            publicApi.remove(link.hash);
+            shareApi.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
             notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
@@ -137,7 +137,7 @@ export default {
       return fromNow(time * 1000, state.user.locale);
     },
     buildLink(share) {
-      return publicApi.getShareURL(share);
+      return shareApi.getShareURL(share);
     },
   },
 };

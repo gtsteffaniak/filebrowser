@@ -51,7 +51,7 @@ type User struct {
 	Perm            Permissions          `json:"perm"`
 	Commands        []string             `json:"commands"`
 	Rules           []Rule               `json:"rules"`
-	ApiKeys         map[string]AuthToken `json:"-"`
+	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"`
 	HideDotfiles    bool                 `json:"hideDotfiles"`
 	DateFormat      bool                 `json:"dateFormat"`
 	GallerySize     int                  `json:"gallerySize"`

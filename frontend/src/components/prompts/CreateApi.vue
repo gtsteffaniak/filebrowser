@@ -95,12 +95,13 @@ export default {
 
         const params = {
           name: this.apiName,
-          duration: this.durationInDays,
+          days: this.durationInDays,
           permissions: permissionsString,
         };
 
         // Call the API to create the key
         usersApi.createApiKey(params);
+        notify.showSuccess("successfully created!");
       } catch (error) {
         notify.showError(this.$t("errors.createKeyFailed"));
       }

@@ -91,6 +91,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	// Remove the password from the response if the user is not an admin
 	u.Password = ""
+	u.ApiKeys = nil
 	if !d.user.Perm.Admin {
 		u.Scope = ""
 	}

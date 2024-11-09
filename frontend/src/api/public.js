@@ -1,60 +1,68 @@
 import { baseURL } from "@/utils/constants";
 import { fetchURL, fetchJSON, removePrefix, createURL } from "./utils";
+import { notify } from "@/notify";
 
 // Fetch public share data
 export async function fetchPub(path, hash, password = "") {
-  const params = {
-    path,
-    hash,
+  try {
+    const params = {
+      path,
+      hash,
+    }
+    const url = createURL(`api/public/share`, params, false);
+    const response = await fetch(url, {
+      headers: {
+        "X-SHARE-PASSWORD": password ? encodeURIComponent(password) : "",
+      },
+    });
+
+    if (!response.ok) {
+      const error = new Error("Failed to connect to the server.");
+      error.status = response.status;
+      throw error;
+    }
+
+  } catch {
+    notify.showError(err.message || "Error fetching public share data");
+    throw err;
   }
-  const url = createURL(`api/public/share`, params, false);
-
-  const response = await fetch(url, {
-    headers: {
-      "X-SHARE-PASSWORD": password ? encodeURIComponent(password) : "",
-    },
-  });
-
-  if (!response.ok) {
-    const error = new Error("Failed to connect to the server.");
-    error.status = response.status;
-    throw error;
-  }
-
   return response.json();
 }
 
 // Download files with given parameters
 export function download(path, hash, token, format, ...files) {
-  let fileInfo = files[0]
-  if (files.length > 1) {
-    fileInfo = files.map(encodeURIComponent).join(",");
+  try {
+    let fileInfo = files[0]
+    if (files.length > 1) {
+      fileInfo = files.map(encodeURIComponent).join(",");
+    }
+    const params = {
+      path,
+      hash,
+      ...(format && { format}),
+      ...(token && { token }),
+      file
+    };
+    const url = createURL(`api/public/dl`, params, false);
+    window.open(url);
+  } catch (err) {
+    notify.showError(err.message || "Error downloading files");
+    throw err;
   }
-  const params = {
-    path,
-    hash,
-    ...(format && { format}),
-    ...(token && { token }),
-    file
-  };
-  const url = createURL(`api/public/dl`, params, false);
-  window.open(url);
+
+
 }
 
 // Get the public user data
-export function getPublicUser() {
-  const url = createURL(`api/public/publicUser`, {}, false);
-  return fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .catch(error => {
-      console.error("Error fetching public user:", error);
-      throw error;
-    });
+export async function getPublicUser() {
+  try {
+    const url = createURL(`api/public/publicUser`, {}, false);
+    const response = await fetch(url);
+  } catch {
+    notify.showError(err.message || "Error fetching public user");
+    throw err;
+  }
+  return response.json();
 }
 
 // Generate a download URL
