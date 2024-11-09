@@ -15,8 +15,8 @@ export async function setNewToken(token) {
 
 export async function validateLogin() {
   console.log("Validating login");
-    const authToken = getCookie("auth");
-    await renew(authToken);
+  const authToken = getCookie("auth");
+  await renew(authToken);
 }
 
 export async function login(username, password, recaptcha) {

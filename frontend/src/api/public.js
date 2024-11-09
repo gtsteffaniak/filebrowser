@@ -21,12 +21,13 @@ export async function fetchPub(path, hash, password = "") {
       error.status = response.status;
       throw error;
     }
+    return response.json();
 
-  } catch {
+
+  } catch (err) {
     notify.showError(err.message || "Error fetching public share data");
     throw err;
   }
-  return response.json();
 }
 
 // Download files with given parameters
@@ -58,11 +59,12 @@ export async function getPublicUser() {
   try {
     const url = createURL(`api/public/publicUser`, {}, false);
     const response = await fetch(url);
+    return response.json();
   } catch {
     notify.showError(err.message || "Error fetching public user");
     throw err;
   }
-  return response.json();
+ 
 }
 
 // Generate a download URL

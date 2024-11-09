@@ -170,12 +170,12 @@ export default {
     },
   },
   created() {
-    let urlPath = getters.getRoutePath()
+    let urlPath = getters.getRoutePath();
     // Step 1: Split the path by '/'
-    let parts = urlPath.split('/');
+    let parts = urlPath.split("/");
     // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
     this.hash = parts[2];
-    this.subPath = '/' + parts.slice(3).join('/');
+    this.subPath = "/" + parts.slice(3).join("/");
     this.fetchData();
   },
   mounted() {
@@ -237,8 +237,8 @@ export default {
     },
   },
   methods: {
-    getLink(inline=false) {
-      return publicApi.getDownloadURL(this.subPath,this.hash,inline);
+    getLink(inline = false) {
+      return publicApi.getDownloadURL(this.subPath, this.hash, inline);
     },
     base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));
@@ -257,7 +257,7 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
       try {
-        let file = await publicApi.fetchPub(this.subPath,this.hash, this.password);
+        let file = await publicApi.fetchPub(this.subPath, this.hash, this.password);
         file.hash = this.hash;
         mutations.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;
@@ -282,7 +282,7 @@ export default {
     },
     download() {
       if (getters.isSingleFileSelected()) {
-        public_api.download(this.subPath,this.hash, null, getters.selectedDownloadUrl());
+        public_api.download(this.subPath, this.hash, null, getters.selectedDownloadUrl());
         return;
       }
       mutations.showHover({
@@ -296,7 +296,7 @@ export default {
             files.push(state.req.items[i].path);
           }
 
-          public_api.download(this.subPath,this.hash,format, ...files);
+          public_api.download(this.subPath, this.hash, format, ...files);
         },
       });
     },

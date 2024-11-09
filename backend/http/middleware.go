@@ -37,6 +37,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 
 		data.user = &users.PublicUser
 
+		fmt.Println("lets find that hash", hash)
+
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -52,6 +54,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
+		fmt.Println("paths", link.Path, path, user.Scope)
+
 		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+path)
 		if err != nil {
 			return http.StatusNotFound, err

@@ -121,11 +121,8 @@ const router = createRouter({
 
 
 async function initAuth() {
-
-  if (loginPage) {
+  if (loginPage && !getters.isShare()) {
     await validateLogin();
-  } else {
-      await login("publicUser", "publicUser", "");
   }
   if (recaptcha) {
       await new Promise<void>((resolve) => {
