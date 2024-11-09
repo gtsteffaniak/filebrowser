@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
@@ -57,7 +57,7 @@ export default {
 
       try {
         if (!this.isListing) {
-          await api.remove(state.route.path);
+          await filesApi.remove(state.route.path);
           buttons.success("delete");
           showSuccess("Deleted item successfully");
 
@@ -74,7 +74,7 @@ export default {
 
         let promises = [];
         for (let index of state.selected) {
-          promises.push(api.remove(state.req.items[index].url));
+          promises.push(filesApi.remove(state.req.items[index].url));
         }
 
         await Promise.all(promises);

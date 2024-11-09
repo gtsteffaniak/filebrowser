@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/goccy/go-yaml"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var Config Settings
@@ -86,7 +87,8 @@ func setDefaults() Settings {
 			DisableSettings: false,
 			ViewMode:        "normal",
 			Locale:          "en",
-			Permissions: Permissions{
+			ApiKeys:         []string{},
+			Permissions: users.Permissions{
 				Create:   false,
 				Rename:   false,
 				Modify:   false,
@@ -94,6 +96,7 @@ func setDefaults() Settings {
 				Share:    false,
 				Download: false,
 				Admin:    false,
+				Api:      false,
 			},
 		},
 	}

@@ -56,7 +56,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { share as api, users } from "@/api";
+import { shareApi, usersApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
@@ -76,18 +76,18 @@ export default {
   },
   async created() {
     mutations.setLoading("shares", true);
-
     try {
-      let links = await api.list();
+      let links = await shareApi.list();
       if (state.user.perm.admin) {
         let userMap = new Map();
-        for (let user of await users.getAllUsers()) userMap.set(user.id, user.username);
+        for (let user of await usersApi.getAllUsers()) userMap.set(user.id, user.username);
         for (let link of links)
           link.username = userMap.has(link.userID) ? userMap.get(link.userID) : "";
       }
       this.links = links;
     } catch (e) {
       this.error = e;
+      notify.showError(e);
     } finally {
       mutations.setLoading("shares", false);
     }
@@ -124,7 +124,7 @@ export default {
           mutations.closeHovers();
 
           try {
-            api.remove(link.hash);
+            shareApi.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
             notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
@@ -137,7 +137,7 @@ export default {
       return fromNow(time * 1000, state.user.locale);
     },
     buildLink(share) {
-      return api.getShareURL(share);
+      return shareApi.getShareURL(share);
     },
   },
 };

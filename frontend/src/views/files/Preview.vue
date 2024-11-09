@@ -85,7 +85,7 @@
   </div>
 </template>
 <script>
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url";
 import throttle from "@/utils/throttle";
@@ -132,13 +132,13 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return api.getDownloadURL(state.req);
+      return filesApi.getDownloadURL(state.req);
     },
     raw() {
       if (state.req.type === "image" && !this.fullSize) {
-        return api.getPreviewURL(state.req, "big");
+        return filesApi.getPreviewURL(state.req, "large");
       }
-      return api.getDownloadURL(state.req, true);
+      return filesApi.getDownloadURL(state.req, true);
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -148,7 +148,7 @@ export default {
     },
     subtitles() {
       if (state.req.subtitles) {
-        return api.getSubtitlesURL(state.req);
+        return filesApi.getSubtitlesURL(state.req);
       }
       return [];
     },
@@ -230,7 +230,7 @@ export default {
 
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);
-        const res = await api.fetch(path);
+        const res = await filesApi.fetch(path);
         this.listing = res.items;
       }
 
@@ -270,8 +270,8 @@ export default {
         return "";
       }
       return this.fullSize
-        ? api.getDownloadURL(item, true)
-        : api.getPreviewURL(item, "big");
+        ? filesApi.getDownloadURL(item, true)
+        : filesApi.getPreviewURL(item, "large");
     },
     openMore() {
       this.currentPrompt = "more";

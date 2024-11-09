@@ -19,8 +19,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var (
@@ -40,7 +40,7 @@ type ReducedItem struct {
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
 	Items        []*FileInfo       `json:"-"`
-	ReducedItems []ReducedItem     `json:"items,omitempty"`
+	ReducedItems []ReducedItem     `json:"items"`
 	Path         string            `json:"path,omitempty"`
 	Name         string            `json:"name"`
 	Size         int64             `json:"size"`
@@ -67,7 +67,7 @@ type FileOptions struct {
 	Expand     bool
 	ReadHeader bool
 	Token      string
-	Checker    rules.Checker
+	Checker    users.Checker
 	Content    bool
 }
 
@@ -494,7 +494,7 @@ func (i *FileInfo) detectSubtitles(parentDir string) {
 }
 
 // readListing reads the contents of a directory and fills the listing.
-func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bool) error {
+func (i *FileInfo) readListing(path string, checker users.Checker, readHeader bool) error {
 	dir, err := os.Open(i.Path)
 	if err != nil {
 		return err

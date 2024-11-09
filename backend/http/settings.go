@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gtsteffaniak/filebrowser/rules"
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 type settingsData struct {
@@ -13,37 +13,56 @@ type settingsData struct {
 	CreateUserDir    bool                  `json:"createUserDir"`
 	UserHomeBasePath string                `json:"userHomeBasePath"`
 	Defaults         settings.UserDefaults `json:"defaults"`
-	Rules            []rules.Rule          `json:"rules"`
+	Rules            []users.Rule          `json:"rules"`
 	Frontend         settings.Frontend     `json:"frontend"`
 	Commands         map[string][]string   `json:"commands"`
 }
 
-var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+// settingsGetHandler retrieves the current system settings.
+// @Summary Get system settings
+// @Description Returns the current configuration settings for signup, user directories, rules, frontend, and commands.
+// @Tags Settings
+// @Accept json
+// @Produce json
+// @Success 200 {object} settingsData "System settings data"
+// @Router /api/settings [get]
+func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	data := &settingsData{
-		Signup:           d.settings.Auth.Signup,
-		CreateUserDir:    d.settings.Server.CreateUserDir,
-		UserHomeBasePath: d.settings.Server.UserHomeBasePath,
-		Defaults:         d.settings.UserDefaults,
-		Rules:            d.settings.Rules,
-		Frontend:         d.settings.Frontend,
+		Signup:           config.Auth.Signup,
+		CreateUserDir:    config.Server.CreateUserDir,
+		UserHomeBasePath: config.Server.UserHomeBasePath,
+		Defaults:         config.UserDefaults,
+		Rules:            config.Rules,
+		Frontend:         config.Frontend,
 	}
 
 	return renderJSON(w, r, data)
-})
+}
 
-var settingsPutHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+// settingsPutHandler updates the system settings.
+// @Summary Update system settings
+// @Description Updates the system configuration settings for signup, user directories, rules, frontend, and commands.
+// @Tags Settings
+// @Accept json
+// @Produce json
+// @Param body body settingsData true "Settings data to update"
+// @Success 200 "Settings updated successfully"
+// @Failure 400 {object} map[string]string "Bad request - failed to decode body"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/settings [put]
+func settingsPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	req := &settingsData{}
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
-	d.settings.Server.CreateUserDir = req.CreateUserDir
-	d.settings.Server.UserHomeBasePath = req.UserHomeBasePath
-	d.settings.UserDefaults = req.Defaults
-	d.settings.Rules = req.Rules
-	d.settings.Frontend = req.Frontend
-	d.settings.Auth.Signup = req.Signup
-	err = d.store.Settings.Save(d.settings)
+	config.Server.CreateUserDir = req.CreateUserDir
+	config.Server.UserHomeBasePath = req.UserHomeBasePath
+	config.UserDefaults = req.Defaults
+	config.Rules = req.Rules
+	config.Frontend = req.Frontend
+	config.Auth.Signup = req.Signup
+	err = store.Settings.Save(config)
 	return errToStatus(err), err
-})
+}

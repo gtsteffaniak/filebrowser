@@ -20,7 +20,7 @@
   </div>
 </template>
 <script>
-import { users as api } from "@/api";
+import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import buttons from "@/utils/buttons";
 import { state, mutations, getters } from "@/store";
@@ -39,7 +39,7 @@ export default {
     async deleteUser(event) {
       event.preventDefault();
       try {
-        await api.remove(this.user.id);
+        await usersApi.remove(this.user.id);
         this.$router.push({ path: "/settings",hash:"#users-main" });
         notify.showSuccess(this.$t("settings.userDeleted"));
       } catch (e) {
@@ -56,7 +56,7 @@ export default {
 
       try {
         if (!this.isListing) {
-          await api.remove(this.$route.path);
+          await usersApi.remove(this.$route.path);
           buttons.success("delete");
 
           this.currentPrompt?.confirm();
@@ -72,7 +72,7 @@ export default {
 
         let promises = [];
         for (let index of this.selected) {
-          promises.push(api.remove(state.req.items[index].url));
+          promises.push(usersApi.remove(state.req.items[index].url));
         }
 
         await Promise.all(promises);

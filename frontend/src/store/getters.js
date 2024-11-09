@@ -1,3 +1,4 @@
+import { baseURL } from "@/utils/constants.js";
 import { state } from "./state.js";
 
 export const getters = {
@@ -6,6 +7,7 @@ export const getters = {
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === "settings",
+  isShare: () => getters.currentView() === "share",
   isDarkMode: () => {
     if (state.user == null) {
       return true;
@@ -92,7 +94,7 @@ export const getters = {
     if (getters.currentView() == "settings") {
       sticky = true
     }
-    if (getters.currentView() == null && !getters.isLoading()) {
+    if (getters.currentView() == null && !getters.isLoading() && getters.isShare() ) {
       sticky = true
     }
     if (getters.isMobile() || getters.currentView() == "preview") {
@@ -115,9 +117,11 @@ export const getters = {
   },
   currentView: () => {
     const pathname = state.route.path.toLowerCase()
-    if (pathname.includes("settings")) {
+    if (pathname.startsWith("/settings")) {
       return "settings"
-    } else if (pathname.includes("files")) {
+    } else if (pathname.startsWith(`${baseURL}/share`)) {
+      return "share"
+    } else if (pathname.startsWith(`${baseURL}/files`)) {
       if (state.req.type !== undefined) {
         if (state.req.isDir) {
           return "listingView";

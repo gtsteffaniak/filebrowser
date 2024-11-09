@@ -39,7 +39,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { getAllUsers } from "@/api/users";
+import { usersApi } from "@/api";
 import Errors from "@/views/Errors.vue";
 
 export default {
@@ -56,7 +56,7 @@ export default {
   async created() {
     mutations.setLoading("users", true);
     // Set loading state to true
-    this.users = await getAllUsers();
+    this.users = await usersApi.getAllUsers();
     mutations.setLoading("users", false);
   },
   computed: {

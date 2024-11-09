@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
@@ -91,10 +91,10 @@ export default {
       let data = {};
       try {
         // Fetch initial data
-        let res = await api.fetch(url);
+        let res = await filesApi.fetch(url);
         // If not a directory, fetch content
         if (!res.isDir) {
-          res = await api.fetch(url, true);
+          res = await filesApi.fetch(url, true);
         }
         data = res;
         // Verify if the fetched path matches the current route

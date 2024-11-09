@@ -4,19 +4,13 @@ import (
 	"crypto/rand"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 const DefaultUsersHomeBasePath = "/users"
 
 // AuthMethod describes an authentication method.
 type AuthMethod string
-
-// Settings contain the main settings of the application.
-// GetRules implements rules.Provider.
-func (s *Settings) GetRules() []rules.Rule {
-	return s.Rules
-}
 
 // Server specific settings
 // Clean cleans any variables that might need cleaning.
@@ -40,8 +34,8 @@ func GetSettingsConfig(nameType string, Value string) string {
 	return nameType + Value
 }
 
-func AdminPerms() Permissions {
-	return Permissions{
+func AdminPerms() users.Permissions {
+	return users.Permissions{
 		Create:   true,
 		Rename:   true,
 		Modify:   true,
@@ -49,5 +43,23 @@ func AdminPerms() Permissions {
 		Share:    true,
 		Download: true,
 		Admin:    true,
+		Api:      true,
 	}
+}
+
+// Apply applies the default options to a user.
+func ApplyUserDefaults(u users.User) users.User {
+	u.StickySidebar = Config.UserDefaults.StickySidebar
+	u.DisableSettings = Config.UserDefaults.DisableSettings
+	u.DarkMode = Config.UserDefaults.DarkMode
+	u.Scope = Config.UserDefaults.Scope
+	u.Locale = Config.UserDefaults.Locale
+	u.ViewMode = Config.UserDefaults.ViewMode
+	u.SingleClick = Config.UserDefaults.SingleClick
+	u.Perm = Config.UserDefaults.Perm
+	u.Sorting = Config.UserDefaults.Sorting
+	u.Commands = Config.UserDefaults.Commands
+	u.HideDotfiles = Config.UserDefaults.HideDotfiles
+	u.DateFormat = Config.UserDefaults.DateFormat
+	return u
 }

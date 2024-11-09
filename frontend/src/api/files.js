@@ -7,11 +7,10 @@ import { notify } from "@/notify";
 export async function fetch(url, content = false) {
   try {
     url = removePrefix(url);
-
-    const res = await fetchURL(`/api/resources${url}?content=${content}`, {});
+    const res = await fetchURL(`/api/resources?path=${url}&content=${content}`, {});
     const data = await res.json();
-    data.url = `${baseURL}/files${url}`;
 
+    data.url = `${baseURL}/files${url}`;
     if (data.isDir) {
       if (!data.url.endsWith("/")) data.url += "/";
       data.items = data.items.map((item, index) => {
@@ -36,14 +35,13 @@ export async function fetch(url, content = false) {
 async function resourceAction(url, method, content) {
   try {
     url = removePrefix(url);
-
     let opts = { method };
 
     if (content) {
       opts.body = content;
     }
 
-    const res = await fetchURL(`/api/resources${url}`, opts);
+    const res = await fetchURL(`/api/resources?path=${url}`, opts);
     return res;
   } catch (err) {
     notify.showError(err.message || "Error performing resource action");
@@ -72,9 +70,8 @@ export async function put(url, content = "") {
 export function download(format, ...files) {
   try {
     let url = `${baseURL}/api/raw`;
-
     if (files.length === 1) {
-      url += removePrefix(files[0]) + "?";
+      url +=  "?path="+removePrefix(files[0]);
     } else {
       let arg = "";
 
@@ -84,15 +81,11 @@ export function download(format, ...files) {
 
       arg = arg.substring(0, arg.length - 1);
       arg = encodeURIComponent(arg);
-      url += `/?files=${arg}&`;
+      url += `?files=${arg}`;
     }
 
     if (format) {
-      url += `algo=${format}&`;
-    }
-
-    if (state.jwt) {
-      url += `auth=${state.jwt}&`;
+      url += `&algo=${format}`;
     }
 
     window.open(url);
@@ -117,7 +110,7 @@ export async function post(url, content = "", overwrite = false, onupload) {
       let request = new XMLHttpRequest();
       request.open(
         "POST",
-        `${baseURL}/api/resources${url}?override=${overwrite}`,
+        `${baseURL}/api/resources?path=${url}&override=${overwrite}`,
         true
       );
       request.setRequestHeader("X-Auth", state.jwt);
@@ -187,10 +180,11 @@ export async function checksum(url, algo) {
 export function getDownloadURL(file, inline) {
   try {
     const params = {
+      path: file.path,
       ...(inline && { inline: "true" }),
     };
 
-    return createURL("api/raw" + file.path, params);
+    return createURL("api/raw", params);
   } catch (err) {
     notify.showError(err.message || "Error getting download URL");
     throw err;
@@ -200,11 +194,13 @@ export function getDownloadURL(file, inline) {
 export function getPreviewURL(file, size) {
   try {
     const params = {
+      path: file.path,
+      size: size,
       inline: "true",
       key: Date.parse(file.modified),
     };
 
-    return createURL("api/preview/" + size + file.path, params);
+    return createURL("api/preview", params);
   } catch (err) {
     notify.showError(err.message || "Error getting preview URL");
     throw err;
@@ -232,8 +228,7 @@ export function getSubtitlesURL(file) {
 export async function usage(url) {
   try {
     url = removePrefix(url);
-
-    const res = await fetchURL(`/api/usage${url}`, {});
+    const res = await fetchURL(`/api/usage?path=${url}`, {});
     return await res.json();
   } catch (err) {
     notify.showError(err.message || "Error fetching usage data");

@@ -2,14 +2,14 @@ import * as i18n from "@/i18n";
 import { state } from "./state.js";
 import router from "@/router";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
-import { users } from "@/api";
+import { usersApi } from "@/api";
 import { notify } from "@/notify";
 
 export const mutations = {
   setGallerySize: (value) => {
     state.user.gallerySize = value
     emitStateChanged();
-    users.update(state.user,['gallerySize']);
+    usersApi.update(state.user,['gallerySize']);
   },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
@@ -102,9 +102,9 @@ export const mutations = {
     emitStateChanged();
   },
   setCurrentUser: (value) => {
-    state.user = value;
     // If value is null or undefined, emit state change and exit early
     if (!value) {
+      state.user = value;
       emitStateChanged();
       return;
     }
@@ -112,6 +112,7 @@ export const mutations = {
     if (!value.locale) {
       value.locale = i18n.detectLocale();  // Default to detected locale if missing
     }
+    state.user = value;
     // Emit state change after setting the user and locale
     emitStateChanged();
   },
@@ -175,7 +176,7 @@ export const mutations = {
     }
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      users.update(state.user,Object.keys(value));
+      usersApi.update(state.user,Object.keys(value));
     }
 
     // Emit state change event
@@ -196,7 +197,6 @@ export const mutations = {
     emitStateChanged();
   },
   setRoute: (value) => {
-    console.log("going...",value)
     state.route = value;
     emitStateChanged();
   },

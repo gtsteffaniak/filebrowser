@@ -97,7 +97,7 @@ export default {
       return "router-link";
     },
     showShare() {
-      return state.user?.perm && state.user?.perm.share;
+      return state.user?.perm && state.user?.perm.share && state.user.username != "publicUser";
     },
   },
   methods: {

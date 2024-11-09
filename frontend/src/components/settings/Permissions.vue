@@ -36,6 +36,10 @@
       <input type="checkbox" :disabled="admin" v-model="perm.share" />
       {{ $t("settings.perm.share") }}
     </p>
+    <p>
+      <input type="checkbox" v-model="perm.api" />
+      {{ $t("settings.perm.api") }}
+    </p>
   </div>
 </template>
 

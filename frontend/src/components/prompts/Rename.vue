@@ -41,7 +41,7 @@
 </template>
 <script>
 import url from "@/utils/url";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 
 export default {
@@ -98,7 +98,7 @@ export default {
 
       newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
 
-      await api.move([{ from: oldLink, to: newLink }]);
+      await filesApi.move([{ from: oldLink, to: newLink }]);
       if (!this.isListing) {
         this.$router.push({ path: newLink });
         return;

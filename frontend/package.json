@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && cp -R dist/ ../backend/cmd/",
+    "build": "vite build && cp -r dist/* ../backend/http/embed",
     "build-docker": "vite build",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",

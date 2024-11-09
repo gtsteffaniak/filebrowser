@@ -14,11 +14,14 @@ export async function fetchURL(url, opts, auth = true) {
 
   let res;
   try {
+    let userScope = "";
+    if (state.user) {
+      userScope = state.user.scope;
+    }
     res = await fetch(`${baseURL}${url}`, {
       headers: {
-        "X-Auth": state.jwt,
         "sessionId": state.sessionId,
-        "userScope": state.user.scope,
+        "userScope": userScope,
         ...headers,
       },
       ...rest,
@@ -31,6 +34,7 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (auth && res.headers.get("X-Renew-Token") === "true") {
+    console.log("this request has renew header",url)
     await renew(state.jwt);
   }
 
@@ -50,10 +54,10 @@ export async function fetchURL(url, opts, auth = true) {
 
 export async function fetchJSON(url, opts) {
   const res = await fetchURL(url, opts);
-  if (res.status === 200) {
+  if (res.status < 300) {
     return res.json();
   } else {
-    notify.showError("unable to fetch : " + url + "status" + res.status);
+    notify.showError("received status: "+res.status+" on url " + url);
     throw new Error(res.status);
   }
 }
@@ -66,7 +70,7 @@ export function removePrefix(url) {
   return url;
 }
 
-export function createURL(endpoint, params = {}, auth = true) {
+export function createURL(endpoint, params = {}) {
   let prefix = baseURL;
   if (!prefix.endsWith("/")) {
     prefix = prefix + "/";
@@ -74,7 +78,6 @@ export function createURL(endpoint, params = {}, auth = true) {
   const url = new URL(prefix + encodePath(endpoint), origin);
 
   const searchParams = {
-    ...(auth && { auth: state.jwt }),
     ...params,
   };
 

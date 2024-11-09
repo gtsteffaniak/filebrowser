@@ -77,11 +77,30 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 	}
 }
 
-var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+// rawHandler serves the raw content of a file, multiple files, or directory in various formats.
+// @Summary Get raw content of a file, multiple files, or directory
+// @Description Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
+// @Tags Files
+// @Accept json
+// @Produce json
+// @Param path query string true "Path to the file or directory"
+// @Param files query string false "Comma-separated list of specific files within the directory (optional)"
+// @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
+// @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip', 'tar', 'targz', 'tarbz2', 'tarxz', 'tarlz4', 'tarsz'. Default is 'zip'."
+// @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
+// @Failure 202 {object} map[string]string "Download permissions required"
+// @Failure 400 {object} map[string]string "Invalid request path"
+// @Failure 404 {object} map[string]string "File or directory not found"
+// @Failure 415 {object} map[string]string "Unsupported file type for preview"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/raw [get]
+func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, r.URL.Path)
+	path := r.URL.Query().Get("path")
+
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -90,8 +109,8 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
-		ReadHeader: d.server.TypeDetectionByHeader,
-		Checker:    d,
+		ReadHeader: config.Server.TypeDetectionByHeader,
+		Checker:    d.user,
 	})
 	if err != nil {
 		return errToStatus(err), err
@@ -106,10 +125,10 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	}
 
 	return rawDirHandler(w, r, d, file)
-})
+}
 
-func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
-	if !d.Check(path) {
+func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) error {
+	if !d.user.Check(path) {
 		return nil
 	}
 	info, err := os.Stat(path)
@@ -160,7 +179,7 @@ func addFile(ar archiver.Writer, d *data, path, commonPath string) error {
 	return nil
 }
 
-func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.FileInfo) (int, error) {
+func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, file *files.FileInfo) (int, error) {
 	filenames, err := parseQueryFiles(r, file, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
