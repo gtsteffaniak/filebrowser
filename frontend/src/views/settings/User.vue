@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { getters, mutations, state } from "@/store";
 import { usersApi, settingsApi } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
@@ -66,7 +66,7 @@ export default {
       return state.settings;
     },
     isNew() {
-      return state.route.path.startsWith("/settings/users/new");
+      return getters.getRoutePath().endsWith("settings/users/new");
     },
     userPayload() {
       return JSON.parse(JSON.stringify(this.user)); // Deep copy for safety
@@ -74,9 +74,6 @@ export default {
   },
   methods: {
     async fetchData() {
-      if (!state.route.path.startsWith("/settings")) {
-        return;
-      }
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {

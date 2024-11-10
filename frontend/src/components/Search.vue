@@ -57,7 +57,6 @@
                 {{ basePath(s.path, s.type == "directory") }}<b>{{ baseName(s.path) }}</b>
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
-
             </router-link>
           </li>
         </ul>
@@ -647,10 +646,6 @@ body.rtl #search #result ul > * {
   border-bottom-left-radius: 0;
 }
 
-input.sizeInput:disabled {
-  cursor: not-allowed;
-}
-
 /* Search Input Placeholder */
 #search::-webkit-input-placeholder {
   color: rgba(255, 255, 255, 0.5);
@@ -732,31 +727,6 @@ body.rtl #search .boxes h3 {
   align-content: center;
   margin: 1em;
   justify-content: center;
-}
-
-.sizeInput {
-  height: 100%;
-  text-align: center;
-  width: 5em;
-  border-radius: 1em;
-  padding: 1em;
-  backdrop-filter: invert(0.1);
-  border: none !important;
-}
-
-.sizeInputWrapper {
-  border-radius: 1em;
-  margin-left: 0.5em;
-  margin-right: 0.5em;
-  display: -ms-flexbox;
-  display: flex;
-  background-color: rgb(245, 245, 245);
-  padding: 0.25em;
-  height: 3em;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  border: 1px solid #ccc;
 }
 
 .helpButton {

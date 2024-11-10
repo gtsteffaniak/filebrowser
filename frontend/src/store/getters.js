@@ -1,4 +1,6 @@
 import { baseURL } from "@/utils/constants.js";
+import { trimStartPath } from "@/utils/url.js";
+
 import { state } from "./state.js";
 
 export const getters = {
@@ -111,9 +113,8 @@ export const getters = {
     return hasPrompt || shouldOverlaySidebar;
   },
   getRoutePath: () => {
-    return state.route.path.endsWith("/")
-    ? state.route.path
-    : state.route.path + "/";
+    let withoutPrefix = trimStartPath(state.route.path)
+    return withoutPrefix;
   },
   currentView: () => {
     const pathname = state.route.path.toLowerCase()

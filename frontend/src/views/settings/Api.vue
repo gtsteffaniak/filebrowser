@@ -9,12 +9,12 @@
         </button>
       </div>
     </div>
-    <div class="card-content full" v-if="links.length > 0">
+    <div class="card-content full" v-if="Object.keys(links).length > 0">
       <p>
         API keys are based on the user that creates the. See
         <a class="link" href="/swagger/index.html">swagger page</a> for how to use them.
-
-        Keys are associated with your user and the user must have access to the permission level you want to use the key with.
+        Keys are associated with your user and the user must have access to the permission
+        level you want to use the key with.
       </p>
       <table>
         <tr>
@@ -25,12 +25,19 @@
           <th>Actions</th>
         </tr>
 
-        <tr v-for="link in links" :key="link.key">
-          <td>{{ link.name }}</td>
+        <tr v-for="(link, name) in links" :key="name">
+          <td>{{ name }}</td>
           <td>{{ formatTime(link.created) }}</td>
           <td>{{ formatTime(link.expires) }}</td>
           <td>
-            <span v-for="(value, perm) in link.Permissions" :key="perm">{{ showResult(value)}}</span>
+            <span
+              v-for="(value, perm) in link.Permissions"
+              :key="perm"
+              :title="`${perm}: ${value ? 'Enabled' : 'Disabled'}`"
+              class="clickable"
+            >
+              {{ showResult(value) }}
+            </span>
           </td>
           <td class="small">
             <button class="action">
@@ -72,7 +79,7 @@ export default {
   data: function () {
     return {
       error: null,
-      links: [],
+      links: {},
       clip: null,
     };
   },
@@ -120,7 +127,7 @@ export default {
       mutations.showHover({ name: "CreateApi", props: { user: this.user } });
     },
     formatTime(time) {
-      return new Date(time*1000).toLocaleDateString("en-US", {
+      return new Date(time * 1000).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",

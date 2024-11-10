@@ -6,30 +6,40 @@
 
     <div class="card-content">
       <!-- API Key Name Input -->
-      <p>{{ $t("settings.apiName") }}</p>
+      <p>API Key Name</p>
       <input
         class="input input--block"
         type="text"
         v-model.trim="apiName"
-        :placeholder="$t('settings.apiNamePlaceholder')"
+        placeholder="enter a uinque api key name"
       />
 
       <!-- Duration Input -->
-      <p>API valid duration in Days</p>
-      <div class="input-group">
-        <input type="number" min="1" v-model.number="duration" />
-        <select v-model="unit">
+      <p>Token Duration</p>
+      <div class="inputWrapper">
+        <input
+          class="sizeInput roundedInputLeft input"
+          v-model.number="duration"
+          type="number"
+          min="1"
+          placeholder="number"
+        />
+        <select v-model="unit" class="roundedInputRight input">
           <option value="days">days</option>
           <option value="months">months</option>
         </select>
       </div>
 
       <!-- Permissions Input -->
-      <p>{{ $t("settings.apiPermissions") }}</p>
+      <p>
+        Choose at least one permission for the key. Your User must also have the
+        permission.
+      </p>
       <div>
-        <label v-for="(isEnabled, perm) in availablePermissions" :key="perm">
-          <input type="checkbox" v-model="permissions[perm]" />{{ perm }}
-        </label>
+        <p v-for="(isEnabled, perm) in availablePermissions" :key="perm">
+          <input type="checkbox" v-model="permissions[perm]" />
+          {{ perm }}
+        </p>
       </div>
     </div>
 
@@ -54,7 +64,7 @@
 </template>
 
 <script>
-import { state } from "@/store";
+import { mutations, state } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
 
@@ -74,9 +84,7 @@ export default {
     },
     durationInDays() {
       // Calculate duration based on unit
-      return this.unit === "days"
-        ? this.duration
-        : this.duration * 30; // assuming 30 days per month
+      return this.unit === "days" ? this.duration : this.duration * 30; // assuming 30 days per month
     },
   },
   created() {
@@ -86,6 +94,9 @@ export default {
     );
   },
   methods: {
+    closeHovers() {
+      mutations.closeHovers();
+    },
     async createAPIKey() {
       try {
         // Filter to get keys of permissions set to true and join them as a comma-separated string
@@ -99,9 +110,11 @@ export default {
           permissions: permissionsString,
         };
 
-        // Call the API to create the key
         usersApi.createApiKey(params);
         notify.showSuccess("successfully created!");
+        console.log("done!");
+        mutations.closeHovers();
+        mutations.setReload(true);
       } catch (error) {
         notify.showError(this.$t("errors.createKeyFailed"));
       }
@@ -109,13 +122,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.input-group {
-  display: flex;
-  align-items: center;
-}
-.input-group input {
-  flex: 1;
-}
-</style>

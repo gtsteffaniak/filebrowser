@@ -1302,12 +1302,6 @@ const docTemplate = `{
         "settings.UserDefaults": {
             "type": "object",
             "properties": {
-                "apiKeys": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "commands": {
                     "type": "array",
                     "items": {

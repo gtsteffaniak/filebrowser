@@ -86,5 +86,4 @@ type UserDefaults struct {
 	Commands     []string          `json:"commands,omitempty"`
 	HideDotfiles bool              `json:"hideDotfiles"`
 	DateFormat   bool              `json:"dateFormat"`
-	ApiKeys      []string          `json:"apiKeys"`
 }

@@ -7,7 +7,19 @@ export function showPopup(type, message) {
     }
     popup.classList.remove('success', 'error'); // Clear previous types
     popup.classList.add(type);
-    popupContent.textContent = message;
+
+    let apiMessage;
+
+    try {
+        apiMessage = JSON.parse(message);
+        // Check if 'apiMessage' has 'status' and 'message' properties
+        if (apiMessage && apiMessage.hasOwnProperty("status") && apiMessage.hasOwnProperty("message")) {
+            popupContent.textContent = "Errors " + apiMessage.status + ": " + apiMessage.message;
+        }
+    } catch (error) {
+        popupContent.textContent = message;
+    }
+    
     popup.style.right = '1em';
 
     // don't hide for actions
@@ -42,7 +54,7 @@ function getElements() {
 
     const popupContent = popup.querySelector('#popup-notification-content');
     if (!popupContent) {
-       return [null, null];
+        return [null, null];
     }
 
     return [popup, popupContent];
@@ -58,5 +70,5 @@ export function showError(message) {
 }
 
 export function showMultipleSelection() {
-    showPopup("action","Multiple Selection Enabled");
+    showPopup("action", "Multiple Selection Enabled");
 }

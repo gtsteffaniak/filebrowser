@@ -49,7 +49,10 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// get request body like:
 	token, err := makeSignedTokenAPI(d.user, name, duration, permissions)
 	if err != nil {
-		return 500, err
+		if strings.Contains(err.Error(), "key already exists with same name") {
+			return http.StatusConflict, err
+		}
+		return http.StatusInternalServerError, err
 	}
 	response := HttpResponse{
 		Message: "here is your token!",
@@ -98,15 +101,14 @@ func listApiKeysHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return renderJSON(w, r, modifiedKey)
 	}
 
-	modifiedList := []AuthTokenMin{}
+	modifiedList := map[string]AuthTokenMin{}
 	for key, value := range d.user.ApiKeys {
-		modifiedList = append(modifiedList, AuthTokenMin{
-			Name:        key,
+		modifiedList[key] = AuthTokenMin{
 			Key:         value.Key,
 			Created:     value.Created,
 			Expires:     value.Expires,
 			Permissions: value.Permissions,
-		})
+		}
 	}
 
 	return renderJSON(w, r, modifiedList)

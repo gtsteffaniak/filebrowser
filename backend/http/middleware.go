@@ -37,8 +37,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 
 		data.user = &users.PublicUser
 
-		fmt.Println("lets find that hash", hash)
-
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -110,7 +108,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			} else if err == jwt.ErrTokenExpired {
 				return http.StatusUnauthorized, fmt.Errorf("token expired: %w", err)
 			} else {
-				return http.StatusInternalServerError, fmt.Errorf("error parsing token: %w", err)
+				return http.StatusUnauthorized, fmt.Errorf("error parsing token: %w", err)
 			}
 		}
 		if !token.Valid {

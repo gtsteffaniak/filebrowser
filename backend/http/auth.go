@@ -135,6 +135,9 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
 	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.GenerateRandomHash(4), time.Hour*2, user.Perm)
 	if err != nil {
+		if strings.Contains(err.Error(), "key already exists with same name") {
+			return http.StatusConflict, err
+		}
 		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Content-Type", "text/plain")
@@ -156,15 +159,10 @@ func revokeAPIKey(key string) {
 }
 
 func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {
-	fmt.Println("makeSignedTokenAPI", name)
 	_, ok := user.ApiKeys[name]
 	if ok {
-		fmt.Println("exists already")
-
 		return users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
 	}
-	fmt.Println("does not exist", user.ApiKeys)
-
 	now := time.Now()
 	expires := now.Add(duration)
 	claim := users.AuthToken{

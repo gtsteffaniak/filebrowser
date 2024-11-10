@@ -1,7 +1,6 @@
 package users
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -107,7 +106,6 @@ func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 		user.ApiKeys = make(map[string]AuthToken)
 	}
 	user.ApiKeys[name] = key
-	fmt.Println("add api key", user.ApiKeys)
 	err = s.Update(user, "ApiKeys")
 	if err != nil {
 		return err

@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard" style="padding-bottom: 30vh">
-    <div v-if="isRootSettings" class="settings-views">
+    <div v-if="isRootSettings && !newUserPage" class="settings-views">
       <div
         v-for="setting in settings"
         :key="setting.id + '-main'"
@@ -56,10 +56,10 @@ export default {
   },
   computed: {
     isRootSettings() {
-      return state.route.path == "/settings";
+      return getters.currentView() == "settings";
     },
     newUserPage() {
-      return state.route.path == "/settings/users/new";
+      return getters.getRoutePath().endsWith("/settings/users/new");
     },
     loading() {
       return getters.isLoading();

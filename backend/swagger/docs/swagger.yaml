@@ -112,10 +112,6 @@ definitions:
     type: object
   settings.UserDefaults:
     properties:
-      apiKeys:
-        items:
-          type: string
-        type: array
       commands:
         items:
           type: string
