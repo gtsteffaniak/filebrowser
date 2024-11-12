@@ -35,12 +35,13 @@
               :key="perm"
               :title="`${perm}: ${value ? 'Enabled' : 'Disabled'}`"
               class="clickable"
+              @click.prevent="infoPrompt(name, link)"
             >
               {{ showResult(value) }}
             </span>
           </td>
           <td class="small">
-            <button class="action">
+            <button class="action" @click.prevent="infoPrompt(name, link)">
               <i class="material-icons">info</i>
             </button>
           </td>
@@ -70,6 +71,7 @@ import { usersApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
+import { name } from "@/utils/constants";
 
 export default {
   name: "api",
@@ -85,11 +87,9 @@ export default {
   },
   async created() {
     mutations.setLoading("shares", true);
-
     try {
       // Fetch the API keys from the specified endpoint
       this.links = await usersApi.getApiKeys(); // Updated to the correct API endpoint
-      console.log(this.links);
     } catch (e) {
       this.error = e;
     } finally {
@@ -125,6 +125,9 @@ export default {
     },
     createPrompt() {
       mutations.showHover({ name: "CreateApi", props: { user: this.user } });
+    },
+    infoPrompt(name, info) {
+      mutations.showHover({ name: "ActionApi", props: { name: name, info: info } });
     },
     formatTime(time) {
       return new Date(time * 1000).toLocaleDateString("en-US", {

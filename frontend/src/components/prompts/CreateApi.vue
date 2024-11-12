@@ -69,7 +69,7 @@ import { notify } from "@/notify";
 import { usersApi } from "@/api";
 
 export default {
-  name: "CreateAPIKey",
+  name: "CreateAPI",
   data() {
     return {
       apiName: "",
@@ -112,9 +112,7 @@ export default {
 
         usersApi.createApiKey(params);
         notify.showSuccess("successfully created!");
-        console.log("done!");
-        mutations.closeHovers();
-        mutations.setReload(true);
+        window.location.reload();
       } catch (error) {
         notify.showError(this.$t("errors.createKeyFailed"));
       }

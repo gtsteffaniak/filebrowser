@@ -65,6 +65,9 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		for _, u := range users {
 			u.Password = ""
 		}
+		for _, u := range users {
+			u.ApiKeys = nil
+		}
 
 		sort.Slice(users, func(i, j int) bool {
 			return users[i].ID < users[j].ID

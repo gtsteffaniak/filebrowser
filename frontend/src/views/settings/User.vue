@@ -91,6 +91,9 @@ export default {
           const id = Array.isArray(state.route.params.id)
             ? state.route.params.id.join("")
             : state.route.params.id;
+          if (id === undefined) {
+            return;
+          }
           this.user = { ...(await usersApi.get(id)) };
         }
       } catch (e) {

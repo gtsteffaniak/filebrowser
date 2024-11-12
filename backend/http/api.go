@@ -62,13 +62,19 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 }
 
 func deleteApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	apiKey := r.URL.Query().Get("key")
+	name := r.URL.Query().Get("name")
+
+	keyInfo, ok := d.user.ApiKeys[name]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("api key not found")
+	}
 	// Perform the user update
-	err := store.Users.DeleteApiKey(d.user.ID, apiKey)
+	err := store.Users.DeleteApiKey(d.user.ID, name)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
-	revokeAPIKey(apiKey) // add to blacklist
+
+	revokeAPIKey(keyInfo.Key) // add to blacklist
 	response := HttpResponse{
 		Message: "successfully deleted api key from user",
 	}

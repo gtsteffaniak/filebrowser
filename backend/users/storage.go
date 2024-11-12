@@ -114,7 +114,7 @@ func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 	return nil
 }
 
-func (s *Storage) DeleteApiKey(userID uint, authKey string) error {
+func (s *Storage) DeleteApiKey(userID uint, name string) error {
 	user, err := s.Get("", userID)
 	if err != nil {
 		return err
@@ -123,7 +123,7 @@ func (s *Storage) DeleteApiKey(userID uint, authKey string) error {
 	if user.ApiKeys == nil {
 		user.ApiKeys = make(map[string]AuthToken)
 	}
-	delete(user.ApiKeys, authKey)
+	delete(user.ApiKeys, name)
 	err = s.Update(user, "ApiKeys")
 	if err != nil {
 		return err

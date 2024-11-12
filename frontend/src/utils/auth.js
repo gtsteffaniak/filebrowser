@@ -1,22 +1,22 @@
-import { mutations, getters } from "@/store";
+import { mutations, getters, state } from "@/store";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
 import { usersApi } from "@/api";
 
 export async function setNewToken(token) {
-  console.log("setNewToken");
   document.cookie = `auth=${token}; path=/`;
   mutations.setSession(generateRandomCode(8));
-  let userInfo = await usersApi.get("self");
-  mutations.setCurrentUser(userInfo);
-  console.log("setNewToken done",getters.isLoggedIn());
-  return getters.isLoggedIn()
 }
 
 export async function validateLogin() {
-  console.log("Validating login");
   const authToken = getCookie("auth");
-  await renew(authToken);
+  try {
+    let userInfo = await usersApi.get("self");
+    mutations.setCurrentUser(userInfo);
+  } catch {
+    await renew(authToken);
+  }
+  return getters.isLoggedIn()
 }
 
 export async function login(username, password, recaptcha) {
@@ -58,8 +58,8 @@ function generateRandomCode(length) {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let code = '';
   for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * charset.length);
-      code += charset[randomIndex];
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    code += charset[randomIndex];
   }
 
   return code;

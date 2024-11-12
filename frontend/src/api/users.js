@@ -20,12 +20,12 @@ export async function get(id) {
   }
 }
 
-export async function getApiKeys(key="") {
+export async function getApiKeys(key = "") {
 
   try {
-    let buildUrl =   "api/auth/tokens"
+    let buildUrl = "api/auth/tokens"
     if (key != "") {
-      buildUrl = buildUrl + "?key="+key
+      buildUrl = buildUrl + "?key=" + key
     }
     const url = createURL(buildUrl)
     return await fetchJSON(url);
@@ -41,8 +41,21 @@ export async function createApiKey(params) {
     const url = createURL(`api/auth/token`, params)
     await fetchURL(url, {
       method: "PUT",
-    });  } catch (err) {
+    });
+  } catch (err) {
     notify.showError(err.message || `Failed to create API key`);
+    throw err;
+  }
+}
+
+export function deleteApiKey(params) {
+  try {
+    const url = createURL(`api/auth/token`, params)
+    fetchURL(url, {
+      method: "DELETE",
+    });
+  } catch (err) {
+    notify.showError(err.message || `Failed to delete API key`);
     throw err;
   }
 }
@@ -78,7 +91,6 @@ export async function update(user, which = ["all"]) {
     if (user.username === "publicUser") {
       return;
     }
-
     await fetchURL(`/api/users?id=${user.id}`, {
       method: "PUT",
       body: JSON.stringify({

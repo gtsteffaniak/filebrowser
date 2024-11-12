@@ -74,9 +74,6 @@ const routes = [
         path: "users/:id",
         name: "User",
         component: Settings,
-        meta: {
-          requiresAdmin: true,
-        },
       },
     ],
   },
@@ -143,6 +140,10 @@ router.beforeResolve(async (to, from, next) => {
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;
   mutations.setRoute(to)
+  if (to.path.endsWith("/login") && getters.isLoggedIn()) {
+    next({ path: "/files/" });
+    return;
+  }
   // this will only be null on first route
   if (from.name == null) {
     try {
@@ -151,11 +152,6 @@ router.beforeResolve(async (to, from, next) => {
       console.error(error);
     }
   }
-  if (to.path.endsWith("/login") && getters.isLoggedIn()) {
-    next({ path: "/files/" });
-    return;
-  }
-
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!getters.isLoggedIn()) {
       next({
