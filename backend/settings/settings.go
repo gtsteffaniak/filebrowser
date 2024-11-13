@@ -2,7 +2,6 @@ package settings
 
 import (
 	"crypto/rand"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/users"
 )
@@ -11,12 +10,6 @@ const DefaultUsersHomeBasePath = "/users"
 
 // AuthMethod describes an authentication method.
 type AuthMethod string
-
-// Server specific settings
-// Clean cleans any variables that might need cleaning.
-func (s *Server) Clean() {
-	s.BaseURL = strings.TrimSuffix(s.BaseURL, "/")
-}
 
 // GenerateKey generates a key of 512 bits.
 func GenerateKey() ([]byte, error) {

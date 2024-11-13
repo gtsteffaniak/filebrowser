@@ -124,7 +124,8 @@ func StartFilebrowser() {
 	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
 	log.Println("Sources                  :", settings.Config.Server.Root)
-	log.Print("Indexing interval        : ", indexingInterval)
+	log.Println("Indexing interval        :", indexingInterval)
+	log.Println("BaseURL                  :", settings.Config.Server.BaseURL)
 
 	serverConfig := settings.Config.Server
 	// initialize indexing and schedule indexing ever n minutes (default 5)

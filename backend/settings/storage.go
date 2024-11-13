@@ -94,6 +94,5 @@ func (s *Storage) GetServer() (*Server, error) {
 
 // SaveServer wraps StorageBackend.SaveServer and adds some verification.
 func (s *Storage) SaveServer(ser *Server) error {
-	ser.Clean()
 	return s.back.SaveServer(ser)
 }

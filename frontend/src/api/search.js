@@ -1,4 +1,4 @@
-import { fetchURL, removePrefix } from "./utils";
+import { fetchURL, removePrefix, getApiPath } from "./utils";
 import { notify } from "@/notify";  // Import notify for error handling
 
 export default async function search(base, query) {
@@ -10,7 +10,8 @@ export default async function search(base, query) {
       base += "/";
     }
 
-    const res = await fetchURL(`/api/search?scope=${base}&query=${query}`, {});
+    const apiPath = getApiPath("api/search", { scope: base, query: query });
+    const res = await fetchURL(apiPath);
     let data = await res.json();
 
     return data

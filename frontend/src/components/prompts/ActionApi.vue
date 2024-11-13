@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
 

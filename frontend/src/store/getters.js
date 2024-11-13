@@ -1,4 +1,3 @@
-import { baseURL } from "@/utils/constants.js";
 import { trimStartPath } from "@/utils/url.js";
 
 import { state } from "./state.js";
@@ -118,11 +117,11 @@ export const getters = {
   },
   currentView: () => {
     const pathname = state.route.path.toLowerCase()
-    if (pathname.startsWith("/settings")) {
+    if (pathname.startsWith(`/settings`)) {
       return "settings"
-    } else if (pathname.startsWith(`${baseURL}/share`)) {
+    } else if (pathname.startsWith(`/share`)) {
       return "share"
-    } else if (pathname.startsWith(`${baseURL}/files`)) {
+    } else if (pathname.startsWith(`/files`)) {
       if (state.req.type !== undefined) {
         if (state.req.isDir) {
           return "listingView";

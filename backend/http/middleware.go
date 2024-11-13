@@ -262,7 +262,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		// Determine the color based on the status code
 		color := "\033[32m" // Default green color
-		if wrappedWriter.StatusCode >= 400 && wrappedWriter.StatusCode < 500 {
+		if wrappedWriter.StatusCode >= 300 && wrappedWriter.StatusCode < 500 {
 			color = "\033[33m" // Yellow for client errors (4xx)
 		} else if wrappedWriter.StatusCode >= 500 {
 			color = "\033[31m" // Red for server errors (5xx)

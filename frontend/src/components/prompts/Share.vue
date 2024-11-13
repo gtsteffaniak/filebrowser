@@ -124,7 +124,6 @@ import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi, publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
-import { baseURL } from "@/utils/constants";
 import Clipboard from "clipboard";
 
 export default {
@@ -167,22 +166,27 @@ export default {
       return state.req.items[this.selected[0]].url;
     },
     getContext() {
-      const prefix = `${baseURL}/files/`;
+      const prefix = `/files/`;
       let path = state.route.path.replace(prefix, "./");
       if (getters.selectedCount() === 1) {
         path = path + state.req.items[this.selected[0]].name;
       }
-      return path;
+      return decodeURIComponent(path);
     },
   },
   async beforeMount() {
     try {
-      const prefix = `${baseURL}/files`;
-      this.subpath = state.route.path.startsWith(prefix)
+      const prefix = `/files`;
+      let path = state.route.path.startsWith(prefix)
         ? state.route.path.slice(prefix.length)
         : state.route.path;
+      path = decodeURIComponent(path)
+      if (path == "") {
+        path = "/"
+      }
+      this.subpath = path
       // get last element of the path
-      const links = await shareApi.get(this.url);
+      const links = await shareApi.get(this.subpath);
       this.links = links;
     } catch (err) {
       notify.showError(err);

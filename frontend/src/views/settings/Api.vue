@@ -71,7 +71,6 @@ import { usersApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
-import { name } from "@/utils/constants";
 
 export default {
   name: "api",
