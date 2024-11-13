@@ -29,7 +29,7 @@ import (
 // @Success 200 {object} files.FileInfo "Resource metadata"
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/resources/ [get]
+// @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
@@ -72,7 +72,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/resources/ [delete]
+// @Router /api/resources [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	if path == "/" || !d.user.Perm.Delete {
@@ -122,7 +122,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 409 {object} map[string]string "Conflict - Resource already exists"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/resources/ [post]
+// @Router /api/resources [post]
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	if !d.user.Perm.Create || !d.user.Check(path) {
@@ -180,7 +180,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 405 {object} map[string]string "Method not allowed"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/resources/ [put]
+// @Router /api/resources [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 
@@ -225,7 +225,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 409 {object} map[string]string "Conflict - Destination exists"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/resources/ [patch]
+// @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	src := r.URL.Query().Get("path")
 	dst := r.URL.Query().Get("destination")
@@ -346,7 +346,7 @@ type DiskUsageResponse struct {
 // @Success 200 {object} DiskUsageResponse "Disk usage details"
 // @Failure 404 {object} map[string]string "Directory not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/usage/ [get]
+// @Router /api/usage [get]
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)

@@ -416,7 +416,7 @@ paths:
       summary: Get raw content of a file, multiple files, or directory
       tags:
       - Files
-  /api/resources/:
+  /api/resources:
     delete:
       consumes:
       - application/json
@@ -849,7 +849,7 @@ paths:
       summary: Delete a share link
       tags:
       - Shares
-  /api/usage/:
+  /api/usage:
     get:
       consumes:
       - application/json

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"crypto/tls"
 	"embed"
 	"fmt"
 	"io/fs"
@@ -120,18 +121,62 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	router.HandleFunc(fmt.Sprintf("GET %vhealth/", config.Server.BaseURL), healthHandler)
 
 	// Swagger
-	router.Handle("/swagger/",
+	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL),
 		httpSwagger.Handler(
-			httpSwagger.URL("/swagger/doc.json"), //The url pointing to API definition
+			httpSwagger.URL(config.Server.BaseURL+"swagger/doc.json"), //The url pointing to API definition
 			httpSwagger.DeepLinking(true),
 			httpSwagger.DocExpansion("none"),
 			httpSwagger.DomID("swagger-ui"),
 		),
 	)
 
-	log.Printf("listing on port: %d", config.Server.Port)
-	err = http.ListenAndServe(fmt.Sprintf(":%d", config.Server.Port), muxWithMiddleware(router))
-	if err != nil {
-		log.Fatalf("could not start server: %v", err)
+	var scheme string
+	port := ""
+
+	// Determine whether to use HTTPS (TLS) or HTTP
+	if config.Server.TLSCert != "" && config.Server.TLSKey != "" {
+		// Load the TLS certificate and key
+		cer, err := tls.LoadX509KeyPair(config.Server.TLSCert, config.Server.TLSKey)
+		if err != nil {
+			log.Fatalf("could not load certificate: %v", err)
+		}
+
+		// Create a custom TLS listener
+		tlsConfig := &tls.Config{
+			MinVersion:   tls.VersionTLS12,
+			Certificates: []tls.Certificate{cer},
+		}
+
+		// Set HTTPS scheme and default port for TLS
+		scheme = "https"
+
+		// Listen on TCP and wrap with TLS
+		listener, err := tls.Listen("tcp", fmt.Sprintf(":%v", config.Server.Port), tlsConfig)
+		if err != nil {
+			log.Fatalf("could not start TLS server: %v", err)
+		}
+		if config.Server.Port != 443 {
+			port = fmt.Sprintf(":%d", config.Server.Port)
+		}
+		// Build the full URL with host and port
+		fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
+		log.Printf("Running at               : %s", fullURL)
+		err = http.Serve(listener, muxWithMiddleware(router))
+		if err != nil {
+			log.Fatalf("could not start server: %v", err)
+		}
+	} else {
+		// Set HTTP scheme and the default port for HTTP
+		scheme = "http"
+		if config.Server.Port != 443 {
+			port = fmt.Sprintf(":%d", config.Server.Port)
+		}
+		// Build the full URL with host and port
+		fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
+		log.Printf("Running at               : %s", fullURL)
+		err := http.ListenAndServe(fmt.Sprintf(":%v", config.Server.Port), muxWithMiddleware(router))
+		if err != nil {
+			log.Fatalf("could not start server: %v", err)
+		}
 	}
 }

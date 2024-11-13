@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Fixes baseurl related bugs https://github.com/gtsteffaniak/filebrowser/pull/228 Thanks @SimLV
   - Fix empty directory load issue.
   - Fix image preview cutoff on mobile.
-  
+
 
 ## v0.2.10
 

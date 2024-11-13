@@ -13,6 +13,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
+	"github.com/gtsteffaniak/filebrowser/swagger/docs"
+	"github.com/swaggo/swag"
+
 	"github.com/gtsteffaniak/filebrowser/users"
 	"github.com/gtsteffaniak/filebrowser/version"
 )
@@ -125,9 +128,11 @@ func StartFilebrowser() {
 	log.Println(database)
 	log.Println("Sources                  :", settings.Config.Server.Root)
 	log.Println("Indexing interval        :", indexingInterval)
-	log.Println("BaseURL                  :", settings.Config.Server.BaseURL)
 
 	serverConfig := settings.Config.Server
+	swagInfo := docs.SwaggerInfo
+	swagInfo.BasePath = serverConfig.BaseURL
+	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
 	go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
 	if err := rootCMD(store, &serverConfig); err != nil {

@@ -193,7 +193,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/resources/": {
+        "/api/resources": {
             "get": {
                 "description": "Returns metadata and optionally file contents for a specified resource path.",
                 "consumes": [
@@ -832,7 +832,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/usage/": {
+        "/api/usage": {
             "get": {
                 "description": "Returns the total and used disk space for a specified directory.",
                 "consumes": [
@@ -1584,6 +1584,3 @@ var SwaggerInfo = &swag.Spec{
 	SwaggerTemplate:  docTemplate,
 }
 
-func init() {
-	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
-}

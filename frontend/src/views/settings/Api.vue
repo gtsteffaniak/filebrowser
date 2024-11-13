@@ -12,7 +12,7 @@
     <div class="card-content full" v-if="Object.keys(links).length > 0">
       <p>
         API keys are based on the user that creates the. See
-        <a class="link" href="/swagger/index.html">swagger page</a> for how to use them.
+        <a class="link" href="swagger/index.html">swagger page</a> for how to use them.
         Keys are associated with your user and the user must have access to the permission
         level you want to use the key with.
       </p>
