@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -29,6 +30,12 @@ func Initialize(configFile string) {
 		log.Fatalf("ERROR: Configured Root Path does not exist! %v", err)
 	}
 	Config.Server.Root = realRoot
+	baseurl := strings.Trim(Config.Server.BaseURL, "/")
+	if baseurl == "" {
+		Config.Server.BaseURL = "/"
+	} else {
+		Config.Server.BaseURL = "/" + baseurl + "/"
+	}
 }
 
 func loadConfigFile(configFile string) []byte {

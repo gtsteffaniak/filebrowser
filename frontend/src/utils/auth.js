@@ -1,6 +1,5 @@
-import { mutations, getters, state } from "@/store";
+import { mutations, getters } from "@/store";
 import router from "@/router";
-import { baseURL } from "@/utils/constants";
 import { usersApi } from "@/api";
 
 export async function setNewToken(token) {
@@ -9,37 +8,40 @@ export async function setNewToken(token) {
 }
 
 export async function validateLogin() {
-  const authToken = getCookie("auth");
   try {
     let userInfo = await usersApi.get("self");
     mutations.setCurrentUser(userInfo);
-  } catch {
-    await renew(authToken);
+  } catch (error) {
+    console.log("Error validating login", error);
   }
   return getters.isLoggedIn()
 }
 
 export async function login(username, password, recaptcha) {
   const data = { username, password, recaptcha };
-  const res = await fetch(`${baseURL}/api/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  const body = await res.text();
+  try {
+    const res = await fetch(`api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const body = await res.text();
 
-  if (res.status === 200) {
-    await setNewToken(body);
-  } else {
-    throw new Error(body);
+    if (res.status === 200) {
+      await setNewToken(body);
+    } else {
+      throw new Error(body);
+    }
+  } catch (error) {
+    throw new Error("Login failed");
   }
 }
 
 export async function renew(jwt) {
   console.log("Renewing token");
-  const res = await fetch(`${baseURL}/api/auth/renew`, {
+  const res = await fetch(`api/auth/renew`, {
     method: "POST",
     headers: {
       "X-Auth": jwt,
@@ -67,7 +69,7 @@ function generateRandomCode(length) {
 
 export async function signupLogin(username, password) {
   const data = { username, password };
-  const res = await fetch(`${baseURL}/api/auth/signup`, {
+  const res = await fetch(`api/auth/signup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -87,9 +89,9 @@ export function logout() {
 }
 
 // Helper function to retrieve the value of a specific cookie
-function getCookie(name) {
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith(name + '='))
-    ?.split('=')[1];
-}
+//function getCookie(name) {
+//  return document.cookie
+//    .split('; ')
+//    .find(row => row.startsWith(name + '='))
+//    ?.split('=')[1];
+//}

@@ -1,13 +1,32 @@
 import { fetchURL, fetchJSON, createURL } from "./utils";
+import { notify } from "@/notify";
 
 export async function list() {
-  return fetchJSON("/api/shares");
+  return fetchJSON("api/shares");
 }
 
 export async function get(path, hash) {
-  const params = { path, hash };
-  const url = createURL(`api/share`, params, false);
-  return fetchJSON(url);
+  try {
+    const params = { path, hash };
+    const url = createURL(`api/share`, params, false);
+    let data = fetchJSON(url);
+    data.url = `/share${url}`;
+    if (data.isDir) {
+      if (!data.url.endsWith("/")) data.url += "/";
+      data.items = data.items.map((item, index) => {
+        item.index = index;
+        item.url = `${data.url}${encodeURIComponent(item.name)}`;
+        if (item.isDir) {
+          item.url += "/";
+        }
+        return item;
+      });
+    }
+    return data
+  } catch (err) {
+    notify.showError(err.message || "Error fetching data");
+    throw err;
+  }
 }
 
 export async function remove(hash) {

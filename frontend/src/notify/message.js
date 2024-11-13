@@ -2,8 +2,8 @@ import { mutations, state } from "@/store";
 
 export function showPopup(type, message) {
     const [popup, popupContent] = getElements();
-    if (popup == undefined) {
-        return
+    if (popup === undefined) {
+        return;
     }
     popup.classList.remove('success', 'error'); // Clear previous types
     popup.classList.add(type);
@@ -13,26 +13,30 @@ export function showPopup(type, message) {
     try {
         apiMessage = JSON.parse(message);
         // Check if 'apiMessage' has 'status' and 'message' properties
-        if (apiMessage && apiMessage.hasOwnProperty("status") && apiMessage.hasOwnProperty("message")) {
+        if (apiMessage &&
+            Object.prototype.hasOwnProperty.call(apiMessage, "status") &&
+            Object.prototype.hasOwnProperty.call(apiMessage, "message")) {
             popupContent.textContent = "Errors " + apiMessage.status + ": " + apiMessage.message;
         }
     } catch (error) {
         popupContent.textContent = message;
     }
-    
+
     popup.style.right = '1em';
 
     // don't hide for actions
-    if (type == "action") {
+    if (type === "action") {
         popup.classList.add("success");
-        return
+        return;
     }
+
     // Start animation: bring the popup into view
     // Automatically hide after 10 seconds
     setTimeout(() => {
-        closePopUp()
-    }, 10000)
+        closePopUp();
+    }, 10000);
 }
+
 
 export function closePopUp() {
     const [popup, popupContent] = getElements();

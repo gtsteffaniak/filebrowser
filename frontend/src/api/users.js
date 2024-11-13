@@ -1,9 +1,9 @@
-import { fetchURL, fetchJSON, createURL } from "@/api/utils";
+import { fetchURL, fetchJSON, getApiPath } from "@/api/utils";
 import { notify } from "@/notify";  // Import notify for error handling
 
 export async function getAllUsers() {
   try {
-    return await fetchJSON(`/api/users`, {});
+    return await fetchJSON(`api/users`, {});
   } catch (err) {
     notify.showError(err.message || "Failed to fetch users");
     throw err; // Re-throw to handle further if needed
@@ -13,22 +13,18 @@ export async function getAllUsers() {
 
 export async function get(id) {
   try {
-    return await fetchJSON(`/api/users?id=${id}`, {});
+    const apiPath = getApiPath("api/users", { id: id });
+    return await fetchJSON(apiPath);
   } catch (err) {
     notify.showError(err.message || `Failed to fetch user with ID: ${id}`);
     throw err;
   }
 }
 
-export async function getApiKeys(key = "") {
-
+export async function getApiKeys() {
   try {
-    let buildUrl = "api/auth/tokens"
-    if (key != "") {
-      buildUrl = buildUrl + "?key=" + key
-    }
-    const url = createURL(buildUrl)
-    return await fetchJSON(url);
+    const apiPath = getApiPath("api/auth/tokens");
+    return await fetchJSON(apiPath);
   } catch (err) {
     notify.showError(err.message || `Failed to get api keys`);
     throw err;
@@ -38,8 +34,8 @@ export async function getApiKeys(key = "") {
 
 export async function createApiKey(params) {
   try {
-    const url = createURL(`api/auth/token`, params)
-    await fetchURL(url, {
+    const apiPath = getApiPath("api/auth/token", params);
+    await fetchURL(apiPath, {
       method: "PUT",
     });
   } catch (err) {
@@ -50,8 +46,8 @@ export async function createApiKey(params) {
 
 export function deleteApiKey(params) {
   try {
-    const url = createURL(`api/auth/token`, params)
-    fetchURL(url, {
+    const apiPath = getApiPath("api/auth/token", params);
+    fetchURL(apiPath, {
       method: "DELETE",
     });
   } catch (err) {
@@ -62,7 +58,7 @@ export function deleteApiKey(params) {
 
 export async function create(user) {
   try {
-    const res = await fetchURL(`/api/users`, {
+    const res = await fetchURL(`api/users`, {
       method: "POST",
       body: JSON.stringify({
         what: "user",
@@ -91,7 +87,8 @@ export async function update(user, which = ["all"]) {
     if (user.username === "publicUser") {
       return;
     }
-    await fetchURL(`/api/users?id=${user.id}`, {
+    const apiPath = getApiPath("api/users", { id: user.id });
+    await fetchURL(apiPath, {
       method: "PUT",
       body: JSON.stringify({
         what: "user",
@@ -107,7 +104,8 @@ export async function update(user, which = ["all"]) {
 
 export async function remove(id) {
   try {
-    await fetchURL(`/api/users?id=${id}`, {
+    const apiPath = getApiPath("api/users", { id: id });
+    await fetchURL(apiPath, {
       method: "DELETE",
     });
   } catch (err) {

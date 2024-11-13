@@ -18,7 +18,6 @@
 
 <script>
 import { filesApi } from "@/api";
-
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";

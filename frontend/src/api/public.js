@@ -1,15 +1,12 @@
-import { createURL } from "./utils";
+import { createURL, getApiPath } from "./utils";
 import { notify } from "@/notify";
 
 // Fetch public share data
 export async function fetchPub(path, hash, password = "") {
   try {
-    const params = {
-      path,
-      hash,
-    }
-    const url = createURL(`api/public/share`, params, false);
-    const response = await fetch(url, {
+    const params = { path, hash }
+    const apiPath = getApiPath("api/public/share", params);
+    const response = await fetch(apiPath, {
       headers: {
         "X-SHARE-PASSWORD": password ? encodeURIComponent(password) : "",
       },
@@ -56,14 +53,13 @@ export function download(path, hash, token, format, ...files) {
 // Get the public user data
 export async function getPublicUser() {
   try {
-    const url = createURL(`api/public/publicUser`, {}, false);
-    const response = await fetch(url);
+    const apiPath = getApiPath("api/public/publicUser");
+    const response = await fetch(apiPath);
     return response.json();
   } catch (err) {
     notify.showError(err.message || "Error fetching public user");
     throw err;
   }
- 
 }
 
 // Generate a download URL

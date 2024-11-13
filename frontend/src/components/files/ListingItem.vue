@@ -1,7 +1,7 @@
 <template>
   <component
     :is="quickNav ? 'a' : 'div'"
-    :href="quickNav ? url : undefined"
+    :href="quickNav ? getUrl() : undefined"
     :class="{
       item: true,
       activebutton: isMaximized && isSelected,
@@ -71,6 +71,7 @@ import { fromNow } from "@/utils/moment";
 import { filesApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
+import { baseURL } from "@/utils/constants";
 
 export default {
   name: "item",
@@ -158,6 +159,9 @@ export default {
     }
   },
   methods: {
+    getUrl() {
+      return baseURL.slice(0, -1) + this.url;
+    },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
 

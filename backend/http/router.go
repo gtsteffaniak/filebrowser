@@ -47,7 +47,6 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	fileCache = cache
 	imgSvc = Service
 	config = &settings.Config
-	config.Server.Clean()
 
 	var err error
 
@@ -110,15 +109,15 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("PUT /settings", withAdmin(settingsPutHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
-
-	router.Handle("/api/", http.StripPrefix("/api", api))
+	apiPath := config.Server.BaseURL + "api"
+	router.Handle(apiPath+"/", http.StripPrefix(apiPath, api))
 
 	// Static and index file handlers
-	router.HandleFunc("GET /static/", staticFilesHandler)
-	router.HandleFunc("/", indexHandler)
+	router.HandleFunc(fmt.Sprintf("GET %vstatic/", config.Server.BaseURL), staticFilesHandler)
+	router.HandleFunc(config.Server.BaseURL, indexHandler)
 
 	// health
-	router.HandleFunc("GET /health", healthHandler)
+	router.HandleFunc(fmt.Sprintf("GET %vhealth/", config.Server.BaseURL), healthHandler)
 
 	// Swagger
 	router.Handle("/swagger/",

@@ -18,7 +18,7 @@ export async function fetchURL(url, opts, auth = true) {
     if (state.user) {
       userScope = state.user.scope;
     }
-    res = await fetch(`${baseURL}${url}`, {
+    res = await fetch(url, {
       headers: {
         "sessionId": state.sessionId,
         "userScope": userScope,
@@ -86,4 +86,26 @@ export function createURL(endpoint, params = {}) {
   }
 
   return url.toString();
+}
+
+// get path with parameters
+export function getApiPath(path, params = {}) {
+  if (path.startsWith("/")) {
+    path = path.slice(1);
+  }
+  path = `${baseURL}${path}`;
+  if (Object.keys(params).length > 0) {
+    path += "?";
+  }
+  for (const key in params) {
+    if (params[key] === undefined) {
+      continue;
+    }
+    path += `${key}=${params[key]}&`;
+  }
+  // remove trailing &
+  if (path.endsWith("&")) {
+    path = path.slice(0, -1);
+  }
+  return path;
 }

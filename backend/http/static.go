@@ -52,7 +52,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"BaseURL":               config.Server.BaseURL,
 		"Version":               version.Version,
 		"CommitSHA":             version.CommitSHA,
-		"StaticURL":             path.Join(config.Server.BaseURL, "/static"),
+		"StaticURL":             path.Join(config.Server.BaseURL, "static"),
 		"Signup":                settings.Config.Auth.Signup,
 		"NoAuth":                config.Auth.Method == "noauth",
 		"AuthMethod":            config.Auth.Method,
@@ -116,7 +116,7 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
 	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
 	// Remove "/static/" from the request path
-	adjustedPath := strings.TrimPrefix(r.URL.Path, "/static/")
+	adjustedPath := strings.TrimPrefix(r.URL.Path, fmt.Sprintf("%vstatic/", config.Server.BaseURL))
 	adjustedCompressed := adjustedPath + ".gz"
 	if strings.HasSuffix(adjustedPath, ".js") {
 		w.Header().Set("Content-Type", "application/javascript; charset=utf-8") // Set the correct MIME type for JavaScript files
@@ -124,16 +124,14 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if the gzipped version of the file exists
 	fileContents, err := fs.ReadFile(assetFs, adjustedCompressed)
 	if err == nil {
-
 		w.Header().Set("Content-Encoding", "gzip") // Let the browser know the file is compressed
 		status, err := w.Write(fileContents)       // Write the gzipped file content to the response
 		if err != nil {
 			http.Error(w, http.StatusText(status), status)
 		}
-
 	} else {
 		// Otherwise, serve the regular file
-		http.StripPrefix("/static/", http.FileServer(http.FS(assetFs))).ServeHTTP(w, r)
+		http.StripPrefix(fmt.Sprintf("%vstatic/", config.Server.BaseURL), http.FileServer(http.FS(assetFs))).ServeHTTP(w, r)
 	}
 }
 

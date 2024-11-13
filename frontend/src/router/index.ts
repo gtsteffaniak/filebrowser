@@ -145,7 +145,7 @@ router.beforeResolve(async (to, from, next) => {
     return;
   }
   // this will only be null on first route
-  if (from.name == null) {
+  if (to.name != "Login") {
     try {
       await initAuth();
     } catch (error) {
@@ -154,6 +154,7 @@ router.beforeResolve(async (to, from, next) => {
   }
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!getters.isLoggedIn()) {
+      console.log("not logged in");
       next({
         path: "/login",
         query: { redirect: to.fullPath },

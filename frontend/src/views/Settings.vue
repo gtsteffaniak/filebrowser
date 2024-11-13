@@ -32,7 +32,6 @@
 
 <script>
 import { state, getters, mutations } from "@/store";
-import { baseURL } from "@/utils/constants";
 import { settings } from "@/utils/constants";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
@@ -60,7 +59,7 @@ export default {
       return getters.currentView() == "settings";
     },
     userPage() {
-      return getters.getRoutePath().startsWith(`${baseURL}/settings/users/`);
+      return getters.getRoutePath().startsWith(`settings/users/`);
     },
     loading() {
       return getters.isLoading();

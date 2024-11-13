@@ -1,4 +1,4 @@
-import { createURL, fetchURL, removePrefix } from "./utils";
+import { createURL, fetchURL, removePrefix, getApiPath } from "./utils";
 import { baseURL } from "@/utils/constants";
 import { state } from "@/store";
 import { notify } from "@/notify";
@@ -7,10 +7,11 @@ import { notify } from "@/notify";
 export async function fetch(url, content = false) {
   try {
     url = removePrefix(url);
-    const res = await fetchURL(`/api/resources?path=${url}&content=${content}`, {});
+    const apiPath = getApiPath("api/resources",{path: url, content: content});
+    const res = await fetchURL(apiPath);
     const data = await res.json();
 
-    data.url = `${baseURL}/files${url}`;
+    data.url = `/files${url}`;
     if (data.isDir) {
       if (!data.url.endsWith("/")) data.url += "/";
       data.items = data.items.map((item, index) => {
@@ -36,12 +37,11 @@ async function resourceAction(url, method, content) {
   try {
     url = removePrefix(url);
     let opts = { method };
-
     if (content) {
       opts.body = content;
     }
-
-    const res = await fetchURL(`/api/resources?path=${url}`, opts);
+    const apiPath = getApiPath("api/resources", { path: url });
+    const res = await fetchURL(apiPath, opts);
     return res;
   } catch (err) {
     notify.showError(err.message || "Error performing resource action");
@@ -183,7 +183,6 @@ export function getDownloadURL(file, inline) {
       path: file.path,
       ...(inline && { inline: "true" }),
     };
-
     return createURL("api/raw", params);
   } catch (err) {
     notify.showError(err.message || "Error getting download URL");
@@ -228,7 +227,8 @@ export function getSubtitlesURL(file) {
 export async function usage(url) {
   try {
     url = removePrefix(url);
-    const res = await fetchURL(`/api/usage?path=${url}`, {});
+    const apiPath = getApiPath("api/usage", { path: url });
+    const res = await fetchURL(apiPath);
     return await res.json();
   } catch (err) {
     notify.showError(err.message || "Error fetching usage data");
