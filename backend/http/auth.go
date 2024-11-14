@@ -28,9 +28,10 @@ var (
 // then checks for header Authorization as Bearer token
 // then checks for query parameter
 func extractToken(r *http.Request) (string, error) {
-
+	hasToken := false
 	tokenObj, err := r.Cookie("auth")
 	if err == nil {
+		hasToken = true
 		token := tokenObj.Value
 		// Checks if the token isn't empty and if it contains two dots.
 		// The former prevents incompatibility with URLs that previously
@@ -43,6 +44,7 @@ func extractToken(r *http.Request) (string, error) {
 	// Check for Authorization header
 	authHeader := r.Header.Get("Authorization")
 	if authHeader != "" {
+		hasToken = true
 		// Split the header to get "Bearer {token}"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) == 2 && parts[0] == "Bearer" {
@@ -53,7 +55,12 @@ func extractToken(r *http.Request) (string, error) {
 
 	auth := r.URL.Query().Get("auth")
 	if auth != "" && strings.Count(auth, ".") == 2 {
+		hasToken = true
 		return auth, nil
+	}
+
+	if hasToken {
+		return "", fmt.Errorf("invalid token provided")
 	}
 
 	return "", request.ErrNoTokenInRequest
