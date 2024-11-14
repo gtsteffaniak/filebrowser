@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -100,27 +99,11 @@ func withUserHelper(fn handleFunc) handleFunc {
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
-		var tokenString string
-		authHeader := r.Header.Get("Authorization")
-
-		// Check for Authorization header
-		if authHeader != "" {
-			// Split the header to get "Bearer {token}"
-			parts := strings.Split(authHeader, " ")
-			if len(parts) == 2 && parts[0] == "Bearer" {
-				tokenString = parts[1]
-			} else {
-				return http.StatusUnauthorized, fmt.Errorf("invalid Authorization header format")
-			}
-		} else {
-			// Fallback to cookie if Authorization header is missing
-			cookie, err := r.Cookie("auth")
-			if err != nil {
-				// If no cookie found, return unauthorized
-				return http.StatusUnauthorized, fmt.Errorf("authorization header or token cookie required")
-			}
-			tokenString = cookie.Value
+		tokenString, err := extractToken(r)
+		if err != nil {
+			return http.StatusUnauthorized, err
 		}
+
 		var tk users.AuthToken
 		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
 		if err != nil {

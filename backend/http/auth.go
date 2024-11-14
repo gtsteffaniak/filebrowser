@@ -24,32 +24,36 @@ var (
 	revokeMu          sync.Mutex
 )
 
-type extractor []string
+// first checks for cookie
+// then checks for header Authorization as Bearer token
+// then checks for query parameter
+func extractToken(r *http.Request) (string, error) {
 
-func (e extractor) ExtractToken(r *http.Request) (string, error) {
 	tokenObj, err := r.Cookie("auth")
-	if err != nil {
-		return "", err
+	if err == nil {
+		token := tokenObj.Value
+		// Checks if the token isn't empty and if it contains two dots.
+		// The former prevents incompatibility with URLs that previously
+		// used basic auth.
+		if token != "" && strings.Count(token, ".") == 2 {
+			return token, nil
+		}
 	}
-	token := tokenObj.Value
 
-	// Checks if the token isn't empty and if it contains two dots.
-	// The former prevents incompatibility with URLs that previously
-	// used basic auth.
-	if token != "" && strings.Count(token, ".") == 2 {
-		return token, nil
+	// Check for Authorization header
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" {
+		// Split the header to get "Bearer {token}"
+		parts := strings.Split(authHeader, " ")
+		if len(parts) == 2 && parts[0] == "Bearer" {
+			token := parts[1]
+			return token, nil
+		}
 	}
 
 	auth := r.URL.Query().Get("auth")
 	if auth != "" && strings.Count(auth, ".") == 2 {
 		return auth, nil
-	}
-
-	if r.Method == http.MethodGet {
-		cookie, _ := r.Cookie("auth")
-		if cookie != nil && strings.Count(cookie.Value, ".") == 2 {
-			return cookie.Value, nil
-		}
 	}
 
 	return "", request.ErrNoTokenInRequest
