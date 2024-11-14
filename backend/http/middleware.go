@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/golang-jwt/jwt/v4/request"
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/runner"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -100,16 +99,15 @@ func withUserHelper(fn handleFunc) handleFunc {
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
-		var tk users.AuthToken
-		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk))
+		tokenString, err := extractToken(r)
 		if err != nil {
-			if err == jwt.ErrSignatureInvalid {
-				return http.StatusUnauthorized, fmt.Errorf("invalid token signature: %w", err)
-			} else if err == jwt.ErrTokenExpired {
-				return http.StatusUnauthorized, fmt.Errorf("token expired: %w", err)
-			} else {
-				return http.StatusUnauthorized, fmt.Errorf("error parsing token: %w", err)
-			}
+			return http.StatusUnauthorized, err
+		}
+
+		var tk users.AuthToken
+		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+		if err != nil {
+			return http.StatusUnauthorized, fmt.Errorf("error processing token, %v", err)
 		}
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")

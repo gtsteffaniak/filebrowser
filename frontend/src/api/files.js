@@ -106,11 +106,12 @@ export async function post(url, content = "", overwrite = false, onupload) {
       bufferContent = await new Response(content).arrayBuffer();
     }
 
+    const apiPath = getApiPath("api/resources", { path: url, override: overwrite });
     return new Promise((resolve, reject) => {
       let request = new XMLHttpRequest();
       request.open(
         "POST",
-        `${baseURL}/api/resources?path=${url}&override=${overwrite}`,
+        apiPath,
         true
       );
       request.setRequestHeader("X-Auth", state.jwt);

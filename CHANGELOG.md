@@ -2,9 +2,9 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v0.2.11
+## v0.3.0
 
-  This Release focuses on the API and making it more accessible.
+  This Release focuses on the API and making it more accessible for developers to access functions without the UI.
 
   **New Features**:
   - You can now long-live api tokens to interact with API from the user settings page.
@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Helpful swagger page for API usage.
   - Some API's were refactored for friendlier API usage, moving some attributes to parameters and first looking for a api token, then using the stored cookie if none is found. This allows for all api requests from swagger page to work without a token.
   - Add file size to search preview! Should have been in last release... sorry!
+
 
   **Notes**:
   - Replaced backend http framework with go standard library.

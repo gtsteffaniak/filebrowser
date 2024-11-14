@@ -1,6 +1,7 @@
 import { mutations, getters } from "@/store";
 import router from "@/router";
 import { usersApi } from "@/api";
+import { getApiPath } from "@/api/utils";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
@@ -20,7 +21,8 @@ export async function validateLogin() {
 export async function login(username, password, recaptcha) {
   const data = { username, password, recaptcha };
   try {
-    const res = await fetch(`api/auth/login`, {
+    let apiPath = getApiPath("api/auth/login")
+    const res = await fetch(apiPath, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,7 +43,8 @@ export async function login(username, password, recaptcha) {
 
 export async function renew(jwt) {
   console.log("Renewing token");
-  const res = await fetch(`api/auth/renew`, {
+  let apiPath = getApiPath("api/auth/renew")
+  const res = await fetch(apiPath, {
     method: "POST",
     headers: {
       "X-Auth": jwt,
@@ -69,7 +72,8 @@ function generateRandomCode(length) {
 
 export async function signupLogin(username, password) {
   const data = { username, password };
-  const res = await fetch(`api/auth/signup`, {
+  let apiPath = getApiPath("api/auth/signup")
+  const res = await fetch(apiPath, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

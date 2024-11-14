@@ -10,26 +10,28 @@
 </p>
 
 > [!WARNING]
-> Starting with v0.2.0, *ALL* configuration is done via `filebrowser.yaml`
-> Configuration file.
-> Starting with v0.2.4 *ALL* share links need to be re-created (due to
-> security fix).
+> Starting with `v0.3.0` API routes have been slightly altered for friendly usage outside of the UI.
+> If on windows, please use docker. The windows binary is unstable and may not work.
 
-FileBrowser Quantum is a fork of the filebrowser opensource project with the 
-following changes:
+FileBrowser Quantum is a fork of the filebrowser opensource project with the following changes:
 
   1. [x] Efficiently indexed files
      - Real-time search results as you type
      - Search Works with more type filters
      - Enhanced interactive results page.
-  2. [x] Revamped and simplified GUI navbar and sidebar menu.
+     - file/folder sizes are shown in the response
+  1. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode
        styles.
-  3. [x] Revamped and simplified configuration via `filebrowser.yml` config file.
-  4. [x] Faster listing browsing
+  1. [x] Revamped and simplified configuration via `filebrowser.yml` config file.
+  1. [x] Better listing browsing
      - Switching view modes is instant
+     - Folder sizes are shown as well
      - Changing Sort order is instant
      - The entire directory is loaded in 1/3 the time
+  1. Developer API support
+     - Can create long-live API Tokens.
+     - Helpful Swagger page available at `/swagger` endpoint.
 
 ## About
 
@@ -71,7 +73,6 @@ a popup menu.
   <img width="800" src="https://github.com/gtsteffaniak/filebrowser/assets/42989099/899152cf-3e69-4179-aa82-752af2df3fc6" title="Main Screenshot">
     <img width="800" src="https://github.com/user-attachments/assets/18c02d03-5c60-4e15-9c32-3cfe058a0c49" title="Main Screenshot">
       <img width="800" src="https://github.com/user-attachments/assets/75226dc4-9802-46f0-9e3c-e4403d3275da" title="Main Screenshot">
-
 </p>
 
 ## Install
@@ -89,7 +90,6 @@ docker run -it -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
   - with local storage
 
 ```
-version: '3.7'
 services:
   filebrowser:
     volumes:
@@ -105,7 +105,6 @@ services:
   - with network share
 
 ```
-version: '3.7'
 services:
   filebrowser:
     volumes:
@@ -144,6 +143,13 @@ There are very few commands available. There are 3 actions done via command line
 FileBrowser Quantum comes with a swagger page that can be accessed from the API section of settings or by going to `/swagger` to see the full list:
 
 ![image](https://github.com/user-attachments/assets/12abd1f6-21d3-4437-98ed-9b0da6cf2c73)
+
+You use the token as a bearer token. For example in postman:
+
+Successful Request:
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/4f18fa8a-8d87-4f40-9dc7-3d4407769b59">
+Failed Request
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/4da0deae-f93d-4d94-83b1-68806afb343a">
 
 
 ## Configuration

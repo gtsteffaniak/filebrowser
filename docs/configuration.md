@@ -220,6 +220,7 @@ userDefaults:
 
   - `download`: This boolean value determines whether download permissions are granted.
 
+  - `api`: Ability to create and manage API keys.
 
 - `hideDotfiles`: This boolean value determines whether dotfiles are hidden. (`true` or `false`)
 

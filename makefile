@@ -13,7 +13,11 @@ build:
 
 run: run-frontend
 	cd backend && swag init --output swagger/docs && \
-	sed -i '' '/func init() {/,+3d' ./swagger/docs/docs.go && \
+	if [ "$(shell uname)" = "Darwin" ]; then \
+		sed -i '' '/func init/,+3d' ./swagger/docs/docs.go; \
+	else \
+		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
+	fi && \
 	FILEBROWSER_NO_EMBEDED=true go run \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/version.Version=testing'" . -c test_config.yaml
 
