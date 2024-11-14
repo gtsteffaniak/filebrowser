@@ -274,7 +274,7 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) error {
+func delThumbs(ctx context.Context, fileCache FileCache, file files.FileInfo) error {
 	if err := fileCache.Delete(ctx, previewCacheKey(file, "small")); err != nil {
 		return err
 	}

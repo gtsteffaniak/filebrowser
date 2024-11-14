@@ -1162,6 +1162,9 @@ const docTemplate = `{
                 "numFiles": {
                     "type": "integer"
                 },
+                "path": {
+                    "type": "string"
+                },
                 "size": {
                     "type": "integer"
                 },

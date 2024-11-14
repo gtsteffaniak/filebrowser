@@ -24,7 +24,21 @@ type FileCache interface {
 	Delete(ctx context.Context, key string) error
 }
 
-// Handles the preview request for images
+// previewHandler handles the preview request for images.
+// @Summary Get image preview
+// @Description Returns a preview image based on the requested path and size.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param path query string true "File path of the image to preview"
+// @Param size query string false "Preview size ('small' or 'large'). Default is based on server config."
+// @Success 200 {file} file "Preview image content"
+// @Failure 202 {object} map[string]string "Download permissions required"
+// @Failure 400 {object} map[string]string "Invalid request path"
+// @Failure 404 {object} map[string]string "File not found"
+// @Failure 415 {object} map[string]string "Unsupported file type for preview"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/preview [get]
 func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
@@ -41,26 +55,25 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	filename := filepath.Base(path)
 
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
-	if isDir {
-		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
-	}
-
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       realPath,
+		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: config.Server.TypeDetectionByHeader,
 		Checker:    d.user,
 	})
-
 	if err != nil {
 		return errToStatus(err), err
 	}
 
+	realPath, _, err := files.GetRealPath(file.Path + "/" + file.Name)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	file.Path = realPath
+	if file.Type == "directory" {
+		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
+	}
 	setContentDisposition(w, r, file)
 	if file.Type != "image" {
 		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
@@ -91,30 +104,19 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 			return errToStatus(err), err
 		}
 	}
-
 	w.Header().Set("Cache-Control", "private")
 	http.ServeContent(w, r, filename, file.ModTime, bytes.NewReader(resizedImage))
 
 	return 0, nil
 }
 
-// previewHandler handles the preview request for images.
-// @Summary Get image preview
-// @Description Returns a preview image based on the requested path and size.
-// @Tags Resources
-// @Accept json
-// @Produce json
-// @Param path query string true "File path of the image to preview"
-// @Param size query string false "Preview size ('small' or 'large'). Default is based on server config."
-// @Success 200 {file} file "Preview image content"
-// @Failure 202 {object} map[string]string "Download permissions required"
-// @Failure 400 {object} map[string]string "Invalid request path"
-// @Failure 404 {object} map[string]string "File not found"
-// @Failure 415 {object} map[string]string "Unsupported file type for preview"
-// @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/preview [get]
-func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo, previewSize string) ([]byte, error) {
-	fd, err := os.Open(file.Path)
+func createPreview(imgSvc ImgService, fileCache FileCache, file files.FileInfo, previewSize string) ([]byte, error) {
+	realPath, _, err := files.GetRealPath(file.Path + "/" + file.Name)
+	if err != nil {
+		return nil, err
+	}
+	file.Path = realPath
+	fd, err := os.Open(realPath)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +157,6 @@ func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo,
 }
 
 // Generates a cache key for the preview image
-func previewCacheKey(f *files.FileInfo, previewSize string) string {
+func previewCacheKey(f files.FileInfo, previewSize string) string {
 	return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
 }

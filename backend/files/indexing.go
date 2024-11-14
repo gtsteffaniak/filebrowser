@@ -121,7 +121,7 @@ func (si *Index) indexFiles(path string) error {
 			dirInfos[item.Name()] = childInfo
 			numDirs++
 		} else {
-			_ = childInfo.detectType(path, true, false, false)
+			_ = childInfo.detectType(childInfo.Name, true, false, false)
 			fileInfos[item.Name()] = childInfo
 			numFiles++
 		}
@@ -164,6 +164,7 @@ func (si *Index) InsertInfo(parentPath string, file *FileInfo, name string) (*Fi
 	}
 	// Create FileInfo for regular files
 	fileInfo := &FileInfo{
+		Name:    name,
 		Size:    file.Size,
 		ModTime: file.ModTime,
 	}

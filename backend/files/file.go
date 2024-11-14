@@ -40,7 +40,7 @@ type ReducedItem struct {
 type FileInfo struct {
 	Files     map[string]*FileInfo `json:"-"`
 	Dirs      map[string]*FileInfo `json:"-"`
-	Path      string               `json:"-"`
+	Path      string               `json:"path"`
 	Name      string               `json:"name"`
 	Items     []ReducedItem        `json:"items"`
 	Size      int64                `json:"size"`
@@ -76,46 +76,48 @@ func (f FileOptions) Components() (string, string) {
 
 // Legacy file info method, only called on non-indexed directories.
 // Once indexing completes for the first time, NewFileInfo is never called.
-func NewFileInfo(opts FileOptions) (*FileInfo, error) {
+func NewFileInfo(opts FileOptions) (FileInfo, error) {
 	index := GetIndex(rootPath)
 	if !opts.Checker.Check(opts.Path) {
-		return nil, os.ErrPermission
+		return FileInfo{}, os.ErrPermission
 	}
+
 	file, err := stat(opts)
 	if err != nil {
-		return nil, err
+		return FileInfo{}, err
 	}
 	if opts.Expand {
 		if file.Type == "directory" {
 			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
-				return nil, err
+				return FileInfo{}, err
 			}
 			metadataInfo, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
 			if !exists {
-				return nil, errors.ErrNotExist
+				return FileInfo{}, errors.ErrNotExist
 			}
-			return &metadataInfo, nil
+			return metadataInfo, nil
 		}
 		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
 		if err != nil {
-			return nil, err
+			return FileInfo{}, err
 		}
 	}
-	return file, err
+
+	return *file, err
 }
 
-func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
+func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
 	pathMutex.Lock()
 	defer pathMutex.Unlock()
 	if !opts.Checker.Check(opts.Path) {
-		return nil, os.ErrPermission
+		return FileInfo{}, os.ErrPermission
 	}
 
 	_, isDir, err := GetRealPath(opts.Path)
 	if err != nil {
-		return nil, err
+		return FileInfo{}, err
 	}
 	opts.IsDir = isDir
 	index := GetIndex(rootPath)
@@ -127,9 +129,8 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 			go RefreshFileInfo(opts) //nolint:errcheck
 		}
 		// refresh cache after
-		return &info, nil
+		return info, nil
 	}
-
 	// don't bother caching content
 	if opts.Content {
 		file, err := NewFileInfo(opts)
@@ -144,7 +145,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	if !exists {
 		return NewFileInfo(opts)
 	}
-	return &info, nil
+	return info, nil
 }
 
 func RefreshFileInfo(opts FileOptions) error {
@@ -311,10 +312,7 @@ func GetRealPath(relativePath ...string) (string, bool, error) {
 	// Convert relative path to absolute path
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
-		return "", false, err
-	}
-	if !Exists(absolutePath) {
-		return absolutePath, false, fmt.Errorf("File doesn't exist!")
+		return "", false, fmt.Errorf("could not get real path: %v, %s", combined, err)
 	}
 	// Resolve symlinks and get the real path
 	return resolveSymlinks(absolutePath)
@@ -385,7 +383,7 @@ func resolveSymlinks(path string) (string, bool, error) {
 		// Get the file info
 		info, err := os.Lstat(path)
 		if err != nil {
-			return "", false, err
+			return "", false, fmt.Errorf("could not stat path: %v, %s", path, err)
 		}
 
 		// Check if it's a symlink
@@ -427,10 +425,11 @@ func (i *FileInfo) addContent(path string) error {
 
 // detectType detects the file type.
 func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool) error {
-	name := filepath.Base(path)
 	if i.Type == "directory" {
 		return nil
 	}
+	name := filepath.Base(path)
+
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
 		if saveContent {
@@ -453,7 +452,6 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 		if IsMatchingType(ext, fileType) {
 			i.Type = fileType
 		}
-
 		switch i.Type {
 		case "text":
 			if !modify {
