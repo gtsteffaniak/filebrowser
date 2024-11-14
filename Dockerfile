@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine AS base
+FROM golang:1.23-alpine AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app

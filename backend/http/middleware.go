@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/golang-jwt/jwt/v4/request"
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/runner"
 	"github.com/gtsteffaniak/filebrowser/users"
@@ -100,16 +100,31 @@ func withUserHelper(fn handleFunc) handleFunc {
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
-		var tk users.AuthToken
-		token, err := request.ParseFromRequest(r, &extractor{}, keyFunc, request.WithClaims(&tk))
-		if err != nil {
-			if err == jwt.ErrSignatureInvalid {
-				return http.StatusUnauthorized, fmt.Errorf("invalid token signature: %w", err)
-			} else if err == jwt.ErrTokenExpired {
-				return http.StatusUnauthorized, fmt.Errorf("token expired: %w", err)
+		var tokenString string
+		authHeader := r.Header.Get("Authorization")
+
+		// Check for Authorization header
+		if authHeader != "" {
+			// Split the header to get "Bearer {token}"
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				tokenString = parts[1]
 			} else {
-				return http.StatusUnauthorized, fmt.Errorf("error parsing token: %w", err)
+				return http.StatusUnauthorized, fmt.Errorf("invalid Authorization header format")
 			}
+		} else {
+			// Fallback to cookie if Authorization header is missing
+			cookie, err := r.Cookie("auth")
+			if err != nil {
+				// If no cookie found, return unauthorized
+				return http.StatusUnauthorized, fmt.Errorf("authorization header or token cookie required")
+			}
+			tokenString = cookie.Value
+		}
+		var tk users.AuthToken
+		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
+		if err != nil {
+			return http.StatusUnauthorized, fmt.Errorf("error processing token, %v", err)
 		}
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
