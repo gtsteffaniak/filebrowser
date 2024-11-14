@@ -24,73 +24,48 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	// Remove slashes
 	scope = strings.TrimLeft(scope, "/")
 	scope = strings.TrimRight(scope, "/")
+	adjustedPath := si.makeIndexPath(scope, true)
 	runningHash := utils.GenerateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
 	results := make([]searchResult, 0)
 	count := 0
+
+	directories := si.getSearchableDirs(adjustedPath)
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
 		}
 		si.mu.Lock()
-		for dirName, dir := range si.Directories {
-			adjustedDir := strings.TrimPrefix(dirName, "/")
-			if dirName == "/" {
-				adjustedDir = "/"
-			}
-			isDir := true
-			files := []string{}
-			for _, item := range dir.Items {
-				if !item.IsDir {
-					files = append(files, item.Name)
-				}
-			}
-			value, found := sessionInProgress.Load(sourceSession)
-			if !found || value != runningHash {
-				si.mu.Unlock()
-				return []searchResult{}
-			}
-			if count > maxSearchResults {
-				break
-			}
-			hasScope := scopedPathNameFilter(dirName, scope, isDir)
-			if !hasScope {
-				continue // path not matched
-			}
-			fileTypes := map[string]bool{}
-			si.mu.Unlock()
-			matches, fileType, fileSize := si.containsSearchTerm(dirName, searchTerm, *searchOptions, isDir, fileTypes)
-			si.mu.Lock()
-			if matches {
-				scopedPath := strings.TrimPrefix(strings.TrimPrefix(adjustedDir, scope), "/")
-				results = append(results, searchResult{Path: scopedPath, Type: fileType, Size: fileSize})
-				count++
-			}
-			isDir = false
-			for _, file := range files {
-				if file == "" {
-					continue
-				}
+		for _, dir := range directories {
+			// search files first
+			for fileName, item := range dir.Files {
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					return []searchResult{}
 				}
-
 				if count > maxSearchResults {
-					break
+					return results
 				}
-				fullName := dirName + "/" + file
-				if dirName == "/" {
-					fullName = file
-				}
-				fileTypes := map[string]bool{}
-				si.mu.Unlock()
-				matches, fileType, fileSize := si.containsSearchTerm(fullName, searchTerm, *searchOptions, isDir, fileTypes)
-				si.mu.Lock()
+				matches, fileType, fileSize := item.containsSearchTerm(fileName, searchTerm, searchOptions)
 				if matches {
-					scopedPath := strings.TrimPrefix(strings.TrimPrefix(fullName, "/"), scope)
-					results = append(results, searchResult{Path: strings.TrimPrefix(scopedPath, "/"), Type: fileType, Size: fileSize})
+					scopedPath := strings.TrimPrefix(strings.TrimPrefix(item.Path, scope), "/")
+					results = append(results, searchResult{Path: scopedPath, Type: fileType, Size: fileSize})
+					count++
+				}
+			}
+			for dirName, item := range dir.Dirs {
+				value, found := sessionInProgress.Load(sourceSession)
+				if !found || value != runningHash {
+					return []searchResult{}
+				}
+				if count > maxSearchResults {
+					return results
+				}
+				matches, fileType, fileSize := item.containsSearchTerm(dirName, searchTerm, searchOptions)
+				if matches {
+					scopedPath := strings.TrimPrefix(strings.TrimPrefix(item.Path, scope), "/")
+					results = append(results, searchResult{Path: scopedPath, Type: fileType, Size: fileSize})
 					count++
 				}
 			}
@@ -108,23 +83,15 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	return results
 }
 
-func scopedPathNameFilter(pathName string, scope string, isDir bool) bool {
-	pathName = strings.TrimLeft(pathName, "/")
-	pathName = strings.TrimRight(pathName, "/")
-	return strings.HasPrefix(pathName, scope)
-}
-
 // returns true if the file name contains the search term
 // returns file type if the file name contains the search term
 // returns size of file/dir if the file name contains the search term
-func (si *Index) containsSearchTerm(pathName string, searchTerm string, options SearchOptions, isDir bool, fileTypes map[string]bool) (bool, string, int64) {
+func (fi FileInfo) containsSearchTerm(fileName string, searchTerm string, options *SearchOptions) (bool, string, int64) {
+	fileTypes := map[string]bool{}
 	largerThan := int64(options.LargerThan) * 1024 * 1024
 	smallerThan := int64(options.SmallerThan) * 1024 * 1024
 	conditions := options.Conditions
-	fileName := filepath.Base(pathName)
 	lowerFileName := strings.ToLower(fileName)
-
-	adjustedPath := si.makeIndexPath(pathName, isDir)
 
 	// Convert to lowercase if not exact match
 	if !conditions["exact"] {
@@ -148,34 +115,9 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 			fileType = k
 		}
 	}
-
+	isDir := fi.Type == "directory"
 	fileTypes["dir"] = isDir
-
-	if !isDir {
-		// correct for root path issue
-		adjustedPath = filepath.Dir(adjustedPath)
-		if adjustedPath == "." {
-			adjustedPath = "/"
-		}
-	}
-
-	fileInfo, exists := si.GetMetadataInfo(adjustedPath)
-	// Get file info if needed for size-related conditions
-	if !exists {
-		return false, "", 0
-	}
-
-	if !isDir {
-		// Look for specific file in ReducedItems
-		for _, item := range fileInfo.ReducedItems {
-			if item.Name == fileName {
-				fileSize = item.Size
-				break
-			}
-		}
-	} else {
-		fileSize = fileInfo.Size
-	}
+	fileSize = fi.Size
 
 	// Evaluate all conditions
 	for t, v := range conditions {
@@ -205,4 +147,31 @@ func (si *Index) containsSearchTerm(pathName string, searchTerm string, options 
 	}
 
 	return true, fileType, fileSize
+}
+
+func (si *Index) getSearchableDirs(adjustedPath string) []*FileInfo {
+	dirs := []*FileInfo{}
+	dirName := filepath.Base(adjustedPath)
+	parentDir := filepath.Dir(adjustedPath)
+	info, exists := si.GetMetadataInfo(parentDir, dirName)
+	if !exists {
+		return dirs
+	}
+	si.mu.RLock()
+	defer si.mu.RUnlock()
+	dirs = getDirsRecursively(dirName, &info, dirs)
+	for dirName, dir := range info.Dirs {
+		if dirName == adjustedPath {
+			dirs = append(dirs, dir)
+		}
+	}
+	return dirs
+}
+
+func getDirsRecursively(dirName string, dir *FileInfo, dirList []*FileInfo) []*FileInfo {
+	dirList = append(dirList, dir)
+	for name, item := range dir.Dirs {
+		dirList = getDirsRecursively(name, item, dirList)
+	}
+	return dirList
 }

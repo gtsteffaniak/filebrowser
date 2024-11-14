@@ -13,7 +13,7 @@ import (
 
 type Index struct {
 	Root        string
-	Directories map[string]FileInfo
+	Directories map[string]*FileInfo // top-level must be dir
 	NumDirs     int
 	NumFiles    int
 	inProgress  bool
@@ -94,18 +94,22 @@ func (si *Index) indexFiles(path string) error {
 	}
 
 	// Recursively process files and directories
-	fileInfos := []*FileInfo{}
+	fileInfos := map[string]*FileInfo{}
+	dirInfos := map[string]*FileInfo{}
+
 	var totalSize int64
 	var numDirs, numFiles int
 
-	for _, file := range files {
+	for _, item := range files {
 		parentInfo := &FileInfo{
-			Name:    file.Name(),
-			Size:    file.Size(),
-			ModTime: file.ModTime(),
-			IsDir:   file.IsDir(),
+			Size:    item.Size(),
+			ModTime: item.ModTime(),
+			Path:    adjustedPath,
 		}
-		childInfo, err := si.InsertInfo(path, parentInfo)
+		if item.IsDir() {
+			parentInfo.Type = "directory"
+		}
+		childInfo, err := si.InsertInfo(path, parentInfo, item.Name())
 		if err != nil {
 			// Log error, but continue processing other files
 			continue
@@ -113,30 +117,29 @@ func (si *Index) indexFiles(path string) error {
 
 		// Accumulate directory size and items
 		totalSize += childInfo.Size
-		if childInfo.IsDir {
+		if childInfo.Type == "directory" {
+			dirInfos[item.Name()] = childInfo
 			numDirs++
 		} else {
+			_ = childInfo.detectType(path, true, false, false)
+			fileInfos[item.Name()] = childInfo
 			numFiles++
 		}
-		_ = childInfo.detectType(path, true, false, false)
-		fileInfos = append(fileInfos, childInfo)
 	}
 
 	// Create FileInfo for the current directory
 	dirFileInfo := &FileInfo{
-		Items:     fileInfos,
-		Name:      filepath.Base(path),
 		Size:      totalSize,
 		ModTime:   dirInfo.ModTime(),
 		CacheTime: time.Now(),
-		IsDir:     true,
+		Type:      "directory",
 		NumDirs:   numDirs,
 		NumFiles:  numFiles,
 	}
 
 	// Add directory to index
 	si.mu.Lock()
-	si.Directories[adjustedPath] = *dirFileInfo
+	si.Directories[adjustedPath] = dirFileInfo
 	si.NumDirs += numDirs
 	si.NumFiles += numFiles
 	si.mu.Unlock()
@@ -144,31 +147,26 @@ func (si *Index) indexFiles(path string) error {
 }
 
 // InsertInfo function to handle adding a file or directory into the index
-func (si *Index) InsertInfo(parentPath string, file *FileInfo) (*FileInfo, error) {
-
-	filePath := filepath.Join(parentPath, file.Name)
+func (si *Index) InsertInfo(parentPath string, file *FileInfo, name string) (*FileInfo, error) {
+	filePath := filepath.Join(parentPath, name)
 
 	// Check if it's a directory and recursively index it
-	if file.IsDir {
+	if file.Type == "directory" {
 		// Recursively index directory
 		err := si.indexFiles(filePath)
 		if err != nil {
 			return nil, err
 		}
-		// Return directory info from the index
-		adjustedPath := si.makeIndexPath(filePath, true)
+		si.UpdateFileMetadata(parentPath, file)
 		si.mu.RLock()
-		dirInfo := si.Directories[adjustedPath]
+		dirInfo := si.Directories[parentPath]
 		si.mu.RUnlock()
-		return &dirInfo, nil
+		return dirInfo, nil
 	}
 	// Create FileInfo for regular files
 	fileInfo := &FileInfo{
-		Path:    filePath,
-		Name:    file.Name,
 		Size:    file.Size,
 		ModTime: file.ModTime,
-		IsDir:   false,
 	}
 
 	return fileInfo, nil

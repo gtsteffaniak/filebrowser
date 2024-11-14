@@ -48,17 +48,19 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if !file.IsDir {
-		if checksum := r.URL.Query().Get("checksum"); checksum != "" {
-			err := file.Checksum(checksum)
-			if err == errors.ErrInvalidOption {
-				return http.StatusBadRequest, nil
-			} else if err != nil {
-				return http.StatusInternalServerError, err
-			}
+	if file.Type == "directory" {
+		renderJSON(w, r, file)
+	}
+	if checksum := r.URL.Query().Get("checksum"); checksum != "" {
+		err := file.Checksum(checksum)
+		if err == errors.ErrInvalidOption {
+			return http.StatusBadRequest, nil
+		} else if err != nil {
+			return http.StatusInternalServerError, err
 		}
 	}
 	return renderJSON(w, r, file)
+
 }
 
 // resourceDeleteHandler deletes a resource at a specified path.
@@ -365,11 +367,8 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 		return errToStatus(err), err
 	}
 	fPath := file.RealPath()
-	if !file.IsDir {
-		return renderJSON(w, r, &DiskUsageResponse{
-			Total: 0,
-			Used:  0,
-		})
+	if file.Type != "directory" {
+		return http.StatusBadRequest, fmt.Errorf("path is not a directory")
 	}
 	usage, err := disk.UsageWithContext(r.Context(), fPath)
 	if err != nil {

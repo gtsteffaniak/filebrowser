@@ -120,11 +120,11 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 		return 0, nil
 	}
 
-	if !file.IsDir {
-		return rawFileHandler(w, r, file)
+	if file.Type == "directory" {
+		return rawDirHandler(w, r, d, file)
 	}
 
-	return rawDirHandler(w, r, d, file)
+	return rawFileHandler(w, r, file)
 }
 
 func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) error {

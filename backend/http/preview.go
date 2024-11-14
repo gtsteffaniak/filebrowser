@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/img"
@@ -38,8 +39,18 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
 
+	filename := filepath.Base(path)
+
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	if isDir {
+		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
+	}
+
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       "/" + path, // Assuming "path" is the third part
+		Path:       realPath,
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: config.Server.TypeDetectionByHeader,
@@ -82,7 +93,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, file.Name, file.ModTime, bytes.NewReader(resizedImage))
+	http.ServeContent(w, r, filename, file.ModTime, bytes.NewReader(resizedImage))
 
 	return 0, nil
 }
