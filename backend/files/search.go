@@ -24,14 +24,13 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	// Remove slashes
 	scope = strings.TrimLeft(scope, "/")
 	scope = strings.TrimRight(scope, "/")
-	adjustedPath := si.makeIndexPath(scope, true)
 	runningHash := utils.GenerateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
 	results := make([]searchResult, 0)
 	count := 0
 
-	directories := si.getSearchableDirs(adjustedPath)
+	directories := si.getSearchableDirs(scope)
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -149,23 +148,15 @@ func (fi FileInfo) containsSearchTerm(fileName string, searchTerm string, option
 	return true, fileType, fileSize
 }
 
-func (si *Index) getSearchableDirs(adjustedPath string) []*FileInfo {
+func (si *Index) getSearchableDirs(scope string) []*FileInfo {
 	dirs := []*FileInfo{}
-	dirName := filepath.Base(adjustedPath)
-	parentDir := filepath.Dir(adjustedPath)
-	info, exists := si.GetMetadataInfo(parentDir, dirName)
+	info, exists := si.GetMetadataInfo(scope, true)
 	if !exists {
 		return dirs
 	}
 	si.mu.RLock()
 	defer si.mu.RUnlock()
-	dirs = getDirsRecursively(dirName, &info, dirs)
-	for dirName, dir := range info.Dirs {
-		if dirName == adjustedPath {
-			dirs = append(dirs, dir)
-		}
-	}
-	return dirs
+	return getDirsRecursively(info.Path, &info, dirs)
 }
 
 func getDirsRecursively(dirName string, dir *FileInfo, dirList []*FileInfo) []*FileInfo {

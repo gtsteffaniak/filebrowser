@@ -11,12 +11,12 @@ export async function get(path, hash) {
     const url = createURL(`api/share`, params, false);
     let data = fetchJSON(url);
     data.url = `/share${url}`;
-    if (data.isDir) {
+    if (data.type == "directory") {
       if (!data.url.endsWith("/")) data.url += "/";
       data.items = data.items.map((item, index) => {
         item.index = index;
         item.url = `${data.url}${encodeURIComponent(item.name)}`;
-        if (item.isDir) {
+        if (item.type == "directory") {
           item.url += "/";
         }
         return item;

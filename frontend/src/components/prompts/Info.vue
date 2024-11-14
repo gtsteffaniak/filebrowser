@@ -128,8 +128,8 @@ export default {
       return (
         getters.selectedCount() > 1 ||
         (getters.selectedCount() === 0
-          ? state.req.isDir
-          : state.req.items[this.selected[0]].isDir)
+          ? state.req.type == "directory"
+          : state.req.items[this.selected[0]].type == "directory")
       );
     },
   },

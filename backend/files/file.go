@@ -90,7 +90,7 @@ func NewFileInfo(opts FileOptions) (*FileInfo, error) {
 			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
 				return nil, err
 			}
-			metadataInfo, exists := index.GetMetadataInfo(opts.Components())
+			metadataInfo, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
 			if !exists {
 				return nil, errors.ErrNotExist
 			}
@@ -112,30 +112,35 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return nil, os.ErrPermission
 	}
-	index := GetIndex(rootPath)
-	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
-	if opts.IsDir {
-		info, exists := index.GetMetadataInfo(opts.Components())
-		if exists && !opts.Content {
-			// Let's not refresh if less than a second has passed
-			if time.Since(info.CacheTime) > time.Second {
-				go RefreshFileInfo(opts) //nolint:errcheck
-			}
-			// refresh cache after
-			return &info, nil
-		}
+
+	_, isDir, err := GetRealPath(opts.Path)
+	if err != nil {
+		return nil, err
 	}
+	opts.IsDir = isDir
+	index := GetIndex(rootPath)
+	// check if the file exists in the index
+	info, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
+	if exists {
+		// Let's not refresh if less than a second has passed
+		if time.Since(info.CacheTime) > time.Second {
+			go RefreshFileInfo(opts) //nolint:errcheck
+		}
+		// refresh cache after
+		return &info, nil
+	}
+
 	// don't bother caching content
 	if opts.Content {
 		file, err := NewFileInfo(opts)
 		return file, err
 	}
-	err := RefreshFileInfo(opts)
+	err = RefreshFileInfo(opts)
 	if err != nil {
 		file, err := NewFileInfo(opts)
 		return file, err
 	}
-	info, exists := index.GetMetadataInfo(adjustedPath, filepath.Base(opts.Path))
+	info, exists = index.GetMetadataInfo(opts.Path, opts.IsDir)
 	if !exists {
 		return NewFileInfo(opts)
 	}
@@ -147,7 +152,6 @@ func RefreshFileInfo(opts FileOptions) error {
 		return fmt.Errorf("permission denied: %s", opts.Path)
 	}
 	index := GetIndex(rootPath)
-	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
 	file, err := stat(opts)
 	if err != nil {
 		return fmt.Errorf("File/folder does not exist to refresh data: %s", opts.Path)
@@ -159,15 +163,21 @@ func RefreshFileInfo(opts FileOptions) error {
 			return fmt.Errorf("Dir info could not be read: %s", opts.Path)
 		}
 	}
-	result := index.UpdateFileMetadata(adjustedPath, file)
+	result := index.UpdateFileMetadata(opts.Path, file)
 	if !result {
-		return fmt.Errorf("File/folder does not exist in metadata: %s", adjustedPath)
+		return fmt.Errorf("File/folder does not exist in metadata: %s", opts.Path)
 	}
 	return nil
 }
 
 func stat(opts FileOptions) (*FileInfo, error) {
-	info, err := os.Lstat(opts.Path)
+	index := GetIndex(rootPath)
+	realPath, _, err := GetRealPath(rootPath, opts.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := os.Lstat(realPath)
 	if err != nil {
 		return nil, err
 	}
@@ -178,8 +188,61 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		Extension: filepath.Ext(info.Name()),
 		Token:     opts.Token,
 	}
+	file.Name = filepath.Base(realPath)
+
 	if info.IsDir() {
 		file.Type = "directory"
+
+		// Open the directory
+		dir, err := os.Open(realPath)
+		if err != nil {
+			return nil, err
+		}
+		defer dir.Close()
+		dirInfo, err := dir.Stat()
+		if err != nil {
+			return nil, err
+		}
+
+		info, exists := index.GetMetadataInfo(opts.Path, info.IsDir())
+		if exists {
+			// Check if the directory is already up-to-date
+			if dirInfo.ModTime().Before(info.CacheTime) {
+				return &info, nil
+			}
+		}
+
+		// Read directory contents
+		files, err := dir.Readdir(-1)
+		if err != nil {
+			return nil, err
+		}
+		// Recursively process files and directories
+		fileInfos := map[string]*FileInfo{}
+		dirInfos := map[string]*FileInfo{}
+
+		var totalSize int64
+		var numDirs, numFiles int
+		for _, item := range files {
+			newInfo := &FileInfo{
+				Name:    item.Name(),
+				Size:    item.Size(),
+				ModTime: item.ModTime(),
+			}
+			if item.IsDir() {
+				newInfo.Type = "directory"
+				dirInfos[item.Name()] = newInfo
+				numDirs++
+			} else {
+				_ = newInfo.detectType(opts.Path, true, false, false)
+				fileInfos[item.Name()] = newInfo
+				numFiles++
+			}
+			totalSize += newInfo.Size
+		}
+		file.NumDirs = numDirs
+		file.NumFiles = numFiles
+		file.Size = totalSize
 	}
 	if info.Mode()&os.ModeSymlink != 0 {
 		file.IsSymlink = true
@@ -251,7 +314,7 @@ func GetRealPath(relativePath ...string) (string, bool, error) {
 		return "", false, err
 	}
 	if !Exists(absolutePath) {
-		return absolutePath, false, nil // return without error
+		return absolutePath, false, fmt.Errorf("File doesn't exist!")
 	}
 	// Resolve symlinks and get the real path
 	return resolveSymlinks(absolutePath)

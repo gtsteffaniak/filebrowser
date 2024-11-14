@@ -48,7 +48,7 @@
       <div class="share">
         <div class="share__box share__box__info">
           <div class="share__box__header">
-            {{ req.isDir ? $t("download.downloadFolder") : $t("download.downloadFile") }}
+            {{ req.type == "directory" ? $t("download.downloadFolder") : $t("download.downloadFile") }}
           </div>
 
           <div
@@ -87,7 +87,7 @@
               target="_blank"
               :href="getLink(true)"
               class="button button--flat"
-              v-if="!req.isDir"
+              v-if="req.type != 'directory'"
             >
               <div>
                 <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
@@ -99,10 +99,10 @@
           </div>
         </div>
         <div
-          v-if="req.isDir && req.items.length > 0"
+          v-if="req.type == 'directory' && req.items.length > 0"
           class="share__box share__box__items"
         >
-          <div class="share__box__header" v-if="req.isDir">
+          <div class="share__box__header" v-if="req.type == 'directory'">
             {{ $t("files.files") }}
           </div>
           <div id="listingView" class="list file-icons">
@@ -111,7 +111,7 @@
               :key="base64(item.name)"
               v-bind:index="item.index"
               v-bind:name="item.name"
-              v-bind:isDir="item.isDir"
+              v-bind:isDir="item.type == 'directory'"
               v-bind:url="item.url"
               v-bind:modified="item.modified"
               v-bind:type="item.type"
@@ -122,7 +122,7 @@
           </div>
         </div>
         <div
-          v-else-if="req.isDir && req.items.length === 0"
+          v-else-if="req.type == 'directory' && req.items.length === 0"
           class="share__box share__box__items"
         >
           <h2 class="message">
@@ -209,7 +209,7 @@ export default {
       return getters.selectedCount(); // Access getter directly from the store
     },
     icon() {
-      if (state.req.isDir) return "folder";
+      if (state.req.type == 'directory') return "folder";
       if (state.req.type === "image") return "insert_photo";
       if (state.req.type === "audio") return "volume_up";
       if (state.req.type === "video") return "movie";
@@ -217,7 +217,7 @@ export default {
     },
 
     humanSize() {
-      if (state.req.isDir) {
+      if (state.req.type == 'directory') {
         return state.req.items.length;
       }
       return getHumanReadableFilesize(state.req.size);

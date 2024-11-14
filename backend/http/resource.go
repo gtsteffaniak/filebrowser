@@ -32,13 +32,8 @@ import (
 // @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       realPath,
-		IsDir:      isDir,
+		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: config.Server.TypeDetectionByHeader,
@@ -49,7 +44,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return errToStatus(err), err
 	}
 	if file.Type == "directory" {
-		renderJSON(w, r, file)
+		return renderJSON(w, r, file)
 	}
 	if checksum := r.URL.Query().Get("checksum"); checksum != "" {
 		err := file.Checksum(checksum)
@@ -85,7 +80,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusNotFound, err
 	}
 	fileOpts := files.FileOptions{
-		Path:       realPath,
+		Path:       filepath.Join(d.user.Scope, path),
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
@@ -351,13 +346,9 @@ type DiskUsageResponse struct {
 // @Router /api/usage [get]
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       realPath,
-		IsDir:      isDir,
+		Path:       filepath.Join(d.user.Scope, path),
+		IsDir:      false,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: false,

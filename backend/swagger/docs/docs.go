@@ -1141,9 +1141,6 @@ const docTemplate = `{
                 "content": {
                     "type": "string"
                 },
-                "isDir": {
-                    "type": "boolean"
-                },
                 "isSymlink": {
                     "type": "boolean"
                 },
@@ -1165,9 +1162,6 @@ const docTemplate = `{
                 "numFiles": {
                     "type": "integer"
                 },
-                "path": {
-                    "type": "string"
-                },
                 "size": {
                     "type": "integer"
                 },
@@ -1188,9 +1182,6 @@ const docTemplate = `{
         "files.ReducedItem": {
             "type": "object",
             "properties": {
-                "isDir": {
-                    "type": "boolean"
-                },
                 "modified": {
                     "type": "string"
                 },

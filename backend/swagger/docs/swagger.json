@@ -1130,9 +1130,6 @@
                 "content": {
                     "type": "string"
                 },
-                "isDir": {
-                    "type": "boolean"
-                },
                 "isSymlink": {
                     "type": "boolean"
                 },
@@ -1154,9 +1151,6 @@
                 "numFiles": {
                     "type": "integer"
                 },
-                "path": {
-                    "type": "string"
-                },
                 "size": {
                     "type": "integer"
                 },
@@ -1177,9 +1171,6 @@
         "files.ReducedItem": {
             "type": "object",
             "properties": {
-                "isDir": {
-                    "type": "boolean"
-                },
                 "modified": {
                     "type": "string"
                 },

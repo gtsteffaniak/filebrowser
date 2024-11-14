@@ -51,7 +51,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
-		fmt.Println("paths", link.Path, path, user.Scope)
 
 		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+path)
 		if err != nil {
@@ -289,7 +288,6 @@ func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if _, err := w.Write(marsh); err != nil {
 		return http.StatusInternalServerError, err

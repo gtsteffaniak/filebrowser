@@ -71,8 +71,7 @@ export default {
       // Otherwise we add every directory to the
       // move options.
       for (let item of req.items) {
-        if (!item.isDir) continue;
-
+        if (item.type != "directory") continue;
         this.items.push({
           name: item.name,
           url: item.url,

@@ -7,8 +7,6 @@ definitions:
         type: object
       content:
         type: string
-      isDir:
-        type: boolean
       isSymlink:
         type: boolean
       items:
@@ -23,8 +21,6 @@ definitions:
         type: integer
       numFiles:
         type: integer
-      path:
-        type: string
       size:
         type: integer
       subtitles:
@@ -38,8 +34,6 @@ definitions:
     type: object
   files.ReducedItem:
     properties:
-      isDir:
-        type: boolean
       modified:
         type: string
       name:

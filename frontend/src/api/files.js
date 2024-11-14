@@ -12,13 +12,13 @@ export async function fetch(url, content = false) {
     const data = await res.json();
 
     data.url = `/files${url}`;
-    if (data.isDir) {
+    if (data.type == "directory") {
       if (!data.url.endsWith("/")) data.url += "/";
       data.items = data.items.map((item, index) => {
         item.index = index;
         item.url = `${data.url}${encodeURIComponent(item.name)}`;
 
-        if (item.isDir) {
+        if (item.type == "directory") {
           item.url += "/";
         }
 

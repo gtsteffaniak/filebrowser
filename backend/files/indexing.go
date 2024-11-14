@@ -13,7 +13,7 @@ import (
 
 type Index struct {
 	Root        string
-	Directories map[string]*FileInfo // top-level must be dir
+	Directories map[string]*FileInfo // top-level master list of directories
 	NumDirs     int
 	NumFiles    int
 	inProgress  bool
@@ -66,7 +66,7 @@ func indexingScheduler(intervalMinutes uint32) {
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(path string) error {
 	// Ensure path is cleaned and normalized
-	adjustedPath := si.makeIndexPath(path, true)
+	adjustedPath := si.makeIndexPath(path)
 
 	// Open the directory
 	dir, err := os.Open(path)
@@ -129,6 +129,9 @@ func (si *Index) indexFiles(path string) error {
 
 	// Create FileInfo for the current directory
 	dirFileInfo := &FileInfo{
+		Name:      dirInfo.Name(),
+		Files:     fileInfos,
+		Dirs:      dirInfos,
 		Size:      totalSize,
 		ModTime:   dirInfo.ModTime(),
 		CacheTime: time.Now(),
@@ -136,10 +139,9 @@ func (si *Index) indexFiles(path string) error {
 		NumDirs:   numDirs,
 		NumFiles:  numFiles,
 	}
-
+	si.UpdateFileMetadata(adjustedPath, dirFileInfo)
 	// Add directory to index
 	si.mu.Lock()
-	si.Directories[adjustedPath] = dirFileInfo
 	si.NumDirs += numDirs
 	si.NumFiles += numFiles
 	si.mu.Unlock()
@@ -158,10 +160,7 @@ func (si *Index) InsertInfo(parentPath string, file *FileInfo, name string) (*Fi
 			return nil, err
 		}
 		si.UpdateFileMetadata(parentPath, file)
-		si.mu.RLock()
-		dirInfo := si.Directories[parentPath]
-		si.mu.RUnlock()
-		return dirInfo, nil
+		return file, nil
 	}
 	// Create FileInfo for regular files
 	fileInfo := &FileInfo{
@@ -172,8 +171,11 @@ func (si *Index) InsertInfo(parentPath string, file *FileInfo, name string) (*Fi
 	return fileInfo, nil
 }
 
-func (si *Index) makeIndexPath(subPath string, isDir bool) string {
-	if si.Root == subPath {
+func (si *Index) makeIndexPath(subPath string) string {
+	if strings.HasPrefix(subPath, "./") {
+		subPath = strings.TrimPrefix(subPath, ".")
+	}
+	if strings.HasPrefix(subPath, ".") || si.Root == subPath {
 		return "/"
 	}
 	// clean path
@@ -182,9 +184,8 @@ func (si *Index) makeIndexPath(subPath string, isDir bool) string {
 	adjustedPath := strings.TrimPrefix(subPath, si.Root)
 	// remove trailing slash
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-	// add leading slash for root of index
-	if adjustedPath == "" {
-		adjustedPath = "/"
+	if !strings.HasPrefix(adjustedPath, "/") {
+		adjustedPath = "/" + adjustedPath
 	}
 	return adjustedPath
 }

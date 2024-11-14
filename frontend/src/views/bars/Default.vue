@@ -67,7 +67,7 @@ export default {
       const files = [];
 
       state.req.items.forEach((item) => {
-        if (item.isDir) {
+        if (item.type == 'directory') {
           dirs.push(item);
         } else {
           files.push(item);

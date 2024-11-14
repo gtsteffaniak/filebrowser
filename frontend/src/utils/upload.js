@@ -112,7 +112,7 @@ export async function handleFiles(files, base, overwrite = false) {
       path += url.encodeRFC5987ValueChars(file.name);
     }
 
-    if (file.isDir) {
+    if (file.type == "directory") {
       path += "/";
     }
 

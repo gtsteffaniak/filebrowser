@@ -2,6 +2,7 @@ package files
 
 import (
 	"log"
+	"path/filepath"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
@@ -22,12 +23,23 @@ func (si *Index) UpdateFileMetadata(adjustedPath string, info *FileInfo) bool {
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetMetadataInfo(parentDir, target string) (FileInfo, bool) {
+func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
+	checkDir := si.makeIndexPath(target)
+	if !isDir {
+		checkDir = si.makeIndexPath(filepath.Dir(target))
+	}
 	si.mu.RLock()
-	dir, exists := si.Directories[parentDir]
+	dir, exists := si.Directories[checkDir]
 	si.mu.RUnlock()
 	if !exists {
-		return *dir, exists
+		return FileInfo{}, exists
+	}
+	if !isDir {
+		fileInfo, ok := dir.Dirs[target]
+		if !ok {
+			return FileInfo{}, false
+		}
+		return *fileInfo, ok
 	}
 	cleanedItems := []ReducedItem{}
 	for name, item := range dir.Dirs {

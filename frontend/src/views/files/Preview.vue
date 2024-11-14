@@ -50,7 +50,7 @@
                 <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
               </div>
             </a>
-            <a target="_blank" :href="raw" class="button button--flat" v-if="!req.isDir">
+            <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
               <div>
                 <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
               </div>
