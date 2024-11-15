@@ -26,6 +26,7 @@ import Editor from "@/views/files/Editor.vue";
 import { state, mutations, getters } from "@/store";
 import { pathsMatch } from "@/utils/url";
 import { notify } from "@/notify";
+import { removePrefix } from "@/api/utils";
 
 export default {
   name: "files",
@@ -85,11 +86,10 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
 
-      let url = state.route.path;
-      if (url === "") url = "/";
-      if (url[0] !== "/") url = "/" + url;
       let data = {};
       try {
+        let url = removePrefix(state.route.path, "files");
+        console.log("Fetching data for", url);
         // Fetch initial data
         let res = await filesApi.fetch(url);
         // If not a directory, fetch content

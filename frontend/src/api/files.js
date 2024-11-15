@@ -162,10 +162,10 @@ export async function checksum(url, algo) {
   }
 }
 
-export function getDownloadURL(file, inline) {
+export function getDownloadURL(path, inline) {
   try {
     const params = {
-      path: file.path,
+      path: path,
       ...(inline && { inline: "true" }),
     };
     return createURL("api/raw", params);
@@ -212,6 +212,7 @@ export function getSubtitlesURL(file) {
 export async function usage(url) {
   try {
     url = removePrefix(url, "files");
+    console.log("url", url);
     const apiPath = getApiPath("api/usage", { path: url });
     const res = await fetchURL(apiPath);
     return await res.json();

@@ -62,14 +62,20 @@ export async function fetchJSON(url, opts) {
 
 export function removePrefix(path, prefix) {
   const combined = baseURL + prefix;
+  console.log("combined", combined,path, prefix)
   // Check if path starts with the specified prefix followed by a '/'
-  if (path.startsWith(combined + '/')) {
+  if (path.startsWith(combined)) {
     // Remove the prefix by slicing it off
     path = path.slice(combined.length);
+  } else if (path.startsWith(prefix)) {
+    // Remove the prefix by slicing it off
+    path = path.slice(prefix.length);
   }
-  // Split the path, filter out any empty elements, and remove the first segment
-  const parts = path.split('/').filter(Boolean);
-  return '/' + parts.slice(1).join('/');
+  if (path == "") {
+    path = "/"
+  }
+  console.log("path", path)
+  return path
 }
 
 export function createURL(endpoint, params = {}) {

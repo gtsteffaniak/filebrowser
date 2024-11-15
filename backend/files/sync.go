@@ -1,6 +1,7 @@
 package files
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
 	"time"
@@ -28,6 +29,7 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 	if !isDir {
 		checkDir = si.makeIndexPath(filepath.Dir(target))
 	}
+	fmt.Println("checkDir: ", checkDir)
 	si.mu.RLock()
 	dir, exists := si.Directories[checkDir]
 	si.mu.RUnlock()
@@ -35,10 +37,13 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 		return FileInfo{}, exists
 	}
 	if !isDir {
-		fileInfo, ok := dir.Dirs[target]
+		baseName := filepath.Base(target)
+		fileInfo, ok := dir.Files[baseName]
 		if !ok {
+			fmt.Println("file not found in meta", baseName)
 			return FileInfo{}, false
 		}
+		fmt.Println("file found in meta", fileInfo.Path)
 		return *fileInfo, ok
 	}
 	cleanedItems := []ReducedItem{}

@@ -132,13 +132,15 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(state.req);
+      console.log(state.req.path)
+      return filesApi.getDownloadURL(state.req.path);
     },
     raw() {
+      console.log(state.req)
       if (state.req.type === "image" && !this.fullSize) {
-        return filesApi.getPreviewURL(state.req, "large");
+        return filesApi.getPreviewURL(state.req.path, "large");
       }
-      return filesApi.getDownloadURL(state.req, true);
+      return filesApi.getDownloadURL(state.req.path, true);
     },
     showMore() {
       return getters.currentPromptName() === "more";

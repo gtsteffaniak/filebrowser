@@ -77,26 +77,14 @@ func (f FileOptions) Components() (string, string) {
 // Legacy file info method, only called on non-indexed directories.
 // Once indexing completes for the first time, NewFileInfo is never called.
 func NewFileInfo(opts FileOptions) (FileInfo, error) {
-	index := GetIndex(rootPath)
 	if !opts.Checker.Check(opts.Path) {
 		return FileInfo{}, os.ErrPermission
 	}
-
 	file, err := stat(opts)
 	if err != nil {
 		return FileInfo{}, err
 	}
 	if opts.Expand {
-		if file.Type == "directory" {
-			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
-				return FileInfo{}, err
-			}
-			metadataInfo, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
-			if !exists {
-				return FileInfo{}, errors.ErrNotExist
-			}
-			return metadataInfo, nil
-		}
 		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
 		if err != nil {
 			return FileInfo{}, err
@@ -121,6 +109,10 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	}
 	opts.IsDir = isDir
 	index := GetIndex(rootPath)
+	// don't bother caching content
+	if opts.Content {
+		return NewFileInfo(opts)
+	}
 	// check if the file exists in the index
 	info, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
 	if exists {
@@ -128,13 +120,11 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 		if time.Since(info.CacheTime) > time.Second {
 			go RefreshFileInfo(opts) //nolint:errcheck
 		}
+		if info.Path == "" {
+			info.Path = opts.Path
+		}
 		// refresh cache after
 		return info, nil
-	}
-	// don't bother caching content
-	if opts.Content {
-		file, err := NewFileInfo(opts)
-		return file, err
 	}
 	err = RefreshFileInfo(opts)
 	if err != nil {
@@ -143,6 +133,7 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	}
 	info, exists = index.GetMetadataInfo(opts.Path, opts.IsDir)
 	if !exists {
+		fmt.Println("nope doesn't exist after all", opts.Path, opts.IsDir)
 		return NewFileInfo(opts)
 	}
 	return info, nil

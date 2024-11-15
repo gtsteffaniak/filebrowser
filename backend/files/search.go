@@ -48,7 +48,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				}
 				matches, fileType, fileSize := item.containsSearchTerm(fileName, searchTerm, searchOptions)
 				if matches {
-					scopedPath := strings.TrimPrefix(strings.TrimPrefix(item.Path, scope), "/")
+					scopedPath := strings.TrimPrefix(strings.TrimPrefix(dir.Path+"/"+item.Name, scope), "/")
 					results = append(results, searchResult{Path: scopedPath, Type: fileType, Size: fileSize})
 					count++
 				}
@@ -63,7 +63,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				}
 				matches, fileType, fileSize := item.containsSearchTerm(dirName, searchTerm, searchOptions)
 				if matches {
-					scopedPath := strings.TrimPrefix(strings.TrimPrefix(item.Path, scope), "/")
+					scopedPath := strings.TrimPrefix(strings.TrimPrefix(dir.Path+"/"+dirName, scope), "/")
 					results = append(results, searchResult{Path: scopedPath, Type: fileType, Size: fileSize})
 					count++
 				}
@@ -148,19 +148,22 @@ func (fi FileInfo) containsSearchTerm(fileName string, searchTerm string, option
 	return true, fileType, fileSize
 }
 
-func (si *Index) getSearchableDirs(scope string) []*FileInfo {
-	dirs := []*FileInfo{}
+func (si *Index) getSearchableDirs(scope string) map[string]*FileInfo {
+	dirs := map[string]*FileInfo{}
 	info, exists := si.GetMetadataInfo(scope, true)
 	if !exists {
 		return dirs
+	}
+	if info.Path == "/" {
+		return si.Directories // return all if at root
 	}
 	si.mu.RLock()
 	defer si.mu.RUnlock()
 	return getDirsRecursively(info.Path, &info, dirs)
 }
 
-func getDirsRecursively(dirName string, dir *FileInfo, dirList []*FileInfo) []*FileInfo {
-	dirList = append(dirList, dir)
+func getDirsRecursively(dirName string, dir *FileInfo, dirList map[string]*FileInfo) map[string]*FileInfo {
+	dirList[dir.Path+"/"+dirName] = dir
 	for name, item := range dir.Dirs {
 		dirList = getDirsRecursively(name, item, dirList)
 	}
