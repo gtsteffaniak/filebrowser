@@ -24,6 +24,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
 // @Param checksum query string false "Optional checksum validation"
 // @Success 200 {object} files.FileInfo "Resource metadata"
@@ -31,6 +32,7 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
@@ -68,12 +70,14 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 "Resource deleted successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
 	if path == "/" || !d.user.Perm.Delete {
 		return http.StatusForbidden, nil
@@ -116,6 +120,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Param override query bool false "Override existing file if true"
 // @Success 200 "Resource created successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
@@ -124,6 +129,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [post]
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
 	if !d.user.Perm.Create || !d.user.Check(path) {
 		return http.StatusForbidden, nil
@@ -175,6 +181,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 "Resource updated successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
@@ -182,8 +189,8 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
-
 	if !d.user.Perm.Modify || !d.user.Check(path) {
 		return http.StatusForbidden, nil
 	}
@@ -216,6 +223,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Accept json
 // @Produce json
 // @Param path query string true "Source path of the resource"
+// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Param destination query string true "Destination path for the resource"
 // @Param action query string true "Action to perform (copy, rename)"
 // @Param override query bool false "Override if destination exists"
@@ -227,6 +235,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// TODO source := r.URL.Query().Get("source")
 	src := r.URL.Query().Get("path")
 	dst := r.URL.Query().Get("destination")
 	action := r.URL.Query().Get("action")
@@ -343,11 +352,13 @@ type DiskUsageResponse struct {
 // @Accept json
 // @Produce json
 // @Param path query string true "Directory path to check usage"
+// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 {object} DiskUsageResponse "Disk usage details"
 // @Failure 404 {object} map[string]string "Directory not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/usage [get]
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
 	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
 	if err != nil {
