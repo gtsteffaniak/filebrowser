@@ -148,8 +148,8 @@ func (fi FileInfo) containsSearchTerm(fileName string, searchTerm string, option
 	return true, fileType, fileSize
 }
 
-func (si *Index) getSearchableDirs(scope string) map[string]*FileInfo {
-	dirs := map[string]*FileInfo{}
+func (si *Index) getSearchableDirs(scope string) map[string]FileInfo {
+	dirs := map[string]FileInfo{}
 	info, exists := si.GetMetadataInfo(scope, true)
 	if !exists {
 		return dirs
@@ -162,10 +162,6 @@ func (si *Index) getSearchableDirs(scope string) map[string]*FileInfo {
 	return getDirsRecursively(info.Path, &info, dirs)
 }
 
-func getDirsRecursively(dirName string, dir *FileInfo, dirList map[string]*FileInfo) map[string]*FileInfo {
-	dirList[dir.Path+"/"+dirName] = dir
-	for name, item := range dir.Dirs {
-		dirList = getDirsRecursively(name, item, dirList)
-	}
+func getDirsRecursively(dirName string, dir *FileInfo, dirList map[string]FileInfo) map[string]FileInfo {
 	return dirList
 }

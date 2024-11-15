@@ -183,6 +183,7 @@ export const mutations = {
     emitStateChanged();
   },
   updateRequest: (value) => {
+    console.log("old vs new",state.oldReq,state.req)
     const selectedItems = state.selected.map((i) => state.req.items[i]);
     state.oldReq = state.req;
     state.req = value;

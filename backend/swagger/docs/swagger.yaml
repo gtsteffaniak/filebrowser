@@ -423,6 +423,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
       produces:
       - application/json
       responses:
@@ -459,6 +463,10 @@ paths:
         in: query
         name: path
         required: true
+        type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       - description: Include file content if true
         in: query
@@ -499,6 +507,10 @@ paths:
         in: query
         name: path
         required: true
+        type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       - description: Destination path for the resource
         in: query
@@ -561,6 +573,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
       - description: Override existing file if true
         in: query
         name: override
@@ -606,6 +622,10 @@ paths:
         in: query
         name: path
         required: true
+        type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       produces:
       - application/json
@@ -855,6 +875,10 @@ paths:
         in: query
         name: path
         required: true
+        type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       produces:
       - application/json

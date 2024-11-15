@@ -209,11 +209,9 @@ export function getSubtitlesURL(file) {
   }
 }
 
-export async function usage(url) {
+export async function usage(source) {
   try {
-    url = removePrefix(url, "files");
-    console.log("url", url);
-    const apiPath = getApiPath("api/usage", { path: url });
+    const apiPath = getApiPath("api/usage", { source: source });
     const res = await fetchURL(apiPath);
     return await res.json();
   } catch (err) {

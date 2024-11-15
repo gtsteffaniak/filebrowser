@@ -38,24 +38,24 @@ type ReducedItem struct {
 // FileInfo describes a file.
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
-	Files     map[string]*FileInfo `json:"-"`
-	Dirs      map[string]*FileInfo `json:"-"`
-	Path      string               `json:"path"`
-	Name      string               `json:"name"`
-	Items     []ReducedItem        `json:"items"`
-	Size      int64                `json:"size"`
-	Extension string               `json:"-"`
-	ModTime   time.Time            `json:"modified"`
-	CacheTime time.Time            `json:"-"`
-	Mode      os.FileMode          `json:"-"`
-	IsSymlink bool                 `json:"isSymlink,omitempty"`
-	Type      string               `json:"type"`
-	Subtitles []string             `json:"subtitles,omitempty"`
-	Content   string               `json:"content,omitempty"`
-	Checksums map[string]string    `json:"checksums,omitempty"`
-	Token     string               `json:"token,omitempty"`
-	NumDirs   int                  `json:"numDirs"`
-	NumFiles  int                  `json:"numFiles"`
+	Files     map[string]FileInfo `json:"-"`
+	Dirs      map[string]FileInfo `json:"-"`
+	Path      string              `json:"path"`
+	Name      string              `json:"name"`
+	Items     []ReducedItem       `json:"items"`
+	Size      int64               `json:"size"`
+	Extension string              `json:"-"`
+	ModTime   time.Time           `json:"modified"`
+	CacheTime time.Time           `json:"-"`
+	Mode      os.FileMode         `json:"-"`
+	IsSymlink bool                `json:"isSymlink,omitempty"`
+	Type      string              `json:"type"`
+	Subtitles []string            `json:"subtitles,omitempty"`
+	Content   string              `json:"content,omitempty"`
+	Checksums map[string]string   `json:"checksums,omitempty"`
+	Token     string              `json:"token,omitempty"`
+	NumDirs   int                 `json:"numDirs"`
+	NumFiles  int                 `json:"numFiles"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -74,26 +74,6 @@ func (f FileOptions) Components() (string, string) {
 	return filepath.Dir(f.Path), filepath.Base(f.Path)
 }
 
-// Legacy file info method, only called on non-indexed directories.
-// Once indexing completes for the first time, NewFileInfo is never called.
-func NewFileInfo(opts FileOptions) (FileInfo, error) {
-	if !opts.Checker.Check(opts.Path) {
-		return FileInfo{}, os.ErrPermission
-	}
-	file, err := stat(opts)
-	if err != nil {
-		return FileInfo{}, err
-	}
-	if opts.Expand {
-		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
-		if err != nil {
-			return FileInfo{}, err
-		}
-	}
-
-	return *file, err
-}
-
 func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
@@ -102,6 +82,7 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return FileInfo{}, os.ErrPermission
 	}
+	fmt.Println("here?", opts.Path)
 
 	_, isDir, err := GetRealPath(opts.Path)
 	if err != nil {
@@ -111,7 +92,8 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	index := GetIndex(rootPath)
 	// don't bother caching content
 	if opts.Content {
-		return NewFileInfo(opts)
+		// incorporate read listing features and stat
+		return FileInfo{}, nil
 	}
 	// check if the file exists in the index
 	info, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
@@ -121,20 +103,18 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 			go RefreshFileInfo(opts) //nolint:errcheck
 		}
 		if info.Path == "" {
-			info.Path = opts.Path
+			info.Path = "/"
 		}
 		// refresh cache after
 		return info, nil
 	}
 	err = RefreshFileInfo(opts)
 	if err != nil {
-		file, err := NewFileInfo(opts)
-		return file, err
+		return FileInfo{}, err
 	}
 	info, exists = index.GetMetadataInfo(opts.Path, opts.IsDir)
 	if !exists {
-		fmt.Println("nope doesn't exist after all", opts.Path, opts.IsDir)
-		return NewFileInfo(opts)
+		return FileInfo{}, err
 	}
 	return info, nil
 }
@@ -155,14 +135,14 @@ func RefreshFileInfo(opts FileOptions) error {
 			return fmt.Errorf("Dir info could not be read: %s", opts.Path)
 		}
 	}
-	result := index.UpdateFileMetadata(opts.Path, file)
+	result := index.UpdateFileMetadata(opts.Path, *file)
 	if !result {
 		return fmt.Errorf("File/folder does not exist in metadata: %s", opts.Path)
 	}
 	return nil
 }
-
 func stat(opts FileOptions) (*FileInfo, error) {
+	fmt.Println("stat", opts.Path)
 	index := GetIndex(rootPath)
 	realPath, _, err := GetRealPath(rootPath, opts.Path)
 	if err != nil {
@@ -174,74 +154,80 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		return nil, err
 	}
 	file := &FileInfo{
+		Path:      opts.Path,
+		Name:      filepath.Base(opts.Path),
 		ModTime:   info.ModTime(),
 		Mode:      info.Mode(),
 		Size:      info.Size(),
 		Extension: filepath.Ext(info.Name()),
 		Token:     opts.Token,
 	}
-	file.Name = filepath.Base(realPath)
+
+	if info.Mode()&os.ModeSymlink != 0 {
+		file.IsSymlink = true
+		targetInfo, err := os.Stat(realPath)
+		if err == nil {
+			file.Size = targetInfo.Size()
+		}
+	}
 
 	if info.IsDir() {
 		file.Type = "directory"
 
-		// Open the directory
+		// Open and read directory contents
 		dir, err := os.Open(realPath)
 		if err != nil {
 			return nil, err
 		}
 		defer dir.Close()
+
 		dirInfo, err := dir.Stat()
 		if err != nil {
 			return nil, err
 		}
 
-		info, exists := index.GetMetadataInfo(opts.Path, info.IsDir())
-		if exists {
-			// Check if the directory is already up-to-date
-			if dirInfo.ModTime().Before(info.CacheTime) {
-				return &info, nil
-			}
+		// Check cached metadata to decide if refresh is needed
+		cachedInfo, exists := index.GetMetadataInfo(opts.Path, true)
+		if exists && dirInfo.ModTime().Before(cachedInfo.CacheTime) {
+			return &cachedInfo, nil
 		}
 
-		// Read directory contents
+		// Read directory contents and process
 		files, err := dir.Readdir(-1)
 		if err != nil {
 			return nil, err
 		}
-		// Recursively process files and directories
-		fileInfos := map[string]*FileInfo{}
-		dirInfos := map[string]*FileInfo{}
+
+		file.Files = map[string]FileInfo{}
+		file.Dirs = map[string]FileInfo{}
 
 		var totalSize int64
-		var numDirs, numFiles int
 		for _, item := range files {
-			newInfo := &FileInfo{
+			itemPath := filepath.Join(opts.Path, item.Name())
+			itemInfo := FileInfo{
 				Name:    item.Name(),
 				Size:    item.Size(),
 				ModTime: item.ModTime(),
+				Mode:    item.Mode(),
 			}
+
 			if item.IsDir() {
-				newInfo.Type = "directory"
-				dirInfos[item.Name()] = newInfo
-				numDirs++
+				itemInfo.Type = "directory"
+				file.Dirs[item.Name()] = itemInfo
+				file.NumDirs++
 			} else {
-				_ = newInfo.detectType(opts.Path, true, false, false)
-				fileInfos[item.Name()] = newInfo
-				numFiles++
+				err := itemInfo.detectType(itemPath, true, opts.Content, opts.ReadHeader)
+				if err != nil {
+					fmt.Printf("failed to detect type for %s: %w \n", itemPath, err)
+				}
+				file.Files[item.Name()] = itemInfo
+				file.NumFiles++
 			}
-			totalSize += newInfo.Size
+
+			totalSize += itemInfo.Size
 		}
-		file.NumDirs = numDirs
-		file.NumFiles = numFiles
+
 		file.Size = totalSize
-	}
-	if info.Mode()&os.ModeSymlink != 0 {
-		file.IsSymlink = true
-		targetInfo, err := os.Stat(opts.Path)
-		if err == nil {
-			file.Size = targetInfo.Size()
-		}
 	}
 
 	return file, nil
@@ -545,8 +531,8 @@ func (i *FileInfo) readListing(path string, checker users.Checker, readHeader bo
 	}
 
 	listing := &FileInfo{
-		Files:    map[string]*FileInfo{},
-		Dirs:     map[string]*FileInfo{},
+		Files:    map[string]FileInfo{},
+		Dirs:     map[string]FileInfo{},
 		NumDirs:  0,
 		NumFiles: 0,
 	}
@@ -570,7 +556,7 @@ func (i *FileInfo) readListing(path string, checker users.Checker, readHeader bo
 			}
 		}
 
-		file := &FileInfo{
+		file := FileInfo{
 			Size:    f.Size(),
 			ModTime: f.ModTime(),
 			Mode:    f.Mode(),

@@ -132,11 +132,9 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      console.log(state.req.path)
       return filesApi.getDownloadURL(state.req.path);
     },
     raw() {
-      console.log(state.req)
       if (state.req.type === "image" && !this.fullSize) {
         return filesApi.getPreviewURL(state.req.path, "large");
       }
@@ -167,6 +165,7 @@ export default {
   async mounted() {
     window.addEventListener("keydown", this.key);
     this.listing = this.oldReq.items;
+    console.log(this.listing)
     this.updatePreview();
   },
   beforeUnmount() {
@@ -178,7 +177,6 @@ export default {
         name: "delete",
         confirm: () => {
           this.listing = this.listing.filter((item) => item.name !== this.name);
-
           if (this.hasNext) {
             this.next();
           } else if (!this.hasPrevious && !this.hasNext) {
@@ -229,6 +227,7 @@ export default {
 
       let dirs = state.route.fullPath.split("/");
       this.name = decodeURIComponent(dirs[dirs.length - 1]);
+      console.log(this.name)
 
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);

@@ -216,6 +216,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Include file content if true",
                         "name": "content",
                         "in": "query"
@@ -273,6 +279,12 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -336,6 +348,12 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "boolean",
@@ -405,6 +423,12 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -459,6 +483,12 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -852,6 +882,12 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     }
                 ],
                 "responses": {

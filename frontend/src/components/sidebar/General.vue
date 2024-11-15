@@ -150,12 +150,11 @@ export default {
       if (!this.checkLogin()) {
         return;
       }
-      let path = getters.getRoutePath();
       let usageStats = { used: "0 B", total: "0 B", usedPercentage: 0 };
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      let usage = await filesApi.usage(path);
+      let usage = await filesApi.usage("/");
       usageStats = {
         used: getHumanReadableFilesize(usage.used / 1024),
         total: getHumanReadableFilesize(usage.total / 1024),

@@ -89,7 +89,6 @@ export default {
       let data = {};
       try {
         let url = removePrefix(state.route.path, "files");
-        console.log("Fetching data for", url);
         // Fetch initial data
         let res = await filesApi.fetch(url);
         // If not a directory, fetch content

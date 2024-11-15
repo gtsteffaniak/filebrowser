@@ -32,7 +32,6 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (auth && res.headers.get("X-Renew-Token") === "true") {
-    console.log(auth,res.headers.get("X-Renew-Token"))
     await renew(state.jwt);
   }
 
@@ -62,7 +61,6 @@ export async function fetchJSON(url, opts) {
 
 export function removePrefix(path, prefix) {
   const combined = baseURL + prefix;
-  console.log("combined", combined,path, prefix)
   // Check if path starts with the specified prefix followed by a '/'
   if (path.startsWith(combined)) {
     // Remove the prefix by slicing it off
@@ -74,7 +72,6 @@ export function removePrefix(path, prefix) {
   if (path == "") {
     path = "/"
   }
-  console.log("path", path)
   return path
 }
 

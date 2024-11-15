@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 	"time"
@@ -10,19 +9,11 @@ import (
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
-func (si *Index) UpdateFileMetadata(adjustedPath string, info *FileInfo) bool {
-	checkDir := si.makeIndexPath(adjustedPath)
-	if info.Type != "directory" {
-		checkDir = si.makeIndexPath(filepath.Dir(adjustedPath))
-	}
+func (si *Index) UpdateFileMetadata(target string, info FileInfo) bool {
+	checkDir := si.makeIndexPath(target)
 	si.mu.Lock()
 	defer si.mu.Unlock()
-	_, exists := si.Directories[checkDir]
-	if !exists {
-		info.CacheTime = time.Now()
-		si.Directories[checkDir] = info
-		return true
-	}
+	info.CacheTime = time.Now()
 	si.Directories[checkDir] = info
 	return true
 }
@@ -33,7 +24,6 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 	if !isDir {
 		checkDir = si.makeIndexPath(filepath.Dir(target))
 	}
-	fmt.Println("checkDir: ", checkDir)
 	si.mu.RLock()
 	dir, exists := si.Directories[checkDir]
 	si.mu.RUnlock()
@@ -44,12 +34,9 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 		baseName := filepath.Base(target)
 		fileInfo, ok := dir.Files[baseName]
 		if !ok {
-			fmt.Println("file not found in meta", baseName)
 			return FileInfo{}, false
 		}
-
-		fmt.Println("file found in meta", fileInfo.Path)
-		return *fileInfo, ok
+		return fileInfo, ok
 	}
 	cleanedItems := []ReducedItem{}
 	for name, item := range dir.Dirs {
@@ -69,7 +56,7 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 		})
 	}
 	dir.Items = cleanedItems
-	return *dir, exists
+	return dir, exists
 }
 
 // SetDirectoryInfo sets the directory information in the index.
@@ -77,7 +64,7 @@ func (si *Index) GetDirectoryInfo(adjustedPath string) (FileInfo, bool) {
 	si.mu.RLock()
 	dir, exists := si.Directories[adjustedPath]
 	si.mu.RUnlock()
-	return *dir, exists
+	return dir, exists
 }
 
 func (si *Index) RemoveDirectory(path string) {
@@ -117,12 +104,12 @@ func GetIndex(root string) *Index {
 	}
 	newIndex := &Index{
 		Root:        rootPath,
-		Directories: map[string]*FileInfo{},
+		Directories: map[string]FileInfo{},
 		NumDirs:     0,
 		NumFiles:    0,
 		inProgress:  false,
 	}
-	newIndex.Directories["/"] = &FileInfo{}
+	newIndex.Directories["/"] = FileInfo{}
 	indexesMutex.Lock()
 	indexes = append(indexes, newIndex)
 	indexesMutex.Unlock()

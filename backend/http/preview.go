@@ -52,9 +52,6 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
-
-	filename := filepath.Base(path)
-
 	file, err := files.FileInfoFaster(files.FileOptions{
 		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
@@ -66,7 +63,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return errToStatus(err), err
 	}
 
-	realPath, _, err := files.GetRealPath(file.Path + "/" + file.Name)
+	realPath, _, err := files.GetRealPath(file.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -105,7 +102,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		}
 	}
 	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, filename, file.ModTime, bytes.NewReader(resizedImage))
+	http.ServeContent(w, r, file.Path, file.ModTime, bytes.NewReader(resizedImage))
 
 	return 0, nil
 }

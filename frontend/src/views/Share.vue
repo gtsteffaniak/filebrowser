@@ -250,7 +250,6 @@ export default {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     async fetchData() {
-      console.log("fetching data")
       // Set loading to true and reset the error.
       mutations.setLoading("share", true);
       this.error = null;
@@ -264,9 +263,7 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
       try {
-        console.log("Fetching share data", this.subPath, this.hash, this.password);
         let file = await publicApi.fetchPub(this.subPath, this.hash, this.password);
-        console.log("file",file)
         file.hash = this.hash;
         mutations.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;
