@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -42,9 +41,6 @@ func indexingScheduler(intervalMinutes uint32) {
 		startTime := time.Now()
 		// Set the indexing flag to indicate that indexing is in progress
 		si.resetCount()
-		if si.Directories["/"].Path == "" {
-			si.Directories["/"].Path = "/" // first time indexing needs path set
-		}
 		// Perform the indexing operation
 		_, err := si.indexFiles(si.Directories["/"]) // start at root adjusted path
 		// Reset the indexing flag to indicate that indexing has finished
@@ -69,9 +65,6 @@ func indexingScheduler(intervalMinutes uint32) {
 // Define a function to recursively index files and directories
 func (si *Index) indexFiles(parentInfo *FileInfo) (*FileInfo, error) {
 	realPath := strings.TrimRight(si.Root, "/") + parentInfo.Path + parentInfo.Name
-	if parentInfo.Path == "" {
-		realPath = si.Root
-	}
 	// Open the directory
 	dir, err := os.Open(realPath)
 	if err != nil {
@@ -103,34 +96,34 @@ func (si *Index) indexFiles(parentInfo *FileInfo) (*FileInfo, error) {
 
 	var totalSize int64
 	var numDirs, numFiles int
-
+	parentPath := parentInfo.Path + parentInfo.Name + "/"
+	if parentInfo.Name == "" {
+		parentPath = "/"
+	}
 	for _, item := range files {
+
 		itemInfo := &FileInfo{
 			Name:    item.Name(),
 			Size:    item.Size(),
 			ModTime: item.ModTime(),
-			Path:    parentInfo.Path + parentInfo.Name,
+			Path:    parentPath,
 		}
-		fmt.Println("Indexing: ", itemInfo.Path, itemInfo.Name)
 		if item.IsDir() {
 			itemInfo.Type = "directory"
-		}
-		childInfo, err := si.InsertInfo(itemInfo)
-		if err != nil {
-			// Log error, but continue processing other files
-			continue
-		}
-
-		// Accumulate directory size and items
-		totalSize += childInfo.Size
-		if childInfo.Type == "directory" {
+			childInfo, err := si.indexFiles(itemInfo)
+			if err != nil {
+				return nil, err
+			}
+			si.UpdateFileMetadata(itemInfo.Path, childInfo)
+			// Accumulate directory size and items
+			totalSize += childInfo.Size
 			dirInfos[item.Name()] = childInfo
 			numDirs++
 		} else {
-			fmt.Println("adding file", childInfo.Path, childInfo.Name)
-			_ = childInfo.detectType(childInfo.Name, true, false, false)
-			fileInfos[item.Name()] = childInfo
+			_ = itemInfo.detectType(itemInfo.Name, true, false, false)
+			fileInfos[item.Name()] = itemInfo
 			numFiles++
+			totalSize += item.Size()
 		}
 	}
 
@@ -153,21 +146,6 @@ func (si *Index) indexFiles(parentInfo *FileInfo) (*FileInfo, error) {
 	si.NumFiles += numFiles
 	si.mu.Unlock()
 	return dirFileInfo, nil
-}
-
-// InsertInfo function to handle adding a file or directory into the index
-func (si *Index) InsertInfo(itemInfo *FileInfo) (*FileInfo, error) {
-	// Check if it's a directory and recursively index it
-	if itemInfo.Type == "directory" {
-		// Recursively index directory
-		fullInfo, err := si.indexFiles(itemInfo)
-		if err != nil {
-			return nil, err
-		}
-		si.UpdateFileMetadata(itemInfo.Path, fullInfo)
-		return itemInfo, nil
-	}
-	return itemInfo, nil
 }
 
 func (si *Index) makeIndexPath(subPath string) string {
