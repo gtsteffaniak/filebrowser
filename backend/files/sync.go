@@ -11,15 +11,19 @@ import (
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (si *Index) UpdateFileMetadata(adjustedPath string, info *FileInfo) bool {
+	checkDir := si.makeIndexPath(adjustedPath)
+	if info.Type != "directory" {
+		checkDir = si.makeIndexPath(filepath.Dir(adjustedPath))
+	}
 	si.mu.Lock()
 	defer si.mu.Unlock()
-	_, exists := si.Directories[adjustedPath]
+	_, exists := si.Directories[checkDir]
 	if !exists {
 		info.CacheTime = time.Now()
-		si.Directories[adjustedPath] = info
+		si.Directories[checkDir] = info
 		return true
 	}
-	si.Directories[adjustedPath] = info
+	si.Directories[checkDir] = info
 	return true
 }
 
@@ -43,6 +47,7 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 			fmt.Println("file not found in meta", baseName)
 			return FileInfo{}, false
 		}
+
 		fmt.Println("file found in meta", fileInfo.Path)
 		return *fileInfo, ok
 	}
@@ -117,6 +122,7 @@ func GetIndex(root string) *Index {
 		NumFiles:    0,
 		inProgress:  false,
 	}
+	newIndex.Directories["/"] = &FileInfo{}
 	indexesMutex.Lock()
 	indexes = append(indexes, newIndex)
 	indexesMutex.Unlock()
