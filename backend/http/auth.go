@@ -54,9 +54,11 @@ func extractToken(r *http.Request) (string, error) {
 	}
 
 	auth := r.URL.Query().Get("auth")
-	if auth != "" && strings.Count(auth, ".") == 2 {
+	if auth != "" {
 		hasToken = true
-		return auth, nil
+		if strings.Count(auth, ".") == 2 {
+			return auth, nil
+		}
 	}
 
 	if hasToken {
