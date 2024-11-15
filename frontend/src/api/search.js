@@ -3,7 +3,7 @@ import { notify } from "@/notify";  // Import notify for error handling
 
 export default async function search(base, query) {
   try {
-    base = removePrefix(base);
+    base = removePrefix(base,"files");
     query = encodeURIComponent(query);
 
     if (!base.endsWith("/")) {

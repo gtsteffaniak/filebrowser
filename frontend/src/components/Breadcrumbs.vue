@@ -52,7 +52,11 @@ export default {
       return getters.isCardView();
     },
     items() {
-      const relativePath = removePrefix(state.route.path);
+      let relativePath = removePrefix(state.route.path,"files");
+      if (getters.currentView() == "share") {
+        // Split the path, filter out any empty elements, then join again with slashes
+        relativePath = removePrefix(state.route.path, "share")
+      }
       let parts = relativePath.split("/");
 
       if (parts[0] === "") {

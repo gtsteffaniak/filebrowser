@@ -141,7 +141,6 @@ func (s *Service) Resize(ctx context.Context, in io.Reader, width, height int, o
 	}
 	defer s.sem.Release(1)
 
-	fmt.Println(in, width, height, out, options)
 	format, wrappedReader, err := s.detectFormat(in)
 	if err != nil {
 		return err

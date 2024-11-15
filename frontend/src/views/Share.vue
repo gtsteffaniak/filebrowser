@@ -166,6 +166,12 @@ export default {
   },
   watch: {
     $route() {
+      let urlPath = getters.getRoutePath();
+      // Step 1: Split the path by '/'
+      let parts = urlPath.split("/");
+      // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
+      this.hash = parts[1];
+      this.subPath = "/" + parts.slice(2).join("/");
       this.fetchData();
     },
   },
@@ -174,8 +180,8 @@ export default {
     // Step 1: Split the path by '/'
     let parts = urlPath.split("/");
     // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
-    this.hash = parts[2];
-    this.subPath = "/" + parts.slice(3).join("/");
+    this.hash = parts[1];
+    this.subPath = "/" + parts.slice(2).join("/");
     this.fetchData();
   },
   mounted() {
@@ -244,6 +250,7 @@ export default {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     async fetchData() {
+      console.log("fetching data")
       // Set loading to true and reset the error.
       mutations.setLoading("share", true);
       this.error = null;
@@ -257,7 +264,9 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
       try {
+        console.log("Fetching share data", this.subPath, this.hash, this.password);
         let file = await publicApi.fetchPub(this.subPath, this.hash, this.password);
+        console.log("file",file)
         file.hash = this.hash;
         mutations.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;

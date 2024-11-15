@@ -19,7 +19,7 @@ import (
 )
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(*files.FileInfo)
+	file, ok := d.raw.(files.FileInfo)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
 	}

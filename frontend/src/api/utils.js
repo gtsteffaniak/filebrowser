@@ -4,8 +4,6 @@ import { baseURL } from "@/utils/constants";
 import { encodePath } from "@/utils/url";
 import { notify } from "@/notify";
 
-const prefix = `${baseURL}/files`;
-
 export async function fetchURL(url, opts, auth = true) {
   opts = opts || {};
   opts.headers = opts.headers || {};
@@ -62,12 +60,16 @@ export async function fetchJSON(url, opts) {
   }
 }
 
-export function removePrefix(url) {
-  url = url.split("/").splice(2).join("/");
-  if (url === "") url = "/";
-  if (url[0] !== "/") url = "/" + url;
-  if (url.startsWith(prefix)) url = url.slice(prefix.length);
-  return url;
+export function removePrefix(path, prefix) {
+  const combined = baseURL + prefix;
+  // Check if path starts with the specified prefix followed by a '/'
+  if (path.startsWith(combined + '/')) {
+    // Remove the prefix by slicing it off
+    path = path.slice(combined.length);
+  }
+  // Split the path, filter out any empty elements, and remove the first segment
+  const parts = path.split('/').filter(Boolean);
+  return '/' + parts.slice(1).join('/');
 }
 
 export function createURL(endpoint, params = {}) {
@@ -108,4 +110,20 @@ export function getApiPath(path, params = {}) {
     path = path.slice(0, -1);
   }
   return path;
+}
+
+export function adjustedData(data, url) {
+  data.url = url;
+  if (data.type == "directory") {
+    if (!data.url.endsWith("/")) data.url += "/";
+    data.items = data.items.map((item, index) => {
+      item.index = index;
+      item.url = `${data.url}${encodeURIComponent(item.name)}`;
+      if (item.type == "directory") {
+        item.url += "/";
+      }
+      return item;
+    });
+  }
+  return data
 }

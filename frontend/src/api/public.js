@@ -1,4 +1,4 @@
-import { createURL, getApiPath } from "./utils";
+import { createURL, getApiPath, adjustedData } from "./utils";
 import { notify } from "@/notify";
 
 // Fetch public share data
@@ -17,9 +17,8 @@ export async function fetchPub(path, hash, password = "") {
       error.status = response.status;
       throw error;
     }
-    return response.json();
-
-
+    let data = await response.json()
+    return adjustedData(data, `${hash}${path}`);
   } catch (err) {
     notify.showError(err.message || "Error fetching public share data");
     throw err;

@@ -1,4 +1,4 @@
-import { fetchURL, fetchJSON, createURL } from "./utils";
+import { fetchURL, fetchJSON, createURL, adjustedData } from "./utils";
 import { notify } from "@/notify";
 
 export async function list() {
@@ -10,19 +10,7 @@ export async function get(path, hash) {
     const params = { path, hash };
     const url = createURL(`api/share`, params, false);
     let data = fetchJSON(url);
-    data.url = `/share${url}`;
-    if (data.type == "directory") {
-      if (!data.url.endsWith("/")) data.url += "/";
-      data.items = data.items.map((item, index) => {
-        item.index = index;
-        item.url = `${data.url}${encodeURIComponent(item.name)}`;
-        if (item.type == "directory") {
-          item.url += "/";
-        }
-        return item;
-      });
-    }
-    return data
+    return adjustedData(data, `api/share${path}`);
   } catch (err) {
     notify.showError(err.message || "Error fetching data");
     throw err;
