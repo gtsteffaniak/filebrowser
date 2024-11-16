@@ -40,9 +40,6 @@ type FileCache interface {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/preview [get]
 func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Perm.Download {
-		return http.StatusAccepted, nil
-	}
 	path := r.URL.Query().Get("path")
 	previewSize := r.URL.Query().Get("size")
 	if previewSize != "small" {
@@ -78,12 +75,18 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	if (previewSize == "large" && !config.Server.ResizePreview) ||
 		(previewSize == "small" && !config.Server.EnableThumbnails) {
+		if !d.user.Perm.Download {
+			return http.StatusAccepted, nil
+		}
 		return rawFileHandler(w, r, file)
 	}
 
 	format, err := imgSvc.FormatFromExtension(file.Extension)
 	// Unsupported extensions directly return the raw data
 	if err == img.ErrUnsupportedFormat || format == img.FormatGif {
+		if !d.user.Perm.Download {
+			return http.StatusAccepted, nil
+		}
 		return rawFileHandler(w, r, file)
 	}
 	if err != nil {

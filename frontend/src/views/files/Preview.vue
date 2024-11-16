@@ -50,7 +50,12 @@
                 <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
               </div>
             </a>
-            <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
+            <a
+              target="_blank"
+              :href="raw"
+              class="button button--flat"
+              v-if="req.type != 'directory'"
+            >
               <div>
                 <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
               </div>
@@ -136,7 +141,7 @@ export default {
     },
     raw() {
       if (state.req.type === "image" && !this.fullSize) {
-        return filesApi.getPreviewURL(state.req.path, "large");
+        return filesApi.getPreviewURL(state.req.path, "large", state.req.modified);
       }
       return filesApi.getDownloadURL(state.req.path, true);
     },
@@ -269,7 +274,7 @@ export default {
       }
       return this.fullSize
         ? filesApi.getDownloadURL(item.path, true)
-        : filesApi.getPreviewURL(item.path, "large");
+        : filesApi.getPreviewURL(item.path, "large", item.modified);
     },
     openMore() {
       this.currentPrompt = "more";

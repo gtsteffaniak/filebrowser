@@ -175,11 +175,12 @@ export function getDownloadURL(path, inline) {
   }
 }
 
-export function getPreviewURL(path, size) {
+export function getPreviewURL(path, size, modified) {
   try {
     const params = {
       path: path,
       size: size,
+      key: Date.parse(modified),
       inline: "true",
     };
 
