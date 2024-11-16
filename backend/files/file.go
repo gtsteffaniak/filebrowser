@@ -280,7 +280,7 @@ func GetRealPath(relativePath ...string) (string, bool, error) {
 	// Convert relative path to absolute path
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
-		return "", false, fmt.Errorf("could not get real path: %v, %s", combined, err)
+		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", combined, err)
 	}
 	// Resolve symlinks and get the real path
 	return resolveSymlinks(absolutePath)
@@ -351,7 +351,7 @@ func resolveSymlinks(path string) (string, bool, error) {
 		// Get the file info
 		info, err := os.Lstat(path)
 		if err != nil {
-			return "", false, fmt.Errorf("could not stat path: %v, %s", path, err)
+			return path, false, fmt.Errorf("could not stat path: %v, %s", path, err)
 		}
 
 		// Check if it's a symlink
@@ -359,7 +359,7 @@ func resolveSymlinks(path string) (string, bool, error) {
 			// Read the symlink target
 			target, err := os.Readlink(path)
 			if err != nil {
-				return "", false, err
+				return path, false, err
 			}
 
 			// Resolve the target relative to the symlink's directory

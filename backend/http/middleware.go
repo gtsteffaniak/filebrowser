@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -33,7 +34,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		path := r.URL.Query().Get("path")
 		hash := r.URL.Query().Get("hash")
-
+		fmt.Println("incoming path", path)
 		data.user = &users.PublicUser
 
 		// Get the file link by hash
@@ -52,15 +53,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
 
-		realPath, isDir, err := files.GetRealPath(user.Scope, link.Path+"/"+path)
-		if err != nil {
-			return http.StatusNotFound, err
-		}
-
 		// Get file information with options
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Path:       realPath,
-			IsDir:      isDir,
+			Path:       filepath.Join(user.Scope, link.Path+"/"+path),
 			Modify:     user.Perm.Modify,
 			Expand:     true,
 			ReadHeader: config.Server.TypeDetectionByHeader,

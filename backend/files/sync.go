@@ -33,9 +33,6 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 	if !isDir {
 		baseName := filepath.Base(target)
 		fileInfo, ok := dir.Files[baseName]
-		if !ok {
-			return FileInfo{}, false
-		}
 		return fileInfo, ok
 	}
 	cleanedItems := []ReducedItem{}
@@ -56,14 +53,6 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 		})
 	}
 	dir.Items = cleanedItems
-	return dir, exists
-}
-
-// SetDirectoryInfo sets the directory information in the index.
-func (si *Index) GetDirectoryInfo(adjustedPath string) (FileInfo, bool) {
-	si.mu.RLock()
-	dir, exists := si.Directories[adjustedPath]
-	si.mu.RUnlock()
 	return dir, exists
 }
 
