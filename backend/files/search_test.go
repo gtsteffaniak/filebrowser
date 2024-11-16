@@ -89,14 +89,14 @@ func TestSearchWhileIndexing(t *testing.T) {
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
 		Directories: map[string]FileInfo{
-			"test":      {Items: []ReducedItem{{Name: "audio1.wav"}}},
-			"test/path": {Items: []ReducedItem{{Name: "file.txt"}}},
-			"new/test": {Items: []ReducedItem{
+			"/test":      {Items: []ReducedItem{{Name: "audio1.wav"}}},
+			"/test/path": {Items: []ReducedItem{{Name: "file.txt"}}},
+			"/new/test": {Items: []ReducedItem{
 				{Name: "audio.wav"},
 				{Name: "video.mp4"},
 				{Name: "video.MP4"},
 			}},
-			"new/test/path": {Items: []ReducedItem{{Name: "archive.zip"}}},
+			"/new/test/path": {Items: []ReducedItem{{Name: "archive.zip"}}},
 			"/firstDir": {Items: []ReducedItem{
 				{Name: "archive.zip", Size: 100},
 				{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
