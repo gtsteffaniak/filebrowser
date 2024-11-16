@@ -4,6 +4,7 @@ import { usersApi } from "@/api";
 import { getApiPath } from "@/api/utils";
 
 export async function setNewToken(token) {
+  console.log("updating token",token)
   document.cookie = `auth=${token}; path=/`;
   mutations.setSession(generateRandomCode(8));
 }
@@ -13,7 +14,7 @@ export async function validateLogin() {
     let userInfo = await usersApi.get("self");
     mutations.setCurrentUser(userInfo);
   } catch (error) {
-    console.log("Error validating login", error);
+    console.log("Error validating login");
   }
   return getters.isLoggedIn()
 }

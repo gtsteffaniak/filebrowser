@@ -34,7 +34,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		path := r.URL.Query().Get("path")
 		hash := r.URL.Query().Get("hash")
-		fmt.Println("incoming path", path)
 		data.user = &users.PublicUser
 
 		// Get the file link by hash

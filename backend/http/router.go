@@ -70,9 +70,9 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api := http.NewServeMux()
 
 	// User routes
-	api.HandleFunc("GET /users", withSelfOrAdmin(userGetHandler))
+	api.HandleFunc("GET /users", withUser(userGetHandler))
 	api.HandleFunc("POST /users", withSelfOrAdmin(usersPostHandler))
-	api.HandleFunc("PUT /users", withSelfOrAdmin(userPutHandler))
+	api.HandleFunc("PUT /users", withUser(userPutHandler))
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
 
 	// Auth routes

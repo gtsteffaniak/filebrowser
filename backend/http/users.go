@@ -200,7 +200,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
 	givenUserId := uint(num)
 
-	if givenUserId != d.user.ID || !d.user.Perm.Admin {
+	if givenUserId != d.user.ID && !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 
