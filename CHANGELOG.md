@@ -23,9 +23,10 @@ All notable changes to this project will be documented in this file. For commit 
   **Bugfixes**:
   - Fixed ui bug with shares with password.
   - Fixes baseurl related bugs https://github.com/gtsteffaniak/filebrowser/pull/228 Thanks @SimLV
-  - Fix empty directory load issue.
-  - Fix image preview cutoff on mobile.
-
+  - Fixed empty directory load issue.
+  - Fixed image preview cutoff on mobile.
+  - Fixed issue introduced in v0.2.10 where new files and folders were not showing up on ui
+  - Fixed preview issue where preview would not load after viewing video files.
 
 ## v0.2.10
 
