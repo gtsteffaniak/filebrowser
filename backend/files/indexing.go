@@ -3,7 +3,6 @@ package files
 import (
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -43,7 +42,7 @@ func indexingScheduler(intervalMinutes uint32) {
 		// Set the indexing flag to indicate that indexing is in progress
 		si.resetCount()
 		// Perform the indexing operation
-		err := si.indexFiles(si.Root)
+		err := si.indexFiles("/")
 		// Reset the indexing flag to indicate that indexing has finished
 		si.inProgress = false
 		// Update the LastIndexed time
@@ -64,15 +63,13 @@ func indexingScheduler(intervalMinutes uint32) {
 }
 
 // Define a function to recursively index files and directories
-func (si *Index) indexFiles(path string) error {
-	// Ensure path is cleaned and normalized
-	adjustedPath := si.makeIndexPath(path, true)
+func (si *Index) indexFiles(adjustedPath string) error {
+	realPath := strings.TrimRight(si.Root, "/") + adjustedPath
 
 	// Open the directory
-	dir, err := os.Open(path)
+	dir, err := os.Open(realPath)
 	if err != nil {
-		// If the directory can't be opened (e.g., deleted), remove it from the index
-		si.RemoveDirectory(adjustedPath)
+		si.RemoveDirectory(adjustedPath) // Remove if it can't be opened
 		return err
 	}
 	defer dir.Close()
@@ -82,7 +79,7 @@ func (si *Index) indexFiles(path string) error {
 		return err
 	}
 
-	// Check if the directory is already up-to-date
+	// Skip directories that haven't been modified since the last index
 	if dirInfo.ModTime().Before(si.LastIndexed) {
 		return nil
 	}
@@ -93,89 +90,77 @@ func (si *Index) indexFiles(path string) error {
 		return err
 	}
 
-	// Recursively process files and directories
-	fileInfos := []*FileInfo{}
 	var totalSize int64
 	var numDirs, numFiles int
+	fileInfos := map[string]FileInfo{}
+	dirInfos := map[string]FileInfo{}
+	combinedPath := adjustedPath + "/"
+	if adjustedPath == "/" {
+		combinedPath = "/"
+	}
 
+	// Process each file and directory in the current directory
 	for _, file := range files {
-		parentInfo := &FileInfo{
-			Name:    file.Name(),
-			Size:    file.Size(),
-			ModTime: file.ModTime(),
-			IsDir:   file.IsDir(),
-		}
-		childInfo, err := si.InsertInfo(path, parentInfo)
-		if err != nil {
-			// Log error, but continue processing other files
-			continue
+		itemInfo := FileInfo{
+			Name:      file.Name(),
+			Path:      combinedPath + file.Name(),
+			ModTime:   file.ModTime(),
+			CacheTime: time.Now(),
 		}
 
-		// Accumulate directory size and items
-		totalSize += childInfo.Size
-		if childInfo.IsDir {
+		if file.IsDir() {
+			itemInfo.Type = "directory"
+			// Recursively index the subdirectory
+			err := si.indexFiles(itemInfo.Path)
+			if err != nil {
+				log.Printf("Failed to index directory %s: %v", itemInfo.Path, err)
+				continue
+			}
+
+			// Fetch the metadata for the subdirectory after indexing
+			subDirInfo, exists := si.GetMetadataInfo(itemInfo.Path, true)
+			if exists {
+				itemInfo.Size = subDirInfo.Size
+				totalSize += subDirInfo.Size // Add subdirectory size to the total
+			}
+			dirInfos[itemInfo.Name] = itemInfo
 			numDirs++
 		} else {
+			// Process a file
+			itemInfo.Size = file.Size()
+			_ = itemInfo.detectType(combinedPath+file.Name(), true, false, false)
+			fileInfos[itemInfo.Name] = itemInfo
+			totalSize += itemInfo.Size
 			numFiles++
 		}
-		_ = childInfo.detectType(path, true, false, false)
-		fileInfos = append(fileInfos, childInfo)
 	}
 
 	// Create FileInfo for the current directory
-	dirFileInfo := &FileInfo{
-		Items:     fileInfos,
-		Name:      filepath.Base(path),
+	dirFileInfo := FileInfo{
+		Path:      adjustedPath,
+		Files:     fileInfos,
+		Dirs:      dirInfos,
 		Size:      totalSize,
 		ModTime:   dirInfo.ModTime(),
 		CacheTime: time.Now(),
-		IsDir:     true,
 		NumDirs:   numDirs,
 		NumFiles:  numFiles,
+		Type:      "directory",
 	}
 
-	// Add directory to index
-	si.mu.Lock()
-	si.Directories[adjustedPath] = *dirFileInfo
+	// Update the current directory metadata in the index
+	si.UpdateFileMetadata(adjustedPath, dirFileInfo)
 	si.NumDirs += numDirs
 	si.NumFiles += numFiles
-	si.mu.Unlock()
+
 	return nil
 }
 
-// InsertInfo function to handle adding a file or directory into the index
-func (si *Index) InsertInfo(parentPath string, file *FileInfo) (*FileInfo, error) {
-
-	filePath := filepath.Join(parentPath, file.Name)
-
-	// Check if it's a directory and recursively index it
-	if file.IsDir {
-		// Recursively index directory
-		err := si.indexFiles(filePath)
-		if err != nil {
-			return nil, err
-		}
-		// Return directory info from the index
-		adjustedPath := si.makeIndexPath(filePath, true)
-		si.mu.RLock()
-		dirInfo := si.Directories[adjustedPath]
-		si.mu.RUnlock()
-		return &dirInfo, nil
+func (si *Index) makeIndexPath(subPath string) string {
+	if strings.HasPrefix(subPath, "./") {
+		subPath = strings.TrimPrefix(subPath, ".")
 	}
-	// Create FileInfo for regular files
-	fileInfo := &FileInfo{
-		Path:    filePath,
-		Name:    file.Name,
-		Size:    file.Size,
-		ModTime: file.ModTime,
-		IsDir:   false,
-	}
-
-	return fileInfo, nil
-}
-
-func (si *Index) makeIndexPath(subPath string, isDir bool) string {
-	if si.Root == subPath {
+	if strings.HasPrefix(subPath, ".") || si.Root == subPath {
 		return "/"
 	}
 	// clean path
@@ -184,9 +169,22 @@ func (si *Index) makeIndexPath(subPath string, isDir bool) string {
 	adjustedPath := strings.TrimPrefix(subPath, si.Root)
 	// remove trailing slash
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
-	// add leading slash for root of index
-	if adjustedPath == "" {
-		adjustedPath = "/"
+	if !strings.HasPrefix(adjustedPath, "/") {
+		adjustedPath = "/" + adjustedPath
 	}
 	return adjustedPath
 }
+
+//func getParentPath(path string) string {
+//	// Trim trailing slash for consistency
+//	path = strings.TrimSuffix(path, "/")
+//	if path == "" || path == "/" {
+//		return "" // Root has no parent
+//	}
+//
+//	lastSlash := strings.LastIndex(path, "/")
+//	if lastSlash == -1 {
+//		return "/" // Parent of a top-level directory
+//	}
+//	return path[:lastSlash]
+//}

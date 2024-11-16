@@ -20,10 +20,10 @@ export const getters = {
   },
   isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => state.route.name === "Files",
-  isListing: () => getters.isFiles() && state.req.isDir,
+  isListing: () => getters.isFiles() && state.req.type === "directory",
   selectedCount: () => Array.isArray(state.selected) ? state.selected.length : 0,
   getFirstSelected: () => state.req.items[state.selected[0]],
-  isSingleFileSelected: () => getters.selectedCount() === 1 && !state.req.items[state.selected[0]]?.isDir,
+  isSingleFileSelected: () => getters.selectedCount() === 1 && !state.req.items[state.selected[0]]?.type == "directory",
   selectedDownloadUrl() {
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
@@ -32,7 +32,7 @@ export const getters = {
     let dirCount = 0;
     state.req.items.forEach((item) => {
       // Check if the item is a directory
-      if (item.isDir) {
+      if (item.type == "directory") {
         // If hideDotfiles is enabled and the item is a dotfile, skip it
         if (state.user.hideDotfiles && item.name.startsWith(".")) {
           return;
@@ -48,7 +48,7 @@ export const getters = {
     let fileCount = 0;
     state.req.items.forEach((item) => {
       // Check if the item is a directory
-      if (!item.isDir) {
+      if (item.type != "directory") {
         // If hideDotfiles is enabled and the item is a dotfile, skip it
         if (state.user.hideDotfiles && item.name.startsWith(".")) {
           return;
@@ -71,7 +71,7 @@ export const getters = {
       if (state.user.hideDotfiles && item.name.startsWith(".")) {
         return;
       }
-      if (item.isDir) {
+      if (item.type == "directory") {
         dirs.push(item);
       } else {
         item.Path = state.req.Path;
@@ -123,7 +123,7 @@ export const getters = {
       return "share"
     } else if (pathname.startsWith(`/files`)) {
       if (state.req.type !== undefined) {
-        if (state.req.isDir) {
+        if (state.req.type == "directory") {
           return "listingView";
         } else if ("content" in state.req) {
           return "editor";
@@ -199,7 +199,7 @@ export const getters = {
       let type = upload.type;
       let name = upload.file.name;
       let size = state.upload.sizes[id] || 0; // Default to 0 if size is undefined
-      let isDir = upload.file.isDir;
+      let isDir = upload.file.type == "directory";
       let progress = isDir
         ? 100
         : Math.ceil((state.upload.progress[id] || 0 / size) * 100); // Default to 0 if progress is undefined

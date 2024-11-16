@@ -215,6 +215,7 @@ func newTestRequest(t *testing.T, hash, token, password string, headers map[stri
 	req := newHTTPRequest(t, hash, func(r *http.Request) {
 		// Set query parameters based on provided values
 		q := r.URL.Query()
+		q.Set("path", "/")
 		q.Set("hash", hash)
 		if token != "" {
 			q.Set("token", token)

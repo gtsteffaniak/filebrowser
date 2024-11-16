@@ -94,7 +94,7 @@
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.isDir"
+            v-bind:isDir="item.type == 'directory'"
             v-bind:url="item.url"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
@@ -113,7 +113,7 @@
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.isDir"
+            v-bind:isDir="item.type == 'directory'"
             v-bind:url="item.url"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
@@ -176,7 +176,7 @@ export default {
     lastFolderIndex() {
       const allItems = [...this.items.dirs, ...this.items.files];
       for (let i = 0; i < allItems.length; i++) {
-        if (!allItems[i].isDir) {
+        if (allItems[i].type != 'directory') {
           return i - 1;
         }
       }

@@ -25,6 +25,8 @@ import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 import { state, mutations, getters } from "@/store";
 import { pathsMatch } from "@/utils/url";
+import { notify } from "@/notify";
+import { removePrefix } from "@/api/utils";
 
 export default {
   name: "files",
@@ -84,15 +86,13 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
 
-      let url = state.route.path;
-      if (url === "") url = "/";
-      if (url[0] !== "/") url = "/" + url;
       let data = {};
       try {
+        let url = removePrefix(state.route.path, "files");
         // Fetch initial data
         let res = await filesApi.fetch(url);
         // If not a directory, fetch content
-        if (!res.isDir) {
+        if (res.type != "directory") {
           res = await filesApi.fetch(url, true);
         }
         data = res;
@@ -101,6 +101,7 @@ export default {
           document.title = `${res.name} - ${document.title}`;
         }
       } catch (e) {
+        notify.showError(e);
         this.error = e;
         mutations.replaceRequest(null);
       } finally {

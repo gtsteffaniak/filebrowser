@@ -34,13 +34,8 @@ import (
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       realPath,
-		IsDir:      isDir,
+		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: config.Server.TypeDetectionByHeader,
@@ -50,17 +45,19 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if !file.IsDir {
-		if checksum := r.URL.Query().Get("checksum"); checksum != "" {
-			err := file.Checksum(checksum)
-			if err == errors.ErrInvalidOption {
-				return http.StatusBadRequest, nil
-			} else if err != nil {
-				return http.StatusInternalServerError, err
-			}
+	if file.Type == "directory" {
+		return renderJSON(w, r, file)
+	}
+	if checksum := r.URL.Query().Get("checksum"); checksum != "" {
+		err := file.Checksum(checksum)
+		if err == errors.ErrInvalidOption {
+			return http.StatusBadRequest, nil
+		} else if err != nil {
+			return http.StatusInternalServerError, err
 		}
 	}
 	return renderJSON(w, r, file)
+
 }
 
 // resourceDeleteHandler deletes a resource at a specified path.
@@ -87,7 +84,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusNotFound, err
 	}
 	fileOpts := files.FileOptions{
-		Path:       realPath,
+		Path:       filepath.Join(d.user.Scope, path),
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
@@ -286,7 +283,7 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) error {
+func delThumbs(ctx context.Context, fileCache FileCache, file files.FileInfo) error {
 	if err := fileCache.Delete(ctx, previewCacheKey(file, "small")); err != nil {
 		return err
 	}
@@ -360,13 +357,9 @@ type DiskUsageResponse struct {
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       realPath,
-		IsDir:      isDir,
+		Path:       filepath.Join(d.user.Scope, path),
+		IsDir:      false,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: false,
@@ -376,11 +369,8 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 		return errToStatus(err), err
 	}
 	fPath := file.RealPath()
-	if !file.IsDir {
-		return renderJSON(w, r, &DiskUsageResponse{
-			Total: 0,
-			Used:  0,
-		})
+	if file.Type != "directory" {
+		return http.StatusBadRequest, fmt.Errorf("path is not a directory")
 	}
 	usage, err := disk.UsageWithContext(r.Context(), fPath)
 	if err != nil {

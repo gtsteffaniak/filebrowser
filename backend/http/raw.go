@@ -24,7 +24,7 @@ func slashClean(name string) string {
 	return gopath.Clean(name)
 }
 
-func parseQueryFiles(r *http.Request, f *files.FileInfo, _ *users.User) ([]string, error) {
+func parseQueryFiles(r *http.Request, f files.FileInfo, _ *users.User) ([]string, error) {
 	var fileSlice []string
 	names := strings.Split(r.URL.Query().Get("files"), ",")
 
@@ -68,7 +68,7 @@ func parseQueryAlgorithm(r *http.Request) (string, archiver.Writer, error) {
 	}
 }
 
-func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.FileInfo) {
+func setContentDisposition(w http.ResponseWriter, r *http.Request, file files.FileInfo) {
 	if r.URL.Query().Get("inline") == "true" {
 		w.Header().Set("Content-Disposition", "inline")
 	} else {
@@ -120,11 +120,11 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 		return 0, nil
 	}
 
-	if !file.IsDir {
-		return rawFileHandler(w, r, file)
+	if file.Type == "directory" {
+		return rawDirHandler(w, r, d, file)
 	}
 
-	return rawDirHandler(w, r, d, file)
+	return rawFileHandler(w, r, file)
 }
 
 func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) error {
@@ -179,7 +179,7 @@ func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) err
 	return nil
 }
 
-func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, file *files.FileInfo) (int, error) {
+func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, file files.FileInfo) (int, error) {
 	filenames, err := parseQueryFiles(r, file, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -220,7 +220,7 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 	return 0, nil
 }
 
-func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
+func rawFileHandler(w http.ResponseWriter, r *http.Request, file files.FileInfo) (int, error) {
 	fd, err := os.Open(file.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err

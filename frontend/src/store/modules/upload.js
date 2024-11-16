@@ -84,7 +84,7 @@ const actions = {
       const item = context.state.queue[0];
       context.commit("moveJob");
 
-      if (item.file.isDir) {
+      if (item.file.type == "directory") {
         await filesApi.post(item.path).catch(Vue.prototype.$showError);
       } else {
         let onUpload = throttle(

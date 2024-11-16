@@ -89,21 +89,21 @@ func TestSearchWhileIndexing(t *testing.T) {
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
 		Directories: map[string]FileInfo{
-			"test":      {Items: []*FileInfo{{Name: "audio1.wav"}}},
-			"test/path": {Items: []*FileInfo{{Name: "file.txt"}}},
-			"new/test": {Items: []*FileInfo{
-				{Name: "audio.wav"},
-				{Name: "video.mp4"},
-				{Name: "video.MP4"},
+			"/test":      {Items: []ReducedItem{{Name: "audio1.wav", Type: "audio"}}},
+			"/test/path": {Items: []ReducedItem{{Name: "file.txt", Type: "text"}}},
+			"/new/test": {Items: []ReducedItem{
+				{Name: "audio.wav", Type: "audio"},
+				{Name: "video.mp4", Type: "video"},
+				{Name: "video.MP4", Type: "video"},
 			}},
-			"new/test/path": {Items: []*FileInfo{{Name: "archive.zip"}}},
-			"/firstDir": {Items: []*FileInfo{
-				{Name: "archive.zip", Size: 100},
-				{Name: "thisIsDir", IsDir: true, Size: 2 * 1024 * 1024},
+			"/new/test/path": {Items: []ReducedItem{{Name: "archive.zip", Type: "archive"}}},
+			"/firstDir": {Items: []ReducedItem{
+				{Name: "archive.zip", Size: 100, Type: "archive"},
+				{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 			}},
 			"/firstDir/thisIsDir": {
-				Items: []*FileInfo{
-					{Name: "hi.txt"},
+				Items: []ReducedItem{
+					{Name: "hi.txt", Type: "text"},
 				},
 				Size: 2 * 1024 * 1024,
 			},
@@ -131,12 +131,12 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/",
 			expectedResult: []searchResult{
 				{
-					Path: "test",
+					Path: "test/",
 					Type: "directory",
 					Size: 0,
 				},
 				{
-					Path: "new/test",
+					Path: "new/test/",
 					Type: "directory",
 					Size: 0,
 				},
@@ -174,7 +174,7 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/",
 			expectedResult: []searchResult{
 				{
-					Path: "firstDir/thisIsDir",
+					Path: "firstDir/thisIsDir/",
 					Type: "directory",
 					Size: 2097152,
 				},
@@ -185,7 +185,7 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/",
 			expectedResult: []searchResult{
 				{
-					Path: "firstDir/thisIsDir",
+					Path: "firstDir/thisIsDir/",
 					Type: "directory",
 					Size: 2097152,
 				},

@@ -19,15 +19,11 @@ import (
 )
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(*files.FileInfo)
+	file, ok := d.raw.(files.FileInfo)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
 	}
 	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
-	if file.IsDir {
-		return renderJSON(w, r, file)
-	}
-
 	return renderJSON(w, r, file)
 }
 
@@ -42,19 +38,19 @@ func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, _ := d.raw.(*files.FileInfo)
-	if file == nil {
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
+	file, ok := d.raw.(files.FileInfo)
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
 	}
 	if d.user == nil {
 		return http.StatusUnauthorized, fmt.Errorf("failed to get user")
 	}
 
-	if !file.IsDir {
-		return rawFileHandler(w, r, file)
+	if file.Type == "directory" {
+		return rawDirHandler(w, r, d, file)
 	}
 
-	return rawDirHandler(w, r, d, file)
+	return rawFileHandler(w, r, file)
 }
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {

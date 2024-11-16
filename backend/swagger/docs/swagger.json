@@ -205,6 +205,12 @@
                     },
                     {
                         "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Include file content if true",
                         "name": "content",
                         "in": "query"
@@ -262,6 +268,12 @@
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -325,6 +337,12 @@
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "boolean",
@@ -394,6 +412,12 @@
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -448,6 +472,12 @@
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -841,6 +871,12 @@
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1130,9 +1166,6 @@
                 "content": {
                     "type": "string"
                 },
-                "isDir": {
-                    "type": "boolean"
-                },
                 "isSymlink": {
                     "type": "boolean"
                 },
@@ -1177,9 +1210,6 @@
         "files.ReducedItem": {
             "type": "object",
             "properties": {
-                "isDir": {
-                    "type": "boolean"
-                },
                 "modified": {
                     "type": "string"
                 },

@@ -1,4 +1,4 @@
-import { createURL, fetchURL, removePrefix, getApiPath } from "./utils";
+import { createURL, fetchURL, removePrefix, getApiPath,adjustedData} from "./utils";
 import { baseURL } from "@/utils/constants";
 import { state } from "@/store";
 import { notify } from "@/notify";
@@ -6,27 +6,11 @@ import { notify } from "@/notify";
 // Notify if errors occur
 export async function fetch(url, content = false) {
   try {
-    url = removePrefix(url);
+    url = removePrefix(url,"files");
     const apiPath = getApiPath("api/resources",{path: url, content: content});
     const res = await fetchURL(apiPath);
     const data = await res.json();
-
-    data.url = `/files${url}`;
-    if (data.isDir) {
-      if (!data.url.endsWith("/")) data.url += "/";
-      data.items = data.items.map((item, index) => {
-        item.index = index;
-        item.url = `${data.url}${encodeURIComponent(item.name)}`;
-
-        if (item.isDir) {
-          item.url += "/";
-        }
-
-        return item;
-      });
-    }
-
-    return data;
+    return adjustedData(data,url);
   } catch (err) {
     notify.showError(err.message || "Error fetching data");
     throw err;
@@ -35,7 +19,7 @@ export async function fetch(url, content = false) {
 
 async function resourceAction(url, method, content) {
   try {
-    url = removePrefix(url);
+    url = removePrefix(url,"files");
     let opts = { method };
     if (content) {
       opts.body = content;
@@ -71,12 +55,12 @@ export function download(format, ...files) {
   try {
     let url = `${baseURL}/api/raw`;
     if (files.length === 1) {
-      url +=  "?path="+removePrefix(files[0]);
+      url +=  "?path="+removePrefix(files[0], "files");
     } else {
       let arg = "";
 
       for (let file of files) {
-        arg += removePrefix(file) + ",";
+        arg += removePrefix(file,"files") + ",";
       }
 
       arg = arg.substring(0, arg.length - 1);
@@ -96,7 +80,7 @@ export function download(format, ...files) {
 
 export async function post(url, content = "", overwrite = false, onupload) {
   try {
-    url = removePrefix(url);
+    url = removePrefix(url,"files");
 
     let bufferContent;
     if (
@@ -147,7 +131,7 @@ function moveCopy(items, copy = false, overwrite = false, rename = false) {
 
   for (let item of items) {
     const from = item.from;
-    const to = encodeURIComponent(removePrefix(item.to));
+    const to = encodeURIComponent(removePrefix(item.to,"files"));
     const url = `${from}?action=${
       copy ? "copy" : "rename"
     }&destination=${to}&override=${overwrite}&rename=${rename}`;
@@ -178,10 +162,10 @@ export async function checksum(url, algo) {
   }
 }
 
-export function getDownloadURL(file, inline) {
+export function getDownloadURL(path, inline) {
   try {
     const params = {
-      path: file.path,
+      path: path,
       ...(inline && { inline: "true" }),
     };
     return createURL("api/raw", params);
@@ -191,13 +175,12 @@ export function getDownloadURL(file, inline) {
   }
 }
 
-export function getPreviewURL(file, size) {
+export function getPreviewURL(path, size) {
   try {
     const params = {
-      path: file.path,
+      path: path,
       size: size,
       inline: "true",
-      key: Date.parse(file.modified),
     };
 
     return createURL("api/preview", params);
@@ -225,10 +208,9 @@ export function getSubtitlesURL(file) {
   }
 }
 
-export async function usage(url) {
+export async function usage(source) {
   try {
-    url = removePrefix(url);
-    const apiPath = getApiPath("api/usage", { path: url });
+    const apiPath = getApiPath("api/usage", { source: source });
     const res = await fetchURL(apiPath);
     return await res.json();
   } catch (err) {

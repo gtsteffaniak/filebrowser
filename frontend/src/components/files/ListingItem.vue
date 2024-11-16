@@ -131,12 +131,7 @@ export default {
       if (state.req.path == "/") {
         path = "";
       }
-      const file = {
-        path: path + "/" + this.name,
-        modified: this.modified,
-      };
-
-      return filesApi.getPreviewURL(file, "small");
+      return filesApi.getPreviewURL(path + "/" + this.name, "small");
     },
     isThumbsEnabled() {
       return enableThumbs;
