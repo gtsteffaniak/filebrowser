@@ -175,13 +175,12 @@ export function getDownloadURL(path, inline) {
   }
 }
 
-export function getPreviewURL(file, size) {
+export function getPreviewURL(path, size) {
   try {
     const params = {
-      path: file.path,
+      path: path,
       size: size,
       inline: "true",
-      key: Date.parse(file.modified),
     };
 
     return createURL("api/preview", params);

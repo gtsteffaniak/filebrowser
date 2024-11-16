@@ -165,7 +165,6 @@ export default {
   async mounted() {
     window.addEventListener("keydown", this.key);
     this.listing = this.oldReq.items;
-    console.log(this.listing)
     this.updatePreview();
   },
   beforeUnmount() {
@@ -225,19 +224,17 @@ export default {
         this.autoPlay = false;
       }
 
-      let dirs = state.route.fullPath.split("/");
-      this.name = decodeURIComponent(dirs[dirs.length - 1]);
-      console.log(this.name)
+      this.name = state.route.path.lastIndexOf("/");
 
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);
         const res = await filesApi.fetch(path);
         this.listing = res.items;
       }
-
       this.previousLink = "";
       this.nextLink = "";
       const path = state.req.path;
+
       const directoryPath = path.substring(0, path.lastIndexOf("/"));
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
@@ -271,8 +268,8 @@ export default {
         return "";
       }
       return this.fullSize
-        ? filesApi.getDownloadURL(item, true)
-        : filesApi.getPreviewURL(item, "large");
+        ? filesApi.getDownloadURL(item.path, true)
+        : filesApi.getPreviewURL(item.path, "large");
     },
     openMore() {
       this.currentPrompt = "more";

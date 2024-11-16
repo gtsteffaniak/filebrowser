@@ -82,19 +82,12 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return FileInfo{}, os.ErrPermission
 	}
-	fmt.Println("here?", opts.Path)
-
 	_, isDir, err := GetRealPath(opts.Path)
 	if err != nil {
 		return FileInfo{}, err
 	}
 	opts.IsDir = isDir
 	index := GetIndex(rootPath)
-	// don't bother caching content
-	if opts.Content {
-		// incorporate read listing features and stat
-		return FileInfo{}, nil
-	}
 	// check if the file exists in the index
 	info, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
 	if exists {
@@ -142,7 +135,6 @@ func RefreshFileInfo(opts FileOptions) error {
 	return nil
 }
 func stat(opts FileOptions) (*FileInfo, error) {
-	fmt.Println("stat", opts.Path)
 	index := GetIndex(rootPath)
 	realPath, _, err := GetRealPath(rootPath, opts.Path)
 	if err != nil {
