@@ -48,7 +48,11 @@
       <div class="share">
         <div class="share__box share__box__info">
           <div class="share__box__header">
-            {{ req.type == "directory" ? $t("download.downloadFolder") : $t("download.downloadFile") }}
+            {{
+              req.type == "directory"
+                ? $t("download.downloadFolder")
+                : $t("download.downloadFile")
+            }}
           </div>
 
           <div
@@ -215,7 +219,7 @@ export default {
       return getters.selectedCount(); // Access getter directly from the store
     },
     icon() {
-      if (state.req.type == 'directory') return "folder";
+      if (state.req.type == "directory") return "folder";
       if (state.req.type === "image") return "insert_photo";
       if (state.req.type === "audio") return "volume_up";
       if (state.req.type === "video") return "movie";
@@ -223,7 +227,7 @@ export default {
     },
 
     humanSize() {
-      if (state.req.type == 'directory') {
+      if (state.req.type == "directory") {
         return state.req.items.length;
       }
       return getHumanReadableFilesize(state.req.size);
@@ -244,7 +248,11 @@ export default {
   },
   methods: {
     getLink(inline = false) {
-      return publicApi.getDownloadURL(this.subPath, this.hash, inline);
+      return publicApi.getDownloadURL({
+        path: this.subPath,
+        hash: this.hash,
+        inline: inline,
+      });
     },
     base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));

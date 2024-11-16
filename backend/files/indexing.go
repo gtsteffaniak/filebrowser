@@ -110,9 +110,8 @@ func (si *Index) indexFiles(adjustedPath string) error {
 
 		if file.IsDir() {
 			itemInfo.Type = "directory"
-
 			// Recursively index the subdirectory
-			err := si.InsertInfo(itemInfo.Path, itemInfo)
+			err := si.indexFiles(itemInfo.Path)
 			if err != nil {
 				log.Printf("Failed to index directory %s: %v", itemInfo.Path, err)
 				continue
@@ -157,12 +156,6 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	return nil
 }
 
-// InsertInfo function to handle adding a file or directory into the index
-func (si *Index) InsertInfo(parentPath string, file FileInfo) error {
-	// Recursively index directory
-	return si.indexFiles(parentPath)
-}
-
 func (si *Index) makeIndexPath(subPath string) string {
 	if strings.HasPrefix(subPath, "./") {
 		subPath = strings.TrimPrefix(subPath, ".")
@@ -182,16 +175,16 @@ func (si *Index) makeIndexPath(subPath string) string {
 	return adjustedPath
 }
 
-func getParentPath(path string) string {
-	// Trim trailing slash for consistency
-	path = strings.TrimSuffix(path, "/")
-	if path == "" || path == "/" {
-		return "" // Root has no parent
-	}
-
-	lastSlash := strings.LastIndex(path, "/")
-	if lastSlash == -1 {
-		return "/" // Parent of a top-level directory
-	}
-	return path[:lastSlash]
-}
+//func getParentPath(path string) string {
+//	// Trim trailing slash for consistency
+//	path = strings.TrimSuffix(path, "/")
+//	if path == "" || path == "/" {
+//		return "" // Root has no parent
+//	}
+//
+//	lastSlash := strings.LastIndex(path, "/")
+//	if lastSlash == -1 {
+//		return "/" // Parent of a top-level directory
+//	}
+//	return path[:lastSlash]
+//}

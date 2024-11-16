@@ -62,12 +62,12 @@ export async function getPublicUser() {
 }
 
 // Generate a download URL
-export function getDownloadURL(share, inline = false) {
+export function getDownloadURL(share) {
   const params = {
     "path": share.path,
     "hash": share.hash,
+    "token": share.token,
     ...(share.inline && { inline: "true" }),
-    ...(share.token && { token }),
   };
   return createURL(`api/public/dl`, params, false);
 }

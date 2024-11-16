@@ -121,13 +121,6 @@ func RefreshFileInfo(opts FileOptions) error {
 	if err != nil {
 		return fmt.Errorf("File/folder does not exist to refresh data: %s", opts.Path)
 	}
-	_ = file.detectType(opts.Path, true, opts.Content, opts.ReadHeader)
-	if file.Type == "directory" {
-		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
-		if err != nil {
-			return fmt.Errorf("Dir info could not be read: %s", opts.Path)
-		}
-	}
 	result := index.UpdateFileMetadata(opts.Path, *file)
 	if !result {
 		return fmt.Errorf("File/folder does not exist in metadata: %s", opts.Path)
@@ -153,14 +146,6 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		Size:      info.Size(),
 		Extension: filepath.Ext(info.Name()),
 		Token:     opts.Token,
-	}
-
-	if info.Mode()&os.ModeSymlink != 0 {
-		file.IsSymlink = true
-		targetInfo, err := os.Stat(realPath)
-		if err == nil {
-			file.Size = targetInfo.Size()
-		}
 	}
 
 	if info.IsDir() {
@@ -195,12 +180,22 @@ func stat(opts FileOptions) (*FileInfo, error) {
 
 		var totalSize int64
 		for _, item := range files {
-			itemPath := filepath.Join(opts.Path, item.Name())
+			itemPath := filepath.Join(realPath, item.Name())
 			itemInfo := FileInfo{
 				Name:    item.Name(),
 				Size:    item.Size(),
 				ModTime: item.ModTime(),
 				Mode:    item.Mode(),
+			}
+			isInvalidLink := false
+			if IsSymlink(item.Mode()) {
+				itemInfo.IsSymlink = true
+				info, err := os.Stat(itemPath)
+				if err == nil {
+					item = info
+				} else {
+					isInvalidLink = true
+				}
 			}
 
 			if item.IsDir() {
@@ -208,9 +203,13 @@ func stat(opts FileOptions) (*FileInfo, error) {
 				file.Dirs[item.Name()] = itemInfo
 				file.NumDirs++
 			} else {
-				err := itemInfo.detectType(itemPath, true, opts.Content, opts.ReadHeader)
-				if err != nil {
-					fmt.Printf("failed to detect type for %s: %w \n", itemPath, err)
+				if isInvalidLink {
+					file.Type = "invalid_link"
+				} else {
+					err := itemInfo.detectType(itemPath, true, opts.Content, opts.ReadHeader)
+					if err != nil {
+						fmt.Printf("failed to detect type for %v: %v \n", itemPath, err)
+					}
 				}
 				file.Files[item.Name()] = itemInfo
 				file.NumFiles++
@@ -507,77 +506,6 @@ func (i *FileInfo) detectSubtitles(path string) {
 			}
 		}
 	}
-}
-
-// readListing reads the contents of a directory and fills the listing.
-func (i *FileInfo) readListing(path string, checker users.Checker, readHeader bool) error {
-	dir, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer dir.Close()
-
-	files, err := dir.Readdir(-1)
-	if err != nil {
-		return err
-	}
-
-	listing := &FileInfo{
-		Files:    map[string]FileInfo{},
-		Dirs:     map[string]FileInfo{},
-		NumDirs:  0,
-		NumFiles: 0,
-	}
-
-	for _, f := range files {
-		name := f.Name()
-		fPath := filepath.Join(path, name)
-
-		if !checker.Check(fPath) {
-			continue
-		}
-
-		isSymlink, isInvalidLink := false, false
-		if IsSymlink(f.Mode()) {
-			isSymlink = true
-			info, err := os.Stat(fPath)
-			if err == nil {
-				f = info
-			} else {
-				isInvalidLink = true
-			}
-		}
-
-		file := FileInfo{
-			Size:    f.Size(),
-			ModTime: f.ModTime(),
-			Mode:    f.Mode(),
-		}
-		if f.IsDir() {
-
-		}
-		if isSymlink {
-			file.IsSymlink = true
-		}
-
-		if file.Type == "directory" {
-			file.Type = "directory"
-			listing.Dirs[name] = file
-			listing.NumDirs++
-		} else {
-			if isInvalidLink {
-				file.Type = "invalid_link"
-			} else {
-				err := file.detectType(path, true, false, readHeader)
-				if err != nil {
-					fmt.Errorf("could not detect type: %s", err)
-				}
-			}
-			listing.Dirs[name] = file
-			listing.NumFiles++
-		}
-	}
-	return nil
 }
 
 func IsNamedPipe(mode os.FileMode) bool {

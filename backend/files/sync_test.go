@@ -32,9 +32,9 @@ func TestGetFileMetadataSize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, _ := testIndex.GetMetadataInfo(tt.adjustedPath)
+			fileInfo, _ := testIndex.GetMetadataInfo(tt.adjustedPath, true)
 			// Iterate over fileInfo.Items to look for expectedName
-			for _, item := range fileInfo.ReducedItems {
+			for _, item := range fileInfo.Items {
 				// Assert the existence and the name
 				if item.Name == tt.expectedName {
 					assert.Equal(t, tt.expectedSize, item.Size)
@@ -87,10 +87,10 @@ func TestGetFileMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, _ := testIndex.GetMetadataInfo(tt.adjustedPath)
+			fileInfo, _ := testIndex.GetMetadataInfo(tt.adjustedPath, true)
 			found := false
 			// Iterate over fileInfo.Items to look for expectedName
-			for _, item := range fileInfo.ReducedItems {
+			for _, item := range fileInfo.Items {
 				// Assert the existence and the name
 				if item.Name == tt.expectedName {
 					found = true
@@ -107,10 +107,10 @@ func TestUpdateFileMetadata(t *testing.T) {
 	index := &Index{
 		Directories: map[string]FileInfo{
 			"/testpath": {
-				Path:  "/testpath",
-				Name:  "testpath",
-				IsDir: true,
-				ReducedItems: []ReducedItem{
+				Path: "/testpath",
+				Name: "testpath",
+				Type: "directory",
+				Items: []ReducedItem{
 					{Name: "testfile.txt"},
 					{Name: "anotherfile.txt"},
 				},
@@ -126,7 +126,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 	}
 
 	dir, exists := index.Directories["/testpath"]
-	if !exists || dir.ReducedItems[0].Name != "testfile.txt" {
+	if !exists || dir.Items[0].Name != "testfile.txt" {
 		t.Fatalf("expected testfile.txt to be updated in the directory metadata")
 	}
 }
@@ -134,12 +134,12 @@ func TestUpdateFileMetadata(t *testing.T) {
 // Test for GetDirMetadata
 func TestGetDirMetadata(t *testing.T) {
 	t.Parallel()
-	_, exists := testIndex.GetMetadataInfo("/testpath")
+	_, exists := testIndex.GetMetadataInfo("/testpath", true)
 	if !exists {
 		t.Fatalf("expected GetDirMetadata to return initialized metadata map")
 	}
 
-	_, exists = testIndex.GetMetadataInfo("/nonexistent")
+	_, exists = testIndex.GetMetadataInfo("/nonexistent", true)
 	if exists {
 		t.Fatalf("expected GetDirMetadata to return false for nonexistent directory")
 	}
@@ -150,10 +150,10 @@ func TestSetDirectoryInfo(t *testing.T) {
 	index := &Index{
 		Directories: map[string]FileInfo{
 			"/testpath": {
-				Path:  "/testpath",
-				Name:  "testpath",
-				IsDir: true,
-				Items: []*FileInfo{
+				Path: "/testpath",
+				Name: "testpath",
+				Type: "directory",
+				Items: []ReducedItem{
 					{Name: "testfile.txt"},
 					{Name: "anotherfile.txt"},
 				},
@@ -161,14 +161,14 @@ func TestSetDirectoryInfo(t *testing.T) {
 		},
 	}
 	dir := FileInfo{
-		Path:  "/newPath",
-		Name:  "newPath",
-		IsDir: true,
-		Items: []*FileInfo{
+		Path: "/newPath",
+		Name: "newPath",
+		Type: "directory",
+		Items: []ReducedItem{
 			{Name: "testfile.txt"},
 		},
 	}
-	index.SetDirectoryInfo("/newPath", dir)
+	index.UpdateFileMetadata("/newPath", dir)
 	storedDir, exists := index.Directories["/newPath"]
 	if !exists || storedDir.Items[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
@@ -238,10 +238,10 @@ func init() {
 			"/testpath": {
 				Path:     "/testpath",
 				Name:     "testpath",
-				IsDir:    true,
+				Type:     "directory",
 				NumDirs:  1,
 				NumFiles: 2,
-				Items: []*FileInfo{
+				Items: []ReducedItem{
 					{Name: "testfile.txt", Size: 100},
 					{Name: "anotherfile.txt", Size: 100},
 				},
@@ -249,11 +249,11 @@ func init() {
 			"/anotherpath": {
 				Path:     "/anotherpath",
 				Name:     "anotherpath",
-				IsDir:    true,
+				Type:     "directory",
 				NumDirs:  1,
 				NumFiles: 1,
-				Items: []*FileInfo{
-					{Name: "directory", IsDir: true, Size: 100},
+				Items: []ReducedItem{
+					{Name: "directory", Type: "directory", Size: 100},
 					{Name: "afile.txt", Size: 100},
 				},
 			},
