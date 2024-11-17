@@ -170,7 +170,7 @@ export default {
   },
   watch: {
     $route() {
-      let urlPath = getters.getRoutePath();
+      let urlPath = getters.routePath();
       // Step 1: Split the path by '/'
       let parts = urlPath.split("/");
       // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
@@ -180,7 +180,7 @@ export default {
     },
   },
   created() {
-    let urlPath = getters.getRoutePath();
+    let urlPath = getters.routePath();
     // Step 1: Split the path by '/'
     let parts = urlPath.split("/");
     // Step 2: Assign hash to the second part (index 2) and join the rest for subPath

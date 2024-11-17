@@ -712,7 +712,7 @@ export default {
         });
       }
       let items = state.req.items;
-      let path = getters.getRoutePath();
+      let path = getters.routePath();
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         path = el.__vue__.url;
@@ -749,7 +749,7 @@ export default {
         }
       }
 
-      let path = getters.getRoutePath();
+      let path = getters.routePath();
       const conflict = upload.checkConflict(files, state.req.items);
 
       if (conflict) {

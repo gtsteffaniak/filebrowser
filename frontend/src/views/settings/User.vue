@@ -66,7 +66,7 @@ export default {
       return state.settings;
     },
     isNew() {
-      return getters.getRoutePath().endsWith("settings/users/new");
+      return getters.routePath().endsWith("settings/users/new");
     },
     userPayload() {
       return JSON.parse(JSON.stringify(this.user)); // Deep copy for safety

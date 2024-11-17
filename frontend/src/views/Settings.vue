@@ -59,7 +59,7 @@ export default {
       return getters.currentView() == "settings";
     },
     userPage() {
-      return getters.getRoutePath().startsWith(`settings/users/`);
+      return getters.routePath().startsWith(`settings/users/`);
     },
     loading() {
       return getters.isLoading();

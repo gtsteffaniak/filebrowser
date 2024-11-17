@@ -1,7 +1,8 @@
 import { mutations, getters } from "@/store";
 import router from "@/router";
 import { usersApi } from "@/api";
-import { getApiPath } from "@/api/utils";
+import { getApiPath } from "@/utils/url.js";
+
 
 export async function setNewToken(token) {
   console.log("updating token",token)

@@ -1,5 +1,6 @@
-import { fetchURL, removePrefix, getApiPath } from "./utils";
+import { fetchURL } from "./utils";
 import { notify } from "@/notify";  // Import notify for error handling
+import { removePrefix, getApiPath } from "@/utils/url.js";
 
 export default async function search(base, query) {
   try {

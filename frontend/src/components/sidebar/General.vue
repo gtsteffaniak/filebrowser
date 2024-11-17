@@ -105,7 +105,7 @@ export default {
     isFiles: () => getters.isFiles(),
     user: () => (getters.isLoggedIn() ? state.user : {}),
     isDarkMode: () => getters.isDarkMode(),
-    loginCheck: () => getters.isLoggedIn() && !getters.getRoutePath().startsWith("/share"),
+    loginCheck: () => getters.isLoggedIn() && !getters.routePath().startsWith("/share"),
     currentPrompt: () => getters.currentPrompt(),
     active: () => getters.isSidebarVisible(),
     signup: () => signup,
@@ -129,7 +129,7 @@ export default {
   },
   methods: {
     checkLogin() {
-      return getters.isLoggedIn() && !getters.getRoutePath().startsWith("/share");
+      return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
     },
     updateHoverText(text) {
       this.hoverText = text;

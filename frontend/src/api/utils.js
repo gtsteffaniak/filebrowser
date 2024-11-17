@@ -1,7 +1,7 @@
 import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
-import { encodePath } from "@/utils/url";
+import { encodePath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
@@ -59,22 +59,6 @@ export async function fetchJSON(url, opts) {
   }
 }
 
-export function removePrefix(path, prefix) {
-  const combined = baseURL + prefix;
-  // Check if path starts with the specified prefix followed by a '/'
-  if (path.startsWith(combined)) {
-    // Remove the prefix by slicing it off
-    path = path.slice(combined.length);
-  } else if (path.startsWith(prefix)) {
-    // Remove the prefix by slicing it off
-    path = path.slice(prefix.length);
-  }
-  if (path == "") {
-    path = "/"
-  }
-  return path
-}
-
 export function createURL(endpoint, params = {}) {
   let prefix = baseURL;
   if (!prefix.endsWith("/")) {
@@ -91,28 +75,6 @@ export function createURL(endpoint, params = {}) {
   }
 
   return url.toString();
-}
-
-// get path with parameters
-export function getApiPath(path, params = {}) {
-  if (path.startsWith("/")) {
-    path = path.slice(1);
-  }
-  path = `${baseURL}${path}`;
-  if (Object.keys(params).length > 0) {
-    path += "?";
-  }
-  for (const key in params) {
-    if (params[key] === undefined) {
-      continue;
-    }
-    path += `${key}=${params[key]}&`;
-  }
-  // remove trailing &
-  if (path.endsWith("&")) {
-    path = path.slice(0, -1);
-  }
-  return path;
 }
 
 export function adjustedData(data, url) {

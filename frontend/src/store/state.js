@@ -36,6 +36,12 @@ export const state = reactive({
     numDirs: 0,
     numFiles: 0,
   },
+  currentItem: {
+    name: "",
+    path: "",
+    type: "",
+    modified:"",
+  },
   oldReq: {},
   clipboard: {
     key: "",

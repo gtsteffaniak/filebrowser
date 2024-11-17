@@ -878,13 +878,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Directory path to check usage",
-                        "name": "path",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "description": "Name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"

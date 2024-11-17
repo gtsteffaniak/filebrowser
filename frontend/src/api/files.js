@@ -1,5 +1,6 @@
-import { createURL, fetchURL, removePrefix, getApiPath,adjustedData} from "./utils";
+import { createURL, fetchURL, adjustedData} from "./utils";
 import { baseURL } from "@/utils/constants";
+import { removePrefix,getApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 import { notify } from "@/notify";
 

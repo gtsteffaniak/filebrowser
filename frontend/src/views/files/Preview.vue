@@ -7,11 +7,11 @@
         <div class="bounce3"></div>
       </div>
     </div>
-    <template v-else>
+    <template>
       <div class="preview">
-        <ExtendedImage v-if="req.type == 'image'" :src="raw"></ExtendedImage>
+        <ExtendedImage v-if="currentItem.type == 'image'" :src="raw"> </ExtendedImage>
         <audio
-          v-else-if="req.type == 'audio'"
+          v-else-if="currentItem.type == 'audio'"
           ref="player"
           :src="raw"
           controls
@@ -19,7 +19,7 @@
           @play="autoPlay = true"
         ></audio>
         <video
-          v-else-if="req.type == 'video'"
+          v-else-if="currentItem.type == 'video'"
           ref="player"
           :src="raw"
           controls
@@ -38,8 +38,11 @@
           <a :href="downloadUrl">download it</a>
           and watch it with your favorite video player!
         </video>
-        <object v-else-if="req.type == 'pdf'" class="pdf" :data="raw"></object>
-        <div v-else-if="req.type == 'blob' || req.type == 'archive'" class="info">
+        <object v-else-if="currentItem.type == 'pdf'" class="pdf" :data="raw"></object>
+        <div
+          v-else-if="currentItem.type == 'blob' || currentItem.type == 'archive'"
+          class="info"
+        >
           <div class="title">
             <i class="material-icons">feedback</i>
             {{ $t("files.noPreview") }}
@@ -54,7 +57,7 @@
               target="_blank"
               :href="raw"
               class="button button--flat"
-              v-if="req.type != 'directory'"
+              v-if="currentItem.type != 'directory'"
             >
               <div>
                 <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
@@ -92,7 +95,7 @@
 <script>
 import { filesApi } from "@/api";
 import { resizePreview } from "@/utils/constants";
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -110,7 +113,7 @@ export default {
       nextLink: "",
       listing: null,
       name: "",
-      fullSize: false,
+      fullSize: true,
       showNav: true,
       navTimeout: null,
       hoverNav: false,
@@ -120,12 +123,15 @@ export default {
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       oldReq: {}, // Replace with your actual initial state
       jwt: "", // Replace with your actual initial state
-      loading: false, // Replace with your actual initial state
     };
   },
   computed: {
-    req() {
-      return state.req;
+    loading() {
+      return state.loading["preview-img"];
+    },
+    currentItem() {
+      console.log("currentItem", state.currentItem);
+      return state.currentItem;
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -137,13 +143,21 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(state.req.path);
+      return filesApi.getDownloadURL(state.currentItem.path);
     },
     raw() {
-      if (state.req.type === "image" && !this.fullSize) {
-        return filesApi.getPreviewURL(state.req.path, "large", state.req.modified);
+      if (state.currentItem.url == "" || state.currentItem.url == undefined) {
+        return;
       }
-      return filesApi.getDownloadURL(state.req.path, true);
+      const previewUrl = this.fullSize
+        ? filesApi.getDownloadURL(state.currentItem.url, "large")
+        : filesApi.getPreviewURL(
+            state.currentItem.url,
+            "small",
+            state.currentItem.modified
+          );
+      console.log("Raw image URL:", previewUrl); // Debug log
+      return previewUrl;
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -152,8 +166,8 @@ export default {
       return resizePreview;
     },
     subtitles() {
-      if (state.req.subtitles) {
-        return filesApi.getSubtitlesURL(state.req);
+      if (state.currentItem.subtitles) {
+        return filesApi.getSubtitlesURL(state.currentItem);
       }
       return [];
     },
@@ -192,12 +206,10 @@ export default {
       };
     },
     prev() {
-      mutations.setLoading("preview-img", true);
       this.hoverNav = false;
       this.$router.replace({ path: this.previousLink });
     },
     next() {
-      mutations.setLoading("preview-img", true);
       this.hoverNav = false;
       this.$router.replace({ path: this.nextLink });
     },
@@ -228,9 +240,8 @@ export default {
       if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
         this.autoPlay = false;
       }
-
-      this.name = state.route.path.lastIndexOf("/");
-
+      let parts = state.route.path.split("/");
+      this.name = parts.pop("/");
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);
         const res = await filesApi.fetch(path);
@@ -240,12 +251,15 @@ export default {
       this.nextLink = "";
       const path = state.req.path;
 
-      const directoryPath = path.substring(0, path.lastIndexOf("/"));
+      let directoryPath = path.substring(0, path.lastIndexOf("/"));
+      if (directoryPath == "") {
+        directoryPath = "/";
+      }
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
           continue;
         }
-
+        mutations.setCurrentItem(this.listing[i]);
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
@@ -264,17 +278,20 @@ export default {
             break;
           }
         }
-
         return;
       }
     },
     prefetchUrl(item) {
-      if (item.type !== "image") {
+      if (this.currentItem.type !== "image" || this.currentItem.path == undefined) {
         return "";
       }
       return this.fullSize
-        ? filesApi.getDownloadURL(item.path, true)
-        : filesApi.getPreviewURL(item.path, "large", item.modified);
+        ? filesApi.getDownloadURL(this.currentItem.path, true)
+        : filesApi.getPreviewURL(
+            this.currentItem.path,
+            "large",
+            this.currentItem.modified
+          );
     },
     openMore() {
       this.currentPrompt = "more";

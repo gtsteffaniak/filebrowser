@@ -81,7 +81,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return rawFileHandler(w, r, file)
 	}
 
-	format, err := imgSvc.FormatFromExtension(file.Extension)
+	format, err := imgSvc.FormatFromExtension(filepath.Ext(file.Name))
 	// Unsupported extensions directly return the raw data
 	if err == img.ErrUnsupportedFormat || format == img.FormatGif {
 		if !d.user.Perm.Download {
@@ -92,12 +92,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return errToStatus(err), err
 	}
-
 	cacheKey := previewCacheKey(file, previewSize)
 	resizedImage, ok, err := fileCache.Load(r.Context(), cacheKey)
 	if err != nil {
 		return errToStatus(err), err
 	}
+
 	if !ok {
 		resizedImage, err = createPreview(imgSvc, fileCache, file, previewSize)
 		if err != nil {
@@ -111,12 +111,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 }
 
 func createPreview(imgSvc ImgService, fileCache FileCache, file files.FileInfo, previewSize string) ([]byte, error) {
-	realPath, _, err := files.GetRealPath(file.Path + "/" + file.Name)
-	if err != nil {
-		return nil, err
-	}
-	file.Path = realPath
-	fd, err := os.Open(realPath)
+	fd, err := os.Open(file.Path)
 	if err != nil {
 		return nil, err
 	}

@@ -348,22 +348,19 @@ type DiskUsageResponse struct {
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "Directory path to check usage"
 // @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 {object} DiskUsageResponse "Disk usage details"
 // @Failure 404 {object} map[string]string "Directory not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/usage [get]
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// TODO source := r.URL.Query().Get("source")
-	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "/"
+	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       filepath.Join(d.user.Scope, path),
-		IsDir:      false,
-		Modify:     d.user.Perm.Modify,
-		Expand:     false,
-		ReadHeader: false,
-		Checker:    d.user,
+		Path:    source,
+		Checker: d.user,
 	})
 	if err != nil {
 		return errToStatus(err), err

@@ -148,6 +148,11 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
+  setCurrentItem: (value) => {
+    if (typeof value !== "object" || value === null) return;
+    state.currentItem = value;
+    emitStateChanged();
+  },
   updateCurrentUser: (value) => {
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;

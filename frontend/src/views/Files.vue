@@ -24,9 +24,9 @@ import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 import { state, mutations, getters } from "@/store";
-import { pathsMatch } from "@/utils/url";
+import { pathsMatch } from "@/utils/url.js";
 import { notify } from "@/notify";
-import { removePrefix } from "@/api/utils";
+import { removePrefix } from "@/utils/url.js";
 
 export default {
   name: "files",

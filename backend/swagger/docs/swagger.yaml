@@ -871,11 +871,6 @@ paths:
       - application/json
       description: Returns the total and used disk space for a specified directory.
       parameters:
-      - description: Directory path to check usage
-        in: query
-        name: path
-        required: true
-        type: string
       - description: Name for the desired source, default is used if not provided
         in: query
         name: source

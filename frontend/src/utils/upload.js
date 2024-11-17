@@ -1,5 +1,5 @@
 import { state } from "@/store";
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import { filesApi } from "@/api";
 
 export function checkConflict(files, items) {
