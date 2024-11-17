@@ -1,27 +1,33 @@
-import { fetchURL, fetchJSON, removePrefix, createURL } from "./utils";
+import { fetchURL, fetchJSON, createURL, adjustedData } from "./utils";
+import { notify } from "@/notify";
 
 export async function list() {
-  return fetchJSON("/api/shares");
+  return fetchJSON("api/shares");
 }
 
-export async function get(url) {
-  url = removePrefix(url);
-  return fetchJSON(`/api/share${url}`);
+export async function get(path, hash) {
+  try {
+    const params = { path, hash };
+    const url = createURL(`api/share`, params, false);
+    let data = fetchJSON(url);
+    return adjustedData(data, `api/share${path}`);
+  } catch (err) {
+    notify.showError(err.message || "Error fetching data");
+    throw err;
+  }
 }
 
 export async function remove(hash) {
-  await fetchURL(`/api/share/${hash}`, {
+  const params = { hash };
+  const url = createURL(`api/share`, params, false);
+  await fetchURL(url, {
     method: "DELETE",
   });
 }
 
-export async function create(url, password = "", expires = "", unit = "hours") {
-  url = removePrefix(url);
-  url = `/api/share${url}`;
-  expires = String(expires);
-  if (expires !== "") {
-    url += `?expires=${expires}&unit=${unit}`;
-  }
+export async function create(path, password = "", expires = "", unit = "hours") {
+  const params = { path };
+  const url = createURL(`api/share`, params, false);
   let body = "{}";
   if (password != "" || expires !== "" || unit !== "hours") {
     body = JSON.stringify({ password: password, expires: expires, unit: unit });

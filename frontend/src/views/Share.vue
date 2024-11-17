@@ -48,21 +48,25 @@
       <div class="share">
         <div class="share__box share__box__info">
           <div class="share__box__header">
-            {{ req.isDir ? $t("download.downloadFolder") : $t("download.downloadFile") }}
+            {{
+              req.type == "directory"
+                ? $t("download.downloadFolder")
+                : $t("download.downloadFile")
+            }}
           </div>
 
           <div
             v-if="isImage"
             class="share__box__element share__box__center share__box__icon"
           >
-            <img :src="inlineLink" width="500px" />
+            <img :src="getLink(true)" width="500px" />
           </div>
           <div
             v-else-if="isMedia"
             class="share__box__element share__box__center share__box__icon"
           >
             <video width="500" height="500" controls>
-              <source :src="inlineLink" type="video/mp4" />
+              <source :src="getLink(true)" type="video/mp4" />
             </video>
           </div>
           <div v-else class="share__box__element share__box__center share__box__icon">
@@ -78,16 +82,16 @@
             <strong>{{ $t("prompts.size") }}:</strong> {{ humanSize }}
           </div>
           <div class="share__box__element share__box__center">
-            <a target="_blank" :href="link" class="button button--flat">
+            <a target="_blank" :href="getLink(false)" class="button button--flat">
               <div>
                 <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
               </div>
             </a>
             <a
               target="_blank"
-              :href="inlineLink"
+              :href="getLink(true)"
               class="button button--flat"
-              v-if="!req.isDir"
+              v-if="req.type != 'directory'"
             >
               <div>
                 <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
@@ -95,14 +99,14 @@
             </a>
           </div>
           <div class="share__box__element share__box__center">
-            <qrcode-vue :value="link" size="200" level="M"></qrcode-vue>
+            <qrcode-vue :value="getLink(false)" size="200" level="M"></qrcode-vue>
           </div>
         </div>
         <div
-          v-if="req.isDir && req.items.length > 0"
+          v-if="req.type == 'directory' && req.items.length > 0"
           class="share__box share__box__items"
         >
-          <div class="share__box__header" v-if="req.isDir">
+          <div class="share__box__header" v-if="req.type == 'directory'">
             {{ $t("files.files") }}
           </div>
           <div id="listingView" class="list file-icons">
@@ -111,7 +115,7 @@
               :key="base64(item.name)"
               v-bind:index="item.index"
               v-bind:name="item.name"
-              v-bind:isDir="item.isDir"
+              v-bind:isDir="item.type == 'directory'"
               v-bind:url="item.url"
               v-bind:modified="item.modified"
               v-bind:type="item.type"
@@ -122,7 +126,7 @@
           </div>
         </div>
         <div
-          v-else-if="req.isDir && req.items.length === 0"
+          v-else-if="req.type == 'directory' && req.items.length === 0"
           class="share__box share__box__items"
         >
           <h2 class="message">
@@ -137,7 +141,7 @@
 <script>
 import { notify } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { pub as api } from "@/api";
+import { publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
@@ -160,17 +164,28 @@ export default {
       password: "",
       attemptedPasswordLogin: false,
       hash: null,
-      token: null,
+      subPath: "",
       clip: null,
     };
   },
   watch: {
     $route() {
+      let urlPath = getters.getRoutePath();
+      // Step 1: Split the path by '/'
+      let parts = urlPath.split("/");
+      // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
+      this.hash = parts[1];
+      this.subPath = "/" + parts.slice(2).join("/");
       this.fetchData();
     },
   },
   created() {
-    this.hash = state.route.params.path.at(0);
+    let urlPath = getters.getRoutePath();
+    // Step 1: Split the path by '/'
+    let parts = urlPath.split("/");
+    // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
+    this.hash = parts[1];
+    this.subPath = "/" + parts.slice(2).join("/");
     this.fetchData();
   },
   mounted() {
@@ -204,29 +219,15 @@ export default {
       return getters.selectedCount(); // Access getter directly from the store
     },
     icon() {
-      if (state.req.isDir) return "folder";
+      if (state.req.type == "directory") return "folder";
       if (state.req.type === "image") return "insert_photo";
       if (state.req.type === "audio") return "volume_up";
       if (state.req.type === "video") return "movie";
       return "insert_drive_file";
     },
-    link() {
-      return api.getDownloadURL({
-        hash: this.hash,
-        path: window.location.pathname,
-      });
-    },
-    inlineLink() {
-      return api.getDownloadURL(
-        {
-          hash: this.hash,
-          path: window.location.pathname,
-        },
-        true
-      );
-    },
+
     humanSize() {
-      if (state.req.isDir) {
+      if (state.req.type == "directory") {
         return state.req.items.length;
       }
       return getHumanReadableFilesize(state.req.size);
@@ -246,6 +247,13 @@ export default {
     },
   },
   methods: {
+    getLink(inline = false) {
+      return publicApi.getDownloadURL({
+        path: this.subPath,
+        hash: this.hash,
+        inline: inline,
+      });
+    },
     base64(name) {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
@@ -255,23 +263,23 @@ export default {
       this.error = null;
       // Reset view information.
       if (!getters.isLoggedIn()) {
-        let userData = await api.getPublicUser();
+        let userData = await publicApi.getPublicUser();
         mutations.setCurrentUser(userData);
       }
       mutations.setReload(false);
       mutations.resetSelected();
       mutations.setMultiple(false);
       mutations.closeHovers();
+      try {
+        let file = await publicApi.fetchPub(this.subPath, this.hash, this.password);
+        file.hash = this.hash;
+        mutations.updateRequest(file);
+        document.title = `${file.name} - ${document.title}`;
+      } catch (error) {
+        this.error = error;
+        notify.showError(error);
+      }
 
-      let url = state.route.path;
-      if (url === "") url = "/";
-      if (url[0] !== "/") url = "/" + url;
-
-      let file = await api.fetchPub(url, this.password);
-      file.hash = this.hash;
-      this.token = file.token || "";
-      mutations.updateRequest(file);
-      document.title = `${file.name} - ${document.title}`;
       mutations.setLoading("share", false);
     },
     keyEvent(event) {
@@ -288,10 +296,9 @@ export default {
     },
     download() {
       if (getters.isSingleFileSelected()) {
-        api.download(null, this.hash, this.token, getters.selectedDownloadUrl());
+        public_api.download(this.subPath, this.hash, null, getters.selectedDownloadUrl());
         return;
       }
-
       mutations.showHover({
         name: "download",
         confirm: (format) => {
@@ -303,17 +310,9 @@ export default {
             files.push(state.req.items[i].path);
           }
 
-          api.download(format, this.hash, this.token, ...files);
+          public_api.download(this.subPath, this.hash, format, ...files);
         },
       });
-    },
-    linkSelected() {
-      return getters.isSingleFileSelected()
-        ? api.getDownloadURL({
-            hash: this.hash,
-            path: state.req.items[this.selected[0]].path,
-          })
-        : "";
     },
   },
 };

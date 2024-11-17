@@ -50,7 +50,7 @@
                 <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
               </div>
             </a>
-            <a target="_blank" :href="raw" class="button button--flat" v-if="!req.isDir">
+            <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
               <div>
                 <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
               </div>
@@ -85,7 +85,7 @@
   </div>
 </template>
 <script>
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url";
 import throttle from "@/utils/throttle";
@@ -132,13 +132,13 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return api.getDownloadURL(state.req);
+      return filesApi.getDownloadURL(state.req.path);
     },
     raw() {
       if (state.req.type === "image" && !this.fullSize) {
-        return api.getPreviewURL(state.req, "big");
+        return filesApi.getPreviewURL(state.req.path, "large");
       }
-      return api.getDownloadURL(state.req, true);
+      return filesApi.getDownloadURL(state.req.path, true);
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -148,7 +148,7 @@ export default {
     },
     subtitles() {
       if (state.req.subtitles) {
-        return api.getSubtitlesURL(state.req);
+        return filesApi.getSubtitlesURL(state.req);
       }
       return [];
     },
@@ -176,7 +176,6 @@ export default {
         name: "delete",
         confirm: () => {
           this.listing = this.listing.filter((item) => item.name !== this.name);
-
           if (this.hasNext) {
             this.next();
           } else if (!this.hasPrevious && !this.hasNext) {
@@ -225,18 +224,17 @@ export default {
         this.autoPlay = false;
       }
 
-      let dirs = state.route.fullPath.split("/");
-      this.name = decodeURIComponent(dirs[dirs.length - 1]);
+      this.name = state.route.path.lastIndexOf("/");
 
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);
-        const res = await api.fetch(path);
+        const res = await filesApi.fetch(path);
         this.listing = res.items;
       }
-
       this.previousLink = "";
       this.nextLink = "";
       const path = state.req.path;
+
       const directoryPath = path.substring(0, path.lastIndexOf("/"));
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
@@ -270,8 +268,8 @@ export default {
         return "";
       }
       return this.fullSize
-        ? api.getDownloadURL(item, true)
-        : api.getPreviewURL(item, "big");
+        ? filesApi.getDownloadURL(item.path, true)
+        : filesApi.getPreviewURL(item.path, "large");
     },
     openMore() {
       this.currentPrompt = "more";

@@ -101,7 +101,6 @@ export default {
   watch: {
     user: {
       handler(newUser) {
-        console.log("UserForm: user changed", newUser);
         this.localUser = { ...newUser };  // Watch for changes in the parent and update the local copy
       },
       immediate: true,

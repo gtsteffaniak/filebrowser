@@ -19,7 +19,7 @@ type ProxyAuth struct {
 }
 
 // Auth authenticates the user via an HTTP header.
-func (a ProxyAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
+func (a ProxyAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
 	username := r.Header.Get(a.Header)
 	user, err := usr.Get(settings.Config.Server.Root, username)
 	if err == errors.ErrNotExist {

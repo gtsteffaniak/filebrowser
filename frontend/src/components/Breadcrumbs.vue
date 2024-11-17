@@ -33,6 +33,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
+import { removePrefix } from "@/api/utils";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -51,7 +52,11 @@ export default {
       return getters.isCardView();
     },
     items() {
-      const relativePath = state.route.path.replace(this.base, "");
+      let relativePath = removePrefix(state.route.path,"files");
+      if (getters.currentView() == "share") {
+        // Split the path, filter out any empty elements, then join again with slashes
+        relativePath = removePrefix(state.route.path, "share")
+      }
       let parts = relativePath.split("/");
 
       if (parts[0] === "") {
@@ -96,7 +101,7 @@ export default {
       return "router-link";
     },
     showShare() {
-      return state.user?.perm && state.user?.perm.share;
+      return state.user?.perm && state.user?.perm.share && state.user.username != "publicUser";
     },
   },
   methods: {

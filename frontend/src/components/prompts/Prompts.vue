@@ -25,6 +25,8 @@ import Share from "./Share.vue";
 import Upload from "./Upload.vue";
 import ShareDelete from "./ShareDelete.vue";
 import DeleteUser from "./DeleteUser.vue";
+import CreateApi from "./CreateApi.vue";
+import ActionApi from "./ActionApi.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -48,6 +50,8 @@ export default {
     ShareDelete,
     Sidebar,
     DeleteUser,
+    CreateApi,
+    ActionApi,
   },
   data() {
     return {

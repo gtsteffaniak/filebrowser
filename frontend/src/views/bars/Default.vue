@@ -18,7 +18,7 @@
 import url from "@/utils/url";
 import router from "@/router";
 import { state, mutations, getters } from "@/store";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import Action from "@/components/Action.vue";
 import css from "@/utils/css";
 
@@ -67,7 +67,7 @@ export default {
       const files = [];
 
       state.req.items.forEach((item) => {
-        if (item.isDir) {
+        if (item.type == 'directory') {
           dirs.push(item);
         } else {
           files.push(item);
@@ -348,7 +348,7 @@ export default {
 
         items.forEach((item) => {
           promises.push(
-            api.copy({
+            filesApi.copy({
               from: item.from,
               to: item.to,
               name: item.name,

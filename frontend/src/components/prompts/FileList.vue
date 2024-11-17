@@ -23,7 +23,7 @@
 <script>
 import { state, mutations } from "@/store";
 import url from "@/utils/url";
-import { files } from "@/api";
+import { filesApi } from "@/api";
 
 export default {
   name: "file-list",
@@ -71,8 +71,7 @@ export default {
       // Otherwise we add every directory to the
       // move options.
       for (let item of req.items) {
-        if (!item.isDir) continue;
-
+        if (item.type != "directory") continue;
         this.items.push({
           name: item.name,
           url: item.url,
@@ -85,7 +84,7 @@ export default {
       // content.
       let uri = event.currentTarget.dataset.url;
 
-      files.fetch(uri).then(this.fillOptions);
+      filesApi.fetch(uri).then(this.fillOptions);
     },
     touchstart(event) {
       let url = event.currentTarget.dataset.url;

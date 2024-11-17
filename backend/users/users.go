@@ -3,9 +3,30 @@ package users
 import (
 	"regexp"
 
-	"github.com/gtsteffaniak/filebrowser/rules"
-	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/golang-jwt/jwt/v4"
 )
+
+type AuthToken struct {
+	Key                  string      `json:"key"`
+	Name                 string      `json:"name"`
+	Created              int64       `json:"createdAt"`
+	Expires              int64       `json:"expiresAt"`
+	BelongsTo            uint        `json:"belongsTo"`
+	Permissions          Permissions `json:"Permissions"`
+	jwt.RegisteredClaims `json:"-"`
+}
+
+type Permissions struct {
+	Api      bool `json:"api"`
+	Admin    bool `json:"admin"`
+	Execute  bool `json:"execute"`
+	Create   bool `json:"create"`
+	Rename   bool `json:"rename"`
+	Modify   bool `json:"modify"`
+	Delete   bool `json:"delete"`
+	Share    bool `json:"share"`
+	Download bool `json:"download"`
+}
 
 // SortingSettings represents the sorting settings.
 type Sorting struct {
@@ -20,16 +41,17 @@ type User struct {
 	DisableSettings bool                 `json:"disableSettings"`
 	ID              uint                 `storm:"id,increment" json:"id"`
 	Username        string               `storm:"unique" json:"username"`
-	Password        string               `json:"password"`
+	Password        string               `json:"password,omitempty"`
 	Scope           string               `json:"scope"`
 	Locale          string               `json:"locale"`
 	LockPassword    bool                 `json:"lockPassword"`
 	ViewMode        string               `json:"viewMode"`
 	SingleClick     bool                 `json:"singleClick"`
-	Perm            settings.Permissions `json:"perm"`
-	Commands        []string             `json:"commands"`
 	Sorting         Sorting              `json:"sorting"`
-	Rules           []rules.Rule         `json:"rules"`
+	Perm            Permissions          `json:"perm"`
+	Commands        []string             `json:"commands"`
+	Rules           []Rule               `json:"rules"`
+	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"`
 	HideDotfiles    bool                 `json:"hideDotfiles"`
 	DateFormat      bool                 `json:"dateFormat"`
 	GallerySize     int                  `json:"gallerySize"`
@@ -41,19 +63,20 @@ var PublicUser = User{
 	Scope:        "./",
 	ViewMode:     "normal",
 	LockPassword: true,
-	Perm: settings.Permissions{
+	Perm: Permissions{
 		Create:   false,
 		Rename:   false,
 		Modify:   false,
 		Delete:   false,
-		Share:    true,
+		Share:    false,
 		Download: true,
 		Admin:    false,
+		Api:      false,
 	},
 }
 
 // GetRules implements rules.Provider.
-func (u *User) GetRules() []rules.Rule {
+func (u *User) GetRules() []Rule {
 	return u.Rules
 }
 
@@ -70,21 +93,4 @@ func (u *User) CanExecute(command string) bool {
 	}
 
 	return false
-}
-
-// Apply applies the default options to a user.
-func ApplyDefaults(u User) User {
-	u.StickySidebar = settings.Config.UserDefaults.StickySidebar
-	u.DisableSettings = settings.Config.UserDefaults.DisableSettings
-	u.DarkMode = settings.Config.UserDefaults.DarkMode
-	u.Scope = settings.Config.UserDefaults.Scope
-	u.Locale = settings.Config.UserDefaults.Locale
-	u.ViewMode = settings.Config.UserDefaults.ViewMode
-	u.SingleClick = settings.Config.UserDefaults.SingleClick
-	u.Perm = settings.Config.UserDefaults.Perm
-	u.Sorting = settings.Config.UserDefaults.Sorting
-	u.Commands = settings.Config.UserDefaults.Commands
-	u.HideDotfiles = settings.Config.UserDefaults.HideDotfiles
-	u.DateFormat = settings.Config.UserDefaults.DateFormat
-	return u
 }

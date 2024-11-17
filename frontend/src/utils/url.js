@@ -1,3 +1,5 @@
+import { baseURL } from "@/utils/constants.js";
+
 export function removeLastDir(url) {
   var arr = url.split("/");
   if (arr.pop() === "") {
@@ -45,3 +47,12 @@ export default {
   removeLastDir,
   encodePath,
 };
+
+export function trimStartPath(path) {
+  // Check if the path starts with the substring
+  if (path.startsWith(baseURL)) {
+      // Remove the substring from the start of the path
+      return path.slice(baseURL.length);
+  }
+  return path; // Return the path unchanged if it doesn't start with the substring
+}

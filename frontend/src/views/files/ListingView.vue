@@ -94,7 +94,7 @@
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.isDir"
+            v-bind:isDir="item.type == 'directory'"
             v-bind:url="item.url"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
@@ -113,7 +113,7 @@
             :key="base64(item.name)"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.isDir"
+            v-bind:isDir="item.type == 'directory'"
             v-bind:url="item.url"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
@@ -144,7 +144,7 @@
 
 <script>
 import download from "@/utils/download";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
 import css from "@/utils/css";
@@ -176,7 +176,7 @@ export default {
     lastFolderIndex() {
       const allItems = [...this.items.dirs, ...this.items.files];
       for (let i = 0; i < allItems.length; i++) {
-        if (!allItems[i].isDir) {
+        if (allItems[i].type != 'directory') {
           return i - 1;
         }
       }
@@ -619,14 +619,14 @@ export default {
       }
       mutations.setLoading("listing", true);
       let action = (overwrite, rename) => {
-        api.copy(items, overwrite, rename).then(() => {
+        filesApi.copy(items, overwrite, rename).then(() => {
           mutations.setLoading("listing", false);
         });
       };
 
       if (this.clipboard.key === "x") {
         action = (overwrite, rename) => {
-          api.move(items, overwrite, rename).then(() => {
+          filesApi.move(items, overwrite, rename).then(() => {
             this.clipboard = {};
             mutations.setLoading("listing", false);
           });
@@ -717,7 +717,7 @@ export default {
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         path = el.__vue__.url;
 
-        items = (await api.fetch(path)).items;
+        items = (await filesApi.fetch(path)).items;
       }
 
       const conflict = upload.checkConflict(uploadFiles, items);

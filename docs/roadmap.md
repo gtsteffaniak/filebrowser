@@ -1,14 +1,10 @@
 # Planned Roadmap
 
-upcoming 0.2.x releases:
+upcoming 0.3.x releases:
 
-- Replace http routes for gorilla/mux with stdlib
 - Theme configuration from settings
 - File syncronization improvements
 - more filetype previews
-
-next major 0.3.0 release :
-
 - multiple sources https://github.com/filebrowser/filebrowser/issues/2514
 - introduce jobs as replacement to runners.
 - Add Job status to the sidebar

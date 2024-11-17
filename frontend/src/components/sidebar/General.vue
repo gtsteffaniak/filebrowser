@@ -43,8 +43,8 @@
   </div>
 
   <!-- Section for logged-in users -->
-  <div v-if="isLoggedIn" class="sidebar-scroll-list">
-    <div v-if="isLoggedIn" class="sources card">
+  <div v-if="loginCheck" class="sidebar-scroll-list">
+    <div class="sources card">
       <span>Sources</span>
       <div class="inner-card">
         <!-- My Files button -->
@@ -67,31 +67,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Section for non-logged-in users -->
-  <div v-else class="sidebar-scroll-list">
-    <!-- Login button -->
-    <router-link
-      class="action"
-      to="/login"
-      :aria-label="$t('sidebar.login')"
-      :title="$t('sidebar.login')"
-    >
-      <i class="material-icons">exit_to_app</i>
-      <span>{{ $t("sidebar.login") }}</span>
-    </router-link>
-    <!-- Signup button, if signup is enabled -->
-    <router-link
-      v-if="signup"
-      class="action"
-      to="/login"
-      :aria-label="$t('sidebar.signup')"
-      :title="$t('sidebar.signup')"
-    >
-      <i class="material-icons">person_add</i>
-      <span>{{ $t("sidebar.signup") }}</span>
-    </router-link>
-  </div>
 </template>
 
 <script>
@@ -105,7 +80,7 @@ import {
   noAuth,
   loginPage,
 } from "@/utils/constants";
-import { files } from "@/api";
+import { filesApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -121,9 +96,7 @@ export default {
     };
   },
   mounted() {
-    if (getters.isLoggedIn()) {
       this.updateUsage();
-    }
   },
   computed: {
     isSettings: () => getters.isSettings(),
@@ -132,7 +105,7 @@ export default {
     isFiles: () => getters.isFiles(),
     user: () => (getters.isLoggedIn() ? state.user : {}),
     isDarkMode: () => getters.isDarkMode(),
-    isLoggedIn: () => getters.isLoggedIn(),
+    loginCheck: () => getters.isLoggedIn() && !getters.getRoutePath().startsWith("/share"),
     currentPrompt: () => getters.currentPrompt(),
     active: () => getters.isSidebarVisible(),
     signup: () => signup,
@@ -155,6 +128,9 @@ export default {
     },
   },
   methods: {
+    checkLogin() {
+      return getters.isLoggedIn() && !getters.getRoutePath().startsWith("/share");
+    },
     updateHoverText(text) {
       this.hoverText = text;
     },
@@ -171,15 +147,14 @@ export default {
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     async updateUsage() {
-      if (!getters.isLoggedIn()) {
+      if (!this.checkLogin()) {
         return;
       }
-      let path = getters.getRoutePath();
       let usageStats = { used: "0 B", total: "0 B", usedPercentage: 0 };
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      let usage = await files.usage(path);
+      let usage = await filesApi.usage("/");
       usageStats = {
         used: getHumanReadableFilesize(usage.used / 1024),
         total: getHumanReadableFilesize(usage.total / 1024),

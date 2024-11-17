@@ -8,7 +8,7 @@ import Errors from "@/views/Errors.vue";
 import { baseURL, name } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { recaptcha, loginPage } from "@/utils/constants";
-import { login, validateLogin } from "@/utils/auth";
+import { validateLogin } from "@/utils/auth";
 import { mutations } from "@/store";
 import i18n from "@/i18n";
 
@@ -74,9 +74,6 @@ const routes = [
         path: "users/:id",
         name: "User",
         component: Settings,
-        meta: {
-          requiresAdmin: true,
-        },
       },
     ],
   },
@@ -121,10 +118,8 @@ const router = createRouter({
 
 
 async function initAuth() {
-  if (loginPage) {
-      await validateLogin();
-  } else {
-      await login("publicUser", "publicUser", "");
+  if (loginPage && !getters.isShare()) {
+    await validateLogin();
   }
   if (recaptcha) {
       await new Promise<void>((resolve) => {
@@ -135,7 +130,6 @@ async function initAuth() {
                   resolve();
               }
           };
-
           check();
       });
   }
@@ -146,21 +140,21 @@ router.beforeResolve(async (to, from, next) => {
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;
   mutations.setRoute(to)
+  if (to.path.endsWith("/login") && getters.isLoggedIn()) {
+    next({ path: "/files/" });
+    return;
+  }
   // this will only be null on first route
-  if (from.name == null) {
+  if (to.name != "Login") {
     try {
       await initAuth();
     } catch (error) {
       console.error(error);
     }
   }
-  if (to.path.endsWith("/login") && getters.isLoggedIn()) {
-    next({ path: "/files/" });
-    return;
-  }
-
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!getters.isLoggedIn()) {
+      console.log("not logged in");
       next({
         path: "/login",
         query: { redirect: to.fullPath },

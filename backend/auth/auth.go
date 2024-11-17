@@ -9,7 +9,7 @@ import (
 // Auther is the authentication interface.
 type Auther interface {
 	// Auth is called to authenticate a request.
-	Auth(r *http.Request, usr users.Store) (*users.User, error)
+	Auth(r *http.Request, userStore *users.Storage) (*users.User, error)
 	// LoginPage indicates if this auther needs a login page.
 	LoginPage() bool
 }

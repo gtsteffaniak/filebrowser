@@ -1,10 +1,10 @@
 import { state, mutations, getters } from "@/store"
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import { notify } from "@/notify"
 
 export default function download() {
     if (getters.isSingleFileSelected()) {
-      api.download(null, getters.selectedDownloadUrl());
+      filesApi.download(null, getters.selectedDownloadUrl());
       return;
     }
     mutations.showHover({
@@ -20,7 +20,7 @@ export default function download() {
           files.push(state.route.path);
         }
         try {
-          api.download(format, ...files);
+          filesApi.download(format, ...files);
           notify.showSuccess("download started");
         } catch (e) {
           notify.showError("error downloading", e);

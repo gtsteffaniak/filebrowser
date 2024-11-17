@@ -12,11 +12,14 @@ export async function fetchURL(url, opts, auth = true) {
 
   let res;
   try {
-    res = await fetch(`${baseURL}${url}`, {
+    let userScope = "";
+    if (state.user) {
+      userScope = state.user.scope;
+    }
+    res = await fetch(url, {
       headers: {
-        "X-Auth": state.jwt,
         "sessionId": state.sessionId,
-        "userScope": state.user.scope,
+        "userScope": userScope,
         ...headers,
       },
       ...rest,
@@ -48,22 +51,31 @@ export async function fetchURL(url, opts, auth = true) {
 
 export async function fetchJSON(url, opts) {
   const res = await fetchURL(url, opts);
-  if (res.status === 200) {
+  if (res.status < 300) {
     return res.json();
   } else {
-    notify.showError("unable to fetch : " + url + "status" + res.status);
+    notify.showError("received status: "+res.status+" on url " + url);
     throw new Error(res.status);
   }
 }
 
-export function removePrefix(url) {
-  url = url.split("/").splice(2).join("/");
-  if (url === "") url = "/";
-  if (url[0] !== "/") url = "/" + url;
-  return url;
+export function removePrefix(path, prefix) {
+  const combined = baseURL + prefix;
+  // Check if path starts with the specified prefix followed by a '/'
+  if (path.startsWith(combined)) {
+    // Remove the prefix by slicing it off
+    path = path.slice(combined.length);
+  } else if (path.startsWith(prefix)) {
+    // Remove the prefix by slicing it off
+    path = path.slice(prefix.length);
+  }
+  if (path == "") {
+    path = "/"
+  }
+  return path
 }
 
-export function createURL(endpoint, params = {}, auth = true) {
+export function createURL(endpoint, params = {}) {
   let prefix = baseURL;
   if (!prefix.endsWith("/")) {
     prefix = prefix + "/";
@@ -71,7 +83,6 @@ export function createURL(endpoint, params = {}, auth = true) {
   const url = new URL(prefix + encodePath(endpoint), origin);
 
   const searchParams = {
-    ...(auth && { auth: state.jwt }),
     ...params,
   };
 
@@ -80,4 +91,42 @@ export function createURL(endpoint, params = {}, auth = true) {
   }
 
   return url.toString();
+}
+
+// get path with parameters
+export function getApiPath(path, params = {}) {
+  if (path.startsWith("/")) {
+    path = path.slice(1);
+  }
+  path = `${baseURL}${path}`;
+  if (Object.keys(params).length > 0) {
+    path += "?";
+  }
+  for (const key in params) {
+    if (params[key] === undefined) {
+      continue;
+    }
+    path += `${key}=${params[key]}&`;
+  }
+  // remove trailing &
+  if (path.endsWith("&")) {
+    path = path.slice(0, -1);
+  }
+  return path;
+}
+
+export function adjustedData(data, url) {
+  data.url = url;
+  if (data.type == "directory") {
+    if (!data.url.endsWith("/")) data.url += "/";
+    data.items = data.items.map((item, index) => {
+      item.index = index;
+      item.url = `${data.url}${encodeURIComponent(item.name)}`;
+      if (item.type == "directory") {
+        item.url += "/";
+      }
+      return item;
+    });
+  }
+  return data
 }
