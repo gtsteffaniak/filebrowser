@@ -1,4 +1,5 @@
-import { createURL, getApiPath, adjustedData } from "./utils";
+import { createURL, adjustedData } from "./utils";
+import { getApiPath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 // Fetch public share data

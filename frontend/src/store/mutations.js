@@ -148,6 +148,11 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
+  setRaw: (value) => {
+    console.log("writing",value)
+    state.previewRaw = value;
+    emitStateChanged();
+  },
   updateCurrentUser: (value) => {
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;

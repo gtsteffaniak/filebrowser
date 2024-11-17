@@ -1,5 +1,6 @@
-import { createURL, fetchURL, removePrefix, getApiPath,adjustedData} from "./utils";
+import { createURL, fetchURL, adjustedData} from "./utils";
 import { baseURL } from "@/utils/constants";
+import { removePrefix,getApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 import { notify } from "@/notify";
 
@@ -175,11 +176,12 @@ export function getDownloadURL(path, inline) {
   }
 }
 
-export function getPreviewURL(path, size) {
+export function getPreviewURL(path, size, modified) {
   try {
     const params = {
       path: path,
       size: size,
+      key: Date.parse(modified),
       inline: "true",
     };
 

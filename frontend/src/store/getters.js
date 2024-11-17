@@ -1,5 +1,4 @@
-import { trimStartPath } from "@/utils/url.js";
-
+import { removePrefix } from "@/utils/url.js";
 import { state } from "./state.js";
 
 export const getters = {
@@ -111,9 +110,8 @@ export const getters = {
     const shouldOverlaySidebar = getters.isSidebarVisible() && !getters.isStickySidebar()
     return hasPrompt || shouldOverlaySidebar;
   },
-  getRoutePath: () => {
-    let withoutPrefix = trimStartPath(state.route.path)
-    return withoutPrefix;
+  routePath: (trimModifier="") => {
+    return removePrefix(state.route.path,trimModifier)
   },
   currentView: () => {
     const pathname = state.route.path.toLowerCase()

@@ -131,7 +131,7 @@ export default {
       if (state.req.path == "/") {
         path = "";
       }
-      return filesApi.getPreviewURL(path + "/" + this.name, "small");
+      return filesApi.getPreviewURL(path + "/" + this.name, "small", state.req.modified);
     },
     isThumbsEnabled() {
       return enableThumbs;

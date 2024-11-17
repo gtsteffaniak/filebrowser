@@ -9,7 +9,7 @@ import { router } from "@/router";
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
 import { filesApi } from "@/api";
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import ace from "ace-builds/src-min-noconflict/ace.js";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";

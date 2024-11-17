@@ -1,4 +1,5 @@
-import { fetchURL, fetchJSON, getApiPath } from "@/api/utils";
+import { fetchURL, fetchJSON } from "@/api/utils";
+import { getApiPath } from "@/utils/url.js";
 import { notify } from "@/notify";  // Import notify for error handling
 
 export async function getAllUsers() {

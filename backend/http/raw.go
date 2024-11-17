@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -99,14 +100,8 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 		return http.StatusAccepted, nil
 	}
 	path := r.URL.Query().Get("path")
-
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
 	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:       realPath,
-		IsDir:      isDir,
+		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: config.Server.TypeDetectionByHeader,
@@ -119,7 +114,7 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 		setContentDisposition(w, r, file)
 		return 0, nil
 	}
-
+	fmt.Println(file.Path)
 	if file.Type == "directory" {
 		return rawDirHandler(w, r, d, file)
 	}
@@ -184,7 +179,6 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	extension, ar, err := parseQueryAlgorithm(r)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -221,7 +215,8 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file files.FileInfo) (int, error) {
-	fd, err := os.Open(file.Path)
+	realPath, _, _ := files.GetRealPath(file.Path)
+	fd, err := os.Open(realPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

@@ -15,7 +15,7 @@
 </style>
 
 <script>
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import router from "@/router";
 import { state, mutations, getters } from "@/store";
 import { filesApi } from "@/api";

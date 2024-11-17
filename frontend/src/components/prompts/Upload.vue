@@ -88,7 +88,7 @@ export default {
         });
       }
 
-      const path = getters.getRoutePath();
+      const path = getters.routePath();
       const conflict = upload.checkConflict(uploadFiles, state.req.items);
 
       if (conflict) {

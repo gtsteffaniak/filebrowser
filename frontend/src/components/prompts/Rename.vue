@@ -40,7 +40,7 @@
   </div>
 </template>
 <script>
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 

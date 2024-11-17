@@ -22,7 +22,7 @@
 
 <script>
 import { state, mutations } from "@/store";
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import { filesApi } from "@/api";
 
 export default {
