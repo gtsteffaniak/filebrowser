@@ -21,5 +21,7 @@ FROM alpine:latest
 ENV FILEBROWSER_NO_EMBEDED="true"
 RUN apk --no-cache add ca-certificates mailcap
 COPY --from=base /app/filebrowser* ./
+# exposing default port for auto discovery.
+EXPOSE 80
 COPY --from=nbuild /app/dist/ ./http/dist/
 ENTRYPOINT [ "./filebrowser" ]
