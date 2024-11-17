@@ -1,91 +1,45 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
-    <div class="loading delayed" :class="{ 'dark-mode': isDarkMode }" v-if="loading">
-      <div class="spinner">
-        <div class="bounce1"></div>
-        <div class="bounce2"></div>
-        <div class="bounce3"></div>
-      </div>
-    </div>
-    <template>
-      <div class="preview">
-        <ExtendedImage v-if="currentItem.type == 'image'" :src="raw"> </ExtendedImage>
-        <audio
-          v-else-if="currentItem.type == 'audio'"
-          ref="player"
-          :src="raw"
-          controls
-          :autoplay="autoPlay"
-          @play="autoPlay = true"
-        ></audio>
-        <video
-          v-else-if="currentItem.type == 'video'"
-          ref="player"
-          :src="raw"
-          controls
-          :autoplay="autoPlay"
-          @play="autoPlay = true"
-        >
-          <track
-            kind="captions"
-            v-for="(sub, index) in subtitles"
-            :key="index"
-            :src="sub"
-            :label="'Subtitle ' + index"
-            :default="index === 0"
-          />
-          Sorry, your browser doesn't support embedded videos, but don't worry, you can
-          <a :href="downloadUrl">download it</a>
-          and watch it with your favorite video player!
-        </video>
-        <object v-else-if="currentItem.type == 'pdf'" class="pdf" :data="raw"></object>
-        <div
-          v-else-if="currentItem.type == 'blob' || currentItem.type == 'archive'"
-          class="info"
-        >
-          <div class="title">
-            <i class="material-icons">feedback</i>
-            {{ $t("files.noPreview") }}
-          </div>
-          <div>
-            <a target="_blank" :href="downloadUrl" class="button button--flat">
-              <div>
-                <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
-              </div>
-            </a>
-            <a
-              target="_blank"
-              :href="raw"
-              class="button button--flat"
-              v-if="currentItem.type != 'directory'"
-            >
-              <div>
-                <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
-              </div>
-            </a>
-          </div>
+    <div class="preview">
+      <ExtendedImage v-if="currentItem.type == 'image'" :src="raw"> </ExtendedImage>
+      <audio v-else-if="currentItem.type == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
+        @play="autoPlay = true"></audio>
+      <video v-else-if="currentItem.type == 'video'" ref="player" :src="raw" controls :autoplay="autoPlay"
+        @play="autoPlay = true">
+        <track kind="captions" v-for="(sub, index) in subtitles" :key="index" :src="sub" :label="'Subtitle ' + index"
+          :default="index === 0" />
+        Sorry, your browser doesn't support embedded videos, but don't worry, you can
+        <a :href="downloadUrl">download it</a>
+        and watch it with your favorite video player!
+      </video>
+      <object v-else-if="currentItem.type == 'pdf'" class="pdf" :data="raw"></object>
+      <div v-else-if="currentItem.type == 'blob' || currentItem.type == 'archive'" class="info">
+        <div class="title">
+          <i class="material-icons">feedback</i>
+          {{ $t("files.noPreview") }}
+        </div>
+        <div>
+          <a target="_blank" :href="downloadUrl" class="button button--flat">
+            <div>
+              <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
+            </div>
+          </a>
+          <a target="_blank" :href="raw" class="button button--flat" v-if="currentItem.type != 'directory'">
+            <div>
+              <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
+            </div>
+          </a>
         </div>
       </div>
-    </template>
+    </div>
 
-    <button
-      @click="prev"
-      @mouseover="hoverNav = true"
-      @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasPrevious || !showNav }"
-      :aria-label="$t('buttons.previous')"
-      :title="$t('buttons.previous')"
-    >
+    <button @click="prev" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasPrevious || !showNav }" :aria-label="$t('buttons.previous')"
+      :title="$t('buttons.previous')">
       <i class="material-icons">chevron_left</i>
     </button>
-    <button
-      @click="next"
-      @mouseover="hoverNav = true"
-      @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasNext || !showNav }"
-      :aria-label="$t('buttons.next')"
-      :title="$t('buttons.next')"
-    >
+    <button @click="next" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasNext || !showNav }" :aria-label="$t('buttons.next')" :title="$t('buttons.next')">
       <i class="material-icons">chevron_right</i>
     </button>
     <link rel="prefetch" :href="previousRaw" />
@@ -122,17 +76,16 @@ export default {
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       oldReq: {}, // Replace with your actual initial state
-      jwt: "", // Replace with your actual initial state
+      currentItem: {
+        name: "",
+        path: "",
+        url: "",
+        modified: "",
+        type: "",
+      }
     };
   },
   computed: {
-    loading() {
-      return state.loading["preview-img"];
-    },
-    currentItem() {
-      console.log("currentItem", state.currentItem);
-      return state.currentItem;
-    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -143,19 +96,19 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(state.currentItem.path);
+      return filesApi.getDownloadURL(this.currentItem.path);
     },
     raw() {
-      if (state.currentItem.url == "" || state.currentItem.url == undefined) {
+      if (this.currentItem.url == "" || this.currentItem.url == undefined) {
         return;
       }
       const previewUrl = this.fullSize
-        ? filesApi.getDownloadURL(state.currentItem.url, "large")
+        ? filesApi.getDownloadURL(this.currentItem.url, "large")
         : filesApi.getPreviewURL(
-            state.currentItem.url,
-            "small",
-            state.currentItem.modified
-          );
+          this.currentItem.url,
+          "small",
+          this.currentItem.modified
+        );
       console.log("Raw image URL:", previewUrl); // Debug log
       return previewUrl;
     },
@@ -166,8 +119,8 @@ export default {
       return resizePreview;
     },
     subtitles() {
-      if (state.currentItem.subtitles) {
-        return filesApi.getSubtitlesURL(state.currentItem);
+      if (this.currentItem.subtitles) {
+        return filesApi.getSubtitlesURL(this.currentItem);
       }
       return [];
     },
@@ -259,7 +212,7 @@ export default {
         if (this.listing[i].name !== this.name) {
           continue;
         }
-        mutations.setCurrentItem(this.listing[i]);
+        this.currentItem = this.listing[i]
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
@@ -282,16 +235,13 @@ export default {
       }
     },
     prefetchUrl(item) {
-      if (this.currentItem.type !== "image" || this.currentItem.path == undefined) {
-        return "";
-      }
       return this.fullSize
-        ? filesApi.getDownloadURL(this.currentItem.path, true)
+        ? filesApi.getDownloadURL(item.path, true)
         : filesApi.getPreviewURL(
-            this.currentItem.path,
-            "large",
-            this.currentItem.modified
-          );
+          item.path,
+          "large",
+          item.modified
+        );
     },
     openMore() {
       this.currentPrompt = "more";

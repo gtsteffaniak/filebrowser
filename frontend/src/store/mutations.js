@@ -148,9 +148,9 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
-  setCurrentItem: (value) => {
-    if (typeof value !== "object" || value === null) return;
-    state.currentItem = value;
+  setRaw: (value) => {
+    console.log("writing",value)
+    state.previewRaw = value;
     emitStateChanged();
   },
   updateCurrentUser: (value) => {
