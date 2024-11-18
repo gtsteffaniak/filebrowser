@@ -48,7 +48,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 			}
 			matches := reducedDir.containsSearchTerm(searchTerm, searchOptions)
 			if matches {
-
 				scopedPath := strings.TrimPrefix(strings.TrimPrefix(dirName, scope), "/") + "/"
 				results[scopedPath] = searchResult{Path: scopedPath, Type: "directory", Size: dir.Size}
 				count++
@@ -68,7 +67,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				}
 				matches := item.containsSearchTerm(searchTerm, searchOptions)
 				if matches {
-
 					scopedPath := strings.TrimPrefix(strings.TrimPrefix(fullPath, scope), "/")
 					results[scopedPath] = searchResult{Path: scopedPath, Type: item.Type, Size: item.Size}
 					count++

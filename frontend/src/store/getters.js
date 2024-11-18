@@ -115,6 +115,7 @@ export const getters = {
   },
   currentView: () => {
     const pathname = state.route.path.toLowerCase()
+    console.log(pathname,state.req)
     if (pathname.startsWith(`/settings`)) {
       return "settings"
     } else if (pathname.startsWith(`/share`)) {

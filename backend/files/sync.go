@@ -4,6 +4,7 @@ import (
 	"log"
 	"path/filepath"
 	"time"
+	"sort"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
@@ -52,6 +53,10 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (FileInfo, bool) {
 			Type:    item.Type,
 		})
 	}
+	sort.Slice(cleanedItems, func(i, j int) bool {
+		return cleanedItems[i].Name < cleanedItems[j].Name
+	})
+
 	dir.Items = cleanedItems
 	return dir, exists
 }
