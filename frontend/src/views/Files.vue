@@ -93,6 +93,7 @@ export default {
         let res = await filesApi.fetch(url);
         // If not a directory, fetch content
         if (res.type != "directory") {
+          console.log("what its not a dir?",res)
           res = await filesApi.fetch(url, true);
         }
         data = res;

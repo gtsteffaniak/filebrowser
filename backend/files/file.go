@@ -98,9 +98,16 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 		if info.Path == "" {
 			info.Path = "/"
 		}
+		if opts.Content {
+			err = info.addContent(opts.Path)
+			if err != nil {
+				return info, err
+			}
+		}
 		// refresh cache after
 		return info, nil
 	}
+
 	err = RefreshFileInfo(opts)
 	if err != nil {
 		return FileInfo{}, err
@@ -108,6 +115,12 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	info, exists = index.GetMetadataInfo(opts.Path, opts.IsDir)
 	if !exists {
 		return FileInfo{}, err
+	}
+	if opts.Content {
+		err = info.addContent(opts.Path)
+		if err != nil {
+			return info, err
+		}
 	}
 	return info, nil
 }
@@ -127,6 +140,7 @@ func RefreshFileInfo(opts FileOptions) error {
 	}
 	return nil
 }
+
 func stat(opts FileOptions) (*FileInfo, error) {
 	index := GetIndex(rootPath)
 	realPath, _, err := GetRealPath(rootPath, opts.Path)
@@ -373,8 +387,14 @@ func resolveSymlinks(path string) (string, bool, error) {
 
 // addContent reads and sets content based on the file type.
 func (i *FileInfo) addContent(path string) error {
+	realPath, _, err := GetRealPath(rootPath, path)
+	if err != nil {
+		return err
+	}
+
 	if i.Type != "directory" {
-		content, err := os.ReadFile(path)
+		fmt.Println("getting content", realPath)
+		content, err := os.ReadFile(realPath)
 		if err != nil {
 			return err
 		}

@@ -13,7 +13,6 @@ All notable changes to this project will be documented in this file. For commit 
   - Some API's were refactored for friendlier API usage, moving some attributes to parameters and first looking for a api token, then using the stored cookie if none is found. This allows for all api requests from swagger page to work without a token.
   - Add file size to search preview! Should have been in last release... sorry!
 
-
   **Notes**:
   - Replaced backend http framework with go standard library.
   - Right-click Context menu can target the item that was right-clicked. To fully address https://github.com/gtsteffaniak/filebrowser/issues/214
@@ -27,6 +26,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Fixed image preview cutoff on mobile.
   - Fixed issue introduced in v0.2.10 where new files and folders were not showing up on ui
   - Fixed preview issue where preview would not load after viewing video files.
+  - Fixed sorting issue where files were not sorted by name by default.
 
 ## v0.2.10
 
@@ -41,9 +41,9 @@ All notable changes to this project will be documented in this file. For commit 
   - Fixed issue searching "smaller than" actually returned files "larger than"
 
   **Notes**:
-    - Memory usage from index is reduced by ~40%
-    - Indexing time has increased 2x due to the extra processing time required to calculate directory sizes.
-    - File size calcuations use 1024 base vs previous 1000 base (matching windows explorer)
+  - Memory usage from index is reduced by ~40%
+  - Indexing time has increased 2x due to the extra processing time required to calculate directory sizes.
+  - File size calculations use 1024 base vs previous 1000 base (matching windows explorer)
 
 ## v0.2.9
 
@@ -66,7 +66,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.2.8
 
-- **Feature**: New gallary view scaling options (closes [#141](https://github.com/gtsteffaniak/filebrowser/issues/141))
+- **Feature**: New gallery view scaling options (closes [#141](https://github.com/gtsteffaniak/filebrowser/issues/141))
 - **Change**: Refactored backend files functions
 - **Change**: Improved UI response to filesystem changes
 - **Change**: Added frontend tests for deployment integrity
