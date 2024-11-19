@@ -411,7 +411,7 @@ paths:
             type: object
       summary: Get raw content of a file, multiple files, or directory
       tags:
-      - Files
+      - Resources
   /api/resources:
     delete:
       consumes:

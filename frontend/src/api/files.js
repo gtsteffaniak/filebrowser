@@ -144,7 +144,6 @@ export async function moveCopy(items, action = "copy", overwrite = false, rename
     return promises;
 
   } catch (err) {
-    console.log("errorsss", err);
     notify.showError(err.message || "Error moving/copying resources");
     throw err;
   }

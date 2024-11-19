@@ -2,7 +2,6 @@ package http
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -25,7 +24,7 @@ func slashClean(name string) string {
 	return gopath.Clean(name)
 }
 
-func parseQueryFiles(r *http.Request, f files.FileInfo, _ *users.User) ([]string, error) {
+func parseQueryFiles(r *http.Request, f *files.FileInfo, _ *users.User) ([]string, error) {
 	var fileSlice []string
 	names := strings.Split(r.URL.Query().Get("files"), ",")
 
@@ -69,7 +68,7 @@ func parseQueryAlgorithm(r *http.Request) (string, archiver.Writer, error) {
 	}
 }
 
-func setContentDisposition(w http.ResponseWriter, r *http.Request, file files.FileInfo) {
+func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.FileInfo) {
 	if r.URL.Query().Get("inline") == "true" {
 		w.Header().Set("Content-Disposition", "inline")
 	} else {
@@ -81,7 +80,7 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file files.Fi
 // rawHandler serves the raw content of a file, multiple files, or directory in various formats.
 // @Summary Get raw content of a file, multiple files, or directory
 // @Description Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.
-// @Tags Files
+// @Tags Resources
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the file or directory"
@@ -114,7 +113,6 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 		setContentDisposition(w, r, file)
 		return 0, nil
 	}
-	fmt.Println(file.Path)
 	if file.Type == "directory" {
 		return rawDirHandler(w, r, d, file)
 	}
@@ -174,7 +172,7 @@ func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) err
 	return nil
 }
 
-func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, file files.FileInfo) (int, error) {
+func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, file *files.FileInfo) (int, error) {
 	filenames, err := parseQueryFiles(r, file, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -214,7 +212,7 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 	return 0, nil
 }
 
-func rawFileHandler(w http.ResponseWriter, r *http.Request, file files.FileInfo) (int, error) {
+func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
 	realPath, _, _ := files.GetRealPath(file.Path)
 	fd, err := os.Open(realPath)
 	if err != nil {

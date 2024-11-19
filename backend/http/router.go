@@ -12,6 +12,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
+	"github.com/gtsteffaniak/filebrowser/version"
 
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
 )
@@ -93,6 +94,9 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /usage", withUser(diskUsage))
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	api.HandleFunc("GET /preview", withUser(previewHandler))
+	if version.Version == "testing" || version.Version == "untracked" {
+		api.HandleFunc("GET /inspectIndex", inspectIndex)
+	}
 
 	// Share routes
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))

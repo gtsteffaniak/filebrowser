@@ -83,8 +83,7 @@ export default {
       // just clicked in and fill the options with its
       // content.
       let uri = event.currentTarget.dataset.url;
-
-      filesApi.fetch(uri).then(this.fillOptions);
+      filesApi.fetchFiles(uri).then(this.fillOptions);
     },
     touchstart(event) {
       let url = event.currentTarget.dataset.url;

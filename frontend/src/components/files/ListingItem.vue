@@ -247,7 +247,6 @@ export default {
         });
       }
       let response = await filesApi.fetchFiles(el.__vue__.url);
-      console.log(response);
 
       let action = (overwrite, rename) => {
         filesApi.moveCopy(items, "move", overwrite, rename);

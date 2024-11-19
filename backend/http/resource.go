@@ -14,7 +14,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/files"
-	"github.com/gtsteffaniak/filebrowser/fileutils"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -148,7 +147,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	file, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
-		fmt.Println("this file exists.. apparently", file.Name, file.Path, file.Type)
 		if r.URL.Query().Get("override") != "true" {
 			return http.StatusConflict, nil
 		}
@@ -243,12 +241,12 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 
 	// check target dir exists
-	_, _, err = files.GetRealPath(d.user.Scope, filepath.Base(dst))
+	parentDir, _, err := files.GetRealPath(d.user.Scope, filepath.Dir(dst))
 	if err != nil {
 		return http.StatusNotFound, err
 	}
-	realDest, _, _ := files.GetRealPath(d.user.Scope, dst)
-	realSrc, _, err := files.GetRealPath(d.user.Scope, src)
+	realDest := parentDir + "/" + filepath.Base(dst)
+	realSrc, isSrcDir, err := files.GetRealPath(d.user.Scope, src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -262,7 +260,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, nil
 	}
 	err = d.RunHook(func() error {
-		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache)
+		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir)
 	}, action, realSrc, realDest, d.user)
 
 	return errToStatus(err), err
@@ -284,27 +282,28 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func delThumbs(ctx context.Context, fileCache FileCache, file files.FileInfo) error {
+func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) error {
 	if err := fileCache.Delete(ctx, previewCacheKey(file, "small")); err != nil {
 		return err
 	}
 	return nil
 }
 
-func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache) error {
+func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool) error {
 	switch action {
 	// TODO: use enum
 	case "copy":
 		if !d.user.Perm.Create {
 			return errors.ErrPermissionDenied
 		}
-		return fileutils.Copy(src, dst)
+		return files.CopyResource(src, dst, isSrcDir)
 	case "rename", "move":
 		if !d.user.Perm.Rename {
 			return errors.ErrPermissionDenied
 		}
 		file, err := files.FileInfoFaster(files.FileOptions{
 			Path:       src,
+			IsDir:      isSrcDir,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: false,
@@ -319,8 +318,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		if err != nil {
 			return err
 		}
-		fmt.Println("doing things for move/rename", action, src, dst)
-		return fileutils.MoveFile(src, dst)
+		return files.MoveResource(src, dst, isSrcDir)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
 	}
@@ -366,4 +364,12 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 		Total: usage.Total,
 		Used:  usage.Used,
 	})
+}
+
+func inspectIndex(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Query().Get("path")
+	isDir := r.URL.Query().Get("isDir") == "true"
+	index := files.GetIndex(config.Server.Root)
+	info, _ := index.GetMetadataInfo(path, isDir)
+	renderJSON(w, r, info)
 }

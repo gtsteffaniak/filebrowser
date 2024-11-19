@@ -108,7 +108,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Files"
+                    "Resources"
                 ],
                 "summary": "Get raw content of a file, multiple files, or directory",
                 "parameters": [

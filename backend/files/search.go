@@ -153,15 +153,15 @@ func (fi ReducedItem) containsSearchTerm(searchTerm string, options *SearchOptio
 	return true
 }
 
-func (si *Index) getSearchableDirs(scope string) map[string]FileInfo {
+func (si *Index) getSearchableDirs(scope string) map[string]*FileInfo {
 	if scope == "/" {
 		return si.Directories // return all if at root
 	}
 	return si.getDirsInScope(scope)
 }
 
-func (si *Index) getDirsInScope(scope string) map[string]FileInfo {
-	newList := map[string]FileInfo{}
+func (si *Index) getDirsInScope(scope string) map[string]*FileInfo {
+	newList := map[string]*FileInfo{}
 	si.mu.RLock()
 	defer si.mu.RUnlock()
 	for k, v := range si.Directories {

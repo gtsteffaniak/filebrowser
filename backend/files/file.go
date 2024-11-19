@@ -19,6 +19,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
+	"github.com/gtsteffaniak/filebrowser/fileutils"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
@@ -38,24 +39,24 @@ type ReducedItem struct {
 // FileInfo describes a file.
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
-	Files     map[string]FileInfo `json:"-"`
-	Dirs      map[string]FileInfo `json:"-"`
-	Path      string              `json:"path"`
-	Name      string              `json:"name"`
-	Items     []ReducedItem       `json:"items"`
-	Size      int64               `json:"size"`
-	Extension string              `json:"-"`
-	ModTime   time.Time           `json:"modified"`
-	CacheTime time.Time           `json:"-"`
-	Mode      os.FileMode         `json:"-"`
-	IsSymlink bool                `json:"isSymlink,omitempty"`
-	Type      string              `json:"type"`
-	Subtitles []string            `json:"subtitles,omitempty"`
-	Content   string              `json:"content,omitempty"`
-	Checksums map[string]string   `json:"checksums,omitempty"`
-	Token     string              `json:"token,omitempty"`
-	NumDirs   int                 `json:"numDirs"`
-	NumFiles  int                 `json:"numFiles"`
+	Files     map[string]*FileInfo `json:"-"`
+	Dirs      map[string]*FileInfo `json:"-"`
+	Path      string               `json:"path"`
+	Name      string               `json:"name"`
+	Items     []ReducedItem        `json:"items"`
+	Size      int64                `json:"size"`
+	Extension string               `json:"-"`
+	ModTime   time.Time            `json:"modified"`
+	CacheTime time.Time            `json:"-"`
+	Mode      os.FileMode          `json:"-"`
+	IsSymlink bool                 `json:"isSymlink,omitempty"`
+	Type      string               `json:"type"`
+	Subtitles []string             `json:"subtitles,omitempty"`
+	Content   string               `json:"content,omitempty"`
+	Checksums map[string]string    `json:"checksums,omitempty"`
+	Token     string               `json:"token,omitempty"`
+	NumDirs   int                  `json:"numDirs"`
+	NumFiles  int                  `json:"numFiles"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -74,7 +75,7 @@ func (f FileOptions) Components() (string, string) {
 	return filepath.Dir(f.Path), filepath.Base(f.Path)
 }
 
-func FileInfoFaster(opts FileOptions) (FileInfo, error) {
+func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	index := GetIndex(rootPath)
 	opts.Path = index.makeIndexPath(opts.Path)
 
@@ -83,11 +84,11 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	pathMutex.Lock()
 	defer pathMutex.Unlock()
 	if !opts.Checker.Check(opts.Path) {
-		return FileInfo{}, os.ErrPermission
+		return nil, os.ErrPermission
 	}
 	_, isDir, err := GetRealPath(opts.Path)
 	if err != nil {
-		return FileInfo{}, err
+		return nil, err
 	}
 	opts.IsDir = isDir
 	// check if the file exists in the index
@@ -95,10 +96,7 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	if exists {
 		// Let's not refresh if less than a second has passed
 		if time.Since(info.CacheTime) > time.Second {
-			go RefreshFileInfo(opts) //nolint:errcheck
-		}
-		if info.Path == "" {
-			info.Path = "/"
+			RefreshFileInfo(opts) //nolint:errcheck
 		}
 		if opts.Content {
 			err = info.addContent(opts.Path)
@@ -111,11 +109,11 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 	}
 	err = RefreshFileInfo(opts)
 	if err != nil {
-		return FileInfo{}, err
+		return nil, err
 	}
 	info, exists = index.GetMetadataInfo(opts.Path, opts.IsDir)
 	if !exists {
-		return FileInfo{}, err
+		return nil, err
 	}
 	if opts.Content {
 		err = info.addContent(opts.Path)
@@ -136,16 +134,29 @@ func RefreshFileInfo(opts FileOptions) error {
 
 	if !refreshOptions.IsDir {
 		refreshOptions.Path = index.makeIndexPath(filepath.Dir(refreshOptions.Path))
+		refreshOptions.IsDir = true
+	} else {
+		refreshOptions.Path = index.makeIndexPath(refreshOptions.Path)
 	}
+
+	current, exists := index.GetMetadataInfo(refreshOptions.Path, true)
 
 	file, err := stat(refreshOptions)
 	if err != nil {
-		return fmt.Errorf("File/folder does not exist to refresh data: %s", opts.Path)
+		return fmt.Errorf("File/folder does not exist to refresh data: %s", refreshOptions.Path)
 	}
-	fmt.Println("newly refreshed : ", refreshOptions.Path, file.Path)
-	result := index.UpdateFileMetadata(opts.Path, *file)
+
+	//utils.PrintStructFields(*file)
+	result := index.UpdateMetadata(refreshOptions.Path, file)
 	if !result {
-		return fmt.Errorf("File/folder does not exist in metadata: %s", opts.Path)
+		return fmt.Errorf("File/folder does not exist in metadata: %s", refreshOptions.Path)
+	}
+	fmt.Println("refreshed file:", refreshOptions.Path, file.Size)
+	if !exists {
+		return nil
+	}
+	if current.Size != file.Size {
+		index.recursiveUpdateDirSizes(filepath.Dir(refreshOptions.Path), file, current.Size)
 	}
 	return nil
 }
@@ -156,11 +167,11 @@ func stat(opts FileOptions) (*FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	info, err := os.Lstat(realPath)
 	if err != nil {
 		return nil, err
 	}
+	now := time.Now()
 	file := &FileInfo{
 		Path:      opts.Path,
 		Name:      filepath.Base(opts.Path),
@@ -169,12 +180,10 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		Size:      info.Size(),
 		Extension: filepath.Ext(info.Name()),
 		Token:     opts.Token,
-		CacheTime: time.Now(),
+		CacheTime: now,
 	}
-
 	if info.IsDir() {
 		file.Type = "directory"
-
 		// Open and read directory contents
 		dir, err := os.Open(realPath)
 		if err != nil {
@@ -182,16 +191,17 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		}
 		defer dir.Close()
 
-		dirInfo, err := dir.Stat()
-		if err != nil {
-			return nil, err
-		}
+		//dirInfo, err := dir.Stat()
+		//if err != nil {
+		//	return nil, err
+		//}
 
 		// Check cached metadata to decide if refresh is needed
-		cachedInfo, exists := index.GetMetadataInfo(opts.Path, true)
-		if exists && dirInfo.ModTime().Before(cachedInfo.CacheTime) {
-			return &cachedInfo, nil
-		}
+		cachedParentDir, _ := index.GetMetadataInfo(opts.Path, true)
+		//if exists && dirInfo.ModTime().Before(cachedParentDir.CacheTime) {
+		//	fmt.Println("cached parent dir", cachedParentDir.Path, dirInfo.ModTime().Unix(), cachedParentDir.CacheTime.Unix())
+		//	return &cachedParentDir, nil
+		//}
 
 		// Read directory contents and process
 		files, err := dir.Readdir(-1)
@@ -199,22 +209,21 @@ func stat(opts FileOptions) (*FileInfo, error) {
 			return nil, err
 		}
 
-		file.Files = map[string]FileInfo{}
-		file.Dirs = map[string]FileInfo{}
+		file.Files = map[string]*FileInfo{}
+		file.Dirs = map[string]*FileInfo{}
 
 		var totalSize int64
 		for _, item := range files {
 			itemPath := filepath.Join(realPath, item.Name())
-			itemInfo := FileInfo{
+			itemInfo := &FileInfo{
 				Name:      item.Name(),
 				Size:      item.Size(),
 				ModTime:   item.ModTime(),
 				Mode:      item.Mode(),
-				CacheTime: time.Now(),
+				CacheTime: now,
 			}
 			isInvalidLink := false
 			if IsSymlink(item.Mode()) {
-				fmt.Println("is sym link?")
 				itemInfo.IsSymlink = true
 				info, err := os.Stat(itemPath)
 				if err == nil {
@@ -226,6 +235,11 @@ func stat(opts FileOptions) (*FileInfo, error) {
 
 			if item.IsDir() {
 				itemInfo.Type = "directory"
+				// if directory size was already cached use that.
+				cachedDir, ok := cachedParentDir.Dirs[item.Name()]
+				if ok {
+					itemInfo.Size = cachedDir.Size
+				}
 				file.Dirs[item.Name()] = itemInfo
 				file.NumDirs++
 			} else {
@@ -317,10 +331,52 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("delete file opts", opts)
 	err = RefreshFileInfo(opts)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func MoveResource(realsrc, realdst string, isSrcDir bool) error {
+	err := fileutils.MoveFile(realsrc, realdst)
+	if err != nil {
+		return err
+	}
+	// refresh info for source and dest
+	err = RefreshFileInfo(FileOptions{
+		Path:  realsrc,
+		IsDir: isSrcDir,
+	})
+	if err != nil {
+		return errors.ErrEmptyKey
+	}
+	refreshConfig := FileOptions{Path: realdst, IsDir: true}
+	if !isSrcDir {
+		refreshConfig.Path = filepath.Dir(realdst)
+	}
+	err = RefreshFileInfo(refreshConfig)
+	if err != nil {
+		return errors.ErrEmptyKey
+	}
+	return nil
+}
+
+func CopyResource(realsrc, realdst string, isSrcDir bool) error {
+	err := fileutils.CopyFile(realsrc, realdst)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("refreshing dest info", realdst)
+	refreshConfig := FileOptions{Path: realdst, IsDir: true}
+	if !isSrcDir {
+		refreshConfig.Path = filepath.Dir(realdst)
+	}
+	err = RefreshFileInfo(refreshConfig)
+	if err != nil {
+		return errors.ErrEmptyKey
 	}
 	return nil
 }

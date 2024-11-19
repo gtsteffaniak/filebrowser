@@ -3,6 +3,7 @@ package files
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -12,7 +13,7 @@ import (
 
 type Index struct {
 	Root        string
-	Directories map[string]FileInfo
+	Directories map[string]*FileInfo
 	NumDirs     int
 	NumFiles    int
 	inProgress  bool
@@ -92,8 +93,8 @@ func (si *Index) indexFiles(adjustedPath string) error {
 
 	var totalSize int64
 	var numDirs, numFiles int
-	fileInfos := map[string]FileInfo{}
-	dirInfos := map[string]FileInfo{}
+	fileInfos := map[string]*FileInfo{}
+	dirInfos := map[string]*FileInfo{}
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {
 		combinedPath = "/"
@@ -101,7 +102,7 @@ func (si *Index) indexFiles(adjustedPath string) error {
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-		itemInfo := FileInfo{
+		itemInfo := &FileInfo{
 			Name:      file.Name(),
 			Path:      combinedPath + file.Name(),
 			ModTime:   file.ModTime(),
@@ -136,7 +137,7 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	}
 
 	// Create FileInfo for the current directory
-	dirFileInfo := FileInfo{
+	dirFileInfo := &FileInfo{
 		Path:      adjustedPath,
 		Files:     fileInfos,
 		Dirs:      dirInfos,
@@ -149,7 +150,7 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	}
 
 	// Update the current directory metadata in the index
-	si.UpdateFileMetadata(adjustedPath, dirFileInfo)
+	si.UpdateMetadata(adjustedPath, dirFileInfo)
 	si.NumDirs += numDirs
 	si.NumFiles += numFiles
 
@@ -188,3 +189,20 @@ func (si *Index) makeIndexPath(subPath string) string {
 //	}
 //	return path[:lastSlash]
 //}
+
+func (si *Index) recursiveUpdateDirSizes(parentDir string, childInfo *FileInfo, previousSize int64) {
+	childDirName := filepath.Base(childInfo.Path)
+	if parentDir == childDirName {
+		return
+	}
+	dir, exists := si.GetMetadataInfo(parentDir, true)
+	if !exists {
+		return
+	}
+	dir.Dirs[childDirName] = childInfo
+	newSize := dir.Size - previousSize + childInfo.Size
+	dir.Size += newSize
+	si.UpdateMetadata(parentDir, dir)
+	dir, _ = si.GetMetadataInfo(parentDir, true)
+	si.recursiveUpdateDirSizes(filepath.Dir(parentDir), dir, newSize)
+}

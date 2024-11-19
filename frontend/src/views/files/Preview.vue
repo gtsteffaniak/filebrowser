@@ -139,7 +139,6 @@ export default {
       if (this.currentItem.url == "" || this.currentItem.url == undefined) {
         return;
       }
-      console.log("Raw image URL:", this.currentItem.url); // Debug log
       const previewUrl = this.fullSize
         ? filesApi.getDownloadURL(this.currentItem.url, "large")
         : filesApi.getPreviewURL(
@@ -147,7 +146,6 @@ export default {
             "small",
             this.currentItem.modified
           );
-      console.log("Raw image URL:", previewUrl); // Debug log
       return previewUrl;
     },
     showMore() {
@@ -250,7 +248,6 @@ export default {
         if (this.listing[i].name !== this.name) {
           continue;
         }
-        console.log("Current item:", this.listing[i].url); // Debug log
         this.currentItem = this.listing[i];
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];

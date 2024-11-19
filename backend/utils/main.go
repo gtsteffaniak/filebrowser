@@ -2,8 +2,10 @@ package utils
 
 import (
 	"crypto/rand"
+	"fmt"
 	"log"
 	math "math/rand"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -39,4 +41,31 @@ func GenerateRandomHash(length int) string {
 		result[i] = charset[math.Intn(len(charset))]
 	}
 	return string(result)
+}
+
+func PrintStructFields(v interface{}) {
+	val := reflect.ValueOf(v)
+	typ := reflect.TypeOf(v)
+
+	// Ensure the input is a struct
+	if val.Kind() != reflect.Struct {
+		fmt.Println("Provided value is not a struct")
+		return
+	}
+
+	// Iterate over the fields of the struct
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+
+		// Convert field value to string, if possible
+		fieldValue := fmt.Sprintf("%v", field.Interface())
+
+		// Limit to 50 characters
+		if len(fieldValue) > 100 {
+			fieldValue = fieldValue[:100] + "..."
+		}
+
+		fmt.Printf("Field: %s, %s\n", fieldType.Name, fieldValue)
+	}
 }

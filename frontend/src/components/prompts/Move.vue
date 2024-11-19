@@ -79,24 +79,17 @@ export default {
       for (let item of state.selected) {
         items.push({
           from: state.req.items[item].url,
-          to: this.dest + encodeURIComponent(state.req.items[item].name),
+          to: this.dest + state.req.items[item].name,
           name: state.req.items[item].name,
         });
       }
-
-      let action = async (overwrite, rename) => {
+      let action = (overwrite, rename) => {
         buttons.loading("move");
-        await filesApi
-          .move(items, overwrite, rename)
-          .then(() => {
-            buttons.success("move");
-            this.$router.push({ path: this.dest });
-            mutations.setReload(true);
-          })
-          .catch((e) => {
-            buttons.done("move");
-            notify.showError(e);
-          });
+        filesApi.moveCopy(items, "move", overwrite, rename);
+        buttons.success("move");
+        this.$router.push({ path: this.dest });
+        mutations.closeHovers();
+        mutations.setReload(true);
       };
 
       let dstItems = (await filesApi.fetchFiles(this.dest)).items;
@@ -105,22 +98,24 @@ export default {
       let overwrite = false;
       let rename = false;
 
-      if (conflict) {
-        mutations.showHover({
-          name: "replace-rename",
-          confirm: (event, option) => {
-            overwrite = option == "overwrite";
-            rename = option == "rename";
-            event.preventDefault();
-            mutations.closeHovers();
-            action(overwrite, rename);
-            mutations.setReload(true);
-          },
-        });
-        return;
+      try {
+        if (conflict) {
+          mutations.showHover({
+            name: "replace-rename",
+            confirm: (event, option) => {
+              overwrite = option == "overwrite";
+              rename = option == "rename";
+              event.preventDefault();
+              action(overwrite, rename);
+            },
+          });
+          return;
+        }
+        action(overwrite, rename);
+      } catch (e) {
+        notify.error(e);
       }
-
-      action(overwrite, rename);
+      return;
     },
   },
 };
