@@ -131,13 +131,8 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if !d.user.Perm.Create || !d.user.Check(path) {
 		return http.StatusForbidden, nil
 	}
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
 	fileOpts := files.FileOptions{
-		Path:       realPath,
-		IsDir:      isDir,
+		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: config.Server.TypeDetectionByHeader,
@@ -145,7 +140,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	// Directories creation on POST.
 	if strings.HasSuffix(path, "/") {
-		err = files.WriteDirectory(fileOpts) // Assign to the existing `err` variable
+		err := files.WriteDirectory(fileOpts)
 		if err != nil {
 			return errToStatus(err), err
 		}
@@ -153,6 +148,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	file, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
+		fmt.Println("this file exists.. apparently", file.Name, file.Path, file.Type)
 		if r.URL.Query().Get("override") != "true" {
 			return http.StatusConflict, nil
 		}
@@ -219,11 +215,10 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "Source path of the resource"
-// @Param source query string false "Name for the desired source, default is used if not provided"
+// @Param from query string true "Path from resource"
 // @Param destination query string true "Destination path for the resource"
 // @Param action query string true "Action to perform (copy, rename)"
-// @Param override query bool false "Override if destination exists"
+// @Param overwrite query bool false "Overwrite if destination exists"
 // @Param rename query bool false "Rename if destination exists"
 // @Success 200 "Resource moved/renamed successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
@@ -233,7 +228,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
-	src := r.URL.Query().Get("path")
+	src := r.URL.Query().Get("from")
 	dst := r.URL.Query().Get("destination")
 	action := r.URL.Query().Get("action")
 	dst, err := url.QueryUnescape(dst)
@@ -246,23 +241,29 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, nil
 	}
-	override := r.URL.Query().Get("override") == "true"
-	rename := r.URL.Query().Get("rename") == "true"
-	if !override && !rename {
-		if _, err = os.Stat(dst); err == nil {
-			return http.StatusConflict, nil
-		}
+
+	// check target dir exists
+	_, _, err = files.GetRealPath(d.user.Scope, filepath.Base(dst))
+	if err != nil {
+		return http.StatusNotFound, err
 	}
+	realDest, _, _ := files.GetRealPath(d.user.Scope, dst)
+	realSrc, _, err := files.GetRealPath(d.user.Scope, src)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	overwrite := r.URL.Query().Get("overwrite") == "true"
+	rename := r.URL.Query().Get("rename") == "true"
 	if rename {
-		dst = addVersionSuffix(dst)
+		realDest = addVersionSuffix(realDest)
 	}
 	// Permission for overwriting the file
-	if override && !d.user.Perm.Modify {
+	if overwrite && !d.user.Perm.Modify {
 		return http.StatusForbidden, nil
 	}
 	err = d.RunHook(func() error {
-		return patchAction(r.Context(), action, src, dst, d, fileCache)
-	}, action, src, dst, d.user)
+		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache)
+	}, action, realSrc, realDest, d.user)
 
 	return errToStatus(err), err
 }
@@ -297,25 +298,13 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		if !d.user.Perm.Create {
 			return errors.ErrPermissionDenied
 		}
-
 		return fileutils.Copy(src, dst)
-	case "rename":
+	case "rename", "move":
 		if !d.user.Perm.Rename {
 			return errors.ErrPermissionDenied
 		}
-		src = path.Clean("/" + src)
-		dst = path.Clean("/" + dst)
-		realDest, _, err := files.GetRealPath(d.user.Scope, dst)
-		if err != nil {
-			return err
-		}
-		realSrc, isDir, err := files.GetRealPath(d.user.Scope, src)
-		if err != nil {
-			return err
-		}
 		file, err := files.FileInfoFaster(files.FileOptions{
-			Path:       realSrc,
-			IsDir:      isDir,
+			Path:       src,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: false,
@@ -330,8 +319,8 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		if err != nil {
 			return err
 		}
-
-		return fileutils.MoveFile(realSrc, realDest)
+		fmt.Println("doing things for move/rename", action, src, dst)
+		return fileutils.MoveFile(src, dst)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
 	}

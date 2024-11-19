@@ -75,6 +75,9 @@ func (f FileOptions) Components() (string, string) {
 }
 
 func FileInfoFaster(opts FileOptions) (FileInfo, error) {
+	index := GetIndex(rootPath)
+	opts.Path = index.makeIndexPath(opts.Path)
+
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
 	pathMutex.Lock()
@@ -87,7 +90,6 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 		return FileInfo{}, err
 	}
 	opts.IsDir = isDir
-	index := GetIndex(rootPath)
 	// check if the file exists in the index
 	info, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
 	if exists {
@@ -107,7 +109,6 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 		// refresh cache after
 		return info, nil
 	}
-
 	err = RefreshFileInfo(opts)
 	if err != nil {
 		return FileInfo{}, err
@@ -126,14 +127,22 @@ func FileInfoFaster(opts FileOptions) (FileInfo, error) {
 }
 
 func RefreshFileInfo(opts FileOptions) error {
-	if !opts.Checker.Check(opts.Path) {
-		return fmt.Errorf("permission denied: %s", opts.Path)
+	refreshOptions := FileOptions{
+		Path:  opts.Path,
+		IsDir: opts.IsDir,
+		Token: opts.Token,
 	}
 	index := GetIndex(rootPath)
-	file, err := stat(opts)
+
+	if !refreshOptions.IsDir {
+		refreshOptions.Path = index.makeIndexPath(filepath.Dir(refreshOptions.Path))
+	}
+
+	file, err := stat(refreshOptions)
 	if err != nil {
 		return fmt.Errorf("File/folder does not exist to refresh data: %s", opts.Path)
 	}
+	fmt.Println("newly refreshed : ", refreshOptions.Path, file.Path)
 	result := index.UpdateFileMetadata(opts.Path, *file)
 	if !result {
 		return fmt.Errorf("File/folder does not exist in metadata: %s", opts.Path)
@@ -160,6 +169,7 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		Size:      info.Size(),
 		Extension: filepath.Ext(info.Name()),
 		Token:     opts.Token,
+		CacheTime: time.Now(),
 	}
 
 	if info.IsDir() {
@@ -196,13 +206,15 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		for _, item := range files {
 			itemPath := filepath.Join(realPath, item.Name())
 			itemInfo := FileInfo{
-				Name:    item.Name(),
-				Size:    item.Size(),
-				ModTime: item.ModTime(),
-				Mode:    item.Mode(),
+				Name:      item.Name(),
+				Size:      item.Size(),
+				ModTime:   item.ModTime(),
+				Mode:      item.Mode(),
+				CacheTime: time.Now(),
 			}
 			isInvalidLink := false
 			if IsSymlink(item.Mode()) {
+				fmt.Println("is sym link?")
 				itemInfo.IsSymlink = true
 				info, err := os.Stat(itemPath)
 				if err == nil {
@@ -305,21 +317,21 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	if err != nil {
 		return err
 	}
-	opts.Path = filepath.Dir(absPath)
+
 	err = RefreshFileInfo(opts)
 	if err != nil {
-		return errors.ErrEmptyKey
+		return err
 	}
 	return nil
 }
 
 func WriteDirectory(opts FileOptions) error {
+	realPath, _, _ := GetRealPath(rootPath, opts.Path)
 	// Ensure the parent directories exist
-	err := os.MkdirAll(opts.Path, 0775)
+	err := os.MkdirAll(realPath, 0775)
 	if err != nil {
 		return err
 	}
-	opts.Path = filepath.Dir(opts.Path)
 	err = RefreshFileInfo(opts)
 	if err != nil {
 		return errors.ErrEmptyKey

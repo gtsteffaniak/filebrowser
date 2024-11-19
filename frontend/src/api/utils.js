@@ -64,7 +64,7 @@ export function createURL(endpoint, params = {}) {
   if (!prefix.endsWith("/")) {
     prefix = prefix + "/";
   }
-  const url = new URL(prefix + encodePath(endpoint), origin);
+  const url = new URL(prefix + endpoint, origin);
 
   const searchParams = {
     ...params,
@@ -83,7 +83,7 @@ export function adjustedData(data, url) {
     if (!data.url.endsWith("/")) data.url += "/";
     data.items = data.items.map((item, index) => {
       item.index = index;
-      item.url = `${data.url}${encodeURIComponent(item.name)}`;
+      item.url = `${data.url}${item.name}`;
       if (item.type == "directory") {
         item.url += "/";
       }

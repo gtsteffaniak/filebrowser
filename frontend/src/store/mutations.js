@@ -149,7 +149,6 @@ export const mutations = {
     emitStateChanged();
   },
   setRaw: (value) => {
-    console.log("writing",value)
     state.previewRaw = value;
     emitStateChanged();
   },

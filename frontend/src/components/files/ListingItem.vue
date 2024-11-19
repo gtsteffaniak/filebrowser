@@ -47,17 +47,21 @@
 .activebutton {
   height: 10em;
 }
+
 .activecontent {
   height: 5em !important;
   display: grid !important;
 }
+
 .activeimg {
   width: 8em !important;
   height: 8em !important;
 }
+
 .iconActive {
   font-size: 6em !important;
 }
+
 .activetitle {
   width: 9em !important;
   margin-right: 1em !important;
@@ -242,21 +246,15 @@ export default {
           name: state.req.items[i].name,
         });
       }
-
-      // Get url from ListingItem instance
-      let path = el.__vue__.url;
-      let baseItems = (await filesApi.fetch(path)).items;
+      let response = await filesApi.fetchFiles(el.__vue__.url);
+      console.log(response);
 
       let action = (overwrite, rename) => {
-        api
-          .move(items, overwrite, rename)
-          .then(() => {
-            mutations.setReload(true);
-          })
-          .catch(showError);
+        filesApi.moveCopy(items, "move", overwrite, rename);
+        mutations.setReload(true);
       };
 
-      let conflict = upload.checkConflict(items, baseItems);
+      let conflict = upload.checkConflict(items, response.items);
 
       let overwrite = false;
       let rename = false;

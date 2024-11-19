@@ -90,7 +90,7 @@ export default {
       if (this.redirect) {
         this.$router.push({ path: uri });
       } else if (!this.base) {
-        const res = await filesApi.fetch(url.removeLastDir(uri) + "/");
+        const res = await filesApi.fetchFiles(url.removeLastDir(uri) + "/");
         mutations.updateRequest(res);
       }
 

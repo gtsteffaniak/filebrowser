@@ -503,14 +503,10 @@ paths:
       - application/json
       description: Moves or renames a resource to a new destination.
       parameters:
-      - description: Source path of the resource
+      - description: Path from resource
         in: query
-        name: path
+        name: from
         required: true
-        type: string
-      - description: Name for the desired source, default is used if not provided
-        in: query
-        name: source
         type: string
       - description: Destination path for the resource
         in: query
@@ -522,9 +518,9 @@ paths:
         name: action
         required: true
         type: string
-      - description: Override if destination exists
+      - description: Overwrite if destination exists
         in: query
-        name: override
+        name: overwrite
         type: boolean
       - description: Rename if destination exists
         in: query

@@ -86,7 +86,7 @@ export default {
 
       let action = async (overwrite, rename) => {
         buttons.loading("move");
-        await api
+        await filesApi
           .move(items, overwrite, rename)
           .then(() => {
             buttons.success("move");
@@ -99,7 +99,7 @@ export default {
           });
       };
 
-      let dstItems = (await filesApi.fetch(this.dest)).items;
+      let dstItems = (await filesApi.fetchFiles(this.dest)).items;
       let conflict = upload.checkConflict(items, dstItems);
 
       let overwrite = false;

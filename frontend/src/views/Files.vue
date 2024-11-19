@@ -90,11 +90,10 @@ export default {
       try {
         let url = removePrefix(state.route.path, "files");
         // Fetch initial data
-        let res = await filesApi.fetch(url);
+        let res = await filesApi.fetchFiles(url);
         // If not a directory, fetch content
         if (res.type != "directory") {
-          console.log("what its not a dir?",res)
-          res = await filesApi.fetch(url, true);
+          res = await filesApi.fetchFiles(url, true);
         }
         data = res;
         // Verify if the fetched path matches the current route

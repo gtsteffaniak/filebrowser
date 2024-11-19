@@ -5,7 +5,7 @@ import { state } from "@/store";
 import { notify } from "@/notify";
 
 // Notify if errors occur
-export async function fetch(url, content = false) {
+export async function fetchFiles(url, content = false) {
   try {
     url = removePrefix(url,"files");
     const apiPath = getApiPath("api/resources",{path: url, content: content});
@@ -20,7 +20,6 @@ export async function fetch(url, content = false) {
 
 async function resourceAction(url, method, content) {
   try {
-    url = removePrefix(url,"files");
     let opts = { method };
     if (content) {
       opts.body = content;
@@ -127,30 +126,28 @@ export async function post(url, content = "", overwrite = false, onupload) {
   }
 }
 
-function moveCopy(items, copy = false, overwrite = false, rename = false) {
+export async function moveCopy(items, action = "copy", overwrite = false, rename = false) {
   let promises = [];
-
-  for (let item of items) {
-    const from = item.from;
-    const to = encodeURIComponent(removePrefix(item.to,"files"));
-    const url = `${from}?action=${
-      copy ? "copy" : "rename"
-    }&destination=${to}&override=${overwrite}&rename=${rename}`;
-    promises.push(resourceAction(url, "PATCH"));
+  let params = {
+    overwrite: overwrite,
+    action: action,
+    rename: rename,
   }
+  try {
+    for (let item of items) {
+      let localParams = { ...params };
+      localParams.destination = item.to;
+      localParams.from = item.from;
+      const apiPath = getApiPath("api/resources", localParams);
+      promises.push(fetch(apiPath, { method: "PATCH" }));
+    }
+    return promises;
 
-  return Promise.all(promises).catch((err) => {
+  } catch (err) {
+    console.log("errorsss", err);
     notify.showError(err.message || "Error moving/copying resources");
     throw err;
-  });
-}
-
-export function move(items, overwrite = false, rename = false) {
-  return moveCopy(items, false, overwrite, rename);
-}
-
-export function copy(items, overwrite = false, rename = false) {
-  return moveCopy(items, true, overwrite, rename);
+  }
 }
 
 export async function checksum(url, algo) {

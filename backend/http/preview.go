@@ -59,7 +59,6 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return errToStatus(err), err
 	}
-
 	realPath, _, err := files.GetRealPath(file.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -93,11 +92,13 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return errToStatus(err), err
 	}
 	cacheKey := previewCacheKey(file, previewSize)
+	fmt.Println(cacheKey)
 	resizedImage, ok, err := fileCache.Load(r.Context(), cacheKey)
 	if err != nil {
 		return errToStatus(err), err
 	}
 
+	fmt.Println("is ok", ok, cacheKey)
 	if !ok {
 		resizedImage, err = createPreview(imgSvc, fileCache, file, previewSize)
 		if err != nil {
@@ -111,6 +112,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 }
 
 func createPreview(imgSvc ImgService, fileCache FileCache, file files.FileInfo, previewSize string) ([]byte, error) {
+	fmt.Println("file.path for preview", file.Path)
 	fd, err := os.Open(file.Path)
 	if err != nil {
 		return nil, err
@@ -133,6 +135,7 @@ func createPreview(imgSvc ImgService, fileCache FileCache, file files.FileInfo, 
 		height = 256
 		options = append(options, img.WithMode(img.ResizeModeFill), img.WithQuality(img.QualityLow), img.WithFormat(img.FormatJpeg))
 	default:
+		fmt.Println("defaulting")
 		return nil, img.ErrUnsupportedFormat
 	}
 

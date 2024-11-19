@@ -468,16 +468,10 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Source path of the resource",
-                        "name": "path",
+                        "description": "Path from resource",
+                        "name": "from",
                         "in": "query",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -495,8 +489,8 @@
                     },
                     {
                         "type": "boolean",
-                        "description": "Override if destination exists",
-                        "name": "override",
+                        "description": "Overwrite if destination exists",
+                        "name": "overwrite",
                         "in": "query"
                     },
                     {

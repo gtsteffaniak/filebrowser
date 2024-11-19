@@ -1,16 +1,21 @@
 package files
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
-	"time"
 	"sort"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (si *Index) UpdateFileMetadata(target string, info FileInfo) bool {
+	if info.Type != "directory" {
+		fmt.Println("not a directory")
+		return false
+	}
 	checkDir := si.makeIndexPath(target)
 	si.mu.Lock()
 	defer si.mu.Unlock()

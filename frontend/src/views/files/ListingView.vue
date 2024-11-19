@@ -176,7 +176,7 @@ export default {
     lastFolderIndex() {
       const allItems = [...this.items.dirs, ...this.items.files];
       for (let i = 0; i < allItems.length; i++) {
-        if (allItems[i].type != 'directory') {
+        if (allItems[i].type != "directory") {
           return i - 1;
         }
       }
@@ -716,8 +716,7 @@ export default {
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         path = el.__vue__.url;
-
-        items = (await filesApi.fetch(path)).items;
+        items = (await filesApi.fetchFiles(path)).items;
       }
 
       const conflict = upload.checkConflict(uploadFiles, items);
