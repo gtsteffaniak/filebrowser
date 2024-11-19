@@ -12,8 +12,8 @@ import (
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (si *Index) UpdateMetadata(target string, info *FileInfo) bool {
-	if info.Type != "directory" {
-		fmt.Println("not a directory")
+	if !info.IsDir() {
+		fmt.Printf("can't update metadata for %v : not a directory\n", target)
 		return false
 	}
 	checkDir := si.makeIndexPath(target)
@@ -25,7 +25,7 @@ func (si *Index) UpdateMetadata(target string, info *FileInfo) bool {
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
+func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
 	si.mu.RLock()
 	defer si.mu.RUnlock()
 	checkDir := si.makeIndexPath(target)
@@ -45,13 +45,12 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
 		return fileInfo, ok
 	}
 	cleanedItems := []ReducedItem{}
-	dir.Name = filepath.Base(dir.Path)
 	for name, item := range dir.Dirs {
 		cleanedItems = append(cleanedItems, ReducedItem{
 			Name:    name,
 			Size:    item.Size,
 			ModTime: item.ModTime,
-			Type:    item.Type,
+			Type:    "directory",
 		})
 	}
 	for name, item := range dir.Files {
@@ -65,8 +64,26 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
 	sort.Slice(cleanedItems, func(i, j int) bool {
 		return cleanedItems[i].Name < cleanedItems[j].Name
 	})
-
+	dirname := filepath.Base(dir.Path)
+	if dirname == "." {
+		dirname = "/"
+	}
+	// construct file info
+	dir.Name = dirname
+	dir.Type = "directory"
 	dir.Items = cleanedItems
+	return dir, exists
+}
+
+// GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
+func (si *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
+	si.mu.RLock()
+	defer si.mu.RUnlock()
+	checkDir := si.makeIndexPath(target)
+	if !isDir {
+		checkDir = si.makeIndexPath(filepath.Dir(target))
+	}
+	dir, exists := si.Directories[checkDir]
 	return dir, exists
 }
 

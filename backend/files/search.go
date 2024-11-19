@@ -28,7 +28,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	searchOptions := ParseSearch(search)
 	results := make(map[string]searchResult, 0)
 	count := 0
-	directories := si.getSearchableDirs(scope)
+	directories := si.getDirsInScope(scope)
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -153,20 +153,14 @@ func (fi ReducedItem) containsSearchTerm(searchTerm string, options *SearchOptio
 	return true
 }
 
-func (si *Index) getSearchableDirs(scope string) map[string]*FileInfo {
-	if scope == "/" {
-		return si.Directories // return all if at root
-	}
-	return si.getDirsInScope(scope)
-}
-
 func (si *Index) getDirsInScope(scope string) map[string]*FileInfo {
 	newList := map[string]*FileInfo{}
 	si.mu.RLock()
 	defer si.mu.RUnlock()
-	for k, v := range si.Directories {
+	for k := range si.Directories {
 		if strings.HasPrefix(k, scope) || scope == "" {
-			newList[k] = v
+			reducedInfo, _ := si.GetReducedMetadata(k, true)
+			newList[k] = reducedInfo
 		}
 	}
 	return newList

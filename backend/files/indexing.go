@@ -103,21 +103,17 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	// Process each file and directory in the current directory
 	for _, file := range files {
 		itemInfo := &FileInfo{
-			Name:      file.Name(),
-			Path:      combinedPath + file.Name(),
-			ModTime:   file.ModTime(),
-			CacheTime: time.Now(),
+			ModTime: file.ModTime(),
 		}
-
 		if file.IsDir() {
-			itemInfo.Type = "directory"
+			itemInfo.Name = file.Name()
+			itemInfo.Path = combinedPath + file.Name()
 			// Recursively index the subdirectory
 			err := si.indexFiles(itemInfo.Path)
 			if err != nil {
 				log.Printf("Failed to index directory %s: %v", itemInfo.Path, err)
 				continue
 			}
-
 			// Fetch the metadata for the subdirectory after indexing
 			subDirInfo, exists := si.GetMetadataInfo(itemInfo.Path, true)
 			if exists {
@@ -127,6 +123,8 @@ func (si *Index) indexFiles(adjustedPath string) error {
 			dirInfos[itemInfo.Name] = itemInfo
 			numDirs++
 		} else {
+			itemInfo.Type = "blob"
+			itemInfo.Name = file.Name()
 			// Process a file
 			itemInfo.Size = file.Size()
 			_ = itemInfo.detectType(combinedPath+file.Name(), true, false, false)
@@ -138,15 +136,11 @@ func (si *Index) indexFiles(adjustedPath string) error {
 
 	// Create FileInfo for the current directory
 	dirFileInfo := &FileInfo{
-		Path:      adjustedPath,
-		Files:     fileInfos,
-		Dirs:      dirInfos,
-		Size:      totalSize,
-		ModTime:   dirInfo.ModTime(),
-		CacheTime: time.Now(),
-		NumDirs:   numDirs,
-		NumFiles:  numFiles,
-		Type:      "directory",
+		Path:    adjustedPath,
+		Files:   fileInfos,
+		Dirs:    dirInfos,
+		Size:    totalSize,
+		ModTime: dirInfo.ModTime(),
 	}
 
 	// Update the current directory metadata in the index

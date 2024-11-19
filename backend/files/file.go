@@ -22,6 +22,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/fileutils"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 var (
@@ -55,8 +56,6 @@ type FileInfo struct {
 	Content   string               `json:"content,omitempty"`
 	Checksums map[string]string    `json:"checksums,omitempty"`
 	Token     string               `json:"token,omitempty"`
-	NumDirs   int                  `json:"numDirs"`
-	NumFiles  int                  `json:"numFiles"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -69,6 +68,10 @@ type FileOptions struct {
 	Token      string
 	Checker    users.Checker
 	Content    bool
+}
+
+func (f *FileInfo) IsDir() bool {
+	return f.Type == ""
 }
 
 func (f FileOptions) Components() (string, string) {
@@ -92,7 +95,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	}
 	opts.IsDir = isDir
 	// check if the file exists in the index
-	info, exists := index.GetMetadataInfo(opts.Path, opts.IsDir)
+	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
 	if exists {
 		// Let's not refresh if less than a second has passed
 		if time.Since(info.CacheTime) > time.Second {
@@ -111,7 +114,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	info, exists = index.GetMetadataInfo(opts.Path, opts.IsDir)
+	info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
 	if !exists {
 		return nil, err
 	}
@@ -146,7 +149,7 @@ func RefreshFileInfo(opts FileOptions) error {
 		return fmt.Errorf("File/folder does not exist to refresh data: %s", refreshOptions.Path)
 	}
 
-	//utils.PrintStructFields(*file)
+	utils.PrintStructFields(*file)
 	result := index.UpdateMetadata(refreshOptions.Path, file)
 	if !result {
 		return fmt.Errorf("File/folder does not exist in metadata: %s", refreshOptions.Path)
@@ -171,7 +174,6 @@ func stat(opts FileOptions) (*FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	now := time.Now()
 	file := &FileInfo{
 		Path:      opts.Path,
 		Name:      filepath.Base(opts.Path),
@@ -180,7 +182,6 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		Size:      info.Size(),
 		Extension: filepath.Ext(info.Name()),
 		Token:     opts.Token,
-		CacheTime: now,
 	}
 	if info.IsDir() {
 		file.Type = "directory"
@@ -216,11 +217,10 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		for _, item := range files {
 			itemPath := filepath.Join(realPath, item.Name())
 			itemInfo := &FileInfo{
-				Name:      item.Name(),
-				Size:      item.Size(),
-				ModTime:   item.ModTime(),
-				Mode:      item.Mode(),
-				CacheTime: now,
+				Name:    item.Name(),
+				Size:    item.Size(),
+				ModTime: item.ModTime(),
+				Mode:    item.Mode(),
 			}
 			isInvalidLink := false
 			if IsSymlink(item.Mode()) {
@@ -241,7 +241,6 @@ func stat(opts FileOptions) (*FileInfo, error) {
 					itemInfo.Size = cachedDir.Size
 				}
 				file.Dirs[item.Name()] = itemInfo
-				file.NumDirs++
 			} else {
 				if isInvalidLink {
 					file.Type = "invalid_link"
@@ -252,7 +251,6 @@ func stat(opts FileOptions) (*FileInfo, error) {
 					}
 				}
 				file.Files[item.Name()] = itemInfo
-				file.NumFiles++
 			}
 
 			totalSize += itemInfo.Size
@@ -267,7 +265,7 @@ func stat(opts FileOptions) (*FileInfo, error) {
 // Checksum checksums a given File for a given User, using a specific
 // algorithm. The checksums data is saved on File object.
 func (i *FileInfo) Checksum(algo string) error {
-	if i.Type == "directory" {
+	if i.IsDir() {
 		return errors.ErrIsDirectory
 	}
 
@@ -481,10 +479,11 @@ func (i *FileInfo) addContent(path string) error {
 
 // detectType detects the file type.
 func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool) error {
-	if i.Type == "directory" {
+	if i.IsDir() {
 		return nil
 	}
-	name := filepath.Base(path)
+
+	name := i.Name
 
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"

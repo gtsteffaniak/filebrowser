@@ -370,6 +370,6 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	isDir := r.URL.Query().Get("isDir") == "true"
 	index := files.GetIndex(config.Server.Root)
-	info, _ := index.GetMetadataInfo(path, isDir)
+	info, _ := index.GetReducedMetadata(path, isDir)
 	renderJSON(w, r, info)
 }
