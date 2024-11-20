@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Fixed issue introduced in v0.2.10 where new files and folders were not showing up on ui
   - Fixed preview issue where preview would not load after viewing video files.
   - Fixed sorting issue where files were not sorted by name by default.
+  - Fixed copy file prompt issue
 
 ## v0.2.10
 

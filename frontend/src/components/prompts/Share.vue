@@ -180,11 +180,11 @@ export default {
       let path = state.route.path.startsWith(prefix)
         ? state.route.path.slice(prefix.length)
         : state.route.path;
-      path = decodeURIComponent(path)
+      path = decodeURIComponent(path);
       if (path == "") {
-        path = "/"
+        path = "/";
       }
-      this.subpath = path
+      this.subpath = path;
       // get last element of the path
       const links = await shareApi.get(this.subpath);
       this.links = links;

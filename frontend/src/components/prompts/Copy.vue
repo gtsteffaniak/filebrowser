@@ -77,11 +77,11 @@ export default {
       let items = [];
 
       // Create a new promise for each file.
-      for (let item of this.selected) {
+      for (let item of state.selected) {
         items.push({
-          from: store.req.items[item].url,
-          to: this.dest + encodeURIComponent(store.req.items[item].name),
-          name: store.req.items[item].name,
+          from: state.req.items[item].url,
+          to: this.dest + encodeURIComponent(state.req.items[item].name),
+          name: state.req.items[item].name,
         });
       }
 

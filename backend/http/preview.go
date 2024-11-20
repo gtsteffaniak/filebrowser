@@ -110,7 +110,6 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 }
 
 func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo, previewSize string) ([]byte, error) {
-	fmt.Println("file.path for preview", file.Path)
 	fd, err := os.Open(file.Path)
 	if err != nil {
 		return nil, err

@@ -153,7 +153,6 @@ func RefreshFileInfo(opts FileOptions) error {
 	if !result {
 		return fmt.Errorf("file/folder does not exist in metadata: %s", refreshOptions.Path)
 	}
-	fmt.Println("refreshed file:", refreshOptions.Path, file.Size)
 	if !exists {
 		return nil
 	}
@@ -333,7 +332,6 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("delete file opts", opts)
 	err = RefreshFileInfo(opts)
 	if err != nil {
 		return err
@@ -371,7 +369,6 @@ func CopyResource(realsrc, realdst string, isSrcDir bool) error {
 		return err
 	}
 
-	fmt.Println("refreshing dest info", realdst)
 	refreshConfig := FileOptions{Path: realdst, IsDir: true}
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
@@ -462,7 +459,6 @@ func getContent(path string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println("getting content", realPath)
 	content, err := os.ReadFile(realPath)
 	if err != nil {
 		return "", err
