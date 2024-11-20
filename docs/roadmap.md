@@ -3,16 +3,18 @@
 upcoming 0.3.x releases:
 
 - Theme configuration from settings
-- File syncronization improvements
+- File synchronization improvements
 - more filetype previews
-- multiple sources https://github.com/filebrowser/filebrowser/issues/2514
 - introduce jobs as replacement to runners.
-- Add Job status to the sidebar
+  - Add Job status to the sidebar
   - index status.
   - Job status from users
   - upload status
+- opentelemetry metrics
+- simple search/filter for current listings.
 
 Unplanned Future releases:
+  - multiple sources https://github.com/filebrowser/filebrowser/issues/2514
   - Add tools to sidebar
     - duplicate file detector.
     - bulk rename https://github.com/filebrowser/filebrowser/issues/2473

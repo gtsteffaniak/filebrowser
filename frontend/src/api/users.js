@@ -4,7 +4,8 @@ import { notify } from "@/notify";  // Import notify for error handling
 
 export async function getAllUsers() {
   try {
-    return await fetchJSON(`api/users`, {});
+    const apiPath = getApiPath("api/users");
+    return await fetchJSON(apiPath);
   } catch (err) {
     notify.showError(err.message || "Failed to fetch users");
     throw err; // Re-throw to handle further if needed

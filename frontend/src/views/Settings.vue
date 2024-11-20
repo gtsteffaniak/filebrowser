@@ -59,7 +59,8 @@ export default {
       return getters.currentView() == "settings";
     },
     userPage() {
-      return getters.routePath().startsWith(`settings/users/`);
+      console.log(getters.routePath());
+      return getters.routePath().startsWith(`/settings/users/`);
     },
     loading() {
       return getters.isLoading();

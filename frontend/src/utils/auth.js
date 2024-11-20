@@ -5,7 +5,6 @@ import { getApiPath } from "@/utils/url.js";
 
 
 export async function setNewToken(token) {
-  console.log("updating token",token)
   document.cookie = `auth=${token}; path=/`;
   mutations.setSession(generateRandomCode(8));
 }
