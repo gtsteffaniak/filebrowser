@@ -248,9 +248,11 @@ export default {
       }
       let response = await filesApi.fetchFiles(el.__vue__.url);
 
-      let action = (overwrite, rename) => {
-        filesApi.moveCopy(items, "move", overwrite, rename);
-        mutations.setReload(true);
+      let action = async (overwrite, rename) => {
+        await filesApi.moveCopy(items, "move", overwrite, rename);
+        setTimeout(() => {
+          mutations.setReload(true);
+        }, 50);
       };
 
       let conflict = upload.checkConflict(items, response.items);
@@ -270,7 +272,6 @@ export default {
             action(overwrite, rename);
           },
         });
-
         return;
       }
 

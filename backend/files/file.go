@@ -22,7 +22,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/fileutils"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
-	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 var (
@@ -71,7 +70,7 @@ type FileOptions struct {
 }
 
 func (f *FileInfo) IsDir() bool {
-	return f.Type == ""
+	return f.Type == "" || f.Type == "directory"
 }
 
 func (f FileOptions) Components() (string, string) {
@@ -146,13 +145,13 @@ func RefreshFileInfo(opts FileOptions) error {
 
 	file, err := stat(refreshOptions)
 	if err != nil {
-		return fmt.Errorf("File/folder does not exist to refresh data: %s", refreshOptions.Path)
+		return fmt.Errorf("file/folder does not exist to refresh data: %s", refreshOptions.Path)
 	}
 
-	utils.PrintStructFields(*file)
-	result := index.UpdateMetadata(refreshOptions.Path, file)
+	//utils.PrintStructFields(*file)
+	result := index.UpdateMetadata(file)
 	if !result {
-		return fmt.Errorf("File/folder does not exist in metadata: %s", refreshOptions.Path)
+		return fmt.Errorf("file/folder does not exist in metadata: %s", refreshOptions.Path)
 	}
 	fmt.Println("refreshed file:", refreshOptions.Path, file.Size)
 	if !exists {
@@ -165,7 +164,7 @@ func RefreshFileInfo(opts FileOptions) error {
 }
 
 func stat(opts FileOptions) (*FileInfo, error) {
-	index := GetIndex(rootPath)
+	//index := GetIndex(rootPath)
 	realPath, _, err := GetRealPath(rootPath, opts.Path)
 	if err != nil {
 		return nil, err
@@ -184,7 +183,6 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		Token:     opts.Token,
 	}
 	if info.IsDir() {
-		file.Type = "directory"
 		// Open and read directory contents
 		dir, err := os.Open(realPath)
 		if err != nil {
@@ -196,12 +194,12 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		//if err != nil {
 		//	return nil, err
 		//}
-
-		// Check cached metadata to decide if refresh is needed
-		cachedParentDir, _ := index.GetMetadataInfo(opts.Path, true)
+		//
+		//// Check cached metadata to decide if refresh is needed
+		//cachedParentDir, exists := index.GetMetadataInfo(opts.Path, true)
 		//if exists && dirInfo.ModTime().Before(cachedParentDir.CacheTime) {
 		//	fmt.Println("cached parent dir", cachedParentDir.Path, dirInfo.ModTime().Unix(), cachedParentDir.CacheTime.Unix())
-		//	return &cachedParentDir, nil
+		//	return cachedParentDir, nil
 		//}
 
 		// Read directory contents and process
@@ -234,14 +232,16 @@ func stat(opts FileOptions) (*FileInfo, error) {
 			}
 
 			if item.IsDir() {
-				itemInfo.Type = "directory"
-				// if directory size was already cached use that.
-				cachedDir, ok := cachedParentDir.Dirs[item.Name()]
-				if ok {
-					itemInfo.Size = cachedDir.Size
-				}
+				//if exists {
+				//	// if directory size was already cached use that.
+				//	cachedDir, ok := cachedParentDir.Dirs[item.Name()]
+				//	if ok {
+				//		itemInfo.Size = cachedDir.Size
+				//	}
+				//}
 				file.Dirs[item.Name()] = itemInfo
 			} else {
+				itemInfo.Type = "blob"
 				if isInvalidLink {
 					file.Type = "invalid_link"
 				} else {
@@ -258,7 +258,6 @@ func stat(opts FileOptions) (*FileInfo, error) {
 
 		file.Size = totalSize
 	}
-
 	return file, nil
 }
 

@@ -11,16 +11,15 @@ import (
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
-func (si *Index) UpdateMetadata(target string, info *FileInfo) bool {
+func (si *Index) UpdateMetadata(info *FileInfo) bool {
 	if !info.IsDir() {
-		fmt.Printf("can't update metadata for %v : not a directory\n", target)
+		fmt.Printf("can't update metadata for %v %v %v : not a directory\n", info.Name, info.Path, info.Type)
 		return false
 	}
-	checkDir := si.makeIndexPath(target)
 	si.mu.Lock()
 	defer si.mu.Unlock()
 	info.CacheTime = time.Now()
-	si.Directories[checkDir] = info
+	si.Directories[info.Path] = info
 	return true
 }
 

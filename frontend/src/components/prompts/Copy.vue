@@ -87,23 +87,9 @@ export default {
 
       let action = async (overwrite, rename) => {
         buttons.loading("copy");
-
-        await filesApi
-          .copy(items, overwrite, rename)
-          .then(() => {
-            buttons.success("copy");
-
-            if (state.route.path === this.dest) {
-              mutations.setReload(true);
-              return;
-            }
-
-            this.$router.push({ path: this.dest });
-          })
-          .catch((e) => {
-            buttons.done("copy");
-            notify.showError(e);
-          });
+        await filesApi.moveCopy(items, "copy", overwrite, rename);
+        this.$router.push({ path: this.dest });
+        mutations.setReload(true);
       };
 
       if (state.route.path === this.dest) {

@@ -144,7 +144,7 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	}
 
 	// Update the current directory metadata in the index
-	si.UpdateMetadata(adjustedPath, dirFileInfo)
+	si.UpdateMetadata(dirFileInfo)
 	si.NumDirs += numDirs
 	si.NumFiles += numFiles
 
@@ -196,7 +196,7 @@ func (si *Index) recursiveUpdateDirSizes(parentDir string, childInfo *FileInfo, 
 	dir.Dirs[childDirName] = childInfo
 	newSize := dir.Size - previousSize + childInfo.Size
 	dir.Size += newSize
-	si.UpdateMetadata(parentDir, dir)
+	si.UpdateMetadata(dir)
 	dir, _ = si.GetMetadataInfo(parentDir, true)
 	si.recursiveUpdateDirSizes(filepath.Dir(parentDir), dir, newSize)
 }

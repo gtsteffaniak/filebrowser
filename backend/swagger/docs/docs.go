@@ -1179,12 +1179,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "numDirs": {
-                    "type": "integer"
-                },
-                "numFiles": {
-                    "type": "integer"
-                },
                 "path": {
                     "type": "string"
                 },

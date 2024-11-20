@@ -618,18 +618,17 @@ export default {
         return;
       }
       mutations.setLoading("listing", true);
-      let action = (overwrite, rename) => {
-        filesApi.copy(items, overwrite, rename).then(() => {
-          mutations.setLoading("listing", false);
-        });
+      let action = async (overwrite, rename) => {
+        await filesApi.moveCopy(items, "copy", overwrite, rename);
+        mutations.setLoading("listing", false);
       };
 
       if (this.clipboard.key === "x") {
-        action = (overwrite, rename) => {
-          filesApi.move(items, overwrite, rename).then(() => {
-            this.clipboard = {};
-            mutations.setLoading("listing", false);
-          });
+        action = async (overwrite, rename) => {
+          await filesApi.moveCopy(items, "copy", overwrite, rename);
+
+          this.clipboard = {};
+          mutations.setLoading("listing", false);
         };
       }
 
@@ -834,6 +833,7 @@ export default {
   border-color: var(--divider) !important;
   background: var(--surfacePrimary) !important;
 }
+
 .header-items {
   width: 100% !important;
   max-width: 100% !important;

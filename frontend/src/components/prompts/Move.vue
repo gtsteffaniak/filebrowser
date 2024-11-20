@@ -83,13 +83,12 @@ export default {
           name: state.req.items[item].name,
         });
       }
-      let action = (overwrite, rename) => {
+      let action = async (overwrite, rename) => {
         buttons.loading("move");
-        filesApi.moveCopy(items, "move", overwrite, rename);
+        await filesApi.moveCopy(items, "move", overwrite, rename);
         buttons.success("move");
         this.$router.push({ path: this.dest });
         mutations.closeHovers();
-        mutations.setReload(true);
       };
 
       let dstItems = (await filesApi.fetchFiles(this.dest)).items;

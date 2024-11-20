@@ -98,13 +98,15 @@ export default {
 
       newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
 
-      await filesApi.move([{ from: oldLink, to: newLink }]);
+      await filesApi.moveCopy([{ from: oldLink, to: newLink }], "move");
       if (!this.isListing) {
         this.$router.push({ path: newLink });
         return;
       }
 
-      mutations.setReload(true);
+      setTimeout(() => {
+        mutations.setReload(true);
+      }, 50);
 
       mutations.closeHovers();
     },

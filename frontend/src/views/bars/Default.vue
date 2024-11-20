@@ -67,7 +67,7 @@ export default {
       const files = [];
 
       state.req.items.forEach((item) => {
-        if (item.type == 'directory') {
+        if (item.type == "directory") {
           dirs.push(item);
         } else {
           files.push(item);
@@ -326,7 +326,7 @@ export default {
         path: state.route.path,
       });
     },
-    paste(event) {
+    async paste(event) {
       if (event.target.tagName.toLowerCase() === "input") {
         return;
       }
@@ -343,26 +343,10 @@ export default {
         return;
       }
 
-      let action = (overwrite, rename) => {
-        const promises = [];
-
-        items.forEach((item) => {
-          promises.push(
-            filesApi.copy({
-              from: item.from,
-              to: item.to,
-              name: item.name,
-              overwrite: overwrite,
-              rename: rename,
-            })
-          );
-        });
-
-        Promise.all(promises).then(() => {
-          mutations.resetClipboard();
-          mutations.resetSelected();
-          this.$showMessage("success", "Copied successfully");
-        });
+      let action = async (overwrite, rename) => {
+        await filesApi.moveCopy(items, "copy", overwrite, rename);
+        notify.showSuccess("Items pasted successfully.");
+        mutations.setReload(true);
       };
 
       this.$confirm(

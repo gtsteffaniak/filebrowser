@@ -11,7 +11,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/img"
-	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 type ImgService interface {
@@ -60,7 +59,6 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return errToStatus(err), err
 	}
-	utils.PrintStructFields(file)
 	realPath, _, err := files.GetRealPath(file.Path)
 	if err != nil {
 		return http.StatusInternalServerError, err
