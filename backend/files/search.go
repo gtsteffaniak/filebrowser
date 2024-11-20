@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -29,9 +28,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	searchOptions := ParseSearch(search)
 	results := make(map[string]searchResult, 0)
 	count := 0
-	fmt.Println("getting dirs in scope")
 	directories := si.getDirsInScope(scope)
-	fmt.Println("got dirs in scope")
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -40,7 +37,11 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 			break
 		}
 		si.mu.Lock()
-		for dirName, dir := range directories {
+		for _, dirName := range directories {
+			dir, found := si.GetReducedMetadata(dirName, true)
+			if !found {
+				continue
+			}
 			if count > maxSearchResults {
 				break
 			}
@@ -49,14 +50,17 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				Type: "directory",
 				Size: dir.Size,
 			}
+
 			matches := reducedDir.containsSearchTerm(searchTerm, searchOptions)
 			if matches {
 				scopedPath := strings.TrimPrefix(strings.TrimPrefix(dirName, scope), "/") + "/"
 				results[scopedPath] = searchResult{Path: scopedPath, Type: "directory", Size: dir.Size}
 				count++
 			}
+
 			// search files first
 			for _, item := range dir.Items {
+
 				fullPath := dirName + "/" + item.Name
 				if item.Type == "directory" {
 					fullPath += "/"
@@ -98,6 +102,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 // returns file type if the file name contains the search term
 // returns size of file/dir if the file name contains the search term
 func (fi ReducedItem) containsSearchTerm(searchTerm string, options *SearchOptions) bool {
+
 	fileTypes := map[string]bool{}
 	largerThan := int64(options.LargerThan) * 1024 * 1024
 	smallerThan := int64(options.SmallerThan) * 1024 * 1024
@@ -113,6 +118,7 @@ func (fi ReducedItem) containsSearchTerm(searchTerm string, options *SearchOptio
 	if !strings.Contains(lowerFileName, searchTerm) {
 		return false
 	}
+
 	// Initialize file size and fileTypes map
 	var fileSize int64
 	extension := filepath.Ext(lowerFileName)
@@ -157,14 +163,13 @@ func (fi ReducedItem) containsSearchTerm(searchTerm string, options *SearchOptio
 	return true
 }
 
-func (si *Index) getDirsInScope(scope string) map[string]*FileInfo {
-	newList := map[string]*FileInfo{}
+func (si *Index) getDirsInScope(scope string) []string {
+	newList := []string{}
 	si.mu.RLock()
 	defer si.mu.RUnlock()
 	for k := range si.Directories {
 		if strings.HasPrefix(k, scope) || scope == "" {
-			reducedInfo, _ := si.GetReducedMetadata(k, true, false) // already locked
-			newList[k] = reducedInfo
+			newList = append(newList, k)
 		}
 	}
 	return newList

@@ -1,7 +1,6 @@
 import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
-import { encodePath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {

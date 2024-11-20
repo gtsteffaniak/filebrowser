@@ -19,12 +19,7 @@ func (si *Index) UpdateMetadata(info *FileInfo) bool {
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetReducedMetadata(target string, isDir bool, lock bool) (*FileInfo, bool) {
-	// Should be to acquire locks unless parent function already did.
-	if lock {
-		si.mu.RLock()
-		defer si.mu.RUnlock()
-	}
+func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
 	checkDir := si.makeIndexPath(target)
 	if !isDir {
 		checkDir = si.makeIndexPath(filepath.Dir(target))

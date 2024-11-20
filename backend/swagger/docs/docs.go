@@ -1202,6 +1202,9 @@ const docTemplate = `{
         "files.ReducedItem": {
             "type": "object",
             "properties": {
+                "content": {
+                    "type": "string"
+                },
                 "modified": {
                     "type": "string"
                 },

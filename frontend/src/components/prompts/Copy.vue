@@ -52,7 +52,7 @@ import FileList from "./FileList.vue";
 import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { notify } from "@/notify";
+//import { notify } from "@/notify";
 
 export default {
   name: "copy",

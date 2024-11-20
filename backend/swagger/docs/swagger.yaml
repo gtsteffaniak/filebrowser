@@ -32,6 +32,8 @@ definitions:
     type: object
   files.ReducedItem:
     properties:
+      content:
+        type: string
       modified:
         type: string
       name:

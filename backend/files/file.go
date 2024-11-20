@@ -92,7 +92,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	}
 	opts.IsDir = isDir
 	// check if the file exists in the index
-	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir, true)
+	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
 	if exists {
 		// Let's not refresh if less than a second has passed
 		if time.Since(info.CacheTime) > time.Second {
@@ -112,7 +112,7 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir, true)
+	info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
 	if !exists {
 		return nil, err
 	}
@@ -242,7 +242,10 @@ func stat(opts FileOptions) (*FileInfo, error) {
 					itemInfo.Type = "symlink"
 					info, err := os.Stat(itemPath)
 					if err == nil {
-						item = info
+						itemInfo.Name = info.Name()
+						itemInfo.ModTime = info.ModTime()
+						itemInfo.Size = info.Size()
+						itemInfo.Mode = info.Mode()
 					} else {
 						file.Type = "invalid_link"
 					}
@@ -453,40 +456,42 @@ func resolveSymlinks(path string) (string, bool, error) {
 }
 
 // addContent reads and sets content based on the file type.
-func (i ReducedItem) addContent(path string) error {
+func getContent(path string) (string, error) {
 	realPath, _, err := GetRealPath(rootPath, path)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	if i.Type != "directory" {
-		fmt.Println("getting content", realPath)
-		content, err := os.ReadFile(realPath)
-		if err != nil {
-			return err
-		}
-		stringContent := string(content)
-		if !utf8.ValidString(stringContent) {
-			return nil
-		}
-		if stringContent == "" {
-			i.Content = "empty-file-x6OlSil"
-			return nil
-		}
-		i.Content = stringContent
+	fmt.Println("getting content", realPath)
+	content, err := os.ReadFile(realPath)
+	if err != nil {
+		return "", err
 	}
-	return nil
+	stringContent := string(content)
+	if !utf8.ValidString(stringContent) {
+		return "", fmt.Errorf("file is not utf8 encoded")
+	}
+	if stringContent == "" {
+		return "empty-file-x6OlSil", nil
+	}
+	return stringContent, nil
 }
 
 // detectType detects the file type.
 func (i *ReducedItem) detectType(path string, modify, saveContent, readHeader bool) error {
 	name := i.Name
+	var contentErr error
+	var contentString string
+	if saveContent {
+		contentString, contentErr = getContent(path)
+		if contentErr == nil {
+			i.Content = contentString
+		}
+	}
+
 	if IsNamedPipe(i.Mode) {
 		i.Type = "blob"
-		if saveContent {
-			return i.addContent(path)
-		}
-		return nil
+		return contentErr
 	}
 
 	ext := filepath.Ext(name)
@@ -509,10 +514,10 @@ func (i *ReducedItem) detectType(path string, modify, saveContent, readHeader bo
 				i.Type = "textImmutable"
 			}
 			if saveContent {
-				return i.addContent(path)
+				return contentErr
 			}
 		case "video":
-			// TODO add back
+			// TODO add back somewhere else, not during metadata fetch
 			//parentDir := strings.TrimRight(path, name)
 			//i.detectSubtitles(parentDir)
 		case "doc":
@@ -521,14 +526,14 @@ func (i *ReducedItem) detectType(path string, modify, saveContent, readHeader bo
 				return nil
 			}
 			if saveContent {
-				return i.addContent(path)
+				return nil
 			}
 		}
 	}
 	if i.Type == "" {
 		i.Type = "blob"
 		if saveContent {
-			return i.addContent(path)
+			return contentErr
 		}
 	}
 
@@ -536,7 +541,7 @@ func (i *ReducedItem) detectType(path string, modify, saveContent, readHeader bo
 }
 
 // readFirstBytes reads the first bytes of the file.
-func (i ReducedItem) readFirstBytes(path string) []byte {
+func (i *ReducedItem) readFirstBytes(path string) []byte {
 	file, err := os.Open(path)
 	if err != nil {
 		i.Type = "blob"
@@ -555,42 +560,42 @@ func (i ReducedItem) readFirstBytes(path string) []byte {
 }
 
 // detectSubtitles detects subtitles for video files.
-func (i *FileInfo) detectSubtitles(path string) {
-	if i.Type != "video" {
-		return
-	}
-	parentDir := filepath.Dir(path)
-	fileName := filepath.Base(path)
-	i.Subtitles = []string{}
-	ext := filepath.Ext(fileName)
-	dir, err := os.Open(parentDir)
-	if err != nil {
-		// Directory must have been deleted, remove it from the index
-		return
-	}
-	defer dir.Close() // Ensure directory handle is closed
-
-	files, err := dir.Readdir(-1)
-	if err != nil {
-		return
-	}
-
-	base := strings.TrimSuffix(fileName, ext)
-	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
-
-	for _, f := range files {
-		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
-			continue
-		}
-
-		for _, subtitleExt := range subtitleExts {
-			if strings.HasSuffix(f.Name(), subtitleExt) {
-				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
-				break
-			}
-		}
-	}
-}
+//func (i *FileInfo) detectSubtitles(path string) {
+//	if i.Type != "video" {
+//		return
+//	}
+//	parentDir := filepath.Dir(path)
+//	fileName := filepath.Base(path)
+//	i.Subtitles = []string{}
+//	ext := filepath.Ext(fileName)
+//	dir, err := os.Open(parentDir)
+//	if err != nil {
+//		// Directory must have been deleted, remove it from the index
+//		return
+//	}
+//	defer dir.Close() // Ensure directory handle is closed
+//
+//	files, err := dir.Readdir(-1)
+//	if err != nil {
+//		return
+//	}
+//
+//	base := strings.TrimSuffix(fileName, ext)
+//	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
+//
+//	for _, f := range files {
+//		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
+//			continue
+//		}
+//
+//		for _, subtitleExt := range subtitleExts {
+//			if strings.HasSuffix(f.Name(), subtitleExt) {
+//				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
+//				break
+//			}
+//		}
+//	}
+//}
 
 func IsNamedPipe(mode os.FileMode) bool {
 	return mode&os.ModeNamedPipe != 0

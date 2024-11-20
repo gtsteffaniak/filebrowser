@@ -26,7 +26,7 @@ import Editor from "@/views/files/Editor.vue";
 import { state, mutations, getters } from "@/store";
 import { pathsMatch } from "@/utils/url.js";
 import { notify } from "@/notify";
-import { removePrefix } from "@/utils/url.js";
+//import { removePrefix } from "@/utils/url.js";
 
 export default {
   name: "files",
