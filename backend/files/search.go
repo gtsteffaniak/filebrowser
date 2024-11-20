@@ -38,7 +38,9 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 		}
 		si.mu.Lock()
 		for _, dirName := range directories {
+			si.mu.Unlock()
 			dir, found := si.GetReducedMetadata(dirName, true)
+			si.mu.Lock()
 			if !found {
 				continue
 			}
@@ -165,8 +167,8 @@ func (fi ReducedItem) containsSearchTerm(searchTerm string, options *SearchOptio
 
 func (si *Index) getDirsInScope(scope string) []string {
 	newList := []string{}
-	si.mu.RLock()
-	defer si.mu.RUnlock()
+	si.mu.Lock()
+	defer si.mu.Unlock()
 	for k := range si.Directories {
 		if strings.HasPrefix(k, scope) || scope == "" {
 			newList = append(newList, k)

@@ -20,6 +20,8 @@ func (si *Index) UpdateMetadata(info *FileInfo) bool {
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
 func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
+	si.mu.RLock()
+	defer si.mu.RUnlock()
 	checkDir := si.makeIndexPath(target)
 	if !isDir {
 		checkDir = si.makeIndexPath(filepath.Dir(target))
@@ -61,10 +63,13 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 		dirname = "/"
 	}
 	// construct file info
-	dir.Name = dirname
-	dir.Type = "directory"
-	dir.Items = cleanedItems
-	return dir, exists
+	return &FileInfo{
+		Name:    dirname,
+		Type:    "directory",
+		Items:   cleanedItems,
+		ModTime: dir.ModTime,
+		Size:    dir.Size,
+	}, true
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
