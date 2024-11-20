@@ -1,7 +1,6 @@
 package files
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 	"sort"
@@ -12,10 +11,6 @@ import (
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (si *Index) UpdateMetadata(info *FileInfo) bool {
-	if !info.IsDir() {
-		fmt.Printf("can't update metadata for %v %v %v : not a directory\n", info.Name, info.Path, info.Type)
-		return false
-	}
 	si.mu.Lock()
 	defer si.mu.Unlock()
 	info.CacheTime = time.Now()
@@ -24,9 +19,12 @@ func (si *Index) UpdateMetadata(info *FileInfo) bool {
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
-	si.mu.RLock()
-	defer si.mu.RUnlock()
+func (si *Index) GetReducedMetadata(target string, isDir bool, lock bool) (*FileInfo, bool) {
+	// Should be to acquire locks unless parent function already did.
+	if lock {
+		si.mu.RLock()
+		defer si.mu.RUnlock()
+	}
 	checkDir := si.makeIndexPath(target)
 	if !isDir {
 		checkDir = si.makeIndexPath(filepath.Dir(target))
@@ -37,11 +35,18 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 	}
 	if !isDir {
 		baseName := filepath.Base(target)
-		fileInfo, ok := dir.Files[baseName]
-		if fileInfo.Path == "" {
-			fileInfo.Path = dir.Path + "/" + fileInfo.Name
+		for _, item := range dir.Files {
+			if item.Name == baseName {
+				return &FileInfo{
+					Name:    item.Name,
+					Size:    item.Size,
+					ModTime: item.ModTime,
+					Type:    item.Type,
+					Path:    checkDir + "/" + item.Name,
+				}, true
+			}
 		}
-		return fileInfo, ok
+		return nil, false
 	}
 	cleanedItems := []ReducedItem{}
 	for name, item := range dir.Dirs {
@@ -52,14 +57,7 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 			Type:    "directory",
 		})
 	}
-	for name, item := range dir.Files {
-		cleanedItems = append(cleanedItems, ReducedItem{
-			Name:    name,
-			Size:    item.Size,
-			ModTime: item.ModTime,
-			Type:    item.Type,
-		})
-	}
+	cleanedItems = append(cleanedItems, dir.Files...)
 	sort.Slice(cleanedItems, func(i, j int) bool {
 		return cleanedItems[i].Name < cleanedItems[j].Name
 	})

@@ -1,6 +1,7 @@
 package files
 
 import (
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -28,7 +29,9 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	searchOptions := ParseSearch(search)
 	results := make(map[string]searchResult, 0)
 	count := 0
+	fmt.Println("getting dirs in scope")
 	directories := si.getDirsInScope(scope)
+	fmt.Println("got dirs in scope")
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -60,6 +63,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				}
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
+					si.mu.Unlock()
 					return []searchResult{}
 				}
 				if count > maxSearchResults {
@@ -159,7 +163,7 @@ func (si *Index) getDirsInScope(scope string) map[string]*FileInfo {
 	defer si.mu.RUnlock()
 	for k := range si.Directories {
 		if strings.HasPrefix(k, scope) || scope == "" {
-			reducedInfo, _ := si.GetReducedMetadata(k, true)
+			reducedInfo, _ := si.GetReducedMetadata(k, true, false) // already locked
 			newList[k] = reducedInfo
 		}
 	}

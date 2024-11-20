@@ -93,7 +93,7 @@ func (si *Index) indexFiles(adjustedPath string) error {
 
 	var totalSize int64
 	var numDirs, numFiles int
-	fileInfos := map[string]*FileInfo{}
+	fileInfos := []ReducedItem{}
 	dirInfos := map[string]*FileInfo{}
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {
@@ -123,12 +123,14 @@ func (si *Index) indexFiles(adjustedPath string) error {
 			dirInfos[itemInfo.Name] = itemInfo
 			numDirs++
 		} else {
-			itemInfo.Type = "blob"
-			itemInfo.Name = file.Name()
-			// Process a file
-			itemInfo.Size = file.Size()
+			itemInfo := &ReducedItem{
+				Name:    file.Name(),
+				ModTime: file.ModTime(),
+				Size:    file.Size(),
+				Mode:    file.Mode(),
+			}
 			_ = itemInfo.detectType(combinedPath+file.Name(), true, false, false)
-			fileInfos[itemInfo.Name] = itemInfo
+			fileInfos = append(fileInfos, *itemInfo)
 			totalSize += itemInfo.Size
 			numFiles++
 		}
