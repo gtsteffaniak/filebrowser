@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
@@ -15,15 +14,14 @@ import (
 func (si *Index) UpdateMetadata(info *FileInfo) bool {
 	si.mu.Lock()
 	defer si.mu.Unlock()
-	info.CacheTime = time.Now()
 	si.Directories[info.Path] = info
 	return true
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
 func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
-	si.mu.RLock()
-	defer si.mu.RUnlock()
+	si.mu.Lock()
+	defer si.mu.Unlock()
 	checkDir := si.makeIndexPath(target)
 	if !isDir {
 		checkDir = si.makeIndexPath(filepath.Dir(target))
@@ -32,57 +30,59 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 	if !exists {
 		return nil, false
 	}
-	if !isDir {
-		if checkDir == "/" {
-			checkDir = ""
-		}
-
-		baseName := filepath.Base(target)
-		for _, item := range dir.Files {
-			if item.Name == baseName {
-				return &FileInfo{
-					Name:    item.Name,
-					Size:    item.Size,
-					ModTime: item.ModTime,
-					Type:    item.Type,
-					Path:    checkDir + "/" + item.Name,
-				}, true
-			}
-		}
-		return nil, false
-	}
-	cleanedItems := []ReducedItem{}
-	for name, item := range dir.Dirs {
-		cleanedItems = append(cleanedItems, ReducedItem{
-			Name:    name,
-			Size:    item.Size,
-			ModTime: item.ModTime,
-			Type:    "directory",
-		})
-	}
-	cleanedItems = append(cleanedItems, dir.Files...)
-	sort.Slice(cleanedItems, func(i, j int) bool {
-		// Convert strings to integers for numeric sorting if both are numeric
-		numI, errI := strconv.Atoi(cleanedItems[i].Name)
-		numJ, errJ := strconv.Atoi(cleanedItems[j].Name)
-		if errI == nil && errJ == nil {
-			return numI < numJ
-		}
-		// Fallback to case-insensitive lexicographical sorting
-		return strings.ToLower(cleanedItems[i].Name) < strings.ToLower(cleanedItems[j].Name)
-	})
 	dirname := filepath.Base(dir.Path)
 	if dirname == "." {
 		dirname = "/"
 	}
-	// construct file info
-	return &FileInfo{
-		Name:    dirname,
-		Type:    "directory",
-		Items:   cleanedItems,
-		ModTime: dir.ModTime,
-		Size:    dir.Size,
-	}, true
+
+	if isDir {
+		if len(dir.Items) > 0 {
+			return dir, true
+		}
+		cleanedItems := []ReducedItem{}
+		for name, item := range dir.Dirs {
+			cleanedItems = append(cleanedItems, ReducedItem{
+				Name:    name,
+				Size:    item.Size,
+				ModTime: item.ModTime,
+				Type:    "directory",
+			})
+		}
+
+		cleanedItems = append(cleanedItems, dir.Files...)
+		sort.Slice(cleanedItems, func(i, j int) bool {
+			// Convert strings to integers for numeric sorting if both are numeric
+			numI, errI := strconv.Atoi(cleanedItems[i].Name)
+			numJ, errJ := strconv.Atoi(cleanedItems[j].Name)
+			if errI == nil && errJ == nil {
+				return numI < numJ
+			}
+			// Fallback to case-insensitive lexicographical sorting
+			return strings.ToLower(cleanedItems[i].Name) < strings.ToLower(cleanedItems[j].Name)
+		})
+		dir.Type = "directory"
+		dir.Items = cleanedItems
+		return dir, true
+	}
+
+	// handle file
+	if checkDir == "/" {
+		checkDir = ""
+	}
+	baseName := filepath.Base(target)
+	for _, item := range dir.Files {
+		if item.Name == baseName {
+			return &FileInfo{
+				Name:    item.Name,
+				Size:    item.Size,
+				ModTime: item.ModTime,
+				Type:    item.Type,
+				Path:    checkDir + "/" + item.Name,
+			}, true
+		}
+	}
+	return nil, false
+
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.

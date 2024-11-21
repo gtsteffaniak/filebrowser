@@ -134,7 +134,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 		},
 	}
 
-	success := index.UpdateMetadata(info)
+	success := index.UpdateMetadata(info, true)
 	if !success {
 		t.Fatalf("expected UpdateFileMetadata to succeed")
 	}
@@ -182,7 +182,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 			{Name: "testfile.txt"},
 		},
 	}
-	index.UpdateMetadata(dir)
+	index.UpdateMetadata(dir, true)
 	storedDir, exists := index.Directories["/newPath"]
 	if !exists || storedDir.Items[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")

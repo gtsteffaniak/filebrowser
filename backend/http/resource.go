@@ -133,14 +133,14 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusForbidden, nil
 	}
 	fileOpts := files.FileOptions{
-		Path:       filepath.Join(d.user.Scope, path),
-		Modify:     d.user.Perm.Modify,
-		Expand:     false,
-		ReadHeader: config.Server.TypeDetectionByHeader,
-		Checker:    d.user,
+		Path:    filepath.Join(d.user.Scope, path),
+		Modify:  d.user.Perm.Modify,
+		Expand:  false,
+		Checker: d.user,
 	}
 	// Directories creation on POST.
 	if strings.HasSuffix(path, "/") {
+		fmt.Println("Creating directory")
 		err := files.WriteDirectory(fileOpts)
 		if err != nil {
 			return errToStatus(err), err
@@ -149,6 +149,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	file, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
+		fmt.Println("file exists?")
 		if r.URL.Query().Get("override") != "true" {
 			return http.StatusConflict, nil
 		}
@@ -163,8 +164,13 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return errToStatus(err), err
 		}
 	}
+	fmt.Println("writing", fileOpts.Path)
 	err = files.WriteFile(fileOpts, r.Body)
-	return errToStatus(err), err
+	if err != nil {
+		return errToStatus(err), err
+
+	}
+	return http.StatusOK, nil
 }
 
 // resourcePutHandler updates an existing file resource.

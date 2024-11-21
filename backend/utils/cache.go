@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	DiskUsageCache     = newCache(30*time.Second, 24*time.Hour)
-	RealPathCache      = newCache(48*time.Hour, 72*time.Hour)
-	SearchResultsCache = newCache(15*time.Second, time.Hour)
+	DiskUsageCache          = newCache(30*time.Second, 24*time.Hour)
+	RealPathCache           = newCache(48*time.Hour, 72*time.Hour)
+	SearchResultsCache      = newCache(15*time.Second, time.Hour)
+	GetReducedMetadataCache = newCache(15*time.Minute, time.Hour)
 )
 
 func newCache(expires time.Duration, cleanup time.Duration) *KeyCache {

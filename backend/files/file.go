@@ -48,16 +48,12 @@ type FileInfo struct {
 	Name      string               `json:"name"`
 	Items     []ReducedItem        `json:"items"`
 	Size      int64                `json:"size"`
-	Extension string               `json:"-"`
 	ModTime   time.Time            `json:"modified"`
-	CacheTime time.Time            `json:"-"`
 	Mode      os.FileMode          `json:"-"`
-	IsSymlink bool                 `json:"isSymlink,omitempty"`
 	Type      string               `json:"type"`
 	Subtitles []string             `json:"subtitles,omitempty"`
 	Content   string               `json:"content,omitempty"`
 	Checksums map[string]string    `json:"checksums,omitempty"`
-	Token     string               `json:"token,omitempty"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -77,7 +73,6 @@ func (f FileOptions) Components() (string, string) {
 }
 
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
-
 	index := GetIndex(rootPath)
 	opts.Path = index.makeIndexPath(opts.Path)
 
@@ -93,28 +88,31 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 		return nil, err
 	}
 	opts.IsDir = isDir
+
+	// TODO : whats the best way to save trips to disk here?
+	// disabled using cache because its not clear if this is helping or hurting
 	// check if the file exists in the index
-	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
-	if exists {
-		// Let's not refresh if less than a second has passed
-		if time.Since(info.CacheTime) > time.Second {
-			RefreshFileInfo(opts) //nolint:errcheck
-		}
-		if opts.Content {
-			content := ""
-			content, err = getContent(opts.Path)
-			if err != nil {
-				return info, err
-			}
-			info.Content = content
-		}
-		return info, nil
-	}
+	//info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
+	//if exists {
+	//	err := RefreshFileInfo(opts)
+	//	if err != nil {
+	//		return info, err
+	//	}
+	//	if opts.Content {
+	//		content := ""
+	//		content, err = getContent(opts.Path)
+	//		if err != nil {
+	//			return info, err
+	//		}
+	//		info.Content = content
+	//	}
+	//	return info, nil
+	//}
 	err = RefreshFileInfo(opts)
 	if err != nil {
 		return nil, err
 	}
-	info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
+	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
 	if !exists {
 		return nil, err
 	}
@@ -174,13 +172,11 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		return nil, err
 	}
 	file := &FileInfo{
-		Path:      opts.Path,
-		Name:      filepath.Base(opts.Path),
-		ModTime:   info.ModTime(),
-		Mode:      info.Mode(),
-		Size:      info.Size(),
-		Extension: filepath.Ext(info.Name()),
-		Token:     opts.Token,
+		Path:    opts.Path,
+		Name:    filepath.Base(opts.Path),
+		ModTime: info.ModTime(),
+		Mode:    info.Mode(),
+		Size:    info.Size(),
 	}
 	if info.IsDir() {
 		// Open and read directory contents
@@ -190,16 +186,18 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		}
 		defer dir.Close()
 
-		dirInfo, err := dir.Stat()
-		if err != nil {
-			return nil, err
-		}
-		index := GetIndex(rootPath)
+		// TODO: this is not reliable, because we are not checking the children
 		// Check cached metadata to decide if refresh is needed
+		//dirInfo, err := dir.Stat()
+		//if err != nil {
+		//	return nil, err
+		//}
+		index := GetIndex(rootPath)
+		//// Check cached metadata to decide if refresh is needed
 		cachedParentDir, exists := index.GetMetadataInfo(opts.Path, true)
-		if exists && dirInfo.ModTime().Before(cachedParentDir.CacheTime) {
-			return cachedParentDir, nil
-		}
+		//if exists && dirInfo.ModTime().Before(cachedParentDir.CacheTime) {
+		//	return cachedParentDir, nil
+		//}
 
 		// Read directory contents and process
 		files, err := dir.Readdir(-1)
@@ -404,13 +402,10 @@ func WriteDirectory(opts FileOptions) error {
 }
 
 func WriteFile(opts FileOptions, in io.Reader) error {
-	dst := opts.Path
+	dst, _, _ := GetRealPath(rootPath, opts.Path)
 	parentDir := filepath.Dir(dst)
-	// Split the directory from the destination path
-	dir := filepath.Dir(dst)
-
 	// Create the directory and all necessary parents
-	err := os.MkdirAll(dir, 0775)
+	err := os.MkdirAll(parentDir, 0775)
 	if err != nil {
 		return err
 	}
