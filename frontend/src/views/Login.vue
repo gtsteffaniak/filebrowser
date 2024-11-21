@@ -44,7 +44,7 @@
 <script>
 import router from "@/router";
 import { state } from "@/store";
-import { signupLogin, login } from "@/utils/auth";
+import { signupLogin, login, initAuth } from "@/utils/auth";
 import {
   name,
   logoURL,
@@ -114,6 +114,7 @@ export default {
           await signupLogin(this.username, this.password);
         }
         await login(this.username, this.password, captcha);
+        await initAuth();
         router.push({ path: redirect });
       } catch (e) {
         console.error(e);

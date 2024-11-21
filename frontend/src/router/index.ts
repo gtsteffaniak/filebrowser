@@ -7,8 +7,6 @@ import Settings from "@/views/Settings.vue";
 import Errors from "@/views/Errors.vue";
 import { baseURL, name } from "@/utils/constants";
 import { getters, state } from "@/store";
-import { recaptcha, loginPage } from "@/utils/constants";
-import { validateLogin } from "@/utils/auth";
 import { mutations } from "@/store";
 import i18n from "@/i18n";
 
@@ -116,25 +114,6 @@ const router = createRouter({
   routes,
 });
 
-
-async function initAuth() {
-  if (loginPage && !getters.isShare()) {
-    await validateLogin();
-  }
-  if (recaptcha) {
-      await new Promise<void>((resolve) => {
-          const check = () => {
-              if (typeof window.grecaptcha === "undefined") {
-                  setTimeout(check, 100);
-              } else {
-                  resolve();
-              }
-          };
-          check();
-      });
-  }
-}
-
 router.beforeResolve(async (to, from, next) => {
   mutations.closeHovers()
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
@@ -143,14 +122,6 @@ router.beforeResolve(async (to, from, next) => {
   if (to.path.endsWith("/login") && getters.isLoggedIn()) {
     next({ path: "/files/" });
     return;
-  }
-  // this will only be null on first route
-  if (to.name != "Login") {
-    try {
-      await initAuth();
-    } catch (error) {
-      console.error(error);
-    }
   }
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!getters.isLoggedIn()) {
