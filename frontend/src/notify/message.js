@@ -16,7 +16,7 @@ export function showPopup(type, message) {
         if (apiMessage &&
             Object.prototype.hasOwnProperty.call(apiMessage, "status") &&
             Object.prototype.hasOwnProperty.call(apiMessage, "message")) {
-            popupContent.textContent = "Errors " + apiMessage.status + ": " + apiMessage.message;
+            popupContent.textContent = "Error " + apiMessage.status + ": " + apiMessage.message;
         }
     } catch (error) {
         popupContent.textContent = message;

@@ -60,7 +60,8 @@ export function deleteApiKey(params) {
 
 export async function create(user) {
   try {
-    const res = await fetchURL(`api/users`, {
+    const apiPath = getApiPath("api/users");
+    const res = await fetchURL(apiPath, {
       method: "POST",
       body: JSON.stringify({
         what: "user",

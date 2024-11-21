@@ -24,9 +24,11 @@ export async function fetchURL(url, opts, auth = true) {
       ...rest,
     });
   } catch (e) {
-    console.error(e)
-    const error = new Error("000 No connection");
-    error.status = res.status;
+    let message = e;
+    if (e == "TypeError: Failed to fetch") {
+      message = "Failed to connect to the server, is it still running?";
+    }
+    const error = new Error(message);
     throw error;
   }
 
@@ -35,7 +37,7 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (res.status < 200 || res.status > 299) {
-    const error = new Error(await res.text());
+    let error = new Error(await res.text());
     error.status = res.status;
 
     if (auth && res.status == 401) {

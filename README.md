@@ -146,10 +146,14 @@ FileBrowser Quantum comes with a swagger page that can be accessed from the API 
 
 You use the token as a bearer token. For example in postman:
 
+
 Successful Request:
-<img width="500" alt="image" src="https://github.com/user-attachments/assets/4f18fa8a-8d87-4f40-9dc7-3d4407769b59">
+
+<p align="center"><img width="500" alt="image" src="https://github.com/user-attachments/assets/4f18fa8a-8d87-4f40-9dc7-3d4407769b59"></p>
+
 Failed Request
-<img width="500" alt="image" src="https://github.com/user-attachments/assets/4da0deae-f93d-4d94-83b1-68806afb343a">
+
+<p align="center"><img width="500" alt="image" src="https://github.com/user-attachments/assets/4da0deae-f93d-4d94-83b1-68806afb343a"></p>
 
 
 ## Configuration
