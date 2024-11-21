@@ -1,5 +1,6 @@
 import { removePrefix } from "@/utils/url.js";
 import { state } from "./state.js";
+import { mutations } from "./mutations.js";
 
 export const getters = {
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
@@ -15,7 +16,23 @@ export const getters = {
     return state.user.darkMode === true;
   },
   isLoggedIn: () => {
-    return state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser";
+    if (state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser") {
+      return true;
+    };
+    const userData = localStorage.getItem("userData");
+    if (userData == undefined) {
+      return false;
+    }
+    try {
+      const userInfo = JSON.parse(userData);
+      if (userInfo.username != "publicUser") {
+        mutations.setCurrentUser(userInfo);
+        return true;
+      }
+    } catch (error) {
+      return false;
+    }
+    return false
   },
   isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => state.route.name === "Files",
