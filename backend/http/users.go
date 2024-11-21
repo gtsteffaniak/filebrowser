@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"reflect"
@@ -118,8 +119,16 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
 	givenUserId := uint(num)
 
-	if givenUserId == d.user.ID || !d.user.Perm.Admin {
-		return http.StatusForbidden, nil
+	if givenUserId == d.user.ID {
+		return http.StatusForbidden, fmt.Errorf("cannot delete your own user")
+	}
+
+	if !d.user.Perm.Admin {
+		return http.StatusForbidden, fmt.Errorf("cannot delete users without admin permissions")
+	}
+
+	if givenUserId == 1 {
+		return http.StatusForbidden, fmt.Errorf("cannot delete the default admin user")
 	}
 
 	// Delete the user

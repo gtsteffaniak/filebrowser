@@ -1,6 +1,6 @@
 import { createURL, fetchURL, adjustedData} from "./utils";
 import { baseURL } from "@/utils/constants";
-import { removePrefix,getApiPath } from "@/utils/url.js";
+import { removePrefix, getApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 import { notify } from "@/notify";
 
@@ -53,25 +53,19 @@ export async function put(url, content = "") {
 
 export function download(format, ...files) {
   try {
-    let url = `${baseURL}/api/raw`;
+    let path = "";
+    let arg = "";
     if (files.length === 1) {
-      url +=  "?path="+removePrefix(files[0], "files");
+      path = removePrefix(files[0], "files")
     } else {
-      let arg = "";
-
       for (let file of files) {
         arg += removePrefix(file,"files") + ",";
       }
-
       arg = arg.substring(0, arg.length - 1);
-      arg = encodeURIComponent(arg);
       url += `?files=${arg}`;
     }
-
-    if (format) {
-      url += `&algo=${format}`;
-    }
-
+    const apiPath = getApiPath("api/raw",{path: path, args: args, algo: format});
+    let url = `${baseURL}${apiPath}`;
     window.open(url);
   } catch (err) {
     notify.showError(err.message || "Error downloading files");

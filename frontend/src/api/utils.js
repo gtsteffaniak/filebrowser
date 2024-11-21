@@ -1,6 +1,7 @@
 import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
+import { encodePath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
@@ -24,9 +25,10 @@ export async function fetchURL(url, opts, auth = true) {
       ...rest,
     });
   } catch (e) {
-    console.error(e)
-    const error = new Error("000 No connection");
-    error.status = res.status;
+    if (e == "TypeError: Failed to fetch") {
+      e = "Failed to connect to the server, is it still running?";
+    }
+    const error = new Error(e);
     throw error;
   }
 
@@ -35,7 +37,7 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (res.status < 200 || res.status > 299) {
-    const error = new Error(await res.text());
+    let error = new Error(await res.text());
     error.status = res.status;
 
     if (auth && res.status == 401) {
