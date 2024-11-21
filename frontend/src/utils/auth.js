@@ -2,6 +2,7 @@ import { mutations, getters } from "@/store";
 import router from "@/router";
 import { usersApi } from "@/api";
 import { getApiPath } from "@/utils/url.js";
+import { recaptcha, loginPage } from "@/utils/constants";
 
 
 export async function setNewToken(token) {
@@ -100,3 +101,22 @@ export function logout() {
 //    .find(row => row.startsWith(name + '='))
 //    ?.split('=')[1];
 //}
+
+export async function initAuth() {
+  if (loginPage && !getters.isShare()) {
+    console.log("validating login");
+    await validateLogin();
+  }
+  if (recaptcha) {
+      await new Promise((resolve) => {
+          const check = () => {
+              if (typeof window.grecaptcha === "undefined") {
+                  setTimeout(check, 100);
+              } else {
+                  resolve();
+              }
+          };
+          check();
+      });
+  }
+}
