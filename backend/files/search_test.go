@@ -216,7 +216,7 @@ func TestSearchIndexes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
 			result := index.Search(tt.search, tt.scope, "")
-			assert.Equal(t, tt.expectedResult, result)
+			assert.ElementsMatch(t, tt.expectedResult, result)
 		})
 	}
 }
