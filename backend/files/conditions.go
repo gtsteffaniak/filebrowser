@@ -48,8 +48,8 @@ type SearchOptions struct {
 	Terms       []string
 }
 
-func ParseSearch(value string) *SearchOptions {
-	opts := &SearchOptions{
+func ParseSearch(value string) SearchOptions {
+	opts := SearchOptions{
 		Conditions: map[string]bool{
 			"exact": strings.Contains(value, "case:exact"),
 		},
