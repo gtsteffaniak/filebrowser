@@ -1,6 +1,6 @@
 import { fetchURL, fetchJSON, createURL, adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { removePrefix, getApiPath } from "@/utils/url.js";
+import { getApiPath } from "@/utils/url.js";
 
 export async function list() {
   const apiPath = getApiPath("api/shares");
@@ -41,5 +41,5 @@ export async function create(path, password = "", expires = "", unit = "hours") 
 }
 
 export function getShareURL(share) {
-  return createURL("share/" , {}, false);
+  return createURL("share/"+share.hash, {}, false);
 }

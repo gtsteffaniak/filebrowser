@@ -1,7 +1,6 @@
 import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
-import { encodePath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
@@ -25,10 +24,11 @@ export async function fetchURL(url, opts, auth = true) {
       ...rest,
     });
   } catch (e) {
+    let message = e;
     if (e == "TypeError: Failed to fetch") {
-      e = "Failed to connect to the server, is it still running?";
+      message = "Failed to connect to the server, is it still running?";
     }
-    const error = new Error(e);
+    const error = new Error(message);
     throw error;
   }
 

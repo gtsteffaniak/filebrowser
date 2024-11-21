@@ -54,17 +54,16 @@ export async function put(url, content = "") {
 export function download(format, ...files) {
   try {
     let path = "";
-    let arg = "";
+    let fileargs = "";
     if (files.length === 1) {
       path = removePrefix(files[0], "files")
     } else {
       for (let file of files) {
-        arg += removePrefix(file,"files") + ",";
+        fileargs += removePrefix(file,"files") + ",";
       }
-      arg = arg.substring(0, arg.length - 1);
-      url += `?files=${arg}`;
+      fileargs = fileargs.substring(0, fileargs.length - 1);
     }
-    const apiPath = getApiPath("api/raw",{path: path, args: args, algo: format});
+    const apiPath = getApiPath("api/raw",{path: path, files: fileargs, algo: format});
     let url = `${baseURL}${apiPath}`;
     window.open(url);
   } catch (err) {
