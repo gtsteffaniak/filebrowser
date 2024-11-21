@@ -14,6 +14,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/files"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -346,25 +347,29 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 	if source == "" {
 		source = "/"
 	}
-	file, err := files.FileInfoFaster(files.FileOptions{
-		Path:    source,
-		Checker: d.user,
-	})
+
+	value, ok := utils.DiskUsageCache.Get(source).(DiskUsageResponse)
+	if ok {
+		return renderJSON(w, r, &value)
+	}
+
+	fPath, isDir, err := files.GetRealPath(d.user.Scope, source)
 	if err != nil {
 		return errToStatus(err), err
 	}
-	fPath := file.RealPath()
-	if file.Type != "directory" {
-		return http.StatusBadRequest, fmt.Errorf("path is not a directory")
+	if !isDir {
+		return http.StatusNotFound, fmt.Errorf("not a directory: %s", source)
 	}
 	usage, err := disk.UsageWithContext(r.Context(), fPath)
 	if err != nil {
 		return errToStatus(err), err
 	}
-	return renderJSON(w, r, &DiskUsageResponse{
+	latestUsage := DiskUsageResponse{
 		Total: usage.Total,
 		Used:  usage.Used,
-	})
+	}
+	utils.DiskUsageCache.Set(source, latestUsage)
+	return renderJSON(w, r, &latestUsage)
 }
 
 func inspectIndex(w http.ResponseWriter, r *http.Request) {

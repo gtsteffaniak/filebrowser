@@ -22,6 +22,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/fileutils"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 var (
@@ -315,13 +316,24 @@ func GetRealPath(relativePath ...string) (string, bool, error) {
 		combined = append(combined, strings.TrimPrefix(path, settings.Config.Server.Root))
 	}
 	joinedPath := filepath.Join(combined...)
+
+	isDir, _ := utils.RealPathCache.Get(joinedPath + ":isdir").(bool)
+	cached, ok := utils.RealPathCache.Get(joinedPath).(string)
+	if ok && cached != "" {
+		return cached, isDir, nil
+	}
 	// Convert relative path to absolute path
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
 		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", combined, err)
 	}
 	// Resolve symlinks and get the real path
-	return resolveSymlinks(absolutePath)
+	realPath, isDir, err := resolveSymlinks(absolutePath)
+	if err == nil {
+		utils.RealPathCache.Set(joinedPath, realPath)
+		utils.RealPathCache.Set(joinedPath+":isdir", isDir)
+	}
+	return realPath, isDir, err
 }
 
 func DeleteFiles(absPath string, opts FileOptions) error {
