@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.1
+
+  **Bugfixes**:
+  - Tweaked sorting by name, fixes case sensitive and numeric sorting.
+
 ## v0.3.0
 
   This Release focuses on the API and making it more accessible for developers to access functions without the UI.

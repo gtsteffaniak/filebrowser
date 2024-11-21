@@ -89,6 +89,7 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
@@ -243,6 +244,7 @@ func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
 // LoggingMiddleware logs each request and its status code
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		start := time.Now()
 
 		// Wrap the ResponseWriter to capture the status code

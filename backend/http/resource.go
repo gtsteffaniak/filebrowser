@@ -31,6 +31,7 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+
 	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
 	file, err := files.FileInfoFaster(files.FileOptions{

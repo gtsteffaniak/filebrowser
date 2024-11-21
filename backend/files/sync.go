@@ -4,6 +4,8 @@ import (
 	"log"
 	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
@@ -60,7 +62,14 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 	}
 	cleanedItems = append(cleanedItems, dir.Files...)
 	sort.Slice(cleanedItems, func(i, j int) bool {
-		return cleanedItems[i].Name < cleanedItems[j].Name
+		// Convert strings to integers for numeric sorting if both are numeric
+		numI, errI := strconv.Atoi(cleanedItems[i].Name)
+		numJ, errJ := strconv.Atoi(cleanedItems[j].Name)
+		if errI == nil && errJ == nil {
+			return numI < numJ
+		}
+		// Fallback to case-insensitive lexicographical sorting
+		return strings.ToLower(cleanedItems[i].Name) < strings.ToLower(cleanedItems[j].Name)
 	})
 	dirname := filepath.Base(dir.Path)
 	if dirname == "." {

@@ -76,6 +76,7 @@ func (f FileOptions) Components() (string, string) {
 }
 
 func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
+
 	index := GetIndex(rootPath)
 	opts.Path = index.makeIndexPath(opts.Path)
 
