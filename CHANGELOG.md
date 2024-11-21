@@ -4,10 +4,14 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.3.1
 
+  **Notes**:
+  - Optimized api request response times via improved caching
+
+
   **Bugfixes**:
   - Tweaked sorting by name, fixes case sensitive and numeric sorting. https://github.com/gtsteffaniak/filebrowser/issues/230
   - Fixed unnecessary authentication status checks each route change
-  - Optimized api request response times.
+  - Fix create file action issue.
 
 ## v0.3.0
 
