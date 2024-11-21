@@ -1,0 +1,1056 @@
+definitions:
+  files.FileInfo:
+    properties:
+      checksums:
+        additionalProperties:
+          type: string
+        type: object
+      content:
+        type: string
+      isSymlink:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/files.ReducedItem'
+        type: array
+      modified:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      size:
+        type: integer
+      subtitles:
+        items:
+          type: string
+        type: array
+      token:
+        type: string
+      type:
+        type: string
+    type: object
+  files.ReducedItem:
+    properties:
+      content:
+        type: string
+      modified:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+    type: object
+  files.searchResult:
+    properties:
+      path:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+    type: object
+  http.DiskUsageResponse:
+    properties:
+      total:
+        type: integer
+      used:
+        type: integer
+    type: object
+  http.HttpResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: integer
+      token:
+        type: string
+    type: object
+  http.settingsData:
+    properties:
+      commands:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      createUserDir:
+        type: boolean
+      defaults:
+        $ref: '#/definitions/settings.UserDefaults'
+      frontend:
+        $ref: '#/definitions/settings.Frontend'
+      rules:
+        items:
+          $ref: '#/definitions/users.Rule'
+        type: array
+      signup:
+        type: boolean
+      userHomeBasePath:
+        type: string
+    type: object
+  settings.Frontend:
+    properties:
+      color:
+        type: string
+      disableExternal:
+        type: boolean
+      disableUsedPercentage:
+        type: boolean
+      files:
+        type: string
+      name:
+        type: string
+    type: object
+  settings.UserDefaults:
+    properties:
+      commands:
+        items:
+          type: string
+        type: array
+      darkMode:
+        type: boolean
+      dateFormat:
+        type: boolean
+      disableSettings:
+        type: boolean
+      gallerySize:
+        type: integer
+      hideDotfiles:
+        type: boolean
+      locale:
+        type: string
+      lockPassword:
+        type: boolean
+      perm:
+        $ref: '#/definitions/users.Permissions'
+      permissions:
+        $ref: '#/definitions/users.Permissions'
+      rules:
+        items:
+          $ref: '#/definitions/users.Rule'
+        type: array
+      scope:
+        type: string
+      singleClick:
+        type: boolean
+      sorting:
+        properties:
+          asc:
+            type: boolean
+          by:
+            type: string
+        type: object
+      stickySidebar:
+        type: boolean
+      viewMode:
+        type: string
+    type: object
+  share.CreateBody:
+    properties:
+      expires:
+        type: string
+      password:
+        type: string
+      unit:
+        type: string
+    type: object
+  share.Link:
+    properties:
+      expire:
+        type: integer
+      hash:
+        type: string
+      password_hash:
+        type: string
+      path:
+        type: string
+      token:
+        description: |-
+          Token is a random value that will only be set when PasswordHash is set. It is
+          URL-Safe and is used to download links in password-protected shares via a
+          query arg.
+        type: string
+      userID:
+        type: integer
+    type: object
+  users.AuthToken:
+    properties:
+      Permissions:
+        $ref: '#/definitions/users.Permissions'
+      belongsTo:
+        type: integer
+      createdAt:
+        type: integer
+      expiresAt:
+        type: integer
+      key:
+        type: string
+      name:
+        type: string
+    type: object
+  users.Permissions:
+    properties:
+      admin:
+        type: boolean
+      api:
+        type: boolean
+      create:
+        type: boolean
+      delete:
+        type: boolean
+      download:
+        type: boolean
+      execute:
+        type: boolean
+      modify:
+        type: boolean
+      rename:
+        type: boolean
+      share:
+        type: boolean
+    type: object
+  users.Regexp:
+    properties:
+      raw:
+        type: string
+    type: object
+  users.Rule:
+    properties:
+      allow:
+        type: boolean
+      id:
+        type: string
+      path:
+        type: string
+      regex:
+        type: boolean
+      regexp:
+        $ref: '#/definitions/users.Regexp'
+    type: object
+  users.Sorting:
+    properties:
+      asc:
+        type: boolean
+      by:
+        type: string
+    type: object
+  users.User:
+    properties:
+      apiKeys:
+        additionalProperties:
+          $ref: '#/definitions/users.AuthToken'
+        type: object
+      commands:
+        items:
+          type: string
+        type: array
+      darkMode:
+        type: boolean
+      dateFormat:
+        type: boolean
+      disableSettings:
+        type: boolean
+      gallerySize:
+        type: integer
+      hideDotfiles:
+        type: boolean
+      id:
+        type: integer
+      locale:
+        type: string
+      lockPassword:
+        type: boolean
+      password:
+        type: string
+      perm:
+        $ref: '#/definitions/users.Permissions'
+      rules:
+        items:
+          $ref: '#/definitions/users.Rule'
+        type: array
+      scope:
+        type: string
+      singleClick:
+        type: boolean
+      sorting:
+        $ref: '#/definitions/users.Sorting'
+      stickySidebar:
+        type: boolean
+      username:
+        type: string
+      viewMode:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/preview:
+    get:
+      consumes:
+      - application/json
+      description: Returns a preview image based on the requested path and size.
+      parameters:
+      - description: File path of the image to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Preview size ('small' or 'large'). Default is based on server
+          config.
+        in: query
+        name: size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Preview image content
+          schema:
+            type: file
+        "202":
+          description: Download permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: Unsupported file type for preview
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image preview
+      tags:
+      - Resources
+  /api/raw:
+    get:
+      consumes:
+      - application/json
+      description: Returns the raw content of a file, multiple files, or a directory.
+        Supports downloading files as archives in various formats.
+      parameters:
+      - description: Path to the file or directory
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Comma-separated list of specific files within the directory (optional)
+        in: query
+        name: files
+        type: string
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      - description: 'Compression algorithm for archiving multiple files or directories.
+          Options: ''zip'', ''tar'', ''targz'', ''tarbz2'', ''tarxz'', ''tarlz4'',
+          ''tarsz''. Default is ''zip''.'
+        in: query
+        name: algo
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Raw file or directory content, or archive for multiple files
+          schema:
+            type: file
+        "202":
+          description: Download permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File or directory not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: Unsupported file type for preview
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get raw content of a file, multiple files, or directory
+      tags:
+      - Resources
+  /api/resources:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a resource located at the specified path.
+      parameters:
+      - description: Path to the resource
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource deleted successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a resource
+      tags:
+      - Resources
+    get:
+      consumes:
+      - application/json
+      description: Returns metadata and optionally file contents for a specified resource
+        path.
+      parameters:
+      - description: Path to the resource
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
+      - description: Include file content if true
+        in: query
+        name: content
+        type: string
+      - description: Optional checksum validation
+        in: query
+        name: checksum
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource metadata
+          schema:
+            $ref: '#/definitions/files.FileInfo'
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get resource information
+      tags:
+      - Resources
+    patch:
+      consumes:
+      - application/json
+      description: Moves or renames a resource to a new destination.
+      parameters:
+      - description: Path from resource
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: Destination path for the resource
+        in: query
+        name: destination
+        required: true
+        type: string
+      - description: Action to perform (copy, rename)
+        in: query
+        name: action
+        required: true
+        type: string
+      - description: Overwrite if destination exists
+        in: query
+        name: overwrite
+        type: boolean
+      - description: Rename if destination exists
+        in: query
+        name: rename
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource moved/renamed successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict - Destination exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Patch resource (move/rename)
+      tags:
+      - Resources
+    post:
+      consumes:
+      - application/json
+      description: Creates a new resource or uploads a file at the specified path.
+        Supports file uploads and directory creation.
+      parameters:
+      - description: Path to the resource
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
+      - description: Override existing file if true
+        in: query
+        name: override
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource created successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict - Resource already exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create or upload a resource
+      tags:
+      - Resources
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing file at the specified path.
+      parameters:
+      - description: Path to the resource
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource updated successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "405":
+          description: Method not allowed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a file resource
+      tags:
+      - Resources
+  /api/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for files matching the provided query. Returns file paths
+        and metadata based on the user's session and scope.
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - description: path within user scope to search, for example '/first/second'
+          to search within the second directory only
+        in: query
+        name: scope
+        type: string
+      - description: User session ID, add unique value to prevent collisions
+        in: header
+        name: SessionId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of search results
+          schema:
+            items:
+              $ref: '#/definitions/files.searchResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search Files
+      tags:
+      - Search
+  /api/settings:
+    get:
+      consumes:
+      - application/json
+      description: Returns the current configuration settings for signup, user directories,
+        rules, frontend, and commands.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: System settings data
+          schema:
+            $ref: '#/definitions/http.settingsData'
+      summary: Get system settings
+      tags:
+      - Settings
+    put:
+      consumes:
+      - application/json
+      description: Updates the system configuration settings for signup, user directories,
+        rules, frontend, and commands.
+      parameters:
+      - description: Settings data to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.settingsData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Settings updated successfully
+        "400":
+          description: Bad request - failed to decode body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update system settings
+      tags:
+      - Settings
+  /api/share:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all share links associated with a specific resource path
+        for the current user.
+      parameters:
+      - description: Resource path for which to retrieve share links
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of share links for the specified path
+          schema:
+            items:
+              $ref: '#/definitions/share.Link'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get share links by path
+      tags:
+      - Shares
+  /api/shares:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of share links for the current user, or all links
+        if the user is an admin.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of share links
+          schema:
+            items:
+              $ref: '#/definitions/share.Link'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List share links
+      tags:
+      - Shares
+    post:
+      consumes:
+      - application/json
+      description: Creates a new share link with an optional expiration time and password
+        protection.
+      parameters:
+      - description: Share link creation parameters
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/share.CreateBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created share link
+          schema:
+            $ref: '#/definitions/share.Link'
+        "400":
+          description: Bad request - failed to decode body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a share link
+      tags:
+      - Shares
+  /api/shares/{hash}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a share link specified by its hash.
+      parameters:
+      - description: Hash of the share link to delete
+        in: path
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Share link deleted successfully
+        "400":
+          description: Bad request - missing or invalid hash
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a share link
+      tags:
+      - Shares
+  /api/usage:
+    get:
+      consumes:
+      - application/json
+      description: Returns the total and used disk space for a specified directory.
+      parameters:
+      - description: Name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Disk usage details
+          schema:
+            $ref: '#/definitions/http.DiskUsageResponse'
+        "404":
+          description: Directory not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get disk usage
+      tags:
+      - Resources
+  /api/users:
+    post:
+      consumes:
+      - application/json
+      description: Adds a new user to the system.
+      parameters:
+      - description: User data to create a new user
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/users.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created user
+          schema:
+            $ref: '#/definitions/users.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new user
+      tags:
+      - Users
+  /api/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a user identified by their ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a user by ID
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Returns a user's details based on their ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/users.User'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve a user by ID
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Updates the details of a user identified by ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User data to update
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/users.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user details
+          schema:
+            $ref: '#/definitions/users.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a user's details
+      tags:
+      - Users
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Returns the health status of the API.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successful health check response
+          schema:
+            $ref: '#/definitions/http.HttpResponse'
+      summary: Health Check
+      tags:
+      - Health
+swagger: "2.0"

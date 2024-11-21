@@ -1,7 +1,7 @@
 <template>
   <component
     :is="quickNav ? 'a' : 'div'"
-    :href="quickNav ? url : undefined"
+    :href="quickNav ? getUrl() : undefined"
     :class="{
       item: true,
       activebutton: isMaximized && isSelected,
@@ -16,6 +16,7 @@
     :data-type="type"
     :aria-label="name"
     :aria-selected="isSelected"
+    @contextmenu="onRightClick"
     @click="quickNav ? toggleClick() : itemClick($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
@@ -46,17 +47,21 @@
 .activebutton {
   height: 10em;
 }
+
 .activecontent {
   height: 5em !important;
   display: grid !important;
 }
+
 .activeimg {
   width: 8em !important;
   height: 8em !important;
 }
+
 .iconActive {
   font-size: 6em !important;
 }
+
 .activetitle {
   width: 9em !important;
   margin-right: 1em !important;
@@ -67,9 +72,10 @@
 import { enableThumbs } from "@/utils/constants";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { fromNow } from "@/utils/moment";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
+import { baseURL } from "@/utils/constants";
 
 export default {
   name: "item",
@@ -129,12 +135,7 @@ export default {
       if (state.req.path == "/") {
         path = "";
       }
-      const file = {
-        path: path + "/" + this.name,
-        modified: this.modified,
-      };
-
-      return api.getPreviewURL(file, "thumb");
+      return filesApi.getPreviewURL(path + "/" + this.name, "small", state.req.modified);
     },
     isThumbsEnabled() {
       return enableThumbs;
@@ -157,6 +158,24 @@ export default {
     }
   },
   methods: {
+    getUrl() {
+      return baseURL.slice(0, -1) + this.url;
+    },
+    onRightClick(event) {
+      event.preventDefault(); // Prevent default context menu
+
+      // If no items are selected, select the right-clicked item
+      if (getters.selectedCount() === 0) {
+        mutations.addSelected(this.index);
+      }
+      mutations.showHover({
+        name: "ContextMenu",
+        props: {
+          posX: event.clientX,
+          posY: event.clientY,
+        },
+      });
+    },
     handleIntersect(entries, observer) {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -227,21 +246,16 @@ export default {
           name: state.req.items[i].name,
         });
       }
+      let response = await filesApi.fetchFiles(el.__vue__.url);
 
-      // Get url from ListingItem instance
-      let path = el.__vue__.url;
-      let baseItems = (await api.fetch(path)).items;
-
-      let action = (overwrite, rename) => {
-        api
-          .move(items, overwrite, rename)
-          .then(() => {
-            mutations.setReload(true);
-          })
-          .catch(showError);
+      let action = async (overwrite, rename) => {
+        await filesApi.moveCopy(items, "move", overwrite, rename);
+        setTimeout(() => {
+          mutations.setReload(true);
+        }, 50);
       };
 
-      let conflict = upload.checkConflict(items, baseItems);
+      let conflict = upload.checkConflict(items, response.items);
 
       let overwrite = false;
       let rename = false;
@@ -258,14 +272,12 @@ export default {
             action(overwrite, rename);
           },
         });
-
         return;
       }
 
       action(overwrite, rename);
     },
     itemClick(event) {
-      console.log("should say something");
       if (this.singleClick && !state.multiple) this.open();
       else this.click(event);
     },

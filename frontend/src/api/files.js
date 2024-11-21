@@ -1,32 +1,17 @@
-import { createURL, fetchURL, removePrefix } from "./utils";
+import { createURL, fetchURL, adjustedData} from "./utils";
 import { baseURL } from "@/utils/constants";
+import { removePrefix,getApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 import { notify } from "@/notify";
 
 // Notify if errors occur
-export async function fetch(url, content = false) {
+export async function fetchFiles(url, content = false) {
   try {
-    url = removePrefix(url);
-
-    const res = await fetchURL(`/api/resources${url}?content=${content}`, {});
+    url = removePrefix(url,"files");
+    const apiPath = getApiPath("api/resources",{path: url, content: content});
+    const res = await fetchURL(apiPath);
     const data = await res.json();
-    data.url = `/files${url}`;
-
-    if (data.isDir) {
-      if (!data.url.endsWith("/")) data.url += "/";
-      data.items = data.items.map((item, index) => {
-        item.index = index;
-        item.url = `${data.url}${encodeURIComponent(item.name)}`;
-
-        if (item.isDir) {
-          item.url += "/";
-        }
-
-        return item;
-      });
-    }
-
-    return data;
+    return adjustedData(data,url);
   } catch (err) {
     notify.showError(err.message || "Error fetching data");
     throw err;
@@ -35,15 +20,12 @@ export async function fetch(url, content = false) {
 
 async function resourceAction(url, method, content) {
   try {
-    url = removePrefix(url);
-
     let opts = { method };
-
     if (content) {
       opts.body = content;
     }
-
-    const res = await fetchURL(`/api/resources${url}`, opts);
+    const apiPath = getApiPath("api/resources", { path: url });
+    const res = await fetchURL(apiPath, opts);
     return res;
   } catch (err) {
     notify.showError(err.message || "Error performing resource action");
@@ -72,27 +54,22 @@ export async function put(url, content = "") {
 export function download(format, ...files) {
   try {
     let url = `${baseURL}/api/raw`;
-
     if (files.length === 1) {
-      url += removePrefix(files[0]) + "?";
+      url +=  "?path="+removePrefix(files[0], "files");
     } else {
       let arg = "";
 
       for (let file of files) {
-        arg += removePrefix(file) + ",";
+        arg += removePrefix(file,"files") + ",";
       }
 
       arg = arg.substring(0, arg.length - 1);
       arg = encodeURIComponent(arg);
-      url += `/?files=${arg}&`;
+      url += `?files=${arg}`;
     }
 
     if (format) {
-      url += `algo=${format}&`;
-    }
-
-    if (state.jwt) {
-      url += `auth=${state.jwt}&`;
+      url += `&algo=${format}`;
     }
 
     window.open(url);
@@ -103,7 +80,7 @@ export function download(format, ...files) {
 
 export async function post(url, content = "", overwrite = false, onupload) {
   try {
-    url = removePrefix(url);
+    url = removePrefix(url,"files");
 
     let bufferContent;
     if (
@@ -113,11 +90,12 @@ export async function post(url, content = "", overwrite = false, onupload) {
       bufferContent = await new Response(content).arrayBuffer();
     }
 
+    const apiPath = getApiPath("api/resources", { path: url, override: overwrite });
     return new Promise((resolve, reject) => {
       let request = new XMLHttpRequest();
       request.open(
         "POST",
-        `${baseURL}/api/resources${url}?override=${overwrite}`,
+        apiPath,
         true
       );
       request.setRequestHeader("X-Auth", state.jwt);
@@ -148,30 +126,27 @@ export async function post(url, content = "", overwrite = false, onupload) {
   }
 }
 
-function moveCopy(items, copy = false, overwrite = false, rename = false) {
+export async function moveCopy(items, action = "copy", overwrite = false, rename = false) {
   let promises = [];
-
-  for (let item of items) {
-    const from = item.from;
-    const to = encodeURIComponent(removePrefix(item.to));
-    const url = `${from}?action=${
-      copy ? "copy" : "rename"
-    }&destination=${to}&override=${overwrite}&rename=${rename}`;
-    promises.push(resourceAction(url, "PATCH"));
+  let params = {
+    overwrite: overwrite,
+    action: action,
+    rename: rename,
   }
+  try {
+    for (let item of items) {
+      let localParams = { ...params };
+      localParams.destination = item.to;
+      localParams.from = item.from;
+      const apiPath = getApiPath("api/resources", localParams);
+      promises.push(fetch(apiPath, { method: "PATCH" }));
+    }
+    return promises;
 
-  return Promise.all(promises).catch((err) => {
+  } catch (err) {
     notify.showError(err.message || "Error moving/copying resources");
     throw err;
-  });
-}
-
-export function move(items, overwrite = false, rename = false) {
-  return moveCopy(items, false, overwrite, rename);
-}
-
-export function copy(items, overwrite = false, rename = false) {
-  return moveCopy(items, true, overwrite, rename);
+  }
 }
 
 export async function checksum(url, algo) {
@@ -184,27 +159,29 @@ export async function checksum(url, algo) {
   }
 }
 
-export function getDownloadURL(file, inline) {
+export function getDownloadURL(path, inline) {
   try {
     const params = {
+      path: path,
       ...(inline && { inline: "true" }),
     };
-
-    return createURL("api/raw" + file.path, params);
+    return createURL("api/raw", params);
   } catch (err) {
     notify.showError(err.message || "Error getting download URL");
     throw err;
   }
 }
 
-export function getPreviewURL(file, size) {
+export function getPreviewURL(path, size, modified) {
   try {
     const params = {
+      path: path,
+      size: size,
+      key: Date.parse(modified),
       inline: "true",
-      key: Date.parse(file.modified),
     };
 
-    return createURL("api/preview/" + size + file.path, params);
+    return createURL("api/preview", params);
   } catch (err) {
     notify.showError(err.message || "Error getting preview URL");
     throw err;
@@ -229,11 +206,10 @@ export function getSubtitlesURL(file) {
   }
 }
 
-export async function usage(url) {
+export async function usage(source) {
   try {
-    url = removePrefix(url);
-
-    const res = await fetchURL(`/api/usage${url}`, {});
+    const apiPath = getApiPath("api/usage", { source: source });
+    const res = await fetchURL(apiPath);
     return await res.json();
   } catch (err) {
     notify.showError(err.message || "Error fetching usage data");

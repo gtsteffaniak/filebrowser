@@ -88,7 +88,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, mutations, getters } from "@/store";
-import { settings as api } from "@/api";
+import { settingsApi } from "@/api";
 import { enableExec } from "@/utils/constants";
 import Rules from "@/components/settings/Rules.vue";
 import Errors from "@/views/Errors.vue";
@@ -117,7 +117,7 @@ export default {
   },
   async created() {
     mutations.setLoading("settings", true);
-    const original = await api.get();
+    const original = await settingsApi.get();
     mutations.setSettings(original);
     mutations.setLoading("settings", false);
   },
@@ -139,7 +139,7 @@ export default {
     async save() {
       try {
         mutations.setSettings(this.selectedSettings);
-        await api.update(state.settings);
+        await settingsApi.update(state.settings);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
         notify.showError(e);

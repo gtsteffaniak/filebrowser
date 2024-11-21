@@ -122,7 +122,7 @@
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { share as api, pub as pub_api } from "@/api";
+import { shareApi, publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 
@@ -134,6 +134,7 @@ export default {
       unit: "hours",
       links: [],
       clip: null,
+      subpath: "",
       password: "",
       listing: true,
     };
@@ -165,16 +166,32 @@ export default {
       return state.req.items[this.selected[0]].url;
     },
     getContext() {
-      let path = state.route.path.replace("/files/", "./");
+      const prefix = `/files/`;
+      let path = state.route.path.replace(prefix, "./");
       if (getters.selectedCount() === 1) {
         path = path + state.req.items[this.selected[0]].name;
       }
-      return path;
+      return decodeURIComponent(path);
     },
   },
   async beforeMount() {
-    const links = await api.get(this.url);
-    this.links = links;
+    try {
+      const prefix = `/files`;
+      let path = state.route.path.startsWith(prefix)
+        ? state.route.path.slice(prefix.length)
+        : state.route.path;
+      path = decodeURIComponent(path);
+      if (path == "") {
+        path = "/";
+      }
+      this.subpath = path;
+      // get last element of the path
+      const links = await shareApi.get(this.subpath);
+      this.links = links;
+    } catch (err) {
+      notify.showError(err);
+      return;
+    }
     this.sort();
 
     if (this.links.length === 0) {
@@ -197,9 +214,9 @@ export default {
       let res = null;
 
       if (isPermanent) {
-        res = await api.create(this.url, this.password);
+        res = await shareApi.create(this.subpath, this.password);
       } else {
-        res = await api.create(this.url, this.password, this.time, this.unit);
+        res = await shareApi.create(this.subpath, this.password, this.time, this.unit);
       }
 
       this.links.push(res);
@@ -213,9 +230,8 @@ export default {
     },
     async deleteLink(event, link) {
       event.preventDefault();
-      await api.remove(link.hash);
+      await shareApi.remove(link.hash);
       this.links = this.links.filter((item) => item.hash !== link.hash);
-
       if (this.links.length === 0) {
         this.listing = false;
       }
@@ -224,13 +240,13 @@ export default {
       return fromNow(time, state.user.locale);
     },
     buildLink(share) {
-      return api.getShareURL(share);
+      return shareApi.getShareURL(share);
     },
     hasDownloadLink() {
       return this.selected.length === 1 && !state.req.items[this.selected[0]].isDir;
     },
     buildDownloadLink(share) {
-      return pub_api.getDownloadURL(share);
+      return publicApi.getDownloadURL(share);
     },
     sort() {
       this.links = this.links.sort((a, b) => {

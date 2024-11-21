@@ -40,8 +40,8 @@
   </div>
 </template>
 <script>
-import url from "@/utils/url";
-import { files as api } from "@/api";
+import url from "@/utils/url.js";
+import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 
 export default {
@@ -98,13 +98,15 @@ export default {
 
       newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
 
-      await api.move([{ from: oldLink, to: newLink }]);
+      await filesApi.moveCopy([{ from: oldLink, to: newLink }], "move");
       if (!this.isListing) {
         this.$router.push({ path: newLink });
         return;
       }
 
-      mutations.setReload(true);
+      setTimeout(() => {
+        mutations.setReload(true);
+      }, 50);
 
       mutations.closeHovers();
     },

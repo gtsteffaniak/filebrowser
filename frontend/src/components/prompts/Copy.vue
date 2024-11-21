@@ -49,10 +49,10 @@
 <script>
 import { mutations, state } from "@/store";
 import FileList from "./FileList.vue";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { notify } from "@/notify";
+//import { notify } from "@/notify";
 
 export default {
   name: "copy",
@@ -77,33 +77,19 @@ export default {
       let items = [];
 
       // Create a new promise for each file.
-      for (let item of this.selected) {
+      for (let item of state.selected) {
         items.push({
-          from: store.req.items[item].url,
-          to: this.dest + encodeURIComponent(store.req.items[item].name),
-          name: store.req.items[item].name,
+          from: state.req.items[item].url,
+          to: this.dest + encodeURIComponent(state.req.items[item].name),
+          name: state.req.items[item].name,
         });
       }
 
       let action = async (overwrite, rename) => {
         buttons.loading("copy");
-
-        await api
-          .copy(items, overwrite, rename)
-          .then(() => {
-            buttons.success("copy");
-
-            if (state.route.path === this.dest) {
-              mutations.setReload(true);
-              return;
-            }
-
-            this.$router.push({ path: this.dest });
-          })
-          .catch((e) => {
-            buttons.done("copy");
-            notify.showError(e);
-          });
+        await filesApi.moveCopy(items, "copy", overwrite, rename);
+        this.$router.push({ path: this.dest });
+        mutations.setReload(true);
       };
 
       if (state.route.path === this.dest) {
@@ -113,7 +99,7 @@ export default {
         return;
       }
 
-      let dstItems = (await api.fetch(this.dest)).items;
+      let dstItems = (await filesApi.fetchFiles(this.dest)).items;
       let conflict = upload.checkConflict(items, dstItems);
 
       let overwrite = false;

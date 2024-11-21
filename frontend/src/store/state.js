@@ -36,6 +36,7 @@ export const state = reactive({
     numDirs: 0,
     numFiles: 0,
   },
+  previewRaw: "",
   oldReq: {},
   clipboard: {
     key: "",

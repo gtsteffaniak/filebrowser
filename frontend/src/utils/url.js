@@ -1,3 +1,5 @@
+import { baseURL } from "@/utils/constants.js";
+
 export function removeLastDir(url) {
   var arr = url.split("/");
   if (arr.pop() === "") {
@@ -29,10 +31,6 @@ export function encodePath(str) {
     .join("/");
 }
 
-// Function to remove trailing slash
-export function removeTrailingSlash(url) {
-  return url.endsWith("/") ? url.slice(0, -1) : url;
-}
 
 export function pathsMatch(url1, url2) {
   return removeTrailingSlash(url1) == removeTrailingSlash(url2);
@@ -44,4 +42,68 @@ export default {
   encodeRFC5987ValueChars,
   removeLastDir,
   encodePath,
+  removePrefix,
+  getApiPath
 };
+
+export function removePrefix(path, prefix) {
+  if (prefix != "") {
+    prefix = "/" + trimSlashes(prefix)
+  }
+  const combined = trimSlashes(baseURL) + prefix
+  // Remove combined (baseURL + prefix) from the start of the path if present
+  if (path.startsWith(combined)) {
+    path = path.slice(combined.length);
+  } else if (path.startsWith(prefix)) {
+    // Fallback: remove only the prefix if the combined string isn't present
+    path = path.slice(prefix.length);
+  }
+
+  // Ensure path starts with '/'
+  if (!path.startsWith('/')) {
+    path = '/' + path;
+  }
+
+  return path;
+}
+
+
+// get path with parameters
+export function getApiPath(path, params = {}) {
+  if (path.startsWith("/")) {
+    path = path.slice(1);
+  }
+  path = `${baseURL}${path}`;
+  if (Object.keys(params).length > 0) {
+    path += "?";
+  }
+  for (const key in params) {
+    if (params[key] === undefined) {
+      continue;
+    }
+    path += `${key}=${params[key]}&`;
+  }
+  // remove trailing &
+  if (path.endsWith("&")) {
+    path = path.slice(0, -1);
+  }
+  return path;
+}
+
+export function removeTrailingSlash(str) {
+  if (str.endsWith('/')) {
+    return str.slice(0, -1);
+  }
+  return str;
+}
+
+export function removeLeadingSlash(str) {
+  if (str.startsWith('/')) {
+    return str.slice(1);
+  }
+  return str;
+}
+
+export function trimSlashes(str) {
+  return removeLeadingSlash(removeTrailingSlash(str))
+}

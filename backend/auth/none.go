@@ -14,7 +14,7 @@ const MethodNoAuth = "noauth"
 type NoAuth struct{}
 
 // Auth uses authenticates user 1.
-func (a NoAuth) Auth(r *http.Request, usr users.Store) (*users.User, error) {
+func (a NoAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
 	return usr.Get(settings.Config.Server.Root, uint(1))
 }
 

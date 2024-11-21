@@ -15,10 +15,10 @@
 </style>
 
 <script>
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import router from "@/router";
 import { state, mutations, getters } from "@/store";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import Action from "@/components/Action.vue";
 import css from "@/utils/css";
 
@@ -67,7 +67,7 @@ export default {
       const files = [];
 
       state.req.items.forEach((item) => {
-        if (item.isDir) {
+        if (item.type == "directory") {
           dirs.push(item);
         } else {
           files.push(item);
@@ -326,7 +326,7 @@ export default {
         path: state.route.path,
       });
     },
-    paste(event) {
+    async paste(event) {
       if (event.target.tagName.toLowerCase() === "input") {
         return;
       }
@@ -343,26 +343,10 @@ export default {
         return;
       }
 
-      let action = (overwrite, rename) => {
-        const promises = [];
-
-        items.forEach((item) => {
-          promises.push(
-            api.copy({
-              from: item.from,
-              to: item.to,
-              name: item.name,
-              overwrite: overwrite,
-              rename: rename,
-            })
-          );
-        });
-
-        Promise.all(promises).then(() => {
-          mutations.resetClipboard();
-          mutations.resetSelected();
-          this.$showMessage("success", "Copied successfully");
-        });
+      let action = async (overwrite, rename) => {
+        await filesApi.moveCopy(items, "copy", overwrite, rename);
+        notify.showSuccess("Items pasted successfully.");
+        mutations.setReload(true);
       };
 
       this.$confirm(

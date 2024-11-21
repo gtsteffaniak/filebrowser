@@ -1,7 +1,6 @@
 import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
-import { encodePath } from "@/utils/url";
 import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
@@ -12,11 +11,14 @@ export async function fetchURL(url, opts, auth = true) {
 
   let res;
   try {
-    res = await fetch(`${baseURL}${url}`, {
+    let userScope = "";
+    if (state.user) {
+      userScope = state.user.scope;
+    }
+    res = await fetch(url, {
       headers: {
-        "X-Auth": state.jwt,
         "sessionId": state.sessionId,
-        "userScope": state.user.scope,
+        "userScope": userScope,
         ...headers,
       },
       ...rest,
@@ -48,30 +50,22 @@ export async function fetchURL(url, opts, auth = true) {
 
 export async function fetchJSON(url, opts) {
   const res = await fetchURL(url, opts);
-  if (res.status === 200) {
+  if (res.status < 300) {
     return res.json();
   } else {
-    notify.showError("unable to fetch : " + url + "status" + res.status);
+    notify.showError("received status: "+res.status+" on url " + url);
     throw new Error(res.status);
   }
 }
 
-export function removePrefix(url) {
-  url = url.split("/").splice(2).join("/");
-  if (url === "") url = "/";
-  if (url[0] !== "/") url = "/" + url;
-  return url;
-}
-
-export function createURL(endpoint, params = {}, auth = true) {
+export function createURL(endpoint, params = {}) {
   let prefix = baseURL;
   if (!prefix.endsWith("/")) {
     prefix = prefix + "/";
   }
-  const url = new URL(prefix + encodePath(endpoint), origin);
+  const url = new URL(prefix + endpoint, origin);
 
   const searchParams = {
-    ...(auth && { auth: state.jwt }),
     ...params,
   };
 
@@ -80,4 +74,20 @@ export function createURL(endpoint, params = {}, auth = true) {
   }
 
   return url.toString();
+}
+
+export function adjustedData(data, url) {
+  data.url = url;
+  if (data.type == "directory") {
+    if (!data.url.endsWith("/")) data.url += "/";
+    data.items = data.items.map((item, index) => {
+      item.index = index;
+      item.url = `${data.url}${item.name}`;
+      if (item.type == "directory") {
+        item.url += "/";
+      }
+      return item;
+    });
+  }
+  return data
 }

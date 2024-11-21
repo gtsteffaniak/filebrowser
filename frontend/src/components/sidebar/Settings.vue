@@ -5,7 +5,7 @@
     :id="setting.id + '-sidebar'"
     class="card clickable"
     @click="setView(setting.id + '-main')"
-    :class="{ 'active-settings': active(setting.id + '-main') }"
+    :class="{ hidden: !shouldShow(setting), 'active-settings': active(setting.id + '-main') }"
   >
     <div v-if="shouldShow(setting)" class="card-wrapper">{{ setting.label }}</div>
   </div>

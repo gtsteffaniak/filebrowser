@@ -2,8 +2,8 @@ package files
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -23,27 +23,26 @@ func BenchmarkFillIndex(b *testing.B) {
 
 func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
-		dirName := generateRandomPath(rand.Intn(3) + 1)
-		files := []*FileInfo{} // Slice of FileInfo
+		dirPath := generateRandomPath(rand.Intn(3) + 1)
+		files := []ReducedItem{} // Slice of FileInfo
 
 		// Simulating files and directories with FileInfo
 		for j := 0; j < numFilesPerDir; j++ {
-			newFile := &FileInfo{
+			newFile := ReducedItem{
 				Name:    "file-" + getRandomTerm() + getRandomExtension(),
-				IsDir:   false,
 				Size:    rand.Int63n(1000),                                          // Random size
 				ModTime: time.Now().Add(-time.Duration(rand.Intn(100)) * time.Hour), // Random mod time
+				Type:    "blob",
 			}
 			files = append(files, newFile)
 		}
-
-		// Simulate inserting files into index
-		for _, file := range files {
-			_, err := si.InsertInfo(dirName, file)
-			if err != nil {
-				fmt.Println("Error inserting file:", err)
-			}
+		dirInfo := &FileInfo{
+			Name:  filepath.Base(dirPath),
+			Path:  dirPath,
+			Files: files,
 		}
+
+		si.UpdateMetadata(dirInfo)
 	}
 }
 
