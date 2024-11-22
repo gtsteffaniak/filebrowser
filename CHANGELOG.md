@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.3.1
 
+  **New Features**
+  - Adds Smart Indexing. (and deprecating `indexingInterval` configuration.)
+
   **Notes**:
   - Optimized api request response times via improved caching
 
@@ -12,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Tweaked sorting by name, fixes case sensitive and numeric sorting. https://github.com/gtsteffaniak/filebrowser/issues/230
   - Fixed unnecessary authentication status checks each route change
   - Fix create file action issue.
+  - some small javascript related issues.
 
 ## v0.3.0
 
