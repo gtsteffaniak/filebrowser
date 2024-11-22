@@ -40,9 +40,9 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 			return dir, true
 		}
 		cleanedItems := []ReducedItem{}
-		for name, item := range dir.Dirs {
+		for _, item := range dir.Dirs {
 			cleanedItems = append(cleanedItems, ReducedItem{
-				Name:    name,
+				Name:    item.Name,
 				Size:    item.Size,
 				ModTime: item.ModTime,
 				Type:    "directory",

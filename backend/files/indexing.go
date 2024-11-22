@@ -3,12 +3,12 @@ package files
 import (
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 type Index struct {
@@ -90,7 +90,8 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	if err != nil {
 		return err
 	}
-	//
+	// TODO, inspect every directory regardless, but don't dir.ReadDir() if the directory hasn't been modified
+	// instead use files info from index to transverse the directory
 	//// Skip directories that haven't been modified since the last index
 	//if dirInfo.ModTime().Before(si.LastIndexed) {
 	//	return nil
@@ -105,7 +106,7 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	var totalSize int64
 	var numDirs, numFiles uint64
 	fileInfos := []ReducedItem{}
-	dirInfos := map[string]*FileInfo{}
+	dirInfos := []ReducedItem{}
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {
 		combinedPath = "/"
@@ -113,25 +114,18 @@ func (si *Index) indexFiles(adjustedPath string) error {
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-		itemInfo := &FileInfo{
-			ModTime: file.ModTime(),
+		itemInfo := ReducedItem{
+			Name: file.Name(),
 		}
 		if file.IsDir() {
-			itemInfo.Name = file.Name()
-			itemInfo.Path = combinedPath + file.Name()
+			dirPath := combinedPath + file.Name()
 			// Recursively index the subdirectory
-			err := si.indexFiles(itemInfo.Path)
+			err := si.indexFiles(dirPath)
 			if err != nil {
-				log.Printf("Failed to index directory %s: %v", itemInfo.Path, err)
+				log.Printf("Failed to index directory %s: %v", dirPath, err)
 				continue
 			}
-			// Fetch the metadata for the subdirectory after indexing
-			subDirInfo, exists := si.GetMetadataInfo(itemInfo.Path, true)
-			if exists {
-				itemInfo.Size = subDirInfo.Size
-				totalSize += subDirInfo.Size // Add subdirectory size to the total
-			}
-			dirInfos[itemInfo.Name] = itemInfo
+			dirInfos = append(dirInfos, itemInfo)
 			numDirs++
 		} else {
 			itemInfo := &ReducedItem{
@@ -183,33 +177,14 @@ func (si *Index) makeIndexPath(subPath string) string {
 	return adjustedPath
 }
 
-//func getParentPath(path string) string {
-//	// Trim trailing slash for consistency
-//	path = strings.TrimSuffix(path, "/")
-//	if path == "" || path == "/" {
-//		return "" // Root has no parent
-//	}
-//
-//	lastSlash := strings.LastIndex(path, "/")
-//	if lastSlash == -1 {
-//		return "/" // Parent of a top-level directory
-//	}
-//	return path[:lastSlash]
-//}
-
-func (si *Index) recursiveUpdateDirSizes(parentDir string, childInfo *FileInfo, previousSize int64) {
-	childDirName := filepath.Base(childInfo.Path)
-	if parentDir == childDirName {
-		return
-	}
-	dir, exists := si.GetMetadataInfo(parentDir, true)
+func (si *Index) recursiveUpdateDirSizes(childInfo *FileInfo, previousSize int64) {
+	parentDir := utils.GetParentDirectoryPath(childInfo.Path)
+	parentInfo, exists := si.GetMetadataInfo(parentDir, true)
 	if !exists {
 		return
 	}
-	dir.Dirs[childDirName] = childInfo
-	newSize := dir.Size - previousSize + childInfo.Size
-	dir.Size += newSize
-	si.UpdateMetadata(dir)
-	dir, _ = si.GetMetadataInfo(parentDir, true)
-	si.recursiveUpdateDirSizes(filepath.Dir(parentDir), dir, newSize)
+	newSize := parentInfo.Size - previousSize + childInfo.Size
+	parentInfo.Size += newSize
+	si.UpdateMetadata(parentInfo)
+	si.recursiveUpdateDirSizes(parentInfo, newSize)
 }

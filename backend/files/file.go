@@ -42,18 +42,18 @@ type ReducedItem struct {
 // FileInfo describes a file.
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
-	Files     []ReducedItem        `json:"-"`
-	Dirs      map[string]*FileInfo `json:"-"`
-	Path      string               `json:"path"`
-	Name      string               `json:"name"`
-	Items     []ReducedItem        `json:"items"`
-	Size      int64                `json:"size"`
-	ModTime   time.Time            `json:"modified"`
-	Mode      os.FileMode          `json:"-"`
-	Type      string               `json:"type"`
-	Subtitles []string             `json:"subtitles,omitempty"`
-	Content   string               `json:"content,omitempty"`
-	Checksums map[string]string    `json:"checksums,omitempty"`
+	Files     []ReducedItem     `json:"-"`
+	Dirs      []ReducedItem     `json:"-"`
+	Path      string            `json:"path"`
+	Name      string            `json:"name"`
+	Items     []ReducedItem     `json:"items"`
+	Size      int64             `json:"size"`
+	ModTime   time.Time         `json:"modified"`
+	Mode      os.FileMode       `json:"-"`
+	Type      string            `json:"type"`
+	Subtitles []string          `json:"subtitles,omitempty"`
+	Content   string            `json:"content,omitempty"`
+	Checksums map[string]string `json:"checksums,omitempty"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -157,7 +157,7 @@ func RefreshFileInfo(opts FileOptions) error {
 		return nil
 	}
 	if current.Size != file.Size {
-		index.recursiveUpdateDirSizes(filepath.Dir(refreshOptions.Path), file, current.Size)
+		index.recursiveUpdateDirSizes(file, current.Size)
 	}
 	return nil
 }
@@ -192,9 +192,9 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		//if err != nil {
 		//	return nil, err
 		//}
-		index := GetIndex(rootPath)
+		//index := GetIndex(rootPath)
 		//// Check cached metadata to decide if refresh is needed
-		cachedParentDir, exists := index.GetMetadataInfo(opts.Path, true)
+		//cachedParentDir, exists := index.GetMetadataInfo(opts.Path, true)
 		//if exists && dirInfo.ModTime().Before(cachedParentDir.CacheTime) {
 		//	return cachedParentDir, nil
 		//}
@@ -206,27 +206,24 @@ func stat(opts FileOptions) (*FileInfo, error) {
 		}
 
 		file.Files = []ReducedItem{}
-		file.Dirs = map[string]*FileInfo{}
+		file.Dirs = []ReducedItem{}
 
 		var totalSize int64
 		for _, item := range files {
 			itemPath := filepath.Join(realPath, item.Name())
 
 			if item.IsDir() {
-				itemInfo := &FileInfo{
-					Name:    item.Name(),
-					ModTime: item.ModTime(),
-					Mode:    item.Mode(),
+				itemInfo := ReducedItem{
+					Name: item.Name(),
 				}
-
-				if exists {
-					// if directory size was already cached use that.
-					cachedDir, ok := cachedParentDir.Dirs[item.Name()]
-					if ok {
-						itemInfo.Size = cachedDir.Size
-					}
-				}
-				file.Dirs[item.Name()] = itemInfo
+				//if exists {
+				//// if directory size was already cached use that.
+				//cachedDir, ok := cachedParentDir.Dirs[item.Name()]
+				//if ok {
+				//	itemInfo.Size = cachedDir.Size
+				//}
+				//}//
+				file.Dirs = append(file.Dirs, itemInfo)
 				totalSize += itemInfo.Size
 			} else {
 				itemInfo := ReducedItem{
@@ -423,11 +420,8 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 		return err
 	}
 	opts.Path = parentDir
-	err = RefreshFileInfo(opts)
-	if err != nil {
-		return errors.ErrEmptyKey
-	}
-	return nil
+	opts.IsDir = true
+	return RefreshFileInfo(opts)
 }
 
 // resolveSymlinks resolves symlinks in the given path
@@ -559,6 +553,7 @@ func (i *ReducedItem) readFirstBytes(path string) []byte {
 	return buffer[:n]
 }
 
+// TODO add subtitles back
 // detectSubtitles detects subtitles for video files.
 //func (i *FileInfo) detectSubtitles(path string) {
 //	if i.Type != "video" {

@@ -69,3 +69,17 @@ func PrintStructFields(v interface{}) {
 		fmt.Printf("Field: %s, %s\n", fieldType.Name, fieldValue)
 	}
 }
+
+func GetParentDirectoryPath(path string) string {
+	// Trim trailing slash for consistency
+	path = strings.TrimSuffix(path, "/")
+	if path == "" || path == "/" {
+		return "" // Root has no parent
+	}
+
+	lastSlash := strings.LastIndex(path, "/")
+	if lastSlash == -1 {
+		return "/" // Parent of a top-level directory
+	}
+	return path[:lastSlash]
+}
