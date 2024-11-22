@@ -9,6 +9,7 @@ import (
 
 	"github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/diskcache"
+	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/share"
@@ -37,6 +38,23 @@ func setupTestEnv(t *testing.T) {
 	fileCache = diskcache.NewNoOp() // mocked
 	imgSvc = img.New(1)             // mocked
 	config = &settings.Config       // mocked
+	mockFileInfoFaster(t)           // Mock FileInfoFasterFunc for this test
+}
+
+func mockFileInfoFaster(t *testing.T) {
+	// Backup the original function
+	originalFileInfoFaster := FileInfoFasterFunc
+	// Defer restoration of the original function
+	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
+
+	// Mock the function to skip execution
+	FileInfoFasterFunc = func(opts files.FileOptions) (*files.FileInfo, error) {
+		return &files.FileInfo{
+			Name: "mocked_file",
+			Path: opts.Path,
+			Size: 12345,
+		}, nil
+	}
 }
 
 func TestWithAdminHelper(t *testing.T) {

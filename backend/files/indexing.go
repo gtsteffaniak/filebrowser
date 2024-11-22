@@ -229,6 +229,7 @@ func (si *Index) recursiveUpdateDirSizes(childInfo *FileInfo, previousSize int64
 }
 
 func (si *Index) RefreshFileInfo(opts FileOptions) error {
+	fmt.Println("Refreshing file info", opts.Path, opts.IsDir, si.Directories["/"])
 	refreshOptions := FileOptions{
 		Path:  opts.Path,
 		IsDir: opts.IsDir,

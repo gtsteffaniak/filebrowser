@@ -26,6 +26,8 @@ type HttpResponse struct {
 	Token   string `json:"token,omitempty"`
 }
 
+var FileInfoFasterFunc = files.FileInfoFaster
+
 // Updated handleFunc to match the new signature
 type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error)
 
@@ -53,7 +55,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		user := &users.PublicUser
 
 		// Get file information with options
-		file, err := files.FileInfoFaster(files.FileOptions{
+		file, err := FileInfoFasterFunc(files.FileOptions{
 			Path:       filepath.Join(user.Scope, link.Path+"/"+path),
 			Modify:     user.Perm.Modify,
 			Expand:     true,

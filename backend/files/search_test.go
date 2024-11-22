@@ -102,7 +102,7 @@ func TestSearchIndexes(t *testing.T) {
 					{Name: "archive.zip", Size: 100, Type: "archive"},
 				},
 				Dirs: []ReducedItem{
-					{Name: "thisIsDir", Size: 2 * 1024 * 1024},
+					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 				},
 			},
 			"/firstDir/thisIsDir": {
