@@ -18,7 +18,7 @@ export const getters = {
   isLoggedIn: () => {
     if (state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser") {
       return true;
-    };
+    }
     const userData = localStorage.getItem("userData");
     if (userData == undefined) {
       return false;

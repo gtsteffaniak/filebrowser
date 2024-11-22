@@ -137,7 +137,7 @@ func (si *Index) indexDirectory(adjustedPath string, quick, recursive bool) erro
 			dirPath := combinedPath + file.Name()
 			if recursive {
 				// Recursively index the subdirectory
-				err := si.indexDirectory(dirPath, quick, recursive)
+				err = si.indexDirectory(dirPath, quick, recursive)
 				if err != nil {
 					log.Printf("Failed to index directory %s: %v", dirPath, err)
 					continue
