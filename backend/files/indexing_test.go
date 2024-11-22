@@ -12,7 +12,7 @@ import (
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	InitializeIndex(5, false)
+	InitializeIndex(false)
 	si := GetIndex(settings.Config.Server.Root)
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -114,18 +114,14 @@ func TestGetIndex(t *testing.T) {
 }
 
 func TestInitializeIndex(t *testing.T) {
-	type args struct {
-		intervalMinutes uint32
-	}
 	tests := []struct {
 		name string
-		args args
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			InitializeIndex(tt.args.intervalMinutes, false)
+			InitializeIndex(false)
 		})
 	}
 }

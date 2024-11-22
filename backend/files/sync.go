@@ -3,9 +3,6 @@ package files
 import (
 	"log"
 	"path/filepath"
-	"sort"
-	"strconv"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
@@ -19,7 +16,7 @@ func (si *Index) UpdateMetadata(info *FileInfo) bool {
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
+func (si *Index) GetReducedMetadata(target string, isDir bool) (FileInfo, bool) {
 	si.mu.Lock()
 	defer si.mu.Unlock()
 	checkDir := si.makeIndexPath(target)
@@ -28,7 +25,7 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 	}
 	dir, exists := si.Directories[checkDir]
 	if !exists {
-		return nil, false
+		return FileInfo{}, false
 	}
 	dirname := filepath.Base(dir.Path)
 	if dirname == "." {
@@ -36,35 +33,20 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 	}
 
 	if isDir {
-		if len(dir.Items) > 0 {
-			return dir, true
-		}
 		cleanedItems := []ReducedItem{}
-		for _, item := range dir.Dirs {
-			cleanedItems = append(cleanedItems, ReducedItem{
-				Name:    item.Name,
-				Size:    item.Size,
-				ModTime: item.ModTime,
-				Type:    "directory",
-			})
-		}
-
+		cleanedItems = append(cleanedItems, dir.Dirs...)
 		cleanedItems = append(cleanedItems, dir.Files...)
-		sort.Slice(cleanedItems, func(i, j int) bool {
-			// Convert strings to integers for numeric sorting if both are numeric
-			numI, errI := strconv.Atoi(cleanedItems[i].Name)
-			numJ, errJ := strconv.Atoi(cleanedItems[j].Name)
-			if errI == nil && errJ == nil {
-				return numI < numJ
-			}
-			// Fallback to case-insensitive lexicographical sorting
-			return strings.ToLower(cleanedItems[i].Name) < strings.ToLower(cleanedItems[j].Name)
-		})
 		dir.Type = "directory"
 		dir.Items = cleanedItems
-		return dir, true
+		return FileInfo{
+			Name:    dirname,
+			Size:    dir.Size,
+			ModTime: dir.ModTime,
+			Type:    "directory",
+			Path:    checkDir,
+			Items:   cleanedItems,
+		}, true
 	}
-
 	// handle file
 	if checkDir == "/" {
 		checkDir = ""
@@ -72,7 +54,7 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 	baseName := filepath.Base(target)
 	for _, item := range dir.Files {
 		if item.Name == baseName {
-			return &FileInfo{
+			return FileInfo{
 				Name:    item.Name,
 				Size:    item.Size,
 				ModTime: item.ModTime,
@@ -81,7 +63,7 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 			}, true
 		}
 	}
-	return nil, false
+	return FileInfo{}, false
 
 }
 

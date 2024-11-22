@@ -89,8 +89,8 @@ func TestGetFileMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, _ := testIndex.GetReducedMetadata(tt.adjustedPath, tt.isDir)
-			if fileInfo == nil {
+			fileInfo, exists := testIndex.GetReducedMetadata(tt.adjustedPath, tt.isDir)
+			if !exists {
 				found := false
 				assert.Equal(t, tt.expectedExists, found)
 				return
@@ -134,7 +134,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 		},
 	}
 
-	success := index.UpdateMetadata(info, true)
+	success := index.UpdateMetadata(info)
 	if !success {
 		t.Fatalf("expected UpdateFileMetadata to succeed")
 	}
@@ -182,7 +182,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 			{Name: "testfile.txt"},
 		},
 	}
-	index.UpdateMetadata(dir, true)
+	index.UpdateMetadata(dir)
 	storedDir, exists := index.Directories["/newPath"]
 	if !exists || storedDir.Items[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
@@ -251,8 +251,8 @@ func init() {
 				Files: []ReducedItem{
 					{Name: "afile.txt", Size: 100},
 				},
-				Dirs: map[string]*FileInfo{
-					"directory": {Name: "directory", Type: "directory", Size: 100},
+				Dirs: []ReducedItem{
+					{Name: "directory", Type: "directory", Size: 100},
 				},
 			},
 		},

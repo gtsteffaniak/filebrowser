@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
   **New Features**
   - Adds Smart Indexing. (and deprecating `indexingInterval` configuration.)
+    - Added [indexing doc](./docs/indexing.md) to explain the expectations around indexing and how it works.
+  - 
 
   **Notes**:
   - Optimized api request response times via improved caching

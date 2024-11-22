@@ -71,15 +71,16 @@ func PrintStructFields(v interface{}) {
 }
 
 func GetParentDirectoryPath(path string) string {
-	// Trim trailing slash for consistency
-	path = strings.TrimSuffix(path, "/")
-	if path == "" || path == "/" {
-		return "" // Root has no parent
+	if path == "/" || path == "" {
+		return ""
 	}
-
+	path = strings.TrimSuffix(path, "/") // Remove trailing slash if any
 	lastSlash := strings.LastIndex(path, "/")
 	if lastSlash == -1 {
-		return "/" // Parent of a top-level directory
+		return "" // No parent directory for a relative path without slashes
+	}
+	if lastSlash == 0 {
+		return "/" // If the last slash is the first character, return root
 	}
 	return path[:lastSlash]
 }

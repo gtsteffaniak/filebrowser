@@ -1,6 +1,7 @@
 package files
 
 import (
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -31,6 +32,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	var directories []string
 	cachedDirs, ok := utils.SearchResultsCache.Get(si.Root + scope).([]string)
 	if ok {
+		fmt.Println("using cached dirs")
 		directories = cachedDirs
 	} else {
 		directories = si.getDirsInScope(scope)
