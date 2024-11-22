@@ -14,8 +14,8 @@ import (
 type Index struct {
 	Root        string
 	Directories map[string]*FileInfo
-	NumDirs     int
-	NumFiles    int
+	NumDirs     uint64
+	NumFiles    uint64
 	inProgress  bool
 	LastIndexed time.Time
 	mu          sync.RWMutex
@@ -27,9 +27,9 @@ var (
 	indexesMutex sync.RWMutex
 )
 
-func InitializeIndex(intervalMinutes uint32, schedule bool) {
-	if schedule {
-		go indexingScheduler(intervalMinutes)
+func InitializeIndex(enabled bool) {
+	if enabled {
+		go indexingScheduler(60)
 	}
 }
 
@@ -38,7 +38,12 @@ func indexingScheduler(intervalMinutes uint32) {
 		rootPath = settings.Config.Server.Root
 	}
 	si := GetIndex(rootPath)
+	firstRun := true
 	for {
+		startDirs := si.NumDirs
+		startFiles := si.NumFiles
+		si.NumDirs = 0
+		si.NumFiles = 0
 		startTime := time.Now()
 		// Set the indexing flag to indicate that indexing is in progress
 		si.resetCount()
@@ -53,11 +58,17 @@ func indexingScheduler(intervalMinutes uint32) {
 		}
 		if si.NumFiles+si.NumDirs > 0 {
 			timeIndexedInSeconds := int(time.Since(startTime).Seconds())
-			log.Println("Successfully indexed files.")
-			log.Printf("Time spent indexing: %v seconds\n", timeIndexedInSeconds)
-			log.Printf("Files found: %v\n", si.NumFiles)
-			log.Printf("Directories found: %v\n", si.NumDirs)
+			log.Printf("Time Spent Indexing      : %v seconds\n", timeIndexedInSeconds)
+			if firstRun {
+				log.Printf("Files Found              : %v\n", si.NumFiles)
+				log.Printf("Directories found        : %v\n", si.NumDirs)
+			} else {
+				log.Printf("Files Updated            : %v\n", si.NumFiles-startFiles)
+				log.Printf("Directories Updated      : %v\n", si.NumDirs-startDirs)
+			}
+
 		}
+		firstRun = false
 		// Sleep for the specified interval
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 	}
@@ -70,7 +81,7 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	// Open the directory
 	dir, err := os.Open(realPath)
 	if err != nil {
-		si.RemoveDirectory(adjustedPath) // Remove if it can't be opened
+		si.RemoveDirectory(adjustedPath) // Remove, must have been deleted
 		return err
 	}
 	defer dir.Close()
@@ -79,11 +90,11 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	if err != nil {
 		return err
 	}
-
-	// Skip directories that haven't been modified since the last index
-	if dirInfo.ModTime().Before(si.LastIndexed) {
-		return nil
-	}
+	//
+	//// Skip directories that haven't been modified since the last index
+	//if dirInfo.ModTime().Before(si.LastIndexed) {
+	//	return nil
+	//}
 
 	// Read directory contents
 	files, err := dir.Readdir(-1)
@@ -92,7 +103,7 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	}
 
 	var totalSize int64
-	var numDirs, numFiles int
+	var numDirs, numFiles uint64
 	fileInfos := []ReducedItem{}
 	dirInfos := map[string]*FileInfo{}
 	combinedPath := adjustedPath + "/"

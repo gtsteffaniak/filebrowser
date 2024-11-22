@@ -35,7 +35,6 @@ type Recaptcha struct {
 }
 
 type Server struct {
-	IndexingInterval      uint32 `json:"indexingInterval"`
 	NumImageProcessors    int    `json:"numImageProcessors"`
 	Socket                string `json:"socket"`
 	TLSKey                string `json:"tlsKey"`

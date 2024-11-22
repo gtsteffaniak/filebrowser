@@ -66,7 +66,6 @@ func setDefaults() Settings {
 			EnableThumbnails:   true,
 			ResizePreview:      false,
 			EnableExec:         false,
-			IndexingInterval:   5,
 			Port:               80,
 			NumImageProcessors: 4,
 			BaseURL:            "",
