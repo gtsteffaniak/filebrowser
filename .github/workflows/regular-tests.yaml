@@ -41,4 +41,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - working-directory: frontend
-        run: npm run lint
+        run: npm i && npm run lint
