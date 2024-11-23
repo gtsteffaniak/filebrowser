@@ -9,7 +9,7 @@ export const mutations = {
   setGallerySize: (value) => {
     state.user.gallerySize = value
     emitStateChanged();
-    usersApi.update(state.user,['gallerySize']);
+    usersApi.update(state.user, ['gallerySize']);
   },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
@@ -102,11 +102,16 @@ export const mutations = {
     emitStateChanged();
   },
   setCurrentUser: (value) => {
+    localStorage.setItem("userData", undefined);
     // If value is null or undefined, emit state change and exit early
     if (!value) {
       state.user = value;
       emitStateChanged();
       return;
+    }
+
+    if (value.username != "publicUser") {
+      localStorage.setItem("userData", JSON.stringify(value));
     }
     // Ensure locale exists and is valid
     if (!value.locale) {
@@ -153,6 +158,8 @@ export const mutations = {
     emitStateChanged();
   },
   updateCurrentUser: (value) => {
+    console.log("updateCurrentUser", state.user, value)
+
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;
 
@@ -180,7 +187,7 @@ export const mutations = {
     }
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      usersApi.update(state.user,Object.keys(value));
+      usersApi.update(state.user, Object.keys(value));
     }
 
     // Emit state change event

@@ -3,10 +3,6 @@ package files
 import (
 	"log"
 	"path/filepath"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
 )
@@ -15,74 +11,60 @@ import (
 func (si *Index) UpdateMetadata(info *FileInfo) bool {
 	si.mu.Lock()
 	defer si.mu.Unlock()
-	info.CacheTime = time.Now()
 	si.Directories[info.Path] = info
 	return true
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
-	si.mu.RLock()
-	defer si.mu.RUnlock()
+func (si *Index) GetReducedMetadata(target string, isDir bool) (FileInfo, bool) {
+	si.mu.Lock()
+	defer si.mu.Unlock()
 	checkDir := si.makeIndexPath(target)
 	if !isDir {
 		checkDir = si.makeIndexPath(filepath.Dir(target))
 	}
 	dir, exists := si.Directories[checkDir]
 	if !exists {
-		return nil, false
+		return FileInfo{}, false
 	}
-	if !isDir {
-		if checkDir == "/" {
-			checkDir = ""
-		}
-
-		baseName := filepath.Base(target)
-		for _, item := range dir.Files {
-			if item.Name == baseName {
-				return &FileInfo{
-					Name:    item.Name,
-					Size:    item.Size,
-					ModTime: item.ModTime,
-					Type:    item.Type,
-					Path:    checkDir + "/" + item.Name,
-				}, true
-			}
-		}
-		return nil, false
-	}
-	cleanedItems := []ReducedItem{}
-	for name, item := range dir.Dirs {
-		cleanedItems = append(cleanedItems, ReducedItem{
-			Name:    name,
-			Size:    item.Size,
-			ModTime: item.ModTime,
-			Type:    "directory",
-		})
-	}
-	cleanedItems = append(cleanedItems, dir.Files...)
-	sort.Slice(cleanedItems, func(i, j int) bool {
-		// Convert strings to integers for numeric sorting if both are numeric
-		numI, errI := strconv.Atoi(cleanedItems[i].Name)
-		numJ, errJ := strconv.Atoi(cleanedItems[j].Name)
-		if errI == nil && errJ == nil {
-			return numI < numJ
-		}
-		// Fallback to case-insensitive lexicographical sorting
-		return strings.ToLower(cleanedItems[i].Name) < strings.ToLower(cleanedItems[j].Name)
-	})
 	dirname := filepath.Base(dir.Path)
 	if dirname == "." {
 		dirname = "/"
 	}
-	// construct file info
-	return &FileInfo{
-		Name:    dirname,
-		Type:    "directory",
-		Items:   cleanedItems,
-		ModTime: dir.ModTime,
-		Size:    dir.Size,
-	}, true
+
+	if isDir {
+		cleanedItems := []ReducedItem{}
+		cleanedItems = append(cleanedItems, dir.Dirs...)
+		cleanedItems = append(cleanedItems, dir.Files...)
+		dir.Type = "directory"
+		dir.Items = cleanedItems
+		return FileInfo{
+			Name:    dirname,
+			Size:    dir.Size,
+			ModTime: dir.ModTime,
+			Type:    "directory",
+			Path:    checkDir,
+			Items:   cleanedItems,
+		}, true
+	}
+	// handle file
+	if checkDir == "/" {
+		checkDir = ""
+	}
+	baseName := filepath.Base(target)
+	for _, item := range dir.Files {
+		if item.Name == baseName {
+			return FileInfo{
+				Name:    item.Name,
+				Size:    item.Size,
+				ModTime: item.ModTime,
+				Type:    item.Type,
+				Path:    checkDir + "/" + item.Name,
+			}, true
+		}
+	}
+	return FileInfo{}, false
+
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.

@@ -1,21 +1,25 @@
 package files
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 type Index struct {
 	Root        string
 	Directories map[string]*FileInfo
-	NumDirs     int
-	NumFiles    int
+	NumDirs     uint64
+	NumFiles    uint64
 	inProgress  bool
 	LastIndexed time.Time
 	mu          sync.RWMutex
@@ -27,9 +31,9 @@ var (
 	indexesMutex sync.RWMutex
 )
 
-func InitializeIndex(intervalMinutes uint32, schedule bool) {
-	if schedule {
-		go indexingScheduler(intervalMinutes)
+func InitializeIndex(enabled bool) {
+	if enabled {
+		go indexingScheduler(60)
 	}
 }
 
@@ -38,12 +42,17 @@ func indexingScheduler(intervalMinutes uint32) {
 		rootPath = settings.Config.Server.Root
 	}
 	si := GetIndex(rootPath)
+	firstRun := true
 	for {
+		startDirs := si.NumDirs
+		startFiles := si.NumFiles
+		si.NumDirs = 0
+		si.NumFiles = 0
 		startTime := time.Now()
 		// Set the indexing flag to indicate that indexing is in progress
 		si.resetCount()
 		// Perform the indexing operation
-		err := si.indexFiles("/")
+		err := si.indexDirectory("/", false, true)
 		// Reset the indexing flag to indicate that indexing has finished
 		si.inProgress = false
 		// Update the LastIndexed time
@@ -53,24 +62,30 @@ func indexingScheduler(intervalMinutes uint32) {
 		}
 		if si.NumFiles+si.NumDirs > 0 {
 			timeIndexedInSeconds := int(time.Since(startTime).Seconds())
-			log.Println("Successfully indexed files.")
-			log.Printf("Time spent indexing: %v seconds\n", timeIndexedInSeconds)
-			log.Printf("Files found: %v\n", si.NumFiles)
-			log.Printf("Directories found: %v\n", si.NumDirs)
+			log.Printf("Time Spent Indexing      : %v seconds\n", timeIndexedInSeconds)
+			if firstRun {
+				log.Printf("Files Found              : %v\n", si.NumFiles)
+				log.Printf("Directories found        : %v\n", si.NumDirs)
+			} else {
+				log.Printf("Files Updated            : %v\n", si.NumFiles-startFiles)
+				log.Printf("Directories Updated      : %v\n", si.NumDirs-startDirs)
+			}
+
 		}
+		firstRun = false
 		// Sleep for the specified interval
 		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
 	}
 }
 
 // Define a function to recursively index files and directories
-func (si *Index) indexFiles(adjustedPath string) error {
+func (si *Index) indexDirectory(adjustedPath string, quick, recursive bool) error {
 	realPath := strings.TrimRight(si.Root, "/") + adjustedPath
 
 	// Open the directory
 	dir, err := os.Open(realPath)
 	if err != nil {
-		si.RemoveDirectory(adjustedPath) // Remove if it can't be opened
+		si.RemoveDirectory(adjustedPath) // Remove, must have been deleted
 		return err
 	}
 	defer dir.Close()
@@ -80,9 +95,19 @@ func (si *Index) indexFiles(adjustedPath string) error {
 		return err
 	}
 
-	// Skip directories that haven't been modified since the last index
-	if dirInfo.ModTime().Before(si.LastIndexed) {
-		return nil
+	// get whats currently in cache
+	si.mu.RLock()
+	cachedDir, exists := si.Directories[adjustedPath]
+	si.mu.RUnlock()
+
+	// if directory hasn't been updated since last index
+	if exists && dirInfo.ModTime() == cachedDir.ModTime && recursive {
+		for _, item := range cachedDir.Dirs {
+			err = si.indexDirectory(adjustedPath+" /"+item.Name, quick, recursive)
+			if err != nil {
+				fmt.Println("error indexing directory", adjustedPath+"/"+item.Name)
+			}
+		}
 	}
 
 	// Read directory contents
@@ -92,9 +117,9 @@ func (si *Index) indexFiles(adjustedPath string) error {
 	}
 
 	var totalSize int64
-	var numDirs, numFiles int
+	var numDirs, numFiles uint64
 	fileInfos := []ReducedItem{}
-	dirInfos := map[string]*FileInfo{}
+	dirInfos := []ReducedItem{}
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {
 		combinedPath = "/"
@@ -102,40 +127,59 @@ func (si *Index) indexFiles(adjustedPath string) error {
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-		itemInfo := &FileInfo{
+		itemInfo := &ReducedItem{
+			Name:    file.Name(),
 			ModTime: file.ModTime(),
+			Size:    file.Size(),
+			Mode:    file.Mode(),
 		}
 		if file.IsDir() {
-			itemInfo.Name = file.Name()
-			itemInfo.Path = combinedPath + file.Name()
-			// Recursively index the subdirectory
-			err := si.indexFiles(itemInfo.Path)
-			if err != nil {
-				log.Printf("Failed to index directory %s: %v", itemInfo.Path, err)
+			dirPath := combinedPath + file.Name()
+			if recursive {
+				// Recursively index the subdirectory
+				err = si.indexDirectory(dirPath, quick, recursive)
+				if err != nil {
+					log.Printf("Failed to index directory %s: %v", dirPath, err)
+					continue
+				}
+			}
+			realDirInfo, exists := si.GetMetadataInfo(dirPath, true)
+			if !exists {
+				log.Printf("Failed to index directory %s: %v", dirPath, err)
 				continue
 			}
-			// Fetch the metadata for the subdirectory after indexing
-			subDirInfo, exists := si.GetMetadataInfo(itemInfo.Path, true)
-			if exists {
-				itemInfo.Size = subDirInfo.Size
-				totalSize += subDirInfo.Size // Add subdirectory size to the total
-			}
-			dirInfos[itemInfo.Name] = itemInfo
+			itemInfo.Size = realDirInfo.Size
+			totalSize += itemInfo.Size
+			itemInfo.Type = "directory"
+			dirInfos = append(dirInfos, *itemInfo)
 			numDirs++
 		} else {
-			itemInfo := &ReducedItem{
-				Name:    file.Name(),
-				ModTime: file.ModTime(),
-				Size:    file.Size(),
-				Mode:    file.Mode(),
-			}
 			_ = itemInfo.detectType(combinedPath+file.Name(), true, false, false)
 			fileInfos = append(fileInfos, *itemInfo)
 			totalSize += itemInfo.Size
 			numFiles++
 		}
 	}
-
+	sort.Slice(fileInfos, func(i, j int) bool {
+		// Convert strings to integers for numeric sorting if both are numeric
+		numI, errI := strconv.Atoi(fileInfos[i].Name)
+		numJ, errJ := strconv.Atoi(fileInfos[j].Name)
+		if errI == nil && errJ == nil {
+			return numI < numJ
+		}
+		// Fallback to case-insensitive lexicographical sorting
+		return strings.ToLower(fileInfos[i].Name) < strings.ToLower(fileInfos[j].Name)
+	})
+	sort.Slice(dirInfos, func(i, j int) bool {
+		// Convert strings to integers for numeric sorting if both are numeric
+		numI, errI := strconv.Atoi(dirInfos[i].Name)
+		numJ, errJ := strconv.Atoi(dirInfos[j].Name)
+		if errI == nil && errJ == nil {
+			return numI < numJ
+		}
+		// Fallback to case-insensitive lexicographical sorting
+		return strings.ToLower(dirInfos[i].Name) < strings.ToLower(dirInfos[j].Name)
+	})
 	// Create FileInfo for the current directory
 	dirFileInfo := &FileInfo{
 		Path:    adjustedPath,
@@ -172,33 +216,52 @@ func (si *Index) makeIndexPath(subPath string) string {
 	return adjustedPath
 }
 
-//func getParentPath(path string) string {
-//	// Trim trailing slash for consistency
-//	path = strings.TrimSuffix(path, "/")
-//	if path == "" || path == "/" {
-//		return "" // Root has no parent
-//	}
-//
-//	lastSlash := strings.LastIndex(path, "/")
-//	if lastSlash == -1 {
-//		return "/" // Parent of a top-level directory
-//	}
-//	return path[:lastSlash]
-//}
+func (si *Index) recursiveUpdateDirSizes(childInfo *FileInfo, previousSize int64) {
+	parentDir := utils.GetParentDirectoryPath(childInfo.Path)
+	parentInfo, exists := si.GetMetadataInfo(parentDir, true)
+	if !exists || parentDir == "" {
+		return
+	}
+	newSize := parentInfo.Size - previousSize + childInfo.Size
+	parentInfo.Size += newSize
+	si.UpdateMetadata(parentInfo)
+	si.recursiveUpdateDirSizes(parentInfo, newSize)
+}
 
-func (si *Index) recursiveUpdateDirSizes(parentDir string, childInfo *FileInfo, previousSize int64) {
-	childDirName := filepath.Base(childInfo.Path)
-	if parentDir == childDirName {
-		return
+func (si *Index) RefreshFileInfo(opts FileOptions) error {
+	fmt.Println("Refreshing file info", opts.Path, opts.IsDir, si.Directories["/"])
+	refreshOptions := FileOptions{
+		Path:  opts.Path,
+		IsDir: opts.IsDir,
 	}
-	dir, exists := si.GetMetadataInfo(parentDir, true)
+
+	if !refreshOptions.IsDir {
+		refreshOptions.Path = si.makeIndexPath(filepath.Dir(refreshOptions.Path))
+		refreshOptions.IsDir = true
+	} else {
+		refreshOptions.Path = si.makeIndexPath(refreshOptions.Path)
+	}
+
+	current, firstExisted := si.GetMetadataInfo(refreshOptions.Path, true)
+	err := si.indexDirectory(refreshOptions.Path, false, false)
+	if err != nil {
+		return fmt.Errorf("file/folder does not exist to refresh data: %s", refreshOptions.Path)
+	}
+	file, exists := si.GetMetadataInfo(refreshOptions.Path, true)
 	if !exists {
-		return
+		return fmt.Errorf("file/folder does not exist in metadata: %s", refreshOptions.Path)
 	}
-	dir.Dirs[childDirName] = childInfo
-	newSize := dir.Size - previousSize + childInfo.Size
-	dir.Size += newSize
-	si.UpdateMetadata(dir)
-	dir, _ = si.GetMetadataInfo(parentDir, true)
-	si.recursiveUpdateDirSizes(filepath.Dir(parentDir), dir, newSize)
+	//utils.PrintStructFields(*file)
+	result := si.UpdateMetadata(file)
+	if !result {
+		return fmt.Errorf("file/folder does not exist in metadata: %s", refreshOptions.Path)
+	}
+	if !exists {
+		return nil
+	}
+	if current.Size != file.Size && firstExisted {
+		fmt.Println("updating size")
+		si.recursiveUpdateDirSizes(file, current.Size)
+	}
+	return nil
 }

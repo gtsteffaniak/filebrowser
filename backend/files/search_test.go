@@ -8,7 +8,7 @@ import (
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	InitializeIndex(5, false)
+	InitializeIndex(false)
 	si := GetIndex(rootPath)
 
 	si.createMockData(50, 3) // 50 dirs, 3 files per dir
@@ -29,25 +29,25 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 func TestParseSearch(t *testing.T) {
 	tests := []struct {
 		input string
-		want  *SearchOptions
+		want  SearchOptions
 	}{
 		{
 			input: "my test search",
-			want: &SearchOptions{
+			want: SearchOptions{
 				Conditions: map[string]bool{"exact": false},
 				Terms:      []string{"my test search"},
 			},
 		},
 		{
 			input: "case:exact my|test|search",
-			want: &SearchOptions{
+			want: SearchOptions{
 				Conditions: map[string]bool{"exact": true},
 				Terms:      []string{"my", "test", "search"},
 			},
 		},
 		{
 			input: "type:largerThan=100 type:smallerThan=1000 test",
-			want: &SearchOptions{
+			want: SearchOptions{
 				Conditions:  map[string]bool{"exact": false, "larger": true, "smaller": true},
 				Terms:       []string{"test"},
 				LargerThan:  100,
@@ -56,7 +56,7 @@ func TestParseSearch(t *testing.T) {
 		},
 		{
 			input: "type:audio thisfile",
-			want: &SearchOptions{
+			want: SearchOptions{
 				Conditions: map[string]bool{"exact": false, "audio": true},
 				Terms:      []string{"thisfile"},
 			},
@@ -74,7 +74,7 @@ func TestParseSearch(t *testing.T) {
 }
 
 func TestSearchWhileIndexing(t *testing.T) {
-	InitializeIndex(5, false)
+	InitializeIndex(false)
 	si := GetIndex(rootPath)
 
 	searchTerms := generateRandomSearchTerms(10)
@@ -101,8 +101,8 @@ func TestSearchIndexes(t *testing.T) {
 				Files: []ReducedItem{
 					{Name: "archive.zip", Size: 100, Type: "archive"},
 				},
-				Dirs: map[string]*FileInfo{
-					"thisIsDir": {Name: "thisIsDir", Size: 2 * 1024 * 1024},
+				Dirs: []ReducedItem{
+					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 				},
 			},
 			"/firstDir/thisIsDir": {

@@ -28,7 +28,14 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	searchOptions := ParseSearch(search)
 	results := make(map[string]searchResult, 0)
 	count := 0
-	directories := si.getDirsInScope(scope)
+	var directories []string
+	cachedDirs, ok := utils.SearchResultsCache.Get(si.Root + scope).([]string)
+	if ok {
+		directories = cachedDirs
+	} else {
+		directories = si.getDirsInScope(scope)
+		utils.SearchResultsCache.Set(si.Root+scope, directories)
+	}
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
 			continue
@@ -38,6 +45,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 		}
 		si.mu.Lock()
 		for _, dirName := range directories {
+			scopedPath := strings.TrimPrefix(strings.TrimPrefix(dirName, scope), "/") + "/"
 			si.mu.Unlock()
 			dir, found := si.GetReducedMetadata(dirName, true)
 			si.mu.Lock()
@@ -52,20 +60,17 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				Type: "directory",
 				Size: dir.Size,
 			}
-
 			matches := reducedDir.containsSearchTerm(searchTerm, searchOptions)
 			if matches {
-				scopedPath := strings.TrimPrefix(strings.TrimPrefix(dirName, scope), "/") + "/"
 				results[scopedPath] = searchResult{Path: scopedPath, Type: "directory", Size: dir.Size}
 				count++
 			}
-
 			// search files first
 			for _, item := range dir.Items {
-
 				fullPath := dirName + "/" + item.Name
+				scopedPath := strings.TrimPrefix(strings.TrimPrefix(fullPath, scope), "/")
 				if item.Type == "directory" {
-					fullPath += "/"
+					scopedPath += "/"
 				}
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
@@ -77,7 +82,6 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				}
 				matches := item.containsSearchTerm(searchTerm, searchOptions)
 				if matches {
-					scopedPath := strings.TrimPrefix(strings.TrimPrefix(fullPath, scope), "/")
 					results[scopedPath] = searchResult{Path: scopedPath, Type: item.Type, Size: item.Size}
 					count++
 				}
@@ -103,7 +107,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 // returns true if the file name contains the search term
 // returns file type if the file name contains the search term
 // returns size of file/dir if the file name contains the search term
-func (fi ReducedItem) containsSearchTerm(searchTerm string, options *SearchOptions) bool {
+func (fi ReducedItem) containsSearchTerm(searchTerm string, options SearchOptions) bool {
 
 	fileTypes := map[string]bool{}
 	largerThan := int64(options.LargerThan) * 1024 * 1024

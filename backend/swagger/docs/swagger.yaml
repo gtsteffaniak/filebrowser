@@ -7,8 +7,6 @@ definitions:
         type: object
       content:
         type: string
-      isSymlink:
-        type: boolean
       items:
         items:
           $ref: '#/definitions/files.ReducedItem'
@@ -25,8 +23,6 @@ definitions:
         items:
           type: string
         type: array
-      token:
-        type: string
       type:
         type: string
     type: object

@@ -1164,9 +1164,6 @@ const docTemplate = `{
                 "content": {
                     "type": "string"
                 },
-                "isSymlink": {
-                    "type": "boolean"
-                },
                 "items": {
                     "type": "array",
                     "items": {
@@ -1190,9 +1187,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                },
-                "token": {
-                    "type": "string"
                 },
                 "type": {
                     "type": "string"

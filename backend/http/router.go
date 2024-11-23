@@ -172,7 +172,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	} else {
 		// Set HTTP scheme and the default port for HTTP
 		scheme = "http"
-		if config.Server.Port != 443 {
+		if config.Server.Port != 80 {
 			port = fmt.Sprintf(":%d", config.Server.Port)
 		}
 		// Build the full URL with host and port

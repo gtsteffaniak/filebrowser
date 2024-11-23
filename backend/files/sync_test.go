@@ -89,8 +89,8 @@ func TestGetFileMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, _ := testIndex.GetReducedMetadata(tt.adjustedPath, tt.isDir)
-			if fileInfo == nil {
+			fileInfo, exists := testIndex.GetReducedMetadata(tt.adjustedPath, tt.isDir)
+			if !exists {
 				found := false
 				assert.Equal(t, tt.expectedExists, found)
 				return
@@ -251,8 +251,8 @@ func init() {
 				Files: []ReducedItem{
 					{Name: "afile.txt", Size: 100},
 				},
-				Dirs: map[string]*FileInfo{
-					"directory": {Name: "directory", Type: "directory", Size: 100},
+				Dirs: []ReducedItem{
+					{Name: "directory", Type: "directory", Size: 100},
 				},
 			},
 		},
