@@ -66,7 +66,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				count++
 			}
 			// search files first
-			for _, item := range dir.Items {
+			for _, item := range dir.Files {
 				fullPath := dirName + "/" + item.Name
 				scopedPath := strings.TrimPrefix(strings.TrimPrefix(fullPath, scope), "/")
 				if item.Type == "directory" {

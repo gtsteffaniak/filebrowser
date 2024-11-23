@@ -42,11 +42,10 @@ type ReducedItem struct {
 // FileInfo describes a file.
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
-	Files     []ReducedItem     `json:"-"`
-	Dirs      []ReducedItem     `json:"-"`
+	Files     []ReducedItem     `json:"files"`
+	Dirs      []ReducedItem     `json:"folders"`
 	Path      string            `json:"path"`
 	Name      string            `json:"name"`
-	Items     []ReducedItem     `json:"items"`
 	Size      int64             `json:"size"`
 	ModTime   time.Time         `json:"modified"`
 	Mode      os.FileMode       `json:"-"`
@@ -119,11 +118,11 @@ func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
 	if opts.Content {
 		content, err := getContent(opts.Path)
 		if err != nil {
-			return &info, err
+			return info, err
 		}
 		info.Content = content
 	}
-	return &info, nil
+	return info, nil
 }
 
 // Checksum checksums a given File for a given User, using a specific

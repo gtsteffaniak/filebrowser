@@ -16,7 +16,7 @@ func (si *Index) UpdateMetadata(info *FileInfo) bool {
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetReducedMetadata(target string, isDir bool) (FileInfo, bool) {
+func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
 	si.mu.Lock()
 	defer si.mu.Unlock()
 	checkDir := si.makeIndexPath(target)
@@ -25,7 +25,7 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (FileInfo, bool) 
 	}
 	dir, exists := si.Directories[checkDir]
 	if !exists {
-		return FileInfo{}, false
+		return nil, false
 	}
 	dirname := filepath.Base(dir.Path)
 	if dirname == "." {
@@ -33,19 +33,7 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (FileInfo, bool) 
 	}
 
 	if isDir {
-		cleanedItems := []ReducedItem{}
-		cleanedItems = append(cleanedItems, dir.Dirs...)
-		cleanedItems = append(cleanedItems, dir.Files...)
-		dir.Type = "directory"
-		dir.Items = cleanedItems
-		return FileInfo{
-			Name:    dirname,
-			Size:    dir.Size,
-			ModTime: dir.ModTime,
-			Type:    "directory",
-			Path:    checkDir,
-			Items:   cleanedItems,
-		}, true
+		return dir, true
 	}
 	// handle file
 	if checkDir == "/" {
@@ -54,16 +42,10 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (FileInfo, bool) 
 	baseName := filepath.Base(target)
 	for _, item := range dir.Files {
 		if item.Name == baseName {
-			return FileInfo{
-				Name:    item.Name,
-				Size:    item.Size,
-				ModTime: item.ModTime,
-				Type:    item.Type,
-				Path:    checkDir + "/" + item.Name,
-			}, true
+			return dir, true
 		}
 	}
-	return FileInfo{}, false
+	return nil, false
 
 }
 
