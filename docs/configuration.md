@@ -10,6 +10,8 @@ Here is an expanded config file which includes all possible configurations:
 server:
   CreateUserDir: false
   UserHomeBasePath: ""
+  indexingInterval: 5
+  indexing: true
   numImageProcessors: 4
   socket: ""
   tlsKey: ""
@@ -69,6 +71,7 @@ Here are the defaults if nothing is set:
 server:
   enableThumbnails: true
   enableExec: false
+  indexingInterval: 5
   port: 80
   numImageProcessors: 4
   baseURL: ""
@@ -105,6 +108,10 @@ userDefaults:
 ## About each configuration
 
 ### Server configuration settings
+
+- `indexingInterval`: This is the time in minutes the system waits before checking for filesystem changes. Default: `5`
+
+- `indexing`: This enables or disables indexing. (Note: search will not work without indexing) Default: `true`
 
 - `numImageProcessors`: This is the number of image processors available. Default: `4`
 

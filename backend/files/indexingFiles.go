@@ -14,13 +14,20 @@ import (
 )
 
 type Index struct {
-	Root        string
-	Directories map[string]*FileInfo
-	NumDirs     uint64
-	NumFiles    uint64
-	inProgress  bool
-	LastIndexed time.Time
-	mu          sync.RWMutex
+	Root                       string
+	Directories                map[string]*FileInfo
+	NumDirs                    uint64
+	NumFiles                   uint64
+	NumDeleted                 uint64
+	FilesChangedDuringIndexing bool
+	inProgress                 bool
+	currentSchedule            int
+	assessment                 string
+	indexingTime               int
+	LastIndexed                time.Time
+	SmartModifier              time.Duration
+	mu                         sync.RWMutex
+	scannerMu                  sync.Mutex
 }
 
 var (
@@ -31,48 +38,14 @@ var (
 
 func InitializeIndex(enabled bool) {
 	if enabled {
-		go indexingScheduler(60)
-	}
-}
-
-func indexingScheduler(intervalMinutes uint32) {
-	if settings.Config.Server.Root != "" {
-		rootPath = settings.Config.Server.Root
-	}
-	si := GetIndex(rootPath)
-	firstRun := true
-	for {
-		startDirs := si.NumDirs
-		startFiles := si.NumFiles
-		si.NumDirs = 0
-		si.NumFiles = 0
-		startTime := time.Now()
-		// Set the indexing flag to indicate that indexing is in progress
-		si.resetCount()
-		// Perform the indexing operation
-		err := si.indexDirectory("/", false, true)
-		// Reset the indexing flag to indicate that indexing has finished
-		si.inProgress = false
-		// Update the LastIndexed time
-		si.LastIndexed = time.Now()
-		if err != nil {
-			log.Printf("Error during indexing: %v", err)
+		time.Sleep(time.Second)
+		if settings.Config.Server.Root != "" {
+			rootPath = settings.Config.Server.Root
 		}
-		if si.NumFiles+si.NumDirs > 0 {
-			timeIndexedInSeconds := int(time.Since(startTime).Seconds())
-			log.Printf("Time Spent Indexing      : %v seconds\n", timeIndexedInSeconds)
-			if firstRun {
-				log.Printf("Files Found              : %v\n", si.NumFiles)
-				log.Printf("Directories found        : %v\n", si.NumDirs)
-			} else {
-				log.Printf("Files Updated            : %v\n", si.NumFiles-startFiles)
-				log.Printf("Directories Updated      : %v\n", si.NumDirs-startDirs)
-			}
-
-		}
-		firstRun = false
-		// Sleep for the specified interval
-		time.Sleep(time.Duration(intervalMinutes) * time.Minute)
+		si := GetIndex(rootPath)
+		log.Println("Initializing index and assessing file system complexity")
+		si.RunIndexing("/", false)
+		go si.setupIndexingScanners()
 	}
 }
 
@@ -92,20 +65,37 @@ func (si *Index) indexDirectory(adjustedPath string, quick, recursive bool) erro
 	if err != nil {
 		return err
 	}
-
+	combinedPath := adjustedPath + "/"
+	if adjustedPath == "/" {
+		combinedPath = "/"
+	}
 	// get whats currently in cache
 	si.mu.RLock()
+	cacheDirItems := []ItemInfo{}
+	modChange := true // default to true
 	cachedDir, exists := si.Directories[adjustedPath]
+	if exists && quick {
+		modChange = dirInfo.ModTime() != cachedDir.ModTime
+		cacheDirItems = cachedDir.Folders
+	}
 	si.mu.RUnlock()
 
-	// if directory hasn't been updated since last index
-	if exists && dirInfo.ModTime() == cachedDir.ModTime && recursive {
-		for _, item := range cachedDir.Folders {
-			err = si.indexDirectory(adjustedPath+" /"+item.Name, quick, recursive)
+	// If the directory has not been modified since the last index, skip expensive readdir
+	// recursively check cached dirs for mod time changes as well
+	if !modChange && recursive {
+		for _, item := range cacheDirItems {
+			err = si.indexDirectory(combinedPath+item.Name, quick, true)
 			if err != nil {
-				fmt.Println("error indexing directory", adjustedPath+"/"+item.Name)
+				fmt.Printf("error indexing directory %v : %v", combinedPath+item.Name, err)
 			}
 		}
+		return nil
+	}
+
+	if quick {
+		si.mu.Lock()
+		si.FilesChangedDuringIndexing = true
+		si.mu.Unlock()
 	}
 
 	// Read directory contents
@@ -117,10 +107,6 @@ func (si *Index) indexDirectory(adjustedPath string, quick, recursive bool) erro
 	var totalSize int64
 	fileInfos := []ItemInfo{}
 	dirInfos := []ItemInfo{}
-	combinedPath := adjustedPath + "/"
-	if adjustedPath == "/" {
-		combinedPath = "/"
-	}
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
@@ -238,7 +224,6 @@ func (si *Index) RefreshFileInfo(opts FileOptions) error {
 		return nil
 	}
 	if refreshParentInfo {
-		fmt.Println("updating size")
 		si.recursiveUpdateDirSizes(file, current.Size)
 	}
 	return nil

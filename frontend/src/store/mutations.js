@@ -158,8 +158,7 @@ export const mutations = {
     emitStateChanged();
   },
   updateCurrentUser: (value) => {
-    console.log("updateCurrentUser", state.user, value)
-
+    localStorage.setItem("userData", undefined);
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;
 
@@ -190,6 +189,9 @@ export const mutations = {
       usersApi.update(state.user, Object.keys(value));
     }
 
+    if (state.user.username != "publicUser") {
+      localStorage.setItem("userData", JSON.stringify(state.user));
+    }
     // Emit state change event
     emitStateChanged();
   },

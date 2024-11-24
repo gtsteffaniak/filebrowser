@@ -1,7 +1,6 @@
 package files
 
 import (
-	"log"
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/settings"
@@ -67,19 +66,8 @@ func (si *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
 func (si *Index) RemoveDirectory(path string) {
 	si.mu.Lock()
 	defer si.mu.Unlock()
+	si.NumDeleted++
 	delete(si.Directories, path)
-}
-
-func (si *Index) UpdateCount(given string) {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	if given == "files" {
-		si.NumFiles++
-	} else if given == "dirs" {
-		si.NumDirs++
-	} else {
-		log.Println("could not update unknown type: ", given)
-	}
 }
 
 func (si *Index) resetCount() {
@@ -87,6 +75,7 @@ func (si *Index) resetCount() {
 	defer si.mu.Unlock()
 	si.NumDirs = 0
 	si.NumFiles = 0
+	si.NumDeleted = 0
 	si.inProgress = true
 }
 

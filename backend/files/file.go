@@ -84,12 +84,9 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	if !opts.Checker.Check(opts.Path) {
 		return response, os.ErrPermission
 	}
-	fmt.Println("path", opts.Path)
 
 	_, isDir, err := GetRealPath(opts.Path)
 	if err != nil {
-		fmt.Println("path2", opts.Path)
-
 		return response, err
 	}
 	opts.IsDir = isDir
@@ -114,7 +111,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	//	return info, nil
 	//}
 
-	fmt.Println("hwo was it refreshed", opts.Path)
 	err = index.RefreshFileInfo(opts)
 	if err != nil {
 		return response, err
@@ -191,14 +187,12 @@ func GetRealPath(relativePath ...string) (string, bool, error) {
 	if err != nil {
 		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", combined, err)
 	}
-	fmt.Println("what happened", absolutePath)
 	// Resolve symlinks and get the real path
 	realPath, isDir, err := resolveSymlinks(absolutePath)
 	if err == nil {
 		utils.RealPathCache.Set(joinedPath, realPath)
 		utils.RealPathCache.Set(joinedPath+":isdir", isDir)
 	}
-	fmt.Println(realPath, isDir, err)
 	return realPath, isDir, err
 }
 
@@ -302,25 +296,27 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 // resolveSymlinks resolves symlinks in the given path
 func resolveSymlinks(path string) (string, bool, error) {
 	for {
-		// Get the file info
+		// Get the file info using os.Lstat to handle symlinks
 		info, err := os.Lstat(path)
 		if err != nil {
-			return path, false, fmt.Errorf("could not stat path: %v, %s", path, err)
+			return path, false, fmt.Errorf("could not stat path: %s, %v", path, err)
 		}
 
-		// Check if it's a symlink
+		// Check if the path is a symlink
 		if info.Mode()&os.ModeSymlink != 0 {
 			// Read the symlink target
 			target, err := os.Readlink(path)
 			if err != nil {
-				return path, false, err
+				return path, false, fmt.Errorf("could not read symlink: %s, %v", path, err)
 			}
 
-			// Resolve the target relative to the symlink's directory
+			// Resolve the symlink's target relative to its directory
+			// This ensures the resolved path is absolute and correctly calculated
 			path = filepath.Join(filepath.Dir(path), target)
 		} else {
-			// Not a symlink, so return the resolved path and check if it's a directory
-			return path, info.IsDir(), nil
+			// Not a symlink, so return the resolved path and whether it's a directory
+			isDir := info.IsDir()
+			return path, isDir, nil
 		}
 	}
 }
@@ -338,7 +334,7 @@ func getContent(path string) (string, error) {
 	}
 	stringContent := string(content)
 	if !utf8.ValidString(stringContent) {
-		return "", fmt.Errorf("file is not utf8 encoded")
+		return "", nil
 	}
 	if stringContent == "" {
 		return "empty-file-x6OlSil", nil
