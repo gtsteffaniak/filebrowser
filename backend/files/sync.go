@@ -26,10 +26,6 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 	if !exists {
 		return nil, false
 	}
-	dirname := filepath.Base(dir.Path)
-	if dirname == "." {
-		dirname = "/"
-	}
 
 	if isDir {
 		return dir, true
@@ -68,15 +64,6 @@ func (si *Index) RemoveDirectory(path string) {
 	defer si.mu.Unlock()
 	si.NumDeleted++
 	delete(si.Directories, path)
-}
-
-func (si *Index) resetCount() {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	si.NumDirs = 0
-	si.NumFiles = 0
-	si.NumDeleted = 0
-	si.inProgress = true
 }
 
 func GetIndex(root string) *Index {
