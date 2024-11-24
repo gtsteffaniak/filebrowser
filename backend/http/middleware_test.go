@@ -48,11 +48,15 @@ func mockFileInfoFaster(t *testing.T) {
 	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
 
 	// Mock the function to skip execution
-	FileInfoFasterFunc = func(opts files.FileOptions) (*files.FileInfo, error) {
-		return &files.FileInfo{
-			Name: "mocked_file",
-			Path: opts.Path,
-			Size: 12345,
+	FileInfoFasterFunc = func(opts files.FileOptions) (files.ExtendedFileInfo, error) {
+		return files.ExtendedFileInfo{
+			FileInfo: &files.FileInfo{
+				Path: opts.Path,
+				ItemInfo: files.ItemInfo{
+					Name: "mocked_file",
+					Size: 12345,
+				},
+			},
 		}, nil
 	}
 }

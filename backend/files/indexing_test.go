@@ -3,7 +3,6 @@ package files
 import (
 	"encoding/json"
 	"math/rand"
-	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -37,7 +36,6 @@ func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 			files = append(files, newFile)
 		}
 		dirInfo := &FileInfo{
-			Name:  filepath.Base(dirPath),
 			Path:  dirPath,
 			Files: files,
 		}
@@ -109,36 +107,6 @@ func TestGetIndex(t *testing.T) {
 			if got := GetIndex("root"); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetIndex() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func TestInitializeIndex(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			InitializeIndex(false)
-		})
-	}
-}
-
-func Test_indexingScheduler(t *testing.T) {
-	type args struct {
-		intervalMinutes uint32
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			indexingScheduler(tt.args.intervalMinutes)
 		})
 	}
 }

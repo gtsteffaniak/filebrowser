@@ -101,7 +101,7 @@ func TestSearchIndexes(t *testing.T) {
 				Files: []ItemInfo{
 					{Name: "archive.zip", Size: 100, Type: "archive"},
 				},
-				Dirs: []ItemInfo{
+				Folders: []ItemInfo{
 					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 				},
 			},
@@ -109,7 +109,9 @@ func TestSearchIndexes(t *testing.T) {
 				Files: []ItemInfo{
 					{Name: "hi.txt", Type: "text"},
 				},
-				Size: 2 * 1024 * 1024,
+				ItemInfo: ItemInfo{
+					Size: 2 * 1024 * 1024,
+				},
 			},
 		},
 	}
