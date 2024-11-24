@@ -1,15 +1,13 @@
 definitions:
   files.FileInfo:
     properties:
-      checksums:
-        additionalProperties:
-          type: string
-        type: object
-      content:
-        type: string
-      items:
+      files:
         items:
-          $ref: '#/definitions/files.ReducedItem'
+          $ref: '#/definitions/files.ItemInfo'
+        type: array
+      folders:
+        items:
+          $ref: '#/definitions/files.ItemInfo'
         type: array
       modified:
         type: string
@@ -19,17 +17,11 @@ definitions:
         type: string
       size:
         type: integer
-      subtitles:
-        items:
-          type: string
-        type: array
       type:
         type: string
     type: object
-  files.ReducedItem:
+  files.ItemInfo:
     properties:
-      content:
-        type: string
       modified:
         type: string
       name:

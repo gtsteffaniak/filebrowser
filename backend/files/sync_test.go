@@ -122,7 +122,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 		Path: "/testpath",
 		Name: "testpath",
 		Type: "directory",
-		Files: []ReducedItem{
+		Files: []ItemInfo{
 			{Name: "testfile.txt"},
 			{Name: "anotherfile.txt"},
 		},
@@ -167,7 +167,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 				Path: "/testpath",
 				Name: "testpath",
 				Type: "directory",
-				Items: []ReducedItem{
+				Items: []ItemInfo{
 					{Name: "testfile.txt"},
 					{Name: "anotherfile.txt"},
 				},
@@ -178,7 +178,7 @@ func TestSetDirectoryInfo(t *testing.T) {
 		Path: "/newPath",
 		Name: "newPath",
 		Type: "directory",
-		Items: []ReducedItem{
+		Items: []ItemInfo{
 			{Name: "testfile.txt"},
 		},
 	}
@@ -239,7 +239,7 @@ func init() {
 				Path: "/testpath",
 				Name: "testpath",
 				Type: "directory",
-				Files: []ReducedItem{
+				Files: []ItemInfo{
 					{Name: "testfile.txt", Size: 100},
 					{Name: "anotherfile.txt", Size: 100},
 				},
@@ -248,10 +248,10 @@ func init() {
 				Path: "/anotherpath",
 				Name: "anotherpath",
 				Type: "directory",
-				Files: []ReducedItem{
+				Files: []ItemInfo{
 					{Name: "afile.txt", Size: 100},
 				},
-				Dirs: []ReducedItem{
+				Dirs: []ItemInfo{
 					{Name: "directory", Type: "directory", Size: 100},
 				},
 			},

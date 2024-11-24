@@ -38,8 +38,8 @@ func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, _ := d.raw.(*files.FileInfo)
-	if file == nil {
+	file, ok := d.raw.(files.ExtendedFileInfo)
+	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
 	}
 	if d.user == nil {
@@ -47,10 +47,10 @@ func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	}
 
 	if file.Type == "directory" {
-		return rawDirHandler(w, r, d, file)
+		return rawDirHandler(w, r, d, file.FileInfo)
 	}
 
-	return rawFileHandler(w, r, file)
+	return rawFileHandler(w, r, file.FileInfo)
 }
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {

@@ -42,7 +42,10 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 	baseName := filepath.Base(target)
 	for _, item := range dir.Files {
 		if item.Name == baseName {
-			return dir, true
+			return &FileInfo{
+				Path:     checkDir + "/" + item.Name,
+				ItemInfo: item,
+			}, true
 		}
 	}
 	return nil, false

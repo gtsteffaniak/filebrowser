@@ -55,7 +55,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 			if count > maxSearchResults {
 				break
 			}
-			reducedDir := ReducedItem{
+			reducedDir := ItemInfo{
 				Name: filepath.Base(dirName),
 				Type: "directory",
 				Size: dir.Size,
@@ -107,7 +107,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 // returns true if the file name contains the search term
 // returns file type if the file name contains the search term
 // returns size of file/dir if the file name contains the search term
-func (fi ReducedItem) containsSearchTerm(searchTerm string, options SearchOptions) bool {
+func (fi ItemInfo) containsSearchTerm(searchTerm string, options SearchOptions) bool {
 
 	fileTypes := map[string]bool{}
 	largerThan := int64(options.LargerThan) * 1024 * 1024

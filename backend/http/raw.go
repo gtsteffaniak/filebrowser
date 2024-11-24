@@ -99,7 +99,7 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 		return http.StatusAccepted, nil
 	}
 	path := r.URL.Query().Get("path")
-	file, err := files.FileInfoFaster(files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(files.FileOptions{
 		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
@@ -109,15 +109,19 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if files.IsNamedPipe(file.Mode) {
-		setContentDisposition(w, r, file)
-		return 0, nil
-	}
-	if file.Type == "directory" {
-		return rawDirHandler(w, r, d, file)
+
+	// TODO, how to handle? we removed mode, is it needed?
+	// maybe instead of mode we use bool only two conditions are checked
+	//if files.IsNamedPipe(fileInfo.Mode) {
+	//	setContentDisposition(w, r, file)
+	//	return 0, nil
+	//}
+
+	if fileInfo.Type == "directory" {
+		return rawDirHandler(w, r, d, fileInfo.FileInfo)
 	}
 
-	return rawFileHandler(w, r, file)
+	return rawFileHandler(w, r, fileInfo.FileInfo)
 }
 
 func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) error {

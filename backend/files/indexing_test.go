@@ -24,11 +24,11 @@ func BenchmarkFillIndex(b *testing.B) {
 func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
 		dirPath := generateRandomPath(rand.Intn(3) + 1)
-		files := []ReducedItem{} // Slice of FileInfo
+		files := []ItemInfo{} // Slice of FileInfo
 
 		// Simulating files and directories with FileInfo
 		for j := 0; j < numFilesPerDir; j++ {
-			newFile := ReducedItem{
+			newFile := ItemInfo{
 				Name:    "file-" + getRandomTerm() + getRandomExtension(),
 				Size:    rand.Int63n(1000),                                          // Random size
 				ModTime: time.Now().Add(-time.Duration(rand.Intn(100)) * time.Hour), // Random mod time

@@ -14,24 +14,72 @@ var AllFiletypeOptions = []string{
 	"archive",
 	"video",
 	"doc",
-	"dir",
 	"text",
 }
+
+// Document file extensions
 var documentTypes = []string{
-	".word",
-	".pdf",
-	".doc",
-	".docx",
-}
-var textTypes = []string{
-	".text",
-	".sh",
-	".yaml",
-	".yml",
-	".json",
-	".env",
+	// Common Document Formats
+	".doc", ".docx", // Microsoft Word
+	".pdf", // Portable Document Format
+	".odt", // OpenDocument Text
+	".rtf", // Rich Text Format
+
+	// Presentation Formats
+	".ppt", ".pptx", // Microsoft PowerPoint
+	".odp", // OpenDocument Presentation
+
+	// Spreadsheet Formats
+	".xls", ".xlsx", // Microsoft Excel
+	".ods", // OpenDocument Spreadsheet
+
+	// Other Document Formats
+	".epub", // Electronic Publication
+	".mobi", // Amazon Kindle
+	".fb2",  // FictionBook
 }
 
+// Text-based file extensions
+var textTypes = []string{
+	// Common Text Formats
+	".txt",
+	".md", // Markdown
+
+	// Scripting and Programming Languages
+	".sh",        // Bash script
+	".py",        // Python
+	".js",        // JavaScript
+	".ts",        // TypeScript
+	".php",       // PHP
+	".rb",        // Ruby
+	".go",        // Go
+	".java",      // Java
+	".c", ".cpp", // C/C++
+	".cs",    // C#
+	".swift", // Swift
+
+	// Configuration Files
+	".yaml", ".yml", // YAML
+	".json", // JSON
+	".xml",  // XML
+	".ini",  // INI
+	".toml", // TOML
+	".cfg",  // Configuration file
+
+	// Other Text-Based Formats
+	".css",          // Cascading Style Sheets
+	".html", ".htm", // HyperText Markup Language
+	".sql", // SQL
+	".csv", // Comma-Separated Values
+	".tsv", // Tab-Separated Values
+	".log", // Log file
+	".bat", // Batch file
+	".ps1", // PowerShell script
+	".tex", // LaTeX
+	".bib", // BibTeX
+}
+
+// Compressed file extensions
 var compressedFile = []string{
 	".7z",
 	".rar",
@@ -39,6 +87,12 @@ var compressedFile = []string{
 	".tar",
 	".gz",
 	".xz",
+	".bz2",
+	".tgz",  // tar.gz
+	".tbz2", // tar.bz2
+	".lzma",
+	".lz4",
+	".zstd",
 }
 
 type SearchOptions struct {

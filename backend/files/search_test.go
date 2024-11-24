@@ -89,24 +89,24 @@ func TestSearchWhileIndexing(t *testing.T) {
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
 		Directories: map[string]*FileInfo{
-			"/test":      {Files: []ReducedItem{{Name: "audio1.wav", Type: "audio"}}},
-			"/test/path": {Files: []ReducedItem{{Name: "file.txt", Type: "text"}}},
-			"/new/test": {Files: []ReducedItem{
+			"/test":      {Files: []ItemInfo{{Name: "audio1.wav", Type: "audio"}}},
+			"/test/path": {Files: []ItemInfo{{Name: "file.txt", Type: "text"}}},
+			"/new/test": {Files: []ItemInfo{
 				{Name: "audio.wav", Type: "audio"},
 				{Name: "video.mp4", Type: "video"},
 				{Name: "video.MP4", Type: "video"},
 			}},
-			"/new/test/path": {Files: []ReducedItem{{Name: "archive.zip", Type: "archive"}}},
+			"/new/test/path": {Files: []ItemInfo{{Name: "archive.zip", Type: "archive"}}},
 			"/firstDir": {
-				Files: []ReducedItem{
+				Files: []ItemInfo{
 					{Name: "archive.zip", Size: 100, Type: "archive"},
 				},
-				Dirs: []ReducedItem{
+				Dirs: []ItemInfo{
 					{Name: "thisIsDir", Type: "directory", Size: 2 * 1024 * 1024},
 				},
 			},
 			"/firstDir/thisIsDir": {
-				Files: []ReducedItem{
+				Files: []ItemInfo{
 					{Name: "hi.txt", Type: "text"},
 				},
 				Size: 2 * 1024 * 1024,

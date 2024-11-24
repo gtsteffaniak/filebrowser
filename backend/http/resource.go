@@ -35,7 +35,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 
 	// TODO source := r.URL.Query().Get("source")
 	path := r.URL.Query().Get("path")
-	file, err := files.FileInfoFaster(files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(files.FileOptions{
 		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
@@ -46,18 +46,19 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if file.Type == "directory" {
-		return renderJSON(w, r, file)
+	if fileInfo.Type == "directory" {
+		return renderJSON(w, r, fileInfo)
 	}
-	if checksum := r.URL.Query().Get("checksum"); checksum != "" {
-		err := file.Checksum(checksum)
+	if algo := r.URL.Query().Get("checksum"); algo != "" {
+		checksums, err := files.GetChecksum(fileInfo.Path, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
 		} else if err != nil {
 			return http.StatusInternalServerError, err
 		}
+		fileInfo.Checksums = checksums
 	}
-	return renderJSON(w, r, file)
+	return renderJSON(w, r, fileInfo)
 
 }
 
@@ -92,13 +93,13 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		ReadHeader: config.Server.TypeDetectionByHeader,
 		Checker:    d.user,
 	}
-	file, err := files.FileInfoFaster(fileOpts)
+	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err != nil {
 		return errToStatus(err), err
 	}
 
 	// delete thumbnails
-	err = delThumbs(r.Context(), fileCache, file)
+	err = delThumbs(r.Context(), fileCache, fileInfo.FileInfo)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -146,7 +147,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 		return http.StatusOK, nil
 	}
-	file, err := files.FileInfoFaster(fileOpts)
+	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {
 			return http.StatusConflict, nil
@@ -157,7 +158,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusForbidden, nil
 		}
 
-		err = delThumbs(r.Context(), fileCache, file)
+		err = delThumbs(r.Context(), fileCache, fileInfo.FileInfo)
 		if err != nil {
 			return errToStatus(err), err
 		}
@@ -306,7 +307,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		if !d.user.Perm.Rename {
 			return errors.ErrPermissionDenied
 		}
-		file, err := files.FileInfoFaster(files.FileOptions{
+		fileInfo, err := files.FileInfoFaster(files.FileOptions{
 			Path:       src,
 			IsDir:      isSrcDir,
 			Modify:     d.user.Perm.Modify,
@@ -319,7 +320,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		}
 
 		// delete thumbnails
-		err = delThumbs(ctx, fileCache, file)
+		err = delThumbs(ctx, fileCache, fileInfo.FileInfo)
 		if err != nil {
 			return err
 		}
