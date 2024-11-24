@@ -80,16 +80,22 @@ export function createURL(endpoint, params = {}) {
 
 export function adjustedData(data, url) {
   data.url = url;
-  if (data.type == "directory") {
+
+  if (data.type === "directory") {
     if (!data.url.endsWith("/")) data.url += "/";
+
+    // Combine folders and files into items
+    data.items = [...(data.folders || []), ...(data.files || [])];
+
     data.items = data.items.map((item, index) => {
       item.index = index;
       item.url = `${data.url}${item.name}`;
-      if (item.type == "directory") {
+      if (item.type === "directory") {
         item.url += "/";
       }
       return item;
     });
   }
-  return data
+
+  return data;
 }
