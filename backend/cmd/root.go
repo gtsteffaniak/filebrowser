@@ -114,10 +114,6 @@ func StartFilebrowser() {
 		}
 	}
 	store, dbExists := getStore(configPath)
-	indexingInterval := fmt.Sprint(settings.Config.Server.IndexingInterval, " minutes")
-	if !settings.Config.Server.Indexing {
-		indexingInterval = "disabled"
-	}
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
@@ -127,14 +123,13 @@ func StartFilebrowser() {
 	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
 	log.Println("Sources                  :", settings.Config.Server.Root)
-	log.Println("Indexing interval        :", indexingInterval)
 
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
 	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
-	go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
+	go files.InitializeIndex(serverConfig.Indexing)
 	if err := rootCMD(store, &serverConfig); err != nil {
 		log.Fatal("Error starting filebrowser:", err)
 	}

@@ -34,7 +34,7 @@ func TestGetFileMetadataSize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fileInfo, _ := testIndex.GetReducedMetadata(tt.adjustedPath, true)
 			// Iterate over fileInfo.Items to look for expectedName
-			for _, item := range fileInfo.Items {
+			for _, item := range fileInfo.Files {
 				// Assert the existence and the name
 				if item.Name == tt.expectedName {
 					assert.Equal(t, tt.expectedSize, item.Size)
@@ -89,8 +89,8 @@ func TestGetFileMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, _ := testIndex.GetReducedMetadata(tt.adjustedPath, tt.isDir)
-			if fileInfo == nil {
+			fileInfo, exists := testIndex.GetReducedMetadata(tt.adjustedPath, tt.isDir)
+			if !exists {
 				found := false
 				assert.Equal(t, tt.expectedExists, found)
 				return
@@ -98,7 +98,7 @@ func TestGetFileMetadata(t *testing.T) {
 			found := false
 			if tt.isDir {
 				// Iterate over fileInfo.Items to look for expectedName
-				for _, item := range fileInfo.Items {
+				for _, item := range fileInfo.Files {
 					// Assert the existence and the name
 					if item.Name == tt.expectedName {
 						found = true
@@ -120,9 +120,7 @@ func TestGetFileMetadata(t *testing.T) {
 func TestUpdateFileMetadata(t *testing.T) {
 	info := &FileInfo{
 		Path: "/testpath",
-		Name: "testpath",
-		Type: "directory",
-		Files: []ReducedItem{
+		Files: []ItemInfo{
 			{Name: "testfile.txt"},
 			{Name: "anotherfile.txt"},
 		},
@@ -165,9 +163,11 @@ func TestSetDirectoryInfo(t *testing.T) {
 		Directories: map[string]*FileInfo{
 			"/testpath": {
 				Path: "/testpath",
-				Name: "testpath",
-				Type: "directory",
-				Items: []ReducedItem{
+				ItemInfo: ItemInfo{
+					Name: "testpath",
+					Type: "directory",
+				},
+				Files: []ItemInfo{
 					{Name: "testfile.txt"},
 					{Name: "anotherfile.txt"},
 				},
@@ -176,15 +176,17 @@ func TestSetDirectoryInfo(t *testing.T) {
 	}
 	dir := &FileInfo{
 		Path: "/newPath",
-		Name: "newPath",
-		Type: "directory",
-		Items: []ReducedItem{
+		ItemInfo: ItemInfo{
+			Name: "newPath",
+			Type: "directory",
+		},
+		Files: []ItemInfo{
 			{Name: "testfile.txt"},
 		},
 	}
 	index.UpdateMetadata(dir)
 	storedDir, exists := index.Directories["/newPath"]
-	if !exists || storedDir.Items[0].Name != "testfile.txt" {
+	if !exists || storedDir.Files[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
 	}
 }
@@ -203,56 +205,34 @@ func TestRemoveDirectory(t *testing.T) {
 	}
 }
 
-// Test for UpdateCount
-func TestUpdateCount(t *testing.T) {
-	index := &Index{}
-	index.UpdateCount("files")
-	if index.NumFiles != 1 {
-		t.Fatalf("expected NumFiles to be 1 after UpdateCount('files')")
-	}
-	if index.NumFiles != 1 {
-		t.Fatalf("expected NumFiles to be 1 after UpdateCount('files')")
-	}
-	index.UpdateCount("dirs")
-	if index.NumDirs != 1 {
-		t.Fatalf("expected NumDirs to be 1 after UpdateCount('dirs')")
-	}
-	index.UpdateCount("unknown")
-	// Just ensure it does not panic or update any counters
-	if index.NumFiles != 1 || index.NumDirs != 1 {
-		t.Fatalf("expected counts to remain unchanged for unknown type")
-	}
-	index.resetCount()
-	if index.NumFiles != 0 || index.NumDirs != 0 || !index.inProgress {
-		t.Fatalf("expected resetCount to reset counts and set inProgress to true")
-	}
-}
-
 func init() {
 	testIndex = Index{
-		Root:       "/",
-		NumFiles:   10,
-		NumDirs:    5,
-		inProgress: false,
+		Root:     "/",
+		NumFiles: 10,
+		NumDirs:  5,
 		Directories: map[string]*FileInfo{
 			"/testpath": {
 				Path: "/testpath",
-				Name: "testpath",
-				Type: "directory",
-				Files: []ReducedItem{
+				ItemInfo: ItemInfo{
+					Name: "testpath",
+					Type: "directory",
+				},
+				Files: []ItemInfo{
 					{Name: "testfile.txt", Size: 100},
 					{Name: "anotherfile.txt", Size: 100},
 				},
 			},
 			"/anotherpath": {
 				Path: "/anotherpath",
-				Name: "anotherpath",
-				Type: "directory",
-				Files: []ReducedItem{
+				ItemInfo: ItemInfo{
+					Name: "anotherpath",
+					Type: "directory",
+				},
+				Files: []ItemInfo{
 					{Name: "afile.txt", Size: 100},
 				},
-				Dirs: map[string]*FileInfo{
-					"directory": {Name: "directory", Type: "directory", Size: 100},
+				Folders: []ItemInfo{
+					{Name: "directory", Type: "directory", Size: 100},
 				},
 			},
 		},

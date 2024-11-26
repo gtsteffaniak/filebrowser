@@ -1,5 +1,4 @@
-import { createURL, fetchURL, adjustedData} from "./utils";
-import { baseURL } from "@/utils/constants";
+import { createURL, fetchURL, adjustedData } from "./utils";
 import { removePrefix, getApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 import { notify } from "@/notify";
@@ -7,11 +6,12 @@ import { notify } from "@/notify";
 // Notify if errors occur
 export async function fetchFiles(url, content = false) {
   try {
-    url = removePrefix(url,"files");
-    const apiPath = getApiPath("api/resources",{path: url, content: content});
+    let path = removePrefix(url, "files");
+    const apiPath = getApiPath("api/resources",{path: path, content: content});
     const res = await fetchURL(apiPath);
     const data = await res.json();
-    return adjustedData(data,url);
+    const adjusted = adjustedData(data, url);
+    return adjusted;
   } catch (err) {
     notify.showError(err.message || "Error fetching data");
     throw err;
@@ -64,7 +64,7 @@ export function download(format, ...files) {
       fileargs = fileargs.substring(0, fileargs.length - 1);
     }
     const apiPath = getApiPath("api/raw",{path: path, files: fileargs, algo: format});
-    let url = `${baseURL}${apiPath}`;
+    const url = createURL(`${apiPath}`);
     window.open(url);
   } catch (err) {
     notify.showError(err.message || "Error downloading files");
@@ -155,10 +155,11 @@ export async function checksum(url, algo) {
 export function getDownloadURL(path, inline) {
   try {
     const params = {
-      path: path,
+      path: removePrefix(path,"files"),
       ...(inline && { inline: "true" }),
     };
-    return createURL("api/raw", params);
+    const apiPath = getApiPath("api/raw", params);
+    return createURL(apiPath);
   } catch (err) {
     notify.showError(err.message || "Error getting download URL");
     throw err;
@@ -173,8 +174,8 @@ export function getPreviewURL(path, size, modified) {
       key: Date.parse(modified),
       inline: "true",
     };
-
-    return createURL("api/preview", params);
+    const apiPath = getApiPath("api/preview", params);
+    return createURL(apiPath);
   } catch (err) {
     notify.showError(err.message || "Error getting preview URL");
     throw err;
@@ -183,13 +184,14 @@ export function getPreviewURL(path, size, modified) {
 
 export function getSubtitlesURL(file) {
   try {
-    const params = {
-      inline: "true",
-    };
-
     const subtitles = [];
     for (const sub of file.subtitles) {
-      subtitles.push(createURL("api/raw" + sub, params));
+      const params = {
+        inline: "true",
+        path: sub
+      };
+      const apiPath = getApiPath("api/raw", params);
+      return createURL(apiPath);
     }
 
     return subtitles;

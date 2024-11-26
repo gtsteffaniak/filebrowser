@@ -49,27 +49,23 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
-	file, err := files.FileInfoFaster(files.FileOptions{
+	response, err := files.FileInfoFaster(files.FileOptions{
 		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: config.Server.TypeDetectionByHeader,
 		Checker:    d.user,
 	})
+	fileInfo := response.FileInfo
 	if err != nil {
 		return errToStatus(err), err
 	}
-	realPath, _, err := files.GetRealPath(file.Path)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	file.Path = realPath
-	if file.Type == "directory" {
+	if fileInfo.Type == "directory" {
 		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
 	}
-	setContentDisposition(w, r, file)
-	if file.Type != "image" {
-		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", file.Type)
+	setContentDisposition(w, r, fileInfo)
+	if fileInfo.Type != "image" {
+		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", fileInfo.Type)
 	}
 
 	if (previewSize == "large" && !config.Server.ResizePreview) ||
@@ -77,40 +73,40 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		if !d.user.Perm.Download {
 			return http.StatusAccepted, nil
 		}
-		return rawFileHandler(w, r, file)
+		return rawFileHandler(w, r, fileInfo)
 	}
 
-	format, err := imgSvc.FormatFromExtension(filepath.Ext(file.Name))
+	format, err := imgSvc.FormatFromExtension(filepath.Ext(fileInfo.Name))
 	// Unsupported extensions directly return the raw data
 	if err == img.ErrUnsupportedFormat || format == img.FormatGif {
 		if !d.user.Perm.Download {
 			return http.StatusAccepted, nil
 		}
-		return rawFileHandler(w, r, file)
+		return rawFileHandler(w, r, fileInfo)
 	}
 	if err != nil {
 		return errToStatus(err), err
 	}
-	cacheKey := previewCacheKey(file, previewSize)
+	cacheKey := previewCacheKey(fileInfo, previewSize)
 	resizedImage, ok, err := fileCache.Load(r.Context(), cacheKey)
 	if err != nil {
 		return errToStatus(err), err
 	}
 
 	if !ok {
-		resizedImage, err = createPreview(imgSvc, fileCache, file, previewSize)
+		resizedImage, err = createPreview(imgSvc, fileCache, fileInfo, previewSize)
 		if err != nil {
 			return errToStatus(err), err
 		}
 	}
 	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, file.Path, file.ModTime, bytes.NewReader(resizedImage))
+	http.ServeContent(w, r, fileInfo.RealPath(), fileInfo.ModTime, bytes.NewReader(resizedImage))
 
 	return 0, nil
 }
 
 func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo, previewSize string) ([]byte, error) {
-	fd, err := os.Open(file.Path)
+	fd, err := os.Open(file.RealPath())
 	if err != nil {
 		return nil, err
 	}

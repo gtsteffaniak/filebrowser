@@ -1155,22 +1155,16 @@ const docTemplate = `{
         "files.FileInfo": {
             "type": "object",
             "properties": {
-                "checksums": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "content": {
-                    "type": "string"
-                },
-                "isSymlink": {
-                    "type": "boolean"
-                },
-                "items": {
+                "files": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/files.ReducedItem"
+                        "$ref": "#/definitions/files.ItemInfo"
+                    }
+                },
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/files.ItemInfo"
                     }
                 },
                 "modified": {
@@ -1185,26 +1179,14 @@ const docTemplate = `{
                 "size": {
                     "type": "integer"
                 },
-                "subtitles": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "token": {
-                    "type": "string"
-                },
                 "type": {
                     "type": "string"
                 }
             }
         },
-        "files.ReducedItem": {
+        "files.ItemInfo": {
             "type": "object",
             "properties": {
-                "content": {
-                    "type": "string"
-                },
                 "modified": {
                     "type": "string"
                 },

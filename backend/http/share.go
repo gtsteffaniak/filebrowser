@@ -69,7 +69,7 @@ func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return renderJSON(w, r, []*share.Link{})
 	}
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
 	return renderJSON(w, r, s)
 }
@@ -188,7 +188,7 @@ func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, e
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, http.StatusInternalServerError, fmt.Errorf("failed to hash password: %w", err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("failed to hash password")
 	}
 
 	return hash, 0, nil

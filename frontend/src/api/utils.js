@@ -60,36 +60,47 @@ export async function fetchJSON(url, opts) {
   }
 }
 
-export function createURL(endpoint, params = {}) {
+export function createURL(endpoint) {
   let prefix = baseURL;
+
+  // Ensure prefix ends with a single slash
   if (!prefix.endsWith("/")) {
-    prefix = prefix + "/";
+    prefix += "/";
   }
-  const url = new URL(prefix + endpoint, origin);
 
-  const searchParams = {
-    ...params,
-  };
-
-  for (const key in searchParams) {
-    url.searchParams.set(key, searchParams[key]);
+  // Remove leading slash from endpoint to avoid duplicate slashes
+  if (endpoint.startsWith("/")) {
+    endpoint = endpoint.substring(1);
   }
+
+  const url = new URL(prefix + endpoint, window.location.origin);
 
   return url.toString();
 }
 
 export function adjustedData(data, url) {
   data.url = url;
-  if (data.type == "directory") {
+
+  if (data.type === "directory") {
     if (!data.url.endsWith("/")) data.url += "/";
+
+    // Combine folders and files into items
+    data.items = [...(data.folders || []), ...(data.files || [])];
+
     data.items = data.items.map((item, index) => {
       item.index = index;
       item.url = `${data.url}${item.name}`;
-      if (item.type == "directory") {
+      if (item.type === "directory") {
         item.url += "/";
       }
       return item;
     });
   }
-  return data
+  if (data.files) {
+    data.files = []
+  }
+  if (data.folders) {
+    data.folders = []
+  }
+  return data;
 }

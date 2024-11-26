@@ -1,5 +1,6 @@
 import { removePrefix } from "@/utils/url.js";
 import { state } from "./state.js";
+import { mutations } from "./mutations.js";
 
 export const getters = {
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
@@ -15,14 +16,30 @@ export const getters = {
     return state.user.darkMode === true;
   },
   isLoggedIn: () => {
-    return state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser";
+    if (state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser") {
+      return true;
+    }
+    const userData = localStorage.getItem("userData");
+    if (userData == undefined) {
+      return false;
+    }
+    try {
+      const userInfo = JSON.parse(userData);
+      if (userInfo.username != "publicUser") {
+        mutations.setCurrentUser(userInfo);
+        return true;
+      }
+    } catch (error) {
+      return false;
+    }
+    return false
   },
   isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => state.route.name === "Files",
   isListing: () => getters.isFiles() && state.req.type === "directory",
   selectedCount: () => Array.isArray(state.selected) ? state.selected.length : 0,
   getFirstSelected: () => state.req.items[state.selected[0]],
-  isSingleFileSelected: () => getters.selectedCount() === 1 && !state.req.items[state.selected[0]]?.type == "directory",
+  isSingleFileSelected: () => getters.selectedCount() === 1 && getters.getFirstSelected()?.type != "directory",
   selectedDownloadUrl() {
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
@@ -87,6 +104,9 @@ export const getters = {
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       visible = false;
     }
+    if (getters.currentView() == "editor" || getters.currentView() == "preview") {
+      visible = false;
+    }
     return visible
   },
   isStickySidebar: () => {
@@ -114,7 +134,7 @@ export const getters = {
     return removePrefix(state.route.path,trimModifier)
   },
   currentView: () => {
-    const pathname = state.route.path.toLowerCase()
+    const pathname = getters.routePath()
     if (pathname.startsWith(`/settings`)) {
       return "settings"
     } else if (pathname.startsWith(`/share`)) {

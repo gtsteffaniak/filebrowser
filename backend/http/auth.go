@@ -2,9 +2,11 @@ package http
 
 import (
 	"encoding/json"
+	libError "errors"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -12,9 +14,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/users"
 	"github.com/gtsteffaniak/filebrowser/utils"
 )
@@ -206,4 +210,30 @@ func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 		return claim, err
 	}
 	return claim, err
+}
+
+func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
+	if l.PasswordHash == "" {
+		return 200, nil
+	}
+
+	if r.URL.Query().Get("token") == l.Token {
+		return 200, nil
+	}
+
+	password := r.Header.Get("X-SHARE-PASSWORD")
+	password, err := url.QueryUnescape(password)
+	if err != nil {
+		return http.StatusUnauthorized, err
+	}
+	if password == "" {
+		return http.StatusUnauthorized, nil
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(l.PasswordHash), []byte(password)); err != nil {
+		if libError.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return http.StatusUnauthorized, nil
+		}
+		return 401, err
+	}
+	return 200, nil
 }
