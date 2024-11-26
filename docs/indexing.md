@@ -38,9 +38,9 @@ The `scan interval` is the break time between scans and does not include the tim
       1. New files or folders created.
       2. Files or folders deleted.
       3. Renaming of files or folders.
-   - A quick scan **cannot** detect when a file has been updated, for example when you safe a file and the size increases.
+   - A quick scan **cannot** detect when a file has been updated, for example when you save a file and the size increases.
    - A `full scan` is a complete re-indexing. This is always more disk and computationally intense but will capture individual file changes.
-4. The `smart scan interval` changes based on a couple of things. A `simple` complexity enables scans every 1 minute if changes happen frequently and a maximum full scan interval of every 100 minutes. `high` complexity indicates a minimum scanning interval of 10 minutes.
+4. The `smart scan interval` changes based on several things. A `simple` complexity enables scans every 1 minute if changes happen frequently and a maximum full scan interval of every 100 minutes. `high` complexity indicates a minimum scanning interval of 10 minutes.
    - **under 10,000 folders** or **Under 3 seconds** to index is awlays considered `simple` complexity.
    - **more than 500,000 folders** or **Over 2 minutes** to index is always considered `high` complexity.
 
@@ -52,7 +52,7 @@ The scan behavior is still 4 quick scans at a given interval, followed by a 5th 
 
 ### System requirements
 
-You can expect filebrowser Quantum to use 100 MB of RAM for a typical installation. However, if you have a large amount of files and folders, the requirement could climb to multiple GB. Please monitor your system on the first run to know exactly what your specific requirement is.
+You can expect FileBrowser Quantum to use 100 MB of RAM for a typical installation. If you have many files and folders then the requirement could climb to multiple Gigabytes. Please monitor your system on the first run to know your specific requirements.
 
 ### Why does FileBrowser Quantum index the way it does?
 
@@ -66,7 +66,7 @@ The smart indexing method uses filesystem scanners because it allows a low-footp
   - This allows for event-based reactions to filesystem changes.
   - Requires extra overhead.
   - Relies on OS level features and behavior differs between OS's
-  - Requires OS-level configuration to ulimits to properly watching a large filesystem.
+  - Requires OS-level configuration to ulimits in order to properly watch a large filesystem.
 3. **Option 3**: Directory Metadata Heuristics.
   - Using ModTime to determine when directory structures change.
   - Has minimal insight into actual file changes.
@@ -82,7 +82,7 @@ There is currently no way to manually trigger a new full indexing. This will com
 
 However, if you want to force-refresh a certain directory, this happens every time you **view it** in the UI or via the resources API.
 
-This also means resources API is always up to date with the current status of the filesystem. When you "look" at a specific folder, you are causing the index to be refreshed at that location.
+This also means the resources API is always up to date with the current status of the filesystem. When you "look" at a specific folder, you are causing the index to be refreshed at that location.
 
 ### What information does the index have?
 
@@ -184,6 +184,6 @@ Here is an example:
 
 ### Can I disable the index and still use FileBrowser Quantum?
 
-You can disable the index by setting `indexing: false` in your config file. You will still be able to browse your files, but the search will not work at all and you may run into issues as its not intended to be used without indexing.
+You can disable the index by setting `indexing: false` in your config file. You will still be able to browse your files, but the search will not work and you may run into issues as it's not intended to be used without indexing.
 
-I'm not sure what the reason you would run it like this would be, if you have a good reason please open an issue request on how you would like it to work -- and why you would run it without the index.
+I'm not sure why you would run it like this, if you have a good reason please open an issue request on how you would like it to work -- and why you would run it without the index.
