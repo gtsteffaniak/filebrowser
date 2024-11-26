@@ -10,19 +10,25 @@
 </p>
 
 > [!WARNING]
-> Starting with `v0.3.0` API routes have been slightly altered for friendly usage outside of the UI.
+> Starting with `v0.3.0` API routes have been slightly altered for friendly usage outside of the UI. The resources api returns items in separate `files` and `folder` objects now.
+
+> [!WARNING]
 > If on windows, please use docker. The windows binary is unstable and may not work.
+
+> [!WARNING]
+> There is no stable version yet. Always check release notes for bugfixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
 
 FileBrowser Quantum is a fork of the file browser opensource project with the following changes:
 
-  1. [x] Efficiently indexed files
+  1. [x] Indexes files efficiently. See [indexing readme](./docs/indexing.md)
      - Real-time search results as you type
-     - Search Works with more type filters
-     - Enhanced interactive results page.
-     - file/folder sizes are shown in the response
+     - Search supports file/folder sizes and many file type filters.
+     - Enhanced interactive results that shows file/folder sizes.
   1. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode
        styles.
+     - Many graphical and user experience improvements.
+     - right-click context menu
   1. [x] Revamped and simplified configuration via `filebrowser.yml` config file.
   1. [x] Better listing browsing
      - Switching view modes is instant
@@ -32,6 +38,13 @@ FileBrowser Quantum is a fork of the file browser opensource project with the fo
   1. Developer API support
      - Can create long-live API Tokens.
      - Helpful Swagger page available at `/swagger` endpoint.
+
+Notable features that this fork *does not* have (removed):
+
+ - jobs/runners are not supported yet (planned).
+ - shell commands are completely removed and will not be returning.
+ - themes and branding are not fully supported yet (planned).
+ - see feature matrix below for more.
 
 ## About
 

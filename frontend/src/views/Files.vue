@@ -61,9 +61,7 @@ export default {
     $route: "fetchData",
     reload(value) {
       if (value) {
-        console.log("reloading fetch data");
         this.fetchData();
-        console.log("reloading fetch data done", state.req);
       }
     },
   },
@@ -94,7 +92,12 @@ export default {
         let res = await filesApi.fetchFiles(getters.routePath());
         // If not a directory, fetch content
         if (res.type != "directory") {
-          res = await filesApi.fetchFiles(getters.routePath(), true);
+          let content = false;
+          // only check content for blob or text files
+          if (res.type == "blob" || res.type == "text") {
+            content = true;
+          }
+          res = await filesApi.fetchFiles(getters.routePath(), content);
         }
         data = res;
         // Verify if the fetched path matches the current route

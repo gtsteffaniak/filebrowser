@@ -26,6 +26,8 @@ type HttpResponse struct {
 	Token   string `json:"token,omitempty"`
 }
 
+var FileInfoFasterFunc = files.FileInfoFaster
+
 // Updated handleFunc to match the new signature
 type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error)
 
@@ -39,30 +41,30 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
-			return http.StatusNotFound, err
+			return http.StatusNotFound, fmt.Errorf("share not found")
 		}
 		// Authenticate the share request if needed
 		var status int
 		if link.Hash != "" {
 			status, err = authenticateShareRequest(r, link)
 			if err != nil || status != http.StatusOK {
-				return status, err
+				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
 		// Retrieve the user (using the public user by default)
 		user := &users.PublicUser
 
 		// Get file information with options
-		file, err := files.FileInfoFaster(files.FileOptions{
+		file, err := FileInfoFasterFunc(files.FileOptions{
 			Path:       filepath.Join(user.Scope, link.Path+"/"+path),
 			Modify:     user.Perm.Modify,
 			Expand:     true,
 			ReadHeader: config.Server.TypeDetectionByHeader,
 			Checker:    user, // Call your checker function here
-			Token:      link.Token,
 		})
+		file.Token = link.Token
 		if err != nil {
-			return errToStatus(err), err
+			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
 
 		// Set the file info in the `data` object
@@ -89,6 +91,7 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}
@@ -243,6 +246,7 @@ func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
 // LoggingMiddleware logs each request and its status code
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		start := time.Now()
 
 		// Wrap the ResponseWriter to capture the status code

@@ -2,24 +2,19 @@ package http
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
-
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/share"
 	"github.com/gtsteffaniak/filebrowser/users"
 
 	_ "github.com/gtsteffaniak/filebrowser/swagger/docs"
 )
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(*files.FileInfo)
+	file, ok := d.raw.(files.ExtendedFileInfo)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
 	}
@@ -38,8 +33,8 @@ func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, _ := d.raw.(*files.FileInfo)
-	if file == nil {
+	file, ok := d.raw.(files.ExtendedFileInfo)
+	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
 	}
 	if d.user == nil {
@@ -47,36 +42,10 @@ func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	}
 
 	if file.Type == "directory" {
-		return rawDirHandler(w, r, d, file)
+		return rawDirHandler(w, r, d, file.FileInfo)
 	}
 
-	return rawFileHandler(w, r, file)
-}
-
-func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
-	if l.PasswordHash == "" {
-		return 200, nil
-	}
-
-	if r.URL.Query().Get("token") == l.Token {
-		return 200, nil
-	}
-
-	password := r.Header.Get("X-SHARE-PASSWORD")
-	password, err := url.QueryUnescape(password)
-	if err != nil {
-		return http.StatusUnauthorized, err
-	}
-	if password == "" {
-		return http.StatusUnauthorized, nil
-	}
-	if err := bcrypt.CompareHashAndPassword([]byte(l.PasswordHash), []byte(password)); err != nil {
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return http.StatusUnauthorized, nil
-		}
-		return 401, err
-	}
-	return 200, nil
+	return rawFileHandler(w, r, file.FileInfo)
 }
 
 // health godoc

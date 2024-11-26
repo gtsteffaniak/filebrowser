@@ -166,26 +166,15 @@ export default {
       hash: null,
       subPath: "",
       clip: null,
+      token: "",
     };
   },
   watch: {
     $route() {
-      let urlPath = getters.routePath();
-      // Step 1: Split the path by '/'
-      let parts = urlPath.split("/");
-      // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
-      this.hash = parts[1];
-      this.subPath = "/" + parts.slice(2).join("/");
       this.fetchData();
     },
   },
   created() {
-    let urlPath = getters.routePath();
-    // Step 1: Split the path by '/'
-    let parts = urlPath.split("/");
-    // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
-    this.hash = parts[1];
-    this.subPath = "/" + parts.slice(2).join("/");
     this.fetchData();
   },
   mounted() {
@@ -251,6 +240,7 @@ export default {
       return publicApi.getDownloadURL({
         path: this.subPath,
         hash: this.hash,
+        token: this.token,
         inline: inline,
       });
     },
@@ -258,9 +248,20 @@ export default {
       return window.btoa(unescape(encodeURIComponent(name)));
     },
     async fetchData() {
+      let urlPath = getters.routePath("share");
+      // Step 1: Split the path by '/'
+      let parts = urlPath.split("/");
+      // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
+      this.hash = parts[1];
+      this.subPath = "/" + parts.slice(2).join("/");
       // Set loading to true and reset the error.
       mutations.setLoading("share", true);
       this.error = null;
+      if (this.password == "" || this.password == null) {
+        this.password = localStorage.getItem("sharepass:" + this.hash);
+      } else {
+        localStorage.setItem("sharepass:" + this.hash, this.password);
+      }
       // Reset view information.
       if (!getters.isLoggedIn()) {
         let userData = await publicApi.getPublicUser();
@@ -273,11 +274,11 @@ export default {
       try {
         let file = await publicApi.fetchPub(this.subPath, this.hash, this.password);
         file.hash = this.hash;
+        this.token = file.token;
         mutations.updateRequest(file);
         document.title = `${file.name} - ${document.title}`;
       } catch (error) {
         this.error = error;
-        notify.showError(error);
       }
 
       mutations.setLoading("share", false);
@@ -296,7 +297,13 @@ export default {
     },
     download() {
       if (getters.isSingleFileSelected()) {
-        public_api.download(this.subPath, this.hash, null, getters.selectedDownloadUrl());
+        const share = {
+          path: his.subPath,
+          hash: this.hash,
+          token: this.token,
+          format: null,
+        };
+        publicApi.download(share, getters.selectedDownloadUrl());
         return;
       }
       mutations.showHover({
@@ -309,8 +316,13 @@ export default {
           for (let i of this.selected) {
             files.push(state.req.items[i].path);
           }
-
-          public_api.download(this.subPath, this.hash, format, ...files);
+          const share = {
+            path: this.subPath,
+            hash: this.hash,
+            token: this.token,
+            format: format,
+          };
+          publicApi.download(share, ...files);
         },
       });
     },

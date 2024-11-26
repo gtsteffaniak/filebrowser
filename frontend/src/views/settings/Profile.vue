@@ -40,7 +40,6 @@
               type="range"
               id="gallary-size"
               name="gallary-size"
-              :value="gallerySize"
               min="0"
               max="10"
             />

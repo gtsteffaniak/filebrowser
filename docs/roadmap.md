@@ -1,18 +1,18 @@
 # Planned Roadmap
 
-upcoming 0.3.x releases:
+upcoming 0.3.x releases, ordered by priority:
 
+- More filetype icons and refreshed icons.
+- more filetype previews - eg. office, photoshop, vector, 3d files.
+- Enable mobile search with same features as desktop
+- Enable mobile search with same features as desktop
 - Theme configuration from settings
-- File synchronization improvements
-- more filetype previews
 - introduce jobs as replacement to runners.
   - Add Job status to the sidebar
   - index status.
   - Job status from users
   - upload status
 - opentelemetry metrics
-- simple search/filter for current listings.
-- Enable mobile search with same features as desktop
 
 Unplanned Future releases:
   - multiple sources https://github.com/filebrowser/filebrowser/issues/2514

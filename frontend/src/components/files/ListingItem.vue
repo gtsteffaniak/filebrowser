@@ -76,6 +76,7 @@ import { filesApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { baseURL } from "@/utils/constants";
+import { router } from "@/router";
 
 export default {
   name: "item",
@@ -323,7 +324,7 @@ export default {
       mutations.addSelected(this.index);
     },
     open() {
-      this.$router.push({ path: this.url });
+      router.push({ path: this.url });
     },
   },
 };

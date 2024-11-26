@@ -23,51 +23,44 @@ const resolve = {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
-  if (command === "serve") {
-    return {
-      plugins,
-      resolve,
-      server: {
-        proxy: {
-          "/api/command": {
-            target: "ws://127.0.0.1:8080",
-            ws: true,
-          },
-          "/api": "http://127.0.0.1:8080",
+
+  // command === 'build'
+  return {
+    plugins,
+    resolve,
+    base: "",
+    build: {
+      rollupOptions: {
+        input: {
+          index: path.resolve(__dirname, "./public/index.html"),
         },
-      },
-    };
-  } else {
-    // command === 'build'
-    return {
-      plugins,
-      resolve,
-      base: "",
-      build: {
-        rollupOptions: {
-          input: {
-            index: path.resolve(__dirname, "./public/index.html"),
-          },
-          output: {
-            manualChunks: (id) => {
-              if (id.includes("i18n/")) {
-                return "i18n";
-              }
-            },
+        output: {
+          manualChunks: (id) => {
+            if (id.includes("i18n/")) {
+              return "i18n";
+            }
           },
         },
       },
-      experimental: {
-        renderBuiltUrl(filename, { hostType }) {
-          if (hostType === "js") {
-            return { runtime: `window.__prependStaticUrl("${filename}")` };
-          } else if (hostType === "html") {
-            return `{{ .StaticURL }}/${filename}`;
-          } else {
-            return { relative: true };
-          }
-        },
+    },
+    experimental: {
+      renderBuiltUrl(filename, { hostType }) {
+        if (hostType === "js") {
+          return { runtime: `window.__prependStaticUrl("${filename}")` };
+        } else if (hostType === "html") {
+          return `{{ .StaticURL }}/${filename}`;
+        } else {
+          return { relative: true };
+        }
       },
-    };
-  }
+    },
+    test: {
+      globals: true,
+      include: ["src/**/*.test.js"], // Explicitly include test files only
+      exclude: ["src/**/*.vue"], // Exclude Vue files unless tested directly
+      environment: "jsdom", // jsdom environment
+      setupFiles: "tests/mocks/setup.js", // Setup file for tests
+    },
+  };
+
 });

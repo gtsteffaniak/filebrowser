@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.1
+
+  **New Features**
+  - Adds Smart Indexing by default.
+
+  **Notes**:
+  - Optimized api request response times via improved caching and simplified actions.
+  - User information persists more reliably.
+  - Added [indexing doc](./docs/indexing.md) to explain the expectations around indexing and how it works.
+  - The index should also use less RAM than it did in v0.3.0.
+
+  **Bugfixes**:
+  - Tweaked sorting by name, fixes case sensitive and numeric sorting. https://github.com/gtsteffaniak/filebrowser/issues/230
+  - Fixed unnecessary authentication status checks each route change
+  - Fix create file action issue.
+  - some small javascript related issues.
+  - Fixes pretty big bug viewing raw content in v0.3.0 (utf format message)
+
 ## v0.3.0
 
   This Release focuses on the API and making it more accessible for developers to access functions without the UI.

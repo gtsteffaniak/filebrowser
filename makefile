@@ -35,8 +35,13 @@ lint: lint-backend lint-frontend
 
 test: test-backend test-frontend
 
+check-all: lint test
+
 test-backend:
 	cd backend && go test -race -timeout=10s ./...
 
 test-frontend:
+	cd frontend && npm run test
+
+test-frontend-playwright:
 	docker build -t gtstef/filebrowser-tests -f Dockerfile.playwright .

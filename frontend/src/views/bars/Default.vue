@@ -1,6 +1,6 @@
 <template>
   <header>
-    <action icon="close" :label="$t('buttons.close')" @action="close()" />
+    <action v-if="notShare" icon="close" :label="$t('buttons.close')" @action="close()" />
     <title v-if="isSettings" class="topTitle">Settings</title>
     <title v-else class="topTitle">{{ req.name }}</title>
   </header>
@@ -37,6 +37,9 @@ export default {
   },
 
   computed: {
+    notShare() {
+      return getters.currentView() != "share";
+    },
     isSettings() {
       return getters.isSettings();
     },

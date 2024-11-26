@@ -10,7 +10,6 @@ Here is an expanded config file which includes all possible configurations:
 server:
   CreateUserDir: false
   UserHomeBasePath: ""
-  indexingInterval: 5
   indexing: true
   numImageProcessors: 4
   socket: ""
@@ -71,7 +70,6 @@ Here are the defaults if nothing is set:
 server:
   enableThumbnails: true
   enableExec: false
-  indexingInterval: 5
   port: 80
   numImageProcessors: 4
   baseURL: ""
@@ -109,7 +107,7 @@ userDefaults:
 
 ### Server configuration settings
 
-- `indexingInterval`: This is the time in minutes the system waits before checking for filesystem changes. Default: `5`
+- `indexingInterval`: This optional paramter disables smart indexing and specifies a time in minutes the system waits before checking for filesystem changes. See [indexing readme](indexing.md) for more information.
 
 - `indexing`: This enables or disables indexing. (Note: search will not work without indexing) Default: `true`
 

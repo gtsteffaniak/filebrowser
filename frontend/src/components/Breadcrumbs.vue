@@ -21,7 +21,6 @@
         type="range"
         id="gallery-size"
         name="gallery-size"
-        :value="gallerySize"
         min="0"
         max="10"
         @input="updateGallerySize"
@@ -60,6 +59,9 @@ export default {
       let parts = relativePath.split("/");
 
       if (parts[0] === "") {
+        parts.shift();
+      }
+      if (getters.currentView() == "share") {
         parts.shift();
       }
 

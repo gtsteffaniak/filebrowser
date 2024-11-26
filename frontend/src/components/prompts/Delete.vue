@@ -59,7 +59,7 @@ export default {
         if (!this.isListing) {
           await filesApi.remove(state.route.path);
           buttons.success("delete");
-          showSuccess("Deleted item successfully");
+          notify.showSuccess("Deleted item successfully");
 
           this.currentPrompt?.confirm();
           this.closeHovers();
@@ -79,7 +79,7 @@ export default {
 
         await Promise.all(promises);
         buttons.success("delete");
-        showSuccess("Deleted item successfully");
+        notify.showSuccess("Deleted item successfully");
         mutations.setReload(true); // Handle reload as needed
       } catch (e) {
         buttons.done("delete");
