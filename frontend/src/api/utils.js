@@ -1,6 +1,5 @@
 import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
-import { baseURL } from "@/utils/constants";
 import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
@@ -58,24 +57,6 @@ export async function fetchJSON(url, opts) {
     notify.showError("received status: "+res.status+" on url " + url);
     throw new Error(res.status);
   }
-}
-
-export function createURL(endpoint) {
-  let prefix = baseURL;
-
-  // Ensure prefix ends with a single slash
-  if (!prefix.endsWith("/")) {
-    prefix += "/";
-  }
-
-  // Remove leading slash from endpoint to avoid duplicate slashes
-  if (endpoint.startsWith("/")) {
-    endpoint = endpoint.substring(1);
-  }
-
-  const url = new URL(prefix + endpoint, window.location.origin);
-
-  return url.toString();
 }
 
 export function adjustedData(data, url) {

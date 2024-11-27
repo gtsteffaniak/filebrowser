@@ -1,4 +1,4 @@
-import { fetchURL, fetchJSON, createURL, adjustedData } from "./utils";
+import { fetchURL, fetchJSON, adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath } from "@/utils/url.js";
 
@@ -41,5 +41,5 @@ export async function create(path, password = "", expires = "", unit = "hours") 
 }
 
 export function getShareURL(share) {
-  return createURL("share/"+share.hash, {}, false);
+  return window.origin+getApiPath(`share/${share.hash}`);
 }

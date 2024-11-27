@@ -110,3 +110,31 @@ func TestGetIndex(t *testing.T) {
 		})
 	}
 }
+
+func TestMakeIndexPath(t *testing.T) {
+	tests := []struct {
+		name     string
+		subPath  string
+		expected string
+	}{
+		{"Root path returns slash", "/", "/"},
+		{"Dot-prefixed returns slash", ".", "/"},
+		{"Double-dot prefix ignored", "./", "/"},
+		{"Dot prefix followed by text", "./test", "/test"},
+		{"Dot prefix followed by text", ".test", "/.test"},
+		{"Hidden file at root", "/.test", "/.test"},
+		{"Trailing slash removed", "/test/", "/test"},
+		{"Subpath without root prefix", "/other/test", "/other/test"},
+		{"Complex nested paths", "/nested/path", "/nested/path"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			si := &Index{Root: "/"}
+			result := si.makeIndexPath(tt.subPath)
+			if result != tt.expected {
+				t.Errorf("makeIndexPath(%q) = %q; want %q", tt.name, result, tt.expected)
+			}
+		})
+	}
+}

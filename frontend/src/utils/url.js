@@ -47,6 +47,9 @@ export default {
 };
 
 export function removePrefix(path, prefix) {
+  if (path === undefined) {
+    return ""
+  }
   if (prefix != "") {
     prefix = "/" + trimSlashes(prefix)
   }
