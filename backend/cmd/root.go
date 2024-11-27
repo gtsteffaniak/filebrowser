@@ -1,20 +1,11 @@
 package cmd
 
 import (
-	"crypto/tls"
 	"flag"
 	"fmt"
-	"io/fs"
 	"log"
-	"net"
-	"net/http"
 	"os"
-	"os/signal"
-	"strconv"
 	"strings"
-	"syscall"
-
-	"embed"
 
 	"github.com/gtsteffaniak/filebrowser/diskcache"
 	"github.com/gtsteffaniak/filebrowser/files"
@@ -22,29 +13,15 @@ import (
 	"github.com/gtsteffaniak/filebrowser/img"
 	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/storage"
+	"github.com/gtsteffaniak/filebrowser/swagger/docs"
+	"github.com/swaggo/swag"
+
 	"github.com/gtsteffaniak/filebrowser/users"
-	"github.com/gtsteffaniak/filebrowser/utils"
 	"github.com/gtsteffaniak/filebrowser/version"
 )
 
-//go:embed dist/*
-var assets embed.FS
-
-var (
-	nonEmbededFS = os.Getenv("FILEBROWSER_NO_EMBEDED") == "true"
-)
-
-type dirFS struct {
-	http.Dir
-}
-
-func (d dirFS) Open(name string) (fs.File, error) {
-	return d.Dir.Open(name)
-}
-
 func getStore(config string) (*storage.Storage, bool) {
 	// Use the config file (global flag)
-	log.Printf("Using Config file        : %v", config)
 	settings.Initialize(config)
 	store, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
 	if err != nil {
@@ -137,33 +114,25 @@ func StartFilebrowser() {
 		}
 	}
 	store, dbExists := getStore(configPath)
-	indexingInterval := fmt.Sprint(settings.Config.Server.IndexingInterval, " minutes")
-	if !settings.Config.Server.Indexing {
-		indexingInterval = "disabled"
-	}
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
 	log.Printf("Initializing FileBrowser Quantum (%v)\n", version.Version)
-	log.Println("Embeded frontend         :", !nonEmbededFS)
+	log.Printf("Using Config file        : %v", configPath)
+	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
 	log.Println("Sources                  :", settings.Config.Server.Root)
-	log.Print("Indexing interval        : ", indexingInterval)
 
 	serverConfig := settings.Config.Server
+	swagInfo := docs.SwaggerInfo
+	swagInfo.BasePath = serverConfig.BaseURL
+	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
-	go files.InitializeIndex(serverConfig.IndexingInterval, serverConfig.Indexing)
+	go files.InitializeIndex(serverConfig.Indexing)
 	if err := rootCMD(store, &serverConfig); err != nil {
 		log.Fatal("Error starting filebrowser:", err)
 	}
-}
-
-func cleanupHandler(listener net.Listener, c chan os.Signal) { //nolint:interfacer
-	sig := <-c
-	log.Printf("Caught signal %s: shutting down.", sig)
-	listener.Close()
-	os.Exit(0)
 }
 
 func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
@@ -186,57 +155,7 @@ func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
+	fbhttp.StartHttp(imgSvc, store, fileCache)
 
-	fbhttp.SetupEnv(store, serverConfig, fileCache)
-
-	_, err := os.Stat(serverConfig.Root)
-	utils.CheckErr(fmt.Sprint("cmd os.Stat ", serverConfig.Root), err)
-	var listener net.Listener
-	address := serverConfig.Address + ":" + strconv.Itoa(serverConfig.Port)
-	switch {
-	case serverConfig.Socket != "":
-		listener, err = net.Listen("unix", serverConfig.Socket)
-		utils.CheckErr("net.Listen", err)
-		err = os.Chmod(serverConfig.Socket, os.FileMode(0666)) // socket-perm
-		utils.CheckErr("os.Chmod", err)
-	case serverConfig.TLSKey != "" && serverConfig.TLSCert != "":
-		cer, err := tls.LoadX509KeyPair(serverConfig.TLSCert, serverConfig.TLSKey) //nolint:govet
-		utils.CheckErr("tls.LoadX509KeyPair", err)
-		listener, err = tls.Listen("tcp", address, &tls.Config{
-			MinVersion:   tls.VersionTLS12,
-			Certificates: []tls.Certificate{cer}},
-		)
-		utils.CheckErr("tls.Listen", err)
-	default:
-		listener, err = net.Listen("tcp", address)
-		utils.CheckErr("net.Listen", err)
-	}
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
-	go cleanupHandler(listener, sigc)
-	if !nonEmbededFS {
-		assetsFs, err := fs.Sub(assets, "dist")
-		if err != nil {
-			log.Fatal("Could not embed frontend. Does backend/cmd/dist exist? Must be built and exist first")
-		}
-		handler, err := fbhttp.NewHandler(imgSvc, assetsFs)
-		utils.CheckErr("fbhttp.NewHandler", err)
-		defer listener.Close()
-		log.Println("Listening on", listener.Addr().String())
-		//nolint: gosec
-		if err := http.Serve(listener, handler); err != nil {
-			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
-		}
-	} else {
-		assetsFs := dirFS{Dir: http.Dir("frontend/dist")}
-		handler, err := fbhttp.NewHandler(imgSvc, assetsFs)
-		utils.CheckErr("fbhttp.NewHandler", err)
-		defer listener.Close()
-		log.Println("Listening on", listener.Addr().String())
-		//nolint: gosec
-		if err := http.Serve(listener, handler); err != nil {
-			log.Fatalf("Could not start server on port %d: %v", serverConfig.Port, err)
-		}
-	}
 	return nil
 }

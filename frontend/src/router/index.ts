@@ -7,8 +7,6 @@ import Settings from "@/views/Settings.vue";
 import Errors from "@/views/Errors.vue";
 import { baseURL, name } from "@/utils/constants";
 import { getters, state } from "@/store";
-import { recaptcha, loginPage } from "@/utils/constants";
-import { login, validateLogin } from "@/utils/auth";
 import { mutations } from "@/store";
 import i18n from "@/i18n";
 
@@ -74,9 +72,6 @@ const routes = [
         path: "users/:id",
         name: "User",
         component: Settings,
-        meta: {
-          requiresAdmin: true,
-        },
       },
     ],
   },
@@ -109,8 +104,12 @@ const routes = [
   },
   {
     path: "/:catchAll(.*)*",
-    redirect: (to: RouteLocation) =>
-      `/files/${[...to.params.catchAll].join("/")}`,
+    redirect: (to: RouteLocation) => {
+      const path = Array.isArray(to.params.catchAll)
+        ? to.params.catchAll.join("/")
+        : to.params.catchAll || "";
+      return `/files/${path}`;
+    },
   },
 ];
 
@@ -119,46 +118,26 @@ const router = createRouter({
   routes,
 });
 
-
-async function initAuth() {
-  if (loginPage) {
-      await validateLogin();
-  } else {
-      await login("publicUser", "publicUser", "");
-  }
-  if (recaptcha) {
-      await new Promise<void>((resolve) => {
-          const check = () => {
-              if (typeof window.grecaptcha === "undefined") {
-                  setTimeout(check, 100);
-              } else {
-                  resolve();
-              }
-          };
-
-          check();
-      });
-  }
+// Helper function to check if a route resolves to itself
+function isSameRoute(to: RouteLocation, from: RouteLocation) {
+  return to.path === from.path && JSON.stringify(to.params) === JSON.stringify(from.params);
 }
 
 router.beforeResolve(async (to, from, next) => {
-  mutations.closeHovers()
-  const title = i18n.global.t(titles[to.name as keyof typeof titles]);
-  document.title = title + " - " + name;
-  mutations.setRoute(to)
-  // this will only be null on first route
-  if (from.name == null) {
-    try {
-      await initAuth();
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  if (to.path.endsWith("/login") && getters.isLoggedIn()) {
-    next({ path: "/files/" });
-    return;
+  console.log("Navigating to", to.path,from.path);
+  if (isSameRoute(to, from)) {
+    console.warn("Avoiding recursive navigation to the same route.");
+    return next(false);
   }
 
+  // Set the page title using i18n
+  const title = i18n.global.t(titles[to.name as keyof typeof titles]);
+  document.title = title + " - " + name;
+
+  // Update store with the current route
+  mutations.setRoute(to);
+
+  // Handle auth requirements
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!getters.isLoggedIn()) {
       next({
@@ -168,12 +147,19 @@ router.beforeResolve(async (to, from, next) => {
       return;
     }
 
+    // Handle admin-only routes
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
-      if (state.user === null || !getters.isAdmin()) {
+      if (!state.user || !getters.isAdmin()) {
         next({ path: "/403" });
         return;
       }
     }
+  }
+
+  // Redirect logged-in users from login page
+  if (to.path.endsWith("/login") && getters.isLoggedIn()) {
+    next({ path: "/files/" });
+    return;
   }
 
   next();

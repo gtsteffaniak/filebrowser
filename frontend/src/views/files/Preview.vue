@@ -1,64 +1,63 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
-    <div class="loading delayed" :class="{ 'dark-mode': isDarkMode }" v-if="loading">
-      <div class="spinner">
-        <div class="bounce1"></div>
-        <div class="bounce2"></div>
-        <div class="bounce3"></div>
-      </div>
-    </div>
-    <template v-else>
-      <div class="preview">
-        <ExtendedImage v-if="req.type == 'image'" :src="raw"></ExtendedImage>
-        <audio
-          v-else-if="req.type == 'audio'"
-          ref="player"
-          :src="raw"
-          controls
-          :autoplay="autoPlay"
-          @play="autoPlay = true"
-        ></audio>
-        <video
-          v-else-if="req.type == 'video'"
-          ref="player"
-          :src="raw"
-          controls
-          :autoplay="autoPlay"
-          @play="autoPlay = true"
-        >
-          <track
-            kind="captions"
-            v-for="(sub, index) in subtitles"
-            :key="index"
-            :src="sub"
-            :label="'Subtitle ' + index"
-            :default="index === 0"
-          />
-          Sorry, your browser doesn't support embedded videos, but don't worry, you can
-          <a :href="downloadUrl">download it</a>
-          and watch it with your favorite video player!
-        </video>
-        <object v-else-if="req.type == 'pdf'" class="pdf" :data="raw"></object>
-        <div v-else-if="req.type == 'blob' || req.type == 'archive'" class="info">
-          <div class="title">
-            <i class="material-icons">feedback</i>
-            {{ $t("files.noPreview") }}
-          </div>
-          <div>
-            <a target="_blank" :href="downloadUrl" class="button button--flat">
-              <div>
-                <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
-              </div>
-            </a>
-            <a target="_blank" :href="raw" class="button button--flat" v-if="!req.isDir">
-              <div>
-                <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
-              </div>
-            </a>
-          </div>
+    <div class="preview">
+      <ExtendedImage v-if="currentItem.type == 'image'" :src="raw"> </ExtendedImage>
+      <audio
+        v-else-if="currentItem.type == 'audio'"
+        ref="player"
+        :src="raw"
+        controls
+        :autoplay="autoPlay"
+        @play="autoPlay = true"
+      ></audio>
+      <video
+        v-else-if="currentItem.type == 'video'"
+        ref="player"
+        :src="raw"
+        controls
+        :autoplay="autoPlay"
+        @play="autoPlay = true"
+      >
+        <track
+          kind="captions"
+          v-for="(sub, index) in subtitles"
+          :key="index"
+          :src="sub"
+          :label="'Subtitle ' + index"
+          :default="index === 0"
+        />
+        Sorry, your browser doesn't support embedded videos, but don't worry, you can
+        <a :href="downloadUrl">download it</a>
+        and watch it with your favorite video player!
+      </video>
+      <object v-else-if="currentItem.type == 'pdf'" class="pdf" :data="raw"></object>
+      <div
+        v-else-if="currentItem.type == 'blob' || currentItem.type == 'archive'"
+        class="info"
+      >
+        <div class="title">
+          <i class="material-icons">feedback</i>
+          {{ $t("files.noPreview") }}
+        </div>
+        <div>
+          <a target="_blank" :href="downloadUrl" class="button button--flat">
+            <div>
+              <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
+            </div>
+          </a>
+          <a
+            target="_blank"
+            :href="raw"
+            class="button button--flat"
+            v-if="currentItem.type != 'directory'"
+          >
+            <div>
+              <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
+            </div>
+          </a>
         </div>
       </div>
-    </template>
+    </div>
 
     <button
       @click="prev"
@@ -85,9 +84,9 @@
   </div>
 </template>
 <script>
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import { resizePreview } from "@/utils/constants";
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -105,7 +104,7 @@ export default {
       nextLink: "",
       listing: null,
       name: "",
-      fullSize: false,
+      fullSize: true,
       showNav: true,
       navTimeout: null,
       hoverNav: false,
@@ -114,14 +113,16 @@ export default {
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       oldReq: {}, // Replace with your actual initial state
-      jwt: "", // Replace with your actual initial state
-      loading: false, // Replace with your actual initial state
+      currentItem: {
+        name: "",
+        path: "",
+        url: "",
+        modified: "",
+        type: "",
+      },
     };
   },
   computed: {
-    req() {
-      return state.req;
-    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -132,13 +133,20 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return api.getDownloadURL(state.req);
+      return filesApi.getDownloadURL(this.currentItem.path);
     },
     raw() {
-      if (state.req.type === "image" && !this.fullSize) {
-        return api.getPreviewURL(state.req, "big");
+      if (this.currentItem.url == "" || this.currentItem.url == undefined) {
+        return;
       }
-      return api.getDownloadURL(state.req, true);
+      const previewUrl = this.fullSize
+        ? filesApi.getDownloadURL(this.currentItem.url, "large")
+        : filesApi.getPreviewURL(
+            this.currentItem.url,
+            "small",
+            this.currentItem.modified
+          );
+      return previewUrl;
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -147,8 +155,8 @@ export default {
       return resizePreview;
     },
     subtitles() {
-      if (state.req.subtitles) {
-        return api.getSubtitlesURL(state.req);
+      if (this.currentItem.subtitles) {
+        return filesApi.getSubtitlesURL(this.currentItem);
       }
       return [];
     },
@@ -176,7 +184,6 @@ export default {
         name: "delete",
         confirm: () => {
           this.listing = this.listing.filter((item) => item.name !== this.name);
-
           if (this.hasNext) {
             this.next();
           } else if (!this.hasPrevious && !this.hasNext) {
@@ -188,12 +195,10 @@ export default {
       };
     },
     prev() {
-      mutations.setLoading("preview-img", true);
       this.hoverNav = false;
       this.$router.replace({ path: this.previousLink });
     },
     next() {
-      mutations.setLoading("preview-img", true);
       this.hoverNav = false;
       this.$router.replace({ path: this.nextLink });
     },
@@ -224,25 +229,26 @@ export default {
       if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
         this.autoPlay = false;
       }
-
-      let dirs = state.route.fullPath.split("/");
-      this.name = decodeURIComponent(dirs[dirs.length - 1]);
-
+      let parts = state.route.path.split("/");
+      this.name = decodeURI(parts.pop("/"));
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);
-        const res = await api.fetch(path);
+        const res = await filesApi.fetchFiles(path);
         this.listing = res.items;
       }
-
       this.previousLink = "";
       this.nextLink = "";
       const path = state.req.path;
-      const directoryPath = path.substring(0, path.lastIndexOf("/"));
+
+      let directoryPath = path.substring(0, path.lastIndexOf("/"));
+      if (directoryPath == "") {
+        directoryPath = "/";
+      }
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
           continue;
         }
-
+        this.currentItem = this.listing[i];
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
@@ -261,17 +267,13 @@ export default {
             break;
           }
         }
-
         return;
       }
     },
     prefetchUrl(item) {
-      if (item.type !== "image") {
-        return "";
-      }
       return this.fullSize
-        ? api.getDownloadURL(item, true)
-        : api.getPreviewURL(item, "big");
+        ? filesApi.getDownloadURL(item.path, true)
+        : filesApi.getPreviewURL(item.path, "large", item.modified);
     },
     openMore() {
       this.currentPrompt = "more";

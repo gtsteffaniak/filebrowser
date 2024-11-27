@@ -1,22 +1,21 @@
 # Planned Roadmap
 
-upcoming 0.2.x releases:
+upcoming 0.3.x releases, ordered by priority:
 
-- Replace http routes for gorilla/mux with stdlib
+- More filetype icons and refreshed icons.
+- more filetype previews - eg. office, photoshop, vector, 3d files.
+- Enable mobile search with same features as desktop
+- Enable mobile search with same features as desktop
 - Theme configuration from settings
-- File syncronization improvements
-- more filetype previews
-
-next major 0.3.0 release :
-
-- multiple sources https://github.com/filebrowser/filebrowser/issues/2514
 - introduce jobs as replacement to runners.
-- Add Job status to the sidebar
+  - Add Job status to the sidebar
   - index status.
   - Job status from users
   - upload status
+- opentelemetry metrics
 
 Unplanned Future releases:
+  - multiple sources https://github.com/filebrowser/filebrowser/issues/2514
   - Add tools to sidebar
     - duplicate file detector.
     - bulk rename https://github.com/filebrowser/filebrowser/issues/2473

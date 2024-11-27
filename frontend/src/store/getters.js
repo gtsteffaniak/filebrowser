@@ -1,4 +1,6 @@
+import { removePrefix } from "@/utils/url.js";
 import { state } from "./state.js";
+import { mutations } from "./mutations.js";
 
 export const getters = {
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
@@ -6,6 +8,7 @@ export const getters = {
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === "settings",
+  isShare: () => getters.currentView() === "share",
   isDarkMode: () => {
     if (state.user == null) {
       return true;
@@ -13,14 +16,30 @@ export const getters = {
     return state.user.darkMode === true;
   },
   isLoggedIn: () => {
-    return state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser";
+    if (state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser") {
+      return true;
+    }
+    const userData = localStorage.getItem("userData");
+    if (userData == undefined) {
+      return false;
+    }
+    try {
+      const userInfo = JSON.parse(userData);
+      if (userInfo.username != "publicUser") {
+        mutations.setCurrentUser(userInfo);
+        return true;
+      }
+    } catch (error) {
+      return false;
+    }
+    return false
   },
   isAdmin: () => state.user.perm?.admin == true,
   isFiles: () => state.route.name === "Files",
-  isListing: () => getters.isFiles() && state.req.isDir,
+  isListing: () => getters.isFiles() && state.req.type === "directory",
   selectedCount: () => Array.isArray(state.selected) ? state.selected.length : 0,
   getFirstSelected: () => state.req.items[state.selected[0]],
-  isSingleFileSelected: () => getters.selectedCount() === 1 && !state.req.items[state.selected[0]]?.isDir,
+  isSingleFileSelected: () => getters.selectedCount() === 1 && getters.getFirstSelected()?.type != "directory",
   selectedDownloadUrl() {
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
@@ -29,7 +48,7 @@ export const getters = {
     let dirCount = 0;
     state.req.items.forEach((item) => {
       // Check if the item is a directory
-      if (item.isDir) {
+      if (item.type == "directory") {
         // If hideDotfiles is enabled and the item is a dotfile, skip it
         if (state.user.hideDotfiles && item.name.startsWith(".")) {
           return;
@@ -45,7 +64,7 @@ export const getters = {
     let fileCount = 0;
     state.req.items.forEach((item) => {
       // Check if the item is a directory
-      if (!item.isDir) {
+      if (item.type != "directory") {
         // If hideDotfiles is enabled and the item is a dotfile, skip it
         if (state.user.hideDotfiles && item.name.startsWith(".")) {
           return;
@@ -68,7 +87,7 @@ export const getters = {
       if (state.user.hideDotfiles && item.name.startsWith(".")) {
         return;
       }
-      if (item.isDir) {
+      if (item.type == "directory") {
         dirs.push(item);
       } else {
         item.Path = state.req.Path;
@@ -85,6 +104,9 @@ export const getters = {
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       visible = false;
     }
+    if (getters.currentView() == "editor" || getters.currentView() == "preview") {
+      visible = false;
+    }
     return visible
   },
   isStickySidebar: () => {
@@ -92,7 +114,7 @@ export const getters = {
     if (getters.currentView() == "settings") {
       sticky = true
     }
-    if (getters.currentView() == null && !getters.isLoading()) {
+    if (getters.currentView() == null && !getters.isLoading() && getters.isShare() ) {
       sticky = true
     }
     if (getters.isMobile() || getters.currentView() == "preview") {
@@ -108,18 +130,18 @@ export const getters = {
     const shouldOverlaySidebar = getters.isSidebarVisible() && !getters.isStickySidebar()
     return hasPrompt || shouldOverlaySidebar;
   },
-  getRoutePath: () => {
-    return state.route.path.endsWith("/")
-    ? state.route.path
-    : state.route.path + "/";
+  routePath: (trimModifier="") => {
+    return removePrefix(state.route.path,trimModifier)
   },
   currentView: () => {
-    const pathname = state.route.path.toLowerCase()
-    if (pathname.includes("settings")) {
+    const pathname = getters.routePath()
+    if (pathname.startsWith(`/settings`)) {
       return "settings"
-    } else if (pathname.includes("files")) {
+    } else if (pathname.startsWith(`/share`)) {
+      return "share"
+    } else if (pathname.startsWith(`/files`)) {
       if (state.req.type !== undefined) {
-        if (state.req.isDir) {
+        if (state.req.type == "directory") {
           return "listingView";
         } else if ("content" in state.req) {
           return "editor";
@@ -195,7 +217,7 @@ export const getters = {
       let type = upload.type;
       let name = upload.file.name;
       let size = state.upload.sizes[id] || 0; // Default to 0 if size is undefined
-      let isDir = upload.file.isDir;
+      let isDir = upload.file.type == "directory";
       let progress = isDir
         ? 100
         : Math.ceil((state.upload.progress[id] || 0 / size) * 100); // Default to 0 if progress is undefined

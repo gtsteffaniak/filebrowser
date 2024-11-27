@@ -13,14 +13,18 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
 
 	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/fileutils"
 	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/utils"
 )
 
 var (
@@ -28,35 +32,30 @@ var (
 	pathMutexesMu sync.Mutex // Mutex to protect the pathMutexes map
 )
 
-type ReducedItem struct {
+type ItemInfo struct {
 	Name    string    `json:"name"`
 	Size    int64     `json:"size"`
 	ModTime time.Time `json:"modified"`
-	IsDir   bool      `json:"isDir,omitempty"`
 	Type    string    `json:"type"`
 }
 
 // FileInfo describes a file.
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
-	Items        []*FileInfo       `json:"-"`
-	ReducedItems []ReducedItem     `json:"items,omitempty"`
-	Path         string            `json:"path,omitempty"`
-	Name         string            `json:"name"`
-	Size         int64             `json:"size"`
-	Extension    string            `json:"-"`
-	ModTime      time.Time         `json:"modified"`
-	CacheTime    time.Time         `json:"-"`
-	Mode         os.FileMode       `json:"-"`
-	IsDir        bool              `json:"isDir,omitempty"`
-	IsSymlink    bool              `json:"isSymlink,omitempty"`
-	Type         string            `json:"type"`
-	Subtitles    []string          `json:"subtitles,omitempty"`
-	Content      string            `json:"content,omitempty"`
-	Checksums    map[string]string `json:"checksums,omitempty"`
-	Token        string            `json:"token,omitempty"`
-	NumDirs      int               `json:"numDirs"`
-	NumFiles     int               `json:"numFiles"`
+	ItemInfo
+	Files   []ItemInfo `json:"files"`
+	Folders []ItemInfo `json:"folders"`
+	Path    string     `json:"path"`
+}
+
+// for efficiency, a response will be a pointer to the data
+// extra calculated fields can be added here
+type ExtendedFileInfo struct {
+	*FileInfo
+	Content   string            `json:"content,omitempty"`
+	Subtitles []string          `json:"subtitles,omitempty"`
+	Checksums map[string]string `json:"checksums,omitempty"`
+	Token     string            `json:"token,omitempty"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -66,163 +65,78 @@ type FileOptions struct {
 	Modify     bool
 	Expand     bool
 	ReadHeader bool
-	Token      string
-	Checker    rules.Checker
+	Checker    users.Checker
 	Content    bool
 }
 
-// Legacy file info method, only called on non-indexed directories.
-// Once indexing completes for the first time, NewFileInfo is never called.
-func NewFileInfo(opts FileOptions) (*FileInfo, error) {
-
-	index := GetIndex(rootPath)
-	if !opts.Checker.Check(opts.Path) {
-		return nil, os.ErrPermission
-	}
-	file, err := stat(opts)
-	if err != nil {
-		return nil, err
-	}
-	if opts.Expand {
-		if file.IsDir {
-			if err = file.readListing(opts.Path, opts.Checker, opts.ReadHeader); err != nil {
-				return nil, err
-			}
-			cleanedItems := []ReducedItem{}
-			for _, item := range file.Items {
-				// This is particularly useful for root of index, while indexing hasn't finished.
-				// adds the directory sizes for directories that have been indexed already.
-				if item.IsDir {
-					adjustedPath := index.makeIndexPath(opts.Path+"/"+item.Name, true)
-					info, _ := index.GetMetadataInfo(adjustedPath)
-					item.Size = info.Size
-				}
-				cleanedItems = append(cleanedItems, ReducedItem{
-					Name:    item.Name,
-					Size:    item.Size,
-					IsDir:   item.IsDir,
-					ModTime: item.ModTime,
-					Type:    item.Type,
-				})
-			}
-
-			file.Items = nil
-			file.ReducedItems = cleanedItems
-			return file, nil
-		}
-		err = file.detectType(opts.Path, opts.Modify, opts.Content, true)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return file, err
+func (f FileOptions) Components() (string, string) {
+	return filepath.Dir(f.Path), filepath.Base(f.Path)
 }
 
-func FileInfoFaster(opts FileOptions) (*FileInfo, error) {
+func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
+	index := GetIndex(rootPath)
+	opts.Path = index.makeIndexPath(opts.Path)
+	response := ExtendedFileInfo{}
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
 	pathMutex.Lock()
 	defer pathMutex.Unlock()
 	if !opts.Checker.Check(opts.Path) {
-		return nil, os.ErrPermission
+		return response, os.ErrPermission
 	}
-	index := GetIndex(rootPath)
-	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
-	if opts.IsDir {
-		info, exists := index.GetMetadataInfo(adjustedPath)
-		if exists && !opts.Content {
-			// Let's not refresh if less than a second has passed
-			if time.Since(info.CacheTime) > time.Second {
-				go RefreshFileInfo(opts) //nolint:errcheck
-			}
-			// refresh cache after
-			return &info, nil
-		}
+
+	_, isDir, err := GetRealPath(opts.Path)
+	if err != nil {
+		return response, err
 	}
-	// don't bother caching content
+	opts.IsDir = isDir
+
+	// TODO : whats the best way to save trips to disk here?
+	// disabled using cache because its not clear if this is helping or hurting
+	// check if the file exists in the index
+	//info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
+	//if exists {
+	//	err := RefreshFileInfo(opts)
+	//	if err != nil {
+	//		return info, err
+	//	}
+	//	if opts.Content {
+	//		content := ""
+	//		content, err = getContent(opts.Path)
+	//		if err != nil {
+	//			return info, err
+	//		}
+	//		info.Content = content
+	//	}
+	//	return info, nil
+	//}
+
+	err = index.RefreshFileInfo(opts)
+	if err != nil {
+		return response, err
+	}
+	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
+	if !exists {
+		return response, err
+	}
 	if opts.Content {
-		file, err := NewFileInfo(opts)
-		return file, err
-	}
-	err := RefreshFileInfo(opts)
-	if err != nil {
-		file, err := NewFileInfo(opts)
-		return file, err
-	}
-	info, exists := index.GetMetadataInfo(adjustedPath + "/" + filepath.Base(opts.Path))
-	if !exists || info.Name == "" {
-		return NewFileInfo(opts)
-	}
-	return &info, nil
-}
-
-func RefreshFileInfo(opts FileOptions) error {
-	if !opts.Checker.Check(opts.Path) {
-		return fmt.Errorf("permission denied: %s", opts.Path)
-	}
-	index := GetIndex(rootPath)
-	adjustedPath := index.makeIndexPath(opts.Path, opts.IsDir)
-	file, err := stat(opts)
-	if err != nil {
-		return fmt.Errorf("File/folder does not exist to refresh data: %s", opts.Path)
-	}
-	_ = file.detectType(opts.Path, true, opts.Content, opts.ReadHeader)
-	if file.IsDir {
-		err := file.readListing(opts.Path, opts.Checker, opts.ReadHeader)
+		content, err := getContent(opts.Path)
 		if err != nil {
-			return fmt.Errorf("Dir info could not be read: %s", opts.Path)
+			return response, err
 		}
+		response.Content = content
 	}
-	result := index.UpdateFileMetadata(adjustedPath, *file)
-	if !result {
-		return fmt.Errorf("File/folder does not exist in metadata: %s", adjustedPath)
-	}
-	return nil
-}
-
-func stat(opts FileOptions) (*FileInfo, error) {
-	info, err := os.Lstat(opts.Path)
-	if err != nil {
-		return nil, err
-	}
-	file := &FileInfo{
-		Path:      opts.Path,
-		Name:      info.Name(),
-		ModTime:   info.ModTime(),
-		Mode:      info.Mode(),
-		Size:      info.Size(),
-		Extension: filepath.Ext(info.Name()),
-		Token:     opts.Token,
-	}
-	if info.IsDir() {
-		file.IsDir = true
-	}
-	if info.Mode()&os.ModeSymlink != 0 {
-		file.IsSymlink = true
-		targetInfo, err := os.Stat(opts.Path)
-		if err == nil {
-			file.Size = targetInfo.Size()
-			file.IsDir = targetInfo.IsDir()
-		}
-	}
-
-	return file, nil
+	response.FileInfo = info
+	return response, nil
 }
 
 // Checksum checksums a given File for a given User, using a specific
 // algorithm. The checksums data is saved on File object.
-func (i *FileInfo) Checksum(algo string) error {
-	if i.IsDir {
-		return errors.ErrIsDirectory
-	}
-
-	if i.Checksums == nil {
-		i.Checksums = map[string]string{}
-	}
-
-	reader, err := os.Open(i.Path)
+func GetChecksum(fullPath, algo string) (map[string]string, error) {
+	subs := map[string]string{}
+	reader, err := os.Open(fullPath)
 	if err != nil {
-		return err
+		return subs, err
 	}
 	defer reader.Close()
 
@@ -235,21 +149,21 @@ func (i *FileInfo) Checksum(algo string) error {
 
 	h, ok := hashFuncs[algo]
 	if !ok {
-		return errors.ErrInvalidOption
+		return subs, errors.ErrInvalidOption
 	}
 
 	_, err = io.Copy(h, reader)
 	if err != nil {
-		return err
+		return subs, err
 	}
-
-	i.Checksums[algo] = hex.EncodeToString(h.Sum(nil))
-	return nil
+	subs[algo] = hex.EncodeToString(h.Sum(nil))
+	return subs, nil
 }
 
 // RealPath gets the real path for the file, resolving symlinks if supported.
 func (i *FileInfo) RealPath() string {
-	realPath, err := filepath.EvalSymlinks(i.Path)
+	realPath, _, _ := GetRealPath(rootPath, i.Path)
+	realPath, err := filepath.EvalSymlinks(realPath)
 	if err == nil {
 		return realPath
 	}
@@ -262,16 +176,24 @@ func GetRealPath(relativePath ...string) (string, bool, error) {
 		combined = append(combined, strings.TrimPrefix(path, settings.Config.Server.Root))
 	}
 	joinedPath := filepath.Join(combined...)
+
+	isDir, _ := utils.RealPathCache.Get(joinedPath + ":isdir").(bool)
+	cached, ok := utils.RealPathCache.Get(joinedPath).(string)
+	if ok && cached != "" {
+		return cached, isDir, nil
+	}
 	// Convert relative path to absolute path
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
-		return "", false, err
-	}
-	if !Exists(absolutePath) {
-		return absolutePath, false, nil // return without error
+		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", combined, err)
 	}
 	// Resolve symlinks and get the real path
-	return resolveSymlinks(absolutePath)
+	realPath, isDir, err := resolveSymlinks(absolutePath)
+	if err == nil {
+		utils.RealPathCache.Set(joinedPath, realPath)
+		utils.RealPathCache.Set(joinedPath+":isdir", isDir)
+	}
+	return realPath, isDir, err
 }
 
 func DeleteFiles(absPath string, opts FileOptions) error {
@@ -279,8 +201,50 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	if err != nil {
 		return err
 	}
-	opts.Path = filepath.Dir(absPath)
-	err = RefreshFileInfo(opts)
+	index := GetIndex(rootPath)
+	err = index.RefreshFileInfo(opts)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func MoveResource(realsrc, realdst string, isSrcDir bool) error {
+	err := fileutils.MoveFile(realsrc, realdst)
+	if err != nil {
+		return err
+	}
+	index := GetIndex(rootPath)
+	// refresh info for source and dest
+	err = index.RefreshFileInfo(FileOptions{
+		Path:  realsrc,
+		IsDir: isSrcDir,
+	})
+	if err != nil {
+		return errors.ErrEmptyKey
+	}
+	refreshConfig := FileOptions{Path: realdst, IsDir: true}
+	if !isSrcDir {
+		refreshConfig.Path = filepath.Dir(realdst)
+	}
+	err = index.RefreshFileInfo(refreshConfig)
+	if err != nil {
+		return errors.ErrEmptyKey
+	}
+	return nil
+}
+
+func CopyResource(realsrc, realdst string, isSrcDir bool) error {
+	err := fileutils.CopyFile(realsrc, realdst)
+	if err != nil {
+		return err
+	}
+	index := GetIndex(rootPath)
+	refreshConfig := FileOptions{Path: realdst, IsDir: true}
+	if !isSrcDir {
+		refreshConfig.Path = filepath.Dir(realdst)
+	}
+	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return errors.ErrEmptyKey
 	}
@@ -288,13 +252,14 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 }
 
 func WriteDirectory(opts FileOptions) error {
+	realPath, _, _ := GetRealPath(rootPath, opts.Path)
 	// Ensure the parent directories exist
-	err := os.MkdirAll(opts.Path, 0775)
+	err := os.MkdirAll(realPath, 0775)
 	if err != nil {
 		return err
 	}
-	opts.Path = filepath.Dir(opts.Path)
-	err = RefreshFileInfo(opts)
+	index := GetIndex(rootPath)
+	err = index.RefreshFileInfo(opts)
 	if err != nil {
 		return errors.ErrEmptyKey
 	}
@@ -302,13 +267,10 @@ func WriteDirectory(opts FileOptions) error {
 }
 
 func WriteFile(opts FileOptions, in io.Reader) error {
-	dst := opts.Path
+	dst, _, _ := GetRealPath(rootPath, opts.Path)
 	parentDir := filepath.Dir(dst)
-	// Split the directory from the destination path
-	dir := filepath.Dir(dst)
-
 	// Create the directory and all necessary parents
-	err := os.MkdirAll(dir, 0775)
+	err := os.MkdirAll(parentDir, 0775)
 	if err != nil {
 		return err
 	}
@@ -326,112 +288,105 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 		return err
 	}
 	opts.Path = parentDir
-	err = RefreshFileInfo(opts)
-	if err != nil {
-		return errors.ErrEmptyKey
-	}
-	return nil
+	opts.IsDir = true
+	index := GetIndex(rootPath)
+	return index.RefreshFileInfo(opts)
 }
 
 // resolveSymlinks resolves symlinks in the given path
 func resolveSymlinks(path string) (string, bool, error) {
 	for {
-		// Get the file info
+		// Get the file info using os.Lstat to handle symlinks
 		info, err := os.Lstat(path)
 		if err != nil {
-			return "", false, err
+			return path, false, fmt.Errorf("could not stat path: %s, %v", path, err)
 		}
 
-		// Check if it's a symlink
+		// Check if the path is a symlink
 		if info.Mode()&os.ModeSymlink != 0 {
 			// Read the symlink target
 			target, err := os.Readlink(path)
 			if err != nil {
-				return "", false, err
+				return path, false, fmt.Errorf("could not read symlink: %s, %v", path, err)
 			}
 
-			// Resolve the target relative to the symlink's directory
+			// Resolve the symlink's target relative to its directory
+			// This ensures the resolved path is absolute and correctly calculated
 			path = filepath.Join(filepath.Dir(path), target)
 		} else {
-			// Not a symlink, so return the resolved path and check if it's a directory
-			return path, info.IsDir(), nil
+			// Not a symlink, so return the resolved path and whether it's a directory
+			isDir := info.IsDir()
+			return path, isDir, nil
 		}
 	}
 }
 
 // addContent reads and sets content based on the file type.
-func (i *FileInfo) addContent(path string) error {
-	if !i.IsDir {
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		stringContent := string(content)
-		if !utf8.ValidString(stringContent) {
-			return nil
-		}
-		if stringContent == "" {
-			i.Content = "empty-file-x6OlSil"
-			return nil
-		}
-		i.Content = stringContent
+func getContent(path string) (string, error) {
+	realPath, _, err := GetRealPath(rootPath, path)
+	if err != nil {
+		return "", err
 	}
-	return nil
+
+	content, err := os.ReadFile(realPath)
+	if err != nil {
+		return "", err
+	}
+	stringContent := string(content)
+	if !utf8.ValidString(stringContent) {
+		return "", nil
+	}
+	if stringContent == "" {
+		return "empty-file-x6OlSil", nil
+	}
+	return stringContent, nil
 }
 
 // detectType detects the file type.
-func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool) error {
-	if i.IsDir {
-		return nil
-	}
-	if IsNamedPipe(i.Mode) {
-		i.Type = "blob"
-		if saveContent {
-			return i.addContent(path)
-		}
-		return nil
-	}
+func (i *ItemInfo) detectType(path string, modify, saveContent, readHeader bool) error {
+	name := i.Name
+	var contentErr error
 
+	ext := filepath.Ext(name)
 	var buffer []byte
 	if readHeader {
-		buffer = i.readFirstBytes()
-		mimetype := mime.TypeByExtension(i.Extension)
+		buffer = i.readFirstBytes(path)
+		mimetype := mime.TypeByExtension(ext)
 		if mimetype == "" {
 			http.DetectContentType(buffer)
 		}
 	}
 
-	ext := filepath.Ext(i.Name)
 	for _, fileType := range AllFiletypeOptions {
 		if IsMatchingType(ext, fileType) {
 			i.Type = fileType
 		}
-
 		switch i.Type {
 		case "text":
 			if !modify {
 				i.Type = "textImmutable"
 			}
 			if saveContent {
-				return i.addContent(path)
+				return contentErr
 			}
 		case "video":
-			parentDir := strings.TrimRight(path, i.Name)
-			i.detectSubtitles(parentDir)
+			// TODO add back somewhere else, not during metadata fetch
+			//parentDir := strings.TrimRight(path, name)
+			//i.detectSubtitles(parentDir)
 		case "doc":
 			if ext == ".pdf" {
 				i.Type = "pdf"
 				return nil
 			}
 			if saveContent {
-				return i.addContent(path)
+				return nil
 			}
 		}
 	}
 	if i.Type == "" {
 		i.Type = "blob"
 		if saveContent {
-			return i.addContent(path)
+			return contentErr
 		}
 	}
 
@@ -439,8 +394,8 @@ func (i *FileInfo) detectType(path string, modify, saveContent, readHeader bool)
 }
 
 // readFirstBytes reads the first bytes of the file.
-func (i *FileInfo) readFirstBytes() []byte {
-	file, err := os.Open(i.Path)
+func (i *ItemInfo) readFirstBytes(path string) []byte {
+	file, err := os.Open(path)
 	if err != nil {
 		i.Type = "blob"
 		return nil
@@ -457,114 +412,44 @@ func (i *FileInfo) readFirstBytes() []byte {
 	return buffer[:n]
 }
 
+// TODO add subtitles back
 // detectSubtitles detects subtitles for video files.
-func (i *FileInfo) detectSubtitles(parentDir string) {
-	if i.Type != "video" {
-		return
-	}
-	i.Subtitles = []string{}
-	ext := filepath.Ext(i.Name)
-	dir, err := os.Open(parentDir)
-	if err != nil {
-		// Directory must have been deleted, remove it from the index
-		return
-	}
-	defer dir.Close() // Ensure directory handle is closed
-
-	files, err := dir.Readdir(-1)
-	if err != nil {
-		return
-	}
-
-	base := strings.TrimSuffix(i.Name, ext)
-	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
-
-	for _, f := range files {
-		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
-			continue
-		}
-
-		for _, subtitleExt := range subtitleExts {
-			if strings.HasSuffix(f.Name(), subtitleExt) {
-				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
-				break
-			}
-		}
-	}
-}
-
-// readListing reads the contents of a directory and fills the listing.
-func (i *FileInfo) readListing(path string, checker rules.Checker, readHeader bool) error {
-	dir, err := os.Open(i.Path)
-	if err != nil {
-		return err
-	}
-	defer dir.Close()
-
-	files, err := dir.Readdir(-1)
-	if err != nil {
-		return err
-	}
-
-	listing := &FileInfo{
-		Items:    []*FileInfo{},
-		NumDirs:  0,
-		NumFiles: 0,
-	}
-
-	for _, f := range files {
-		name := f.Name()
-		fPath := filepath.Join(i.Path, name)
-
-		if !checker.Check(fPath) {
-			continue
-		}
-
-		isSymlink, isInvalidLink := false, false
-		if IsSymlink(f.Mode()) {
-			isSymlink = true
-			info, err := os.Stat(fPath)
-			if err == nil {
-				f = info
-			} else {
-				isInvalidLink = true
-			}
-		}
-
-		file := &FileInfo{
-			Name:    name,
-			Size:    f.Size(),
-			ModTime: f.ModTime(),
-			Mode:    f.Mode(),
-		}
-		if f.IsDir() {
-			file.IsDir = true
-		}
-		if isSymlink {
-			file.IsSymlink = true
-		}
-
-		if file.IsDir {
-			listing.NumDirs++
-		} else {
-			listing.NumFiles++
-
-			if isInvalidLink {
-				file.Type = "invalid_link"
-			} else {
-				err := file.detectType(path, true, false, readHeader)
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		listing.Items = append(listing.Items, file)
-	}
-
-	i.Items = listing.Items
-	return nil
-}
+//func (i *FileInfo) detectSubtitles(path string) {
+//	if i.Type != "video" {
+//		return
+//	}
+//	parentDir := filepath.Dir(path)
+//	fileName := filepath.Base(path)
+//	i.Subtitles = []string{}
+//	ext := filepath.Ext(fileName)
+//	dir, err := os.Open(parentDir)
+//	if err != nil {
+//		// Directory must have been deleted, remove it from the index
+//		return
+//	}
+//	defer dir.Close() // Ensure directory handle is closed
+//
+//	files, err := dir.Readdir(-1)
+//	if err != nil {
+//		return
+//	}
+//
+//	base := strings.TrimSuffix(fileName, ext)
+//	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
+//
+//	for _, f := range files {
+//		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
+//			continue
+//		}
+//
+//		for _, subtitleExt := range subtitleExts {
+//			if strings.HasSuffix(f.Name(), subtitleExt) {
+//				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
+//				break
+//			}
+//		}
+//	}
+//}
 
 func IsNamedPipe(mode os.FileMode) bool {
 	return mode&os.ModeNamedPipe != 0
@@ -596,4 +481,27 @@ func Exists(path string) bool {
 		return false
 	}
 	return false
+}
+
+func (info *FileInfo) SortItems() {
+	sort.Slice(info.Folders, func(i, j int) bool {
+		// Convert strings to integers for numeric sorting if both are numeric
+		numI, errI := strconv.Atoi(info.Folders[i].Name)
+		numJ, errJ := strconv.Atoi(info.Folders[j].Name)
+		if errI == nil && errJ == nil {
+			return numI < numJ
+		}
+		// Fallback to case-insensitive lexicographical sorting
+		return strings.ToLower(info.Folders[i].Name) < strings.ToLower(info.Folders[j].Name)
+	})
+	sort.Slice(info.Files, func(i, j int) bool {
+		// Convert strings to integers for numeric sorting if both are numeric
+		numI, errI := strconv.Atoi(info.Files[i].Name)
+		numJ, errJ := strconv.Atoi(info.Files[j].Name)
+		if errI == nil && errJ == nil {
+			return numI < numJ
+		}
+		// Fallback to case-insensitive lexicographical sorting
+		return strings.ToLower(info.Files[i].Name) < strings.ToLower(info.Files[j].Name)
+	})
 }

@@ -17,15 +17,16 @@
 </template>
 
 <script>
-import { files as api } from "@/api";
-
+import { filesApi } from "@/api";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 import { state, mutations, getters } from "@/store";
-import { pathsMatch } from "@/utils/url";
+import { pathsMatch } from "@/utils/url.js";
+import { notify } from "@/notify";
+//import { removePrefix } from "@/utils/url.js";
 
 export default {
   name: "files",
@@ -85,16 +86,18 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
 
-      let url = state.route.path;
-      if (url === "") url = "/";
-      if (url[0] !== "/") url = "/" + url;
       let data = {};
       try {
         // Fetch initial data
-        let res = await api.fetch(url);
+        let res = await filesApi.fetchFiles(getters.routePath());
         // If not a directory, fetch content
-        if (!res.isDir) {
-          res = await api.fetch(url, true);
+        if (res.type != "directory") {
+          let content = false;
+          // only check content for blob or text files
+          if (res.type == "blob" || res.type == "text") {
+            content = true;
+          }
+          res = await filesApi.fetchFiles(getters.routePath(), content);
         }
         data = res;
         // Verify if the fetched path matches the current route
@@ -102,6 +105,7 @@ export default {
           document.title = `${res.name} - ${document.title}`;
         }
       } catch (e) {
+        notify.showError(e);
         this.error = e;
         mutations.replaceRequest(null);
       } finally {

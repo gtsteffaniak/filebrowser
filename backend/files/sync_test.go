@@ -32,9 +32,9 @@ func TestGetFileMetadataSize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, _ := testIndex.GetMetadataInfo(tt.adjustedPath)
+			fileInfo, _ := testIndex.GetReducedMetadata(tt.adjustedPath, true)
 			// Iterate over fileInfo.Items to look for expectedName
-			for _, item := range fileInfo.ReducedItems {
+			for _, item := range fileInfo.Files {
 				// Assert the existence and the name
 				if item.Name == tt.expectedName {
 					assert.Equal(t, tt.expectedSize, item.Size)
@@ -53,28 +53,29 @@ func TestGetFileMetadata(t *testing.T) {
 		adjustedPath   string
 		expectedName   string
 		expectedExists bool
+		isDir          bool
 	}{
 		{
 			name:           "testpath exists",
-			adjustedPath:   "/testpath",
+			adjustedPath:   "/testpath/testfile.txt",
 			expectedName:   "testfile.txt",
 			expectedExists: true,
 		},
 		{
 			name:           "testpath not exists",
-			adjustedPath:   "/testpath",
+			adjustedPath:   "/testpath/nonexistent.txt",
 			expectedName:   "nonexistent.txt",
 			expectedExists: false,
 		},
 		{
 			name:           "File exists in /anotherpath",
-			adjustedPath:   "/anotherpath",
+			adjustedPath:   "/anotherpath/afile.txt",
 			expectedName:   "afile.txt",
 			expectedExists: true,
 		},
 		{
 			name:           "File does not exist in /anotherpath",
-			adjustedPath:   "/anotherpath",
+			adjustedPath:   "/anotherpath/nonexistentfile.txt",
 			expectedName:   "nonexistentfile.txt",
 			expectedExists: false,
 		},
@@ -83,20 +84,33 @@ func TestGetFileMetadata(t *testing.T) {
 			adjustedPath:   "/nonexistentpath",
 			expectedName:   "",
 			expectedExists: false,
+			isDir:          true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fileInfo, _ := testIndex.GetMetadataInfo(tt.adjustedPath)
+			fileInfo, exists := testIndex.GetReducedMetadata(tt.adjustedPath, tt.isDir)
+			if !exists {
+				found := false
+				assert.Equal(t, tt.expectedExists, found)
+				return
+			}
 			found := false
-			// Iterate over fileInfo.Items to look for expectedName
-			for _, item := range fileInfo.ReducedItems {
-				// Assert the existence and the name
-				if item.Name == tt.expectedName {
+			if tt.isDir {
+				// Iterate over fileInfo.Items to look for expectedName
+				for _, item := range fileInfo.Files {
+					// Assert the existence and the name
+					if item.Name == tt.expectedName {
+						found = true
+						break
+					}
+				}
+			} else {
+				if fileInfo.Name == tt.expectedName {
 					found = true
-					break
 				}
 			}
+
 			assert.Equal(t, tt.expectedExists, found)
 		})
 	}
@@ -104,42 +118,40 @@ func TestGetFileMetadata(t *testing.T) {
 
 // Test for UpdateFileMetadata
 func TestUpdateFileMetadata(t *testing.T) {
-	index := &Index{
-		Directories: map[string]FileInfo{
-			"/testpath": {
-				Path:  "/testpath",
-				Name:  "testpath",
-				IsDir: true,
-				ReducedItems: []ReducedItem{
-					{Name: "testfile.txt"},
-					{Name: "anotherfile.txt"},
-				},
-			},
+	info := &FileInfo{
+		Path: "/testpath",
+		Files: []ItemInfo{
+			{Name: "testfile.txt"},
+			{Name: "anotherfile.txt"},
 		},
 	}
 
-	info := FileInfo{Name: "testfile.txt"}
+	index := &Index{
+		Directories: map[string]*FileInfo{
+			"/testpath": info,
+		},
+	}
 
-	success := index.UpdateFileMetadata("/testpath", info)
+	success := index.UpdateMetadata(info)
 	if !success {
 		t.Fatalf("expected UpdateFileMetadata to succeed")
 	}
 
-	dir, exists := index.Directories["/testpath"]
-	if !exists || dir.ReducedItems[0].Name != "testfile.txt" {
-		t.Fatalf("expected testfile.txt to be updated in the directory metadata")
+	fileInfo, exists := index.GetReducedMetadata("/testpath/testfile.txt", false)
+	if !exists || fileInfo.Name != "testfile.txt" {
+		t.Fatalf("expected testfile.txt to be updated in the directory metadata:%v %v", exists, info.Name)
 	}
 }
 
 // Test for GetDirMetadata
 func TestGetDirMetadata(t *testing.T) {
 	t.Parallel()
-	_, exists := testIndex.GetMetadataInfo("/testpath")
+	_, exists := testIndex.GetReducedMetadata("/testpath", true)
 	if !exists {
 		t.Fatalf("expected GetDirMetadata to return initialized metadata map")
 	}
 
-	_, exists = testIndex.GetMetadataInfo("/nonexistent")
+	_, exists = testIndex.GetReducedMetadata("/nonexistent", true)
 	if exists {
 		t.Fatalf("expected GetDirMetadata to return false for nonexistent directory")
 	}
@@ -148,51 +160,41 @@ func TestGetDirMetadata(t *testing.T) {
 // Test for SetDirectoryInfo
 func TestSetDirectoryInfo(t *testing.T) {
 	index := &Index{
-		Directories: map[string]FileInfo{
+		Directories: map[string]*FileInfo{
 			"/testpath": {
-				Path:  "/testpath",
-				Name:  "testpath",
-				IsDir: true,
-				Items: []*FileInfo{
+				Path: "/testpath",
+				ItemInfo: ItemInfo{
+					Name: "testpath",
+					Type: "directory",
+				},
+				Files: []ItemInfo{
 					{Name: "testfile.txt"},
 					{Name: "anotherfile.txt"},
 				},
 			},
 		},
 	}
-	dir := FileInfo{
-		Path:  "/newPath",
-		Name:  "newPath",
-		IsDir: true,
-		Items: []*FileInfo{
+	dir := &FileInfo{
+		Path: "/newPath",
+		ItemInfo: ItemInfo{
+			Name: "newPath",
+			Type: "directory",
+		},
+		Files: []ItemInfo{
 			{Name: "testfile.txt"},
 		},
 	}
-	index.SetDirectoryInfo("/newPath", dir)
+	index.UpdateMetadata(dir)
 	storedDir, exists := index.Directories["/newPath"]
-	if !exists || storedDir.Items[0].Name != "testfile.txt" {
+	if !exists || storedDir.Files[0].Name != "testfile.txt" {
 		t.Fatalf("expected SetDirectoryInfo to store directory info correctly")
-	}
-}
-
-// Test for GetDirectoryInfo
-func TestGetDirectoryInfo(t *testing.T) {
-	t.Parallel()
-	dir, exists := testIndex.GetDirectoryInfo("/testpath")
-	if !exists || dir.Items[0].Name != "testfile.txt" {
-		t.Fatalf("expected GetDirectoryInfo to return correct directory info")
-	}
-
-	_, exists = testIndex.GetDirectoryInfo("/nonexistent")
-	if exists {
-		t.Fatalf("expected GetDirectoryInfo to return false for nonexistent directory")
 	}
 }
 
 // Test for RemoveDirectory
 func TestRemoveDirectory(t *testing.T) {
 	index := &Index{
-		Directories: map[string]FileInfo{
+		Directories: map[string]*FileInfo{
 			"/testpath": {},
 		},
 	}
@@ -203,58 +205,34 @@ func TestRemoveDirectory(t *testing.T) {
 	}
 }
 
-// Test for UpdateCount
-func TestUpdateCount(t *testing.T) {
-	index := &Index{}
-	index.UpdateCount("files")
-	if index.NumFiles != 1 {
-		t.Fatalf("expected NumFiles to be 1 after UpdateCount('files')")
-	}
-	if index.NumFiles != 1 {
-		t.Fatalf("expected NumFiles to be 1 after UpdateCount('files')")
-	}
-	index.UpdateCount("dirs")
-	if index.NumDirs != 1 {
-		t.Fatalf("expected NumDirs to be 1 after UpdateCount('dirs')")
-	}
-	index.UpdateCount("unknown")
-	// Just ensure it does not panic or update any counters
-	if index.NumFiles != 1 || index.NumDirs != 1 {
-		t.Fatalf("expected counts to remain unchanged for unknown type")
-	}
-	index.resetCount()
-	if index.NumFiles != 0 || index.NumDirs != 0 || !index.inProgress {
-		t.Fatalf("expected resetCount to reset counts and set inProgress to true")
-	}
-}
-
 func init() {
 	testIndex = Index{
-		Root:       "/",
-		NumFiles:   10,
-		NumDirs:    5,
-		inProgress: false,
-		Directories: map[string]FileInfo{
+		Root:     "/",
+		NumFiles: 10,
+		NumDirs:  5,
+		Directories: map[string]*FileInfo{
 			"/testpath": {
-				Path:     "/testpath",
-				Name:     "testpath",
-				IsDir:    true,
-				NumDirs:  1,
-				NumFiles: 2,
-				Items: []*FileInfo{
+				Path: "/testpath",
+				ItemInfo: ItemInfo{
+					Name: "testpath",
+					Type: "directory",
+				},
+				Files: []ItemInfo{
 					{Name: "testfile.txt", Size: 100},
 					{Name: "anotherfile.txt", Size: 100},
 				},
 			},
 			"/anotherpath": {
-				Path:     "/anotherpath",
-				Name:     "anotherpath",
-				IsDir:    true,
-				NumDirs:  1,
-				NumFiles: 1,
-				Items: []*FileInfo{
-					{Name: "directory", IsDir: true, Size: 100},
+				Path: "/anotherpath",
+				ItemInfo: ItemInfo{
+					Name: "anotherpath",
+					Type: "directory",
+				},
+				Files: []ItemInfo{
 					{Name: "afile.txt", Size: 100},
+				},
+				Folders: []ItemInfo{
+					{Name: "directory", Type: "directory", Size: 100},
 				},
 			},
 		},

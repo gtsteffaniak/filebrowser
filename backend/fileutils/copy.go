@@ -6,7 +6,7 @@ import (
 )
 
 // Copy copies a file or folder from one place to another.
-func Copy(src, dst string) error {
+func CopyHelper(src, dst string) error {
 	src = filepath.Clean(src)
 	if src == "" {
 		return os.ErrNotExist

@@ -1,15 +1,11 @@
 <template>
   <div class="dashboard" style="padding-bottom: 30vh">
-    <div v-if="isRootSettings" class="settings-views">
+    <div v-if="isRootSettings && !userPage" class="settings-views">
       <div
         v-for="setting in settings"
         :key="setting.id + '-main'"
         :id="setting.id + '-main'"
-        :class="{
-          active: active(setting.id + '-main'),
-          clickable: !active(setting.id + '-main'),
-        }"
-        @click="!active(setting.id + '-main') && setView(setting.id + '-main')"
+        @click="handleClick($event, setting.id + '-main')"
       >
         <!-- Dynamically render the component based on the setting -->
         <component v-if="shouldShow(setting)" :is="setting.component"></component>
@@ -42,7 +38,7 @@ import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
 import UserManagement from "@/views/settings/Users.vue";
 import UserSettings from "@/views/settings/User.vue";
-
+import ApiKeys from "@/views/settings/Api.vue";
 export default {
   name: "settings",
   components: {
@@ -51,6 +47,7 @@ export default {
     GlobalSettings,
     ProfileSettings,
     SharesSettings,
+    ApiKeys,
   },
   data() {
     return {
@@ -59,10 +56,10 @@ export default {
   },
   computed: {
     isRootSettings() {
-      return state.route.path == "/settings";
+      return getters.currentView() == "settings";
     },
-    newUserPage() {
-      return state.route.path == "/settings/users/new";
+    userPage() {
+      return getters.routePath().startsWith(`/settings/users/`);
     },
     loading() {
       return getters.isLoading();
@@ -79,19 +76,18 @@ export default {
   },
   methods: {
     shouldShow(setting) {
-      if (state.isMobile) {
-        const perm = setting?.perm || {};
-        // Check if all keys in setting.perm exist in state.user.perm and have truthy values
-        return Object.keys(perm).every((key) => state.user.perm[key]);
-      }
-      return this.active(setting.id + "-main");
-    },
-    active(id) {
-      return state.activeSettingsView === id;
+      const perm = setting?.perm || {};
+      return Object.keys(perm).every((key) => state.user.perm[key]);
     },
     setView(view) {
       if (state.activeSettingsView === view) return;
       mutations.setActiveSettingsView(view);
+    },
+    handleClick(event, view) {
+      // Allow propagation if the click is on a link or a child element with default behavior
+      const target = event.target.closest("a, router-link");
+      if (target) return; // Let the browser/router handle the navigation
+      this.setView(view); // Call the setView method for other clicks
     },
   },
 };
@@ -109,11 +105,9 @@ export default {
   padding-bottom: 35vh;
   width: 100%;
 }
-.settings-views > .active > .card {
+
+.settings-views .card {
   border-style: solid;
   opacity: 1;
-}
-.settings-views .card {
-  opacity: 0.3;
 }
 </style>

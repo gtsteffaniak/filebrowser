@@ -2,7 +2,7 @@ package settings
 
 import (
 	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/rules"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 // StorageBackend is a settings storage backend.
@@ -62,7 +62,7 @@ func (s *Storage) Save(set *Settings) error {
 	}
 
 	if set.Rules == nil {
-		set.Rules = []rules.Rule{}
+		set.Rules = []users.Rule{}
 	}
 
 	if set.Commands == nil {
@@ -94,6 +94,5 @@ func (s *Storage) GetServer() (*Server, error) {
 
 // SaveServer wraps StorageBackend.SaveServer and adds some verification.
 func (s *Storage) SaveServer(ser *Server) error {
-	ser.Clean()
 	return s.back.SaveServer(ser)
 }

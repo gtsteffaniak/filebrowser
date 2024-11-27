@@ -37,8 +37,8 @@
 </template>
 <script>
 import { state } from "@/store";
-import { files as api } from "@/api";
-import url from "@/utils/url";
+import { filesApi } from "@/api";
+import url from "@/utils/url.js";
 import { getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -73,7 +73,7 @@ export default {
       uri += encodeURIComponent(this.name);
       uri = uri.replace("//", "/");
 
-      await api.post(uri);
+      await filesApi.post(uri);
       this.$router.push({ path: uri });
 
       mutations.closeHovers();

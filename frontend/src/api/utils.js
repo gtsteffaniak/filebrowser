@@ -1,7 +1,6 @@
 import { state } from "@/store";
 import { renew, logout } from "@/utils/auth";
 import { baseURL } from "@/utils/constants";
-import { encodePath } from "@/utils/url";
 import { notify } from "@/notify";
 
 export async function fetchURL(url, opts, auth = true) {
@@ -12,19 +11,24 @@ export async function fetchURL(url, opts, auth = true) {
 
   let res;
   try {
-    res = await fetch(`${baseURL}${url}`, {
+    let userScope = "";
+    if (state.user) {
+      userScope = state.user.scope;
+    }
+    res = await fetch(url, {
       headers: {
-        "X-Auth": state.jwt,
         "sessionId": state.sessionId,
-        "userScope": state.user.scope,
+        "userScope": userScope,
         ...headers,
       },
       ...rest,
     });
   } catch (e) {
-    console.error(e)
-    const error = new Error("000 No connection");
-    error.status = res.status;
+    let message = e;
+    if (e == "TypeError: Failed to fetch") {
+      message = "Failed to connect to the server, is it still running?";
+    }
+    const error = new Error(message);
     throw error;
   }
 
@@ -33,7 +37,7 @@ export async function fetchURL(url, opts, auth = true) {
   }
 
   if (res.status < 200 || res.status > 299) {
-    const error = new Error(await res.text());
+    let error = new Error(await res.text());
     error.status = res.status;
 
     if (auth && res.status == 401) {
@@ -48,36 +52,55 @@ export async function fetchURL(url, opts, auth = true) {
 
 export async function fetchJSON(url, opts) {
   const res = await fetchURL(url, opts);
-  if (res.status === 200) {
+  if (res.status < 300) {
     return res.json();
   } else {
-    notify.showError("unable to fetch : " + url + "status" + res.status);
+    notify.showError("received status: "+res.status+" on url " + url);
     throw new Error(res.status);
   }
 }
 
-export function removePrefix(url) {
-  url = url.split("/").splice(2).join("/");
-  if (url === "") url = "/";
-  if (url[0] !== "/") url = "/" + url;
-  return url;
-}
-
-export function createURL(endpoint, params = {}, auth = true) {
+export function createURL(endpoint) {
   let prefix = baseURL;
+
+  // Ensure prefix ends with a single slash
   if (!prefix.endsWith("/")) {
-    prefix = prefix + "/";
+    prefix += "/";
   }
-  const url = new URL(prefix + encodePath(endpoint), origin);
 
-  const searchParams = {
-    ...(auth && { auth: state.jwt }),
-    ...params,
-  };
-
-  for (const key in searchParams) {
-    url.searchParams.set(key, searchParams[key]);
+  // Remove leading slash from endpoint to avoid duplicate slashes
+  if (endpoint.startsWith("/")) {
+    endpoint = endpoint.substring(1);
   }
+
+  const url = new URL(prefix + endpoint, window.location.origin);
 
   return url.toString();
+}
+
+export function adjustedData(data, url) {
+  data.url = url;
+
+  if (data.type === "directory") {
+    if (!data.url.endsWith("/")) data.url += "/";
+
+    // Combine folders and files into items
+    data.items = [...(data.folders || []), ...(data.files || [])];
+
+    data.items = data.items.map((item, index) => {
+      item.index = index;
+      item.url = `${data.url}${item.name}`;
+      if (item.type === "directory") {
+        item.url += "/";
+      }
+      return item;
+    });
+  }
+  if (data.files) {
+    data.files = []
+  }
+  if (data.folders) {
+    data.folders = []
+  }
+  return data;
 }

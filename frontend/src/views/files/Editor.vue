@@ -8,8 +8,8 @@
 import { router } from "@/router";
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
-import { files as api } from "@/api";
-import url from "@/utils/url";
+import { filesApi } from "@/api";
+import url from "@/utils/url.js";
 import ace from "ace-builds/src-min-noconflict/ace.js";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";
@@ -80,7 +80,7 @@ export default {
   },
   methods: {
     handleEditorValueRequest() {
-      api.put(state.route.path, this.editor.getValue());
+      filesApi.put(getters.routePath("files"), this.editor.getValue());
     },
     back() {
       let uri = url.removeLastDir(state.route.path) + "/";

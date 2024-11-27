@@ -196,3 +196,47 @@ button:disabled {
   cursor: pointer;
   font-size: 1.75em;
 }
+
+input.sizeInput:disabled {
+  cursor: not-allowed;
+}
+
+.sizeInputWrapper {
+  border-radius: 1em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  display: -ms-flexbox;
+  display: flex;
+  background-color: rgb(245, 245, 245);
+  padding: 0.25em;
+  height: 3em;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border: 1px solid #ccc;
+}
+
+.sizeInput {
+  height: 100%;
+  text-align: center;
+  width: 5em;
+  border-radius: 1em;
+  padding: 1em;
+  backdrop-filter: invert(0.1);
+  border: none !important;
+}
+
+.roundedInputLeft {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  width: auto;
+  background-color: var(--surfaceSecondary);
+}
+
+.roundedInputRight {
+  padding: 1em;
+  border-radius: 1em;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+  background-color: var(--surfaceSecondary);
+}

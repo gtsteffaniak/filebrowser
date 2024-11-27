@@ -29,7 +29,7 @@
 import { state, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import buttons from "@/utils/buttons";
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import { notify } from "@/notify";
 
 import Action from "@/components/Action.vue";

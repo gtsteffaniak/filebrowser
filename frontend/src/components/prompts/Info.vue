@@ -73,7 +73,7 @@
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp } from "@/utils/moment";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -128,8 +128,8 @@ export default {
       return (
         getters.selectedCount() > 1 ||
         (getters.selectedCount() === 0
-          ? state.req.isDir
-          : state.req.items[this.selected[0]].isDir)
+          ? state.req.type == "directory"
+          : state.req.items[this.selected[0]].type == "directory")
       );
     },
   },
@@ -145,7 +145,7 @@ export default {
         link = state.route.path;
       }
 
-      const hash = await api.checksum(link, algo);
+      const hash = await filesApi.checksum(link, algo);
       event.target.innerHTML = hash;
     },
   },

@@ -4,8 +4,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/goccy/go-yaml"
+	"github.com/gtsteffaniak/filebrowser/users"
 )
 
 var Config Settings
@@ -28,6 +30,12 @@ func Initialize(configFile string) {
 		log.Fatalf("ERROR: Configured Root Path does not exist! %v", err)
 	}
 	Config.Server.Root = realRoot
+	baseurl := strings.Trim(Config.Server.BaseURL, "/")
+	if baseurl == "" {
+		Config.Server.BaseURL = "/"
+	} else {
+		Config.Server.BaseURL = "/" + baseurl + "/"
+	}
 }
 
 func loadConfigFile(configFile string) []byte {
@@ -58,7 +66,6 @@ func setDefaults() Settings {
 			EnableThumbnails:   true,
 			ResizePreview:      false,
 			EnableExec:         false,
-			IndexingInterval:   5,
 			Port:               80,
 			NumImageProcessors: 4,
 			BaseURL:            "",
@@ -86,7 +93,7 @@ func setDefaults() Settings {
 			DisableSettings: false,
 			ViewMode:        "normal",
 			Locale:          "en",
-			Permissions: Permissions{
+			Permissions: users.Permissions{
 				Create:   false,
 				Rename:   false,
 				Modify:   false,
@@ -94,6 +101,7 @@ func setDefaults() Settings {
 				Share:    false,
 				Download: false,
 				Admin:    false,
+				Api:      false,
 			},
 		},
 	}

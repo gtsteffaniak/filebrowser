@@ -2,7 +2,6 @@ package files
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -12,7 +11,7 @@ import (
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	InitializeIndex(5, false)
+	InitializeIndex(false)
 	si := GetIndex(settings.Config.Server.Root)
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -23,27 +22,25 @@ func BenchmarkFillIndex(b *testing.B) {
 
 func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
-		dirName := generateRandomPath(rand.Intn(3) + 1)
-		files := []*FileInfo{} // Slice of FileInfo
+		dirPath := generateRandomPath(rand.Intn(3) + 1)
+		files := []ItemInfo{} // Slice of FileInfo
 
 		// Simulating files and directories with FileInfo
 		for j := 0; j < numFilesPerDir; j++ {
-			newFile := &FileInfo{
+			newFile := ItemInfo{
 				Name:    "file-" + getRandomTerm() + getRandomExtension(),
-				IsDir:   false,
 				Size:    rand.Int63n(1000),                                          // Random size
 				ModTime: time.Now().Add(-time.Duration(rand.Intn(100)) * time.Hour), // Random mod time
+				Type:    "blob",
 			}
 			files = append(files, newFile)
 		}
-
-		// Simulate inserting files into index
-		for _, file := range files {
-			_, err := si.InsertInfo(dirName, file)
-			if err != nil {
-				fmt.Println("Error inserting file:", err)
-			}
+		dirInfo := &FileInfo{
+			Path:  dirPath,
+			Files: files,
 		}
+
+		si.UpdateMetadata(dirInfo)
 	}
 }
 
@@ -110,40 +107,6 @@ func TestGetIndex(t *testing.T) {
 			if got := GetIndex("root"); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetIndex() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func TestInitializeIndex(t *testing.T) {
-	type args struct {
-		intervalMinutes uint32
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			InitializeIndex(tt.args.intervalMinutes, false)
-		})
-	}
-}
-
-func Test_indexingScheduler(t *testing.T) {
-	type args struct {
-		intervalMinutes uint32
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			indexingScheduler(tt.args.intervalMinutes)
 		})
 	}
 }

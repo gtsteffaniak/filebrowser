@@ -20,3 +20,6 @@ Note: share links will not work and will need to be re-created after migration.
 The filebrowser Quantum application should run with the same user and rules that
 you have from the original. But keep in mind the differences that may not work 
 the same way, but all user configuration should be available.
+
+The windows binary is particularly untested, I would advise using docker if testing on windows.
+

@@ -49,7 +49,7 @@
 <script>
 import { mutations, state } from "@/store";
 import FileList from "./FileList.vue";
-import { files as api } from "@/api";
+import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { notify } from "@/notify";
@@ -79,48 +79,42 @@ export default {
       for (let item of state.selected) {
         items.push({
           from: state.req.items[item].url,
-          to: this.dest + encodeURIComponent(state.req.items[item].name),
+          to: this.dest + state.req.items[item].name,
           name: state.req.items[item].name,
         });
       }
-
       let action = async (overwrite, rename) => {
         buttons.loading("move");
-        await api
-          .move(items, overwrite, rename)
-          .then(() => {
-            buttons.success("move");
-            this.$router.push({ path: this.dest });
-            mutations.setReload(true);
-          })
-          .catch((e) => {
-            buttons.done("move");
-            notify.showError(e);
-          });
+        await filesApi.moveCopy(items, "move", overwrite, rename);
+        buttons.success("move");
+        this.$router.push({ path: this.dest });
+        mutations.closeHovers();
       };
 
-      let dstItems = (await api.fetch(this.dest)).items;
+      let dstItems = (await filesApi.fetchFiles(this.dest)).items;
       let conflict = upload.checkConflict(items, dstItems);
 
       let overwrite = false;
       let rename = false;
 
-      if (conflict) {
-        mutations.showHover({
-          name: "replace-rename",
-          confirm: (event, option) => {
-            overwrite = option == "overwrite";
-            rename = option == "rename";
-            event.preventDefault();
-            mutations.closeHovers();
-            action(overwrite, rename);
-            mutations.setReload(true);
-          },
-        });
-        return;
+      try {
+        if (conflict) {
+          mutations.showHover({
+            name: "replace-rename",
+            confirm: (event, option) => {
+              overwrite = option == "overwrite";
+              rename = option == "rename";
+              event.preventDefault();
+              action(overwrite, rename);
+            },
+          });
+          return;
+        }
+        action(overwrite, rename);
+      } catch (e) {
+        notify.error(e);
       }
-
-      action(overwrite, rename);
+      return;
     },
   },
 };
