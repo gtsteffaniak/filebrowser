@@ -1,4 +1,4 @@
-import { createURL, adjustedData } from "./utils";
+import { adjustedData } from "./utils";
 import { getApiPath, removePrefix } from "@/utils/url.js";
 import { notify } from "@/notify";
 
@@ -37,8 +37,7 @@ export function download(share, ...files) {
       "files": fileInfo,
     };
     const apiPath = getApiPath("api/public/dl", params);
-    const url = createURL(apiPath);
-    window.open(url);
+    window.open(window.origin+apiPath)
   } catch (err) {
     notify.showError(err.message || "Error downloading files");
     throw err;
@@ -60,6 +59,5 @@ export async function getPublicUser() {
 // Generate a download URL
 export function getDownloadURL(share) {
   const apiPath = getApiPath("api/public/dl", share);
-  const url = createURL(apiPath)
-  return url
+  return window.origin+apiPath
 }

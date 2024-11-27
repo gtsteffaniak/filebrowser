@@ -90,7 +90,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, err
 	}
 	opts.IsDir = isDir
-
 	// TODO : whats the best way to save trips to disk here?
 	// disabled using cache because its not clear if this is helping or hurting
 	// check if the file exists in the index
