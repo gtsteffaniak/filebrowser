@@ -60,24 +60,6 @@ export async function fetchJSON(url, opts) {
   }
 }
 
-export function createURL(endpoint) {
-  let prefix = baseURL;
-
-  // Ensure prefix ends with a single slash
-  if (!prefix.endsWith("/")) {
-    prefix += "/";
-  }
-
-  // Remove leading slash from endpoint to avoid duplicate slashes
-  if (endpoint.startsWith("/")) {
-    endpoint = endpoint.substring(1);
-  }
-
-  const url = new URL(prefix + endpoint, window.location.origin);
-
-  return url.toString();
-}
-
 export function adjustedData(data, url) {
   data.url = url;
 

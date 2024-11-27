@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { adjustedData, createURL } from './utils.js';
+import { adjustedData } from './utils.js';
 
 describe('adjustedData', () => {
   it('should append the URL and process directory data correctly', () => {
@@ -86,25 +86,6 @@ describe('adjustedData', () => {
   });
 
 });
-
-
-describe('createURL', () => {
-  it('createURL', () => {
-    const url = "base";
-    const expected = "http://localhost:3000/unit-testing/base"
-    expect(createURL(url)).toEqual(expected);
-  });
-  it('createURL with slash', () => {
-    const url = "/base";
-    const expected = "http://localhost:3000/unit-testing/base"
-    expect(createURL(url)).toEqual(expected);
-  });
-  it('createURL with slash', () => {
-    const url = "/base";
-    const expected = "http://localhost:3000/unit-testing/base"
-    expect(createURL(url)).toEqual(expected);
-  });
-})
 
 vi.mock('@/utils/constants', () => {
   return {

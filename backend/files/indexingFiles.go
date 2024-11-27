@@ -164,7 +164,7 @@ func (si *Index) makeIndexPath(subPath string) string {
 	if strings.HasPrefix(subPath, "./") {
 		subPath = strings.TrimPrefix(subPath, ".")
 	}
-	if strings.HasPrefix(subPath, ".") || si.Root == subPath {
+	if si.Root == subPath || subPath == "." {
 		return "/"
 	}
 	// clean path

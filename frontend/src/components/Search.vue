@@ -36,7 +36,7 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry">
-            <router-link :to="s.path">
+            <router-link :to="createPath(s.path)">
               <i v-if="s.type == 'directory'" class="material-icons folder-icons">
                 folder
               </i>
@@ -181,7 +181,7 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry">
-            <router-link :to="s.path">
+            <router-link :to="createPath(s.path)">
               <i v-if="s.type == 'directory'" class="material-icons folder-icons">
                 folder
               </i>
@@ -209,11 +209,14 @@
     </div>
   </div>
 </template>
+
 <script>
 import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { baseURL } from "@/utils/constants";
+import { getApiPath } from "@/utils/url";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -337,6 +340,9 @@ export default {
     },
   },
   methods: {
+    createPath(path) {
+      return getApiPath(`files/${path}`)
+    },
     humanSize(size) {
       return getHumanReadableFilesize(size);
     },
