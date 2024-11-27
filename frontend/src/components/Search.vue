@@ -215,7 +215,6 @@ import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { baseURL } from "@/utils/constants";
 import { getApiPath } from "@/utils/url";
 
 var boxes = {
