@@ -3,150 +3,47 @@
     <!-- Search input section -->
     <div id="input" @click="open">
       <!-- Close button visible when search is active -->
-      <button
-        v-if="active"
-        class="action"
-        @click="close"
-        :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')"
-      >
+      <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')"
+        :title="$t('buttons.close')">
         <i class="material-icons">close</i>
       </button>
       <!-- Search icon when search is not active -->
       <i v-else class="material-icons">search</i>
       <!-- Input field for search -->
-      <input
-        id="main-input"
-        class="main-input"
-        type="text"
-        @keyup.exact="keyup"
-        @input="submit"
-        ref="input"
-        :autofocus="active"
-        v-model.trim="value"
-        :aria-label="$t('search.search')"
-        :placeholder="$t('search.search')"
-      />
-    </div>
-
-    <!-- Search results for mobile -->
-    <div v-if="isMobile && active" id="result" :class="{ hidden: !active }" ref="result">
-      <div id="result-list">
-        <div class="button" style="width: 100%">Search Context: {{ getContext }}</div>
-        <!-- List of search results -->
-        <ul v-show="results.length > 0">
-          <li v-for="(s, k) in results" :key="k" class="search-entry">
-            <router-link :to="createPath(s.path)">
-              <i v-if="s.type == 'directory'" class="material-icons folder-icons">
-                folder
-              </i>
-              <i v-else-if="s.type == 'audio'" class="material-icons audio-icons">
-                volume_up
-              </i>
-              <i v-else-if="s.type == 'image'" class="material-icons image-icons">
-                photo
-              </i>
-              <i v-else-if="s.type == 'video'" class="material-icons video-icons">
-                movie
-              </i>
-              <i v-else-if="s.type == 'archive'" class="material-icons archive-icons">
-                archive
-              </i>
-              <i v-else class="material-icons file-icons"> insert_drive_file </i>
-              <span class="text-container">
-                {{ basePath(s.path, s.type == "directory") }}<b>{{ baseName(s.path) }}</b>
-              </span>
-              <div class="filesize">{{ humanSize(s.size) }}</div>
-            </router-link>
-          </li>
-        </ul>
-        <!-- Loading icon when search is ongoing -->
-        <p v-show="isEmpty && isRunning" id="renew">
-          <i class="material-icons spin">autorenew</i>
-        </p>
-        <!-- Message when no results are found -->
-        <div v-show="isEmpty && !isRunning">
-          <div class="searchPrompt" v-show="isEmpty && !isRunning">
-            <p>{{ noneMessage }}</p>
-          </div>
-        </div>
-        <div v-if="isEmpty">
-          <!-- Reset filters button -->
-          <button
-            class="mobile-boxes"
-            v-if="value.length === 0 && !showBoxes"
-            @click="resetSearchFilters()"
-          >
-            Reset filters
-          </button>
-          <!-- Box types when no search input is present -->
-          <div v-if="value.length === 0 && showBoxes">
-            <div class="boxes">
-              <h3>{{ $t("search.types") }}</h3>
-              <div>
-                <div
-                  class="mobile-boxes"
-                  tabindex="0"
-                  v-for="(v, k) in boxes"
-                  :key="k"
-                  role="button"
-                  @click="addToTypes('type:' + k)"
-                  :aria-label="v.label"
-                >
-                  <i class="material-icons">{{ v.icon }}</i>
-                  <p>{{ v.label }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <input id="main-input" class="main-input" type="text" @keyup.exact="keyup" @input="submit" ref="input"
+        :autofocus="active" v-model.trim="value" :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
     </div>
 
     <!-- Search results for desktop -->
-    <div v-show="!isMobile && active" id="result-desktop" ref="result">
+    <div v-show="active" id="results" ref="result">
       <div class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
         <div>
-          <div v-if="!isMobile && active">
-            <!-- Button groups for filtering search results -->
-            <ButtonGroup
-              :buttons="folderSelect"
-              @button-clicked="addToTypes"
-              @remove-button-clicked="removeFromTypes"
-              @disableAll="folderSelectClicked()"
-              @enableAll="resetButtonGroups()"
-            />
-            <ButtonGroup
-              :buttons="typeSelect"
-              @button-clicked="addToTypes"
-              @remove-button-clicked="removeFromTypes"
-              :isDisabled="isTypeSelectDisabled"
-            />
-            <!-- Inputs for filtering by file size -->
-            <div class="sizeConstraints">
-              <div class="sizeInputWrapper">
-                <p>Smaller Than:</p>
-                <input
-                  class="sizeInput"
-                  v-model="smallerThan"
-                  type="number"
-                  min="0"
-                  placeholder="number"
-                />
-                <p>MB</p>
-              </div>
-              <div class="sizeInputWrapper">
-                <p>Larger Than:</p>
-                <input
-                  class="sizeInput"
-                  v-model="largerThan"
-                  type="number"
-                  placeholder="number"
-                />
-                <p>MB</p>
+          <div v-if="active">
+            <div v-if="isMobile">
+              <ButtonGroup  :buttons="toggleOptionButton" @button-clicked="toggleOptions" @remove-button-clicked="toggleOptions" />
+            </div>
+            <div v-if="showOptions">
+              <!-- Button groups for filtering search results -->
+              <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
+                @disableAll="folderSelectClicked()" @enableAll="resetButtonGroups()" />
+              <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
+                :isDisabled="isTypeSelectDisabled" />
+              <!-- Inputs for filtering by file size -->
+              <div class="sizeConstraints">
+                <div class="sizeInputWrapper">
+                  <p>Smaller Than:</p>
+                  <input class="sizeInput" v-model="smallerThan" type="number" min="0" placeholder="number" />
+                  <p>MB</p>
+                </div>
+                <div class="sizeInputWrapper">
+                  <p>Larger Than:</p>
+                  <input class="sizeInput" v-model="largerThan" type="number" placeholder="number" />
+                  <p>MB</p>
+                </div>
               </div>
             </div>
+
           </div>
         </div>
         <!-- Loading icon when search is ongoing -->
@@ -181,7 +78,7 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry">
-            <router-link :to="createPath(s.path)">
+            <router-link :to="s.path">
               <i v-if="s.type == 'directory'" class="material-icons folder-icons">
                 folder
               </i>
@@ -251,11 +148,15 @@ export default {
         { label: "Documents", value: "type:doc" },
         { label: "Archives", value: "type:archive" },
       ],
+      toggleOptionButton: [
+        { label: "Show Options" },
+      ],
       value: "",
       ongoing: false,
       results: [],
       reload: false,
       scrollable: null,
+      hiddenOptions: true,
     };
   },
   watch: {
@@ -291,6 +192,9 @@ export default {
     },
   },
   computed: {
+    showOptions() {
+      return !this.hiddenOptions || !this.isMobile
+    },
     isMobile() {
       return state.isMobile;
     },
@@ -316,7 +220,6 @@ export default {
       if (this.ongoing) {
         return "";
       }
-
       return this.value === ""
         ? this.$t("search.typeToSearch")
         : this.$t("search.pressToSearch");
@@ -339,8 +242,8 @@ export default {
     },
   },
   methods: {
-    createPath(path) {
-      return getApiPath(`files/${path}`)
+    toggleOptions() {
+      this.hiddenOptions = !this.hiddenOptions
     },
     humanSize(size) {
       return getHumanReadableFilesize(size);
@@ -373,7 +276,6 @@ export default {
     },
     close(event) {
       this.value = "";
-
       event.stopPropagation();
       mutations.closeHovers();
     },
@@ -395,6 +297,7 @@ export default {
     },
     resetSearchFilters() {
       this.searchTypes = "";
+      this.hiddenOptions = true;
     },
     removeFromTypes(string) {
       if (string == null || string == "") {
@@ -461,7 +364,7 @@ export default {
   word-wrap: break-word;
 }
 
-#result-desktop > #result-list {
+#results>#result-list {
   max-height: 80vh;
   width: 35em;
   overflow: scroll;
@@ -471,7 +374,7 @@ export default {
   background-color: unset;
 }
 
-#result-desktop {
+#results {
   -webkit-animation: SlideDown 0.5s forwards;
   animation: SlideDown 0.5s forwards;
   border-radius: 1m;
@@ -496,7 +399,7 @@ export default {
   flex-direction: column;
 }
 
-#search.active #result-desktop ul li a {
+#search.active #results ul li a {
   display: flex;
   align-items: center;
   padding: 0.3em 0;
@@ -504,8 +407,8 @@ export default {
 }
 
 #search #result-list.active {
-  width: 65em !important;
-  max-width: 85vw !important;
+  width: 1000px;
+  max-width: 100vw;
 }
 
 /* Animations */
@@ -607,7 +510,7 @@ body.rtl #search #result {
   direction: ltr;
 }
 
-#search #result > div > *:first-child {
+#search #result>div>*:first-child {
   margin-top: 0;
 }
 
@@ -617,7 +520,7 @@ body.rtl #search #result {
 }
 
 /* Search Results */
-body.rtl #search #result ul > * {
+body.rtl #search #result ul>* {
   direction: ltr;
   text-align: left;
 }
@@ -729,8 +632,8 @@ body.rtl #search .boxes h3 {
 
 .sizeConstraints {
   display: flex;
+  flex-wrap: wrap;
   flex-direction: row;
-  flex-wrap: nowrap;
   align-content: center;
   margin: 1em;
   justify-content: center;

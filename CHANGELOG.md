@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.2
+
+  **New Features**
+  - Mobile search has same features as desktop
+
+  **Bugfixes**:
+  - search result links when non-default baseUrl configured
+
+
 ## v0.3.1
 
   **New Features**

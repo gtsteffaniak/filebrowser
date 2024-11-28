@@ -264,11 +264,11 @@
 }
 
 /* Result desktop */
-.dark-mode #result-desktop #result-list {
+.dark-mode #results #result-list {
   max-height: unset;
 }
 
 /* Result desktop background */
-.dark-mode #result-desktop {
+.dark-mode #results {
   background-color: var(--background);
 }
