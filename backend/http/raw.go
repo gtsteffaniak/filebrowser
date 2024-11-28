@@ -167,8 +167,6 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 	switch algo {
 	case "zip", "true", "":
 		extension = ".zip"
-	case "tar":
-		extension = ".tar"
 	case "targz":
 		extension = ".tar.gz"
 	default:
@@ -193,10 +191,8 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 	// Create the archive and stream it directly to the response
 	if extension == ".zip" {
 		err = createZip(w, filenames, commonDir, d)
-	} else if extension == ".tar.gz" {
-		err = createTarGz(w, filenames, commonDir, d)
 	} else {
-		err = createTar(w, filenames, commonDir, d)
+		err = createTarGz(w, filenames, commonDir, d)
 	}
 
 	if err != nil {
@@ -229,20 +225,6 @@ func createZip(w io.Writer, filenames []string, commonDir string, d *requestCont
 		err := addFile(fname, commonDir, d, nil, zipWriter)
 		if err != nil {
 			log.Printf("Failed to add %s to ZIP: %v", fname, err)
-		}
-	}
-
-	return nil
-}
-
-func createTar(w io.Writer, filenames []string, commonDir string, d *requestContext) error {
-	tarWriter := tar.NewWriter(w)
-	defer tarWriter.Close()
-
-	for _, fname := range filenames {
-		err := addFile(fname, commonDir, d, tarWriter, nil)
-		if err != nil {
-			log.Printf("Failed to add %s to TAR: %v", fname, err)
 		}
 	}
 
