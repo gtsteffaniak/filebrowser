@@ -145,9 +145,9 @@ Not using docker (not recommended), download your binary from releases and run w
 
 ## Command Line Usage
 
-There are very few commands available. There are 3 actions done via command line:
+There are very few commands available. There are 3 actions done via the command line:
 
-1. Running the program, as shown on the install step. The only argument used is the config file, if you choose to override default "filebrowser.yaml"
+1. Running the program, as shown on the install step. The only argument used is the config file if you choose to override the default "filebrowser.yaml"
 2. Checking the version info via `./filebrowser version`
 3. Updating the DB, which currently only supports adding users via `./filebrowser set -u username,password [-a] [-s "example/scope"]`
 
@@ -157,7 +157,7 @@ FileBrowser Quantum comes with a swagger page that can be accessed from the API 
 
 ![image](https://github.com/user-attachments/assets/12abd1f6-21d3-4437-98ed-9b0da6cf2c73)
 
-You use the token as a bearer token. For example in postman:
+You use the token as a bearer token. For example in Postman:
 
 
 Successful Request:
@@ -202,12 +202,12 @@ webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 ftp support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Docker image size             | 22 MB  | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
+Docker image size             | 31 MB  | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
 Min. Memory Requirements      | 128 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 4 GB   |
 has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 price                         | free | free | free | free tier | free tier | $99+ |
 rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-upload files from the web?    | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+upload files from the web?    | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Advanced Search?              | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
 Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
 Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
