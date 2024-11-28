@@ -1,7 +1,11 @@
 package http
 
 import (
+	"archive/tar"
+	"archive/zip"
+	"compress/gzip"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -9,8 +13,6 @@ import (
 	gopath "path"
 	"path/filepath"
 	"strings"
-
-	"github.com/mholt/archiver/v3"
 
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/fileutils"
@@ -43,29 +45,6 @@ func parseQueryFiles(r *http.Request, f *files.FileInfo, _ *users.User) ([]strin
 	}
 
 	return fileSlice, nil
-}
-
-// nolint: goconst,nolintlint
-func parseQueryAlgorithm(r *http.Request) (string, archiver.Writer, error) {
-	// TODO: use enum
-	switch r.URL.Query().Get("algo") {
-	case "zip", "true", "":
-		return ".zip", archiver.NewZip(), nil
-	case "tar":
-		return ".tar", archiver.NewTar(), nil
-	case "targz":
-		return ".tar.gz", archiver.NewTarGz(), nil
-	case "tarbz2":
-		return ".tar.bz2", archiver.NewTarBz2(), nil
-	case "tarxz":
-		return ".tar.xz", archiver.NewTarXz(), nil
-	case "tarlz4":
-		return ".tar.lz4", archiver.NewTarLz4(), nil
-	case "tarsz":
-		return ".tar.sz", archiver.NewTarSz(), nil
-	default:
-		return "", nil, errors.New("format not implemented")
-	}
 }
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.FileInfo) {
@@ -124,7 +103,8 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	return rawFileHandler(w, r, fileInfo.FileInfo)
 }
 
-func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) error {
+func addFile(path, commonPath string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer) error {
+	path, _, _ = files.GetRealPath(d.user.Scope, path)
 	if !d.user.Check(path) {
 		return nil
 	}
@@ -143,34 +123,34 @@ func addFile(ar archiver.Writer, d *requestContext, path, commonPath string) err
 	}
 	defer file.Close()
 
-	if path != commonPath {
-		filename := strings.TrimPrefix(path, commonPath)
-		filename = strings.TrimPrefix(filename, string(filepath.Separator))
-		err = ar.Write(archiver.File{
-			FileInfo: archiver.FileInfo{
-				FileInfo:   info,
-				CustomName: filename,
-			},
-			ReadCloser: file,
-		})
+	filename := strings.TrimPrefix(path, commonPath)
+	filename = strings.TrimPrefix(filename, string(filepath.Separator))
+
+	if tarWriter != nil {
+		header, err := tar.FileInfoHeader(info, path)
 		if err != nil {
 			return err
 		}
+		header.Name = filename
+		if err = tarWriter.WriteHeader(header); err != nil {
+			return err
+		}
+		_, err = io.Copy(tarWriter, file)
+		return err
 	}
 
-	if info.IsDir() {
-		names, err := file.Readdirnames(0)
+	if zipWriter != nil {
+		header, err := zip.FileInfoHeader(info)
 		if err != nil {
 			return err
 		}
-
-		for _, name := range names {
-			fPath := filepath.Join(path, name)
-			err = addFile(ar, d, fPath, commonPath)
-			if err != nil {
-				log.Printf("Failed to archive %s: %v", fPath, err)
-			}
+		header.Name = filename
+		writer, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
 		}
+		_, err = io.Copy(writer, file)
+		return err
 	}
 
 	return nil
@@ -181,36 +161,46 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	extension, ar, err := parseQueryAlgorithm(r)
-	if err != nil {
-		return http.StatusInternalServerError, err
+
+	algo := r.URL.Query().Get("algo")
+	var extension string
+	switch algo {
+	case "zip", "true", "":
+		extension = ".zip"
+	case "tar":
+		extension = ".tar"
+	case "targz":
+		extension = ".tar.gz"
+	default:
+		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
 
-	err = ar.Create(w)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	defer ar.Close()
-
+	// Determine common directory prefix for file paths
 	commonDir := fileutils.CommonPrefix(filepath.Separator, filenames...)
 
+	// Set filename for the archive
 	name := filepath.Base(commonDir)
 	if name == "." || name == "" || name == string(filepath.Separator) {
 		name = file.Name
 	}
-	// Prefix used to distinguish a filelist generated
-	// archive from the full directory archive
 	if len(filenames) > 1 {
 		name = "_" + name
 	}
 	name += extension
+
 	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(name))
 
-	for _, fname := range filenames {
-		err = addFile(ar, d, fname, commonDir)
-		if err != nil {
-			log.Printf("Failed to archive %s: %v", fname, err)
-		}
+	// Create the archive and stream it directly to the response
+	if extension == ".zip" {
+		err = createZip(w, filenames, commonDir, d)
+	} else if extension == ".tar.gz" {
+		err = createTarGz(w, filenames, commonDir, d)
+	} else {
+		err = createTar(w, filenames, commonDir, d)
+	}
+
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
 
 	return 0, nil
@@ -229,4 +219,49 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo
 	w.Header().Set("Cache-Control", "private")
 	http.ServeContent(w, r, file.Name, file.ModTime, fd)
 	return 0, nil
+}
+
+func createZip(w io.Writer, filenames []string, commonDir string, d *requestContext) error {
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+
+	for _, fname := range filenames {
+		err := addFile(fname, commonDir, d, nil, zipWriter)
+		if err != nil {
+			log.Printf("Failed to add %s to ZIP: %v", fname, err)
+		}
+	}
+
+	return nil
+}
+
+func createTar(w io.Writer, filenames []string, commonDir string, d *requestContext) error {
+	tarWriter := tar.NewWriter(w)
+	defer tarWriter.Close()
+
+	for _, fname := range filenames {
+		err := addFile(fname, commonDir, d, tarWriter, nil)
+		if err != nil {
+			log.Printf("Failed to add %s to TAR: %v", fname, err)
+		}
+	}
+
+	return nil
+}
+
+func createTarGz(w io.Writer, filenames []string, commonDir string, d *requestContext) error {
+	gzWriter := gzip.NewWriter(w)
+	defer gzWriter.Close()
+
+	tarWriter := tar.NewWriter(gzWriter)
+	defer tarWriter.Close()
+
+	for _, fname := range filenames {
+		err := addFile(fname, commonDir, d, tarWriter, nil)
+		if err != nil {
+			log.Printf("Failed to add %s to TAR.GZ: %v", fname, err)
+		}
+	}
+
+	return nil
 }
