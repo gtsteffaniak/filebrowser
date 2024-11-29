@@ -44,45 +44,6 @@ func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 	}
 }
 
-func generateRandomPath(levels int) string {
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	dirName := "srv"
-	for i := 0; i < levels; i++ {
-		dirName += "/" + getRandomTerm()
-	}
-	return dirName
-}
-
-func getRandomTerm() string {
-	wordbank := []string{
-		"hi", "test", "other", "name",
-		"cool", "things", "more", "items",
-	}
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	index := rand.Intn(len(wordbank))
-	return wordbank[index]
-}
-
-func getRandomExtension() string {
-	wordbank := []string{
-		".txt", ".mp3", ".mov", ".doc",
-		".mp4", ".bak", ".zip", ".jpg",
-	}
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	index := rand.Intn(len(wordbank))
-	return wordbank[index]
-}
-
-func generateRandomSearchTerms(numTerms int) []string {
-	// Generate random search terms
-	searchTerms := make([]string, numTerms)
-	for i := 0; i < numTerms; i++ {
-		searchTerms[i] = getRandomTerm()
-	}
-	return searchTerms
-}
-
 // JSONBytesEqual compares the JSON in two byte slices.
 func JSONBytesEqual(a, b []byte) (bool, error) {
 	var j, j2 interface{}

@@ -223,7 +223,7 @@ type ResponseWriterWrapper struct {
 	http.ResponseWriter
 	StatusCode  int
 	wroteHeader bool
-	Size        int64
+	PayloadSize int
 }
 
 // WriteHeader captures the status code and ensures it's only written once
@@ -244,7 +244,6 @@ func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
 		w.WriteHeader(http.StatusOK)
 	}
 	size, err := w.ResponseWriter.Write(b)
-	w.Size += int64(size) // Accumulate the number of bytes written
 	return size / 1024, err
 }
 
@@ -281,7 +280,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			wrappedWriter.StatusCode, // Captured status code
 			r.RemoteAddr,
 			time.Since(start).String(),
-			wrappedWriter.Size, // Response payload size in bytes
+			wrappedWriter.PayloadSize, // Response payload size in bytes
 			fullURL,
 			"\033[0m", // Reset color
 		)
@@ -293,9 +292,11 @@ func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	// Calculate size in KB
+	payloadSizeKB := len(marsh) / 1024
 
 	// Check if the client accepts gzip encoding and hasn't explicitly disabled it
-	if acceptsGzip(r) {
+	if acceptsGzip(r) && payloadSizeKB > 10 && true {
 		// Enable gzip compression
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")

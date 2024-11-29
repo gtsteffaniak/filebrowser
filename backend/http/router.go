@@ -96,6 +96,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /preview", withUser(previewHandler))
 	if version.Version == "testing" || version.Version == "untracked" {
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
+		api.HandleFunc("GET /mockData", mockData)
 	}
 
 	// Share routes
