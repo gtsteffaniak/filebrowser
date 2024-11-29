@@ -1,11 +1,13 @@
 package http
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -221,6 +223,7 @@ type ResponseWriterWrapper struct {
 	http.ResponseWriter
 	StatusCode  int
 	wroteHeader bool
+	Size        int64
 }
 
 // WriteHeader captures the status code and ensures it's only written once
@@ -240,56 +243,80 @@ func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
 	if !w.wroteHeader { // Default to 200 if WriteHeader wasn't called explicitly
 		w.WriteHeader(http.StatusOK)
 	}
-	return w.ResponseWriter.Write(b)
+	size, err := w.ResponseWriter.Write(b)
+	w.Size += int64(size) // Accumulate the number of bytes written
+	return size / 1024, err
 }
 
-// LoggingMiddleware logs each request and its status code
+// LoggingMiddleware logs each request and its status code.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		start := time.Now()
 
-		// Wrap the ResponseWriter to capture the status code
+		// Wrap the ResponseWriter to capture the status code and response size.
 		wrappedWriter := &ResponseWriterWrapper{ResponseWriter: w, StatusCode: http.StatusOK}
 
-		// Call the next handler
+		// Call the next handler.
 		next.ServeHTTP(wrappedWriter, r)
 
-		// Determine the color based on the status code
+		// Determine the color based on the status code.
 		color := "\033[32m" // Default green color
 		if wrappedWriter.StatusCode >= 300 && wrappedWriter.StatusCode < 500 {
 			color = "\033[33m" // Yellow for client errors (4xx)
 		} else if wrappedWriter.StatusCode >= 500 {
 			color = "\033[31m" // Red for server errors (5xx)
 		}
-		// Capture the full URL path including the query parameters
+
+		// Capture the full URL path including the query parameters.
 		fullURL := r.URL.Path
 		if r.URL.RawQuery != "" {
 			fullURL += "?" + r.URL.RawQuery
 		}
 
-		// Log the request and its status code
-		log.Printf("%s%-7s | %3d | %-15s | %-12s | \"%s\"%s",
+		// Log the request, status code, and response size.
+		log.Printf("%s%-7s | %3d | %-15s | %-12s | %7dkb | \"%s\"%s",
 			color,
 			r.Method,
-			wrappedWriter.StatusCode, // Now capturing the correct status
+			wrappedWriter.StatusCode, // Captured status code
 			r.RemoteAddr,
 			time.Since(start).String(),
+			wrappedWriter.Size, // Response payload size in bytes
 			fullURL,
 			"\033[0m", // Reset color
 		)
 	})
 }
 
-func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
+func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, error) {
 	marsh, err := json.Marshal(data)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if _, err := w.Write(marsh); err != nil {
-		return http.StatusInternalServerError, err
+
+	// Check if the client accepts gzip encoding and hasn't explicitly disabled it
+	if acceptsGzip(r) {
+		// Enable gzip compression
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+
+		if _, err := gz.Write(marsh); err != nil {
+			return http.StatusInternalServerError, err
+		}
+	} else {
+		// Normal response without compression
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		if _, err := w.Write(marsh); err != nil {
+			return http.StatusInternalServerError, err
+		}
 	}
 
 	return 0, nil
+}
+
+func acceptsGzip(r *http.Request) bool {
+	ae := r.Header.Get("Accept-Encoding")
+	return ae != "" && strings.Contains(ae, "gzip")
 }
