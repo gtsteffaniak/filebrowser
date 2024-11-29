@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.3.2
 
   **New Features**
-  - Mobile search has same features as desktop
+  - Mobile search has the same features as desktop.
+
+  **Notes**:
+  - Added compression. Helpful for browsing folders with a large number of items.
+  - Compressed download options limited to `.zip` and `.tar.gz`
 
   **Bugfixes**:
   - search result links when non-default baseUrl configured
