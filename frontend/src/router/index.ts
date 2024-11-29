@@ -124,7 +124,6 @@ function isSameRoute(to: RouteLocation, from: RouteLocation) {
 }
 
 router.beforeResolve(async (to, from, next) => {
-  console.log("Navigating to", to.path,from.path);
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
     return next(false);
