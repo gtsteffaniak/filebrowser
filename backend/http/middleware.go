@@ -243,8 +243,7 @@ func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
 	if !w.wroteHeader { // Default to 200 if WriteHeader wasn't called explicitly
 		w.WriteHeader(http.StatusOK)
 	}
-	size, err := w.ResponseWriter.Write(b)
-	return size / 1024, err
+	return w.ResponseWriter.Write(b)
 }
 
 // LoggingMiddleware logs each request and its status code.
@@ -253,7 +252,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		start := time.Now()
 
-		// Wrap the ResponseWriter to capture the status code and response size.
+		// Wrap the ResponseWriter to capture the status code.
 		wrappedWriter := &ResponseWriterWrapper{ResponseWriter: w, StatusCode: http.StatusOK}
 
 		// Call the next handler.
@@ -274,13 +273,12 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Log the request, status code, and response size.
-		log.Printf("%s%-7s | %3d | %-15s | %-12s | %7dkb | \"%s\"%s",
+		log.Printf("%s%-7s | %3d | %-15s | %-12s | \"%s\"%s",
 			color,
 			r.Method,
 			wrappedWriter.StatusCode, // Captured status code
 			r.RemoteAddr,
 			time.Since(start).String(),
-			wrappedWriter.PayloadSize, // Response payload size in bytes
 			fullURL,
 			"\033[0m", // Reset color
 		)
@@ -294,9 +292,8 @@ func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, 
 	}
 	// Calculate size in KB
 	payloadSizeKB := len(marsh) / 1024
-
 	// Check if the client accepts gzip encoding and hasn't explicitly disabled it
-	if acceptsGzip(r) && payloadSizeKB > 10 && true {
+	if acceptsGzip(r) && payloadSizeKB > 10 {
 		// Enable gzip compression
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
