@@ -5,16 +5,18 @@ describe('testSort', () => {
 
   it('sort items by name correctly', () => {
     const input = [
+      { name: "zebra" },
       { name: "1" },
       { name: "10" },
-      { name: "apple" },
+      { name: "Apple" },
       { name: "2" },
     ]
     const expected = [
       { name: "1" },
       { name: "2" },
       { name: "10" },
-      { name: "apple" }
+      { name: "Apple" },
+      { name: "zebra" }
     ]
     expect(sortedItems(input, "name")).toEqual(expected);
   });
