@@ -141,30 +141,26 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	if len(fileList) == 1 {
-		if !isDir {
-			fd, err := os.Open(realPath)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			defer fd.Close()
-
-			// Get file information
-			fileInfo, err := fd.Stat()
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			// Set headers and serve the file
-			setContentDisposition(w, r, fileName)
-			w.Header().Set("Cache-Control", "private")
-
-			// Serve the content
-			http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)
-			return 0, nil
-		} else {
-			// handle adding directories to the zip
+	if len(fileList) == 1 && !isDir {
+		fd, err2 := os.Open(realPath)
+		if err2 != nil {
+			return http.StatusInternalServerError, err
 		}
+		defer fd.Close()
+
+		// Get file information
+		fileInfo, err3 := fd.Stat()
+		if err3 != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		// Set headers and serve the file
+		setContentDisposition(w, r, fileName)
+		w.Header().Set("Cache-Control", "private")
+
+		// Serve the content
+		http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)
+		return 0, nil
 	}
 
 	algo := r.URL.Query().Get("algo")
