@@ -114,16 +114,10 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the file or directory",
-                        "name": "path",
+                        "description": "Comma-separated list of specific files within the directory (required)",
+                        "name": "files",
                         "in": "query",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Comma-separated list of specific files within the directory (optional)",
-                        "name": "files",
-                        "in": "query"
                     },
                     {
                         "type": "boolean",
@@ -133,7 +127,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip', 'tar', 'targz', 'tarbz2', 'tarxz', 'tarlz4', 'tarsz'. Default is 'zip'.",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
                         "name": "algo",
                         "in": "query"
                     }
@@ -165,15 +159,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "File or directory not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "415": {
-                        "description": "Unsupported file type for preview",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

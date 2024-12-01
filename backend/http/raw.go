@@ -10,49 +10,18 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	gopath "path"
 	"path/filepath"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/files"
-	"github.com/gtsteffaniak/filebrowser/fileutils"
-	"github.com/gtsteffaniak/filebrowser/users"
 )
 
-func slashClean(name string) string {
-	if name == "" || name[0] != '/' {
-		name = "/" + name
-	}
-	return gopath.Clean(name)
-}
-
-func parseQueryFiles(r *http.Request, f *files.FileInfo, _ *users.User) ([]string, error) {
-	var fileSlice []string
-	names := strings.Split(r.URL.Query().Get("files"), ",")
-
-	if len(names) == 0 {
-		fileSlice = append(fileSlice, f.Path)
-	} else {
-		for _, name := range names {
-			name, err := url.QueryUnescape(strings.Replace(name, "+", "%2B", -1)) //nolint:govet
-			if err != nil {
-				return nil, err
-			}
-
-			name = slashClean(name)
-			fileSlice = append(fileSlice, filepath.Join(f.Path, name))
-		}
-	}
-
-	return fileSlice, nil
-}
-
-func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.FileInfo) {
+func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
 	if r.URL.Query().Get("inline") == "true" {
 		w.Header().Set("Content-Disposition", "inline")
 	} else {
 		// As per RFC6266 section 4.3
-		w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(file.Name))
+		w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(fileName))
 	}
 }
 
@@ -62,76 +31,85 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "Path to the file or directory"
-// @Param files query string false "Comma-separated list of specific files within the directory (optional)"
+// @Param files query string true "Comma-separated list of specific files within the directory (required)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
-// @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip', 'tar', 'targz', 'tarbz2', 'tarxz', 'tarlz4', 'tarsz'. Default is 'zip'."
+// @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
 // @Failure 202 {object} map[string]string "Download permissions required"
 // @Failure 400 {object} map[string]string "Invalid request path"
 // @Failure 404 {object} map[string]string "File or directory not found"
-// @Failure 415 {object} map[string]string "Unsupported file type for preview"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-	path := r.URL.Query().Get("path")
-	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:       filepath.Join(d.user.Scope, path),
-		Modify:     d.user.Perm.Modify,
-		Expand:     false,
-		ReadHeader: config.Server.TypeDetectionByHeader,
-		Checker:    d.user,
-	})
-	if err != nil {
-		return errToStatus(err), err
-	}
-
-	// TODO, how to handle? we removed mode, is it needed?
-	// maybe instead of mode we use bool only two conditions are checked
-	//if files.IsNamedPipe(fileInfo.Mode) {
-	//	setContentDisposition(w, r, file)
-	//	return 0, nil
-	//}
-
-	if fileInfo.Type == "directory" {
-		return rawDirHandler(w, r, d, fileInfo.FileInfo)
-	}
-
-	return rawFileHandler(w, r, fileInfo.FileInfo)
+	files := r.URL.Query().Get("files")
+	return rawFilesHandler(w, r, d, strings.Split(files, ","))
 }
 
-func addFile(path, commonPath string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer) error {
-	path, _, _ = files.GetRealPath(d.user.Scope, path)
-	if !d.user.Check(path) {
+func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer) error {
+	realPath, _, _ := files.GetRealPath(d.user.Scope, path)
+	if !d.user.Check(realPath) {
 		return nil
 	}
-	info, err := os.Stat(path)
+	info, err := os.Stat(realPath)
 	if err != nil {
 		return err
 	}
 
-	if !info.IsDir() && !info.Mode().IsRegular() {
-		return nil
+	if info.IsDir() {
+		// Walk through directory contents
+		return filepath.Walk(realPath, func(filePath string, fileInfo os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			relPath, err := filepath.Rel(filepath.Dir(realPath), filePath) // Relative path including base dir
+			if err != nil {
+				return err
+			}
+			if fileInfo.IsDir() {
+				if tarWriter != nil {
+					header := &tar.Header{
+						Name:     relPath + "/",
+						Mode:     0755,
+						Typeflag: tar.TypeDir,
+						ModTime:  fileInfo.ModTime(),
+					}
+					return tarWriter.WriteHeader(header)
+				}
+				if zipWriter != nil {
+					_, err := zipWriter.Create(relPath + "/")
+					return err
+				}
+				return nil
+			}
+			return addSingleFile(filePath, relPath, zipWriter, tarWriter)
+		})
 	}
 
-	file, err := os.Open(path)
+	// Add a single file if it's not a directory
+	return addSingleFile(realPath, filepath.Base(realPath), zipWriter, tarWriter)
+}
+
+func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWriter *tar.Writer) error {
+	file, err := os.Open(realPath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	filename := strings.TrimPrefix(path, commonPath)
-	filename = strings.TrimPrefix(filename, string(filepath.Separator))
+	info, err := os.Stat(realPath)
+	if err != nil {
+		return err
+	}
 
 	if tarWriter != nil {
-		header, err := tar.FileInfoHeader(info, path)
+		header, err := tar.FileInfoHeader(info, realPath)
 		if err != nil {
 			return err
 		}
-		header.Name = filename
+		header.Name = archivePath
 		if err = tarWriter.WriteHeader(header); err != nil {
 			return err
 		}
@@ -144,7 +122,7 @@ func addFile(path, commonPath string, d *requestContext, tarWriter *tar.Writer, 
 		if err != nil {
 			return err
 		}
-		header.Name = filename
+		header.Name = archivePath
 		writer, err := zipWriter.CreateHeader(header)
 		if err != nil {
 			return err
@@ -156,10 +134,37 @@ func addFile(path, commonPath string, d *requestContext, tarWriter *tar.Writer, 
 	return nil
 }
 
-func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, file *files.FileInfo) (int, error) {
-	filenames, err := parseQueryFiles(r, file, d.user)
+func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fileList []string) (int, error) {
+	filePath := fileList[0]
+	fileName := filepath.Base(filePath)
+	realPath, isDir, err := files.GetRealPath(d.user.Scope, filePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
+	}
+	if len(fileList) == 1 {
+		if !isDir {
+			fd, err := os.Open(realPath)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			defer fd.Close()
+
+			// Get file information
+			fileInfo, err := fd.Stat()
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			// Set headers and serve the file
+			setContentDisposition(w, r, fileName)
+			w.Header().Set("Cache-Control", "private")
+
+			// Serve the content
+			http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)
+			return 0, nil
+		} else {
+			// handle adding directories to the zip
+		}
 	}
 
 	algo := r.URL.Query().Get("algo")
@@ -167,32 +172,23 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 	switch algo {
 	case "zip", "true", "":
 		extension = ".zip"
-	case "targz":
+	case "tar.gz":
 		extension = ".tar.gz"
 	default:
 		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
 
-	// Determine common directory prefix for file paths
-	commonDir := fileutils.CommonPrefix(filepath.Separator, filenames...)
-
-	// Set filename for the archive
-	name := filepath.Base(commonDir)
-	if name == "." || name == "" || name == string(filepath.Separator) {
-		name = file.Name
+	baseDirName := filepath.Base(filepath.Dir(realPath))
+	if baseDirName == "" || baseDirName == "/" {
+		baseDirName = "download"
 	}
-	if len(filenames) > 1 {
-		name = "_" + name
-	}
-	name += extension
-
-	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(name))
-
+	downloadFileName := url.PathEscape(baseDirName + "." + algo)
+	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+downloadFileName)
 	// Create the archive and stream it directly to the response
 	if extension == ".zip" {
-		err = createZip(w, filenames, commonDir, d)
+		err = createZip(w, d, fileList...)
 	} else {
-		err = createTarGz(w, filenames, commonDir, d)
+		err = createTarGz(w, d, fileList...)
 	}
 
 	if err != nil {
@@ -202,27 +198,12 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fi
 	return 0, nil
 }
 
-func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
-	realPath, _, _ := files.GetRealPath(file.Path)
-	fd, err := os.Open(realPath)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	defer fd.Close()
-
-	setContentDisposition(w, r, file)
-
-	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, file.Name, file.ModTime, fd)
-	return 0, nil
-}
-
-func createZip(w io.Writer, filenames []string, commonDir string, d *requestContext) error {
+func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
 
 	for _, fname := range filenames {
-		err := addFile(fname, commonDir, d, nil, zipWriter)
+		err := addFile(fname, d, nil, zipWriter)
 		if err != nil {
 			log.Printf("Failed to add %s to ZIP: %v", fname, err)
 		}
@@ -231,7 +212,7 @@ func createZip(w io.Writer, filenames []string, commonDir string, d *requestCont
 	return nil
 }
 
-func createTarGz(w io.Writer, filenames []string, commonDir string, d *requestContext) error {
+func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 	gzWriter := gzip.NewWriter(w)
 	defer gzWriter.Close()
 
@@ -239,7 +220,7 @@ func createTarGz(w io.Writer, filenames []string, commonDir string, d *requestCo
 	defer tarWriter.Close()
 
 	for _, fname := range filenames {
-		err := addFile(fname, commonDir, d, tarWriter, nil)
+		err := addFile(fname, d, tarWriter, nil)
 		if err != nil {
 			log.Printf("Failed to add %s to TAR.GZ: %v", fname, err)
 		}

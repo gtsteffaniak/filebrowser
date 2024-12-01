@@ -51,19 +51,21 @@ export async function put(url, content = "") {
   }
 }
 
-export function download(format, ...files) {
+export function download(format, files) {
+  if (format != "zip") {
+    format = "tar.gz"
+  }
   try {
-    let path = "";
     let fileargs = "";
     if (files.length === 1) {
-      path = removePrefix(files[0], "files")
+      fileargs = removePrefix(files[0], "files")
     } else {
       for (let file of files) {
         fileargs += removePrefix(file,"files") + ",";
       }
       fileargs = fileargs.substring(0, fileargs.length - 1);
     }
-    const apiPath = getApiPath("api/raw", { path: path, files: fileargs, algo: format });
+    const apiPath = getApiPath("api/raw", { files: fileargs, algo: format });
     const url = window.origin+apiPath
     window.open(url);
   } catch (err) {
@@ -153,10 +155,9 @@ export async function checksum(url, algo) {
 }
 
 export function getDownloadURL(path, inline) {
-  
   try {
     const params = {
-      path: removePrefix(path,"files"),
+      files: removePrefix(path,"files"),
       ...(inline && { inline: "true" }),
     };
     const apiPath = getApiPath("api/raw", params);
