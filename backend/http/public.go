@@ -42,7 +42,7 @@ func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	}
 
 	if file.Type == "directory" {
-		return rawDirHandler(w, r, d, file.FileInfo)
+		return rawFilesHandler(w, r, d, []string{file.Path})
 	}
 
 	return rawFileHandler(w, r, file.FileInfo)

@@ -21,9 +21,9 @@
         <div>
           <div v-if="active">
             <div v-if="isMobile">
-              <ButtonGroup  :buttons="toggleOptionButton" @button-clicked="toggleOptions" @remove-button-clicked="toggleOptions" />
+              <ButtonGroup  :buttons="toggleOptionButton" @button-clicked="enableOptions" @remove-button-clicked="disableOptions" />
             </div>
-            <div v-if="showOptions">
+            <div v-show="showOptions">
               <!-- Button groups for filtering search results -->
               <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
                 @disableAll="folderSelectClicked()" @enableAll="resetButtonGroups()" />
@@ -242,8 +242,17 @@ export default {
     },
   },
   methods: {
-    toggleOptions() {
-      this.hiddenOptions = !this.hiddenOptions
+    enableOptions() {
+      this.hiddenOptions = false
+      this.toggleOptionButton = [
+        { label: "Hide Options" },
+      ];
+    },
+    disableOptions() {
+      this.hiddenOptions = true
+      this.toggleOptionButton = [
+        { label: "Show Options" },
+      ];
     },
     humanSize(size) {
       return getHumanReadableFilesize(size);

@@ -63,7 +63,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if fileInfo.Type == "directory" {
 		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
 	}
-	setContentDisposition(w, r, fileInfo)
+	setContentDisposition(w, r, fileInfo.Name)
 	if fileInfo.Type != "image" {
 		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", fileInfo.Type)
 	}
@@ -149,4 +149,19 @@ func createPreview(imgSvc ImgService, fileCache FileCache, file *files.FileInfo,
 // Generates a cache key for the preview image
 func previewCacheKey(f *files.FileInfo, previewSize string) string {
 	return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
+}
+
+func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
+	realPath, _, _ := files.GetRealPath(file.Path)
+	fd, err := os.Open(realPath)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer fd.Close()
+
+	setContentDisposition(w, r, file.Name)
+
+	w.Header().Set("Cache-Control", "private")
+	http.ServeContent(w, r, file.Name, file.ModTime, fd)
+	return 0, nil
 }
