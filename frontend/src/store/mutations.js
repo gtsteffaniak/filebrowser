@@ -220,7 +220,7 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingItems: () => {
-    state.req.items = utils.SortedItems(state.req.items,state.user.sorting.by)
+    state.req.items = sortedItems(state.req.items,state.user.sorting.by)
     emitStateChanged();
   },
   updateClipboard: (value) => {
