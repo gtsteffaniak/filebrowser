@@ -3,8 +3,8 @@ package cmd
 import (
 	"log"
 
-	"github.com/gtsteffaniak/filebrowser/storage"
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 	"github.com/spf13/cobra"
 )
 

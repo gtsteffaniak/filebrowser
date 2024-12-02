@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 type Index struct {

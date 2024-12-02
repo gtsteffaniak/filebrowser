@@ -13,9 +13,9 @@ import (
 
 	"github.com/shirou/gopsutil/v3/disk"
 
-	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/files"
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 // resourceGetHandler retrieves information about a resource.

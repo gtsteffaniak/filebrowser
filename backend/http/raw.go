@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/files"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {

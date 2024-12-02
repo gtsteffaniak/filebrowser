@@ -3,7 +3,7 @@ package settings
 import (
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 func TestSettings_MakeUserDir(t *testing.T) {

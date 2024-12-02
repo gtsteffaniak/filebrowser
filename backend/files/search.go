@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 var (

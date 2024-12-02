@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 func BenchmarkFillIndex(b *testing.B) {

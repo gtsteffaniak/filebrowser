@@ -7,17 +7,17 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/diskcache"
-	"github.com/gtsteffaniak/filebrowser/files"
-	fbhttp "github.com/gtsteffaniak/filebrowser/http"
-	"github.com/gtsteffaniak/filebrowser/img"
-	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/storage"
-	"github.com/gtsteffaniak/filebrowser/swagger/docs"
+	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
+	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
+	"github.com/gtsteffaniak/filebrowser/backend/img"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/swaggo/swag"
 
-	"github.com/gtsteffaniak/filebrowser/users"
-	"github.com/gtsteffaniak/filebrowser/version"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
 func getStore(config string) (*storage.Storage, bool) {
