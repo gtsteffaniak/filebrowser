@@ -122,14 +122,12 @@ export default {
       // Ensure the context menu stays within the viewport
       return Math.min(
         this.posY,
-
         window.innerHeight - (this.$refs.contextMenu?.clientHeight ?? 0)
       );
     },
     left() {
       return Math.min(
         this.posX,
-
         window.innerWidth - (this.$refs.contextMenu?.clientWidth ?? 0)
       );
     },
@@ -160,9 +158,26 @@ export default {
       return mutations.showHover(value);
     },
     setPositions() {
+      console.log("Setting positions");
       const contextProps = getters.currentPrompt().props;
-      this.posX = contextProps.posX;
-      this.posY = contextProps.posY;
+      let tempX = contextProps.posX;
+      let tempY = contextProps.posY;
+      // Assuming the screen width and height (adjust values based on your context)
+      const screenWidth = window.innerWidth; // or any fixed width depending on your app's layout
+      const screenHeight = window.innerHeight; // or any fixed height depending on your app's layout
+
+      // if x is too close to the right edge, move it to the left by 400px
+      if (tempX > screenWidth - 200) {
+        tempX -= 200;
+      }
+
+      // if y is too close to the bottom edge, move it up by 400px
+      if (tempY > screenHeight - 400) {
+        tempY -= 400;
+      }
+
+      this.posX = tempX;
+      this.posY = tempY;
     },
     toggleMultipleSelection() {
       mutations.setMultiple(!state.multiple);

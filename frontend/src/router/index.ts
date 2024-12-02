@@ -8,6 +8,7 @@ import Errors from "@/views/Errors.vue";
 import { baseURL, name } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
+import { validateLogin } from "@/utils/auth";
 import i18n from "@/i18n";
 
 const titles = {
@@ -124,12 +125,15 @@ function isSameRoute(to: RouteLocation, from: RouteLocation) {
 }
 
 router.beforeResolve(async (to, from, next) => {
-  console.log("Navigating to", to.path,from.path);
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
     return next(false);
   }
 
+  if (state != null && state.user != null && !('username' in state.user)) {
+    await validateLogin();
+  }
+  
   // Set the page title using i18n
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;

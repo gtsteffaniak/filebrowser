@@ -97,15 +97,12 @@ func (si *Index) RunIndexing(origin string, quick bool) {
 		if si.indexingTime < 3 || si.NumDirs < 10000 {
 			si.assessment = "simple"
 			si.SmartModifier = 4 * time.Minute
-			log.Println("Index is small and efficient, adjusting scan interval accordingly.")
 		} else if si.indexingTime > 120 || si.NumDirs > 500000 {
 			si.assessment = "complex"
 			modifier := si.indexingTime / 10 // seconds
 			si.SmartModifier = time.Duration(modifier) * time.Minute
-			log.Println("Index is large and complex, adjusting scan interval accordingly.")
 		} else {
 			si.assessment = "normal"
-			log.Println("Index is normal, quick scan set to every 5 minutes.")
 		}
 		log.Printf("Index assessment         : complexity=%v directories=%v files=%v \n", si.assessment, si.NumDirs, si.NumFiles)
 		if si.NumDirs != prevNumDirs || si.NumFiles != prevNumFiles {

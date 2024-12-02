@@ -27,6 +27,10 @@ vi.mock('@/store', () => {
           email: '',
           avatarUrl: '',
         },
+        sorting: {
+          by: 'name',
+          asc: true,
+        },
       },
       req: {
         sorting: {

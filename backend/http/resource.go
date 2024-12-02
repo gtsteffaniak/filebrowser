@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/shirou/gopsutil/v3/disk"
@@ -382,4 +383,16 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	index := files.GetIndex(config.Server.Root)
 	info, _ := index.GetReducedMetadata(path, isDir)
 	renderJSON(w, r, info) // nolint:errcheck
+}
+
+func mockData(w http.ResponseWriter, r *http.Request) {
+	d := r.URL.Query().Get("numDirs")
+	f := r.URL.Query().Get("numFiles")
+	NumDirs, err := strconv.Atoi(d)
+	numFiles, err2 := strconv.Atoi(f)
+	if err != nil || err2 != nil {
+		return
+	}
+	mockDir := files.CreateMockData(NumDirs, numFiles)
+	renderJSON(w, r, mockDir) // nolint:errcheck
 }

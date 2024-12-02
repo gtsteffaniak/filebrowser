@@ -6,7 +6,7 @@ setup:
 	fi
 
 update:
-	cd backend && go get -u && go mod tidy && cd ../frontend && npm update
+	cd backend && go get -u ./... && go mod tidy && cd ../frontend && npm update
 
 build:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a"  -t gtstef/filebrowser .
