@@ -8,7 +8,9 @@ import Errors from "@/views/Errors.vue";
 import { baseURL, name } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
+import { validateLogin } from "@/utils/auth";
 import i18n from "@/i18n";
+import { fetchModule } from "vite";
 
 const titles = {
   Login: "sidebar.login",
@@ -129,6 +131,10 @@ router.beforeResolve(async (to, from, next) => {
     return next(false);
   }
 
+  if (state != null && state.user != null && !('username' in state.user)) {
+    await validateLogin();
+  }
+  
   // Set the page title using i18n
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;

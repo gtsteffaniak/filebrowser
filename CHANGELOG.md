@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
   **Bugfixes**:
   - search result links when non-default baseUrl configured
   - frontend sort bug squashed https://github.com/gtsteffaniak/filebrowser/issues/230
-
+  - bug which caused "noauth" method not to work after v0.3.0 routes update
 
 ## v0.3.1
 

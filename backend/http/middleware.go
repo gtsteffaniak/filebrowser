@@ -13,6 +13,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/files"
 	"github.com/gtsteffaniak/filebrowser/runner"
+	"github.com/gtsteffaniak/filebrowser/settings"
 	"github.com/gtsteffaniak/filebrowser/users"
 )
 
@@ -93,7 +94,15 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-
+		if settings.Config.Auth.Method == "noauth" {
+			var err error
+			// Retrieve the user from the store and store it in the context
+			data.user, err = store.Users.Get(config.Server.Root, "admin")
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			return fn(w, r, data)
+		}
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil
 		}

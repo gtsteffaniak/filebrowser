@@ -5,6 +5,7 @@ import { emitStateChanged } from './eventBus'; // Import the function from event
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
+import { noAuth } from "@/utils/constants";
 
 export const mutations = {
   setGallerySize: (value) => {

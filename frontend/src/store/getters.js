@@ -1,6 +1,8 @@
 import { removePrefix } from "@/utils/url.js";
 import { state } from "./state.js";
 import { mutations } from "./mutations.js";
+import { noAuth } from "@/utils/constants.js";
+import { validateLogin } from "@/utils/auth.js";
 
 export const getters = {
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
@@ -16,6 +18,9 @@ export const getters = {
     return state.user.darkMode === true;
   },
   isLoggedIn: () => {
+    if (noAuth) {
+      return true
+    }
     if (state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser") {
       return true;
     }
