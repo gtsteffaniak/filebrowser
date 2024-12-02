@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.2
+
+  **New Features**
+  - Mobile search has the same features as desktop.
+
+  **Notes**:
+  - Added compression. Helpful for browsing folders with a large number of items. Considering https://github.com/gtsteffaniak/filebrowser/issues/201 resolved, although future pagination support will still come.
+  - Compressed download options limited to `.zip` and `.tar.gz`
+  - right-click context menu stays in view.
+
+  **Bugfixes**:
+  - search result links when non-default baseUrl configured
+  - frontend sort bug squashed https://github.com/gtsteffaniak/filebrowser/issues/230
+  - bug which caused "noauth" method not to work after v0.3.0 routes update
+
 ## v0.3.1
 
   **New Features**

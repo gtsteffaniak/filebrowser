@@ -4,6 +4,7 @@ import router from "@/router";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
+import { sortedItems } from "@/utils/sort.js";
 
 export const mutations = {
   setGallerySize: (value) => {
@@ -219,15 +220,7 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingItems: () => {
-    state.req.items.sort((a, b) => {
-      const valueA = a[state.user.sorting.by];
-      const valueB = b[state.user.sorting.by];
-      if (state.user.sorting.asc) {
-        return valueA > valueB ? 1 : -1;
-      } else {
-        return valueA < valueB ? 1 : -1;
-      }
-    });
+    state.req.items = sortedItems(state.req.items,state.user.sorting.by)
     emitStateChanged();
   },
   updateClipboard: (value) => {

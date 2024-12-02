@@ -338,14 +338,10 @@ paths:
       description: Returns the raw content of a file, multiple files, or a directory.
         Supports downloading files as archives in various formats.
       parameters:
-      - description: Path to the file or directory
-        in: query
-        name: path
-        required: true
-        type: string
-      - description: Comma-separated list of specific files within the directory (optional)
+      - description: Comma-separated list of specific files within the directory (required)
         in: query
         name: files
+        required: true
         type: string
       - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
           to 'attachment'.
@@ -353,8 +349,7 @@ paths:
         name: inline
         type: boolean
       - description: 'Compression algorithm for archiving multiple files or directories.
-          Options: ''zip'', ''tar'', ''targz'', ''tarbz2'', ''tarxz'', ''tarlz4'',
-          ''tarsz''. Default is ''zip''.'
+          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
         in: query
         name: algo
         type: string
@@ -379,12 +374,6 @@ paths:
             type: object
         "404":
           description: File or directory not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "415":
-          description: Unsupported file type for preview
           schema:
             additionalProperties:
               type: string

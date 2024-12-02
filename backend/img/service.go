@@ -11,7 +11,6 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/dsoprea/go-exif/v3"
-	"github.com/marusama/semaphore/v2"
 
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
 )
@@ -21,12 +20,32 @@ var ErrUnsupportedFormat = errors.New("unsupported image format")
 
 // Service
 type Service struct {
-	sem semaphore.Semaphore
+	sem chan struct{}
 }
 
+// New initializes the service with a specified number of workers (concurrency limit).
 func New(workers int) *Service {
 	return &Service{
-		sem: semaphore.New(workers),
+		sem: make(chan struct{}, workers), // Buffered channel to limit concurrency.
+	}
+}
+
+// acquire blocks until a worker is available or the context is canceled.
+func (s *Service) acquire(ctx context.Context) error {
+	select {
+	case s.sem <- struct{}{}: // Reserve a worker.
+		return nil
+	case <-ctx.Done(): // Context canceled or deadline exceeded.
+		return ctx.Err()
+	}
+}
+
+// release frees up a worker slot.
+func (s *Service) release() {
+	select {
+	case <-s.sem: // Free a worker slot.
+	default:
+		// Shouldn't happen, but guard against releasing more than acquired.
 	}
 }
 
@@ -136,10 +155,10 @@ func WithQuality(quality Quality) Option {
 }
 
 func (s *Service) Resize(ctx context.Context, in io.Reader, width, height int, out io.Writer, options ...Option) error {
-	if err := s.sem.Acquire(ctx, 1); err != nil {
+	if err := s.acquire(ctx); err != nil {
 		return err
 	}
-	defer s.sem.Release(1)
+	defer s.release()
 
 	format, wrappedReader, err := s.detectFormat(in)
 	if err != nil {

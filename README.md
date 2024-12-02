@@ -9,21 +9,19 @@
   <img width="800" src="https://github.com/user-attachments/assets/e4a47229-66f8-4838-9575-dd2413596688" title="Main Screenshot">
 </p>
 
-> [!WARNING]
-> Starting with `v0.3.0` API routes have been slightly altered for friendly usage outside of the UI. The resources api returns items in separate `files` and `folder` objects now.
+> [!Note]
+> Starting with `v0.3.0` API routes have been slightly altered for friendly usage outside of the UI. The resources API returns items in separate `files` and `folder` objects now.
 
 > [!WARNING]
-> If on windows, please use docker. The windows binary is unstable and may not work.
-
-> [!WARNING]
-> There is no stable version yet. Always check release notes for bugfixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
+> - There is no stable version yet. Always check release notes for bug fixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
+> - If on windows, please use docker. The windows binary is unstable and may not work.
 
 FileBrowser Quantum is a fork of the file browser opensource project with the following changes:
 
   1. [x] Indexes files efficiently. See [indexing readme](./docs/indexing.md)
      - Real-time search results as you type
      - Search supports file/folder sizes and many file type filters.
-     - Enhanced interactive results that shows file/folder sizes.
+     - Enhanced interactive results that show file/folder sizes.
   1. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode
        styles.
@@ -35,16 +33,17 @@ FileBrowser Quantum is a fork of the file browser opensource project with the fo
      - Folder sizes are shown as well
      - Changing Sort order is instant
      - The entire directory is loaded in 1/3 the time
-  1. Developer API support
+  1. [x] Developer API support
      - Can create long-live API Tokens.
      - Helpful Swagger page available at `/swagger` endpoint.
 
 Notable features that this fork *does not* have (removed):
 
  - jobs/runners are not supported yet (planned).
- - shell commands are completely removed and will not be returning.
+ - shell commands are completely removed and will not be returned.
  - themes and branding are not fully supported yet (planned).
  - see feature matrix below for more.
+ - pagination for directory items, so large directories with more than 100,000 items may be slow to load or not load at all.
 
 ## About
 
@@ -147,18 +146,19 @@ Not using docker (not recommended), download your binary from releases and run w
 
 There are very few commands available. There are 3 actions done via the command line:
 
-1. Running the program, as shown on the install step. The only argument used is the config file if you choose to override the default "filebrowser.yaml"
+1. Running the program, as shown in the install step. The only argument used is the config file if you choose to override the default "filebrowser.yaml"
 2. Checking the version info via `./filebrowser version`
 3. Updating the DB, which currently only supports adding users via `./filebrowser set -u username,password [-a] [-s "example/scope"]`
 
 ## API Usage
 
-FileBrowser Quantum comes with a swagger page that can be accessed from the API section of settings or by going to `/swagger` to see the full list:
+FileBrowser Quantum allows for the creation of API tokens which can create users, access file information, and update user settings just like what can be done from the UI. You can create API tokens from the settings page via "API Management" section. This section will only show up if the user has "API" permissions, which can be granted by editing the user in user management.
+
+Regardless of whether a user has API permissions, anyone can visit the swagger page which is found at `/swagger`. This swagger page uses a short-live token (2-hour exp) that the UI uses, but allows for quick access to all the API's and their described usage and requirements:
 
 ![image](https://github.com/user-attachments/assets/12abd1f6-21d3-4437-98ed-9b0da6cf2c73)
 
-You use the token as a bearer token. For example in Postman:
-
+When using the API outside of swagger, you will need to set the API token as a bearer token authentication type. This means the authorization header will look like `Authorization: Bearer <token>`. For example in Postman:
 
 Successful Request:
 

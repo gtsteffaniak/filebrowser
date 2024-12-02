@@ -80,6 +80,7 @@ export default {
 .button-group {
   margin: 1em;
   display: flex;
+  flex-wrap: wrap;
   border: 1px solid #ccc;
   border-radius: 1em;
   overflow: hidden;
@@ -93,7 +94,6 @@ button {
   border: none;
   background: #f5f5f5;
   transition: background-color 0.3s;
-
   /* Add borders */
   border-right: 1px solid #ccc;
 }

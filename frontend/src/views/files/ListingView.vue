@@ -287,7 +287,7 @@ export default {
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
-    this.$el.addEventListener("contextmenu", this.openContext);
+    window.addEventListener("contextmenu", this.openContext);
 
     if (!state.user.perm?.create) return;
     this.$el.addEventListener("dragover", this.preventDefault);
