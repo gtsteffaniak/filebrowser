@@ -10,7 +10,6 @@ import { getters, state } from "@/store";
 import { mutations } from "@/store";
 import { validateLogin } from "@/utils/auth";
 import i18n from "@/i18n";
-import { fetchModule } from "vite";
 
 const titles = {
   Login: "sidebar.login",

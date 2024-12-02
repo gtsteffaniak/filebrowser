@@ -112,7 +112,6 @@ import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { getApiPath } from "@/utils/url";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
