@@ -14,7 +14,7 @@ var (
 	maxSearchResults  = 100
 )
 
-type searchResult struct {
+type SearchResult struct {
 	Path string `json:"path"`
 	Type string `json:"type"`
 	Size int64  `json:"size"`
