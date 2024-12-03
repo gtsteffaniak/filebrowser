@@ -49,7 +49,7 @@ import (
 // @Param query query string true "Search query"
 // @Param scope query string false "path within user scope to search, for example '/first/second' to search within the second directory only"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
-// @Success 200 {array} files.searchResult "List of search results"
+// @Success 200 {array} files.SearchResult "List of search results"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Router /api/search [get]
 func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {

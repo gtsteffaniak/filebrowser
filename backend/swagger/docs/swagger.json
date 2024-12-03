@@ -568,7 +568,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/files.searchResult"
+                                "$ref": "#/definitions/files.SearchResult"
                             }
                         }
                     },
@@ -1175,7 +1175,7 @@
                 }
             }
         },
-        "files.searchResult": {
+        "files.SearchResult": {
             "type": "object",
             "properties": {
                 "path": {
