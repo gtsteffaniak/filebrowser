@@ -342,47 +342,21 @@ func getContent(path string) (string, error) {
 }
 
 // detectType detects the file type.
-func (i *ItemInfo) detectType(path string, modify, saveContent, readHeader bool) error {
+func (i *ItemInfo) DetectType(path string, saveContent, readHeader bool) error {
 	name := i.Name
 	var contentErr error
 
 	ext := filepath.Ext(name)
 	var buffer []byte
+	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]
 	if readHeader {
 		buffer = i.readFirstBytes(path)
-		mimetype := mime.TypeByExtension(ext)
-		if mimetype == "" {
+		if i.Type == "" {
 			http.DetectContentType(buffer)
 		}
 	}
-
-	for _, fileType := range AllFiletypeOptions {
-		if IsMatchingType(ext, fileType) {
-			i.Type = fileType
-		}
-		switch i.Type {
-		case "text":
-			if !modify {
-				i.Type = "textImmutable"
-			}
-			if saveContent {
-				return contentErr
-			}
-		case "video":
-			// TODO add back somewhere else, not during metadata fetch
-			//parentDir := strings.TrimRight(path, name)
-			//i.detectSubtitles(parentDir)
-		case "doc":
-			if ext == ".pdf" {
-				i.Type = "pdf"
-				return nil
-			}
-			if saveContent {
-				return nil
-			}
-		}
-	}
 	if i.Type == "" {
+		// perhaps use custom types here
 		i.Type = "blob"
 		if saveContent {
 			return contentErr

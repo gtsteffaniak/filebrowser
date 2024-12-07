@@ -132,6 +132,9 @@
               <i v-else-if="s.type == 'archive'" class="material-icons archive-icons">
                 archive
               </i>
+              <i v-else-if="s.type == 'archive'" class="material-icons archive-icons">
+                archive
+              </i>
               <i v-else class="material-icons file-icons"> insert_drive_file </i>
               <span class="text-container">
                 {{ basePath(s.path, s.type == "directory") }}<b>{{ baseName(s.path) }}</b>
