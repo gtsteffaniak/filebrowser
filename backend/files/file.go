@@ -11,6 +11,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+
 	"os"
 	"path/filepath"
 	"sort"
@@ -341,48 +342,28 @@ func getContent(path string) (string, error) {
 	return stringContent, nil
 }
 
-// detectType detects the file type.
-func (i *ItemInfo) DetectType(path string, saveContent, readHeader bool) error {
+// DetectType detects the MIME type of a file and updates the ItemInfo struct.
+func (i *ItemInfo) DetectType(path string, saveContent bool) {
 	name := i.Name
-	var contentErr error
-
 	ext := filepath.Ext(name)
-	var buffer []byte
+
+	// Attempt MIME detection by file extension
 	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]
-	if readHeader {
-		buffer = i.readFirstBytes(path)
-		if i.Type == "" {
-			http.DetectContentType(buffer)
+
+	if i.Type == "" || i.Type == "application/octet-stream" {
+		realpath, _, _ := GetRealPath(path)
+		// Read only the first 512 bytes for efficient MIME detection
+		file, err := os.Open(realpath)
+		if err != nil {
+			i.Type = extendedMimeTypeCheck(ext)
+		} else {
+			defer file.Close()
+			buffer := make([]byte, 512)
+			n, _ := file.Read(buffer) // Ignore errors from Read
+			i.Type = strings.Split(http.DetectContentType(buffer[:n]), ";")[0]
 		}
 	}
-	if i.Type == "" {
-		// perhaps use custom types here
-		i.Type = "blob"
-		if saveContent {
-			return contentErr
-		}
-	}
 
-	return nil
-}
-
-// readFirstBytes reads the first bytes of the file.
-func (i *ItemInfo) readFirstBytes(path string) []byte {
-	file, err := os.Open(path)
-	if err != nil {
-		i.Type = "blob"
-		return nil
-	}
-	defer file.Close()
-
-	buffer := make([]byte, 512) //nolint:gomnd
-	n, err := file.Read(buffer)
-	if err != nil && err != io.EOF {
-		i.Type = "blob"
-		return nil
-	}
-
-	return buffer[:n]
 }
 
 // TODO add subtitles back
