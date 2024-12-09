@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file. For commit 
   #- File preview supports more file types
   #- Theme configuration from user profile settings
 
+  **Bugfixes**:
+  #- Delete file/folders sometimes wouldn't work, but would show success.
+
 ## v0.3.2
 
   **New Features**
