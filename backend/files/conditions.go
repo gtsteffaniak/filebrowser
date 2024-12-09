@@ -24,10 +24,23 @@ var documentTypes = []string{
 	".pdf", // Portable Document Format
 	".odt", // OpenDocument Text
 	".rtf", // Rich Text Format
+	".conf",
+	".bash_history",
+	".gitignore",
+	".htpasswd",
+	".profile",
+	".dockerignore",
+	".editorconfig",
 
 	// Presentation Formats
 	".ppt", ".pptx", // Microsoft PowerPoint
 	".odp", // OpenDocument Presentation
+
+	// google docs
+	".gdoc",
+
+	// google sheet
+	".gsheet",
 
 	// Spreadsheet Formats
 	".xls", ".xlsx", // Microsoft Excel
@@ -100,6 +113,16 @@ type SearchOptions struct {
 	LargerThan  int
 	SmallerThan int
 	Terms       []string
+}
+
+func extendedMimeTypeCheck(extension string) string {
+	if isDoc(extension) {
+		return "application/document"
+	}
+	if isText(extension) {
+		return "text/plain"
+	}
+	return "blob"
 }
 
 func ParseSearch(value string) SearchOptions {
@@ -199,8 +222,6 @@ func IsMatchingType(extension string, matchType string) bool {
 	switch matchType {
 	case "doc":
 		return isDoc(extension)
-	case "pdf":
-		return extension == ".pdf"
 	case "text":
 		return isText(extension)
 	case "archive":

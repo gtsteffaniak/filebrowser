@@ -21,16 +21,17 @@
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
-        v-if="readOnly === undefined && type === 'image' && isThumbsEnabled && isInView"
+        v-if="
+          readOnly === undefined &&
+          type.startsWith('image') &&
+          isThumbsEnabled &&
+          isInView
+        "
         v-lazy="thumbnailUrl"
         :class="{ activeimg: isMaximized && isSelected }"
         ref="thumbnail"
       />
-      <i
-        :class="{ iconActive: isMaximized && isSelected }"
-        v-else
-        class="material-icons"
-      ></i>
+      <Icon :mimetype="type" />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
@@ -77,9 +78,13 @@ import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { baseURL } from "@/utils/constants";
 import { router } from "@/router";
+import Icon from "@/components/Icon.vue";
 
 export default {
   name: "item",
+  components: {
+    Icon,
+  },
   data() {
     return {
       isThumbnailInView: false,

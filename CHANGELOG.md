@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.3
+
+  **New Features**
+  - New Icons with larger selection of file types
+  #- File preview supports more file types
+    - images: jpg, bmp, svg, 
+  #- Theme configuration from user profile settings
+
+  **Bugfixes**:
+  #- Delete file/folders sometimes wouldn't work, but would show success.
+
 ## v0.3.2
 
   **New Features**

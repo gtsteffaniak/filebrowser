@@ -132,7 +132,7 @@ func (si *Index) indexDirectory(adjustedPath string, quick, recursive bool) erro
 			dirInfos = append(dirInfos, *itemInfo)
 			si.NumDirs++
 		} else {
-			_ = itemInfo.detectType(combinedPath+file.Name(), true, false, false)
+			itemInfo.DetectType(combinedPath+file.Name(), false)
 			itemInfo.Size = file.Size()
 			fileInfos = append(fileInfos, *itemInfo)
 			totalSize += itemInfo.Size

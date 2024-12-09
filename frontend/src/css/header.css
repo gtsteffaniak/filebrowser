@@ -49,25 +49,3 @@ header img {
 header .action span {
   display: none;
 }
-
-/* Icon Colors */
-.folder-icons {
-  color: var(--icon-blue);
-}
-
-.video-icons {
-  color: lightskyblue;
-}
-
-.image-icons {
-  color: lightcoral;
-}
-
-.archive-icons {
-  color: tan;
-}
-
-.audio-icons {
-  color: plum;
-}
-
