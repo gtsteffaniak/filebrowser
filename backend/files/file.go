@@ -349,13 +349,15 @@ func (i *ItemInfo) DetectType(path string, saveContent bool) {
 
 	// Attempt MIME detection by file extension
 	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]
-
-	if i.Type == "" || i.Type == "application/octet-stream" {
+	if i.Type == "" {
+		i.Type = extendedMimeTypeCheck(ext)
+	}
+	if i.Type == "blob" {
 		realpath, _, _ := GetRealPath(path)
 		// Read only the first 512 bytes for efficient MIME detection
 		file, err := os.Open(realpath)
 		if err != nil {
-			i.Type = extendedMimeTypeCheck(ext)
+
 		} else {
 			defer file.Close()
 			buffer := make([]byte, 512)
@@ -363,7 +365,6 @@ func (i *ItemInfo) DetectType(path string, saveContent bool) {
 			i.Type = strings.Split(http.DetectContentType(buffer[:n]), ";")[0]
 		}
 	}
-
 }
 
 // TODO add subtitles back

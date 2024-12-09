@@ -79,9 +79,7 @@
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry">
             <a :href="s.path">
-              <i :class="getIcon(s.type)[0]" class="material-icons">
-                {{ getIcon(s.type)[1] }}
-              </i>
+              <Icon :mimetype="s.type"/>
               <span class="text-container">
                 {{ basePath(s.path, s.type === "directory") }}<b>{{ baseName(s.path) }}</b>
               </span>
@@ -99,7 +97,7 @@ import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { getMaterialIconForType } from "@/utils/mimetype-filetypes";
+import Icon from "@/components/Icon.vue";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -114,6 +112,7 @@ var boxes = {
 export default {
   components: {
     ButtonGroup,
+    Icon,
   },
   name: "search",
   data: function () {
