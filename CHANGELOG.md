@@ -5,8 +5,9 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.3.3
 
   **New Features**
-  #- New Icons with larger selection of file types
+  - New Icons with larger selection of file types
   #- File preview supports more file types
+    - images: jpg, bmp, svg, 
   #- Theme configuration from user profile settings
 
   **Bugfixes**:
