@@ -1,20 +1,7 @@
 <template>
-  <span v-if="isMaterialIcon">
+  <span>
     <!-- Material Icon -->
-    <i :class="classes" class="icon">
-      {{ materialIcon }}
-    </i>
-  </span>
-  <span v-else-if="svgPath">
-    <!-- SVG Icon -->
-    <svg
-      class="icon"
-      :class="['svg-icon', customClass]"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-    >
-      <use :href="svgPath" />
-    </svg>
+    <i v-if="isMaterialIcon" :class="classes" class="icon"> {{ materialIcon }} </i>
   </span>
 </template>
 
@@ -25,10 +12,6 @@ export default {
     mimetype: {
       type: String,
       required: true,
-    },
-    customClass: {
-      type: String,
-      default: "",
     },
   },
   data() {
@@ -92,7 +75,10 @@ export default {
         mimeType === "application/x-bzip" ||
         mimeType === "application/x-rar-compressed" ||
         mimeType === "application/x-tar" ||
-        mimeType === "application/gzip"
+        mimeType === "application/gzip" ||
+        mimeType === "application/x-xz" ||
+        mimeType === "application/x-zip-compressed" ||
+        mimeType === "application/x-gzip" ||
       ) {
         return {
           classes: "tan-icons material-symbols-outlined",
@@ -125,9 +111,14 @@ export default {
         mimeType === "application/vnd.ms-excel" ||
         mimeType ===
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-        mimeType === "application/vnd.google-apps.spreadsheet" ||
-        mimeType === "text/csv"
+        mimeType === "application/vnd.google-apps.spreadsheet"
       ) {
+        return {
+          classes: "green-icons material-icons",
+          materialIcon: "border_all",
+        };
+      }
+      if (mimeType === "text/csv") {
         return {
           classes: "green-icons material-icons",
           materialIcon: "border_all",
@@ -220,7 +211,7 @@ export default {
     this.classes = result.classes || "material-icons"; // Default class
     this.color = result.color || "lightgray"; // Default color
     this.materialIcon = result.materialIcon || "";
-    this.svgPath = result.svgUrl || ""; // For SVG file paths
+    this.svgPath = result.svgPath || ""; // For SVG file paths
   },
 };
 </script>
@@ -232,6 +223,11 @@ export default {
 
 .file-icons [aria-label$=".bak"] {
   opacity: 0.33;
+}
+
+.svg-icons {
+  display: flex;
+  max-width: 100px;
 }
 
 .icon {
@@ -297,6 +293,7 @@ export default {
 .lightgray-icons {
   color: lightgray;
 }
+
 .yellow-icons {
   color: yellow;
 }
