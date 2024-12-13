@@ -35,7 +35,8 @@ async function resourceAction(url, method, content) {
 
 export async function remove(url) {
   try {
-    return await resourceAction(url, "DELETE");
+    let path = removePrefix(url, "files");
+    return await resourceAction(path, "DELETE");
   } catch (err) {
     notify.showError(err.message || "Error deleting resource");
     throw err;

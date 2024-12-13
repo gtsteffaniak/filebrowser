@@ -87,7 +87,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusNotFound, err
 	}
 	fileOpts := files.FileOptions{
-		Path:       filepath.Join(d.user.Scope, path),
+		Path:       realPath,
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,

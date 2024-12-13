@@ -78,7 +78,7 @@ export default {
         mimeType === "application/gzip" ||
         mimeType === "application/x-xz" ||
         mimeType === "application/x-zip-compressed" ||
-        mimeType === "application/x-gzip" ||
+        mimeType === "application/x-gzip"
       ) {
         return {
           classes: "tan-icons material-symbols-outlined",

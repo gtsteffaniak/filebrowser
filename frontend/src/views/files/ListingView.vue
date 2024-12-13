@@ -290,7 +290,6 @@ export default {
     window.addEventListener("contextmenu", this.openContext);
 
     if (!state.user.perm?.create) return;
-    this.$el.addEventListener("dragover", this.preventDefault);
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
@@ -808,6 +807,7 @@ export default {
       }
     },
     openContext(event) {
+      console.log("openContext");
       event.preventDefault();
       mutations.showHover({
         name: "ContextMenu",

@@ -7,11 +7,12 @@ All notable changes to this project will be documented in this file. For commit 
   **New Features**
   - New Icons with larger selection of file types
   #- File preview supports more file types
-    - images: jpg, bmp, svg, 
+    - images: jpg, bmp, svg,
   #- Theme configuration from user profile settings
 
   **Bugfixes**:
-  #- Delete file/folders sometimes wouldn't work, but would show success.
+  - Delete file/folders sometimes wouldn't work
+  - Possible fix for context menu not showing
 
 ## v0.3.2
 

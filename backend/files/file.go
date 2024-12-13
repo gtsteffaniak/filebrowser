@@ -202,7 +202,8 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 		return err
 	}
 	index := GetIndex(rootPath)
-	err = index.RefreshFileInfo(opts)
+	refreshConfig := FileOptions{Path: filepath.Dir(opts.Path), IsDir: true}
+	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return err
 	}
