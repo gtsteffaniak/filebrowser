@@ -158,7 +158,6 @@ export default {
       return mutations.showHover(value);
     },
     setPositions() {
-      console.log("Setting positions");
       const contextProps = getters.currentPrompt().props;
       let tempX = contextProps.posX;
       let tempY = contextProps.posY;

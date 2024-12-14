@@ -6,6 +6,7 @@
       item: true,
       activebutton: isMaximized && isSelected,
     }"
+    :id="getID"
     role="button"
     tabindex="0"
     :draggable="isDraggable"
@@ -78,6 +79,7 @@ import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { baseURL } from "@/utils/constants";
 import { router } from "@/router";
+import { url } from "@/utils";
 import Icon from "@/components/Icon.vue";
 
 export default {
@@ -104,6 +106,9 @@ export default {
     "path",
   ],
   computed: {
+    getID() {
+      return url.base64Encode(encodeURIComponent(this.name));
+    },
     quickNav() {
       return state.user.singleClick && !state.multiple;
     },
@@ -171,7 +176,8 @@ export default {
       event.preventDefault(); // Prevent default context menu
 
       // If no items are selected, select the right-clicked item
-      if (getters.selectedCount() === 0) {
+      if (!state.multiple) {
+        mutations.resetSelected();
         mutations.addSelected(this.index);
       }
       mutations.showHover({
@@ -324,11 +330,13 @@ export default {
 
         return;
       }
-      if (!this.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple)
+      if (!this.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple) {
         mutations.resetSelected();
+      }
       mutations.addSelected(this.index);
     },
     open() {
+      location.hash = state.req.items[this.index].name;
       router.push({ path: this.url });
     },
   },

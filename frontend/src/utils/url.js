@@ -110,3 +110,7 @@ export function removeLeadingSlash(str) {
 export function trimSlashes(str) {
   return removeLeadingSlash(removeTrailingSlash(str))
 }
+
+export function base64Encode(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
