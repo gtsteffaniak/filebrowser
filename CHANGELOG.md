@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.3.3
 
   **New Features**
-  - Navigating remembers where you were viewing when clicking items and then going back.
+  - Navigating remembers your previous scroll location when clicking items and then going back. Note: does not work in single-click mode.
   - New Icons with larger selection of file types
   - file "type" is shown on item info page.
   - File preview supports more file types:
