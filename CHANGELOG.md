@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
   - New Icons with larger selection of file types
   - file "type" is shown on item info page.
   - File preview supports more file types:
-    - images: jpg, bmp, gif, tiff, png, svg, heif, webp
+    - images: jpg, bmp, gif, tiff, png, svg, heic, webp
 
   **Notes**:
   - the file "type" is now either "directory" or a specific mimetype such as "text/xml".
