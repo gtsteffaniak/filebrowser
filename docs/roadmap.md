@@ -1,7 +1,11 @@
 # Planned Roadmap
 
 upcoming 0.3.x releases, ordered by priority:
-  - more filetype previews - eg. raw img, office, photoshop, vector, 3d files.
+  - more indexing flexability
+    - option not to index hidden files/folders
+    - options folders to include/exclude from indexing
+    - implement more indexing runners for more efficienct filesystem watching
+  - more filetype previews: eg. raw img, office, photoshop, vector, 3d files.
   - introduce jobs as replacement to runners.
     - Add Job status to the sidebar
     - index status.
