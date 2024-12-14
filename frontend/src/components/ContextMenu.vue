@@ -8,7 +8,7 @@
       left: `${left}px`,
     }"
     class="button"
-    :class="{ 'dark-mode': isDarkMode, mobile: isMobile }"
+    :class="{ 'dark-mode': isDarkMode, centered: centered }"
   >
     <div v-if="selectedCount > 0" class="button selected-count-header">
       <span>{{ selectedCount }} selected</span>
@@ -108,8 +108,8 @@ export default {
     user() {
       return state.user;
     },
-    isMobile() {
-      return getters.isMobile();
+    centered() {
+      return getters.isMobile() || ( !this.posX || !this.posY );
     },
     showContext() {
       if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
@@ -203,7 +203,7 @@ export default {
   justify-content: center;
 }
 
-#context-menu.mobile {
+#context-menu.centered {
   top: 50% !important;
   left: 50% !important;
   -webkit-transform: translate(-50%, -50%);
