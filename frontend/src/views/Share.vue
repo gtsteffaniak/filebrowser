@@ -149,6 +149,7 @@ import QrcodeVue from "qrcode.vue";
 import Item from "@/components/files/ListingItem.vue";
 import Clipboard from "clipboard";
 import { state, getters, mutations } from "@/store";
+import { url } from "@/utils";
 
 export default {
   name: "share",
@@ -245,7 +246,7 @@ export default {
       });
     },
     base64(name) {
-      return window.btoa(unescape(encodeURIComponent(name)));
+      return url.base64Encode(name);
     },
     async fetchData() {
       let urlPath = getters.routePath("share");

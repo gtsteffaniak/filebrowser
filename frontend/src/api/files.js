@@ -24,7 +24,9 @@ async function resourceAction(url, method, content) {
     if (content) {
       opts.body = content;
     }
-    const apiPath = getApiPath("api/resources", { path: url });
+    let path = removePrefix(url, "files");
+
+    const apiPath = getApiPath("api/resources", { path: path });
     const res = await fetchURL(apiPath, opts);
     return res;
   } catch (err) {
@@ -45,7 +47,8 @@ export async function remove(url) {
 
 export async function put(url, content = "") {
   try {
-    return await resourceAction(url, "PUT", content);
+    let path = removePrefix(url, "files");
+    return await resourceAction(path, "PUT", content);
   } catch (err) {
     notify.showError(err.message || "Error putting resource");
     throw err;
@@ -131,9 +134,11 @@ export async function moveCopy(items, action = "copy", overwrite = false, rename
   }
   try {
     for (let item of items) {
+      let toPath = removePrefix(item.to, "files");
+      let fromPath = removePrefix(item.from, "files");
       let localParams = { ...params };
-      localParams.destination = item.to;
-      localParams.from = item.from;
+      localParams.destination = toPath;
+      localParams.from = fromPath;
       const apiPath = getApiPath("api/resources", localParams);
       promises.push(fetch(apiPath, { method: "PATCH" }));
     }

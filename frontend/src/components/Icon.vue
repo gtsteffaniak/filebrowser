@@ -81,7 +81,7 @@ export default {
         mimeType === "application/x-gzip"
       ) {
         return {
-          classes: "tan-icons material-symbols-outlined",
+          classes: "tan-icons material-icons",
           materialIcon: "archive",
         };
       }
@@ -139,7 +139,7 @@ export default {
 
       if (mimeType === "text/plain" || mimeType === "text/markdown") {
         return {
-          classes: "beige-icons material-symbols-outlined",
+          classes: "beige-icons material-icons",
           materialIcon: "description",
         };
       }
@@ -201,8 +201,8 @@ export default {
 
       // Default fallback
       return {
-        classes: "lightgray-icons material-symbols-outlined",
-        materialIcon: "draft",
+        classes: "lightgray-icons material-icons",
+        materialIcon: "description",
       };
     },
   },

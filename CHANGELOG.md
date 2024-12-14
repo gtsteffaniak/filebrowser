@@ -5,14 +5,15 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.3.3
 
   **New Features**
+  - Navigating remembers where you were viewing when clicking items and then going back.
   - New Icons with larger selection of file types
-  #- File preview supports more file types
-    - images: jpg, bmp, svg,
+  - File preview supports more file types
+    - images: jpg, bmp, gif, tiff, png
   #- Theme configuration from user profile settings
 
   **Bugfixes**:
-  - Delete file/folders sometimes wouldn't work
-  - Possible fix for context menu not showing
+  - Delete/move file/folders sometimes wouldn't work
+  - Possible fix for context menu not showing issue
 
 ## v0.3.2
 

@@ -24,7 +24,7 @@ import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 import { state, mutations, getters } from "@/store";
-import { pathsMatch } from "@/utils/url.js";
+import { url } from "@/utils";
 import { notify } from "@/notify";
 //import { removePrefix } from "@/utils/url.js";
 
@@ -41,6 +41,7 @@ export default {
     return {
       error: null,
       width: window.innerWidth,
+      lastPath: "",
     };
   },
   computed: {
@@ -66,6 +67,7 @@ export default {
     },
   },
   mounted() {
+    window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
   },
   beforeUnmount() {
@@ -75,11 +77,23 @@ export default {
     mutations.replaceRequest({}); // Use mutation
   },
   methods: {
+    scrollToHash() {
+      if (window.location.hash) {
+        const id = url.base64Encode(window.location.hash.slice(1));
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "instant",
+            block: "center",
+          });
+        }
+      }
+    },
     async fetchData() {
+      if (state.route.path === this.lastPath) return;
       // Set loading to true and reset the error.
       mutations.setLoading("files", true);
       this.error = null;
-
       // Reset view information using mutations
       mutations.setReload(false);
       mutations.resetSelected();
@@ -101,7 +115,7 @@ export default {
         }
         data = res;
         // Verify if the fetched path matches the current route
-        if (pathsMatch(res.path, `/${state.route.params.path}`)) {
+        if (url.pathsMatch(res.path, `/${state.route.params.path}`)) {
           document.title = `${res.name} - ${document.title}`;
         }
       } catch (e) {
@@ -112,6 +126,10 @@ export default {
         mutations.replaceRequest(data);
         mutations.setLoading("files", false);
       }
+      setTimeout(() => {
+        this.scrollToHash();
+      }, 25);
+      this.lastPath = state.route.path;
     },
     keyEvent(event) {
       // F1!

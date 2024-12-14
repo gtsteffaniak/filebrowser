@@ -115,7 +115,6 @@ export default {
       if (!getters.isLoggedIn()) {
         return;
       }
-      mutations.resetSelected();
       mutations.setMultiple(false);
       if (getters.currentPromptName() !== "success") {
         mutations.closeHovers();

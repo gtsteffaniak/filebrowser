@@ -150,6 +150,7 @@ import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
+import { url } from "@/utils";
 
 import Item from "@/components/files/ListingItem.vue";
 export default {
@@ -302,7 +303,7 @@ export default {
   },
   methods: {
     base64(name) {
-      return window.btoa(unescape(encodeURIComponent(name)));
+      return url.base64Encode(name);
     },
     // Helper method to select the first item if nothing is selected
     selectFirstItem() {
@@ -807,7 +808,6 @@ export default {
       }
     },
     openContext(event) {
-      console.log("openContext");
       event.preventDefault();
       mutations.showHover({
         name: "ContextMenu",
