@@ -299,7 +299,7 @@ export default {
     download() {
       if (getters.isSingleFileSelected()) {
         const share = {
-          path: his.subPath,
+          path: this.subPath,
           hash: this.hash,
           token: this.token,
           format: null,

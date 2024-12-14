@@ -46,7 +46,7 @@ export default {
   getApiPath
 };
 
-export function removePrefix(path, prefix) {
+export function removePrefix(path, prefix = "") {
   if (path === undefined) {
     return ""
   }
@@ -54,9 +54,12 @@ export function removePrefix(path, prefix) {
     prefix = "/" + trimSlashes(prefix)
   }
   const combined = trimSlashes(baseURL) + prefix
+  const combined2 = "/" + combined
   // Remove combined (baseURL + prefix) from the start of the path if present
   if (path.startsWith(combined)) {
     path = path.slice(combined.length);
+  } else if (path.startsWith(combined2)) {
+    path = path.slice(combined2.length);
   } else if (path.startsWith(prefix)) {
     // Fallback: remove only the prefix if the combined string isn't present
     path = path.slice(prefix.length);
