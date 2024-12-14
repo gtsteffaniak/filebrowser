@@ -7,9 +7,12 @@ All notable changes to this project will be documented in this file. For commit 
   **New Features**
   - Navigating remembers where you were viewing when clicking items and then going back.
   - New Icons with larger selection of file types
-  - File preview supports more file types
-    - images: jpg, bmp, gif, tiff, png
-  #- Theme configuration from user profile settings
+  - file "type" is shown on item info page.
+  - File preview supports more file types:
+    - images: jpg, bmp, gif, tiff, png, svg, heif, webp
+
+  **Notes**:
+  - the file "type" is now either "directory" or a specific mimetype such as "text/xml".
 
   **Bugfixes**:
   - Delete/move file/folders sometimes wouldn't work

@@ -289,8 +289,10 @@ export default {
     window.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
     window.addEventListener("contextmenu", this.openContext);
+    window.addEventListener("mousedown",this.preventDefault)
 
     if (!state.user.perm?.create) return;
+    this.$el.addEventListener("dragover", this.preventDefault);
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
@@ -809,6 +811,7 @@ export default {
     },
     openContext(event) {
       event.preventDefault();
+      event.stopPropagation();
       mutations.showHover({
         name: "ContextMenu",
         props: {

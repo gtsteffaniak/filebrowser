@@ -108,7 +108,7 @@ export default {
         if (res.type != "directory") {
           let content = false;
           // only check content for blob or text files
-          if (res.type == "blob" || res.type == "text") {
+          if (res.type.startsWith("application") || res.type.startsWith("text")) {
             content = true;
           }
           res = await filesApi.fetchFiles(getters.routePath(), content);

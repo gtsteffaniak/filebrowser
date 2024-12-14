@@ -1,9 +1,9 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview">
-      <ExtendedImage v-if="currentItem.type == 'image'" :src="raw"> </ExtendedImage>
+      <ExtendedImage v-if="currentItem.type.startsWith('image')" :src="raw"> </ExtendedImage>
       <audio
-        v-else-if="currentItem.type == 'audio'"
+        v-else-if="currentItem.type.startsWith('audio')"
         ref="player"
         :src="raw"
         controls
@@ -11,7 +11,7 @@
         @play="autoPlay = true"
       ></audio>
       <video
-        v-else-if="currentItem.type == 'video'"
+        v-else-if="currentItem.type.startsWith('video')"
         ref="player"
         :src="raw"
         controls
@@ -30,9 +30,9 @@
         <a :href="downloadUrl">download it</a>
         and watch it with your favorite video player!
       </video>
-      <object v-else-if="currentItem.type == 'pdf'" class="pdf" :data="raw"></object>
+      <object v-else-if="currentItem.type.startsWith('pdf')" class="pdf" :data="raw"></object>
       <div
-        v-else-if="currentItem.type == 'blob' || currentItem.type == 'archive'"
+        v-else-if="currentItem.type.startsWith('application/')"
         class="info"
       >
         <div class="title">
@@ -252,7 +252,7 @@ export default {
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
-          if (mediaTypes.includes(composedListing.type)) {
+          if (mediaTypes.includes(composedListing.type.split("/")[0])) {
             this.previousLink = composedListing.url;
             this.previousRaw = this.prefetchUrl(composedListing);
             break;
@@ -261,7 +261,7 @@ export default {
         for (let j = i + 1; j < this.listing.length; j++) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
-          if (mediaTypes.includes(composedListing.type)) {
+          if (mediaTypes.includes(composedListing.type.split("/")[0])) {
             this.nextLink = composedListing.url;
             this.nextRaw = this.prefetchUrl(composedListing);
             break;
