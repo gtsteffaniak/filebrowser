@@ -138,7 +138,7 @@ export async function moveCopy(items, action = "copy", overwrite = false, rename
       let fromPath = removePrefix(item.from, "files");
       let localParams = { ...params };
       localParams.destination = toPath;
-      localParams.from = item.from;
+      localParams.from = fromPath;
       const apiPath = getApiPath("api/resources", localParams);
       promises.push(fetch(apiPath, { method: "PATCH" }));
     }
