@@ -330,7 +330,7 @@ export default {
     }
   },
   methods: {
-    cancelContext(event) {
+    cancelContext() {
       if (this.contextTimeout) {
         clearTimeout(this.contextTimeout);
       }

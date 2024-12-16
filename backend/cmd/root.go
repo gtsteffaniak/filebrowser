@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
@@ -116,6 +117,9 @@ func StartFilebrowser() {
 	store, dbExists := getStore(configPath)
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
+		if filepath.Dir(settings.Config.Server.Database) == "/" {
+			log.Printf("=== WARNING: Database file is configured for root directory %v \n Update to a non-root path such as /home/filebrowser/database\n", settings.Config.Server.Database)
+		}
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
 	log.Printf("Initializing FileBrowser Quantum (%v)\n", version.Version)

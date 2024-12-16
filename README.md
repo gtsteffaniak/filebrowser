@@ -10,7 +10,7 @@
 </p>
 
 > [!Note]
-> Starting with v0.3.3, configuration file mapping is different to support non-root user. Now, the default config file name is `config.yaml` and in docker the path is `/home/filebrowser/config.yaml` and `/home/filebrowser/<database_file>`. Please read the usage below to properly update your config to point the new config location.
+> Starting with v0.3.3, configuration file mapping is different to support non-root user. Now, the default config file name is `config.yaml` and in docker the path is `/home/filebrowser/config.yaml`. Double check your config file to look for the `/home/filebrowser/<database_file>`. See the updated usage below to properly update your config to point the new config location.
 
 > [!WARNING]
 > - There is no stable version yet. Always check release notes for bug fixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
