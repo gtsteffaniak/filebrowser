@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   push_release_to_registry:
-    name: Push dev release
+    name: Push release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,16 +35,16 @@ jobs:
           JSON="${{ steps.meta.outputs.tags }}"
           # Use jq to remove 'v' from the version field
           JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
-          echo "CLEANED_TAG=$JSON" >> $GITHUB_ENV
+          echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          context: .
           build-args: |
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          context: .
           platforms: linux/amd64
           file: ./Dockerfile
           push: true
-          tags: ${{ env.CLEANED_TAG }}
+          tags: ${{ steps.modify-json.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
