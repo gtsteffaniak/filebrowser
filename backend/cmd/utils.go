@@ -10,8 +10,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/gtsteffaniak/filebrowser/storage"
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 func mustGetString(flags *pflag.FlagSet, flag string) string {

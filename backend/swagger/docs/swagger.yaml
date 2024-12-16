@@ -31,7 +31,7 @@ definitions:
       type:
         type: string
     type: object
-  files.searchResult:
+  files.SearchResult:
     properties:
       path:
         type: string
@@ -658,7 +658,7 @@ paths:
           description: List of search results
           schema:
             items:
-              $ref: '#/definitions/files.searchResult'
+              $ref: '#/definitions/files.SearchResult'
             type: array
         "400":
           description: Bad Request

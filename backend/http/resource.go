@@ -13,9 +13,9 @@ import (
 
 	"github.com/shirou/gopsutil/v3/disk"
 
-	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/files"
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -33,9 +33,13 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-
 	// TODO source := r.URL.Query().Get("source")
-	path := r.URL.Query().Get("path")
+	encodedPath := r.URL.Query().Get("path")
+	// Decode the URL-encoded path
+	path, err := url.QueryUnescape(encodedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
 		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
@@ -78,7 +82,12 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Router /api/resources [delete]
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
-	path := r.URL.Query().Get("path")
+	encodedPath := r.URL.Query().Get("path")
+	// Decode the URL-encoded path
+	path, err := url.QueryUnescape(encodedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
 	if path == "/" || !d.user.Perm.Delete {
 		return http.StatusForbidden, nil
 	}
@@ -87,7 +96,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusNotFound, err
 	}
 	fileOpts := files.FileOptions{
-		Path:       filepath.Join(d.user.Scope, path),
+		Path:       realPath,
 		IsDir:      isDir,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
@@ -130,7 +139,12 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Router /api/resources [post]
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
-	path := r.URL.Query().Get("path")
+	encodedPath := r.URL.Query().Get("path")
+	// Decode the URL-encoded path
+	path, err := url.QueryUnescape(encodedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
 	if !d.user.Perm.Create || !d.user.Check(path) {
 		return http.StatusForbidden, nil
 	}
@@ -142,7 +156,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	// Directories creation on POST.
 	if strings.HasSuffix(path, "/") {
-		err := files.WriteDirectory(fileOpts)
+		err = files.WriteDirectory(fileOpts)
 		if err != nil {
 			return errToStatus(err), err
 		}
@@ -188,7 +202,13 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Router /api/resources [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
-	path := r.URL.Query().Get("path")
+	// TODO source := r.URL.Query().Get("source")
+	encodedPath := r.URL.Query().Get("path")
+	// Decode the URL-encoded path
+	path, err := url.QueryUnescape(encodedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
 	if !d.user.Perm.Modify || !d.user.Check(path) {
 		return http.StatusForbidden, nil
 	}
@@ -233,15 +253,20 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
-	src := r.URL.Query().Get("from")
-	dst := r.URL.Query().Get("destination")
 	action := r.URL.Query().Get("action")
-	dst, err := url.QueryUnescape(dst)
-	if !d.user.Check(src) || !d.user.Check(dst) {
-		return http.StatusForbidden, nil
+	encodedFrom := r.URL.Query().Get("from")
+	// Decode the URL-encoded path
+	src, err := url.QueryUnescape(encodedFrom)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
+	dst := r.URL.Query().Get("destination")
+	dst, err = url.QueryUnescape(dst)
 	if err != nil {
 		return errToStatus(err), err
+	}
+	if !d.user.Check(src) || !d.user.Check(dst) {
+		return http.StatusForbidden, nil
 	}
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, nil
@@ -298,13 +323,14 @@ func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) e
 
 func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool) error {
 	switch action {
-	// TODO: use enum
 	case "copy":
 		if !d.user.Perm.Create {
 			return errors.ErrPermissionDenied
 		}
-		return files.CopyResource(src, dst, isSrcDir)
+		err := files.CopyResource(src, dst, isSrcDir)
+		return err
 	case "rename", "move":
+
 		if !d.user.Perm.Rename {
 			return errors.ErrPermissionDenied
 		}
@@ -378,7 +404,9 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 }
 
 func inspectIndex(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
+	encodedPath := r.URL.Query().Get("path")
+	// Decode the URL-encoded path
+	path, _ := url.QueryUnescape(encodedPath)
 	isDir := r.URL.Query().Get("isDir") == "true"
 	index := files.GetIndex(config.Server.Root)
 	info, _ := index.GetReducedMetadata(path, isDir)

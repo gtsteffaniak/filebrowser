@@ -6,7 +6,7 @@ import { notify } from "@/notify";
 // Notify if errors occur
 export async function fetchFiles(url, content = false) {
   try {
-    let path = removePrefix(url, "files");
+    let path = encodeURIComponent(removePrefix(url, "files"));
     const apiPath = getApiPath("api/resources",{path: path, content: content});
     const res = await fetchURL(apiPath);
     const data = await res.json();
@@ -24,7 +24,8 @@ async function resourceAction(url, method, content) {
     if (content) {
       opts.body = content;
     }
-    const apiPath = getApiPath("api/resources", { path: url });
+    let path = encodeURIComponent(removePrefix(url, "files"));
+    const apiPath = getApiPath("api/resources", { path: path });
     const res = await fetchURL(apiPath, opts);
     return res;
   } catch (err) {
@@ -35,7 +36,8 @@ async function resourceAction(url, method, content) {
 
 export async function remove(url) {
   try {
-    return await resourceAction(url, "DELETE");
+    let path = encodeURIComponent(removePrefix(url, "files"));
+    return await resourceAction(path, "DELETE");
   } catch (err) {
     notify.showError(err.message || "Error deleting resource");
     throw err;
@@ -44,7 +46,8 @@ export async function remove(url) {
 
 export async function put(url, content = "") {
   try {
-    return await resourceAction(url, "PUT", content);
+    let path = encodeURIComponent(removePrefix(url, "files"));
+    return await resourceAction(path, "PUT", content);
   } catch (err) {
     notify.showError(err.message || "Error putting resource");
     throw err;
@@ -58,14 +61,14 @@ export function download(format, files) {
   try {
     let fileargs = "";
     if (files.length === 1) {
-      fileargs = removePrefix(files[0], "files")
+      fileargs = decodeURI(removePrefix(files[0], "files"))
     } else {
       for (let file of files) {
-        fileargs += removePrefix(file,"files") + ",";
+        fileargs += decodeURI(removePrefix(file,"files")) + ",";
       }
       fileargs = fileargs.substring(0, fileargs.length - 1);
     }
-    const apiPath = getApiPath("api/raw", { files: fileargs, algo: format });
+    const apiPath = getApiPath("api/raw", { files: encodeURIComponent(fileargs), algo: format });
     const url = window.origin+apiPath
     window.open(url);
   } catch (err) {
@@ -130,9 +133,11 @@ export async function moveCopy(items, action = "copy", overwrite = false, rename
   }
   try {
     for (let item of items) {
+      let toPath = encodeURIComponent(removePrefix(decodeURI(item.to), "files"));
+      let fromPath = encodeURIComponent(removePrefix(decodeURI(item.from), "files"));
       let localParams = { ...params };
-      localParams.destination = item.to;
-      localParams.from = item.from;
+      localParams.destination = toPath;
+      localParams.from = fromPath;
       const apiPath = getApiPath("api/resources", localParams);
       promises.push(fetch(apiPath, { method: "PATCH" }));
     }
@@ -157,7 +162,7 @@ export async function checksum(url, algo) {
 export function getDownloadURL(path, inline) {
   try {
     const params = {
-      files: removePrefix(path,"files"),
+      files: encodeURIComponent(removePrefix(decodeURI(path),"files")),
       ...(inline && { inline: "true" }),
     };
     const apiPath = getApiPath("api/raw", params);
@@ -171,7 +176,7 @@ export function getDownloadURL(path, inline) {
 export function getPreviewURL(path, size, modified) {
   try {
     const params = {
-      path: path,
+      path: encodeURIComponent(removePrefix(decodeURI(path),"files")),
       size: size,
       key: Date.parse(modified),
       inline: "true",
@@ -190,7 +195,7 @@ export function getSubtitlesURL(file) {
     for (const sub of file.subtitles) {
       const params = {
         inline: "true",
-        path: sub
+        path: encodeURIComponent(removePrefix(sub,"files"))
       };
       const apiPath = getApiPath("api/raw", params);
       return window.origin+apiPath

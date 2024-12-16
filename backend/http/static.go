@@ -12,9 +12,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/gtsteffaniak/filebrowser/auth"
-	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/version"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
 var templateRenderer *TemplateRenderer

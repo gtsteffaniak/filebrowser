@@ -3,7 +3,7 @@ package settings
 import (
 	"crypto/rand"
 
-	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 const DefaultUsersHomeBasePath = "/users"

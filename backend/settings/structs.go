@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 type Settings struct {

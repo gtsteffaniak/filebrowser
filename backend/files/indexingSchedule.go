@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // schedule in minutes

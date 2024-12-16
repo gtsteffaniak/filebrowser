@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/goccy/go-yaml"
-	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 var Config Settings

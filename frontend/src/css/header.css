@@ -9,7 +9,6 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: rgb(255 255 255 / 50%) !important;
   padding: 0.5em;
 }
 
@@ -49,25 +48,3 @@ header img {
 header .action span {
   display: none;
 }
-
-/* Icon Colors */
-.folder-icons {
-  color: var(--icon-blue);
-}
-
-.video-icons {
-  color: lightskyblue;
-}
-
-.image-icons {
-  color: lightcoral;
-}
-
-.archive-icons {
-  color: tan;
-}
-
-.audio-icons {
-  color: plum;
-}
-

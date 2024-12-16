@@ -579,7 +579,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/files.searchResult"
+                                "$ref": "#/definitions/files.SearchResult"
                             }
                         }
                     },
@@ -1186,7 +1186,7 @@ const docTemplate = `{
                 }
             }
         },
-        "files.searchResult": {
+        "files.SearchResult": {
             "type": "object",
             "properties": {
                 "path": {

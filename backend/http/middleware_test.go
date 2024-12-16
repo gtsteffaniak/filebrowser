@@ -8,15 +8,15 @@ import (
 	"time"
 
 	"github.com/asdine/storm/v3"
-	"github.com/gtsteffaniak/filebrowser/diskcache"
-	"github.com/gtsteffaniak/filebrowser/files"
-	"github.com/gtsteffaniak/filebrowser/img"
-	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/share"
-	"github.com/gtsteffaniak/filebrowser/storage"
-	"github.com/gtsteffaniak/filebrowser/storage/bolt"
-	"github.com/gtsteffaniak/filebrowser/users"
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/img"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/share"
+	"github.com/gtsteffaniak/filebrowser/backend/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 func setupTestEnv(t *testing.T) {

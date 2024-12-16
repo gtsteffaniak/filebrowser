@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.3
+
+  **New Features**
+  - Navigating remembers your previous scroll position when opening items and then navigating backwards.
+  - New Icons with larger selection of file types
+  - file "type" is shown on item info page.
+  - added optional non-root "filebrowser" user for docker image. See https://github.com/gtsteffaniak/filebrowser/issues/251
+  - File preview supports more file types:
+    - images: jpg, bmp, gif, tiff, png, svg, heic, webp
+
+  **Notes**:
+  - The file "type" is now either "directory" or a specific mimetype such as "text/xml".
+  - update safari styling
+
+  **Bugfixes**:
+  - Delete/move file/folders sometimes wouldn't work.
+  - Possible fix for context menu not showing issue. See https://github.com/gtsteffaniak/filebrowser/issues/251
+  - Fixed drag/drop not refreshing immediately to reflect changes.
+
 ## v0.3.2
 
   **New Features**
@@ -186,7 +205,7 @@ This change focuses on minimizing and simplifying build process.
 - The shell feature has been deprecated.
   - Custom commands can be executed within the Docker container if needed.
 - The JSON config file is no longer used.
-  - All configurations are now performed via the advanced `filebrowser.yaml`.
+  - All configurations are now performed via the advanced `config.yaml`.
   - The only allowed flag is specifying the config file.
 - Removed old code for migrating database versions.
 - Eliminated all unused `cmd` code.

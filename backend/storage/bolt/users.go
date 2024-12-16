@@ -6,9 +6,9 @@ import (
 
 	"github.com/asdine/storm/v3"
 
-	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/users"
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 type usersBackend struct {

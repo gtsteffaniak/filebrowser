@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gtsteffaniak/filebrowser/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 var (
@@ -14,19 +14,19 @@ var (
 	maxSearchResults  = 100
 )
 
-type searchResult struct {
+type SearchResult struct {
 	Path string `json:"path"`
 	Type string `json:"type"`
 	Size int64  `json:"size"`
 }
 
-func (si *Index) Search(search string, scope string, sourceSession string) []searchResult {
+func (si *Index) Search(search string, scope string, sourceSession string) []SearchResult {
 	// Remove slashes
 	scope = si.makeIndexPath(scope)
 	runningHash := utils.GenerateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
-	results := make(map[string]searchResult, 0)
+	results := make(map[string]SearchResult, 0)
 	count := 0
 	var directories []string
 	cachedDirs, ok := utils.SearchResultsCache.Get(si.Root + scope).([]string)
@@ -62,7 +62,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 			}
 			matches := reducedDir.containsSearchTerm(searchTerm, searchOptions)
 			if matches {
-				results[scopedPath] = searchResult{Path: scopedPath, Type: "directory", Size: dir.Size}
+				results[scopedPath] = SearchResult{Path: scopedPath, Type: "directory", Size: dir.Size}
 				count++
 			}
 			// search files first
@@ -75,14 +75,14 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					si.mu.Unlock()
-					return []searchResult{}
+					return []SearchResult{}
 				}
 				if count > maxSearchResults {
 					break
 				}
 				matches := item.containsSearchTerm(searchTerm, searchOptions)
 				if matches {
-					results[scopedPath] = searchResult{Path: scopedPath, Type: item.Type, Size: item.Size}
+					results[scopedPath] = SearchResult{Path: scopedPath, Type: item.Type, Size: item.Size}
 					count++
 				}
 			}
@@ -91,7 +91,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []sea
 	}
 
 	// Sort keys based on the number of elements in the path after splitting by "/"
-	sortedKeys := make([]searchResult, 0, len(results))
+	sortedKeys := make([]SearchResult, 0, len(results))
 	for _, v := range results {
 		sortedKeys = append(sortedKeys, v)
 	}

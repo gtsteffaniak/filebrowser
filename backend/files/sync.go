@@ -3,7 +3,7 @@ package files
 import (
 	"path/filepath"
 
-	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.

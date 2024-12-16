@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/gtsteffaniak/filebrowser/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/spf13/cobra"
 )
 

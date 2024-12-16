@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {

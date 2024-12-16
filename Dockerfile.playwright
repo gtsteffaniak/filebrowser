@@ -8,7 +8,7 @@ WORKDIR /app
 COPY ./frontend/package.json ./
 RUN npm i --maxsockets 1
 RUN npx playwright install --with-deps firefox
-COPY [ "backend/filebrowser.yaml", "./" ]
+COPY [ "backend/config.yaml", "./" ]
 COPY  ./frontend/ ./frontend
 WORKDIR /app/frontend
 RUN npm run build-docker

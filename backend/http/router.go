@@ -10,9 +10,9 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/storage"
-	"github.com/gtsteffaniak/filebrowser/version"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/version"
 
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
 )
