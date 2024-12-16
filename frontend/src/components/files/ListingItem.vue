@@ -1,7 +1,6 @@
 <template>
-  <component
-    :is="quickNav ? 'a' : 'div'"
-    :href="quickNav ? getUrl() : undefined"
+  <a
+    :href="getUrl()"
     :class="{
       item: true,
       activebutton: isMaximized && isSelected,
@@ -18,6 +17,7 @@
     :aria-label="name"
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
+    @click="click($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -41,7 +41,7 @@
         <time :datetime="modified">{{ humanTime() }}</time>
       </p>
     </div>
-  </component>
+  </a>
 </template>
 
 <style>
@@ -156,18 +156,6 @@ export default {
   },
   mounted() {
     // Prevent default navigation for left-clicks
-    const componentElement = this.$el; // The root element of the component
-    componentElement.addEventListener("click", (event) => {
-      if (event.button === 0) {
-        // Left-click
-        event.preventDefault();
-        if (this.quickNav) {
-          this.open();
-        } else {
-          this.click(event);
-        }
-      }
-    });
     const observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
       rootMargin: "0px",
@@ -309,8 +297,17 @@ export default {
       action(overwrite, rename);
     },
     click(event) {
-      if (!this.singleClick && getters.selectedCount() !== 0) event.preventDefault();
+      if (event.button === 0) {
+        // Left-click
+        event.preventDefault();
+        if (this.quickNav) {
+          this.open();
+        }
+      }
 
+      if (!this.singleClick && getters.selectedCount() !== 0 && event.button === 0) {
+        event.preventDefault();
+      }
       setTimeout(() => {
         this.touches = 0;
       }, 500);

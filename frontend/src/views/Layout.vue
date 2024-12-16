@@ -160,23 +160,4 @@ main.moveWithSidebar {
 main::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
-/* Use the class .dark-mode to apply styles conditionally */
-.dark-mode {
-  background: var(--background) !important;
-  color: var(--textPrimary);
-}
-
-/* Header */
-.dark-mode-header {
-  color: white;
-  background-color: rgb(255 255 255 / 50%) !important;
-}
-
-/* Header with backdrop-filter support */
-@supports (backdrop-filter: none) {
-  .dark-mode-header {
-    background-color: rgb(37 49 55 / 33%) !important;
-    backdrop-filter: blur(16px) invert(0.1);
-  }
-}
 </style>

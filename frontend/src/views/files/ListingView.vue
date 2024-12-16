@@ -165,6 +165,7 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       lastSelected: {}, // Add this to track the currently focused item
+      contextTimeout: null, // added for safari context menu
     };
   },
   watch: {
@@ -288,7 +289,24 @@ export default {
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
-    window.addEventListener("contextmenu", this.openContext);
+
+    // Detect Safari
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    // Adjust contextmenu listener based on browser
+    if (isSafari) {
+      // For Safari, add touchstart or mousedown to open the context menu
+      this.$el.addEventListener("touchstart", this.openContextForSafari);
+      this.$el.addEventListener("mousedown", this.openContextForSafari);
+
+      // Also clear the timeout if the user clicks or taps quickly
+      this.$el.addEventListener("touchend", this.cancelContext);
+      this.$el.addEventListener("mouseup", this.cancelContext);
+    } else {
+      // For other browsers, use regular contextmenu
+      window.addEventListener("contextmenu", this.openContext);
+    }
+    // if safari , make sure click and hold opens context menu, but not for any other browser
 
     if (!state.user.perm?.create) return;
     this.$el.addEventListener("dragenter", this.dragEnter);
@@ -300,9 +318,29 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
-    window.removeEventListener("contextmenu", this.openContext);
+    // If Safari, remove touchstart listener
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) {
+      this.$el.removeEventListener("touchstart", this.openContextForSafari);
+      this.$el.removeEventListener("mousedown", this.openContextForSafari);
+      this.$el.removeEventListener("touchend", this.cancelContext);
+      this.$el.removeEventListener("mouseup", this.cancelContext);
+    } else {
+      window.removeEventListener("contextmenu", this.openContext);
+    }
   },
   methods: {
+    cancelContext(event) {
+      if (this.contextTimeout) {
+        clearTimeout(this.contextTimeout);
+      }
+    },
+    openContextForSafari(event) {
+      // Set a timeout that triggers after 500ms of hold
+      this.contextTimeout = setTimeout(() => {
+        this.openContext(event);
+      }, 500); // You can adjust the delay (500ms) to mimic "click and hold"
+    },
     base64(name) {
       return url.base64Encode(name);
     },

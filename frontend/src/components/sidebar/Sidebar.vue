@@ -63,6 +63,7 @@ export default {
   overflow: auto;
   margin-bottom: 0px !important;
 }
+
 #sidebar {
   display: flex;
   flex-direction: column;
@@ -77,9 +78,6 @@ export default {
   top: 4em;
   padding-bottom: 4em;
   background-color: rgb(255 255 255 / 50%) !important;
-}
-#sidebar.dark-mode {
-  background-color: rgb(37 49 55 / 33%) !important;
 }
 
 #sidebar.sticky {
