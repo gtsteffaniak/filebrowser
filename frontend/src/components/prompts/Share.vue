@@ -175,7 +175,6 @@ export default {
         path = path + state.req.items[this.selected[0]].name;
       }
       this.subpath = decodeURIComponent(path);
-      console.log("subpath", this.subpath);
       // get last element of the path
       const links = await shareApi.get(this.subpath);
       this.links = links;

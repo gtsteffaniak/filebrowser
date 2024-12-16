@@ -18,7 +18,6 @@
     :aria-label="name"
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
-    @click="quickNav ? toggleClick() : itemClick($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -156,6 +155,19 @@ export default {
     },
   },
   mounted() {
+    // Prevent default navigation for left-clicks
+    const componentElement = this.$el; // The root element of the component
+    componentElement.addEventListener("click", (event) => {
+      if (event.button === 0) {
+        // Left-click
+        event.preventDefault();
+        if (this.quickNav) {
+          this.open();
+        } else {
+          this.click(event);
+        }
+      }
+    });
     const observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
       rootMargin: "0px",
@@ -295,10 +307,6 @@ export default {
       }
 
       action(overwrite, rename);
-    },
-    itemClick(event) {
-      if (this.singleClick && !state.multiple) this.open();
-      else this.click(event);
     },
     click(event) {
       if (!this.singleClick && getters.selectedCount() !== 0) event.preventDefault();

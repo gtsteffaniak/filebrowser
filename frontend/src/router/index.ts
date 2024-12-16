@@ -130,8 +130,6 @@ router.beforeResolve(async (to, from, next) => {
     return next(false);
   }
 
-  console.log("from to ", from, to);
-
   if (state != null && state.user != null && !('username' in state.user)) {
     await validateLogin();
   }
