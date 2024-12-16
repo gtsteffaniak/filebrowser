@@ -10,7 +10,7 @@
 </p>
 
 > [!Note]
-> Starting with `v0.3.0` API routes have been slightly altered for friendly usage outside of the UI. The resources API returns items in separate `files` and `folder` objects now.
+> Starting with v0.3.3, configuration file mapping is different to support non-root user. Now, the default config file name is `config.yaml` and in docker the path is `/home/filebrowser/config.yaml`. Please read the usage below to properly update your config to point the new config location.
 
 > [!WARNING]
 > - There is no stable version yet. Always check release notes for bug fixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
@@ -22,18 +22,18 @@ FileBrowser Quantum is a fork of the file browser opensource project with the fo
      - Real-time search results as you type
      - Search supports file/folder sizes and many file type filters.
      - Enhanced interactive results that show file/folder sizes.
-  1. [x] Revamped and simplified GUI navbar and sidebar menu.
+  2. [x] Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode
        styles.
      - Many graphical and user experience improvements.
      - right-click context menu
-  1. [x] Revamped and simplified configuration via `filebrowser.yml` config file.
-  1. [x] Better listing browsing
+  3. [x] Revamped and simplified configuration via `filebrowser.yml` config file.
+  4. [x] Better listing browsing
      - Switching view modes is instant
      - Folder sizes are shown as well
      - Changing Sort order is instant
      - The entire directory is loaded in 1/3 the time
-  1. [x] Developer API support
+  5. [x] Developer API support
      - Can create long-live API Tokens.
      - Helpful Swagger page available at `/swagger` endpoint.
 
