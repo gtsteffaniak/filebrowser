@@ -3,7 +3,7 @@
     <div class="card-title">
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
-    <div class="searchContext">Path: {{ getContext }}</div>
+    <div class="searchContext">Path: {{ subpath }}</div>
 
     <template v-if="listing">
       <div class="card-content">
@@ -167,26 +167,15 @@ export default {
       }
       return state.req.items[this.selected[0]].url;
     },
-    getContext() {
-      const prefix = `/files/`;
-      let path = state.route.path.replace(prefix, "./");
-      if (getters.selectedCount() === 1) {
-        path = path + state.req.items[this.selected[0]].name;
-      }
-      return decodeURIComponent(path);
-    },
   },
   async beforeMount() {
     try {
-      const prefix = `/files`;
-      let path = state.route.path.startsWith(prefix)
-        ? state.route.path.slice(prefix.length)
-        : state.route.path;
-      path = decodeURIComponent(path);
-      if (path == "") {
-        path = "/";
+      let path = "." + getters.routePath("files");
+      if (getters.selectedCount() === 1) {
+        path = path + state.req.items[this.selected[0]].name;
       }
-      this.subpath = path;
+      this.subpath = decodeURIComponent(path);
+      console.log("subpath", this.subpath);
       // get last element of the path
       const links = await shareApi.get(this.subpath);
       this.links = links;

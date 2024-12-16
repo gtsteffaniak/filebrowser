@@ -154,7 +154,7 @@ main {
 }
 
 main.moveWithSidebar {
-  padding-left: 21em;
+  padding-left: 20.5em;
 }
 
 main::-webkit-scrollbar {

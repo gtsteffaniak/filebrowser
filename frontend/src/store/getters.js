@@ -105,6 +105,9 @@ export const getters = {
     if (getters.currentView() == "settings") {
       visible = !getters.isMobile();
     }
+    if (getters.currentView() == "share") {
+      visible = false
+    }
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       visible = false;
     }

@@ -78,7 +78,7 @@ over
 /* Main Content */
 main {
   position: fixed;
-  padding: 1em;
+  padding: .5em;
   padding-top: 4em;
   overflow: scroll;
   top: 0;
