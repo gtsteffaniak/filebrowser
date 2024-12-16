@@ -5,9 +5,11 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.3.3
 
   **New Features**
-  - Navigating remembers your previous scroll location when clicking items and then going back. Note: does not work in single-click mode.
+  - Navigating remembers your previous scroll location when clicking items and then going back.
+  Note: does not work in single-click mode.
   - New Icons with larger selection of file types
   - file "type" is shown on item info page.
+  - added optional non-root "filebrowser" user for docker image
   - File preview supports more file types:
     - images: jpg, bmp, gif, tiff, png, svg, heic, webp
 

@@ -97,6 +97,12 @@ Using docker:
 docker run -it -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
 ```
 
+or optionally, as non-root filebrowser user:
+
+```
+docker run -u filebrowser -it -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
+```
+
 1. docker compose:
 
   - with local storage
@@ -111,6 +117,8 @@ services:
     ports:
       - '80:80'
     image: gtstef/filebrowser
+    # optionally run as non-root filebrowser user
+    #user: filebrowser
     restart: always
 ```
 

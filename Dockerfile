@@ -20,8 +20,13 @@ RUN npm run build-docker
 FROM alpine:latest
 ENV FILEBROWSER_NO_EMBEDED="true"
 RUN apk --no-cache add ca-certificates mailcap
-COPY --from=base /app/filebrowser* ./
+WORKDIR /home/filebrowser
+RUN adduser -D -s /bin/true -u 1000 filebrowser
+
+USER filebrowser
+COPY --from=base --chown=filebrowser:1000 /app/filebrowser* ./
+COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/
+USER root
 # exposing default port for auto discovery.
 EXPOSE 80
-COPY --from=nbuild /app/dist/ ./http/dist/
 ENTRYPOINT [ "./filebrowser" ]
