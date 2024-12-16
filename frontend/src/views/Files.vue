@@ -42,6 +42,7 @@ export default {
       error: null,
       width: window.innerWidth,
       lastPath: "",
+      lastHash: "",
     };
   },
   computed: {
@@ -78,6 +79,8 @@ export default {
   },
   methods: {
     scrollToHash() {
+      if (window.location.hash === this.lastHash) return;
+      this.lastHash = window.location.hash
       if (window.location.hash) {
         const id = url.base64Encode(window.location.hash.slice(1));
         const element = document.getElementById(id);
@@ -91,6 +94,7 @@ export default {
     },
     async fetchData() {
       if (state.route.path === this.lastPath) return;
+      this.lastHash = ""
       // Set loading to true and reset the error.
       mutations.setLoading("files", true);
       this.error = null;

@@ -337,9 +337,7 @@ export default {
     },
     open() {
       location.hash = state.req.items[this.index].name;
-      console.log("before",this.url)
       const newurl = url.removePrefix(this.url)
-      console.log("url! ",newurl)
       router.push({ path: newurl });
     },
   },

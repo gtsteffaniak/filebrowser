@@ -289,10 +289,8 @@ export default {
     window.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
     window.addEventListener("contextmenu", this.openContext);
-    window.addEventListener("mousedown",this.preventDefault)
 
     if (!state.user.perm?.create) return;
-    this.$el.addEventListener("dragover", this.preventDefault);
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
@@ -302,6 +300,7 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
+    window.removeEventListener("contextmenu", this.openContext);
   },
   methods: {
     base64(name) {
@@ -689,7 +688,11 @@ export default {
       let dt = event.dataTransfer;
       let el = event.target;
 
-      if (dt.files.length <= 0) return;
+      if (dt.files.length <= 0) {
+        mutations.setReload(true);
+        window.location.reload();
+        return;
+      }
 
       for (let i = 0; i < 5; i++) {
         if (el !== null && !el.classList.contains("item")) {
@@ -738,7 +741,6 @@ export default {
     },
     uploadInput(event) {
       mutations.closeHovers();
-
       let files = event.currentTarget.files;
       let folder_upload =
         files[0].webkitRelativePath !== undefined && files[0].webkitRelativePath !== "";

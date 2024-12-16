@@ -3,15 +3,30 @@
     <!-- Search input section -->
     <div id="input" @click="open">
       <!-- Close button visible when search is active -->
-      <button v-if="active" class="action" @click="close" :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')">
+      <button
+        v-if="active"
+        class="action"
+        @click="close"
+        :aria-label="$t('buttons.close')"
+        :title="$t('buttons.close')"
+      >
         <i class="material-icons">close</i>
       </button>
       <!-- Search icon when search is not active -->
       <i v-else class="material-icons">search</i>
       <!-- Input field for search -->
-      <input id="main-input" class="main-input" type="text" @keyup.exact="keyup" @input="submit" ref="input"
-        :autofocus="active" v-model.trim="value" :aria-label="$t('search.search')" :placeholder="$t('search.search')" />
+      <input
+        id="main-input"
+        class="main-input"
+        type="text"
+        @keyup.exact="keyup"
+        @input="submit"
+        ref="input"
+        :autofocus="active"
+        v-model.trim="value"
+        :aria-label="$t('search.search')"
+        :placeholder="$t('search.search')"
+      />
     </div>
 
     <!-- Search results for desktop -->
@@ -21,25 +36,48 @@
         <div>
           <div v-if="active">
             <div v-if="isMobile">
-              <ButtonGroup :buttons="toggleOptionButton" @button-clicked="enableOptions"
-                @remove-button-clicked="disableOptions" />
+              <ButtonGroup
+                :buttons="toggleOptionButton"
+                @button-clicked="enableOptions"
+                @remove-button-clicked="disableOptions"
+              />
             </div>
             <div v-show="showOptions">
               <!-- Button groups for filtering search results -->
-              <ButtonGroup :buttons="folderSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
-                @disableAll="folderSelectClicked()" @enableAll="resetButtonGroups()" />
-              <ButtonGroup :buttons="typeSelect" @button-clicked="addToTypes" @remove-button-clicked="removeFromTypes"
-                :isDisabled="isTypeSelectDisabled" />
+              <ButtonGroup
+                :buttons="folderSelect"
+                @button-clicked="addToTypes"
+                @remove-button-clicked="removeFromTypes"
+                @disableAll="folderSelectClicked()"
+                @enableAll="resetButtonGroups()"
+              />
+              <ButtonGroup
+                :buttons="typeSelect"
+                @button-clicked="addToTypes"
+                @remove-button-clicked="removeFromTypes"
+                :isDisabled="isTypeSelectDisabled"
+              />
               <!-- Inputs for filtering by file size -->
               <div class="sizeConstraints">
                 <div class="sizeInputWrapper">
                   <p>Smaller Than:</p>
-                  <input class="sizeInput" v-model="smallerThan" type="number" min="0" placeholder="number" />
+                  <input
+                    class="sizeInput"
+                    v-model="smallerThan"
+                    type="number"
+                    min="0"
+                    placeholder="number"
+                  />
                   <p>MB</p>
                 </div>
                 <div class="sizeInputWrapper">
                   <p>Larger Than:</p>
-                  <input class="sizeInput" v-model="largerThan" type="number" placeholder="number" />
+                  <input
+                    class="sizeInput"
+                    v-model="largerThan"
+                    type="number"
+                    placeholder="number"
+                  />
                   <p>MB</p>
                 </div>
               </div>
@@ -78,10 +116,11 @@
         <!-- List of search results -->
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in results" :key="k" class="search-entry">
-            <a :href="s.path">
-              <Icon :mimetype="s.type"/>
+            <a :href="getRelative(s.path)">
+              <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path, s.type === "directory") }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.type === "directory")
+                }}<b>{{ baseName(s.path) }}</b>
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -226,8 +265,11 @@ export default {
     },
   },
   methods: {
+    getRelative(path) {
+      return window.location.href + "/" + path;
+    },
     getIcon(mimetype) {
-      return getMaterialIconForType(mimetype)
+      return getMaterialIconForType(mimetype);
     },
     enableOptions() {
       this.hiddenOptions = false;
@@ -356,7 +398,7 @@ export default {
   word-wrap: break-word;
 }
 
-#results>#result-list {
+#results > #result-list {
   max-height: 80vh;
   width: 35em;
   overflow: scroll;
@@ -502,7 +544,7 @@ body.rtl #search #result {
   direction: ltr;
 }
 
-#search #result>div>*:first-child {
+#search #result > div > *:first-child {
   margin-top: 0;
 }
 
@@ -512,7 +554,7 @@ body.rtl #search #result {
 }
 
 /* Search Results */
-body.rtl #search #result ul>* {
+body.rtl #search #result ul > * {
   direction: ltr;
   text-align: left;
 }
