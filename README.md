@@ -94,13 +94,13 @@ Using docker:
 1. docker run (no persistent db):
 
 ```
-docker run -it -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
+docker run -it -v /path/to/folder:/srv -v $(pwd)/config.yaml:/home/filebrowser/config.yaml -p 80:80 gtstef/filebrowser
 ```
 
 or optionally, as non-root filebrowser user:
 
 ```
-docker run -u filebrowser -it -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
+docker run -u filebrowser -it -v $(pwd)/config.yaml:/home/filebrowser/config.yaml -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
 ```
 
 1. docker compose:
@@ -112,8 +112,9 @@ services:
   filebrowser:
     volumes:
       - '/path/to/folder:/srv' # required (for now not configurable)
-      - './database:/database'  # optional if you want db to persist - configure a path under "database" dir in config file.
-      - './filebrowser.yaml:/filebrowser.yaml' # required
+      # optional if you want db to persist - configure a path under "database" dir in config file.
+      - './database:/home/filebrowser/database'
+      - './config.yaml:/home/filebrowser/config.yaml'
     ports:
       - '80:80'
     image: gtstef/filebrowser
@@ -129,8 +130,9 @@ services:
   filebrowser:
     volumes:
       - 'storage:/srv' # required (for now not configurable)
-      - './database:/database'  # optional if you want db to persist - configure a path under "database" dir in config file.
-      - './filebrowser.yaml:/filebrowser.yaml' # required
+      # optional if you want db to persist - configure a path under "database" dir in config file.
+      - './database:/home/filebrowser/database'
+      - './config.yaml:/home/filebrowser/config.yaml'
     ports:
       - '80:80'
     image: gtstef/filebrowser
@@ -147,14 +149,14 @@ volumes:
 Not using docker (not recommended), download your binary from releases and run with your custom config file:
 
 ```
-./filebrowser -c <filebrowser.yml or other /path/to/config.yaml>
+./filebrowser -c <config.yaml or other /path/to/config.yaml>
 ```
 
 ## Command Line Usage
 
 There are very few commands available. There are 3 actions done via the command line:
 
-1. Running the program, as shown in the install step. The only argument used is the config file if you choose to override the default "filebrowser.yaml"
+1. Running the program, as shown in the install step. The only argument used is the config file if you choose to override the default "config.yaml"
 2. Checking the version info via `./filebrowser version`
 3. Updating the DB, which currently only supports adding users via `./filebrowser set -u username,password [-a] [-s "example/scope"]`
 
@@ -180,8 +182,8 @@ Failed Request
 ## Configuration
 
 All configuration is now done via a single configuration file:
-`filebrowser.yaml`, here is an example of minimal [configuration
-file](./backend/filebrowser.yaml).
+`config.yaml`, here is an example of minimal [configuration
+file](./backend/config.yaml).
 
 View the [Configuration Help Page](./docs/configuration.md) for available
 configuration options and other help.

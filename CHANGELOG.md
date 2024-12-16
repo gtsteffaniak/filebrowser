@@ -205,7 +205,7 @@ This change focuses on minimizing and simplifying build process.
 - The shell feature has been deprecated.
   - Custom commands can be executed within the Docker container if needed.
 - The JSON config file is no longer used.
-  - All configurations are now performed via the advanced `filebrowser.yaml`.
+  - All configurations are now performed via the advanced `config.yaml`.
   - The only allowed flag is specifying the config file.
 - Removed old code for migrating database versions.
 - Eliminated all unused `cmd` code.
