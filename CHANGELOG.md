@@ -7,18 +7,18 @@ All notable changes to this project will be documented in this file. For commit 
   **New Features**
   - Navigating remembers your previous scroll position when opening items and then navigating backwards.
   - New Icons with larger selection of file types
-  - file "type" is shown on item info page.
-  - added optional non-root "filebrowser" user for docker image. See https://github.com/gtsteffaniak/filebrowser/issues/251
+  - File "type" is shown on item info page.
+  - Added optional non-root "filebrowser" user for docker image. See https://github.com/gtsteffaniak/filebrowser/issues/251
   - File preview supports more file types:
     - images: jpg, bmp, gif, tiff, png, svg, heic, webp
 
   **Notes**:
   - The file "type" is now either "directory" or a specific mimetype such as "text/xml".
-  - update safari styling
+  - Update safari styling
 
   **Bugfixes**:
   - Delete/move file/folders sometimes wouldn't work.
-  - Possible fix for context menu not showing issue. See https://github.com/gtsteffaniak/filebrowser/issues/251
+  - Fix for context menu not showing on Safari. See https://github.com/gtsteffaniak/filebrowser/issues/251
   - Fixed drag/drop not refreshing immediately to reflect changes.
 
 ## v0.3.2
