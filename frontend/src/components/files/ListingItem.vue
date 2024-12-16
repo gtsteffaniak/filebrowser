@@ -17,7 +17,9 @@
     :aria-label="name"
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
-    @click="click($event)"
+    @click="onClick($event)"
+    @mousedown="selectItem()"
+    @touchstart="selectItem()"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -155,6 +157,8 @@ export default {
     },
   },
   mounted() {
+    this.$el.removeEventListener("touchstart", this.selectItem);
+    this.$el.removeEventListener("mousedown", this.selectItem);
     // Prevent default navigation for left-clicks
     const observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
@@ -296,7 +300,13 @@ export default {
 
       action(overwrite, rename);
     },
-    click(event) {
+    selectItem() {
+      if (state.user.singleClick && !state.multiple) {
+        mutations.resetSelected();
+        mutations.addSelected(this.index);
+      }
+    },
+    onClick(event) {
       if (event.button === 0) {
         // Left-click
         event.preventDefault();
@@ -305,7 +315,11 @@ export default {
         }
       }
 
-      if (!this.singleClick && getters.selectedCount() !== 0 && event.button === 0) {
+      if (
+        !state.user.singleClick &&
+        getters.selectedCount() !== 0 &&
+        event.button === 0
+      ) {
         event.preventDefault();
       }
       setTimeout(() => {
@@ -342,7 +356,12 @@ export default {
 
         return;
       }
-      if (!this.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple) {
+      if (
+        !state.user.singleClick &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !state.multiple
+      ) {
         mutations.resetSelected();
       }
       mutations.addSelected(this.index);

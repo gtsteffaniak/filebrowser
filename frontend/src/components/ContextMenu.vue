@@ -109,7 +109,7 @@ export default {
       return state.user;
     },
     centered() {
-      return getters.isMobile() || ( !this.posX || !this.posY );
+      return getters.isMobile() || this.posX <= 0 || this.posY <= 0;
     },
     showContext() {
       if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
