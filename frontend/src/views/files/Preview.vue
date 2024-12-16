@@ -1,9 +1,10 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview">
-      <ExtendedImage v-if="currentItem.type.startsWith('image')" :src="raw"> </ExtendedImage>
+      <ExtendedImage v-if="getSimpleType(currentItem.type) == 'image'" :src="raw">
+      </ExtendedImage>
       <audio
-        v-else-if="currentItem.type.startsWith('audio')"
+        v-else-if="getSimpleType(currentItem.type) == 'audio'"
         ref="player"
         :src="raw"
         controls
@@ -11,7 +12,7 @@
         @play="autoPlay = true"
       ></audio>
       <video
-        v-else-if="currentItem.type.startsWith('video')"
+        v-else-if="getSimpleType(currentItem.type) == 'video'"
         ref="player"
         :src="raw"
         controls
@@ -30,11 +31,12 @@
         <a :href="downloadUrl">download it</a>
         and watch it with your favorite video player!
       </video>
-      <object v-else-if="currentItem.type.startsWith('pdf')" class="pdf" :data="raw"></object>
-      <div
-        v-else-if="currentItem.type.startsWith('application/')"
-        class="info"
-      >
+      <object
+        v-else-if="getSimpleType(currentItem.type) == 'pdf'"
+        class="pdf"
+        :data="raw"
+      ></object>
+      <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
           {{ $t("files.noPreview") }}
@@ -89,7 +91,8 @@ import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url.js";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
+import { getTypeInfo } from "@/utils/mimetype";
 
 const mediaTypes = ["image", "video", "audio", "blob"];
 
@@ -179,6 +182,9 @@ export default {
     window.removeEventListener("keydown", this.key);
   },
   methods: {
+    getSimpleType(mimetype) {
+      return getTypeInfo(mimetype).simpleType;
+    },
     deleteFile() {
       this.currentPrompt = {
         name: "delete",
