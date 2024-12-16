@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
   **Bugfixes**:
   - Delete/move file/folders sometimes wouldn't work
   - Possible fix for context menu not showing issue
+  - Fixed drag/drop not refreshing immediately to reflect changes
 
 ## v0.3.2
 
