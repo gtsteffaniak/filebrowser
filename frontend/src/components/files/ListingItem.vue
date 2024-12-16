@@ -169,6 +169,13 @@ export default {
     }
   },
   methods: {
+    updateHashAndNavigate(path) {
+      // Update hash in the browser without full page reload
+      window.location.hash = path;
+
+      // Optional: Trigger native navigation
+      window.location.href = this.getRelative(path);
+    },
     getUrl() {
       return baseURL.slice(0, -1) + this.url;
     },
@@ -337,7 +344,7 @@ export default {
     },
     open() {
       location.hash = state.req.items[this.index].name;
-      const newurl = url.removePrefix(this.url)
+      const newurl = url.removePrefix(this.url);
       router.push({ path: newurl });
     },
   },
