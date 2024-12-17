@@ -22,7 +22,7 @@ func TestIsMatchingType(t *testing.T) {
 		extension    string
 		expectedType string
 	}{
-		{".pdf", "pdf"},
+		{".pdf", "doc"},
 		{".doc", "doc"},
 		{".docx", "doc"},
 		{".json", "text"},

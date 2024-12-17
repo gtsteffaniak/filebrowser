@@ -272,3 +272,27 @@
 .dark-mode #results {
   background-color: var(--background);
 }
+
+/* Use the class .dark-mode to apply styles conditionally */
+.dark-mode {
+  background: #141D24 !important;
+  color: var(--textPrimary);
+}
+
+/* Header */
+.dark-mode-header {
+  color: white;
+  background: #141D24;
+}
+
+/* Header with backdrop-filter support */
+@supports (backdrop-filter: none) {
+  .dark-mode-header {
+    background-color: rgb(37 49 55 / 33%) !important;
+    backdrop-filter: blur(16px) invert(0.1);
+  }
+}
+
+#sidebar.dark-mode {
+  background-color: #141D24 !important;
+}

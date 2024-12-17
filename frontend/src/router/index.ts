@@ -121,7 +121,7 @@ const router = createRouter({
 
 // Helper function to check if a route resolves to itself
 function isSameRoute(to: RouteLocation, from: RouteLocation) {
-  return to.path === from.path && JSON.stringify(to.params) === JSON.stringify(from.params);
+  return to.path === from.path && JSON.stringify(to.params) === JSON.stringify(from.params) && to.hash === from.hash;
 }
 
 router.beforeResolve(async (to, from, next) => {
@@ -133,7 +133,7 @@ router.beforeResolve(async (to, from, next) => {
   if (state != null && state.user != null && !('username' in state.user)) {
     await validateLogin();
   }
-  
+
   // Set the page title using i18n
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;

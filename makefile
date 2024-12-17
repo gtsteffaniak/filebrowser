@@ -1,9 +1,14 @@
+.SILENT:
 setup:
-	go install github.com/swaggo/swag/cmd/swag@latest && \
-	cd frontend && npm i && npx playwright install
+	echo "creating ./backend/test_config.yaml for local testing..." && \
 	if [ ! -f backend/test__config.yaml ]; then \
 		cp backend/filebrowser.yaml backend/test_config.yaml; \
 	fi
+	echo "installing swagger needed to generate backend api docs..." && \
+	go install github.com/swaggo/swag/cmd/swag@latest && \
+	echo "installing npm requirements for frontend..." && \
+	cd frontend && npm i
+
 
 update:
 	cd backend && go get -u ./... && go mod tidy && cd ../frontend && npm update
@@ -44,4 +49,5 @@ test-frontend:
 	cd frontend && npm run test
 
 test-frontend-playwright:
+	npx playwright install
 	docker build -t gtstef/filebrowser-tests -f Dockerfile.playwright .

@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gtsteffaniak/filebrowser/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 
-	"github.com/gtsteffaniak/filebrowser/errors"
-	"github.com/gtsteffaniak/filebrowser/users"
+	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 // MethodProxyAuth is used to identify no auth.

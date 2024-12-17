@@ -149,6 +149,8 @@ import QrcodeVue from "qrcode.vue";
 import Item from "@/components/files/ListingItem.vue";
 import Clipboard from "clipboard";
 import { state, getters, mutations } from "@/store";
+import { url } from "@/utils";
+import { getTypeInfo } from "@/utils/mimetype";
 
 export default {
   name: "share",
@@ -209,12 +211,11 @@ export default {
     },
     icon() {
       if (state.req.type == "directory") return "folder";
-      if (state.req.type === "image") return "insert_photo";
-      if (state.req.type === "audio") return "volume_up";
-      if (state.req.type === "video") return "movie";
+      if (getTypeInfo(state.req.type).simpleType == "image") return "insert_photo";
+      if (getTypeInfo(state.req.type).simpleType == "audio") return "volume_up";
+      if (getTypeInfo(state.req.type).simpleType == "video") return "movie";
       return "insert_drive_file";
     },
-
     humanSize() {
       if (state.req.type == "directory") {
         return state.req.items.length;
@@ -229,10 +230,13 @@ export default {
       return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
     isImage() {
-      return state.req.type === "image";
+      return getTypeInfo(state.req.type).simpleType === "image";
     },
     isMedia() {
-      return state.req.type === "video" || state.req.type === "audio";
+      return (
+        getTypeInfo(state.req.type).simpleType === "video" ||
+        getTypeInfo(state.req.type).simpleType === "audio"
+      );
     },
   },
   methods: {
@@ -245,7 +249,7 @@ export default {
       });
     },
     base64(name) {
-      return window.btoa(unescape(encodeURIComponent(name)));
+      return url.base64Encode(name);
     },
     async fetchData() {
       let urlPath = getters.routePath("share");
@@ -298,7 +302,7 @@ export default {
     download() {
       if (getters.isSingleFileSelected()) {
         const share = {
-          path: his.subPath,
+          path: this.subPath,
           hash: this.hash,
           token: this.token,
           format: null,

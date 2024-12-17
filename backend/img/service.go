@@ -261,3 +261,22 @@ func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
 	thm, err := ifd.Thumbnail()
 	return thm, wrappedReader, err
 }
+
+// CreateThumbnail takes raw image data and creates a thumbnail image.
+func CreateThumbnail(rawData io.Reader, width, height int) (image.Image, error) {
+	// Decode the raw image to get an image.Image.
+	img, _, err := image.Decode(rawData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode image: %w", err)
+	}
+
+	// Resize the image to create a thumbnail using the specified dimensions.
+	thumb := imaging.Fit(img, width, height, imaging.Lanczos)
+
+	// Optionally, convert the thumbnail to grayscale if needed.
+	// Uncomment the line below if you want the result to be grayscale.
+	// thumb = imaging.Grayscale(thumb)
+
+	// Return the resized thumbnail image.
+	return thumb, nil
+}

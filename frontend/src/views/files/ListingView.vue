@@ -150,6 +150,7 @@ import * as upload from "@/utils/upload";
 import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
+import { url } from "@/utils";
 
 import Item from "@/components/files/ListingItem.vue";
 export default {
@@ -164,6 +165,7 @@ export default {
       dragCounter: 0,
       width: window.innerWidth,
       lastSelected: {}, // Add this to track the currently focused item
+      contextTimeout: null, // added for safari context menu
     };
   },
   watch: {
@@ -287,10 +289,26 @@ export default {
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
-    window.addEventListener("contextmenu", this.openContext);
+
+    // Detect Safari
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    // Adjust contextmenu listener based on browser
+    if (isSafari) {
+      // For Safari, add touchstart or mousedown to open the context menu
+      this.$el.addEventListener("touchstart", this.openContextForSafari);
+      this.$el.addEventListener("mousedown", this.openContextForSafari);
+
+      // Also clear the timeout if the user clicks or taps quickly
+      this.$el.addEventListener("touchend", this.cancelContext);
+      this.$el.addEventListener("mouseup", this.cancelContext);
+    } else {
+      // For other browsers, use regular contextmenu
+      window.addEventListener("contextmenu", this.openContext);
+    }
+    // if safari , make sure click and hold opens context menu, but not for any other browser
 
     if (!state.user.perm?.create) return;
-    this.$el.addEventListener("dragover", this.preventDefault);
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
@@ -300,10 +318,33 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
+    // If Safari, remove touchstart listener
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) {
+      this.$el.removeEventListener("touchstart", this.openContextForSafari);
+      this.$el.removeEventListener("mousedown", this.openContextForSafari);
+      this.$el.removeEventListener("touchend", this.cancelContext);
+      this.$el.removeEventListener("mouseup", this.cancelContext);
+    } else {
+      window.removeEventListener("contextmenu", this.openContext);
+    }
   },
   methods: {
+    cancelContext(event) {
+      if (this.contextTimeout) {
+        clearTimeout(this.contextTimeout);
+      }
+    },
+    openContextForSafari(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      // Set a timeout that triggers after 500ms of hold
+      this.contextTimeout = setTimeout(() => {
+        this.openContext(event);
+      }, 500); // You can adjust the delay (500ms) to mimic "click and hold"
+    },
     base64(name) {
-      return window.btoa(unescape(encodeURIComponent(name)));
+      return url.base64Encode(name);
     },
     // Helper method to select the first item if nothing is selected
     selectFirstItem() {
@@ -687,7 +728,11 @@ export default {
       let dt = event.dataTransfer;
       let el = event.target;
 
-      if (dt.files.length <= 0) return;
+      if (dt.files.length <= 0) {
+        mutations.setReload(true);
+        window.location.reload();
+        return;
+      }
 
       for (let i = 0; i < 5; i++) {
         if (el !== null && !el.classList.contains("item")) {
@@ -736,7 +781,6 @@ export default {
     },
     uploadInput(event) {
       mutations.closeHovers();
-
       let files = event.currentTarget.files;
       let folder_upload =
         files[0].webkitRelativePath !== undefined && files[0].webkitRelativePath !== "";
@@ -809,6 +853,7 @@ export default {
     },
     openContext(event) {
       event.preventDefault();
+      event.stopPropagation();
       mutations.showHover({
         name: "ContextMenu",
         props: {

@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/files"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -44,7 +45,12 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-	files := r.URL.Query().Get("files")
+	encodedFiles := r.URL.Query().Get("files")
+	// Decode the URL-encoded path
+	files, err := url.QueryUnescape(encodedFiles)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
 	return rawFilesHandler(w, r, d, strings.Split(files, ","))
 }
 

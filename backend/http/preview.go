@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/files"
-	"github.com/gtsteffaniak/filebrowser/img"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/img"
 )
 
 type ImgService interface {
@@ -64,7 +65,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
 	}
 	setContentDisposition(w, r, fileInfo.Name)
-	if fileInfo.Type != "image" {
+	if !strings.HasPrefix(fileInfo.Type, "image") {
 		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", fileInfo.Type)
 	}
 

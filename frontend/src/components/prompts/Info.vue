@@ -16,6 +16,10 @@
         <strong>{{ $t("prompts.size") }}:</strong>
         <span id="content_length"></span> {{ humanSize }}
       </p>
+      <p v-if="!dir || selected.length > 1">
+        <strong>Type:</strong>
+        <span id="content_length"></span> {{ type }}
+      </p>
       <p v-if="selected.length < 2" :title="modTime">
         <strong>{{ $t("prompts.lastModified") }}:</strong> {{ humanTime }}
       </p>
@@ -123,6 +127,11 @@ export default {
       return getters.selectedCount() === 0
         ? state.req.name
         : state.req.items[this.selected[0]].name;
+    },
+    type() {
+      return getters.selectedCount() === 0
+        ? state.req.type
+        : state.req.items[this.selected[0]].type;
     },
     dir() {
       return (

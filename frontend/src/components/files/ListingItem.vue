@@ -1,11 +1,11 @@
 <template>
-  <component
-    :is="quickNav ? 'a' : 'div'"
-    :href="quickNav ? getUrl() : undefined"
+  <a
+    :href="getUrl()"
     :class="{
       item: true,
       activebutton: isMaximized && isSelected,
     }"
+    :id="getID"
     role="button"
     tabindex="0"
     :draggable="isDraggable"
@@ -17,20 +17,21 @@
     :aria-label="name"
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
-    @click="quickNav ? toggleClick() : itemClick($event)"
+    @click="click($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
-        v-if="readOnly === undefined && type === 'image' && isThumbsEnabled && isInView"
+        v-if="
+          readOnly === undefined &&
+          type.startsWith('image') &&
+          isThumbsEnabled &&
+          isInView
+        "
         v-lazy="thumbnailUrl"
         :class="{ activeimg: isMaximized && isSelected }"
         ref="thumbnail"
       />
-      <i
-        :class="{ iconActive: isMaximized && isSelected }"
-        v-else
-        class="material-icons"
-      ></i>
+      <Icon v-else :mimetype="type" />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
@@ -40,7 +41,7 @@
         <time :datetime="modified">{{ humanTime() }}</time>
       </p>
     </div>
-  </component>
+  </a>
 </template>
 
 <style>
@@ -77,9 +78,14 @@ import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { baseURL } from "@/utils/constants";
 import { router } from "@/router";
+import { url } from "@/utils";
+import Icon from "@/components/Icon.vue";
 
 export default {
   name: "item",
+  components: {
+    Icon,
+  },
   data() {
     return {
       isThumbnailInView: false,
@@ -99,6 +105,9 @@ export default {
     "path",
   ],
   computed: {
+    getID() {
+      return url.base64Encode(encodeURIComponent(this.name));
+    },
     quickNav() {
       return state.user.singleClick && !state.multiple;
     },
@@ -146,6 +155,7 @@ export default {
     },
   },
   mounted() {
+    // Prevent default navigation for left-clicks
     const observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
       rootMargin: "0px",
@@ -159,6 +169,13 @@ export default {
     }
   },
   methods: {
+    updateHashAndNavigate(path) {
+      // Update hash in the browser without full page reload
+      window.location.hash = path;
+
+      // Optional: Trigger native navigation
+      window.location.href = this.getRelative(path);
+    },
     getUrl() {
       return baseURL.slice(0, -1) + this.url;
     },
@@ -166,7 +183,8 @@ export default {
       event.preventDefault(); // Prevent default context menu
 
       // If no items are selected, select the right-clicked item
-      if (getters.selectedCount() === 0) {
+      if (!state.multiple) {
+        mutations.resetSelected();
         mutations.addSelected(this.index);
       }
       mutations.showHover({
@@ -278,13 +296,18 @@ export default {
 
       action(overwrite, rename);
     },
-    itemClick(event) {
-      if (this.singleClick && !state.multiple) this.open();
-      else this.click(event);
-    },
     click(event) {
-      if (!this.singleClick && getters.selectedCount() !== 0) event.preventDefault();
+      if (event.button === 0) {
+        // Left-click
+        event.preventDefault();
+        if (this.quickNav) {
+          this.open();
+        }
+      }
 
+      if (!this.singleClick && getters.selectedCount() !== 0 && event.button === 0) {
+        event.preventDefault();
+      }
       setTimeout(() => {
         this.touches = 0;
       }, 500);
@@ -319,12 +342,15 @@ export default {
 
         return;
       }
-      if (!this.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple)
+      if (!this.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple) {
         mutations.resetSelected();
+      }
       mutations.addSelected(this.index);
     },
     open() {
-      router.push({ path: this.url });
+      location.hash = state.req.items[this.index].name;
+      const newurl = url.removePrefix(this.url);
+      router.push({ path: newurl });
     },
   },
 };

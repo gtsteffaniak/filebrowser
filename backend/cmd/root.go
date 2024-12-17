@@ -7,17 +7,17 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/diskcache"
-	"github.com/gtsteffaniak/filebrowser/files"
-	fbhttp "github.com/gtsteffaniak/filebrowser/http"
-	"github.com/gtsteffaniak/filebrowser/img"
-	"github.com/gtsteffaniak/filebrowser/settings"
-	"github.com/gtsteffaniak/filebrowser/storage"
-	"github.com/gtsteffaniak/filebrowser/swagger/docs"
+	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
+	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
+	"github.com/gtsteffaniak/filebrowser/backend/img"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/swaggo/swag"
 
-	"github.com/gtsteffaniak/filebrowser/users"
-	"github.com/gtsteffaniak/filebrowser/version"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
 func getStore(config string) (*storage.Storage, bool) {
@@ -47,7 +47,7 @@ func StartFilebrowser() {
 	var help bool
 	// Override the default usage output to use generalUsage()
 	flag.Usage = generalUsage
-	flag.StringVar(&configPath, "c", "filebrowser.yaml", "Path to the config file.")
+	flag.StringVar(&configPath, "c", "config.yaml", "Path to the config file, default: config.yaml")
 	flag.BoolVar(&help, "h", false, "Get help about commands")
 
 	// Parse global flags (before subcommands)
@@ -67,7 +67,7 @@ func StartFilebrowser() {
 	setCmd.StringVar(&user, "u", "", "Comma-separated username and password: \"set -u <username>,<password>\"")
 	setCmd.BoolVar(&asAdmin, "a", false, "Create user as admin user, used in combination with -u")
 	setCmd.StringVar(&scope, "s", "", "Specify a user scope, otherwise default user config scope is used")
-	setCmd.StringVar(&dbConfig, "c", "filebrowser.yaml", "Path to the config file.")
+	setCmd.StringVar(&dbConfig, "c", "config.yaml", "Path to the config file, default: config.yaml")
 
 	// Parse subcommand flags only if a subcommand is specified
 	if len(os.Args) > 1 {

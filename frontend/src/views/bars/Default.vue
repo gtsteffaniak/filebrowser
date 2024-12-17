@@ -15,7 +15,7 @@
 </style>
 
 <script>
-import url from "@/utils/url.js";
+import { url } from "@/utils";
 import router from "@/router";
 import { state, mutations, getters } from "@/store";
 import { filesApi } from "@/api";
@@ -227,7 +227,7 @@ export default {
       mutations.closeHovers();
     },
     base64(name) {
-      return window.btoa(unescape(encodeURIComponent(name)));
+      return url.base64Encode(name);
     },
     keyEvent(event) {
       // No prompts are shown
