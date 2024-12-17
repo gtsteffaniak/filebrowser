@@ -14,7 +14,6 @@
 
 > [!WARNING]
 > - There is no stable version yet. Always check release notes for bug fixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
-> - If on windows, please use docker. The windows binary is unstable and may not work.
 
 FileBrowser Quantum is a fork of the file browser opensource project with the following changes:
 

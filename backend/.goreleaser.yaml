@@ -24,15 +24,15 @@ builds:
         - upx {{ .Path }}  # Compress the binary with UPX
 
   # Build configuration for windows without arm
-  - id: windows
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    goos:
-      - windows
-    goarch:
-      - amd64
-      - arm64
+#  - id: windows
+#    ldflags: *ldflags
+#    main: main.go
+#    binary: filebrowser
+#    goos:
+#      - windows
+#    goarch:
+#      - amd64
+#      - arm64
 
 archives:
   - name_template: "{{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{ .ProjectName }}"
