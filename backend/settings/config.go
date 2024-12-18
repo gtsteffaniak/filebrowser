@@ -21,6 +21,11 @@ func Initialize(configFile string) {
 	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	// Convert relative path to absolute path
+	if len(Config.Server.Sources) > 0 {
+		if Config.Server.Sources[0].Path != "" {
+			Config.Server.Root = Config.Server.Sources[0].Path
+		}
+	}
 	realRoot, err := filepath.Abs(Config.Server.Root)
 	if err != nil {
 		log.Fatalf("Error getting root path: %v", err)
@@ -72,7 +77,6 @@ func setDefaults() Settings {
 			Database:           "database.db",
 			Log:                "stdout",
 			Root:               "/srv",
-			Indexing:           true,
 		},
 		Auth: Auth{
 			TokenExpirationTime: "2h",

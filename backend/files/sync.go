@@ -2,8 +2,6 @@ package files
 
 import (
 	"path/filepath"
-
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
@@ -66,24 +64,20 @@ func (si *Index) RemoveDirectory(path string) {
 	delete(si.Directories, path)
 }
 
-func GetIndex(root string) *Index {
-	for _, index := range indexes {
-		if index.Root == root {
-			return index
-		}
-	}
-	if settings.Config.Server.Root != "" {
-		rootPath = settings.Config.Server.Root
-	}
-	newIndex := &Index{
-		Root:        rootPath,
-		Directories: map[string]*FileInfo{},
-		NumDirs:     0,
-		NumFiles:    0,
-	}
-	newIndex.Directories["/"] = &FileInfo{}
+func GetIndex(name string) *Index {
 	indexesMutex.Lock()
-	indexes = append(indexes, newIndex)
-	indexesMutex.Unlock()
-	return newIndex
+	defer indexesMutex.Unlock()
+	index, ok := indexes[name]
+	if !ok {
+		return nil
+	}
+	return index
+}
+
+func getRoot(name string) string {
+	index := GetIndex(name)
+	if index == nil {
+		return ""
+	}
+	return index.Root
 }

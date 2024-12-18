@@ -336,8 +336,6 @@ export default {
       }
     },
     openContextForSafari(event) {
-      event.preventDefault();
-      event.stopPropagation();
       // Set a timeout that triggers after 500ms of hold
       this.contextTimeout = setTimeout(() => {
         this.openContext(event);
@@ -741,7 +739,7 @@ export default {
       }
 
       let files = await upload.scanFiles(dt);
-      const folderUpload = !!files[0].webkitRelativePath;
+      const folderUpload = Boolean(files[0].webkitRelativePath);
 
       const uploadFiles = [];
       for (let i = 0; i < files.length; i++) {

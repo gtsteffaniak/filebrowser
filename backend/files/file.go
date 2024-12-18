@@ -57,11 +57,13 @@ type ExtendedFileInfo struct {
 	Subtitles []string          `json:"subtitles,omitempty"`
 	Checksums map[string]string `json:"checksums,omitempty"`
 	Token     string            `json:"token,omitempty"`
+	RealPath  string            `json:"-"`
 }
 
 // FileOptions are the options when getting a file info.
 type FileOptions struct {
 	Path       string // realpath
+	Source     string
 	IsDir      bool
 	Modify     bool
 	Expand     bool
@@ -75,9 +77,12 @@ func (f FileOptions) Components() (string, string) {
 }
 
 func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
-	index := GetIndex(rootPath)
-	opts.Path = index.makeIndexPath(opts.Path)
 	response := ExtendedFileInfo{}
+	index := GetIndex(opts.Source)
+	if index == nil {
+		return response, fmt.Errorf("could not get index: %v ", opts.Source)
+	}
+	opts.Path = index.makeIndexPath(opts.Path)
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
 	pathMutex.Lock()
@@ -86,7 +91,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, os.ErrPermission
 	}
 
-	_, isDir, err := GetRealPath(opts.Path)
+	realPath, isDir, err := GetRealPath(opts.Path)
 	if err != nil {
 		return response, err
 	}
@@ -120,13 +125,15 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, err
 	}
 	if opts.Content {
-		content, err := getContent(opts.Path)
+		realRoot := getRoot(opts.Source)
+		content, err := getContent(realRoot, opts.Path)
 		if err != nil {
 			return response, err
 		}
 		response.Content = content
 	}
 	response.FileInfo = info
+	response.RealPath = realPath
 	return response, nil
 }
 
@@ -161,7 +168,7 @@ func GetChecksum(fullPath, algo string) (map[string]string, error) {
 }
 
 // RealPath gets the real path for the file, resolving symlinks if supported.
-func (i *FileInfo) RealPath() string {
+func (i *FileInfo) RealPath(rootPath string) string {
 	realPath, _, _ := GetRealPath(rootPath, i.Path)
 	realPath, err := filepath.EvalSymlinks(realPath)
 	if err == nil {
@@ -196,13 +203,13 @@ func GetRealPath(relativePath ...string) (string, bool, error) {
 	return realPath, isDir, err
 }
 
-func DeleteFiles(absPath string, opts FileOptions) error {
+func DeleteFiles(source, absPath string, dirPath string) error {
 	err := os.RemoveAll(absPath)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(rootPath)
-	refreshConfig := FileOptions{Path: filepath.Dir(opts.Path), IsDir: true}
+	index := GetIndex(source)
+	refreshConfig := FileOptions{Path: dirPath, IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return err
@@ -210,12 +217,12 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	return nil
 }
 
-func MoveResource(realsrc, realdst string, isSrcDir bool) error {
+func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(rootPath)
+	index := GetIndex(source)
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
 		Path:  realsrc,
@@ -235,12 +242,12 @@ func MoveResource(realsrc, realdst string, isSrcDir bool) error {
 	return nil
 }
 
-func CopyResource(realsrc, realdst string, isSrcDir bool) error {
+func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(rootPath)
+	index := GetIndex(source)
 	refreshConfig := FileOptions{Path: realdst, IsDir: true}
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
@@ -253,13 +260,13 @@ func CopyResource(realsrc, realdst string, isSrcDir bool) error {
 }
 
 func WriteDirectory(opts FileOptions) error {
-	realPath, _, _ := GetRealPath(rootPath, opts.Path)
+	realPath, _, _ := GetRealPath(getRoot(opts.Source), opts.Path)
 	// Ensure the parent directories exist
 	err := os.MkdirAll(realPath, 0775)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(rootPath)
+	index := GetIndex(opts.Source)
 	err = index.RefreshFileInfo(opts)
 	if err != nil {
 		return errors.ErrEmptyKey
@@ -268,7 +275,7 @@ func WriteDirectory(opts FileOptions) error {
 }
 
 func WriteFile(opts FileOptions, in io.Reader) error {
-	dst, _, _ := GetRealPath(rootPath, opts.Path)
+	dst, _, _ := GetRealPath(opts.Source, opts.Path)
 	parentDir := filepath.Dir(dst)
 	// Create the directory and all necessary parents
 	err := os.MkdirAll(parentDir, 0775)
@@ -290,7 +297,7 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 	}
 	opts.Path = parentDir
 	opts.IsDir = true
-	index := GetIndex(rootPath)
+	index := GetIndex(opts.Source)
 	return index.RefreshFileInfo(opts)
 }
 
@@ -323,8 +330,8 @@ func resolveSymlinks(path string) (string, bool, error) {
 }
 
 // addContent reads and sets content based on the file type.
-func getContent(path string) (string, error) {
-	realPath, _, err := GetRealPath(rootPath, path)
+func getContent(source, path string) (string, error) {
+	realPath, _, err := GetRealPath(source, path)
 	if err != nil {
 		return "", err
 	}

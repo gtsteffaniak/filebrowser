@@ -14,6 +14,7 @@ import (
 )
 
 type Index struct {
+	Name                       string
 	Root                       string
 	Directories                map[string]*FileInfo
 	NumDirs                    uint64
@@ -30,18 +31,14 @@ type Index struct {
 }
 
 var (
-	rootPath     string = "/srv"
-	indexes      []*Index
+	indexes      map[string]*Index
 	indexesMutex sync.RWMutex
 )
 
-func InitializeIndex(enabled bool) {
-	if enabled {
+func InitializeIndex(Source settings.Source) {
+	if !Source.Index.Disabled {
 		time.Sleep(time.Second)
-		if settings.Config.Server.Root != "" {
-			rootPath = settings.Config.Server.Root
-		}
-		si := GetIndex(rootPath)
+		si := GetIndex(Source.Path)
 		log.Println("Initializing index and assessing file system complexity")
 		si.RunIndexing("/", false)
 		go si.setupIndexingScanners()
