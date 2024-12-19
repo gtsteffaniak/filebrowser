@@ -18,6 +18,7 @@
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
     @click="click($event)"
+    @touchstart="addSelected($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -296,7 +297,14 @@ export default {
 
       action(overwrite, rename);
     },
+    addSelected(event) {
+      if (!state.user.singleClick && !state.multiple) {
+        mutations.resetSelected();
+        mutations.addSelected(this.index);
+      }
+    },
     click(event) {
+      console.log(event)
       if (event.button === 0) {
         // Left-click
         event.preventDefault();
@@ -305,13 +313,12 @@ export default {
         }
       }
 
-      if (!this.singleClick && getters.selectedCount() !== 0 && event.button === 0) {
+      if (!state.user.singleClick && getters.selectedCount() !== 0 && event.button === 0) {
         event.preventDefault();
       }
       setTimeout(() => {
         this.touches = 0;
       }, 500);
-
       this.touches++;
       if (this.touches > 1) {
         this.open();
@@ -342,7 +349,7 @@ export default {
 
         return;
       }
-      if (!this.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple) {
+      if (!state.user.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple) {
         mutations.resetSelected();
       }
       mutations.addSelected(this.index);
@@ -355,3 +362,10 @@ export default {
   },
 };
 </script>
+
+<style>
+.item {
+  -webkit-touch-callout: none; /* Disable the default long press preview */
+  user-select: none; /* Optional: Disable text selection for better UX */
+}
+</style>
