@@ -298,7 +298,7 @@ export default {
       action(overwrite, rename);
     },
     addSelected(event) {
-      if (state.user.singleClick) {
+      if (!state.user.singleClick && !state.multiple) {
         mutations.resetSelected();
         mutations.addSelected(this.index);
       }
