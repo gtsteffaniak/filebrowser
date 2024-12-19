@@ -336,8 +336,6 @@ export default {
       }
     },
     openContextForSafari(event) {
-      event.preventDefault();
-      event.stopPropagation();
       // Set a timeout that triggers after 500ms of hold
       this.contextTimeout = setTimeout(() => {
         this.openContext(event);

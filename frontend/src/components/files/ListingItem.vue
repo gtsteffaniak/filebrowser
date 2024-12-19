@@ -18,6 +18,7 @@
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
     @click="click($event)"
+    @touchstart="click($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -355,3 +356,10 @@ export default {
   },
 };
 </script>
+
+<style>
+.item {
+  -webkit-touch-callout: none; /* Disable the default long press preview */
+  user-select: none; /* Optional: Disable text selection for better UX */
+}
+</style>
