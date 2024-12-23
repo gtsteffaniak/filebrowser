@@ -218,11 +218,8 @@ export default {
     window.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
 
-    // Detect Safari
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
     // Adjust contextmenu listener based on browser
-    if (isSafari) {
+    if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu
       this.$el.addEventListener("touchstart", this.openContextForSafari);
       this.$el.addEventListener("mousedown", this.openContextForSafari);
@@ -248,8 +245,7 @@ export default {
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
     // If Safari, remove touchstart listener
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    if (isSafari) {
+    if (state.isSafari) {
       this.$el.removeEventListener("touchstart", this.openContextForSafari);
       this.$el.removeEventListener("mousedown", this.openContextForSafari);
       this.$el.removeEventListener("touchend", this.cancelContext);

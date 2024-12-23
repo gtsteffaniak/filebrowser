@@ -16,9 +16,12 @@
     :data-type="type"
     :aria-label="name"
     :aria-selected="isSelected"
-    @contextmenu="onRightClick"
+    @contextmenu="onRightClick($event)"
     @click="click($event)"
     @touchstart="addSelected($event)"
+    @touchmove="handleTouchMove($event)"
+    @touchend="cancelContext($event)"
+    @mouseup="cancelContext($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -92,6 +95,10 @@ export default {
       isThumbnailInView: false,
       isMaximized: false,
       touches: 0,
+      touchStartX: 0,
+      touchStartY: 0,
+      isLongPress: false,
+      isSwipe: false,
     };
   },
   props: [
@@ -170,6 +177,31 @@ export default {
     }
   },
   methods: {
+    handleTouchMove(event) {
+      if (!state.isSafari) return
+      const touch = event.touches[0];
+      const deltaX = Math.abs(touch.clientX - this.touchStartX);
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      // Set a threshold for movement to detect a swipe
+      const movementThreshold = 10; // Adjust as needed
+      if (deltaX > movementThreshold || deltaY > movementThreshold) {
+        this.isSwipe = true;
+        this.cancelContext(); // Cancel long press if swipe is detected
+      } else {
+      }
+    },
+    handleTouchEnd(event) {
+      if (!state.isSafari) return
+      this.cancelContext(); // Clear timeout
+      this.isSwipe = false; // Reset swipe state
+    },
+    cancelContext(event) {
+      if (this.contextTimeout) {
+        clearTimeout(this.contextTimeout);
+        this.contextTimeout = null;
+      }
+      this.isLongPress = false;
+    },
     updateHashAndNavigate(path) {
       // Update hash in the browser without full page reload
       window.location.hash = path;
@@ -181,6 +213,7 @@ export default {
       return baseURL.slice(0, -1) + this.url;
     },
     onRightClick(event) {
+      window.alert("right click")
       event.preventDefault(); // Prevent default context menu
 
       // If no items are selected, select the right-clicked item
@@ -298,13 +331,22 @@ export default {
       action(overwrite, rename);
     },
     addSelected(event) {
-      if (!state.user.singleClick && !state.multiple) {
-        mutations.resetSelected();
-        mutations.addSelected(this.index);
+      if (!state.isSafari) return
+      const touch = event.touches[0];
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+      this.isLongPress = false; // Reset state
+      this.isSwipe = false; // Reset swipe detection
+      if (state.user.singleClick && !state.multiple) {
+        this.contextTimeout = setTimeout(() => {
+          if (!this.isSwipe) {
+            mutations.resetSelected();
+            mutations.addSelected(this.index);
+          }
+        }, 500);
       }
     },
     click(event) {
-      console.log(event)
       if (event.button === 0) {
         // Left-click
         event.preventDefault();
