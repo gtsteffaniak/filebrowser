@@ -2,6 +2,7 @@
   --item-selected: white;
   transition: all;
   animation-duration: 0.25s;
+  user-select: none;
 }
 
 body.rtl #listingView {

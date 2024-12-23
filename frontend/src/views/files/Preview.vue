@@ -3,39 +3,17 @@
     <div class="preview">
       <ExtendedImage v-if="getSimpleType(currentItem.type) == 'image'" :src="raw">
       </ExtendedImage>
-      <audio
-        v-else-if="getSimpleType(currentItem.type) == 'audio'"
-        ref="player"
-        :src="raw"
-        controls
-        :autoplay="autoPlay"
-        @play="autoPlay = true"
-      ></audio>
-      <video
-        v-else-if="getSimpleType(currentItem.type) == 'video'"
-        ref="player"
-        :src="raw"
-        controls
-        :autoplay="autoPlay"
-        @play="autoPlay = true"
-      >
-        <track
-          kind="captions"
-          v-for="(sub, index) in subtitles"
-          :key="index"
-          :src="sub"
-          :label="'Subtitle ' + index"
-          :default="index === 0"
-        />
+      <audio v-else-if="getSimpleType(currentItem.type) == 'audio'" ref="player" :src="raw" controls
+        :autoplay="autoPlay" @play="autoPlay = true"></audio>
+      <video v-else-if="getSimpleType(currentItem.type) == 'video'" ref="player" :src="raw" controls
+        :autoplay="autoPlay" @play="autoPlay = true">
+        <track kind="captions" v-for="(sub, index) in subtitles" :key="index" :src="sub" :label="'Subtitle ' + index"
+          :default="index === 0" />
         Sorry, your browser doesn't support embedded videos, but don't worry, you can
         <a :href="downloadUrl">download it</a>
         and watch it with your favorite video player!
       </video>
-      <object
-        v-else-if="getSimpleType(currentItem.type) == 'pdf'"
-        class="pdf"
-        :data="raw"
-      ></object>
+      <object v-else-if="getSimpleType(currentItem.type) == 'pdf'" class="pdf" :data="raw"></object>
       <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
@@ -47,12 +25,7 @@
               <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
             </div>
           </a>
-          <a
-            target="_blank"
-            :href="raw"
-            class="button button--flat"
-            v-if="currentItem.type != 'directory'"
-          >
+          <a target="_blank" :href="raw" class="button button--flat" v-if="currentItem.type != 'directory'">
             <div>
               <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
             </div>
@@ -61,24 +34,13 @@
       </div>
     </div>
 
-    <button
-      @click="prev"
-      @mouseover="hoverNav = true"
-      @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasPrevious || !showNav }"
-      :aria-label="$t('buttons.previous')"
-      :title="$t('buttons.previous')"
-    >
+    <button @click="prev" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasPrevious || !showNav }" :aria-label="$t('buttons.previous')"
+      :title="$t('buttons.previous')">
       <i class="material-icons">chevron_left</i>
     </button>
-    <button
-      @click="next"
-      @mouseover="hoverNav = true"
-      @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasNext || !showNav }"
-      :aria-label="$t('buttons.next')"
-      :title="$t('buttons.next')"
-    >
+    <button @click="next" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasNext || !showNav }" :aria-label="$t('buttons.next')" :title="$t('buttons.next')">
       <i class="material-icons">chevron_right</i>
     </button>
     <link rel="prefetch" :href="previousRaw" />
@@ -145,10 +107,10 @@ export default {
       const previewUrl = this.fullSize
         ? filesApi.getDownloadURL(this.currentItem.url, "large")
         : filesApi.getPreviewURL(
-            this.currentItem.url,
-            "small",
-            this.currentItem.modified
-          );
+          this.currentItem.url,
+          "small",
+          this.currentItem.modified
+        );
       return previewUrl;
     },
     showMore() {

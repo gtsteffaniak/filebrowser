@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
   isMobile: window.innerWidth <= 800,
   showSidebar: false,
