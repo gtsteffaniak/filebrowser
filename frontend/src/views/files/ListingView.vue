@@ -830,6 +830,7 @@ export default {
 .dark-mode-item-header {
   border-color: var(--divider) !important;
   background: var(--surfacePrimary) !important;
+  user-select: none;
 }
 
 .header-items {

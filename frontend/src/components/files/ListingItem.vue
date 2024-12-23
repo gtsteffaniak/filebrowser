@@ -213,9 +213,7 @@ export default {
       return baseURL.slice(0, -1) + this.url;
     },
     onRightClick(event) {
-      window.alert("right click")
       event.preventDefault(); // Prevent default context menu
-
       // If no items are selected, select the right-clicked item
       if (!state.multiple) {
         mutations.resetSelected();
