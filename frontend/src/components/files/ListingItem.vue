@@ -187,15 +187,14 @@ export default {
       if (deltaX > movementThreshold || deltaY > movementThreshold) {
         this.isSwipe = true;
         this.cancelContext(); // Cancel long press if swipe is detected
-      } else {
       }
     },
-    handleTouchEnd(event) {
+    handleTouchEnd() {
       if (!state.isSafari) return
       this.cancelContext(); // Clear timeout
       this.isSwipe = false; // Reset swipe state
     },
-    cancelContext(event) {
+    cancelContext() {
       if (this.contextTimeout) {
         clearTimeout(this.contextTimeout);
         this.contextTimeout = null;

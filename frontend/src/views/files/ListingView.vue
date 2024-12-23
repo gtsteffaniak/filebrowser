@@ -257,7 +257,7 @@ export default {
     }
   },
   methods: {
-    cancelContext(event) {
+    cancelContext() {
       if (this.contextTimeout) {
         clearTimeout(this.contextTimeout);
         this.contextTimeout = null;
@@ -293,7 +293,7 @@ export default {
         this.cancelContext(); // Cancel long press if swipe is detected
       }
     },
-    handleTouchEnd(event) {
+    handleTouchEnd() {
       this.cancelContext(); // Clear timeout
       this.isSwipe = false; // Reset swipe state
     },
