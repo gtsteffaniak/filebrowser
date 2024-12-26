@@ -20,7 +20,6 @@ import router from "@/router";
 import { state, mutations, getters } from "@/store";
 import { filesApi } from "@/api";
 import Action from "@/components/Action.vue";
-import css from "@/utils/css";
 
 export default {
   name: "listingView",
@@ -203,9 +202,8 @@ export default {
       let columns = Math.floor(
         document.querySelector("main").offsetWidth / this.columnWidth
       );
-      let items = css(["#listingView .item", "#listingView .item"]);
       if (columns === 0) columns = 1;
-      items.style.width = `calc(${100 / columns}%)`;
+      document.documentElement.style.setProperty('--item-width', `calc(${100 / columns}%)`);
     },
     action() {
       if (this.show) {

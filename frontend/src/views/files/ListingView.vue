@@ -75,7 +75,6 @@ import download from "@/utils/download";
 import { filesApi } from "@/api";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
-import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
@@ -651,12 +650,10 @@ export default {
       action(false, false);
     },
     colunmsResize() {
-      let items = css(["#listingView .item", "#listingView .item"]);
-      items.style.width = `calc(${100 / this.numColumns}% - 1em)`;
       if (state.user.viewMode == "gallery") {
-        items.style.height = `${this.columnWidth / 20}em`;
+        document.documentElement.style.setProperty('--item-width', `${this.columnWidth / 20}em`);
       } else {
-        items.style.height = `auto`;
+        document.documentElement.style.setProperty('--item-width', `calc(${100 / this.numColumns}% - 1em)`);
       }
     },
     dragEnter() {
