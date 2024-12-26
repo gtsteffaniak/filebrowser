@@ -1,24 +1,9 @@
 <template>
-  <div
-    class="image-ex-container"
-    ref="container"
-    @touchstart="touchStart"
-    @touchmove="touchMove"
-    @dblclick="zoomAuto"
-    @mousedown="mousedownStart"
-    @mousemove="mouseMove"
-    @mouseup="mouseUp"
-    @wheel="wheelMove"
-  >
+  <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove="touchMove" @dblclick="zoomAuto"
+    @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
     <div v-if="!isLoaded">Loading image...</div>
 
-    <img
-      v-if="!isTiff && isLoaded"
-      :src="src"
-      class="image-ex-img"
-      ref="imgex"
-      @load="onLoad"
-    />
+    <img v-if="!isTiff && isLoaded" :src="src" class="image-ex-img" ref="imgex" @load="onLoad" />
     <canvas v-else-if="isLoaded" ref="imgex" class="image-ex-img"></canvas>
   </div>
 </template>
@@ -92,7 +77,7 @@ export default {
   },
   watch: {
     src: function () {
-      if (this.src == undefined || this.$refs.imgex == undefined) {
+      if (!this.src || !this.$refs.imgex) {
         mutations.setLoading("preview-img", false);
         return;
       }
@@ -102,15 +87,18 @@ export default {
       } else {
         this.$refs.imgex.src = this.src;
       }
-
-      this.scale = 1;
-      this.setZoom();
-      this.setCenter();
-      mutations.setLoading("preview-img", false);
-      this.showSpinner = false;
+      this.scale = 1; // Reset zoom level
+      this.position.relative = { x: 0, y: 0 }; // Reset position
+      this.showSpinner = true; // Show spinner while loading
     },
   },
   methods: {
+    onLoad() {
+      this.imageLoaded = true;
+      this.setCenter(); // Center the image after loading
+      this.showSpinner = false;
+      mutations.setLoading("preview-img", false);
+    },
     checkIfTiff(src) {
       const sufs = ["tif", "tiff", "dng", "cr2", "nef"];
       const suff = src.split(".").pop().toLowerCase();
@@ -144,16 +132,18 @@ export default {
       }
     }, 100),
     setCenter() {
-      let container = this.$refs.container;
-      let img = this.$refs.imgex;
+      const container = this.$refs.container;
+      const img = this.$refs.imgex;
+
+      if (!container || !img || !img.clientWidth || !img.clientHeight) {
+        return; // Exit if dimensions are unavailable
+      }
 
       this.position.center.x = Math.floor((container.clientWidth - img.clientWidth) / 2);
-      this.position.center.y = Math.floor(
-        (container.clientHeight - img.clientHeight) / 2
-      );
+      this.position.center.y = Math.floor((container.clientHeight - img.clientHeight) / 2);
 
-      img.style.left = this.position.center.x + "px";
-      img.style.top = this.position.center.y + "px";
+      img.style.left = `${this.position.center.x}px`;
+      img.style.top = `${this.position.center.y}px`;
     },
     mousedownStart(event) {
       this.lastX = null;
@@ -247,11 +237,13 @@ export default {
       this.$refs.imgex.style.transform = `translate(${this.position.relative.x}px, ${this.position.relative.y}px) scale(${this.scale})`;
     },
     wheelMove(event) {
+      event.preventDefault()
       this.scale += -Math.sign(event.deltaY) * this.zoomStep;
       this.setZoom();
     },
     setZoom() {
       this.scale = Math.max(this.minScale, Math.min(this.maxScale, this.scale));
+
       // Update the transform with both translate and scale values
       this.$refs.imgex.style.transform = `translate(${this.position.relative.x}px, ${this.position.relative.y}px) scale(${this.scale})`;
     },
@@ -264,17 +256,23 @@ export default {
 
 <style>
 .image-ex-container {
-  max-width: 100%; /* Image container max width */
-  max-height: 100%; /* Image container max height */
-  overflow: hidden; /* Hide overflow if image exceeds container */
-  position: relative; /* Required for absolute positioning of child */
+  max-width: 100%;
+  /* Image container max width */
+  max-height: 100%;
+  /* Image container max height */
+  overflow: hidden;
+  /* Hide overflow if image exceeds container */
+  position: relative;
+  /* Required for absolute positioning of child */
   display: flex;
   justify-content: center;
 }
 
 .image-ex-img {
-  max-width: 100%; /* Image max width */
-  max-height: 100%; /* Image max height */
+  max-width: 100%;
+  /* Image max width */
+  max-height: 100%;
+  /* Image max height */
   position: absolute;
 }
 </style>

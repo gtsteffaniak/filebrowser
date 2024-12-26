@@ -16,64 +16,26 @@
           <i class="material-icons">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
         </h2>
-        <input
-          style="display: none"
-          type="file"
-          id="upload-input"
-          @change="uploadInput($event)"
-          multiple
-        />
-        <input
-          style="display: none"
-          type="file"
-          id="upload-folder-input"
-          @change="uploadInput($event)"
-          webkitdirectory
-          multiple
-        />
+        <input style="display: none" type="file" id="upload-input" @change="uploadInput($event)" multiple />
+        <input style="display: none" type="file" id="upload-folder-input" @change="uploadInput($event)" webkitdirectory
+          multiple />
       </div>
-      <div
-        v-else
-        id="listingView"
-        ref="listingView"
-        :class="listingViewMode + ' file-icons'"
-      >
+      <div v-else id="listingView" ref="listingView" :class="listingViewMode + ' file-icons'">
         <div>
           <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }">
-            <p
-              :class="{ active: nameSorted }"
-              class="name"
-              role="button"
-              tabindex="0"
-              @click="sort('name')"
-              :title="$t('files.sortByName')"
-              :aria-label="$t('files.sortByName')"
-            >
+            <p :class="{ active: nameSorted }" class="name" role="button" tabindex="0" @click="sort('name')"
+              :title="$t('files.sortByName')" :aria-label="$t('files.sortByName')">
               <span>{{ $t("files.name") }}</span>
               <i class="material-icons">{{ nameIcon }}</i>
             </p>
 
-            <p
-              :class="{ active: sizeSorted }"
-              class="size"
-              role="button"
-              tabindex="0"
-              @click="sort('size')"
-              :title="$t('files.sortBySize')"
-              :aria-label="$t('files.sortBySize')"
-            >
+            <p :class="{ active: sizeSorted }" class="size" role="button" tabindex="0" @click="sort('size')"
+              :title="$t('files.sortBySize')" :aria-label="$t('files.sortBySize')">
               <span>{{ $t("files.size") }}</span>
               <i class="material-icons">{{ sizeIcon }}</i>
             </p>
-            <p
-              :class="{ active: modifiedSorted }"
-              class="modified"
-              role="button"
-              tabindex="0"
-              @click="sort('modified')"
-              :title="$t('files.sortByLastModified')"
-              :aria-label="$t('files.sortByLastModified')"
-            >
+            <p :class="{ active: modifiedSorted }" class="modified" role="button" tabindex="0" @click="sort('modified')"
+              :title="$t('files.sortByLastModified')" :aria-label="$t('files.sortByLastModified')">
               <span>{{ $t("files.lastModified") }}</span>
               <i class="material-icons">{{ modifiedIcon }}</i>
             </p>
@@ -84,23 +46,10 @@
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div
-          v-if="numDirs > 0"
-          class="folder-items"
-          :class="{ lastGroup: numFiles === 0 }"
-        >
-          <item
-            v-for="item in dirs"
-            :key="base64(item.name)"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'"
-            v-bind:url="item.url"
-            v-bind:modified="item.modified"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-          />
+        <div v-if="numDirs > 0" class="folder-items" :class="{ lastGroup: numFiles === 0 }">
+          <item v-for="item in dirs" :key="base64(item.name)" v-bind:index="item.index" v-bind:name="item.name"
+            v-bind:isDir="item.type == 'directory'" v-bind:url="item.url" v-bind:modified="item.modified"
+            v-bind:type="item.type" v-bind:size="item.size" v-bind:path="item.path" />
         </div>
         <div v-if="numFiles > 0">
           <div class="header-items">
@@ -108,35 +57,14 @@
           </div>
         </div>
         <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }">
-          <item
-            v-for="item in files"
-            :key="base64(item.name)"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'"
-            v-bind:url="item.url"
-            v-bind:modified="item.modified"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-          />
+          <item v-for="item in files" :key="base64(item.name)" v-bind:index="item.index" v-bind:name="item.name"
+            v-bind:isDir="item.type == 'directory'" v-bind:url="item.url" v-bind:modified="item.modified"
+            v-bind:type="item.type" v-bind:size="item.size" v-bind:path="item.path" />
         </div>
 
-        <input
-          style="display: none"
-          type="file"
-          id="upload-input"
-          @change="uploadInput($event)"
-          multiple
-        />
-        <input
-          style="display: none"
-          type="file"
-          id="upload-folder-input"
-          @change="uploadInput($event)"
-          webkitdirectory
-          multiple
-        />
+        <input style="display: none" type="file" id="upload-input" @change="uploadInput($event)" multiple />
+        <input style="display: none" type="file" id="upload-folder-input" @change="uploadInput($event)" webkitdirectory
+          multiple />
       </div>
     </div>
   </div>
@@ -290,14 +218,12 @@ export default {
     window.addEventListener("resize", this.windowsResize);
     this.$el.addEventListener("click", this.clickClear);
 
-    // Detect Safari
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
     // Adjust contextmenu listener based on browser
-    if (isSafari) {
+    if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu
       this.$el.addEventListener("touchstart", this.openContextForSafari);
       this.$el.addEventListener("mousedown", this.openContextForSafari);
+      this.$el.addEventListener("touchmove", this.handleTouchMove);
 
       // Also clear the timeout if the user clicks or taps quickly
       this.$el.addEventListener("touchend", this.cancelContext);
@@ -319,29 +245,57 @@ export default {
     window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
     // If Safari, remove touchstart listener
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    if (isSafari) {
+    if (state.isSafari) {
       this.$el.removeEventListener("touchstart", this.openContextForSafari);
       this.$el.removeEventListener("mousedown", this.openContextForSafari);
       this.$el.removeEventListener("touchend", this.cancelContext);
       this.$el.removeEventListener("mouseup", this.cancelContext);
+      this.$el.removeEventListener("touchmove", this.handleTouchMove);
+
     } else {
       window.removeEventListener("contextmenu", this.openContext);
     }
   },
   methods: {
-    cancelContext(event) {
+    cancelContext() {
       if (this.contextTimeout) {
         clearTimeout(this.contextTimeout);
+        this.contextTimeout = null;
       }
+      this.isLongPress = false;
     },
     openContextForSafari(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      // Set a timeout that triggers after 500ms of hold
+      this.cancelContext(); // Clear any previous timeouts
+      this.isLongPress = false; // Reset state
+      this.isSwipe = false; // Reset swipe detection
+
+      const touch = event.touches[0];
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+
+      // Start the long press detection
       this.contextTimeout = setTimeout(() => {
-        this.openContext(event);
-      }, 500); // You can adjust the delay (500ms) to mimic "click and hold"
+        if (!this.isSwipe) {
+          this.isLongPress = true;
+          event.preventDefault(); // Suppress Safari's callout menu
+          this.openContext(event); // Open the custom context menu
+        }
+      }, 500); // Long press delay (adjust as needed)
+    },
+    handleTouchMove(event) {
+      const touch = event.touches[0];
+      const deltaX = Math.abs(touch.clientX - this.touchStartX);
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      // Set a threshold for movement to detect a swipe
+      const movementThreshold = 10; // Adjust as needed
+      if (deltaX > movementThreshold || deltaY > movementThreshold) {
+        this.isSwipe = true;
+        this.cancelContext(); // Cancel long press if swipe is detected
+      }
+    },
+    handleTouchEnd() {
+      this.cancelContext(); // Clear timeout
+      this.isSwipe = false; // Reset swipe state
     },
     base64(name) {
       return url.base64Encode(name);
@@ -354,7 +308,6 @@ export default {
         mutations.addSelected(allItems[0].index);
       }
     },
-
     // Helper method to select an item by index
     selectItem(index) {
       mutations.resetSelected();
@@ -877,6 +830,7 @@ export default {
 .dark-mode-item-header {
   border-color: var(--divider) !important;
   background: var(--surfacePrimary) !important;
+  user-select: none;
 }
 
 .header-items {

@@ -112,7 +112,7 @@ export default {
         }
         action(overwrite, rename);
       } catch (e) {
-        notify.error(e);
+        notify.showError(e);
       }
       return;
     },

@@ -16,8 +16,12 @@
     :data-type="type"
     :aria-label="name"
     :aria-selected="isSelected"
-    @contextmenu="onRightClick"
+    @contextmenu="onRightClick($event)"
     @click="click($event)"
+    @touchstart="addSelected($event)"
+    @touchmove="handleTouchMove($event)"
+    @touchend="cancelContext($event)"
+    @mouseup="cancelContext($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <img
@@ -91,6 +95,10 @@ export default {
       isThumbnailInView: false,
       isMaximized: false,
       touches: 0,
+      touchStartX: 0,
+      touchStartY: 0,
+      isLongPress: false,
+      isSwipe: false,
     };
   },
   props: [
@@ -169,6 +177,30 @@ export default {
     }
   },
   methods: {
+    handleTouchMove(event) {
+      if (!state.isSafari) return
+      const touch = event.touches[0];
+      const deltaX = Math.abs(touch.clientX - this.touchStartX);
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      // Set a threshold for movement to detect a swipe
+      const movementThreshold = 10; // Adjust as needed
+      if (deltaX > movementThreshold || deltaY > movementThreshold) {
+        this.isSwipe = true;
+        this.cancelContext(); // Cancel long press if swipe is detected
+      }
+    },
+    handleTouchEnd() {
+      if (!state.isSafari) return
+      this.cancelContext(); // Clear timeout
+      this.isSwipe = false; // Reset swipe state
+    },
+    cancelContext() {
+      if (this.contextTimeout) {
+        clearTimeout(this.contextTimeout);
+        this.contextTimeout = null;
+      }
+      this.isLongPress = false;
+    },
     updateHashAndNavigate(path) {
       // Update hash in the browser without full page reload
       window.location.hash = path;
@@ -181,7 +213,6 @@ export default {
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
-
       // If no items are selected, select the right-clicked item
       if (!state.multiple) {
         mutations.resetSelected();
@@ -296,6 +327,22 @@ export default {
 
       action(overwrite, rename);
     },
+    addSelected(event) {
+      if (!state.isSafari) return
+      const touch = event.touches[0];
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+      this.isLongPress = false; // Reset state
+      this.isSwipe = false; // Reset swipe detection
+      if (!state.multiple) {
+        this.contextTimeout = setTimeout(() => {
+          if (!this.isSwipe) {
+            mutations.resetSelected();
+            mutations.addSelected(this.index);
+          }
+        }, 500);
+      }
+    },
     click(event) {
       if (event.button === 0) {
         // Left-click
@@ -305,13 +352,12 @@ export default {
         }
       }
 
-      if (!this.singleClick && getters.selectedCount() !== 0 && event.button === 0) {
+      if (!state.user.singleClick && getters.selectedCount() !== 0 && event.button === 0) {
         event.preventDefault();
       }
       setTimeout(() => {
         this.touches = 0;
       }, 500);
-
       this.touches++;
       if (this.touches > 1) {
         this.open();
@@ -342,7 +388,7 @@ export default {
 
         return;
       }
-      if (!this.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple) {
+      if (!state.user.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple) {
         mutations.resetSelected();
       }
       mutations.addSelected(this.index);
@@ -355,3 +401,10 @@ export default {
   },
 };
 </script>
+
+<style>
+.item {
+  -webkit-touch-callout: none; /* Disable the default long press preview */
+  user-select: none; /* Optional: Disable text selection for better UX */
+}
+</style>
