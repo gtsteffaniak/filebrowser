@@ -19,7 +19,7 @@
   <!-- Add to home screen for Safari on iOS/iPadOS -->
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="assets">
-  <link rel="apple-touch-icon" href="{{ .StaticURL }}/img/icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ .StaticURL }}/img/icons/android-chrome-256x256.png">
 
   <!-- Add to home screen for Windows -->
   <meta name="msapplication-TileImage" content="{{ .StaticURL }}/img/icons/mstile-144x144.png">
@@ -28,19 +28,22 @@
   <!-- Inject Some Variables and generate the manifest json -->
   <script>
     window.FileBrowser =  JSON.parse('{{ .globalVars }}');
-
-    var fullStaticURL = window.location.origin + window.FileBrowser.StaticURL;
     var dynamicManifest = {
       "name": window.FileBrowser.Name || 'FileBrowser Quantum',
       "short_name": window.FileBrowser.Name || 'FileBrowser',
       "icons": [
         {
-          "src":  fullStaticURL + "/img/icons/android-chrome-256x256.png",
+          "src": window.location.origin+"{{ .StaticURL }}/img/icons/android-chrome-256x256.png",
           "sizes": "512x512",
           "type": "image/png"
-        }
+        },
+        {
+          "src": window.location.origin+"{{ .StaticURL }}/img/icons/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        },
       ],
-      "start_url": fullStaticURL,
+      "start_url": window.location.origin+"{{ .BaseURL }}",
       "display": "standalone",
       "background_color": "#ffffff",
       "theme_color": window.FileBrowser.Color || "#455a64"
