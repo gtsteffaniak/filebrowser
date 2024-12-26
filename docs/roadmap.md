@@ -1,7 +1,7 @@
 # Planned Roadmap
 
 Upcoming 0.3.x releases, ordered by priority:
-  - Bring Themes and Branding back.
+  - Bring Themes and Branding back. 
   - openoffice support https://github.com/filebrowser/filebrowser/pull/2954
   - More filetype previews: eg. raw img, office, photoshop, vector, 3d files.
   - Introduce jobs as replacement to runners.
