@@ -133,8 +133,6 @@ export default {
   },
 
   mounted() {
-    // Check the columns size for the first time.
-    this.colunmsResize();
 
     // How much every listing item affects the window height
     this.setItemWeight();
@@ -196,14 +194,6 @@ export default {
 
       // How much every listing item affects the window height
       this.itemWeight = this.$refs.listingView.offsetHeight / itemQuantity;
-    },
-    colunmsResize() {
-      // Update the columns size based on the window width.
-      let columns = Math.floor(
-        document.querySelector("main").offsetWidth / this.columnWidth
-      );
-      if (columns === 0) columns = 1;
-      document.documentElement.style.setProperty('--item-width', `calc(${100 / columns}%)`);
     },
     action() {
       if (this.show) {

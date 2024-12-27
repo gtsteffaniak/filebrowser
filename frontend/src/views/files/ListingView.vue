@@ -650,10 +650,12 @@ export default {
       action(false, false);
     },
     colunmsResize() {
+      document.documentElement.style.setProperty('--item-width', `calc(${100 / this.numColumns}% - 1em)`);
+
       if (state.user.viewMode == "gallery") {
-        document.documentElement.style.setProperty('--item-width', `${this.columnWidth / 20}em`);
+        document.documentElement.style.setProperty('--item-height', `calc(${this.columnWidth / 20}em)`);
       } else {
-        document.documentElement.style.setProperty('--item-width', `calc(${100 / this.numColumns}% - 1em)`);
+        document.documentElement.style.setProperty('--item-height', `auto`);
       }
     },
     dragEnter() {

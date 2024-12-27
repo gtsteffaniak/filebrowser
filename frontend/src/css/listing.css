@@ -38,8 +38,8 @@ body.rtl #listingView {
   cursor: pointer;
   user-select: none;
   overflow:hidden;
-  width: calc(var(--item-width));
-
+  width: var(--item-width);
+  height: var(--item-height);
 }
 
 #listingView .item div:last-of-type {
