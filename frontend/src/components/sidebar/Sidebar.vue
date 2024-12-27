@@ -77,7 +77,7 @@ export default {
   transition: 0.5s ease;
   top: 4em;
   padding-bottom: 4em;
-  background-color: rgb(255 255 255 / 50%) !important;
+  background-color: #DDDDDD
 }
 
 #sidebar.sticky {
