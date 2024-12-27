@@ -35,7 +35,7 @@
         :class="{ activeimg: isMaximized && isSelected }"
         ref="thumbnail"
       />
-      <Icon v-else :mimetype="type" />
+      <Icon v-else :mimetype="type" :active="isSelected" />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">

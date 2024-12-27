@@ -1,7 +1,7 @@
 <template>
   <span>
     <!-- Material Icon -->
-    <i v-if="isMaterialIcon" :class="classes" class="icon"> {{ materialIcon }} </i>
+    <i v-if="isMaterialIcon" :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
   </span>
 </template>
 
@@ -15,6 +15,9 @@ export default {
       type: String,
       required: true,
     },
+    active: {
+      type: Boolean,
+    }
   },
   data() {
     return {
@@ -36,6 +39,7 @@ export default {
   mounted() {
     const result = this.getIconForType(this.mimetype);
     this.classes = result.classes || "material-icons"; // Default class
+    console.log(this.classes)
     this.color = result.color || "lightgray"; // Default color
     this.materialIcon = result.materialIcon || "";
     this.svgPath = result.svgPath || ""; // For SVG file paths
@@ -62,6 +66,9 @@ export default {
   /* Default size */
   fill: currentColor;
   /* Uses inherited color */
+  border-radius: 0.25em;
+  padding: .1em;
+  background: var(--alt-background);
 }
 
 .purple-icons {
@@ -72,6 +79,16 @@ export default {
 .blue-icons {
   color: var(--icon-blue);
 }
+
+/* Icon Colors */
+.primary-icons {
+  color: var(--primaryColor);
+}
+
+.primary-icons.active {
+  text-shadow: 0px 0px 1px #000;
+}
+
 
 .lightblue-icons {
   color: lightskyblue;
@@ -118,7 +135,7 @@ export default {
 }
 
 .lightgray-icons {
-  color: lightgray;
+  color: rgb(176, 176, 176);
 }
 
 .yellow-icons {

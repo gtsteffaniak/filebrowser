@@ -95,8 +95,8 @@ body.rtl #nav .wrapper {
 }
 
 .dashboard #nav ul li.active {
-  border-color: var(--blue);
-  color: var(--blue);
+  border-color: var(--primaryColor);
+  color: var(--primaryColor);
 }
 
 .dashboard #nav ul li.active::before {
@@ -106,7 +106,7 @@ body.rtl #nav .wrapper {
   top: 0;
   left: 0;
   content: "";
-  background: var(--blue);
+  background: var(--primaryColor);
   opacity: 0.08;
 }
 
@@ -265,7 +265,7 @@ body.rtl .card .card-title>*:first-child {
 }
 
 .card#share ul li a {
-  color: var(--blue);
+  color: var(--primaryColor);
   cursor: pointer;
   margin-right: auto;
 }
@@ -340,7 +340,7 @@ body.rtl .card .card-title>*:first-child {
 }
 
 .file-list li[aria-selected=true] {
-  background: var(--blue) !important;
+  background: var(--primaryColor) !important;
   color: #fff !important;
   transition: .1s ease all;
 }

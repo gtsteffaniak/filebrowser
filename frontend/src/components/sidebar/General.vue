@@ -247,7 +247,7 @@ button.action {
 }
 
 .quick-toggles .active {
-  background-color: var(--blue) !important;
+  background-color: var(--primaryColor) !important;
   border-radius: 10em;
 }
 .inner-card {

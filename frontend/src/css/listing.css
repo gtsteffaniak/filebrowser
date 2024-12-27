@@ -312,7 +312,7 @@ body.rtl #listingView {
 }
 
 #listingView .item[aria-selected=true] {
-  background: var(--blue) !important;
+  background: var(--primaryColor) !important;
   color: var(--item-selected) !important;
 }
 
