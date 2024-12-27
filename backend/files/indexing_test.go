@@ -78,6 +78,7 @@ func TestMakeIndexPath(t *testing.T) {
 		subPath  string
 		expected string
 	}{
+		// Linux
 		{"Root path returns slash", "/", "/"},
 		{"Dot-prefixed returns slash", ".", "/"},
 		{"Double-dot prefix ignored", "./", "/"},
@@ -87,6 +88,9 @@ func TestMakeIndexPath(t *testing.T) {
 		{"Trailing slash removed", "/test/", "/test"},
 		{"Subpath without root prefix", "/other/test", "/other/test"},
 		{"Complex nested paths", "/nested/path", "/nested/path"},
+		// Windows
+		{"Mixed slash", "/first\\second", "/first/second"},
+		{"Windows slash", "\\first\\second", "/first/second"},
 	}
 
 	for _, tt := range tests {
@@ -94,7 +98,7 @@ func TestMakeIndexPath(t *testing.T) {
 			si := &Index{Root: "/"}
 			result := si.makeIndexPath(tt.subPath)
 			if result != tt.expected {
-				t.Errorf("makeIndexPath(%q) = %q; want %q", tt.name, result, tt.expected)
+				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
 		})
 	}
