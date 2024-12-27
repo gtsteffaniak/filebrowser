@@ -391,7 +391,7 @@ export default {
 .searchContext {
   width: 100%;
   padding: 0.5em 1em;
-  background: var(--blue);
+  background: var(--primaryColor);
   color: white;
   border-left: 1px solid gray;
   border-right: 1px solid gray;
@@ -442,7 +442,7 @@ export default {
 
 #search #result-list.active {
   width: 1000px;
-  max-width: 100vw;
+  max-width: 95vw;
 }
 
 /* Animations */
@@ -640,7 +640,7 @@ body.rtl #search .boxes h3 {
   cursor: pointer;
   overflow: hidden;
   margin-bottom: 1em;
-  background: var(--blue);
+  background: var(--primaryColor);
   color: white;
   padding: 1em;
   border-radius: 1em;

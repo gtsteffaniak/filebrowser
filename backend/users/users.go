@@ -55,6 +55,7 @@ type User struct {
 	HideDotfiles    bool                 `json:"hideDotfiles"`
 	DateFormat      bool                 `json:"dateFormat"`
 	GallerySize     int                  `json:"gallerySize"`
+	ThemeColor      string               `json:"themeColor"`
 }
 
 var PublicUser = User{

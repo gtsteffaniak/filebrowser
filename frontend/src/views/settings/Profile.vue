@@ -23,11 +23,7 @@
             {{ $t("settings.setDateFormat") }}
           </p>
           <h3>Listing View Style</h3>
-          <ViewMode
-            class="input input--block"
-            :viewMode="viewMode"
-            @update:viewMode="updateViewMode"
-          ></ViewMode>
+          <ViewMode class="input input--block" :viewMode="viewMode" @update:viewMode="updateViewMode"></ViewMode>
           <br />
           <h3>Default View Size</h3>
           <p>
@@ -35,29 +31,18 @@
             accross logins.
           </p>
           <div>
-            <input
-              v-model="gallerySize"
-              type="range"
-              id="gallary-size"
-              name="gallary-size"
-              min="0"
-              max="10"
-            />
+            <input v-model="gallerySize" type="range" id="gallary-size" name="gallary-size" min="0" max="10" />
+          </div>
+          <h3>Theme Color</h3>
+          <div>
+            <ButtonGroup :buttons="colorChoices" @button-clicked="setColor" :initialActive="color"/>
           </div>
           <h3>{{ $t("settings.language") }}</h3>
-          <Languages
-            class="input input--block"
-            :locale="locale"
-            @update:locale="updateLocale"
-          ></Languages>
+          <Languages class="input input--block" :locale="locale" @update:locale="updateLocale"></Languages>
         </div>
 
         <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="$t('buttons.update')"
-          />
+          <input class="button button--flat" type="submit" :value="$t('buttons.update')" />
         </div>
       </form>
       <hr />
@@ -67,28 +52,14 @@
         </div>
 
         <div class="card-content">
-          <input
-            :class="passwordClass"
-            type="password"
-            :placeholder="$t('settings.newPassword')"
-            v-model="password"
-            name="password"
-          />
-          <input
-            :class="passwordClass"
-            type="password"
-            :placeholder="$t('settings.newPasswordConfirm')"
-            v-model="passwordConf"
-            name="password"
-          />
+          <input :class="passwordClass" type="password" :placeholder="$t('settings.newPassword')" v-model="password"
+            name="password" />
+          <input :class="passwordClass" type="password" :placeholder="$t('settings.newPasswordConfirm')"
+            v-model="passwordConf" name="password" />
         </div>
 
         <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="$t('buttons.update')"
-          />
+          <input class="button button--flat" type="submit" :value="$t('buttons.update')" />
         </div>
       </form>
     </div>
@@ -102,12 +73,14 @@ import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import ViewMode from "@/components/settings/ViewMode.vue";
 import i18n, { rtlLanguages } from "@/i18n";
+import ButtonGroup from "@/components/ButtonGroup.vue";
 
 export default {
   name: "settings",
   components: {
     ViewMode,
     Languages,
+    ButtonGroup,
   },
   data() {
     return {
@@ -120,6 +93,15 @@ export default {
       viewMode: "list",
       locale: "",
       gallerySize: 0,
+      color: "",
+      colorChoices: [
+        { label: "blue", value: "var(--blue)" },
+        { label: "red", value: "var(--red)" },
+        { label: "green", value: "var(--icon-green)" },
+        { label: "violet", value: "var(--icon-violet)" },
+        { label: "yellow", value: "var(--icon-yellow)" },
+        { label: "orange", value: "var(--icon-orange)" },
+      ],
     };
   },
   computed: {
@@ -154,6 +136,7 @@ export default {
     this.singleClick = state.user.singleClick;
     this.dateFormat = state.user.dateFormat;
     this.gallerySize = state.user.gallerySize;
+    this.color = state.user.themeColor;
   },
   watch: {
     gallerySize(newValue) {
@@ -161,13 +144,14 @@ export default {
     },
   },
   methods: {
+    setColor(string) {
+      this.color = string
+    },
     async updatePassword(event) {
       event.preventDefault();
-
       if (this.password !== this.passwordConf || this.password === "") {
         return;
       }
-
       try {
         let newUserSettings = state.user;
         newUserSettings.id = state.user.id;
@@ -179,6 +163,9 @@ export default {
       }
     },
     async updateSettings(event) {
+      if (this.color != "") {
+        document.documentElement.style.setProperty('--primaryColor', this.color);
+      }
       event.preventDefault();
       try {
         const data = {
@@ -190,6 +177,7 @@ export default {
           singleClick: this.singleClick,
           dateFormat: this.dateFormat,
           gallerySize: this.gallerySize,
+          themeColor: this.color,
         };
         const shouldReload =
           rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);

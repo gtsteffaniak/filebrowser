@@ -2,7 +2,7 @@
 export function getTypeInfo(mimeType) {
     if (mimeType === "directory" || mimeType === "application/vnd.google-apps.folder") {
         return {
-            classes: "blue-icons material-icons",
+            classes: "primary-icons material-icons",
             materialIcon: "folder",
             simpleType: "directory",
         };

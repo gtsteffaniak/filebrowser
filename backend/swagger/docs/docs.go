@@ -1342,6 +1342,9 @@ const docTemplate = `{
                 "stickySidebar": {
                     "type": "boolean"
                 },
+                "themeColor": {
+                    "type": "string"
+                },
                 "viewMode": {
                     "type": "string"
                 }
@@ -1541,6 +1544,9 @@ const docTemplate = `{
                 },
                 "stickySidebar": {
                     "type": "boolean"
+                },
+                "themeColor": {
+                    "type": "string"
                 },
                 "username": {
                     "type": "string"

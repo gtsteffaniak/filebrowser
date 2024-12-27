@@ -1,6 +1,7 @@
 /* Basic Styles */
 :root {
   --background: white;
+  --alt-background: #ddd;
   --surfacePrimary: gray;
   --surfaceSecondary: lightgray;
   --textPrimary: white;
@@ -186,7 +187,7 @@ button:disabled {
 }
 
 #popup-notification.success {
-  background: var(--blue);
+  background: var(--primaryColor);
 }
 #popup-notification.error {
   background: var(--red);
