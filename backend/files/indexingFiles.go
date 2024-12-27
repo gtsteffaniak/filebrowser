@@ -161,6 +161,7 @@ func (si *Index) indexDirectory(adjustedPath string, quick, recursive bool) erro
 }
 
 func (si *Index) makeIndexPath(subPath string) string {
+	subPath = strings.ReplaceAll(subPath, "\\", "/")
 	if strings.HasPrefix(subPath, "./") {
 		subPath = strings.TrimPrefix(subPath, ".")
 	}

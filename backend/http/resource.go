@@ -407,9 +407,9 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)
-	isDir := r.URL.Query().Get("isDir") == "true"
+	isNotDir := r.URL.Query().Get("isDir") == "false" // default to isDir true
 	index := files.GetIndex(config.Server.Root)
-	info, _ := index.GetReducedMetadata(path, isDir)
+	info, _ := index.GetReducedMetadata(path, !isNotDir)
 	renderJSON(w, r, info) // nolint:errcheck
 }
 
