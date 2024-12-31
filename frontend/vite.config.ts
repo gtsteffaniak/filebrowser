@@ -23,8 +23,6 @@ const resolve = {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
-
-  // command === 'build'
   return {
     plugins,
     resolve,
@@ -56,11 +54,10 @@ export default defineConfig(({ command }) => {
     },
     test: {
       globals: true,
-      include: ["src/**/*.test.js"], // Explicitly include test files only
-      exclude: ["src/**/*.vue"], // Exclude Vue files unless tested directly
-      environment: "jsdom", // jsdom environment
-      setupFiles: "tests/mocks/setup.js", // Setup file for tests
+      include: ["src/**/*.test.js"],
+      exclude: ["src/**/*.vue"],
+      environment: "jsdom",
+      setupFiles: "tests/mocks/setup.js",
     },
   };
-
 });

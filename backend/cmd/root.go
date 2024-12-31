@@ -129,8 +129,13 @@ func StartFilebrowser() {
 	swagInfo.BasePath = serverConfig.BaseURL
 	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
-	sourceConfig := files.GetSourceConfig()
-	go files.InitializeIndex(sourceConfig)
+	sourceConfigs := settings.Config.Server.Sources
+	if len(sourceConfigs) == 0 {
+		log.Fatal("No sources configured, exiting...")
+	}
+	for _, source := range sourceConfigs {
+		go files.Initialize(source)
+	}
 	if err := rootCMD(store, &serverConfig); err != nil {
 		log.Fatal("Error starting filebrowser:", err)
 	}

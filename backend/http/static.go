@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -52,7 +51,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"BaseURL":               config.Server.BaseURL,
 		"Version":               version.Version,
 		"CommitSHA":             version.CommitSHA,
-		"StaticURL":             path.Join(config.Server.BaseURL, "static"),
+		"StaticURL":             config.Server.BaseURL + "static",
 		"Signup":                settings.Config.Auth.Signup,
 		"NoAuth":                config.Auth.Method == "noauth",
 		"AuthMethod":            config.Auth.Method,
@@ -62,6 +61,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"EnableThumbs":          config.Server.EnableThumbnails,
 		"ResizePreview":         config.Server.ResizePreview,
 		"EnableExec":            config.Server.EnableExec,
+		"ReCaptchaHost":         config.Auth.Recaptcha.Host,
 	}
 
 	if config.Frontend.Files != "" {

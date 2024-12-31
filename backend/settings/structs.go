@@ -57,18 +57,18 @@ type Server struct {
 }
 
 type Source struct {
-	Name  string      `json:"name"`
-	Path  string      `json:"path"`
-	Index IndexConfig `json:"index"`
+	Name   string      `json:"name"`
+	Path   string      `json:"path"`
+	Config IndexConfig `json:"config"`
 }
 
 type IndexConfig struct {
-	Disabled    bool     `json:"disabled"`
-	MaxWatchers int      `json:"maxWatchers"`
-	NeverWatch  []string `json:"neverWatchPaths"`
-	HiddenFiles bool     `json:"hiddenFiles"`
-	Exclude     []string `json:"exclude"`
-	Include     []string `json:"include"`
+	Disabled     bool     `json:"disabled"`
+	MaxWatchers  int      `json:"maxWatchers"`
+	NeverWatch   []string `json:"neverWatchPaths"`
+	IgnoreHidden bool     `json:"ignoreHidden"`
+	Exclude      []string `json:"exclude"`
+	Include      []string `json:"include"`
 }
 
 type Frontend struct {
@@ -101,4 +101,5 @@ type UserDefaults struct {
 	Commands     []string          `json:"commands,omitempty"`
 	HideDotfiles bool              `json:"hideDotfiles"`
 	DateFormat   bool              `json:"dateFormat"`
+	ThemeColor   string            `json:"themeColor"`
 }

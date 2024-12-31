@@ -201,6 +201,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  user-select: none;
 }
 
 #context-menu.centered {

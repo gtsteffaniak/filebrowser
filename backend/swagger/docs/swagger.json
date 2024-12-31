@@ -1331,6 +1331,9 @@
                 "stickySidebar": {
                     "type": "boolean"
                 },
+                "themeColor": {
+                    "type": "string"
+                },
                 "viewMode": {
                     "type": "string"
                 }
@@ -1530,6 +1533,9 @@
                 },
                 "stickySidebar": {
                     "type": "boolean"
+                },
+                "themeColor": {
+                    "type": "string"
                 },
                 "username": {
                     "type": "string"

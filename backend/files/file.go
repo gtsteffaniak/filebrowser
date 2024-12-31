@@ -78,6 +78,9 @@ func (f FileOptions) Components() (string, string) {
 
 func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	response := ExtendedFileInfo{}
+	if opts.Source == "" {
+		opts.Source = "default"
+	}
 	index := GetIndex(opts.Source)
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)

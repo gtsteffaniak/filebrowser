@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
   isMobile: window.innerWidth <= 800,
   showSidebar: false,
@@ -13,6 +14,7 @@ export const state = reactive({
   editor: null,
   user: {
     gallarySize: 0,
+    singleClick: false,
     stickySidebar: stickyStartup(),
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view

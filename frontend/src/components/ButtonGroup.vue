@@ -8,7 +8,7 @@
         v-for="(btn, index) in buttons"
         :key="index"
         :class="{ active: activeButton === index }"
-        @click="setActiveButton(index, btn.label)"
+        @click="setActiveButton(index, btn.value)"
       >
         {{ btn.label }}
       </button>
@@ -28,30 +28,30 @@ export default {
       default: false,
     },
     initialActive: {
-      type: Number,
-      default: null,
+      type: String,
+      default: "",
     },
   },
   data() {
     return {
-      activeButton: this.initialActive,
+      activeButton: null, // Initially no button is active
     };
   },
   methods: {
-    setActiveButton(index, label) {
-      if (label == "Only Folders" && this.activeButton != index) {
+    setActiveButton(index, value) {
+      if (value === "Only Folders" && this.activeButton !== index) {
         this.$emit("disableAll");
       }
-      if (label == "Only Folders" && this.activeButton == index) {
+      if (value === "Only Folders" && this.activeButton === index) {
         this.$emit("enableAll");
       }
-      if (label == "Only Files" && this.activeButton != index) {
+      if (value === "Only Files" && this.activeButton !== index) {
         this.$emit("enableAll");
       }
       // If the clicked button is already active, de-select it
       if (this.activeButton === index) {
         this.activeButton = null;
-        this.$emit("remove-button-clicked", this.buttons[index].value);
+        this.$emit("remove-button-clicked", value);
       } else {
         // Emit remove-button-clicked for all other indexes
         this.buttons.forEach((button, idx) => {
@@ -61,7 +61,7 @@ export default {
         });
 
         this.activeButton = index;
-        this.$emit("button-clicked", this.buttons[index].value);
+        this.$emit("button-clicked", value);
       }
     },
   },
@@ -69,7 +69,9 @@ export default {
     initialActive: {
       immediate: true,
       handler(newVal) {
-        this.activeButton = newVal;
+        // Find the button whose value matches initialActive
+        const initialIndex = this.buttons.findIndex((btn) => btn.value === newVal);
+        this.activeButton = initialIndex !== -1 ? initialIndex : null; // Set to matching button index or null
       },
     },
   },
@@ -82,6 +84,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   border: 1px solid #ccc;
+  border-top:none;
   border-radius: 1em;
   overflow: hidden;
 }
@@ -96,9 +99,9 @@ button {
   transition: background-color 0.3s;
   /* Add borders */
   border-right: 1px solid #ccc;
+  border-top: 1px solid #ccc;
 }
 
-/* Remove the border from the last button */
 .button-group > button:last-child {
   border-right: none;
 }
@@ -112,7 +115,7 @@ button:disabled {
 }
 
 button.active {
-  background-color: var(--blue) !important;
+  background-color: var(--primaryColor) !important;
   color: #ffffff;
 }
 </style>

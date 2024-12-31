@@ -10,15 +10,15 @@
 </p>
 
 > [!Note]
-> Starting with v0.3.3, configuration file mapping is different to support non-root user. Now, the default config file name is `config.yaml` and in docker the path is `/home/filebrowser/config.yaml` and `/home/filebrowser/<database_file>`. Please read the usage below to properly update your config to point the new config location.
+> Starting with v0.3.3, configuration file mapping is different to support non-root user. Now, the default config file name is `config.yaml` and in docker the path is `/home/filebrowser/config.yaml` and `/home/filebrowser/<database_file>`. Please read the usage below to properly update your config to point the new config location. (open an issue for any help needed)
 
 > [!WARNING]
 > - There is no stable version yet. Always check release notes for bug fixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
 
 FileBrowser Quantum is a fork of the file browser opensource project with the following changes:
 
-  1. [x] Indexes files efficiently. See [indexing readme](./docs/indexing.md)
-     - Real-time search results as you type
+  1. [x] Indexes files efficiently. (See [indexing Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.)
+     - Real-time search results as you type!
      - Search supports file/folder sizes and many file type filters.
      - Enhanced interactive results that show file/folder sizes.
   2. [x] Revamped and simplified GUI navbar and sidebar menu.
@@ -26,21 +26,21 @@ FileBrowser Quantum is a fork of the file browser opensource project with the fo
        styles.
      - Many graphical and user experience improvements.
      - right-click context menu
-  3. [x] Revamped and simplified configuration via `filebrowser.yml` config file.
+  3. [x] Revamped and simplified configuration via `config.yaml` config file.
   4. [x] Better listing browsing
      - Switching view modes is instant
      - Folder sizes are shown as well
      - Changing Sort order is instant
      - The entire directory is loaded in 1/3 the time
   5. [x] Developer API support
-     - Can create long-live API Tokens.
+     - Ability to create long-live API Tokens.
      - Helpful Swagger page available at `/swagger` endpoint.
 
 Notable features that this fork *does not* have (removed):
 
  - jobs/runners are not supported yet (planned).
  - shell commands are completely removed and will not be returned.
- - themes and branding are not fully supported yet (planned).
+ - Themes and branding are not fully supported yet (planned).
  - see feature matrix below for more.
  - pagination for directory items, so large directories with more than 100,000 items may be slow to load or not load at all.
 
@@ -66,10 +66,11 @@ focus of this fork is on a few key principles:
   - Minimize external dependencies and standard library usage.
   - Of course -- adding much-needed features.
 
+For more questions, see the [Q&A Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A)
+
 ## Look
 
-One way you can observe the improved user experience is how I changed
-the UI. The Navbar is simplified to a three-component system :
+The UI has a simple three-component navigation system :
 
   1. (Left) The slide-out action panel button
   2. (Middle) The powerful search bar.
@@ -86,115 +87,27 @@ a popup menu.
   <img width="800" src="https://github.com/user-attachments/assets/75226dc4-9802-46f0-9e3c-e4403d3275da" title="Main Screenshot">
 </p>
 
-## Install
+## Install and Configuration
 
-Using docker:
-
-1. docker run (no persistent db):
-
-```
-docker run -it -v /path/to/folder:/srv -v $(pwd)/config.yaml:/home/filebrowser/config.yaml -p 80:80 gtstef/filebrowser
-```
-
-or optionally, as non-root filebrowser user:
-
-```
-docker run -u filebrowser -it -v $(pwd)/config.yaml:/home/filebrowser/config.yaml -v /path/to/folder:/srv -p 80:80 gtstef/filebrowser
-```
-
-1. docker compose:
-
-  - with local storage
-
-```
-services:
-  filebrowser:
-    volumes:
-      - '/path/to/folder:/srv' # required (for now not configurable)
-      # optional if you want db to persist - configure a path under "database" dir in config file.
-      - './database:/home/filebrowser/database'
-      - './config.yaml:/home/filebrowser/config.yaml'
-    ports:
-      - '80:80'
-    image: gtstef/filebrowser
-    # optionally run as non-root filebrowser user
-    #user: filebrowser
-    restart: always
-```
-
-  - with network share
-
-```
-services:
-  filebrowser:
-    volumes:
-      - 'storage:/srv' # required (for now not configurable)
-      # optional if you want db to persist - configure a path under "database" dir in config file.
-      - './database:/home/filebrowser/database'
-      - './config.yaml:/home/filebrowser/config.yaml'
-    ports:
-      - '80:80'
-    image: gtstef/filebrowser
-    restart: always
-volumes:
-  storage:
-    driver_opts:
-      type: cifs
-      o: "username=admin,password=password,rw" # enter valid info here
-      device: "//192.168.1.100/share/"         # enter valid info here
-
-```
-
-Not using docker (not recommended), download your binary from releases and run with your custom config file:
-
-```
-./filebrowser -c <config.yaml or other /path/to/config.yaml>
-```
+See the [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration)
 
 ## Command Line Usage
 
-There are very few commands available. There are 3 actions done via the command line:
-
-1. Running the program, as shown in the install step. The only argument used is the config file if you choose to override the default "config.yaml"
-2. Checking the version info via `./filebrowser version`
-3. Updating the DB, which currently only supports adding users via `./filebrowser set -u username,password [-a] [-s "example/scope"]`
+See the [CLI Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/CLI)
 
 ## API Usage
 
-FileBrowser Quantum allows for the creation of API tokens which can create users, access file information, and update user settings just like what can be done from the UI. You can create API tokens from the settings page via "API Management" section. This section will only show up if the user has "API" permissions, which can be granted by editing the user in user management.
-
-Regardless of whether a user has API permissions, anyone can visit the swagger page which is found at `/swagger`. This swagger page uses a short-live token (2-hour exp) that the UI uses, but allows for quick access to all the API's and their described usage and requirements:
-
-![image](https://github.com/user-attachments/assets/12abd1f6-21d3-4437-98ed-9b0da6cf2c73)
-
-When using the API outside of swagger, you will need to set the API token as a bearer token authentication type. This means the authorization header will look like `Authorization: Bearer <token>`. For example in Postman:
-
-Successful Request:
-
-<p align="center"><img width="500" alt="image" src="https://github.com/user-attachments/assets/4f18fa8a-8d87-4f40-9dc7-3d4407769b59"></p>
-
-Failed Request
-
-<p align="center"><img width="500" alt="image" src="https://github.com/user-attachments/assets/4da0deae-f93d-4d94-83b1-68806afb343a"></p>
-
+See the [API Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/API)
 
 ## Configuration
 
-All configuration is now done via a single configuration file:
-`config.yaml`, here is an example of minimal [configuration
-file](./backend/config.yaml).
-
-View the [Configuration Help Page](./docs/configuration.md) for available
-configuration options and other help.
+Configuration is done via the `config.yaml`, see the [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) for available configuration options and other help.
 
 
 ## Migration from the original filebrowser
 
-If you currently use the original filebrowser but want to try using this. 
-I would recommend that you start fresh without reusing the database. However, 
-If you want to migrate your existing database to FileBrowser Quantum, 
-visit the [migration 
-readme](./docs/migration.md)
+See the [Migration 
+Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Migration)
 
 ## Comparison Chart
 
@@ -246,7 +159,3 @@ Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 Content preview icons         | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
 Plugins support               | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
-
-## Roadmap
-
-see [Roadmap Page](./docs/roadmap.md)

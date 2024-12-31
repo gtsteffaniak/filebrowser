@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.5
+
+  **New Features**
+  #- More indexing configuration options.
+  #- Improved indexing with multiple watchers (up to 200 by default)
+  #- Theme and Branding support
+  #- Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
+  #- openoffice support similar to https://github.com/filebrowser/filebrowser/pull/2954
+  #- Additional sign in option: SSO
+
+## v0.3.4
+
+  **Bugfixes**:
+  - Safari right-click actions.
+  - Some small image viewer behavior
+  - Progressive webapp "install to homescreen" fix. 
+
 ## v0.3.3
 
   **New Features**

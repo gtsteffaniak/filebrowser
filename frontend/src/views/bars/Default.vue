@@ -20,7 +20,6 @@ import router from "@/router";
 import { state, mutations, getters } from "@/store";
 import { filesApi } from "@/api";
 import Action from "@/components/Action.vue";
-import css from "@/utils/css";
 
 export default {
   name: "listingView",
@@ -134,8 +133,6 @@ export default {
   },
 
   mounted() {
-    // Check the columns size for the first time.
-    this.colunmsResize();
 
     // How much every listing item affects the window height
     this.setItemWeight();
@@ -197,15 +194,6 @@ export default {
 
       // How much every listing item affects the window height
       this.itemWeight = this.$refs.listingView.offsetHeight / itemQuantity;
-    },
-    colunmsResize() {
-      // Update the columns size based on the window width.
-      let columns = Math.floor(
-        document.querySelector("main").offsetWidth / this.columnWidth
-      );
-      let items = css(["#listingView .item", "#listingView .item"]);
-      if (columns === 0) columns = 1;
-      items.style.width = `calc(${100 / columns}%)`;
     },
     action() {
       if (this.show) {
