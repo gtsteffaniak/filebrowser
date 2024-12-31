@@ -39,10 +39,6 @@ var (
 func Initialize(source settings.Source) {
 	indexesMutex.RLock()
 	defer indexesMutex.RUnlock()
-
-	if len(settings.Config.Server.Sources) == 0 {
-		panic("no sources configured") // Handle this appropriately in production
-	}
 	newIndex := Index{
 		Source:      source,
 		Directories: make(map[string]*FileInfo),

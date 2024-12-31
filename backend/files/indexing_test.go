@@ -11,8 +11,11 @@ import (
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	InitializeIndex(false)
-	si := GetIndex(settings.Config.Server.Root)
+	Initialize(settings.Source{
+		Name: "test",
+		Path: "/srv",
+	})
+	idx := GetIndex("test")
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
@@ -95,7 +98,7 @@ func TestMakeIndexPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			si := &Index{Root: "/"}
+			idx := &Index{Source: settings.Source{Path: "/"}}
 			result := idx.makeIndexPath(tt.subPath)
 			if result != tt.expected {
 				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
