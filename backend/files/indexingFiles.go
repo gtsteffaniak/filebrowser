@@ -252,8 +252,5 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 }
 
 func isHidden(file os.FileInfo, realpath string) bool {
-	if file.Name()[0] == '.' {
-		return true
-	}
-	return false
+	return file.Name()[0] == '.'
 }
