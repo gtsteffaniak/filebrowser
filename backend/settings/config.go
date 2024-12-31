@@ -9,6 +9,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
 var Config Settings
@@ -47,6 +48,21 @@ func Initialize(configFile string) {
 		Config.Server.BaseURL = "/"
 	} else {
 		Config.Server.BaseURL = "/" + baseurl + "/"
+	}
+	if !Config.Frontend.DisableDefaultLinks {
+		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
+			Text: "FileBrowser Quantum",
+			Url:  "https://github.com/gtsteffaniak/filebrowser",
+		})
+		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
+			Text:  fmt.Sprintf("(%v)", version.Version),
+			Title: version.CommitSHA,
+			Url:   "https://github.com/gtsteffaniak/filebrowser/releases/",
+		})
+		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
+			Text: "Help",
+			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
+		})
 	}
 }
 

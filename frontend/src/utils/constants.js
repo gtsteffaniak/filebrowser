@@ -1,5 +1,6 @@
-const name = window.FileBrowser.Name || "FileBrowser Quantum";
+const name = window.FileBrowser.Name;
 const disableExternal = window.FileBrowser.DisableExternal;
+const externalLinks = window.FileBrowser.ExternalLinks;
 const disableUsedPercentage = window.FileBrowser.DisableUsedPercentage;
 const baseURL = window.FileBrowser.BaseURL;
 const staticURL = window.FileBrowser.StaticURL;
@@ -29,6 +30,7 @@ const settings = [
 export {
   name,
   disableExternal,
+  externalLinks,
   disableUsedPercentage,
   baseURL,
   logoURL,

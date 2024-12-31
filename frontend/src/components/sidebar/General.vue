@@ -72,8 +72,6 @@
 <script>
 import * as auth from "@/utils/auth";
 import {
-  version,
-  commitSHA,
   signup,
   disableExternal,
   disableUsedPercentage,

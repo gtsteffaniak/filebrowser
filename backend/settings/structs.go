@@ -72,11 +72,18 @@ type IndexConfig struct {
 }
 
 type Frontend struct {
-	Name                  string `json:"name"`
-	DisableExternal       bool   `json:"disableExternal"`
-	DisableUsedPercentage bool   `json:"disableUsedPercentage"`
-	Files                 string `json:"files"`
-	Color                 string `json:"color"`
+	Name                  string         `json:"name"`
+	DisableDefaultLinks   bool           `json:"disableDefaultLinks"`
+	DisableUsedPercentage bool           `json:"disableUsedPercentage"`
+	Files                 string         `json:"files"`
+	Color                 string         `json:"color"`
+	ExternalLinks         []ExternalLink `json:"externalLinks"`
+}
+
+type ExternalLink struct {
+	Text  string `json:"text"`
+	Title string `json:"title"`
+	Url   string `json:"url"`
 }
 
 // UserDefaults is a type that holds the default values
