@@ -20,16 +20,24 @@ func Initialize(configFile string) {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
+
 	// Convert relative path to absolute path
-	realRoot, err := filepath.Abs(Config.Server.Root)
-	if err != nil {
-		log.Fatalf("Error getting root path: %v", err)
+	if len(Config.Server.Sources) > 0 {
+		for i, source := range Config.Server.Sources {
+			realPath, err := filepath.Abs(source.Path)
+			if err != nil {
+				log.Fatalf("Error getting source path: %v", err)
+			}
+			Config.Server.Sources[i].Path = realPath
+		}
+	} else {
+		Config.Server.Sources = []Source{
+			{
+				Path: Config.Server.Root,
+				Name: "default",
+			},
+		}
 	}
-	_, err = os.Stat(realRoot)
-	if err != nil {
-		log.Fatalf("ERROR: Configured Root Path does not exist! %v", err)
-	}
-	Config.Server.Root = realRoot
 	baseurl := strings.Trim(Config.Server.BaseURL, "/")
 	if baseurl == "" {
 		Config.Server.BaseURL = "/"
@@ -72,7 +80,6 @@ func setDefaults() Settings {
 			Database:           "database.db",
 			Log:                "stdout",
 			Root:               "/srv",
-			Indexing:           true,
 		},
 		Auth: Auth{
 			TokenExpirationTime: "2h",
