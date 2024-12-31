@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -20,24 +21,27 @@ func Initialize(configFile string) {
 		log.Fatalf("Error unmarshaling YAML data: %v", err)
 	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
-
 	// Convert relative path to absolute path
 	if len(Config.Server.Sources) > 0 {
-		for i, source := range Config.Server.Sources {
+		for name, source := range Config.Server.Sources {
 			realPath, err := filepath.Abs(source.Path)
 			if err != nil {
 				log.Fatalf("Error getting source path: %v", err)
 			}
-			Config.Server.Sources[i].Path = realPath
+			source.Path = realPath
+			Config.Server.Root = source.Path
+			source.Name = name                   // Modify the local copy of the map value
+			Config.Server.Sources[name] = source // Assign the modified value back to the map
+
 		}
 	} else {
-		Config.Server.Sources = []Source{
-			{
+		Config.Server.Sources = map[string]Source{
+			"default": {
 				Path: Config.Server.Root,
-				Name: "default",
 			},
 		}
 	}
+	fmt.Println("Config.Server.Sources: ", Config.Server.Sources)
 	baseurl := strings.Trim(Config.Server.BaseURL, "/")
 	if baseurl == "" {
 		Config.Server.BaseURL = "/"

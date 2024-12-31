@@ -35,30 +35,30 @@ type Recaptcha struct {
 }
 
 type Server struct {
-	IndexingInterval      uint32   `json:"indexingInterval"`
-	NumImageProcessors    int      `json:"numImageProcessors"`
-	Socket                string   `json:"socket"`
-	TLSKey                string   `json:"tlsKey"`
-	TLSCert               string   `json:"tlsCert"`
-	EnableThumbnails      bool     `json:"enableThumbnails"`
-	ResizePreview         bool     `json:"resizePreview"`
-	EnableExec            bool     `json:"enableExec"`
-	TypeDetectionByHeader bool     `json:"typeDetectionByHeader"`
-	AuthHook              string   `json:"authHook"`
-	Port                  int      `json:"port"`
-	BaseURL               string   `json:"baseURL"`
-	Address               string   `json:"address"`
-	Log                   string   `json:"log"`
-	Database              string   `json:"database"`
-	Root                  string   `json:"root"`
-	UserHomeBasePath      string   `json:"userHomeBasePath"`
-	CreateUserDir         bool     `json:"createUserDir"`
-	Sources               []Source `json:"sources"`
+	IndexingInterval      uint32            `json:"indexingInterval"`
+	NumImageProcessors    int               `json:"numImageProcessors"`
+	Socket                string            `json:"socket"`
+	TLSKey                string            `json:"tlsKey"`
+	TLSCert               string            `json:"tlsCert"`
+	EnableThumbnails      bool              `json:"enableThumbnails"`
+	ResizePreview         bool              `json:"resizePreview"`
+	EnableExec            bool              `json:"enableExec"`
+	TypeDetectionByHeader bool              `json:"typeDetectionByHeader"`
+	AuthHook              string            `json:"authHook"`
+	Port                  int               `json:"port"`
+	BaseURL               string            `json:"baseURL"`
+	Address               string            `json:"address"`
+	Log                   string            `json:"log"`
+	Database              string            `json:"database"`
+	Root                  string            `json:"root"`
+	UserHomeBasePath      string            `json:"userHomeBasePath"`
+	CreateUserDir         bool              `json:"createUserDir"`
+	Sources               map[string]Source `json:"sources"`
 }
 
 type Source struct {
-	Name   string      `json:"name"`
-	Path   string      `json:"path"`
+	Path   string `json:"path"`
+	Name   string
 	Config IndexConfig `json:"config"`
 }
 

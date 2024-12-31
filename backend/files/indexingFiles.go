@@ -44,7 +44,7 @@ func Initialize(source settings.Source) {
 		panic("no sources configured") // Handle this appropriately in production
 	}
 	newIndex := Index{
-		Source:      settings.Config.Server.Sources[0], // Use the first source as an example
+		Source:      source,
 		Directories: make(map[string]*FileInfo),
 	}
 	indexes = make(map[string]*Index)
@@ -61,16 +61,7 @@ func Initialize(source settings.Source) {
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) error {
-	if len(idx.Source.Config.Include) > 0 {
-		if !slices.Contains(idx.Source.Config.Include, adjustedPath) {
-			return nil
-		}
-	}
-	if len(idx.Source.Config.Exclude) > 0 {
-		if slices.Contains(idx.Source.Config.Exclude, adjustedPath) {
-			return nil
-		}
-	}
+
 	realPath := strings.TrimRight(idx.Source.Path, "/") + adjustedPath
 
 	// Open the directory
@@ -130,6 +121,17 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
+		fullCombined := combinedPath + file.Name()
+		if len(idx.Source.Config.Include) > 0 {
+			if !slices.Contains(idx.Source.Config.Include, fullCombined) {
+				continue
+			}
+		}
+		if len(idx.Source.Config.Exclude) > 0 {
+			if slices.Contains(idx.Source.Config.Exclude, fullCombined) {
+				continue
+			}
+		}
 		if idx.Source.Config.IgnoreHidden {
 			hidden, err := isHidden(file, realPath)
 			if err != nil {
@@ -163,7 +165,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			dirInfos = append(dirInfos, *itemInfo)
 			idx.NumDirs++
 		} else {
-			itemInfo.DetectType(combinedPath+file.Name(), false)
+			itemInfo.DetectType(fullCombined, false)
 			itemInfo.Size = file.Size()
 			fileInfos = append(fileInfos, *itemInfo)
 			totalSize += itemInfo.Size

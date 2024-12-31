@@ -122,7 +122,11 @@ func StartFilebrowser() {
 	log.Printf("Using Config file        : %v", configPath)
 	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
-	log.Println("Sources                  :", settings.Config.Server.Root)
+	sources := []string{}
+	for name := range settings.Config.Server.Sources {
+		sources = append(sources, name)
+	}
+	log.Println("Sources                  :", sources)
 
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
