@@ -213,16 +213,16 @@ func (idx *Index) makeIndexPath(subPath string) string {
 	return adjustedPath
 }
 
-func (si *Index) recursiveUpdateDirSizes(childInfo *FileInfo, previousSize int64) {
+func (idx *Index) recursiveUpdateDirSizes(childInfo *FileInfo, previousSize int64) {
 	parentDir := utils.GetParentDirectoryPath(childInfo.Path)
-	parentInfo, exists := si.GetMetadataInfo(parentDir, true)
+	parentInfo, exists := idx.GetMetadataInfo(parentDir, true)
 	if !exists || parentDir == "" {
 		return
 	}
 	newSize := parentInfo.Size - previousSize + childInfo.Size
 	parentInfo.Size += newSize
-	si.UpdateMetadata(parentInfo)
-	si.recursiveUpdateDirSizes(parentInfo, newSize)
+	idx.UpdateMetadata(parentInfo)
+	idx.recursiveUpdateDirSizes(parentInfo, newSize)
 }
 
 func (idx *Index) RefreshFileInfo(opts FileOptions) error {

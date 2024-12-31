@@ -16,11 +16,11 @@ func BenchmarkFillIndex(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		si.createMockData(50, 3) // 1000 dirs, 3 files per dir
+		idx.createMockData(50, 3) // 1000 dirs, 3 files per dir
 	}
 }
 
-func (si *Index) createMockData(numDirs, numFilesPerDir int) {
+func (idx *Index) createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
 		dirPath := generateRandomPath(rand.Intn(3) + 1)
 		files := []ItemInfo{} // Slice of FileInfo
@@ -40,7 +40,7 @@ func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 			Files: files,
 		}
 
-		si.UpdateMetadata(dirInfo)
+		idx.UpdateMetadata(dirInfo)
 	}
 }
 
@@ -96,7 +96,7 @@ func TestMakeIndexPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			si := &Index{Root: "/"}
-			result := si.makeIndexPath(tt.subPath)
+			result := idx.makeIndexPath(tt.subPath)
 			if result != tt.expected {
 				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
