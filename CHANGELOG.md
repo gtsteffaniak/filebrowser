@@ -5,19 +5,24 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.3.5
 
   **New Features**
-  #- More indexing configuration options.
+  - More indexing configuration options possible. However consider waiting on using this feature, because I will soon have a full onboarding experience in the UI to manage sources instead.
+    - added config file options "sources" in the server config.
+    - can enable/disable indexing a specified list of directories/files
+    - can enable/disable indexing hidden files (now respects windows hidden property)
+    - prepped for multiple sources, but currently only supports one source in the list.
   #- Improved indexing with multiple watchers (up to 200 by default)
   #- Theme and Branding support
   #- Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
   #- openoffice support similar to https://github.com/filebrowser/filebrowser/pull/2954
   #- Additional sign in option: SSO
+  #- backup/restore
 
 ## v0.3.4
 
   **Bugfixes**:
   - Safari right-click actions.
   - Some small image viewer behavior
-  - Progressive webapp "install to homescreen" fix. 
+  - Progressive webapp "install to homescreen" fix.
 
 ## v0.3.3
 
