@@ -12,7 +12,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
-	"golang.org/x/sys/windows"
 )
 
 type Index struct {
@@ -57,9 +56,7 @@ func Initialize(source settings.Source) {
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) error {
-
 	realPath := strings.TrimRight(idx.Source.Path, "/") + adjustedPath
-
 	// Open the directory
 	dir, err := os.Open(realPath)
 	if err != nil {
@@ -129,11 +126,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			}
 		}
 		if idx.Source.Config.IgnoreHidden {
-			hidden, err := isHidden(file, realPath)
-			if err != nil {
-				fmt.Println("Error checking if file is hidden:", err)
-				continue
-			}
+			hidden := isHidden(file, realPath)
 			if hidden {
 				continue
 			}
@@ -258,21 +251,9 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 	return nil
 }
 
-func isHidden(file os.FileInfo, realpath string) (bool, error) {
-	// Linux/macOS: Check if the name starts with a dot
+func isHidden(file os.FileInfo, realpath string) bool {
 	if file.Name()[0] == '.' {
-		return true, nil
+		return true
 	}
-
-	utf16Path, err := windows.UTF16PtrFromString(realpath + "/" + file.Name())
-	if err != nil {
-		return false, err
-	}
-
-	attrs, err := windows.GetFileAttributes(utf16Path)
-	if err != nil {
-		return false, err
-	}
-
-	return attrs&windows.FILE_ATTRIBUTE_HIDDEN != 0, nil
+	return false
 }
