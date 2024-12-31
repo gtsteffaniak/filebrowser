@@ -122,14 +122,24 @@ func StartFilebrowser() {
 	log.Printf("Using Config file        : %v", configPath)
 	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
-	log.Println("Sources                  :", settings.Config.Server.Root)
+	sources := []string{}
+	for name := range settings.Config.Server.Sources {
+		sources = append(sources, name)
+	}
+	log.Println("Sources                  :", sources)
 
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
 	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
-	go files.InitializeIndex(serverConfig.Indexing)
+	sourceConfigs := settings.Config.Server.Sources
+	if len(sourceConfigs) == 0 {
+		log.Fatal("No sources configured, exiting...")
+	}
+	for _, source := range sourceConfigs {
+		go files.Initialize(source)
+	}
 	if err := rootCMD(store, &serverConfig); err != nil {
 		log.Fatal("Error starting filebrowser:", err)
 	}

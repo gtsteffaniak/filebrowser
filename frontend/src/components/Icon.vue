@@ -39,7 +39,6 @@ export default {
   mounted() {
     const result = this.getIconForType(this.mimetype);
     this.classes = result.classes || "material-icons"; // Default class
-    console.log(this.classes)
     this.color = result.color || "lightgray"; // Default color
     this.materialIcon = result.materialIcon || "";
     this.svgPath = result.svgPath || ""; // For SVG file paths

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // searchHandler handles search requests for files based on the provided query.
@@ -54,11 +53,15 @@ import (
 // @Router /api/search [get]
 func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	query := r.URL.Query().Get("query")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
 	searchScope := strings.TrimPrefix(r.URL.Query().Get("scope"), ".")
 	searchScope = strings.TrimPrefix(searchScope, "/")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
-	index := files.GetIndex(settings.Config.Server.Root)
+	index := files.GetIndex(source)
 	userScope := strings.TrimPrefix(d.user.Scope, ".")
 	combinedScope := strings.TrimPrefix(userScope+"/"+searchScope, "/")
 

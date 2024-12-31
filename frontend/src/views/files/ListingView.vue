@@ -693,7 +693,7 @@ export default {
       }
 
       let files = await upload.scanFiles(dt);
-      const folderUpload = !!files[0].webkitRelativePath;
+      const folderUpload = Boolean(files[0].webkitRelativePath);
 
       const uploadFiles = [];
       for (let i = 0; i < files.length; i++) {

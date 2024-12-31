@@ -20,21 +20,21 @@ type SearchResult struct {
 	Size int64  `json:"size"`
 }
 
-func (si *Index) Search(search string, scope string, sourceSession string) []SearchResult {
+func (idx *Index) Search(search string, scope string, sourceSession string) []SearchResult {
 	// Remove slashes
-	scope = si.makeIndexPath(scope)
+	scope = idx.makeIndexPath(scope)
 	runningHash := utils.GenerateRandomHash(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
 	results := make(map[string]SearchResult, 0)
 	count := 0
 	var directories []string
-	cachedDirs, ok := utils.SearchResultsCache.Get(si.Root + scope).([]string)
+	cachedDirs, ok := utils.SearchResultsCache.Get(idx.Source.Path + scope).([]string)
 	if ok {
 		directories = cachedDirs
 	} else {
-		directories = si.getDirsInScope(scope)
-		utils.SearchResultsCache.Set(si.Root+scope, directories)
+		directories = idx.getDirsInScope(scope)
+		utils.SearchResultsCache.Set(idx.Source.Path+scope, directories)
 	}
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {
@@ -43,12 +43,12 @@ func (si *Index) Search(search string, scope string, sourceSession string) []Sea
 		if count > maxSearchResults {
 			break
 		}
-		si.mu.Lock()
+		idx.mu.Lock()
 		for _, dirName := range directories {
 			scopedPath := strings.TrimPrefix(strings.TrimPrefix(dirName, scope), "/") + "/"
-			si.mu.Unlock()
-			dir, found := si.GetReducedMetadata(dirName, true)
-			si.mu.Lock()
+			idx.mu.Unlock()
+			dir, found := idx.GetReducedMetadata(dirName, true)
+			idx.mu.Lock()
 			if !found {
 				continue
 			}
@@ -74,7 +74,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []Sea
 				}
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
-					si.mu.Unlock()
+					idx.mu.Unlock()
 					return []SearchResult{}
 				}
 				if count > maxSearchResults {
@@ -87,7 +87,7 @@ func (si *Index) Search(search string, scope string, sourceSession string) []Sea
 				}
 			}
 		}
-		si.mu.Unlock()
+		idx.mu.Unlock()
 	}
 
 	// Sort keys based on the number of elements in the path after splitting by "/"
@@ -169,11 +169,11 @@ func (fi ItemInfo) containsSearchTerm(searchTerm string, options SearchOptions) 
 	return true
 }
 
-func (si *Index) getDirsInScope(scope string) []string {
+func (idx *Index) getDirsInScope(scope string) []string {
 	newList := []string{}
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	for k := range si.Directories {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+	for k := range idx.Directories {
 		if strings.HasPrefix(k, scope) || scope == "" {
 			newList = append(newList, k)
 		}
