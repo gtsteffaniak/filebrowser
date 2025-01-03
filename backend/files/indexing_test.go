@@ -106,3 +106,78 @@ func TestMakeIndexPath(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkCheckIndexExclude(b *testing.B) {
+	tests := []struct {
+		isDir    bool
+		isHidden bool
+		fullPath string
+	}{
+		{false, false, "/test/.test"},
+		{true, false, "/test/.test"},
+		{true, true, "/test/.test"},
+		{false, false, "/test/filepath"},
+		{false, true, "/test/filepath"},
+		{true, true, "/test/filepath"},
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	idx := Index{
+		Source: settings.Source{
+			Name: "files",
+			Config: settings.IndexConfig{
+				IgnoreHidden: true,
+				Exclude: settings.IndexFilter{
+					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
+					Folders:      []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
+					FileEndsWith: []string{".zip", ".tar", ".jpeg"},
+				},
+			},
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, v := range tests {
+			idx.shouldSkip(v.isDir, v.isHidden, v.fullPath)
+		}
+	}
+
+}
+func BenchmarkCheckIndexConditionsInclude(b *testing.B) {
+	tests := []struct {
+		isDir    bool
+		isHidden bool
+		fullPath string
+	}{
+		{false, false, "/test/.test"},
+		{true, false, "/test/.test"},
+		{true, true, "/test/.test"},
+		{false, false, "/test/filepath"},
+		{false, true, "/test/filepath"},
+		{true, true, "/test/filepath"},
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	idx2 := Index{
+		Source: settings.Source{
+			Name: "files",
+			Config: settings.IndexConfig{
+				IgnoreHidden: true,
+				Include: settings.IndexFilter{
+					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
+					Folders:      []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
+					FileEndsWith: []string{".zip", ".tar", ".jpeg"},
+				},
+			},
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, v := range tests {
+			idx2.shouldSkip(v.isDir, v.isHidden, v.fullPath)
+		}
+	}
+
+}

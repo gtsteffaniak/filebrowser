@@ -63,12 +63,19 @@ type Source struct {
 }
 
 type IndexConfig struct {
-	Disabled     bool     `json:"disabled"`
-	MaxWatchers  int      `json:"maxWatchers"`
-	NeverWatch   []string `json:"neverWatchPaths"`
-	IgnoreHidden bool     `json:"ignoreHidden"`
-	Exclude      []string `json:"exclude"`
-	Include      []string `json:"include"`
+	Disabled              bool        `json:"disabled"`
+	MaxWatchers           int         `json:"maxWatchers"`
+	NeverWatch            []string    `json:"neverWatchPaths"`
+	IgnoreHidden          bool        `json:"ignoreHidden"`
+	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"`
+	Exclude               IndexFilter `json:"exclude"`
+	Include               IndexFilter `json:"include"`
+}
+
+type IndexFilter struct {
+	Files        []string `json:"files"`
+	Folders      []string `json:"folders"`
+	FileEndsWith []string `json:"fileEndsWith"`
 }
 
 type Frontend struct {

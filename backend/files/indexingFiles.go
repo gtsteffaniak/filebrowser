@@ -115,21 +115,8 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	// Process each file and directory in the current directory
 	for _, file := range files {
 		fullCombined := combinedPath + file.Name()
-		if len(idx.Source.Config.Include) > 0 {
-			if !slices.Contains(idx.Source.Config.Include, fullCombined) {
-				continue
-			}
-		}
-		if len(idx.Source.Config.Exclude) > 0 {
-			if slices.Contains(idx.Source.Config.Exclude, fullCombined) {
-				continue
-			}
-		}
-		if idx.Source.Config.IgnoreHidden {
-			hidden := isHidden(file, realPath)
-			if hidden {
-				continue
-			}
+		if idx.shouldSkip(file.IsDir(), isHidden(file, ""), fullCombined) {
+			continue
 		}
 		itemInfo := &ItemInfo{
 			Name:    file.Name(),
@@ -160,6 +147,9 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			totalSize += itemInfo.Size
 			idx.NumFiles++
 		}
+	}
+	if totalSize == 0 && idx.Source.Config.IgnoreZeroSizeFolders {
+		return nil
 	}
 	// Create FileInfo for the current directory
 	dirFileInfo := &FileInfo{
@@ -253,4 +243,30 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 
 func isHidden(file os.FileInfo, realpath string) bool {
 	return file.Name()[0] == '.'
+}
+
+func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) bool {
+	// check inclusions first
+	if isDir && len(idx.Source.Config.Include.Folders) > 0 {
+		if !slices.Contains(idx.Source.Config.Include.Folders, fullCombined) {
+			return true
+		}
+	}
+	if !isDir && len(idx.Source.Config.Include.Files) > 0 {
+		if !slices.Contains(idx.Source.Config.Include.Files, fullCombined) {
+			return true
+		}
+	}
+
+	// check exclusions
+	if isDir && slices.Contains(idx.Source.Config.Exclude.Folders, fullCombined) {
+		return true
+	}
+	if !isDir && slices.Contains(idx.Source.Config.Exclude.Files, fullCombined) {
+		return true
+	}
+	if idx.Source.Config.IgnoreHidden && isHidden {
+		return true
+	}
+	return false
 }
