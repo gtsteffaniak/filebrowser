@@ -65,7 +65,7 @@ export default {
   /* Default size */
   fill: currentColor;
   /* Uses inherited color */
-  border-radius: 0.25em;
+  border-radius: 0.2em;
   padding: .1em;
   background: var(--alt-background);
 }

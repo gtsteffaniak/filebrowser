@@ -73,11 +73,3 @@ func GetIndex(name string) *Index {
 	}
 	return index
 }
-
-func getRoot(name string) string {
-	index := GetIndex(name)
-	if index == nil {
-		return ""
-	}
-	return index.Source.Path
-}

@@ -31,7 +31,7 @@
             accross logins.
           </p>
           <div>
-            <input v-model="gallerySize" type="range" id="gallary-size" name="gallary-size" min="0" max="10" />
+            <input v-model="gallerySize" type="range" id="gallary-size" name="gallary-size" min="1" max="8" />
           </div>
           <h3>Theme Color</h3>
           <div>
@@ -92,7 +92,7 @@ export default {
       darkMode: false,
       viewMode: "list",
       locale: "",
-      gallerySize: 0,
+      gallerySize: 1,
       color: "",
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
@@ -140,7 +140,7 @@ export default {
   },
   watch: {
     gallerySize(newValue) {
-      this.gallerySize = parseInt(newValue, 0); // Update the user object
+      this.gallerySize = parseInt(newValue, 1); // Update the user object
     },
   },
   methods: {

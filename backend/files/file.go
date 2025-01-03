@@ -128,7 +128,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, err
 	}
 	if opts.Content {
-		realRoot := getRoot(opts.Source)
+		realRoot := RootPaths[opts.Source]
 		content, err := getContent(realRoot, opts.Path)
 		if err != nil {
 			return response, err
@@ -263,7 +263,7 @@ func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
 }
 
 func WriteDirectory(opts FileOptions) error {
-	realPath, _, _ := GetRealPath(getRoot(opts.Source), opts.Path)
+	realPath, _, _ := GetRealPath(RootPaths[opts.Source], opts.Path)
 	// Ensure the parent directories exist
 	err := os.MkdirAll(realPath, 0775)
 	if err != nil {

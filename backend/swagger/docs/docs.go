@@ -1260,17 +1260,37 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.ExternalLink": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "settings.Frontend": {
             "type": "object",
             "properties": {
                 "color": {
                     "type": "string"
                 },
-                "disableExternal": {
+                "disableDefaultLinks": {
                     "type": "boolean"
                 },
                 "disableUsedPercentage": {
                     "type": "boolean"
+                },
+                "externalLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.ExternalLink"
+                    }
                 },
                 "files": {
                     "type": "string"

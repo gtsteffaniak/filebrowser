@@ -159,16 +159,16 @@ body.rtl #listingView {
 }
 
 #listingView.gallery .item i {
-  display:flex !important;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
+  margin: auto;
+  font-size: 8em;
+}
+
+#listingView.gallery .item span {
+  display: flex;
   height: 100%;
   width: 100%;
-  margin-right: 0;
-  font-size: 8em;
-  text-align: center;
 }
+
 
 #listingView.gallery .item img {
   width: 100%;
@@ -327,7 +327,7 @@ body.rtl #listingView {
 #listingView.list .item div:first-of-type img {
   width: 2em;
   height: 2em;
-  border-radius: 0.25em;
+  border-radius: 0.2em;
 }
 
 #listingView.list .item div:last-of-type {

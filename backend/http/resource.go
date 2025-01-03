@@ -378,22 +378,19 @@ type DiskUsageResponse struct {
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "/"
+		source = "default"
 	}
-
 	value, ok := utils.DiskUsageCache.Get(source).(DiskUsageResponse)
 	if ok {
 		return renderJSON(w, r, &value)
 	}
 
-	fPath, isDir, err := files.GetRealPath(d.user.Scope, source)
-	if err != nil {
-		return errToStatus(err), err
+	rootPath, ok := files.RootPaths[source]
+	if !ok {
+		return 400, fmt.Errorf("bad source path provided: %v", source)
 	}
-	if !isDir {
-		return http.StatusNotFound, fmt.Errorf("not a directory: %s", source)
-	}
-	usage, err := disk.UsageWithContext(r.Context(), fPath)
+
+	usage, err := disk.UsageWithContext(r.Context(), rootPath)
 	if err != nil {
 		return errToStatus(err), err
 	}

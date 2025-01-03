@@ -152,7 +152,7 @@ export default {
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      let usage = await filesApi.usage("/");
+      let usage = await filesApi.usage("default");
       usageStats = {
         used: getHumanReadableFilesize(usage.used / 1024),
         total: getHumanReadableFilesize(usage.total / 1024),

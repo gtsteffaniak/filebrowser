@@ -33,17 +33,23 @@ type Index struct {
 var (
 	indexes      map[string]*Index
 	indexesMutex sync.RWMutex
+	RootPaths    map[string]string
 )
 
 func Initialize(source settings.Source) {
 	indexesMutex.RLock()
-	defer indexesMutex.RUnlock()
 	newIndex := Index{
 		Source:      source,
 		Directories: make(map[string]*FileInfo),
 	}
+	if RootPaths == nil {
+		RootPaths = make(map[string]string)
+	}
+	RootPaths[source.Name] = source.Path
 	indexes = make(map[string]*Index)
 	indexes[newIndex.Source.Name] = &newIndex
+	indexesMutex.RUnlock()
+
 	if !newIndex.Source.Config.Disabled {
 		time.Sleep(time.Second)
 		log.Println("Initializing index and assessing file system complexity")

@@ -79,14 +79,27 @@ definitions:
       userHomeBasePath:
         type: string
     type: object
+  settings.ExternalLink:
+    properties:
+      text:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    type: object
   settings.Frontend:
     properties:
       color:
         type: string
-      disableExternal:
+      disableDefaultLinks:
         type: boolean
       disableUsedPercentage:
         type: boolean
+      externalLinks:
+        items:
+          $ref: '#/definitions/settings.ExternalLink'
+        type: array
       files:
         type: string
       name:

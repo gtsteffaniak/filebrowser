@@ -21,8 +21,8 @@
         type="range"
         id="gallery-size"
         name="gallery-size"
-        min="0"
-        max="10"
+        min="1"
+        max="8"
         @input="updateGallerySize"
         @change="commitGallerySize"
       />

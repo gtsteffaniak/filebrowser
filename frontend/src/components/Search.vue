@@ -119,8 +119,7 @@
             <a :href="getRelative(s.path)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path, s.type === "directory")
-                }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.type === "directory")}}<b>{{ baseName(s.path) }}</b>
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -349,13 +348,14 @@ export default {
       this.isTypeSelectDisabled = false;
     },
     async submit(event) {
+      this.results = [];
+
       this.showHelp = false;
       if (event != undefined) {
         event.preventDefault();
       }
       if (this.value === "" || this.value.length < 3) {
         this.ongoing = false;
-        this.results = [];
         this.noneMessage = "Not enough characters to search (min 3)";
         return;
       }
@@ -436,8 +436,6 @@ export default {
 #search.active #results ul li a {
   display: flex;
   align-items: center;
-  padding: 0.3em 0;
-  margin-right: 0.3em;
 }
 
 #search #result-list.active {
@@ -516,6 +514,7 @@ export default {
 }
 
 .text-container {
+  margin-left: 0.25em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

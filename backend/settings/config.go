@@ -33,11 +33,11 @@ func Initialize(configFile string) {
 			Config.Server.Root = source.Path
 			source.Name = name                   // Modify the local copy of the map value
 			Config.Server.Sources[name] = source // Assign the modified value back to the map
-
 		}
 	} else {
 		Config.Server.Sources = map[string]Source{
 			"default": {
+				Name: "default",
 				Path: Config.Server.Root,
 			},
 		}
