@@ -114,15 +114,22 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
+		isDir := file.IsDir()
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(file.IsDir(), isHidden(file, ""), fullCombined) {
+		if idx.shouldSkip(isDir, isHidden(file, ""), fullCombined) {
 			continue
 		}
 		itemInfo := &ItemInfo{
 			Name:    file.Name(),
 			ModTime: file.ModTime(),
 		}
-		if file.IsDir() {
+
+		// fix for .app files on macos which are technically directories, but we don't want to treat them as such
+		if isDir && strings.HasPrefix(file.Name(), ".app") {
+			isDir = false
+		}
+
+		if isDir {
 			dirPath := combinedPath + file.Name()
 			if recursive {
 				// Recursively index the subdirectory
