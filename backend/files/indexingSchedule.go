@@ -3,8 +3,6 @@ package files
 import (
 	"log"
 	"time"
-
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // schedule in minutes
@@ -29,8 +27,8 @@ func (idx *Index) newScanner(origin string) {
 		if idx.assessment == "simple" {
 			sleepTime = scanSchedule[idx.currentSchedule] - idx.SmartModifier
 		}
-		if settings.Config.Server.IndexingInterval > 0 {
-			sleepTime = time.Duration(settings.Config.Server.IndexingInterval) * time.Minute
+		if idx.Source.Config.IndexingInterval > 0 {
+			sleepTime = time.Duration(idx.Source.Config.IndexingInterval) * time.Minute
 		}
 
 		// Log and sleep before indexing
