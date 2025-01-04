@@ -1,11 +1,14 @@
 package files
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 func Test_GetRealPath(t *testing.T) {
@@ -13,7 +16,7 @@ func Test_GetRealPath(t *testing.T) {
 	if err != nil {
 		return
 	}
-	trimPrefix := filepath.Dir(filepath.Dir(cwd)) + "/"
+	trimPrefix := filepath.Dir(filepath.Dir(cwd))
 	tests := []struct {
 		name  string
 		paths []string
@@ -31,20 +34,20 @@ func Test_GetRealPath(t *testing.T) {
 				path  string
 				isDir bool
 			}{
-				path:  "backend/files",
+				path:  "",
 				isDir: true,
 			},
 		},
 		{
 			name: "current directory",
 			paths: []string{
-				"./file.go",
+				"./files/file.go",
 			},
 			want: struct {
 				path  string
 				isDir bool
 			}{
-				path:  "backend/files/file.go",
+				path:  "/files/file.go",
 				isDir: false,
 			},
 		},
@@ -62,9 +65,16 @@ func Test_GetRealPath(t *testing.T) {
 			},
 		},
 	}
+	idx := Index{
+		Source: settings.Source{
+			Path: trimPrefix,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			realPath, isDir, _ := GetRealPath(tt.paths...)
+			realPath, isDir, _ := idx.GetRealPath(tt.paths...)
+			fmt.Println(realPath, trimPrefix)
 			adjustedRealPath := strings.TrimPrefix(realPath, trimPrefix)
 			if tt.want.path != adjustedRealPath || tt.want.isDir != isDir {
 				t.Errorf("expected %v:%v but got: %v:%v", tt.want.path, tt.want.isDir, adjustedRealPath, isDir)
