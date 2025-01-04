@@ -21,6 +21,26 @@ describe('testSort', () => {
     expect(sortedItems(input, "name")).toEqual(expected);
   });
 
+  it('sort items with extentions by name correctly', () => {
+    const input = [
+      { name: "zebra.txt" },
+      { name: "1.txt" },
+      { name: "10.txt" },
+      { name: "Apple.txt" },
+      { name: "2.txt" },
+      { name: "0" }
+    ]
+    const expected = [
+      { name: "0" },
+      { name: "1.txt" },
+      { name: "2.txt" },
+      { name: "10.txt" },
+      { name: "Apple.txt" },
+      { name: "zebra.txt" }
+    ]
+    expect(sortedItems(input, "name")).toEqual(expected);
+  });
+
   it('sort items by size correctly', () => {
     const input = [
       { size: "10" },
