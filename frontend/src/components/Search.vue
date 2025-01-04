@@ -135,6 +135,8 @@ import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { removeTrailingSlash, removeLeadingSlash } from "@/utils/url";
+
 import Icon from "@/components/Icon.vue";
 
 var boxes = {
@@ -265,7 +267,7 @@ export default {
   },
   methods: {
     getRelative(path) {
-      return window.location.href + "/" + path;
+      return removeTrailingSlash(window.location.href) + "/" + removeLeadingSlash(path);
     },
     getIcon(mimetype) {
       return getMaterialIconForType(mimetype);

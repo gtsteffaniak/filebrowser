@@ -1,7 +1,6 @@
 /* Define a class .dark-mode for dark mode styles */
 .dark-mode {
   --background: #141D24;
-  --alt-background: #283136;
   --surfacePrimary: #20292F;
   --surfaceSecondary: #3A4147;
   --divider: rgba(255, 255, 255, 0.12);
@@ -283,7 +282,7 @@
 /* Header */
 .dark-mode-header {
   color: white;
-  background-color: var(--alt-background);
+  background-color: #283136;
 }
 
 /* Header with backdrop-filter support */
@@ -299,5 +298,5 @@
 }
 
 #sidebar.dark-mode {
-  background-color: var(--alt-background);
+  background-color: #283136;
 }

@@ -120,6 +120,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
+
 		isDir := file.IsDir()
 		fullCombined := combinedPath + file.Name()
 		if idx.shouldSkip(isDir, isHidden(file, ""), fullCombined) {
@@ -135,6 +136,12 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			isDir = false
 		}
 		if isDir {
+
+			// skip non-indexable dirs.
+			if file.Name() == "$RECYCLE.BIN" || file.Name() == "System Volume Information" {
+				continue
+			}
+
 			dirPath := combinedPath + file.Name()
 			if recursive {
 				// Recursively index the subdirectory

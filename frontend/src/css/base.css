@@ -1,7 +1,6 @@
 /* Basic Styles */
 :root {
   --background: white;
-  --alt-background: #ddd;
   --surfacePrimary: gray;
   --surfaceSecondary: lightgray;
   --textPrimary: white;
@@ -44,6 +43,13 @@ img {
 
 audio, video {
   width: 100%;
+}
+
+.no-select {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* Internet Explorer/Edge */
+  user-select: none;         /* Standard */
 }
 
 .hidden {

@@ -3,6 +3,7 @@
     :href="getUrl()"
     :class="{
       item: true,
+      'no-select': true,
       activebutton: isMaximized && isSelected,
     }"
     :id="getID"
@@ -405,6 +406,5 @@ export default {
 <style>
 .item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
-  user-select: none; /* Optional: Disable text selection for better UX */
 }
 </style>

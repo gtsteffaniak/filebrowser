@@ -1,5 +1,5 @@
 <template>
-  <div style="padding-bottom: 35vh">
+  <div class="no-select" style="padding-bottom: 35vh">
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">

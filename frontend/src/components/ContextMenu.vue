@@ -7,7 +7,7 @@
       top: `${top}px`,
       left: `${left}px`,
     }"
-    class="button"
+    class="button no-select"
     :class="{ 'dark-mode': isDarkMode, centered: centered }"
   >
     <div v-if="selectedCount > 0" class="button selected-count-header">
@@ -201,7 +201,6 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  user-select: none;
 }
 
 #context-menu.centered {
