@@ -1,8 +1,13 @@
 <template>
   <div id="login" :class="{ recaptcha: recaptcha, 'dark-mode': isDarkMode }">
-    <form @submit="submit">
-      <img :src="logoURL" alt="FileBrowser Quantum" />
-      <h1>{{ name }}</h1>
+    <form class="card login-card" @submit="submit">
+      <div class="login-brand">
+        <Icon mimetype="directory"/>
+      </div>
+      <div class="login-brand brand-text">
+        <h3>{{ loginName }}</h3>
+      </div>
+      
       <div v-if="error !== ''" class="wrong">{{ error }}</div>
 
       <input
@@ -44,6 +49,7 @@
 <script>
 import router from "@/router";
 import { state } from "@/store";
+import Icon from "@/components/Icon.vue";
 import { signupLogin, login, initAuth } from "@/utils/auth";
 import {
   name,
@@ -56,6 +62,9 @@ import {
 
 export default {
   name: "login",
+  components: {
+    Icon,
+  },
   computed: {
     signup: () => signup,
     name: () => name,
@@ -63,6 +72,9 @@ export default {
     isDarkMode() {
       return darkMode === true;
     },
+    loginName() {
+      return name || "FileBrowser Quantum"
+    }
   },
   data: function () {
     return {
@@ -128,3 +140,28 @@ export default {
   },
 };
 </script>
+
+<style>
+.login-card {
+  padding: 1em;
+}
+
+.login-brand {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  padding: 0 !important;
+}
+
+.brand-text {
+  padding: 1em !important;
+  padding-top: 0 !important;
+}
+
+.login-brand i {
+  font-size: 5em !important;
+  padding: 0 !important;
+}
+
+</style>

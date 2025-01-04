@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
   - macos application files (ending in ".app") were previously treated as folders, now they are treated as a single file.
   - No longer indexes "$RECYCLE.BIN" or "System Volume Information" directories.
   - Icon styling tweaked so all icons have a background.
+  - Updated Login page styling.
 
   **Bugfixes**:
   - Fixed setting share expiration time would not work due to type conversion error.
