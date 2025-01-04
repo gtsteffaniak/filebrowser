@@ -124,7 +124,6 @@ func StartFilebrowser() {
 	log.Println(database)
 	sources := []string{}
 	for name := range settings.Config.Server.Sources {
-		fmt.Println("name", name, settings.Config.Server.Sources)
 		sources = append(sources, name)
 	}
 	log.Println("Sources                  :", sources)
@@ -139,7 +138,6 @@ func StartFilebrowser() {
 		log.Fatal("No sources configured, exiting...")
 	}
 	for _, source := range sourceConfigs {
-		fmt.Println("indexing source", source)
 		go files.Initialize(source)
 	}
 	if err := rootCMD(store, &serverConfig); err != nil {

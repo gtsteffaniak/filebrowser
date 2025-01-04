@@ -42,7 +42,6 @@ func Initialize(configFile string) {
 			},
 		}
 	}
-	fmt.Println("Config.Server.Sources: ", Config.Server.Sources)
 	baseurl := strings.Trim(Config.Server.BaseURL, "/")
 	if baseurl == "" {
 		Config.Server.BaseURL = "/"
