@@ -12,8 +12,6 @@ All notable changes to this project will be documented in this file. For commit 
     - prepped for multiple sources, but currently only supports one source in the list.
   - Theme and Branding support
   - Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
-  #- Improved indexing with multiple watchers (up to 200 by default)
-  #- openoffice support similar to https://github.com/filebrowser/filebrowser/pull/2954
 
   **Notes**:
   - macos application files (ending in ".app") were previously treated as folders, now they are treated as a single file.
