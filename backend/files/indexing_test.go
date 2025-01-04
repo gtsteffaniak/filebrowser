@@ -107,6 +107,27 @@ func TestMakeIndexPath(t *testing.T) {
 	}
 }
 
+func TestMakeIndexPathRoot(t *testing.T) {
+	tests := []struct {
+		name     string
+		subPath  string
+		expected string
+	}{
+		// Linux
+		{"Root path returns slash", "/rootpath", "/"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			idx := &Index{Source: settings.Source{Path: "/rootpath", Name: "default"}}
+			result := idx.makeIndexPath(tt.subPath)
+			if result != tt.expected {
+				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
+			}
+		})
+	}
+}
+
 func BenchmarkCheckIndexExclude(b *testing.B) {
 	tests := []struct {
 		isDir    bool

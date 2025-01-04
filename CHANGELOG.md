@@ -22,7 +22,7 @@ All notable changes to this project will be documented in this file. For commit 
   **Bugfixes**:
   - Fixed setting share expiration time would not work due to type conversion error.
   - More safari fixes related to text-selection.
-  - Sort by name value sorting ignores the extension, only sorts by name
+  - Sort by name value sorting ignores the extension, only sorts by name https://github.com/gtsteffaniak/filebrowser/issues/230
 
 ## v0.3.4
 

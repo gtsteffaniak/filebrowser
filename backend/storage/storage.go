@@ -123,7 +123,8 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	}
 	newUser.Scope = userHome
 	log.Printf("user: %s, home dir: [%s].", newUser.Username, userHome)
-	_, _, err = files.GetRealPath(settings.Config.Server.Root, newUser.Scope)
+	idx := files.GetIndex("default")
+	_, _, err = idx.GetRealPath(newUser.Scope)
 	if err != nil {
 		log.Println("user path is not valid", newUser.Scope)
 		return nil

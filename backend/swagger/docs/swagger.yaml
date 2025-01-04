@@ -415,6 +415,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
       - description: Name for the desired source, default is used if not provided
         in: query
         name: source
@@ -455,6 +459,10 @@ paths:
         in: query
         name: path
         required: true
+        type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       - description: Name for the desired source, default is used if not provided
         in: query
@@ -499,6 +507,10 @@ paths:
         in: query
         name: from
         required: true
+        type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       - description: Destination path for the resource
         in: query
@@ -561,6 +573,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
       - description: Name for the desired source, default is used if not provided
         in: query
         name: source
@@ -610,6 +626,10 @@ paths:
         in: query
         name: path
         required: true
+        type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       - description: Name for the desired source, default is used if not provided
         in: query
@@ -859,7 +879,7 @@ paths:
       - application/json
       description: Returns the total and used disk space for a specified directory.
       parameters:
-      - description: Name for the desired source, default is used if not provided
+      - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
         type: string

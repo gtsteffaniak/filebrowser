@@ -83,30 +83,30 @@ func TestSortItems(t *testing.T) {
 			name: "Numeric and Lexicographical Sorting",
 			input: FileInfo{
 				Folders: []ItemInfo{
-					{Name: "10"},
-					{Name: "2"},
+					{Name: "10.txt"},
+					{Name: "2.txt"},
 					{Name: "apple"},
 					{Name: "Banana"},
 				},
 				Files: []ItemInfo{
-					{Name: "File2"},
-					{Name: "File10"},
+					{Name: "File2.txt"},
+					{Name: "File10.txt"},
 					{Name: "File1"},
 					{Name: "banana"},
 				},
 			},
 			expected: FileInfo{
 				Folders: []ItemInfo{
-					{Name: "2"},
-					{Name: "10"},
+					{Name: "2.txt"},
+					{Name: "10.txt"},
 					{Name: "apple"},
 					{Name: "Banana"},
 				},
 				Files: []ItemInfo{
 					{Name: "banana"},
 					{Name: "File1"},
-					{Name: "File10"},
-					{Name: "File2"},
+					{Name: "File10.txt"},
+					{Name: "File2.txt"},
 				},
 			},
 		},
@@ -114,8 +114,8 @@ func TestSortItems(t *testing.T) {
 			name: "Only Lexicographical Sorting",
 			input: FileInfo{
 				Folders: []ItemInfo{
-					{Name: "dog"},
-					{Name: "Cat"},
+					{Name: "dog.txt"},
+					{Name: "Cat.txt"},
 					{Name: "apple"},
 				},
 				Files: []ItemInfo{
@@ -127,8 +127,8 @@ func TestSortItems(t *testing.T) {
 			expected: FileInfo{
 				Folders: []ItemInfo{
 					{Name: "apple"},
-					{Name: "Cat"},
-					{Name: "dog"},
+					{Name: "Cat.txt"},
+					{Name: "dog.txt"},
 				},
 				Files: []ItemInfo{
 					{Name: "apple"},

@@ -31,13 +31,14 @@ func getStore(config string) (*storage.Storage, bool) {
 }
 
 func generalUsage() {
-	fmt.Printf(`usage: ./html-web-crawler <command> [options] --urls <urls>
+	fmt.Printf(`usage: ./filebrowser <command> [options]
   commands:
-    collect  Collect data from URLs
-    crawl    Crawl URLs and collect data
-    install  Install chrome browser for javascript enabled scraping.
-               Note: Consider instead to install via native package manager,
-                     then set "CHROME_EXECUTABLE" in the environment
+    -v   Print the version
+	-c    Print the default config file
+	set -u   Username and password for the new user
+	set -a   Create user as admin
+	set -s   Specify a user scope
+	set -h   Print this help message
 	` + "\n")
 }
 
@@ -123,8 +124,8 @@ func StartFilebrowser() {
 	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
 	sources := []string{}
-	for name := range settings.Config.Server.Sources {
-		sources = append(sources, name)
+	for _, v := range settings.Config.Server.Sources {
+		sources = append(sources, v.Name+": "+v.Path)
 	}
 	log.Println("Sources                  :", sources)
 

@@ -154,7 +154,8 @@ func previewCacheKey(realPath, previewSize string, modTime time.Time) string {
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
-	realPath, _, _ := files.GetRealPath(file.Path)
+	idx := files.GetIndex("default")
+	realPath, _, _ := idx.GetRealPath(file.Path)
 	fd, err := os.Open(realPath)
 	if err != nil {
 		return http.StatusInternalServerError, err

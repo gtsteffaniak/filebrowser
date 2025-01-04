@@ -223,6 +223,28 @@ func (idx *Index) recursiveUpdateDirSizes(childInfo *FileInfo, previousSize int6
 	idx.recursiveUpdateDirSizes(parentInfo, newSize)
 }
 
+func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
+	combined := append([]string{idx.Source.Path}, relativePath...)
+	joinedPath := filepath.Join(combined...)
+	isDir, _ := utils.RealPathCache.Get(joinedPath + ":isdir").(bool)
+	cached, ok := utils.RealPathCache.Get(joinedPath).(string)
+	if ok && cached != "" {
+		return cached, isDir, nil
+	}
+	// Convert relative path to absolute path
+	absolutePath, err := filepath.Abs(joinedPath)
+	if err != nil {
+		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", joinedPath, err)
+	}
+	// Resolve symlinks and get the real path
+	realPath, isDir, err := resolveSymlinks(absolutePath)
+	if err == nil {
+		utils.RealPathCache.Set(joinedPath, realPath)
+		utils.RealPathCache.Set(joinedPath+":isdir", isDir)
+	}
+	return realPath, isDir, err
+}
+
 func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 	refreshOptions := FileOptions{
 		Path:  opts.Path,

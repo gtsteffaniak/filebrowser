@@ -190,6 +190,12 @@
                     },
                     {
                         "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
@@ -253,6 +259,12 @@
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -322,6 +334,12 @@
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -400,6 +418,12 @@
                     },
                     {
                         "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
@@ -457,6 +481,12 @@
                         "name": "from",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -846,7 +876,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
+                        "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
                     }

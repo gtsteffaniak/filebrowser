@@ -24,21 +24,26 @@ func Initialize(configFile string) {
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	// Convert relative path to absolute path
 	if len(Config.Server.Sources) > 0 {
-		for name, source := range Config.Server.Sources {
+		// TODO allow multipe sources not named default
+		for _, source := range Config.Server.Sources {
 			realPath, err := filepath.Abs(source.Path)
 			if err != nil {
 				log.Fatalf("Error getting source path: %v", err)
 			}
 			source.Path = realPath
 			Config.Server.Root = source.Path
-			source.Name = name                   // Modify the local copy of the map value
-			Config.Server.Sources[name] = source // Assign the modified value back to the map
+			source.Name = "default"                   // Modify the local copy of the map value
+			Config.Server.Sources["default"] = source // Assign the modified value back to the map
 		}
 	} else {
+		realPath, err := filepath.Abs(Config.Server.Root)
+		if err != nil {
+			log.Fatalf("Error getting source path: %v", err)
+		}
 		Config.Server.Sources = map[string]Source{
 			"default": {
 				Name: "default",
-				Path: Config.Server.Root,
+				Path: realPath,
 			},
 		}
 	}

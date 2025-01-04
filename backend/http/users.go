@@ -156,7 +156,8 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 
 	// Validate the user's scope
-	_, _, err := files.GetRealPath(config.Server.Root, d.user.Scope)
+	idx := files.GetIndex("default")
+	_, _, err := idx.GetRealPath(d.user.Scope)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -214,7 +215,8 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Validate the user's scope
-	_, _, err := files.GetRealPath(config.Server.Root, d.user.Scope)
+	idx := files.GetIndex("default")
+	_, _, err := idx.GetRealPath(config.Server.Root, d.user.Scope)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
