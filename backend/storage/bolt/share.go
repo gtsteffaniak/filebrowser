@@ -1,6 +1,8 @@
 package bolt
 
 import (
+	"time"
+
 	"github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
 
@@ -59,7 +61,17 @@ func (s shareBackend) Gets(path string, id uint) ([]*share.Link, error) {
 		return v, errors.ErrNotExist
 	}
 
-	return v, err
+	filteredList := []*share.Link{}
+	// automatically delete and clear expired shares
+	for i := range v {
+		if v[i].Expire < time.Now().Unix() {
+			s.Delete(v[i].PasswordHash)
+		} else {
+			filteredList = append(filteredList, v[i])
+		}
+	}
+
+	return filteredList, err
 }
 
 func (s shareBackend) Save(l *share.Link) error {

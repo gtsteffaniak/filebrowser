@@ -11,13 +11,16 @@ All notable changes to this project will be documented in this file. For commit 
     - can enable/disable indexing hidden files (now respects windows hidden property)
     - prepped for multiple sources, but currently only supports one source in the list.
   - Theme and Branding support
+  - Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
   #- Improved indexing with multiple watchers (up to 200 by default)
-  #- Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
   #- openoffice support similar to https://github.com/filebrowser/filebrowser/pull/2954
 
   **Notes**:
-  - macos applications (ending in ".app") were previously treated as folders, now they are treated as a single file.
+  - macos application files (ending in ".app") were previously treated as folders, now they are treated as a single file.
+  - Icon styling tweaked so all icons have a background.
 
+  **Bugfixes**:
+  - Fixed setting share expiration time would not work due to type conversion error.
 
 ## v0.3.4
 
