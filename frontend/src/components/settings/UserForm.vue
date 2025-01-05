@@ -88,7 +88,6 @@ export default {
   components: {
     Permissions,
     Languages,
-    Rules,
     Commands,
   },
   data() {
