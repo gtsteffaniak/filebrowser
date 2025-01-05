@@ -10,6 +10,7 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 0.5em;
+  background-color: #DDDDDD
 }
 
 @supports (backdrop-filter: none) {

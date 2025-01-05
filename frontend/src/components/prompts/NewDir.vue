@@ -39,6 +39,7 @@
 import { filesApi } from "@/api";
 import url from "@/utils/url.js";
 import { getters, mutations, state } from "@/store"; // Import your custom store
+import { notify } from "@/notify";
 
 export default {
   name: "new-dir",
@@ -70,31 +71,36 @@ export default {
       return mutations.closeHovers();
     },
     async submit(event) {
-      event.preventDefault();
-      if (this.name === "") return;
+      try {
+        event.preventDefault();
+        if (this.name === "") return;
 
-      // Build the path of the new directory.
-      let uri;
-      if (this.base) uri = this.base;
-      else if (getters.isFiles()) uri = state.route.path + "/";
-      else uri = "/";
+        // Build the path of the new directory.
+        let uri;
+        if (this.base) uri = this.base;
+        else if (getters.isFiles()) uri = state.route.path + "/";
+        else uri = "/";
 
-      if (!this.isListing) {
-        uri = url.removeLastDir(uri) + "/";
+        if (!this.isListing) {
+          uri = url.removeLastDir(uri) + "/";
+        }
+
+        uri += encodeURIComponent(this.name) + "/";
+        uri = uri.replace("//", "/");
+
+        await filesApi.post(uri);
+        if (this.redirect) {
+          this.$router.push({ path: uri });
+        } else if (!this.base) {
+          const res = await filesApi.fetchFiles(url.removeLastDir(uri) + "/");
+          mutations.updateRequest(res);
+        }
+
+        mutations.closeHovers();
+      } catch (error) {
+        notify.showError(error);
       }
 
-      uri += encodeURIComponent(this.name) + "/";
-      uri = uri.replace("//", "/");
-
-      await filesApi.post(uri);
-      if (this.redirect) {
-        this.$router.push({ path: uri });
-      } else if (!this.base) {
-        const res = await filesApi.fetchFiles(url.removeLastDir(uri) + "/");
-        mutations.updateRequest(res);
-      }
-
-      mutations.closeHovers();
     },
   },
 };

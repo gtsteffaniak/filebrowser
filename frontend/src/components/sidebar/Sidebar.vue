@@ -5,32 +5,16 @@
 
     <div class="buffer"></div>
     <div class="credits">
-      <span>
-        <a
-          rel="noopener noreferrer"
-          target="_blank"
-          href="https://github.com/gtsteffaniak/filebrowser"
-        >
-          FileBrowser Quantum
-        </a>
+      <span v-for="item in externalLinks" :key="item.title">
+        <a :href="item.url" target="_blank" :title="item.title">{{ item.text }}</a>
       </span>
-      <span>
-        <a
-          :href="'https://github.com/gtsteffaniak/filebrowser/releases/'"
-          :title="commitSHA"
-        >
-          ({{ version }})
-        </a>
-      </span>
-      <span>
-        <a @click="help">{{ $t("sidebar.help") }}</a>
-      </span>
+      <span v-if="name != ''"><h3>{{ name }}</h3></span>
     </div>
   </nav>
 </template>
 
 <script>
-import { version, commitSHA } from "@/utils/constants";
+import { externalLinks, name } from "@/utils/constants";
 import { getters, mutations } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
@@ -41,9 +25,13 @@ export default {
     SidebarGeneral,
     SidebarSettings,
   },
+  data() {
+    return {
+      externalLinks,
+      name,
+    };
+  },
   computed: {
-    version: () => version,
-    commitSHA: () => commitSHA,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
@@ -77,7 +65,7 @@ export default {
   transition: 0.5s ease;
   top: 4em;
   padding-bottom: 4em;
-  background-color: rgb(255 255 255 / 50%) !important;
+  background-color: #DDDDDD
 }
 
 #sidebar.sticky {
@@ -118,9 +106,10 @@ body.rtl .action {
   text-align: right;
 }
 
-#sidebar .action > * {
+#sidebar .action>* {
   vertical-align: middle;
 }
+
 /* * * * * * * * * * * * * * * *
  *            FOOTER           *
  * * * * * * * * * * * * * * * */
@@ -132,7 +121,7 @@ body.rtl .action {
   padding-bottom: 1em;
 }
 
-.credits > span {
+.credits>span {
   display: block;
   margin-top: 0.5em;
   margin-left: 0;
@@ -164,6 +153,7 @@ body.rtl .action {
 .clickable {
   cursor: pointer;
 }
+
 .clickable:hover {
   box-shadow: 0 2px 2px #00000024, 0 1px 5px #0000001f, 0 3px 1px -2px #0003;
 }

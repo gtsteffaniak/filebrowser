@@ -7,44 +7,47 @@
 
     <div class="card-content full" v-if="links.length > 0">
       <table>
-        <tr>
-          <th>{{ $t("settings.path") }}</th>
-          <th>{{ $t("settings.shareDuration") }}</th>
-          <th v-if="user.perm.admin">{{ $t("settings.username") }}</th>
-          <th></th>
-          <th></th>
-        </tr>
-
-        <tr v-for="link in links" :key="link.hash">
-          <td>
-            <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
-          </td>
-          <td>
-            <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-            <template v-else>{{ $t("permanent") }}</template>
-          </td>
-          <td v-if="user.perm.admin">{{ link.username }}</td>
-          <td class="small">
-            <button
-              class="action"
-              @click="deleteLink($event, link)"
-              :aria-label="$t('buttons.delete')"
-              :title="$t('buttons.delete')"
-            >
-              <i class="material-icons">delete</i>
-            </button>
-          </td>
-          <td class="small">
-            <button
-              class="action copy-clipboard"
-              :data-clipboard-text="buildLink(link)"
-              :aria-label="$t('buttons.copyToClipboard')"
-              :title="$t('buttons.copyToClipboard')"
-            >
-              <i class="material-icons">content_paste</i>
-            </button>
-          </td>
-        </tr>
+        <thead>
+          <tr>
+            <th>{{ $t("settings.path") }}</th>
+            <th>{{ $t("settings.shareDuration") }}</th>
+            <th v-if="user.perm.admin">{{ $t("settings.username") }}</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="link in links" :key="link.hash">
+            <td>
+              <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
+            </td>
+            <td>
+              <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
+              <template v-else>{{ $t("permanent") }}</template>
+            </td>
+            <td v-if="user.perm.admin">{{ link.username }}</td>
+            <td class="small">
+              <button
+                class="action"
+                @click="deleteLink($event, link)"
+                :aria-label="$t('buttons.delete')"
+                :title="$t('buttons.delete')"
+              >
+                <i class="material-icons">delete</i>
+              </button>
+            </td>
+            <td class="small">
+              <button
+                class="action copy-clipboard"
+                :data-clipboard-text="buildLink(link)"
+                :aria-label="$t('buttons.copyToClipboard')"
+                :title="$t('buttons.copyToClipboard')"
+              >
+                <i class="material-icons">content_paste</i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
     <h2 class="message" v-else>
@@ -80,7 +83,8 @@ export default {
       let links = await shareApi.list();
       if (state.user.perm.admin) {
         let userMap = new Map();
-        for (let user of await usersApi.getAllUsers()) userMap.set(user.id, user.username);
+        for (let user of await usersApi.getAllUsers())
+          userMap.set(user.id, user.username);
         for (let link of links)
           link.username = userMap.has(link.userID) ? userMap.get(link.userID) : "";
       }

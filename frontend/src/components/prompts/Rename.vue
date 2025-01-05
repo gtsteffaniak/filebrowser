@@ -43,6 +43,7 @@
 import url from "@/utils/url.js";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
+import { notify } from "@/notify";
 
 export default {
   name: "rename",
@@ -87,28 +88,30 @@ export default {
       return state.req.items[this.selected[0]].name;
     },
     async submit() {
-      let oldLink = "";
-      let newLink = "";
+      try {
+        let oldLink = "";
+        let newLink = "";
 
-      if (!this.isListing) {
-        oldLink = state.req.url;
-      } else {
-        oldLink = state.req.items[this.selected[0]].url;
+        if (!this.isListing) {
+          oldLink = state.req.url;
+        } else {
+          oldLink = state.req.items[this.selected[0]].url;
+        }
+
+        newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
+
+        await filesApi.moveCopy([{ from: oldLink, to: newLink }], "move");
+        if (!this.isListing) {
+          this.$router.push({ path: newLink });
+          return;
+        }
+
+        window.location.reload();
+        mutations.closeHovers();
+      } catch (error) {
+        notify.showError(error);
       }
 
-      newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
-
-      await filesApi.moveCopy([{ from: oldLink, to: newLink }], "move");
-      if (!this.isListing) {
-        this.$router.push({ path: newLink });
-        return;
-      }
-
-      setTimeout(() => {
-        mutations.setReload(true);
-      }, 50);
-
-      mutations.closeHovers();
     },
   },
 };

@@ -201,6 +201,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
@@ -264,6 +270,12 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -333,6 +345,12 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -411,6 +429,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
@@ -468,6 +492,12 @@ const docTemplate = `{
                         "name": "from",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source, default is used if not provided",
+                        "name": "source",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -857,7 +887,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
+                        "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
                     }
@@ -1260,17 +1290,37 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.ExternalLink": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "settings.Frontend": {
             "type": "object",
             "properties": {
                 "color": {
                     "type": "string"
                 },
-                "disableExternal": {
+                "disableDefaultLinks": {
                     "type": "boolean"
                 },
                 "disableUsedPercentage": {
                     "type": "boolean"
+                },
+                "externalLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.ExternalLink"
+                    }
                 },
                 "files": {
                     "type": "string"
@@ -1341,6 +1391,9 @@ const docTemplate = `{
                 },
                 "stickySidebar": {
                     "type": "boolean"
+                },
+                "themeColor": {
+                    "type": "string"
                 },
                 "viewMode": {
                     "type": "string"
@@ -1541,6 +1594,9 @@ const docTemplate = `{
                 },
                 "stickySidebar": {
                     "type": "boolean"
+                },
+                "themeColor": {
+                    "type": "string"
                 },
                 "username": {
                     "type": "string"

@@ -3,8 +3,6 @@ package files
 import (
 	"log"
 	"time"
-
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // schedule in minutes
@@ -19,99 +17,99 @@ var scanSchedule = []time.Duration{
 	4 * time.Hour, // 4 hours for quick scan & 20 hours for a full scan
 }
 
-func (si *Index) newScanner(origin string) {
+func (idx *Index) newScanner(origin string) {
 	fullScanAnchor := 3
 	fullScanCounter := 0 // every 5th scan is a full scan
 	for {
 		// Determine sleep time with modifiers
 		fullScanCounter++
-		sleepTime := scanSchedule[si.currentSchedule] + si.SmartModifier
-		if si.assessment == "simple" {
-			sleepTime = scanSchedule[si.currentSchedule] - si.SmartModifier
+		sleepTime := scanSchedule[idx.currentSchedule] + idx.SmartModifier
+		if idx.assessment == "simple" {
+			sleepTime = scanSchedule[idx.currentSchedule] - idx.SmartModifier
 		}
-		if settings.Config.Server.IndexingInterval > 0 {
-			sleepTime = time.Duration(settings.Config.Server.IndexingInterval) * time.Minute
+		if idx.Source.Config.IndexingInterval > 0 {
+			sleepTime = time.Duration(idx.Source.Config.IndexingInterval) * time.Minute
 		}
 
 		// Log and sleep before indexing
 		log.Printf("Next scan in %v\n", sleepTime)
 		time.Sleep(sleepTime)
 
-		si.scannerMu.Lock()
+		idx.scannerMu.Lock()
 		if fullScanCounter == 5 {
-			si.RunIndexing(origin, false) // Full scan
+			idx.RunIndexing(origin, false) // Full scan
 			fullScanCounter = 0
 		} else {
-			si.RunIndexing(origin, true) // Quick scan
+			idx.RunIndexing(origin, true) // Quick scan
 		}
-		si.scannerMu.Unlock()
+		idx.scannerMu.Unlock()
 
 		// Adjust schedule based on file changes
-		if si.FilesChangedDuringIndexing {
+		if idx.FilesChangedDuringIndexing {
 			// Move to at least the full-scan anchor or reduce interval
-			if si.currentSchedule > fullScanAnchor {
-				si.currentSchedule = fullScanAnchor
-			} else if si.currentSchedule > 0 {
-				si.currentSchedule--
+			if idx.currentSchedule > fullScanAnchor {
+				idx.currentSchedule = fullScanAnchor
+			} else if idx.currentSchedule > 0 {
+				idx.currentSchedule--
 			}
 		} else {
 			// Increment toward the longest interval if no changes
-			if si.currentSchedule < len(scanSchedule)-1 {
-				si.currentSchedule++
+			if idx.currentSchedule < len(scanSchedule)-1 {
+				idx.currentSchedule++
 			}
 		}
-		if si.assessment == "simple" && si.currentSchedule > 3 {
-			si.currentSchedule = 3
+		if idx.assessment == "simple" && idx.currentSchedule > 3 {
+			idx.currentSchedule = 3
 		}
 		// Ensure `currentSchedule` stays within bounds
-		if si.currentSchedule < 0 {
-			si.currentSchedule = 0
-		} else if si.currentSchedule >= len(scanSchedule) {
-			si.currentSchedule = len(scanSchedule) - 1
+		if idx.currentSchedule < 0 {
+			idx.currentSchedule = 0
+		} else if idx.currentSchedule >= len(scanSchedule) {
+			idx.currentSchedule = len(scanSchedule) - 1
 		}
 	}
 }
 
-func (si *Index) RunIndexing(origin string, quick bool) {
-	prevNumDirs := si.NumDirs
-	prevNumFiles := si.NumFiles
+func (idx *Index) RunIndexing(origin string, quick bool) {
+	prevNumDirs := idx.NumDirs
+	prevNumFiles := idx.NumFiles
 	if quick {
 		log.Println("Starting quick scan")
 	} else {
 		log.Println("Starting full scan")
-		si.NumDirs = 0
-		si.NumFiles = 0
+		idx.NumDirs = 0
+		idx.NumFiles = 0
 	}
 	startTime := time.Now()
-	si.FilesChangedDuringIndexing = false
+	idx.FilesChangedDuringIndexing = false
 	// Perform the indexing operation
-	err := si.indexDirectory("/", quick, true)
+	err := idx.indexDirectory("/", quick, true)
 	if err != nil {
 		log.Printf("Error during indexing: %v", err)
 	}
 	// Update the LastIndexed time
-	si.LastIndexed = time.Now()
-	si.indexingTime = int(time.Since(startTime).Seconds())
+	idx.LastIndexed = time.Now()
+	idx.indexingTime = int(time.Since(startTime).Seconds())
 	if !quick {
 		// update smart indexing
-		if si.indexingTime < 3 || si.NumDirs < 10000 {
-			si.assessment = "simple"
-			si.SmartModifier = 4 * time.Minute
-		} else if si.indexingTime > 120 || si.NumDirs > 500000 {
-			si.assessment = "complex"
-			modifier := si.indexingTime / 10 // seconds
-			si.SmartModifier = time.Duration(modifier) * time.Minute
+		if idx.indexingTime < 3 || idx.NumDirs < 10000 {
+			idx.assessment = "simple"
+			idx.SmartModifier = 4 * time.Minute
+		} else if idx.indexingTime > 120 || idx.NumDirs > 500000 {
+			idx.assessment = "complex"
+			modifier := idx.indexingTime / 10 // seconds
+			idx.SmartModifier = time.Duration(modifier) * time.Minute
 		} else {
-			si.assessment = "normal"
+			idx.assessment = "normal"
 		}
-		log.Printf("Index assessment         : complexity=%v directories=%v files=%v \n", si.assessment, si.NumDirs, si.NumFiles)
-		if si.NumDirs != prevNumDirs || si.NumFiles != prevNumFiles {
-			si.FilesChangedDuringIndexing = true
+		log.Printf("Index assessment         : complexity=%v directories=%v files=%v \n", idx.assessment, idx.NumDirs, idx.NumFiles)
+		if idx.NumDirs != prevNumDirs || idx.NumFiles != prevNumFiles {
+			idx.FilesChangedDuringIndexing = true
 		}
 	}
-	log.Printf("Time Spent Indexing      : %v seconds\n", si.indexingTime)
+	log.Printf("Time Spent Indexing      : %v seconds\n", idx.indexingTime)
 }
 
-func (si *Index) setupIndexingScanners() {
-	go si.newScanner("/")
+func (idx *Index) setupIndexingScanners() {
+	go idx.newScanner("/")
 }

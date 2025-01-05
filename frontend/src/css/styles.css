@@ -118,7 +118,7 @@ main .spinner .bounce2 {
   position: absolute;
   bottom: 0;
   right: 0;
-  background: var(--blue);
+  background: var(--primaryColor);
   color: #fff;
   border-radius: 50%;
   font-size: .75em;

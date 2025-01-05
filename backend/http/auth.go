@@ -17,6 +17,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
@@ -126,7 +127,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	user.Username = info.Username
 	user.Password = info.Password
 
-	userHome, err := config.MakeUserDir(user.Username, user.Scope, config.Server.Root)
+	userHome, err := config.MakeUserDir(user.Username, user.Scope, files.RootPaths["default"])
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

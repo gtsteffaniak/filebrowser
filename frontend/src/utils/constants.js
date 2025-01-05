@@ -1,5 +1,6 @@
-const name = window.FileBrowser.Name || "FileBrowser Quantum";
+const name = window.FileBrowser.Name;
 const disableExternal = window.FileBrowser.DisableExternal;
+const externalLinks = window.FileBrowser.ExternalLinks;
 const disableUsedPercentage = window.FileBrowser.DisableUsedPercentage;
 const baseURL = window.FileBrowser.BaseURL;
 const staticURL = window.FileBrowser.StaticURL;
@@ -23,12 +24,13 @@ const settings = [
   { id: 'shares', label: 'Share Management', component: 'SharesSettings', perm: { share: true } },
   { id: 'api', label: 'API Keys', component: 'ApiKeys', perm: { api: true }  },
   { id: 'global', label: 'Global', component: 'GlobalSettings', perm: { admin: true } },
-  { id: 'users', label: 'User Management', component: 'UserManagement', perm: { admin: true } },
+  { id: 'users', label: 'User Management', component: 'UserManagement' },
 ]
 
 export {
   name,
   disableExternal,
+  externalLinks,
   disableUsedPercentage,
   baseURL,
   logoURL,

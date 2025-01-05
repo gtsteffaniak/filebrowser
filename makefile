@@ -27,7 +27,7 @@ run: run-frontend
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/version.Version=testing'" . -c test_config.yaml
 
 run-frontend:
-	cd backend/http && rm -rf dist && ln -s ../../frontend/dist && \
+	cd backend/http && rm -rf dist && rm -rf embed/* && ln -s ../../frontend/dist && \
 	cd ../../frontend && npm run build
 
 lint-frontend:

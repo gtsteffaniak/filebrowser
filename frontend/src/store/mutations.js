@@ -176,7 +176,7 @@ export const mutations = {
 
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
-      state.user.locale = i18n.detectLocale();
+      //state.user.locale = i18n.detectLocale();
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
     }

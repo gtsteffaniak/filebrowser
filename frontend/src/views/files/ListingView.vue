@@ -1,5 +1,5 @@
 <template>
-  <div style="padding-bottom: 35vh">
+  <div class="no-select" style="padding-bottom: 35vh">
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -75,7 +75,6 @@ import download from "@/utils/download";
 import { filesApi } from "@/api";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
-import css from "@/utils/css";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
@@ -651,12 +650,12 @@ export default {
       action(false, false);
     },
     colunmsResize() {
-      let items = css(["#listingView .item", "#listingView .item"]);
-      items.style.width = `calc(${100 / this.numColumns}% - 1em)`;
+      document.documentElement.style.setProperty('--item-width', `calc(${100 / this.numColumns}% - 1em)`);
+
       if (state.user.viewMode == "gallery") {
-        items.style.height = `${this.columnWidth / 20}em`;
+        document.documentElement.style.setProperty('--item-height', `calc(${this.columnWidth / 25}em)`);
       } else {
-        items.style.height = `auto`;
+        document.documentElement.style.setProperty('--item-height', `auto`);
       }
     },
     dragEnter() {
@@ -694,7 +693,7 @@ export default {
       }
 
       let files = await upload.scanFiles(dt);
-      const folderUpload = !!files[0].webkitRelativePath;
+      const folderUpload = Boolean(files[0].webkitRelativePath);
 
       const uploadFiles = [];
       for (let i = 0; i < files.length; i++) {

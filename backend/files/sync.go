@@ -2,27 +2,25 @@ package files
 
 import (
 	"path/filepath"
-
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
-func (si *Index) UpdateMetadata(info *FileInfo) bool {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	si.Directories[info.Path] = info
+func (idx *Index) UpdateMetadata(info *FileInfo) bool {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+	idx.Directories[info.Path] = info
 	return true
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	checkDir := si.makeIndexPath(target)
+func (idx *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+	checkDir := idx.makeIndexPath(target)
 	if !isDir {
-		checkDir = si.makeIndexPath(filepath.Dir(target))
+		checkDir = idx.makeIndexPath(filepath.Dir(target))
 	}
-	dir, exists := si.Directories[checkDir]
+	dir, exists := idx.Directories[checkDir]
 	if !exists {
 		return nil, false
 	}
@@ -48,42 +46,30 @@ func (si *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool)
 }
 
 // GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
-func (si *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
-	si.mu.RLock()
-	defer si.mu.RUnlock()
-	checkDir := si.makeIndexPath(target)
+func (idx *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+	checkDir := idx.makeIndexPath(target)
 	if !isDir {
-		checkDir = si.makeIndexPath(filepath.Dir(target))
+		checkDir = idx.makeIndexPath(filepath.Dir(target))
 	}
-	dir, exists := si.Directories[checkDir]
+	dir, exists := idx.Directories[checkDir]
 	return dir, exists
 }
 
-func (si *Index) RemoveDirectory(path string) {
-	si.mu.Lock()
-	defer si.mu.Unlock()
-	si.NumDeleted++
-	delete(si.Directories, path)
+func (idx *Index) RemoveDirectory(path string) {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+	idx.NumDeleted++
+	delete(idx.Directories, path)
 }
 
-func GetIndex(root string) *Index {
-	for _, index := range indexes {
-		if index.Root == root {
-			return index
-		}
-	}
-	if settings.Config.Server.Root != "" {
-		rootPath = settings.Config.Server.Root
-	}
-	newIndex := &Index{
-		Root:        rootPath,
-		Directories: map[string]*FileInfo{},
-		NumDirs:     0,
-		NumFiles:    0,
-	}
-	newIndex.Directories["/"] = &FileInfo{}
+func GetIndex(name string) *Index {
 	indexesMutex.Lock()
-	indexes = append(indexes, newIndex)
-	indexesMutex.Unlock()
-	return newIndex
+	defer indexesMutex.Unlock()
+	index, ok := indexes[name]
+	if !ok {
+		return nil
+	}
+	return index
 }

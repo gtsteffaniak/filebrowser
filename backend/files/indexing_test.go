@@ -11,16 +11,19 @@ import (
 )
 
 func BenchmarkFillIndex(b *testing.B) {
-	InitializeIndex(false)
-	si := GetIndex(settings.Config.Server.Root)
+	Initialize(settings.Source{
+		Name: "test",
+		Path: "/srv",
+	})
+	idx := GetIndex("test")
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		si.createMockData(50, 3) // 1000 dirs, 3 files per dir
+		idx.createMockData(50, 3) // 1000 dirs, 3 files per dir
 	}
 }
 
-func (si *Index) createMockData(numDirs, numFilesPerDir int) {
+func (idx *Index) createMockData(numDirs, numFilesPerDir int) {
 	for i := 0; i < numDirs; i++ {
 		dirPath := generateRandomPath(rand.Intn(3) + 1)
 		files := []ItemInfo{} // Slice of FileInfo
@@ -40,7 +43,7 @@ func (si *Index) createMockData(numDirs, numFilesPerDir int) {
 			Files: files,
 		}
 
-		si.UpdateMetadata(dirInfo)
+		idx.UpdateMetadata(dirInfo)
 	}
 }
 
@@ -78,6 +81,7 @@ func TestMakeIndexPath(t *testing.T) {
 		subPath  string
 		expected string
 	}{
+		// Linux
 		{"Root path returns slash", "/", "/"},
 		{"Dot-prefixed returns slash", ".", "/"},
 		{"Double-dot prefix ignored", "./", "/"},
@@ -87,15 +91,114 @@ func TestMakeIndexPath(t *testing.T) {
 		{"Trailing slash removed", "/test/", "/test"},
 		{"Subpath without root prefix", "/other/test", "/other/test"},
 		{"Complex nested paths", "/nested/path", "/nested/path"},
+		// Windows
+		{"Mixed slash", "/first\\second", "/first/second"},
+		{"Windows slash", "\\first\\second", "/first/second"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			si := &Index{Root: "/"}
-			result := si.makeIndexPath(tt.subPath)
+			idx := &Index{Source: settings.Source{Path: "/"}}
+			result := idx.makeIndexPath(tt.subPath)
 			if result != tt.expected {
-				t.Errorf("makeIndexPath(%q) = %q; want %q", tt.name, result, tt.expected)
+				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
 		})
 	}
+}
+
+func TestMakeIndexPathRoot(t *testing.T) {
+	tests := []struct {
+		name     string
+		subPath  string
+		expected string
+	}{
+		// Linux
+		{"Root path returns slash", "/rootpath", "/"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			idx := &Index{Source: settings.Source{Path: "/rootpath", Name: "default"}}
+			result := idx.makeIndexPath(tt.subPath)
+			if result != tt.expected {
+				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
+			}
+		})
+	}
+}
+
+func BenchmarkCheckIndexExclude(b *testing.B) {
+	tests := []struct {
+		isDir    bool
+		isHidden bool
+		fullPath string
+	}{
+		{false, false, "/test/.test"},
+		{true, false, "/test/.test"},
+		{true, true, "/test/.test"},
+		{false, false, "/test/filepath"},
+		{false, true, "/test/filepath"},
+		{true, true, "/test/filepath"},
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	idx := Index{
+		Source: settings.Source{
+			Name: "files",
+			Config: settings.IndexConfig{
+				IgnoreHidden: true,
+				Exclude: settings.IndexFilter{
+					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
+					Folders:      []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
+					FileEndsWith: []string{".zip", ".tar", ".jpeg"},
+				},
+			},
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, v := range tests {
+			idx.shouldSkip(v.isDir, v.isHidden, v.fullPath)
+		}
+	}
+
+}
+func BenchmarkCheckIndexConditionsInclude(b *testing.B) {
+	tests := []struct {
+		isDir    bool
+		isHidden bool
+		fullPath string
+	}{
+		{false, false, "/test/.test"},
+		{true, false, "/test/.test"},
+		{true, true, "/test/.test"},
+		{false, false, "/test/filepath"},
+		{false, true, "/test/filepath"},
+		{true, true, "/test/filepath"},
+	}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	idx2 := Index{
+		Source: settings.Source{
+			Name: "files",
+			Config: settings.IndexConfig{
+				IgnoreHidden: true,
+				Include: settings.IndexFilter{
+					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
+					Folders:      []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
+					FileEndsWith: []string{".zip", ".tar", ".jpeg"},
+				},
+			},
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, v := range tests {
+			idx2.shouldSkip(v.isDir, v.isHidden, v.fullPath)
+		}
+	}
+
 }

@@ -175,7 +175,6 @@ export default {
     },
     bar_style() {
       var style = {
-        background: this.barColor,
         width: this.pct + "%",
         height: this.size_px + "px",
         transition: this.barTransition,
@@ -228,5 +227,6 @@ export default {
 .vue-simple-progress,
 .vue-simple-progress-bar {
   border-radius: 0.5em;
+  background: var(--primaryColor);
 }
 </style>

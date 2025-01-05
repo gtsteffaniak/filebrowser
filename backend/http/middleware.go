@@ -97,7 +97,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if settings.Config.Auth.Method == "noauth" {
 			var err error
 			// Retrieve the user from the store and store it in the context
-			data.user, err = store.Users.Get(config.Server.Root, "admin")
+			data.user, err = store.Users.Get(files.RootPaths["default"], "admin")
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -127,7 +127,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			w.Header().Add("X-Renew-Token", "true")
 		}
 		// Retrieve the user from the store and store it in the context
-		data.user, err = store.Users.Get(config.Server.Root, tk.BelongsTo)
+		data.user, err = store.Users.Get(files.RootPaths["default"], tk.BelongsTo)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

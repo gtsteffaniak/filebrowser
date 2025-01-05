@@ -1,5 +1,16 @@
 <template>
-  <div>
+  <div v-if="!user.perm.admin">
+    <label for="password">{{ $t("settings.password") }}</label>
+      <input
+        class="input input--block"
+        type="password"
+        placeholder="enter new password"
+        v-model="user.password"
+        id="password"
+        @input="emitUpdate"
+      />
+  </div>
+  <div v-else>
     <p v-if="!isDefault">
       <label for="username">{{ $t("settings.username") }}</label>
       <input
@@ -62,18 +73,11 @@
 
     <permissions :perm="localUser.perm" />
     <commands v-if="isExecEnabled" v-model:commands="user.commands" />
-
-    <div v-if="!isDefault">
-      <h3>{{ $t("settings.rules") }}</h3>
-      <p class="small">{{ $t("settings.rulesHelp") }}</p>
-      <rules v-model:rules="user.rules" @input="emitUpdate" />
-    </div>
   </div>
 </template>
 
 <script>
 import Languages from "./Languages.vue";
-import Rules from "./Rules.vue";
 import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
 import { enableExec } from "@/utils/constants";
@@ -83,7 +87,6 @@ export default {
   components: {
     Permissions,
     Languages,
-    Rules,
     Commands,
   },
   data() {

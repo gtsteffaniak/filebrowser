@@ -52,10 +52,10 @@
           class="action"
           @click="navigateTo('/files/')"
           :aria-label="$t('sidebar.myFiles')"
-          :title="$t('sidebar.myFiles')"
+          title="default"
         >
           <i class="material-icons">folder</i>
-          <span>{{ $t("sidebar.myFiles") }}</span>
+          <span>default</span>
           <div>
             <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
             <div class="usage-info">
@@ -72,8 +72,6 @@
 <script>
 import * as auth from "@/utils/auth";
 import {
-  version,
-  commitSHA,
   signup,
   disableExternal,
   disableUsedPercentage,
@@ -154,7 +152,7 @@ export default {
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      let usage = await filesApi.usage("/");
+      let usage = await filesApi.usage("default");
       usageStats = {
         used: getHumanReadableFilesize(usage.used / 1024),
         total: getHumanReadableFilesize(usage.total / 1024),
@@ -247,7 +245,7 @@ button.action {
 }
 
 .quick-toggles .active {
-  background-color: var(--blue) !important;
+  background-color: var(--primaryColor) !important;
   border-radius: 10em;
 }
 .inner-card {

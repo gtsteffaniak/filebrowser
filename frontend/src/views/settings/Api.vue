@@ -11,51 +11,54 @@
     </div>
     <div class="card-content full" v-if="Object.keys(links).length > 0">
       <p>
-        API keys are based on the user that creates the. See
+        API keys are based on the user that creates them. See
         <a class="link" href="swagger/index.html">swagger page</a> for how to use them.
         Keys are associated with your user and the user must have access to the permission
         level you want to use the key with.
       </p>
       <table>
-        <tr>
-          <th>Name</th>
-          <th>Created</th>
-          <th>Expires</th>
-          <th>{{ $t("settings.permissions") }}</th>
-          <th>Actions</th>
-        </tr>
-
-        <tr v-for="(link, name) in links" :key="name">
-          <td>{{ name }}</td>
-          <td>{{ formatTime(link.created) }}</td>
-          <td>{{ formatTime(link.expires) }}</td>
-          <td>
-            <span
-              v-for="(value, perm) in link.Permissions"
-              :key="perm"
-              :title="`${perm}: ${value ? 'Enabled' : 'Disabled'}`"
-              class="clickable"
-              @click.prevent="infoPrompt(name, link)"
-            >
-              {{ showResult(value) }}
-            </span>
-          </td>
-          <td class="small">
-            <button class="action" @click.prevent="infoPrompt(name, link)">
-              <i class="material-icons">info</i>
-            </button>
-          </td>
-          <td class="small">
-            <button
-              class="action copy-clipboard"
-              :data-clipboard-text="link.key"
-              :aria-label="$t('buttons.copyToClipboard')"
-              :title="$t('buttons.copyToClipboard')"
-            >
-              <i class="material-icons">content_paste</i>
-            </button>
-          </td>
-        </tr>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Expires</th>
+            <th>{{ $t("settings.permissions") }}</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(link, name) in links" :key="name">
+            <td>{{ name }}</td>
+            <td>{{ formatTime(link.created) }}</td>
+            <td>{{ formatTime(link.expires) }}</td>
+            <td>
+              <span
+                v-for="(value, perm) in link.Permissions"
+                :key="perm"
+                :title="`${perm}: ${value ? 'Enabled' : 'Disabled'}`"
+                class="clickable"
+                @click.prevent="infoPrompt(name, link)"
+              >
+                {{ showResult(value) }}
+              </span>
+            </td>
+            <td class="small">
+              <button class="action" @click.prevent="infoPrompt(name, link)">
+                <i class="material-icons">info</i>
+              </button>
+            </td>
+            <td class="small">
+              <button
+                class="action copy-clipboard"
+                :data-clipboard-text="link.key"
+                :aria-label="$t('buttons.copyToClipboard')"
+                :title="$t('buttons.copyToClipboard')"
+              >
+                <i class="material-icons">content_paste</i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
     <h2 class="message" v-else>

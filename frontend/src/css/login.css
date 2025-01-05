@@ -59,7 +59,7 @@
 #login p {
   cursor: pointer;
   text-align: right;
-  color: var(--blue);
+  color: var(--primaryColor);
   text-transform: lowercase;
   font-weight: 500;
   font-size: 0.9rem;

@@ -31,13 +31,14 @@ func getStore(config string) (*storage.Storage, bool) {
 }
 
 func generalUsage() {
-	fmt.Printf(`usage: ./html-web-crawler <command> [options] --urls <urls>
+	fmt.Printf(`usage: ./filebrowser <command> [options]
   commands:
-    collect  Collect data from URLs
-    crawl    Crawl URLs and collect data
-    install  Install chrome browser for javascript enabled scraping.
-               Note: Consider instead to install via native package manager,
-                     then set "CHROME_EXECUTABLE" in the environment
+    -v   Print the version
+	-c    Print the default config file
+	set -u   Username and password for the new user
+	set -a   Create user as admin
+	set -s   Specify a user scope
+	set -h   Print this help message
 	` + "\n")
 }
 
@@ -122,14 +123,24 @@ func StartFilebrowser() {
 	log.Printf("Using Config file        : %v", configPath)
 	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
 	log.Println(database)
-	log.Println("Sources                  :", settings.Config.Server.Root)
+	sources := []string{}
+	for _, v := range settings.Config.Server.Sources {
+		sources = append(sources, v.Name+": "+v.Path)
+	}
+	log.Println("Sources                  :", sources)
 
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
 	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
-	go files.InitializeIndex(serverConfig.Indexing)
+	sourceConfigs := settings.Config.Server.Sources
+	if len(sourceConfigs) == 0 {
+		log.Fatal("No sources configured, exiting...")
+	}
+	for _, source := range sourceConfigs {
+		go files.Initialize(source)
+	}
 	if err := rootCMD(store, &serverConfig); err != nil {
 		log.Fatal("Error starting filebrowser:", err)
 	}

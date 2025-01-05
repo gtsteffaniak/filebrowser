@@ -25,6 +25,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param source query string false "Source name for the desired source, default is used if not provided"
 // @Param source query string false "Name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
 // @Param checksum query string false "Optional checksum validation"
@@ -33,8 +34,11 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [get]
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// TODO source := r.URL.Query().Get("source")
 	encodedPath := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
@@ -43,6 +47,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
 		Path:       filepath.Join(d.user.Scope, path),
 		Modify:     d.user.Perm.Modify,
+		Source:     source,
 		Expand:     true,
 		ReadHeader: config.Server.TypeDetectionByHeader,
 		Checker:    d.user,
@@ -74,6 +79,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param source query string false "Source name for the desired source, default is used if not provided"
 // @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 "Resource deleted successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
@@ -83,6 +89,10 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
 	encodedPath := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
@@ -91,13 +101,9 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if path == "/" || !d.user.Perm.Delete {
 		return http.StatusForbidden, nil
 	}
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
 	fileOpts := files.FileOptions{
-		Path:       realPath,
-		IsDir:      isDir,
+		Path:       filepath.Join(d.user.Scope, path),
+		Source:     source,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: config.Server.TypeDetectionByHeader,
@@ -109,12 +115,12 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// delete thumbnails
-	err = delThumbs(r.Context(), fileCache, fileInfo.FileInfo)
+	err = delThumbs(r.Context(), fileCache, fileInfo)
 	if err != nil {
 		return errToStatus(err), err
 	}
 
-	err = files.DeleteFiles(realPath, fileOpts)
+	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath))
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -129,6 +135,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param source query string false "Source name for the desired source, default is used if not provided"
 // @Param source query string false "Name for the desired source, default is used if not provided"
 // @Param override query bool false "Override existing file if true"
 // @Success 200 "Resource created successfully"
@@ -138,8 +145,11 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [post]
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// TODO source := r.URL.Query().Get("source")
 	encodedPath := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
@@ -150,6 +160,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	fileOpts := files.FileOptions{
 		Path:    filepath.Join(d.user.Scope, path),
+		Source:  source,
 		Modify:  d.user.Perm.Modify,
 		Expand:  false,
 		Checker: d.user,
@@ -173,7 +184,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusForbidden, nil
 		}
 
-		err = delThumbs(r.Context(), fileCache, fileInfo.FileInfo)
+		err = delThumbs(r.Context(), fileCache, fileInfo)
 		if err != nil {
 			return errToStatus(err), err
 		}
@@ -193,6 +204,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
+// @Param source query string false "Source name for the desired source, default is used if not provided"
 // @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 "Resource updated successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
@@ -201,9 +213,13 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// TODO source := r.URL.Query().Get("source")
-	// TODO source := r.URL.Query().Get("source")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
+
 	encodedPath := r.URL.Query().Get("path")
+
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
@@ -218,13 +234,9 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusMethodNotAllowed, nil
 	}
 
-	realPath, isDir, err := files.GetRealPath(d.user.Scope, path)
-	if err != nil {
-		return http.StatusNotFound, err
-	}
 	fileOpts := files.FileOptions{
-		Path:       realPath,
-		IsDir:      isDir,
+		Path:       filepath.Join(d.user.Scope, path),
+		Source:     source,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: config.Server.TypeDetectionByHeader,
@@ -241,6 +253,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Accept json
 // @Produce json
 // @Param from query string true "Path from resource"
+// @Param source query string false "Source name for the desired source, default is used if not provided"
 // @Param destination query string true "Destination path for the resource"
 // @Param action query string true "Action to perform (copy, rename)"
 // @Param overwrite query bool false "Overwrite if destination exists"
@@ -254,6 +267,10 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
 	action := r.URL.Query().Get("action")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
 	encodedFrom := r.URL.Query().Get("from")
 	// Decode the URL-encoded path
 	src, err := url.QueryUnescape(encodedFrom)
@@ -272,13 +289,14 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, nil
 	}
 
+	idx := files.GetIndex(source)
 	// check target dir exists
-	parentDir, _, err := files.GetRealPath(d.user.Scope, filepath.Dir(dst))
+	parentDir, _, err := idx.GetRealPath(d.user.Scope, filepath.Dir(dst))
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 	realDest := parentDir + "/" + filepath.Base(dst)
-	realSrc, isSrcDir, err := files.GetRealPath(d.user.Scope, src)
+	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scope, src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -292,7 +310,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, nil
 	}
 	err = d.RunHook(func() error {
-		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir)
+		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
 	}, action, realSrc, realDest, d.user)
 
 	return errToStatus(err), err
@@ -314,20 +332,20 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) error {
-	if err := fileCache.Delete(ctx, previewCacheKey(file, "small")); err != nil {
+func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFileInfo) error {
+	if err := fileCache.Delete(ctx, previewCacheKey(file.RealPath, "small", file.FileInfo.ModTime)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool) error {
+func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, index string) error {
 	switch action {
 	case "copy":
 		if !d.user.Perm.Create {
 			return errors.ErrPermissionDenied
 		}
-		err := files.CopyResource(src, dst, isSrcDir)
+		err := files.CopyResource(index, src, dst, isSrcDir)
 		return err
 	case "rename", "move":
 
@@ -336,6 +354,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		}
 		fileInfo, err := files.FileInfoFaster(files.FileOptions{
 			Path:       src,
+			Source:     index,
 			IsDir:      isSrcDir,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
@@ -347,11 +366,11 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		}
 
 		// delete thumbnails
-		err = delThumbs(ctx, fileCache, fileInfo.FileInfo)
+		err = delThumbs(ctx, fileCache, fileInfo)
 		if err != nil {
 			return err
 		}
-		return files.MoveResource(src, dst, isSrcDir)
+		return files.MoveResource(index, src, dst, isSrcDir)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
 	}
@@ -368,7 +387,7 @@ type DiskUsageResponse struct {
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param source query string false "Name for the desired source, default is used if not provided"
+// @Param source query string false "Source name for the desired source, default is used if not provided"
 // @Success 200 {object} DiskUsageResponse "Disk usage details"
 // @Failure 404 {object} map[string]string "Directory not found"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -376,22 +395,19 @@ type DiskUsageResponse struct {
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "/"
+		source = "default"
 	}
-
 	value, ok := utils.DiskUsageCache.Get(source).(DiskUsageResponse)
 	if ok {
 		return renderJSON(w, r, &value)
 	}
 
-	fPath, isDir, err := files.GetRealPath(d.user.Scope, source)
-	if err != nil {
-		return errToStatus(err), err
+	rootPath, ok := files.RootPaths[source]
+	if !ok {
+		return 400, fmt.Errorf("bad source path provided: %v", source)
 	}
-	if !isDir {
-		return http.StatusNotFound, fmt.Errorf("not a directory: %s", source)
-	}
-	usage, err := disk.UsageWithContext(r.Context(), fPath)
+
+	usage, err := disk.UsageWithContext(r.Context(), rootPath)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -405,11 +421,15 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 
 func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)
-	isDir := r.URL.Query().Get("isDir") == "true"
-	index := files.GetIndex(config.Server.Root)
-	info, _ := index.GetReducedMetadata(path, isDir)
+	isNotDir := r.URL.Query().Get("isDir") == "false" // default to isDir true
+	index := files.GetIndex(source)
+	info, _ := index.GetReducedMetadata(path, !isNotDir)
 	renderJSON(w, r, info) // nolint:errcheck
 }
 
