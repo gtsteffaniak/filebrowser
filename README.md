@@ -147,7 +147,7 @@ file space quotas             | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 office file support           | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-Branding support              | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ |
+Branding support              | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
 activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 collaboration on same file    | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
