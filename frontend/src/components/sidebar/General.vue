@@ -52,7 +52,7 @@
           class="action"
           @click="navigateTo('/files/')"
           :aria-label="$t('sidebar.myFiles')"
-          :title="default"
+          title="default"
         >
           <i class="material-icons">folder</i>
           <span>default</span>

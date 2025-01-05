@@ -78,7 +78,6 @@
 
 <script>
 import Languages from "./Languages.vue";
-import Rules from "./Rules.vue";
 import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
 import { enableExec } from "@/utils/constants";
