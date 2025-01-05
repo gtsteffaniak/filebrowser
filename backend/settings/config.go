@@ -31,7 +31,6 @@ func Initialize(configFile string) {
 				log.Fatalf("Error getting source path: %v", err)
 			}
 			source.Path = realPath
-			Config.Server.Root = source.Path
 			source.Name = "default"                   // Modify the local copy of the map value
 			Config.Server.Sources["default"] = source // Assign the modified value back to the map
 		}

@@ -1,6 +1,7 @@
 /* Basic Styles */
 :root {
   --background: white;
+  --alt-background: #ddd;
   --surfacePrimary: gray;
   --surfaceSecondary: lightgray;
   --textPrimary: white;

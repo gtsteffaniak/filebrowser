@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -15,7 +15,7 @@ type NoAuth struct{}
 
 // Auth uses authenticates user 1.
 func (a NoAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
-	return usr.Get(settings.Config.Server.Root, uint(1))
+	return usr.Get(files.RootPaths["default"], uint(1))
 }
 
 // LoginPage tells that no auth doesn't require a login page.

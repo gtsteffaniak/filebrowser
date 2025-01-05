@@ -104,7 +104,7 @@ export default {
     },
     showShare() {
       return (
-        state.user?.perm && state.user?.perm.share && state.user.username != "publicUser"
+        state.user?.perm && state.user?.perm.share && state.user.username != "publicUser" && getters.currentView() != "share"
       );
     },
   },

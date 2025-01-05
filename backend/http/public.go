@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -18,7 +17,7 @@ func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
 	}
-	file.Path = strings.TrimPrefix(file.Path, settings.Config.Server.Root)
+	file.Path = strings.TrimPrefix(file.Path, files.RootPaths["default"])
 	return renderJSON(w, r, file)
 }
 

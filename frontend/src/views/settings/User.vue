@@ -18,7 +18,7 @@
 
     <div class="card-action">
       <button
-        v-if="!isNew"
+        v-if="!isNew && user.perm.admin"
         @click.prevent="deletePrompt"
         type="button"
         class="button button--flat button--red"
@@ -114,7 +114,11 @@ export default {
           this.$router.push({ path: loc });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
-          await usersApi.update(this.userPayload);
+          let which = ["all"];
+          if (!this.user.perm.admin) {
+            which = ["password"]
+          }
+          await usersApi.update(this.userPayload,which);
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {

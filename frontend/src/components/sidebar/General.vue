@@ -52,10 +52,10 @@
           class="action"
           @click="navigateTo('/files/')"
           :aria-label="$t('sidebar.myFiles')"
-          :title="$t('sidebar.myFiles')"
+          :title="default"
         >
           <i class="material-icons">folder</i>
-          <span>{{ $t("sidebar.myFiles") }}</span>
+          <span>default</span>
           <div>
             <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
             <div class="usage-info">

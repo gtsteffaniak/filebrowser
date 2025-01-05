@@ -3,7 +3,7 @@
   <div class="card">
     <div class="card-title">
       <h2>{{ $t("settings.users") }}</h2>
-      <router-link to="/settings/users/new">
+      <router-link v-if="isAdmin" to="/settings/users/new">
         <button class="button">
           {{ $t("buttons.new") }}
         </button>
@@ -65,6 +65,9 @@ export default {
   computed: {
     settings() {
       return state.settings;
+    },
+    isAdmin() {
+      return state.user.perm.admin;
     },
     // Access the loading state directly from the store
     loading() {

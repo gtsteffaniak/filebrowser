@@ -126,8 +126,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, err
 	}
 	if opts.Content {
-		realRoot := RootPaths[opts.Source]
-		content, err := getContent(realRoot, opts.Path)
+		content, err := getContent("default", opts.Path)
 		if err != nil {
 			return response, err
 		}

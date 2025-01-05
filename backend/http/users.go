@@ -55,26 +55,29 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if givenUserIdString == "self" {
 		givenUserId = d.user.ID
 	} else if givenUserIdString == "" {
-		if !d.user.Perm.Admin {
-			return http.StatusForbidden, nil
-		}
-		users, err := store.Users.Gets(config.Server.Root)
+
+		userList, err := store.Users.Gets(files.RootPaths["default"])
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 
-		for _, u := range users {
+		selfUserList := []*users.User{}
+		for _, u := range userList {
 			u.Password = ""
-		}
-		for _, u := range users {
 			u.ApiKeys = nil
+			if u.ID == d.user.ID {
+				selfUserList = append(selfUserList, u)
+			}
 		}
 
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].ID < users[j].ID
+		sort.Slice(userList, func(i, j int) bool {
+			return userList[i].ID < userList[j].ID
 		})
 
-		return renderJSON(w, r, users)
+		if !d.user.Perm.Admin {
+			userList = selfUserList
+		}
+		return renderJSON(w, r, userList)
 	} else {
 		num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
 		givenUserId = uint(num)
@@ -85,7 +88,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Fetch the user details
-	u, err := store.Users.Get(config.Server.Root, givenUserId)
+	u, err := store.Users.Get(files.RootPaths["default"], givenUserId)
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
@@ -216,7 +219,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	// Validate the user's scope
 	idx := files.GetIndex("default")
-	_, _, err := idx.GetRealPath(config.Server.Root, d.user.Scope)
+	_, _, err := idx.GetRealPath(d.user.Scope)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
