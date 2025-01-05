@@ -1,22 +1,11 @@
 <template v-if="isLoggedIn">
   <div>
-    <div
-      v-show="showOverlay"
-      @contextmenu.prevent="onOverlayRightClick"
-      @click="resetPrompts"
-      class="overlay"
-    ></div>
+    <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetPrompts" class="overlay"></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar
-      :class="{ 'dark-mode-header': isDarkMode }"
-      v-if="currentView == 'listingView'"
-    ></listingBar>
-    <editorBar
-      :class="{ 'dark-mode-header': isDarkMode }"
-      v-else-if="currentView == 'editor'"
-    ></editorBar>
+    <listingBar :class="{ 'dark-mode-header': isDarkMode }" v-if="currentView == 'listingView'"></listingBar>
+    <editorBar :class="{ 'dark-mode-header': isDarkMode }" v-else-if="currentView == 'editor'"></editorBar>
     <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
     <sidebar></sidebar>
     <search v-if="showSearch"></search>
@@ -65,6 +54,9 @@ export default {
   },
   mounted() {
     window.addEventListener("resize", this.updateIsMobile);
+    if (state.user.themeColor) {
+      document.documentElement.style.setProperty('--primaryColor', state.user.themeColor);
+    }
   },
   computed: {
     showSearch() {
@@ -147,9 +139,12 @@ export default {
 #layout-container {
   padding-bottom: 30% !important;
 }
+
 main {
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
   transition: 0.5s ease;
 }
 
@@ -158,6 +153,7 @@ main.moveWithSidebar {
 }
 
 main::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
+  /* Safari and Chrome */
 }
 </style>

@@ -79,14 +79,27 @@ definitions:
       userHomeBasePath:
         type: string
     type: object
+  settings.ExternalLink:
+    properties:
+      text:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    type: object
   settings.Frontend:
     properties:
       color:
         type: string
-      disableExternal:
+      disableDefaultLinks:
         type: boolean
       disableUsedPercentage:
         type: boolean
+      externalLinks:
+        items:
+          $ref: '#/definitions/settings.ExternalLink'
+        type: array
       files:
         type: string
       name:
@@ -133,6 +146,8 @@ definitions:
         type: object
       stickySidebar:
         type: boolean
+      themeColor:
+        type: string
       viewMode:
         type: string
     type: object
@@ -267,6 +282,8 @@ definitions:
         $ref: '#/definitions/users.Sorting'
       stickySidebar:
         type: boolean
+      themeColor:
+        type: string
       username:
         type: string
       viewMode:
@@ -398,6 +415,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
       - description: Name for the desired source, default is used if not provided
         in: query
         name: source
@@ -438,6 +459,10 @@ paths:
         in: query
         name: path
         required: true
+        type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       - description: Name for the desired source, default is used if not provided
         in: query
@@ -482,6 +507,10 @@ paths:
         in: query
         name: from
         required: true
+        type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       - description: Destination path for the resource
         in: query
@@ -544,6 +573,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
+        type: string
       - description: Name for the desired source, default is used if not provided
         in: query
         name: source
@@ -593,6 +626,10 @@ paths:
         in: query
         name: path
         required: true
+        type: string
+      - description: Source name for the desired source, default is used if not provided
+        in: query
+        name: source
         type: string
       - description: Name for the desired source, default is used if not provided
         in: query
@@ -842,7 +879,7 @@ paths:
       - application/json
       description: Returns the total and used disk space for a specified directory.
       parameters:
-      - description: Name for the desired source, default is used if not provided
+      - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
         type: string

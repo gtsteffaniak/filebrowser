@@ -3,10 +3,12 @@ import { state } from "@/store";
 
 export function sortedItems(items = [], sortby="name") {
     return items.sort((a, b) => {
-        const valueA = a[sortby];
-        const valueB = b[sortby];
+        let valueA = a[sortby];
+        let valueB = b[sortby];
 
         if (sortby === "name") {
+            valueA = valueA.split(".")[0]
+            valueB = valueB.split(".")[0]
             // Handle sorting for "name" field
             const isNumericA = !isNaN(valueA);
             const isNumericB = !isNaN(valueB);

@@ -23,9 +23,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 var (
@@ -57,11 +55,13 @@ type ExtendedFileInfo struct {
 	Subtitles []string          `json:"subtitles,omitempty"`
 	Checksums map[string]string `json:"checksums,omitempty"`
 	Token     string            `json:"token,omitempty"`
+	RealPath  string            `json:"-"`
 }
 
 // FileOptions are the options when getting a file info.
 type FileOptions struct {
 	Path       string // realpath
+	Source     string
 	IsDir      bool
 	Modify     bool
 	Expand     bool
@@ -75,9 +75,15 @@ func (f FileOptions) Components() (string, string) {
 }
 
 func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
-	index := GetIndex(rootPath)
-	opts.Path = index.makeIndexPath(opts.Path)
 	response := ExtendedFileInfo{}
+	if opts.Source == "" {
+		opts.Source = "default"
+	}
+	index := GetIndex(opts.Source)
+	if index == nil {
+		return response, fmt.Errorf("could not get index: %v ", opts.Source)
+	}
+	opts.Path = index.makeIndexPath(opts.Path)
 	// Lock access for the specific path
 	pathMutex := getMutex(opts.Path)
 	pathMutex.Lock()
@@ -86,7 +92,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, os.ErrPermission
 	}
 
-	_, isDir, err := GetRealPath(opts.Path)
+	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
 		return response, err
 	}
@@ -120,13 +126,14 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, err
 	}
 	if opts.Content {
-		content, err := getContent(opts.Path)
+		content, err := getContent("default", opts.Path)
 		if err != nil {
 			return response, err
 		}
 		response.Content = content
 	}
 	response.FileInfo = info
+	response.RealPath = realPath
 	return response, nil
 }
 
@@ -160,49 +167,13 @@ func GetChecksum(fullPath, algo string) (map[string]string, error) {
 	return subs, nil
 }
 
-// RealPath gets the real path for the file, resolving symlinks if supported.
-func (i *FileInfo) RealPath() string {
-	realPath, _, _ := GetRealPath(rootPath, i.Path)
-	realPath, err := filepath.EvalSymlinks(realPath)
-	if err == nil {
-		return realPath
-	}
-	return i.Path
-}
-
-func GetRealPath(relativePath ...string) (string, bool, error) {
-	combined := []string{settings.Config.Server.Root}
-	for _, path := range relativePath {
-		combined = append(combined, strings.TrimPrefix(path, settings.Config.Server.Root))
-	}
-	joinedPath := filepath.Join(combined...)
-
-	isDir, _ := utils.RealPathCache.Get(joinedPath + ":isdir").(bool)
-	cached, ok := utils.RealPathCache.Get(joinedPath).(string)
-	if ok && cached != "" {
-		return cached, isDir, nil
-	}
-	// Convert relative path to absolute path
-	absolutePath, err := filepath.Abs(joinedPath)
-	if err != nil {
-		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", combined, err)
-	}
-	// Resolve symlinks and get the real path
-	realPath, isDir, err := resolveSymlinks(absolutePath)
-	if err == nil {
-		utils.RealPathCache.Set(joinedPath, realPath)
-		utils.RealPathCache.Set(joinedPath+":isdir", isDir)
-	}
-	return realPath, isDir, err
-}
-
-func DeleteFiles(absPath string, opts FileOptions) error {
+func DeleteFiles(source, absPath string, dirPath string) error {
 	err := os.RemoveAll(absPath)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(rootPath)
-	refreshConfig := FileOptions{Path: filepath.Dir(opts.Path), IsDir: true}
+	index := GetIndex(source)
+	refreshConfig := FileOptions{Path: dirPath, IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return err
@@ -210,12 +181,12 @@ func DeleteFiles(absPath string, opts FileOptions) error {
 	return nil
 }
 
-func MoveResource(realsrc, realdst string, isSrcDir bool) error {
+func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(rootPath)
+	index := GetIndex(source)
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
 		Path:  realsrc,
@@ -235,12 +206,12 @@ func MoveResource(realsrc, realdst string, isSrcDir bool) error {
 	return nil
 }
 
-func CopyResource(realsrc, realdst string, isSrcDir bool) error {
+func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(rootPath)
+	index := GetIndex(source)
 	refreshConfig := FileOptions{Path: realdst, IsDir: true}
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
@@ -253,14 +224,14 @@ func CopyResource(realsrc, realdst string, isSrcDir bool) error {
 }
 
 func WriteDirectory(opts FileOptions) error {
-	realPath, _, _ := GetRealPath(rootPath, opts.Path)
+	idx := GetIndex(opts.Source)
+	realPath, _, _ := idx.GetRealPath(opts.Path)
 	// Ensure the parent directories exist
 	err := os.MkdirAll(realPath, 0775)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(rootPath)
-	err = index.RefreshFileInfo(opts)
+	err = idx.RefreshFileInfo(opts)
 	if err != nil {
 		return errors.ErrEmptyKey
 	}
@@ -268,7 +239,8 @@ func WriteDirectory(opts FileOptions) error {
 }
 
 func WriteFile(opts FileOptions, in io.Reader) error {
-	dst, _, _ := GetRealPath(rootPath, opts.Path)
+	idx := GetIndex(opts.Source)
+	dst, _, _ := idx.GetRealPath(opts.Path)
 	parentDir := filepath.Dir(dst)
 	// Create the directory and all necessary parents
 	err := os.MkdirAll(parentDir, 0775)
@@ -290,8 +262,7 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 	}
 	opts.Path = parentDir
 	opts.IsDir = true
-	index := GetIndex(rootPath)
-	return index.RefreshFileInfo(opts)
+	return idx.RefreshFileInfo(opts)
 }
 
 // resolveSymlinks resolves symlinks in the given path
@@ -323,8 +294,9 @@ func resolveSymlinks(path string) (string, bool, error) {
 }
 
 // addContent reads and sets content based on the file type.
-func getContent(path string) (string, error) {
-	realPath, _, err := GetRealPath(rootPath, path)
+func getContent(source, path string) (string, error) {
+	idx := GetIndex(source)
+	realPath, _, err := idx.GetRealPath(path)
 	if err != nil {
 		return "", err
 	}
@@ -344,7 +316,7 @@ func getContent(path string) (string, error) {
 }
 
 // DetectType detects the MIME type of a file and updates the ItemInfo struct.
-func (i *ItemInfo) DetectType(path string, saveContent bool) {
+func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	name := i.Name
 	ext := filepath.Ext(name)
 
@@ -354,9 +326,8 @@ func (i *ItemInfo) DetectType(path string, saveContent bool) {
 		i.Type = extendedMimeTypeCheck(ext)
 	}
 	if i.Type == "blob" {
-		realpath, _, _ := GetRealPath(path)
 		// Read only the first 512 bytes for efficient MIME detection
-		file, err := os.Open(realpath)
+		file, err := os.Open(realPath)
 		if err != nil {
 
 		} else {
@@ -441,9 +412,11 @@ func Exists(path string) bool {
 
 func (info *FileInfo) SortItems() {
 	sort.Slice(info.Folders, func(i, j int) bool {
+		nameWithoutExt := strings.Split(info.Folders[i].Name, ".")[0]
+		nameWithoutExt2 := strings.Split(info.Folders[j].Name, ".")[0]
 		// Convert strings to integers for numeric sorting if both are numeric
-		numI, errI := strconv.Atoi(info.Folders[i].Name)
-		numJ, errJ := strconv.Atoi(info.Folders[j].Name)
+		numI, errI := strconv.Atoi(nameWithoutExt)
+		numJ, errJ := strconv.Atoi(nameWithoutExt2)
 		if errI == nil && errJ == nil {
 			return numI < numJ
 		}
@@ -451,9 +424,11 @@ func (info *FileInfo) SortItems() {
 		return strings.ToLower(info.Folders[i].Name) < strings.ToLower(info.Folders[j].Name)
 	})
 	sort.Slice(info.Files, func(i, j int) bool {
+		nameWithoutExt := strings.Split(info.Files[i].Name, ".")[0]
+		nameWithoutExt2 := strings.Split(info.Files[j].Name, ".")[0]
 		// Convert strings to integers for numeric sorting if both are numeric
-		numI, errI := strconv.Atoi(info.Files[i].Name)
-		numJ, errJ := strconv.Atoi(info.Files[j].Name)
+		numI, errI := strconv.Atoi(nameWithoutExt)
+		numJ, errJ := strconv.Atoi(nameWithoutExt2)
 		if errI == nil && errJ == nil {
 			return numI < numJ
 		}

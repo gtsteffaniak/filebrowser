@@ -35,33 +35,62 @@ type Recaptcha struct {
 }
 
 type Server struct {
-	IndexingInterval      uint32 `json:"indexingInterval"`
-	NumImageProcessors    int    `json:"numImageProcessors"`
-	Socket                string `json:"socket"`
-	TLSKey                string `json:"tlsKey"`
-	TLSCert               string `json:"tlsCert"`
-	EnableThumbnails      bool   `json:"enableThumbnails"`
-	ResizePreview         bool   `json:"resizePreview"`
-	EnableExec            bool   `json:"enableExec"`
-	TypeDetectionByHeader bool   `json:"typeDetectionByHeader"`
-	AuthHook              string `json:"authHook"`
-	Port                  int    `json:"port"`
-	BaseURL               string `json:"baseURL"`
-	Address               string `json:"address"`
-	Log                   string `json:"log"`
-	Database              string `json:"database"`
-	Root                  string `json:"root"`
-	UserHomeBasePath      string `json:"userHomeBasePath"`
-	CreateUserDir         bool   `json:"createUserDir"`
-	Indexing              bool   `json:"indexing"`
+	NumImageProcessors    int               `json:"numImageProcessors"`
+	Socket                string            `json:"socket"`
+	TLSKey                string            `json:"tlsKey"`
+	TLSCert               string            `json:"tlsCert"`
+	EnableThumbnails      bool              `json:"enableThumbnails"`
+	ResizePreview         bool              `json:"resizePreview"`
+	EnableExec            bool              `json:"enableExec"`
+	TypeDetectionByHeader bool              `json:"typeDetectionByHeader"`
+	AuthHook              string            `json:"authHook"`
+	Port                  int               `json:"port"`
+	BaseURL               string            `json:"baseURL"`
+	Address               string            `json:"address"`
+	Log                   string            `json:"log"`
+	Database              string            `json:"database"`
+	Root                  string            `json:"root"`
+	UserHomeBasePath      string            `json:"userHomeBasePath"`
+	CreateUserDir         bool              `json:"createUserDir"`
+	Sources               map[string]Source `json:"sources"`
+}
+
+type Source struct {
+	Path   string `json:"path"`
+	Name   string
+	Config IndexConfig `json:"config"`
+}
+
+type IndexConfig struct {
+	IndexingInterval      uint32      `json:"indexingInterval"`
+	Disabled              bool        `json:"disabled"`
+	MaxWatchers           int         `json:"maxWatchers"`
+	NeverWatch            []string    `json:"neverWatchPaths"`
+	IgnoreHidden          bool        `json:"ignoreHidden"`
+	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"`
+	Exclude               IndexFilter `json:"exclude"`
+	Include               IndexFilter `json:"include"`
+}
+
+type IndexFilter struct {
+	Files        []string `json:"files"`
+	Folders      []string `json:"folders"`
+	FileEndsWith []string `json:"fileEndsWith"`
 }
 
 type Frontend struct {
-	Name                  string `json:"name"`
-	DisableExternal       bool   `json:"disableExternal"`
-	DisableUsedPercentage bool   `json:"disableUsedPercentage"`
-	Files                 string `json:"files"`
-	Color                 string `json:"color"`
+	Name                  string         `json:"name"`
+	DisableDefaultLinks   bool           `json:"disableDefaultLinks"`
+	DisableUsedPercentage bool           `json:"disableUsedPercentage"`
+	Files                 string         `json:"files"`
+	Color                 string         `json:"color"`
+	ExternalLinks         []ExternalLink `json:"externalLinks"`
+}
+
+type ExternalLink struct {
+	Text  string `json:"text"`
+	Title string `json:"title"`
+	Url   string `json:"url"`
 }
 
 // UserDefaults is a type that holds the default values
@@ -86,4 +115,5 @@ type UserDefaults struct {
 	Commands     []string          `json:"commands,omitempty"`
 	HideDotfiles bool              `json:"hideDotfiles"`
 	DateFormat   bool              `json:"dateFormat"`
+	ThemeColor   string            `json:"themeColor"`
 }

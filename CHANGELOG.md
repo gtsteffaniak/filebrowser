@@ -2,12 +2,50 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.5
+
+  **New Features**
+  - More indexing configuration options possible. However consider waiting on using this feature, because I will soon have a full onboarding experience in the UI to manage sources instead.
+    - added config file options "sources" in the server config.
+    - can enable/disable indexing a specified list of directories/files
+    - can enable/disable indexing hidden files
+    - prepped for multiple sources (not supported yet!)
+  - Theme and Branding support (see updates to [configuration wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) on how to use) 
+  - Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
+
+  **Notes**:
+  - MacOS application files (ending in ".app") were previously treated as folders, now they are treated as a single file.
+  - No longer indexes "$RECYCLE.BIN" or "System Volume Information" directories.
+  - Icon styling tweaked so all icons have a background.
+  - Updated Login page styling.
+  - Settings profile menu has been simplified, password changes happen in user management.
+
+  **Bugfixes**:
+  - Fixed setting share expiration time would not work due to type conversion error.
+  - More safari fixes related to text-selection.
+  - Sort by name value sorting ignores the extension, only sorts by name https://github.com/gtsteffaniak/filebrowser/issues/230
+  - Fixed manual language selection issue.
+  - Fixed exact date time issue.
+
+
+New login page:
+
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/a2053ee8-7ede-4885-95ab-046d768d2589" />
+
+Example branding in sidebar:
+
+<img width="500" alt="image2" src="https://github.com/user-attachments/assets/d8ee14ca-4495-4106-9d26-631a5937e134" />
+
+Example user settings page:
+
+<img width="500" alt="image3" src="https://github.com/user-attachments/assets/79757a11-669e-4597-bd3d-e41efd667a1e" />
+
 ## v0.3.4
 
   **Bugfixes**:
   - Safari right-click actions.
   - Some small image viewer behavior
-  - Progressive webapp "install to homescreen" fix. 
+  - Progressive webapp "install to homescreen" fix.
 
 ## v0.3.3
 

@@ -21,8 +21,8 @@
         type="range"
         id="gallery-size"
         name="gallery-size"
-        min="0"
-        max="10"
+        min="1"
+        max="8"
         @input="updateGallerySize"
         @change="commitGallerySize"
       />
@@ -104,7 +104,7 @@ export default {
     },
     showShare() {
       return (
-        state.user?.perm && state.user?.perm.share && state.user.username != "publicUser"
+        state.user?.perm && state.user?.perm.share && state.user.username != "publicUser" && getters.currentView() != "share"
       );
     },
   },

@@ -80,6 +80,7 @@ export default {
         await Promise.all(promises);
         buttons.success("delete");
         notify.showSuccess("Deleted item successfully");
+        window.location.reload();
         mutations.setReload(true); // Handle reload as needed
       } catch (e) {
         buttons.done("delete");

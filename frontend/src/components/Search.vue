@@ -119,8 +119,7 @@
             <a :href="getRelative(s.path)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path, s.type === "directory")
-                }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.type === "directory")}}<b>{{ baseName(s.path) }}</b>
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -136,6 +135,8 @@ import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { removeTrailingSlash, removeLeadingSlash } from "@/utils/url";
+
 import Icon from "@/components/Icon.vue";
 
 var boxes = {
@@ -266,7 +267,7 @@ export default {
   },
   methods: {
     getRelative(path) {
-      return window.location.href + "/" + path;
+      return removeTrailingSlash(window.location.href) + "/" + removeLeadingSlash(path);
     },
     getIcon(mimetype) {
       return getMaterialIconForType(mimetype);
@@ -349,13 +350,14 @@ export default {
       this.isTypeSelectDisabled = false;
     },
     async submit(event) {
+      this.results = [];
+
       this.showHelp = false;
       if (event != undefined) {
         event.preventDefault();
       }
       if (this.value === "" || this.value.length < 3) {
         this.ongoing = false;
-        this.results = [];
         this.noneMessage = "Not enough characters to search (min 3)";
         return;
       }
@@ -391,7 +393,7 @@ export default {
 .searchContext {
   width: 100%;
   padding: 0.5em 1em;
-  background: var(--blue);
+  background: var(--primaryColor);
   color: white;
   border-left: 1px solid gray;
   border-right: 1px solid gray;
@@ -436,13 +438,11 @@ export default {
 #search.active #results ul li a {
   display: flex;
   align-items: center;
-  padding: 0.3em 0;
-  margin-right: 0.3em;
 }
 
 #search #result-list.active {
   width: 1000px;
-  max-width: 100vw;
+  max-width: 95vw;
 }
 
 /* Animations */
@@ -516,6 +516,7 @@ export default {
 }
 
 .text-container {
+  margin-left: 0.25em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -640,7 +641,7 @@ body.rtl #search .boxes h3 {
   cursor: pointer;
   overflow: hidden;
   margin-bottom: 1em;
-  background: var(--blue);
+  background: var(--primaryColor);
   color: white;
   padding: 1em;
   border-radius: 1em;

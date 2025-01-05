@@ -14,6 +14,7 @@ rice-box.go
 /backend/test_config.yaml
 /backend/srv
 /backend/http/dist
+/backend/http/embed/*
 
 .DS_Store
 node_modules

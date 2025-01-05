@@ -116,14 +116,15 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 		newUser.Perm = settings.AdminPerms()
 	}
 	// create new home directory
-	userHome, err := settings.Config.MakeUserDir(newUser.Username, newUser.Scope, settings.Config.Server.Root)
+	userHome, err := settings.Config.MakeUserDir(newUser.Username, newUser.Scope, files.RootPaths["default"])
 	if err != nil {
 		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
 		return err
 	}
 	newUser.Scope = userHome
 	log.Printf("user: %s, home dir: [%s].", newUser.Username, userHome)
-	_, _, err = files.GetRealPath(settings.Config.Server.Root, newUser.Scope)
+	idx := files.GetIndex("default")
+	_, _, err = idx.GetRealPath(newUser.Scope)
 	if err != nil {
 		log.Println("user path is not valid", newUser.Scope)
 		return nil

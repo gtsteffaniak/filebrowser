@@ -3,6 +3,7 @@ package files
 import (
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -207,7 +208,10 @@ func TestRemoveDirectory(t *testing.T) {
 
 func init() {
 	testIndex = Index{
-		Root:     "/",
+		Source: settings.Source{
+			Path: "/",
+			Name: "test",
+		},
 		NumFiles: 10,
 		NumDirs:  5,
 		Directories: map[string]*FileInfo{

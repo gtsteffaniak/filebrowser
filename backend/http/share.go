@@ -68,6 +68,7 @@ func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
 	}
+
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}

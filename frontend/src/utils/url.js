@@ -39,6 +39,7 @@ export function pathsMatch(url1, url2) {
 export default {
   pathsMatch,
   removeTrailingSlash,
+  removeLeadingSlash,
   encodeRFC5987ValueChars,
   removeLastDir,
   encodePath,

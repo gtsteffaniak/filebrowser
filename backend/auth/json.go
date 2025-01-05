@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -24,7 +24,6 @@ type JSONAuth struct {
 
 // Auth authenticates the user via a json in content body.
 func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, error) {
-	config := &settings.Config
 	var cred jsonCred
 
 	if r.Body == nil {
@@ -47,7 +46,7 @@ func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, 
 			return nil, os.ErrPermission
 		}
 	}
-	u, err := userStore.Get(config.Server.Root, cred.Username)
+	u, err := userStore.Get(files.RootPaths["default"], cred.Username)
 	if err != nil || !users.CheckPwd(cred.Password, u.Password) {
 		return nil, os.ErrPermission
 	}

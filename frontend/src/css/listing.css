@@ -38,6 +38,8 @@ body.rtl #listingView {
   cursor: pointer;
   user-select: none;
   overflow:hidden;
+  width: var(--item-width);
+  height: var(--item-height);
 }
 
 #listingView .item div:last-of-type {
@@ -157,16 +159,17 @@ body.rtl #listingView {
 }
 
 #listingView.gallery .item i {
-  display:flex !important;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
+  margin: auto;
+  font-size: 8em;
+  background: none;
+}
+
+#listingView.gallery .item span {
+  display: flex;
   height: 100%;
   width: 100%;
-  margin-right: 0;
-  font-size: 8em;
-  text-align: center;
 }
+
 
 #listingView.gallery .item img {
   width: 100%;
@@ -310,7 +313,7 @@ body.rtl #listingView {
 }
 
 #listingView .item[aria-selected=true] {
-  background: var(--blue) !important;
+  background: var(--primaryColor) !important;
   color: var(--item-selected) !important;
 }
 
@@ -325,7 +328,7 @@ body.rtl #listingView {
 #listingView.list .item div:first-of-type img {
   width: 2em;
   height: 2em;
-  border-radius: 0.25em;
+  border-radius: 0.2em;
 }
 
 #listingView.list .item div:last-of-type {

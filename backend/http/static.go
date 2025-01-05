@@ -44,7 +44,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 
 	data := map[string]interface{}{
 		"Name":                  config.Frontend.Name,
-		"DisableExternal":       config.Frontend.DisableExternal,
+		"DisableExternal":       config.Frontend.DisableDefaultLinks,
 		"DisableUsedPercentage": config.Frontend.DisableUsedPercentage,
 		"darkMode":              settings.Config.UserDefaults.DarkMode,
 		"Color":                 config.Frontend.Color,
@@ -62,6 +62,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"ResizePreview":         config.Server.ResizePreview,
 		"EnableExec":            config.Server.EnableExec,
 		"ReCaptchaHost":         config.Auth.Recaptcha.Host,
+		"ExternalLinks":         config.Frontend.ExternalLinks,
 	}
 
 	if config.Frontend.Files != "" {

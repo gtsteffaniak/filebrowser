@@ -41,14 +41,13 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 	}{
 		{"Auth.Method", Config.Auth.Method, newConfig.Auth.Method},
 		{"Auth.Method", Config.Auth.Method, newConfig.Auth.Method},
-		{"Frontend.disableExternal", Config.Frontend.DisableExternal, newConfig.Frontend.DisableExternal},
 		{"UserDefaults.HideDotfiles", Config.UserDefaults.HideDotfiles, newConfig.UserDefaults.HideDotfiles},
 		{"Server.Database", Config.Server.Database, newConfig.Server.Database},
 	}
 
 	for _, tc := range testCases {
 		if tc.globalVal == tc.newVal {
-			t.Errorf("Differences should have been found:\n\tConfig.%s: %v \n\tSetConfig: %v \n", tc.fieldName, tc.globalVal, tc.newVal)
+			t.Errorf("Differences should have been found:\nConfig.%s: %v \nSetConfig: %v \n", tc.fieldName, tc.globalVal, tc.newVal)
 		}
 	}
 }

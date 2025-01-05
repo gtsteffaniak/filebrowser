@@ -40,6 +40,7 @@ import { state } from "@/store";
 import { filesApi } from "@/api";
 import url from "@/utils/url.js";
 import { getters, mutations } from "@/store"; // Import your custom store
+import { notify } from "@/notify";
 
 export default {
   name: "new-file",
@@ -61,22 +62,27 @@ export default {
   },
   methods: {
     async submit(event) {
-      event.preventDefault();
-      if (this.name === "") return;
-      // Build the path of the new file.
-      let uri = getters.isFiles() ? state.route.path + "/" : "/";
+      try {
+        event.preventDefault();
+        if (this.name === "") return;
+        // Build the path of the new file.
+        let uri = getters.isFiles() ? state.route.path + "/" : "/";
 
-      if (!this.isListing) {
-        uri = url.removeLastDir(uri) + "/";
+        if (!this.isListing) {
+          uri = url.removeLastDir(uri) + "/";
+        }
+
+        uri += encodeURIComponent(this.name);
+        uri = uri.replace("//", "/");
+
+        await filesApi.post(uri);
+        this.$router.push({ path: uri });
+
+        mutations.closeHovers();
+      } catch (error) {
+        notify.showError(error);
       }
 
-      uri += encodeURIComponent(this.name);
-      uri = uri.replace("//", "/");
-
-      await filesApi.post(uri);
-      this.$router.push({ path: uri });
-
-      mutations.closeHovers();
     },
   },
 };

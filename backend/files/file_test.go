@@ -1,11 +1,14 @@
 package files
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 func Test_GetRealPath(t *testing.T) {
@@ -13,7 +16,7 @@ func Test_GetRealPath(t *testing.T) {
 	if err != nil {
 		return
 	}
-	trimPrefix := filepath.Dir(filepath.Dir(cwd)) + "/"
+	trimPrefix := filepath.Dir(filepath.Dir(cwd))
 	tests := []struct {
 		name  string
 		paths []string
@@ -31,20 +34,20 @@ func Test_GetRealPath(t *testing.T) {
 				path  string
 				isDir bool
 			}{
-				path:  "backend/files",
+				path:  "",
 				isDir: true,
 			},
 		},
 		{
 			name: "current directory",
 			paths: []string{
-				"./file.go",
+				"./files/file.go",
 			},
 			want: struct {
 				path  string
 				isDir bool
 			}{
-				path:  "backend/files/file.go",
+				path:  "/files/file.go",
 				isDir: false,
 			},
 		},
@@ -62,9 +65,16 @@ func Test_GetRealPath(t *testing.T) {
 			},
 		},
 	}
+	idx := Index{
+		Source: settings.Source{
+			Path: trimPrefix,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			realPath, isDir, _ := GetRealPath(tt.paths...)
+			realPath, isDir, _ := idx.GetRealPath(tt.paths...)
+			fmt.Println(realPath, trimPrefix)
 			adjustedRealPath := strings.TrimPrefix(realPath, trimPrefix)
 			if tt.want.path != adjustedRealPath || tt.want.isDir != isDir {
 				t.Errorf("expected %v:%v but got: %v:%v", tt.want.path, tt.want.isDir, adjustedRealPath, isDir)
@@ -83,30 +93,30 @@ func TestSortItems(t *testing.T) {
 			name: "Numeric and Lexicographical Sorting",
 			input: FileInfo{
 				Folders: []ItemInfo{
-					{Name: "10"},
-					{Name: "2"},
+					{Name: "10.txt"},
+					{Name: "2.txt"},
 					{Name: "apple"},
 					{Name: "Banana"},
 				},
 				Files: []ItemInfo{
-					{Name: "File2"},
-					{Name: "File10"},
+					{Name: "File2.txt"},
+					{Name: "File10.txt"},
 					{Name: "File1"},
 					{Name: "banana"},
 				},
 			},
 			expected: FileInfo{
 				Folders: []ItemInfo{
-					{Name: "2"},
-					{Name: "10"},
+					{Name: "2.txt"},
+					{Name: "10.txt"},
 					{Name: "apple"},
 					{Name: "Banana"},
 				},
 				Files: []ItemInfo{
 					{Name: "banana"},
 					{Name: "File1"},
-					{Name: "File10"},
-					{Name: "File2"},
+					{Name: "File10.txt"},
+					{Name: "File2.txt"},
 				},
 			},
 		},
@@ -114,8 +124,8 @@ func TestSortItems(t *testing.T) {
 			name: "Only Lexicographical Sorting",
 			input: FileInfo{
 				Folders: []ItemInfo{
-					{Name: "dog"},
-					{Name: "Cat"},
+					{Name: "dog.txt"},
+					{Name: "Cat.txt"},
 					{Name: "apple"},
 				},
 				Files: []ItemInfo{
@@ -127,8 +137,8 @@ func TestSortItems(t *testing.T) {
 			expected: FileInfo{
 				Folders: []ItemInfo{
 					{Name: "apple"},
-					{Name: "Cat"},
-					{Name: "dog"},
+					{Name: "Cat.txt"},
+					{Name: "dog.txt"},
 				},
 				Files: []ItemInfo{
 					{Name: "apple"},

@@ -1,7 +1,7 @@
 <template>
   <span>
     <!-- Material Icon -->
-    <i v-if="isMaterialIcon" :class="classes" class="icon"> {{ materialIcon }} </i>
+    <i v-if="isMaterialIcon" :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
   </span>
 </template>
 
@@ -15,6 +15,9 @@ export default {
       type: String,
       required: true,
     },
+    active: {
+      type: Boolean,
+    }
   },
   data() {
     return {
@@ -62,6 +65,9 @@ export default {
   /* Default size */
   fill: currentColor;
   /* Uses inherited color */
+  border-radius: 0.2em;
+  padding: .1em;
+  background: var(--alt-background);
 }
 
 .purple-icons {
@@ -72,6 +78,16 @@ export default {
 .blue-icons {
   color: var(--icon-blue);
 }
+
+/* Icon Colors */
+.primary-icons {
+  color: var(--primaryColor);
+}
+
+.primary-icons.active {
+  text-shadow: 0px 0px 1px #000;
+}
+
 
 .lightblue-icons {
   color: lightskyblue;
@@ -118,7 +134,7 @@ export default {
 }
 
 .lightgray-icons {
-  color: lightgray;
+  color: rgb(176, 176, 176);
 }
 
 .yellow-icons {

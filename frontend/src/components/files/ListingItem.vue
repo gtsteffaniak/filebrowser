@@ -3,6 +3,7 @@
     :href="getUrl()"
     :class="{
       item: true,
+      'no-select': true,
       activebutton: isMaximized && isSelected,
     }"
     :id="getID"
@@ -35,14 +36,14 @@
         :class="{ activeimg: isMaximized && isSelected }"
         ref="thumbnail"
       />
-      <Icon v-else :mimetype="type" />
+      <Icon v-else :mimetype="type" :active="isSelected" />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
       <p class="name">{{ name }}</p>
       <p class="size" :data-order="humanSize()">{{ humanSize() }}</p>
       <p class="modified">
-        <time :datetime="modified">{{ humanTime() }}</time>
+        <time :datetime="modified">{{ getTime() }}</time>
       </p>
     </div>
   </a>
@@ -243,9 +244,13 @@ export default {
         ? "invalid link"
         : getHumanReadableFilesize(this.size);
     },
-    humanTime() {
-      if (this.readOnly == undefined && state.user.dateFormat) {
-        return fromNow(this.modified, state.user.locale).format("L LT");
+    getTime() {
+      if (state.user.dateFormat) {
+        // Truncate the fractional seconds to 3 digits (milliseconds)
+        const sanitizedString = this.modified.replace(/\.\d+/, (match) => match.slice(0, 4));
+        // Parse the sanitized string into a Date object
+        const date = new Date(sanitizedString);
+        return date.toLocaleString();
       }
       return fromNow(this.modified, state.user.locale);
     },
@@ -405,6 +410,5 @@ export default {
 <style>
 .item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
-  user-select: none; /* Optional: Disable text selection for better UX */
 }
 </style>

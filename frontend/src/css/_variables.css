@@ -11,4 +11,5 @@
   --icon-green: #2ecc71;
   --icon-blue: #1d99f3;
   --icon-violet: #9b59b6;
+  --primaryColor: var(--blue);
 }

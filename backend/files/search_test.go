@@ -4,14 +4,15 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/stretchr/testify/assert"
 )
 
 func BenchmarkSearchAllIndexes(b *testing.B) {
-	InitializeIndex(false)
-	si := GetIndex(rootPath)
+	Initialize(settings.Source{Name: "test", Path: "/srv"})
+	idx := GetIndex("test")
 
-	si.createMockData(50, 3) // 50 dirs, 3 files per dir
+	idx.createMockData(50, 3) // 50 dirs, 3 files per dir
 
 	// Generate 100 random search terms
 	searchTerms := generateRandomSearchTerms(100)
@@ -21,7 +22,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			si.Search(term, "/", "test")
+			idx.Search(term, "/", "test")
 		}
 	}
 }
@@ -74,14 +75,14 @@ func TestParseSearch(t *testing.T) {
 }
 
 func TestSearchWhileIndexing(t *testing.T) {
-	InitializeIndex(false)
-	si := GetIndex(rootPath)
+	Initialize(settings.Source{Name: "test", Path: "/srv"})
+	idx := GetIndex("test")
 
 	searchTerms := generateRandomSearchTerms(10)
 	for i := 0; i < 5; i++ {
-		go si.createMockData(100, 100) // Creating mock data concurrently
+		go idx.createMockData(100, 100) // Creating mock data concurrently
 		for _, term := range searchTerms {
-			go si.Search(term, "/", "test") // Search concurrently
+			go idx.Search(term, "/", "test") // Search concurrently
 		}
 	}
 }

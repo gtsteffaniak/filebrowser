@@ -73,7 +73,7 @@ export default {
       const files = event.target.files;
       if (!files) return;
 
-      const folderUpload = !!files[0].webkitRelativePath;
+      const folderUpload = Boolean(files[0].webkitRelativePath);
       const uploadFiles = [];
 
       for (let i = 0; i < files.length; i++) {
