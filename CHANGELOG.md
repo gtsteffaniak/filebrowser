@@ -14,15 +14,17 @@ All notable changes to this project will be documented in this file. For commit 
   - Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
 
   **Notes**:
-  - macos application files (ending in ".app") were previously treated as folders, now they are treated as a single file.
+  - MacOS application files (ending in ".app") were previously treated as folders, now they are treated as a single file.
   - No longer indexes "$RECYCLE.BIN" or "System Volume Information" directories.
   - Icon styling tweaked so all icons have a background.
   - Updated Login page styling.
+  - Settings profile menu has been simplified, password changes happen in user management.
 
   **Bugfixes**:
   - Fixed setting share expiration time would not work due to type conversion error.
   - More safari fixes related to text-selection.
   - Sort by name value sorting ignores the extension, only sorts by name https://github.com/gtsteffaniak/filebrowser/issues/230
+  - Fixed manual language selection issue.
 
 ## v0.3.4
 

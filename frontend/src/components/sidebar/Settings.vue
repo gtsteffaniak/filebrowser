@@ -34,7 +34,7 @@ export default {
     },
     active: (view) => state.activeSettingsView === view,
     setView(view) {
-      if (state.route.path != "/settings") {
+      if (getters.currentView() != "settings") {
         router.push({ path: "/settings", hash: "#" + view }, () => {});
       } else {
         mutations.setActiveSettingsView(view);

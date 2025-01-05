@@ -1,7 +1,7 @@
 <template>
-  <div class="button-group">
-    <button v-if="isDisabled" disabled>
-      No options for folders
+  <div @click="preventDefaults" class="button-group">
+    <button v-if="isDisabled" >
+      {{ disableMessage }}
     </button>
     <template v-else>
       <button
@@ -19,6 +19,10 @@
 <script>
 export default {
   props: {
+    disableMessage: {
+      type: String,
+      default: "No options for folders",
+    },
     buttons: {
       type: Array,
       default: () => [],
@@ -38,6 +42,10 @@ export default {
     };
   },
   methods: {
+    preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    },
     setActiveButton(index, value) {
       if (value === "Only Folders" && this.activeButton !== index) {
         this.$emit("disableAll");
