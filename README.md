@@ -15,44 +15,44 @@
 > [!WARNING]
 > There is no stable version yet. Always check release notes for bug fixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
 
-FileBrowser Quantum is a fork of the file browser opensource project with the following changes:
+FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
 
-  1. [x] Indexes files efficiently. (See [indexing Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.)
+  1. ✅ Indexes files efficiently. (See [indexing Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.)
      - Real-time search results as you type
      - Search supports file/folder sizes and many file type filters.
      - Enhanced interactive results that show file/folder sizes.
-  2. [x] Revamped and simplified GUI navbar and sidebar menu.
+  2. ✅ Revamped and simplified GUI navbar and sidebar menu.
      - Additional compact view mode as well as refreshed view mode styles.
      - Many graphical and user experience improvements.
      - right-click context menu
-  3. [x] Revamped and simplified configuration via `config.yaml` config file.
-  4. [x] Better listing browsing
+  3. ✅ Revamped and simplified configuration via `config.yaml` config file.
+  4. ✅ Better listing browsing
      - Instantly Switches view modes and sort order without reloading data.
      - Folder sizes are displayed
      - Navigating remembers the scroll position, navigating back keeps the last scroll position.
-  5. [x] Developer API support
+  5. ✅ Developer API support
      - Ability to create long-live API Tokens.
      - Helpful Swagger page available at `/swagger` endpoint.
 
 Notable features that this fork *does not* have (removed):
 
- - jobs/runners are not supported yet (planned).
- - shell commands are completely removed and will not be returned.
- - pagination for directory items for extremely large directories.
+ - ❌ jobs/runners are not supported yet (planned).
+ - ❌ per-user rules are not supported yet (planned).
+ - ❌ pagination for directory items for extremely large directories.
+ - ❌ shell commands are completely removed and will not be returned.
  - see feature matrix below for more.
 
 ## About
 
 FileBrowser Quantum provides a file-managing interface within a specified directory
 and can be used to upload, delete, preview, rename, and edit your files.
-It allows the creation of multiple users and each user can have its 
-directory.
+It allows the creation of multiple users and each user can have its directory.
 
-This repository is a fork of the original [filebrowser](https://github.com/filebrowser/filebrowser) 
-with a collection of changes that make this program work better in terms of 
-aesthetics and performance. Improved search, simplified UI 
-(without removing features) and more secure and up-to-date
-build are just a few examples.
+This repository is a fork of the original [filebrowser](https://github.com/filebrowser/filebrowser)
+ with a collection of changes that make this program work better in terms of
+ aesthetics and performance. Improved search, simplified UI
+ (without removing features) and more secure and up-to-date
+ build are just a few examples.
 
 FileBrowser Quantum differs significantly from the original.
 There are hundreds of thousands of lines changed and they are generally
@@ -103,8 +103,7 @@ Configuration is done via the `config.yaml`, see the [Configuration Wiki](https:
 
 ## Migration from the original filebrowser
 
-See the [Migration 
-Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Migration)
+See the [Migration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Migration)
 
 ## Comparison Chart
 
@@ -147,7 +146,7 @@ file space quotas             | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 office file support           | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
-Branding support              | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ |
+Branding support              | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
 activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 collaboration on same file    | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
