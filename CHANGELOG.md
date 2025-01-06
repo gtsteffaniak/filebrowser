@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Updated Login page styling.
   - Settings profile menu has been simplified, password changes happen in user management.
   - Improved windows compatibility and built on windows platform to fix false windows defender warning.
+  - If no "root" location is provided in the server config, the default is the **current directory** (rather than `/srv` like before)
 
   **Bugfixes**:
   - Fixed setting share expiration time would not work due to type conversion error.
