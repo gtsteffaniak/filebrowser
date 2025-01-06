@@ -1,14 +1,14 @@
 <template>
-  <div v-if="!user.perm.admin">
+  <div v-if="!user.perm.admin && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
-      <input
-        class="input input--block"
-        type="password"
-        placeholder="enter new password"
-        v-model="user.password"
-        id="password"
-        @input="emitUpdate"
-      />
+    <input
+      class="input input--block"
+      type="password"
+      placeholder="enter new password"
+      v-model="user.password"
+      id="password"
+      @input="emitUpdate"
+    />
   </div>
   <div v-else>
     <p v-if="!isDefault">
@@ -104,7 +104,7 @@ export default {
   watch: {
     user: {
       handler(newUser) {
-        this.localUser = { ...newUser };  // Watch for changes in the parent and update the local copy
+        this.localUser = { ...newUser }; // Watch for changes in the parent and update the local copy
       },
       immediate: true,
       deep: true,

@@ -2,7 +2,7 @@
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..." && \
 	if [ ! -f backend/test__config.yaml ]; then \
-		cp backend/filebrowser.yaml backend/test_config.yaml; \
+		cp backend/config.yaml backend/test_config.yaml; \
 	fi
 	echo "installing swagger needed to generate backend api docs..." && \
 	go install github.com/swaggo/swag/cmd/swag@latest && \
