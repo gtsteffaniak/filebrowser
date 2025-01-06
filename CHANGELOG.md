@@ -28,10 +28,9 @@ All notable changes to this project will be documented in this file. For commit 
   - Fixed manual language selection issue.
   - Fixed exact date time issue.
 
-
 New login page:
 
-<img width="300" alt="image" src="https://github.com/user-attachments/assets/a2053ee8-7ede-4885-95ab-046d768d2589" />
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/d3ed359e-a969-4f6a-9f72-94d2b68aba49" />
 
 Example branding in sidebar:
 
