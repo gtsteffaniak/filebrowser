@@ -102,7 +102,7 @@ func setDefaults() Settings {
 			BaseURL:            "",
 			Database:           "database.db",
 			Log:                "stdout",
-			Root:               "/srv",
+			Root:               ".",
 		},
 		Auth: Auth{
 			TokenExpirationTime: "2h",
@@ -123,6 +123,7 @@ func setDefaults() Settings {
 			DisableSettings: false,
 			ViewMode:        "normal",
 			Locale:          "en",
+			GallerySize:     3,
 			Permissions: users.Permissions{
 				Create:   false,
 				Rename:   false,

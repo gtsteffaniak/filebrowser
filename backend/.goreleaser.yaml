@@ -6,7 +6,7 @@ builds:
   # Build configuration for darwin and linux
   - id: default
     ldflags: &ldflags
-      - -s -w -X github.com/gtsteffaniak/filebrowser/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/version.CommitSHA={{ .ShortCommit }}
+      - -s -w -X github.com/gtsteffaniak/filebrowser/backend/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA={{ .ShortCommit }}
     main: main.go
     binary: filebrowser
     goos:
@@ -17,10 +17,10 @@ builds:
       - arm
       - arm64
     goarm:
-      - 6
-      - 7
+      - "6"
+      - "7"
     hooks:
-      post: 
+      post:
         - upx {{ .Path }}  # Compress the binary with UPX
 
   # Build configuration for windows without arm
@@ -32,7 +32,6 @@ builds:
 #      - windows
 #    goarch:
 #      - amd64
-#      - arm64
 
 archives:
   - name_template: "{{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{ .ProjectName }}"

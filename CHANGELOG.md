@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
     - can enable/disable indexing a specified list of directories/files
     - can enable/disable indexing hidden files
     - prepped for multiple sources (not supported yet!)
-  - Theme and Branding support (see updates to [configuration wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) on how to use) 
+  - Theme and Branding support (see updates to [configuration wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) on how to use)
   - Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
 
   **Notes**:
@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file. For commit 
   - Icon styling tweaked so all icons have a background.
   - Updated Login page styling.
   - Settings profile menu has been simplified, password changes happen in user management.
+  - Improved windows compatibility and built on windows platform to fix false windows defender warning.
+  - If no "root" location is provided in the server config, the default is the **current directory** (rather than `/srv` like before)
 
   **Bugfixes**:
   - Fixed setting share expiration time would not work due to type conversion error.
@@ -27,10 +29,10 @@ All notable changes to this project will be documented in this file. For commit 
   - Fixed manual language selection issue.
   - Fixed exact date time issue.
 
-
 New login page:
 
-<img width="300" alt="image" src="https://github.com/user-attachments/assets/a2053ee8-7ede-4885-95ab-046d768d2589" />
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/d3ed359e-a969-4f6a-9f72-94d2b68aba49" />
+
 
 Example branding in sidebar:
 
