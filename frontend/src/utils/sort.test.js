@@ -21,7 +21,7 @@ describe('testSort', () => {
     expect(sortedItems(input, "name")).toEqual(expected);
   });
 
-  it('sort items with extentions by name correctly', () => {
+  it('sort items with extensions by name correctly', () => {
     const input = [
       { name: "zebra.txt" },
       { name: "1.txt" },

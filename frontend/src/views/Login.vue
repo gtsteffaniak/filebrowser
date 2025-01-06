@@ -147,21 +147,24 @@ export default {
 }
 
 .login-brand {
+  padding-bottom: 0 !important;
+  padding: 0em !important;
+  padding-top: 0.5em !important;
   display: flex;
   align-content: center;
   justify-content: center;
   align-items: center;
-  padding: 0 !important;
 }
 
 .brand-text {
   padding: 1em !important;
-  padding-top: 0 !important;
+  padding-top: 0.9em !important;
 }
 
 .login-brand i {
   font-size: 5em !important;
-  padding: 0 !important;
+  padding-top: 0em !important;
+  padding-bottom: 0em !important;
 }
 
 </style>

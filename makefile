@@ -24,7 +24,7 @@ run: run-frontend
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi && \
 	FILEBROWSER_NO_EMBEDED=true go run \
-	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/version.Version=testing'" . -c test_config.yaml
+	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
 
 run-frontend:
 	cd backend/http && rm -rf dist && rm -rf embed/* && ln -s ../../frontend/dist && \
@@ -51,3 +51,8 @@ test-frontend:
 test-frontend-playwright:
 	npx playwright install
 	docker build -t gtstef/filebrowser-tests -f Dockerfile.playwright .
+
+# Run on a windows machine!
+release-windows:
+	cd frontend && npm run build-windows && \
+	cd ../backend && go build --ldflags="-w -s -X github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version='" .

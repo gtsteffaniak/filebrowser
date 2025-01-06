@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
     - can enable/disable indexing a specified list of directories/files
     - can enable/disable indexing hidden files
     - prepped for multiple sources (not supported yet!)
-  - Theme and Branding support (see updates to [configuration wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) on how to use) 
+  - Theme and Branding support (see updates to [configuration wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) on how to use)
   - Automatically expire shares https://github.com/gtsteffaniak/filebrowser/issues/208
 
   **Notes**:
@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Icon styling tweaked so all icons have a background.
   - Updated Login page styling.
   - Settings profile menu has been simplified, password changes happen in user management.
+  - Improved windows compatibility and built on windows platform to fix false windows defender warning.
 
   **Bugfixes**:
   - Fixed setting share expiration time would not work due to type conversion error.
