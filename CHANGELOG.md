@@ -33,6 +33,7 @@ New login page:
 
 <img width="300" alt="image" src="https://github.com/user-attachments/assets/d3ed359e-a969-4f6a-9f72-94d2b68aba49" />
 
+
 Example branding in sidebar:
 
 <img width="500" alt="image2" src="https://github.com/user-attachments/assets/d8ee14ca-4495-4106-9d26-631a5937e134" />
