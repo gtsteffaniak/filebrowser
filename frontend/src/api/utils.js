@@ -68,7 +68,6 @@ export function adjustedData(data, url) {
     data.items = [...(data.folders || []), ...(data.files || [])];
 
     data.items = data.items.map((item, index) => {
-      item.index = index;
       item.url = `${data.url}${item.name}`;
       if (item.type === "directory") {
         item.url += "/";

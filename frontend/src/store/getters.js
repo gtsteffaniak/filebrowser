@@ -53,10 +53,6 @@ export const getters = {
     state.req.items.forEach((item) => {
       // Check if the item is a directory
       if (item.type == "directory") {
-        // If hideDotfiles is enabled and the item is a dotfile, skip it
-        if (state.user.hideDotfiles && item.name.startsWith(".")) {
-          return;
-        }
         // Otherwise, count this directory
         dirCount++;
       }
@@ -69,10 +65,6 @@ export const getters = {
     state.req.items.forEach((item) => {
       // Check if the item is a directory
       if (item.type != "directory") {
-        // If hideDotfiles is enabled and the item is a dotfile, skip it
-        if (state.user.hideDotfiles && item.name.startsWith(".")) {
-          return;
-        }
         // Otherwise, count this directory
         fileCount++;
       }
@@ -88,9 +80,6 @@ export const getters = {
     const files = [];
 
     state.req.items.forEach((item) => {
-      if (state.user.hideDotfiles && item.name.startsWith(".")) {
-        return;
-      }
       if (item.type == "directory") {
         dirs.push(item);
       } else {

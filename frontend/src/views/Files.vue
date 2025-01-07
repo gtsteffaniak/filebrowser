@@ -80,7 +80,7 @@ export default {
   methods: {
     scrollToHash() {
       if (window.location.hash === this.lastHash) return;
-      this.lastHash = window.location.hash
+      this.lastHash = window.location.hash;
       if (window.location.hash) {
         const id = url.base64Encode(window.location.hash.slice(1));
         const element = document.getElementById(id);
@@ -94,13 +94,12 @@ export default {
     },
     async fetchData() {
       if (state.route.path === this.lastPath) return;
-      this.lastHash = ""
+      this.lastHash = "";
       // Set loading to true and reset the error.
       mutations.setLoading("files", true);
       this.error = null;
       // Reset view information using mutations
       mutations.setReload(false);
-      mutations.resetSelected();
       mutations.setMultiple(false);
       mutations.closeHovers();
 
@@ -125,7 +124,7 @@ export default {
       } catch (e) {
         notify.showError(e);
         this.error = e;
-        mutations.replaceRequest(null);
+        mutations.replaceRequest({});
       } finally {
         mutations.replaceRequest(data);
         mutations.setLoading("files", false);

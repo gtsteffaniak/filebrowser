@@ -196,17 +196,20 @@ export const mutations = {
     // Emit state change event
     emitStateChanged();
   },
-  updateRequest: (value) => {
-    const selectedItems = state.selected.map((i) => state.req.items[i]);
-    state.oldReq = state.req;
-    state.req = value;
-    state.selected = [];
-    if (!state.req?.items) return;
-    state.selected = state.req.items
-      .filter((item) => selectedItems.some((rItem) => rItem.url === item.url))
-      .map((item) => item.index);
-  },
   replaceRequest: (value) => {
+    state.selected = [];
+    if (!value?.items) {
+      state.req = value;
+      emitStateChanged();
+      return
+    }
+    if (state.user.hideDotfiles) {
+      value.items = value.items.filter((item) => !item.name.startsWith("."));
+    }
+    value.items.map((item, index) => {
+      item.index = index;
+      return item;
+    })
     state.req = value;
     emitStateChanged();
   },
@@ -220,7 +223,8 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingItems: () => {
-    state.req.items = sortedItems(state.req.items,state.user.sorting.by)
+    state.req.items = sortedItems(state.req.items, state.user.sorting.by)
+    mutations.replaceRequest(state.req);
     emitStateChanged();
   },
   updateClipboard: (value) => {
