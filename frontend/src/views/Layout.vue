@@ -1,12 +1,23 @@
-<template v-if="isLoggedIn">
+<template>
   <div>
-    <div v-show="showOverlay" @contextmenu.prevent="onOverlayRightClick" @click="resetPrompts" class="overlay"></div>
+    <div
+      v-show="showOverlay"
+      @contextmenu.prevent="onOverlayRightClick"
+      @click="resetPrompts"
+      class="overlay"
+    ></div>
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar :class="{ 'dark-mode-header': isDarkMode }" v-if="currentView == 'listingView'"></listingBar>
-    <editorBar :class="{ 'dark-mode-header': isDarkMode }" v-else-if="currentView == 'editor'"></editorBar>
-    <defaultBar :class="{ 'dark-mode-header': isDarkMode }" v-else></defaultBar>
+    <listingBar
+      :class="{ 'dark-mode-header': isDarkMode }"
+      v-if="currentView == 'listingView'"
+    ></listingBar>
+    <editorBar
+      :class="{ 'dark-mode-header': isDarkMode }"
+      v-else-if="currentView == 'editor'"
+    ></editorBar>
+    <defaultBar v-else :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar></sidebar>
     <search v-if="showSearch"></search>
     <main :class="{ 'dark-mode': isDarkMode, moveWithSidebar: moveWithSidebar }">
@@ -14,6 +25,7 @@
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
   </div>
+
   <div class="card" id="popup-notification">
     <i v-on:click="closePopUp" class="material-icons">close</i>
     <div id="popup-notification-content">no info</div>
@@ -55,7 +67,7 @@ export default {
   mounted() {
     window.addEventListener("resize", this.updateIsMobile);
     if (state.user.themeColor) {
-      document.documentElement.style.setProperty('--primaryColor', state.user.themeColor);
+      document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
     }
   },
   computed: {

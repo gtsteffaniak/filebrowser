@@ -45,13 +45,24 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
+
+	filePrefix := ""
+	file, ok := d.raw.(files.ExtendedFileInfo)
+	if ok {
+		filePrefix = file.Path
+	}
 	encodedFiles := r.URL.Query().Get("files")
 	// Decode the URL-encoded path
 	files, err := url.QueryUnescape(encodedFiles)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	return rawFilesHandler(w, r, d, strings.Split(files, ","))
+	fileList := strings.Split(files, ",")
+	for i, f := range fileList {
+		fmt.Println(filePrefix, f)
+		fileList[i] = filepath.Join(filePrefix, f)
+	}
+	return rawFilesHandler(w, r, d, fileList)
 }
 
 func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer) error {
@@ -186,7 +197,8 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if baseDirName == "" || baseDirName == "/" {
 		baseDirName = "download"
 	}
-	downloadFileName := url.PathEscape(baseDirName + "." + algo)
+	downloadFileName := url.PathEscape(baseDirName + extension)
+
 	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+downloadFileName)
 	// Create the archive and stream it directly to the response
 	if extension == ".zip" {

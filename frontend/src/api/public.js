@@ -25,6 +25,7 @@ export async function fetchPub(path, hash, password = "") {
 // Download files with given parameters
 export function download(share, ...files) {
   try {
+    console.log(files)
     let fileInfo = files[0]
     if (files.length > 1) {
       fileInfo = files.map(encodeURIComponent).join(",");
