@@ -23,10 +23,10 @@ describe('adjustedData', () => {
       folders: [],
       files: [],
       items: [
-        { name: "folder1", type: "directory", index: 0, url: "http://example.com/unit-testing/files/path/to/directory/folder1/" },
-        { name: "folder2", type: "directory", index: 1, url: "http://example.com/unit-testing/files/path/to/directory/folder2/" },
-        { name: "file1.txt", type: "file", index: 2, url: "http://example.com/unit-testing/files/path/to/directory/file1.txt" },
-        { name: "file2.txt", type: "file", index: 3, url: "http://example.com/unit-testing/files/path/to/directory/file2.txt" },
+        { name: "folder1", type: "directory", url: "http://example.com/unit-testing/files/path/to/directory/folder1/" },
+        { name: "folder2", type: "directory", url: "http://example.com/unit-testing/files/path/to/directory/folder2/" },
+        { name: "file1.txt", type: "file", url: "http://example.com/unit-testing/files/path/to/directory/file1.txt" },
+        { name: "file2.txt", type: "file", url: "http://example.com/unit-testing/files/path/to/directory/file2.txt" },
       ],
     };
 
