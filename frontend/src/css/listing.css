@@ -226,13 +226,11 @@ body.rtl #listingView {
 
 #listingView .header .size,
 #listingView.list .item .size,
-#listingView.normal .item .size,
 #listingView.compact .item .size {
   width: 25%;
 }
 
 #listingView .header .name,
-#listingView.normal .item .name,
 #listingView.list .item .name,
 #listingView.compact .item .name {
   width: 50%;

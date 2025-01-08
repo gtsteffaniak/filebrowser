@@ -7,6 +7,8 @@
 </template>
 
 <script>
+import { url } from "@/utils";
+import router from "@/router";
 import { getters, state } from "@/store";
 import Action from "@/components/Action.vue";
 
@@ -15,7 +17,6 @@ export default {
   components: {
     Action,
   },
-
   computed: {
     notShare() {
       return getters.currentView() != "share";
@@ -25,6 +26,20 @@ export default {
     },
     isDarkMode() {
       return getters.isDarkMode();
+    },
+  },
+  methods: {
+    close() {
+      if (getters.isSettings()) {
+        // Use this.isSettings to access the computed property
+        router.push({ path: "/files/", hash: "" });
+        mutations.closeHovers();
+        return;
+      }
+      mutations.replaceRequest({});
+      let uri = url.removeLastDir(state.route.path) + "/";
+      router.push({ path: uri });
+      mutations.closeHovers();
     },
   },
 };

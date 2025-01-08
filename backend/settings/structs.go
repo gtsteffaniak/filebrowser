@@ -53,6 +53,7 @@ type Server struct {
 	UserHomeBasePath      string            `json:"userHomeBasePath"`
 	CreateUserDir         bool              `json:"createUserDir"`
 	Sources               map[string]Source `json:"sources"`
+	ExternalUrl           string            `json:"externalUrl"`
 }
 
 type Source struct {

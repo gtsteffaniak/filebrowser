@@ -206,7 +206,12 @@ export default {
       if (isPermanent) {
         res = await shareApi.create(this.subpath, this.password);
       } else {
-        res = await shareApi.create(this.subpath, this.password, this.time.toString(), this.unit);
+        res = await shareApi.create(
+          this.subpath,
+          this.password,
+          this.time.toString(),
+          this.unit
+        );
       }
 
       this.links.push(res);

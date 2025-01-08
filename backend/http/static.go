@@ -63,6 +63,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"EnableExec":            config.Server.EnableExec,
 		"ReCaptchaHost":         config.Auth.Recaptcha.Host,
 		"ExternalLinks":         config.Frontend.ExternalLinks,
+		"ExternalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 	}
 
 	if config.Frontend.Files != "" {
