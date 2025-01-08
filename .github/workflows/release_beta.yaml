@@ -35,7 +35,7 @@ jobs:
           token: ${{ secrets.PAT }}
           tag_name: ${{ steps.extract_branch.outputs.tag_name }}
           prerelease: true
-          make_latest: false
+          make_latest: true # change this to false when stable gets released
           draft: false
           generate_release_notes: true
           name: ${{ steps.extract_branch.outputs.tag_name }}
