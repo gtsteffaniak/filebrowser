@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  create_release:
+  create_release_tag:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
@@ -21,8 +21,9 @@ jobs:
         shell: bash
         run: |
           original_branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          echo "branch_name=$transformed_branch" >> $GITHUB_OUTPUT
           transformed_branch=$(echo "$original_branch" | sed 's/^stable\/v/stable_v/')
-          echo "branch=$transformed_branch" >> $GITHUB_OUTPUT
+          echo "tag_name=$transformed_branch" >> $GITHUB_OUTPUT
         id: extract_branch
       - uses: actions/setup-go@v5
         with:
@@ -30,13 +31,14 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          target_commitish: ${{ steps.extract_branch.outputs.branch }}
+          target_commitish: ${{ steps.extract_branch.outputs.branch_name }}
           token: ${{ secrets.PAT }}
-          tag_name: ${{ steps.extract_branch.outputs.branch }}
-          prerelease: false
+          tag_name: ${{ steps.extract_branch.outputs.tag_name }}
+          prerelease: true
+          make_latest: false
           draft: false
           generate_release_notes: true
-          name: ${{ steps.extract_branch.outputs.branch }}
+          name: ${{ steps.extract_branch.outputs.tag_name }}
 
   push_release_to_registry:
     name: Push release
