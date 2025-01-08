@@ -4,9 +4,12 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.3.6
 
+  **New Features**
+   - Adds "externalUrl" server config https://github.com/gtsteffaniak/filebrowser/issues/272
+
   **Notes**:
     - All views modes to show header bar for sorting.
-    - slight style changes
+    - other small style changes
 
   **Bugfixes**:
     - select and info bug after sorting https://github.com/gtsteffaniak/filebrowser/issues/277
