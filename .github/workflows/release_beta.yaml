@@ -19,7 +19,10 @@ jobs:
           token: ${{ secrets.PAT }}
       - name: Extract branch name
         shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        run: |
+          original_branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          transformed_branch=$(echo "$original_branch" | sed 's/^beta\/v/beta_v/')
+          echo "branch=$transformed_branch" >> $GITHUB_OUTPUT
         id: extract_branch
       - uses: actions/setup-go@v5
         with:
