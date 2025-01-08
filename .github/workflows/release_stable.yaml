@@ -34,8 +34,7 @@ jobs:
           target_commitish: ${{ steps.extract_branch.outputs.branch_name }}
           token: ${{ secrets.PAT }}
           tag_name: ${{ steps.extract_branch.outputs.tag_name }}
-          prerelease: true
-          make_latest: false
+          prerelease: false
           draft: false
           generate_release_notes: true
           name: ${{ steps.extract_branch.outputs.tag_name }}
