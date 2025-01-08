@@ -3,7 +3,7 @@ name: version release
 on:
   push:
     branches:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "stable/v[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
   contents: write
@@ -19,7 +19,10 @@ jobs:
           token: ${{ secrets.PAT }}
       - name: Extract branch name
         shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        run: |
+          original_branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          transformed_branch=$(echo "$original_branch" | sed 's/^stable\/v/stable_v/')
+          echo "branch=$transformed_branch" >> $GITHUB_OUTPUT
         id: extract_branch
       - uses: actions/setup-go@v5
         with:
@@ -60,7 +63,7 @@ jobs:
         run: |
           JSON="${{ steps.meta.outputs.tags }}"
           # Use jq to remove 'v' from the version field
-          JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
+          JSON=$(echo "$JSON" | sed 's/filebrowser:stable\/v/filebrowser:/')
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
