@@ -126,16 +126,6 @@ export default {
     },
   },
   methods: {
-    onOverlayRightClick(event) {
-      // Example: Show a custom context menu
-      mutations.showHover({
-        name: "ContextMenu", // Assuming ContextMenu is a component you've already imported
-        props: {
-          posX: event.clientX,
-          posY: event.clientY,
-        },
-      });
-    },
     updateIsMobile() {
       mutations.setMobile();
     },

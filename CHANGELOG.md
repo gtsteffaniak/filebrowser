@@ -10,7 +10,8 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bugfixes**:
     - select and info bug after sorting https://github.com/gtsteffaniak/filebrowser/issues/277
-    - shares with public user
+    - downloading from shares with public user
+    - Ctrl and Shift key modifiers work on listing views as expected.
 
 ## v0.3.5
 

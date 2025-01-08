@@ -59,7 +59,6 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	}
 	fileList := strings.Split(files, ",")
 	for i, f := range fileList {
-		fmt.Println(filePrefix, f)
 		fileList[i] = filepath.Join(filePrefix, f)
 	}
 	return rawFilesHandler(w, r, d, fileList)

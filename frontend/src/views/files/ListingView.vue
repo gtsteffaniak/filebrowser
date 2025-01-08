@@ -165,6 +165,7 @@ export default {
       width: window.innerWidth,
       lastSelected: {}, // Add this to track the currently focused item
       contextTimeout: null, // added for safari context menu
+      ctrKeyPressed: false,
     };
   },
   watch: {
@@ -286,7 +287,8 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
-    this.$el.addEventListener("click", this.clickClear);
+    window.addEventListener("click", this.clickClear);
+    window.addEventListener("keyup", this.clearCtrKey);
 
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
@@ -495,17 +497,22 @@ export default {
         }, 50);
       }
     },
+    clearCtrKey(event) {
+      const { ctrlKey } = event;
+      if (!ctrlKey) {
+        this.ctrKeyPressed = false;
+      }
+    },
     keyEvent(event) {
       const { key, ctrlKey, metaKey, which } = event;
       // Check if the key is alphanumeric
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
-      const noModifierKeys = !ctrlKey && !metaKey;
-
-      if (isAlphanumeric && noModifierKeys && getters.currentPromptName() == null) {
+      const modifierKeys = ctrlKey || metaKey;
+      if (isAlphanumeric && !modifierKeys && getters.currentPromptName() == null) {
         this.alphanumericKeyPress(key); // Call the alphanumeric key press function
         return;
       }
-      if (noModifierKeys && getters.currentPromptName() != null) {
+      if (!modifierKeys && getters.currentPromptName() != null) {
         return;
       }
       // Handle the space bar key
@@ -522,6 +529,13 @@ export default {
       }
       let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+
+      if (modifierKeys) {
+        if (!ctrlKey) {
+          this.ctrKeyPressed = true;
+        }
+        return;
+      }
       // Handle key events using a switch statement
       switch (key) {
         case "Enter":
@@ -556,11 +570,6 @@ export default {
           event.preventDefault();
           this.navigateKeboardArrows(key);
           break;
-
-        default:
-          // Handle keys with ctrl or meta keys
-          if (!ctrlKey && !metaKey) return;
-          break;
       }
 
       const charKey = String.fromCharCode(which).toLowerCase();
@@ -583,8 +592,6 @@ export default {
           break;
       }
     },
-
-    // Helper method to select all files and directories
     selectAll() {
       for (let file of this.items.files) {
         if (state.selected.indexOf(file.index) === -1) {
@@ -890,7 +897,9 @@ export default {
         },
       });
     },
-    clickClear() {
+    clickClear(event) {
+      // if control or shift is pressed, do not clear the selection
+      if (this.ctrKeyPressed || event.shiftKey) return;
       const sameAsBefore = state.selected == this.lastSelected;
       if (sameAsBefore && !state.multiple) {
         mutations.resetSelected();
