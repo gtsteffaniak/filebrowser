@@ -1,4 +1,4 @@
-name: tag
+name: beta tag update
 
 on:
   push:

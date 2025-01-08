@@ -1,4 +1,4 @@
-name: tag
+name: stable tag update
 
 on:
   push:
