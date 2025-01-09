@@ -125,29 +125,37 @@ export async function post(url, content = "", overwrite = false, onupload) {
 }
 
 export async function moveCopy(items, action = "copy", overwrite = false, rename = false) {
-  let promises = [];
   let params = {
     overwrite: overwrite,
     action: action,
     rename: rename,
-  }
+  };
   try {
-    for (let item of items) {
+    // Create an array of fetch calls
+    let promises = items.map((item) => {
       let toPath = encodeURIComponent(removePrefix(decodeURI(item.to), "files"));
       let fromPath = encodeURIComponent(removePrefix(decodeURI(item.from), "files"));
-      let localParams = { ...params };
-      localParams.destination = toPath;
-      localParams.from = fromPath;
+      let localParams = { ...params, destination: toPath, from: fromPath };
       const apiPath = getApiPath("api/resources", localParams);
-      promises.push(fetch(apiPath, { method: "PATCH" }));
-    }
-    return promises;
+      return fetch(apiPath, { method: "PATCH" }).then((response) => {
+        if (!response.ok) {
+          // Throw an error if the fetch fails
+          return response.text().then((text) => {
+            throw new Error(`Failed to move/copy: ${text || response.statusText}`);
+          });
+        }
+        return response;
+      });
+    });
 
+    // Await all promises and ensure errors propagate
+    await Promise.all(promises);
   } catch (err) {
     notify.showError(err.message || "Error moving/copying resources");
-    throw err;
+    throw err; // Re-throw the error to propagate it back to the caller
   }
 }
+
 
 export async function checksum(url, algo) {
   try {

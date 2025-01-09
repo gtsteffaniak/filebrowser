@@ -93,14 +93,13 @@ export default {
           this.$router.push({ path: uri });
         } else if (!this.base) {
           const res = await filesApi.fetchFiles(url.removeLastDir(uri) + "/");
-          mutations.updateRequest(res);
+          mutations.replaceRequest(res);
         }
 
         mutations.closeHovers();
       } catch (error) {
         notify.showError(error);
       }
-
     },
   },
 };

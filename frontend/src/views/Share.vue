@@ -279,7 +279,7 @@ export default {
         let file = await publicApi.fetchPub(this.subPath, this.hash, this.password);
         file.hash = this.hash;
         this.token = file.token;
-        mutations.updateRequest(file);
+        mutations.replaceRequest(file);
         document.title = `${file.name} - ${document.title}`;
       } catch (error) {
         this.error = error;

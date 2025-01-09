@@ -16,26 +16,64 @@
           <i class="material-icons">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
         </h2>
-        <input style="display: none" type="file" id="upload-input" @change="uploadInput($event)" multiple />
-        <input style="display: none" type="file" id="upload-folder-input" @change="uploadInput($event)" webkitdirectory
-          multiple />
+        <input
+          style="display: none"
+          type="file"
+          id="upload-input"
+          @change="uploadInput($event)"
+          multiple
+        />
+        <input
+          style="display: none"
+          type="file"
+          id="upload-folder-input"
+          @change="uploadInput($event)"
+          webkitdirectory
+          multiple
+        />
       </div>
-      <div v-else id="listingView" ref="listingView" :class="listingViewMode + ' file-icons'">
+      <div
+        v-else
+        id="listingView"
+        ref="listingView"
+        :class="listingViewMode + ' file-icons'"
+      >
         <div>
           <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }">
-            <p :class="{ active: nameSorted }" class="name" role="button" tabindex="0" @click="sort('name')"
-              :title="$t('files.sortByName')" :aria-label="$t('files.sortByName')">
+            <p
+              :class="{ active: nameSorted }"
+              class="name"
+              role="button"
+              tabindex="0"
+              @click="sort('name')"
+              :title="$t('files.sortByName')"
+              :aria-label="$t('files.sortByName')"
+            >
               <span>{{ $t("files.name") }}</span>
               <i class="material-icons">{{ nameIcon }}</i>
             </p>
 
-            <p :class="{ active: sizeSorted }" class="size" role="button" tabindex="0" @click="sort('size')"
-              :title="$t('files.sortBySize')" :aria-label="$t('files.sortBySize')">
+            <p
+              :class="{ active: sizeSorted }"
+              class="size"
+              role="button"
+              tabindex="0"
+              @click="sort('size')"
+              :title="$t('files.sortBySize')"
+              :aria-label="$t('files.sortBySize')"
+            >
               <span>{{ $t("files.size") }}</span>
               <i class="material-icons">{{ sizeIcon }}</i>
             </p>
-            <p :class="{ active: modifiedSorted }" class="modified" role="button" tabindex="0" @click="sort('modified')"
-              :title="$t('files.sortByLastModified')" :aria-label="$t('files.sortByLastModified')">
+            <p
+              :class="{ active: modifiedSorted }"
+              class="modified"
+              role="button"
+              tabindex="0"
+              @click="sort('modified')"
+              :title="$t('files.sortByLastModified')"
+              :aria-label="$t('files.sortByLastModified')"
+            >
               <span>{{ $t("files.lastModified") }}</span>
               <i class="material-icons">{{ modifiedIcon }}</i>
             </p>
@@ -46,10 +84,23 @@
             <h2>{{ $t("files.folders") }}</h2>
           </div>
         </div>
-        <div v-if="numDirs > 0" class="folder-items" :class="{ lastGroup: numFiles === 0 }">
-          <item v-for="item in dirs" :key="base64(item.name)" v-bind:index="item.index" v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'" v-bind:url="item.url" v-bind:modified="item.modified"
-            v-bind:type="item.type" v-bind:size="item.size" v-bind:path="item.path" />
+        <div
+          v-if="numDirs > 0"
+          class="folder-items"
+          :class="{ lastGroup: numFiles === 0 }"
+        >
+          <item
+            v-for="item in dirs"
+            :key="base64(item.name)"
+            v-bind:index="item.index"
+            v-bind:name="item.name"
+            v-bind:isDir="item.type == 'directory'"
+            v-bind:url="item.url"
+            v-bind:modified="item.modified"
+            v-bind:type="item.type"
+            v-bind:size="item.size"
+            v-bind:path="item.path"
+          />
         </div>
         <div v-if="numFiles > 0">
           <div class="header-items">
@@ -57,14 +108,35 @@
           </div>
         </div>
         <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }">
-          <item v-for="item in files" :key="base64(item.name)" v-bind:index="item.index" v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'" v-bind:url="item.url" v-bind:modified="item.modified"
-            v-bind:type="item.type" v-bind:size="item.size" v-bind:path="item.path" />
+          <item
+            v-for="item in files"
+            :key="base64(item.name)"
+            v-bind:index="item.index"
+            v-bind:name="item.name"
+            v-bind:isDir="item.type == 'directory'"
+            v-bind:url="item.url"
+            v-bind:modified="item.modified"
+            v-bind:type="item.type"
+            v-bind:size="item.size"
+            v-bind:path="item.path"
+          />
         </div>
 
-        <input style="display: none" type="file" id="upload-input" @change="uploadInput($event)" multiple />
-        <input style="display: none" type="file" id="upload-folder-input" @change="uploadInput($event)" webkitdirectory
-          multiple />
+        <input
+          style="display: none"
+          type="file"
+          id="upload-input"
+          @change="uploadInput($event)"
+          multiple
+        />
+        <input
+          style="display: none"
+          type="file"
+          id="upload-folder-input"
+          @change="uploadInput($event)"
+          webkitdirectory
+          multiple
+        />
       </div>
     </div>
   </div>
@@ -93,6 +165,7 @@ export default {
       width: window.innerWidth,
       lastSelected: {}, // Add this to track the currently focused item
       contextTimeout: null, // added for safari context menu
+      ctrKeyPressed: false,
     };
   },
   watch: {
@@ -196,7 +269,6 @@ export default {
       this.colunmsResize();
       return state.user.viewMode;
     },
-
     selectedCount() {
       return state.selected.length;
     },
@@ -215,7 +287,8 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
-    this.$el.addEventListener("click", this.clickClear);
+    window.addEventListener("click", this.clickClear);
+    window.addEventListener("keyup", this.clearCtrKey);
 
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
@@ -250,7 +323,6 @@ export default {
       this.$el.removeEventListener("touchend", this.cancelContext);
       this.$el.removeEventListener("mouseup", this.cancelContext);
       this.$el.removeEventListener("touchmove", this.handleTouchMove);
-
     } else {
       window.removeEventListener("contextmenu", this.openContext);
     }
@@ -425,17 +497,22 @@ export default {
         }, 50);
       }
     },
+    clearCtrKey(event) {
+      const { ctrlKey } = event;
+      if (!ctrlKey) {
+        this.ctrKeyPressed = false;
+      }
+    },
     keyEvent(event) {
       const { key, ctrlKey, metaKey, which } = event;
       // Check if the key is alphanumeric
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
-      const noModifierKeys = !ctrlKey && !metaKey;
-
-      if (isAlphanumeric && noModifierKeys && getters.currentPromptName() == null) {
+      const modifierKeys = ctrlKey || metaKey;
+      if (isAlphanumeric && !modifierKeys && getters.currentPromptName() == null) {
         this.alphanumericKeyPress(key); // Call the alphanumeric key press function
         return;
       }
-      if (noModifierKeys && getters.currentPromptName() != null) {
+      if (!modifierKeys && getters.currentPromptName() != null) {
         return;
       }
       // Handle the space bar key
@@ -452,6 +529,13 @@ export default {
       }
       let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+
+      if (modifierKeys) {
+        if (!ctrlKey) {
+          this.ctrKeyPressed = true;
+        }
+        return;
+      }
       // Handle key events using a switch statement
       switch (key) {
         case "Enter":
@@ -486,11 +570,6 @@ export default {
           event.preventDefault();
           this.navigateKeboardArrows(key);
           break;
-
-        default:
-          // Handle keys with ctrl or meta keys
-          if (!ctrlKey && !metaKey) return;
-          break;
       }
 
       const charKey = String.fromCharCode(which).toLowerCase();
@@ -513,8 +592,6 @@ export default {
           break;
       }
     },
-
-    // Helper method to select all files and directories
     selectAll() {
       for (let file of this.items.files) {
         if (state.selected.indexOf(file.index) === -1) {
@@ -650,12 +727,18 @@ export default {
       action(false, false);
     },
     colunmsResize() {
-      document.documentElement.style.setProperty('--item-width', `calc(${100 / this.numColumns}% - 1em)`);
+      document.documentElement.style.setProperty(
+        "--item-width",
+        `calc(${100 / this.numColumns}% - 1em)`
+      );
 
       if (state.user.viewMode == "gallery") {
-        document.documentElement.style.setProperty('--item-height', `calc(${this.columnWidth / 25}em)`);
+        document.documentElement.style.setProperty(
+          "--item-height",
+          `calc(${this.columnWidth / 25}em)`
+        );
       } else {
-        document.documentElement.style.setProperty('--item-height', `auto`);
+        document.documentElement.style.setProperty("--item-height", `auto`);
       }
     },
     dragEnter() {
@@ -814,9 +897,11 @@ export default {
         },
       });
     },
-    clickClear() {
+    clickClear(event) {
+      // if control or shift is pressed, do not clear the selection
+      if (this.ctrKeyPressed || event.shiftKey) return;
       const sameAsBefore = state.selected == this.lastSelected;
-      if (sameAsBefore && !state.multiple) {
+      if (sameAsBefore && !state.multiple && getters.currentPromptName == null) {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;

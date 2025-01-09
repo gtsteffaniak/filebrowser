@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.3.6
+
+  **New Features**
+  - Adds "externalUrl" server config https://github.com/gtsteffaniak/filebrowser/issues/272
+
+  **Notes**:
+  - All views modes to show header bar for sorting.
+  - other small style changes
+
+  **Bugfixes**:
+  - select and info bug after sorting https://github.com/gtsteffaniak/filebrowser/issues/277
+  - downloading from shares with public user
+  - Ctrl and Shift key modifiers work on listing views as expected.
+  - copy/move file/folder error and show errors https://github.com/gtsteffaniak/filebrowser/issues/278
+  - file move/copy context fix.
+
 ## v0.3.5
 
   **New Features**

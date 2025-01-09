@@ -9,11 +9,9 @@
   <img width="800" src="https://github.com/user-attachments/assets/b16acd67-0292-437a-a06c-bc83f95758e6" title="Main Screenshot">
 </p>
 
-> [!Note]
-> Starting with v0.3.3, configuration file mapping is different to support non-root user. Now, the default config file name is `config.yaml` and in docker the path is `/home/filebrowser/config.yaml` and `/home/filebrowser/<database_file>`. Please read the usage below to properly update your config to point the new config location. (open an issue for any help needed)
-
 > [!WARNING]
-> There is no stable version yet. Always check release notes for bug fixes on functionality that may have been changed. If you notice any unexpected behavior -- please open an issue to have it fixed soon.
+> There is no stable version yet. 
+> (planned for later this year after these are complete: multiple sources support, initial onboarding page, official automated docs website)
 
 FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
 

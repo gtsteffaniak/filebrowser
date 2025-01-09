@@ -179,7 +179,7 @@ export default {
   },
   methods: {
     handleTouchMove(event) {
-      if (!state.isSafari) return
+      if (!state.isSafari) return;
       const touch = event.touches[0];
       const deltaX = Math.abs(touch.clientX - this.touchStartX);
       const deltaY = Math.abs(touch.clientY - this.touchStartY);
@@ -191,7 +191,7 @@ export default {
       }
     },
     handleTouchEnd() {
-      if (!state.isSafari) return
+      if (!state.isSafari) return;
       this.cancelContext(); // Clear timeout
       this.isSwipe = false; // Reset swipe state
     },
@@ -214,8 +214,8 @@ export default {
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
-      // If no items are selected, select the right-clicked item
-      if (!state.multiple) {
+      // If one or fewer items are selected, reset the selection
+      if (!state.multiple && getters.selectedCount() < 2) {
         mutations.resetSelected();
         mutations.addSelected(this.index);
       }
@@ -247,7 +247,9 @@ export default {
     getTime() {
       if (state.user.dateFormat) {
         // Truncate the fractional seconds to 3 digits (milliseconds)
-        const sanitizedString = this.modified.replace(/\.\d+/, (match) => match.slice(0, 4));
+        const sanitizedString = this.modified.replace(/\.\d+/, (match) =>
+          match.slice(0, 4)
+        );
         // Parse the sanitized string into a Date object
         const date = new Date(sanitizedString);
         return date.toLocaleString();
@@ -333,7 +335,7 @@ export default {
       action(overwrite, rename);
     },
     addSelected(event) {
-      if (!state.isSafari) return
+      if (!state.isSafari) return;
       const touch = event.touches[0];
       this.touchStartX = touch.clientX;
       this.touchStartY = touch.clientY;
@@ -357,7 +359,11 @@ export default {
         }
       }
 
-      if (!state.user.singleClick && getters.selectedCount() !== 0 && event.button === 0) {
+      if (
+        !state.user.singleClick &&
+        getters.selectedCount() !== 0 &&
+        event.button === 0
+      ) {
         event.preventDefault();
       }
       setTimeout(() => {
@@ -393,7 +399,12 @@ export default {
 
         return;
       }
-      if (!state.user.singleClick && !event.ctrlKey && !event.metaKey && !state.multiple) {
+      if (
+        !state.user.singleClick &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !state.multiple
+      ) {
         mutations.resetSelected();
       }
       mutations.addSelected(this.index);

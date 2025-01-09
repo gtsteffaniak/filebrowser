@@ -15,7 +15,7 @@ import (
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	file, ok := d.raw.(files.ExtendedFileInfo)
 	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type *files.FileInfo")
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
 	}
 	file.Path = strings.TrimPrefix(file.Path, files.RootPaths["default"])
 	return renderJSON(w, r, file)
@@ -28,23 +28,6 @@ func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, http.StatusText(status), status)
 	}
-
-}
-
-func publicDlHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(files.ExtendedFileInfo)
-	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
-	}
-	if d.user == nil {
-		return http.StatusUnauthorized, fmt.Errorf("failed to get user")
-	}
-
-	if file.Type == "directory" {
-		return rawFilesHandler(w, r, d, []string{file.Path})
-	}
-
-	return rawFileHandler(w, r, file.FileInfo)
 }
 
 // health godoc

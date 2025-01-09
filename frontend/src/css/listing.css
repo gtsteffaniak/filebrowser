@@ -59,9 +59,9 @@ body.rtl #listingView {
 
 #listingView .item i {
   font-size: 4em;
-  margin-right: 0.1em;
   vertical-align: bottom;
 }
+
 
 #listingView .item img {
   width: 4em;
@@ -177,11 +177,6 @@ body.rtl #listingView {
   border-radius: 0.5em;
 }
 
-#listingView.gallery .size,
-#listingView.gallery .modified {
-  display: none;
-}
-
 #listingView.compact {
   flex-direction: column;
   width: 100%;
@@ -220,15 +215,7 @@ body.rtl #listingView {
   align-items: center;
 }
 
-#listingView.compact .header .name,
-#listingView.list .header .name,
-#listingView.list .item .name,
-#listingView.compact .item .name {
-  width: 50%;
-}
-
-#listingView.compact .header .name,
-#listingView.list .header .name {
+#listingView .header .name {
   margin-right: 1.5em;
 }
 
@@ -237,14 +224,23 @@ body.rtl #listingView {
   cursor: pointer;
 }
 
-#listingView.compact .header .size,
-#listingView.list .header .size,
+#listingView .header .size,
 #listingView.list .item .size,
 #listingView.compact .item .size {
   width: 25%;
 }
 
-#listingView.compact .header i {
+#listingView .header .name,
+#listingView.list .item .name,
+#listingView.compact .item .name {
+  width: 50%;
+}
+
+#listingView.normal .item .text {
+  padding-left: 0.3em;
+}
+
+#listingView .header i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
@@ -275,25 +271,21 @@ body.rtl #listingView {
   width: 0;
 }
 
-#listingView.compact .name {
-  font-weight: normal;
-}
-
 #listingView.compact .header span {
   vertical-align: middle;
 }
 
-#listingView.compact .header i {
+#listingView .header i {
   opacity: 0;
   transition: .1s ease all;
 }
 
-#listingView.compact .header p:hover i,
-#listingView.compact .header .active i {
+#listingView .header p:hover i,
+#listingView .header .active i {
   opacity: 1;
 }
 
-#listingView.compact .header .active {
+#listingView .header .active {
   font-weight: bold;
 }
 
@@ -312,9 +304,26 @@ body.rtl #listingView {
   border-top: 0;
 }
 
-#listingView .item[aria-selected=true] {
+#listingView.compact .item[aria-selected=true],
+#listingView.normal .item[aria-selected=true],
+#listingView.list .item[aria-selected=true] {
   background: var(--primaryColor) !important;
   color: var(--item-selected) !important;
+}
+
+#listingView.gallery .item[aria-selected=true] {
+  border: 1em solid var(--primaryColor) !important;
+  border-radius: 1em;
+  padding: 0;
+}
+
+#listingView.gallery .item[aria-selected=true] .text {
+  padding: 0;
+}
+
+#listingView.gallery .item .size,
+#listingView.gallery .item .modified {
+  opacity: 0;
 }
 
 #listingView.list .item div:first-of-type {
@@ -337,13 +346,18 @@ body.rtl #listingView {
 }
 
 #listingView .header {
-  display: none;
+  display: flex !important;
   background: white;
   border-radius: 1em;
   border: 1px solid rgba(0, 0, 0, .1);
+  z-index: 999;
+  padding: .85em;
+  width: 100%;
 }
 
-#listingView.list .header i {
+#listingView.list .header i,
+#listingView.normal .header i,
+#listingView.gallary .header i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
@@ -351,12 +365,8 @@ body.rtl #listingView {
 
 #listingView.compact .header,
 #listingView.list .header {
-  display: flex !important;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
-  z-index: 999;
-  padding: .85em;
-  width: 100%;
 }
 
 #listingView.list .item:first-child {
@@ -383,7 +393,9 @@ body.rtl #listingView {
   display:flex;
   width: 100%;
 }
-#listingView.list .header {
+#listingView.list .header,
+#listingView.normal .header,
+#listingView.gallery .header {
   margin-bottom: .5em;
 }
 
@@ -391,11 +403,11 @@ body.rtl #listingView {
   color: inherit;
 }
 
-#listingView.list .name {
+#listingView .name {
   font-weight: normal;
 }
 
-#listingView.list .header span {
+#listingView .header span {
   vertical-align: middle;
 }
 
