@@ -10,7 +10,7 @@
 </p>
 
 > [!WARNING]
-> There is no stable version yet.
+> There is no stable version yet. The `latest` docker tag tests with the beta image currently
 > Stable release is planned for later this year after the following have been added: 1) multiple sources support 2) initial onboarding page 3) official automated docs website
 
 FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
