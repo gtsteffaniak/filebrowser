@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.3.6
 
-  > Note: this is a beta release! there is no stable version
+  > Note: this is a beta release! there is no stable version.
 
   **New Features**
   - Adds "externalUrl" server config https://github.com/gtsteffaniak/filebrowser/issues/272
