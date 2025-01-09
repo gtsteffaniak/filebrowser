@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v0.3.6
+## v0.3.6-beta
 
   > Note: this is a beta release! there is no stable version.
 
