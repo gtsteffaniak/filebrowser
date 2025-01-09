@@ -22,8 +22,8 @@ jobs:
         run: |
           original_branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
           echo "branch_name=$transformed_branch" >> $GITHUB_OUTPUT
-          transformed_branch=$(echo "$original_branch" | sed 's/^stable\/v/stable_v/')
-          echo "tag_name=$transformed_branch" >> $GITHUB_OUTPUT
+          tag_name=$(echo "$original_branch" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')-stable
+          echo "tag_name=$tag_name" >> $GITHUB_OUTPUT
         id: extract_branch
       - uses: actions/setup-go@v5
         with:
