@@ -21,7 +21,7 @@ builds:
       - "7"
     hooks:
       post:
-        - upx {{ .Path }}  # Compress the binary with UPX
+        - upx --force-macos {{ .Path }}  # Compress the binary with UPX
 
   # Build configuration for windows without arm
 #  - id: windows
