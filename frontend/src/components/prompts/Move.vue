@@ -53,6 +53,7 @@ import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { notify } from "@/notify";
+import { removePrefix } from "@/utils/url";
 
 export default {
   name: "move",
@@ -61,6 +62,7 @@ export default {
     return {
       current: window.location.pathname,
       dest: null,
+      items: [],
     };
   },
   computed: {
@@ -71,50 +73,66 @@ export default {
       return mutations.closeHovers();
     },
   },
+  mounted() {
+    for (let item of state.selected) {
+      this.items.push({
+        from: state.req.items[item].url,
+        // add to: dest
+        name: state.req.items[item].name,
+      });
+    }
+  },
   methods: {
     move: async function (event) {
       event.preventDefault();
-      let items = [];
-
-      for (let item of state.selected) {
-        items.push({
-          from: state.req.items[item].url,
-          to: this.dest + state.req.items[item].name,
-          name: state.req.items[item].name,
-        });
-      }
-      let action = async (overwrite, rename) => {
-        buttons.loading("move");
-        await filesApi.moveCopy(items, "move", overwrite, rename);
-        buttons.success("move");
-        this.$router.push({ path: this.dest });
-        mutations.closeHovers();
-      };
-
-      let dstItems = (await filesApi.fetchFiles(this.dest)).items;
-      let conflict = upload.checkConflict(items, dstItems);
-
-      let overwrite = false;
-      let rename = false;
-
       try {
+        // Define the action function
+        let action = async (overwrite, rename) => {
+          const loc = removePrefix(this.dest, "files");
+          for (let item of this.items) {
+            item.to = loc + "/" + item.name;
+          }
+          buttons.loading("move");
+          await filesApi.moveCopy(this.items, "move", overwrite, rename);
+        };
+
+        // Fetch destination files
+        let dstResp = await filesApi.fetchFiles(this.dest);
+        let conflict = upload.checkConflict(this.items, dstResp.items);
+
+        let overwrite = false;
+        let rename = false;
+
         if (conflict) {
-          mutations.showHover({
-            name: "replace-rename",
-            confirm: (event, option) => {
-              overwrite = option == "overwrite";
-              rename = option == "rename";
-              event.preventDefault();
-              action(overwrite, rename);
-            },
+          await new Promise((resolve, reject) => {
+            mutations.showHover({
+              name: "replace-rename",
+              confirm: async (event, option) => {
+                overwrite = option == "overwrite";
+                rename = option == "rename";
+                event.preventDefault();
+                try {
+                  await action(overwrite, rename);
+                  resolve(); // Resolve the promise if action succeeds
+                } catch (e) {
+                  reject(e); // Reject the promise if an error occurs
+                }
+              },
+            });
           });
-          return;
+        } else {
+          // Await the action call for non-conflicting cases
+          await action(overwrite, rename);
         }
-        action(overwrite, rename);
+        mutations.closeHovers();
+        notify.showSuccess("Successfully moved file/folder, redirecting...");
+        setTimeout(() => {
+          this.$router.push(this.dest);
+        }, 1000);
       } catch (e) {
+        // Catch any errors from action or other parts of the flow
         notify.showError(e);
       }
-      return;
     },
   },
 };

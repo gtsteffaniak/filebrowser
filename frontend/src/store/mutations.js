@@ -140,16 +140,21 @@ export const mutations = {
     emitStateChanged();
   },
   addSelected: (value) => {
+    console.log("addSelected", value)
     state.selected.push(value);
     emitStateChanged();
   },
   removeSelected: (value) => {
+    console.log("removeSelected", value)
+
     let i = state.selected.indexOf(value);
     if (i === -1) return;
     state.selected.splice(i, 1);
     emitStateChanged();
   },
   resetSelected: () => {
+    console.log("resetSelected")
+
     state.selected = [];
     mutations.setMultiple(false);
     emitStateChanged();

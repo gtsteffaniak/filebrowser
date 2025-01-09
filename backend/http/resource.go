@@ -283,10 +283,10 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return errToStatus(err), err
 	}
 	if !d.user.Check(src) || !d.user.Check(dst) {
-		return http.StatusForbidden, nil
+		return http.StatusForbidden, fmt.Errorf("forbidden: user rules deny access to source or destination")
 	}
 	if dst == "/" || src == "/" {
-		return http.StatusForbidden, nil
+		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
 
 	idx := files.GetIndex(source)
@@ -307,7 +307,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	// Permission for overwriting the file
 	if overwrite && !d.user.Perm.Modify {
-		return http.StatusForbidden, nil
+		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
 	err = d.RunHook(func() error {
 		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)

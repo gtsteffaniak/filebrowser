@@ -189,7 +189,7 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	index := GetIndex(source)
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
-		Path:  realsrc,
+		Path:  filepath.Dir(realsrc),
 		IsDir: isSrcDir,
 	})
 	if err != nil {
