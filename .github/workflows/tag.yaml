@@ -1,9 +1,9 @@
-name: beta tag update
+name: tag update
 
 on:
   push:
     tags:
-      - "beta_v*"
+      - "v[0-9]+.[0-9]+.[0-9]+.*"
 
 permissions:
   contents: write
