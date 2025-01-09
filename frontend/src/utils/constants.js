@@ -17,6 +17,7 @@ const loginPage = window.FileBrowser.LoginPage;
 const enableThumbs = window.FileBrowser.EnableThumbs;
 const resizePreview = window.FileBrowser.ResizePreview;
 const enableExec = window.FileBrowser.EnableExec;
+const externalUrl = window.FileBrowser.ExternalUrl
 const origin = window.location.origin;
 
 const settings = [
@@ -29,6 +30,7 @@ const settings = [
 
 export {
   name,
+  externalUrl,
   disableExternal,
   externalLinks,
   disableUsedPercentage,

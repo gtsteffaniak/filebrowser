@@ -1,14 +1,45 @@
-name: dev release
+name: beta release
 
 on:
   push:
     branches:
-      - "dev/v[0-9]+.[0-9]+.[0-9]+"
+      - "beta/v[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
   contents: write
 
 jobs:
+  create_release_tag:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+      - name: Extract branch name
+        shell: bash
+        run: |
+          original_branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          echo "branch_name=$transformed_branch" >> $GITHUB_OUTPUT
+          transformed_branch=$(echo "$original_branch" | sed 's/^beta\/v/beta_v/')
+          echo "tag_name=$transformed_branch" >> $GITHUB_OUTPUT
+        id: extract_branch
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          target_commitish: ${{ steps.extract_branch.outputs.branch_name }}
+          token: ${{ secrets.PAT }}
+          tag_name: ${{ steps.extract_branch.outputs.tag_name }}
+          prerelease: false # change this to false when stable gets released
+          make_latest: true # change this to false when stable gets released
+          draft: false
+          generate_release_notes: true
+          name: ${{ steps.extract_branch.outputs.tag_name }}
+
   push_release_to_registry:
     name: Push release
     runs-on: ubuntu-latest
@@ -34,7 +65,7 @@ jobs:
         run: |
           JSON="${{ steps.meta.outputs.tags }}"
           # Use jq to remove 'v' from the version field
-          JSON=$(echo "$JSON" | sed 's/filebrowser:dev\/v/filebrowser:dev_v/')
+          JSON=$(echo "$JSON" | sed 's/filebrowser:beta\/v/filebrowser:beta_v/')
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -43,7 +74,7 @@ jobs:
           build-args: |
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./Dockerfile
           push: true
           tags: ${{ steps.modify-json.outputs.cleaned_tag }}

@@ -52,7 +52,8 @@ import FileList from "./FileList.vue";
 import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-//import { notify } from "@/notify";
+import { removePrefix } from "@/utils/url";
+import { notify } from "@/notify";
 
 export default {
   name: "copy",
@@ -61,6 +62,7 @@ export default {
     return {
       current: window.location.pathname,
       dest: null,
+      items: [],
     };
   },
   computed: {
@@ -71,57 +73,63 @@ export default {
       return mutations.closeHovers();
     },
   },
+  mounted() {
+    for (let item of state.selected) {
+      this.items.push({
+        from: state.req.items[item].url,
+        // add to: dest
+        name: state.req.items[item].name,
+      });
+    }
+  },
   methods: {
     copy: async function (event) {
       event.preventDefault();
-      let items = [];
+      try {
+        // Define the action function
+        let action = async (overwrite, rename) => {
+          const loc = removePrefix(this.dest, "files");
+          for (let item of this.items) {
+            item.to = loc + "/" + item.name;
+          }
+          buttons.loading("copy");
+          await filesApi.moveCopy(this.items, "copy", overwrite, rename);
+        };
+        // Fetch destination files
+        let dstResp = await filesApi.fetchFiles(this.dest);
+        let conflict = upload.checkConflict(this.items, dstResp.items);
+        let overwrite = false;
+        let rename = false;
 
-      // Create a new promise for each file.
-      for (let item of state.selected) {
-        items.push({
-          from: state.req.items[item].url,
-          to: this.dest + encodeURIComponent(state.req.items[item].name),
-          name: state.req.items[item].name,
-        });
-      }
-
-      let action = async (overwrite, rename) => {
-        buttons.loading("copy");
-        await filesApi.moveCopy(items, "copy", overwrite, rename);
-        this.$router.push({ path: this.dest });
-        mutations.setReload(true);
-      };
-
-      if (state.route.path === this.dest) {
+        if (conflict) {
+          await new Promise((resolve, reject) => {
+            mutations.showHover({
+              name: "replace-rename",
+              confirm: async (event, option) => {
+                overwrite = option == "overwrite";
+                rename = option == "rename";
+                event.preventDefault();
+                try {
+                  await action(overwrite, rename);
+                  resolve(); // Resolve the promise if action succeeds
+                } catch (e) {
+                  reject(e); // Reject the promise if an error occurs
+                }
+              },
+            });
+          });
+        } else {
+          // Await the action call for non-conflicting cases
+          await action(overwrite, rename);
+        }
         mutations.closeHovers();
-        action(false, true);
-
-        return;
+        notify.showSuccess("Successfully copied file/folder, redirecting...");
+        setTimeout(() => {
+          this.$router.push(this.dest);
+        }, 1000);
+      } catch (error) {
+        notify.error(error);
       }
-
-      let dstItems = (await filesApi.fetchFiles(this.dest)).items;
-      let conflict = upload.checkConflict(items, dstItems);
-
-      let overwrite = false;
-      let rename = false;
-
-      if (conflict) {
-        mutations.showHover({
-          name: "replace-rename",
-          confirm: (event, option) => {
-            overwrite = option == "overwrite";
-            rename = option == "rename";
-
-            event.preventDefault();
-            mutations.closeHovers();
-            action(overwrite, rename);
-          },
-        });
-
-        return;
-      }
-
-      action(overwrite, rename);
     },
   },
 };

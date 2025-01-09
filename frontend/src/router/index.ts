@@ -130,10 +130,6 @@ router.beforeResolve(async (to, from, next) => {
     return next(false);
   }
 
-  if (state != null && state.user != null && !('username' in state.user)) {
-    await validateLogin();
-  }
-
   // Set the page title using i18n
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = title + " - " + name;
@@ -143,6 +139,11 @@ router.beforeResolve(async (to, from, next) => {
 
   // Handle auth requirements
   if (to.matched.some((record) => record.meta.requiresAuth)) {
+
+    if (state != null && state.user != null && !('username' in state.user)) {
+      await validateLogin();
+    }
+
     if (!getters.isLoggedIn()) {
       next({
         path: "/login",

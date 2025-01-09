@@ -26,9 +26,25 @@ func MoveFile(src, dst string) error {
 	return nil
 }
 
-// CopyFile copies a file from source to dest and returns
-// an error if any.
+// CopyFile copies a file or directory from source to dest and returns an error if any.
 func CopyFile(source, dest string) error {
+	// Check if the source exists and whether it's a file or directory.
+	info, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+
+	if info.IsDir() {
+		// If the source is a directory, copy it recursively.
+		return copyDirectory(source, dest)
+	}
+
+	// If the source is a file, copy the file.
+	return copySingleFile(source, dest)
+}
+
+// copySingleFile handles copying a single file.
+func copySingleFile(source, dest string) error {
 	// Open the source file.
 	src, err := os.Open(source)
 	if err != nil {
@@ -36,7 +52,7 @@ func CopyFile(source, dest string) error {
 	}
 	defer src.Close()
 
-	// Makes the directory needed to create the dst file.
+	// Create the destination directory if needed.
 	err = os.MkdirAll(filepath.Dir(dest), 0775) //nolint:gomnd
 	if err != nil {
 		return err
@@ -63,6 +79,43 @@ func CopyFile(source, dest string) error {
 	err = os.Chmod(dest, info.Mode())
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// copyDirectory handles copying directories recursively.
+func copyDirectory(source, dest string) error {
+	// Create the destination directory.
+	err := os.MkdirAll(dest, 0775) //nolint:gomnd
+	if err != nil {
+		return err
+	}
+
+	// Read the contents of the source directory.
+	entries, err := os.ReadDir(source)
+	if err != nil {
+		return err
+	}
+
+	// Iterate over each entry in the directory.
+	for _, entry := range entries {
+		srcPath := filepath.Join(source, entry.Name())
+		destPath := filepath.Join(dest, entry.Name())
+
+		if entry.IsDir() {
+			// Recursively copy subdirectories.
+			err = copyDirectory(srcPath, destPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Copy files.
+			err = copySingleFile(srcPath, destPath)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
