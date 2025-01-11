@@ -15,6 +15,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - working-directory: backend
+        run: go build -o filebrowser .
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
