@@ -4,7 +4,9 @@ on:
   pull_request:
     branches:
       - "main"
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "dev/v[0-9]+.[0-9]+.[0-9]+"
+      - "beta/v[0-9]+.[0-9]+.[0-9]+"
+      - "stable/v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   test_frontend:

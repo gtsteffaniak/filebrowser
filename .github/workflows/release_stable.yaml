@@ -9,7 +9,24 @@ permissions:
   contents: write
 
 jobs:
+  test_frontend:
+    name: Push release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.0.0
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.playwright
+          push: false
   create_release_tag:
+    needs: [ test_frontend ]
     name: Create Release
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +57,7 @@ jobs:
           name: ${{ steps.extract_branch.outputs.tag_name }}
 
   push_release_to_registry:
+    needs: [ test_frontend ]
     name: Push release
     runs-on: ubuntu-latest
     steps:
