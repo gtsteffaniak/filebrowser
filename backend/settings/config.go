@@ -114,6 +114,9 @@ func setDefaults() Settings {
 				Host: "",
 			},
 		},
+		Frontend: Frontend{
+			Name: "FileBrowser Quantum",
+		},
 		UserDefaults: UserDefaults{
 			StickySidebar:   true,
 			Scope:           ".",

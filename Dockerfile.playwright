@@ -1,19 +1,5 @@
-FROM golang:1.23-alpine AS base
+FROM gtstef/playwright-base
 WORKDIR /app
-COPY ./backend ./
-RUN go build -ldflags="-w -s" -o filebrowser .
-
-FROM node:slim
-WORKDIR /app
-COPY ./frontend/package.json ./
-RUN npm i --maxsockets 1
-RUN npx playwright install --with-deps firefox
-COPY [ "backend/config.yaml", "./" ]
-COPY  ./frontend/ ./frontend
-WORKDIR /app/frontend
-RUN npm run build-docker
-WORKDIR /app
-COPY --from=base /app/filebrowser* ./
-RUN cp -R frontend/tests/ srv
-ENV FILEBROWSER_NO_EMBEDED="true"
-RUN ./filebrowser & sleep 2 && cd frontend && npx playwright test
+COPY [ "./backend/filebrowser*", "./"]
+COPY [ "./frontend/", "./" ]
+RUN ./filebrowser -c filebrowser-playwright.yaml & sleep 2 && npx playwright test

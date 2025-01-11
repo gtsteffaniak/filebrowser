@@ -16,6 +16,9 @@ update:
 build:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a"  -t gtstef/filebrowser .
 
+build-backend:
+	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'"
+
 run: run-frontend
 	cd backend && swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
@@ -48,9 +51,9 @@ test-backend:
 test-frontend:
 	cd frontend && npm run test
 
-test-frontend-playwright:
-	npx playwright install
-	docker build -t gtstef/filebrowser-tests -f Dockerfile.playwright .
+test-playwright: run-frontend build-backend
+	docker build -t filebrowser-playwright-tests -f Dockerfile.playwright .
+	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 
 # Run on a windows machine!
 release-windows:
