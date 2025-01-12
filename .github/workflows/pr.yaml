@@ -19,6 +19,9 @@ jobs:
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.0.0
+      - uses: actions/setup-node@v4
+      - working-directory: frontend
+        run: npm i && npm run build
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
