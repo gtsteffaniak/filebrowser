@@ -63,8 +63,7 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	}
 	return rawFilesHandler(w, r, d, fileList)
 }
-
-func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer) error {
+func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
 	idx := files.GetIndex("default")
 	realPath, _, _ := idx.GetRealPath(d.user.Scope, path)
 	if !d.user.Check(realPath) {
@@ -75,16 +74,36 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 		return err
 	}
 
+	// Get the base name of the top-level folder or file
+	baseName := filepath.Base(realPath)
+
 	if info.IsDir() {
 		// Walk through directory contents
 		return filepath.Walk(realPath, func(filePath string, fileInfo os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
-			relPath, err := filepath.Rel(filepath.Dir(realPath), filePath) // Relative path including base dir
+
+			// Calculate the relative path
+			relPath, err := filepath.Rel(realPath, filePath) // Use realPath directly
 			if err != nil {
 				return err
 			}
+
+			// Normalize for tar: convert \ to /
+			relPath = filepath.ToSlash(relPath)
+
+			// Skip adding `.` (current directory)
+			if relPath == "." {
+				return nil
+			}
+
+			// Prepend base folder name unless flatten is true
+			if !flatten {
+				relPath = filepath.Join(baseName, relPath)
+				relPath = filepath.ToSlash(relPath) // Ensure normalized separators
+			}
+
 			if fileInfo.IsDir() {
 				if tarWriter != nil {
 					header := &tar.Header{
@@ -105,8 +124,8 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 		})
 	}
 
-	// Add a single file if it's not a directory
-	return addSingleFile(realPath, filepath.Base(realPath), zipWriter, tarWriter)
+	// For a single file, use the base name as the archive path
+	return addSingleFile(realPath, baseName, zipWriter, tarWriter)
 }
 
 func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWriter *tar.Writer) error {
@@ -122,11 +141,12 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 	}
 
 	if tarWriter != nil {
-		header, err := tar.FileInfoHeader(info, realPath)
+		header, err := tar.FileInfoHeader(info, "")
 		if err != nil {
 			return err
 		}
-		header.Name = archivePath
+		// Ensure correct relative path
+		header.Name = filepath.ToSlash(archivePath)
 		if err = tarWriter.WriteHeader(header); err != nil {
 			return err
 		}
@@ -217,8 +237,12 @@ func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
 
+	// Check if we have exactly one directory
+	flatten := len(filenames) == 1
+
+	fmt.Println("flatten", flatten)
 	for _, fname := range filenames {
-		err := addFile(fname, d, nil, zipWriter)
+		err := addFile(fname, d, nil, zipWriter, flatten)
 		if err != nil {
 			log.Printf("Failed to add %s to ZIP: %v", fname, err)
 		}
@@ -234,8 +258,10 @@ func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 	tarWriter := tar.NewWriter(gzWriter)
 	defer tarWriter.Close()
 
+	// Check if we have exactly one directory
+	flatten := len(filenames) == 1
 	for _, fname := range filenames {
-		err := addFile(fname, d, tarWriter, nil)
+		err := addFile(fname, d, tarWriter, nil, flatten)
 		if err != nil {
 			log.Printf("Failed to add %s to TAR.GZ: %v", fname, err)
 		}

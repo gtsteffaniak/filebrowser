@@ -250,7 +250,6 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 		Path:  opts.Path,
 		IsDir: opts.IsDir,
 	}
-	fmt.Println("given path: ", refreshOptions.Path, "isDir: ", refreshOptions.IsDir)
 	if !refreshOptions.IsDir {
 		refreshOptions.Path = idx.makeIndexPath(filepath.Dir(refreshOptions.Path))
 		refreshOptions.IsDir = true
