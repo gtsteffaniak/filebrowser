@@ -132,7 +132,7 @@ router.beforeResolve(async (to, from, next) => {
 
   // Set the page title using i18n
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
-  document.title = title + " - " + name;
+  document.title = name + " - " + title ;
 
   // Update store with the current route
   mutations.setRoute(to);

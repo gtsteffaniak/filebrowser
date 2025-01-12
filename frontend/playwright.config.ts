@@ -10,6 +10,8 @@ import { defineConfig, devices } from "@playwright/test";
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
+  globalSetup: "./global-setup",
+  timeout: 3000,
   testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -18,11 +20,13 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : 1, // required for now! todo parallel some tests
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "line",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    actionTimeout: 500,
+    storageState: "loginAuth.json",
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: "http://127.0.0.1",
 

@@ -32,7 +32,7 @@
   <script>
     window.FileBrowser = JSON.parse('{{ .globalVars }}');
     var dynamicManifest = {
-      "name": window.FileBrowser.Name || '',
+      "name": window.FileBrowser.Name || 'FileBrowser Quantum',
       "icons": [
         {
           "src": window.location.origin + "{{ .StaticURL }}/img/icons/android-chrome-256x256.png",
