@@ -11,7 +11,7 @@
 
 > [!WARNING]
 > There is no stable version yet. 
-> (planned for later this year after these are complete: multiple sources support, initial onboarding page, official automated docs website)
+> (planned after completion of multiple sources support, initial onboarding page, official automated docs website)
 
 FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
 
