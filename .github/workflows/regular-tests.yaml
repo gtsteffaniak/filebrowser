@@ -3,7 +3,7 @@ name: regular tests
 on:
   push:
     branches:
-      - "*"
+      - "**"
 
 jobs:
   test-backend:
