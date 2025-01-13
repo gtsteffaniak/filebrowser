@@ -17,10 +17,10 @@
     "lint": "eslint --ext .js,.vue,ts src",
     "lint:fix": "eslint --fix src/",
     "format": "prettier --write .",
-    "integration-test": "npx playwright test",
     "test": "vitest run "
   },
   "dependencies": {
+    "@playwright/test": "^1.49.1",
     "ace-builds": "^1.24.2",
     "clipboard": "^2.0.4",
     "css-vars-ponyfill": "^2.4.3",
@@ -34,7 +34,6 @@
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^4.0.0",
-    "@playwright/test": "^1.42.1",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-typescript": "^13.0.0",
     "eslint": "^8.57.0",

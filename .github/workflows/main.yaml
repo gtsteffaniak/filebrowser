@@ -6,7 +6,32 @@ on:
       - "main"
 
 jobs:
+  test_frontend:
+    name: Test Playwright
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.0.0
+      - uses: actions/setup-node@v4
+      - working-directory: frontend
+        run: npm i && npm run build
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - working-directory: backend
+        run: go build -o filebrowser .
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.playwright
+          push: false
   push_latest_to_registry:
+    needs: [ test_frontend ]
     name: Push latest
     runs-on: ubuntu-latest
     steps:
@@ -14,9 +39,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Find latest tag
+      - name: Find latest beta tag
         run: |
-          echo "LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
+          echo "LATEST_TAG=$(git describe --tags $(git rev-list --tags="*-beta*" --max-count=1)) >> $GITHUB_ENV
           echo "latest tag is $LATEST_TAG"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0

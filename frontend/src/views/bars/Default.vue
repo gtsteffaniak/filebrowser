@@ -9,7 +9,7 @@
 <script>
 import { url } from "@/utils";
 import router from "@/router";
-import { getters, state } from "@/store";
+import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 
 export default {
