@@ -238,11 +238,9 @@ func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 	defer zipWriter.Close()
 
 	// Check if we have exactly one directory
-	flatten := len(filenames) == 1
-
-	fmt.Println("flatten", flatten)
+	//flatten := len(filenames) == 1
 	for _, fname := range filenames {
-		err := addFile(fname, d, nil, zipWriter, flatten)
+		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
 			log.Printf("Failed to add %s to ZIP: %v", fname, err)
 		}
@@ -259,9 +257,9 @@ func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 	defer tarWriter.Close()
 
 	// Check if we have exactly one directory
-	flatten := len(filenames) == 1
+	//flatten := len(filenames) == 1
 	for _, fname := range filenames {
-		err := addFile(fname, d, tarWriter, nil, flatten)
+		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
 			log.Printf("Failed to add %s to TAR.GZ: %v", fname, err)
 		}

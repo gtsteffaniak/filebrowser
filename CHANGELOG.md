@@ -2,16 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v0.3.6-beta
+## v0.3.7-beta
 
   **Notes**:
   - Adding windows builds back to automated process... will replace manually if they throw malicious defender warnings.
   - Adding playwright tests to all pr's against dev/beta/release branches.
     - These playwright tests should help keep release more reliably stable.
-    - I need to add dozens of new test to make sure its helpful.
 
   **Bugfixes**:
   - closing with the default bar issue.
+  - tar.gz archive creation issue
 
 ## v0.3.6-beta
 
