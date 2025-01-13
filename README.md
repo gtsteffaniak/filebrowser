@@ -153,3 +153,6 @@ Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 Content preview icons         | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
 Plugins support               | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+Share collections of files    | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+Can archive selected files    | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+Can browse archive files      | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ 

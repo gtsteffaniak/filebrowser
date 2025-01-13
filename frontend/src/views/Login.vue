@@ -67,13 +67,13 @@ export default {
   },
   computed: {
     signup: () => signup,
-    name: () => name,
+    name: () => name || "FileBrowser Quantum",
     logoURL: () => logoURL,
     isDarkMode() {
       return darkMode === true;
     },
     loginName() {
-      return name || "FileBrowser Quantum"
+      return name
     }
   },
   data: function () {
