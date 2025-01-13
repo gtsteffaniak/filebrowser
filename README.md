@@ -98,10 +98,13 @@ See the [API Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/API)
 
 Configuration is done via the `config.yaml`, see the [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) for available configuration options and other help.
 
-
 ## Migration from the original filebrowser
 
 See the [Migration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Migration)
+
+## Contributing, Developer Process, and Release Strategy
+
+See the [Contributing Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Contributing)
 
 ## Comparison Chart
 

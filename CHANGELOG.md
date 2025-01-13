@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bugfixes**:
   - closing with the default bar issue.
-  - tar.gz archive creation issue
+  - tar.gz archive creation issue https://github.com/gtsteffaniak/filebrowser/issues/282
 
 ## v0.3.6-beta
 
