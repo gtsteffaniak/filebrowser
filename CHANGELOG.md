@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.4.0-beta
+
+  **New Features**
+  - Better logging
+    - configurable
+    - api logs include user
+
 ## v0.3.7-beta
 
   **Notes**:
