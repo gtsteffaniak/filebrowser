@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Better logging
     - configurable
     - api logs include user
+  - openoffice support
 
 ## v0.3.7-beta
 
