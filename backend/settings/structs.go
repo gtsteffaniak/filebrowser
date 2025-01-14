@@ -47,13 +47,26 @@ type Server struct {
 	Port                  int               `json:"port"`
 	BaseURL               string            `json:"baseURL"`
 	Address               string            `json:"address"`
-	Log                   string            `json:"log"`
+	Logging               Logging           `json:"log"`
 	Database              string            `json:"database"`
 	Root                  string            `json:"root"`
 	UserHomeBasePath      string            `json:"userHomeBasePath"`
 	CreateUserDir         bool              `json:"createUserDir"`
 	Sources               map[string]Source `json:"sources"`
 	ExternalUrl           string            `json:"externalUrl"`
+}
+
+type Logging struct {
+	Stdout LogConfig `json:"stdout"`
+	File   LogConfig `json:"file"`
+}
+
+type LogConfig struct {
+	Level         string `json:"level"`
+	Enabled       bool   `json:"enabled"`
+	Path          string `json:"path"`
+	DisableColors bool   `json:"colors"`
+	IncludeAPI    bool   `json:"includeAPI"`
 }
 
 type Source struct {

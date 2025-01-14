@@ -131,6 +131,8 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
+		setUserInResponseWriter(w, data.user)
+
 		// Call the handler function, passing in the context
 		return fn(w, r, data)
 	}
@@ -233,6 +235,7 @@ type ResponseWriterWrapper struct {
 	StatusCode  int
 	wroteHeader bool
 	PayloadSize int
+	User        string
 }
 
 // WriteHeader captures the status code and ensures it's only written once
@@ -255,6 +258,16 @@ func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
+// Helper function to set the user in the ResponseWriterWrapper
+func setUserInResponseWriter(w http.ResponseWriter, user *users.User) {
+	// Wrap the response writer to set the user field
+	if wrappedWriter, ok := w.(*ResponseWriterWrapper); ok {
+		if user != nil {
+			wrappedWriter.User = user.Username
+		}
+	}
+}
+
 // LoggingMiddleware logs each request and its status code.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -267,30 +280,43 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// Call the next handler.
 		next.ServeHTTP(wrappedWriter, r)
 
-		// Determine the color based on the status code.
-		color := "\033[32m" // Default green color
-		if wrappedWriter.StatusCode >= 300 && wrappedWriter.StatusCode < 500 {
-			color = "\033[33m" // Yellow for client errors (4xx)
-		} else if wrappedWriter.StatusCode >= 500 {
-			color = "\033[31m" // Red for server errors (5xx)
-		}
-
 		// Capture the full URL path including the query parameters.
 		fullURL := r.URL.Path
 		if r.URL.RawQuery != "" {
 			fullURL += "?" + r.URL.RawQuery
 		}
+		truncUser := wrappedWriter.User
+		if len(truncUser) > 10 {
+			truncUser = truncUser[:10] + ".."
+		}
+		if !settings.Config.Server.Logging.Stdout.DisableColors {
+			// Determine the color based on the status code.
+			color := "\033[32m" // Default green color
+			if wrappedWriter.StatusCode >= 300 && wrappedWriter.StatusCode < 500 {
+				color = "\033[33m" // Yellow for client errors (4xx)
+			} else if wrappedWriter.StatusCode >= 500 {
+				color = "\033[31m" // Red for server errors (5xx)
+			}
+			log.Printf("%s%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"%s",
+				color,
+				r.Method,
+				wrappedWriter.StatusCode, // Captured status code
+				r.RemoteAddr,
+				truncUser,
+				time.Since(start).String(),
+				fullURL,
+				"\033[0m")
+		} else {
+			log.Printf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
+				r.Method,
+				wrappedWriter.StatusCode, // Captured status code
+				r.RemoteAddr,
+				truncUser,
+				time.Since(start).String(),
+				fullURL,
+			)
+		}
 
-		// Log the request, status code, and response size.
-		log.Printf("%s%-7s | %3d | %-15s | %-12s | \"%s\"%s",
-			color,
-			r.Method,
-			wrappedWriter.StatusCode, // Captured status code
-			r.RemoteAddr,
-			time.Since(start).String(),
-			fullURL,
-			"\033[0m", // Reset color
-		)
 	})
 }
 
