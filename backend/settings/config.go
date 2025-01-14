@@ -101,7 +101,6 @@ func setDefaults() Settings {
 			NumImageProcessors: 4,
 			BaseURL:            "",
 			Database:           "database.db",
-			Log:                "stdout",
 			Root:               ".",
 		},
 		Auth: Auth{
