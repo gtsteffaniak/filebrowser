@@ -211,13 +211,14 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	default:
 		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
-
 	baseDirName := filepath.Base(filepath.Dir(realPath))
 	if baseDirName == "" || baseDirName == "/" {
 		baseDirName = "download"
 	}
+	if len(fileList) == 1 && isDir {
+		baseDirName = filepath.Base(realPath)
+	}
 	downloadFileName := url.PathEscape(baseDirName + extension)
-
 	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+downloadFileName)
 	// Create the archive and stream it directly to the response
 	if extension == ".zip" {
