@@ -110,7 +110,7 @@ export default {
       event.preventDefault();
       try {
         if (this.isNew) {
-          const loc = await usersApi.create(this.userPayload); // Use the computed property
+          await usersApi.create(this.userPayload); // Use the computed property
           this.$router.push({ path: "/settings", hash: "#users-main" });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
