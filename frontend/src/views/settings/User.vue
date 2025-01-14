@@ -110,6 +110,7 @@ export default {
       event.preventDefault();
       try {
         if (this.isNew) {
+          await usersApi.create(this.userPayload);
           this.$router.push({ path: "/settings", hash: "#users-main" });
           notify.showSuccess(this.$t("settings.userCreated"));
         } else {
