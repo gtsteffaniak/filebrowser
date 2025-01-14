@@ -47,7 +47,7 @@ type Server struct {
 	Port                  int               `json:"port"`
 	BaseURL               string            `json:"baseURL"`
 	Address               string            `json:"address"`
-	Logging               Logging           `json:"log"`
+	Logging               Logging           `json:"logging"`
 	Database              string            `json:"database"`
 	Root                  string            `json:"root"`
 	UserHomeBasePath      string            `json:"userHomeBasePath"`
@@ -63,7 +63,6 @@ type Logging struct {
 
 type LogConfig struct {
 	Level         string `json:"level"`
-	Enabled       bool   `json:"enabled"`
 	Path          string `json:"path"`
 	DisableColors bool   `json:"colors"`
 	IncludeAPI    bool   `json:"includeAPI"`

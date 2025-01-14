@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/goccy/go-yaml"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
@@ -66,6 +67,15 @@ func Initialize(configFile string) {
 			Text: "Help",
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
+	}
+	fmt.Println(Config.Server.Logging)
+	err = logger.SetupLogger(
+		Config.Server.Logging.File.Path,
+		Config.Server.Logging.File.Level,
+		Config.Server.Logging.Stdout.Level,
+	)
+	if err != nil {
+		log.Fatalf("Failed to set up logger: %v", err)
 	}
 }
 

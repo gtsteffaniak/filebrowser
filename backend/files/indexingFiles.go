@@ -2,7 +2,6 @@ package files
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -10,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
@@ -52,11 +52,11 @@ func Initialize(source settings.Source) {
 
 	if !newIndex.Source.Config.Disabled {
 		time.Sleep(time.Second)
-		log.Println("Initializing index and assessing file system complexity")
+		logger.Info("Initializing index and assessing file system complexity")
 		newIndex.RunIndexing("/", false)
 		go newIndex.setupIndexingScanners()
 	} else {
-		log.Println("Indexing disabled for source: ", newIndex.Source.Name)
+		logger.Info("Indexing disabled for source: " + newIndex.Source.Name)
 	}
 }
 
@@ -147,7 +147,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 				// Recursively index the subdirectory
 				err = idx.indexDirectory(dirPath, quick, recursive)
 				if err != nil {
-					log.Printf("Failed to index directory %s: %v", dirPath, err)
+					logger.Error(fmt.Sprintf("Failed to index directory %s: %v", dirPath, err))
 					continue
 				}
 			}
