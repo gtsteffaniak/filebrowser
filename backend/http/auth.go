@@ -18,6 +18,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
@@ -129,12 +130,12 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 
 	userHome, err := config.MakeUserDir(user.Username, user.Scope, files.RootPaths["default"])
 	if err != nil {
-		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
+		logger.Error(fmt.Sprintf("create user: failed to mkdir user home dir: [%s]", userHome))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 	user.Scope = userHome
-	log.Printf("new user: %s, home dir: [%s].", user.Username, userHome)
+	log.Debug(fmt.Sprintf("new user: %s, home dir: [%s].", user.Username, userHome))
 	err = store.Users.Save(&user)
 	if err == errors.ErrExist {
 		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)

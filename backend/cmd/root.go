@@ -11,6 +11,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/img"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -90,9 +91,9 @@ func StartFilebrowser() {
 			getStore(dbConfig)
 			// Create the user logic
 			if asAdmin {
-				log.Printf("Creating user as admin: %s\n", username)
+				logger.Info(fmt.Sprintf("Creating user as admin: %s\n", username))
 			} else {
-				log.Printf("Creating user: %s\n", username)
+				logger.Info(fmt.Sprintf("Creating non-admin user: %s\n", username))
 			}
 			newUser := users.User{
 				Username: username,

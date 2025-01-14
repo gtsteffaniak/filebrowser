@@ -10,6 +10,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
@@ -165,7 +166,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 		}
 		// Build the full URL with host and port
 		fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
-		log.Printf("Running at               : %s", fullURL)
+		logger.Info(fmt.Sprintf("Running at               : %s", fullURL))
 		err = http.Serve(listener, muxWithMiddleware(router))
 		if err != nil {
 			log.Fatalf("could not start server: %v", err)
@@ -178,7 +179,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 		}
 		// Build the full URL with host and port
 		fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
-		log.Printf("Running at               : %s", fullURL)
+		logger.Info(fmt.Sprintf("Running at               : %s", fullURL))
 		err := http.ListenAndServe(fmt.Sprintf(":%v", config.Server.Port), muxWithMiddleware(router))
 		if err != nil {
 			log.Fatalf("could not start server: %v", err)

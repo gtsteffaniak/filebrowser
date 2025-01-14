@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"log"
-
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
 	"github.com/spf13/cobra"
@@ -28,6 +27,6 @@ var usersRmCmd = &cobra.Command{
 		}
 
 		utils.CheckErr("usersRmCmd", err)
-		log.Println("user deleted successfully")
+		logger.Info("user deleted successfully")
 	}),
 }

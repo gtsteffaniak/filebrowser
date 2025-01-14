@@ -83,8 +83,7 @@ func loadConfigFile(configFile string) []byte {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		log.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 	defer yamlFile.Close()
 

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -243,7 +243,7 @@ func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
-			log.Printf("Failed to add %s to ZIP: %v", fname, err)
+			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
 		}
 	}
 
@@ -262,7 +262,7 @@ func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
-			log.Printf("Failed to add %s to TAR.GZ: %v", fname, err)
+			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
 		}
 	}
 
