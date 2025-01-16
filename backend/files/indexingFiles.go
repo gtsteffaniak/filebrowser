@@ -56,7 +56,7 @@ func Initialize(source settings.Source) {
 		newIndex.RunIndexing("/", false)
 		go newIndex.setupIndexingScanners()
 	} else {
-		logger.Info("Indexing disabled for source: " + newIndex.Source.Name)
+		logger.Debug("Indexing disabled for source: " + newIndex.Source.Name)
 	}
 }
 
@@ -96,7 +96,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 		for _, item := range cacheDirItems {
 			err = idx.indexDirectory(combinedPath+item.Name, quick, true)
 			if err != nil {
-				fmt.Printf("error indexing directory %v : %v", combinedPath+item.Name, err)
+				logger.Error(fmt.Sprintf("error indexing directory %v : %v", combinedPath+item.Name, err))
 			}
 		}
 		return nil

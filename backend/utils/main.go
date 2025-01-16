@@ -3,16 +3,17 @@ package utils
 import (
 	"crypto/rand"
 	"fmt"
-	"log"
 	math "math/rand"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 func CheckErr(source string, err error) {
 	if err != nil {
-		log.Fatalf("%s: %v", source, err)
+		logger.Fatal(fmt.Sprintf("%s: %v", source, err))
 	}
 }
 
@@ -49,7 +50,7 @@ func PrintStructFields(v interface{}) {
 
 	// Ensure the input is a struct
 	if val.Kind() != reflect.Struct {
-		fmt.Println("Provided value is not a struct")
+		logger.Debug("Provided value is not a struct")
 		return
 	}
 
@@ -66,7 +67,7 @@ func PrintStructFields(v interface{}) {
 			fieldValue = fieldValue[:100] + "..."
 		}
 
-		fmt.Printf("Field: %s, %s\n", fieldType.Name, fieldValue)
+		logger.Debug(fmt.Sprintf("Field: %s, %s\n", fieldType.Name, fieldValue))
 	}
 }
 

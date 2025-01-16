@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	libError "errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -135,7 +134,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.Scope = userHome
-	log.Debug(fmt.Sprintf("new user: %s, home dir: [%s].", user.Username, userHome))
+	logger.Debug(fmt.Sprintf("new user: %s, home dir: [%s].", user.Username, userHome))
 	err = store.Users.Save(&user)
 	if err == errors.ErrExist {
 		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)

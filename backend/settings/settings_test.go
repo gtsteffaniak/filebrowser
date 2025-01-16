@@ -1,11 +1,12 @@
 package settings
 
 import (
-	"log"
+	"fmt"
 	"testing"
 
 	"github.com/goccy/go-yaml"
 	"github.com/google/go-cmp/cmp"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 func TestConfigLoadChanged(t *testing.T) {
@@ -16,7 +17,7 @@ func TestConfigLoadChanged(t *testing.T) {
 
 	err := yaml.Unmarshal(yamlData, &newConfig)
 	if err != nil {
-		log.Fatalf("Error unmarshaling YAML data: %v", err)
+		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
 	// Use go-cmp to compare the two structs
 	if diff := cmp.Diff(newConfig, Config); diff == "" {
@@ -32,7 +33,7 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 
 	err := yaml.Unmarshal(yamlData, &newConfig)
 	if err != nil {
-		log.Fatalf("Error unmarshaling YAML data: %v", err)
+		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
 	testCases := []struct {
 		fieldName string

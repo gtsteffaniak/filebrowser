@@ -3,7 +3,6 @@ package cmd
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -26,21 +25,22 @@ func getStore(config string) (*storage.Storage, bool) {
 	settings.Initialize(config)
 	store, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
 	if err != nil {
-		log.Fatal("could not load db info: ", err)
+		logger.Fatal(fmt.Sprintf("could not load db info: ", err))
 	}
 	return store, hasDB
 }
 
 func generalUsage() {
 	fmt.Printf(`usage: ./filebrowser <command> [options]
-  commands:
-    -v   Print the version
-	-c    Print the default config file
-	set -u   Username and password for the new user
-	set -a   Create user as admin
-	set -s   Specify a user scope
-	set -h   Print this help message
-	` + "\n")
+commands:
+	-h    	Print help
+	-c    	Print the default config file
+	version Print version information
+	set -u	Username and password for the new user
+	set -a	Create user as admin
+	set -s	Specify a user scope
+	set -h	Print this help message
+`)
 }
 
 func StartFilebrowser() {
@@ -104,14 +104,15 @@ func StartFilebrowser() {
 			}
 			err = storage.CreateUser(newUser, asAdmin)
 			if err != nil {
-				log.Fatal("Could not create user: ", err)
+				logger.Fatal(fmt.Sprintf("could not create user: ", err))
 			}
 			return
 		case "version":
-			fmt.Println("FileBrowser Quantum - A modern web-based file manager")
-			fmt.Printf("Version        : %v\n", version.Version)
-			fmt.Printf("Commit         : %v\n", version.CommitSHA)
-			fmt.Printf("Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v\n", version.Version)
+			fmt.Printf(`FileBrowser Quantum - A modern web-based file manager
+Version        : %v
+Commit         : %v
+Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
+`, version.Version, version.CommitSHA, version.Version)
 			return
 		}
 	}
@@ -120,15 +121,15 @@ func StartFilebrowser() {
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
-	log.Printf("Initializing FileBrowser Quantum (%v)\n", version.Version)
-	log.Printf("Using Config file        : %v", configPath)
-	log.Println("Embeded frontend         :", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true")
-	log.Println(database)
 	sources := []string{}
 	for _, v := range settings.Config.Server.Sources {
 		sources = append(sources, v.Name+": "+v.Path)
 	}
-	log.Println("Sources                  :", sources)
+	logger.Info(fmt.Sprintf("Initializing FileBrowser Quantum (%v)", version.Version))
+	logger.Info(fmt.Sprintf("Using Config file        : %v", configPath))
+	logger.Debug(fmt.Sprintf("Embeded frontend         : %v", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true"))
+	logger.Info(database)
+	logger.Info(fmt.Sprintf("Sources                  : %v", sources))
 
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
@@ -137,19 +138,19 @@ func StartFilebrowser() {
 	// initialize indexing and schedule indexing ever n minutes (default 5)
 	sourceConfigs := settings.Config.Server.Sources
 	if len(sourceConfigs) == 0 {
-		log.Fatal("No sources configured, exiting...")
+		logger.Fatal("No sources configured, exiting...")
 	}
 	for _, source := range sourceConfigs {
 		go files.Initialize(source)
 	}
 	if err := rootCMD(store, &serverConfig); err != nil {
-		log.Fatal("Error starting filebrowser:", err)
+		logger.Fatal(fmt.Sprintf("Error starting filebrowser:", err))
 	}
 }
 
 func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
 	if serverConfig.NumImageProcessors < 1 {
-		log.Fatal("Image resize workers count could not be < 1")
+		logger.Fatal("Image resize workers count could not be < 1")
 	}
 	imgSvc := img.New(serverConfig.NumImageProcessors)
 
@@ -161,7 +162,7 @@ func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
 		var err error
 		fileCache, err = diskcache.NewFileCache(cacheDir)
 		if err != nil {
-			log.Fatalf("failed to create file cache: %v", err)
+			logger.Fatal(fmt.Sprintf("failed to create file cache: %v", err))
 		}
 	} else {
 		// No-op cache if no cacheDir is specified

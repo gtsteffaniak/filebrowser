@@ -34,7 +34,7 @@ func (idx *Index) newScanner(origin string) {
 		}
 
 		// Log and sleep before indexing
-		logger.Info(fmt.Sprintf("Next scan in %v\n", sleepTime))
+		logger.Debug(fmt.Sprintf("Next scan in %v\n", sleepTime))
 		time.Sleep(sleepTime)
 
 		idx.scannerMu.Lock()
@@ -76,9 +76,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
-		logger.Info("Starting quick scan")
+		logger.Debug("Starting quick scan")
 	} else {
-		logger.Info("Starting full scan")
+		logger.Debug("Starting full scan")
 		idx.NumDirs = 0
 		idx.NumFiles = 0
 	}
@@ -89,6 +89,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error during indexing: %v", err))
 	}
+	firstRun := idx.LastIndexed == time.Time{}
 	// Update the LastIndexed time
 	idx.LastIndexed = time.Now()
 	idx.indexingTime = int(time.Since(startTime).Seconds())
@@ -104,12 +105,20 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		} else {
 			idx.assessment = "normal"
 		}
-		logger.Info(fmt.Sprintf("Index assessment         : complexity=%v directories=%v files=%v \n", idx.assessment, idx.NumDirs, idx.NumFiles))
+		if firstRun {
+			logger.Info(fmt.Sprintf("Index assessment         : complexity=%v directories=%v files=%v", idx.assessment, idx.NumDirs, idx.NumFiles))
+		} else {
+			logger.Debug(fmt.Sprintf("Index assessment         : complexity=%v directories=%v files=%v", idx.assessment, idx.NumDirs, idx.NumFiles))
+		}
 		if idx.NumDirs != prevNumDirs || idx.NumFiles != prevNumFiles {
 			idx.FilesChangedDuringIndexing = true
 		}
 	}
-	logger.Info(fmt.Sprintf("Time Spent Indexing      : %v seconds\n", idx.indexingTime))
+	if firstRun {
+		logger.Info(fmt.Sprintf("Time spent indexing      : %v seconds", idx.indexingTime))
+	} else {
+		logger.Debug(fmt.Sprintf("Time spent indexing      : %v seconds", idx.indexingTime))
+	}
 }
 
 func (idx *Index) setupIndexingScanners() {

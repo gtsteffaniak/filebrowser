@@ -286,36 +286,17 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			fullURL += "?" + r.URL.RawQuery
 		}
 		truncUser := wrappedWriter.User
-		if len(truncUser) > 10 {
+		if len(truncUser) > 12 {
 			truncUser = truncUser[:10] + ".."
 		}
-		if !settings.Config.Server.Logging.Stdout.DisableColors {
-			// Determine the color based on the status code.
-			color := "\033[32m" // Default green color
-			if wrappedWriter.StatusCode >= 300 && wrappedWriter.StatusCode < 500 {
-				color = "\033[33m" // Yellow for client errors (4xx)
-			} else if wrappedWriter.StatusCode >= 500 {
-				color = "\033[31m" // Red for server errors (5xx)
-			}
-			logger.Info(fmt.Sprintf("%s%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"%s",
-				color,
+		logger.Api(
+			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
 				r.Method,
 				wrappedWriter.StatusCode, // Captured status code
 				r.RemoteAddr,
 				truncUser,
 				time.Since(start).String(),
-				fullURL,
-				"\033[0m"))
-		} else {
-			logger.Info(fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
-				r.Method,
-				wrappedWriter.StatusCode, // Captured status code
-				r.RemoteAddr,
-				truncUser,
-				time.Since(start).String(),
-				fullURL))
-		}
-
+				fullURL), wrappedWriter.StatusCode)
 	})
 }
 

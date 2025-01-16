@@ -2,7 +2,6 @@ package settings
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +19,7 @@ func Initialize(configFile string) {
 	Config = setDefaults()
 	err := yaml.Unmarshal(yamlData, &Config)
 	if err != nil {
-		log.Fatalf("Error unmarshaling YAML data: %v", err)
+		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	// Convert relative path to absolute path
@@ -29,7 +28,7 @@ func Initialize(configFile string) {
 		for _, source := range Config.Server.Sources {
 			realPath, err := filepath.Abs(source.Path)
 			if err != nil {
-				log.Fatalf("Error getting source path: %v", err)
+				logger.Fatal(fmt.Sprintf("Error getting source path: %v", err))
 			}
 			source.Path = realPath
 			source.Name = "default"                   // Modify the local copy of the map value
@@ -38,7 +37,7 @@ func Initialize(configFile string) {
 	} else {
 		realPath, err := filepath.Abs(Config.Server.Root)
 		if err != nil {
-			log.Fatalf("Error getting source path: %v", err)
+			logger.Fatal(fmt.Sprintf("Error getting source path: %v", err))
 		}
 		Config.Server.Sources = map[string]Source{
 			"default": {
@@ -68,14 +67,23 @@ func Initialize(configFile string) {
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
 	}
-	fmt.Println(Config.Server.Logging)
-	err = logger.SetupLogger(
-		Config.Server.Logging.File.Path,
-		Config.Server.Logging.File.Level,
-		Config.Server.Logging.Stdout.Level,
-	)
-	if err != nil {
-		log.Fatalf("Failed to set up logger: %v", err)
+	if len(Config.Server.Logging) == 0 {
+		Config.Server.Logging = []LogConfig{
+			{
+				Output: "stdout",
+			},
+		}
+	}
+	for _, logConfig := range Config.Server.Logging {
+		err = logger.SetupLogger(
+			logConfig.Output,
+			logConfig.Levels,
+			logConfig.ApiLevels,
+			logConfig.NoColors,
+		)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Failed to set up logger: %v", err))
+		}
 	}
 }
 
@@ -83,19 +91,19 @@ func loadConfigFile(configFile string) []byte {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(fmt.Sprintf("%v", err))
 	}
 	defer yamlFile.Close()
 
 	stat, err := yamlFile.Stat()
 	if err != nil {
-		log.Fatalf("error getting file information: %s", err.Error())
+		logger.Fatal(fmt.Sprintf("error getting file information: %s", err.Error()))
 	}
 
 	yamlData := make([]byte, stat.Size())
 	_, err = yamlFile.Read(yamlData)
 	if err != nil {
-		log.Fatalf("Error reading YAML data: %v", err)
+		logger.Fatal(fmt.Sprintf("Error reading YAML data: %v", err))
 	}
 	return yamlData
 }
