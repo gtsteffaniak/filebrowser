@@ -3,13 +3,13 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
@@ -164,7 +164,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 			return nil, fmt.Errorf("user: failed to mkdir user home dir: [%s]", userHome)
 		}
 		u.Scope = userHome
-		log.Printf("user: %s, home dir: [%s].", u.Username, userHome)
+		logger.Debug(fmt.Sprintf("user: %s, home dir: [%s].", u.Username, userHome))
 
 		err = a.Users.Save(u)
 		if err != nil {

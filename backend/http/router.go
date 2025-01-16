@@ -5,11 +5,11 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
 	"os"
 	"text/template"
 
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
@@ -56,7 +56,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 		// Embedded mode: Serve files from the embedded assets
 		assetFs, err = fs.Sub(assets, "embed")
 		if err != nil {
-			log.Fatal("Could not embed frontend. Does dist exist?")
+			logger.Fatal("Could not embed frontend. Does dist exist?")
 		}
 	} else {
 		assetFs = dirFS{Dir: http.Dir("http/dist")}
@@ -143,7 +143,7 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 		// Load the TLS certificate and key
 		cer, err := tls.LoadX509KeyPair(config.Server.TLSCert, config.Server.TLSKey)
 		if err != nil {
-			log.Fatalf("could not load certificate: %v", err)
+			logger.Fatal(fmt.Sprintf("could not load certificate: %v", err))
 		}
 
 		// Create a custom TLS listener
@@ -158,17 +158,17 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 		// Listen on TCP and wrap with TLS
 		listener, err := tls.Listen("tcp", fmt.Sprintf(":%v", config.Server.Port), tlsConfig)
 		if err != nil {
-			log.Fatalf("could not start TLS server: %v", err)
+			logger.Fatal(fmt.Sprintf("could not start TLS server: %v", err))
 		}
 		if config.Server.Port != 443 {
 			port = fmt.Sprintf(":%d", config.Server.Port)
 		}
 		// Build the full URL with host and port
 		fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
-		log.Printf("Running at               : %s", fullURL)
+		logger.Info(fmt.Sprintf("Running at               : %s", fullURL))
 		err = http.Serve(listener, muxWithMiddleware(router))
 		if err != nil {
-			log.Fatalf("could not start server: %v", err)
+			logger.Fatal(fmt.Sprintf("could not start server: %v", err))
 		}
 	} else {
 		// Set HTTP scheme and the default port for HTTP
@@ -178,10 +178,10 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 		}
 		// Build the full URL with host and port
 		fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
-		log.Printf("Running at               : %s", fullURL)
+		logger.Info(fmt.Sprintf("Running at               : %s", fullURL))
 		err := http.ListenAndServe(fmt.Sprintf(":%v", config.Server.Port), muxWithMiddleware(router))
 		if err != nil {
-			log.Fatalf("could not start server: %v", err)
+			logger.Fatal(fmt.Sprintf("could not start server: %v", err))
 		}
 	}
 }

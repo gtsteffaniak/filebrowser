@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **New Features**
   - Better logging
-    - configurable
+    - highly configurable
     - api logs include user
   - openoffice support
 

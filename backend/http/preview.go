@@ -13,6 +13,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/img"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 type ImgService interface {
@@ -141,7 +142,7 @@ func createPreview(imgSvc ImgService, fileCache FileCache, file files.ExtendedFi
 	go func() {
 		cacheKey := previewCacheKey(file.RealPath, previewSize, file.FileInfo.ModTime)
 		if err := fileCache.Store(context.Background(), cacheKey, buf.Bytes()); err != nil {
-			fmt.Printf("failed to cache resized image: %v", err)
+			logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
 		}
 	}()
 

@@ -3,12 +3,13 @@ package settings
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 var (
@@ -22,7 +23,7 @@ func (s *Settings) MakeUserDir(username, userScope, serverRoot string) (string, 
 	if userScope == "" && s.Server.CreateUserDir {
 		username = cleanUsername(username)
 		if username == "" || username == "-" || username == "." {
-			log.Printf("create user: invalid user for home dir creation: [%s]", username)
+			logger.Error(fmt.Sprintf("create user: invalid user for home dir creation: [%s]", username))
 			return "", errors.New("invalid user for home dir creation")
 		}
 		userScope = path.Join(s.Server.UserHomeBasePath, username)

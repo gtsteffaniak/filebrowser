@@ -1,13 +1,14 @@
 package bolt
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 )
 
@@ -68,7 +69,7 @@ func (s shareBackend) Gets(path string, id uint) ([]*share.Link, error) {
 		if v[i].Expire < time.Now().Unix() {
 			err = s.Delete(v[i].PasswordHash)
 			if err != nil {
-				log.Println("expired share could not be deleted: ", err.Error())
+				logger.Error(fmt.Sprintf("expired share could not be deleted: %v", err.Error()))
 			}
 		} else {
 			filteredList = append(filteredList, v[i])
