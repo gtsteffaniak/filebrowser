@@ -6,12 +6,12 @@ import (
 )
 
 var (
-	DiskUsageCache     = newCache(30*time.Second, 24*time.Hour)
-	RealPathCache      = newCache(48*time.Hour, 72*time.Hour)
-	SearchResultsCache = newCache(15*time.Second, time.Hour)
+	DiskUsageCache     = NewCache(30*time.Second, 24*time.Hour)
+	RealPathCache      = NewCache(48*time.Hour, 72*time.Hour)
+	SearchResultsCache = NewCache(15*time.Second, time.Hour)
 )
 
-func newCache(expires time.Duration, cleanup time.Duration) *KeyCache {
+func NewCache(expires time.Duration, cleanup time.Duration) *KeyCache {
 	newCache := KeyCache{
 		data:         make(map[string]cachedValue),
 		expiresAfter: expires, // default
@@ -38,6 +38,12 @@ func (c *KeyCache) Set(key string, value interface{}) {
 		value:     value,
 		expiresAt: time.Now().Add(c.expiresAfter),
 	}
+}
+
+func (c *KeyCache) Delete(key string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	delete(c.data, key)
 }
 
 func (c *KeyCache) SetWithExp(key string, value interface{}, exp time.Duration) {

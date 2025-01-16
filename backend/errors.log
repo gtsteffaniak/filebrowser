@@ -1,0 +1,2 @@
+2025/01/16 14:56:54 GET     | 404 | [::1]:64486     |              | 50.833µs     | "/files/filebrowser/settings/users/new"
+2025/01/16 14:56:54 GET     | 404 | [::1]:64486     |              | 7.583µs      | "/favicon.ico"

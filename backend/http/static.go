@@ -64,6 +64,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"ReCaptchaHost":         config.Auth.Recaptcha.Host,
 		"ExternalLinks":         config.Frontend.ExternalLinks,
 		"ExternalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
+		"OnlyOfficeEnabled":     settings.Config.Integrations.OnlyOffice.Enabled,
 	}
 
 	if config.Frontend.Files != "" {

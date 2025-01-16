@@ -13,6 +13,7 @@ type Settings struct {
 	Frontend     Frontend            `json:"frontend"`
 	Users        []UserDefaults      `json:"users,omitempty"`
 	UserDefaults UserDefaults        `json:"userDefaults"`
+	Integrations Integrations        `json:"integrations"`
 }
 
 type Auth struct {
@@ -54,6 +55,15 @@ type Server struct {
 	CreateUserDir         bool              `json:"createUserDir"`
 	Sources               map[string]Source `json:"sources"`
 	ExternalUrl           string            `json:"externalUrl"`
+}
+
+type Integrations struct {
+	OnlyOffice OnlyOffice `json:"onlyOffice"`
+}
+type OnlyOffice struct {
+	Enabled bool   `json:"enabled"`
+	Url     string `json:"url"`
+	Token   string `json:"token"`
 }
 
 type LogConfig struct {

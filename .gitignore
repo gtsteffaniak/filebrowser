@@ -3,8 +3,8 @@
 _old
 rice-box.go
 .idea/
-/backend
-/backend.exe
+/backend/backend
+/backend/backend.exe
 /frontend/dist
 /frontend/pkg
 /frontend/test-results

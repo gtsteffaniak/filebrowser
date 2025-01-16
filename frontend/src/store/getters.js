@@ -1,7 +1,7 @@
 import { removePrefix } from "@/utils/url.js";
 import { state } from "./state.js";
 import { mutations } from "./mutations.js";
-import { noAuth } from "@/utils/constants.js";
+import { noAuth, onlyOfficeEnabled } from "@/utils/constants.js";
 
 export const getters = {
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
@@ -100,7 +100,7 @@ export const getters = {
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       visible = false;
     }
-    if (getters.currentView() == "editor" || getters.currentView() == "preview") {
+    if (getters.currentView() == "editor" || getters.currentView() == "preview" || getters.currentView() == "onlyOfficeEditor") {
       visible = false;
     }
     return visible
@@ -136,6 +136,8 @@ export const getters = {
       if (state.req.type !== undefined) {
         if (state.req.type == "directory") {
           return "listingView";
+        } else if (state.req.name.endsWith(".docx") && onlyOfficeEnabled) {
+          return "onlyOfficeEditor";
         } else if ("content" in state.req) {
           return "editor";
         } else {

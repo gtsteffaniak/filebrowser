@@ -23,6 +23,7 @@ import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
+import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
@@ -36,6 +37,7 @@ export default {
     Preview,
     ListingView,
     Editor,
+    OnlyOfficeEditor,
   },
   data() {
     return {
