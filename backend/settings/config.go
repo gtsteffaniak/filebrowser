@@ -26,18 +26,18 @@ func Initialize(configFile string) {
 	if len(Config.Server.Sources) > 0 {
 		// TODO allow multipe sources not named default
 		for _, source := range Config.Server.Sources {
-			realPath, err := filepath.Abs(source.Path)
-			if err != nil {
-				logger.Fatal(fmt.Sprintf("Error getting source path: %v", err))
+			realPath, err2 := filepath.Abs(source.Path)
+			if err2 != nil {
+				logger.Fatal(fmt.Sprintf("Error getting source path: %v", err2))
 			}
 			source.Path = realPath
 			source.Name = "default"                   // Modify the local copy of the map value
 			Config.Server.Sources["default"] = source // Assign the modified value back to the map
 		}
 	} else {
-		realPath, err := filepath.Abs(Config.Server.Root)
-		if err != nil {
-			logger.Fatal(fmt.Sprintf("Error getting source path: %v", err))
+		realPath, err2 := filepath.Abs(Config.Server.Root)
+		if err2 != nil {
+			logger.Fatal(fmt.Sprintf("Error getting source path: %v", err2))
 		}
 		Config.Server.Sources = map[string]Source{
 			"default": {

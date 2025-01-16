@@ -25,7 +25,7 @@ func getStore(config string) (*storage.Storage, bool) {
 	settings.Initialize(config)
 	store, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("could not load db info: ", err))
+		logger.Fatal(fmt.Sprintf("could not load db info: %v", err))
 	}
 	return store, hasDB
 }
@@ -104,7 +104,7 @@ func StartFilebrowser() {
 			}
 			err = storage.CreateUser(newUser, asAdmin)
 			if err != nil {
-				logger.Fatal(fmt.Sprintf("could not create user: ", err))
+				logger.Fatal(fmt.Sprintf("could not create user: %v", err))
 			}
 			return
 		case "version":
@@ -144,7 +144,7 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 		go files.Initialize(source)
 	}
 	if err := rootCMD(store, &serverConfig); err != nil {
-		logger.Fatal(fmt.Sprintf("Error starting filebrowser:", err))
+		logger.Fatal(fmt.Sprintf("Error starting filebrowser: %v", err))
 	}
 }
 

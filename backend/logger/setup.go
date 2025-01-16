@@ -35,11 +35,9 @@ func NewLogger(filepath string, levels, apiLevels []LogLevel, noColors bool) (*L
 	if slices.Contains(levels, DEBUG) {
 		flags |= log.Lshortfile
 	}
-	logger := &log.Logger{}
+	logger := log.New(os.Stdout, "", flags)
 	if filepath != "" {
 		logger = log.New(fileWriter, "", flags)
-	} else {
-		logger = log.New(os.Stdout, "", flags)
 	}
 	return &Logger{
 		logger:      logger,

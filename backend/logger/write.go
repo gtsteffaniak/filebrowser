@@ -81,7 +81,10 @@ func Log(level string, msg string, prefix, api bool, color string) {
 		if logger.colors && color != "" {
 			writeOut = color + writeOut + "\033[0m"
 		}
-		logger.logger.Output(3, writeOut) // 3 skips this function for correct file:line
+		err := logger.logger.Output(3, writeOut) // 3 skips this function for correct file:line
+		if err != nil {
+			log.Printf("failed to log message '%v' with error `%v`", msg, err)
+		}
 	}
 }
 
