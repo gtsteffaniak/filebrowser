@@ -44,18 +44,20 @@ type FileInfo struct {
 	ItemInfo
 	Files   []ItemInfo `json:"files"`
 	Folders []ItemInfo `json:"folders"`
-	Path    string     `json:"path"`
+	Path    string     `json:"path"` // index path
 }
 
 // for efficiency, a response will be a pointer to the data
 // extra calculated fields can be added here
 type ExtendedFileInfo struct {
 	*FileInfo
-	Content   string            `json:"content,omitempty"`
-	Subtitles []string          `json:"subtitles,omitempty"`
-	Checksums map[string]string `json:"checksums,omitempty"`
-	Token     string            `json:"token,omitempty"`
-	RealPath  string            `json:"-"`
+	Content      string            `json:"content,omitempty"`
+	Subtitles    []string          `json:"subtitles,omitempty"`
+	Checksums    map[string]string `json:"checksums,omitempty"`
+	Token        string            `json:"token,omitempty"`
+	OnlyOfficeId string            `json:"onlyOfficeId,omitempty"`
+	Source       string            `json:"source"`
+	RealPath     string            `json:"-"`
 }
 
 // FileOptions are the options when getting a file info.

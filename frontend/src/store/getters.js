@@ -136,7 +136,7 @@ export const getters = {
       if (state.req.type !== undefined) {
         if (state.req.type == "directory") {
           return "listingView";
-        } else if (state.req.name.endsWith(".docx") && onlyOfficeEnabled) {
+        } else if (state.req?.onlyOfficeId && onlyOfficeEnabled) {
           return "onlyOfficeEditor";
         } else if ("content" in state.req) {
           return "editor";
