@@ -136,6 +136,9 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	}
 	response.FileInfo = info
 	response.RealPath = realPath
+	if info.Type != "directory" && isOnlyOffice(info.Name) {
+		response.OnlyOfficeId = getOnlyOfficeId(realPath)
+	}
 	return response, nil
 }
 

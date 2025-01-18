@@ -1189,6 +1189,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "path": {
+                    "description": "index path",
                     "type": "string"
                 },
                 "size": {

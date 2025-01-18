@@ -114,7 +114,6 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 	api.HandleFunc("PUT /settings", withAdmin(settingsPutHandler))
 
-	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
 	api.HandleFunc("GET /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))

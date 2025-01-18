@@ -52,6 +52,10 @@ var documentTypes = []string{
 	".fb2",  // FictionBook
 }
 
+var onlyOfficeSupported = []string{
+	".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+}
+
 // Text-based file extensions
 var textTypes = []string{
 	// Common Text Formats
@@ -250,6 +254,15 @@ func isDoc(extension string) bool {
 
 func isArchive(extension string) bool {
 	for _, typefile := range compressedFile {
+		if extension == typefile {
+			return true
+		}
+	}
+	return false
+}
+
+func isOnlyOffice(extension string) bool {
+	for _, typefile := range onlyOfficeSupported {
 		if extension == typefile {
 			return true
 		}
