@@ -23,6 +23,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -136,7 +137,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	}
 	response.FileInfo = info
 	response.RealPath = realPath
-	if info.Type != "directory" && isOnlyOffice(info.Name) {
+	if settings.Config.Integrations.OnlyOffice.Enabled && info.Type != "directory" && isOnlyOffice(info.Name) {
 		response.OnlyOfficeId = getOnlyOfficeId(realPath)
 	}
 	return response, nil
