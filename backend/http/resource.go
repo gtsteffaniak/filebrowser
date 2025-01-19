@@ -60,7 +60,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if fileInfo.Type == "directory" {
 		return renderJSON(w, r, fileInfo)
 	}
-	if fileInfo.OnlyOfficeId != "" {
+	if fileInfo.OnlyOfficeId != "" && d.user.Username != "publicUser" {
 		fileInfo.OnlyOfficeSecret = settings.Config.Integrations.OnlyOffice.Secret
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {

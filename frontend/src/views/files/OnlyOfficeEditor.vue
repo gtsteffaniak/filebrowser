@@ -17,7 +17,7 @@ import { DocumentEditor } from "@onlyoffice/document-editor-vue";
 import { onlyOfficeUrl } from "@/utils/constants";
 import { state } from "@/store";
 import { filesApi } from "@/api";
-import cookie from "@/utils/cookie";
+import { getCookie } from "@/utils/cookie";
 
 export default {
   name: "onlyOfficeEditor",
@@ -31,18 +31,18 @@ export default {
         document: {
           fileType: "docx",
           permissions: {
-            chat: false,
-            edit: false,
-            review: false,
-            fillforms: false,
-            comment: false,
+            chat: true,
+            edit: true,
+            review: true,
+            fillforms: true,
+            comment: true,
           },
         },
         editorConfig: {
-          callbackUrl: "api/onlyoffice/callback",
+          callbackUrl: "http://"+window.location.host+"/api/onlyoffice/callback&path=" + encodeURI(state.req.path),
           customization: {
-            autosave: true,
-            forcesave: true,
+            autosave: false,
+            forcesave: false,
             uiTheme: "default-dark",
           },
           lang: "en",
@@ -53,7 +53,6 @@ export default {
           },
         },
         type: "desktop",
-        documentType: "word",
       },
     };
   },
@@ -68,12 +67,13 @@ export default {
   async mounted() {
     // Perform the setup and update the config
     try {
-      this.config.document.url = await filesApi.getDownloadURL(state.req.path,false,state.jwt);
-      this.config.document.fileType = state.req.name.split(".").pop(); // Fix fileType extraction
+      this.config.document.url = await filesApi.getDownloadURL(state.req.path,false,getCookie("auth"));
+      this.config.document.fileType = state.req.name.split(".").pop();
       this.config.document.key = state.req.onlyOfficeId;
       this.config.document.title = state.req.name;
       this.config.editorConfig.user.id = state.user.id;
       this.config.editorConfig.user.name = state.user.username;
+      this.config.editorConfig.customization.uiTheme = state.user.darkMode ? "dark" : "light";
       this.config.type = state.isMobile ? "mobile" : "desktop";
       this.config.token = state.req.onlyOfficeSecret;
       console.log(this.config);
@@ -102,15 +102,6 @@ export default {
           console.log(errorDescription);
           break;
       }
-    },
-    getCookie(name) {
-      let cookie = document.cookie
-        .split(";")
-        .find((cookie) => cookie.includes(name + "="));
-      if (cookie != null) {
-        return cookie.split("=")[1];
-      }
-      return ""
     },
   },
 };

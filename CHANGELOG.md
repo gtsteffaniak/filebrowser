@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file. For commit 
     - api logs include user
   - onlyOffice support
 
+  **Notes**
+  - Breadcrumbs will only show on file listing (not on previews or editors)
+
 ## v0.3.7-beta
 
   **Notes**:

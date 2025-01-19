@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,11 +35,6 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	err = json.Unmarshal(body, &data)
 	if err != nil {
 		return http.StatusInternalServerError, err
-	}
-
-	docPath := r.URL.Query().Get("save")
-	if docPath == "" {
-		return http.StatusInternalServerError, errors.New("unable to get file save path")
 	}
 
 	encodedPath := r.URL.Query().Get("path")
@@ -78,14 +72,15 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 
 		err = d.Runner.RunHook(func() error {
 			fileOpts := files.FileOptions{
-				Path: docPath,
+				Path:   path,
+				Source: source,
 			}
 			writeErr := files.WriteFile(fileOpts, doc.Body)
 			if writeErr != nil {
 				return writeErr
 			}
 			return nil
-		}, "save", docPath, "", d.user)
+		}, "save", path, "", d.user)
 
 		if err != nil {
 			return http.StatusInternalServerError, err

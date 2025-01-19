@@ -54,7 +54,14 @@ var documentTypes = []string{
 }
 
 var onlyOfficeSupported = []string{
-	".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+	".doc", ".docm", ".docx", ".dot", ".dotm", ".dotx", ".epub",
+	".fb2", ".fodt", ".htm", ".html", ".mht", ".mhtml", ".odt",
+	".ott", ".rtf", ".stw", ".sxw", ".txt", ".wps", ".wpt", ".xml",
+	".csv", ".et", ".ett", ".fods", ".ods", ".ots", ".sxc", ".xls",
+	".xlsb", ".xlsm", ".xlsx", ".xlt", ".xltm", ".xltx", ".dps",
+	".dpt", ".fodp", ".odp", ".otp", ".pot", ".potm", ".potx",
+	".pps", ".ppsm", ".ppsx", ".ppt", ".pptm", ".pptx", ".sxi",
+	".djvu", ".docxf", ".oform", ".oxps", ".pdf", ".xps",
 }
 
 // Text-based file extensions
