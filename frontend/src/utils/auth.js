@@ -7,6 +7,7 @@ import { recaptcha, loginPage } from "@/utils/constants";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
+  mutations.setJWT(token);
   mutations.setSession(generateRandomCode(8));
 }
 

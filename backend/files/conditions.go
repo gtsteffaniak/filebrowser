@@ -2,6 +2,7 @@ package files
 
 import (
 	"mime"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -261,9 +262,10 @@ func isArchive(extension string) bool {
 	return false
 }
 
-func isOnlyOffice(extension string) bool {
+func isOnlyOffice(name string) bool {
+	extention := filepath.Ext(name)
 	for _, typefile := range onlyOfficeSupported {
-		if extension == typefile {
+		if extention == typefile {
 			return true
 		}
 	}

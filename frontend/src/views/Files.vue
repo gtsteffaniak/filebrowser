@@ -1,6 +1,6 @@
 <template>
   <div>
-    <breadcrumbs base="/files" />
+    <breadcrumbs v-if="showBreadCrumbs" base="/files" />
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
@@ -48,6 +48,9 @@ export default {
     };
   },
   computed: {
+    showBreadCrumbs() {
+      return getters.showBreadCrumbs();
+    },
     currentView() {
       return getters.currentView();
     },
@@ -112,8 +115,8 @@ export default {
         // If not a directory, fetch content
         if (res.type != "directory") {
           let content = false;
-          // only check content for blob or text files
-          if (res.type.startsWith("application") || res.type.startsWith("text")) {
+          console.log(res)
+          if (!res.onlyOfficeId && (res.type.startsWith("application") || res.type.startsWith("text"))) {
             content = true;
           }
           res = await filesApi.fetchFiles(getters.routePath(), content);

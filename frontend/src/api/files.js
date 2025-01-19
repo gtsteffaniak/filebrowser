@@ -179,11 +179,12 @@ export async function checksum(url, algo) {
   }
 }
 
-export function getDownloadURL(path, inline) {
+export function getDownloadURL(path, inline,jwt) {
   try {
     const params = {
       files: encodeURIComponent(removePrefix(decodeURI(path),"files")),
       ...(inline && { inline: "true" }),
+      auth: jwt,
     };
     const apiPath = getApiPath("api/raw", params);
     return window.origin+apiPath

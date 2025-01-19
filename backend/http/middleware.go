@@ -13,7 +13,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/runner"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -94,7 +93,7 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		if settings.Config.Auth.Method == "noauth" {
+		if config.Auth.Method == "noauth" {
 			var err error
 			// Retrieve the user from the store and store it in the context
 			data.user, err = store.Users.Get(files.RootPaths["default"], "admin")
@@ -126,11 +125,13 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if tk.Expires < time.Now().Add(time.Hour).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
 		}
+
 		// Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(files.RootPaths["default"], tk.BelongsTo)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
+
 		setUserInResponseWriter(w, data.user)
 
 		// Call the handler function, passing in the context

@@ -65,6 +65,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"ExternalLinks":         config.Frontend.ExternalLinks,
 		"ExternalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"OnlyOfficeEnabled":     settings.Config.Integrations.OnlyOffice.Enabled,
+		"OnlyOfficeUrl":         settings.Config.Integrations.OnlyOffice.Url,
 	}
 
 	if config.Frontend.Files != "" {

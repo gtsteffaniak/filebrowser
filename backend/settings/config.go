@@ -5,8 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/goccy/go-yaml"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
@@ -85,6 +87,21 @@ func Initialize(configFile string) {
 			logger.Error(fmt.Sprintf("Failed to set up logger: %v", err))
 		}
 	}
+	if Config.Integrations.OnlyOffice.Enabled && Config.Integrations.OnlyOffice.Secret != "" {
+		claims := jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 10000)),
+			Issuer:    "FileBrowser Quantum",
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		signature, err := token.SignedString([]byte(Config.Integrations.OnlyOffice.Secret))
+		if err != nil {
+			logger.Fatal(fmt.Sprintf("Error creating JWT signature: %v", err))
+		}
+		Config.Integrations.OnlyOffice.Secret = signature // Avoid overwriting the secret
+	}
+
 }
 
 func loadConfigFile(configFile string) []byte {

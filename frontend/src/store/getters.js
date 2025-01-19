@@ -123,6 +123,9 @@ export const getters = {
     const shouldOverlaySidebar = getters.isSidebarVisible() && !getters.isStickySidebar()
     return hasPrompt || shouldOverlaySidebar;
   },
+  showBreadCrumbs: () => {
+    return getters.currentView() == "listingView" ;
+  },
   routePath: (trimModifier="") => {
     return removePrefix(state.route.path,trimModifier)
   },

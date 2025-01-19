@@ -19,6 +19,7 @@ const resizePreview = window.FileBrowser.ResizePreview;
 const enableExec = window.FileBrowser.EnableExec;
 const externalUrl = window.FileBrowser.ExternalUrl
 const onlyOfficeEnabled = window.FileBrowser.OnlyOfficeEnabled
+const onlyOfficeUrl = window.FileBrowser.OnlyOfficeUrl
 const origin = window.location.origin;
 
 const settings = [
@@ -52,4 +53,5 @@ export {
   darkMode,
   settings,
   onlyOfficeEnabled,
+  onlyOfficeUrl,
 };

@@ -15,6 +15,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
@@ -58,6 +59,9 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if fileInfo.Type == "directory" {
 		return renderJSON(w, r, fileInfo)
+	}
+	if fileInfo.OnlyOfficeId != "" {
+		fileInfo.OnlyOfficeSecret = settings.Config.Integrations.OnlyOffice.Secret
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		checksums, err := files.GetChecksum(fileInfo.Path, algo)
