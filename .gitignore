@@ -1,5 +1,6 @@
 *.db
 *.bak
+*.log
 _old
 rice-box.go
 .idea/
