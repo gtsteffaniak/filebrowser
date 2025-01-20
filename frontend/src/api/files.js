@@ -2,6 +2,7 @@ import { fetchURL, adjustedData } from "./utils";
 import { removePrefix, getApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 import { notify } from "@/notify";
+import { externalUrl } from "@/utils/constants";
 
 // Notify if errors occur
 export async function fetchFiles(url, content = false) {
@@ -167,14 +168,16 @@ export async function checksum(url, algo) {
   }
 }
 
-export function getDownloadURL(path, inline, jwt) {
+export function getDownloadURL(path, inline, useExternal) {
   try {
     const params = {
       files: encodeURIComponent(removePrefix(decodeURI(path),"files")),
       ...(inline && { inline: "true" }),
-      auth: jwt,
     };
     const apiPath = getApiPath("api/raw", params);
+    if (externalUrl && useExternal) {
+      return externalUrl+apiPath
+    }
     return window.origin+apiPath
   } catch (err) {
     notify.showError(err.message || "Error getting download URL");

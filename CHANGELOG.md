@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Better logging
     - highly configurable
     - api logs include user
-  - onlyOffice support
+  - onlyOffice support for editing only office files
 
   **Notes**
   - Breadcrumbs will only show on file listing (not on previews or editors)
