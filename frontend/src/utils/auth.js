@@ -45,7 +45,6 @@ export async function login(username, password, recaptcha) {
 }
 
 export async function renew(jwt) {
-  console.log("Renewing token");
   let apiPath = getApiPath("api/auth/renew")
   const res = await fetch(apiPath, {
     method: "POST",

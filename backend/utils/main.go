@@ -2,6 +2,8 @@ package utils
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	math "math/rand"
 	"reflect"
@@ -34,7 +36,7 @@ func CapitalizeFirst(s string) string {
 	return strings.ToUpper(string(s[0])) + s[1:]
 }
 
-func GenerateRandomHash(length int) string {
+func InsecureRandomIdentifier(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 	math.New(math.NewSource(time.Now().UnixNano()))
 	result := make([]byte, length)
@@ -84,4 +86,9 @@ func GetParentDirectoryPath(path string) string {
 		return "/" // If the last slash is the first character, return root
 	}
 	return path[:lastSlash]
+}
+
+func HashSHA256(data string) string {
+	bytes := sha256.Sum256([]byte(data))
+	return hex.EncodeToString(bytes[:])
 }

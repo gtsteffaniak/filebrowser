@@ -3,8 +3,6 @@ import url from "@/utils/url.js";
 import { filesApi } from "@/api";
 
 export function checkConflict(files, items) {
-  console.log("testing",files)
-
   if (typeof items === "undefined" || items === null) {
     items = [];
   }

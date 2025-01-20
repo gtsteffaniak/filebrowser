@@ -46,23 +46,24 @@ func extractToken(r *http.Request) (string, error) {
 		}
 	}
 
+	auth := r.URL.Query().Get("auth")
+	if auth != "" {
+		hasToken = true
+		if strings.Count(auth, ".") == 2 {
+			return auth, nil
+		}
+	}
+
 	// Check for Authorization header
 	authHeader := r.Header.Get("Authorization")
 	if authHeader != "" {
+
 		hasToken = true
 		// Split the header to get "Bearer {token}"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) == 2 && parts[0] == "Bearer" {
 			token := parts[1]
 			return token, nil
-		}
-	}
-
-	auth := r.URL.Query().Get("auth")
-	if auth != "" {
-		hasToken = true
-		if strings.Count(auth, ".") == 2 {
-			return auth, nil
 		}
 	}
 
@@ -151,7 +152,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 }
 
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.GenerateRandomHash(4), time.Hour*2, user.Perm)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, user.Perm)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err

@@ -179,7 +179,7 @@ export async function checksum(url, algo) {
   }
 }
 
-export function getDownloadURL(path, inline,jwt) {
+export function getDownloadURL(path, inline, jwt) {
   try {
     const params = {
       files: encodeURIComponent(removePrefix(decodeURI(path),"files")),

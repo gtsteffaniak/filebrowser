@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
@@ -226,8 +227,8 @@ func (idx *Index) recursiveUpdateDirSizes(childInfo *FileInfo, previousSize int6
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	combined := append([]string{idx.Source.Path}, relativePath...)
 	joinedPath := filepath.Join(combined...)
-	isDir, _ := utils.RealPathCache.Get(joinedPath + ":isdir").(bool)
-	cached, ok := utils.RealPathCache.Get(joinedPath).(string)
+	isDir, _ := cache.RealPath.Get(joinedPath + ":isdir").(bool)
+	cached, ok := cache.RealPath.Get(joinedPath).(string)
 	if ok && cached != "" {
 		return cached, isDir, nil
 	}
@@ -239,8 +240,8 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	// Resolve symlinks and get the real path
 	realPath, isDir, err := resolveSymlinks(absolutePath)
 	if err == nil {
-		utils.RealPathCache.Set(joinedPath, realPath)
-		utils.RealPathCache.Set(joinedPath+":isdir", isDir)
+		cache.RealPath.Set(joinedPath, realPath)
+		cache.RealPath.Set(joinedPath+":isdir", isDir)
 	}
 	return realPath, isDir, err
 }

@@ -19,7 +19,8 @@ import (
 type requestContext struct {
 	user *users.User
 	*runner.Runner
-	raw interface{}
+	raw   interface{}
+	token string
 }
 
 type HttpResponse struct {
@@ -107,8 +108,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		tokenString, err := extractToken(r)
 		if err != nil {
+			logger.Debug(fmt.Sprintf("error extracting from request %v", err))
 			return http.StatusUnauthorized, err
 		}
+		data.token = tokenString
 
 		var tk users.AuthToken
 		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)

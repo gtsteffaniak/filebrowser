@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
@@ -23,18 +24,18 @@ type SearchResult struct {
 func (idx *Index) Search(search string, scope string, sourceSession string) []SearchResult {
 	// Remove slashes
 	scope = idx.makeIndexPath(scope)
-	runningHash := utils.GenerateRandomHash(4)
+	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
 	results := make(map[string]SearchResult, 0)
 	count := 0
 	var directories []string
-	cachedDirs, ok := utils.SearchResultsCache.Get(idx.Source.Path + scope).([]string)
+	cachedDirs, ok := cache.SearchResults.Get(idx.Source.Path + scope).([]string)
 	if ok {
 		directories = cachedDirs
 	} else {
 		directories = idx.getDirsInScope(scope)
-		utils.SearchResultsCache.Set(idx.Source.Path+scope, directories)
+		cache.SearchResults.Set(idx.Source.Path+scope, directories)
 	}
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {

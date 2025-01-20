@@ -1,4 +1,4 @@
-package utils
+package cache
 
 import (
 	"sync"
@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	DiskUsageCache     = NewCache(30*time.Second, 24*time.Hour)
-	RealPathCache      = NewCache(48*time.Hour, 72*time.Hour)
-	SearchResultsCache = NewCache(15*time.Second, time.Hour)
+	DiskUsage     = NewCache(30*time.Second, 24*time.Hour)
+	RealPath      = NewCache(48*time.Hour, 72*time.Hour)
+	SearchResults = NewCache(15*time.Second, time.Hour)
+	OnlyOffice    = NewCache(48*time.Hour, 1*time.Hour)
 )
 
 func NewCache(expires time.Duration, cleanup time.Duration) *KeyCache {

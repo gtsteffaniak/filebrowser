@@ -115,8 +115,10 @@ export default {
         // If not a directory, fetch content
         if (res.type != "directory") {
           let content = false;
-          console.log(res)
-          if (!res.onlyOfficeId && (res.type.startsWith("application") || res.type.startsWith("text"))) {
+          if (
+            !res.onlyOfficeId &&
+            (res.type.startsWith("application") || res.type.startsWith("text"))
+          ) {
             content = true;
           }
           res = await filesApi.fetchFiles(getters.routePath(), content);

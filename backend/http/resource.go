@@ -13,10 +13,9 @@ import (
 
 	"github.com/shirou/gopsutil/v3/disk"
 
+	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -59,9 +58,6 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if fileInfo.Type == "directory" {
 		return renderJSON(w, r, fileInfo)
-	}
-	if fileInfo.OnlyOfficeId != "" && d.user.Username != "publicUser" {
-		fileInfo.OnlyOfficeSecret = settings.Config.Integrations.OnlyOffice.Secret
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		checksums, err := files.GetChecksum(fileInfo.Path, algo)
@@ -401,7 +397,7 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 	if source == "" {
 		source = "default"
 	}
-	value, ok := utils.DiskUsageCache.Get(source).(DiskUsageResponse)
+	value, ok := cache.DiskUsage.Get(source).(DiskUsageResponse)
 	if ok {
 		return renderJSON(w, r, &value)
 	}
@@ -419,7 +415,7 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 		Total: usage.Total,
 		Used:  usage.Used,
 	}
-	utils.DiskUsageCache.Set(source, latestUsage)
+	cache.DiskUsage.Set(source, latestUsage)
 	return renderJSON(w, r, &latestUsage)
 }
 

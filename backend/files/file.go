@@ -21,10 +21,12 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 var (
@@ -139,9 +141,20 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	response.FileInfo = info
 	response.RealPath = realPath
 	if settings.Config.Integrations.OnlyOffice.Enabled && info.Type != "directory" && isOnlyOffice(info.Name) {
-		response.OnlyOfficeId = getOnlyOfficeId(realPath)
+		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
 	return response, nil
+}
+
+func generateOfficeId(realPath string) string {
+	key, ok := cache.OnlyOffice.Get(realPath).(string)
+	if !ok {
+		timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
+		documentKey := utils.HashSHA256(realPath + timestamp)
+		cache.OnlyOffice.Set(realPath, documentKey)
+		return documentKey
+	}
+	return key
 }
 
 // Checksum checksums a given File for a given User, using a specific

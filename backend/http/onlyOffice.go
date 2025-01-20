@@ -9,11 +9,11 @@ import (
 	"net/url"
 	"path/filepath"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
@@ -40,16 +40,21 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if !d.user.Perm.Modify {
 		return http.StatusForbidden, nil
 	}
-	encodedPath := r.URL.Query().Get("path")
+	encodedUrl := r.URL.Query().Get("url")
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = "default"
 	}
 	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
+	url, err := url.QueryUnescape(encodedUrl)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
+
+	// get path from url
+	pathParts := strings.Split(url, "/api/raw?files=/")
+	path := pathParts[len(pathParts)-1]
+	urlFirst := pathParts[0]
 
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
 		Path:       filepath.Join(d.user.Scope, path),
@@ -64,11 +69,24 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		return errToStatus(err), err
 	}
 
+	id, err := getOnlyOfficeId(source, fileInfo.Path)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+	split := strings.Split(fileInfo.Name, ".")
+	fileType := split[len(split)-1]
+
+	theme := "light"
+	if d.user.DarkMode {
+		theme = "dark"
+	}
+
 	clientConfig := map[string]interface{}{
 		"document": map[string]interface{}{
-			"fileType": fileInfo.Type,
-			"key":      files.getDocumentKey(source + fileInfo.Path),
+			"fileType": fileType,
+			"key":      id,
 			"title":    fileInfo.Name,
+			"url":      url + "&auth=" + d.token,
 			"permissions": map[string]interface{}{
 				"edit":     d.user.Perm.Modify,
 				"download": d.user.Perm.Download,
@@ -76,6 +94,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			},
 		},
 		"editorConfig": map[string]interface{}{
+			"callbackUrl": fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, path, d.token),
 			"user": map[string]interface{}{
 				"id":   strconv.FormatUint(uint64(d.user.ID), 10),
 				"name": d.user.Username,
@@ -83,26 +102,19 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"customization": map[string]interface{}{
 				"autosave":  true,
 				"forcesave": true,
-				"uiTheme":   ternary(d.user.DarkMode, "default-dark", "default-light"),
+				"uiTheme":   theme,
 			},
 			"lang": d.user.Locale,
 			"mode": "edit",
 		},
-		"type": "desktop",
 	}
 	if settings.Config.Integrations.OnlyOffice.Enabled && settings.Config.Integrations.OnlyOffice.Secret != "" {
-		claims := jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 10000)),
-			Issuer:    "FileBrowser Quantum",
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(clientConfig))
 		signature, err := token.SignedString([]byte(settings.Config.Integrations.OnlyOffice.Secret))
 		if err != nil {
-			logger.Fatal(fmt.Sprintf("Error creating JWT signature: %v", err))
+			return http.StatusInternalServerError, fmt.Errorf("failed to sign JWT")
 		}
-		Config.Integrations.OnlyOffice.Secret = signature // Avoid overwriting the secret
+		clientConfig["token"] = signature
 	}
 	return renderJSON(w, r, clientConfig)
 }
@@ -137,7 +149,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		//
 		// When the document is fully closed by all editors,
 		// then the document key should no longer be re-used.
-		files.OnlyOfficeCache.Delete(source + path)
+		deleteOfficeId(source, path)
 	}
 
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
@@ -173,4 +185,21 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		"error": 0,
 	}
 	return renderJSON(w, r, resp)
+}
+
+func getOnlyOfficeId(source, path string) (string, error) {
+	idx := files.GetIndex(source)
+	realpath, _, _ := idx.GetRealPath(path)
+	// error is intentionally ignored in order treat errors
+	// the same as a cache-miss
+	cachedDocumentKey, ok := cache.OnlyOffice.Get(realpath).(string)
+	if ok {
+		return cachedDocumentKey, nil
+	}
+	return "", fmt.Errorf("document key not found")
+}
+func deleteOfficeId(source, path string) {
+	idx := files.GetIndex(source)
+	realpath, _, _ := idx.GetRealPath(path)
+	cache.OnlyOffice.Delete(realpath)
 }
