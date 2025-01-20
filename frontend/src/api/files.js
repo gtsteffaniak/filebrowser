@@ -18,18 +18,6 @@ export async function fetchFiles(url, content = false) {
   }
 }
 
-export async function OnlyOfficeConfig(isMobile) {
-  try {
-    const apiPath = getApiPath("api/onlyoffice/config",{"isMobile": isMobile});
-    const res = await fetchURL(apiPath);
-    const data = await res.json();
-  } catch (err) {
-    notify.showError(err.message || "Error fetching onlyoffice config");
-    throw err;
-  }
-}
-
-
 async function resourceAction(url, method, content) {
   try {
     let opts = { method };
