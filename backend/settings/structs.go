@@ -62,7 +62,7 @@ type Integrations struct {
 }
 
 // onlyoffice secret is stored in the local.json file
-// sudo docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
+// docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
 type OnlyOffice struct {
 	Enabled bool   `json:"enabled"`
 	Url     string `json:"url"`
