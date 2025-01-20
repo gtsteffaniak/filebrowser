@@ -51,7 +51,8 @@ test-backend:
 test-frontend:
 	cd frontend && npm run test
 
-test-playwright: run-frontend build-backend
+test-playwright: run-frontend
+	cd backend && GOOS=linux go build -o filebrowser . && cd .. && \
 	docker build -t filebrowser-playwright-tests -f Dockerfile.playwright .
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 
