@@ -21,7 +21,7 @@ builds:
       - "7"
     hooks:
       post:
-        - upx --force-macos {{ .Path }}  # Compress the binary with UPX
+        - upx {{ .Path }}  # Compress the binary with UPX
 
   # Build configuration for windows without arm
   - id: windows
@@ -36,8 +36,24 @@ builds:
       post:
         - upx {{ .Path }}  # Compress the binary with UPX
 
+  # Build configuration for windows without arm & upx
+  - id: macos
+    ldflags: *ldflags
+    main: main.go
+    binary: filebrowser
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
 archives:
-  - name_template: "{{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{ .ProjectName }}"
+  - name_template: >
+      {{- if eq .Os "windows" -}}
+      {{.ProjectName}}
+      {{- else -}}
+      {{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{.ProjectName}}
+      {{- end -}}
     format: binary
 
 checksum:
