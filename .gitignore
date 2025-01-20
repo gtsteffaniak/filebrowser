@@ -1,6 +1,7 @@
 *.db
 *.bak
 *.log
+*.mjs
 _old
 rice-box.go
 .idea/
