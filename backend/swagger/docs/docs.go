@@ -1171,31 +1171,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "files": {
+                    "description": "files in the directory",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/files.ItemInfo"
                     }
                 },
                 "folders": {
+                    "description": "folders in the directory",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/files.ItemInfo"
                     }
                 },
                 "modified": {
+                    "description": "modification time",
                     "type": "string"
                 },
                 "name": {
+                    "description": "name of the file",
                     "type": "string"
                 },
                 "path": {
-                    "description": "index path",
+                    "description": "path scoped to the associated index",
                     "type": "string"
                 },
                 "size": {
+                    "description": "length in bytes for regular files",
                     "type": "integer"
                 },
                 "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
                     "type": "string"
                 }
             }
@@ -1204,15 +1210,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "modified": {
+                    "description": "modification time",
                     "type": "string"
                 },
                 "name": {
+                    "description": "name of the file",
                     "type": "string"
                 },
                 "size": {
+                    "description": "length in bytes for regular files",
                     "type": "integer"
                 },
                 "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
                     "type": "string"
                 }
             }
