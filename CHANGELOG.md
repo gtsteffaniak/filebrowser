@@ -5,14 +5,15 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.4.0-beta
 
   **New Features**
-  - Better logging
+  - Better logging https://github.com/gtsteffaniak/filebrowser/issues/288
     - highly configurable
     - api logs include user
-  - onlyOffice support for editing only office files
+  - onlyOffice support for editing only office files (inspired from https://github.com/filebrowser/filebrowser/pull/2954)
 
   **Notes**
   - Breadcrumbs will only show on file listing (not on previews or editors)
-  - Config file is optional -- will run with default settings without one and throw a warning message.
+  - Config file is now optional. It will run with default settings without one and throw a `[WARN ]` message.
+  - Added more descriptions to swagger API
 
 ## v0.3.7-beta
 
