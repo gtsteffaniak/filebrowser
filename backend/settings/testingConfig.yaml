@@ -10,7 +10,6 @@ server:
   port: 80
   baseURL: "/"
   address: ""
-  log: "stdout"
   database: "mydb.db"
   root: "/srv"
 auth:

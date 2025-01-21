@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	libError "errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
@@ -46,23 +46,24 @@ func extractToken(r *http.Request) (string, error) {
 		}
 	}
 
+	auth := r.URL.Query().Get("auth")
+	if auth != "" {
+		hasToken = true
+		if strings.Count(auth, ".") == 2 {
+			return auth, nil
+		}
+	}
+
 	// Check for Authorization header
 	authHeader := r.Header.Get("Authorization")
 	if authHeader != "" {
+
 		hasToken = true
 		// Split the header to get "Bearer {token}"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) == 2 && parts[0] == "Bearer" {
 			token := parts[1]
 			return token, nil
-		}
-	}
-
-	auth := r.URL.Query().Get("auth")
-	if auth != "" {
-		hasToken = true
-		if strings.Count(auth, ".") == 2 {
-			return auth, nil
 		}
 	}
 
@@ -129,12 +130,12 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 
 	userHome, err := config.MakeUserDir(user.Username, user.Scope, files.RootPaths["default"])
 	if err != nil {
-		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
+		logger.Error(fmt.Sprintf("create user: failed to mkdir user home dir: [%s]", userHome))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 	user.Scope = userHome
-	log.Printf("new user: %s, home dir: [%s].", user.Username, userHome)
+	logger.Debug(fmt.Sprintf("new user: %s, home dir: [%s].", user.Username, userHome))
 	err = store.Users.Save(&user)
 	if err == errors.ErrExist {
 		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
@@ -151,7 +152,7 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 }
 
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.GenerateRandomHash(4), time.Hour*2, user.Perm)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*2, user.Perm)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err

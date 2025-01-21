@@ -21,9 +21,12 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 var (
@@ -32,30 +35,32 @@ var (
 )
 
 type ItemInfo struct {
-	Name    string    `json:"name"`
-	Size    int64     `json:"size"`
-	ModTime time.Time `json:"modified"`
-	Type    string    `json:"type"`
+	Name    string    `json:"name"`     // name of the file
+	Size    int64     `json:"size"`     // length in bytes for regular files
+	ModTime time.Time `json:"modified"` // modification time
+	Type    string    `json:"type"`     // type of the file, either "directory" or a file mimetype
 }
 
 // FileInfo describes a file.
 // reduced item is non-recursive reduced "Items", used to pass flat items array
 type FileInfo struct {
 	ItemInfo
-	Files   []ItemInfo `json:"files"`
-	Folders []ItemInfo `json:"folders"`
-	Path    string     `json:"path"`
+	Files   []ItemInfo `json:"files"`   // files in the directory
+	Folders []ItemInfo `json:"folders"` // folders in the directory
+	Path    string     `json:"path"`    // path scoped to the associated index
 }
 
 // for efficiency, a response will be a pointer to the data
 // extra calculated fields can be added here
 type ExtendedFileInfo struct {
 	*FileInfo
-	Content   string            `json:"content,omitempty"`
-	Subtitles []string          `json:"subtitles,omitempty"`
-	Checksums map[string]string `json:"checksums,omitempty"`
-	Token     string            `json:"token,omitempty"`
-	RealPath  string            `json:"-"`
+	Content      string            `json:"content,omitempty"`      // text content of a file, if requested
+	Subtitles    []string          `json:"subtitles,omitempty"`    // subtitles for video files
+	Checksums    map[string]string `json:"checksums,omitempty"`    // checksums for the file
+	Token        string            `json:"token,omitempty"`        // token for the file -- used for sharing
+	OnlyOfficeId string            `json:"onlyOfficeId,omitempty"` // id for onlyoffice files
+	Source       string            `json:"source"`                 // associated index source for the file
+	RealPath     string            `json:"-"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -134,7 +139,21 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	}
 	response.FileInfo = info
 	response.RealPath = realPath
+	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && isOnlyOffice(info.Name) {
+		response.OnlyOfficeId = generateOfficeId(realPath)
+	}
 	return response, nil
+}
+
+func generateOfficeId(realPath string) string {
+	key, ok := cache.OnlyOffice.Get(realPath).(string)
+	if !ok {
+		timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
+		documentKey := utils.HashSHA256(realPath + timestamp)
+		cache.OnlyOffice.Set(realPath, documentKey)
+		return documentKey
+	}
+	return key
 }
 
 // Checksum checksums a given File for a given User, using a specific

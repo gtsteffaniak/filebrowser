@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 	"github.com/gtsteffaniak/filebrowser/backend/storage/bolt"
@@ -118,15 +118,15 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	// create new home directory
 	userHome, err := settings.Config.MakeUserDir(newUser.Username, newUser.Scope, files.RootPaths["default"])
 	if err != nil {
-		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
+		logger.Error(fmt.Sprintf("create user: failed to mkdir user home dir: [%s]", userHome))
 		return err
 	}
 	newUser.Scope = userHome
-	log.Printf("user: %s, home dir: [%s].", newUser.Username, userHome)
+	logger.Debug(fmt.Sprintf("user: %s, home dir: [%s].", newUser.Username, userHome))
 	idx := files.GetIndex("default")
 	_, _, err = idx.GetRealPath(newUser.Scope)
 	if err != nil {
-		log.Println("user path is not valid", newUser.Scope)
+		logger.Error(fmt.Sprintf("user path is not valid: %v", newUser.Scope))
 		return nil
 	}
 	err = store.Users.Save(&newUser)

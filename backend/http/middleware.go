@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -12,15 +11,16 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/runner"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 type requestContext struct {
 	user *users.User
 	*runner.Runner
-	raw interface{}
+	raw   interface{}
+	token string
 }
 
 type HttpResponse struct {
@@ -94,7 +94,7 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		if settings.Config.Auth.Method == "noauth" {
+		if config.Auth.Method == "noauth" {
 			var err error
 			// Retrieve the user from the store and store it in the context
 			data.user, err = store.Users.Get(files.RootPaths["default"], "admin")
@@ -108,8 +108,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		tokenString, err := extractToken(r)
 		if err != nil {
+			logger.Debug(fmt.Sprintf("error extracting from request %v", err))
 			return http.StatusUnauthorized, err
 		}
+		data.token = tokenString
 
 		var tk users.AuthToken
 		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
@@ -126,11 +128,15 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if tk.Expires < time.Now().Add(time.Hour).Unix() {
 			w.Header().Add("X-Renew-Token", "true")
 		}
+
 		// Retrieve the user from the store and store it in the context
 		data.user, err = store.Users.Get(files.RootPaths["default"], tk.BelongsTo)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
+
+		setUserInResponseWriter(w, data.user)
+
 		// Call the handler function, passing in the context
 		return fn(w, r, data)
 	}
@@ -172,14 +178,14 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			// Marshal the error response to JSON
 			errorBytes, marshalErr := json.Marshal(response)
 			if marshalErr != nil {
-				log.Printf("Error marshalling error response: %v", marshalErr)
+				logger.Error(fmt.Sprintf("Error marshalling error response: %v", marshalErr))
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 
 			// Write the JSON error response
 			if _, writeErr := w.Write(errorBytes); writeErr != nil {
-				log.Printf("Error writing error response: %v", writeErr)
+				logger.Error(fmt.Sprintf("Error writing error response: %v", writeErr))
 			}
 			return
 		}
@@ -233,6 +239,7 @@ type ResponseWriterWrapper struct {
 	StatusCode  int
 	wroteHeader bool
 	PayloadSize int
+	User        string
 }
 
 // WriteHeader captures the status code and ensures it's only written once
@@ -255,6 +262,16 @@ func (w *ResponseWriterWrapper) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
+// Helper function to set the user in the ResponseWriterWrapper
+func setUserInResponseWriter(w http.ResponseWriter, user *users.User) {
+	// Wrap the response writer to set the user field
+	if wrappedWriter, ok := w.(*ResponseWriterWrapper); ok {
+		if user != nil {
+			wrappedWriter.User = user.Username
+		}
+	}
+}
+
 // LoggingMiddleware logs each request and its status code.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -267,30 +284,23 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// Call the next handler.
 		next.ServeHTTP(wrappedWriter, r)
 
-		// Determine the color based on the status code.
-		color := "\033[32m" // Default green color
-		if wrappedWriter.StatusCode >= 300 && wrappedWriter.StatusCode < 500 {
-			color = "\033[33m" // Yellow for client errors (4xx)
-		} else if wrappedWriter.StatusCode >= 500 {
-			color = "\033[31m" // Red for server errors (5xx)
-		}
-
 		// Capture the full URL path including the query parameters.
 		fullURL := r.URL.Path
 		if r.URL.RawQuery != "" {
 			fullURL += "?" + r.URL.RawQuery
 		}
-
-		// Log the request, status code, and response size.
-		log.Printf("%s%-7s | %3d | %-15s | %-12s | \"%s\"%s",
-			color,
-			r.Method,
-			wrappedWriter.StatusCode, // Captured status code
-			r.RemoteAddr,
-			time.Since(start).String(),
-			fullURL,
-			"\033[0m", // Reset color
-		)
+		truncUser := wrappedWriter.User
+		if len(truncUser) > 12 {
+			truncUser = truncUser[:10] + ".."
+		}
+		logger.Api(
+			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
+				r.Method,
+				wrappedWriter.StatusCode, // Captured status code
+				r.RemoteAddr,
+				truncUser,
+				time.Since(start).String(),
+				fullURL), wrappedWriter.StatusCode)
 	})
 }
 

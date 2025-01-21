@@ -1,8 +1,10 @@
 package files
 
 import (
-	"log"
+	"fmt"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 // schedule in minutes
@@ -32,7 +34,7 @@ func (idx *Index) newScanner(origin string) {
 		}
 
 		// Log and sleep before indexing
-		log.Printf("Next scan in %v\n", sleepTime)
+		logger.Debug(fmt.Sprintf("Next scan in %v\n", sleepTime))
 		time.Sleep(sleepTime)
 
 		idx.scannerMu.Lock()
@@ -74,9 +76,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
-		log.Println("Starting quick scan")
+		logger.Debug("Starting quick scan")
 	} else {
-		log.Println("Starting full scan")
+		logger.Debug("Starting full scan")
 		idx.NumDirs = 0
 		idx.NumFiles = 0
 	}
@@ -85,8 +87,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	// Perform the indexing operation
 	err := idx.indexDirectory("/", quick, true)
 	if err != nil {
-		log.Printf("Error during indexing: %v", err)
+		logger.Error(fmt.Sprintf("Error during indexing: %v", err))
 	}
+	firstRun := idx.LastIndexed == time.Time{}
 	// Update the LastIndexed time
 	idx.LastIndexed = time.Now()
 	idx.indexingTime = int(time.Since(startTime).Seconds())
@@ -102,12 +105,20 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		} else {
 			idx.assessment = "normal"
 		}
-		log.Printf("Index assessment         : complexity=%v directories=%v files=%v \n", idx.assessment, idx.NumDirs, idx.NumFiles)
+		if firstRun {
+			logger.Info(fmt.Sprintf("Index assessment         : complexity=%v directories=%v files=%v", idx.assessment, idx.NumDirs, idx.NumFiles))
+		} else {
+			logger.Debug(fmt.Sprintf("Index assessment         : complexity=%v directories=%v files=%v", idx.assessment, idx.NumDirs, idx.NumFiles))
+		}
 		if idx.NumDirs != prevNumDirs || idx.NumFiles != prevNumFiles {
 			idx.FilesChangedDuringIndexing = true
 		}
 	}
-	log.Printf("Time Spent Indexing      : %v seconds\n", idx.indexingTime)
+	if firstRun {
+		logger.Info(fmt.Sprintf("Time spent indexing      : %v seconds", idx.indexingTime))
+	} else {
+		logger.Debug(fmt.Sprintf("Time spent indexing      : %v seconds", idx.indexingTime))
+	}
 }
 
 func (idx *Index) setupIndexingScanners() {

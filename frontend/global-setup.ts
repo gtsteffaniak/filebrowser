@@ -10,9 +10,9 @@ async function globalSetup() {
     await page.getByPlaceholder("Password").fill("admin");
     await page.getByRole("button", { name: "Login" }).click();
     await page.waitForURL("**/files/", { timeout: 100 });
-    await expect(page).toHaveTitle('FileBrowser Quantum - Files');
     let cookies = await context.cookies();
     expect(cookies.find((c) => c.name == "auth")?.value).toBeDefined();
+    await expect(page).toHaveTitle('playwright-files - FileBrowser Quantum - Files');
     await page.context().storageState({ path: "./loginAuth.json" });
     await browser.close();
 }

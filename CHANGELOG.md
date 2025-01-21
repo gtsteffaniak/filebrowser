@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.4.0-beta
+
+  **New Features**
+  - Better logging
+    - highly configurable
+    - api logs include user
+  - onlyOffice support for editing only office files
+
+  **Notes**
+  - Breadcrumbs will only show on file listing (not on previews or editors)
+  - Config file is optional -- will run with default settings without one and throw a warning message.
+
 ## v0.3.7-beta
 
   **Notes**:

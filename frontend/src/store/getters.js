@@ -100,7 +100,7 @@ export const getters = {
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       visible = false;
     }
-    if (getters.currentView() == "editor" || getters.currentView() == "preview") {
+    if (getters.currentView() == "editor" || getters.currentView() == "preview" || getters.currentView() == "onlyOfficeEditor") {
       visible = false;
     }
     return visible
@@ -123,6 +123,9 @@ export const getters = {
     const shouldOverlaySidebar = getters.isSidebarVisible() && !getters.isStickySidebar()
     return hasPrompt || shouldOverlaySidebar;
   },
+  showBreadCrumbs: () => {
+    return getters.currentView() == "listingView" ;
+  },
   routePath: (trimModifier="") => {
     return removePrefix(state.route.path,trimModifier)
   },
@@ -136,6 +139,8 @@ export const getters = {
       if (state.req.type !== undefined) {
         if (state.req.type == "directory") {
           return "listingView";
+        } else if (state.req?.onlyOfficeId) {
+          return "onlyOfficeEditor";
         } else if ("content" in state.req) {
           return "editor";
         } else {

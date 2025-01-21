@@ -18,6 +18,7 @@ const enableThumbs = window.FileBrowser.EnableThumbs;
 const resizePreview = window.FileBrowser.ResizePreview;
 const enableExec = window.FileBrowser.EnableExec;
 const externalUrl = window.FileBrowser.ExternalUrl
+const onlyOfficeUrl = window.FileBrowser.OnlyOfficeUrl
 const origin = window.location.origin;
 
 const settings = [
@@ -49,5 +50,6 @@ export {
   enableExec,
   origin,
   darkMode,
-  settings
+  settings,
+  onlyOfficeUrl,
 };

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -211,13 +211,14 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	default:
 		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
-
 	baseDirName := filepath.Base(filepath.Dir(realPath))
 	if baseDirName == "" || baseDirName == "/" {
 		baseDirName = "download"
 	}
+	if len(fileList) == 1 && isDir {
+		baseDirName = filepath.Base(realPath)
+	}
 	downloadFileName := url.PathEscape(baseDirName + extension)
-
 	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+downloadFileName)
 	// Create the archive and stream it directly to the response
 	if extension == ".zip" {
@@ -242,7 +243,7 @@ func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
-			log.Printf("Failed to add %s to ZIP: %v", fname, err)
+			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
 		}
 	}
 
@@ -261,7 +262,7 @@ func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
-			log.Printf("Failed to add %s to TAR.GZ: %v", fname, err)
+			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
 		}
 	}
 
