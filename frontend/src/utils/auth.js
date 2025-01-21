@@ -7,6 +7,7 @@ import { recaptcha, loginPage } from "@/utils/constants";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
+  mutations.setJWT(token);
   mutations.setSession(generateRandomCode(8));
 }
 
@@ -44,7 +45,6 @@ export async function login(username, password, recaptcha) {
 }
 
 export async function renew(jwt) {
-  console.log("Renewing token");
   let apiPath = getApiPath("api/auth/renew")
   const res = await fetch(apiPath, {
     method: "POST",

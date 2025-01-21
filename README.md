@@ -98,6 +98,9 @@ See the [API Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/API)
 
 Configuration is done via the `config.yaml`, see the [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) for available configuration options and other help.
 
+## Office File Support
+
+See [Office Support Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#adding-open-office-integration-for-docker) on how to enable office file editing.
 
 ## Migration from the original filebrowser
 
@@ -115,7 +118,7 @@ Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Has Stable Release?           | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
 S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
-ftp support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Docker image size             | 31 MB  | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
@@ -142,16 +145,15 @@ Event-based notifications     | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Metrics                       | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 file space quotas             | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-office file support           | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+office file support           | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+Office file previews          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
 Branding support              | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
 activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-collaboration on same file    | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 trash support                 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 Content preview icons         | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
-Plugins support               | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 Share collections of files    | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can archive selected files    | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |

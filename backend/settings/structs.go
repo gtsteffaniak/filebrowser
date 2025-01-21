@@ -13,6 +13,7 @@ type Settings struct {
 	Frontend     Frontend            `json:"frontend"`
 	Users        []UserDefaults      `json:"users,omitempty"`
 	UserDefaults UserDefaults        `json:"userDefaults"`
+	Integrations Integrations        `json:"integrations"`
 }
 
 type Auth struct {
@@ -47,13 +48,33 @@ type Server struct {
 	Port                  int               `json:"port"`
 	BaseURL               string            `json:"baseURL"`
 	Address               string            `json:"address"`
-	Log                   string            `json:"log"`
+	Logging               []LogConfig       `json:"logging"`
 	Database              string            `json:"database"`
 	Root                  string            `json:"root"`
 	UserHomeBasePath      string            `json:"userHomeBasePath"`
 	CreateUserDir         bool              `json:"createUserDir"`
 	Sources               map[string]Source `json:"sources"`
 	ExternalUrl           string            `json:"externalUrl"`
+	InternalUrl           string            `json:"internalUrl"` // used by integrations
+}
+
+type Integrations struct {
+	OnlyOffice OnlyOffice `json:"office"`
+}
+
+// onlyoffice secret is stored in the local.json file
+// docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
+type OnlyOffice struct {
+	Url    string `json:"url"`
+	Secret string `json:"secret"`
+}
+
+type LogConfig struct {
+	Levels    string `json:"levels"`
+	ApiLevels string `json:"apiLevels"`
+	Output    string `json:"output"`
+	NoColors  bool   `json:"noColors"`
+	Json      bool   `json:"json"`
 }
 
 type Source struct {

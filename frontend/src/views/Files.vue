@@ -1,6 +1,6 @@
 <template>
   <div>
-    <breadcrumbs base="/files" />
+    <breadcrumbs v-if="showBreadCrumbs" base="/files" />
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
@@ -23,6 +23,7 @@ import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
+import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
@@ -36,6 +37,7 @@ export default {
     Preview,
     ListingView,
     Editor,
+    OnlyOfficeEditor,
   },
   data() {
     return {
@@ -46,6 +48,9 @@ export default {
     };
   },
   computed: {
+    showBreadCrumbs() {
+      return getters.showBreadCrumbs();
+    },
     currentView() {
       return getters.currentView();
     },
@@ -110,8 +115,10 @@ export default {
         // If not a directory, fetch content
         if (res.type != "directory") {
           let content = false;
-          // only check content for blob or text files
-          if (res.type.startsWith("application") || res.type.startsWith("text")) {
+          if (
+            !res.onlyOfficeId &&
+            (res.type.startsWith("application") || res.type.startsWith("text"))
+          ) {
             content = true;
           }
           res = await filesApi.fetchFiles(getters.routePath(), content);

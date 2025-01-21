@@ -20,7 +20,7 @@
     <defaultBar v-else :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar></sidebar>
     <search v-if="showSearch"></search>
-    <main :class="{ 'dark-mode': isDarkMode, moveWithSidebar: moveWithSidebar }">
+    <main :class="{ 'dark-mode': isDarkMode, moveWithSidebar: moveWithSidebar, 'main-padding': showPadding }">
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -71,6 +71,9 @@ export default {
     }
   },
   computed: {
+    showPadding() {
+      return getters.showBreadCrumbs();
+    },
     showSearch() {
       return getters.isLoggedIn() && this.currentView == "listingView";
     },

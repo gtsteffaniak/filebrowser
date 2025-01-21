@@ -20,7 +20,7 @@
     "test": "vitest run "
   },
   "dependencies": {
-    "@playwright/test": "^1.49.1",
+    "@onlyoffice/document-editor-vue": "^1.4.0",
     "ace-builds": "^1.24.2",
     "clipboard": "^2.0.4",
     "css-vars-ponyfill": "^2.4.3",
@@ -33,6 +33,7 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
     "@intlify/unplugin-vue-i18n": "^4.0.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-typescript": "^13.0.0",

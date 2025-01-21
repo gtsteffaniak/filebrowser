@@ -2,6 +2,7 @@ package files
 
 import (
 	"mime"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -50,6 +51,17 @@ var documentTypes = []string{
 	".epub", // Electronic Publication
 	".mobi", // Amazon Kindle
 	".fb2",  // FictionBook
+}
+
+var onlyOfficeSupported = []string{
+	".doc", ".docm", ".docx", ".dot", ".dotm", ".dotx", ".epub",
+	".fb2", ".fodt", ".htm", ".html", ".mht", ".mhtml", ".odt",
+	".ott", ".rtf", ".stw", ".sxw", ".txt", ".wps", ".wpt", ".xml",
+	".csv", ".et", ".ett", ".fods", ".ods", ".ots", ".sxc", ".xls",
+	".xlsb", ".xlsm", ".xlsx", ".xlt", ".xltm", ".xltx", ".dps",
+	".dpt", ".fodp", ".odp", ".otp", ".pot", ".potm", ".potx",
+	".pps", ".ppsm", ".ppsx", ".ppt", ".pptm", ".pptx", ".sxi",
+	".djvu", ".docxf", ".oform", ".oxps", ".pdf", ".xps",
 }
 
 // Text-based file extensions
@@ -251,6 +263,16 @@ func isDoc(extension string) bool {
 func isArchive(extension string) bool {
 	for _, typefile := range compressedFile {
 		if extension == typefile {
+			return true
+		}
+	}
+	return false
+}
+
+func isOnlyOffice(name string) bool {
+	extention := filepath.Ext(name)
+	for _, typefile := range onlyOfficeSupported {
+		if extention == typefile {
 			return true
 		}
 	}

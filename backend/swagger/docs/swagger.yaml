@@ -2,33 +2,44 @@ definitions:
   files.FileInfo:
     properties:
       files:
+        description: files in the directory
         items:
           $ref: '#/definitions/files.ItemInfo'
         type: array
       folders:
+        description: folders in the directory
         items:
           $ref: '#/definitions/files.ItemInfo'
         type: array
       modified:
+        description: modification time
         type: string
       name:
+        description: name of the file
         type: string
       path:
+        description: path scoped to the associated index
         type: string
       size:
+        description: length in bytes for regular files
         type: integer
       type:
+        description: type of the file, either "directory" or a file mimetype
         type: string
     type: object
   files.ItemInfo:
     properties:
       modified:
+        description: modification time
         type: string
       name:
+        description: name of the file
         type: string
       size:
+        description: length in bytes for regular files
         type: integer
       type:
+        description: type of the file, either "directory" or a file mimetype
         type: string
     type: object
   files.SearchResult:

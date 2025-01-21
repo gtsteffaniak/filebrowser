@@ -1,7 +1,7 @@
 server:
   port: 80
   baseURL:  "/"
-  root: "./tests/playwright-files"
+  root: "../frontend/tests/playwright-files"
 auth:
   method: password
   signup: false

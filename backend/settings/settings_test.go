@@ -1,22 +1,23 @@
 package settings
 
 import (
-	"log"
+	"fmt"
 	"testing"
 
 	"github.com/goccy/go-yaml"
 	"github.com/google/go-cmp/cmp"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 func TestConfigLoadChanged(t *testing.T) {
-	yamlData := loadConfigFile("./testingConfig.yaml")
+	yamlData, _ := loadConfigFile("./testingConfig.yaml")
 	// Marshal the YAML data to a more human-readable format
 	newConfig := setDefaults()
 	Config := setDefaults()
 
 	err := yaml.Unmarshal(yamlData, &newConfig)
 	if err != nil {
-		log.Fatalf("Error unmarshaling YAML data: %v", err)
+		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
 	// Use go-cmp to compare the two structs
 	if diff := cmp.Diff(newConfig, Config); diff == "" {
@@ -25,14 +26,14 @@ func TestConfigLoadChanged(t *testing.T) {
 }
 
 func TestConfigLoadSpecificValues(t *testing.T) {
-	yamlData := loadConfigFile("./testingConfig.yaml")
+	yamlData, _ := loadConfigFile("./testingConfig.yaml")
 	// Marshal the YAML data to a more human-readable format
 	newConfig := setDefaults()
 	Config := setDefaults()
 
 	err := yaml.Unmarshal(yamlData, &newConfig)
 	if err != nil {
-		log.Fatalf("Error unmarshaling YAML data: %v", err)
+		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
 	testCases := []struct {
 		fieldName string
