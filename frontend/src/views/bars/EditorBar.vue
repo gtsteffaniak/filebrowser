@@ -9,6 +9,10 @@
       :label="$t('buttons.save')"
       @action="save()"
     />
+    <action
+      v-else
+      icon="hide_source"
+    />
   </header>
 </template>
 

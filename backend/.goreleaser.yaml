@@ -10,7 +10,6 @@ builds:
     main: main.go
     binary: filebrowser
     goos:
-      - darwin
       - linux
     goarch:
       - amd64

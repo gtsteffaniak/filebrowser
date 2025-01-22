@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
@@ -64,6 +64,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"ReCaptchaHost":         config.Auth.Recaptcha.Host,
 		"ExternalLinks":         config.Frontend.ExternalLinks,
 		"ExternalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
+		"OnlyOfficeUrl":         settings.Config.Integrations.OnlyOffice.Url,
 	}
 
 	if config.Frontend.Files != "" {
@@ -71,7 +72,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		_, err := os.Stat(fPath) //nolint:govet
 
 		if err != nil && !os.IsNotExist(err) {
-			log.Printf("couldn't load custom styles: %v", err)
+			logger.Error(fmt.Sprintf("couldn't load custom styles: %v", err))
 		}
 
 		if err == nil {

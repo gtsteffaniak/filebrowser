@@ -2,17 +2,20 @@ package utils
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
-	"log"
 	math "math/rand"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 func CheckErr(source string, err error) {
 	if err != nil {
-		log.Fatalf("%s: %v", source, err)
+		logger.Fatal(fmt.Sprintf("%s: %v", source, err))
 	}
 }
 
@@ -33,7 +36,7 @@ func CapitalizeFirst(s string) string {
 	return strings.ToUpper(string(s[0])) + s[1:]
 }
 
-func GenerateRandomHash(length int) string {
+func InsecureRandomIdentifier(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 	math.New(math.NewSource(time.Now().UnixNano()))
 	result := make([]byte, length)
@@ -49,7 +52,7 @@ func PrintStructFields(v interface{}) {
 
 	// Ensure the input is a struct
 	if val.Kind() != reflect.Struct {
-		fmt.Println("Provided value is not a struct")
+		logger.Debug("Provided value is not a struct")
 		return
 	}
 
@@ -66,7 +69,7 @@ func PrintStructFields(v interface{}) {
 			fieldValue = fieldValue[:100] + "..."
 		}
 
-		fmt.Printf("Field: %s, %s\n", fieldType.Name, fieldValue)
+		logger.Debug(fmt.Sprintf("Field: %s, %s\n", fieldType.Name, fieldValue))
 	}
 }
 
@@ -83,4 +86,9 @@ func GetParentDirectoryPath(path string) string {
 		return "/" // If the last slash is the first character, return root
 	}
 	return path[:lastSlash]
+}
+
+func HashSHA256(data string) string {
+	bytes := sha256.Sum256([]byte(data))
+	return hex.EncodeToString(bytes[:])
 }

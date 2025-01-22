@@ -1,5 +1,6 @@
 FROM gtstef/playwright-base
-WORKDIR /app
-COPY [ "./backend/filebrowser*", "./"]
+WORKDIR /app/frontend
 COPY [ "./frontend/", "./" ]
-RUN ./filebrowser -c filebrowser-playwright.yaml & sleep 2 && npx playwright test
+WORKDIR /app/backend/
+COPY [ "./backend/filebrowser*", "./"]
+RUN ./filebrowser -c filebrowser-playwright.yaml & sleep 2 && cd ../frontend && npx playwright test
