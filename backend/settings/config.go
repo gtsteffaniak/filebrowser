@@ -61,10 +61,6 @@ func Initialize(configFile string) {
 	}
 	if !Config.Frontend.DisableDefaultLinks {
 		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
-			Text: "FileBrowser Quantum",
-			Url:  "https://github.com/gtsteffaniak/filebrowser",
-		})
-		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
 			Text:  fmt.Sprintf("(%v)", version.Version),
 			Title: version.CommitSHA,
 			Url:   "https://github.com/gtsteffaniak/filebrowser/releases/",

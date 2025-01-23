@@ -4,7 +4,7 @@
       <div @click="navigateTo('/settings#profile-main')" class="inner-card">
         <i class="material-icons">person</i>
         {{ user.username }}
-        <i class="material-icons">settings</i>
+        <i aria-label="settings" class="material-icons">settings</i>
       </div>
 
       <div class="inner-card logout-button" @click="logout">

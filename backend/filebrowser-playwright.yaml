@@ -5,6 +5,13 @@ server:
 auth:
   method: password
   signup: false
+frontend:
+  name: "Graham's Filebrowser"
+  disableDefaultLinks: true
+  externalLinks:
+    - text: "A playwright test"
+      url: "https://playwright.dev/"
+      title: "Playwright"
 userDefaults:
   darkMode: true
   disableSettings: false
