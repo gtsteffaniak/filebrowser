@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.4.1-beta
 
   **New Features**
-  - right-click actions are available on search window.
-  #- office file previews
+  - right-click actions are available on search window. https://github.com/gtsteffaniak/filebrowser/issues/273
 
   **Notes**
   - delete prompt lists all items that will be affected by delete
+  - Debug and logger output tweaks.
 
   **Bugfixes**:
   #- when closing/going back on onlyoffice document a refresh was needed.
