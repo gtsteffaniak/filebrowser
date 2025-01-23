@@ -31,18 +31,17 @@ export default {
   },
   methods: {
     close() {
+      mutations.closeHovers();
+
       if (getters.isSettings()) {
         // Use this.isSettings to access the computed property
         router.push({ path: "/files/", hash: "" });
-        mutations.closeHovers();
         return;
       }
-      mutations.closeHovers();
-      setTimeout(() => {
-        mutations.replaceRequest({});
-        let uri = url.removeLastDir(state.route.path) + "/";
-        router.push({ path: uri });
-      }, 50);
+
+      mutations.replaceRequest({});
+      let uri = url.removeLastDir(state.route.path) + "/";
+      router.push({ path: uri });
     },
   },
 };
