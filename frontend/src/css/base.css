@@ -200,7 +200,7 @@ button:disabled {
 }
 
 #popup-notification.success {
-  background: var(--primaryColor);
+  background: var(--blue);
 }
 #popup-notification.error {
   background: var(--red);

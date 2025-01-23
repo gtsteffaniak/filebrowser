@@ -34,7 +34,7 @@ func (idx *Index) newScanner(origin string) {
 		}
 
 		// Log and sleep before indexing
-		logger.Debug(fmt.Sprintf("Next scan in %v\n", sleepTime))
+		logger.Debug(fmt.Sprintf("Next scan in %v", sleepTime))
 		time.Sleep(sleepTime)
 
 		idx.scannerMu.Lock()

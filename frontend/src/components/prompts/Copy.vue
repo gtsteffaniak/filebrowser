@@ -128,7 +128,7 @@ export default {
           this.$router.push(this.dest);
         }, 1000);
       } catch (error) {
-        notify.error(error);
+        notify.showError(error);
       }
     },
   },

@@ -7,6 +7,9 @@
       <p v-else>
         {{ $t("prompts.deleteMessageMultiple", { count: selectedCount }) }}
       </p>
+      <div style="display: grid" class="searchContext">
+        <span v-for="item in nav"> {{ item }} </span>
+      </div>
     </div>
     <div class="card-action">
       <button
@@ -34,6 +37,7 @@ import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
+import { removePrefix } from "@/utils/url";
 
 export default {
   name: "delete",
@@ -47,6 +51,16 @@ export default {
     currentPrompt() {
       return getters.currentPrompt();
     },
+    nav() {
+      if (state.isSearchActive) {
+        return [state.selected[0].path];
+      }
+      let paths = [];
+      for (let index of state.selected) {
+        paths.push(removePrefix(state.req.items[index].url, "files"));
+      }
+      return paths;
+    },
   },
   methods: {
     closeHovers() {
@@ -56,17 +70,24 @@ export default {
       buttons.loading("delete");
 
       try {
+        if (state.isSearchActive) {
+          await filesApi.remove(state.selected[0].url);
+          buttons.success("delete");
+          notify.showSuccess("Deleted item successfully");
+          mutations.closeHovers();
+          return;
+        }
         if (!this.isListing) {
           await filesApi.remove(state.route.path);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
 
           this.currentPrompt?.confirm();
-          this.closeHovers();
+          mutations.closeHovers();
           return;
         }
 
-        this.closeHovers();
+        mutations.closeHovers();
 
         if (getters.selectedCount() === 0) {
           return;

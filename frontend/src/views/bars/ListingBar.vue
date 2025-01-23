@@ -7,6 +7,7 @@
       @action="toggleSidebar()"
       :disabled="showOverlay"
     />
+    <search v-if="showSearch"></search>
     <action
       class="menu-button"
       icon="grid_view"
@@ -27,11 +28,13 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import Action from "@/components/Action.vue";
+import Search from "@/components/Search.vue";
 
 export default {
   name: "listingView",
   components: {
     Action,
+    Search,
   },
   data: function () {
     return {
@@ -40,6 +43,9 @@ export default {
     };
   },
   computed: {
+    showSearch() {
+      return getters.isLoggedIn() && getters.currentView() == "listingView";
+    },
     showOverlay() {
       return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
     },
@@ -78,7 +84,7 @@ export default {
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const newView = this.viewModes[nextIndex];
-      mutations.updateCurrentUser({ "viewMode": newView });
+      mutations.updateCurrentUser({ viewMode: newView });
     },
   },
 };

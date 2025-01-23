@@ -60,7 +60,9 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return renderJSON(w, r, fileInfo)
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
-		checksums, err := files.GetChecksum(fileInfo.Path, algo)
+		idx := files.GetIndex(source)
+		realPath, _, _ := idx.GetRealPath(d.user.Scope, path)
+		checksums, err := files.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
 		} else if err != nil {

@@ -241,6 +241,10 @@ export const mutations = {
   setSharePassword: (value) => {
     state.sharePassword = value;
     emitStateChanged();
-  }
+  },
+  setSearch: (value) => {
+    state.isSearchActive = value;
+    emitStateChanged();
+  },
 };
 
