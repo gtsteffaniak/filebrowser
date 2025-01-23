@@ -11,9 +11,9 @@
       <span v-for="item in externalLinks" :key="item.title">
         <a :href="item.url" target="_blank" :title="item.title">{{ item.text }}</a>
       </span>
-      <span v-if="name != ''"
-        ><h4>{{ name }}</h4></span
-      >
+      <span v-if="name != ''">
+        <h4>{{ name }}</h4>
+      </span>
     </div>
   </nav>
 </template>
