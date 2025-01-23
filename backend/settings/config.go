@@ -17,6 +17,9 @@ var Config Settings
 
 func Initialize(configFile string) {
 	yamlData, err := loadConfigFile(configFile)
+	if err != nil && configFile != "config.yaml" {
+		logger.Fatal("Could not load specified config file: " + err.Error())
+	}
 	if err != nil {
 		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
 	}
@@ -89,7 +92,6 @@ func Initialize(configFile string) {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
 	}
-
 }
 
 func loadConfigFile(configFile string) ([]byte, error) {
