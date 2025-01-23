@@ -6,13 +6,13 @@ All notable changes to this project will be documented in this file. For commit 
 
   **New Features**
   - right-click actions are available on search window.
-  - office file previews
+  #- office file previews
 
   **Notes**
   - delete prompt lists all items that will be affected by delete
 
   **Bugfixes**:
-  - when closing/going back on onlyoffice document a refresh was needed.
+  #- when closing/going back on onlyoffice document a refresh was needed.
   - calculating checksums would always error.
 
 ## v0.4.0-beta
