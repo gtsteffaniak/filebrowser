@@ -8,7 +8,7 @@
         {{ $t("prompts.deleteMessageMultiple", { count: selectedCount }) }}
       </p>
       <div style="display: grid" class="searchContext">
-        <span v-for="item in nav"> {{ item }} </span>
+        <span v-for="(item, index) in nav" :key="index"> {{ item }} </span>
       </div>
     </div>
     <div class="card-action">
