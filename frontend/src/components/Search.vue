@@ -311,6 +311,8 @@ export default {
     },
     open() {
       if (!state.isSearchActive) {
+        mutations.closeHovers();
+        mutations.closeSidebar();
         mutations.resetSelected();
         this.resetSearchFilters();
         mutations.setSearch(true);

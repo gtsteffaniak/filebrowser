@@ -5,7 +5,7 @@
       icon="menu"
       :label="$t('buttons.toggleSidebar')"
       @action="toggleSidebar()"
-      :disabled="showOverlay"
+      :disabled="isSearchActive"
     />
     <search v-if="showSearch"></search>
     <action
@@ -13,7 +13,7 @@
       icon="grid_view"
       :label="$t('buttons.switchView')"
       @action="switchView"
-      :disabled="showOverlay"
+      :disabled="isSearchActive"
     />
   </header>
 </template>
@@ -46,8 +46,8 @@ export default {
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() == "listingView";
     },
-    showOverlay() {
-      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
+    isSearchActive() {
+      return state.isSearchActive;
     },
     viewIcon() {
       const icons = {
