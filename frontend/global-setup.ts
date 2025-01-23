@@ -12,7 +12,7 @@ async function globalSetup() {
     await page.waitForURL("**/files/", { timeout: 100 });
     let cookies = await context.cookies();
     expect(cookies.find((c) => c.name == "auth")?.value).toBeDefined();
-    await expect(page).toHaveTitle('playwright-files - FileBrowser Quantum - Files');
+    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     await page.context().storageState({ path: "./loginAuth.json" });
     await browser.close();
 }

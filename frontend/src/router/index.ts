@@ -129,7 +129,6 @@ router.beforeResolve(async (to, from, next) => {
     console.warn("Avoiding recursive navigation to the same route.");
     return next(false);
   }
-
   // Set the page title using i18n
   const title = i18n.global.t(titles[to.name as keyof typeof titles]);
   document.title = name + " - " + title ;

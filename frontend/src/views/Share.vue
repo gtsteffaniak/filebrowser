@@ -280,7 +280,7 @@ export default {
         file.hash = this.hash;
         this.token = file.token;
         mutations.replaceRequest(file);
-        document.title = `${file.name} - ${document.title}`;
+        document.title = `${document.title} - ${file.name}`;
       } catch (error) {
         this.error = error;
       }
