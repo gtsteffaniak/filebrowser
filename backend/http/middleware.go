@@ -108,7 +108,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		tokenString, err := extractToken(r)
 		if err != nil {
-			logger.Debug(fmt.Sprintf("error extracting from request %v", err))
 			return http.StatusUnauthorized, err
 		}
 		data.token = tokenString

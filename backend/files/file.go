@@ -208,11 +208,11 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	index := GetIndex(source)
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
-		Path:  filepath.Dir(realsrc),
+		Path:  realsrc,
 		IsDir: isSrcDir,
 	})
 	if err != nil {
-		return errors.ErrEmptyKey
+		return fmt.Errorf("could not refresh index for source: %v", err)
 	}
 	refreshConfig := FileOptions{Path: realdst, IsDir: true}
 	if !isSrcDir {
@@ -220,7 +220,7 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
-		return errors.ErrEmptyKey
+		return fmt.Errorf("could not refresh index for dest: %v", err)
 	}
 	return nil
 }
