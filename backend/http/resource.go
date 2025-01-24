@@ -16,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -117,10 +118,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// delete thumbnails
-	err = delThumbs(r.Context(), fileCache, fileInfo)
-	if err != nil {
-		return errToStatus(err), err
-	}
+	delThumbs(r.Context(), fileCache, fileInfo)
 
 	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath))
 	if err != nil {
@@ -186,10 +184,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusForbidden, nil
 		}
 
-		err = delThumbs(r.Context(), fileCache, fileInfo)
-		if err != nil {
-			return errToStatus(err), err
-		}
+		delThumbs(r.Context(), fileCache, fileInfo)
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	if err != nil {
@@ -314,7 +309,9 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	err = d.RunHook(func() error {
 		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
 	}, action, realSrc, realDest, d.user)
-
+	if err != nil {
+		logger.Debug(fmt.Sprintf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err))
+	}
 	return errToStatus(err), err
 }
 
@@ -334,11 +331,8 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFileInfo) error {
-	if err := fileCache.Delete(ctx, previewCacheKey(file.RealPath, "small", file.FileInfo.ModTime)); err != nil {
-		return err
-	}
-	return nil
+func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFileInfo) {
+	fileCache.Delete(ctx, previewCacheKey(file.RealPath, "small", file.FileInfo.ModTime))
 }
 
 func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, index string) error {
@@ -350,7 +344,6 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		err := files.CopyResource(index, src, dst, isSrcDir)
 		return err
 	case "rename", "move":
-
 		if !d.user.Perm.Rename {
 			return errors.ErrPermissionDenied
 		}
@@ -368,10 +361,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		}
 
 		// delete thumbnails
-		err = delThumbs(ctx, fileCache, fileInfo)
-		if err != nil {
-			return err
-		}
+		delThumbs(ctx, fileCache, fileInfo)
 		return files.MoveResource(index, src, dst, isSrcDir)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)

@@ -74,12 +74,21 @@ export default {
     },
   },
   mounted() {
-    for (let item of state.selected) {
-      this.items.push({
-        from: state.req.items[item].url,
-        // add to: dest
-        name: state.req.items[item].name,
-      });
+    if (state.isSearchActive) {
+      this.items = [
+        {
+          from: "/files" + state.selected[0].url,
+          name: state.selected[0].name,
+        },
+      ];
+    } else {
+      for (let item of state.selected) {
+        this.items.push({
+          from: state.req.items[item].url,
+          // add to: dest
+          name: state.req.items[item].name,
+        });
+      }
     }
   },
   methods: {
@@ -88,9 +97,8 @@ export default {
       try {
         // Define the action function
         let action = async (overwrite, rename) => {
-          const loc = removePrefix(this.dest, "files");
           for (let item of this.items) {
-            item.to = loc + "/" + item.name;
+            item.to = this.dest + item.name;
           }
           buttons.loading("copy");
           await filesApi.moveCopy(this.items, "copy", overwrite, rename);
@@ -123,6 +131,7 @@ export default {
           await action(overwrite, rename);
         }
         mutations.closeHovers();
+        mutations.setSearch(false);
         notify.showSuccess("Successfully copied file/folder, redirecting...");
         setTimeout(() => {
           this.$router.push(this.dest);

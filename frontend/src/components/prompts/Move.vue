@@ -35,7 +35,6 @@
         <button
           class="button button--flat"
           @click="move"
-          :disabled="$route.path === dest"
           :aria-label="$t('buttons.move')"
           :title="$t('buttons.move')"
         >
@@ -52,8 +51,8 @@ import FileList from "./FileList.vue";
 import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { notify } from "@/notify";
 import { removePrefix } from "@/utils/url";
+import { notify } from "@/notify";
 
 export default {
   name: "move",
@@ -74,12 +73,21 @@ export default {
     },
   },
   mounted() {
-    for (let item of state.selected) {
-      this.items.push({
-        from: state.req.items[item].url,
-        // add to: dest
-        name: state.req.items[item].name,
-      });
+    if (state.isSearchActive) {
+      this.items = [
+        {
+          from: "/files" + state.selected[0].url,
+          name: state.selected[0].name,
+        },
+      ];
+    } else {
+      for (let item of state.selected) {
+        this.items.push({
+          from: state.req.items[item].url,
+          // add to: dest
+          name: state.req.items[item].name,
+        });
+      }
     }
   },
   methods: {
@@ -88,18 +96,15 @@ export default {
       try {
         // Define the action function
         let action = async (overwrite, rename) => {
-          const loc = removePrefix(this.dest, "files");
           for (let item of this.items) {
-            item.to = loc + "/" + item.name;
+            item.to = this.dest + item.name;
           }
           buttons.loading("move");
           await filesApi.moveCopy(this.items, "move", overwrite, rename);
         };
-
         // Fetch destination files
         let dstResp = await filesApi.fetchFiles(this.dest);
         let conflict = upload.checkConflict(this.items, dstResp.items);
-
         let overwrite = false;
         let rename = false;
 
@@ -125,13 +130,13 @@ export default {
           await action(overwrite, rename);
         }
         mutations.closeHovers();
+        mutations.setSearch(false);
         notify.showSuccess("Successfully moved file/folder, redirecting...");
         setTimeout(() => {
           this.$router.push(this.dest);
         }, 1000);
-      } catch (e) {
-        // Catch any errors from action or other parts of the flow
-        notify.showError(e);
+      } catch (error) {
+        notify.showError(error);
       }
     },
   },

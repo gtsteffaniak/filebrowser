@@ -1,5 +1,9 @@
 <template>
-  <div id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }">
+  <div
+    id="search"
+    :class="{ active, ongoing, 'dark-mode': isDarkMode }"
+    @click="clearContext"
+  >
     <!-- Search input section -->
     <div id="input" @click="open">
       <!-- Close button visible when search is active -->
@@ -265,7 +269,13 @@ export default {
       return this.getRelativeContext();
     },
     activeStates() {
-      return this.results.map((s) => state.selected.includes(s));
+      // Create a Set of combined `name` and `type` keys for efficient lookup
+      const selectedSet = new Set(
+        state.selected.map((item) => `${item.name}:${item.type}`)
+      );
+      const result = this.results.map((s) => selectedSet.has(`${s.name}:${s.type}`));
+      // Build a map of active states for the `results` array
+      return result;
     },
   },
   methods: {
@@ -390,6 +400,9 @@ export default {
     toggleHelp() {
       this.showHelp = !this.showHelp;
     },
+    clearContext() {
+      mutations.closeHovers();
+    },
     addSelected(event, s) {
       const pathParts = s.path.split("/");
       const path = removePrefix(decodeURIComponent(state.route.path), "files") + s.path;
@@ -400,8 +413,8 @@ export default {
         type: s.type,
         source: "",
         url: path,
+        fullPath: path,
       };
-      console.log(modifiedItem);
       mutations.resetSelected();
       mutations.addSelected(modifiedItem);
     },
