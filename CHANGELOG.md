@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
   **Bugfixes**:
   - calculating checksums errors.
   - copy/move issues for some circumstances.
-  - The previous position wasn't returned when closing a preview window
+  - The previous position wasn't returned when closing a preview window https://github.com/gtsteffaniak/filebrowser/issues/298
 
 ## v0.4.0-beta
 
