@@ -51,7 +51,6 @@ import FileList from "./FileList.vue";
 import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
-import { removePrefix } from "@/utils/url";
 import { notify } from "@/notify";
 
 export default {
