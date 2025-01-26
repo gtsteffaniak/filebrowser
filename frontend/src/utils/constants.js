@@ -25,7 +25,7 @@ const settings = [
   { id: 'profile', label: 'Profile Management', component: 'ProfileSettings' },
   { id: 'shares', label: 'Share Management', component: 'SharesSettings', perm: { share: true } },
   { id: 'api', label: 'API Keys', component: 'ApiKeys', perm: { api: true }  },
-  { id: 'global', label: 'Global', component: 'GlobalSettings', perm: { admin: true } },
+  //{ id: 'global', label: 'Global', component: 'GlobalSettings', perm: { admin: true } },
   { id: 'users', label: 'User Management', component: 'UserManagement' },
 ]
 

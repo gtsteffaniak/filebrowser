@@ -6,10 +6,8 @@ server:
   tlsCert: ""
   enableThumbnails: false
   resizePreview: true
-  typeDetectionByHeader: true
   port: 80
   baseURL: "/"
-  address: ""
   database: "mydb.db"
   root: "/srv"
 auth:
