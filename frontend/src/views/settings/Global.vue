@@ -20,13 +20,11 @@ import { notify } from "@/notify";
 import { state, mutations, getters } from "@/store";
 import { settingsApi } from "@/api";
 import { enableExec } from "@/utils/constants";
-import Rules from "@/components/settings/Rules.vue";
 import Errors from "@/views/Errors.vue";
 
 export default {
   name: "settings",
   components: {
-    Rules,
     Errors,
   },
   data: function () {
