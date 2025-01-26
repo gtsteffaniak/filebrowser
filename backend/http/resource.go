@@ -303,7 +303,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if overwrite && !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
-	err = d.RunHook(func() error {
+	err = d.Runner.RunHook(func() error {
 		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
 	}, action, realSrc, realDest, d.user)
 	if err != nil {

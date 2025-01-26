@@ -1,3 +1,5 @@
+//go:build windows
+
 package files
 
 import (
@@ -8,8 +10,9 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
+
+	"golang.org/x/sys/windows"
 
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
@@ -286,36 +289,39 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 }
 
 func isHidden(file os.FileInfo, srcPath string) bool {
+	// Check if the file starts with a dot (common on Unix systems)
 	if file.Name()[0] == '.' {
 		return true
 	}
+
 	// Construct the absolute realpath
 	realpath := filepath.Join(srcPath, file.Name())
+
 	if runtime.GOOS == "windows" {
-		// Use GetFileAttributesW to check for hidden attribute
-		pointer, err := syscall.UTF16PtrFromString(realpath)
+		// Convert the realpath to a UTF-16 pointer
+		pointer, err := windows.UTF16PtrFromString(realpath)
 		if err != nil {
-			fmt.Println("Error converting path to UTF16:", err)
 			return false
 		}
 
-		attributes, err := syscall.GetFileAttributes(pointer)
+		// Get the file attributes
+		attributes, err := windows.GetFileAttributes(pointer)
 		if err != nil {
-			fmt.Println("Error getting file attributes:", err)
 			return false
 		}
 
 		// Check if the hidden attribute is set
-		if attributes&syscall.FILE_ATTRIBUTE_HIDDEN != 0 {
+		if attributes&windows.FILE_ATTRIBUTE_HIDDEN != 0 {
 			return true
 		}
 
-		// Additional check for system attribute (optional)
-		if attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0 {
-			fmt.Println("File is a system file")
+		// Optional: Check for system attribute
+		if attributes&windows.FILE_ATTRIBUTE_SYSTEM != 0 {
+			return true
 		}
 	}
 
+	// Default behavior for non-Windows systems
 	return false
 }
 
