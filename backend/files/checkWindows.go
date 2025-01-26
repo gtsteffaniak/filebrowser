@@ -29,4 +29,5 @@ func checkWindowsHidden(realpath string) bool {
 	if attributes&windows.FILE_ATTRIBUTE_SYSTEM != 0 {
 		return true
 	}
+	return false
 }
