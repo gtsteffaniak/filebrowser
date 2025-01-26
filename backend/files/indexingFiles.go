@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
@@ -124,7 +126,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 		isDir := file.IsDir()
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(isDir, isHidden(file, ""), fullCombined) {
+		if idx.shouldSkip(isDir, isHidden(file, idx.Path+combinedPath), fullCombined) {
 			continue
 		}
 		itemInfo := &ItemInfo{
@@ -282,7 +284,37 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 	return nil
 }
 
-func isHidden(file os.FileInfo, realpath string) bool {
+func isHidden(file os.FileInfo, srcPath string) bool {
+	// Construct the absolute realpath
+	realpath := filepath.Join(srcPath, file.Name())
+	if runtime.GOOS == "windows" {
+		// Use GetFileAttributesW to check for hidden attribute
+		pointer, err := syscall.UTF16PtrFromString(realpath)
+		if err != nil {
+			fmt.Println("Error converting path to UTF16:", err)
+			return false
+		}
+
+		attributes, err := syscall.GetFileAttributes(pointer)
+		if err != nil {
+			fmt.Println("Error getting file attributes:", err)
+			return false
+		}
+
+		// Check if the hidden attribute is set
+		if attributes&syscall.FILE_ATTRIBUTE_HIDDEN != 0 {
+			return true
+		}
+
+		// Additional check for system attribute (optional)
+		if attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0 {
+			fmt.Println("File is a system file")
+		}
+
+		return false
+	}
+
+	// Default behavior for non-Windows systems
 	return file.Name()[0] == '.'
 }
 
