@@ -40,8 +40,7 @@ export default {
       }
 
       mutations.replaceRequest({});
-      let uri = url.removeLastDir(state.route.path) + "/";
-      router.push({ path: uri });
+      router.go(-1)
     },
   },
 };
