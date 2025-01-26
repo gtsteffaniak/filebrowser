@@ -145,7 +145,7 @@ func setDefaults() Settings {
 			StickySidebar:   true,
 			Scope:           ".",
 			LockPassword:    false,
-			HideDotfiles:    true,
+			ShowHidden:      true,
 			DarkMode:        false,
 			DisableSettings: false,
 			ViewMode:        "normal",

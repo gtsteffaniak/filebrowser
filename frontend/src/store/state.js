@@ -19,7 +19,7 @@ export const state = reactive({
     stickySidebar: stickyStartup(),
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view
-    hideDotfiles: false, // Default to false, assuming this is a boolean
+    showHidden: false, // Default to false, assuming this is a boolean
     perm: {},
     rules: [], // Default to an empty array
     permissions: {}, // Default to an empty object for permissions

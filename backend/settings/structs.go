@@ -130,10 +130,10 @@ type UserDefaults struct {
 		By  string `json:"by"`
 		Asc bool   `json:"asc"`
 	} `json:"sorting"`
-	Perm         users.Permissions `json:"perm"`
-	Permissions  users.Permissions `json:"permissions"`
-	Commands     []string          `json:"commands,omitempty"`
-	HideDotfiles bool              `json:"hideDotfiles"`
-	DateFormat   bool              `json:"dateFormat"`
-	ThemeColor   string            `json:"themeColor"`
+	Perm        users.Permissions `json:"perm"`
+	Permissions users.Permissions `json:"permissions"`
+	Commands    []string          `json:"commands,omitempty"`
+	ShowHidden  bool              `json:"showHidden"`
+	DateFormat  bool              `json:"dateFormat"`
+	ThemeColor  string            `json:"themeColor"`
 }

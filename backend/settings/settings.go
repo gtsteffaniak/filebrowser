@@ -52,7 +52,7 @@ func ApplyUserDefaults(u users.User) users.User {
 	u.Perm = Config.UserDefaults.Perm
 	u.Sorting = Config.UserDefaults.Sorting
 	u.Commands = Config.UserDefaults.Commands
-	u.HideDotfiles = Config.UserDefaults.HideDotfiles
+	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
 	return u
 }

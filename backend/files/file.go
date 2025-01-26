@@ -39,6 +39,7 @@ type ItemInfo struct {
 	Size    int64     `json:"size"`     // length in bytes for regular files
 	ModTime time.Time `json:"modified"` // modification time
 	Type    string    `json:"type"`     // type of the file, either "directory" or a file mimetype
+	Hidden  bool      `json:"hidden"`   // whether the file is hidden
 }
 
 // FileInfo describes a file.

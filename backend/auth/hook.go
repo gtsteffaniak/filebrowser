@@ -146,16 +146,16 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 	if u == nil {
 		// create user with the provided credentials
 		d := &users.User{
-			Username:     a.Cred.Username,
-			Password:     a.Cred.Password,
-			Scope:        a.Settings.UserDefaults.Scope,
-			Locale:       a.Settings.UserDefaults.Locale,
-			ViewMode:     a.Settings.UserDefaults.ViewMode,
-			SingleClick:  a.Settings.UserDefaults.SingleClick,
-			Sorting:      a.Settings.UserDefaults.Sorting,
-			Perm:         a.Settings.UserDefaults.Perm,
-			Commands:     a.Settings.UserDefaults.Commands,
-			HideDotfiles: a.Settings.UserDefaults.HideDotfiles,
+			Username:    a.Cred.Username,
+			Password:    a.Cred.Password,
+			Scope:       a.Settings.UserDefaults.Scope,
+			Locale:      a.Settings.UserDefaults.Locale,
+			ViewMode:    a.Settings.UserDefaults.ViewMode,
+			SingleClick: a.Settings.UserDefaults.SingleClick,
+			Sorting:     a.Settings.UserDefaults.Sorting,
+			Perm:        a.Settings.UserDefaults.Perm,
+			Commands:    a.Settings.UserDefaults.Commands,
+			ShowHidden:  a.Settings.UserDefaults.ShowHidden,
 		}
 		u = a.GetUser(d)
 
@@ -209,7 +209,7 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 			By:  d.Sorting.By,
 		},
 		Commands:     d.Commands,
-		HideDotfiles: d.HideDotfiles,
+		ShowHidden:   d.ShowHidden,
 		Perm:         perms,
 		LockPassword: true,
 	}
@@ -232,7 +232,7 @@ var validHookFields = []string{
 	"user.sorting.by",
 	"user.sorting.asc",
 	"user.commands",
-	"user.hideDotfiles",
+	"user.showHidden",
 	"user.perm.admin",
 	"user.perm.execute",
 	"user.perm.create",
