@@ -1,5 +1,3 @@
-//go:build windows
-
 package files
 
 import (
@@ -11,8 +9,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"golang.org/x/sys/windows"
 
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
@@ -294,31 +290,8 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 		return true
 	}
 
-	// Construct the absolute realpath
-	realpath := filepath.Join(srcPath, file.Name())
-
 	if runtime.GOOS == "windows" {
-		// Convert the realpath to a UTF-16 pointer
-		pointer, err := windows.UTF16PtrFromString(realpath)
-		if err != nil {
-			return false
-		}
-
-		// Get the file attributes
-		attributes, err := windows.GetFileAttributes(pointer)
-		if err != nil {
-			return false
-		}
-
-		// Check if the hidden attribute is set
-		if attributes&windows.FILE_ATTRIBUTE_HIDDEN != 0 {
-			return true
-		}
-
-		// Optional: Check for system attribute
-		if attributes&windows.FILE_ATTRIBUTE_SYSTEM != 0 {
-			return true
-		}
+		return checkWindowsHidden(filepath.Join(srcPath, file.Name()))
 	}
 
 	// Default behavior for non-Windows systems
