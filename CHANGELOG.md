@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Notes**:
   - cleaned up old and deprecated config.
+  - removed unneeded "Global settings". All system configuration is done on config yaml, See configuration wiki for more help.
 
   **Bugfixes**:
   - Another fix for memory https://github.com/gtsteffaniak/filebrowser/issues/298
