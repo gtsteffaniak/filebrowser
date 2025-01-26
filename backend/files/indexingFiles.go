@@ -123,15 +123,16 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-
+		isHidden := isHidden(file, idx.Path+combinedPath)
 		isDir := file.IsDir()
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(isDir, isHidden(file, idx.Path+combinedPath), fullCombined) {
+		if idx.shouldSkip(isDir, isHidden, fullCombined) {
 			continue
 		}
 		itemInfo := &ItemInfo{
 			Name:    file.Name(),
 			ModTime: file.ModTime(),
+			Hidden:  isHidden,
 		}
 
 		// fix for .app files on macos which are technically directories, but we don't want to treat them as such
@@ -285,6 +286,9 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 }
 
 func isHidden(file os.FileInfo, srcPath string) bool {
+	if file.Name()[0] == '.' {
+		return true
+	}
 	// Construct the absolute realpath
 	realpath := filepath.Join(srcPath, file.Name())
 	if runtime.GOOS == "windows" {
@@ -310,12 +314,9 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 		if attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0 {
 			fmt.Println("File is a system file")
 		}
-
-		return false
 	}
 
-	// Default behavior for non-Windows systems
-	return file.Name()[0] == '.'
+	return false
 }
 
 func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) bool {

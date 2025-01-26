@@ -9,7 +9,7 @@ server:
   port: 80
   baseURL: "/"
   database: "mydb.db"
-  root: "/srv"
+  root: "."
 auth:
   recaptcha:
     host: ""
@@ -45,5 +45,4 @@ userDefaults:
     delete: true
     share: true
     download: true
-  hideDotfiles: false
   dateFormat: false

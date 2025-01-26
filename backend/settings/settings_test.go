@@ -42,7 +42,7 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 	}{
 		{"Auth.Method", Config.Auth.Method, newConfig.Auth.Method},
 		{"Auth.Method", Config.Auth.Method, newConfig.Auth.Method},
-		{"UserDefaults.HideDotfiles", Config.UserDefaults.HideDotfiles, newConfig.UserDefaults.HideDotfiles},
+		{"UserDefaults.ShowHidden", Config.UserDefaults.ShowHidden, newConfig.UserDefaults.ShowHidden},
 		{"Server.Database", Config.Server.Database, newConfig.Server.Database},
 	}
 
