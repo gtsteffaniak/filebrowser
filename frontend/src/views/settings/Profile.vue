@@ -11,8 +11,8 @@
             {{ $t("settings.setDateFormat") }}
           </p>
           <p>
-            <input type="checkbox" v-model="hideDotfiles" />
-            {{ $t("settings.hideDotfiles") }}
+            <input type="checkbox" v-model="showHidden" />
+            show hidden files
           </p>
           <h3>Theme Color</h3>
           <ButtonGroup :buttons="colorChoices" @button-clicked="setColor" :initialActive="color" />
@@ -44,7 +44,7 @@ export default {
       initialized: false,
       locale: "",
       color: "",
-      hideDotfiles: false,
+      showHidden: false,
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
         { label: "red", value: "var(--red)" },
@@ -56,7 +56,7 @@ export default {
     };
   },
   watch: {
-    hideDotfiles: function () {
+    showHidden: function () {
       if (this.initialized) {
         this.updateSettings(); // Only run if initialized
       }
@@ -80,7 +80,7 @@ export default {
   },
   created() {
     this.locale = state.user.locale;
-    this.hideDotfiles = state.user.hideDotfiles;
+    this.showHidden = state.user.showHidden;
     this.dateFormat = state.user.dateFormat;
     this.color = state.user.themeColor;
   },
@@ -103,7 +103,7 @@ export default {
         const data = {
           id: state.user.id,
           locale: this.locale,
-          hideDotfiles: this.hideDotfiles,
+          showHidden: this.showHidden,
           dateFormat: this.dateFormat,
           themeColor: this.color,
         };
@@ -111,7 +111,7 @@ export default {
           rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
         await usersApi.update(data, [
           "locale",
-          "hideDotfiles",
+          "showHidden",
           "dateFormat",
         ]);
         mutations.updateCurrentUser(data);

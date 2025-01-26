@@ -100,6 +100,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
+            v-bind:hidden="item.hidden"
           />
         </div>
         <div v-if="numFiles > 0">
@@ -119,6 +120,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
+            v-bind:hidden="item.hidden"
           />
         </div>
 
