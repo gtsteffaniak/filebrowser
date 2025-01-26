@@ -1,5 +1,9 @@
 <template>
-  <div id="search" :class="{ active, ongoing, 'dark-mode': isDarkMode }">
+  <div
+    id="search"
+    :class="{ active, ongoing, 'dark-mode': isDarkMode }"
+    @click="clearContext"
+  >
     <!-- Search input section -->
     <div id="input" @click="open">
       <!-- Close button visible when search is active -->
@@ -115,11 +119,18 @@
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
-          <li v-for="(s, k) in results" :key="k" class="search-entry">
-            <a :href="getRelative(s.path)">
+          <li
+            v-for="(s, k) in results"
+            :key="k"
+            class="search-entry"
+            :class="{ active: activeStates[k] }"
+            :aria-label="baseName(s.path)"
+          >
+            <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path, s.type === "directory")}}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.type === "directory")
+                }}<b>{{ baseName(s.path) }}</b>
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -136,6 +147,7 @@ import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { removeTrailingSlash, removeLeadingSlash } from "@/utils/url";
+import { removePrefix } from "@/utils/url.js";
 
 import Icon from "@/components/Icon.vue";
 
@@ -226,7 +238,7 @@ export default {
       return this.isTypeSelectDisabled;
     },
     active() {
-      return getters.currentPromptName() == "search";
+      return state.isSearchActive;
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -255,17 +267,22 @@ export default {
       return this.showHelp;
     },
     getContext() {
-      let path = state.route.path;
-      path = path.slice(1);
-      path = "./" + path.substring(path.indexOf("/") + 1);
-      path = path.replace(/\/+$/, "") + "/";
-      if (path == "./files/") {
-        path = "./";
-      }
-      return path;
+      return this.getRelativeContext();
+    },
+    activeStates() {
+      // Create a Set of combined `name` and `type` keys for efficient lookup
+      const selectedSet = new Set(
+        state.selected.map((item) => `${item.name}:${item.type}`)
+      );
+      const result = this.results.map((s) => selectedSet.has(`${s.name}:${s.type}`));
+      // Build a map of active states for the `results` array
+      return result;
     },
   },
   methods: {
+    getRelativeContext() {
+      return removePrefix(decodeURIComponent(state.route.path), "files");
+    },
     getRelative(path) {
       return removeTrailingSlash(window.location.href) + "/" + removeLeadingSlash(path);
     },
@@ -304,15 +321,18 @@ export default {
       return parts.pop();
     },
     open() {
-      if (!this.active) {
+      if (!state.isSearchActive) {
+        mutations.closeHovers();
+        mutations.closeSidebar();
+        mutations.resetSelected();
         this.resetSearchFilters();
-        mutations.showHover("search");
+        mutations.setSearch(true);
       }
     },
     close(event) {
       this.value = "";
       event.stopPropagation();
-      mutations.closeHovers();
+      mutations.setSearch(false);
     },
     keyup(event) {
       if (event.keyCode === 27) {
@@ -380,6 +400,24 @@ export default {
     },
     toggleHelp() {
       this.showHelp = !this.showHelp;
+    },
+    clearContext() {
+      mutations.closeHovers();
+    },
+    addSelected(event, s) {
+      const pathParts = s.path.split("/");
+      const path = removePrefix(decodeURIComponent(state.route.path), "files") + s.path;
+      const modifiedItem = {
+        name: pathParts.pop(),
+        path: path,
+        size: s.size,
+        type: s.type,
+        source: "",
+        url: path,
+        fullPath: path,
+      };
+      mutations.resetSelected();
+      mutations.addSelected(modifiedItem);
     },
   },
 };
@@ -509,6 +547,10 @@ export default {
 .search-entry {
   cursor: pointer;
   border-radius: 0.25em;
+}
+
+.search-entry.active {
+  background-color: var(--surfacePrimary);
 }
 
 .search-entry:hover {

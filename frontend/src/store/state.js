@@ -5,6 +5,7 @@ export const state = reactive({
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
   isMobile: window.innerWidth <= 800,
+  isSearchActive: false,
   showSidebar: false,
   usage: {
     used: "0 B",

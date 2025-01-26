@@ -11,13 +11,14 @@ import (
 
 // Logger wraps the standard log.Logger with log level functionality
 type Logger struct {
-	logger      *log.Logger
-	levels      []LogLevel
-	apiLevels   []LogLevel
-	stdout      bool
-	disabled    bool
-	disabledAPI bool
-	colors      bool
+	logger       *log.Logger
+	levels       []LogLevel
+	apiLevels    []LogLevel
+	stdout       bool
+	disabled     bool
+	debugEnabled bool
+	disabledAPI  bool
+	colors       bool
 }
 
 var stdOutLoggerExists bool
@@ -34,7 +35,7 @@ func NewLogger(filepath string, levels, apiLevels []LogLevel, noColors bool) (*L
 		}
 		fileWriter = file
 	}
-	flags := log.Ldate | log.Ltime
+	var flags int
 	if slices.Contains(levels, DEBUG) {
 		flags |= log.Lshortfile
 	}
@@ -46,13 +47,14 @@ func NewLogger(filepath string, levels, apiLevels []LogLevel, noColors bool) (*L
 		stdOutLoggerExists = true
 	}
 	return &Logger{
-		logger:      logger,
-		levels:      levels,
-		apiLevels:   apiLevels,
-		disabled:    slices.Contains(levels, DISABLED),
-		disabledAPI: slices.Contains(apiLevels, DISABLED),
-		colors:      !noColors,
-		stdout:      stdout,
+		logger:       logger,
+		levels:       levels,
+		apiLevels:    apiLevels,
+		disabled:     slices.Contains(levels, DISABLED),
+		debugEnabled: slices.Contains(levels, DEBUG),
+		disabledAPI:  slices.Contains(apiLevels, DISABLED),
+		colors:       !noColors,
+		stdout:       stdout,
 	}, nil
 }
 
@@ -66,6 +68,9 @@ func SetupLogger(output, levels, apiLevels string, noColors bool) error {
 		upperLevel := strings.ToUpper(level)
 		if upperLevel == "WARNING" || upperLevel == "WARN" {
 			upperLevel = "WARN "
+		}
+		if upperLevel == "INFO" {
+			upperLevel = "INFO "
 		}
 		// Convert level strings to LogLevel
 		level, ok := stringToLevel[upperLevel]
@@ -86,6 +91,9 @@ func SetupLogger(output, levels, apiLevels string, noColors bool) error {
 		upperLevel := strings.ToUpper(level)
 		if upperLevel == "WARNING" || upperLevel == "WARN" {
 			upperLevel = "WARN "
+		}
+		if upperLevel == "INFO" {
+			upperLevel = "INFO "
 		}
 		// Convert level strings to LogLevel
 		level, ok := stringToLevel[strings.ToUpper(upperLevel)]
@@ -119,6 +127,7 @@ func SetupLogger(output, levels, apiLevels string, noColors bool) error {
 	loggers = append(loggers, logger)
 	return nil
 }
+
 func SplitByMultiple(str string) []string {
 	delimiters := []rune{'|', ',', ' '}
 	return strings.FieldsFunc(str, func(r rune) bool {

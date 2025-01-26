@@ -99,6 +99,9 @@ export default {
       return getters.isListing();
     },
     humanSize() {
+      if (state.isSearchActive) {
+        return getHumanReadableFilesize(state.selected[0].size);
+      }
       if (getters.selectedCount() === 0 || !this.isListing) {
         return getHumanReadableFilesize(state.req.size);
       }
@@ -112,6 +115,9 @@ export default {
       return getHumanReadableFilesize(sum);
     },
     humanTime() {
+      if (state.isSearchActive) {
+        return "unknown";
+      }
       if (getters.selectedCount() === 0) {
         return formatTimestamp(state.req.modified, state.user.locale);
       }
@@ -121,19 +127,31 @@ export default {
       );
     },
     modTime() {
+      if (state.isSearchActive) {
+        return "";
+      }
       return new Date(Date.parse(state.req.modified)).toLocaleString();
     },
     name() {
+      if (state.isSearchActive) {
+        return state.selected[0].name;
+      }
       return getters.selectedCount() === 0
         ? state.req.name
         : state.req.items[this.selected[0]].name;
     },
     type() {
+      if (state.isSearchActive) {
+        return state.selected[0].type;
+      }
       return getters.selectedCount() === 0
         ? state.req.type
         : state.req.items[this.selected[0]].type;
     },
     dir() {
+      if (state.isSearchActive) {
+        return state.selected[0].type === "directory";
+      }
       return (
         getters.selectedCount() > 1 ||
         (getters.selectedCount() === 0
@@ -145,9 +163,12 @@ export default {
   methods: {
     async checksum(event, algo) {
       event.preventDefault();
-
       let link;
-
+      if (state.isSearchActive) {
+        const hash = await filesApi.checksum(state.selected[0].url, algo);
+        event.target.innerHTML = hash;
+        return;
+      }
       if (getters.selectedCount()) {
         link = state.req.items[this.selected[0]].url;
       } else {

@@ -13,21 +13,20 @@
     <div v-if="selectedCount > 0" class="button selected-count-header">
       <span>{{ selectedCount }} selected</span>
     </div>
-
     <action
-      v-if="!headerButtons.select"
+      v-if="!isSearchActive"
       icon="create_new_folder"
       :label="$t('sidebar.newFolder')"
       @action="showHover('newDir')"
     />
     <action
-      v-if="!headerButtons.select"
+      v-if="!headerButtons.select && !isSearchActive"
       icon="note_add"
       :label="$t('sidebar.newFile')"
       @action="showHover('newFile')"
     />
     <action
-      v-if="!headerButtons.select"
+      v-if="!headerButtons.select && !isSearchActive"
       icon="file_upload"
       :label="$t('buttons.upload')"
       @action="uploadFunc"
@@ -40,7 +39,7 @@
       show="info"
     />
     <action
-      v-if="!isMultiple"
+      v-if="!isMultiple && !isSearchActive"
       icon="check_circle"
       :label="$t('buttons.selectMultiple')"
       @action="toggleMultipleSelection"
@@ -59,7 +58,7 @@
       show="share"
     />
     <action
-      v-if="headerButtons.rename"
+      v-if="headerButtons.rename && !isSearchActive"
       icon="mode_edit"
       :label="$t('buttons.rename')"
       show="rename"
@@ -102,6 +101,9 @@ export default {
     };
   },
   computed: {
+    isSearchActive() {
+      return state.isSearchActive;
+    },
     isMultiple() {
       return state.multiple;
     },

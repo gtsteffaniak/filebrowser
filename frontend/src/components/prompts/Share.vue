@@ -158,6 +158,9 @@ export default {
       return getters.isListing(); // Access getter directly from the store
     },
     url() {
+      if (state.isSearchActive) {
+        return state.selected[0].url;
+      }
       if (!this.isListing) {
         return state.route.path;
       }
@@ -170,11 +173,15 @@ export default {
   },
   async beforeMount() {
     try {
-      let path = "." + getters.routePath("files");
-      if (getters.selectedCount() === 1) {
-        path = path + state.req.items[this.selected[0]].name;
+      if (state.isSearchActive) {
+        this.subpath = state.selected[0].path;
+      } else {
+        let path = "." + getters.routePath("files");
+        if (getters.selectedCount() === 1) {
+          path = path + state.req.items[this.selected[0]].name;
+        }
+        this.subpath = decodeURIComponent(path);
       }
-      this.subpath = decodeURIComponent(path);
       // get last element of the path
       const links = await shareApi.get(this.subpath);
       this.links = links;
@@ -238,6 +245,9 @@ export default {
       return shareApi.getShareURL(share);
     },
     hasDownloadLink() {
+      if (state.isSearchActive) {
+        return state.selected[0].type != "directory";
+      }
       return this.selected.length === 1 && !state.req.items[this.selected[0]].isDir;
     },
     buildDownloadLink(share) {
