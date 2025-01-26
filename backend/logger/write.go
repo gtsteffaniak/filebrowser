@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"time"
 )
 
 type LogLevel int
@@ -38,7 +39,7 @@ type levelConsts struct {
 }
 
 var levels = levelConsts{
-	INFO:     "INFO",
+	INFO:     "INFO ", // with consistent space padding
 	FATAL:    "FATAL",
 	ERROR:    "ERROR",
 	WARNING:  "WARN ", // with consistent space padding
@@ -50,7 +51,7 @@ var levels = levelConsts{
 // stringToLevel maps string representation to LogLevel
 var stringToLevel = map[string]LogLevel{
 	"DEBUG":    DEBUG,
-	"INFO":     INFO,
+	"INFO ":    INFO, // with consistent space padding
 	"ERROR":    ERROR,
 	"DISABLED": DISABLED,
 	"WARN ":    WARNING, // with consistent space padding
@@ -71,15 +72,21 @@ func Log(level string, msg string, prefix, api bool, color string) {
 				continue
 			}
 		}
-		if logger.stdout && LEVEL == FATAL {
+		if logger.stdout && level == "FATAL" {
 			continue
 		}
 		writeOut := msg
-		if prefix {
-			writeOut = fmt.Sprintf("[%s] ", level) + writeOut
+		formattedTime := time.Now().Format("2006/01/02 15:04:05")
+		if logger.colors && color != "" {
+			formattedTime = formattedTime + color
+		}
+		if prefix || logger.debugEnabled {
+			logger.logger.SetPrefix(fmt.Sprintf("%s [%s] ", formattedTime, level))
+		} else {
+			logger.logger.SetPrefix(formattedTime + " ")
 		}
 		if logger.colors && color != "" {
-			writeOut = color + writeOut + "\033[0m"
+			writeOut = writeOut + "\033[0m"
 		}
 		err := logger.logger.Output(3, writeOut) // 3 skips this function for correct file:line
 		if err != nil {
@@ -102,6 +109,8 @@ func Api(msg string, statusCode int) {
 func Debug(msg string) {
 	if len(loggers) > 0 {
 		Log(levels.DEBUG, msg, true, false, GRAY)
+	} else {
+		log.Println("[DEBUG]: " + msg)
 	}
 }
 

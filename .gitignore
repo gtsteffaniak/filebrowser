@@ -6,6 +6,8 @@ _old
 rice-box.go
 .idea/
 /backend/backend
+/backend/filebrowser
+/backend/filebrowser.exe
 /backend/backend.exe
 /frontend/dist
 /frontend/pkg

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.4.1-beta
+
+  **New Features**
+  - right-click actions are available on search. https://github.com/gtsteffaniak/filebrowser/issues/273
+
+  **Notes**
+  - delete prompt now lists all items that will be affected by delete
+  - Debug and logger output tweaks.
+
+  **Bugfixes**:
+  - calculating checksums errors.
+  - copy/move issues for some circumstances.
+  - The previous position wasn't returned when closing a preview window https://github.com/gtsteffaniak/filebrowser/issues/298
+  - fixed sources configuration mapping error (advanced `server.sources` config)
+
 ## v0.4.0-beta
 
   **New Features**

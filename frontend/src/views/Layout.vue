@@ -19,8 +19,13 @@
     ></editorBar>
     <defaultBar v-else :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar></sidebar>
-    <search v-if="showSearch"></search>
-    <main :class="{ 'dark-mode': isDarkMode, moveWithSidebar: moveWithSidebar, 'main-padding': showPadding }">
+    <main
+      :class="{
+        'dark-mode': isDarkMode,
+        moveWithSidebar: moveWithSidebar,
+        'main-padding': showPadding,
+      }"
+    >
       <router-view></router-view>
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
@@ -38,7 +43,6 @@ import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/sidebar/Sidebar.vue";
-import Search from "@/components/Search.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 
 import { notify } from "@/notify";
@@ -49,7 +53,6 @@ export default {
   name: "layout",
   components: {
     ContextMenu,
-    Search,
     defaultBar,
     editorBar,
     listingBar,
@@ -73,9 +76,6 @@ export default {
   computed: {
     showPadding() {
       return getters.showBreadCrumbs();
-    },
-    showSearch() {
-      return getters.isLoggedIn() && this.currentView == "listingView";
     },
     isLoggedIn() {
       return getters.isLoggedIn();
@@ -135,6 +135,7 @@ export default {
     resetPrompts() {
       mutations.closeSidebar();
       mutations.closeHovers();
+      mutations.setSearch(false);
     },
   },
 };
