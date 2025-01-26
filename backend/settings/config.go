@@ -28,10 +28,32 @@ func Initialize(configFile string) {
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
+	if len(Config.Server.Logging) == 0 {
+		Config.Server.Logging = []LogConfig{
+			{
+				Output: "stdout",
+			},
+		}
+	}
+	for _, logConfig := range Config.Server.Logging {
+		err = logger.SetupLogger(
+			logConfig.Output,
+			logConfig.Levels,
+			logConfig.ApiLevels,
+			logConfig.NoColors,
+		)
+		if err != nil {
+			log.Println("[ERROR] Failed to set up logger:", err)
+		}
+	}
+
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	// Convert relative path to absolute path
 	if len(Config.Server.Sources) > 0 {
-		// TODO allow multipe sources not named default
+		if Config.Server.Root != "" {
+			logger.Warning("`server.root` is configured but will be ignored in favor of `server.sources`")
+		}
+		// TODO allow multiple sources not named default
 		for _, source := range Config.Server.Sources {
 			realPath, err2 := filepath.Abs(source.Path)
 			if err2 != nil {
@@ -71,24 +93,6 @@ func Initialize(configFile string) {
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
 	}
-	if len(Config.Server.Logging) == 0 {
-		Config.Server.Logging = []LogConfig{
-			{
-				Output: "stdout",
-			},
-		}
-	}
-	for _, logConfig := range Config.Server.Logging {
-		err = logger.SetupLogger(
-			logConfig.Output,
-			logConfig.Levels,
-			logConfig.ApiLevels,
-			logConfig.NoColors,
-		)
-		if err != nil {
-			log.Println("[ERROR] Failed to set up logger:", err)
-		}
-	}
 }
 
 func loadConfigFile(configFile string) ([]byte, error) {
@@ -125,11 +129,11 @@ func setDefaults() Settings {
 			Root:               ".",
 		},
 		Auth: Auth{
-			TokenExpirationTime: "2h",
-			AdminUsername:       "admin",
-			AdminPassword:       "admin",
-			Method:              "password",
-			Signup:              false,
+			TokenExpirationHours: 2,
+			AdminUsername:        "admin",
+			AdminPassword:        "admin",
+			Method:               "password",
+			Signup:               false,
 			Recaptcha: Recaptcha{
 				Host: "",
 			},
