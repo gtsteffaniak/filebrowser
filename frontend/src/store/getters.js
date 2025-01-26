@@ -45,6 +45,9 @@ export const getters = {
   getFirstSelected: () => state.req.items[state.selected[0]],
   isSingleFileSelected: () => getters.selectedCount() === 1 && getters.getFirstSelected()?.type != "directory",
   selectedDownloadUrl() {
+    if (state.isSearchActive) {
+      return state.selected[0].url;
+    }
     let selectedItem = state.selected[0]
     return state.req.items[selectedItem].url;
   },
