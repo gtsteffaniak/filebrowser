@@ -120,8 +120,8 @@ export const getters = {
   },
   showOverlay: () => {
     const hasPrompt = getters.currentPrompt() !== null && getters.currentPromptName() !== "more"
-    const shouldOverlaySidebar = getters.isSidebarVisible() && !getters.isStickySidebar()
-    return hasPrompt || shouldOverlaySidebar;
+    const showForSidebar = getters.isSidebarVisible() && !getters.isStickySidebar()
+    return hasPrompt || showForSidebar || state.isSearchActive;
   },
   showBreadCrumbs: () => {
     return getters.currentView() == "listingView" ;

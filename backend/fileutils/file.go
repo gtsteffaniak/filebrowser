@@ -1,6 +1,7 @@
 package fileutils
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -11,15 +12,21 @@ import (
 // By default, the rename system call is used. If src and dst point to different volumes,
 // the file copy is used as a fallback.
 func MoveFile(src, dst string) error {
+	fmt.Println("moving", src, dst)
 	if os.Rename(src, dst) == nil {
 		return nil
 	}
+	fmt.Println("copyfile instead", src, dst)
+
 	// fallback
 	err := CopyFile(src, dst)
 	if err != nil {
+		fmt.Println("ok it errored too", err)
+
 		_ = os.Remove(dst)
 		return err
 	}
+	fmt.Println("removing", src)
 	if err := os.Remove(src); err != nil {
 		return err
 	}

@@ -280,6 +280,7 @@ export default {
     },
   },
   mounted() {
+    mutations.setSearch(false);
     this.lastSelected = state.selected;
     // Check the columns size for the first time.
     this.colunmsResize();
@@ -504,6 +505,9 @@ export default {
       }
     },
     keyEvent(event) {
+      if (state.isSearchActive) {
+        return;
+      }
       const { key, ctrlKey, metaKey, which } = event;
       // Check if the key is alphanumeric
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
@@ -518,10 +522,11 @@ export default {
       // Handle the space bar key
       if (key === " ") {
         event.preventDefault();
-        if (getters.currentPromptName() == "search") {
+        if (state.isSearchActive) {
+          mutations.setSearch(false);
           mutations.closeHovers();
         } else {
-          mutations.showHover("search");
+          mutations.setSearch(true);
         }
       }
       if (getters.currentPromptName() != null) {

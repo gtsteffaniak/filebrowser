@@ -130,7 +130,6 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 	logger.Debug(fmt.Sprintf("Embeded frontend         : %v", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true"))
 	logger.Info(database)
 	logger.Info(fmt.Sprintf("Sources                  : %v", sources))
-
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL

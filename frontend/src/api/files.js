@@ -158,10 +158,16 @@ export async function moveCopy(items, action = "copy", overwrite = false, rename
 }
 
 
-export async function checksum(url, algo) {
+export async function checksum(path, algo) {
   try {
-    const data = await resourceAction(`${url}?checksum=${algo}`, "GET");
-    return (await data.json()).checksums[algo];
+    const params = {
+      path: encodeURIComponent(removePrefix(path, "files")),
+      checksum: algo,
+    };
+    const apiPath = getApiPath("api/resources", params);
+    const res = await fetchURL(apiPath);
+    const data = await res.json();
+    return data.checksums[algo];
   } catch (err) {
     notify.showError(err.message || "Error fetching checksum");
     throw err;

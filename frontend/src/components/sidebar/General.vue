@@ -4,10 +4,10 @@
       <div @click="navigateTo('/settings#profile-main')" class="inner-card">
         <i class="material-icons">person</i>
         {{ user.username }}
-        <i class="material-icons">settings</i>
+        <i aria-label="settings" class="material-icons">settings</i>
       </div>
 
-      <div class="inner-card logout-button" @click="logout" >
+      <div class="inner-card logout-button" @click="logout">
         <i v-if="canLogout" class="material-icons">exit_to_app</i>
       </div>
     </div>
@@ -94,7 +94,7 @@ export default {
     };
   },
   mounted() {
-      this.updateUsage();
+    this.updateUsage();
   },
   computed: {
     isSettings: () => getters.isSettings(),

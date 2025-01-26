@@ -5,14 +5,15 @@
       icon="menu"
       :label="$t('buttons.toggleSidebar')"
       @action="toggleSidebar()"
-      :disabled="showOverlay"
+      :disabled="isSearchActive"
     />
+    <search v-if="showSearch"></search>
     <action
       class="menu-button"
       icon="grid_view"
       :label="$t('buttons.switchView')"
       @action="switchView"
-      :disabled="showOverlay"
+      :disabled="isSearchActive"
     />
   </header>
 </template>
@@ -27,11 +28,13 @@
 <script>
 import { state, mutations, getters } from "@/store";
 import Action from "@/components/Action.vue";
+import Search from "@/components/Search.vue";
 
 export default {
   name: "listingView",
   components: {
     Action,
+    Search,
   },
   data: function () {
     return {
@@ -40,8 +43,11 @@ export default {
     };
   },
   computed: {
-    showOverlay() {
-      return getters.currentPrompt() !== null && getters.currentPromptName() !== "more";
+    showSearch() {
+      return getters.isLoggedIn() && getters.currentView() == "listingView";
+    },
+    isSearchActive() {
+      return state.isSearchActive;
     },
     viewIcon() {
       const icons = {
@@ -78,7 +84,7 @@ export default {
       const currentIndex = this.viewModes.indexOf(state.user.viewMode);
       const nextIndex = (currentIndex + 1) % this.viewModes.length;
       const newView = this.viewModes[nextIndex];
-      mutations.updateCurrentUser({ "viewMode": newView });
+      mutations.updateCurrentUser({ viewMode: newView });
     },
   },
 };

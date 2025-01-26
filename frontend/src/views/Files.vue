@@ -124,10 +124,7 @@ export default {
           res = await filesApi.fetchFiles(getters.routePath(), content);
         }
         data = res;
-        // Verify if the fetched path matches the current route
-        if (url.pathsMatch(res.path, `/${state.route.params.path}`)) {
-          document.title = `${res.name} - ${document.title}`;
-        }
+        document.title = `${document.title} - ${res.name}`;
       } catch (e) {
         notify.showError(e);
         this.error = e;

@@ -1,5 +1,8 @@
 <template>
-  <nav id="sidebar" :class="{ active: active, 'dark-mode': isDarkMode }">
+  <nav
+    id="sidebar"
+    :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay }"
+  >
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-else-if="isLoggedIn"></SidebarGeneral>
 
@@ -8,14 +11,16 @@
       <span v-for="item in externalLinks" :key="item.title">
         <a :href="item.url" target="_blank" :title="item.title">{{ item.text }}</a>
       </span>
-      <span v-if="name != ''"><h3>{{ name }}</h3></span>
+      <span v-if="name != ''">
+        <h4>{{ name }}</h4>
+      </span>
     </div>
   </nav>
 </template>
 
 <script>
 import { externalLinks, name } from "@/utils/constants";
-import { getters, mutations } from "@/store"; // Import your custom store
+import { getters, mutations, state } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
 
@@ -36,6 +41,7 @@ export default {
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
     active: () => getters.isSidebarVisible(),
+    behindOverlay: () => state.isSearchActive,
   },
   methods: {
     // Show the help overlay
@@ -65,7 +71,11 @@ export default {
   transition: 0.5s ease;
   top: 4em;
   padding-bottom: 4em;
-  background-color: #DDDDDD
+  background-color: #dddddd;
+}
+
+#sidebar.behind-overlay {
+  z-index: 3;
 }
 
 #sidebar.sticky {
@@ -106,7 +116,7 @@ body.rtl .action {
   text-align: right;
 }
 
-#sidebar .action>* {
+#sidebar .action > * {
   vertical-align: middle;
 }
 
@@ -121,7 +131,7 @@ body.rtl .action {
   padding-bottom: 1em;
 }
 
-.credits>span {
+.credits > span {
   display: block;
   margin-top: 0.5em;
   margin-left: 0;

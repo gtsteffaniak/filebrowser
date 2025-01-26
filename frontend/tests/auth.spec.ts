@@ -14,12 +14,12 @@ test("logout", async ({ page, context }) => {
   await page.goto('/');
   await expect(page.locator("div.wrong")).toBeHidden();
   await page.waitForURL("**/files/", { timeout: 100 });
-  await expect(page).toHaveTitle('playwright-files - FileBrowser Quantum - Files');
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   let cookies = await context.cookies();
   expect(cookies.find((c) => c.name == "auth")?.value).toBeDefined();
   await page.locator('div.inner-card.logout-button').click();
   await page.waitForURL("**/login", { timeout: 100 });
-  await expect(page).toHaveTitle('FileBrowser Quantum - Login');
+  await expect(page).toHaveTitle("Graham's Filebrowser - Login");
   cookies = await context.cookies();
   expect(cookies.find((c) => c.name == "auth")?.value).toBeUndefined();
 });
