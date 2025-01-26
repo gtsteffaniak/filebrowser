@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.4.2-beta
+
+  **New Features**
+  - windows hidden files are respected on index settings when running on windows with NTFS filesystem.
+
+  **Notes**:
+  - cleaned up old and deprecated config.
+
+  **Bugfixes**:
+  - Another fix for memory https://github.com/gtsteffaniak/filebrowser/issues/298
+
 ## v0.4.1-beta
 
   **New Features**
