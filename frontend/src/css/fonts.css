@@ -179,7 +179,7 @@
   font-family: 'Material Symbols Outlined';
   font-style: normal;
   font-weight: 400;
-  src: url(../assets/fonts/material/symbols-outlined.woff2)  format('woff');
+  src: url(../assets/fonts/material/symbols-outlined.woff)  format('woff');
 }
 
 .material-icons {
