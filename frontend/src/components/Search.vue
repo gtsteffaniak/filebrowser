@@ -120,6 +120,7 @@
             :key="k"
             class="search-entry"
             :class="{ active: activeStates[k] }"
+            :aria-label="baseName(s.path)"
           >
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" />

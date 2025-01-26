@@ -109,6 +109,8 @@ func Api(msg string, statusCode int) {
 func Debug(msg string) {
 	if len(loggers) > 0 {
 		Log(levels.DEBUG, msg, true, false, GRAY)
+	} else {
+		log.Println("[DEBUG]: " + msg)
 	}
 }
 

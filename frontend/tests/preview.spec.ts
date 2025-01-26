@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("file preview", async ({  page, context }) => {
+test("blob file preview", async ({  page, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="file.tar.gz"]').waitFor({ state: 'visible' });
@@ -8,6 +8,18 @@ test("file preview", async ({  page, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - file.tar.gz");
   await page.locator('button[title="Close"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files  - playwright-files");
+});
+
+test("text file editor", async ({ page, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="copyme.txt"]').dblclick();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - copyme.txt");
+  const firstLineText = await page.locator('.ace_text-layer .ace_line').first().textContent();
+  expect(firstLineText).toBe('test file for playwright');
+  await page.locator('button[title="Close"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 });
 
 test("navigate folders", async ({  page, context }) => {

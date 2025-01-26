@@ -38,21 +38,22 @@ func Initialize(configFile string) {
 				logger.Fatal(fmt.Sprintf("Error getting source path: %v", err2))
 			}
 			source.Path = realPath
-			source.Name = "default"                   // Modify the local copy of the map value
-			Config.Server.Sources["default"] = source // Assign the modified value back to the map
+			source.Name = "default"
+			Config.Server.Sources = []Source{source} // temporary set only one source
 		}
 	} else {
 		realPath, err2 := filepath.Abs(Config.Server.Root)
 		if err2 != nil {
 			logger.Fatal(fmt.Sprintf("Error getting source path: %v", err2))
 		}
-		Config.Server.Sources = map[string]Source{
-			"default": {
+		Config.Server.Sources = []Source{
+			{
 				Name: "default",
 				Path: realPath,
 			},
 		}
 	}
+
 	baseurl := strings.Trim(Config.Server.BaseURL, "/")
 	if baseurl == "" {
 		Config.Server.BaseURL = "/"
