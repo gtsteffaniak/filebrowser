@@ -6,7 +6,7 @@
 </p>
 <h3 align="center">FileBrowser Quantum - A modern web-based file manager</h3>
 <p align="center">
-  <img width="800" src="https://github.com/user-attachments/assets/b16acd67-0292-437a-a06c-bc83f95758e6" title="Main Screenshot">
+  <img width="800" src="https://github.com/user-attachments/assets/c991fc69-a05b-4f34-b915-0d3cded887a7" title="Main Screenshot">
 </p>
 
 > [!WARNING]
