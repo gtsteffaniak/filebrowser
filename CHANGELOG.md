@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.4.2-beta
 
   **New Features**
-  - windows hidden files are respected on index settings when running on windows with NTFS filesystem.
+  - Hidden files changes
+    - windows hidden file properties are respected -- when running on windows binary (not docker) with NTFS filesystem.
+    - windows "system" files are considered hidden.
+    - changed user property from `hideDotFiles` to `showHidden`. Defaults to false, so a user would need to must unhide hidden files if they want to view hidden files.
 
   **Notes**:
   - cleaned up old and deprecated config.

@@ -8,7 +8,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
@@ -286,36 +285,16 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 }
 
 func isHidden(file os.FileInfo, srcPath string) bool {
+	// Check if the file starts with a dot (common on Unix systems)
 	if file.Name()[0] == '.' {
 		return true
 	}
-	// Construct the absolute realpath
-	realpath := filepath.Join(srcPath, file.Name())
+
 	if runtime.GOOS == "windows" {
-		// Use GetFileAttributesW to check for hidden attribute
-		pointer, err := syscall.UTF16PtrFromString(realpath)
-		if err != nil {
-			fmt.Println("Error converting path to UTF16:", err)
-			return false
-		}
-
-		attributes, err := syscall.GetFileAttributes(pointer)
-		if err != nil {
-			fmt.Println("Error getting file attributes:", err)
-			return false
-		}
-
-		// Check if the hidden attribute is set
-		if attributes&syscall.FILE_ATTRIBUTE_HIDDEN != 0 {
-			return true
-		}
-
-		// Additional check for system attribute (optional)
-		if attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0 {
-			fmt.Println("File is a system file")
-		}
+		return checkWindowsHidden(filepath.Join(srcPath, file.Name()))
 	}
 
+	// Default behavior for non-Windows systems
 	return false
 }
 
