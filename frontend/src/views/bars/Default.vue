@@ -8,7 +8,6 @@
 </template>
 
 <script>
-import { url } from "@/utils";
 import router from "@/router";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
@@ -40,8 +39,7 @@ export default {
       }
 
       mutations.replaceRequest({});
-      let uri = url.removeLastDir(state.route.path) + "/";
-      router.push({ path: uri });
+      router.go(-1)
     },
   },
 };

@@ -17,16 +17,16 @@ type Settings struct {
 }
 
 type Auth struct {
-	TokenExpirationTime string    `json:"tokenExpirationTime"`
-	Recaptcha           Recaptcha `json:"recaptcha"`
-	Header              string    `json:"header"`
-	Method              string    `json:"method"`
-	Command             string    `json:"command"`
-	Signup              bool      `json:"signup"`
-	Shell               string    `json:"shell"`
-	AdminUsername       string    `json:"adminUsername"`
-	AdminPassword       string    `json:"adminPassword"`
-	Key                 []byte    `json:"key"`
+	TokenExpirationHours int       `json:"tokenExpirationHours"`
+	Recaptcha            Recaptcha `json:"recaptcha"`
+	Header               string    `json:"header"`
+	Method               string    `json:"method"`
+	Command              string    `json:"command"`
+	Signup               bool      `json:"signup"`
+	Shell                string    `json:"shell"`
+	AdminUsername        string    `json:"adminUsername"`
+	AdminPassword        string    `json:"adminPassword"`
+	Key                  []byte    `json:"key"`
 }
 
 type Recaptcha struct {
@@ -36,26 +36,24 @@ type Recaptcha struct {
 }
 
 type Server struct {
-	NumImageProcessors    int         `json:"numImageProcessors"`
-	Socket                string      `json:"socket"`
-	TLSKey                string      `json:"tlsKey"`
-	TLSCert               string      `json:"tlsCert"`
-	EnableThumbnails      bool        `json:"enableThumbnails"`
-	ResizePreview         bool        `json:"resizePreview"`
-	EnableExec            bool        `json:"enableExec"`
-	TypeDetectionByHeader bool        `json:"typeDetectionByHeader"`
-	AuthHook              string      `json:"authHook"`
-	Port                  int         `json:"port"`
-	BaseURL               string      `json:"baseURL"`
-	Address               string      `json:"address"`
-	Logging               []LogConfig `json:"logging"`
-	Database              string      `json:"database"`
-	Root                  string      `json:"root"`
-	UserHomeBasePath      string      `json:"userHomeBasePath"`
-	CreateUserDir         bool        `json:"createUserDir"`
-	Sources               []Source    `json:"sources"`
-	ExternalUrl           string      `json:"externalUrl"`
-	InternalUrl           string      `json:"internalUrl"` // used by integrations
+	NumImageProcessors int         `json:"numImageProcessors"`
+	Socket             string      `json:"socket"`
+	TLSKey             string      `json:"tlsKey"`
+	TLSCert            string      `json:"tlsCert"`
+	EnableThumbnails   bool        `json:"enableThumbnails"`
+	ResizePreview      bool        `json:"resizePreview"`
+	EnableExec         bool        `json:"enableExec"`
+	AuthHook           string      `json:"authHook"`
+	Port               int         `json:"port"`
+	BaseURL            string      `json:"baseURL"`
+	Logging            []LogConfig `json:"logging"`
+	Database           string      `json:"database"`
+	Root               string      `json:"root"`
+	UserHomeBasePath   string      `json:"userHomeBasePath"`
+	CreateUserDir      bool        `json:"createUserDir"`
+	Sources            []Source    `json:"sources"`
+	ExternalUrl        string      `json:"externalUrl"`
+	InternalUrl        string      `json:"internalUrl"` // used by integrations
 }
 
 type Integrations struct {
@@ -132,10 +130,10 @@ type UserDefaults struct {
 		By  string `json:"by"`
 		Asc bool   `json:"asc"`
 	} `json:"sorting"`
-	Perm         users.Permissions `json:"perm"`
-	Permissions  users.Permissions `json:"permissions"`
-	Commands     []string          `json:"commands,omitempty"`
-	HideDotfiles bool              `json:"hideDotfiles"`
-	DateFormat   bool              `json:"dateFormat"`
-	ThemeColor   string            `json:"themeColor"`
+	Perm        users.Permissions `json:"perm"`
+	Permissions users.Permissions `json:"permissions"`
+	Commands    []string          `json:"commands,omitempty"`
+	ShowHidden  bool              `json:"showHidden"`
+	DateFormat  bool              `json:"dateFormat"`
+	ThemeColor  string            `json:"themeColor"`
 }

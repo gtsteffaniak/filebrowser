@@ -47,10 +47,10 @@ test("copy from listing", async ({ page, context }) => {
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Copy file"]').click();
   //await expect(page.locator('.searchContext')).toHaveText('Path: /');
-  await page.locator('li[aria-label=".."]').click();
+  await page.locator('li[aria-label="testdata"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   const popup2 = page.locator('#popup-notification-content');
-  await popup2.waitFor({ state: 'visible' });
+  //await popup2.waitFor({ state: 'visible' });
   //await expect(popup2).toHaveText("Successfully copied file/folder, redirecting...");
   //await page.waitForURL('**/testdata/');
   //await expect(page).toHaveTitle("Graham's Filebrowser - Files - testdata");

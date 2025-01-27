@@ -16,7 +16,6 @@ userDefaults:
   darkMode: true
   disableSettings: false
   scope: "."
-  hideDotfiles: true
   singleClick: false
   permissions:
     admin: false

@@ -5,6 +5,7 @@
       item: true,
       'no-select': true,
       activebutton: isMaximized && isSelected,
+      hiddenFile: isHiddenNotSelected
     }"
     :id="getID"
     role="button"
@@ -112,8 +113,12 @@ export default {
     "index",
     "readOnly",
     "path",
+    "hidden"
   ],
   computed: {
+    isHiddenNotSelected() {
+      return !this.isSelected && this.hidden
+    },
     getID() {
       return url.base64Encode(encodeURIComponent(this.name));
     },
@@ -421,5 +426,9 @@ export default {
 <style>
 .item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
+}
+
+.hiddenFile {
+  opacity: 0.5;
 }
 </style>

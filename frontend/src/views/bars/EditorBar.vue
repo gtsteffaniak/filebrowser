@@ -35,6 +35,7 @@ import { eventBus } from "@/store/eventBus";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url.js";
 import { notify } from "@/notify";
+import router from "@/router";
 
 import Action from "@/components/Action.vue";
 
@@ -120,8 +121,7 @@ export default {
     },
     close() {
       mutations.replaceRequest({});
-      let uri = url.removeLastDir(state.route.path) + "/";
-      this.$router.push({ path: uri });
+      router.go(-1)
     },
   },
 };

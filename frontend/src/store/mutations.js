@@ -203,8 +203,8 @@ export const mutations = {
       emitStateChanged();
       return
     }
-    if (state.user.hideDotfiles) {
-      value.items = value.items.filter((item) => !item.name.startsWith("."));
+    if (!state.user.showHidden) {
+      value.items = value.items.filter((item) => !item.hidden);
     }
     value.items.map((item, index) => {
       item.index = index;

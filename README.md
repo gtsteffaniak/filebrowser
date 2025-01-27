@@ -6,12 +6,11 @@
 </p>
 <h3 align="center">FileBrowser Quantum - A modern web-based file manager</h3>
 <p align="center">
-  <img width="800" src="https://github.com/user-attachments/assets/b16acd67-0292-437a-a06c-bc83f95758e6" title="Main Screenshot">
+  <img width="800" src="https://github.com/user-attachments/assets/c991fc69-a05b-4f34-b915-0d3cded887a7" title="Main Screenshot">
 </p>
 
 > [!WARNING]
-> There is no stable version yet. 
-> (planned for later this year after these are complete: multiple sources support, initial onboarding page, official automated docs website)
+> There is no stable version yet planned 2025.
 
 FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
 

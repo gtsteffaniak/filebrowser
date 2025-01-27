@@ -6,12 +6,10 @@ server:
   tlsCert: ""
   enableThumbnails: false
   resizePreview: true
-  typeDetectionByHeader: true
   port: 80
   baseURL: "/"
-  address: ""
   database: "mydb.db"
-  root: "/srv"
+  root: "."
 auth:
   recaptcha:
     host: ""
@@ -47,5 +45,4 @@ userDefaults:
     delete: true
     share: true
     download: true
-  hideDotfiles: false
   dateFormat: false

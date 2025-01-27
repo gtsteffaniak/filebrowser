@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -121,15 +122,16 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-
+		isHidden := isHidden(file, idx.Path+combinedPath)
 		isDir := file.IsDir()
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(isDir, isHidden(file, ""), fullCombined) {
+		if idx.shouldSkip(isDir, isHidden, fullCombined) {
 			continue
 		}
 		itemInfo := &ItemInfo{
 			Name:    file.Name(),
 			ModTime: file.ModTime(),
+			Hidden:  isHidden,
 		}
 
 		// fix for .app files on macos which are technically directories, but we don't want to treat them as such
@@ -282,8 +284,18 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 	return nil
 }
 
-func isHidden(file os.FileInfo, realpath string) bool {
-	return file.Name()[0] == '.'
+func isHidden(file os.FileInfo, srcPath string) bool {
+	// Check if the file starts with a dot (common on Unix systems)
+	if file.Name()[0] == '.' {
+		return true
+	}
+
+	if runtime.GOOS == "windows" {
+		return checkWindowsHidden(filepath.Join(srcPath, file.Name()))
+	}
+
+	// Default behavior for non-Windows systems
+	return false
 }
 
 func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) bool {
