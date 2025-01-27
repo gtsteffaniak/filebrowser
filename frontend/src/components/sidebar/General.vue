@@ -154,8 +154,8 @@ export default {
       }
       let usage = await filesApi.usage("default");
       usageStats = {
-        used: getHumanReadableFilesize(usage.used / 1024),
-        total: getHumanReadableFilesize(usage.total / 1024),
+        used: getHumanReadableFilesize(usage.used),
+        total: getHumanReadableFilesize(usage.total),
         usedPercentage: Math.round((usage.used / usage.total) * 100),
       };
 
