@@ -10,7 +10,7 @@
 </p>
 
 > [!WARNING]
-> There is no stable version yet planned 2025.
+> There is no stable version -- planned 2025.
 
 FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
 
