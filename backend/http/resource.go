@@ -46,13 +46,12 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:       filepath.Join(d.user.Scope, path),
-		Modify:     d.user.Perm.Modify,
-		Source:     source,
-		Expand:     true,
-		ReadHeader: config.Server.TypeDetectionByHeader,
-		Checker:    d.user,
-		Content:    r.URL.Query().Get("content") == "true",
+		Path:    filepath.Join(d.user.Scope, path),
+		Modify:  d.user.Perm.Modify,
+		Source:  source,
+		Expand:  true,
+		Checker: d.user,
+		Content: r.URL.Query().Get("content") == "true",
 	})
 	if err != nil {
 		return errToStatus(err), err
@@ -105,12 +104,11 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, nil
 	}
 	fileOpts := files.FileOptions{
-		Path:       filepath.Join(d.user.Scope, path),
-		Source:     source,
-		Modify:     d.user.Perm.Modify,
-		Expand:     false,
-		ReadHeader: config.Server.TypeDetectionByHeader,
-		Checker:    d.user,
+		Path:    filepath.Join(d.user.Scope, path),
+		Source:  source,
+		Modify:  d.user.Perm.Modify,
+		Expand:  false,
+		Checker: d.user,
 	}
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err != nil {
@@ -232,12 +230,11 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	fileOpts := files.FileOptions{
-		Path:       filepath.Join(d.user.Scope, path),
-		Source:     source,
-		Modify:     d.user.Perm.Modify,
-		Expand:     false,
-		ReadHeader: config.Server.TypeDetectionByHeader,
-		Checker:    d.user,
+		Path:    filepath.Join(d.user.Scope, path),
+		Source:  source,
+		Modify:  d.user.Perm.Modify,
+		Expand:  false,
+		Checker: d.user,
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
@@ -306,7 +303,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if overwrite && !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
-	err = d.RunHook(func() error {
+	err = d.Runner.RunHook(func() error {
 		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
 	}, action, realSrc, realDest, d.user)
 	if err != nil {

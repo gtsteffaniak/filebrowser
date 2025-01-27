@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.4.2-beta
+
+  **New Features**
+  - Hidden files changes
+    - windows hidden file properties are respected -- when running on windows binary (not docker) with NTFS filesystem.
+    - windows "system" files are considered hidden.
+    - changed user property from `hideDotFiles` to `showHidden`. Defaults to false, so a user would need to must unhide hidden files if they want to view hidden files.
+
+  **Notes**:
+  - cleaned up old and deprecated config.
+  - removed unneeded "Global settings". All system configuration is done on config yaml, See configuration wiki for more help.
+
+  **Bugfixes**:
+  - Another fix for memory https://github.com/gtsteffaniak/filebrowser/issues/298
+
 ## v0.4.1-beta
 
   **New Features**

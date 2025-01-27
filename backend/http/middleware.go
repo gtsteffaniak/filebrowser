@@ -59,11 +59,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
-			Path:       filepath.Join(user.Scope, link.Path+"/"+path),
-			Modify:     user.Perm.Modify,
-			Expand:     true,
-			ReadHeader: config.Server.TypeDetectionByHeader,
-			Checker:    user, // Call your checker function here
+			Path:    filepath.Join(user.Scope, link.Path+"/"+path),
+			Modify:  user.Perm.Modify,
+			Expand:  true,
+			Checker: user, // Call your checker function here
 		})
 		file.Token = link.Token
 		if err != nil {

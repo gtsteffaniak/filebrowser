@@ -17,7 +17,7 @@ vi.mock('@/store', () => {
         stickySidebar: false,
         locale: "en",
         viewMode: "normal",
-        hideDotfiles: false,
+        showHidden: false,
         perm: {},
         rules: [],
         permissions: {},

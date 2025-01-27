@@ -6,77 +6,7 @@
     </div>
 
     <div class="card-content">
-      <p>
-        <input type="checkbox" v-model="selectedSettings.signup" />
-        {{ $t("settings.allowSignup") }}
-      </p>
-
-      <p>
-        <input type="checkbox" v-model="selectedSettings.createUserDir" />
-        {{ $t("settings.createUserDir") }}
-      </p>
-
-      <div>
-        <p class="small">{{ $t("settings.userHomeBasePath") }}</p>
-        <input
-          class="input input--block"
-          type="text"
-          v-model="selectedSettings.userHomeBasePath"
-        />
-      </div>
-
-      <h3>{{ $t("settings.rules") }}</h3>
-      <p class="small">{{ $t("settings.globalRules") }}</p>
-      <rules :rules="selectedSettings.rules" @update:rules="updateRules" />
-
-      <h3>{{ $t("settings.branding") }}</h3>
-
-      <i18n path="settings.brandingHelp" tag="p" class="small">
-        <a
-          class="link"
-          target="_blank"
-          href="https://filebrowser.org/configuration/custom-branding"
-          >{{ $t("settings.documentation") }}</a
-        >
-      </i18n>
-
-      <p>
-        <input
-          type="checkbox"
-          v-model="selectedSettings.frontend.disableExternal"
-          id="branding-links"
-        />
-        {{ $t("settings.disableExternalLinks") }}
-      </p>
-
-      <p>
-        <input
-          type="checkbox"
-          v-model="selectedSettings.frontend.disableUsedPercentage"
-          id="branding-links"
-        />
-        {{ $t("settings.disableUsedDiskPercentage") }}
-      </p>
-
-      <p>
-        <label for="branding-name">{{ $t("settings.instanceName") }}</label>
-        <input
-          class="input input--block"
-          type="text"
-          v-model="selectedSettings.frontend.name"
-          id="branding-name"
-        />
-      </p>
-
-      <p>
-        <label for="branding-files">{{ $t("settings.brandingDirectoryPath") }}</label>
-        <input
-          class="input input--block"
-          type="text"
-          v-model="selectedSettings.frontend.files"
-          id="branding-files"
-        />
-      </p>
+      Currently there are no global config options, You can edit the configuration yaml to adjust system settings.
     </div>
 
     <div class="card-action">
@@ -90,13 +20,11 @@ import { notify } from "@/notify";
 import { state, mutations, getters } from "@/store";
 import { settingsApi } from "@/api";
 import { enableExec } from "@/utils/constants";
-import Rules from "@/components/settings/Rules.vue";
 import Errors from "@/views/Errors.vue";
 
 export default {
   name: "settings",
   components: {
-    Rules,
     Errors,
   },
   data: function () {
