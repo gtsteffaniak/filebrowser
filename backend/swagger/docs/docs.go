@@ -1184,6 +1184,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/files.ItemInfo"
                     }
                 },
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
                 "modified": {
                     "description": "modification time",
                     "type": "string"
@@ -1209,6 +1213,10 @@ const docTemplate = `{
         "files.ItemInfo": {
             "type": "object",
             "properties": {
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
                 "modified": {
                     "description": "modification time",
                     "type": "string"
@@ -1362,9 +1370,6 @@ const docTemplate = `{
                 "gallerySize": {
                     "type": "integer"
                 },
-                "hideDotfiles": {
-                    "type": "boolean"
-                },
                 "locale": {
                     "type": "string"
                 },
@@ -1385,6 +1390,9 @@ const docTemplate = `{
                 },
                 "scope": {
                     "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
                 },
                 "singleClick": {
                     "type": "boolean"
@@ -1570,9 +1578,6 @@ const docTemplate = `{
                 "gallerySize": {
                     "type": "integer"
                 },
-                "hideDotfiles": {
-                    "type": "boolean"
-                },
                 "id": {
                     "type": "integer"
                 },
@@ -1596,6 +1601,9 @@ const docTemplate = `{
                 },
                 "scope": {
                     "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
                 },
                 "singleClick": {
                     "type": "boolean"
