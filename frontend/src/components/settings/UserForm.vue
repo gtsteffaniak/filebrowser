@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!user.perm.admin && !isNew">
+  <div v-if="!stateUser.perm.admin && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
     <input
       class="input input--block"
@@ -64,7 +64,7 @@
     <p v-if="!isDefault">
       <input
         type="checkbox"
-        :disabled="user.perm?.admin"
+        :disabled="stateUser.perm?.admin"
         v-model="user.lockPassword"
         @input="emitUpdate"
       />
@@ -81,6 +81,7 @@ import Languages from "./Languages.vue";
 import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
 import { enableExec } from "@/utils/constants";
+import { state } from "@/store";
 
 export default {
   name: "UserForm",
@@ -119,6 +120,9 @@ export default {
     },
   },
   computed: {
+    stateUser() {
+      return state.user;
+    },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
