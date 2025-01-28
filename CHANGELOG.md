@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.4.3-beta
+
+  **Bugfixes**:
+  - Gracefully shutdown to protect database. https://github.com/gtsteffaniak/filebrowser/issues/317
+  - fix sidebar disk space usage calculation. https://github.com/gtsteffaniak/filebrowser/issues/315
+
 ## v0.4.2-beta
 
   **New Features**
