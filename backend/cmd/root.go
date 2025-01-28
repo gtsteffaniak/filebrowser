@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
@@ -71,6 +74,15 @@ func StartFilebrowser() {
 	setCmd.StringVar(&scope, "s", "", "Specify a user scope, otherwise default user config scope is used")
 	setCmd.StringVar(&dbConfig, "c", "config.yaml", "Path to the config file, default: config.yaml")
 
+	// Create context and channels for graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	done := make(chan struct{})             // Signals server has stopped
+	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+
 	// Parse subcommand flags only if a subcommand is specified
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -116,6 +128,7 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 			return
 		}
 	}
+
 	store, dbExists := getStore(configPath)
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
@@ -142,12 +155,28 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 	for _, source := range sourceConfigs {
 		go files.Initialize(source)
 	}
-	if err := rootCMD(store, &serverConfig); err != nil {
-		logger.Fatal(fmt.Sprintf("Error starting filebrowser: %v", err))
+	// Start the rootCMD in a goroutine
+	go func() {
+		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {
+			logger.Fatal(fmt.Sprintf("Error starting filebrowser: %v", err))
+		}
+		close(done) // Signal that the server has stopped
+	}()
+	// Wait for a shutdown signal or the server to stop
+	select {
+	case <-signalChan:
+		logger.Info("Received shutdown signal. Shutting down gracefully...")
+		cancel() // Trigger context cancellation
+	case <-done:
+		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
+
+	<-shutdownComplete // Ensure we don't exit prematurely
+	// Wait for the server to stop
+	logger.Info("Shutdown complete.")
 }
 
-func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
+func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings.Server, shutdownComplete chan struct{}) error {
 	if serverConfig.NumImageProcessors < 1 {
 		logger.Fatal("Image resize workers count could not be < 1")
 	}
@@ -167,7 +196,7 @@ func rootCMD(store *storage.Storage, serverConfig *settings.Server) error {
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
-	fbhttp.StartHttp(imgSvc, store, fileCache)
+	fbhttp.StartHttp(ctx, imgSvc, store, fileCache, shutdownComplete)
 
 	return nil
 }
