@@ -55,6 +55,7 @@ type Server struct {
 	Sources            []Source    `json:"sources"`
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
+	CacheDir           string      `json:"cacheDir"`
 }
 
 type Integrations struct {
