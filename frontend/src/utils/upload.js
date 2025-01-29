@@ -144,6 +144,7 @@ export async function handleFiles(files, base, overwrite = false) {
       }
     )
     .then(response => {
+      console.log("Upload successful!",response);
       notify.showSuccess("Upload successful!");
     })
     .catch(error => {
