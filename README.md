@@ -1,13 +1,17 @@
-<p align="center">
-  <a href="https://opensource.org/license/apache-2-0/"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License: Apache-2.0"></a>
-</p>
-<p align="center">
-  <img src="frontend/public/img/icons/favicon-256x256.png" width="100" title="Login With Custom URL">
-</p>
-<h3 align="center">FileBrowser Quantum - A modern web-based file manager</h3>
-<p align="center">
+<div align="center">
+
+  [![Go Report Card](https://goreportcard.com/badge/github.com/gtsteffaniak/filebrowser/backend)](https://goreportcard.com/report/github.com/gtsteffaniak/filebrowser/backend)
+  [![latest version](https://img.shields.io/github/release/gtsteffaniak/filebrowser/all.svg)](https://github.com/gtsteffaniak/filebrowser/releases)
+  [![Apache-2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+  [![Codacy Badge](https://app.codacy.com/project/badge/Grade/1c48cfb7646d4009aa8c6f71287670b8)](https://www.codacy.com/gh/gtsteffaniak/filebrowser/dashboard)
+  [![DockerHub Pulls](https://img.shields.io/docker/pulls/gtstef/filebrowser?label=latest%20Docker%20pulls)](https://hub.docker.com/r/gtstef/filebrowser)
+  
+  <img width="250" src="https://github.com/user-attachments/assets/10b225fa-94e4-4577-a4e7-b2b4f14609c8" title="Logo">
+
+  A modern web-based file manager
+  <br/><br/>
   <img width="800" src="https://github.com/user-attachments/assets/c991fc69-a05b-4f34-b915-0d3cded887a7" title="Main Screenshot">
-</p>
+</div>
 
 > [!WARNING]
 > There is no stable version -- planned 2025.
