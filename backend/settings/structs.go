@@ -27,6 +27,7 @@ type Auth struct {
 	AdminUsername        string    `json:"adminUsername"`
 	AdminPassword        string    `json:"adminPassword"`
 	Key                  []byte    `json:"key"`
+	CreateUser           bool      `json:"createUser"`
 }
 
 type Recaptcha struct {

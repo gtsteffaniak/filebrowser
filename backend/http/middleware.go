@@ -13,6 +13,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/runner"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -101,6 +102,37 @@ func withUserHelper(fn handleFunc) handleFunc {
 				return http.StatusInternalServerError, err
 			}
 			return fn(w, r, data)
+		}
+		if config.Auth.Method == "proxy" {
+			proxyUser := r.Header.Get(config.Auth.Header)
+			if proxyUser != "" {
+				var err error
+				// Retrieve the user from the store and store it in the context
+				data.user, err = store.Users.Get(files.RootPaths["default"], proxyUser)
+				if err != nil {
+					if err.Error() != "the resource does not exist" {
+						return http.StatusInternalServerError, err
+					}
+					if config.Auth.CreateUser {
+						newUser := settings.ApplyUserDefaults(users.User{
+							Username: proxyUser,
+						})
+						err := store.Users.Save(&newUser)
+						if err != nil {
+							return http.StatusInternalServerError, err
+						}
+						data.user, err = store.Users.Get(files.RootPaths["default"], proxyUser)
+						if err != nil {
+							return http.StatusInternalServerError, err
+						}
+					} else {
+						return http.StatusUnauthorized, fmt.Errorf("proxy authentication failed - no user found")
+					}
+				}
+				setUserInResponseWriter(w, data.user)
+				return fn(w, r, data)
+			}
+			return http.StatusUnauthorized, fmt.Errorf("proxy authentication failed")
 		}
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil

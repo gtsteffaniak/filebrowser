@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.playwright
+          file: ./_docker/Dockerfile.playwright
           push: false
   push_latest_to_registry:
     needs: [ test_frontend ]
@@ -65,7 +65,7 @@ jobs:
             VERSION=${{ env.LATEST_TAG }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          file: ./Dockerfile
+          file: ./_docker/Dockerfile
           push: true
           tags: 'gtstef/filebrowser:latest'
           labels: ${{ steps.meta.outputs.labels }}
