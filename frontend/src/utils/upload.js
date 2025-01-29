@@ -1,6 +1,7 @@
 import { state } from "@/store";
 import url from "@/utils/url.js";
 import { filesApi } from "@/api";
+import { notify } from "@/notify";
 
 export function checkConflict(files, items) {
   if (typeof items === "undefined" || items === null) {
@@ -102,6 +103,7 @@ export function scanFiles(dt) {
 }
 
 export async function handleFiles(files, base, overwrite = false) {
+  let blockUpdates = false;
   for (const file of files) {
     const id = state.upload.id;
     let path = base;
@@ -122,15 +124,30 @@ export async function handleFiles(files, base, overwrite = false) {
       file: file.file, // Ensure `file.file` is the Blob or File
       overwrite,
     };
-
-    await filesApi.post(item.path, item.file, item.overwrite, (event) => {
-      console.log(`Upload progress: ${Math.round((event.loaded / event.total) * 100)}%`);
-    })
+    let last = 0;
+    notify.showPopup("success","Uploading "+file.name,false);
+    await filesApi.post(
+      item.path,
+      item.file,
+      item.overwrite,
+      (percentComplete) => {
+        if (blockUpdates) {
+          return;
+        }
+        blockUpdates = true;
+        // Set a timeout to reset blockUpdates after 500ms
+        notify.startLoading(last, percentComplete);
+        last = percentComplete;
+        setTimeout(() => {
+          blockUpdates = false;
+        }, 200);
+      }
+    )
     .then(response => {
-      console.log("Upload successful:", response);
+      notify.showSuccess("Upload successful!");
     })
     .catch(error => {
-      console.error("Upload error:", error);
+      notify.showError("Error uploading file: "+error);
     });
   }
 }

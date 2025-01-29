@@ -79,7 +79,7 @@ export function download(format, files) {
 
 export async function post(url, content = "", overwrite = false, onupload) {
   try {
-    url = removePrefix(url,"files");
+    url = removePrefix(url, "files");
 
     let bufferContent;
     if (
@@ -100,7 +100,12 @@ export async function post(url, content = "", overwrite = false, onupload) {
       request.setRequestHeader("X-Auth", state.jwt);
 
       if (typeof onupload === "function") {
-        request.upload.onprogress = onupload;
+        request.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            onupload(percentComplete); // Pass the percentage to the callback
+          }
+        };
       }
 
       request.onload = () => {

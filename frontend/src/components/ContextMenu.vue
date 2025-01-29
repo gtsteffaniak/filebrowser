@@ -174,7 +174,7 @@ export default {
 
       // if y is too close to the bottom edge, move it up by 400px
       if (tempY > screenHeight - 400) {
-        tempY -= 400;
+        tempY -= 200;
       }
 
       this.posX = tempX;

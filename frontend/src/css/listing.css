@@ -90,7 +90,7 @@ body.rtl #listingView {
 
 #listingView {
   padding-top: 1em;
-  padding-bottom: 1em;
+  padding-bottom: 30em;
 }
 
 #listingView.gallery .item,

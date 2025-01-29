@@ -1,12 +1,24 @@
 import { mutations, state } from '@/store'
 
-export function showPopup (type, message) {
+let active = false
+
+export function showPopup (type, message, autoclose = true) {
+  if (active) {
+    closePopUp()
+  }
   const [popup, popupContent] = getElements()
   if (popup === undefined) {
     return
   }
+  // Get the spinner canvas element
+  let spinner = document.querySelector('.notification-spinner')
+  if (spinner) {
+    spinner.classList.add('hidden')
+  }
+
   popup.classList.remove('success', 'error') // Clear previous types
   popup.classList.add(type)
+  active = true
 
   let apiMessage
 
@@ -32,11 +44,18 @@ export function showPopup (type, message) {
     popup.classList.add('success')
     return
   }
-
-
+  if (!autoclose || !active) {
+    return
+  }
+  setTimeout(() => {
+    if (active) {
+      closePopUp()
+    }
+  }, 5000)
 }
 
 export function closePopUp () {
+  active = false
   const [popup, popupContent] = getElements()
   if (popupContent == undefined) {
     return
@@ -78,60 +97,91 @@ export function showMultipleSelection () {
   showPopup('action', 'Multiple Selection Enabled')
 }
 
+
 export function startLoading (from, to) {
-  let spinner = document.querySelectorAll('.notification-spinner')[0]
+  if (from == to) {
+    return
+  }
+
+  console.log('startLoading', from, to)
+  // Get the spinner canvas element
+  let spinner = document.querySelector('.notification-spinner')
+  if (!spinner) {
+    console.error('Spinner canvas element not found')
+    return
+  }
+  spinner.classList.remove('hidden')
+
+  // Get the 2D context of the canvas
   let ctx = spinner.getContext('2d')
+  if (!ctx) {
+    console.error('Could not get 2D context')
+    return
+  }
+
+  // Set canvas dimensions
   let width = spinner.width
   let height = spinner.height
-  let degrees = 0
-  let new_degrees = 0
-  let difference = 0
-  let color = '#7d0e9e'
+
+  // Initialize variables
+  let degrees = from * 3.6 // Convert percentage to degrees
+  let new_degrees = to * 3.6 // Convert percentage to degrees
+  let difference = new_degrees - degrees
+  let color = spinner.style.color || '#ddd'
   let bgcolor = '#222'
-  let text
   let animation_loop
 
+  // Clear any existing animation loop
   if (animation_loop !== undefined) clearInterval(animation_loop)
-  degrees = from * 3.6 // Convert percentage to degrees
-  new_degrees = to * 3.6 // Convert percentage to degrees
-  difference = new_degrees - degrees
+
+  // Calculate the increment per 10ms
   let duration = 300 // Duration of the animation in ms
-  let increment = difference / (duration / 10) // Calculate increment per 10ms
+  let increment = difference / (duration / 10)
+
+  // Start the animation loop
   animation_loop = setInterval(function () {
+    // Check if the animation should stop
     if (
       (increment > 0 && degrees >= new_degrees) ||
       (increment < 0 && degrees <= new_degrees)
     ) {
       clearInterval(animation_loop)
-    } else {
-      degrees += increment
-      ctx.clearRect(0, 0, width, height)
-      // Background circle
-      ctx.beginPath()
-      ctx.strokeStyle = bgcolor
-      ctx.lineWidth = 30
-      ctx.arc(width / 2, width / 2, 100, 0, Math.PI * 2, false)
-      ctx.stroke()
-      // Foreground circle
-      let radians = (degrees * Math.PI) / 180
-      ctx.beginPath()
-      ctx.strokeStyle = color
-      ctx.lineWidth = 30
-      ctx.arc(
-        width / 2,
-        height / 2,
-        100,
-        0 - (90 * Math.PI) / 180,
-        radians - (90 * Math.PI) / 180,
-        false
-      )
-      ctx.stroke()
-      // Text
-      ctx.fillStyle = color
-      ctx.font = '50px Arial'
-      text = Math.floor((degrees / 360) * 100) + '%'
-      let text_width = ctx.measureText(text).width
-      ctx.fillText(text, width / 2 - text_width / 2, height / 2 + 15)
+      return
     }
+
+    // Update the degrees
+    degrees += increment
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, width, height)
+
+    // Draw the background circle
+    ctx.beginPath()
+    ctx.strokeStyle = bgcolor
+    ctx.lineWidth = 10
+    ctx.arc(width / 2, height / 2, height / 3, 0, Math.PI * 2, false)
+    ctx.stroke()
+
+    // Draw the foreground circle
+    let radians = (degrees * Math.PI) / 180
+    ctx.beginPath()
+    ctx.strokeStyle = color
+    ctx.lineWidth = 10
+    ctx.arc(
+      width / 2,
+      height / 2,
+      height / 3,
+      0 - (90 * Math.PI) / 180,
+      radians - (90 * Math.PI) / 180,
+      false
+    )
+    ctx.stroke()
+
+    // Draw the text
+    ctx.fillStyle = color
+    ctx.font = '1.2em Roboto'
+    let text = Math.floor((degrees / 360) * 100) + '%'
+    let text_width = ctx.measureText(text).width
+    ctx.fillText(text, width / 2 - text_width / 2, height / 2 + 8)
   }, 10) // Update every 10ms
 }

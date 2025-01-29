@@ -4,13 +4,19 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.4.3-beta
 
+  **New Features**:
+  - Upload progress notification https://github.com/gtsteffaniak/filebrowser/issues/303
+
+  **Notes**:
+  - Context menu positioning tweaks
+
   **Bugfixes**:
   - Gracefully shutdown to protect database. https://github.com/gtsteffaniak/filebrowser/issues/317
   - fix sidebar disk space usage calculation. https://github.com/gtsteffaniak/filebrowser/issues/315
 
 ## v0.4.2-beta
 
-  **New Features**
+  **New Features**:
   - Hidden files changes
     - windows hidden file properties are respected -- when running on windows binary (not docker) with NTFS filesystem.
     - windows "system" files are considered hidden.
@@ -25,10 +31,10 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.4.1-beta
 
-  **New Features**
+  **New Features**:
   - right-click actions are available on search. https://github.com/gtsteffaniak/filebrowser/issues/273
 
-  **Notes**
+  **Notes**:
   - delete prompt now lists all items that will be affected by delete
   - Debug and logger output tweaks.
 
@@ -40,13 +46,13 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.4.0-beta
 
-  **New Features**
+  **New Features**:
   - Better logging https://github.com/gtsteffaniak/filebrowser/issues/288
     - highly configurable
     - api logs include user
   - onlyOffice support for editing only office files (inspired from https://github.com/filebrowser/filebrowser/pull/2954)
 
-  **Notes**
+  **Notes**:
   - Breadcrumbs will only show on file listing (not on previews or editors)
   - Config file is now optional. It will run with default settings without one and throw a `[WARN ]` message.
   - Added more descriptions to swagger API
@@ -64,7 +70,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.3.6-beta
 
-  **New Features**
+  **New Features**:
   - Adds "externalUrl" server config https://github.com/gtsteffaniak/filebrowser/issues/272
 
   **Notes**:
@@ -80,7 +86,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.3.5
 
-  **New Features**
+  **New Features**:
   - More indexing configuration options possible. However consider waiting on using this feature, because I will soon have a full onboarding experience in the UI to manage sources instead.
     - added config file options "sources" in the server config.
     - can enable/disable indexing a specified list of directories/files
