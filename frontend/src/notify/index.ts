@@ -1,5 +1,9 @@
+import * as messageFunctions from "./message.js";
+import * as loadingSpinnerFunctions from "./loadingSpinner.js";
 
-import * as notify from "./message.js";
-export {
-    notify,
+const notify = {
+    ...messageFunctions,
+    ...loadingSpinnerFunctions
 };
+
+export { notify };

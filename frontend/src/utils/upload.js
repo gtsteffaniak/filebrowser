@@ -104,7 +104,10 @@ export function scanFiles(dt) {
 
 export async function handleFiles(files, base, overwrite = false) {
   let blockUpdates = false;
+  let c = 0
+  let count = files.length
   for (const file of files) {
+    c += 1
     const id = state.upload.id;
     let path = base;
 
@@ -125,7 +128,7 @@ export async function handleFiles(files, base, overwrite = false) {
       overwrite,
     };
     let last = 0;
-    notify.showPopup("success","Uploading "+file.name,false);
+    notify.showPopup("success",`(${c} of ${count}) Uploading ${file.name}`,false);
     await filesApi.post(
       item.path,
       item.file,
