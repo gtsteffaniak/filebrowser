@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **New Features**:
   - Upload progress notification https://github.com/gtsteffaniak/filebrowser/issues/303
-  - proxy auth auto create user via `auth.createUser: true` while using proxy auth.
+  - proxy auth auto create user when `auth.createUser: true` while using proxy auth.
 
   **Notes**:
   - Context menu positioning tweaks.
@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bugfixes**:
   - Gracefully shutdown to protect database. https://github.com/gtsteffaniak/filebrowser/issues/317
+  - validates auth method provided before server startup.
   - fix sidebar disk space usage calculation. https://github.com/gtsteffaniak/filebrowser/issues/315
   - Fixed proxy auth header support (make sure your proxy and server are secure!). https://github.com/gtsteffaniak/filebrowser/issues/322
 
