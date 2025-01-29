@@ -27,8 +27,8 @@ export function startLoading (from, to) {
   let degrees = from * 3.6 // Convert percentage to degrees
   let new_degrees = to * 3.6 // Convert percentage to degrees
   let difference = new_degrees - degrees
-  let color = spinner.style.color || '#ddd'
-  let bgcolor = '#222'
+  let color = spinner.style.color || '#666'
+  let bgcolor = '#fff'
   let animation_loop
 
   // Clear any existing animation loop
@@ -78,7 +78,7 @@ export function startLoading (from, to) {
     ctx.stroke()
 
     // Draw the text
-    ctx.fillStyle = color
+    ctx.fillStyle = '#fff'
     ctx.font = '1.2em Roboto'
     let text = Math.floor((degrees / 360) * 100) + '%'
     let text_width = ctx.measureText(text).width

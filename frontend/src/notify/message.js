@@ -12,13 +12,6 @@ export function showPopup(type, message, autoclose = true) {
   if (popup === undefined) {
     return
   }
-
-  // Hide spinner if present
-  let spinner = document.querySelector('.notification-spinner')
-  if (spinner) {
-    spinner.classList.add('hidden')
-  }
-
   popup.classList.remove('success', 'error') // Clear previous types
   popup.classList.add(type)
   active = true
@@ -39,7 +32,7 @@ export function showPopup(type, message, autoclose = true) {
     popupContent.textContent = message
   }
 
-  popup.style.right = '1em'
+  popup.style.right = '0em'
 
   // Don't auto-hide for 'action' type popups
   if (type === 'action') {

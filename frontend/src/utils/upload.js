@@ -147,10 +147,18 @@ export async function handleFiles(files, base, overwrite = false) {
       }
     )
     .then(response => {
+      let spinner = document.querySelector('.notification-spinner')
+      if (spinner) {
+        spinner.classList.add('hidden')
+      }
       console.log("Upload successful!",response);
       notify.showSuccess("Upload successful!");
     })
     .catch(error => {
+      let spinner = document.querySelector('.notification-spinner')
+      if (spinner) {
+        spinner.classList.add('hidden')
+      }
       notify.showError("Error uploading file: "+error);
     });
   }

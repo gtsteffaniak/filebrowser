@@ -10,6 +10,7 @@
 import { notify } from "@/notify";
 
 export default {
+  name: "notifications",
   data: function () {
     return {};
   },
