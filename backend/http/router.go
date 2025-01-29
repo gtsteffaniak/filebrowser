@@ -201,8 +201,8 @@ func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage
 	<-ctx.Done()
 	logger.Info("Shutting down HTTP server...")
 
-	// Graceful shutdown with a timeout
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Graceful shutdown with a timeout - 30 seconds, in case downloads are happening
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		logger.Error(fmt.Sprintf("HTTP server forced to shut down: %v", err))
