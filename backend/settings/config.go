@@ -28,6 +28,9 @@ func Initialize(configFile string) {
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
+	if Config.Auth.Method != "password" && Config.Auth.Method != "proxy" && Config.Auth.Method != "noauth" {
+		logger.Fatal(fmt.Sprintf("invalid `auth.method`: '%v' valid options: password,proxy,noauth", Config.Auth.Method))
+	}
 	if len(Config.Server.Logging) == 0 {
 		Config.Server.Logging = []LogConfig{
 			{
