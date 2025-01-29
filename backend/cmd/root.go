@@ -182,7 +182,7 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 	}
 	imgSvc := img.New(serverConfig.NumImageProcessors)
 
-	cacheDir := "/tmp"
+	cacheDir := settings.Config.Server.CacheDir
 	var fileCache diskcache.Interface
 
 	// Use file cache if cacheDir is specified

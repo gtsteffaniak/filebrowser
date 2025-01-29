@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Notes**:
   - Context menu positioning tweaks.
+  - using /tmp cachedir is disabled by default, cache dir can be specified via `server.cacheDir: /tmp` to enable it. https://github.com/gtsteffaniak/filebrowser/issues/326
 
   **Bugfixes**:
   - Gracefully shutdown to protect database. https://github.com/gtsteffaniak/filebrowser/issues/317
