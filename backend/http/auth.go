@@ -75,8 +75,13 @@ func extractToken(r *http.Request) (string, error) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+	if !config.Auth.Methods.PasswordAuth {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+	// currently only supports user/pass
 	// Get the authentication method from the settings
-	auther, err := store.Auth.Get(config.Auth.Method)
+	auther, err := store.Auth.Get("password")
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return

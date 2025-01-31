@@ -11,6 +11,9 @@ definitions:
         items:
           $ref: '#/definitions/files.ItemInfo'
         type: array
+      hidden:
+        description: whether the file is hidden
+        type: boolean
       modified:
         description: modification time
         type: string
@@ -29,6 +32,9 @@ definitions:
     type: object
   files.ItemInfo:
     properties:
+      hidden:
+        description: whether the file is hidden
+        type: boolean
       modified:
         description: modification time
         type: string
@@ -130,8 +136,6 @@ definitions:
         type: boolean
       gallerySize:
         type: integer
-      hideDotfiles:
-        type: boolean
       locale:
         type: string
       lockPassword:
@@ -146,6 +150,8 @@ definitions:
         type: array
       scope:
         type: string
+      showHidden:
+        type: boolean
       singleClick:
         type: boolean
       sorting:
@@ -269,8 +275,6 @@ definitions:
         type: boolean
       gallerySize:
         type: integer
-      hideDotfiles:
-        type: boolean
       id:
         type: integer
       locale:
@@ -287,6 +291,8 @@ definitions:
         type: array
       scope:
         type: string
+      showHidden:
+        type: boolean
       singleClick:
         type: boolean
       sorting:

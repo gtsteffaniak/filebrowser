@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"crypto/tls"
 	"embed"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"text/template"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
@@ -43,7 +45,7 @@ var (
 	assetFs   fs.FS
 )
 
-func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
+func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage, cache FileCache, shutdownComplete chan struct{}) {
 
 	store = storage
 	fileCache = cache
@@ -140,51 +142,74 @@ func StartHttp(Service ImgService, storage *storage.Storage, cache FileCache) {
 
 	var scheme string
 	port := ""
-
-	// Determine whether to use HTTPS (TLS) or HTTP
-	if config.Server.TLSCert != "" && config.Server.TLSKey != "" {
-		// Load the TLS certificate and key
-		cer, err := tls.LoadX509KeyPair(config.Server.TLSCert, config.Server.TLSKey)
-		if err != nil {
-			logger.Fatal(fmt.Sprintf("could not load certificate: %v", err))
-		}
-
-		// Create a custom TLS listener
-		tlsConfig := &tls.Config{
-			MinVersion:   tls.VersionTLS12,
-			Certificates: []tls.Certificate{cer},
-		}
-
-		// Set HTTPS scheme and default port for TLS
-		scheme = "https"
-
-		// Listen on TCP and wrap with TLS
-		listener, err := tls.Listen("tcp", fmt.Sprintf(":%v", config.Server.Port), tlsConfig)
-		if err != nil {
-			logger.Fatal(fmt.Sprintf("could not start TLS server: %v", err))
-		}
-		if config.Server.Port != 443 {
-			port = fmt.Sprintf(":%d", config.Server.Port)
-		}
-		// Build the full URL with host and port
-		fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
-		logger.Info(fmt.Sprintf("Running at               : %s", fullURL))
-		err = http.Serve(listener, muxWithMiddleware(router))
-		if err != nil {
-			logger.Fatal(fmt.Sprintf("could not start server: %v", err))
-		}
-	} else {
-		// Set HTTP scheme and the default port for HTTP
-		scheme = "http"
-		if config.Server.Port != 80 {
-			port = fmt.Sprintf(":%d", config.Server.Port)
-		}
-		// Build the full URL with host and port
-		fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
-		logger.Info(fmt.Sprintf("Running at               : %s", fullURL))
-		err := http.ListenAndServe(fmt.Sprintf(":%v", config.Server.Port), muxWithMiddleware(router))
-		if err != nil {
-			logger.Fatal(fmt.Sprintf("could not start server: %v", err))
-		}
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%v", config.Server.Port),
+		Handler: muxWithMiddleware(router),
 	}
+	go func() {
+		// Determine whether to use HTTPS (TLS) or HTTP
+		if config.Server.TLSCert != "" && config.Server.TLSKey != "" {
+			// Load the TLS certificate and key
+			cer, err := tls.LoadX509KeyPair(config.Server.TLSCert, config.Server.TLSKey)
+			if err != nil {
+				logger.Fatal(fmt.Sprintf("Could not load certificate: %v", err))
+			}
+
+			// Create a custom TLS configuration
+			tlsConfig := &tls.Config{
+				MinVersion:   tls.VersionTLS12,
+				Certificates: []tls.Certificate{cer},
+			}
+
+			// Set HTTPS scheme and default port for TLS
+			scheme = "https"
+			if config.Server.Port != 443 {
+				port = fmt.Sprintf(":%d", config.Server.Port)
+			}
+
+			// Build the full URL with host and port
+			fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
+			logger.Info(fmt.Sprintf("Running at               : %s", fullURL))
+
+			// Create a TLS listener and serve
+			listener, err := tls.Listen("tcp", srv.Addr, tlsConfig)
+			if err != nil {
+				logger.Fatal(fmt.Sprintf("Could not start TLS server: %v", err))
+			}
+			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+				logger.Fatal(fmt.Sprintf("Server error: %v", err))
+			}
+		} else {
+			// Set HTTP scheme and the default port for HTTP
+			scheme = "http"
+			if config.Server.Port != 80 {
+				port = fmt.Sprintf(":%d", config.Server.Port)
+			}
+
+			// Build the full URL with host and port
+			fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
+			logger.Info(fmt.Sprintf("Running at               : %s", fullURL))
+
+			// Start HTTP server
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Fatal(fmt.Sprintf("Server error: %v", err))
+			}
+		}
+	}()
+
+	// Wait for context cancellation to shut down the server
+	<-ctx.Done()
+	logger.Info("Shutting down HTTP server...")
+
+	// Graceful shutdown with a timeout - 30 seconds, in case downloads are happening
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Error(fmt.Sprintf("HTTP server forced to shut down: %v", err))
+	} else {
+		logger.Info("HTTP server shut down gracefully.")
+	}
+
+	// Signal that shutdown is complete
+	close(shutdownComplete)
 }

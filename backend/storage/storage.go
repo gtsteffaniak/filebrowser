@@ -80,14 +80,6 @@ func dbExists(path string) (bool, error) {
 
 func quickSetup(store *Storage) {
 	settings.Config.Auth.Key = utils.GenerateKey()
-	if settings.Config.Auth.Method == "noauth" {
-		err := store.Auth.Save(&auth.NoAuth{})
-		utils.CheckErr("store.Auth.Save", err)
-	} else {
-		settings.Config.Auth.Method = "password"
-		err := store.Auth.Save(&auth.JSONAuth{})
-		utils.CheckErr("store.Auth.Save", err)
-	}
 	err := store.Settings.Save(&settings.Config)
 	utils.CheckErr("store.Settings.Save", err)
 	err = store.Settings.SaveServer(&settings.Config.Server)

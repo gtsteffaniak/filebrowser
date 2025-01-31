@@ -40,8 +40,6 @@ func TestConfigLoadSpecificValues(t *testing.T) {
 		globalVal interface{}
 		newVal    interface{}
 	}{
-		{"Auth.Method", Config.Auth.Method, newConfig.Auth.Method},
-		{"Auth.Method", Config.Auth.Method, newConfig.Auth.Method},
 		{"Server.Database", Config.Server.Database, newConfig.Server.Database},
 	}
 

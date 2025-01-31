@@ -12,7 +12,7 @@
         <a :href="item.url" target="_blank" :title="item.title">{{ item.text }}</a>
       </span>
       <span v-if="name != ''">
-        <h4>{{ name }}</h4>
+        <h4 style="margin: 0">{{ name }}</h4>
       </span>
     </div>
   </nav>

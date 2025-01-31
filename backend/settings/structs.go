@@ -4,6 +4,14 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
+type AllowedMethods string
+
+const (
+	ProxyAuth    AllowedMethods = "proxyAuth"
+	NoAuth       AllowedMethods = "noAuth"
+	PasswordAuth AllowedMethods = "passwordAuth"
+)
+
 type Settings struct {
 	Commands     map[string][]string `json:"commands"`
 	Shell        []string            `json:"shell"`
@@ -17,16 +25,28 @@ type Settings struct {
 }
 
 type Auth struct {
-	TokenExpirationHours int       `json:"tokenExpirationHours"`
-	Recaptcha            Recaptcha `json:"recaptcha"`
-	Header               string    `json:"header"`
-	Method               string    `json:"method"`
-	Command              string    `json:"command"`
-	Signup               bool      `json:"signup"`
-	Shell                string    `json:"shell"`
-	AdminUsername        string    `json:"adminUsername"`
-	AdminPassword        string    `json:"adminPassword"`
-	Key                  []byte    `json:"key"`
+	TokenExpirationHours int          `json:"tokenExpirationHours"`
+	Recaptcha            Recaptcha    `json:"recaptcha"`
+	Methods              LoginMethods `json:"methods"`
+	Command              string       `json:"command"`
+	Signup               bool         `json:"signup"`
+	Method               string       `json:"method"`
+	Shell                string       `json:"shell"`
+	Key                  []byte       `json:"key"`
+	AdminUsername        string       `json:"adminUsername"`
+	AdminPassword        string       `json:"adminPassword"`
+}
+
+type LoginMethods struct {
+	ProxyAuth    ProxyAuthConfig `json:"proxy"`
+	NoAuth       bool            `json:"noauth"`
+	PasswordAuth bool            `json:"password"`
+}
+
+type ProxyAuthConfig struct {
+	Enabled    bool   `json:"enabled"`
+	CreateUser bool   `json:"createUser"`
+	Header     string `json:"header"`
 }
 
 type Recaptcha struct {
@@ -54,6 +74,7 @@ type Server struct {
 	Sources            []Source    `json:"sources"`
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
+	CacheDir           string      `json:"cacheDir"`
 }
 
 type Integrations struct {

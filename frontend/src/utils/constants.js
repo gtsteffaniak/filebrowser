@@ -12,7 +12,6 @@ const version = window.FileBrowser.Version;
 const commitSHA = window.FileBrowser.CommitSHA;
 const logoURL = `${staticURL}/img/logo.png`;
 const noAuth = window.FileBrowser.NoAuth;
-const authMethod = window.FileBrowser.AuthMethod;
 const loginPage = window.FileBrowser.LoginPage;
 const enableThumbs = window.FileBrowser.EnableThumbs;
 const resizePreview = window.FileBrowser.ResizePreview;
@@ -43,7 +42,6 @@ export {
   version,
   commitSHA,
   noAuth,
-  authMethod,
   loginPage,
   enableThumbs,
   resizePreview,

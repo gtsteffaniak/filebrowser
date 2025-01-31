@@ -1173,6 +1173,10 @@
                         "$ref": "#/definitions/files.ItemInfo"
                     }
                 },
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
                 "modified": {
                     "description": "modification time",
                     "type": "string"
@@ -1198,6 +1202,10 @@
         "files.ItemInfo": {
             "type": "object",
             "properties": {
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
                 "modified": {
                     "description": "modification time",
                     "type": "string"
@@ -1351,9 +1359,6 @@
                 "gallerySize": {
                     "type": "integer"
                 },
-                "hideDotfiles": {
-                    "type": "boolean"
-                },
                 "locale": {
                     "type": "string"
                 },
@@ -1374,6 +1379,9 @@
                 },
                 "scope": {
                     "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
                 },
                 "singleClick": {
                     "type": "boolean"
@@ -1559,9 +1567,6 @@
                 "gallerySize": {
                     "type": "integer"
                 },
-                "hideDotfiles": {
-                    "type": "boolean"
-                },
                 "id": {
                     "type": "integer"
                 },
@@ -1585,6 +1590,9 @@
                 },
                 "scope": {
                     "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
                 },
                 "singleClick": {
                     "type": "boolean"
