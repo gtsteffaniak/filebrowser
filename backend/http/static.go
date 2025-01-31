@@ -36,7 +36,7 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentType string) {
 	w.Header().Set("Content-Type", contentType)
 
-	auther, err := store.Auth.Get(config.Auth.Method)
+	auther, err := store.Auth.Get("password")
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -53,8 +53,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"CommitSHA":             version.CommitSHA,
 		"StaticURL":             config.Server.BaseURL + "static",
 		"Signup":                settings.Config.Auth.Signup,
-		"NoAuth":                config.Auth.Method == "noauth",
-		"AuthMethod":            config.Auth.Method,
+		"NoAuth":                config.Auth.Methods.NoAuth,
+		"PasswordAuth":          config.Auth.Methods.PasswordAuth.Enabled,
 		"LoginPage":             auther.LoginPage(),
 		"CSS":                   false,
 		"ReCaptcha":             false,
@@ -80,8 +80,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		}
 	}
 
-	if config.Auth.Method == "password" {
-		raw, err := store.Auth.Get(config.Auth.Method) //nolint:govet
+	if config.Auth.Methods.PasswordAuth.Enabled {
+		raw, err := store.Auth.Get("password") //nolint:govet
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return

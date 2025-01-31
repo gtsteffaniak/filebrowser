@@ -28,9 +28,6 @@ func Initialize(configFile string) {
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
-	if Config.Auth.Method != "password" && Config.Auth.Method != "proxy" && Config.Auth.Method != "noauth" {
-		logger.Fatal(fmt.Sprintf("invalid `auth.method`: '%v' valid options: password,proxy,noauth", Config.Auth.Method))
-	}
 	if len(Config.Server.Logging) == 0 {
 		Config.Server.Logging = []LogConfig{
 			{
@@ -135,10 +132,22 @@ func setDefaults() Settings {
 			TokenExpirationHours: 2,
 			AdminUsername:        "admin",
 			AdminPassword:        "admin",
-			Method:               "password",
 			Signup:               false,
 			Recaptcha: Recaptcha{
 				Host: "",
+			},
+			Methods: LoginMethods{
+				ProxyAuth: ProxyAuthConfig{
+					Enabled:    false,
+					CreateUser: false,
+					Header:     "",
+				},
+				NoAuth: false,
+				PasswordAuth: PasswordMethodConfig{
+					Enabled:       true,
+					AdminUsername: "admin",
+					AdminPassword: "admin",
+				},
 			},
 		},
 		Frontend: Frontend{
@@ -148,8 +157,8 @@ func setDefaults() Settings {
 			StickySidebar:   true,
 			Scope:           ".",
 			LockPassword:    false,
-			ShowHidden:      true,
-			DarkMode:        false,
+			ShowHidden:      false,
+			DarkMode:        true,
 			DisableSettings: false,
 			ViewMode:        "normal",
 			Locale:          "en",

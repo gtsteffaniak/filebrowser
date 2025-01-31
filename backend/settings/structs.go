@@ -4,6 +4,14 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
+type AllowedMethods string
+
+const (
+	ProxyAuth    AllowedMethods = "proxyAuth"
+	NoAuth       AllowedMethods = "noAuth"
+	PasswordAuth AllowedMethods = "passwordAuth"
+)
+
 type Settings struct {
 	Commands     map[string][]string `json:"commands"`
 	Shell        []string            `json:"shell"`
@@ -17,17 +25,33 @@ type Settings struct {
 }
 
 type Auth struct {
-	TokenExpirationHours int       `json:"tokenExpirationHours"`
-	Recaptcha            Recaptcha `json:"recaptcha"`
-	Header               string    `json:"header"`
-	Method               string    `json:"method"`
-	Command              string    `json:"command"`
-	Signup               bool      `json:"signup"`
-	Shell                string    `json:"shell"`
-	AdminUsername        string    `json:"adminUsername"`
-	AdminPassword        string    `json:"adminPassword"`
-	Key                  []byte    `json:"key"`
-	CreateUser           bool      `json:"createUser"`
+	TokenExpirationHours int          `json:"tokenExpirationHours"`
+	Recaptcha            Recaptcha    `json:"recaptcha"`
+	Methods              LoginMethods `json:"methods"`
+	Command              string       `json:"command"`
+	Signup               bool         `json:"signup"`
+	Shell                string       `json:"shell"`
+	Key                  []byte       `json:"key"`
+	AdminUsername        string       `json:"adminUsername"`
+	AdminPassword        string       `json:"adminPassword"`
+}
+
+type LoginMethods struct {
+	ProxyAuth    ProxyAuthConfig      `json:"proxyAuth"`
+	NoAuth       bool                 `json:"noAuth"`
+	PasswordAuth PasswordMethodConfig `json:"passwordAuth"`
+}
+
+type ProxyAuthConfig struct {
+	Enabled    bool   `json:"enabled"`
+	CreateUser bool   `json:"createUser"`
+	Header     string `json:"header"`
+}
+
+type PasswordMethodConfig struct {
+	Enabled       bool   `json:"enabled"`
+	AdminUsername string `json:"adminUsername"`
+	AdminPassword string `json:"adminPassword"`
 }
 
 type Recaptcha struct {
