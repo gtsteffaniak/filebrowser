@@ -72,7 +72,7 @@ export default {
   },
   computed: {
     showPadding() {
-      return getters.showBreadCrumbs();
+      return getters.showBreadCrumbs() || getters.currentView() === "settings";
     },
     isLoggedIn() {
       return getters.isLoggedIn();

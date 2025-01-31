@@ -3,7 +3,6 @@ server:
   baseURL:  "/"
   root: "/srv"
 auth:
-  method: password
   signup: false
 userDefaults:
   darkMode: true

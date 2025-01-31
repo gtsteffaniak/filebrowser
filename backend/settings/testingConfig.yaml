@@ -16,7 +16,6 @@ auth:
     key: ""
     secret: ""
   header: ""
-  method: json
   command: ""
   signup: false
   shell: ""
