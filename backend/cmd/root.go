@@ -138,9 +138,22 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 	for _, v := range settings.Config.Server.Sources {
 		sources = append(sources, v.Name+": "+v.Path)
 	}
+
+	authMethods := []string{}
+	if settings.Config.Auth.Methods.PasswordAuth {
+		authMethods = append(authMethods, "Password")
+	}
+	if settings.Config.Auth.Methods.ProxyAuth.Enabled {
+		authMethods = append(authMethods, "Proxy")
+	}
+	if settings.Config.Auth.Methods.NoAuth {
+		logger.Warning("Configured with no authentication, this is not recommended.")
+		authMethods = []string{"Disabled"}
+	}
+
 	logger.Info(fmt.Sprintf("Initializing FileBrowser Quantum (%v)", version.Version))
 	logger.Info(fmt.Sprintf("Using Config file        : %v", configPath))
-	logger.Debug(fmt.Sprintf("Embeded frontend         : %v", os.Getenv("FILEBROWSER_NO_EMBEDED") != "true"))
+	logger.Info(fmt.Sprintf("Auth Methods             : %v", authMethods))
 	logger.Info(database)
 	logger.Info(fmt.Sprintf("Sources                  : %v", sources))
 	serverConfig := settings.Config.Server

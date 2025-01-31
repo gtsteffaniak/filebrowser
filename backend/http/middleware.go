@@ -94,45 +94,43 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		if config.Auth.Method == "noauth" {
+		if config.Auth.Methods.NoAuth {
 			var err error
 			// Retrieve the user from the store and store it in the context
-			data.user, err = store.Users.Get(files.RootPaths["default"], "admin")
+			data.user, err = store.Users.Get(files.RootPaths["default"], 1)
 			if err != nil {
+				logger.Error(fmt.Sprintf("no auth: %v", err))
 				return http.StatusInternalServerError, err
 			}
 			return fn(w, r, data)
 		}
-		if config.Auth.Method == "proxy" {
-			proxyUser := r.Header.Get(config.Auth.Header)
-			if proxyUser != "" {
-				var err error
-				// Retrieve the user from the store and store it in the context
-				data.user, err = store.Users.Get(files.RootPaths["default"], proxyUser)
-				if err != nil {
-					if err.Error() != "the resource does not exist" {
+		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
+			var err error
+			// Retrieve the user from the store and store it in the context
+			data.user, err = store.Users.Get(files.RootPaths["default"], proxyUser)
+			if err != nil {
+				if err.Error() != "the resource does not exist" {
+					return http.StatusInternalServerError, err
+				}
+				if config.Auth.Methods.ProxyAuth.CreateUser {
+					newUser := settings.ApplyUserDefaults(users.User{
+						Username: proxyUser,
+					})
+					err := store.Users.Save(&newUser)
+					if err != nil {
 						return http.StatusInternalServerError, err
 					}
-					if config.Auth.CreateUser {
-						newUser := settings.ApplyUserDefaults(users.User{
-							Username: proxyUser,
-						})
-						err := store.Users.Save(&newUser)
-						if err != nil {
-							return http.StatusInternalServerError, err
-						}
-						data.user, err = store.Users.Get(files.RootPaths["default"], proxyUser)
-						if err != nil {
-							return http.StatusInternalServerError, err
-						}
-					} else {
-						return http.StatusUnauthorized, fmt.Errorf("proxy authentication failed - no user found")
+					data.user, err = store.Users.Get(files.RootPaths["default"], proxyUser)
+					if err != nil {
+						return http.StatusInternalServerError, err
 					}
+				} else {
+					return http.StatusUnauthorized, fmt.Errorf("proxy authentication failed - no user found")
 				}
-				setUserInResponseWriter(w, data.user)
-				return fn(w, r, data)
 			}
-			return http.StatusUnauthorized, fmt.Errorf("proxy authentication failed")
+			setUserInResponseWriter(w, data.user)
+			return fn(w, r, data)
 		}
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
 			return config.Auth.Key, nil

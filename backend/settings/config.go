@@ -28,9 +28,6 @@ func Initialize(configFile string) {
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
 	}
-	if Config.Auth.Method != "password" && Config.Auth.Method != "proxy" && Config.Auth.Method != "noauth" {
-		logger.Fatal(fmt.Sprintf("invalid `auth.method`: '%v' valid options: password,proxy,noauth", Config.Auth.Method))
-	}
 	if len(Config.Server.Logging) == 0 {
 		Config.Server.Logging = []LogConfig{
 			{
@@ -49,7 +46,9 @@ func Initialize(configFile string) {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
 	}
-
+	if Config.Auth.Method != "" {
+		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
+	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	// Convert relative path to absolute path
 	if len(Config.Server.Sources) > 0 {
@@ -132,13 +131,21 @@ func setDefaults() Settings {
 			Root:               ".",
 		},
 		Auth: Auth{
-			TokenExpirationHours: 2,
 			AdminUsername:        "admin",
 			AdminPassword:        "admin",
-			Method:               "password",
+			TokenExpirationHours: 2,
 			Signup:               false,
 			Recaptcha: Recaptcha{
 				Host: "",
+			},
+			Methods: LoginMethods{
+				ProxyAuth: ProxyAuthConfig{
+					Enabled:    false,
+					CreateUser: false,
+					Header:     "",
+				},
+				NoAuth:       false,
+				PasswordAuth: true,
 			},
 		},
 		Frontend: Frontend{
@@ -148,8 +155,8 @@ func setDefaults() Settings {
 			StickySidebar:   true,
 			Scope:           ".",
 			LockPassword:    false,
-			ShowHidden:      true,
-			DarkMode:        false,
+			ShowHidden:      false,
+			DarkMode:        true,
 			DisableSettings: false,
 			ViewMode:        "normal",
 			Locale:          "en",

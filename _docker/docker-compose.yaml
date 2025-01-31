@@ -5,9 +5,11 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./src-nginx-proxy/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src/default.conf:/etc/nginx/conf.d/default.conf
   filebrowser:
     volumes:
       - '../frontend:/home/frontend'
-      - '../backend/filebrowser-playwright.yaml:/home/filebrowser/config.yaml'
-    image: gtstef/filebrowser
+      - "./src/config.yaml:/home/filebrowser/config.yaml"
+    build:
+      context: ../
+      dockerfile: ./_docker/Dockerfile

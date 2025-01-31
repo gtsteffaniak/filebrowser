@@ -70,7 +70,7 @@ export default {
     name: () => name || "FileBrowser Quantum",
     logoURL: () => logoURL,
     isDarkMode() {
-      return darkMode === true;
+      return darkMode !== false;
     },
     loginName() {
       return name
