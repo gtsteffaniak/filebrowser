@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.5.0-beta
 
- > Note: `auth.method` is deprecated. It should be backwards compatible and throw a warning, but now auth methods are specified via `auth.methods` instead. see [example on the wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration#example-auth-config).
+ > Note: This Beta release includes a configuration change: `auth.method` is now deprecated. This is done to allow multiple login methods at once. Auth methods are specified via `auth.methods` instead. see [example on the wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration#example-auth-config).
 
   **New Features**:
   - Upload progress notification https://github.com/gtsteffaniak/filebrowser/issues/303
