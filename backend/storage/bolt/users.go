@@ -19,9 +19,11 @@ func (st usersBackend) GetBy(i interface{}) (user *users.User, err error) {
 	user = &users.User{}
 
 	var arg string
-	switch i.(type) {
+	switch val := i.(type) {
 	case uint:
 		arg = "ID"
+	case int:
+		i = uint(val)
 	case string:
 		arg = "Username"
 	default:

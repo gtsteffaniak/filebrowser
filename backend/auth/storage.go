@@ -17,8 +17,25 @@ type Storage struct {
 }
 
 // NewStorage creates a auth storage from a backend.
-func NewStorage(back StorageBackend, userStore *users.Storage) *Storage {
-	return &Storage{back: back, users: userStore}
+func NewStorage(back StorageBackend, userStore *users.Storage) (*Storage, error) {
+	store := &Storage{back: back, users: userStore}
+	err := store.Save(&JSONAuth{})
+	if err != nil {
+		return nil, err
+	}
+	err = store.Save(&ProxyAuth{})
+	if err != nil {
+		return nil, err
+	}
+	err = store.Save(&HookAuth{})
+	if err != nil {
+		return nil, err
+	}
+	err = store.Save(&NoAuth{})
+	if err != nil {
+		return nil, err
+	}
+	return store, nil
 }
 
 // Get wraps a StorageBackend.Get.

@@ -28,6 +28,11 @@
   <meta name="msapplication-TileImage" content="{{ .StaticURL }}/img/icons/mstile-144x144.png">
   <meta name="msapplication-TileColor" content="{{ if .Color }}{{ .Color }}{{ else }}#2979ff{{ end }}">
 
+  <meta name="description" content="FileBrowser Quantum is a file manager for the web which can be used to manage files on your server">
+  <link rel="canonical" href="https://github.com/gtsteffaniak/filebrowser">
+  <link rel="canonical" href="https://github.com/gtsteffaniak">
+  <link rel="canonical" href="https://github.com/quantumx-apps">
+
   <!-- Inject Some Variables and generate the manifest json -->
   <script>
     window.FileBrowser = JSON.parse('{{ .globalVars }}');

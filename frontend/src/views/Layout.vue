@@ -30,11 +30,7 @@
     </main>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
   </div>
-
-  <div class="card" id="popup-notification">
-    <i v-on:click="closePopUp" class="material-icons">close</i>
-    <div id="popup-notification-content">no info</div>
-  </div>
+  <Notifications />
   <ContextMenu></ContextMenu>
 </template>
 <script>
@@ -44,8 +40,8 @@ import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
+import Notifications from "@/components/Notifications.vue";
 
-import { notify } from "@/notify";
 import { enableExec } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 
@@ -53,6 +49,7 @@ export default {
   name: "layout",
   components: {
     ContextMenu,
+    Notifications,
     defaultBar,
     editorBar,
     listingBar,
@@ -75,16 +72,13 @@ export default {
   },
   computed: {
     showPadding() {
-      return getters.showBreadCrumbs();
+      return getters.showBreadCrumbs() || getters.currentView() === "settings";
     },
     isLoggedIn() {
       return getters.isLoggedIn();
     },
     moveWithSidebar() {
       return getters.isSidebarVisible() && getters.isStickySidebar();
-    },
-    closePopUp() {
-      return notify.closePopUp;
     },
     progress() {
       return getters.progress(); // Access getter directly from the store

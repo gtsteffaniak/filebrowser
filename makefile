@@ -14,7 +14,7 @@ update:
 	cd backend && go get -u ./... && go mod tidy && cd ../frontend && npm update
 
 build:
-	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a"  -t gtstef/filebrowser .
+	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a"  -t gtstef/filebrowser -f _docker/Dockerfile .
 
 build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'"
@@ -53,7 +53,7 @@ test-frontend:
 
 test-playwright: run-frontend
 	cd backend && GOOS=linux go build -o filebrowser . && cd .. && \
-	docker build -t filebrowser-playwright-tests -f Dockerfile.playwright .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright .
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 
 # Run on a windows machine!
