@@ -30,6 +30,7 @@ type Auth struct {
 	Methods              LoginMethods `json:"methods"`
 	Command              string       `json:"command"`
 	Signup               bool         `json:"signup"`
+	Method               string       `json:"method"`
 	Shell                string       `json:"shell"`
 	Key                  []byte       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
@@ -37,21 +38,15 @@ type Auth struct {
 }
 
 type LoginMethods struct {
-	ProxyAuth    ProxyAuthConfig      `json:"proxyAuth"`
-	NoAuth       bool                 `json:"noAuth"`
-	PasswordAuth PasswordMethodConfig `json:"passwordAuth"`
+	ProxyAuth    ProxyAuthConfig `json:"proxy"`
+	NoAuth       bool            `json:"noauth"`
+	PasswordAuth bool            `json:"password"`
 }
 
 type ProxyAuthConfig struct {
 	Enabled    bool   `json:"enabled"`
 	CreateUser bool   `json:"createUser"`
 	Header     string `json:"header"`
-}
-
-type PasswordMethodConfig struct {
-	Enabled       bool   `json:"enabled"`
-	AdminUsername string `json:"adminUsername"`
-	AdminPassword string `json:"adminPassword"`
 }
 
 type Recaptcha struct {

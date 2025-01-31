@@ -97,8 +97,9 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if config.Auth.Methods.NoAuth {
 			var err error
 			// Retrieve the user from the store and store it in the context
-			data.user, err = store.Users.Get(files.RootPaths["default"], "admin")
+			data.user, err = store.Users.Get(files.RootPaths["default"], 1)
 			if err != nil {
+				logger.Error(fmt.Sprintf("no auth: %v", err))
 				return http.StatusInternalServerError, err
 			}
 			return fn(w, r, data)

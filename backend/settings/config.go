@@ -46,7 +46,9 @@ func Initialize(configFile string) {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
 	}
-
+	if Config.Auth.Method != "" {
+		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
+	}
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	// Convert relative path to absolute path
 	if len(Config.Server.Sources) > 0 {
@@ -130,8 +132,6 @@ func setDefaults() Settings {
 		},
 		Auth: Auth{
 			TokenExpirationHours: 2,
-			AdminUsername:        "admin",
-			AdminPassword:        "admin",
 			Signup:               false,
 			Recaptcha: Recaptcha{
 				Host: "",
@@ -142,12 +142,8 @@ func setDefaults() Settings {
 					CreateUser: false,
 					Header:     "",
 				},
-				NoAuth: false,
-				PasswordAuth: PasswordMethodConfig{
-					Enabled:       true,
-					AdminUsername: "admin",
-					AdminPassword: "admin",
-				},
+				NoAuth:       false,
+				PasswordAuth: true,
 			},
 		},
 		Frontend: Frontend{
