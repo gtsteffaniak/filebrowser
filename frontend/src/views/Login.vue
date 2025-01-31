@@ -7,7 +7,7 @@
       <div class="login-brand brand-text">
         <h3>{{ loginName }}</h3>
       </div>
-      
+
       <div v-if="error !== ''" class="wrong">{{ error }}</div>
 
       <input
@@ -70,7 +70,7 @@ export default {
     name: () => name || "FileBrowser Quantum",
     logoURL: () => logoURL,
     isDarkMode() {
-      return darkMode !== false;
+      return darkMode;
     },
     loginName() {
       return name

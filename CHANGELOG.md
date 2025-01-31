@@ -2,11 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v0.4.3-beta
+## v0.5.0-beta
+
+ > Note: `auth.method` is deprecated. It should be backwards compatible and throw a warning, but now auth methods are specified via `auth.methods` instead. see [example on the wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration#example-auth-config).
 
   **New Features**:
   - Upload progress notification https://github.com/gtsteffaniak/filebrowser/issues/303
-  - proxy auth auto create user when `auth.createUser: true` while using proxy auth.
+  - proxy auth auto create user when `auth.methods.proxy.createUser: true` while using proxy auth.
 
   **Notes**:
   - Context menu positioning tweaks.
