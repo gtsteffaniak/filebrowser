@@ -6,8 +6,8 @@
   [![Codacy Badge](https://app.codacy.com/project/badge/Grade/1c48cfb7646d4009aa8c6f71287670b8)](https://www.codacy.com/gh/gtsteffaniak/filebrowser/dashboard)
   [![DockerHub Pulls](https://img.shields.io/docker/pulls/gtstef/filebrowser?label=latest%20Docker%20pulls)](https://hub.docker.com/r/gtstef/filebrowser)
   
-  <img width="250" src="https://github.com/user-attachments/assets/10b225fa-94e4-4577-a4e7-b2b4f14609c8" title="Logo">
-
+  <img width="150" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" title="Logo">
+  <h3>FileBrowser Quantum</h3>
   A modern web-based file manager
   <br/><br/>
   <img width="800" src="https://github.com/user-attachments/assets/c991fc69-a05b-4f34-b915-0d3cded887a7" title="Main Screenshot">
