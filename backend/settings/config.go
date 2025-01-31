@@ -131,6 +131,8 @@ func setDefaults() Settings {
 			Root:               ".",
 		},
 		Auth: Auth{
+			AdminUsername:        "admin",
+			AdminPassword:        "admin",
 			TokenExpirationHours: 2,
 			Signup:               false,
 			Recaptcha: Recaptcha{
