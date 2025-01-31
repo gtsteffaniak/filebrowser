@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.playwright
+          file: ./_docker/Dockerfile.playwright
           push: false
   create_release_tag:
     needs: [ test_frontend ]
