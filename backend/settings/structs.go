@@ -38,9 +38,14 @@ type Auth struct {
 }
 
 type LoginMethods struct {
-	ProxyAuth    ProxyAuthConfig `json:"proxy"`
-	NoAuth       bool            `json:"noauth"`
-	PasswordAuth bool            `json:"password"`
+	ProxyAuth    ProxyAuthConfig    `json:"proxy"`
+	NoAuth       bool               `json:"noauth"`
+	PasswordAuth PasswordAuthConfig `json:"password"`
+}
+
+type PasswordAuthConfig struct {
+	Enabled   bool `json:"enabled"`
+	MinLength int  `json:"minLength"`
 }
 
 type ProxyAuthConfig struct {
