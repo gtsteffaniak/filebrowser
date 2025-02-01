@@ -87,38 +87,60 @@ func StartFilebrowser() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "set":
-			err := setCmd.Parse(os.Args)
+			err := setCmd.Parse(os.Args[2:])
 			if err != nil {
 				setCmd.PrintDefaults()
 				os.Exit(1)
 			}
 			userInfo := strings.Split(user, ",")
 			if len(userInfo) < 2 {
-				fmt.Println("not enough info to create user: \"set -u username,password\"")
+				fmt.Printf("not enough info to create user: \"set -u username,password\", only provided %v\n", userInfo)
 				setCmd.PrintDefaults()
 				os.Exit(1)
 			}
 			username := userInfo[0]
 			password := userInfo[1]
-			getStore(dbConfig)
-			// Create the user logic
-			if asAdmin {
-				logger.Info(fmt.Sprintf("Creating user as admin: %s\n", username))
-			} else {
-				logger.Info(fmt.Sprintf("Creating non-admin user: %s\n", username))
+			store, ok := getStore(dbConfig)
+			if !ok {
+				logger.Fatal("could not load db info")
 			}
-			newUser := users.User{
-				Username: username,
-				Password: password,
-			}
-			if scope != "" {
-				newUser.Scope = scope
-			}
-			err = storage.CreateUser(newUser, asAdmin)
+			user, err := store.Users.Get("", username)
 			if err != nil {
-				logger.Fatal(fmt.Sprintf("could not create user: %v", err))
+				newUser := users.User{
+					Username: username,
+					Password: password,
+				}
+				if scope != "" {
+					newUser.Scope = scope
+				} else {
+					newUser.Scope = settings.Config.UserDefaults.Scope
+				}
+				// Create the user logic
+				if asAdmin {
+					logger.Info(fmt.Sprintf("Creating user as admin: %s\n", username))
+				} else {
+					logger.Info(fmt.Sprintf("Creating non-admin user: %s\n", username))
+				}
+				err = storage.CreateUser(newUser, asAdmin)
+				if err != nil {
+					logger.Error(fmt.Sprintf("could not create user: %v", err))
+				}
+				return
 			}
+			user.Password = password
+			if scope != "" {
+				user.Scope = scope
+			}
+			if asAdmin {
+				user.Perm.Admin = true
+			}
+			err = store.Users.Save(user)
+			if err != nil {
+				logger.Error(fmt.Sprintf("could not update user: %v", err))
+			}
+			fmt.Printf("successfully updated user: %s\n", username)
 			return
+
 		case "version":
 			fmt.Printf(`FileBrowser Quantum - A modern web-based file manager
 Version        : %v
@@ -128,7 +150,6 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 			return
 		}
 	}
-
 	store, dbExists := getStore(configPath)
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
@@ -140,7 +161,7 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 	}
 
 	authMethods := []string{}
-	if settings.Config.Auth.Methods.PasswordAuth {
+	if settings.Config.Auth.Methods.PasswordAuth.Enabled {
 		authMethods = append(authMethods, "Password")
 	}
 	if settings.Config.Auth.Methods.ProxyAuth.Enabled {

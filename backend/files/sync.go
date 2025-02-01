@@ -2,6 +2,8 @@ package files
 
 import (
 	"path/filepath"
+
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
@@ -69,7 +71,9 @@ func GetIndex(name string) *Index {
 	defer indexesMutex.Unlock()
 	index, ok := indexes[name]
 	if !ok {
-		return nil
+		return &Index{
+			Source: settings.Source{Name: "default", Path: "."},
+		}
 	}
 	return index
 }

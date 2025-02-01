@@ -115,7 +115,12 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	}
 	newUser.Scope = userHome
 	logger.Debug(fmt.Sprintf("user: %s, home dir: [%s].", newUser.Username, userHome))
+
+	// todo: fix this, requries index path to be set
 	idx := files.GetIndex("default")
+	if idx == nil {
+		idx = files.GetIndex("default")
+	}
 	_, _, err = idx.GetRealPath(newUser.Scope)
 	if err != nil {
 		logger.Error(fmt.Sprintf("user path is not valid: %v", newUser.Scope))

@@ -80,7 +80,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		}
 	}
 
-	if config.Auth.Methods.PasswordAuth {
+	if config.Auth.Methods.PasswordAuth.Enabled {
 		raw, err := store.Auth.Get("password") //nolint:govet
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

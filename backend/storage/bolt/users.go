@@ -7,6 +7,7 @@ import (
 	"github.com/asdine/storm/v3"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
@@ -19,18 +20,21 @@ func (st usersBackend) GetBy(i interface{}) (user *users.User, err error) {
 	user = &users.User{}
 
 	var arg string
-	switch val := i.(type) {
+	var val interface{}
+	switch i := i.(type) {
 	case uint:
+		val = i
 		arg = "ID"
 	case int:
-		i = uint(val)
+		val = uint(i)
 	case string:
 		arg = "Username"
+		val = i
 	default:
 		return nil, errors.ErrInvalidDataType
 	}
 
-	err = st.db.One(arg, i, user)
+	err = st.db.One(arg, val, user)
 
 	if err != nil {
 		if err == storm.ErrNotFound {
@@ -82,6 +86,9 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 }
 
 func (st usersBackend) Save(user *users.User) error {
+	if len(user.Password) < settings.Config.Auth.Methods.PasswordAuth.MinLength {
+		return fmt.Errorf("password must be at least %d characters long", settings.Config.Auth.Methods.PasswordAuth.MinLength)
+	}
 	pass, err := users.HashPwd(user.Password)
 	if err != nil {
 		return err

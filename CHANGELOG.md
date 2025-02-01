@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.5.1-beta
+
+ > Note: I changed the [config](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration#example-auth-config) for password auth again... It was a mistake just to make it a boolean, so now you can provide options, going forward this allows for more.
+
+  **New Features**:
+  - password length requirement config via `auth.methods.password.minLength` as a number of characters required.
+
+  **Bugfixes**:
+  - NoAuth error message "resource not found"
+  - CLI user configuration works and simplified see examples in the [Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/CLI)
+
 ## v0.5.0-beta
 
  > Note: This Beta release includes a configuration change: `auth.method` is now deprecated. This is done to allow multiple login methods at once. Auth methods are specified via `auth.methods` instead. see [example on the wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration#example-auth-config).

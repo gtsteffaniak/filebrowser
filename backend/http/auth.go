@@ -75,7 +75,7 @@ func extractToken(r *http.Request) (string, error) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	if !config.Auth.Methods.PasswordAuth {
+	if !config.Auth.Methods.PasswordAuth.Enabled {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}

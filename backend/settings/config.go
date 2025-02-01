@@ -144,8 +144,11 @@ func setDefaults() Settings {
 					CreateUser: false,
 					Header:     "",
 				},
-				NoAuth:       false,
-				PasswordAuth: true,
+				NoAuth: false,
+				PasswordAuth: PasswordAuthConfig{
+					Enabled:   true,
+					MinLength: 5,
+				},
 			},
 		},
 		Frontend: Frontend{

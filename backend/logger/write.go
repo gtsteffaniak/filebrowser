@@ -110,7 +110,7 @@ func Debug(msg string) {
 	if len(loggers) > 0 {
 		Log(levels.DEBUG, msg, true, false, GRAY)
 	} else {
-		log.Println("[DEBUG]: " + msg)
+		log.Println("[DEBUG] ", msg)
 	}
 }
 
@@ -126,7 +126,7 @@ func Warning(msg string) {
 	if len(loggers) > 0 {
 		Log(levels.WARNING, msg, true, false, YELLOW)
 	} else {
-		log.Println("[WARN ]: " + msg)
+		log.Println("[WARN ] ", msg)
 	}
 }
 
@@ -134,7 +134,7 @@ func Error(msg string) {
 	if len(loggers) > 0 {
 		Log(levels.ERROR, msg, true, false, RED)
 	} else {
-		log.Println("[ERROR] : ", msg)
+		log.Println("[ERROR] ", msg)
 	}
 }
 
@@ -142,5 +142,5 @@ func Fatal(msg string) {
 	if len(loggers) > 0 {
 		Log(levels.FATAL, msg, true, false, RED)
 	}
-	log.Fatal("[FATAL] : ", msg)
+	log.Fatal("[FATAL] ", msg)
 }
