@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.5.2-beta
+
+ **New Features**:
+  #- Paginated browsing for improved load times on slower connections.
+  #- Markdown file preview
+  #- Easy access download button
+  #- video streaming support
+  #- onlyoffice select which filetypes to open via onlyoffice in user settings
+
+ **Notes**:
+  - Adds message about what sharing means when creating a link.
+
+ **BugFixes**:
+  - onlyoffice close window missing files issue https://github.com/gtsteffaniak/filebrowser/issues/345
+
+
 ## v0.5.1-beta
 
  > Note: I changed the [config](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration#example-auth-config) for password auth again... It was a mistake just to make it a boolean, so now you can provide options, going forward this allows for more.
