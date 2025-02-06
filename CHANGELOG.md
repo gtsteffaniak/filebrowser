@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
   #- Easy access download button
   #- video streaming support
   #- onlyoffice select which filetypes to open via onlyoffice in user settings
+  #- create only office files from the UI
 
  **Notes**:
   - Adds message about what sharing means when creating a link.

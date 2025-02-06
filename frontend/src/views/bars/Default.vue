@@ -10,6 +10,7 @@
 <script>
 import router from "@/router";
 import { getters, state, mutations } from "@/store";
+import { removeLastDir } from "@/utils/url";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -38,6 +39,11 @@ export default {
         return;
       }
 
+      if (getters.currentView() === "onlyOfficeEditor") {
+        // fixes a bug, but this fix also means scroll location memory is not preserved
+        window.location = removeLastDir(getters.routePath()); // Load last page as if navigating normally
+        return;
+      }
       mutations.replaceRequest({});
       router.go(-1)
     },
