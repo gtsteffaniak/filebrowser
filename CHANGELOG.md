@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
   #- Paginated browsing for improved load times on slower connections.
-  #- Markdown file preview
+  cd - Markdown file preview
   #- Easy access download button
   #- video streaming support
   #- onlyoffice select which filetypes to open via onlyoffice in user settings

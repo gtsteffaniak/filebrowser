@@ -9,10 +9,7 @@
       :label="$t('buttons.save')"
       @action="save()"
     />
-    <action
-      v-else
-      icon="hide_source"
-    />
+    <action v-else icon="hide_source" />
   </header>
 </template>
 
@@ -120,7 +117,7 @@ export default {
       }
     },
     close() {
-      mutations.replaceRequest({});
+      mutations.setMarkdownEdit(false)
       router.go(-1)
     },
   },

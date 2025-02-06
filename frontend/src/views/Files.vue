@@ -24,6 +24,7 @@ import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
+import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
@@ -38,6 +39,7 @@ export default {
     ListingView,
     Editor,
     OnlyOfficeEditor,
+    MarkdownViewer,
   },
   data() {
     return {

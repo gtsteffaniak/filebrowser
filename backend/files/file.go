@@ -341,6 +341,10 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	ext := filepath.Ext(name)
 
 	// Attempt MIME detection by file extension
+	if ext == ".md" {
+		i.Type = "text/markdown"
+		return
+	}
 	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]
 	if i.Type == "" {
 		i.Type = extendedMimeTypeCheck(ext)
