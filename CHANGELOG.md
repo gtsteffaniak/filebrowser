@@ -6,14 +6,14 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
   #- Paginated browsing for improved load times on slower connections.
-  cd - Markdown file preview
+  - Markdown file preview
   #- Easy access download button
   #- video streaming support
   #- onlyoffice select which filetypes to open via onlyoffice in user settings
   #- create only office files from the UI
 
  **Notes**:
-  - Adds message about what sharing means when creating a link.
+  #- Adds message about what sharing means when creating a link.
 
  **BugFixes**:
   - onlyoffice close window missing files issue https://github.com/gtsteffaniak/filebrowser/issues/345

@@ -12,9 +12,6 @@ export const mutations = {
     emitStateChanged();
     usersApi.update(state.user, ['gallerySize']);
   },
-  setMarkdownEdit(value) {
-    state.user.editMarkdown = value;
-  },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
     router.push({ hash: "#" + value });

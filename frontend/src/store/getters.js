@@ -148,7 +148,7 @@ export const getters = {
           return "listingView";
         } else if (state.req?.onlyOfficeId) {
           return "onlyOfficeEditor";
-        } else if ("content" in state.req && state.req.type == "text/markdown" && !state.user.editMarkdown) {
+        } else if ("content" in state.req && state.req.type == "text/markdown" && window.location.hash != "#edit") {
           return "markdownViewer";
         } else if ("content" in state.req) {
           return "editor";

@@ -35,7 +35,6 @@ export default {
   },
   methods: {
     async edit() {
-      mutations.setMarkdownEdit(true);
       window.location.hash = "#edit";
     },
     close() {

@@ -117,7 +117,6 @@ export default {
       }
     },
     close() {
-      mutations.setMarkdownEdit(false)
       router.go(-1)
     },
   },
