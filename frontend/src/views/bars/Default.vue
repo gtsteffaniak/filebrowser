@@ -3,7 +3,7 @@
     <action v-if="notShare" icon="close" :label="$t('buttons.close')" @action="close()" />
     <title v-if="isSettings" class="topTitle">Settings</title>
     <title v-else class="topTitle">{{ req.name }}</title>
-    <action v-if="ismarkdown" icon="edit" @action="edit()"/>
+    <action v-if="ismarkdownEditable" icon="edit" @action="edit()"/>
     <action v-else icon="hide_source" />
   </header>
 </template>
@@ -20,8 +20,8 @@ export default {
     Action,
   },
   computed: {
-    ismarkdown() {
-      return state.req.type == "text/markdown";
+    ismarkdownEditable() {
+      return state.req.type == "text/markdown" && state.user.perm.modify;
     },
     notShare() {
       return getters.currentView() != "share";
