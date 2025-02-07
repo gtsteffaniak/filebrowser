@@ -12,7 +12,11 @@
           </p>
           <p>
             <input type="checkbox" v-model="showHidden" />
-            show hidden files
+            Show hidden files
+          </p>
+          <p>
+            <input type="checkbox" v-model="quickDownload" />
+            Always show download icon for quick access
           </p>
           <h3>Theme Color</h3>
           <ButtonGroup :buttons="colorChoices" @button-clicked="setColor" :initialActive="color" />
@@ -45,6 +49,7 @@ export default {
       locale: "",
       color: "",
       showHidden: false,
+      quickDownload: false,
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
         { label: "red", value: "var(--red)" },
@@ -57,6 +62,11 @@ export default {
   },
   watch: {
     showHidden: function () {
+      if (this.initialized) {
+        this.updateSettings(); // Only run if initialized
+      }
+    },
+    quickDownload: function () {
       if (this.initialized) {
         this.updateSettings(); // Only run if initialized
       }
@@ -83,6 +93,7 @@ export default {
     this.showHidden = state.user.showHidden;
     this.dateFormat = state.user.dateFormat;
     this.color = state.user.themeColor;
+    this.quickDownload = state.user?.quickDownload;
   },
   mounted() {
     this.initialized = true;
@@ -106,6 +117,7 @@ export default {
           showHidden: this.showHidden,
           dateFormat: this.dateFormat,
           themeColor: this.color,
+          quickDownload: this.quickDownload,
         };
         const shouldReload =
           rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
@@ -113,6 +125,8 @@ export default {
           "locale",
           "showHidden",
           "dateFormat",
+          "themeColor",
+          "quickDownload",
         ]);
         mutations.updateCurrentUser(data);
         if (shouldReload) {

@@ -311,6 +311,19 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) boo
 		}
 	}
 
+	if !isDir && len(idx.Source.Config.Include.FileEndsWith) > 0 {
+		shouldSkip := true
+		for _, end := range idx.Source.Config.Include.FileEndsWith {
+			if strings.HasSuffix(fullCombined, end) {
+				shouldSkip = false
+				break
+			}
+		}
+		if shouldSkip {
+			return true
+		}
+	}
+
 	// check exclusions
 	if isDir && slices.Contains(idx.Source.Config.Exclude.Folders, fullCombined) {
 		return true
@@ -321,5 +334,17 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) boo
 	if idx.Source.Config.IgnoreHidden && isHidden {
 		return true
 	}
+
+	if !isDir && len(idx.Source.Config.Exclude.FileEndsWith) > 0 {
+		shouldSkip := false
+		for _, end := range idx.Source.Config.Exclude.FileEndsWith {
+			if strings.HasSuffix(fullCombined, end) {
+				shouldSkip = true
+				break
+			}
+		}
+		return shouldSkip
+	}
+
 	return false
 }

@@ -7,17 +7,16 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
   #- Paginated browsing for improved load times on slower connections.
   - Markdown file preview
-  #- Easy access download button
-  #- video streaming support
-  #- onlyoffice select which filetypes to open via onlyoffice in user settings
-  #- create only office files from the UI
+  - Easy access download button
 
  **Notes**:
-  #- Adds message about what sharing means when creating a link.
+  - Adds message about what sharing means when creating a link.
+  - api log duration is now always in milliseconds for consistency.
+  - advanced index config option `fileEndsWith` is now respected.
 
  **BugFixes**:
   - onlyoffice close window missing files issue https://github.com/gtsteffaniak/filebrowser/issues/345
-
+  - fixed download link inside file preview
 
 ## v0.5.1-beta
 

@@ -38,6 +38,14 @@ export function getTypeInfo(mimeType) {
         };
     }
 
+    if (mimeType == "file_download") {
+        return {
+            classes: "material-icons simple-icons",
+            materialIcon: "file_download",
+            simpleType: "file_download",
+        };
+    }
+
     if (mimeType.startsWith("font/")) {
         return {
             classes: "gray-icons material-icons",

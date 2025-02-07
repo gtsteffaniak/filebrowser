@@ -113,6 +113,7 @@ main > div {
   display: flex;
   align-items: center;
   color: #6f6f6f;
+  padding-left: 0.5em;
 }
 
 .breadcrumbs span,

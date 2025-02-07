@@ -140,4 +140,9 @@ export default {
 .yellow-icons {
   color: yellow;
 }
+
+.simple-icons {
+  color: white;
+  font-size: 1.5em !important;
+}
 </style>
