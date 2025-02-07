@@ -5,14 +5,14 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.5.2-beta
 
  **New Features**:
-  #- Paginated browsing for improved load times on slower connections.
-  - Markdown file preview
-  - Easy access download button
+  - Markdown file preview https://github.com/gtsteffaniak/filebrowser/issues/343
+  - Easy access download button https://github.com/gtsteffaniak/filebrowser/issues/341
 
  **Notes**:
   - Adds message about what sharing means when creating a link.
   - api log duration is now always in milliseconds for consistency.
   - advanced index config option `fileEndsWith` is now respected.
+  - Added Informative error for missing files for certificate load https://github.com/gtsteffaniak/filebrowser/issues/354
 
  **BugFixes**:
   - onlyoffice close window missing files issue https://github.com/gtsteffaniak/filebrowser/issues/345

@@ -47,8 +47,8 @@ export default {
       }
 
       if (getters.currentView() === "onlyOfficeEditor") {
-        // fixes a bug, but this fix also means scroll location memory is not preserved
-        window.location = removeLastDir(getters.routePath()); // Load last page as if navigating normally
+        const path = removeLastDir(getters.routePath())
+        window.location = path + "#" + state.req.name;
         return;
       }
       mutations.replaceRequest({});
