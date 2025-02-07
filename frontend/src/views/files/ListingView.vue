@@ -36,7 +36,8 @@
         v-else
         id="listingView"
         ref="listingView"
-        :class="listingViewMode + ' file-icons'"
+        :class="{'add-padding': isStickySidebar,[listingViewMode]: true }"
+        class="file-icons"
       >
         <div>
           <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }">
@@ -177,6 +178,9 @@ export default {
     },
   },
   computed: {
+    isStickySidebar() {
+      return getters.isStickySidebar();
+    },
     lastFolderIndex() {
       const allItems = [...this.items.dirs, ...this.items.files];
       for (let i = 0; i < allItems.length; i++) {
@@ -929,4 +933,9 @@ export default {
   max-width: 100% !important;
   justify-content: center;
 }
+
+.add-padding {
+  padding-left: 0.5em;
+}
+
 </style>
