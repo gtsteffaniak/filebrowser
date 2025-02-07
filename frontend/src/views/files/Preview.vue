@@ -98,7 +98,7 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(this.currentItem.path);
+      return filesApi.getDownloadURL(this.currentItem.url);
     },
     raw() {
       if (this.currentItem.url == "" || this.currentItem.url == undefined) {
