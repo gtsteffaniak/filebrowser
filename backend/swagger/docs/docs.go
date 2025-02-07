@@ -1382,6 +1382,9 @@ const docTemplate = `{
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
+                "quickDownload": {
+                    "type": "boolean"
+                },
                 "rules": {
                     "type": "array",
                     "items": {
@@ -1592,6 +1595,9 @@ const docTemplate = `{
                 },
                 "perm": {
                     "$ref": "#/definitions/users.Permissions"
+                },
+                "quickDownload": {
+                    "type": "boolean"
                 },
                 "rules": {
                     "type": "array",

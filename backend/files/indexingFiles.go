@@ -334,5 +334,17 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) boo
 	if idx.Source.Config.IgnoreHidden && isHidden {
 		return true
 	}
+
+	if !isDir && len(idx.Source.Config.Exclude.FileEndsWith) > 0 {
+		shouldSkip := false
+		for _, end := range idx.Source.Config.Exclude.FileEndsWith {
+			if strings.HasSuffix(fullCombined, end) {
+				shouldSkip = true
+				break
+			}
+		}
+		return shouldSkip
+	}
+
 	return false
 }

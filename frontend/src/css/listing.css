@@ -231,10 +231,21 @@ body.rtl #listingView {
   width: 25%;
 }
 
+#listingView.list .item .size.adjustment,
+#listingView.compact .item .size.adjustment {
+  width: calc(25% + 1em) !important;
+}
+
+
 #listingView .header .name,
 #listingView.list .item .name,
 #listingView.compact .item .name {
   width: 50%;
+}
+
+#listingView.list .item .name.adjustment,
+#listingView.compact .item .name.adjustment {
+  width: calc(50% + 1em) !important;
 }
 
 #listingView.normal .item .text {
