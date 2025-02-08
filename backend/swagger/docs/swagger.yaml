@@ -144,6 +144,8 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       permissions:
         $ref: '#/definitions/users.Permissions'
+      quickDownload:
+        type: boolean
       rules:
         items:
           $ref: '#/definitions/users.Rule'
@@ -285,6 +287,8 @@ definitions:
         type: string
       perm:
         $ref: '#/definitions/users.Permissions'
+      quickDownload:
+        type: boolean
       rules:
         items:
           $ref: '#/definitions/users.Rule'

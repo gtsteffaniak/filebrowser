@@ -1,11 +1,11 @@
 <div align="center">
 
   [![Go Report Card](https://goreportcard.com/badge/github.com/gtsteffaniak/filebrowser/backend)](https://goreportcard.com/report/github.com/gtsteffaniak/filebrowser/backend)
-  [![latest version](https://img.shields.io/github/release/gtsteffaniak/filebrowser/all.svg)](https://github.com/gtsteffaniak/filebrowser/releases)
-  [![Apache-2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
   [![Codacy Badge](https://app.codacy.com/project/badge/Grade/1c48cfb7646d4009aa8c6f71287670b8)](https://www.codacy.com/gh/gtsteffaniak/filebrowser/dashboard)
+  [![latest version](https://img.shields.io/github/release/gtsteffaniak/filebrowser/all.svg)](https://github.com/gtsteffaniak/filebrowser/releases)
   [![DockerHub Pulls](https://img.shields.io/docker/pulls/gtstef/filebrowser?label=latest%20Docker%20pulls)](https://hub.docker.com/r/gtstef/filebrowser)
-  
+  [![Apache-2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+
   <img width="150" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" title="Logo">
   <h3>FileBrowser Quantum</h3>
   A modern web-based file manager
@@ -18,11 +18,11 @@
 
 FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
 
-  1. ✅ Indexes files efficiently. (See [indexing Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.)
+  1. ✅ Indexes files (See [indexing Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.)
      - Real-time search results as you type
      - Search supports file/folder sizes and many file type filters.
      - Enhanced interactive results that show file/folder sizes.
-  2. ✅ Revamped and simplified GUI navbar and sidebar menu.
+  2. ✅ Revamped UI
      - Additional compact view mode as well as refreshed view mode styles.
      - Many graphical and user experience improvements.
      - right-click context menu
@@ -39,15 +39,9 @@ Notable features that this fork *does not* have (removed):
 
  - ❌ jobs/runners are not supported yet (planned).
  - ❌ per-user rules are not supported yet (planned).
- - ❌ pagination for directory items for extremely large directories.
  - ❌ shell commands are completely removed and will not be returned.
- - see feature matrix below for more.
 
 ## About
-
-FileBrowser Quantum provides a file-managing interface within a specified directory
-and can be used to upload, delete, preview, rename, and edit your files.
-It allows the creation of multiple users and each user can have its directory.
 
 This repository is a fork of the original [filebrowser](https://github.com/filebrowser/filebrowser)
  with a collection of changes that make this program work better in terms of
@@ -103,7 +97,7 @@ Configuration is done via the `config.yaml`, see the [Configuration Wiki](https:
 
 ## Office File Support
 
-See [Office Support Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#adding-open-office-integration-for-docker) on how to enable office file editing.
+See [Office Support Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#adding-open-office-integration-for-docker) on how to enable office file editing and office related features.
 
 ## Migration from the original filebrowser
 
@@ -111,7 +105,7 @@ See the [Migration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Migrat
 
 ## Comparison Chart
 
- Application Name | <img width="48" src="frontend/public/img/icons/favicon-256x256.png" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google_Drive_logo.png/480px-Google_Drive_logo.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
+ Application Name | <img width="48" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google_Drive_logo.png/480px-Google_Drive_logo.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
 --- | --- | --- | --- | --- | --- | --- |
 Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
@@ -156,8 +150,7 @@ activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Comments support              | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 trash support                 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Starred/pinned files          | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-Content preview icons         | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
 Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 Share collections of files    | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can archive selected files    | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-Can browse archive files      | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ 
+Can browse archive files      | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |

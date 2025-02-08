@@ -14,6 +14,7 @@ export const state = reactive({
   },
   editor: null,
   user: {
+    quickDownloadEnabled: false,
     gallarySize: 0,
     singleClick: false,
     stickySidebar: stickyStartup(),

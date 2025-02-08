@@ -321,13 +321,14 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		if len(truncUser) > 12 {
 			truncUser = truncUser[:10] + ".."
 		}
+		duration := time.Since(start)
 		logger.Api(
 			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
 				r.Method,
 				wrappedWriter.StatusCode, // Captured status code
 				r.RemoteAddr,
 				truncUser,
-				time.Since(start).String(),
+				fmt.Sprintf("%vms", duration.Milliseconds()),
 				fullURL), wrappedWriter.StatusCode)
 	})
 }

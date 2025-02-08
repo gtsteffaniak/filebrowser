@@ -26,6 +26,7 @@
     @mouseup="cancelContext($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
+
       <img
         v-if="
           readOnly === undefined &&
@@ -41,12 +42,14 @@
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
-      <p class="name">{{ name }}</p>
-      <p class="size" :data-order="humanSize()">{{ humanSize() }}</p>
+      <p :class="{'adjustment':quickDownloadEnabled}" class="name">{{ name }}</p>
+      <p class="size" :class="{'adjustment':quickDownloadEnabled}"  :data-order="humanSize()">{{ humanSize() }}</p>
       <p class="modified">
         <time :datetime="modified">{{ getTime() }}</time>
       </p>
     </div>
+    <Icon @click="downloadFile" v-if="quickDownloadEnabled" mimetype="file_download" style="padding-right: 0.5em" />
+
   </a>
 </template>
 
@@ -77,6 +80,8 @@
 
 <script>
 import { enableThumbs } from "@/utils/constants";
+import downloadFiles from "@/utils/download";
+
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { fromNow } from "@/utils/moment";
 import { filesApi } from "@/api";
@@ -116,6 +121,9 @@ export default {
     "hidden"
   ],
   computed: {
+    quickDownloadEnabled() {
+      return state.user?.quickDownload;
+    },
     isHiddenNotSelected() {
       return !this.isSelected && this.hidden
     },
@@ -145,13 +153,11 @@ export default {
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
-
       for (let i of this.selected) {
         if (state.req.items[i].url === this.url) {
           return false;
         }
       }
-
       return true;
     },
     thumbnailUrl() {
@@ -183,6 +189,12 @@ export default {
     }
   },
   methods: {
+    downloadFile(event) {
+      event.preventDefault();
+      mutations.resetSelected();
+      mutations.addSelected(this.index);
+      downloadFiles()
+    },
     handleTouchMove(event) {
       if (!state.isSafari) return;
       const touch = event.touches[0];
@@ -424,6 +436,9 @@ export default {
 </script>
 
 <style>
+.icon-download {
+  font-size: 0.5em;
+}
 .item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
 }
@@ -431,4 +446,5 @@ export default {
 .hiddenFile {
   opacity: 0.5;
 }
+
 </style>

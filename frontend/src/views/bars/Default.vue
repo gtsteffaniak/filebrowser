@@ -3,13 +3,15 @@
     <action v-if="notShare" icon="close" :label="$t('buttons.close')" @action="close()" />
     <title v-if="isSettings" class="topTitle">Settings</title>
     <title v-else class="topTitle">{{ req.name }}</title>
-    <action icon="hide_source" />
+    <action v-if="ismarkdownEditable" icon="edit" @action="edit()"/>
+    <action v-else icon="hide_source" />
   </header>
 </template>
 
 <script>
 import router from "@/router";
 import { getters, state, mutations } from "@/store";
+import { removeLastDir } from "@/utils/url";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -18,6 +20,9 @@ export default {
     Action,
   },
   computed: {
+    ismarkdownEditable() {
+      return state.req.type == "text/markdown" && state.user.perm.modify;
+    },
     notShare() {
       return getters.currentView() != "share";
     },
@@ -29,6 +34,9 @@ export default {
     },
   },
   methods: {
+    async edit() {
+      window.location.hash = "#edit";
+    },
     close() {
       mutations.closeHovers();
 
@@ -38,6 +46,12 @@ export default {
         return;
       }
 
+      if (getters.currentView() === "onlyOfficeEditor") {
+        const current = window.location.pathname
+        const newpath = removeLastDir(current)
+        window.location = newpath + "#" + state.req.name;
+        return;
+      }
       mutations.replaceRequest({});
       router.go(-1)
     },

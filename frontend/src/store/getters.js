@@ -103,7 +103,11 @@ export const getters = {
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       visible = false;
     }
-    if (getters.currentView() == "editor" || getters.currentView() == "preview" || getters.currentView() == "onlyOfficeEditor") {
+    if (
+        getters.currentView() == "editor" ||
+        getters.currentView() == "preview" ||
+        getters.currentView() == "onlyOfficeEditor"
+      ) {
       visible = false;
     }
     return visible
@@ -144,6 +148,8 @@ export const getters = {
           return "listingView";
         } else if (state.req?.onlyOfficeId) {
           return "onlyOfficeEditor";
+        } else if ("content" in state.req && state.req.type == "text/markdown" && window.location.hash != "#edit") {
+          return "markdownViewer";
         } else if ("content" in state.req) {
           return "editor";
         } else {
