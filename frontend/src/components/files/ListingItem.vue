@@ -1,6 +1,5 @@
 <template>
   <a
-    @mouseenter="toggleDownloadShow(true)"
     :href="getUrl()"
     :class="{
       item: true,
