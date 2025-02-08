@@ -47,8 +47,9 @@ export default {
       }
 
       if (getters.currentView() === "onlyOfficeEditor") {
-        const path = removeLastDir(getters.routePath())
-        window.location = path + "#" + state.req.name;
+        const current = window.location.pathname
+        const newpath = removeLastDir(current)
+        window.location = newpath + "#" + state.req.name;
         return;
       }
       mutations.replaceRequest({});
