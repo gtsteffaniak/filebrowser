@@ -33,7 +33,9 @@ test("copy from listing", async ({ page, context }) => {
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Copy file"]').click();
   //await expect(page.locator('.searchContext')).toHaveText('Path: /');
+  await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
   await page.locator('li[aria-label="myfolder"]').click();
+  await expect(page.locator('li[aria-selected="true"]')).toHaveCount(1);
   await page.locator('button[aria-label="Copy"]').click();
   const popup = page.locator('#popup-notification-content');
   await popup.waitFor({ state: 'visible' });

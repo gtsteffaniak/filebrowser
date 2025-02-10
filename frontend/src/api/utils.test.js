@@ -13,21 +13,23 @@ describe('adjustedData', () => {
         { name: "file1.txt", type: "file" },
         { name: "file2.txt", type: "file" },
       ],
+      path: "/root"
     };
 
-    const url = "http://example.com/unit-testing/files/path/to/directory";
+    const url = "http://example.com/root/";
 
     const expected = {
       type: "directory",
-      url: "http://example.com/unit-testing/files/path/to/directory/",
+      url: "http://example.com/root/",
       folders: [],
       files: [],
       items: [
-        { name: "folder1", type: "directory", url: "http://example.com/unit-testing/files/path/to/directory/folder1/" },
-        { name: "folder2", type: "directory", url: "http://example.com/unit-testing/files/path/to/directory/folder2/" },
-        { name: "file1.txt", type: "file", url: "http://example.com/unit-testing/files/path/to/directory/file1.txt" },
-        { name: "file2.txt", type: "file", url: "http://example.com/unit-testing/files/path/to/directory/file2.txt" },
+        { name: "folder1", path: "/root/folder1", type: "directory", url: "http://example.com/root/folder1/" },
+        { name: "folder2", path: "/root/folder2",  type: "directory", url: "http://example.com/root/folder2/" },
+        { name: "file1.txt", path: "/root/file1.txt", type: "file", url: "http://example.com/root/file1.txt" },
+        { name: "file2.txt", path: "/root/file2.txt", type: "file", url: "http://example.com/root/file2.txt" },
       ],
+      path: "/root",
     };
 
     expect(adjustedData(input, url)).toEqual(expected);

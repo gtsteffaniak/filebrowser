@@ -9,7 +9,7 @@
         role="button"
         tabindex="0"
         :aria-label="item.name"
-        :aria-selected="selected == item.path"
+        :aria-selected="selected == item.url"
         :key="item.name"
         v-for="item in items"
         :data-url="item.url"
@@ -51,7 +51,7 @@ export default {
     fillOptions(req) {
       // Sets the current path and resets
       // the current items.
-      this.current = req.path;
+      this.current = req.url;
       this.items = [];
 
       this.$emit("update:selected", this.current);

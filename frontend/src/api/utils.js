@@ -69,7 +69,7 @@ export function adjustedData(data, url) {
 
     data.items = data.items.map((item) => {
       item.url = `${data.url}${encodeURIComponent(item.name)}`;
-      item.path = `${data.url}${item.name}`
+      item.path = `${data.path}/${item.name}`
       if (item.type === "directory") {
         item.url += "/";
       }
