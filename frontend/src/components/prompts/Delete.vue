@@ -57,7 +57,7 @@ export default {
       }
       let paths = [];
       for (let index of state.selected) {
-        paths.push(removePrefix(state.req.items[index].url, "files"));
+        paths.push(state.req.items[index].path);
       }
       return paths;
     },
@@ -71,7 +71,7 @@ export default {
 
       try {
         if (state.isSearchActive) {
-          await filesApi.remove(state.selected[0].url);
+          await filesApi.remove(state.selected[0].path);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
           mutations.closeHovers();
@@ -95,7 +95,7 @@ export default {
 
         let promises = [];
         for (let index of state.selected) {
-          promises.push(filesApi.remove(state.req.items[index].url));
+          promises.push(filesApi.remove(state.req.items[index].path));
         }
 
         await Promise.all(promises);
