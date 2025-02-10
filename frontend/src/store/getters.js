@@ -137,7 +137,9 @@ export const getters = {
     return removePrefix(state.route.path,trimModifier)
   },
   currentView: () => {
+    console.log("state.route.path", state.route.path,getters.routePath())
     const pathname = getters.routePath()
+    console.log("pathname", pathname)
     if (pathname.startsWith(`/settings`)) {
       return "settings"
     } else if (pathname.startsWith(`/share`)) {

@@ -76,9 +76,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
-		logger.Debug("Starting quick scan")
+		logger.Debug(fmt.Sprintf("Starting quick scan for [%v]", idx.Name))
 	} else {
-		logger.Debug("Starting full scan")
+		logger.Debug(fmt.Sprintf("Starting full scan for [%v]", idx.Name))
 		idx.NumDirs = 0
 		idx.NumFiles = 0
 	}
@@ -106,18 +106,18 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 			idx.assessment = "normal"
 		}
 		if firstRun {
-			logger.Info(fmt.Sprintf("Index assessment         : complexity=%v directories=%v files=%v", idx.assessment, idx.NumDirs, idx.NumFiles))
+			logger.Info(fmt.Sprintf("Index assessment         : index=%v complexity=%v directories=%v files=%v", idx.Name, idx.assessment, idx.NumDirs, idx.NumFiles))
 		} else {
-			logger.Debug(fmt.Sprintf("Index assessment         : complexity=%v directories=%v files=%v", idx.assessment, idx.NumDirs, idx.NumFiles))
+			logger.Debug(fmt.Sprintf("Index assessment         : iindex=%v complexity=%v directories=%v files=%v", idx.Name, idx.assessment, idx.NumDirs, idx.NumFiles))
 		}
 		if idx.NumDirs != prevNumDirs || idx.NumFiles != prevNumFiles {
 			idx.FilesChangedDuringIndexing = true
 		}
 	}
 	if firstRun {
-		logger.Info(fmt.Sprintf("Time spent indexing      : %v seconds", idx.indexingTime))
+		logger.Info(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Name, idx.indexingTime))
 	} else {
-		logger.Debug(fmt.Sprintf("Time spent indexing      : %v seconds", idx.indexingTime))
+		logger.Debug(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Name, idx.indexingTime))
 	}
 }
 
