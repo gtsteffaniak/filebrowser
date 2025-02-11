@@ -7,7 +7,7 @@
       <p v-else>
         {{ $t("prompts.deleteMessageMultiple", { count: selectedCount }) }}
       </p>
-      <div style="display: grid" class="searchContext">
+      <div style="display: grid" aria-label="delete-path" class="searchContext">
         <span v-for="(item, index) in nav" :key="index"> {{ item }} </span>
       </div>
     </div>
@@ -23,7 +23,7 @@
       <button
         @click="submit"
         class="button button--flat button--red"
-        :aria-label="$t('buttons.delete')"
+        aria-label="Confirm-Delete"
         :title="$t('buttons.delete')"
       >
         {{ $t("buttons.delete") }}
@@ -100,9 +100,12 @@ export default {
 
         await Promise.all(promises);
         buttons.success("delete");
-        notify.showSuccess("Deleted item successfully");
-        window.location.reload();
+        notify.showSuccess("Deleted item successfully! reloading...");
         mutations.setReload(true); // Handle reload as needed
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+
       } catch (e) {
         buttons.done("delete");
         notify.showError(e);
