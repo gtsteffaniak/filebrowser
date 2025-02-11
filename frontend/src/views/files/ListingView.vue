@@ -176,6 +176,7 @@ export default {
       this.columnWidth = 250 + state.user.gallerySize * 50;
       this.colunmsResize();
     },
+
   },
   computed: {
     isStickySidebar() {
@@ -296,6 +297,7 @@ export default {
     window.addEventListener("resize", this.windowsResize);
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
+    window.addEventListener("dragover", this.preventDefault);
 
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
@@ -312,7 +314,6 @@ export default {
       window.addEventListener("contextmenu", this.openContext);
     }
     // if safari , make sure click and hold opens context menu, but not for any other browser
-
     if (!state.user.perm?.create) return;
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
@@ -775,8 +776,6 @@ export default {
       let el = event.target;
 
       if (dt.files.length <= 0) {
-        mutations.setReload(true);
-        window.location.reload();
         return;
       }
 
@@ -806,7 +805,7 @@ export default {
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         path = el.__vue__.url;
-        items = (await filesApi.fetchFiles(path)).items;
+        items = state.req.items
       }
 
       const conflict = upload.checkConflict(uploadFiles, items);
@@ -825,7 +824,7 @@ export default {
       }
       mutations.setReload(true);
     },
-    uploadInput(event) {
+    async uploadInput(event) {
       mutations.closeHovers();
       let files = event.currentTarget.files;
       let folder_upload =
@@ -843,16 +842,17 @@ export default {
       if (conflict) {
         mutations.showHover({
           name: "replace",
-          confirm: (event) => {
+          confirm: async (event) => {
             event.preventDefault();
             mutations.closeHovers();
-            upload.handleFiles(files, path, true);
+            await upload.handleFiles(files, path, true);
           },
         });
         return;
       }
 
-      upload.handleFiles(files, path);
+      await upload.handleFiles(files, path);
+      mutations.setReload(true);
     },
     resetOpacity() {
       let items = document.getElementsByClassName("item");

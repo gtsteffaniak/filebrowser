@@ -101,10 +101,7 @@ export default {
         await Promise.all(promises);
         buttons.success("delete");
         notify.showSuccess("Deleted item successfully! reloading...");
-        mutations.setReload(true); // Handle reload as needed
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        mutations.setReload(true); // Handle reload as neededs
 
       } catch (e) {
         buttons.done("delete");

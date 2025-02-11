@@ -1,4 +1,4 @@
-import { state } from "@/store";
+import { state,mutations } from "@/store";
 import url from "@/utils/url.js";
 import { filesApi } from "@/api";
 import { notify } from "@/notify";
@@ -143,7 +143,7 @@ export async function handleFiles(files, base, overwrite = false) {
         last = percentComplete;
         setTimeout(() => {
           blockUpdates = false;
-        }, 200);
+        }, 250);
       }
     )
     .then(response => {

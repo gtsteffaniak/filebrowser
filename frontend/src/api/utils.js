@@ -60,7 +60,6 @@ export async function fetchJSON(url, opts) {
 }
 
 export function adjustedData(data, url) {
-  console.log("data path",data.path)
   data.url = url;
   if (data.type === "directory") {
     if (!data.url.endsWith("/")) data.url += "/";
