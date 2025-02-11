@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.5.2-beta
 
+Note: this is a beta release 
+
  **New Features**:
   - Markdown file preview https://github.com/gtsteffaniak/filebrowser/issues/343
   - Easy access download button https://github.com/gtsteffaniak/filebrowser/issues/341
