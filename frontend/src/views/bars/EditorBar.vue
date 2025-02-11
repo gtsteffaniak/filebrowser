@@ -27,7 +27,7 @@
 </style>
 
 <script>
-import { state, mutations } from "@/store";
+import { state } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import buttons from "@/utils/buttons";
 import url from "@/utils/url.js";

@@ -37,7 +37,6 @@ import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
-import { removePrefix } from "@/utils/url";
 
 export default {
   name: "delete",
