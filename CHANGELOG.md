@@ -4,12 +4,15 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.5.3-beta
 
+ **Notes**:
+  - navbar/sidebar lightmode style tweaks.
+
  **BugFixes**:
   - fix `/files/` prefix loading issue https://github.com/gtsteffaniak/filebrowser/issues/362
   - fix special characters in filename issue https://github.com/gtsteffaniak/filebrowser/issues/357
   - fix drag and drop issue https://github.com/gtsteffaniak/filebrowser/issues/361
   - fix conflict issue with creating same file after deletion.
-
+  - fix mimetype
 ## v0.5.2-beta
 
  **New Features**:
