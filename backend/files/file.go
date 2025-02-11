@@ -54,7 +54,7 @@ type FileInfo struct {
 // for efficiency, a response will be a pointer to the data
 // extra calculated fields can be added here
 type ExtendedFileInfo struct {
-	*FileInfo
+	FileInfo
 	Content      string            `json:"content,omitempty"`      // text content of a file, if requested
 	Subtitles    []string          `json:"subtitles,omitempty"`    // subtitles for video files
 	Checksums    map[string]string `json:"checksums,omitempty"`    // checksums for the file
@@ -129,7 +129,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	}
 	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
 	if !exists {
-		return response, err
+		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
 	if opts.Content {
 		content, err := getContent("default", opts.Path)
@@ -138,7 +138,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		}
 		response.Content = content
 	}
-	response.FileInfo = info
+	response.FileInfo = *info
 	response.RealPath = realPath
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && isOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)

@@ -37,7 +37,6 @@ import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
-import { removePrefix } from "@/utils/url";
 
 export default {
   name: "delete",
@@ -101,10 +100,7 @@ export default {
         await Promise.all(promises);
         buttons.success("delete");
         notify.showSuccess("Deleted item successfully! reloading...");
-        mutations.setReload(true); // Handle reload as needed
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        mutations.setReload(true); // Handle reload as neededs
 
       } catch (e) {
         buttons.done("delete");

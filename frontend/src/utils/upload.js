@@ -143,7 +143,7 @@ export async function handleFiles(files, base, overwrite = false) {
         last = percentComplete;
         setTimeout(() => {
           blockUpdates = false;
-        }, 200);
+        }, 250);
       }
     )
     .then(response => {

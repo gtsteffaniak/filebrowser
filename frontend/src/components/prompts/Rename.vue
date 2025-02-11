@@ -106,12 +106,10 @@ export default {
           return;
         }
 
-        window.location.reload();
-        mutations.closeHovers();
+        mutations.setReload(true);
       } catch (error) {
         notify.showError(error);
       }
-
     },
   },
 };

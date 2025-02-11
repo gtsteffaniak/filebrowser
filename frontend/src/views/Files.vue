@@ -70,6 +70,7 @@ export default {
     $route: "fetchData",
     reload(value) {
       if (value) {
+        console.log("Reloading");
         this.fetchData();
       }
     },
@@ -100,15 +101,12 @@ export default {
       }
     },
     async fetchData() {
-      if (state.route.path === this.lastPath) return;
       this.lastHash = "";
       // Set loading to true and reset the error.
       mutations.setLoading("files", true);
       this.error = null;
       // Reset view information using mutations
       mutations.setReload(false);
-      mutations.setMultiple(false);
-      mutations.closeHovers();
 
       let data = {};
       try {

@@ -153,7 +153,7 @@ func previewCacheKey(realPath, previewSize string, modTime time.Time) string {
 	return fmt.Sprintf("%x%x%x", realPath, modTime.Unix(), previewSize)
 }
 
-func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
+func rawFileHandler(w http.ResponseWriter, r *http.Request, file files.FileInfo) (int, error) {
 	idx := files.GetIndex("default")
 	realPath, _, _ := idx.GetRealPath(file.Path)
 	fd, err := os.Open(realPath)

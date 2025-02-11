@@ -27,8 +27,8 @@ export function startLoading (from, to) {
   let degrees = from * 3.6 // Convert percentage to degrees
   let new_degrees = to * 3.6 // Convert percentage to degrees
   let difference = new_degrees - degrees
-  let color = spinner.style.color || '#666'
-  let bgcolor = '#fff'
+  let color = spinner.style.color || '#fff'
+  let bgcolor = '#666'
   let animation_loop
 
   // Clear any existing animation loop
