@@ -7,7 +7,7 @@
       <p v-else>
         {{ $t("prompts.deleteMessageMultiple", { count: selectedCount }) }}
       </p>
-      <div style="display: grid" class="searchContext">
+      <div style="display: grid" aria-label="delete-path" class="searchContext">
         <span v-for="(item, index) in nav" :key="index"> {{ item }} </span>
       </div>
     </div>
@@ -23,7 +23,7 @@
       <button
         @click="submit"
         class="button button--flat button--red"
-        :aria-label="$t('buttons.delete')"
+        aria-label="Confirm-Delete"
         :title="$t('buttons.delete')"
       >
         {{ $t("buttons.delete") }}
@@ -57,7 +57,7 @@ export default {
       }
       let paths = [];
       for (let index of state.selected) {
-        paths.push(removePrefix(state.req.items[index].url, "files"));
+        paths.push(state.req.items[index].path);
       }
       return paths;
     },
@@ -71,7 +71,7 @@ export default {
 
       try {
         if (state.isSearchActive) {
-          await filesApi.remove(state.selected[0].url);
+          await filesApi.remove(state.selected[0].path);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
           mutations.closeHovers();
@@ -95,14 +95,17 @@ export default {
 
         let promises = [];
         for (let index of state.selected) {
-          promises.push(filesApi.remove(state.req.items[index].url));
+          promises.push(filesApi.remove(state.req.items[index].path));
         }
 
         await Promise.all(promises);
         buttons.success("delete");
-        notify.showSuccess("Deleted item successfully");
-        window.location.reload();
+        notify.showSuccess("Deleted item successfully! reloading...");
         mutations.setReload(true); // Handle reload as needed
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+
       } catch (e) {
         buttons.done("delete");
         notify.showError(e);

@@ -165,12 +165,12 @@ export default {
       event.preventDefault();
       let link;
       if (state.isSearchActive) {
-        const hash = await filesApi.checksum(state.selected[0].url, algo);
+        const hash = await filesApi.checksum(state.selected[0].path, algo);
         event.target.innerHTML = hash;
         return;
       }
       if (getters.selectedCount()) {
-        link = state.req.items[this.selected[0]].url;
+        link = state.req.items[this.selected[0]].path;
       } else {
         link = state.route.path;
       }

@@ -35,7 +35,7 @@
 
     <!-- Search results for desktop -->
     <div v-show="active" id="results" ref="result">
-      <div class="searchContext">Search Context: {{ getContext }}</div>
+      <div aria-label="search-path" class="searchContext">Search Context: {{ getContext }}</div>
       <div id="result-list">
         <div>
           <div v-if="active">
