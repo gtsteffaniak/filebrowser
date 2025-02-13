@@ -5,4 +5,3 @@ export function getFileExtension(filename) {
     }
     return filename.substring(firstDotIndex);
   }
-  

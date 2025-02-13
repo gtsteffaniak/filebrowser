@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
   - navbar/sidebar lightmode style tweaks.
+  - any item that has utf formatted text will see editor.
 
  **BugFixes**:
   - fix `/files/` prefix loading issue https://github.com/gtsteffaniak/filebrowser/issues/362
