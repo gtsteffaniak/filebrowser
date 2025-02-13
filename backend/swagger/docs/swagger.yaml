@@ -132,6 +132,8 @@ definitions:
         type: boolean
       dateFormat:
         type: boolean
+      disableOnlyOfficeExt:
+        type: string
       disableSettings:
         type: boolean
       gallerySize:
@@ -273,6 +275,8 @@ definitions:
         type: boolean
       dateFormat:
         type: boolean
+      disableOnlyOfficeExt:
+        type: string
       disableSettings:
         type: boolean
       gallerySize:

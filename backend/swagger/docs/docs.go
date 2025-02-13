@@ -1364,6 +1364,9 @@ const docTemplate = `{
                 "dateFormat": {
                     "type": "boolean"
                 },
+                "disableOnlyOfficeExt": {
+                    "type": "string"
+                },
                 "disableSettings": {
                     "type": "boolean"
                 },
@@ -1574,6 +1577,9 @@ const docTemplate = `{
                 },
                 "dateFormat": {
                     "type": "boolean"
+                },
+                "disableOnlyOfficeExt": {
+                    "type": "string"
                 },
                 "disableSettings": {
                     "type": "boolean"

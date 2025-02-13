@@ -1353,6 +1353,9 @@
                 "dateFormat": {
                     "type": "boolean"
                 },
+                "disableOnlyOfficeExt": {
+                    "type": "string"
+                },
                 "disableSettings": {
                     "type": "boolean"
                 },
@@ -1563,6 +1566,9 @@
                 },
                 "dateFormat": {
                     "type": "boolean"
+                },
+                "disableOnlyOfficeExt": {
+                    "type": "string"
                 },
                 "disableSettings": {
                     "type": "boolean"

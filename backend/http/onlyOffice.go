@@ -56,7 +56,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	path := pathParts[len(pathParts)-1]
 	urlFirst := pathParts[0]
 	if settings.Config.Server.InternalUrl != "" {
-		urlFirst = settings.Config.Server.InternalUrl
+		urlFirst = strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
 		replacement := strings.Split(url, "/api/raw")[0]
 		url = strings.Replace(url, replacement, settings.Config.Server.InternalUrl, 1)
 	}

@@ -1,4 +1,5 @@
 import { removePrefix } from "@/utils/url.js";
+import { getFileExtension } from  "@/utils/files.js";
 import { state } from "./state.js";
 import { mutations } from "./mutations.js";
 import { noAuth } from "@/utils/constants.js";
@@ -146,7 +147,7 @@ export const getters = {
       if (state.req.type !== undefined) {
         if (state.req.type == "directory") {
           return "listingView";
-        } else if (state.req?.onlyOfficeId) {
+        } else if (getters.onlyOfficeEnabled(state.req.name)) {
           return "onlyOfficeEditor";
         } else if ("content" in state.req && state.req.type == "text/markdown" && window.location.hash != "#edit") {
           return "markdownViewer";
@@ -239,5 +240,20 @@ export const getters = {
     }
 
     return files.sort((a, b) => a.progress - b.progress);
+  },
+  onlyOfficeEnabled: (filename) => {
+    if (!state.req?.onlyOfficeId) {
+      return false
+    }
+    const ext = getFileExtension(filename);
+    if (state.user.disableOnlyOfficeExt) {
+      const disabledList = state.user.disableOnlyOfficeExt.split(" ");
+      for (const e of disabledList) {
+        if (e.trim().toLowerCase() === ext.toLowerCase()) {
+          return false;
+        }
+      }
+    }
+    return true;
   },
 };
