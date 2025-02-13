@@ -122,7 +122,13 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	//	}
 	//	return info, nil
 	//}
-
+	if opts.Content {
+		content, err := getContent("default", opts.Path)
+		if err != nil {
+			return response, err
+		}
+		response.Content = content
+	}
 	err = index.RefreshFileInfo(opts)
 	if err != nil {
 		return response, err
@@ -131,13 +137,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	if !exists {
 		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
-	if opts.Content {
-		content, err := getContent("default", opts.Path)
-		if err != nil {
-			return response, err
-		}
-		response.Content = content
-	}
+
 	response.FileInfo = *info
 	response.RealPath = realPath
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && isOnlyOffice(info.Name) {
