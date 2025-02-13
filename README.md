@@ -6,6 +6,12 @@
   [![DockerHub Pulls](https://img.shields.io/docker/pulls/gtstef/filebrowser?label=latest%20Docker%20pulls)](https://hub.docker.com/r/gtstef/filebrowser)
   [![Apache-2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
+  Show your support:
+
+  [![Poll](https://img.shields.io/badge/poll-vote_most_important_features-purple)](https://example.com)
+  [![Poll](https://img.shields.io/badge/poll-vote_on_communication_platform-purple)](https://example.com)
+
+
   <img width="150" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" title="Logo">
   <h3>FileBrowser Quantum</h3>
   A modern web-based file manager
