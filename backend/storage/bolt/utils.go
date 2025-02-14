@@ -1,7 +1,7 @@
 package bolt
 
 import (
-	"github.com/asdine/storm/v3"
+	storm "github.com/asdine/storm/v3"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 )

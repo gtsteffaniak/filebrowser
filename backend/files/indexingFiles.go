@@ -122,7 +122,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-		isHidden := isHidden(file, idx.Path+combinedPath)
+		isHidden := isHidden(file, idx.Source.Path+combinedPath)
 		isDir := file.IsDir()
 		fullCombined := combinedPath + file.Name()
 		if idx.shouldSkip(isDir, isHidden, fullCombined) {

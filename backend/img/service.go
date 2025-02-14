@@ -10,7 +10,7 @@ import (
 	"io"
 
 	"github.com/disintegration/imaging"
-	"github.com/dsoprea/go-exif/v3"
+	exif "github.com/dsoprea/go-exif/v3"
 
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
 )

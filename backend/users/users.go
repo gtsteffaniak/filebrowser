@@ -3,7 +3,7 @@ package users
 import (
 	"regexp"
 
-	"github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 type AuthToken struct {

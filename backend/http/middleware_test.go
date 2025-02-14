@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/asdine/storm/v3"
+	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/img"
