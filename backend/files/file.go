@@ -24,6 +24,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
@@ -369,7 +370,8 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 // TODO add subtitles back
 // detectSubtitles detects subtitles for video files.
 func (i *ExtendedFileInfo) detectSubtitles(path string) {
-	if i.Type != "video" {
+	if !strings.HasPrefix(i.Type, "video") {
+		logger.Debug("subtitles are not supported for this file : " + path)
 		return
 	}
 	parentDir := filepath.Dir(path)
