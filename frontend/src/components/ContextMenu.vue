@@ -113,6 +113,13 @@ export default {
     };
   },
   computed: {
+    showContext() {
+      if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
+        this.setPositions();
+        return true;
+      }
+      return false;
+    },
     onlyofficeEnabled() {
       return onlyOfficeUrl !== "";
     },
@@ -161,18 +168,6 @@ export default {
     },
   },
   methods: {
-    showContext() {
-      if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
-        if (state.selected.length > 0) {
-          this.showCreate = false;
-        } else {
-          this.showCreate = true;
-        }
-        this.setPositions();
-        return true;
-      }
-      return false;
-    },
     startShowCreate() {
       this.showCreate = true;
     },
@@ -183,6 +178,11 @@ export default {
       return mutations.showHover(value);
     },
     setPositions() {
+      if (state.selected.length > 0) {
+        this.showCreate = false;
+      } else {
+        this.showCreate = true;
+      }
       const contextProps = getters.currentPrompt().props;
       let tempX = contextProps.posX;
       let tempY = contextProps.posY;
