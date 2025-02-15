@@ -56,7 +56,6 @@ import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
 import { getTypeInfo } from "@/utils/mimetype";
-import VideoPlayer from "@/components/VideoPlayer.vue";
 
 const mediaTypes = ["image", "video", "audio", "blob"];
 
@@ -91,11 +90,7 @@ export default {
   },
   computed: {
     raw() {
-      console.log(state.req.url, this.currentItem.url,filesApi.getDownloadURL(state.req.url));
       return filesApi.getDownloadURL(state.req.url);
-    },
-    chosenVideoPlayer() {
-      return "video.js";
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -108,19 +103,6 @@ export default {
     },
     downloadUrl() {
       return filesApi.getDownloadURL(this.currentItem.url);
-    },
-    raw() {
-      if (this.currentItem.url == "" || this.currentItem.url == undefined) {
-        return;
-      }
-      const previewUrl = this.fullSize
-        ? filesApi.getDownloadURL(this.currentItem.url, "large")
-        : filesApi.getPreviewURL(
-          this.currentItem.url,
-          "small",
-          this.currentItem.modified
-        );
-      return previewUrl;
     },
     showMore() {
       return getters.currentPromptName() === "more";

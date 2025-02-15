@@ -143,6 +143,9 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && isOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
+	if strings.HasPrefix(info.Type, "video") {
+		response.detectSubtitles(realPath)
+	}
 	return response, nil
 }
 
@@ -365,42 +368,42 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 
 // TODO add subtitles back
 // detectSubtitles detects subtitles for video files.
-//func (i *FileInfo) detectSubtitles(path string) {
-//	if i.Type != "video" {
-//		return
-//	}
-//	parentDir := filepath.Dir(path)
-//	fileName := filepath.Base(path)
-//	i.Subtitles = []string{}
-//	ext := filepath.Ext(fileName)
-//	dir, err := os.Open(parentDir)
-//	if err != nil {
-//		// Directory must have been deleted, remove it from the index
-//		return
-//	}
-//	defer dir.Close() // Ensure directory handle is closed
-//
-//	files, err := dir.Readdir(-1)
-//	if err != nil {
-//		return
-//	}
-//
-//	base := strings.TrimSuffix(fileName, ext)
-//	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
-//
-//	for _, f := range files {
-//		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
-//			continue
-//		}
-//
-//		for _, subtitleExt := range subtitleExts {
-//			if strings.HasSuffix(f.Name(), subtitleExt) {
-//				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
-//				break
-//			}
-//		}
-//	}
-//}
+func (i *ExtendedFileInfo) detectSubtitles(path string) {
+	if i.Type != "video" {
+		return
+	}
+	parentDir := filepath.Dir(path)
+	fileName := filepath.Base(path)
+	i.Subtitles = []string{}
+	ext := filepath.Ext(fileName)
+	dir, err := os.Open(parentDir)
+	if err != nil {
+		// Directory must have been deleted, remove it from the index
+		return
+	}
+	defer dir.Close() // Ensure directory handle is closed
+
+	files, err := dir.Readdir(-1)
+	if err != nil {
+		return
+	}
+
+	base := strings.TrimSuffix(fileName, ext)
+	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
+
+	for _, f := range files {
+		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
+			continue
+		}
+
+		for _, subtitleExt := range subtitleExts {
+			if strings.HasSuffix(f.Name(), subtitleExt) {
+				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
+				break
+			}
+		}
+	}
+}
 
 func IsNamedPipe(mode os.FileMode) bool {
 	return mode&os.ModeNamedPipe != 0

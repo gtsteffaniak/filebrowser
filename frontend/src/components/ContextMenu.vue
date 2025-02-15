@@ -128,18 +128,6 @@ export default {
     centered() {
       return getters.isMobile() || !this.posX || !this.posY;
     },
-    showContext() {
-      if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
-        if (state.selected.length > 0) {
-          this.showCreate = false;
-        } else {
-          this.showCreate = true;
-        }
-        this.setPositions();
-        return true;
-      }
-      return false;
-    },
     top() {
       // Ensure the context menu stays within the viewport
       return Math.min(
@@ -173,6 +161,18 @@ export default {
     },
   },
   methods: {
+    showContext() {
+      if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
+        if (state.selected.length > 0) {
+          this.showCreate = false;
+        } else {
+          this.showCreate = true;
+        }
+        this.setPositions();
+        return true;
+      }
+      return false;
+    },
     startShowCreate() {
       this.showCreate = true;
     },
