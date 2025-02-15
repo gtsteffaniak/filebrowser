@@ -13,6 +13,7 @@
         <a :href="downloadUrl">download it</a>
         and watch it with your favorite video player!
       </video>
+
       <object v-else-if="getSimpleType(currentItem.type) == 'pdf'" class="pdf" :data="raw"></object>
       <div v-else class="info">
         <div class="title">
@@ -55,6 +56,7 @@ import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
 import { getTypeInfo } from "@/utils/mimetype";
+import VideoPlayer from "@/components/VideoPlayer.vue";
 
 const mediaTypes = ["image", "video", "audio", "blob"];
 
@@ -88,6 +90,13 @@ export default {
     };
   },
   computed: {
+    raw() {
+      console.log(state.req.url, this.currentItem.url,filesApi.getDownloadURL(state.req.url));
+      return filesApi.getDownloadURL(state.req.url);
+    },
+    chosenVideoPlayer() {
+      return "video.js";
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
