@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
   - fix drag and drop issue https://github.com/gtsteffaniak/filebrowser/issues/361
   - fix conflict issue with creating same file after deletion.
   - fix mimetype detection https://github.com/gtsteffaniak/filebrowser/issues/327
+  - subtitles for videos https://github.com/gtsteffaniak/filebrowser/issues/358
 
 ## v0.5.2-beta
 
