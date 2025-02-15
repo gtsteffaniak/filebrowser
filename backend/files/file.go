@@ -391,7 +391,7 @@ func (i *ExtendedFileInfo) detectSubtitles(path string) {
 	}
 
 	base := strings.TrimSuffix(fileName, ext)
-	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
+	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc", ".sbv"}
 
 	for _, f := range files {
 		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {

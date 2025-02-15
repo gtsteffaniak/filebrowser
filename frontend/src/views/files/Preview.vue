@@ -90,7 +90,8 @@ export default {
   },
   computed: {
     raw() {
-      return filesApi.getDownloadURL(state.req.url);
+      console.log("raw",state.req.path);
+      return filesApi.getDownloadURL(state.req.path);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -102,7 +103,7 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(this.currentItem.url);
+      return filesApi.getDownloadURL(this.currentItem.path);
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -136,6 +137,7 @@ export default {
   },
   methods: {
     getSimpleType(mimetype) {
+      console.log(mimetype, getTypeInfo(mimetype).simpleType)
       return getTypeInfo(mimetype).simpleType;
     },
     deleteFile() {
@@ -189,7 +191,7 @@ export default {
         this.autoPlay = false;
       }
       let parts = state.route.path.split("/");
-      this.name = decodeURI(parts.pop("/"));
+      this.name = state.req.name
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);
         const res = await filesApi.fetchFiles(path);
@@ -204,9 +206,11 @@ export default {
         directoryPath = "/";
       }
       for (let i = 0; i < this.listing.length; i++) {
+        console.log("listing",this.listing[i],this.name);
         if (this.listing[i].name !== this.name) {
           continue;
         }
+        console.log("currentitem",this.listing[i]);
         this.currentItem = this.listing[i];
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];

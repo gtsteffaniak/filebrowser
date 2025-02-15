@@ -3,6 +3,7 @@ import { removePrefix, getApiPath } from "@/utils/url.js";
 import { state } from "@/store";
 import { notify } from "@/notify";
 import { externalUrl } from "@/utils/constants";
+import axios from "axios";
 
 // Notify if errors occur
 export async function fetchFiles(url, content = false) {
@@ -65,7 +66,7 @@ export function download(format, files) {
       fileargs = decodeURI(removePrefix(files[0], "files"))
     } else {
       for (let file of files) {
-        fileargs += decodeURI(removePrefix(file,"files")) + ",";
+        fileargs += decodeURI(removePrefix(file,"files")) + ",|";
       }
       fileargs = fileargs.substring(0, fileargs.length - 1);
     }
@@ -77,57 +78,32 @@ export function download(format, files) {
   }
 }
 
-export async function post(url, content = "", overwrite = false, onupload) {
-  try {
-    url = removePrefix(url, "files");
+export async function post(url, content = "", overwrite = false, onUploadProgress) {
+  url = removePrefix(url, "files");
 
-    let bufferContent;
-    if (
-      content instanceof Blob &&
-      !["http:", "https:"].includes(window.location.protocol)
-    ) {
-      bufferContent = await new Response(content).arrayBuffer();
-    }
+  const apiPath = getApiPath("api/resources", { path: url, override: overwrite });
 
-    const apiPath = getApiPath("api/resources", { path: url, override: overwrite });
-    return new Promise((resolve, reject) => {
-      let request = new XMLHttpRequest();
-      request.open(
-        "POST",
-        apiPath,
-        true
-      );
-      request.setRequestHeader("X-Auth", state.jwt);
-
-      if (typeof onupload === "function") {
-        request.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percentComplete = Math.round((event.loaded / event.total) * 100);
-            onupload(percentComplete); // Pass the percentage to the callback
-          }
-        };
-      }
-
-      request.onload = () => {
-        if (request.status === 200) {
-          resolve(request.responseText);
-        } else if (request.status === 409) {
-          reject(request.status);
-        } else {
-          reject(request.responseText);
-        }
-      };
-
-      request.onerror = () => {
-        reject(new Error("001 Connection aborted"));
-      };
-
-      request.send(bufferContent || content);
-    });
-  } catch (err) {
-    notify.showError(err.message || "Error posting resource");
-    throw err;
+  let formData = new FormData();
+  if (content instanceof Blob) {
+    formData.append("file", content, content.name || "upload");
+  } else {
+    formData.append("file", content);
   }
+
+  return axios.request({
+    method: "post",
+    url: apiPath,
+    data: formData,  // Send data as FormData to preserve file content
+    onUploadProgress: (progressEvent) => {
+      if (progressEvent.lengthComputable) {
+        const percentComplete = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+        if (onUploadProgress) {
+          console.log("Upload progress: ", percentComplete);
+          onUploadProgress(percentComplete);
+        }
+      }
+    }
+  });
 }
 
 export async function moveCopy(items, action = "copy", overwrite = false, rename = false) {
