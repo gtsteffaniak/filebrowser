@@ -85,7 +85,6 @@
 </template>
 <script>
 import { filesApi } from "@/api";
-import { fetchURL } from "@/api/utils";
 import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url.js";
 import throttle from "@/utils/throttle";
@@ -174,6 +173,9 @@ export default {
   },
   methods: {
     async subtitles() {
+      if (!state.req.subtitles || state.req.subtitles.length === 0) {
+        return [];
+      }
       let subs = [];
       for (const element of state.req.subtitles) {
         const ext = getFileExtension(element);
@@ -245,7 +247,6 @@ export default {
       if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
         this.autoPlay = false;
       }
-      let parts = state.route.path.split("/");
       this.name = state.req.name;
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);

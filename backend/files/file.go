@@ -388,7 +388,7 @@ func (i *ExtendedFileInfo) detectSubtitles(path string) {
 			continue
 		}
 
-		for _, subtitleExt := range []string{".vtt", ".vrt", ".srt", ".lrc", ".sbv", ".ass", ".ssa", ".sub"} {
+		for _, subtitleExt := range []string{".vtt", ".srt", ".lrc", ".sbv", ".ass", ".ssa", ".sub", ".smi"} {
 			if strings.HasSuffix(f.Name, subtitleExt) {
 				fullPathBase := strings.Split(i.Path, ".")[0]
 				i.Subtitles = append(i.Subtitles, fullPathBase+subtitleExt)

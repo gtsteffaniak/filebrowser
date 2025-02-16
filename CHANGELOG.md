@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
   - navbar/sidebar lightmode style tweaks.
-  - any item that has utf formatted text will see editor.
+  - any item that has utf formatted text will get editor.
   - tweaks to create options on context menu.
 
  **BugFixes**:
@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file. For commit 
   - fix conflict issue with creating same file after deletion.
   - fix mimetype detection https://github.com/gtsteffaniak/filebrowser/issues/327
   - subtitles for videos https://github.com/gtsteffaniak/filebrowser/issues/358
+    - supports caption sidecar files : ".vtt", ".srt", ".lrc", ".sbv", ".ass", ".ssa", ".sub", ".smi"
+    - embedded subtitles not yet supported.
 
 ## v0.5.2-beta
 
