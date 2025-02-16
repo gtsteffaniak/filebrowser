@@ -1,10 +1,10 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview">
-      <ExtendedImage v-if="getSimpleType(currentItem.type) == 'image'" :src="raw">
+      <ExtendedImage v-if="getSimpleType(req.type) == 'image'" :src="raw">
       </ExtendedImage>
       <audio
-        v-else-if="getSimpleType(currentItem.type) == 'audio'"
+        v-else-if="getSimpleType(req.type) == 'audio'"
         ref="player"
         :src="raw"
         controls
@@ -12,7 +12,7 @@
         @play="autoPlay = true"
       ></audio>
       <video
-        v-else-if="getSimpleType(currentItem.type) == 'video'"
+        v-else-if="getSimpleType(req.type) == 'video'"
         ref="player"
         :src="raw"
         controls
@@ -30,7 +30,7 @@
       </video>
 
       <object
-        v-else-if="getSimpleType(currentItem.type) == 'pdf'"
+        v-else-if="getSimpleType(req.type) == 'pdf'"
         class="pdf"
         :data="raw"
       ></object>
@@ -49,7 +49,7 @@
             target="_blank"
             :href="raw"
             class="button button--flat"
-            v-if="currentItem.type != 'directory'"
+            v-if="req.type != 'directory'"
           >
             <div>
               <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
@@ -116,14 +116,6 @@ export default {
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       oldReq: {}, // Replace with your actual initial state
-      currentItem: {
-        name: "",
-        path: "",
-        url: "",
-        modified: "",
-        type: "",
-        subtitles: [],
-      },
       subtitlesList: [],
     };
   },
@@ -141,7 +133,7 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(this.currentItem.path);
+      return filesApi.getDownloadURL(state.req.path);
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -151,6 +143,9 @@ export default {
     },
     getSubtitles() {
       return this.subtitles();
+    },
+    req() {
+      return state.req;
     },
   },
   watch: {
@@ -265,7 +260,6 @@ export default {
         if (this.listing[i].name !== this.name) {
           continue;
         }
-        this.currentItem = state.req;
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;

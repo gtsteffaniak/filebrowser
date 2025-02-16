@@ -6,12 +6,12 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**
   - onlyoffice disable filetypes for user specified file types. https://github.com/gtsteffaniak/filebrowser/issues/346
-  - ability to select default media player (native or video.js)
 
  **Notes**:
   - navbar/sidebar lightmode style tweaks.
   - any item that has utf formatted text will get editor.
   - tweaks to create options on context menu.
+  - removed small delay on preview before detecting the file.
 
  **BugFixes**:
   - fix `/files/` prefix loading issue https://github.com/gtsteffaniak/filebrowser/issues/362
