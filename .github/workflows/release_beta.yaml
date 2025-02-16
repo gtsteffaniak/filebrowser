@@ -56,7 +56,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          target_commitish: ${{ steps.extract_branch.outputs.branch_name }}
+          target_commitish: ${{ github.sha }}
           token: ${{ secrets.PAT }}
           tag_name: ${{ steps.extract_branch.outputs.tag_name }}
           prerelease: false # change this to false when stable gets released

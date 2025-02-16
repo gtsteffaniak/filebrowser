@@ -22,6 +22,7 @@
   "dependencies": {
     "@onlyoffice/document-editor-vue": "^1.4.0",
     "ace-builds": "^1.24.2",
+    "axios": "^1.7.9",
     "clipboard": "^2.0.4",
     "css-vars-ponyfill": "^2.4.3",
     "dompurify": "^3.2.4",
@@ -29,6 +30,7 @@
     "marked": "^15.0.6",
     "normalize.css": "^8.0.1",
     "qrcode.vue": "^3.4.1",
+    "srt-support-for-html5-videos": "^2.6.11",
     "vue": "^3.4.21",
     "vue-i18n": "^9.10.2",
     "vue-lazyload": "^3.0.0",

@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.5.3-beta
+
+ **New Features**
+  - onlyoffice disable filetypes for user specified file types. https://github.com/gtsteffaniak/filebrowser/issues/346
+
+ **Notes**:
+  - navbar/sidebar lightmode style tweaks.
+  - any item that has utf formatted text will get editor.
+  - tweaks to create options on context menu.
+  - removed small delay on preview before detecting the file.
+
+ **BugFixes**:
+  - fix `/files/` prefix loading issue https://github.com/gtsteffaniak/filebrowser/issues/362
+  - fix special characters in filename issue https://github.com/gtsteffaniak/filebrowser/issues/357
+  - fix drag and drop issue https://github.com/gtsteffaniak/filebrowser/issues/361
+  - fix conflict issue with creating same file after deletion.
+  - fix mimetype detection https://github.com/gtsteffaniak/filebrowser/issues/327
+  - subtitles for videos https://github.com/gtsteffaniak/filebrowser/issues/358
+    - supports caption sidecar files : ".vtt", ".srt", ".lrc", ".sbv", ".ass", ".ssa", ".sub", ".smi"
+    - embedded subtitles not yet supported.
+
 ## v0.5.2-beta
 
  **New Features**:

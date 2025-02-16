@@ -54,11 +54,11 @@ func Initialize(source settings.Source) {
 
 	if !newIndex.Source.Config.Disabled {
 		time.Sleep(time.Second)
-		logger.Info("Initializing index and assessing file system complexity")
+		logger.Info(fmt.Sprintf("initializing index: [%v]", newIndex.Source.Name))
 		newIndex.RunIndexing("/", false)
 		go newIndex.setupIndexingScanners()
 	} else {
-		logger.Debug("Indexing disabled for source: " + newIndex.Source.Name)
+		logger.Debug("indexing disabled for source: " + newIndex.Source.Name)
 	}
 }
 
@@ -122,7 +122,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-		isHidden := isHidden(file, idx.Path+combinedPath)
+		isHidden := isHidden(file, idx.Source.Path+combinedPath)
 		isDir := file.IsDir()
 		fullCombined := combinedPath + file.Name()
 		if idx.shouldSkip(isDir, isHidden, fullCombined) {

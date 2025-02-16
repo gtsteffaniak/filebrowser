@@ -24,6 +24,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
@@ -54,7 +55,7 @@ type FileInfo struct {
 // for efficiency, a response will be a pointer to the data
 // extra calculated fields can be added here
 type ExtendedFileInfo struct {
-	*FileInfo
+	FileInfo
 	Content      string            `json:"content,omitempty"`      // text content of a file, if requested
 	Subtitles    []string          `json:"subtitles,omitempty"`    // subtitles for video files
 	Checksums    map[string]string `json:"checksums,omitempty"`    // checksums for the file
@@ -129,7 +130,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	}
 	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
 	if !exists {
-		return response, err
+		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
 	if opts.Content {
 		content, err := getContent("default", opts.Path)
@@ -138,10 +139,14 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		}
 		response.Content = content
 	}
-	response.FileInfo = info
+	response.FileInfo = *info
 	response.RealPath = realPath
+	response.Source = opts.Source
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && isOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
+	}
+	if strings.HasPrefix(info.Type, "video") {
+		response.detectSubtitles(realPath)
 	}
 	return response, nil
 }
@@ -365,42 +370,32 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 
 // TODO add subtitles back
 // detectSubtitles detects subtitles for video files.
-//func (i *FileInfo) detectSubtitles(path string) {
-//	if i.Type != "video" {
-//		return
-//	}
-//	parentDir := filepath.Dir(path)
-//	fileName := filepath.Base(path)
-//	i.Subtitles = []string{}
-//	ext := filepath.Ext(fileName)
-//	dir, err := os.Open(parentDir)
-//	if err != nil {
-//		// Directory must have been deleted, remove it from the index
-//		return
-//	}
-//	defer dir.Close() // Ensure directory handle is closed
-//
-//	files, err := dir.Readdir(-1)
-//	if err != nil {
-//		return
-//	}
-//
-//	base := strings.TrimSuffix(fileName, ext)
-//	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc"}
-//
-//	for _, f := range files {
-//		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
-//			continue
-//		}
-//
-//		for _, subtitleExt := range subtitleExts {
-//			if strings.HasSuffix(f.Name(), subtitleExt) {
-//				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
-//				break
-//			}
-//		}
-//	}
-//}
+func (i *ExtendedFileInfo) detectSubtitles(path string) {
+	if !strings.HasPrefix(i.Type, "video") {
+		logger.Debug("subtitles are not supported for this file : " + path)
+		return
+	}
+
+	idx := GetIndex(i.Source)
+	parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(i.Path), true)
+	if !exists {
+		return
+	}
+	base := strings.Split(i.Name, ".")[0]
+	for _, f := range parentInfo.Files {
+		baseName := strings.Split(f.Name, ".")[0]
+		if baseName != base {
+			continue
+		}
+
+		for _, subtitleExt := range []string{".vtt", ".srt", ".lrc", ".sbv", ".ass", ".ssa", ".sub", ".smi"} {
+			if strings.HasSuffix(f.Name, subtitleExt) {
+				fullPathBase := strings.Split(i.Path, ".")[0]
+				i.Subtitles = append(i.Subtitles, fullPathBase+subtitleExt)
+			}
+		}
+	}
+}
 
 func IsNamedPipe(mode os.FileMode) bool {
 	return mode&os.ModeNamedPipe != 0

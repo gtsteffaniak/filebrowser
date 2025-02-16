@@ -83,7 +83,8 @@ export default {
 }
 
 @supports (backdrop-filter: none) {
-  nav {
+  #sidebar {
+    background-color: rgba(237, 237, 237, 0.33) !important;
     backdrop-filter: blur(16px) invert(0.1);
   }
 }
@@ -126,7 +127,7 @@ body.rtl .action {
 
 .credits {
   font-size: 1em;
-  color: var(--textSecondary);
+  color: var(--textPrimary);
   padding-left: 1em;
   padding-bottom: 1em;
 }
@@ -139,7 +140,6 @@ body.rtl .action {
 
 .credits a,
 .credits a:hover {
-  color: inherit;
   cursor: pointer;
 }
 

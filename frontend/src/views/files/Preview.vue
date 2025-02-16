@@ -1,19 +1,39 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview">
-      <ExtendedImage v-if="getSimpleType(currentItem.type) == 'image'" :src="raw">
+      <ExtendedImage v-if="getSimpleType(req.type) == 'image'" :src="raw">
       </ExtendedImage>
-      <audio v-else-if="getSimpleType(currentItem.type) == 'audio'" ref="player" :src="raw" controls
-        :autoplay="autoPlay" @play="autoPlay = true"></audio>
-      <video v-else-if="getSimpleType(currentItem.type) == 'video'" ref="player" :src="raw" controls
-        :autoplay="autoPlay" @play="autoPlay = true">
-        <track kind="captions" v-for="(sub, index) in subtitles" :key="index" :src="sub" :label="'Subtitle ' + index"
-          :default="index === 0" />
-        Sorry, your browser doesn't support embedded videos, but don't worry, you can
-        <a :href="downloadUrl">download it</a>
-        and watch it with your favorite video player!
+      <audio
+        v-else-if="getSimpleType(req.type) == 'audio'"
+        ref="player"
+        :src="raw"
+        controls
+        :autoplay="autoPlay"
+        @play="autoPlay = true"
+      ></audio>
+      <video
+        v-else-if="getSimpleType(req.type) == 'video'"
+        ref="player"
+        :src="raw"
+        controls
+        :autoplay="autoPlay"
+        @play="autoPlay = true"
+      >
+        <track
+          kind="captions"
+          v-for="(sub, index) in subtitlesList"
+          :key="index"
+          :src="sub.src"
+          :label="'Subtitle ' + sub.name"
+          :default="index === 0"
+        />
       </video>
-      <object v-else-if="getSimpleType(currentItem.type) == 'pdf'" class="pdf" :data="raw"></object>
+
+      <object
+        v-else-if="getSimpleType(req.type) == 'pdf'"
+        class="pdf"
+        :data="raw"
+      ></object>
       <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
@@ -25,7 +45,12 @@
               <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
             </div>
           </a>
-          <a target="_blank" :href="raw" class="button button--flat" v-if="currentItem.type != 'directory'">
+          <a
+            target="_blank"
+            :href="raw"
+            class="button button--flat"
+            v-if="req.type != 'directory'"
+          >
             <div>
               <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
             </div>
@@ -34,13 +59,24 @@
       </div>
     </div>
 
-    <button @click="prev" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasPrevious || !showNav }" :aria-label="$t('buttons.previous')"
-      :title="$t('buttons.previous')">
+    <button
+      @click="prev"
+      @mouseover="hoverNav = true"
+      @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasPrevious || !showNav }"
+      :aria-label="$t('buttons.previous')"
+      :title="$t('buttons.previous')"
+    >
       <i class="material-icons">chevron_left</i>
     </button>
-    <button @click="next" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasNext || !showNav }" :aria-label="$t('buttons.next')" :title="$t('buttons.next')">
+    <button
+      @click="next"
+      @mouseover="hoverNav = true"
+      @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasNext || !showNav }"
+      :aria-label="$t('buttons.next')"
+      :title="$t('buttons.next')"
+    >
       <i class="material-icons">chevron_right</i>
     </button>
     <link rel="prefetch" :href="previousRaw" />
@@ -55,6 +91,8 @@ import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
 import { getTypeInfo } from "@/utils/mimetype";
+import { getFileExtension } from "@/utils/files";
+import { convertToVTT } from "@/utils/subtitles";
 
 const mediaTypes = ["image", "video", "audio", "blob"];
 
@@ -78,16 +116,13 @@ export default {
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       oldReq: {}, // Replace with your actual initial state
-      currentItem: {
-        name: "",
-        path: "",
-        url: "",
-        modified: "",
-        type: "",
-      },
+      subtitlesList: [],
     };
   },
   computed: {
+    raw() {
+      return filesApi.getDownloadURL(state.req.path);
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -98,20 +133,7 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(this.currentItem.url);
-    },
-    raw() {
-      if (this.currentItem.url == "" || this.currentItem.url == undefined) {
-        return;
-      }
-      const previewUrl = this.fullSize
-        ? filesApi.getDownloadURL(this.currentItem.url, "large")
-        : filesApi.getPreviewURL(
-          this.currentItem.url,
-          "small",
-          this.currentItem.modified
-        );
-      return previewUrl;
+      return filesApi.getDownloadURL(state.req.path);
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -119,11 +141,11 @@ export default {
     isResizeEnabled() {
       return resizePreview;
     },
-    subtitles() {
-      if (this.currentItem.subtitles) {
-        return filesApi.getSubtitlesURL(this.currentItem);
-      }
-      return [];
+    getSubtitles() {
+      return this.subtitles();
+    },
+    req() {
+      return state.req;
     },
   },
   watch: {
@@ -138,12 +160,35 @@ export default {
   async mounted() {
     window.addEventListener("keydown", this.key);
     this.listing = this.oldReq.items;
+    this.subtitlesList = await this.subtitles();
     this.updatePreview();
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.key);
   },
   methods: {
+    async subtitles() {
+      if (!state.req.subtitles || state.req.subtitles.length === 0) {
+        return [];
+      }
+      let subs = [];
+      for (const element of state.req.subtitles) {
+        const ext = getFileExtension(element);
+        const resp = await filesApi.fetchFiles(element, true); // Fetch .srt file
+        let vttContent = resp.content;
+        // Convert SRT to VTT (assuming srt2vtt() does this)
+        vttContent = convertToVTT(ext, resp.content);
+        // Create a virtual file (Blob) and get a URL for it
+        const blob = new Blob([vttContent], { type: "text/vtt" });
+        const vttURL = URL.createObjectURL(blob);
+        subs.push({
+          name: ext,
+          src: vttURL,
+        });
+      }
+      console.log(subs);
+      return subs;
+    },
     getSimpleType(mimetype) {
       return getTypeInfo(mimetype).simpleType;
     },
@@ -197,8 +242,7 @@ export default {
       if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
         this.autoPlay = false;
       }
-      let parts = state.route.path.split("/");
-      this.name = decodeURI(parts.pop("/"));
+      this.name = state.req.name;
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);
         const res = await filesApi.fetchFiles(path);
@@ -216,7 +260,6 @@ export default {
         if (this.listing[i].name !== this.name) {
           continue;
         }
-        this.currentItem = this.listing[i];
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;

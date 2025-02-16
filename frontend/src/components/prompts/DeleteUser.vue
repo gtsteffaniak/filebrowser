@@ -72,7 +72,7 @@ export default {
 
         let promises = [];
         for (let index of this.selected) {
-          promises.push(usersApi.remove(state.req.items[index].url));
+          promises.push(usersApi.remove(state.req.items[index].path));
         }
 
         await Promise.all(promises);

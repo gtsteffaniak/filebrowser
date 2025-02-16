@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/asdine/storm/v3"
+	storm "github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"

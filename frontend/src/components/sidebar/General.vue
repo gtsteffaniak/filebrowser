@@ -190,6 +190,7 @@ export default {
 .user-card {
   flex-direction: row !important;
   justify-content: space-between !important;
+  color: var(--textPrimary);
 }
 
 .quick-toggles {
@@ -197,6 +198,7 @@ export default {
   justify-content: space-evenly;
   width: 100%;
   margin-top: 0.5em !important;
+  color: var(--textPrimary);
 }
 
 .quick-toggles button {

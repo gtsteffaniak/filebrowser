@@ -128,7 +128,7 @@ export async function handleFiles(files, base, overwrite = false) {
       overwrite,
     };
     let last = 0;
-    notify.showPopup("success",`(${c} of ${count}) Uploading ${file.name}`,false);
+    notify.showPopup("success", `(${c} of ${count}) Uploading ${file.name}`, false);
     await filesApi.post(
       item.path,
       item.file,
@@ -143,23 +143,22 @@ export async function handleFiles(files, base, overwrite = false) {
         last = percentComplete;
         setTimeout(() => {
           blockUpdates = false;
-        }, 200);
+        }, 250);
       }
-    )
-    .then(response => {
-      let spinner = document.querySelector('.notification-spinner')
+    ).then(response => {
+      let spinner = document.querySelector('.notification-spinner');
       if (spinner) {
-        spinner.classList.add('hidden')
+        spinner.classList.add('hidden');
       }
-      console.log("Upload successful!",response);
+      console.log("Upload successful!", response);
       notify.showSuccess("Upload successful!");
-    })
-    .catch(error => {
-      let spinner = document.querySelector('.notification-spinner')
+    }).catch(error => {
+      let spinner = document.querySelector('.notification-spinner');
       if (spinner) {
-        spinner.classList.add('hidden')
+        spinner.classList.add('hidden');
       }
-      notify.showError("Error uploading file: "+error);
+      notify.showError("Error uploading file: " + error);
+      throw error;
     });
   }
 }

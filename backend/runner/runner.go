@@ -25,7 +25,7 @@ func (r *Runner) RunHook(fn func() error, evt, path, dst string, user *users.Use
 	dst, _, _ = idx.GetRealPath(user.Scope, dst)
 
 	if r.Enabled {
-		if val, ok := r.Commands["before_"+evt]; ok {
+		if val, ok := r.Settings.Commands["before_"+evt]; ok {
 			for _, command := range val {
 				err := r.exec(command, "before_"+evt, path, dst, user)
 				if err != nil {
@@ -41,7 +41,7 @@ func (r *Runner) RunHook(fn func() error, evt, path, dst string, user *users.Use
 	}
 
 	if r.Enabled {
-		if val, ok := r.Commands["after_"+evt]; ok {
+		if val, ok := r.Settings.Commands["after_"+evt]; ok {
 			for _, command := range val {
 				err := r.exec(command, "after_"+evt, path, dst, user)
 				if err != nil {

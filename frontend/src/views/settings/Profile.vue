@@ -18,6 +18,21 @@
             <input type="checkbox" v-model="quickDownload" />
             Always show download icon for quick access
           </p>
+          <div v-if="hasOnlyOfficeEnabled">
+          <h3>Disable onlyoffice viewer for certain file extentions</h3>
+            <p>A space separated list of file extensions to disable the only office viewer for. eg <code>.txt .html</code></p>
+            <input
+              class="input input--block"
+              :class="{'invalid-form':!formValidation()}"
+              type="text"
+              placeholder="enter file extentions"
+              id="onlyofficeExt"
+              v-model="disableOnlyOfficeExt"
+            />
+            <button class="button" @click="submitOnlyOfficeChange" >save</button>
+          </div>
+
+
           <h3>Theme Color</h3>
           <ButtonGroup :buttons="colorChoices" @button-clicked="setColor" :initialActive="color" />
           <h3>{{ $t("settings.language") }}</h3>
@@ -30,6 +45,7 @@
 
 <script>
 import { notify } from "@/notify";
+import { onlyOfficeUrl } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -50,6 +66,7 @@ export default {
       color: "",
       showHidden: false,
       quickDownload: false,
+      disableOnlyOfficeExt: "",
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
         { label: "red", value: "var(--red)" },
@@ -78,6 +95,9 @@ export default {
     },
   },
   computed: {
+    hasOnlyOfficeEnabled() {
+      return onlyOfficeUrl != "";
+    },
     settings() {
       return state.settings;
     },
@@ -94,11 +114,23 @@ export default {
     this.dateFormat = state.user.dateFormat;
     this.color = state.user.themeColor;
     this.quickDownload = state.user?.quickDownload;
+    this.disableOnlyOfficeExt = state.user.disableOnlyOfficeExt;
   },
   mounted() {
     this.initialized = true;
   },
   methods: {
+    formValidation() {
+      let regex = /^\.\w+(?: \.\w+)*$/;
+      return regex.test(this.disableOnlyOfficeExt)
+    },
+    submitOnlyOfficeChange(event) {
+      if (!this.formValidation()) {
+        notify.showError("Invalid input, does not match requirement.")
+        return
+      }
+      this.updateSettings(event)
+    },
     setColor(string) {
       this.color = string
       this.updateSettings()
@@ -118,6 +150,7 @@ export default {
           dateFormat: this.dateFormat,
           themeColor: this.color,
           quickDownload: this.quickDownload,
+          disableOnlyOfficeExt: this.disableOnlyOfficeExt,
         };
         const shouldReload =
           rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
@@ -127,6 +160,7 @@ export default {
           "dateFormat",
           "themeColor",
           "quickDownload",
+          "disableOnlyOfficeExt"
         ]);
         mutations.updateCurrentUser(data);
         if (shouldReload) {
@@ -144,3 +178,9 @@ export default {
   },
 };
 </script>
+
+<style>
+.invalid-form {
+  border-color: red !important;
+}
+</style>

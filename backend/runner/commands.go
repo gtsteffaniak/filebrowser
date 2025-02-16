@@ -19,7 +19,7 @@ import (
 	"runtime"
 	"unicode"
 
-	"github.com/flynn/go-shlex"
+	shlex "github.com/flynn/go-shlex"
 )
 
 const (

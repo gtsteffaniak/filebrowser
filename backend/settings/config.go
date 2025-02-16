@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/goccy/go-yaml"
+	yaml "github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
@@ -155,15 +155,16 @@ func setDefaults() Settings {
 			Name: "FileBrowser Quantum",
 		},
 		UserDefaults: UserDefaults{
-			StickySidebar:   true,
-			Scope:           ".",
-			LockPassword:    false,
-			ShowHidden:      false,
-			DarkMode:        true,
-			DisableSettings: false,
-			ViewMode:        "normal",
-			Locale:          "en",
-			GallerySize:     3,
+			DisableOnlyOfficeExt: ".txt .csv .html",
+			StickySidebar:        true,
+			Scope:                ".",
+			LockPassword:         false,
+			ShowHidden:           false,
+			DarkMode:             true,
+			DisableSettings:      false,
+			ViewMode:             "normal",
+			Locale:               "en",
+			GallerySize:          3,
 			Permissions: users.Permissions{
 				Create:   false,
 				Rename:   false,

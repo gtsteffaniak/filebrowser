@@ -70,6 +70,7 @@ export default {
     $route: "fetchData",
     reload(value) {
       if (value) {
+        console.log("Reloading");
         this.fetchData();
       }
     },
@@ -100,15 +101,12 @@ export default {
       }
     },
     async fetchData() {
-      if (state.route.path === this.lastPath) return;
       this.lastHash = "";
       // Set loading to true and reset the error.
       mutations.setLoading("files", true);
       this.error = null;
       // Reset view information using mutations
       mutations.setReload(false);
-      mutations.setMultiple(false);
-      mutations.closeHovers();
 
       let data = {};
       try {
@@ -116,13 +114,7 @@ export default {
         let res = await filesApi.fetchFiles(getters.routePath());
         // If not a directory, fetch content
         if (res.type != "directory") {
-          let content = false;
-          if (
-            !res.onlyOfficeId &&
-            (res.type.startsWith("application") || res.type.startsWith("text"))
-          ) {
-            content = true;
-          }
+          const content = !getters.onlyOfficeEnabled()
           res = await filesApi.fetchFiles(getters.routePath(), content);
         }
         data = res;

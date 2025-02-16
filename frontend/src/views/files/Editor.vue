@@ -80,7 +80,7 @@ export default {
   },
   methods: {
     handleEditorValueRequest() {
-      filesApi.put(getters.routePath("files"), this.editor.getValue());
+      filesApi.put(state.req.path, this.editor.getValue());
     },
     back() {
       let uri = url.removeLastDir(state.route.path) + "/";

@@ -20,7 +20,9 @@ export default {
     },
   },
   mounted() {
-    this.content = state.req.content
+    const fileContent =
+    state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
+    this.content = fileContent
   },
 };
 </script>

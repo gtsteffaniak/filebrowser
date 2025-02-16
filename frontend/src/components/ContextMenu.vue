@@ -13,27 +13,36 @@
     <div v-if="selectedCount > 0" class="button selected-count-header">
       <span>{{ selectedCount }} selected</span>
     </div>
+
     <action
-      v-if="!isSearchActive"
+      v-if="!showCreate"
+      icon="add"
+      label="New"
+      @action="startShowCreate"
+    />
+
+    <action
+      v-if="showCreate && !isSearchActive"
       icon="create_new_folder"
       :label="$t('sidebar.newFolder')"
       @action="showHover('newDir')"
     />
     <action
-      v-if="!headerButtons.select && !isSearchActive"
+      v-if="showCreate && !isSearchActive"
       icon="note_add"
       :label="$t('sidebar.newFile')"
       @action="showHover('newFile')"
     />
+
     <action
-      v-if="!headerButtons.select && !isSearchActive"
+      v-if="showCreate && !isSearchActive"
       icon="file_upload"
       :label="$t('buttons.upload')"
       @action="uploadFunc"
     />
 
     <action
-      v-if="headerButtons.select"
+      v-if="!showCreate && headerButtons.select"
       icon="info"
       :label="$t('buttons.info')"
       show="info"
@@ -45,38 +54,38 @@
       @action="toggleMultipleSelection"
     />
     <action
-      v-if="headerButtons.download"
+      v-if="!showCreate && headerButtons.download"
       icon="file_download"
       :label="$t('buttons.download')"
       @action="startDownload"
       :counter="selectedCount"
     />
     <action
-      v-if="headerButtons.share"
+      v-if="!showCreate && headerButtons.share"
       icon="share"
       :label="$t('buttons.share')"
       show="share"
     />
     <action
-      v-if="headerButtons.rename && !isSearchActive"
+      v-if="!showCreate && headerButtons.rename && !isSearchActive"
       icon="mode_edit"
       :label="$t('buttons.rename')"
       show="rename"
     />
     <action
-      v-if="headerButtons.copy"
+      v-if="!showCreate && headerButtons.copy"
       icon="content_copy"
       :label="$t('buttons.copyFile')"
       show="copy"
     />
     <action
-      v-if="headerButtons.move"
+      v-if="!showCreate && headerButtons.move"
       icon="forward"
       :label="$t('buttons.moveFile')"
       show="move"
     />
     <action
-      v-if="headerButtons.delete"
+      v-if="!showCreate && headerButtons.delete"
       icon="delete"
       :label="$t('buttons.delete')"
       show="delete"
@@ -88,6 +97,8 @@
 import downloadFiles from "@/utils/download";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import Action from "@/components/Action.vue";
+import { onlyOfficeUrl } from "@/utils/constants.js";
+
 
 export default {
   name: "ContextMenu",
@@ -98,9 +109,20 @@ export default {
     return {
       posX: 0,
       posY: 0,
+      showCreate: false,
     };
   },
   computed: {
+    showContext() {
+      if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
+        this.setPositions();
+        return true;
+      }
+      return false;
+    },
+    onlyofficeEnabled() {
+      return onlyOfficeUrl !== "";
+    },
     isSearchActive() {
       return state.isSearchActive;
     },
@@ -112,13 +134,6 @@ export default {
     },
     centered() {
       return getters.isMobile() || !this.posX || !this.posY;
-    },
-    showContext() {
-      if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
-        this.setPositions();
-        return true;
-      }
-      return false;
     },
     top() {
       // Ensure the context menu stays within the viewport
@@ -153,6 +168,9 @@ export default {
     },
   },
   methods: {
+    startShowCreate() {
+      this.showCreate = true;
+    },
     uploadFunc() {
       mutations.showHover("upload");
     },
@@ -160,6 +178,11 @@ export default {
       return mutations.showHover(value);
     },
     setPositions() {
+      if (state.selected.length > 0) {
+        this.showCreate = false;
+      } else {
+        this.showCreate = true;
+      }
       const contextProps = getters.currentPrompt().props;
       let tempX = contextProps.posX;
       let tempY = contextProps.posY;

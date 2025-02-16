@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/asdine/storm/v3"
+	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/img"
@@ -50,7 +50,7 @@ func mockFileInfoFaster(t *testing.T) {
 	// Mock the function to skip execution
 	FileInfoFasterFunc = func(opts files.FileOptions) (files.ExtendedFileInfo, error) {
 		return files.ExtendedFileInfo{
-			FileInfo: &files.FileInfo{
+			FileInfo: files.FileInfo{
 				Path: opts.Path,
 				ItemInfo: files.ItemInfo{
 					Name: "mocked_file",
