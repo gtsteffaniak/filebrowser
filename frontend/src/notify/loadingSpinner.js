@@ -3,7 +3,6 @@ export function startLoading (from, to) {
     return
   }
 
-  console.log('startLoading', from, to)
   // Get the spinner canvas element
   let spinner = document.querySelector('.notification-spinner')
   if (!spinner) {

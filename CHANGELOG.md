@@ -6,12 +6,12 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**
   - onlyoffice disable filetypes for user specified file types. https://github.com/gtsteffaniak/filebrowser/issues/346
-  - create only office files in ui from context menu.
-  - ability to select default media player (native or video.js)
 
  **Notes**:
   - navbar/sidebar lightmode style tweaks.
-  - any item that has utf formatted text will see editor.
+  - any item that has utf formatted text will get editor.
+  - tweaks to create options on context menu.
+  - removed small delay on preview before detecting the file.
 
  **BugFixes**:
   - fix `/files/` prefix loading issue https://github.com/gtsteffaniak/filebrowser/issues/362
@@ -19,6 +19,9 @@ All notable changes to this project will be documented in this file. For commit 
   - fix drag and drop issue https://github.com/gtsteffaniak/filebrowser/issues/361
   - fix conflict issue with creating same file after deletion.
   - fix mimetype detection https://github.com/gtsteffaniak/filebrowser/issues/327
+  - subtitles for videos https://github.com/gtsteffaniak/filebrowser/issues/358
+    - supports caption sidecar files : ".vtt", ".srt", ".lrc", ".sbv", ".ass", ".ssa", ".sub", ".smi"
+    - embedded subtitles not yet supported.
 
 ## v0.5.2-beta
 

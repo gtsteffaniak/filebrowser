@@ -57,7 +57,7 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	fileList := strings.Split(files, ",")
+	fileList := strings.Split(files, ",|")
 	for i, f := range fileList {
 		fileList[i] = filepath.Join(filePrefix, f)
 	}
@@ -196,6 +196,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		// Set headers and serve the file
 		setContentDisposition(w, r, fileName)
 		w.Header().Set("Cache-Control", "private")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
 
 		// Serve the content
 		http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)

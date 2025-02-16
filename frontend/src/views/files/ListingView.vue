@@ -809,20 +809,23 @@ export default {
       }
 
       const conflict = upload.checkConflict(uploadFiles, items);
-
-      if (conflict) {
-        mutations.showHover({
-          name: "replace",
-          confirm: async (event) => {
-            event.preventDefault();
-            mutations.closeHovers();
-            await upload.handleFiles(uploadFiles, path, true);
-          },
-        });
-      } else {
-        await upload.handleFiles(uploadFiles, path);
+      try {
+        if (conflict) {
+          mutations.showHover({
+            name: "replace",
+            confirm: async (event) => {
+              event.preventDefault();
+              mutations.closeHovers();
+              await upload.handleFiles(uploadFiles, path, true);
+            },
+          });
+        } else {
+          await upload.handleFiles(uploadFiles, path);
+        }
+        mutations.setReload(true);
+      } catch {
+        console.log("failed to upload files")
       }
-      mutations.setReload(true);
     },
     async uploadInput(event) {
       mutations.closeHovers();
