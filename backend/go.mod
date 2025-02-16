@@ -9,7 +9,7 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/dsoprea/go-exif/v3 v3.0.1
 	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568
-	github.com/goccy/go-yaml v1.15.22
+	github.com/goccy/go-yaml v1.15.23
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/go-cmp v0.6.0
 	github.com/shirou/gopsutil/v3 v3.24.5

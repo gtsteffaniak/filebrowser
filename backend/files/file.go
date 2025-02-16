@@ -141,6 +141,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	}
 	response.FileInfo = *info
 	response.RealPath = realPath
+	response.Source = opts.Source
 	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && isOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
@@ -374,34 +375,23 @@ func (i *ExtendedFileInfo) detectSubtitles(path string) {
 		logger.Debug("subtitles are not supported for this file : " + path)
 		return
 	}
-	parentDir := filepath.Dir(path)
-	fileName := filepath.Base(path)
-	i.Subtitles = []string{}
-	ext := filepath.Ext(fileName)
-	dir, err := os.Open(parentDir)
-	if err != nil {
-		// Directory must have been deleted, remove it from the index
+
+	idx := GetIndex(i.Source)
+	parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(i.Path), true)
+	if !exists {
 		return
 	}
-	defer dir.Close() // Ensure directory handle is closed
-
-	files, err := dir.Readdir(-1)
-	if err != nil {
-		return
-	}
-
-	base := strings.TrimSuffix(fileName, ext)
-	subtitleExts := []string{".vtt", ".txt", ".srt", ".lrc", ".sbv"}
-
-	for _, f := range files {
-		if f.IsDir() || !strings.HasPrefix(f.Name(), base) {
+	base := strings.Split(i.Name, ".")[0]
+	for _, f := range parentInfo.Files {
+		baseName := strings.Split(f.Name, ".")[0]
+		if baseName != base {
 			continue
 		}
 
-		for _, subtitleExt := range subtitleExts {
-			if strings.HasSuffix(f.Name(), subtitleExt) {
-				i.Subtitles = append(i.Subtitles, filepath.Join(parentDir, f.Name()))
-				break
+		for _, subtitleExt := range []string{".vtt", ".vrt", ".srt", ".lrc", ".sbv", ".ass", ".ssa", ".sub"} {
+			if strings.HasSuffix(f.Name, subtitleExt) {
+				fullPathBase := strings.Split(i.Path, ".")[0]
+				i.Subtitles = append(i.Subtitles, fullPathBase+subtitleExt)
 			}
 		}
 	}

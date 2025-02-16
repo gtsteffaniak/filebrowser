@@ -52,19 +52,15 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 		filePrefix = file.Path
 	}
 	encodedFiles := r.URL.Query().Get("files")
-	fmt.Println("encodedfiles", encodedFiles)
 	// Decode the URL-encoded path
 	files, err := url.QueryUnescape(encodedFiles)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	fmt.Println("files", files)
-
 	fileList := strings.Split(files, ",|")
 	for i, f := range fileList {
 		fileList[i] = filepath.Join(filePrefix, f)
 	}
-	fmt.Println("fileList", fileList)
 	return rawFilesHandler(w, r, d, fileList)
 }
 
@@ -180,7 +176,6 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	filePath := fileList[0]
 	fileName := filepath.Base(filePath)
 	idx := files.GetIndex("default")
-	fmt.Println(filePath)
 	realPath, isDir, err := idx.GetRealPath(d.user.Scope, filePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -201,6 +196,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		// Set headers and serve the file
 		setContentDisposition(w, r, fileName)
 		w.Header().Set("Cache-Control", "private")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
 
 		// Serve the content
 		http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)

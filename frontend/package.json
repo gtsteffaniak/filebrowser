@@ -30,6 +30,7 @@
     "marked": "^15.0.6",
     "normalize.css": "^8.0.1",
     "qrcode.vue": "^3.4.1",
+    "srt-support-for-html5-videos": "^2.6.11",
     "vue": "^3.4.21",
     "vue-i18n": "^9.10.2",
     "vue-lazyload": "^3.0.0",

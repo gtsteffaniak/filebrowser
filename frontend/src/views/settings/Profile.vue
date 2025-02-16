@@ -122,7 +122,6 @@ export default {
   methods: {
     formValidation() {
       let regex = /^\.\w+(?: \.\w+)*$/;
-      console.log(regex.test(this.disableOnlyOfficeExt),this.disableOnlyOfficeExt)
       return regex.test(this.disableOnlyOfficeExt)
     },
     submitOnlyOfficeChange(event) {
