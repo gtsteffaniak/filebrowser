@@ -8,7 +8,7 @@
 
   [![Poll](https://img.shields.io/badge/poll-vote_most_important_features-purple)](https://github.com/gtsteffaniak/filebrowser/discussions/368)
   [![Poll](https://img.shields.io/badge/poll-vote_on_communication_platform-purple)](https://github.com/gtsteffaniak/filebrowser/discussions/369)
-  [![Donate with PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/donate/?business=W5XKNXHJM2WPE&no_recurring=0&currency_code=USD)
+  [![Donate with PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate/?business=W5XKNXHJM2WPE&no_recurring=0&currency_code=USD)
 
   <img width="150" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" title="Logo">
   <h3>FileBrowser Quantum</h3>
