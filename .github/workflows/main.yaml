@@ -6,7 +6,7 @@ on:
       - "main"
 
 jobs:
-  test_frontend:
+  test_playwright:
     name: Test Playwright
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +31,7 @@ jobs:
           file: ./_docker/Dockerfile.playwright
           push: false
   push_latest_to_registry:
-    needs: [ test_frontend ]
+    needs: [ test_playwright ]
     name: Push latest
     runs-on: ubuntu-latest
     steps:

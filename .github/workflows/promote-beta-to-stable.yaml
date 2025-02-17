@@ -1,0 +1,110 @@
+name: Promote Beta to Stable
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to promote (format: 0.0.0)"
+        required: true
+        type: string
+
+jobs:
+  promote-beta-to-stable:
+    name: Promote Beta to Stable
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }} # Uses Personal Access Token for branch operations
+
+      - name: Validate version format
+        id: validate_version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ ERROR: Version must be in '0.0.0' format."
+            exit 1
+          fi
+          echo "✅ Version format validated: $VERSION"
+
+      - name: Check if beta branch exists
+        id: check_beta_branch
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          BETA_BRANCH="beta/v$VERSION"
+
+          if ! git ls-remote --exit-code origin "$BETA_BRANCH"; then
+            echo "❌ ERROR: Beta branch '$BETA_BRANCH' does not exist!"
+            exit 1
+          fi
+          echo "✅ Beta branch '$BETA_BRANCH' exists."
+
+      - name: Check if stable branch already exists
+        id: check_stable_branch
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          STABLE_BRANCH="stable/v$VERSION"
+
+          if git ls-remote --exit-code origin "$STABLE_BRANCH"; then
+            echo "❌ ERROR: Stable branch '$STABLE_BRANCH' already exists!"
+            exit 1
+          fi
+          echo "✅ Stable branch '$STABLE_BRANCH' does not exist."
+
+      - name: Create and push new stable branch
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          BETA_BRANCH="beta/v$VERSION"
+          STABLE_BRANCH="stable/v$VERSION"
+
+          # Fetch latest changes
+          git fetch origin "$BETA_BRANCH"
+
+          # Create new stable branch from beta branch
+          git checkout -b "$STABLE_BRANCH" origin/"$BETA_BRANCH"
+
+          # Push new stable branch to remote
+          git push origin "$STABLE_BRANCH"
+
+          echo "✅ Successfully created stable branch '$STABLE_BRANCH' from '$BETA_BRANCH'."
+
+      - name: Merge beta into stable
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          BETA_BRANCH="beta/v$VERSION"
+          STABLE_BRANCH="stable/v$VERSION"
+
+          # Checkout stable branch
+          git checkout "$STABLE_BRANCH"
+
+          # Merge beta into stable
+          git merge --no-ff "origin/$BETA_BRANCH" -m "Merge $BETA_BRANCH into $STABLE_BRANCH"
+
+          # Push merge changes
+          git push origin "$STABLE_BRANCH"
+
+          echo "✅ Successfully merged '$BETA_BRANCH' into '$STABLE_BRANCH'."
+
+      - name: Delete beta branch after successful merge
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          BETA_BRANCH="beta/v$VERSION"
+
+          # Delete beta branch locally and remotely
+          git branch -d "$BETA_BRANCH"
+          git push origin --delete "$BETA_BRANCH"
+
+          echo "✅ Successfully deleted '$BETA_BRANCH'."
+
+      - name: Create Pull Request to Main
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.PAT }}
+          commit-message: "Promote stable/v${{ github.event.inputs.version }} to main"
+          title: "Promote stable/v${{ github.event.inputs.version }} to main"
+          body: "This PR promotes stable/v${{ github.event.inputs.version }} to the main branch."
+          base: main
+          branch: stable/v${{ github.event.inputs.version }}
+          delete-branch: false

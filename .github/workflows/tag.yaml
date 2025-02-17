@@ -29,3 +29,50 @@ jobs:
           workdir: backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  push_release_to_registry:
+    name: Push release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.0.0
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: gtstef/filebrowser
+      - name: Modify tags (strip 'v' and add 'beta' if needed)
+        id: modify-json
+        run: |
+          JSON="${{ steps.meta.outputs.tags }}"
+          # Remove 'v' from version tags
+          JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
+          # If the tag includes "beta", append "filebrowser:beta"
+          if echo "$JSON" | grep -q "beta"; then
+            JSON="$JSON,gtstef/filebrowser:beta"
+          fi
+          if echo "$JSON" | grep -q "stable"; then
+            JSON="$JSON,gtstef/filebrowser:stable"
+          fi
+          echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: |
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          file: ./_docker/Dockerfile
+          push: true
+          tags: ${{ steps.modify-json.outputs.cleaned_tag }}
+          labels: ${{ steps.meta.outputs.labels }}

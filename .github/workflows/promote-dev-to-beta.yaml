@@ -1,0 +1,99 @@
+name: Promote Dev to Beta
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to promote (format: 0.0.0)"
+        required: true
+        type: string
+
+jobs:
+  promote-dev-to-beta:
+    name: Promote Dev to Beta
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }} # Uses the Personal Access Token
+
+      - name: Validate version format
+        id: validate_version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ ERROR: Version must be in 'v0.0.0' format."
+            exit 1
+          fi
+          echo "✅ Version format validated: $VERSION"
+
+      - name: Check if dev branch exists
+        id: check_dev_branch
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DEV_BRANCH="dev/v$VERSION"
+
+          if ! git ls-remote --exit-code origin "$DEV_BRANCH"; then
+            echo "❌ ERROR: Dev branch '$DEV_BRANCH' does not exist!"
+            exit 1
+          fi
+          echo "✅ Dev branch '$DEV_BRANCH' exists."
+
+      - name: Check if beta branch already exists
+        id: check_beta_branch
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          BETA_BRANCH="beta/v$VERSION"
+
+          if git ls-remote --exit-code origin "$BETA_BRANCH"; then
+            echo "❌ ERROR: Beta branch '$BETA_BRANCH' already exists!"
+            exit 1
+          fi
+          echo "✅ Beta branch '$BETA_BRANCH' does not exist."
+
+      - name: Create and push new beta branch
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DEV_BRANCH="dev/v$VERSION"
+          BETA_BRANCH="beta/v$VERSION"
+
+          # Fetch latest changes
+          git fetch origin "$DEV_BRANCH"
+
+          # Create new beta branch from dev branch
+          git checkout -b "$BETA_BRANCH" origin/"$DEV_BRANCH"
+
+          # Push new beta branch to remote
+          git push origin "$BETA_BRANCH"
+
+          echo "✅ Successfully created beta branch '$BETA_BRANCH' from '$DEV_BRANCH'."
+
+      - name: Merge dev into beta
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DEV_BRANCH="dev/v$VERSION"
+          BETA_BRANCH="beta/v$VERSION"
+
+          # Checkout beta branch
+          git checkout "$BETA_BRANCH"
+
+          # Merge dev into beta
+          git merge --no-ff "origin/$DEV_BRANCH" -m "Merge $DEV_BRANCH into $BETA_BRANCH"
+
+          # Push merge changes
+          git push origin "$BETA_BRANCH"
+
+          echo "✅ Successfully merged '$DEV_BRANCH' into '$BETA_BRANCH'."
+
+      - name: Delete dev branch after successful merge
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DEV_BRANCH="dev/v$VERSION"
+
+          # Delete dev branch locally and remotely
+          git branch -d "$DEV_BRANCH"
+          git push origin --delete "$DEV_BRANCH"
+
+          echo "✅ Successfully deleted '$DEV_BRANCH'."

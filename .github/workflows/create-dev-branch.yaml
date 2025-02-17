@@ -1,0 +1,58 @@
+name: Create Dev Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to create (format: 0.0.0)"
+        required: true
+        type: string
+
+jobs:
+  create-dev-branch:
+    name: Create Dev Branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }} # Uses the Personal Access Token
+
+      - name: Validate version format
+        id: validate_version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ ERROR: Version must be in '0.0.0' format."
+            exit 1
+          fi
+          echo "✅ Version format validated: $VERSION"
+
+      - name: Check if branch already exists
+        id: check_branch
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DEV_BRANCH="dev/v$VERSION"
+
+          if git ls-remote --exit-code origin "$DEV_BRANCH"; then
+            echo "❌ ERROR: Branch '$DEV_BRANCH' already exists!"
+            exit 1
+          fi
+          echo "✅ Branch '$DEV_BRANCH' does not exist."
+
+      - name: Create and push new dev branch
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DEV_BRANCH="dev/v$VERSION"
+
+          # Fetch latest changes
+          git fetch origin main
+
+          # Create new branch from main
+          git checkout -b "$DEV_BRANCH" origin/main
+
+          # Push branch to remote
+          git push origin "$DEV_BRANCH"
+
+          echo "✅ Successfully created branch '$DEV_BRANCH'!"
