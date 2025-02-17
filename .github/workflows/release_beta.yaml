@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  test_frontend:
-    name: Test Playwright
+  test_paywright_regular:
+    name: Test Playwright - regular
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,6 +32,54 @@ jobs:
         with:
           context: .
           file: ./_docker/Dockerfile.playwright
+          push: false
+  test_paywright_proxy:
+    name: Test Playwright - regular
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.0.0
+      - uses: actions/setup-node@v4
+      - working-directory: frontend
+        run: npm i && npm run build
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - working-directory: backend
+        run: go build -o filebrowser .
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./_docker/Dockerfile.playwright-proxy
+          push: false
+  test_paywright_noauth:
+    name: Test Playwright - regular
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.0.0
+      - uses: actions/setup-node@v4
+      - working-directory: frontend
+        run: npm i && npm run build
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - working-directory: backend
+        run: go build -o filebrowser .
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./_docker/Dockerfile.playwright-noauth
           push: false
   create_release_tag:
     needs: [ test_frontend ]
@@ -64,44 +112,3 @@ jobs:
           draft: false
           generate_release_notes: true
           name: ${{ steps.extract_branch.outputs.tag_name }}
-
-  push_release_to_registry:
-    needs: [ test_frontend ]
-    name: Push release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: gtstef/filebrowser
-      - name: Strip v from version number
-        id: modify-json
-        run: |
-          JSON="${{ steps.meta.outputs.tags }}"
-          # Use jq to remove 'v' from the version field
-          JSON=$(echo "$JSON" | sed 's/filebrowser:beta\/v/filebrowser:beta_v/')
-          echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          build-args: |
-            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          file: ./_docker/Dockerfile
-          push: true
-          tags: ${{ steps.modify-json.outputs.cleaned_tag }}
-          labels: ${{ steps.meta.outputs.labels }}
