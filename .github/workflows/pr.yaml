@@ -30,7 +30,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.playwright
+          file: ./_docker/Dockerfile.playwright-regular
           push: false
   test_paywright_proxy:
     name: Test Playwright - regular

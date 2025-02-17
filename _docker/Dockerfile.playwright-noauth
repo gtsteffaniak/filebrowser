@@ -1,0 +1,8 @@
+FROM gtstef/playwright-base
+WORKDIR /app
+COPY [ "./_docker/src/noauth/", "./" ]
+WORKDIR /app/frontend
+COPY [ "./frontend/", "./" ]
+WORKDIR /app/backend/
+COPY [ "./backend/filebrowser", "./"]
+RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
