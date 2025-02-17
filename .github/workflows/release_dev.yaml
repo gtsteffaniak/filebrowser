@@ -34,7 +34,7 @@ jobs:
         run: |
           JSON="${{ steps.meta.outputs.tags }}"
           # Use jq to remove 'v' from the version field
-          JSON=$(echo "$JSON" | sed 's/filebrowser:dev-\/v/filebrowser:/')
+          JSON=$(echo "$JSON" | sed 's/filebrowser:dev-v/filebrowser:/')
           JSON=$(echo "$JSON" | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev/g')
           JSON="$JSON,gtstef/filebrowser:dev"
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
