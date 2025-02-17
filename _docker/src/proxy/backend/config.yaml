@@ -12,9 +12,6 @@ frontend:
 auth:
   signup: false
   methods:
-    password:
-      enabled: false
-      minLength: 0
     proxy:
       enabled: true
       header: "X-Username"

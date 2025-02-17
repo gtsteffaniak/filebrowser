@@ -79,22 +79,24 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 
 		val := userField.Interface()
 		if err := st.db.UpdateField(user, correctedField, val); err != nil {
-			return fmt.Errorf("Error updating user field: %s, error: %v", correctedField, err.Error())
+			return fmt.Errorf("failed to update user field: %s, error: %v", correctedField, err.Error())
 		}
 	}
 	return nil
 }
 
 func (st usersBackend) Save(user *users.User) error {
-	if len(user.Password) < settings.Config.Auth.Methods.PasswordAuth.MinLength {
-		return fmt.Errorf("password must be at least %d characters long", settings.Config.Auth.Methods.PasswordAuth.MinLength)
+	if settings.Config.Auth.Methods.PasswordAuth.Enabled {
+		if len(user.Password) < settings.Config.Auth.Methods.PasswordAuth.MinLength {
+			return fmt.Errorf("password must be at least %d characters long", settings.Config.Auth.Methods.PasswordAuth.MinLength)
+		}
+		pass, err := users.HashPwd(user.Password)
+		if err != nil {
+			return err
+		}
+		user.Password = pass
 	}
-	pass, err := users.HashPwd(user.Password)
-	if err != nil {
-		return err
-	}
-	user.Password = pass
-	err = st.db.Save(user)
+	err := st.db.Save(user)
 	if err == storm.ErrAlreadyExists {
 		return errors.ErrExist
 	}

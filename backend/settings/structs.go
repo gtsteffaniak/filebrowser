@@ -35,6 +35,7 @@ type Auth struct {
 	Key                  []byte       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
+	AuthMethods          []string
 }
 
 type LoginMethods struct {
@@ -80,6 +81,7 @@ type Server struct {
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
+	SourceList         []string
 }
 
 type Integrations struct {
