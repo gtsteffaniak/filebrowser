@@ -1,6 +1,6 @@
 **Description**
 
-According to the [contributing guide](https://github.com/gtsteffaniak/filebrowser/wiki/Contributing), A PR should contain:
+According to the [contributing guide](https://github.com/gtsteffaniak/filebrowser/wiki/Contributing#contributing-as-an-unofficial-contributor), A PR should contain:
 
 - [ ] A clear description of why it was opened.
 - [ ] A short title that best describes the change.
