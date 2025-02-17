@@ -9,7 +9,7 @@ on:
 
 jobs:
   test_playwright:
-    name: Test Playwright
+    name: Test Playwright - regular
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,7 +33,7 @@ jobs:
           file: ./_docker/Dockerfile.playwright-regular
           push: false
   test_playwright_proxy:
-    name: Test Playwright - regular
+    name: Test Playwright - proxy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,7 +57,7 @@ jobs:
           file: ./_docker/Dockerfile.playwright-proxy
           push: false
   test_playwright_noauth:
-    name: Test Playwright - regular
+    name: Test Playwright - noauth
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
