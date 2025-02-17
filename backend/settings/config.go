@@ -49,6 +49,7 @@ func Initialize(configFile string) {
 	if Config.Auth.Method != "" {
 		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
 	}
+
 	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	// Convert relative path to absolute path
 	if len(Config.Server.Sources) > 0 {
@@ -77,7 +78,24 @@ func Initialize(configFile string) {
 			},
 		}
 	}
-
+	if Config.Auth.Methods.PasswordAuth.Enabled {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
+	}
+	if Config.Auth.Methods.ProxyAuth.Enabled {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Proxy")
+	}
+	if Config.Auth.Methods.NoAuth {
+		logger.Warning("Configured with no authentication, this is not recommended.")
+		Config.Auth.AuthMethods = []string{"Disabled"}
+	}
+	// use password auth as default if no auth methods are set
+	if len(Config.Auth.AuthMethods) == 0 {
+		Config.Auth.Methods.PasswordAuth.Enabled = true
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
+	}
+	for _, v := range Config.Server.Sources {
+		Config.Server.SourceList = append(Config.Server.SourceList, v.Name+": "+v.Path)
+	}
 	baseurl := strings.Trim(Config.Server.BaseURL, "/")
 	if baseurl == "" {
 		Config.Server.BaseURL = "/"
@@ -139,14 +157,7 @@ func setDefaults() Settings {
 				Host: "",
 			},
 			Methods: LoginMethods{
-				ProxyAuth: ProxyAuthConfig{
-					Enabled:    false,
-					CreateUser: false,
-					Header:     "",
-				},
-				NoAuth: false,
 				PasswordAuth: PasswordAuthConfig{
-					Enabled:   true,
 					MinLength: 5,
 				},
 			},
