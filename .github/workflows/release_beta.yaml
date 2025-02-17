@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  test_paywright:
+  test_playwright:
     name: Test Playwright - regular
     runs-on: ubuntu-latest
     steps:
@@ -34,7 +34,7 @@ jobs:
           file: ./_docker/Dockerfile.playwright-regular
           push: false
   create_release_tag:
-    needs: [ test_paywright ]
+    needs: [ test_playwright ]
     name: Create Release
     runs-on: ubuntu-latest
     steps:
