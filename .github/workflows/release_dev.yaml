@@ -29,12 +29,14 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: gtstef/filebrowser
-      - name: Strip v from version number
+      - name: modify version names
         id: modify-json
         run: |
           JSON="${{ steps.meta.outputs.tags }}"
           # Use jq to remove 'v' from the version field
-          JSON=$(echo "$JSON" | sed 's/filebrowser:dev\/v/filebrowser:dev_v/')
+          JSON=$(echo "$JSON" | sed 's/filebrowser:dev\/v/filebrowser:/')
+          JSON=$(echo "$JSON" | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev/g')
+          JSON="$JSON,gtstef/filebrowser:dev"
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
