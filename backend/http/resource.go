@@ -50,7 +50,6 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
 		Expand:  true,
-		Checker: d.user,
 		Content: r.URL.Query().Get("content") == "true",
 	})
 	if err != nil {
@@ -104,11 +103,10 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, nil
 	}
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(d.user.Scope, path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err != nil {
@@ -153,15 +151,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Check(path) {
-		return http.StatusForbidden, nil
-	}
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(d.user.Scope, path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	// Directories creation on POST.
 	if strings.HasSuffix(path, "/") {
@@ -220,21 +214,16 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Perm.Modify || !d.user.Check(path) {
-		return http.StatusForbidden, nil
-	}
-
 	// Only allow PUT for files.
 	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
 	}
 
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(d.user.Scope, path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
@@ -275,9 +264,6 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	dst, err = url.QueryUnescape(dst)
 	if err != nil {
 		return errToStatus(err), err
-	}
-	if !d.user.Check(src) || !d.user.Check(dst) {
-		return http.StatusForbidden, fmt.Errorf("forbidden: user rules deny access to source or destination")
 	}
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
@@ -354,7 +340,6 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: false,
-			Checker:    d.user,
 		})
 		if err != nil {
 			return err

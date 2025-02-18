@@ -87,10 +87,6 @@ definitions:
         $ref: '#/definitions/settings.UserDefaults'
       frontend:
         $ref: '#/definitions/settings.Frontend'
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
       signup:
         type: boolean
       userHomeBasePath:
@@ -148,23 +144,12 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
       scope:
         type: string
       showHidden:
         type: boolean
       singleClick:
         type: boolean
-      sorting:
-        properties:
-          asc:
-            type: boolean
-          by:
-            type: string
-        type: object
       stickySidebar:
         type: boolean
       themeColor:
@@ -226,24 +211,6 @@ definitions:
       share:
         type: boolean
     type: object
-  users.Regexp:
-    properties:
-      raw:
-        type: string
-    type: object
-  users.Rule:
-    properties:
-      allow:
-        type: boolean
-      id:
-        type: string
-      path:
-        type: string
-      regex:
-        type: boolean
-      regexp:
-        $ref: '#/definitions/users.Regexp'
-    type: object
   users.Sorting:
     properties:
       asc:
@@ -283,10 +250,6 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
       scope:
         type: string
       showHidden:

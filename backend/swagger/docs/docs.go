@@ -1295,12 +1295,6 @@ const docTemplate = `{
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
-                },
                 "signup": {
                     "type": "boolean"
                 },
@@ -1388,12 +1382,6 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
-                },
                 "scope": {
                     "type": "string"
                 },
@@ -1402,17 +1390,6 @@ const docTemplate = `{
                 },
                 "singleClick": {
                     "type": "boolean"
-                },
-                "sorting": {
-                    "type": "object",
-                    "properties": {
-                        "asc": {
-                            "type": "boolean"
-                        },
-                        "by": {
-                            "type": "string"
-                        }
-                    }
                 },
                 "stickySidebar": {
                     "type": "boolean"
@@ -1503,34 +1480,6 @@ const docTemplate = `{
                 }
             }
         },
-        "users.Regexp": {
-            "type": "object",
-            "properties": {
-                "raw": {
-                    "type": "string"
-                }
-            }
-        },
-        "users.Rule": {
-            "type": "object",
-            "properties": {
-                "allow": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "regex": {
-                    "type": "boolean"
-                },
-                "regexp": {
-                    "$ref": "#/definitions/users.Regexp"
-                }
-            }
-        },
         "users.Sorting": {
             "type": "object",
             "properties": {
@@ -1589,12 +1538,6 @@ const docTemplate = `{
                 },
                 "quickDownload": {
                     "type": "boolean"
-                },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
                 },
                 "scope": {
                     "type": "string"

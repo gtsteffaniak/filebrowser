@@ -63,9 +63,6 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
 	idx := files.GetIndex("default")
 	realPath, _, _ := idx.GetRealPath(d.user.Scope, path)
-	if !d.user.Check(realPath) {
-		return nil
-	}
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return err

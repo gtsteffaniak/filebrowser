@@ -19,14 +19,9 @@ import (
 )
 
 var (
-	NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm", "Commands", "Rules"}
+	NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm"}
 )
 
-// SortingSettings represents the sorting settings.
-type Sorting struct {
-	By  string `json:"by"`
-	Asc bool   `json:"asc"`
-}
 type UserRequest struct {
 	What  string      `json:"what"`
 	Which []string    `json:"which"`

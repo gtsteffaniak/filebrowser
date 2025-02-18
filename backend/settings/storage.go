@@ -2,7 +2,6 @@ package settings
 
 import (
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 // StorageBackend is a settings storage backend.
@@ -59,14 +58,6 @@ func (s *Storage) Save(set *Settings) error {
 
 	if set.UserDefaults.ViewMode == "" {
 		set.UserDefaults.ViewMode = "normal"
-	}
-
-	if set.Rules == nil {
-		set.Rules = []users.Rule{}
-	}
-
-	if set.Commands == nil {
-		set.Commands = map[string][]string{}
 	}
 
 	for _, event := range defaultEvents {
