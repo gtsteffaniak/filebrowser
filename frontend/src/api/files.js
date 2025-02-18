@@ -58,28 +58,37 @@ export async function put (url, content = '') {
   }
 }
 
-export function download (format, files) {
-  if (format != 'zip') {
-    format = 'tar.gz'
+export function download(format, files) {
+  if (format !== "zip") {
+    format = "tar.gz";
   }
   try {
-    let fileargs = ''
+    let fileargs = "";
     if (files.length === 1) {
-      fileargs = decodeURI(removePrefix(files[0], 'files'))
+      fileargs = decodeURI(removePrefix(files[0], "files"));
     } else {
       for (let file of files) {
-        fileargs += decodeURI(removePrefix(file, 'files')) + ',|'
+        fileargs += decodeURI(removePrefix(file, "files")) + ",|";
       }
-      fileargs = fileargs.substring(0, fileargs.length - 1)
+      fileargs = fileargs.substring(0, fileargs.length - 1);
     }
-    const apiPath = getApiPath('api/raw', {
+
+    const apiPath = getApiPath("api/raw", {
       files: encodeURIComponent(fileargs),
-      algo: format
-    })
-    const url = window.origin + apiPath
-    window.open(url)
+      algo: format,
+    });
+    const url = window.origin + apiPath;
+
+    // Create a temporary <a> element to trigger the download
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", ""); // Ensures it triggers a download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link); // Clean up
+
   } catch (err) {
-    notify.showError(err.message || 'Error downloading files')
+    notify.showError(err.message || "Error downloading files");
   }
 }
 
