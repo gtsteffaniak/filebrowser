@@ -92,8 +92,8 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"url":      url + "&auth=" + d.token,
 			"permissions": map[string]interface{}{
 				"edit":     d.user.Perm.Modify,
-				"download": d.user.Perm.Download,
-				"print":    d.user.Perm.Download,
+				"download": true,
+				"print":    true,
 			},
 		},
 		"editorConfig": map[string]interface{}{

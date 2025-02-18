@@ -187,14 +187,9 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 	// adds all permissions when user is admin
 	isAdmin := d.Perm.Admin
 	perms := users.Permissions{
-		Admin:    isAdmin,
-		Execute:  isAdmin || d.Perm.Execute,
-		Create:   isAdmin || d.Perm.Create,
-		Rename:   isAdmin || d.Perm.Rename,
-		Modify:   isAdmin || d.Perm.Modify,
-		Delete:   isAdmin || d.Perm.Delete,
-		Share:    isAdmin || d.Perm.Share,
-		Download: isAdmin || d.Perm.Download,
+		Admin:  isAdmin,
+		Modify: isAdmin || d.Perm.Modify,
+		Share:  isAdmin || d.Perm.Share,
 	}
 	user := users.User{
 		ID:          d.ID,

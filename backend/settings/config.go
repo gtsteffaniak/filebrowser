@@ -177,12 +177,8 @@ func setDefaults() Settings {
 			Locale:               "en",
 			GallerySize:          3,
 			Permissions: users.Permissions{
-				Create:   false,
-				Rename:   false,
 				Modify:   false,
-				Delete:   false,
 				Share:    false,
-				Download: false,
 				Admin:    false,
 				Api:      false,
 			},

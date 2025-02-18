@@ -73,18 +73,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	if (previewSize == "large" && !config.Server.ResizePreview) ||
 		(previewSize == "small" && !config.Server.EnableThumbnails) {
-		if !d.user.Perm.Download {
-			return http.StatusAccepted, nil
-		}
 		return rawFileHandler(w, r, fileInfo)
 	}
 
 	format, err := imgSvc.FormatFromExtension(filepath.Ext(fileInfo.Name))
 	// Unsupported extensions directly return the raw data
 	if err == img.ErrUnsupportedFormat || format == img.FormatGif {
-		if !d.user.Perm.Download {
-			return http.StatusAccepted, nil
-		}
 		return rawFileHandler(w, r, fileInfo)
 	}
 	if err != nil {

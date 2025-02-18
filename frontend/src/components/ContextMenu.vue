@@ -14,12 +14,7 @@
       <span>{{ selectedCount }} selected</span>
     </div>
 
-    <action
-      v-if="!showCreate"
-      icon="add"
-      label="New"
-      @action="startShowCreate"
-    />
+    <action v-if="!showCreate" icon="add" label="New" @action="startShowCreate" />
 
     <action
       v-if="showCreate && !isSearchActive"
@@ -99,7 +94,6 @@ import { state, getters, mutations } from "@/store"; // Import your custom store
 import Action from "@/components/Action.vue";
 import { onlyOfficeUrl } from "@/utils/constants.js";
 
-
 export default {
   name: "ContextMenu",
   components: {
@@ -155,12 +149,11 @@ export default {
       return {
         select: state.selected.length > 0,
         upload: state.user.perm?.create && state.selected.length > 0,
-        download: state.user.perm.download && state.selected.length > 0,
-        delete: state.selected.length > 0 && state.user.perm.delete,
-        rename: state.selected.length === 1 && state.user.perm.rename,
+        delete: state.selected.length > 0 && state.user.perm.modify,
+        rename: state.selected.length === 1 && state.user.perm.modify,
         share: state.selected.length === 1 && state.user.perm.share,
-        move: state.selected.length > 0 && state.user.perm.rename,
-        copy: state.selected.length > 0 && state.user.perm?.create,
+        move: state.selected.length > 0 && state.user.perm.modify,
+        copy: state.selected.length > 0 && state.user.perm.modify,
       };
     },
     selectedCount() {
