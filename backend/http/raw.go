@@ -42,10 +42,6 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Perm.Download {
-		return http.StatusAccepted, nil
-	}
-
 	filePrefix := ""
 	file, ok := d.raw.(files.ExtendedFileInfo)
 	if ok {

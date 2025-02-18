@@ -36,7 +36,7 @@
         v-else
         id="listingView"
         ref="listingView"
-        :class="{'add-padding': isStickySidebar,[listingViewMode]: true }"
+        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
         class="file-icons"
       >
         <div>
@@ -176,7 +176,6 @@ export default {
       this.columnWidth = 250 + state.user.gallerySize * 50;
       this.colunmsResize();
     },
-
   },
   computed: {
     isStickySidebar() {
@@ -571,7 +570,7 @@ export default {
           break;
 
         case "F2":
-          if (!state.user.perm.rename || state.selected.length !== 1) return;
+          if (!state.user.perm.modify || state.selected.length !== 1) return;
           mutations.showHover("rename");
           break;
 
@@ -805,7 +804,7 @@ export default {
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         path = el.__vue__.url;
-        items = state.req.items
+        items = state.req.items;
       }
 
       const conflict = upload.checkConflict(uploadFiles, items);
@@ -824,7 +823,7 @@ export default {
         }
         mutations.setReload(true);
       } catch {
-        console.log("failed to upload files")
+        console.log("failed to upload files");
       }
     },
     async uploadInput(event) {
@@ -940,5 +939,4 @@ export default {
 .add-padding {
   padding-left: 0.5em;
 }
-
 </style>

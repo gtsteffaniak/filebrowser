@@ -29,12 +29,8 @@ func GetSettingsConfig(nameType string, Value string) string {
 
 func AdminPerms() users.Permissions {
 	return users.Permissions{
-		Create:   true,
-		Rename:   true,
 		Modify:   true,
-		Delete:   true,
 		Share:    true,
-		Download: true,
 		Admin:    true,
 		Api:      true,
 	}

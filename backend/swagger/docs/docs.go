@@ -1495,22 +1495,7 @@ const docTemplate = `{
                 "api": {
                     "type": "boolean"
                 },
-                "create": {
-                    "type": "boolean"
-                },
-                "delete": {
-                    "type": "boolean"
-                },
-                "download": {
-                    "type": "boolean"
-                },
-                "execute": {
-                    "type": "boolean"
-                },
                 "modify": {
-                    "type": "boolean"
-                },
-                "rename": {
                     "type": "boolean"
                 },
                 "share": {

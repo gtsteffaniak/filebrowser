@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.5.3-beta
 
  **New Features**
+
+ **Notes**:
+  - downloads no longer open new window.
+  - user permissions simplified to four permission groups:
+    - removed  : create, rename, delete, download
+    - remaining: admin, modify, share, api
+
+ **BugFixes**:
+
+## v0.5.3-beta
+
+ **New Features**
   - onlyoffice disable filetypes for user specified file types. https://github.com/gtsteffaniak/filebrowser/issues/346
 
  **Notes**:

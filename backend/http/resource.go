@@ -100,7 +100,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if path == "/" || !d.user.Perm.Delete {
+	if path == "/" {
 		return http.StatusForbidden, nil
 	}
 	fileOpts := files.FileOptions{
@@ -153,7 +153,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Perm.Create || !d.user.Check(path) {
+	if !d.user.Check(path) {
 		return http.StatusForbidden, nil
 	}
 	fileOpts := files.FileOptions{
@@ -338,13 +338,13 @@ func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFile
 func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, index string) error {
 	switch action {
 	case "copy":
-		if !d.user.Perm.Create {
+		if !d.user.Perm.Modify {
 			return errors.ErrPermissionDenied
 		}
 		err := files.CopyResource(index, src, dst, isSrcDir)
 		return err
 	case "rename", "move":
-		if !d.user.Perm.Rename {
+		if !d.user.Perm.Modify {
 			return errors.ErrPermissionDenied
 		}
 		fileInfo, err := files.FileInfoFaster(files.FileOptions{
