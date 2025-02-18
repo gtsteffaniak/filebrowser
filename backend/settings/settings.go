@@ -29,10 +29,10 @@ func GetSettingsConfig(nameType string, Value string) string {
 
 func AdminPerms() users.Permissions {
 	return users.Permissions{
-		Modify:   true,
-		Share:    true,
-		Admin:    true,
-		Api:      true,
+		Modify: true,
+		Share:  true,
+		Admin:  true,
+		Api:    true,
 	}
 }
 
@@ -46,8 +46,6 @@ func ApplyUserDefaults(u users.User) users.User {
 	u.ViewMode = Config.UserDefaults.ViewMode
 	u.SingleClick = Config.UserDefaults.SingleClick
 	u.Perm = Config.UserDefaults.Perm
-	u.Sorting = Config.UserDefaults.Sorting
-	u.Commands = Config.UserDefaults.Commands
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
 	return u

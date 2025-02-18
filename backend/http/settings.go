@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 type settingsData struct {
@@ -13,7 +12,6 @@ type settingsData struct {
 	CreateUserDir    bool                  `json:"createUserDir"`
 	UserHomeBasePath string                `json:"userHomeBasePath"`
 	Defaults         settings.UserDefaults `json:"defaults"`
-	Rules            []users.Rule          `json:"rules"`
 	Frontend         settings.Frontend     `json:"frontend"`
 	Commands         map[string][]string   `json:"commands"`
 }
@@ -32,7 +30,6 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		CreateUserDir:    config.Server.CreateUserDir,
 		UserHomeBasePath: config.Server.UserHomeBasePath,
 		Defaults:         config.UserDefaults,
-		Rules:            config.Rules,
 		Frontend:         config.Frontend,
 	}
 
@@ -60,7 +57,6 @@ func settingsPutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	config.Server.CreateUserDir = req.CreateUserDir
 	config.Server.UserHomeBasePath = req.UserHomeBasePath
 	config.UserDefaults = req.Defaults
-	config.Rules = req.Rules
 	config.Frontend = req.Frontend
 	config.Auth.Signup = req.Signup
 	err = store.Settings.Save(config)

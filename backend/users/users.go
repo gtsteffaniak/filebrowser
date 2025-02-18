@@ -43,7 +43,6 @@ type User struct {
 	Sorting              Sorting              `json:"sorting"`
 	Perm                 Permissions          `json:"perm"`
 	Commands             []string             `json:"commands"`
-	Rules                []Rule               `json:"rules"`
 	ApiKeys              map[string]AuthToken `json:"apiKeys,omitempty"`
 	ShowHidden           bool                 `json:"showHidden"`
 	DateFormat           bool                 `json:"dateFormat"`
@@ -65,9 +64,4 @@ var PublicUser = User{
 		Admin:  false,
 		Api:    false,
 	},
-}
-
-// GetRules implements rules.Provider.
-func (u *User) GetRules() []Rule {
-	return u.Rules
 }

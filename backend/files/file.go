@@ -26,7 +26,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
@@ -73,7 +72,6 @@ type FileOptions struct {
 	Modify     bool
 	Expand     bool
 	ReadHeader bool
-	Checker    users.Checker
 	Content    bool
 }
 
@@ -95,9 +93,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	pathMutex := getMutex(opts.Path)
 	pathMutex.Lock()
 	defer pathMutex.Unlock()
-	if !opts.Checker.Check(opts.Path) {
-		return response, os.ErrPermission
-	}
 
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {

@@ -2,8 +2,6 @@ package settings
 
 import (
 	"testing"
-
-	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 func TestSettings_MakeUserDir(t *testing.T) {
@@ -15,7 +13,6 @@ func TestSettings_MakeUserDir(t *testing.T) {
 		Shell            []string
 		AdminUsername    string
 		AdminPassword    string
-		Rules            []users.Rule
 		Server           Server
 		Auth             Auth
 		Frontend         Frontend
@@ -41,7 +38,6 @@ func TestSettings_MakeUserDir(t *testing.T) {
 			s := &Settings{
 				Commands:     tt.fields.Commands,
 				Shell:        tt.fields.Shell,
-				Rules:        tt.fields.Rules,
 				Server:       tt.fields.Server,
 				Auth:         tt.fields.Auth,
 				Frontend:     tt.fields.Frontend,

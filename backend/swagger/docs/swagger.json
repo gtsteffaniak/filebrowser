@@ -1284,12 +1284,6 @@
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
-                },
                 "signup": {
                     "type": "boolean"
                 },
@@ -1377,12 +1371,6 @@
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
-                },
                 "scope": {
                     "type": "string"
                 },
@@ -1391,17 +1379,6 @@
                 },
                 "singleClick": {
                     "type": "boolean"
-                },
-                "sorting": {
-                    "type": "object",
-                    "properties": {
-                        "asc": {
-                            "type": "boolean"
-                        },
-                        "by": {
-                            "type": "string"
-                        }
-                    }
                 },
                 "stickySidebar": {
                     "type": "boolean"
@@ -1492,34 +1469,6 @@
                 }
             }
         },
-        "users.Regexp": {
-            "type": "object",
-            "properties": {
-                "raw": {
-                    "type": "string"
-                }
-            }
-        },
-        "users.Rule": {
-            "type": "object",
-            "properties": {
-                "allow": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "regex": {
-                    "type": "boolean"
-                },
-                "regexp": {
-                    "$ref": "#/definitions/users.Regexp"
-                }
-            }
-        },
         "users.Sorting": {
             "type": "object",
             "properties": {
@@ -1578,12 +1527,6 @@
                 },
                 "quickDownload": {
                     "type": "boolean"
-                },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
                 },
                 "scope": {
                     "type": "string"

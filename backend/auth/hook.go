@@ -152,9 +152,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 			Locale:      a.Settings.UserDefaults.Locale,
 			ViewMode:    a.Settings.UserDefaults.ViewMode,
 			SingleClick: a.Settings.UserDefaults.SingleClick,
-			Sorting:     a.Settings.UserDefaults.Sorting,
 			Perm:        a.Settings.UserDefaults.Perm,
-			Commands:    a.Settings.UserDefaults.Commands,
 			ShowHidden:  a.Settings.UserDefaults.ShowHidden,
 		}
 		u = a.GetUser(d)
@@ -192,18 +190,13 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		Share:  isAdmin || d.Perm.Share,
 	}
 	user := users.User{
-		ID:          d.ID,
-		Username:    d.Username,
-		Password:    d.Password,
-		Scope:       d.Scope,
-		Locale:      d.Locale,
-		ViewMode:    d.ViewMode,
-		SingleClick: d.SingleClick,
-		Sorting: users.Sorting{
-			Asc: d.Sorting.Asc,
-			By:  d.Sorting.By,
-		},
-		Commands:     d.Commands,
+		ID:           d.ID,
+		Username:     d.Username,
+		Password:     d.Password,
+		Scope:        d.Scope,
+		Locale:       d.Locale,
+		ViewMode:     d.ViewMode,
+		SingleClick:  d.SingleClick,
 		ShowHidden:   d.ShowHidden,
 		Perm:         perms,
 		LockPassword: true,
