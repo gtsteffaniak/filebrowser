@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
   - downloads no longer open new window.
-  - user permissions simplified to four permission groups:
+  - user permissions simplified to four permission groups (no config change required):
     - removed  : create, rename, delete, download
     - remaining: admin, modify, share, api
   - removed user rules and commands.

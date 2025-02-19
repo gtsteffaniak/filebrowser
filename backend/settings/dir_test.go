@@ -4,12 +4,11 @@ import (
 	"testing"
 )
 
-func TestSettings_MakeUserDir(t *testing.T) {
+func TestSettings_MakeUserDirs(t *testing.T) {
 	type fields struct {
 		Signup           bool
 		CreateUserDir    bool
 		UserHomeBasePath string
-		Commands         map[string][]string
 		Shell            []string
 		AdminUsername    string
 		AdminPassword    string
@@ -36,7 +35,6 @@ func TestSettings_MakeUserDir(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Settings{
-				Commands:     tt.fields.Commands,
 				Shell:        tt.fields.Shell,
 				Server:       tt.fields.Server,
 				Auth:         tt.fields.Auth,
@@ -44,13 +42,13 @@ func TestSettings_MakeUserDir(t *testing.T) {
 				Users:        tt.fields.Users,
 				UserDefaults: tt.fields.UserDefaults,
 			}
-			got, err := s.MakeUserDir(tt.args.username, tt.args.userScope, tt.args.serverRoot)
+			got, err := s.MakeUserDirs(tt.args.username, tt.args.userScope, tt.args.serverRoot)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Settings.MakeUserDir() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Settings.MakeUserDirs() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("Settings.MakeUserDir() = %v, want %v", got, tt.want)
+				t.Errorf("Settings.MakeUserDirs() = %v, want %v", got, tt.want)
 			}
 		})
 	}

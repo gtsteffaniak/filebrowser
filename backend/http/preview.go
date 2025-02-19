@@ -45,6 +45,9 @@ type FileCache interface {
 func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
 	previewSize := r.URL.Query().Get("size")
 	if previewSize != "small" {
 		previewSize = "large"
@@ -53,7 +56,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
 	response, err := files.FileInfoFaster(files.FileOptions{
-		Path:   filepath.Join(d.user.Scope, path),
+		Path:   filepath.Join(d.user.Scopes[source], path),
 		Modify: d.user.Perm.Modify,
 		Source: source,
 		Expand: true,

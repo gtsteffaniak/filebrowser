@@ -21,36 +21,12 @@ type Runner struct {
 // RunHook runs the hooks for the before and after event.
 func (r *Runner) RunHook(fn func() error, evt, path, dst string, user *users.User) error {
 	idx := files.GetIndex("default")
-	path, _, _ = idx.GetRealPath(user.Scope, path)
-	dst, _, _ = idx.GetRealPath(user.Scope, dst)
-
-	if r.Enabled {
-		if val, ok := r.Settings.Commands["before_"+evt]; ok {
-			for _, command := range val {
-				err := r.exec(command, "before_"+evt, path, dst, user)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
+	path, _, _ = idx.GetRealPath(user.Scopes[idx.Name], path)
+	dst, _, _ = idx.GetRealPath(user.Scopes[idx.Name], dst)
 	err := fn()
 	if err != nil {
 		return err
 	}
-
-	if r.Enabled {
-		if val, ok := r.Settings.Commands["after_"+evt]; ok {
-			for _, command := range val {
-				err := r.exec(command, "after_"+evt, path, dst, user)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -72,7 +48,7 @@ func (r *Runner) exec(raw, evt, path, dst string, user *users.User) error {
 		case "FILE":
 			return path
 		case "SCOPE":
-			return user.Scope
+			return user.Scopes["default"]
 		case "TRIGGER":
 			return evt
 		case "USERNAME":
@@ -91,9 +67,9 @@ func (r *Runner) exec(raw, evt, path, dst string, user *users.User) error {
 		command[i] = os.Expand(arg, envMapping)
 	}
 
-	cmd := exec.Command(command[0], command[1:]...) //nolint:gosec
+	cmd := exec.Command(command[0], command[1:]...)
 	cmd.Env = append(os.Environ(), fmt.Sprintf("FILE=%s", path))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("SCOPE=%s", user.Scope)) //nolint:gocritic
+	cmd.Env = append(cmd.Env, fmt.Sprintf("SCOPE=%s", user.Scopes["default"]))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("TRIGGER=%s", evt))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("USERNAME=%s", user.Username))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("DESTINATION=%s", dst))

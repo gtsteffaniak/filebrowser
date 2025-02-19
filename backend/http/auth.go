@@ -133,13 +133,13 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	user.Username = info.Username
 	user.Password = info.Password
 
-	userHome, err := config.MakeUserDir(user.Username, user.Scope, files.RootPaths["default"])
+	userHome, err := config.MakeUserDirs(user.Username, files.RootPaths["default"], user.Scopes)
 	if err != nil {
 		logger.Error(fmt.Sprintf("create user: failed to mkdir user home dir: [%s]", userHome))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	user.Scope = userHome
+	user.Scopes = userHome
 	logger.Debug(fmt.Sprintf("new user: %s, home dir: [%s].", user.Username, userHome))
 	err = store.Users.Save(&user)
 	if err == errors.ErrExist {

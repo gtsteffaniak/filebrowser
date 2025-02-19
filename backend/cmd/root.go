@@ -110,11 +110,9 @@ func StartFilebrowser() {
 					Username: username,
 					Password: password,
 				}
-				if scope != "" {
-					newUser.Scope = scope
-				} else {
-					newUser.Scope = settings.Config.UserDefaults.Scope
-				}
+
+				newUser.Scopes = settings.Config.UserDefaults.Scopes
+
 				// Create the user logic
 				if asAdmin {
 					logger.Info(fmt.Sprintf("Creating user as admin: %s\n", username))
@@ -128,9 +126,6 @@ func StartFilebrowser() {
 				return
 			}
 			user.Password = password
-			if scope != "" {
-				user.Scope = scope
-			}
 			if asAdmin {
 				user.Perm.Admin = true
 			}

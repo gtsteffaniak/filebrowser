@@ -61,7 +61,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		url = strings.Replace(url, replacement, settings.Config.Server.InternalUrl, 1)
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:   filepath.Join(d.user.Scope, path),
+		Path:   filepath.Join(d.user.Scopes[source], path),
 		Modify: d.user.Perm.Modify,
 		Source: source,
 		Expand: false,

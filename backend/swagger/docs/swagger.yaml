@@ -75,12 +75,6 @@ definitions:
     type: object
   http.settingsData:
     properties:
-      commands:
-        additionalProperties:
-          items:
-            type: string
-          type: array
-        type: object
       createUserDir:
         type: boolean
       defaults:
@@ -144,8 +138,10 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      scope:
-        type: string
+      scopes:
+        additionalProperties:
+          type: string
+        type: object
       showHidden:
         type: boolean
       singleClick:
@@ -250,8 +246,10 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      scope:
-        type: string
+      scopes:
+        additionalProperties:
+          type: string
+        type: object
       showHidden:
         type: boolean
       singleClick:
@@ -689,7 +687,7 @@ paths:
       consumes:
       - application/json
       description: Returns the current configuration settings for signup, user directories,
-        rules, frontend, and commands.
+        rules, frontend.
       produces:
       - application/json
       responses:
@@ -704,7 +702,7 @@ paths:
       consumes:
       - application/json
       description: Updates the system configuration settings for signup, user directories,
-        rules, frontend, and commands.
+        rules, frontend.
       parameters:
       - description: Settings data to update
         in: body

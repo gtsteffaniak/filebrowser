@@ -41,7 +41,7 @@
         :placeholder="scopePlaceholder"
         class="input input--block"
         type="text"
-        v-model="user.scope"
+        v-model="user.scopes"
         id="scope"
         @input="emitUpdate"
       />
@@ -116,7 +116,7 @@ export default {
       }
     },
     createUserDir(newVal) {
-      this.user.scope = newVal ? "" : this.originalUserScope;
+      this.user.scopes = newVal ? { default: "" } : this.originalUserScope;
     },
   },
   computed: {

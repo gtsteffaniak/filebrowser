@@ -46,7 +46,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
+		Path:    filepath.Join(d.user.Scopes["default"], path),
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
 		Expand:  true,
@@ -60,7 +60,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		idx := files.GetIndex(source)
-		realPath, _, _ := idx.GetRealPath(d.user.Scope, path)
+		realPath, _, _ := idx.GetRealPath(d.user.Scopes["default"], path)
 		checksums, err := files.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
@@ -103,7 +103,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, nil
 	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.Scope, path),
+		Path:   filepath.Join(d.user.Scopes["default"], path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -152,7 +152,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.Scope, path),
+		Path:   filepath.Join(d.user.Scopes["default"], path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -220,7 +220,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.Scope, path),
+		Path:   filepath.Join(d.user.Scopes["default"], path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -271,12 +271,12 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	idx := files.GetIndex(source)
 	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(d.user.Scope, filepath.Dir(dst))
+	parentDir, _, err := idx.GetRealPath(d.user.Scopes["default"], filepath.Dir(dst))
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 	realDest := parentDir + "/" + filepath.Base(dst)
-	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scope, src)
+	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scopes["default"], src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}

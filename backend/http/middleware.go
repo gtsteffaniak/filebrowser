@@ -60,7 +60,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
-			Path:   filepath.Join(user.Scope, link.Path+"/"+path),
+			Path:   filepath.Join(user.Scopes["default"], link.Path+"/"+path),
 			Modify: user.Perm.Modify,
 			Expand: true,
 		})

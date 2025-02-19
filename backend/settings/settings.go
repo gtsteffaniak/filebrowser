@@ -41,7 +41,7 @@ func ApplyUserDefaults(u users.User) users.User {
 	u.StickySidebar = Config.UserDefaults.StickySidebar
 	u.DisableSettings = Config.UserDefaults.DisableSettings
 	u.DarkMode = Config.UserDefaults.DarkMode
-	u.Scope = Config.UserDefaults.Scope
+	u.Scopes = Config.UserDefaults.Scopes
 	u.Locale = Config.UserDefaults.Locale
 	u.ViewMode = Config.UserDefaults.ViewMode
 	u.SingleClick = Config.UserDefaults.SingleClick
