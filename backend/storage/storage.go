@@ -88,7 +88,7 @@ func quickSetup(store *Storage) {
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
-	user.Scopes = map[string]string{"default": settings.Config.Server.SourceList[0]}
+	user.Scopes = settings.Config.UserDefaults.Scopes
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false

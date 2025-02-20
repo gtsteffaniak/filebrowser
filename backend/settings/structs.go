@@ -80,7 +80,9 @@ type Server struct {
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
-	SourceList         []string
+	// not exposed to config
+	SourceList    []string
+	DefaultSource string
 }
 
 type Integrations struct {

@@ -65,6 +65,7 @@ func Initialize(configFile string) {
 			source.Path = realPath
 			source.Name = "default"
 			Config.Server.Sources = []Source{source} // temporary set only one source
+			Config.Server.DefaultSource = realPath
 		}
 	} else {
 		realPath, err2 := filepath.Abs(Config.Server.Root)
@@ -77,6 +78,8 @@ func Initialize(configFile string) {
 				Path: realPath,
 			},
 		}
+		Config.Server.DefaultSource = realPath
+
 	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")

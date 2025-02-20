@@ -46,7 +46,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.Scopes["default"], path),
+		Path:    filepath.Join(d.user.Scopes[source], path),
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
 		Expand:  true,
@@ -60,7 +60,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		idx := files.GetIndex(source)
-		realPath, _, _ := idx.GetRealPath(d.user.Scopes["default"], path)
+		realPath, _, _ := idx.GetRealPath(d.user.Scopes[source], path)
 		checksums, err := files.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
@@ -273,6 +273,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	// check target dir exists
 	parentDir, _, err := idx.GetRealPath(d.user.Scopes["default"], filepath.Dir(dst))
 	if err != nil {
+		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", d.user.Scopes["default"], filepath.Dir(dst), err))
 		return http.StatusNotFound, err
 	}
 	realDest := parentDir + "/" + filepath.Base(dst)

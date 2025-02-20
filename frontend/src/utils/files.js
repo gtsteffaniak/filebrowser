@@ -1,7 +1,26 @@
-export function getFileExtension(filename) {
-    const firstDotIndex = filename.indexOf('.');
-    if (firstDotIndex === -1) {
-      return filename; // No dot found, return the original filename
-    }
-    return filename.substring(firstDotIndex);
+export function getFileExtension (filename) {
+  if (typeof filename !== 'string') {
+    return ''
   }
+  const firstDotIndex = filename.indexOf('.')
+
+  // If no dot exists, return an empty string
+  if (firstDotIndex === -1) {
+    return ''
+  }
+
+  // Default: Get everything after the first dot
+  const firstDotExtension = filename.substring(firstDotIndex)
+
+  if (firstDotExtension === '.') {
+    return ""
+  }
+  // If it's 7 or fewer characters (including the dot), return it
+  if (firstDotExtension.length <= 7) {
+    return firstDotExtension
+  }
+
+  // Otherwise, return everything after the last dot
+  const lastDotIndex = filename.lastIndexOf('.')
+  return filename.substring(lastDotIndex)
+}

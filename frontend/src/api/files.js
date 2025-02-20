@@ -10,7 +10,7 @@ export async function fetchFiles (url, content = false) {
     let path = encodeURIComponent(removePrefix(url, 'files'))
     const apiPath = getApiPath('api/resources', {
       path: path,
-      content: content
+      ...(content && { content: 'true' })
     })
     const res = await fetchURL(apiPath)
     const data = await res.json()
