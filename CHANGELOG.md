@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.6.0-beta
 
  **New Features**:
+  - multiple sources support
 
  **Notes**:
   - downloads no longer open new window.
