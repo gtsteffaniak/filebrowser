@@ -16,41 +16,33 @@ import (
 var Config Settings
 
 func Initialize(configFile string) {
-	yamlData, err := loadConfigFile(configFile)
-	if err != nil && configFile != "config.yaml" {
-		logger.Fatal("Could not load specified config file: " + err.Error())
-	}
+	err := loadConfigWithDefaults(configFile)
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
+		logger.Fatal(err.Error())
 	}
-	Config = setDefaults()
-	err = yaml.Unmarshal(yamlData, &Config)
-	if err != nil {
-		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
-	}
-	if len(Config.Server.Logging) == 0 {
-		Config.Server.Logging = []LogConfig{
-			{
-				Output: "stdout",
-			},
-		}
-	}
-	for _, logConfig := range Config.Server.Logging {
-		err = logger.SetupLogger(
-			logConfig.Output,
-			logConfig.Levels,
-			logConfig.ApiLevels,
-			logConfig.NoColors,
-		)
-		if err != nil {
-			log.Println("[ERROR] Failed to set up logger:", err)
-		}
-	}
-	if Config.Auth.Method != "" {
-		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
-	}
+	setupLogging()
+	setupAuth()
+	setupSources()
+	setupBaseURL()
+	setupFrontend()
+}
 
-	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
+func setupFrontend() {
+	if !Config.Frontend.DisableDefaultLinks {
+		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
+			Text:  fmt.Sprintf("(%v)", version.Version),
+			Title: version.CommitSHA,
+			Url:   "https://github.com/gtsteffaniak/filebrowser/releases/",
+		})
+		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
+			Text: "Help",
+			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
+		})
+	}
+}
+
+func setupSources() {
+
 	// Convert relative path to absolute path
 	if len(Config.Server.Sources) > 0 {
 		if Config.Server.Root != "" {
@@ -79,8 +71,25 @@ func Initialize(configFile string) {
 			},
 		}
 		Config.Server.DefaultSource = realPath
-
 	}
+	for _, v := range Config.Server.Sources {
+		Config.Server.SourceList = append(Config.Server.SourceList, v.Name+": "+v.Path)
+	}
+}
+
+func setupBaseURL() {
+	baseurl := strings.Trim(Config.Server.BaseURL, "/")
+	if baseurl == "" {
+		Config.Server.BaseURL = "/"
+	} else {
+		Config.Server.BaseURL = "/" + baseurl + "/"
+	}
+}
+func setupAuth() {
+	if Config.Auth.Method != "" {
+		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
+	}
+	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
 	}
@@ -96,47 +105,56 @@ func Initialize(configFile string) {
 		Config.Auth.Methods.PasswordAuth.Enabled = true
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
 	}
-	for _, v := range Config.Server.Sources {
-		Config.Server.SourceList = append(Config.Server.SourceList, v.Name+": "+v.Path)
+}
+
+func setupLogging() {
+	if len(Config.Server.Logging) == 0 {
+		Config.Server.Logging = []LogConfig{
+			{
+				Output: "stdout",
+			},
+		}
 	}
-	baseurl := strings.Trim(Config.Server.BaseURL, "/")
-	if baseurl == "" {
-		Config.Server.BaseURL = "/"
-	} else {
-		Config.Server.BaseURL = "/" + baseurl + "/"
-	}
-	if !Config.Frontend.DisableDefaultLinks {
-		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
-			Text:  fmt.Sprintf("(%v)", version.Version),
-			Title: version.CommitSHA,
-			Url:   "https://github.com/gtsteffaniak/filebrowser/releases/",
-		})
-		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
-			Text: "Help",
-			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
-		})
+	for _, logConfig := range Config.Server.Logging {
+		err := logger.SetupLogger(
+			logConfig.Output,
+			logConfig.Levels,
+			logConfig.ApiLevels,
+			logConfig.NoColors,
+		)
+		if err != nil {
+			log.Println("[ERROR] Failed to set up logger:", err)
+		}
 	}
 }
 
-func loadConfigFile(configFile string) ([]byte, error) {
+func loadConfigWithDefaults(configFile string) error {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer yamlFile.Close()
 
 	stat, err := yamlFile.Stat()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	yamlData := make([]byte, stat.Size())
 	_, err = yamlFile.Read(yamlData)
-	if err != nil {
-		return nil, err
+	if err != nil && configFile != "config.yaml" {
+		return fmt.Errorf("could not load specified config file: " + err.Error())
 	}
-	return yamlData, nil
+	if err != nil {
+		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
+	}
+	Config = setDefaults()
+	err = yaml.Unmarshal(yamlData, &Config)
+	if err != nil {
+		return fmt.Errorf("error unmarshaling YAML data: %v", err)
+	}
+	return nil
 }
 
 func setDefaults() Settings {

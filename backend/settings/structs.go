@@ -105,9 +105,10 @@ type LogConfig struct {
 }
 
 type Source struct {
-	Path   string      `json:"path"`
-	Name   string      `json:"name"`
-	Config IndexConfig `json:"config"`
+	Path             string      `json:"path"` // can be relative, filesystem path
+	Name             string      `json:"name"` // display name
+	Config           IndexConfig `json:"config"`
+	DefaultUserScope string      `json:"defaultUserScope"` // default "" should match folders under path
 }
 
 type IndexConfig struct {
@@ -150,6 +151,7 @@ type UserDefaults struct {
 	LockPassword         bool              `json:"lockPassword"`
 	DisableSettings      bool              `json:"disableSettings,omitempty"`
 	Scopes               map[string]string `json:"scopes"`
+	Scope                string            `json:"scope"` // deprecated
 	Locale               string            `json:"locale"`
 	ViewMode             string            `json:"viewMode"`
 	GallerySize          int               `json:"gallerySize"`

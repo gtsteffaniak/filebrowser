@@ -56,7 +56,7 @@ var PublicUser = User{
 	Username: "publicUser", // temp user not registered
 	Password: "publicUser", // temp user not registered
 	Scopes: map[string]string{
-		"default": "/",
+		"default": "",
 	},
 	ViewMode:     "normal",
 	LockPassword: true,
