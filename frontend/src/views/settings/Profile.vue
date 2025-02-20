@@ -22,17 +22,21 @@
             <h3>Disable onlyoffice viewer for certain file extentions</h3>
             <p>
               A space separated list of file extensions to disable the only office viewer
-              for. eg <code>.txt .html</code>
+              for. (eg <code>.txt .html</code>)
             </p>
-            <input
-              class="input input--block"
-              :class="{ 'invalid-form': !formValidation() }"
-              type="text"
-              placeholder="enter file extentions"
-              id="onlyofficeExt"
-              v-model="disableOnlyOfficeExt"
-            />
-            <button class="button" @click="submitOnlyOfficeChange">save</button>
+            <div class="onlyoffice-group">
+              <input
+                class="input input--block onlyoffice-form"
+                :class="{ 'invalid-form': !formValidation() }"
+                type="text"
+                placeholder="enter file extentions"
+                id="onlyofficeExt"
+                v-model="disableOnlyOfficeExt"
+              />
+              <button class="button onlyoffice-button" @click="submitOnlyOfficeChange">
+                save
+              </button>
+            </div>
           </div>
 
           <h3>Theme Color</h3>
@@ -193,6 +197,17 @@ export default {
 </script>
 
 <style>
+.onlyoffice-group {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+.onlyoffice-button {
+  margin-left: 1em;
+}
+.onlyoffice-form {
+  height: 3em;
+}
 .invalid-form {
   border-color: red !important;
 }

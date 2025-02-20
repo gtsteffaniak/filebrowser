@@ -95,7 +95,9 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	u.Password = ""
 	u.ApiKeys = nil
 	if !d.user.Perm.Admin {
-		u.Scope = ""
+		u.Scopes = map[string]string{
+			"default": u.Scopes["default"],
+		}
 	}
 
 	return renderJSON(w, r, u)
@@ -155,7 +157,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	// Validate the user's scope
 	idx := files.GetIndex("default")
-	_, _, err := idx.GetRealPath(d.user.Scope)
+	_, _, err := idx.GetRealPath(d.user.Scopes["default"])
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -210,13 +212,6 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	if givenUserId != d.user.ID && !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
-	}
-
-	// Validate the user's scope
-	idx := files.GetIndex("default")
-	_, _, err := idx.GetRealPath(d.user.Scope)
-	if err != nil {
-		return http.StatusBadRequest, err
 	}
 
 	// Read the JSON body

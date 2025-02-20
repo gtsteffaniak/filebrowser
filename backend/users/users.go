@@ -35,7 +35,7 @@ type User struct {
 	ID                   uint                 `storm:"id,increment" json:"id"`
 	Username             string               `storm:"unique" json:"username"`
 	Password             string               `json:"password,omitempty"`
-	Scope                string               `json:"scope"`
+	Scopes               map[string]string    `json:"scopes"`
 	Locale               string               `json:"locale"`
 	LockPassword         bool                 `json:"lockPassword"`
 	ViewMode             string               `json:"viewMode"`
@@ -53,9 +53,11 @@ type User struct {
 }
 
 var PublicUser = User{
-	Username:     "publicUser", // temp user not registered
-	Password:     "publicUser", // temp user not registered
-	Scope:        "/does/not/exist",
+	Username: "publicUser", // temp user not registered
+	Password: "publicUser", // temp user not registered
+	Scopes: map[string]string{
+		"default": "",
+	},
 	ViewMode:     "normal",
 	LockPassword: true,
 	Perm: Permissions{

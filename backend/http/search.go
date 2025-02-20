@@ -62,7 +62,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	index := files.GetIndex(source)
-	userScope := strings.TrimPrefix(d.user.Scope, ".")
+	userScope := strings.TrimPrefix(d.user.Scopes["default"], ".")
 	combinedScope := strings.TrimPrefix(userScope+"/"+searchScope, "/")
 
 	// Perform the search using the provided query and user scope

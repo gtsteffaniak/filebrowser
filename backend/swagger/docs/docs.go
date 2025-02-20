@@ -627,7 +627,7 @@ const docTemplate = `{
         },
         "/api/settings": {
             "get": {
-                "description": "Returns the current configuration settings for signup, user directories, rules, frontend, and commands.",
+                "description": "Returns the current configuration settings for signup, user directories, rules, frontend.",
                 "consumes": [
                     "application/json"
                 ],
@@ -648,7 +648,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the system configuration settings for signup, user directories, rules, frontend, and commands.",
+                "description": "Updates the system configuration settings for signup, user directories, rules, frontend.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1277,15 +1277,6 @@ const docTemplate = `{
         "http.settingsData": {
             "type": "object",
             "properties": {
-                "commands": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
                 "createUserDir": {
                     "type": "boolean"
                 },
@@ -1382,8 +1373,11 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "scope": {
-                    "type": "string"
+                "scopes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "showHidden": {
                     "type": "boolean"
@@ -1539,8 +1533,11 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "scope": {
-                    "type": "string"
+                "scopes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "showHidden": {
                     "type": "boolean"

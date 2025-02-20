@@ -50,7 +50,7 @@ export default {
       error: null,
       originalUser: null,
       user: {
-        scope: ".",
+        scopes: { default: "" },
         username: "",
         perm: { admin: false },
       },

@@ -1,7 +1,10 @@
 server:
   port: 8080
   baseURL:  "/"
-  root: "../frontend/tests/playwright-files"
+  logging:
+    - levels: "info|error|debug"
+  sources:
+    - path: "../frontend/tests/playwright-files"
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true

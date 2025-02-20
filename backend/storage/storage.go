@@ -88,7 +88,7 @@ func quickSetup(store *Storage) {
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
-	user.Scope = "./"
+	user.Scopes = settings.Config.UserDefaults.Scopes
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false
@@ -108,12 +108,12 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 		newUser.Perm = settings.AdminPerms()
 	}
 	// create new home directory
-	userHome, err := settings.Config.MakeUserDir(newUser.Username, newUser.Scope, files.RootPaths["default"])
+	userHome, err := settings.Config.MakeUserDirs(newUser.Username, files.RootPaths["default"], newUser.Scopes)
 	if err != nil {
 		logger.Error(fmt.Sprintf("create user: failed to mkdir user home dir: [%s]", userHome))
 		return err
 	}
-	newUser.Scope = userHome
+	newUser.Scopes = userHome
 	logger.Debug(fmt.Sprintf("user: %s, home dir: [%s].", newUser.Username, userHome))
 
 	// todo: fix this, requries index path to be set
@@ -121,9 +121,9 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	if idx == nil {
 		idx = files.GetIndex("default")
 	}
-	_, _, err = idx.GetRealPath(newUser.Scope)
+	_, _, err = idx.GetRealPath(newUser.Scopes[idx.Name])
 	if err != nil {
-		logger.Error(fmt.Sprintf("user path is not valid: %v", newUser.Scope))
+		logger.Error(fmt.Sprintf("user path is not valid: %v", newUser.Scopes[idx.Name]))
 		return nil
 	}
 	err = store.Users.Save(&newUser)

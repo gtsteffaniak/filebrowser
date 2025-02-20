@@ -62,7 +62,7 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 
 func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
 	idx := files.GetIndex("default")
-	realPath, _, _ := idx.GetRealPath(d.user.Scope, path)
+	realPath, _, _ := idx.GetRealPath(d.user.Scopes["default"], path)
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return err
@@ -169,7 +169,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	filePath := fileList[0]
 	fileName := filepath.Base(filePath)
 	idx := files.GetIndex("default")
-	realPath, isDir, err := idx.GetRealPath(d.user.Scope, filePath)
+	realPath, isDir, err := idx.GetRealPath(d.user.Scopes["default"], filePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

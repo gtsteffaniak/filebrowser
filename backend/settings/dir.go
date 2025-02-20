@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -18,24 +17,28 @@ var (
 )
 
 // MakeUserDir makes the user directory according to settings.
-func (s *Settings) MakeUserDir(username, userScope, serverRoot string) (string, error) {
-	userScope = strings.TrimSpace(userScope)
-	if userScope == "" && s.Server.CreateUserDir {
-		username = cleanUsername(username)
-		if username == "" || username == "-" || username == "." {
-			logger.Error(fmt.Sprintf("create user: invalid user for home dir creation: [%s]", username))
-			return "", errors.New("invalid user for home dir creation")
+func (s *Settings) MakeUserDirs(username, serverRoot string, scopes map[string]string) (map[string]string, error) {
+	userScopes := map[string]string{}
+	for key, userScope := range scopes {
+		userScope = strings.TrimSpace(userScope)
+		if userScope == "" && s.Server.CreateUserDir {
+			username = cleanUsername(username)
+			if username == "" || username == "-" || username == "." {
+				logger.Error(fmt.Sprintf("create user: invalid user for home dir creation: [%s]", username))
+			}
+			userScope = path.Join(s.Server.UserHomeBasePath, username)
 		}
-		userScope = path.Join(s.Server.UserHomeBasePath, username)
+
+		userScope = path.Join("/", userScope)
+		fullPath := filepath.Join(serverRoot, userScope)
+		if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
+			logger.Error(fmt.Sprintf("failed to create user home dir: [%s]: %v", userScope, err))
+		}
+		userScopes[key] = userScope
+
 	}
 
-	userScope = path.Join("/", userScope)
-
-	fullPath := filepath.Join(serverRoot, userScope)
-	if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
-		return "", fmt.Errorf("failed to create user home dir: [%s]: %w", userScope, err)
-	}
-	return userScope, nil
+	return userScopes, nil
 }
 
 func cleanUsername(s string) string {
