@@ -121,7 +121,7 @@ export default {
   },
   computed: {
     raw() {
-      return filesApi.getDownloadURL(state.req.path);
+      return filesApi.getDownloadURL(state.req.path, true);
     },
     isDarkMode() {
       return getters.isDarkMode();
