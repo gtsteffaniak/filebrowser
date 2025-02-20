@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v0.5.3-beta
+## v0.6.0-beta
 
  **New Features**:
 
@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For commit 
   - user permissions simplified to four permission groups (no config change required):
     - removed  : create, rename, delete, download
     - remaining: admin, modify, share, api
+    - `scope` is deprecated, but still supported, applies to default source. if using multiple sources, set defaultUserScope at the source instead.
   - removed user rules and commands.
     - commands feature has never been enabled so just removing the references.
     - rules will come back in a different form (not applied to the user).

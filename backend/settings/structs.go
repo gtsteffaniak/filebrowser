@@ -80,9 +80,9 @@ type Server struct {
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
+
 	// not exposed to config
-	SourceList    []string
-	DefaultSource string
+	SourceList []string
 }
 
 type Integrations struct {
@@ -150,7 +150,6 @@ type UserDefaults struct {
 	DarkMode             bool              `json:"darkMode"`
 	LockPassword         bool              `json:"lockPassword"`
 	DisableSettings      bool              `json:"disableSettings,omitempty"`
-	Scopes               map[string]string `json:"scopes"`
 	Scope                string            `json:"scope"` // deprecated
 	Locale               string            `json:"locale"`
 	ViewMode             string            `json:"viewMode"`
@@ -164,4 +163,7 @@ type UserDefaults struct {
 	ThemeColor           string            `json:"themeColor"`
 	QuickDownload        bool              `json:"quickDownload"`
 	DisableOnlyOfficeExt string            `json:"disableOnlyOfficeExt"`
+
+	// not exposed to config
+	Scopes map[string]string
 }

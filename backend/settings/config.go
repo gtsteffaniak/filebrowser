@@ -57,7 +57,6 @@ func setupSources() {
 			source.Path = realPath
 			source.Name = "default"
 			Config.Server.Sources = []Source{source} // temporary set only one source
-			Config.Server.DefaultSource = realPath
 		}
 	} else {
 		realPath, err2 := filepath.Abs(Config.Server.Root)
@@ -70,7 +69,6 @@ func setupSources() {
 				Path: realPath,
 			},
 		}
-		Config.Server.DefaultSource = realPath
 	}
 	for _, v := range Config.Server.Sources {
 		Config.Server.SourceList = append(Config.Server.SourceList, v.Name+": "+v.Path)
