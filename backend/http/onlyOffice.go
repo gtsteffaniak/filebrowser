@@ -166,20 +166,13 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		}
 		defer doc.Body.Close()
 
-		err = d.Runner.RunHook(func() error {
-			fileOpts := files.FileOptions{
-				Path:   path,
-				Source: source,
-			}
-			writeErr := files.WriteFile(fileOpts, doc.Body)
-			if writeErr != nil {
-				return writeErr
-			}
-			return nil
-		}, "save", path, "", d.user)
-
-		if err != nil {
-			return http.StatusInternalServerError, err
+		fileOpts := files.FileOptions{
+			Path:   path,
+			Source: source,
+		}
+		writeErr := files.WriteFile(fileOpts, doc.Body)
+		if writeErr != nil {
+			return http.StatusInternalServerError, writeErr
 		}
 	}
 

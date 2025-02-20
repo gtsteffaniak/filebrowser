@@ -32,7 +32,7 @@ func (s *Settings) MakeUserDirs(username, serverRoot string, scopes map[string]s
 		userScope = path.Join("/", userScope)
 		fullPath := filepath.Join(serverRoot, userScope)
 		if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
-			logger.Error(fmt.Sprintf("failed to create user home dir: [%s]: %w", userScope, err))
+			logger.Error(fmt.Sprintf("failed to create user home dir: [%s]: %v", userScope, err))
 		}
 		userScopes[key] = userScope
 

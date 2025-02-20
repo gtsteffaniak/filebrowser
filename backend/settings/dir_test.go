@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -21,13 +22,13 @@ func TestSettings_MakeUserDirs(t *testing.T) {
 	type args struct {
 		username   string
 		userScope  string
-		serverRoot string
+		serverRoot map[string]string
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    string
+		want    map[string]string
 		wantErr bool
 	}{
 		// TODO: Add test cases.
@@ -47,7 +48,7 @@ func TestSettings_MakeUserDirs(t *testing.T) {
 				t.Errorf("Settings.MakeUserDirs() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Settings.MakeUserDirs() = %v, want %v", got, tt.want)
 			}
 		})
