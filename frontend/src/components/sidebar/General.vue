@@ -49,6 +49,7 @@
       <div class="inner-card">
         <!-- My Files button -->
         <button
+          v-for="source in user.Sources"
           class="action"
           @click="navigateTo('/files/')"
           :aria-label="$t('sidebar.myFiles')"

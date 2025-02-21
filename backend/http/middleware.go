@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -19,6 +18,7 @@ import (
 type requestContext struct {
 	user  *users.User
 	raw   interface{}
+	path  string
 	token string
 }
 
@@ -39,7 +39,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		path := r.URL.Query().Get("path")
 		hash := r.URL.Query().Get("hash")
 		data.user = &users.PublicUser
-
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -53,13 +52,11 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-		// Retrieve the user (using the public user by default)
-		user := &users.PublicUser
-
+		data.path = link.Path + "/" + path
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
-			Path:   filepath.Join(user.Scopes["default"], link.Path+"/"+path),
-			Modify: user.Perm.Modify,
+			Path:   data.path,
+			Modify: false,
 			Expand: true,
 		})
 		file.Token = link.Token
@@ -94,7 +91,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if config.Auth.Methods.NoAuth {
 			var err error
 			// Retrieve the user from the store and store it in the context
-			data.user, err = store.Users.Get(files.RootPaths["default"], uint(1))
+			data.user, err = store.Users.Get(uint(1))
 			if err != nil {
 				logger.Error(fmt.Sprintf("no auth: %v", err))
 				return http.StatusInternalServerError, err
@@ -105,20 +102,20 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
 			var err error
 			// Retrieve the user from the store and store it in the context
-			data.user, err = store.Users.Get(files.RootPaths["default"], proxyUser)
+			data.user, err = store.Users.Get(proxyUser)
 			if err != nil {
 				if err.Error() != "the resource does not exist" {
 					return http.StatusInternalServerError, err
 				}
 				if config.Auth.Methods.ProxyAuth.CreateUser {
-					newUser := settings.ApplyUserDefaults(users.User{
+					newUser := settings.ApplyUserDefaults(&users.User{
 						Username: proxyUser,
 					})
-					err := store.Users.Save(&newUser)
+					err := store.Users.Save(newUser)
 					if err != nil {
 						return http.StatusInternalServerError, err
 					}
-					data.user, err = store.Users.Get(files.RootPaths["default"], proxyUser)
+					data.user, err = store.Users.Get(proxyUser)
 					if err != nil {
 						return http.StatusInternalServerError, err
 					}
@@ -155,7 +152,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 
 		// Retrieve the user from the store and store it in the context
-		data.user, err = store.Users.Get(files.RootPaths["default"], tk.BelongsTo)
+		data.user, err = store.Users.Get(tk.BelongsTo)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

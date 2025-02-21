@@ -138,9 +138,13 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
+      scope:
+        description: deprecated
+        type: string
       scopes:
         additionalProperties:
           type: string
+        description: not exposed to config
         type: object
       showHidden:
         type: boolean
@@ -220,10 +224,6 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
         type: object
-      commands:
-        items:
-          type: string
-        type: array
       darkMode:
         type: boolean
       dateFormat:
@@ -249,6 +249,7 @@ definitions:
       scopes:
         additionalProperties:
           type: string
+        description: map of source path to scope -- don't let user know about it
         type: object
       showHidden:
         type: boolean
@@ -256,6 +257,11 @@ definitions:
         type: boolean
       sorting:
         $ref: '#/definitions/users.Sorting'
+      sources:
+        description: list of source names for the user
+        items:
+          type: string
+        type: array
       stickySidebar:
         type: boolean
       themeColor:

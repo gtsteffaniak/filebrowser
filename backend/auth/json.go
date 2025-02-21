@@ -2,12 +2,13 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -27,10 +28,12 @@ func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, 
 	var cred jsonCred
 
 	if r.Body == nil {
+		logger.Error("nil body error")
 		return nil, os.ErrPermission
 	}
 	err := json.NewDecoder(r.Body).Decode(&cred)
 	if err != nil {
+		logger.Error("decode body error")
 		return nil, os.ErrPermission
 	}
 
@@ -46,9 +49,15 @@ func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, 
 			return nil, os.ErrPermission
 		}
 	}
-	u, err := userStore.Get(files.RootPaths["default"], cred.Username)
-	if err != nil || !users.CheckPwd(cred.Password, u.Password) {
-		return nil, os.ErrPermission
+	u, err := userStore.Get(cred.Username)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get user from store: %v", err)
+	}
+	logger.Debug(fmt.Sprintf("user: %v %v", cred.Password, u.Password))
+	err = users.CheckPwd(cred.Password, u.Password)
+	if err != nil {
+		logger.Error(fmt.Sprintf("unable to check password: %v", err))
+		return nil, err
 	}
 
 	return u, nil

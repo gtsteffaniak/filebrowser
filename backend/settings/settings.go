@@ -37,7 +37,7 @@ func AdminPerms() users.Permissions {
 }
 
 // Apply applies the default options to a user.
-func ApplyUserDefaults(u users.User) users.User {
+func ApplyUserDefaults(u *users.User) *users.User {
 	u.StickySidebar = Config.UserDefaults.StickySidebar
 	u.DisableSettings = Config.UserDefaults.DisableSettings
 	u.DarkMode = Config.UserDefaults.DarkMode

@@ -30,6 +30,21 @@ func getStore(config string) (*storage.Storage, bool) {
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("could not load db info: %v", err))
 	}
+	// update source info for users if names/sources/paths might have changed
+	users, err2 := store.Users.Gets()
+	if err2 != nil {
+		logger.Fatal(fmt.Sprintf("could not load users: %v", err2))
+	}
+	for _, user := range users {
+		newScopes := map[string]string{}
+		for sourcePath, source := range settings.Config.Server.SourceMap {
+			if _, ok := user.Scopes[sourcePath]; ok {
+				newScopes[source.Path] = user.Scopes[sourcePath]
+			}
+		}
+		user.Scopes = newScopes
+		store.Users.Save(user)
+	}
 	return store, hasDB
 }
 
@@ -104,11 +119,13 @@ func StartFilebrowser() {
 			if !ok {
 				logger.Fatal("could not load db info")
 			}
-			user, err := store.Users.Get("", username)
+			user, err := store.Users.Get(username)
 			if err != nil {
 				newUser := users.User{
 					Username: username,
-					Password: password,
+					NonAdminEditable: users.NonAdminEditable{
+						Password: password,
+					},
 				}
 
 				newUser.Scopes = settings.Config.UserDefaults.Scopes
@@ -151,22 +168,24 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
-
+	sourceList := []string{}
+	for path, source := range settings.Config.Server.SourceMap {
+		sourceList = append(sourceList, fmt.Sprintf("%v: %v", source.Name, path))
+	}
 	logger.Info(fmt.Sprintf("Initializing FileBrowser Quantum (%v)", version.Version))
 	logger.Info(fmt.Sprintf("Using Config file        : %v", configPath))
 	logger.Info(fmt.Sprintf("Auth Methods             : %v", settings.Config.Auth.AuthMethods))
 	logger.Info(database)
-	logger.Info(fmt.Sprintf("Sources                  : %v", settings.Config.Server.SourceList))
+	logger.Info(fmt.Sprintf("Sources                  : %v", sourceList))
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
 	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
-	sourceConfigs := settings.Config.Server.Sources
-	if len(sourceConfigs) == 0 {
+	if len(settings.Config.Server.SourceMap) == 0 {
 		logger.Fatal("No sources configured, exiting...")
 	}
-	for _, source := range sourceConfigs {
+	for _, source := range settings.Config.Server.SourceMap {
 		go files.Initialize(source)
 	}
 	// Start the rootCMD in a goroutine

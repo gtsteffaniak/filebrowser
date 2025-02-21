@@ -1373,7 +1373,12 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
+                "scope": {
+                    "description": "deprecated",
+                    "type": "string"
+                },
                 "scopes": {
+                    "description": "not exposed to config",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -1494,12 +1499,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.AuthToken"
                     }
                 },
-                "commands": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "darkMode": {
                     "type": "boolean"
                 },
@@ -1534,6 +1533,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "scopes": {
+                    "description": "map of source path to scope -- don't let user know about it",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -1547,6 +1547,13 @@ const docTemplate = `{
                 },
                 "sorting": {
                     "$ref": "#/definitions/users.Sorting"
+                },
+                "sources": {
+                    "description": "list of source names for the user",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "stickySidebar": {
                     "type": "boolean"

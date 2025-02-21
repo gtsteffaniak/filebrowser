@@ -35,23 +35,20 @@ type Index struct {
 var (
 	indexes      map[string]*Index
 	indexesMutex sync.RWMutex
-	RootPaths    map[string]string
 )
 
+func init() {
+	indexes = make(map[string]*Index)
+}
+
 func Initialize(source settings.Source) {
-	indexesMutex.RLock()
+	indexesMutex.Lock()
 	newIndex := Index{
 		Source:      source,
 		Directories: make(map[string]*FileInfo),
 	}
-	if RootPaths == nil {
-		RootPaths = make(map[string]string)
-	}
-	RootPaths[source.Name] = source.Path
-	indexes = make(map[string]*Index)
 	indexes[newIndex.Source.Name] = &newIndex
-	indexesMutex.RUnlock()
-
+	indexesMutex.Unlock()
 	if !newIndex.Source.Config.Disabled {
 		time.Sleep(time.Second)
 		logger.Info(fmt.Sprintf("initializing index: [%v]", newIndex.Source.Name))

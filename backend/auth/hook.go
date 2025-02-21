@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
@@ -39,6 +40,7 @@ func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error
 
 	err := json.NewDecoder(r.Body).Decode(&cred)
 	if err != nil {
+		logger.Error("decode body error")
 		return nil, os.ErrPermission
 	}
 
@@ -59,11 +61,19 @@ func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error
 		}
 		return u, nil
 	case "block":
+		logger.Error("block error")
+
 		return nil, os.ErrPermission
 	case "pass":
-		u, err := a.Users.Get(a.Server.Root, a.Cred.Username)
-		if err != nil || !users.CheckPwd(a.Cred.Password, u.Password) {
-			return nil, os.ErrPermission
+		logger.Error("pass error")
+
+		u, err := a.Users.Get(a.Cred.Username)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get user from store: %v", err)
+		}
+		err = users.CheckPwd(cred.Password, u.Password)
+		if err != nil {
+			return nil, err
 		}
 		return u, nil
 	default:
@@ -138,7 +148,7 @@ func (a *HookAuth) GetValues(s string) {
 
 // SaveUser updates the existing user or creates a new one when not found
 func (a *HookAuth) SaveUser() (*users.User, error) {
-	u, err := a.Users.Get(a.Server.Root, a.Cred.Username)
+	u, err := a.Users.Get(a.Cred.Username)
 	if err != nil && err != errors.ErrNotExist {
 		return nil, err
 	}
@@ -146,29 +156,33 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 	if u == nil {
 		// create user with the provided credentials
 		d := &users.User{
-			Username:    a.Cred.Username,
-			Password:    a.Cred.Password,
-			Scopes:      a.Settings.UserDefaults.Scopes,
-			Locale:      a.Settings.UserDefaults.Locale,
-			ViewMode:    a.Settings.UserDefaults.ViewMode,
-			SingleClick: a.Settings.UserDefaults.SingleClick,
-			Perm:        a.Settings.UserDefaults.Perm,
-			ShowHidden:  a.Settings.UserDefaults.ShowHidden,
+			NonAdminEditable: users.NonAdminEditable{
+				Password:    a.Cred.Password,
+				Locale:      a.Settings.UserDefaults.Locale,
+				ViewMode:    a.Settings.UserDefaults.ViewMode,
+				SingleClick: a.Settings.UserDefaults.SingleClick,
+				ShowHidden:  a.Settings.UserDefaults.ShowHidden,
+			},
+			Username: a.Cred.Username,
+			Scopes:   a.Settings.UserDefaults.Scopes,
+			Perm:     a.Settings.UserDefaults.Perm,
 		}
 		u = a.GetUser(d)
 
-		userHome, err := a.Settings.MakeUserDirs(u.Username, a.Server.Root, u.Scopes)
-		if err != nil {
-			return nil, fmt.Errorf("user: failed to mkdir user home dir: [%s]", userHome)
-		}
-		u.Scopes = userHome
-		logger.Debug(fmt.Sprintf("user: %s, home dir: [%s].", u.Username, userHome))
+		files.MakeUserDirs(u)
 
 		err = a.Users.Save(u)
 		if err != nil {
 			return nil, err
 		}
-	} else if p := !users.CheckPwd(a.Cred.Password, u.Password); len(a.Fields.Values) > 1 || p {
+		return u, nil
+	}
+	err = users.CheckPwd(a.Cred.Password, u.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(a.Fields.Values) > 1 {
 		u = a.GetUser(u)
 		// update user with provided fields
 		err := a.Users.Update(u)
@@ -190,14 +204,16 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		Share:  isAdmin || d.Perm.Share,
 	}
 	user := users.User{
+		NonAdminEditable: users.NonAdminEditable{
+			Password:    d.Password,
+			Locale:      a.Fields.GetString("user.locale", d.Locale),
+			ViewMode:    a.Fields.GetString("user.viewMode", d.ViewMode),
+			SingleClick: a.Fields.GetBoolean("user.singleClick", d.SingleClick),
+			ShowHidden:  a.Fields.GetBoolean("user.showHidden", d.ShowHidden),
+		},
 		ID:           d.ID,
 		Username:     d.Username,
-		Password:     d.Password,
 		Scopes:       d.Scopes,
-		Locale:       d.Locale,
-		ViewMode:     d.ViewMode,
-		SingleClick:  d.SingleClick,
-		ShowHidden:   d.ShowHidden,
 		Perm:         perms,
 		LockPassword: true,
 	}

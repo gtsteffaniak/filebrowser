@@ -1,8 +1,10 @@
 package files
 
 import (
+	"fmt"
 	"path/filepath"
 
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
@@ -71,6 +73,7 @@ func GetIndex(name string) *Index {
 	defer indexesMutex.Unlock()
 	index, ok := indexes[name]
 	if !ok {
+		logger.Error(fmt.Sprintf("Index not found: %v", name))
 		return &Index{
 			Source: settings.Source{Name: "default", Path: "."},
 		}

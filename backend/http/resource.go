@@ -369,21 +369,21 @@ type DiskUsageResponse struct {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/usage [get]
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = "default"
+	sourceName := r.URL.Query().Get("source")
+	if sourceName == "" {
+		sourceName = "default"
 	}
-	value, ok := cache.DiskUsage.Get(source).(DiskUsageResponse)
+	value, ok := cache.DiskUsage.Get(sourceName).(DiskUsageResponse)
 	if ok {
 		return renderJSON(w, r, &value)
 	}
 
-	rootPath, ok := files.RootPaths[source]
+	source, ok := config.Server.NameToSource[sourceName]
 	if !ok {
 		return 400, fmt.Errorf("bad source path provided: %v", source)
 	}
 
-	usage, err := disk.UsageWithContext(r.Context(), rootPath)
+	usage, err := disk.UsageWithContext(r.Context(), source.Path)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -391,7 +391,7 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 		Total: usage.Total,
 		Used:  usage.Used,
 	}
-	cache.DiskUsage.Set(source, latestUsage)
+	cache.DiskUsage.Set(sourceName, latestUsage)
 	return renderJSON(w, r, &latestUsage)
 }
 

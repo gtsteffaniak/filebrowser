@@ -19,8 +19,8 @@ type StorageBackend interface {
 
 // Store is an interface for user storage.
 type Store interface {
-	Get(baseScope string, id interface{}) (user *User, err error)
-	Gets(baseScope string) ([]*User, error)
+	Get(id interface{}) (user *User, err error)
+	Gets() ([]*User, error)
 	Update(user *User, fields ...string) error
 	Save(user *User) error
 	Delete(id interface{}) error
@@ -47,7 +47,7 @@ func NewStorage(back StorageBackend) *Storage {
 // Get allows you to get a user by its name or username. The provided
 // id must be a string for username lookup or a uint for id lookup. If id
 // is neither, a ErrInvalidDataType will be returned.
-func (s *Storage) Get(baseScope string, id interface{}) (user *User, err error) {
+func (s *Storage) Get(id interface{}) (user *User, err error) {
 	user, err = s.back.GetBy(id)
 	if err != nil {
 		return
@@ -56,7 +56,7 @@ func (s *Storage) Get(baseScope string, id interface{}) (user *User, err error) 
 }
 
 // Gets gets a list of all users.
-func (s *Storage) Gets(baseScope string) ([]*User, error) {
+func (s *Storage) Gets() ([]*User, error) {
 	users, err := s.back.Gets()
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (s *Storage) Update(user *User, fields ...string) error {
 }
 
 func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
-	user, err := s.Get("", userID)
+	user, err := s.Get(userID)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 }
 
 func (s *Storage) DeleteApiKey(userID uint, name string) error {
-	user, err := s.Get("", userID)
+	user, err := s.Get(userID)
 	if err != nil {
 		return err
 	}

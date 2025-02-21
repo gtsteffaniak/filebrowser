@@ -11,7 +11,6 @@ func HashPwd(password string) (string, error) {
 }
 
 // CheckPwd checks if a password is correct.
-func CheckPwd(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+func CheckPwd(password, hash string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }

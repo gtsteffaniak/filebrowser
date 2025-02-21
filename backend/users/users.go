@@ -29,20 +29,24 @@ type Sorting struct {
 
 // User describes a user.
 type User struct {
-	StickySidebar        bool                 `json:"stickySidebar"`
+	NonAdminEditable
+	StickySidebar   bool              `json:"stickySidebar"`
+	DisableSettings bool              `json:"disableSettings"`
+	ID              uint              `storm:"id,increment" json:"id"`
+	Username        string            `storm:"unique" json:"username"`
+	Scopes          map[string]string `json:"scopes"`  // map of source path to scope -- don't let user know about it
+	Sources         []string          `json:"sources"` // list of source names for the user
+	LockPassword    bool              `json:"lockPassword"`
+	Perm            Permissions       `json:"perm"`
+}
+
+type NonAdminEditable struct {
 	DarkMode             bool                 `json:"darkMode"`
-	DisableSettings      bool                 `json:"disableSettings"`
-	ID                   uint                 `storm:"id,increment" json:"id"`
-	Username             string               `storm:"unique" json:"username"`
 	Password             string               `json:"password,omitempty"`
-	Scopes               map[string]string    `json:"scopes"`
 	Locale               string               `json:"locale"`
-	LockPassword         bool                 `json:"lockPassword"`
 	ViewMode             string               `json:"viewMode"`
 	SingleClick          bool                 `json:"singleClick"`
 	Sorting              Sorting              `json:"sorting"`
-	Perm                 Permissions          `json:"perm"`
-	Commands             []string             `json:"commands"`
 	ApiKeys              map[string]AuthToken `json:"apiKeys,omitempty"`
 	ShowHidden           bool                 `json:"showHidden"`
 	DateFormat           bool                 `json:"dateFormat"`
@@ -53,12 +57,11 @@ type User struct {
 }
 
 var PublicUser = User{
-	Username: "publicUser", // temp user not registered
-	Password: "publicUser", // temp user not registered
-	Scopes: map[string]string{
-		"default": "",
+	NonAdminEditable: NonAdminEditable{
+		Password: "publicUser", // temp user not registered
+		ViewMode: "normal",
 	},
-	ViewMode:     "normal",
+	Username:     "publicUser", // temp user not registered
 	LockPassword: true,
 	Perm: Permissions{
 		Modify: false,
