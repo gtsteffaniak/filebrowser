@@ -8,11 +8,7 @@ export const state = reactive({
   isMobile: window.innerWidth <= 800,
   isSearchActive: false,
   showSidebar: false,
-  usage: {
-    used: "0 B",
-    total: "0 B",
-    usedPercentage: 0
-  },
+  usages: {},
   editor: null,
   user: {
     quickDownloadEnabled: false,

@@ -55,7 +55,6 @@ func getRealPath(path string) string {
 }
 
 func setupSources() {
-
 	if len(Config.Server.Sources) == 0 {
 		logger.Warning("`server.root` is deprecated, please update the config to use `server.sources`")
 		realPath := getRealPath(Config.Server.Root)

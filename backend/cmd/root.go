@@ -43,6 +43,7 @@ func getStore(config string) (*storage.Storage, bool) {
 			}
 		}
 		user.Scopes = newScopes
+		user.Password = ""
 		store.Users.Save(user)
 	}
 	return store, hasDB

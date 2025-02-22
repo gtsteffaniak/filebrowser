@@ -129,8 +129,8 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-
-	user := settings.ApplyUserDefaults(&users.User{})
+	user := &users.User{}
+	settings.ApplyUserDefaults(user)
 	user.Username = info.Username
 	user.Password = info.Password
 

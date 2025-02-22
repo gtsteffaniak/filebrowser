@@ -9,6 +9,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 	"github.com/gtsteffaniak/filebrowser/backend/storage/bolt"
@@ -40,7 +41,7 @@ func InitializeDb(path string) (*Storage, bool, error) {
 		return nil, exists, err
 	}
 
-	err = bolt.Save(db, "version", 2) //nolint:gomnd
+	err = bolt.Save(db, "version", 2)
 	if err != nil {
 		return nil, exists, err
 	}
@@ -83,7 +84,8 @@ func quickSetup(store *Storage) {
 	utils.CheckErr("store.Settings.Save", err)
 	err = store.Settings.SaveServer(&settings.Config.Server)
 	utils.CheckErr("store.Settings.SaveServer", err)
-	user := settings.ApplyUserDefaults(&users.User{})
+	user := &users.User{}
+	settings.ApplyUserDefaults(user)
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
@@ -92,19 +94,21 @@ func quickSetup(store *Storage) {
 	user.ViewMode = "normal"
 	user.LockPassword = false
 	user.Perm = settings.AdminPerms()
+	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v\n", user.Username, user.Password))
 	err = store.Users.Save(user)
 	utils.CheckErr("store.Users.Save", err)
 }
 
 // create new user
 func CreateUser(userInfo users.User, asAdmin bool) error {
+	newUser := &userInfo
 	// must have username or password to create
 	if userInfo.Username == "" || userInfo.Password == "" {
 		return errors.ErrInvalidRequestParams
 	}
-	newUser := settings.ApplyUserDefaults(&userInfo)
+	settings.ApplyUserDefaults(newUser)
 	if asAdmin {
-		newUser.Perm = settings.AdminPerms()
+		userInfo.Perm = settings.AdminPerms()
 	}
 	// create new home directories
 	files.MakeUserDirs(newUser)

@@ -34,7 +34,7 @@ type User struct {
 	DisableSettings bool              `json:"disableSettings"`
 	ID              uint              `storm:"id,increment" json:"id"`
 	Username        string            `storm:"unique" json:"username"`
-	Scopes          map[string]string `json:"scopes"`  // map of source path to scope -- don't let user know about it
+	Scopes          map[string]string `json:"scopes,omitempty"`
 	Sources         []string          `json:"sources"` // list of source names for the user
 	LockPassword    bool              `json:"lockPassword"`
 	Perm            Permissions       `json:"perm"`

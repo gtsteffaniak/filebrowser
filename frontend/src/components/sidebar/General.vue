@@ -43,25 +43,25 @@
   </div>
 
   <!-- Section for logged-in users -->
-  <div v-if="loginCheck" class="sidebar-scroll-list">
+  <div v-if="loginCheck && !disableUsedPercentage" class="sidebar-scroll-list">
     <div class="sources card">
       <span>Sources</span>
       <div class="inner-card">
         <!-- My Files button -->
         <button
-          v-for="source in user.Sources"
-          class="action"
+          v-for="source in sourceInfo"
+          class="action source-button"
           @click="navigateTo('/files/')"
           :aria-label="$t('sidebar.myFiles')"
-          title="default"
+          :title="source.name"
         >
           <i class="material-icons">folder</i>
-          <span>default</span>
+          <span>{{ source.name }}</span>
           <div>
-            <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
+            <progress-bar :val="source.usage.usedPercentage" size="medium"></progress-bar>
             <div class="usage-info">
-              <span>{{ usage.usedPercentage }}%</span>
-              <span>{{ usage.used }} of {{ usage.total }} used</span>
+              <span>{{ source.usage.usedPercentage }}%</span>
+              <span>{{ source.usage.used }} of {{ source.usage.total }} used</span>
             </div>
           </div>
         </button>
@@ -83,6 +83,7 @@ import { filesApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
+import { usage } from "@/api/files";
 
 export default {
   name: "SidebarGeneral",
@@ -113,9 +114,17 @@ export default {
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,
-    usage: () => state.usage,
     route: () => state.route,
+    sourceInfo() {
+      const sourceInfo = state.user.sources.map((source) => ({
+        name: source,
+        usage: state.usages[source] || { usedPercentage: 0, used: "0", total: "0" }, // Provide default values
+      }));
+      console.log(sourceInfo);
+      return sourceInfo;
+    },
   },
+
   watch: {
     route() {
       if (!getters.isLoggedIn()) {
@@ -153,16 +162,16 @@ export default {
       if (this.disableUsedPercentage) {
         return usageStats;
       }
-      let usage = await filesApi.usage("default");
-      usageStats = {
-        used: getHumanReadableFilesize(usage.used),
-        total: getHumanReadableFilesize(usage.total),
-        usedPercentage: Math.round((usage.used / usage.total) * 100),
-      };
-
-      mutations.setUsage(usageStats);
+      for (const source of this.user.sources) {
+        let usage = await filesApi.usage(source);
+        usageStats = {
+          used: getHumanReadableFilesize(usage.used),
+          total: getHumanReadableFilesize(usage.total),
+          usedPercentage: Math.round((usage.used / usage.total) * 100),
+        };
+        mutations.setUsage(source, usageStats);
+      }
     },
-
     navigateTo(path) {
       const hashIndex = path.indexOf("#");
       if (hashIndex !== -1) {
@@ -255,5 +264,9 @@ button.action {
   display: flex;
   align-items: center;
   padding: 0px !important;
+}
+
+.source-button {
+  margin-top: 0.5em !important;
 }
 </style>

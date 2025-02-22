@@ -53,7 +53,6 @@ func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, 
 	if err != nil {
 		return nil, fmt.Errorf("unable to get user from store: %v", err)
 	}
-	logger.Debug(fmt.Sprintf("user: %v %v", cred.Password, u.Password))
 	err = users.CheckPwd(cred.Password, u.Password)
 	if err != nil {
 		logger.Error(fmt.Sprintf("unable to check password: %v", err))

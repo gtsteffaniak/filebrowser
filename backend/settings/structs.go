@@ -166,5 +166,5 @@ type UserDefaults struct {
 	DisableOnlyOfficeExt string            `json:"disableOnlyOfficeExt"`
 
 	// not exposed to config
-	Scopes map[string]string
+	Scopes map[string]string `json:"-"`
 }

@@ -58,8 +58,10 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 		selfUserList := []*users.User{}
 		for _, u := range userList {
+			stripInfo(u)
 			u.Password = ""
 			u.ApiKeys = nil
+			u.Scopes = nil
 			if u.ID == d.user.ID {
 				selfUserList = append(selfUserList, u)
 			}
@@ -91,16 +93,21 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusInternalServerError, err
 	}
 
-	// Remove the password from the response if the user is not an admin
-	u.Password = ""
-	u.ApiKeys = nil
 	for key, source := range config.Server.SourceMap {
 		if _, ok := d.user.Scopes[key]; ok {
-			u.Scopes[source.Path] = source.Name
+			u.Sources = append(u.Sources, source.Name)
 		}
 	}
 
+	stripInfo(u)
 	return renderJSON(w, r, u)
+}
+
+func stripInfo(u *users.User) {
+	u.Password = ""
+	u.ApiKeys = nil
+	u.Scopes = nil
+
 }
 
 // userDeleteHandler deletes a user by ID.

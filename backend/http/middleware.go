@@ -108,9 +108,8 @@ func withUserHelper(fn handleFunc) handleFunc {
 					return http.StatusInternalServerError, err
 				}
 				if config.Auth.Methods.ProxyAuth.CreateUser {
-					newUser := settings.ApplyUserDefaults(&users.User{
-						Username: proxyUser,
-					})
+					newUser := &users.User{Username: proxyUser}
+					settings.ApplyUserDefaults(newUser)
 					err := store.Users.Save(newUser)
 					if err != nil {
 						return http.StatusInternalServerError, err

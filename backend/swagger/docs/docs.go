@@ -1377,13 +1377,6 @@ const docTemplate = `{
                     "description": "deprecated",
                     "type": "string"
                 },
-                "scopes": {
-                    "description": "not exposed to config",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
                 "showHidden": {
                     "type": "boolean"
                 },
@@ -1533,7 +1526,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "scopes": {
-                    "description": "map of source path to scope -- don't let user know about it",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"

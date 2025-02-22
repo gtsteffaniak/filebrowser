@@ -57,8 +57,8 @@ export const mutations = {
     state.upload = value;
     emitStateChanged();
   },
-  setUsage: (value) => {
-    state.usage = value;
+  setUsage: (source,value) => {
+    state.usages[source] = value;
     emitStateChanged();
   },
   closeHovers: () => {
