@@ -50,6 +50,7 @@
         <!-- My Files button -->
         <button
           v-for="source in sourceInfo"
+          :key="source.name"
           class="action source-button"
           @click="navigateTo('/files/')"
           :aria-label="$t('sidebar.myFiles')"
@@ -83,7 +84,6 @@ import { filesApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
-import { usage } from "@/api/files";
 
 export default {
   name: "SidebarGeneral",

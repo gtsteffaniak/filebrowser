@@ -44,7 +44,10 @@ func getStore(config string) (*storage.Storage, bool) {
 		}
 		user.Scopes = newScopes
 		user.Password = ""
-		store.Users.Save(user)
+		err := store.Users.Save(user)
+		if err != nil {
+			logger.Error(fmt.Sprintf("could not update user: %v", err))
+		}
 	}
 	return store, hasDB
 }
