@@ -7,9 +7,15 @@ import { externalUrl } from '@/utils/constants'
 // Notify if errors occur
 export async function fetchFiles (url, content = false) {
   try {
-    let path = encodeURIComponent(removePrefix(url, 'files'))
+    let path = ''
+    if (state.sources.count == 1) {
+      path = encodeURIComponent(removePrefix(url, 'files'))
+    } else {
+      path = encodeURIComponent(removePrefix(url, 'files/'+state.sources.current))
+    }
     const apiPath = getApiPath('api/resources', {
       path: path,
+      source: state.sources.current,
       ...(content && { content: 'true' })
     })
     const res = await fetchURL(apiPath)

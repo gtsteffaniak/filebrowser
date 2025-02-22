@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
     - rules will come back in a different form (not applied to the user).
 
  **BugFixes**:
+  - 
 
 ## v0.5.3-beta
 

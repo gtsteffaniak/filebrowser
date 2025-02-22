@@ -10,6 +10,10 @@ export const state = reactive({
   showSidebar: false,
   usages: {},
   editor: null,
+  sources: {
+    current: "default",
+    count: 1,
+  },
   user: {
     quickDownloadEnabled: false,
     gallarySize: 0,
