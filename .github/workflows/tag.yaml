@@ -62,11 +62,11 @@ jobs:
             if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable"] else . end
           ')
       
-          # Convert JSON to a single-line string for GitHub Actions output
-          MODIFIED_JSON_SINGLE_LINE=$(echo "$MODIFIED_JSON" | jq -c .)
+          # Convert JSON to a comma-separated string for Docker tags
+          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
       
-          echo "$MODIFIED_JSON_SINGLE_LINE" > modified_tags.json  # Save for debugging
-          echo "cleaned_tag=$MODIFIED_JSON_SINGLE_LINE" >> $GITHUB_OUTPUT
+          echo "$TAGS_CSV" > modified_tags.txt  # Save for debugging
+          echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v6
