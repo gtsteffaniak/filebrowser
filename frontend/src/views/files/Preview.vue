@@ -240,12 +240,11 @@ export default {
         this.autoPlay = false;
       }
       if (!this.listing) {
-        const path = url.removeLastDir(state.route.path);
+        const path = url.removeLastDir(getters.routePath());
         const res = await filesApi.fetchFiles(path);
         this.listing = res.items;
       }
       this.name = state.req.name;
-      console.log("name", this.name);
       this.previousLink = "";
       this.nextLink = "";
       const path = state.req.path;

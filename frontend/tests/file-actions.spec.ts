@@ -44,18 +44,30 @@ test("copy from listing 2x", async ({ page, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
   // verify exists and copy again
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
+
+  // create new directory
+  // Ensure #listingView is visible
+  await page.locator('#listingView').click({ button: "right" });
+  await page.locator('button[aria-label="New folder"]').waitFor({ state: 'visible' });
+  await page.locator('button[aria-label="New folder"]').click();
+  await page.locator('input[aria-label="New Folder Name"]').waitFor({ state: 'visible' });
+  await page.locator('input[aria-label="New Folder Name"]').fill('newfolder');
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - newfolder");
+  await page.goBack();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
+
   await page.locator('a[aria-label="copyme.txt"]').click( { button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
-  await page.locator('li[aria-label="testdata"]').click();
+  await page.locator('li[aria-label="newfolder"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   const popup2 = page.locator('#popup-notification-content');
   await popup2.waitFor({ state: 'visible' });
   await expect(popup2).toHaveText("Successfully copied file/folder, redirecting...");
   await page.waitForURL('**/testdata/');
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - testdata");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - newfolder");
 })
 
 test("delete file", async ({ page, context }) => {

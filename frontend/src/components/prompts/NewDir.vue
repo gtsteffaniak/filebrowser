@@ -7,6 +7,7 @@
     <div class="card-content">
       <p>{{ $t("prompts.newDirMessage") }}</p>
       <input
+        aria-label="New Folder Name"
         class="input input--block"
         type="text"
         @keyup.enter="submit"

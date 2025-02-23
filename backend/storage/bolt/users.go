@@ -60,25 +60,16 @@ func (st usersBackend) Gets() ([]*users.User, error) {
 
 func (st usersBackend) Update(user *users.User, fields ...string) error {
 	if len(fields) == 0 {
-		return nil
+		return st.Save(user)
 	}
 
-	userValue := reflect.ValueOf(user).Elem() // Get reflect.Value of user struct
-	var target reflect.Value
-
-	if user.Perm.Admin {
-		target = userValue // Admins can update all fields
-	} else {
-		target = userValue.FieldByName("NonAdminEditable") // Non-admins can only update NonAdminEditable fields
-		if !target.IsValid() {
-			return fmt.Errorf("NonAdminEditable struct not found")
-		}
-	}
+	val := reflect.ValueOf(user).Elem()
 
 	for _, field := range fields {
+		// Capitalize the first letter (you can adjust this based on your field naming convention)
 		correctedField := utils.CapitalizeFirst(field)
 
-		userField := target.FieldByName(correctedField)
+		userField := val.FieldByName(correctedField)
 		if !userField.IsValid() {
 			return fmt.Errorf("invalid field: %s", field)
 		}
@@ -86,12 +77,11 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 			return fmt.Errorf("cannot update unexported field: %s", field)
 		}
 
-		fieldValue := userField.Interface()
-		if err := st.db.UpdateField(user, correctedField, fieldValue); err != nil {
-			return fmt.Errorf("failed to update user field: %s, error: %v", correctedField, err)
+		val := userField.Interface()
+		if err := st.db.UpdateField(user, correctedField, val); err != nil {
+			return fmt.Errorf("Error updating user field: %s, error: %v", correctedField, err.Error())
 		}
 	}
-
 	return nil
 }
 
