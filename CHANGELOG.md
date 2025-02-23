@@ -7,9 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
   - default scope share issue. @theryecatcher https://github.com/gtsteffaniak/filebrowser/pull/387
   - drag and drop on empty folders https://github.com/gtsteffaniak/filebrowser/issues/361
-  - pdf navigation issue https://github.com/gtsteffaniak/filebrowser/issues/372
+  - preview navigation issue https://github.com/gtsteffaniak/filebrowser/issues/372
+  - auth proxy password length error https://github.com/gtsteffaniak/filebrowser/issues/375
   
-
 ## v0.5.3-beta
 
  **New Features**
