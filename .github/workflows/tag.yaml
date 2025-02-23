@@ -55,14 +55,7 @@ jobs:
         run: |
           JSON="${{ steps.meta.outputs.tags }}"
           # Remove 'v' from version tags
-          JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
-          # If the tag includes "beta", append "filebrowser:beta"
-          if echo "$JSON" | grep -q "beta"; then
-            JSON="$JSON gtstef/filebrowser:beta"
-          fi
-          if echo "$JSON" | grep -q "stable"; then
-            JSON="$JSON gtstef/filebrowser:stable"
-          fi
+          JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/g')
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
