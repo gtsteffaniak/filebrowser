@@ -58,10 +58,10 @@ jobs:
           JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/')
           # If the tag includes "beta", append "filebrowser:beta"
           if echo "$JSON" | grep -q "beta"; then
-            JSON="$JSON,gtstef/filebrowser:beta"
+            JSON="$JSON gtstef/filebrowser:beta"
           fi
           if echo "$JSON" | grep -q "stable"; then
-            JSON="$JSON,gtstef/filebrowser:stable"
+            JSON="$JSON gtstef/filebrowser:stable"
           fi
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
