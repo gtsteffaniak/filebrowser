@@ -40,7 +40,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		path := r.URL.Query().Get("path")
 		hash := r.URL.Query().Get("hash")
+		// Retrieve the user (using the public user by default)
 		data.user = &users.PublicUser
+		data.user.Scope = ""
 
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
@@ -55,15 +57,16 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-		// Retrieve the user (using the public user by default)
-		user := &users.PublicUser
+
+		// Set the scope to configured defaults
+		scope := settings.Config.UserDefaults.Scope
 
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
-			Path:    filepath.Join(user.Scope, link.Path+"/"+path),
-			Modify:  user.Perm.Modify,
+			Path:    filepath.Join(scope, link.Path+"/"+path),
+			Modify:  data.user.Perm.Modify,
 			Expand:  true,
-			Checker: user, // Call your checker function here
+			Checker: data.user, // Call your checker function here
 		})
 		file.Token = link.Token
 		if err != nil {
@@ -190,7 +193,6 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 
 		// Call the actual handler function and get status code and error
 		status, err := fn(w, r, data)
-
 		// Handle the error case if there is one
 		if err != nil {
 			// Create an error response in JSON format
@@ -303,7 +305,6 @@ func setUserInResponseWriter(w http.ResponseWriter, user *users.User) {
 // LoggingMiddleware logs each request and its status code.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		start := time.Now()
 
 		// Wrap the ResponseWriter to capture the status code.
