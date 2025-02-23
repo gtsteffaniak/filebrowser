@@ -53,20 +53,26 @@ jobs:
       - name: Modify tags (strip 'v' and add 'beta' if needed)
         id: modify-json
         run: |
-          JSON=$(echo '${{ steps.meta.outputs.tags }}' | sed 's/filebrowser:v/filebrowser:/')
+          # Convert multiline output to a space-separated list
+          JSON=$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ' ')
 
-          # If the tag includes "beta", append "filebrowser:beta"
+          # Remove 'v' prefix from version tags
+          JSON=$(echo "$JSON" | sed 's/\bname\/app:v/name\/app:/g' | sed 's/\bghcr.io\/username\/app:v/ghcr.io\/username\/app:/g')
+
+          # If any tag includes "beta", append additional "beta" tag
           if echo "$JSON" | grep -q "beta"; then
-            JSON="${JSON},gtstef/filebrowser:beta"
+            JSON="$JSON name/app:beta ghcr.io/username/app:beta"
           fi
 
-          # If the tag includes "stable", append "filebrowser:stable"
+          # If any tag includes "stable", append additional "stable" tag
           if echo "$JSON" | grep -q "stable"; then
-            JSON="${JSON},gtstef/filebrowser:stable"
+            JSON="$JSON name/app:stable ghcr.io/username/app:stable"
           fi
 
-          # Ensure JSON format is properly set
-          echo "cleaned_tag=${JSON}" >> "$GITHUB_ENV"
+          # Output properly formatted tags
+          echo "cleaned_tag<<EOF" >> $GITHUB_ENV
+          echo "$JSON" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
