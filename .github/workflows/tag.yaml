@@ -50,11 +50,10 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: gtstef/filebrowser
-      - name: Modify tags (strip 'v' and add 'beta' if needed)
+      - name: Strip v from version number
         id: modify-json
         run: |
           JSON="${{ steps.meta.outputs.tags }}"
-          # Remove 'v' from version tags
           JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/g')
           echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
