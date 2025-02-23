@@ -24,7 +24,7 @@ test("info from search", async ({ page, context }) => {
   await expect(page.locator('.break-word')).toHaveText('Display Name: file.tar.gz');
 })
 
-test("copy from listing 2x", async ({ page, context }) => {
+test("2x copy from listing to new folder", async ({ page, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
@@ -52,6 +52,8 @@ test("copy from listing 2x", async ({ page, context }) => {
   await page.locator('button[aria-label="New folder"]').click();
   await page.locator('input[aria-label="New Folder Name"]').waitFor({ state: 'visible' });
   await page.locator('input[aria-label="New Folder Name"]').fill('newfolder');
+  await page.locator('button[aria-label="Create"]').click();
+
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - newfolder");
   await page.goBack();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - myfolder");
@@ -66,7 +68,7 @@ test("copy from listing 2x", async ({ page, context }) => {
   const popup2 = page.locator('#popup-notification-content');
   await popup2.waitFor({ state: 'visible' });
   await expect(popup2).toHaveText("Successfully copied file/folder, redirecting...");
-  await page.waitForURL('**/testdata/');
+  await page.waitForURL('**/newfolder/');
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - newfolder");
 })
 
