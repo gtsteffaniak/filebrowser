@@ -7,6 +7,7 @@
     <div class="card-content">
       <p>{{ $t("prompts.newDirMessage") }}</p>
       <input
+        aria-label="New Folder Name"
         class="input input--block"
         type="text"
         @keyup.enter="submit"
@@ -88,7 +89,7 @@ export default {
         uri += encodeURIComponent(this.name) + "/";
         uri = uri.replace("//", "/");
 
-        await filesApi.post(uri);
+        await filesApi.post(uri, "", true);
         if (this.redirect) {
           this.$router.push({ path: uri });
         } else if (!this.base) {
