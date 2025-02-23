@@ -50,13 +50,20 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: gtstef/filebrowser
-      - name: Modify tags (strip 'v' and add 'beta' if needed)
+      - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
         id: modify-json
         run: |
-          JSON="${{ steps.meta.outputs.tags }}"
-          # Remove 'v' from version tags
-          JSON=$(echo "$JSON" | sed 's/filebrowser:v/filebrowser:/g')
-          echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
+          JSON='${{ steps.meta.outputs.json }}'  # Assuming the JSON output is stored in steps.meta.outputs.json
+      
+          # Process the JSON array using jq
+          MODIFIED_JSON=$(echo "$JSON" | jq '
+            .tags |= map(sub(":v"; ":")) | 
+            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta"] else . end |
+            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable"] else . end
+          ')
+      
+          echo "$MODIFIED_JSON" > modified_tags.json  # Save for debugging
+          echo "cleaned_tag=$MODIFIED_JSON" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
