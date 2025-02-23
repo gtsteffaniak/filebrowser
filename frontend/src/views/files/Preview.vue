@@ -115,13 +115,12 @@ export default {
       previousRaw: "",
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
-      oldReq: {}, // Replace with your actual initial state
       subtitlesList: [],
     };
   },
   computed: {
     raw() {
-      return filesApi.getDownloadURL(state.req.path);
+      return filesApi.getDownloadURL(state.req.path, true);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -149,7 +148,7 @@ export default {
     },
   },
   watch: {
-    $route() {
+    req() {
       if (!getters.isLoggedIn()) {
         return;
       }
@@ -159,7 +158,6 @@ export default {
   },
   async mounted() {
     window.addEventListener("keydown", this.key);
-    this.listing = this.oldReq.items;
     this.subtitlesList = await this.subtitles();
     this.updatePreview();
   },
@@ -186,7 +184,6 @@ export default {
           src: vttURL,
         });
       }
-      console.log(subs);
       return subs;
     },
     getSimpleType(mimetype) {
@@ -242,12 +239,13 @@ export default {
       if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
         this.autoPlay = false;
       }
-      this.name = state.req.name;
       if (!this.listing) {
         const path = url.removeLastDir(state.route.path);
         const res = await filesApi.fetchFiles(path);
         this.listing = res.items;
       }
+      this.name = state.req.name;
+      console.log("name", this.name);
       this.previousLink = "";
       this.nextLink = "";
       const path = state.req.path;
@@ -263,20 +261,16 @@ export default {
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
-          if (mediaTypes.includes(composedListing.type.split("/")[0])) {
-            this.previousLink = composedListing.url;
-            this.previousRaw = this.prefetchUrl(composedListing);
-            break;
-          }
+          this.previousLink = composedListing.url;
+          this.previousRaw = this.prefetchUrl(composedListing);
+          break;
         }
         for (let j = i + 1; j < this.listing.length; j++) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
-          if (mediaTypes.includes(composedListing.type.split("/")[0])) {
-            this.nextLink = composedListing.url;
-            this.nextRaw = this.prefetchUrl(composedListing);
-            break;
-          }
+          this.nextLink = composedListing.url;
+          this.nextRaw = this.prefetchUrl(composedListing);
+          break;
         }
         return;
       }

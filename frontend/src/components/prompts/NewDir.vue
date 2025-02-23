@@ -88,7 +88,7 @@ export default {
         uri += encodeURIComponent(this.name) + "/";
         uri = uri.replace("//", "/");
 
-        await filesApi.post(uri);
+        await filesApi.post(uri, "", true);
         if (this.redirect) {
           this.$router.push({ path: uri });
         } else if (!this.base) {

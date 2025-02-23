@@ -11,7 +11,13 @@
       </h2>
     </div>
     <div v-else>
-      <div v-if="numDirs + numFiles == 0">
+      <div
+        id="listingView"
+        ref="listingView"
+        class="font-size-large"
+        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
+        v-if="numDirs + numFiles == 0"
+      >
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
@@ -36,7 +42,7 @@
         v-else
         id="listingView"
         ref="listingView"
-        :class="{'add-padding': isStickySidebar,[listingViewMode]: true }"
+        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
         class="file-icons"
       >
         <div>
@@ -176,7 +182,6 @@ export default {
       this.columnWidth = 250 + state.user.gallerySize * 50;
       this.colunmsResize();
     },
-
   },
   computed: {
     isStickySidebar() {
@@ -805,7 +810,7 @@ export default {
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
         path = el.__vue__.url;
-        items = state.req.items
+        items = state.req.items;
       }
 
       const conflict = upload.checkConflict(uploadFiles, items);
@@ -824,7 +829,7 @@ export default {
         }
         mutations.setReload(true);
       } catch {
-        console.log("failed to upload files")
+        console.log("failed to upload files");
       }
     },
     async uploadInput(event) {
@@ -940,5 +945,7 @@ export default {
 .add-padding {
   padding-left: 0.5em;
 }
-
+.font-size-large h2 {
+  font-size: 2em !important;
+}
 </style>
