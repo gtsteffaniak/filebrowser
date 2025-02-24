@@ -165,7 +165,7 @@ func BenchmarkCheckIndexExclude(b *testing.B) {
 	idx := Index{
 		Source: settings.Source{
 			Name: "files",
-			Config: settings.IndexConfig{
+			Config: settings.SourceConfig{
 				IgnoreHidden: true,
 				Exclude: settings.IndexFilter{
 					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
@@ -202,7 +202,7 @@ func BenchmarkCheckIndexConditionsInclude(b *testing.B) {
 	idx2 := Index{
 		Source: settings.Source{
 			Name: "files",
-			Config: settings.IndexConfig{
+			Config: settings.SourceConfig{
 				IgnoreHidden: true,
 				Include: settings.IndexFilter{
 					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
