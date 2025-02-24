@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
     - rules will come back in a different form (not applied to the user).
 
  **BugFixes**:
-
+  - 
 
 ## v0.5.4-beta
 
@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file. For commit 
   - drag and drop on empty folders https://github.com/gtsteffaniak/filebrowser/issues/361
   - preview navigation issue https://github.com/gtsteffaniak/filebrowser/issues/372
   - auth proxy password length error https://github.com/gtsteffaniak/filebrowser/issues/375
+
 
 ## v0.5.3-beta
 

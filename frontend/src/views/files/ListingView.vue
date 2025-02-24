@@ -949,4 +949,5 @@ export default {
 .font-size-large h2 {
   font-size: 2em !important;
 }
+
 </style>
