@@ -10,7 +10,7 @@ export async function fetchFiles (url, content = false) {
     let path = encodeURIComponent(removePrefix(url, 'files'))
     const apiPath = getApiPath('api/resources', {
       path: path,
-      content: content
+      ...(content && { content: 'true' })
     })
     const res = await fetchURL(apiPath)
     const data = await res.json()
@@ -58,8 +58,8 @@ export async function put (url, content = '') {
   }
 }
 
-export function download (format, files) {
-  if (format != 'zip') {
+export function download(format, files) {
+  if (format !== 'zip') {
     format = 'tar.gz'
   }
   try {
@@ -72,12 +72,20 @@ export function download (format, files) {
       }
       fileargs = fileargs.substring(0, fileargs.length - 1)
     }
+
     const apiPath = getApiPath('api/raw', {
       files: encodeURIComponent(fileargs),
       algo: format
     })
     const url = window.origin + apiPath
-    window.open(url)
+
+    // Create a temporary <a> element to trigger the download
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', '') // Ensures it triggers a download
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link) // Clean up
   } catch (err) {
     notify.showError(err.message || 'Error downloading files')
   }
@@ -189,7 +197,7 @@ export async function checksum (path, algo) {
   }
 }
 
-export function getDownloadURL (path, inline, useExternal) {
+export function getDownloadURL(path, inline, useExternal) {
   try {
     const params = {
       files: encodeURIComponent(removePrefix(decodeURI(path), 'files')),

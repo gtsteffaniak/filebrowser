@@ -27,8 +27,6 @@ type Store interface {
 	LastUpdate(id uint) int64
 	AddApiKey(username uint, name string, key AuthToken) error
 	DeleteApiKey(username uint, name string) error
-	AddRule(username string, rule Rule) error
-	DeleteRule(username string, ruleID string) error
 }
 
 // Storage is a users storage.
@@ -79,23 +77,6 @@ func (s *Storage) Update(user *User, fields ...string) error {
 	return nil
 }
 
-// AddRule adds a rule to the user's rules list and updates the user in the database.
-func (s *Storage) AddRule(userID string, rule Rule) error {
-	user, err := s.Get("", userID)
-	if err != nil {
-		return err
-	}
-
-	user.Rules = append(user.Rules, rule)
-
-	err = s.Update(user, "Rules")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 	user, err := s.Get("", userID)
 	if err != nil {
@@ -125,31 +106,6 @@ func (s *Storage) DeleteApiKey(userID uint, name string) error {
 	}
 	delete(user.ApiKeys, name)
 	err = s.Update(user, "ApiKeys")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// DeleteRule deletes a rule specified by ID from the user's rules list and updates the user in the database.
-func (s *Storage) DeleteRule(userID string, ruleID string) error {
-	user, err := s.Get("", userID)
-	if err != nil {
-		return err
-	}
-
-	// Find and remove the rule with the specified ID
-	var updatedRules []Rule
-	for _, r := range user.Rules {
-		if r.Id != ruleID {
-			updatedRules = append(updatedRules, r)
-		}
-	}
-
-	user.Rules = updatedRules
-
-	err = s.Update(user, "Rules")
 	if err != nil {
 		return err
 	}

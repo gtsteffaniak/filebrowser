@@ -79,7 +79,7 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 
 		val := userField.Interface()
 		if err := st.db.UpdateField(user, correctedField, val); err != nil {
-			return fmt.Errorf("Error updating user field: %s, error: %v", correctedField, err.Error())
+			return fmt.Errorf("failed to update user field: %s, error: %v", correctedField, err.Error())
 		}
 	}
 	return nil

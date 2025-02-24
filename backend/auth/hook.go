@@ -148,22 +148,20 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 		d := &users.User{
 			Username:    a.Cred.Username,
 			Password:    a.Cred.Password,
-			Scope:       a.Settings.UserDefaults.Scope,
+			Scopes:      a.Settings.UserDefaults.Scopes,
 			Locale:      a.Settings.UserDefaults.Locale,
 			ViewMode:    a.Settings.UserDefaults.ViewMode,
 			SingleClick: a.Settings.UserDefaults.SingleClick,
-			Sorting:     a.Settings.UserDefaults.Sorting,
 			Perm:        a.Settings.UserDefaults.Perm,
-			Commands:    a.Settings.UserDefaults.Commands,
 			ShowHidden:  a.Settings.UserDefaults.ShowHidden,
 		}
 		u = a.GetUser(d)
 
-		userHome, err := a.Settings.MakeUserDir(u.Username, u.Scope, a.Server.Root)
+		userHome, err := a.Settings.MakeUserDirs(u.Username, a.Server.Root, u.Scopes)
 		if err != nil {
 			return nil, fmt.Errorf("user: failed to mkdir user home dir: [%s]", userHome)
 		}
-		u.Scope = userHome
+		u.Scopes = userHome
 		logger.Debug(fmt.Sprintf("user: %s, home dir: [%s].", u.Username, userHome))
 
 		err = a.Users.Save(u)
@@ -187,28 +185,18 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 	// adds all permissions when user is admin
 	isAdmin := d.Perm.Admin
 	perms := users.Permissions{
-		Admin:    isAdmin,
-		Execute:  isAdmin || d.Perm.Execute,
-		Create:   isAdmin || d.Perm.Create,
-		Rename:   isAdmin || d.Perm.Rename,
-		Modify:   isAdmin || d.Perm.Modify,
-		Delete:   isAdmin || d.Perm.Delete,
-		Share:    isAdmin || d.Perm.Share,
-		Download: isAdmin || d.Perm.Download,
+		Admin:  isAdmin,
+		Modify: isAdmin || d.Perm.Modify,
+		Share:  isAdmin || d.Perm.Share,
 	}
 	user := users.User{
-		ID:          d.ID,
-		Username:    d.Username,
-		Password:    d.Password,
-		Scope:       d.Scope,
-		Locale:      d.Locale,
-		ViewMode:    d.ViewMode,
-		SingleClick: d.SingleClick,
-		Sorting: users.Sorting{
-			Asc: d.Sorting.Asc,
-			By:  d.Sorting.By,
-		},
-		Commands:     d.Commands,
+		ID:           d.ID,
+		Username:     d.Username,
+		Password:     d.Password,
+		Scopes:       d.Scopes,
+		Locale:       d.Locale,
+		ViewMode:     d.ViewMode,
+		SingleClick:  d.SingleClick,
 		ShowHidden:   d.ShowHidden,
 		Perm:         perms,
 		LockPassword: true,
@@ -231,16 +219,11 @@ var validHookFields = []string{
 	"user.singleClick",
 	"user.sorting.by",
 	"user.sorting.asc",
-	"user.commands",
 	"user.showHidden",
 	"user.perm.admin",
-	"user.perm.execute",
-	"user.perm.create",
-	"user.perm.rename",
 	"user.perm.modify",
-	"user.perm.delete",
 	"user.perm.share",
-	"user.perm.download",
+	"user.perm.api",
 }
 
 // IsValid checks if the provided field is on the valid fields list

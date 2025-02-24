@@ -15,7 +15,6 @@ const (
 type Settings struct {
 	Commands     map[string][]string `json:"commands"`
 	Shell        []string            `json:"shell"`
-	Rules        []users.Rule        `json:"rules"`
 	Server       Server              `json:"server"`
 	Auth         Auth                `json:"auth"`
 	Frontend     Frontend            `json:"frontend"`
@@ -35,6 +34,7 @@ type Auth struct {
 	Key                  []byte       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
+	AuthMethods          []string
 }
 
 type LoginMethods struct {
@@ -80,6 +80,9 @@ type Server struct {
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
+
+	// not exposed to config
+	SourceList []string
 }
 
 type Integrations struct {
@@ -102,9 +105,10 @@ type LogConfig struct {
 }
 
 type Source struct {
-	Path   string      `json:"path"`
-	Name   string      `json:"name"`
-	Config IndexConfig `json:"config"`
+	Path             string      `json:"path"` // can be relative, filesystem path
+	Name             string      `json:"name"` // display name
+	Config           IndexConfig `json:"config"`
+	DefaultUserScope string      `json:"defaultUserScope"` // default "" should match folders under path
 }
 
 type IndexConfig struct {
@@ -142,20 +146,15 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	StickySidebar   bool         `json:"stickySidebar"`
-	DarkMode        bool         `json:"darkMode"`
-	LockPassword    bool         `json:"lockPassword"`
-	DisableSettings bool         `json:"disableSettings,omitempty"`
-	Scope           string       `json:"scope"`
-	Locale          string       `json:"locale"`
-	ViewMode        string       `json:"viewMode"`
-	GallerySize     int          `json:"gallerySize"`
-	SingleClick     bool         `json:"singleClick"`
-	Rules           []users.Rule `json:"rules"`
-	Sorting         struct {
-		By  string `json:"by"`
-		Asc bool   `json:"asc"`
-	} `json:"sorting"`
+	StickySidebar        bool              `json:"stickySidebar"`
+	DarkMode             bool              `json:"darkMode"`
+	LockPassword         bool              `json:"lockPassword"`
+	DisableSettings      bool              `json:"disableSettings,omitempty"`
+	Scope                string            `json:"scope"` // deprecated
+	Locale               string            `json:"locale"`
+	ViewMode             string            `json:"viewMode"`
+	GallerySize          int               `json:"gallerySize"`
+	SingleClick          bool              `json:"singleClick"`
 	Perm                 users.Permissions `json:"perm"`
 	Permissions          users.Permissions `json:"permissions"`
 	Commands             []string          `json:"commands,omitempty"`
@@ -164,4 +163,7 @@ type UserDefaults struct {
 	ThemeColor           string            `json:"themeColor"`
 	QuickDownload        bool              `json:"quickDownload"`
 	DisableOnlyOfficeExt string            `json:"disableOnlyOfficeExt"`
+
+	// not exposed to config
+	Scopes map[string]string
 }

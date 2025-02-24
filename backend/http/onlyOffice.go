@@ -61,11 +61,10 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		url = strings.Replace(url, replacement, settings.Config.Server.InternalUrl, 1)
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Modify:  d.user.Perm.Modify,
-		Source:  source,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(d.user.Scopes[source], path),
+		Modify: d.user.Perm.Modify,
+		Source: source,
+		Expand: false,
 	})
 
 	if err != nil {
@@ -92,8 +91,8 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"url":      url + "&auth=" + d.token,
 			"permissions": map[string]interface{}{
 				"edit":     d.user.Perm.Modify,
-				"download": d.user.Perm.Download,
-				"print":    d.user.Perm.Download,
+				"download": true,
+				"print":    true,
 			},
 		},
 		"editorConfig": map[string]interface{}{
@@ -167,20 +166,13 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		}
 		defer doc.Body.Close()
 
-		err = d.Runner.RunHook(func() error {
-			fileOpts := files.FileOptions{
-				Path:   path,
-				Source: source,
-			}
-			writeErr := files.WriteFile(fileOpts, doc.Body)
-			if writeErr != nil {
-				return writeErr
-			}
-			return nil
-		}, "save", path, "", d.user)
-
-		if err != nil {
-			return http.StatusInternalServerError, err
+		fileOpts := files.FileOptions{
+			Path:   path,
+			Source: source,
+		}
+		writeErr := files.WriteFile(fileOpts, doc.Body)
+		if writeErr != nil {
+			return http.StatusInternalServerError, writeErr
 		}
 	}
 

@@ -576,7 +576,7 @@ export default {
           break;
 
         case "F2":
-          if (!state.user.perm.rename || state.selected.length !== 1) return;
+          if (!state.user.perm.modify || state.selected.length !== 1) return;
           mutations.showHover("rename");
           break;
 

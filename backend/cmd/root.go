@@ -110,11 +110,9 @@ func StartFilebrowser() {
 					Username: username,
 					Password: password,
 				}
-				if scope != "" {
-					newUser.Scope = scope
-				} else {
-					newUser.Scope = settings.Config.UserDefaults.Scope
-				}
+
+				newUser.Scopes = settings.Config.UserDefaults.Scopes
+
 				// Create the user logic
 				if asAdmin {
 					logger.Info(fmt.Sprintf("Creating user as admin: %s\n", username))
@@ -128,9 +126,6 @@ func StartFilebrowser() {
 				return
 			}
 			user.Password = password
-			if scope != "" {
-				user.Scope = scope
-			}
 			if asAdmin {
 				user.Perm.Admin = true
 			}
@@ -150,33 +145,18 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 			return
 		}
 	}
+
 	store, dbExists := getStore(configPath)
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
-	sources := []string{}
-	for _, v := range settings.Config.Server.Sources {
-		sources = append(sources, v.Name+": "+v.Path)
-	}
-
-	authMethods := []string{}
-	if settings.Config.Auth.Methods.PasswordAuth.Enabled {
-		authMethods = append(authMethods, "Password")
-	}
-	if settings.Config.Auth.Methods.ProxyAuth.Enabled {
-		authMethods = append(authMethods, "Proxy")
-	}
-	if settings.Config.Auth.Methods.NoAuth {
-		logger.Warning("Configured with no authentication, this is not recommended.")
-		authMethods = []string{"Disabled"}
-	}
 
 	logger.Info(fmt.Sprintf("Initializing FileBrowser Quantum (%v)", version.Version))
 	logger.Info(fmt.Sprintf("Using Config file        : %v", configPath))
-	logger.Info(fmt.Sprintf("Auth Methods             : %v", authMethods))
+	logger.Info(fmt.Sprintf("Auth Methods             : %v", settings.Config.Auth.AuthMethods))
 	logger.Info(database)
-	logger.Info(fmt.Sprintf("Sources                  : %v", sources))
+	logger.Info(fmt.Sprintf("Sources                  : %v", settings.Config.Server.SourceList))
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL

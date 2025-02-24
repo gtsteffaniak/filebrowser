@@ -46,11 +46,10 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
+		Path:    filepath.Join(d.user.Scopes[source], path),
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
 		Expand:  true,
-		Checker: d.user,
 		Content: r.URL.Query().Get("content") == "true",
 	})
 	if err != nil {
@@ -61,7 +60,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		idx := files.GetIndex(source)
-		realPath, _, _ := idx.GetRealPath(d.user.Scope, path)
+		realPath, _, _ := idx.GetRealPath(d.user.Scopes[source], path)
 		checksums, err := files.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
@@ -100,15 +99,14 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if path == "/" || !d.user.Perm.Delete {
+	if path == "/" {
 		return http.StatusForbidden, nil
 	}
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(d.user.Scopes["default"], path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err != nil {
@@ -153,15 +151,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Perm.Create || !d.user.Check(path) {
-		return http.StatusForbidden, nil
-	}
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(d.user.Scopes["default"], path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	// Directories creation on POST.
 	if strings.HasSuffix(path, "/") {
@@ -220,21 +214,16 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Perm.Modify || !d.user.Check(path) {
-		return http.StatusForbidden, nil
-	}
-
 	// Only allow PUT for files.
 	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
 	}
 
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(d.user.Scopes["default"], path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
@@ -276,21 +265,19 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if !d.user.Check(src) || !d.user.Check(dst) {
-		return http.StatusForbidden, fmt.Errorf("forbidden: user rules deny access to source or destination")
-	}
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
 
 	idx := files.GetIndex(source)
 	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(d.user.Scope, filepath.Dir(dst))
+	parentDir, _, err := idx.GetRealPath(d.user.Scopes["default"], filepath.Dir(dst))
 	if err != nil {
+		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", d.user.Scopes["default"], filepath.Dir(dst), err))
 		return http.StatusNotFound, err
 	}
 	realDest := parentDir + "/" + filepath.Base(dst)
-	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scope, src)
+	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scopes["default"], src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -303,9 +290,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if overwrite && !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
-	err = d.Runner.RunHook(func() error {
-		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
-	}, action, realSrc, realDest, d.user)
+	err = patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
 	if err != nil {
 		logger.Debug(fmt.Sprintf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err))
 	}
@@ -338,13 +323,13 @@ func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFile
 func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, index string) error {
 	switch action {
 	case "copy":
-		if !d.user.Perm.Create {
+		if !d.user.Perm.Modify {
 			return errors.ErrPermissionDenied
 		}
 		err := files.CopyResource(index, src, dst, isSrcDir)
 		return err
 	case "rename", "move":
-		if !d.user.Perm.Rename {
+		if !d.user.Perm.Modify {
 			return errors.ErrPermissionDenied
 		}
 		fileInfo, err := files.FileInfoFaster(files.FileOptions{
@@ -354,7 +339,6 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: false,
-			Checker:    d.user,
 		})
 		if err != nil {
 			return err

@@ -12,14 +12,12 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/runner"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 type requestContext struct {
-	user *users.User
-	*runner.Runner
+	user  *users.User
 	raw   interface{}
 	token string
 }
@@ -63,10 +61,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
-			Path:    filepath.Join(scope, link.Path+"/"+path),
+			Path:    link.Path+"/"+path,
 			Modify:  data.user.Perm.Modify,
 			Expand:  true,
-			Checker: data.user, // Call your checker function here
 		})
 		file.Token = link.Token
 		if err != nil {
@@ -187,9 +184,7 @@ func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 
 func wrapHandler(fn handleFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := &requestContext{
-			Runner: &runner.Runner{Enabled: config.Server.EnableExec, Settings: config},
-		}
+		data := &requestContext{}
 
 		// Call the actual handler function and get status code and error
 		status, err := fn(w, r, data)

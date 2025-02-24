@@ -45,6 +45,9 @@ type FileCache interface {
 func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = "default"
+	}
 	previewSize := r.URL.Query().Get("size")
 	if previewSize != "small" {
 		previewSize = "large"
@@ -53,11 +56,10 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
 	response, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Modify:  d.user.Perm.Modify,
-		Source:  source,
-		Expand:  true,
-		Checker: d.user,
+		Path:   filepath.Join(d.user.Scopes[source], path),
+		Modify: d.user.Perm.Modify,
+		Source: source,
+		Expand: true,
 	})
 	fileInfo := response.FileInfo
 	if err != nil {
@@ -73,18 +75,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	if (previewSize == "large" && !config.Server.ResizePreview) ||
 		(previewSize == "small" && !config.Server.EnableThumbnails) {
-		if !d.user.Perm.Download {
-			return http.StatusAccepted, nil
-		}
 		return rawFileHandler(w, r, fileInfo)
 	}
 
 	format, err := imgSvc.FormatFromExtension(filepath.Ext(fileInfo.Name))
 	// Unsupported extensions directly return the raw data
 	if err == img.ErrUnsupportedFormat || format == img.FormatGif {
-		if !d.user.Perm.Download {
-			return http.StatusAccepted, nil
-		}
 		return rawFileHandler(w, r, fileInfo)
 	}
 	if err != nil {

@@ -75,22 +75,12 @@ definitions:
     type: object
   http.settingsData:
     properties:
-      commands:
-        additionalProperties:
-          items:
-            type: string
-          type: array
-        type: object
       createUserDir:
         type: boolean
       defaults:
         $ref: '#/definitions/settings.UserDefaults'
       frontend:
         $ref: '#/definitions/settings.Frontend'
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
       signup:
         type: boolean
       userHomeBasePath:
@@ -148,23 +138,14 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
-      scope:
-        type: string
+      scopes:
+        additionalProperties:
+          type: string
+        type: object
       showHidden:
         type: boolean
       singleClick:
         type: boolean
-      sorting:
-        properties:
-          asc:
-            type: boolean
-          by:
-            type: string
-        type: object
       stickySidebar:
         type: boolean
       themeColor:
@@ -221,38 +202,10 @@ definitions:
         type: boolean
       api:
         type: boolean
-      create:
-        type: boolean
-      delete:
-        type: boolean
-      download:
-        type: boolean
-      execute:
-        type: boolean
       modify:
-        type: boolean
-      rename:
         type: boolean
       share:
         type: boolean
-    type: object
-  users.Regexp:
-    properties:
-      raw:
-        type: string
-    type: object
-  users.Rule:
-    properties:
-      allow:
-        type: boolean
-      id:
-        type: string
-      path:
-        type: string
-      regex:
-        type: boolean
-      regexp:
-        $ref: '#/definitions/users.Regexp'
     type: object
   users.Sorting:
     properties:
@@ -293,12 +246,10 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
-      scope:
-        type: string
+      scopes:
+        additionalProperties:
+          type: string
+        type: object
       showHidden:
         type: boolean
       singleClick:
@@ -736,7 +687,7 @@ paths:
       consumes:
       - application/json
       description: Returns the current configuration settings for signup, user directories,
-        rules, frontend, and commands.
+        rules, frontend.
       produces:
       - application/json
       responses:
@@ -751,7 +702,7 @@ paths:
       consumes:
       - application/json
       description: Updates the system configuration settings for signup, user directories,
-        rules, frontend, and commands.
+        rules, frontend.
       parameters:
       - description: Settings data to update
         in: body

@@ -627,7 +627,7 @@ const docTemplate = `{
         },
         "/api/settings": {
             "get": {
-                "description": "Returns the current configuration settings for signup, user directories, rules, frontend, and commands.",
+                "description": "Returns the current configuration settings for signup, user directories, rules, frontend.",
                 "consumes": [
                     "application/json"
                 ],
@@ -648,7 +648,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the system configuration settings for signup, user directories, rules, frontend, and commands.",
+                "description": "Updates the system configuration settings for signup, user directories, rules, frontend.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1277,15 +1277,6 @@ const docTemplate = `{
         "http.settingsData": {
             "type": "object",
             "properties": {
-                "commands": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
                 "createUserDir": {
                     "type": "boolean"
                 },
@@ -1294,12 +1285,6 @@ const docTemplate = `{
                 },
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
-                },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
                 },
                 "signup": {
                     "type": "boolean"
@@ -1388,31 +1373,17 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
+                "scopes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
                     }
-                },
-                "scope": {
-                    "type": "string"
                 },
                 "showHidden": {
                     "type": "boolean"
                 },
                 "singleClick": {
                     "type": "boolean"
-                },
-                "sorting": {
-                    "type": "object",
-                    "properties": {
-                        "asc": {
-                            "type": "boolean"
-                        },
-                        "by": {
-                            "type": "string"
-                        }
-                    }
                 },
                 "stickySidebar": {
                     "type": "boolean"
@@ -1495,54 +1466,11 @@ const docTemplate = `{
                 "api": {
                     "type": "boolean"
                 },
-                "create": {
-                    "type": "boolean"
-                },
-                "delete": {
-                    "type": "boolean"
-                },
-                "download": {
-                    "type": "boolean"
-                },
-                "execute": {
-                    "type": "boolean"
-                },
                 "modify": {
-                    "type": "boolean"
-                },
-                "rename": {
                     "type": "boolean"
                 },
                 "share": {
                     "type": "boolean"
-                }
-            }
-        },
-        "users.Regexp": {
-            "type": "object",
-            "properties": {
-                "raw": {
-                    "type": "string"
-                }
-            }
-        },
-        "users.Rule": {
-            "type": "object",
-            "properties": {
-                "allow": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "regex": {
-                    "type": "boolean"
-                },
-                "regexp": {
-                    "$ref": "#/definitions/users.Regexp"
                 }
             }
         },
@@ -1605,14 +1533,11 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
+                "scopes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
                     }
-                },
-                "scope": {
-                    "type": "string"
                 },
                 "showHidden": {
                     "type": "boolean"
