@@ -73,16 +73,16 @@ type Server struct {
 	BaseURL            string      `json:"baseURL"`
 	Logging            []LogConfig `json:"logging"`
 	Database           string      `json:"database"`
-	Root               string      `json:"root"`
+	Root               string      `json:"root"` // deprecated, use sources
 	UserHomeBasePath   string      `json:"userHomeBasePath"`
-	CreateUserDir      bool        `json:"createUserDir"`
 	Sources            []Source    `json:"sources"`
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
-
 	// not exposed to config
-	SourceList []string
+	SourceMap     map[string]Source // uses realpath as key
+	NameToSource  map[string]Source // uses name as key
+	DefaultSource Source
 }
 
 type Integrations struct {
@@ -105,13 +105,12 @@ type LogConfig struct {
 }
 
 type Source struct {
-	Path             string      `json:"path"` // can be relative, filesystem path
-	Name             string      `json:"name"` // display name
-	Config           IndexConfig `json:"config"`
-	DefaultUserScope string      `json:"defaultUserScope"` // default "" should match folders under path
+	Path   string       `json:"path"` // can be relative, filesystem path
+	Name   string       `json:"name"` // display name
+	Config SourceConfig `json:"config"`
 }
 
-type IndexConfig struct {
+type SourceConfig struct {
 	IndexingInterval      uint32      `json:"indexingInterval"`
 	Disabled              bool        `json:"disabled"`
 	MaxWatchers           int         `json:"maxWatchers"`
@@ -120,6 +119,8 @@ type IndexConfig struct {
 	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"`
 	Exclude               IndexFilter `json:"exclude"`
 	Include               IndexFilter `json:"include"`
+	DefaultUserScope      string      `json:"defaultUserScope"` // default "" should match folders under path
+	CreateUserDir         bool        `json:"createUserDir"`
 }
 
 type IndexFilter struct {
@@ -165,5 +166,5 @@ type UserDefaults struct {
 	DisableOnlyOfficeExt string            `json:"disableOnlyOfficeExt"`
 
 	// not exposed to config
-	Scopes map[string]string
+	Scopes map[string]string `json:"-"`
 }

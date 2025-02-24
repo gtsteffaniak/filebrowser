@@ -23,6 +23,7 @@ func Initialize(configFile string) {
 	setupLogging()
 	setupAuth()
 	setupSources()
+	setupUserScopes()
 	setupBaseURL()
 	setupFrontend()
 }
@@ -41,37 +42,55 @@ func setupFrontend() {
 	}
 }
 
-func setupSources() {
+func getRealPath(path string) string {
+	realPath, err := filepath.Abs(path)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("could not find configured source path: %v", err))
+	}
+	// check path exists
+	if _, err = os.Stat(realPath); os.IsNotExist(err) {
+		logger.Fatal(fmt.Sprintf("configured source path does not exist: %v", realPath))
+	}
+	return realPath
+}
 
-	// Convert relative path to absolute path
-	if len(Config.Server.Sources) > 0 {
+func setupSources() {
+	if len(Config.Server.Sources) == 0 {
+		logger.Warning("`server.root` is deprecated, please update the config to use `server.sources`")
+		realPath := getRealPath(Config.Server.Root)
+		source := Source{Name: "default", Path: realPath}
+		Config.Server.SourceMap[source.Path] = source
+		Config.Server.NameToSource["default"] = source
+	} else {
 		if Config.Server.Root != "" {
 			logger.Warning("`server.root` is configured but will be ignored in favor of `server.sources`")
 		}
-		// TODO allow multiple sources not named default
-		for _, source := range Config.Server.Sources {
-			realPath, err2 := filepath.Abs(source.Path)
-			if err2 != nil {
-				logger.Fatal(fmt.Sprintf("Error getting source path: %v", err2))
+		for k, source := range Config.Server.Sources {
+			realPath := getRealPath(source.Path)
+			source.Path = realPath // use absolute path
+			if source.Name == "" {
+				if k == 0 {
+					source.Name = "default"
+				} else {
+					source.Name = "source" + fmt.Sprintf("%v", k)
+				}
+				Config.Server.DefaultSource = source
 			}
-			source.Path = realPath
-			source.Name = "default"
-			Config.Server.Sources = []Source{source} // temporary set only one source
-		}
-	} else {
-		realPath, err2 := filepath.Abs(Config.Server.Root)
-		if err2 != nil {
-			logger.Fatal(fmt.Sprintf("Error getting source path: %v", err2))
-		}
-		Config.Server.Sources = []Source{
-			{
-				Name: "default",
-				Path: realPath,
-			},
+			Config.Server.SourceMap[source.Path] = source
+			Config.Server.NameToSource[source.Name] = source
 		}
 	}
-	for _, v := range Config.Server.Sources {
-		Config.Server.SourceList = append(Config.Server.SourceList, v.Name+": "+v.Path)
+	// if only one source listed, make sure its default
+	if len(Config.Server.SourceMap) == 1 {
+		for _, source := range Config.Server.SourceMap {
+			Config.Server.DefaultSource = source
+		}
+	}
+}
+
+func setupUserScopes() {
+	for _, source := range Config.Server.SourceMap {
+		Config.UserDefaults.Scopes[source.Path] = source.Config.DefaultUserScope
 	}
 }
 
@@ -166,6 +185,8 @@ func setDefaults() Settings {
 			BaseURL:            "",
 			Database:           "database.db",
 			Root:               ".",
+			SourceMap:          map[string]Source{},
+			NameToSource:       map[string]Source{},
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",
@@ -187,16 +208,14 @@ func setDefaults() Settings {
 		UserDefaults: UserDefaults{
 			DisableOnlyOfficeExt: ".txt .csv .html",
 			StickySidebar:        true,
-			Scopes: map[string]string{
-				"default": "/",
-			},
-			LockPassword:    false,
-			ShowHidden:      false,
-			DarkMode:        true,
-			DisableSettings: false,
-			ViewMode:        "normal",
-			Locale:          "en",
-			GallerySize:     3,
+			LockPassword:         false,
+			ShowHidden:           false,
+			DarkMode:             true,
+			DisableSettings:      false,
+			Scopes:               map[string]string{},
+			ViewMode:             "normal",
+			Locale:               "en",
+			GallerySize:          3,
 			Permissions: users.Permissions{
 				Modify: false,
 				Share:  false,

@@ -51,15 +51,17 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		givenUserId = d.user.ID
 	} else if givenUserIdString == "" {
 
-		userList, err := store.Users.Gets(files.RootPaths["default"])
+		userList, err := store.Users.Gets()
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 
 		selfUserList := []*users.User{}
 		for _, u := range userList {
+			stripInfo(u)
 			u.Password = ""
 			u.ApiKeys = nil
+			u.Scopes = nil
 			if u.ID == d.user.ID {
 				selfUserList = append(selfUserList, u)
 			}
@@ -83,7 +85,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Fetch the user details
-	u, err := store.Users.Get(files.RootPaths["default"], givenUserId)
+	u, err := store.Users.Get(givenUserId)
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
@@ -91,16 +93,21 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusInternalServerError, err
 	}
 
-	// Remove the password from the response if the user is not an admin
-	u.Password = ""
-	u.ApiKeys = nil
-	if !d.user.Perm.Admin {
-		u.Scopes = map[string]string{
-			"default": u.Scopes["default"],
+	for key, source := range config.Server.SourceMap {
+		if _, ok := d.user.Scopes[key]; ok {
+			u.Sources = append(u.Sources, source.Name)
 		}
 	}
 
+	stripInfo(u)
 	return renderJSON(w, r, u)
+}
+
+func stripInfo(u *users.User) {
+	u.Password = ""
+	u.ApiKeys = nil
+	u.Scopes = nil
+
 }
 
 // userDeleteHandler deletes a user by ID.
@@ -249,6 +256,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 	// Process the fields to update
 	for _, field := range req.Which {
+
 		// Title case field names
 		field = cases.Title(language.English, cases.NoLower).String(field)
 

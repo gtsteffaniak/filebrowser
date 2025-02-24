@@ -1373,11 +1373,9 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "scopes": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                "scope": {
+                    "description": "deprecated",
+                    "type": "string"
                 },
                 "showHidden": {
                     "type": "boolean"
@@ -1494,12 +1492,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/users.AuthToken"
                     }
                 },
-                "commands": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "darkMode": {
                     "type": "boolean"
                 },
@@ -1547,6 +1539,13 @@ const docTemplate = `{
                 },
                 "sorting": {
                     "$ref": "#/definitions/users.Sorting"
+                },
+                "sources": {
+                    "description": "list of source names for the user",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "stickySidebar": {
                     "type": "boolean"

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.6.0-beta
 
  **New Features**:
+  - multiple sources support
 
  **Notes**:
   - downloads no longer open new window.
@@ -26,7 +27,7 @@ All notable changes to this project will be documented in this file. For commit 
   - drag and drop on empty folders https://github.com/gtsteffaniak/filebrowser/issues/361
   - preview navigation issue https://github.com/gtsteffaniak/filebrowser/issues/372
   - auth proxy password length error https://github.com/gtsteffaniak/filebrowser/issues/375
-  
+
 ## v0.5.3-beta
 
  **New Features**:

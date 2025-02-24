@@ -89,6 +89,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Authenticate the user based on the request
 	user, err := auther.Auth(r, store.Users)
 	if err == os.ErrPermission {
+		logger.Error(fmt.Sprintf("unable to get user: %v", err))
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	} else if err != nil {
@@ -128,20 +129,14 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-
-	user := settings.ApplyUserDefaults(users.User{})
+	user := &users.User{}
+	settings.ApplyUserDefaults(user)
 	user.Username = info.Username
 	user.Password = info.Password
 
-	userHome, err := config.MakeUserDirs(user.Username, files.RootPaths["default"], user.Scopes)
-	if err != nil {
-		logger.Error(fmt.Sprintf("create user: failed to mkdir user home dir: [%s]", userHome))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	user.Scopes = userHome
-	logger.Debug(fmt.Sprintf("new user: %s, home dir: [%s].", user.Username, userHome))
-	err = store.Users.Save(&user)
+	files.MakeUserDirs(user)
+
+	err = store.Users.Save(user)
 	if err == errors.ErrExist {
 		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
 		return

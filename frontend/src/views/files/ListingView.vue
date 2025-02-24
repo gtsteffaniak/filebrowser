@@ -945,6 +945,7 @@ export default {
 .add-padding {
   padding-left: 0.5em;
 }
+
 .font-size-large h2 {
   font-size: 2em !important;
 }

@@ -82,7 +82,7 @@ func (f FileOptions) Components() (string, string) {
 func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	response := ExtendedFileInfo{}
 	if opts.Source == "" {
-		opts.Source = "default"
+		opts.Source = settings.Config.Server.DefaultSource.Name
 	}
 	index := GetIndex(opts.Source)
 	if index == nil {
@@ -128,7 +128,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
 	if opts.Content {
-		content, err := getContent("default", opts.Path)
+		content, err := getContent(realPath)
 		if err != nil {
 			return response, err
 		}
@@ -314,13 +314,7 @@ func resolveSymlinks(path string) (string, bool, error) {
 }
 
 // addContent reads and sets content based on the file type.
-func getContent(source, path string) (string, error) {
-	idx := GetIndex(source)
-	realPath, _, err := idx.GetRealPath(path)
-	if err != nil {
-		return "", err
-	}
-
+func getContent(realPath string) (string, error) {
 	content, err := os.ReadFile(realPath)
 	if err != nil {
 		return "", err

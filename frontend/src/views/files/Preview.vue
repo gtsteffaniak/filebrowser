@@ -94,8 +94,6 @@ import { getTypeInfo } from "@/utils/mimetype";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 
-const mediaTypes = ["image", "video", "audio", "blob"];
-
 export default {
   name: "preview",
   components: {

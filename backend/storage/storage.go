@@ -41,7 +41,7 @@ func InitializeDb(path string) (*Storage, bool, error) {
 		return nil, exists, err
 	}
 
-	err = bolt.Save(db, "version", 2) //nolint:gomnd
+	err = bolt.Save(db, "version", 2)
 	if err != nil {
 		return nil, exists, err
 	}
@@ -84,7 +84,8 @@ func quickSetup(store *Storage) {
 	utils.CheckErr("store.Settings.Save", err)
 	err = store.Settings.SaveServer(&settings.Config.Server)
 	utils.CheckErr("store.Settings.SaveServer", err)
-	user := settings.ApplyUserDefaults(users.User{})
+	user := &users.User{}
+	settings.ApplyUserDefaults(user)
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
@@ -93,40 +94,26 @@ func quickSetup(store *Storage) {
 	user.ViewMode = "normal"
 	user.LockPassword = false
 	user.Perm = settings.AdminPerms()
-	err = store.Users.Save(&user)
+	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v\n", user.Username, user.Password))
+	err = store.Users.Save(user)
 	utils.CheckErr("store.Users.Save", err)
 }
 
 // create new user
 func CreateUser(userInfo users.User, asAdmin bool) error {
+	newUser := &userInfo
 	// must have username or password to create
 	if userInfo.Username == "" || userInfo.Password == "" {
 		return errors.ErrInvalidRequestParams
 	}
-	newUser := settings.ApplyUserDefaults(userInfo)
+	settings.ApplyUserDefaults(newUser)
 	if asAdmin {
-		newUser.Perm = settings.AdminPerms()
+		userInfo.Perm = settings.AdminPerms()
 	}
-	// create new home directory
-	userHome, err := settings.Config.MakeUserDirs(newUser.Username, files.RootPaths["default"], newUser.Scopes)
-	if err != nil {
-		logger.Error(fmt.Sprintf("create user: failed to mkdir user home dir: [%s]", userHome))
-		return err
-	}
-	newUser.Scopes = userHome
-	logger.Debug(fmt.Sprintf("user: %s, home dir: [%s].", newUser.Username, userHome))
+	// create new home directories
+	files.MakeUserDirs(newUser)
 
-	// todo: fix this, requries index path to be set
-	idx := files.GetIndex("default")
-	if idx == nil {
-		idx = files.GetIndex("default")
-	}
-	_, _, err = idx.GetRealPath(newUser.Scopes[idx.Name])
-	if err != nil {
-		logger.Error(fmt.Sprintf("user path is not valid: %v", newUser.Scopes[idx.Name]))
-		return nil
-	}
-	err = store.Users.Save(&newUser)
+	err := store.Users.Save(newUser)
 	if err != nil {
 		return err
 	}

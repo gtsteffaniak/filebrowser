@@ -138,10 +138,9 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      scopes:
-        additionalProperties:
-          type: string
-        type: object
+      scope:
+        description: deprecated
+        type: string
       showHidden:
         type: boolean
       singleClick:
@@ -220,10 +219,6 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
         type: object
-      commands:
-        items:
-          type: string
-        type: array
       darkMode:
         type: boolean
       dateFormat:
@@ -256,6 +251,11 @@ definitions:
         type: boolean
       sorting:
         $ref: '#/definitions/users.Sorting'
+      sources:
+        description: list of source names for the user
+        items:
+          type: string
+        type: array
       stickySidebar:
         type: boolean
       themeColor:

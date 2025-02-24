@@ -24,15 +24,7 @@ type settingsData struct {
 // @Success 200 {object} settingsData "System settings data"
 // @Router /api/settings [get]
 func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	data := &settingsData{
-		Signup:           config.Auth.Signup,
-		CreateUserDir:    config.Server.CreateUserDir,
-		UserHomeBasePath: config.Server.UserHomeBasePath,
-		Defaults:         config.UserDefaults,
-		Frontend:         config.Frontend,
-	}
-
-	return renderJSON(w, r, data)
+	return renderJSON(w, r, config)
 }
 
 // settingsPutHandler updates the system settings.
@@ -53,7 +45,6 @@ func settingsPutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, err
 	}
 
-	config.Server.CreateUserDir = req.CreateUserDir
 	config.Server.UserHomeBasePath = req.UserHomeBasePath
 	config.UserDefaults = req.Defaults
 	config.Frontend = req.Frontend
