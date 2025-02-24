@@ -11,7 +11,13 @@
       </h2>
     </div>
     <div v-else>
-      <div v-if="numDirs + numFiles == 0">
+      <div
+        id="listingView"
+        ref="listingView"
+        class="font-size-large"
+        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
+        v-if="numDirs + numFiles == 0"
+      >
         <h2 class="message">
           <i class="material-icons">sentiment_dissatisfied</i>
           <span>{{ $t("files.lonely") }}</span>
@@ -939,4 +945,9 @@ export default {
 .add-padding {
   padding-left: 0.5em;
 }
+
+.font-size-large h2 {
+  font-size: 2em !important;
+}
+
 </style>
