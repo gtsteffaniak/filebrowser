@@ -11,8 +11,8 @@ import (
 var scanSchedule = []time.Duration{
 	5 * time.Minute, // 5 minute quick scan & 25 minutes for a full scan
 	10 * time.Minute,
-	20 * time.Minute, // [3] element is 20 minutes, reset anchor for full scan
-	40 * time.Minute,
+	20 * time.Minute,
+	40 * time.Minute, // [3] element is 40 minutes, reset anchor for full scan
 	1 * time.Hour,
 	2 * time.Hour,
 	3 * time.Hour,
@@ -48,6 +48,7 @@ func (idx *Index) newScanner(origin string) {
 
 		// Adjust schedule based on file changes
 		if idx.FilesChangedDuringIndexing {
+			logger.Debug(fmt.Sprintf("Files changed during indexing [%v], adjusting schedule.", idx.Name))
 			// Move to at least the full-scan anchor or reduce interval
 			if idx.currentSchedule > fullScanAnchor {
 				idx.currentSchedule = fullScanAnchor
@@ -106,9 +107,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 			idx.assessment = "normal"
 		}
 		if firstRun {
-			logger.Info(fmt.Sprintf("Index assessment         : index=%v complexity=%v directories=%v files=%v", idx.Source.Name, idx.assessment, idx.NumDirs, idx.NumFiles))
+			logger.Info(fmt.Sprintf("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Source.Name, idx.assessment, idx.NumDirs, idx.NumFiles))
 		} else {
-			logger.Debug(fmt.Sprintf("Index assessment         : iindex=%v complexity=%v directories=%v files=%v", idx.Source.Name, idx.assessment, idx.NumDirs, idx.NumFiles))
+			logger.Debug(fmt.Sprintf("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Source.Name, idx.assessment, idx.NumDirs, idx.NumFiles))
 		}
 		if idx.NumDirs != prevNumDirs || idx.NumFiles != prevNumFiles {
 			idx.FilesChangedDuringIndexing = true

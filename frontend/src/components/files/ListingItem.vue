@@ -5,7 +5,7 @@
       item: true,
       'no-select': true,
       activebutton: isMaximized && isSelected,
-      hiddenFile: isHiddenNotSelected
+      hiddenFile: isHiddenNotSelected,
     }"
     :id="getID"
     role="button"
@@ -26,7 +26,6 @@
     @mouseup="cancelContext($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
-
       <img
         v-if="
           readOnly === undefined &&
@@ -42,14 +41,24 @@
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
-      <p :class="{'adjustment':quickDownloadEnabled}" class="name">{{ name }}</p>
-      <p class="size" :class="{'adjustment':quickDownloadEnabled}"  :data-order="humanSize()">{{ humanSize() }}</p>
+      <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ name }}</p>
+      <p
+        class="size"
+        :class="{ adjustment: quickDownloadEnabled }"
+        :data-order="humanSize()"
+      >
+        {{ humanSize() }}
+      </p>
       <p class="modified">
         <time :datetime="modified">{{ getTime() }}</time>
       </p>
     </div>
-    <Icon @click="downloadFile" v-if="quickDownloadEnabled" mimetype="file_download" style="padding-right: 0.5em" />
-
+    <Icon
+      @click="downloadFile"
+      v-if="quickDownloadEnabled"
+      mimetype="file_download"
+      style="padding-right: 0.5em"
+    />
   </a>
 </template>
 
@@ -118,14 +127,14 @@ export default {
     "index",
     "readOnly",
     "path",
-    "hidden"
+    "hidden",
   ],
   computed: {
     quickDownloadEnabled() {
       return state.user?.quickDownload;
     },
     isHiddenNotSelected() {
-      return !this.isSelected && this.hidden
+      return !this.isSelected && this.hidden;
     },
     getID() {
       return url.base64Encode(encodeURIComponent(this.name));
@@ -161,11 +170,8 @@ export default {
       return true;
     },
     thumbnailUrl() {
-      let path = state.req.path;
-      if (state.req.path == "/") {
-        path = "";
-      }
-      return filesApi.getPreviewURL(path + "/" + this.name, "small", state.req.modified);
+      let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
+      return filesApi.getPreviewURL(state.req.source, path, "small", state.req.modified);
     },
     isThumbsEnabled() {
       return enableThumbs;
@@ -193,7 +199,7 @@ export default {
       event.preventDefault();
       mutations.resetSelected();
       mutations.addSelected(this.index);
-      downloadFiles()
+      downloadFiles();
     },
     handleTouchMove(event) {
       if (!state.isSafari) return;
@@ -446,5 +452,4 @@ export default {
 .hiddenFile {
   opacity: 0.5;
 }
-
 </style>

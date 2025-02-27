@@ -13,6 +13,7 @@ export const state = reactive({
   sources: {
     current: "default",
     count: 1,
+    info: {},
   },
   user: {
     quickDownloadEnabled: false,

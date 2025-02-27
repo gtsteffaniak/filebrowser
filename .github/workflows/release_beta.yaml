@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   test_playwright:
-    name: Test Playwright - general
+    name: Test Playwright - regular
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.playwright-general
+          file: ./_docker/Dockerfile.playwright-regular
           push: false
   create_release_tag:
     needs: [ test_playwright ]

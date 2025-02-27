@@ -49,20 +49,21 @@
       <div class="inner-card">
         <!-- My Files button -->
         <button
-          v-for="source in sourceInfo"
-          :key="source.name"
+          v-for="(info, name) in sourceInfo"
+          :key="name"
           class="action source-button"
-          @click="navigateTo('/files/')"
+          :class="{ active: activeSource == name }"
+          @click="navigateTo('/files/' + info.pathPrefix)"
           :aria-label="$t('sidebar.myFiles')"
-          :title="source.name"
+          :title="name"
         >
           <i class="material-icons">folder</i>
-          <span>{{ source.name }}</span>
+          <span>{{ name }}</span>
           <div>
-            <progress-bar :val="source.usage.usedPercentage" size="medium"></progress-bar>
+            <progress-bar :val="info.usedPercentage" size="medium"></progress-bar>
             <div class="usage-info">
-              <span>{{ source.usage.usedPercentage }}%</span>
-              <span>{{ source.usage.used }} of {{ source.usage.total }} used</span>
+              <span>{{ info.usedPercentage }}%</span>
+              <span>{{ info.used }} of {{ info.total }} used</span>
             </div>
           </div>
         </button>
@@ -95,9 +96,6 @@ export default {
       hoverText: "Quick Toggles", // Initially empty
     };
   },
-  mounted() {
-    this.updateUsage();
-  },
   computed: {
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
@@ -115,16 +113,9 @@ export default {
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,
     route: () => state.route,
-    sourceInfo() {
-      const sourceInfo = state.user.sources.map((source) => ({
-        name: source,
-        usage: state.usages[source] || { usedPercentage: 0, used: "0", total: "0" }, // Provide default values
-      }));
-      console.log(sourceInfo);
-      return sourceInfo;
-    },
+    sourceInfo: () => state.sources.info,
+    activeSource: () => state.sources.current,
   },
-
   watch: {
     route() {
       if (!getters.isLoggedIn()) {
@@ -135,7 +126,24 @@ export default {
       }
     },
   },
+  mounted() {
+    if (this.loginCheck) {
+      this.updateUsage();
+    }
+  },
   methods: {
+    async updateUsage() {
+      if (!disableUsedPercentage) {
+        for (const source of state.user.sources) {
+          let usage = await filesApi.usage(source);
+          let sourceInfo = state.sources.info[source];
+          sourceInfo.used = getHumanReadableFilesize(usage.used);
+          sourceInfo.total = getHumanReadableFilesize(usage.total);
+          sourceInfo.usedPercentage = Math.round((usage.used / usage.total) * 100);
+          mutations.updateSource(source, sourceInfo);
+        }
+      }
+    },
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
     },
@@ -153,24 +161,6 @@ export default {
     },
     toggleSticky() {
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
-    },
-    async updateUsage() {
-      if (!this.checkLogin()) {
-        return;
-      }
-      let usageStats = { used: "0 B", total: "0 B", usedPercentage: 0 };
-      if (this.disableUsedPercentage) {
-        return usageStats;
-      }
-      for (const source of this.user.sources) {
-        let usage = await filesApi.usage(source);
-        usageStats = {
-          used: getHumanReadableFilesize(usage.used),
-          total: getHumanReadableFilesize(usage.total),
-          usedPercentage: Math.round((usage.used / usage.total) * 100),
-        };
-        mutations.setUsage(source, usageStats);
-      }
     },
     navigateTo(path) {
       const hashIndex = path.indexOf("#");
@@ -260,6 +250,7 @@ button.action {
   background-color: var(--primaryColor) !important;
   border-radius: 10em;
 }
+
 .inner-card {
   display: flex;
   align-items: center;
@@ -268,5 +259,9 @@ button.action {
 
 .source-button {
   margin-top: 0.5em !important;
+}
+
+.source-button.active {
+  background: var(--alt-background);
 }
 </style>

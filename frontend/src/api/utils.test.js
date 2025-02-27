@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { adjustedData } from './utils.js';
 
 describe('adjustedData', () => {
+  vi.doMock('@/utils/constants', () => {
+    return {
+      baseURL: "unit-testing",
+    };
+  });
   it('should append the URL and process directory data correctly', () => {
     const input = {
       type: "directory",
@@ -87,11 +92,5 @@ describe('adjustedData', () => {
     expect(adjustedData(input, url)).toEqual(expected);
   });
 
-});
-
-vi.mock('@/utils/constants', () => {
-  return {
-    baseURL: "unit-testing",
-  };
 });
 
