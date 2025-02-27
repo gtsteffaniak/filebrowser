@@ -184,7 +184,6 @@ func setDefaults() Settings {
 			NumImageProcessors: 4,
 			BaseURL:            "",
 			Database:           "database.db",
-			Root:               ".",
 			SourceMap:          map[string]Source{},
 			NameToSource:       map[string]Source{},
 		},

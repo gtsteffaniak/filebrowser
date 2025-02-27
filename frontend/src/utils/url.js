@@ -45,7 +45,8 @@ export default {
   removeLastDir,
   encodePath,
   removePrefix,
-  getApiPath
+  getApiPath,
+  extractSourceFromPath,
 };
 
 export function removePrefix(path, prefix = "") {
