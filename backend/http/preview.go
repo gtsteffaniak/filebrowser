@@ -55,13 +55,12 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
-	response, err := files.FileInfoFaster(files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(files.FileOptions{
 		Path:   filepath.Join(d.user.Scopes[source], path),
 		Modify: d.user.Perm.Modify,
 		Source: source,
 		Expand: true,
 	})
-	fileInfo := response.FileInfo
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -86,20 +85,20 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return errToStatus(err), err
 	}
-	cacheKey := previewCacheKey(response.RealPath, previewSize, fileInfo.ModTime)
+	cacheKey := previewCacheKey(fileInfo.RealPath, previewSize, fileInfo.ModTime)
 	resizedImage, ok, err := fileCache.Load(r.Context(), cacheKey)
 	if err != nil {
 		return errToStatus(err), err
 	}
 
 	if !ok {
-		resizedImage, err = createPreview(imgSvc, fileCache, response, previewSize)
+		resizedImage, err = createPreview(imgSvc, fileCache, fileInfo, previewSize)
 		if err != nil {
 			return errToStatus(err), err
 		}
 	}
 	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, response.RealPath, fileInfo.ModTime, bytes.NewReader(resizedImage))
+	http.ServeContent(w, r, fileInfo.RealPath, fileInfo.ModTime, bytes.NewReader(resizedImage))
 	return 0, nil
 }
 
@@ -149,8 +148,8 @@ func previewCacheKey(realPath, previewSize string, modTime time.Time) string {
 	return fmt.Sprintf("%x%x%x", realPath, modTime.Unix(), previewSize)
 }
 
-func rawFileHandler(w http.ResponseWriter, r *http.Request, file files.FileInfo) (int, error) {
-	idx := files.GetIndex("default")
+func rawFileHandler(w http.ResponseWriter, r *http.Request, file files.ExtendedFileInfo) (int, error) {
+	idx := files.GetIndex(file.Source)
 	realPath, _, _ := idx.GetRealPath(file.Path)
 	fd, err := os.Open(realPath)
 	if err != nil {

@@ -1,10 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { removePrefix } from './url.js';
+import { describe, it, expect, vi } from 'vitest';
+import { removePrefix,extractSourceFromPath } from './url.js';
+
 
 describe('testurl', () => {
 
   it('url prefix', () => {
     let tests = [
+      {input: "test/iscool/", trimArg: "test",expected:"/iscool/"},
       {input: "test",trimArg: "",expected:"/test"},
       {input: "/test", trimArg: "test",expected:"/"},
       {input: "/my/test/file", trimArg: "",expected:"/my/test/file"},
@@ -16,4 +18,63 @@ describe('testurl', () => {
     }
   });
 
+});
+
+describe('extractSourceFromPath', () => {
+  it('single source extract', async () => {
+    vi.doMock("@/store", () => {
+      return {
+        state: {
+          count: 1,
+          current: "default",
+          sources: {
+            first: { pathPrefix: "", used: "0 B", total: "0 B", usedPercentage: 0 },
+          },
+        },
+      };
+    });
+
+    const tests = [
+      { url: "/files/root/file1.txt", expected: { source: "default", path: "/root/file1.txt" } },
+      { url: "/files/root/folder1/file1.txt", expected: { source: "default", path: "/root/folder1/file1.txt" } },
+    ];
+
+    for (const test of tests) {
+      const result = extractSourceFromPath(test.url);
+      expect(result.source).toEqual(test.expected.source);
+      expect(result.path).toEqual(test.expected.path);
+    }
+
+    vi.resetModules(); // Reset modules between tests
+  });
+});
+
+describe('extractSourceFromPath2', () => {
+  it('multiple source extract', async () => {
+    vi.doMock("@/store", () => {
+      return {
+        state: {
+          count: 2,
+          current: "first",
+          sources: {
+            first: { pathPrefix: "first", used: "0 B", total: "0 B", usedPercentage: 0 },
+            second: { pathPrefix: "second", used: "0 B", total: "0 B", usedPercentage: 0 },
+          },
+        },
+      };
+    });
+    const { extractSourceFromPath } = await import("@/utils/url"); // Import AFTER mock
+    const tests = [
+      { url: "/files/first/root/file1.txt", expected: { source: "first", path: "/root/file1.txt" } },
+      { url: "/files/second/root/folder1/file1.txt", expected: { source: "second", path: "/root/folder1/file1.txt" } },
+    ];
+
+    for (const test of tests) {
+      const result = extractSourceFromPath(test.url);
+      expect(result.source).toEqual(test.expected.source);
+      expect(result.path).toEqual(test.expected.path);
+    }
+
+    vi.resetModules(); // Reset modules between tests
+  });
 });

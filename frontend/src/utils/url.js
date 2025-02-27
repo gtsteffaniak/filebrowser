@@ -1,4 +1,5 @@
 import { baseURL } from "@/utils/constants.js";
+import { state } from "@/store";
 
 export function removeLastDir(url) {
   var arr = url.split("/");
@@ -51,8 +52,9 @@ export function removePrefix(path, prefix = "") {
   if (path === undefined) {
     return ""
   }
+  path = removeLeadingSlash(path)
   if (prefix != "") {
-    prefix = "/" + trimSlashes(prefix)
+    prefix = trimSlashes(prefix)
   }
   // Remove combined (baseURL + prefix) from the start of the path if present
   if (path.startsWith(prefix)) {
@@ -110,4 +112,16 @@ export function trimSlashes(str) {
 
 export function base64Encode(str) {
   return btoa(unescape(encodeURIComponent(str)));
+}
+
+export function extractSourceFromPath(url) {
+  let source;
+  let path = removePrefix(url, 'files');
+  if (state.sources.count <= 1) {
+    source = state.sources.current;
+  } else {
+    source = path.split('/')[1];
+    path = removePrefix(path, source);
+  }
+  return { source, path };
 }

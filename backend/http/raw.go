@@ -15,6 +15,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -47,6 +48,7 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	if ok {
 		filePrefix = file.Path
 	}
+
 	encodedFiles := r.URL.Query().Get("files")
 	// Decode the URL-encoded path
 	files, err := url.QueryUnescape(encodedFiles)
@@ -168,8 +170,12 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fileList []string) (int, error) {
 	filePath := fileList[0]
 	fileName := filepath.Base(filePath)
-	idx := files.GetIndex("default")
-	realPath, isDir, err := idx.GetRealPath(d.user.Scopes["default"], filePath)
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = settings.Config.Server.DefaultSource.Name
+	}
+	idx := files.GetIndex(source)
+	realPath, isDir, err := idx.GetRealPath(d.user.Scopes[source], filePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

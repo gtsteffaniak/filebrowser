@@ -7,6 +7,26 @@ import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 
 export const mutations = {
+  updateSource: (sourcename,value) => {
+    if (state.sources.info[sourcename]) {
+      state.sources.info[sourcename] = value;
+    }
+    emitStateChanged();
+  },
+  setSources: (user) => {
+    const currentSource = user.sources.length > 0 ? user.sources[0] : "default";
+    let sources = {info: {}, current: currentSource, count: user.sources.length};
+    for (const source of user.sources) {
+      sources.info[source] = {
+        pathPrefix: sources.count == 1 ? "" : source,
+        used: 0,
+        total: 0,
+        usedPercentage: 0,
+      };
+    }
+    state.sources = sources;
+    emitStateChanged();
+  },
   setGallerySize: (value) => {
     state.user.gallerySize = value
     emitStateChanged();
@@ -103,23 +123,26 @@ export const mutations = {
     emitStateChanged();
   },
   setCurrentUser: (value) => {
-    localStorage.setItem("userData", undefined);
-    // If value is null or undefined, emit state change and exit early
-    if (!value) {
+    try {
+      localStorage.setItem("userData", undefined);
+      // If value is null or undefined, emit state change and exit early
+      if (!value) {
+        state.user = value;
+        emitStateChanged();
+        return;
+      }
+      mutations.setSources(value);
+      if (value.username != "publicUser") {
+        localStorage.setItem("userData", JSON.stringify(value));
+      }
+      // Ensure locale exists and is valid
+      if (!value.locale) {
+        value.locale = i18n.detectLocale();  // Default to detected locale if missing
+      }
       state.user = value;
-      emitStateChanged();
-      return;
+    } catch (error) {
+      console.log(error);
     }
-
-    if (value.username != "publicUser") {
-      localStorage.setItem("userData", JSON.stringify(value));
-    }
-    // Ensure locale exists and is valid
-    if (!value.locale) {
-      value.locale = i18n.detectLocale();  // Default to detected locale if missing
-    }
-    state.user = value;
-    // Emit state change after setting the user and locale
     emitStateChanged();
   },
   setJWT: (value) => {

@@ -2,7 +2,7 @@
   <div class="breadcrumbs">
     <component
       :is="element"
-      :to="base || ''"
+      :to="homePath"
       :aria-label="$t('files.home')"
       :title="$t('files.home')"
     >
@@ -32,7 +32,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { removePrefix } from "@/utils/url.js";
+import { removePrefix, extractSourceFromPath } from "@/utils/url.js";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -43,21 +43,25 @@ export default {
   data() {
     return {
       gallerySize: state.user.gallerySize,
+      homePath: "/files/",
     };
   },
   props: ["base", "noLink"],
+  mounted() {
+    this.homePath = "/files/" + state.sources.info[result.source].pathPrefix;
+  },
   computed: {
     isCardView() {
       return getters.isCardView();
     },
     items() {
-      let relativePath = removePrefix(state.route.path, "files");
+      const result = extractSourceFromPath(getters.routePath());
+      let relativePath = result.path;
       if (getters.currentView() == "share") {
         // Split the path, filter out any empty elements, then join again with slashes
-        relativePath = removePrefix(state.route.path, "share");
+        relativePath = removePrefix(getters.routePath(), "share");
       }
       let parts = relativePath.split("/");
-
       if (parts[0] === "") {
         parts.shift();
       }
@@ -104,7 +108,10 @@ export default {
     },
     showShare() {
       return (
-        state.user?.perm && state.user?.perm.share && state.user.username != "publicUser" && getters.currentView() != "share"
+        state.user?.perm &&
+        state.user?.perm.share &&
+        state.user.username != "publicUser" &&
+        getters.currentView() != "share"
       );
     },
   },

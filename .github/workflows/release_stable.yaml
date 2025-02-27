@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.playwright-regular
+          file: ./_docker/Dockerfile.playwright-general
           push: false
   create_release_tag:
     needs: [ test_playwright ]

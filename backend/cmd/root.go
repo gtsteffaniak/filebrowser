@@ -40,13 +40,14 @@ func getStore(config string) (*storage.Storage, bool) {
 		for sourcePath, source := range settings.Config.Server.SourceMap {
 			if _, ok := user.Scopes[sourcePath]; ok {
 				newScopes[source.Path] = user.Scopes[sourcePath]
+			} else if user.Perm.Admin {
+				newScopes[source.Path] = user.Scopes[sourcePath]
 			}
 		}
 		user.Scopes = newScopes
-		user.Password = ""
-		err := store.Users.Save(user)
+		err := store.Users.Update(user, "scopes")
 		if err != nil {
-			logger.Debug(fmt.Sprintf("error updating user %v",err))
+			logger.Error(fmt.Sprintf("could not update user: %v", err))
 		}
 	}
 	return store, hasDB
