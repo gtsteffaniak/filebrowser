@@ -481,7 +481,7 @@ export default {
 }
 
 .searchContext.input {
-  background-color: var(--alt-background) !important;
+  background-color: var(--primaryColor) !important;
   border-radius: 0em;
   border: unset;
   width: 25%;
@@ -786,7 +786,7 @@ body.rtl #search .boxes h3 {
 }
 
 .filesize {
-  background: linear-gradient(90deg, var(--alt-background) 50%, var(--primaryColor) 100%);
+  background: var(--alt-background);
   border-radius: 1em;
   padding: 0.25em;
   padding-left: 0.5em;

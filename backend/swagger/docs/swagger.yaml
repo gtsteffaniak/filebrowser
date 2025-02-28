@@ -171,6 +171,8 @@ definitions:
         type: string
       path:
         type: string
+      source:
+        type: string
       token:
         description: |-
           Token is a random value that will only be set when PasswordHash is set. It is
@@ -331,7 +333,8 @@ paths:
       description: Returns the raw content of a file, multiple files, or a directory.
         Supports downloading files as archives in various formats.
       parameters:
-      - description: Comma-separated list of specific files within the directory (required)
+      - description: a list of files in the following format 'source::filename' and
+          separated by ',|' with additional items in the list. (required)
         in: query
         name: files
         required: true
@@ -354,7 +357,7 @@ paths:
           schema:
             type: file
         "202":
-          description: Download permissions required
+          description: Modify permissions required
           schema:
             additionalProperties:
               type: string

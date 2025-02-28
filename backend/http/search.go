@@ -55,7 +55,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	query := r.URL.Query().Get("query")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	searchScope := strings.TrimPrefix(r.URL.Query().Get("scope"), ".")
 	searchScope = strings.TrimPrefix(searchScope, "/")

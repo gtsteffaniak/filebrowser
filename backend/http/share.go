@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 )
 
@@ -166,9 +167,19 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		stringHash = string(hash)
 	}
 	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = config.Server.DefaultSource.Name
+	}
+	idx := files.GetIndex(source)
+	realPath, _, err := idx.GetRealPath(path)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 	s = &share.Link{
-		Path:         path,
+		Path:         realPath,
 		Hash:         secure_hash,
+		Source:       source,
 		Expire:       expire,
 		UserID:       d.user.ID,
 		PasswordHash: stringHash,

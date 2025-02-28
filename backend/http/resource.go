@@ -38,7 +38,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -92,7 +92,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -144,7 +144,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -204,7 +204,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 
 	encodedPath := r.URL.Query().Get("path")
@@ -252,7 +252,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	action := r.URL.Query().Get("action")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	encodedFrom := r.URL.Query().Get("from")
 	// Decode the URL-encoded path
@@ -371,18 +371,19 @@ type DiskUsageResponse struct {
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	sourceName := r.URL.Query().Get("source")
 	if sourceName == "" {
-		sourceName = "default"
+		sourceName = config.Server.DefaultSource.Name
 	}
 	value, ok := cache.DiskUsage.Get(sourceName).(DiskUsageResponse)
 	if ok {
 		return renderJSON(w, r, &value)
 	}
-
 	source, ok := config.Server.NameToSource[sourceName]
 	if !ok {
-		return 400, fmt.Errorf("bad source path provided: %v", source)
+		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
 	}
-
+	if _, ok := d.user.Scopes[source.Path]; !ok {
+		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
+	}
 	usage, err := disk.UsageWithContext(r.Context(), source.Path)
 	if err != nil {
 		return errToStatus(err), err
@@ -399,7 +400,7 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)

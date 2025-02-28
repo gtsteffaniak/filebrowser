@@ -7,6 +7,10 @@ import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 
 export const mutations = {
+  setCurrentSource: (value) => {
+    state.sources.current = value;
+    emitStateChanged();
+  },
   updateSource: (sourcename,value) => {
     if (state.sources.info[sourcename]) {
       state.sources.info[sourcename] = value;

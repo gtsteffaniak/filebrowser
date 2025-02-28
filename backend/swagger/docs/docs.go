@@ -114,7 +114,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Comma-separated list of specific files within the directory (required)",
+                        "description": "a list of files in the following format 'source::filename' and separated by ',|' with additional items in the list. (required)",
                         "name": "files",
                         "in": "query",
                         "required": true
@@ -140,7 +140,7 @@ const docTemplate = `{
                         }
                     },
                     "202": {
-                        "description": "Download permissions required",
+                        "description": "Modify permissions required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1421,6 +1421,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "path": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 },
                 "token": {

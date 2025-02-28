@@ -69,20 +69,16 @@ export function download(format, files) {
     let source = ''
     if (files.length === 1) {
       const result = extractSourceFromPath(decodeURI(files[0]))
-      source = result.source
-      fileargs = result.path + ',|'
+      fileargs = result.source + "::" + result.path + ',|'
     } else {
       for (let file of files) {
         const result = extractSourceFromPath(decodeURI(file))
-        fileargs += result.path + ',|'
-        source = result.source
+        fileargs += result.source + "::" + result.path + ',|'
       }
-      fileargs = fileargs.substring(0, fileargs.length - 1)
     }
-
+    fileargs = fileargs.slice(0, -2); // remove trailing ",|"
     const apiPath = getApiPath('api/raw', {
       files: encodeURIComponent(fileargs),
-      source: source,
       algo: format
     })
     const url = window.origin + apiPath
@@ -217,8 +213,7 @@ export function getDownloadURL(path, inline, useExternal) {
   try {
     const result = extractSourceFromPath(decodeURI(path))
     const params = {
-      files: encodeURIComponent(result.path),
-      source: result.source,
+      files: encodeURIComponent(result.source + "==" +result.path),
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)
@@ -253,8 +248,7 @@ export function getSubtitlesURL(path) {
   const result = extractSourceFromPath(decodeURI(path))
   const params = {
     inline: true,
-    files: result.path,
-    source: result.source
+    files: result.source + "::" +result.path,
   }
   const apiPath = getApiPath('api/raw', params)
   return window.origin + apiPath

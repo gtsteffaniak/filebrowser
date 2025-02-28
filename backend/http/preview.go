@@ -14,6 +14,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/img"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 type ImgService interface {
@@ -46,7 +47,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = settings.Config.Server.DefaultSource.Name
 	}
 	previewSize := r.URL.Query().Get("size")
 	if previewSize != "small" {

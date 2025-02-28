@@ -13,7 +13,6 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
@@ -161,25 +160,22 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
-
-	// Validate the user's scope
-	idx := files.GetIndex("default")
-	_, _, err := idx.GetRealPath(d.user.Scopes["default"])
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
 	// Read the JSON body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	defer r.Body.Close()
-
 	// Parse the JSON into the UserRequest struct
 	var req UserRequest
 	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
+	}
+	r.Body.Close()
+	for key, source := range config.Server.SourceMap {
+		_, ok := req.Data.Scopes[key]
+		if !ok {
+			return http.StatusBadRequest, fmt.Errorf("invalid scope for source %s", source.Name)
+		}
 	}
 
 	if len(req.Which) != 0 {
