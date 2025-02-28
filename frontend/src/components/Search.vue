@@ -50,7 +50,7 @@
         </select>
 
         <!-- Formatted display of selected value -->
-        <div class="searchContext">{{ contextText() }}</div>
+        <div class="searchContext">{{ contextText }}</div>
       </div>
 
       <div id="result-list">
@@ -232,6 +232,9 @@ export default {
         mutations.closeHovers();
         return;
       }
+      if (state.sources.count > 1) {
+        this.selectedSource = state.sources.current;
+      }
       setTimeout(() => {
         resultList.classList.add("active");
         document.getElementById("main-input").focus();
@@ -303,18 +306,22 @@ export default {
     multipleSources() {
       return Object.keys(state.sources.info).length > 1;
     },
+    getContext() {
+      let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
+      if (this.selectedSource === "" || result.source === this.selectedSource) {
+        return result.path;
+      } else {
+        return "/"; // if searching on non-current source, search the whole thing
+      }
+    },
+    contextText() {
+      return `Search Context: ${this.getContext}`; // FIX: Use `this.getContext` as a property, not a function call
+    },
   },
   methods: {
-    contextText() {
-      return `Search Context: ${this.getContext()}`;
-    },
     updateSource(event) {
       this.selectedSource = event.target.value; // Correct way to get the new value
       console.log("Updated source:", this.selectedSource); // Debugging log
-    },
-    getContext() {
-      let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
-      return result.path;
     },
     getRelative(path) {
       return "/files/" + this.selectedSource + "/" + path;
@@ -423,7 +430,7 @@ export default {
       }
       this.ongoing = true;
       this.results = await search(
-        this.getContext(),
+        this.getContext,
         this.selectedSource,
         searchTypesFull + this.value
       );
@@ -779,7 +786,7 @@ body.rtl #search .boxes h3 {
 }
 
 .filesize {
-  background-color: var(--surfaceSecondary);
+  background: linear-gradient(90deg, var(--alt-background) 50%, var(--primaryColor) 100%);
   border-radius: 1em;
   padding: 0.25em;
   padding-left: 0.5em;
