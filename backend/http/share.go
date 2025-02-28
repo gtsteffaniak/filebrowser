@@ -160,7 +160,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var token string
 	if len(hash) > 0 {
 		tokenBuffer := make([]byte, 24) //nolint:gomnd
-		if _, err := rand.Read(tokenBuffer); err != nil {
+		if _, err = rand.Read(tokenBuffer); err != nil {
 			return http.StatusInternalServerError, err
 		}
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)

@@ -66,7 +66,6 @@ export function download(format, files) {
   }
   try {
     let fileargs = ''
-    let source = ''
     if (files.length === 1) {
       const result = extractSourceFromPath(decodeURI(files[0]))
       fileargs = result.source + "::" + result.path + ',|'

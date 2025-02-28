@@ -32,7 +32,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { removePrefix, extractSourceFromPath } from "@/utils/url.js";
+import { extractSourceFromPath } from "@/utils/url.js";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -62,10 +62,6 @@ export default {
       return getters.isCardView();
     },
     items() {
-      if (getters.currentView() == "share") {
-        // Split the path, filter out any empty elements, then join again with slashes
-        this.path = removePrefix(getters.routePath(), "share");
-      }
       let parts = this.path.split("/");
       if (parts[0] === "") {
         parts.shift();

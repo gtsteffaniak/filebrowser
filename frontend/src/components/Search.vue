@@ -448,7 +448,8 @@ export default {
     },
     addSelected(event, s) {
       const pathParts = s.path.split("/");
-      const path = removePrefix(decodeURIComponent(state.route.path), "files") + s.path;
+      const path =
+        url.removePrefix(decodeURIComponent(state.route.path), "files") + s.path;
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
