@@ -14,7 +14,12 @@
       <span>{{ selectedCount }} selected</span>
     </div>
 
-    <action v-if="!showCreate" icon="add" label="New" @action="startShowCreate" />
+    <action
+      v-if="!showCreate && !isSearchActive"
+      icon="add"
+      label="New"
+      @action="startShowCreate"
+    />
 
     <action
       v-if="showCreate && !isSearchActive"
@@ -22,6 +27,7 @@
       :label="$t('sidebar.newFolder')"
       @action="showHover('newDir')"
     />
+
     <action
       v-if="showCreate && userPerms.modify && !isSearchActive"
       icon="note_add"
@@ -37,7 +43,7 @@
     />
 
     <action
-      v-if="!showCreate && userPerms.select"
+      v-if="!showCreate && selectedCount == 1"
       icon="info"
       :label="$t('buttons.info')"
       show="info"
@@ -49,38 +55,38 @@
       @action="toggleMultipleSelection"
     />
     <action
-      v-if="!showCreate"
+      v-if="!showCreate && selectedCount > 0"
       icon="file_download"
       :label="$t('buttons.download')"
       @action="startDownload"
       :counter="selectedCount"
     />
     <action
-      v-if="!showCreate && userPerms.share"
+      v-if="!showCreate && selectedCount == 1 && userPerms.share"
       icon="share"
       :label="$t('buttons.share')"
       show="share"
     />
     <action
-      v-if="!showCreate && userPerms.modify && !isSearchActive"
+      v-if="!showCreate && selectedCount == 1 && userPerms.modify && !isSearchActive"
       icon="mode_edit"
       :label="$t('buttons.rename')"
       show="rename"
     />
     <action
-      v-if="!showCreate && userPerms.modify"
+      v-if="!showCreate && selectedCount > 0 && userPerms.modify"
       icon="content_copy"
       :label="$t('buttons.copyFile')"
       show="copy"
     />
     <action
-      v-if="!showCreate && userPerms.modify"
+      v-if="!showCreate && selectedCount > 0 && userPerms.modify"
       icon="forward"
       :label="$t('buttons.moveFile')"
       show="move"
     />
     <action
-      v-if="!showCreate && userPerms.modify"
+      v-if="!showCreate && selectedCount > 0 && userPerms.modify"
       icon="delete"
       :label="$t('buttons.delete')"
       show="delete"
@@ -145,16 +151,15 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
-    userPerms() {
-      return {
-        select: state.selected.length > 0,
-        upload: state.user.perm?.modify && state.selected.length > 0,
-        share: state.selected.length === 1 && state.user.perm.share,
-        modify: state.selected.length > 0 && state.user.perm.modify,
-      };
-    },
     selectedCount() {
       return getters.selectedCount();
+    },
+    userPerms() {
+      return {
+        upload: state.user.perm?.modify && state.selected.length > 0,
+        share: state.user.perm.share,
+        modify: state.user.perm.modify,
+      };
     },
   },
   methods: {

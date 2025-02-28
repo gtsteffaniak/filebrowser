@@ -429,11 +429,11 @@ export default {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
       this.ongoing = true;
-      this.results = await search(
-        this.getContext,
-        this.selectedSource,
-        searchTypesFull + this.value
-      );
+      let source = this.selectedSource;
+      if (source == "") {
+        source = state.sources.current;
+      }
+      this.results = await search(this.getContext, source, searchTypesFull + this.value);
 
       this.ongoing = false;
       if (this.results.length == 0) {
@@ -447,9 +447,8 @@ export default {
       mutations.closeHovers();
     },
     addSelected(event, s) {
-      const pathParts = s.path.split("/");
-      const path =
-        url.removePrefix(decodeURIComponent(state.route.path), "files") + s.path;
+      const pathParts = url.removeTrailingSlash(s.path).split("/");
+      const path = this.getContext + s.path;
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,

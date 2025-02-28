@@ -212,7 +212,7 @@ export function getDownloadURL(path, inline, useExternal) {
   try {
     const result = extractSourceFromPath(decodeURI(path))
     const params = {
-      files: encodeURIComponent(result.source + "==" +result.path),
+      files: encodeURIComponent(result.source + "::" +result.path),
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)
