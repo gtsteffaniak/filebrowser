@@ -25,23 +25,24 @@ FileBrowser Quantum is a fork of the file browser open-source project with the f
      - Real-time search results as you type
      - Search supports file/folder sizes and many file type filters.
      - Enhanced interactive results that show file/folder sizes.
-  2. ✅ Revamped UI
+  2. ✅ Multiple sources at once
+  3. ✅ Revamped UI
      - Additional compact view mode as well as refreshed view mode styles.
      - Many graphical and user experience improvements.
      - right-click context menu
-  3. ✅ Revamped and simplified configuration via `config.yaml` config file.
-  4. ✅ Better listing browsing
+  4. ✅ Revamped and simplified configuration via `config.yaml` config file.
+  5. ✅ Better listing browsing
      - Instantly Switches view modes and sort order without reloading data.
      - Folder sizes are displayed
      - Navigating remembers the scroll position, navigating back keeps the last scroll position.
-  5. ✅ Developer API support
+  6. ✅ Developer API support
      - Ability to create long-live API Tokens.
      - Helpful Swagger page available at `/swagger` endpoint.
 
 Notable features that this fork *does not* have (removed):
 
- - ❌ jobs/runners are not supported yet (planned).
- - ❌ per-user rules are not supported yet (planned).
+ - ❌ jobs are not supported yet (planned).
+ - ❌ rules are not supported yet (planned).
  - ❌ shell commands are completely removed and will not be returned.
 
 ## About
@@ -120,7 +121,7 @@ S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
-Multiple sources at once      | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Docker image size             | 31 MB  | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
 Min. Memory Requirements      | 128 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 4 GB   |
 has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
