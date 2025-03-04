@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 )
 
@@ -60,12 +60,18 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Accept json
 // @Produce json
 // @Param path query string true "Resource path for which to retrieve share links"
+// @Param source query string true "Source name for share links"
 // @Success 200 {array} share.Link "List of share links for the specified path"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/share [get]
 func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
-	s, err := store.Share.Gets(path, d.user.ID)
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = settings.Config.Server.DefaultSource.Name
+	}
+	fmt.Println(path, source, settings.Config.Server.DefaultSource.Name, d.user.ID)
+	s, err := store.Share.Gets(path, source, d.user.ID)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
 	}
@@ -109,6 +115,8 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Accept json
 // @Produce json
 // @Param body body share.CreateBody true "Share link creation parameters"
+// @Param path path string true "Source Path of the files to share"
+// @Param source path string true "Source name of the files to share"
 // @Success 200 {object} share.Link "Created share link"
 // @Failure 400 {object} map[string]string "Bad request - failed to decode body"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -171,13 +179,8 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if source == "" {
 		source = config.Server.DefaultSource.Name
 	}
-	idx := files.GetIndex(source)
-	realPath, _, err := idx.GetRealPath(path)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
 	s = &share.Link{
-		Path:         realPath,
+		Path:         path,
 		Hash:         secure_hash,
 		Source:       source,
 		Expire:       expire,

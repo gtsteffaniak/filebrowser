@@ -114,7 +114,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "a list of files in the following format 'source::filename' and separated by ',|' with additional items in the list. (required)",
+                        "description": "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)",
                         "name": "files",
                         "in": "query",
                         "required": true
@@ -715,6 +715,13 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for share links",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -794,6 +801,20 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/share.CreateBody"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source Path of the files to share",
+                        "name": "path",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name of the files to share",
+                        "name": "source",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {

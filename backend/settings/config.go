@@ -78,7 +78,9 @@ func setupSources() {
 				} else {
 					source.Name = name
 				}
-				Config.Server.DefaultSource = source
+				if Config.Server.DefaultSource.Path == "" {
+					Config.Server.DefaultSource = source
+				}
 			}
 			Config.Server.SourceMap[source.Path] = source
 			Config.Server.NameToSource[source.Name] = source

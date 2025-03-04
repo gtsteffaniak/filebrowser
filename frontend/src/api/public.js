@@ -1,5 +1,5 @@
 import { adjustedData } from "./utils";
-import { getApiPath, removePrefix } from "@/utils/url.js";
+import { getApiPath, removePrefix,extractSourceFromPath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 // Fetch public share data
@@ -25,16 +25,23 @@ export async function fetchPub(path, hash, password = "") {
 // Download files with given parameters
 export function download(share, ...files) {
   try {
-    let fileInfo = files[0]
-    if (files.length > 1) {
-      fileInfo = files.map(encodeURIComponent).join(",");
+    let fileargs = ''
+    if (files.length === 1) {
+      const result = extractSourceFromPath(decodeURI(files[0]))
+      fileargs = result.source + "::" + result.path + '||'
+    } else {
+      for (let file of files) {
+        const result = extractSourceFromPath(decodeURI(file))
+        fileargs += result.source + "::" + result.path + '||'
+      }
     }
+    fileargs = fileargs.slice(0, -2); // remove trailing "||"
     const params = {
       "path": removePrefix(share.path, "share"),
+      "files": fileargs,
       "hash": share.hash,
       "token": share.token,
       "inline": share.inline,
-      "files": fileInfo,
     };
     const apiPath = getApiPath("api/public/dl", params);
     window.open(window.origin+apiPath)
@@ -57,7 +64,15 @@ export async function getPublicUser() {
 }
 
 // Generate a download URL
-export function getDownloadURL(share) {
-  const apiPath = getApiPath("api/public/dl", share);
+export function getDownloadURL(share,files) {
+  console.log(share)
+  const params = {
+    path: share.path,
+    files: files,
+    hash: share.hash,
+    token: share.token,
+    ...(share.inline && { inline: 'true' })
+  }
+  const apiPath = getApiPath("api/public/dl", params);
   return window.origin+apiPath
 }

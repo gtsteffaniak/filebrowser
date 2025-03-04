@@ -68,14 +68,14 @@ export function download(format, files) {
     let fileargs = ''
     if (files.length === 1) {
       const result = extractSourceFromPath(decodeURI(files[0]))
-      fileargs = result.source + "::" + result.path + ',|'
+      fileargs = result.source + "::" + result.path + '||'
     } else {
       for (let file of files) {
         const result = extractSourceFromPath(decodeURI(file))
-        fileargs += result.source + "::" + result.path + ',|'
+        fileargs += result.source + "::" + result.path + '||'
       }
     }
-    fileargs = fileargs.slice(0, -2); // remove trailing ",|"
+    fileargs = fileargs.slice(0, -2); // remove trailing "||"
     const apiPath = getApiPath('api/raw', {
       files: encodeURIComponent(fileargs),
       algo: format
