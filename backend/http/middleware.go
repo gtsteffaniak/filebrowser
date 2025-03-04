@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/share"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -20,6 +21,7 @@ type requestContext struct {
 	raw   interface{}
 	path  string
 	token string
+	share *share.Link
 }
 
 type HttpResponse struct {
@@ -45,6 +47,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("share not found")
 		}
+		data.share = link
 		// Authenticate the share request if needed
 		var status int
 		if link.Hash != "" {

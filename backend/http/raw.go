@@ -67,10 +67,14 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	}
 	source := splitFile[0]
 	path = splitFile[1]
-	_, ok := d.user.Scopes[source]
-	if !ok {
-		return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+
+	if d.share == nil {
+		_, ok := d.user.Scopes[source]
+		if !ok {
+			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		}
 	}
+
 	idx := files.GetIndex(source)
 	realPath, _, err := idx.GetRealPath(d.user.Scopes[source], path)
 	if err != nil {
@@ -191,9 +195,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	fmt.Println("realPath", realPath, isDir, fileList, len(fileList))
 	if len(fileList) == 1 && !isDir {
-		fmt.Println("single file")
 		fd, err2 := os.Open(realPath)
 		if err2 != nil {
 			return http.StatusInternalServerError, err
@@ -259,9 +261,9 @@ func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
+			return err
 		}
 	}
-
 	return nil
 }
 
@@ -278,6 +280,7 @@ func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
+			return err
 		}
 	}
 

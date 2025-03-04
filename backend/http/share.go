@@ -70,7 +70,6 @@ func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if source == "" {
 		source = settings.Config.Server.DefaultSource.Name
 	}
-	fmt.Println(path, source, settings.Config.Server.DefaultSource.Name, d.user.ID)
 	s, err := store.Share.Gets(path, source, d.user.ID)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})

@@ -6,7 +6,7 @@
     <div aria-label="share-paths" class="searchContext">Path: {{ subpath }}</div>
     <p>
       Note: anyone who has access to the link (and optional password) can access the
-      shared files. There is no need to be logged in.
+      shared files. There is no requirement to be logged in.
     </p>
     <template v-if="listing">
       <div class="card-content">
@@ -191,7 +191,7 @@ export default {
               "files/" + state.req.source
             );
           } else {
-            path = state.req.items[this.selected[0]].url;
+            path = removePrefix(state.req.items[this.selected[0]].url, "files");
           }
         }
         if (state.sources.count > 1) {
