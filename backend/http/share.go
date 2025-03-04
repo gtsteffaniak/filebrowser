@@ -13,7 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 )
 
@@ -109,6 +108,8 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Accept json
 // @Produce json
 // @Param body body share.CreateBody true "Share link creation parameters"
+// @Param path path string true "Source Path of the files to share"
+// @Param source path string true "Source name of the files to share"
 // @Success 200 {object} share.Link "Created share link"
 // @Failure 400 {object} map[string]string "Bad request - failed to decode body"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -171,13 +172,8 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if source == "" {
 		source = config.Server.DefaultSource.Name
 	}
-	idx := files.GetIndex(source)
-	realPath, _, err := idx.GetRealPath(path)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
 	s = &share.Link{
-		Path:         realPath,
+		Path:         path,
 		Hash:         secure_hash,
 		Source:       source,
 		Expire:       expire,

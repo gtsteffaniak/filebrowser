@@ -32,7 +32,7 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param files query string true "a list of files in the following format 'source::filename' and separated by ',|' with additional items in the list. (required)"
+// @Param files query string true "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
@@ -53,7 +53,7 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	fileList := strings.Split(files, ",|")
+	fileList := strings.Split(files, "||")
 	for i, f := range fileList {
 		fileList[i] = filepath.Join(filePrefix, f)
 	}
@@ -181,7 +181,7 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fileList []string) (int, error) {
 	splitFile := strings.Split(fileList[0], "::")
 	if len(splitFile) != 2 {
-		return http.StatusBadRequest, fmt.Errorf("invalid file in files reques %v", fileList[0])
+		return http.StatusBadRequest, fmt.Errorf("invalid file in files request: %v", fileList[0])
 	}
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
