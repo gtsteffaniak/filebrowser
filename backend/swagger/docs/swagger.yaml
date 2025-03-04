@@ -745,6 +745,11 @@ paths:
         name: path
         required: true
         type: string
+      - description: Source name for share links
+        in: query
+        name: source
+        required: true
+        type: string
       produces:
       - application/json
       responses:

@@ -178,23 +178,27 @@ export default {
   },
   async beforeMount() {
     try {
+      let path = getters.routePath("files");
       if (state.isSearchActive) {
-        this.subpath = state.selected[0].path;
+        path = state.selected[0].path;
         this.source = state.selected[0].source;
       } else {
-        let path = getters.routePath("files");
+        this.source = state.req.source;
         if (getters.selectedCount() === 1) {
-          path = state.req.items[this.selected[0]].url;
+          if (state.sources.count > 1) {
+            path = removePrefix(
+              state.req.items[this.selected[0]].url,
+              "files/" + state.req.source
+            );
+          } else {
+            path = state.req.items[this.selected[0]].url;
+          }
         }
         if (state.sources.count > 1) {
-          this.subpath = decodeURIComponent(
-            removePrefix(path, "files/" + state.req.source)
-          );
-        } else {
-          this.subpath = decodeURIComponent(removePrefix(path, "files"));
+          path = removePrefix(path, state.req.source);
         }
-        this.source = state.req.source;
       }
+      this.subpath = decodeURIComponent(path);
       // get last element of the path
       const links = await shareApi.get(this.subpath);
       this.links = links;

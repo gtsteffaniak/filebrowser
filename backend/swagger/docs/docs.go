@@ -715,6 +715,13 @@ const docTemplate = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for share links",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

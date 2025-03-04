@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 )
 
@@ -59,12 +60,18 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Accept json
 // @Produce json
 // @Param path query string true "Resource path for which to retrieve share links"
+// @Param source query string true "Source name for share links"
 // @Success 200 {array} share.Link "List of share links for the specified path"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/share [get]
 func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
-	s, err := store.Share.Gets(path, d.user.ID)
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = settings.Config.Server.DefaultSource.Name
+	}
+	fmt.Println(path, source, settings.Config.Server.DefaultSource.Name, d.user.ID)
+	s, err := store.Share.Gets(path, source, d.user.ID)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
 	}

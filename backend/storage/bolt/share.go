@@ -46,33 +46,48 @@ func (s shareBackend) GetByHash(hash string) (*share.Link, error) {
 	return &v, err
 }
 
-func (s shareBackend) GetPermanent(path string, id uint) (*share.Link, error) {
+func (s shareBackend) GetPermanent(path, source string, id uint) (*share.Link, error) {
 	var v share.Link
-	err := s.db.Select(q.Eq("Path", path), q.Eq("Expire", 0), q.Eq("UserID", id)).First(&v)
-	if err == storm.ErrNotFound {
-		return nil, errors.ErrNotExist
-	}
-
-	return &v, err
+	var legacy []*share.Link
+	// todo remove legacy and return notfound errors
+	_ = s.db.Select(q.Eq("Path", path), q.Eq("Source", source), q.Eq("Expire", 0), q.Eq("UserID", id)).First(&v)
+	_ = s.db.Select(q.Eq("Path", path), q.Eq("Source", ""), q.Eq("UserID", id)).Find(&legacy)
+	return &v, nil
 }
 
-func (s shareBackend) Gets(path string, id uint) ([]*share.Link, error) {
+func (s shareBackend) Gets(path, source string, id uint) ([]*share.Link, error) {
 	var v []*share.Link
-	err := s.db.Select(q.Eq("Path", path), q.Eq("UserID", id)).Find(&v)
-	if err == storm.ErrNotFound {
-		return v, errors.ErrNotExist
-	}
-
+	var legacy []*share.Link
+	// todo remove legacy and return notfound errors
+	_ = s.db.Select(q.Eq("Path", path), q.Eq("Source", source), q.Eq("UserID", id)).Find(&v)
+	_ = s.db.Select(q.Eq("Path", path), q.Eq("Source", ""), q.Eq("UserID", id)).Find(&legacy)
 	filteredList := []*share.Link{}
-	// automatically delete and clear expired shares
+	var err error
+	// through and filter out expired share
 	for i := range v {
-		if v[i].Expire < time.Now().Unix() {
+		if v[i].Expire < time.Now().Unix() && v[i].Expire != 0 {
+			fmt.Println("deleting")
+
 			err = s.Delete(v[i].PasswordHash)
 			if err != nil {
 				logger.Error(fmt.Sprintf("expired share could not be deleted: %v", err.Error()))
 			}
 		} else {
 			filteredList = append(filteredList, v[i])
+		}
+	}
+
+	// automatically delete and clear expired shares
+	// todo remove after some time.
+	for i := range legacy {
+		if legacy[i].Expire < time.Now().Unix() && legacy[i].Expire != 0 {
+			fmt.Println("deleting")
+			err = s.Delete(legacy[i].PasswordHash)
+			if err != nil {
+				logger.Error(fmt.Sprintf("expired share could not be deleted: %v", err.Error()))
+			}
+		} else {
+			filteredList = append(filteredList, legacy[i])
 		}
 	}
 
