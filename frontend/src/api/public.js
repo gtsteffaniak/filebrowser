@@ -65,7 +65,6 @@ export async function getPublicUser() {
 
 // Generate a download URL
 export function getDownloadURL(share,files) {
-  console.log(share)
   const params = {
     path: share.path,
     files: files,

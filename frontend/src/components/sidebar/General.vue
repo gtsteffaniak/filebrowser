@@ -10,7 +10,7 @@
       </div>
 
       <div class="inner-card" @click="logout">
-        <button class="logout-button action">
+        <button aria-label="logout-button" class="logout-button action">
           <i v-if="canLogout" class="material-icons">exit_to_app</i>
         </button>
       </div>
