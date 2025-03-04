@@ -15,14 +15,14 @@
     </div>
 
     <action
-      v-if="!showCreate && !isSearchActive"
+      v-if="!showCreate && !isSearchActive && userPerms.modify"
       icon="add"
       label="New"
       @action="startShowCreate"
     />
 
     <action
-      v-if="showCreate && !isSearchActive"
+      v-if="showCreate && !isSearchActive && userPerms.modify"
       icon="create_new_folder"
       :label="$t('sidebar.newFolder')"
       @action="showHover('newDir')"

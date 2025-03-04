@@ -243,6 +243,8 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
+      scope:
+        type: string
       scopes:
         additionalProperties:
           type: string

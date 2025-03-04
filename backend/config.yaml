@@ -2,7 +2,7 @@ server:
   port: 80
   baseURL:  "/"
   sources:
-    - "/srv"
+    - path: "/srv"
 auth:
   signup: false
 userDefaults:

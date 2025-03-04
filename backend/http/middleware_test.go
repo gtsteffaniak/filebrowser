@@ -75,10 +75,10 @@ func TestWithAdminHelper(t *testing.T) {
 		Perm:     users.Permissions{Admin: false}, // Non-admin user
 	}
 	// Save the users to the mock database
-	if err := store.Users.Save(adminUser); err != nil {
+	if err := store.Users.Save(adminUser, true); err != nil {
 		t.Fatal("failed to save admin user:", err)
 	}
-	if err := store.Users.Save(nonAdminUser); err != nil {
+	if err := store.Users.Save(nonAdminUser, true); err != nil {
 		t.Fatal("failed to save non-admin user:", err)
 	}
 	// Test cases for different scenarios

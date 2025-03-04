@@ -28,11 +28,11 @@ export function download(share, ...files) {
     let fileargs = ''
     if (files.length === 1) {
       const result = extractSourceFromPath(decodeURI(files[0]))
-      fileargs = result.source + "::" + result.path + '||'
+      fileargs = result.path + '||'
     } else {
       for (let file of files) {
         const result = extractSourceFromPath(decodeURI(file))
-        fileargs += result.source + "::" + result.path + '||'
+        fileargs += result.path + '||'
       }
     }
     fileargs = fileargs.slice(0, -2); // remove trailing "||"
@@ -65,7 +65,6 @@ export async function getPublicUser() {
 
 // Generate a download URL
 export function getDownloadURL(share,files) {
-  console.log(share)
   const params = {
     path: share.path,
     files: files,

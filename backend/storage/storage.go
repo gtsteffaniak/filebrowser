@@ -95,7 +95,7 @@ func quickSetup(store *Storage) {
 	user.LockPassword = false
 	user.Perm = settings.AdminPerms()
 	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v\n", user.Username, user.Password))
-	err = store.Users.Save(user)
+	err = store.Users.Save(user, true)
 	utils.CheckErr("store.Users.Save", err)
 }
 
@@ -113,7 +113,7 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	// create new home directories
 	files.MakeUserDirs(newUser)
 
-	err := store.Users.Save(newUser)
+	err := store.Users.Save(newUser, true)
 	if err != nil {
 		return err
 	}

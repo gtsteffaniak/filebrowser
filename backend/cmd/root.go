@@ -44,8 +44,23 @@ func getStore(config string) (*storage.Storage, bool) {
 				newScopes[source.Path] = user.Scopes[sourcePath]
 			}
 		}
+		// maintain backwards compatibility, update user scope from scopes
+		if len(newScopes) == 0 {
+			newScopes[settings.Config.Server.DefaultSource.Path] = user.Scope
+		}
+		update := false
+		for scope := range newScopes {
+			value, ok := user.Scopes[scope]
+			if !ok || value != newScopes[scope] {
+				update = true
+			}
+		}
+		if !update {
+			continue
+		}
+		fmt.Println("user setup", user.Username, newScopes)
 		user.Scopes = newScopes
-		err := store.Users.Update(user, "scopes")
+		err := store.Users.Save(user, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("could not update user: %v", err))
 		}
@@ -151,7 +166,7 @@ func StartFilebrowser() {
 			if asAdmin {
 				user.Perm.Admin = true
 			}
-			err = store.Users.Save(user)
+			err = store.Users.Save(user, true)
 			if err != nil {
 				logger.Error(fmt.Sprintf("could not update user: %v", err))
 			}

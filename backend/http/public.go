@@ -34,13 +34,13 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if ok {
 		filePrefix = file.Source + "::"
 	}
-	encodedFiles := file.Path + r.URL.Query().Get("path")
+	encodedFiles := file.Path + r.URL.Query().Get("files")
 	// Decode the URL-encoded path
 	files, err := url.QueryUnescape(encodedFiles)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	fileList := strings.Split(files, ",")
+	fileList := strings.Split(files, "||")
 	for i, f := range fileList {
 		fileList[i] = filePrefix + f
 	}

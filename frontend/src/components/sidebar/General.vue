@@ -1,14 +1,18 @@
 <template>
-  <div class="card clickable" style="min-height: 4em">
+  <div class="card" style="min-height: 4em">
     <div class="card-wrapper user-card">
       <div @click="navigateTo('/settings#profile-main')" class="inner-card">
-        <i class="material-icons">person</i>
-        {{ user.username }}
-        <i aria-label="settings" class="material-icons">settings</i>
+        <button class="person-button action">
+          <i class="material-icons">person</i>
+          {{ user.username }}
+          <i aria-label="settings" class="material-icons">settings</i>
+        </button>
       </div>
 
-      <div class="inner-card logout-button" @click="logout">
-        <i v-if="canLogout" class="material-icons">exit_to_app</i>
+      <div class="inner-card" @click="logout">
+        <button aria-label="logout-button" class="logout-button action">
+          <i v-if="canLogout" class="material-icons">exit_to_app</i>
+        </button>
       </div>
     </div>
   </div>
@@ -218,7 +222,6 @@ export default {
   align-items: center;
   flex-direction: column;
   padding: 1em;
-  margin-top: 0.5em !important;
 }
 
 .sources .inner-card {
@@ -271,5 +274,10 @@ button.action {
 }
 .source-icon {
   padding: 0.1em !important;
+}
+
+.logout-button,
+.person-button {
+  padding: 0 !important;
 }
 </style>

@@ -66,8 +66,6 @@ func (s shareBackend) Gets(path, source string, id uint) ([]*share.Link, error) 
 	// through and filter out expired share
 	for i := range v {
 		if v[i].Expire < time.Now().Unix() && v[i].Expire != 0 {
-			fmt.Println("deleting")
-
 			err = s.Delete(v[i].PasswordHash)
 			if err != nil {
 				logger.Error(fmt.Sprintf("expired share could not be deleted: %v", err.Error()))
@@ -81,7 +79,6 @@ func (s shareBackend) Gets(path, source string, id uint) ([]*share.Link, error) 
 	// todo remove after some time.
 	for i := range legacy {
 		if legacy[i].Expire < time.Now().Unix() && legacy[i].Expire != 0 {
-			fmt.Println("deleting")
 			err = s.Delete(legacy[i].PasswordHash)
 			if err != nil {
 				logger.Error(fmt.Sprintf("expired share could not be deleted: %v", err.Error()))

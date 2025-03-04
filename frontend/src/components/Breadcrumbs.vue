@@ -115,7 +115,8 @@ export default {
       if (getters.currentView() == "share") {
         this.homePath = getters.sharePathBase();
         this.path = removePrefix(getters.routePath(), this.homePath + "/");
-      } else {
+      }
+      if (state.sources.count > 1) {
         this.homePath = "/files/" + result.source;
       }
     },

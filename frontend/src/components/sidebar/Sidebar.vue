@@ -111,7 +111,6 @@ body.rtl nav {
   overflow: hidden;
   padding: 0.5em;
   text-overflow: ellipsis;
-  margin: 0 !important;
 }
 
 body.rtl .action {
