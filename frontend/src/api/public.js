@@ -1,5 +1,5 @@
 import { adjustedData } from "./utils";
-import { getApiPath, removePrefix } from "@/utils/url.js";
+import { getApiPath, removePrefix,extractSourceFromPath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 // Fetch public share data
@@ -42,7 +42,6 @@ export function download(share, ...files) {
       "hash": share.hash,
       "token": share.token,
       "inline": share.inline,
-      "files": fileInfo,
     };
     const apiPath = getApiPath("api/public/dl", params);
     window.open(window.origin+apiPath)

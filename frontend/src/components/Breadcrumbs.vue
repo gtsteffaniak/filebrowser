@@ -32,7 +32,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { extractSourceFromPath } from "@/utils/url.js";
+import { extractSourceFromPath, removePrefix, removeLeadingSlash } from "@/utils/url.js";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -45,7 +45,6 @@ export default {
       gallerySize: state.user.gallerySize,
       homePath: "/files/",
       path: "",
-      source: "",
     };
   },
   props: ["base", "noLink"],
@@ -62,14 +61,7 @@ export default {
       return getters.isCardView();
     },
     items() {
-      let parts = this.path.split("/");
-      if (parts[0] === "") {
-        parts.shift();
-      }
-      if (getters.currentView() == "share") {
-        parts.shift();
-      }
-
+      let parts = removeLeadingSlash(this.path).split("/");
       if (parts[parts.length - 1] === "") {
         parts.pop();
       }
@@ -119,9 +111,13 @@ export default {
   methods: {
     updatePaths() {
       const result = extractSourceFromPath(getters.routePath());
-      this.source = result.source;
-      this.path = result.path;
-      this.homePath = "/files/" + state.sources.info[result.source].pathPrefix;
+      this.path = removePrefix(result.path, "files");
+      if (getters.currentView() == "share") {
+        this.homePath = getters.sharePathBase();
+        this.path = removePrefix(getters.routePath(), this.homePath + "/");
+      } else {
+        this.homePath = "/files/" + result.source;
+      }
     },
     updateGallerySize(event) {
       this.gallerySize = parseInt(event.target.value, 10);
