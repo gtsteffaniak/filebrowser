@@ -35,7 +35,24 @@
 
     <!-- Search results for desktop -->
     <div v-show="active" id="results" ref="result">
-      <div aria-label="search-path" class="searchContext">Search Context: {{ getContext }}</div>
+      <div class="inputWrapper" style="display: flex">
+        <select
+          v-if="multipleSources"
+          class="searchContext input"
+          aria-label="search-path"
+          v-model="selectedSource"
+          :value="selectedSource"
+          @change="updateSource"
+        >
+          <option v-for="(info, name) in sourceInfo" :key="info" :value="name">
+            {{ name }}
+          </option>
+        </select>
+
+        <!-- Formatted display of selected value -->
+        <div class="searchContext">{{ contextText }}</div>
+      </div>
+
       <div id="result-list">
         <div>
           <div v-if="active">
@@ -146,8 +163,7 @@ import ButtonGroup from "./ButtonGroup.vue";
 import { search } from "@/api";
 import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { removeTrailingSlash, removeLeadingSlash } from "@/utils/url";
-import { removePrefix } from "@/utils/url.js";
+import { url } from "@/utils/";
 
 import Icon from "@/components/Icon.vue";
 
@@ -193,6 +209,7 @@ export default {
       reload: false,
       scrollable: null,
       hiddenOptions: true,
+      selectedSource: "",
     };
   },
   watch: {
@@ -215,6 +232,9 @@ export default {
         mutations.closeHovers();
         return;
       }
+      if (state.sources.count > 1) {
+        this.selectedSource = state.sources.current;
+      }
       setTimeout(() => {
         resultList.classList.add("active");
         document.getElementById("main-input").focus();
@@ -226,6 +246,11 @@ export default {
         this.results = [];
       }
     },
+  },
+  mounted() {
+    if (state.sources.count > 1) {
+      this.selectedSource = state.sources.current;
+    }
   },
   computed: {
     showOptions() {
@@ -266,9 +291,6 @@ export default {
     searchHelp() {
       return this.showHelp;
     },
-    getContext() {
-      return this.getRelativeContext();
-    },
     activeStates() {
       // Create a Set of combined `name` and `type` keys for efficient lookup
       const selectedSet = new Set(
@@ -278,13 +300,31 @@ export default {
       // Build a map of active states for the `results` array
       return result;
     },
+    sourceInfo() {
+      return state.sources.info;
+    },
+    multipleSources() {
+      return Object.keys(state.sources.info).length > 1;
+    },
+    getContext() {
+      let result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
+      if (this.selectedSource === "" || result.source === this.selectedSource) {
+        return result.path;
+      } else {
+        return "/"; // if searching on non-current source, search the whole thing
+      }
+    },
+    contextText() {
+      return `Search Context: ${this.getContext}`; // FIX: Use `this.getContext` as a property, not a function call
+    },
   },
   methods: {
-    getRelativeContext() {
-      return removePrefix(decodeURIComponent(state.route.path), "files");
+    updateSource(event) {
+      this.selectedSource = event.target.value; // Correct way to get the new value
+      console.log("Updated source:", this.selectedSource); // Debugging log
     },
     getRelative(path) {
-      return removeTrailingSlash(window.location.href) + "/" + removeLeadingSlash(path);
+      return "/files/" + this.selectedSource + "/" + path;
     },
     getIcon(mimetype) {
       return getMaterialIconForType(mimetype);
@@ -388,10 +428,12 @@ export default {
       if (this.smallerThan != "") {
         searchTypesFull = searchTypesFull + "type:smallerThan=" + this.smallerThan + " ";
       }
-      let path = state.route.path;
       this.ongoing = true;
-
-      this.results = await search(path, searchTypesFull + this.value);
+      let source = this.selectedSource;
+      if (source == "") {
+        source = state.sources.current;
+      }
+      this.results = await search(this.getContext, source, searchTypesFull + this.value);
 
       this.ongoing = false;
       if (this.results.length == 0) {
@@ -405,8 +447,8 @@ export default {
       mutations.closeHovers();
     },
     addSelected(event, s) {
-      const pathParts = s.path.split("/");
-      const path = removePrefix(decodeURIComponent(state.route.path), "files") + s.path;
+      const pathParts = url.removeTrailingSlash(s.path).split("/");
+      const path = this.getContext + s.path;
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
@@ -436,6 +478,15 @@ export default {
   border-left: 1px solid gray;
   border-right: 1px solid gray;
   word-wrap: break-word;
+}
+
+.searchContext.input {
+  background-color: var(--primaryColor) !important;
+  border-radius: 0em;
+  border: unset;
+  width: 25%;
+  min-width: 7em;
+  max-width: 15em;
 }
 
 #results > #result-list {
@@ -735,7 +786,7 @@ body.rtl #search .boxes h3 {
 }
 
 .filesize {
-  background-color: var(--surfaceSecondary);
+  background: var(--alt-background);
   border-radius: 1em;
   padding: 0.25em;
   padding-left: 0.5em;

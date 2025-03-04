@@ -2,41 +2,19 @@
 since it didnt support Vue 3 but the component itself does
 https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/components/Progress.vue -->
 <template>
-  <div>
+  <div class="vue-simple-progress" :style="progress_style">
     <div
       class="vue-simple-progress-text"
       :style="text_style"
-      v-if="text.length > 0 && textPosition == 'top'"
+      v-if="text.length > 0 && textPosition == 'middle'"
     >
       {{ text }}
     </div>
-    <div class="vue-simple-progress" :style="progress_style">
-      <div
-        class="vue-simple-progress-text"
-        :style="text_style"
-        v-if="text.length > 0 && textPosition == 'middle'"
-      >
+
+    <div class="vue-simple-progress-bar" :style="bar_style">
+      <div :style="text_style" v-if="text.length > 0 && textPosition == 'inside'">
         {{ text }}
       </div>
-      <div
-        style="position: relative; left: -9999px"
-        :style="text_style"
-        v-if="text.length > 0 && textPosition == 'inside'"
-      >
-        {{ text }}
-      </div>
-      <div class="vue-simple-progress-bar" :style="bar_style">
-        <div :style="text_style" v-if="text.length > 0 && textPosition == 'inside'">
-          {{ text }}
-        </div>
-      </div>
-    </div>
-    <div
-      class="vue-simple-progress-text"
-      :style="text_style"
-      v-if="text.length > 0 && textPosition == 'bottom'"
-    >
-      {{ text }}
     </div>
   </div>
 </template>
@@ -117,7 +95,7 @@ export default {
         case "medium":
           return 8;
         case "large":
-          return 12;
+          return 10;
         case "big":
           return 16;
         case "huge":
@@ -162,7 +140,6 @@ export default {
       };
 
       if (this.textPosition == "middle" || this.textPosition == "inside") {
-        style["position"] = "relative";
         style["min-height"] = this.size_px + "px";
         style["z-index"] = "-2";
       }
@@ -185,9 +162,10 @@ export default {
       }
 
       if (this.textPosition == "middle" || this.textPosition == "inside") {
-        style["position"] = "absolute";
+        //style["position"] = "absolute";
         style["top"] = "0";
         style["height"] = "100%";
+        style["min-width"] = "1.5em";
         (style["min-height"] = this.size_px + "px"), (style["z-index"] = "-1");
       }
 
@@ -212,7 +190,6 @@ export default {
         this.textPosition == "inside"
       )
         style["padding-top"] = this.text_padding + "px";
-
       return style;
     },
   },

@@ -128,6 +128,9 @@ export default {
           res = await filesApi.fetchFiles(getters.routePath(), content);
         }
         data = res;
+        if (state.sources.count > 1) {
+          mutations.setCurrentSource(data.source);
+        }
         document.title = `${document.title} - ${res.name}`;
       } catch (e) {
         notify.showError(e);

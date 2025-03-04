@@ -57,6 +57,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
 			Path:   data.path,
+			Source: link.Source,
 			Modify: false,
 			Expand: true,
 		})
@@ -80,8 +81,6 @@ func withAdminHelper(fn handleFunc) handleFunc {
 		if !data.user.Perm.Admin {
 			return http.StatusForbidden, nil
 		}
-
-		// Proceed to the actual handler if the user is admin
 		return fn(w, r, data)
 	})
 }

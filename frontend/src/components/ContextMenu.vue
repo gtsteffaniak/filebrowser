@@ -14,7 +14,12 @@
       <span>{{ selectedCount }} selected</span>
     </div>
 
-    <action v-if="!showCreate" icon="add" label="New" @action="startShowCreate" />
+    <action
+      v-if="!showCreate && !isSearchActive"
+      icon="add"
+      label="New"
+      @action="startShowCreate"
+    />
 
     <action
       v-if="showCreate && !isSearchActive"
@@ -22,22 +27,23 @@
       :label="$t('sidebar.newFolder')"
       @action="showHover('newDir')"
     />
+
     <action
-      v-if="showCreate && !isSearchActive"
+      v-if="showCreate && userPerms.modify && !isSearchActive"
       icon="note_add"
       :label="$t('sidebar.newFile')"
       @action="showHover('newFile')"
     />
 
     <action
-      v-if="showCreate && !isSearchActive"
+      v-if="showCreate && userPerms.modify && !isSearchActive"
       icon="file_upload"
       :label="$t('buttons.upload')"
       @action="uploadFunc"
     />
 
     <action
-      v-if="!showCreate && headerButtons.select"
+      v-if="!showCreate && selectedCount == 1"
       icon="info"
       :label="$t('buttons.info')"
       show="info"
@@ -49,38 +55,38 @@
       @action="toggleMultipleSelection"
     />
     <action
-      v-if="!showCreate && headerButtons.download"
+      v-if="!showCreate && selectedCount > 0"
       icon="file_download"
       :label="$t('buttons.download')"
       @action="startDownload"
       :counter="selectedCount"
     />
     <action
-      v-if="!showCreate && headerButtons.share"
+      v-if="!showCreate && selectedCount == 1 && userPerms.share"
       icon="share"
       :label="$t('buttons.share')"
       show="share"
     />
     <action
-      v-if="!showCreate && headerButtons.rename && !isSearchActive"
+      v-if="!showCreate && selectedCount == 1 && userPerms.modify && !isSearchActive"
       icon="mode_edit"
       :label="$t('buttons.rename')"
       show="rename"
     />
     <action
-      v-if="!showCreate && headerButtons.copy"
+      v-if="!showCreate && selectedCount > 0 && userPerms.modify"
       icon="content_copy"
       :label="$t('buttons.copyFile')"
       show="copy"
     />
     <action
-      v-if="!showCreate && headerButtons.move"
+      v-if="!showCreate && selectedCount > 0 && userPerms.modify"
       icon="forward"
       :label="$t('buttons.moveFile')"
       show="move"
     />
     <action
-      v-if="!showCreate && headerButtons.delete"
+      v-if="!showCreate && selectedCount > 0 && userPerms.modify"
       icon="delete"
       :label="$t('buttons.delete')"
       show="delete"
@@ -145,19 +151,15 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
-    headerButtons() {
-      return {
-        select: state.selected.length > 0,
-        upload: state.user.perm?.create && state.selected.length > 0,
-        delete: state.selected.length > 0 && state.user.perm.modify,
-        rename: state.selected.length === 1 && state.user.perm.modify,
-        share: state.selected.length === 1 && state.user.perm.share,
-        move: state.selected.length > 0 && state.user.perm.modify,
-        copy: state.selected.length > 0 && state.user.perm.modify,
-      };
-    },
     selectedCount() {
       return getters.selectedCount();
+    },
+    userPerms() {
+      return {
+        upload: state.user.perm?.modify && state.selected.length > 0,
+        share: state.user.perm.share,
+        modify: state.user.perm.modify,
+      };
     },
   },
   methods: {

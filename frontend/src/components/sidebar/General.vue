@@ -57,12 +57,17 @@
           :aria-label="$t('sidebar.myFiles')"
           :title="name"
         >
-          <i class="material-icons">folder</i>
+          <i class="material-icons source-icon">folder</i>
           <span>{{ name }}</span>
           <div>
-            <progress-bar :val="info.usedPercentage" size="medium"></progress-bar>
+            <progress-bar
+              :val="info.usedPercentage"
+              text-position="inside"
+              :text="info.usedPercentage + '%'"
+              size="large"
+              text-fg-color="white"
+            ></progress-bar>
             <div class="usage-info">
-              <span>{{ info.usedPercentage }}%</span>
               <span>{{ info.used }} of {{ info.total }} used</span>
             </div>
           </div>
@@ -263,5 +268,8 @@ button.action {
 
 .source-button.active {
   background: var(--alt-background);
+}
+.source-icon {
+  padding: 0.1em !important;
 }
 </style>

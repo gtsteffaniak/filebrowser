@@ -10,6 +10,7 @@ import (
 	yaml "github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
@@ -58,21 +59,24 @@ func setupSources() {
 	if len(Config.Server.Sources) == 0 {
 		logger.Warning("`server.root` is deprecated, please update the config to use `server.sources`")
 		realPath := getRealPath(Config.Server.Root)
-		source := Source{Name: "default", Path: realPath}
+		name := utils.GetLastComponent(realPath)
+		source := Source{Name: name, Path: realPath}
 		Config.Server.SourceMap[source.Path] = source
-		Config.Server.NameToSource["default"] = source
+		Config.Server.NameToSource[name] = source
 	} else {
 		if Config.Server.Root != "" {
 			logger.Warning("`server.root` is configured but will be ignored in favor of `server.sources`")
 		}
 		for k, source := range Config.Server.Sources {
 			realPath := getRealPath(source.Path)
+			name := utils.GetLastComponent(realPath)
 			source.Path = realPath // use absolute path
 			if source.Name == "" {
-				if k == 0 {
-					source.Name = "default"
+				_, ok := Config.Server.SourceMap[source.Path]
+				if ok {
+					source.Name = name + fmt.Sprintf("-%v", k)
 				} else {
-					source.Name = "source" + fmt.Sprintf("%v", k)
+					source.Name = name
 				}
 				Config.Server.DefaultSource = source
 			}
@@ -184,7 +188,6 @@ func setDefaults() Settings {
 			NumImageProcessors: 4,
 			BaseURL:            "",
 			Database:           "database.db",
-			Root:               ".",
 			SourceMap:          map[string]Source{},
 			NameToSource:       map[string]Source{},
 		},

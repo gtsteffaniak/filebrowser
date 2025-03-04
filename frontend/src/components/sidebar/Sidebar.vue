@@ -109,7 +109,9 @@ body.rtl nav {
   white-space: nowrap;
   height: 100%;
   overflow: hidden;
+  padding: 0.5em;
   text-overflow: ellipsis;
+  margin: 0 !important;
 }
 
 body.rtl .action {

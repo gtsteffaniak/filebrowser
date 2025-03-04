@@ -43,7 +43,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	encodedUrl := r.URL.Query().Get("url")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = settings.Config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	url, err := url.QueryUnescape(encodedUrl)
@@ -136,7 +136,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = settings.Config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
