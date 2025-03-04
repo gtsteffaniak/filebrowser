@@ -146,6 +146,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if source == "" {
 		source = config.Server.DefaultSource.Name
 	}
+
+	if !d.user.Perm.Modify {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
+	}
+
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
@@ -206,7 +211,9 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if source == "" {
 		source = config.Server.DefaultSource.Name
 	}
-
+	if !d.user.Perm.Modify {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
+	}
 	encodedPath := r.URL.Query().Get("path")
 
 	// Decode the URL-encoded path
@@ -254,6 +261,11 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if source == "" {
 		source = config.Server.DefaultSource.Name
 	}
+
+	if !d.user.Perm.Modify {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
+	}
+
 	encodedFrom := r.URL.Query().Get("from")
 	// Decode the URL-encoded path
 	src, err := url.QueryUnescape(encodedFrom)

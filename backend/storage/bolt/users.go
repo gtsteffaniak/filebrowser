@@ -95,7 +95,7 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 	return nil
 }
 
-func (st usersBackend) Save(user *users.User) error {
+func (st usersBackend) Save(user *users.User, changePass bool) error {
 	if settings.Config.Auth.Methods.PasswordAuth.Enabled {
 		if len(user.Password) < settings.Config.Auth.Methods.PasswordAuth.MinLength {
 			return fmt.Errorf("password must be at least %d characters long", settings.Config.Auth.Methods.PasswordAuth.MinLength)

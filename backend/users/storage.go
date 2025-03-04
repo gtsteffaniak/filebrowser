@@ -11,7 +11,7 @@ import (
 type StorageBackend interface {
 	GetBy(interface{}) (*User, error)
 	Gets() ([]*User, error)
-	Save(u *User) error
+	Save(u *User, changePass bool) error
 	Update(u *User, fields ...string) error
 	DeleteByID(uint) error
 	DeleteByUsername(string) error
@@ -22,7 +22,7 @@ type Store interface {
 	Get(id interface{}) (user *User, err error)
 	Gets() ([]*User, error)
 	Update(user *User, fields ...string) error
-	Save(user *User) error
+	Save(user *User, changePass bool) error
 	Delete(id interface{}) error
 	LastUpdate(id uint) int64
 	AddApiKey(username uint, name string, key AuthToken) error
@@ -114,8 +114,8 @@ func (s *Storage) DeleteApiKey(userID uint, name string) error {
 }
 
 // Save saves the user in a storage.
-func (s *Storage) Save(user *User) error {
-	return s.back.Save(user)
+func (s *Storage) Save(user *User, changePass bool) error {
+	return s.back.Save(user, changePass)
 }
 
 // Delete allows you to delete a user by its name or username. The provided

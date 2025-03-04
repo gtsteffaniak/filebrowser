@@ -171,7 +171,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 
 		files.MakeUserDirs(u)
 
-		err = a.Users.Save(u)
+		err = a.Users.Save(u, true)
 		if err != nil {
 			return nil, err
 		}

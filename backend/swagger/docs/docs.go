@@ -1549,6 +1549,9 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
+                "scope": {
+                    "type": "string"
+                },
                 "scopes": {
                     "type": "object",
                     "additionalProperties": {

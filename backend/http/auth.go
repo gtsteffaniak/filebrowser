@@ -136,7 +136,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 
 	files.MakeUserDirs(user)
 
-	err = store.Users.Save(user)
+	err = store.Users.Save(user, true)
 	if err == errors.ErrExist {
 		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
 		return
