@@ -57,16 +57,8 @@ func getRealPath(path string) string {
 
 func setupSources() {
 	if len(Config.Server.Sources) == 0 {
-		logger.Warning("`server.root` is deprecated, please update the config to use `server.sources`")
-		realPath := getRealPath(Config.Server.Root)
-		name := utils.GetLastComponent(realPath)
-		source := Source{Name: name, Path: realPath}
-		Config.Server.SourceMap[source.Path] = source
-		Config.Server.NameToSource[name] = source
+		logger.Fatal("There are no `server.sources` configured. If you have `server.root` configured, please update the config and add at least one `server.sources` with a `path` configured.")
 	} else {
-		if Config.Server.Root != "" {
-			logger.Warning("`server.root` is configured but will be ignored in favor of `server.sources`")
-		}
 		for k, source := range Config.Server.Sources {
 			realPath := getRealPath(source.Path)
 			name := utils.GetLastComponent(realPath)

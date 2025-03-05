@@ -173,6 +173,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {
+			logger.Debug(fmt.Sprintf("Resource already exists: %v", fileInfo.RealPath))
 			return http.StatusConflict, nil
 		}
 
@@ -280,7 +281,6 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
-
 	idx := files.GetIndex(source)
 	// check target dir exists
 	parentDir, _, err := idx.GetRealPath(d.user.Scopes["default"], filepath.Dir(dst))
@@ -288,6 +288,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", d.user.Scopes["default"], filepath.Dir(dst), err))
 		return http.StatusNotFound, err
 	}
+
 	realDest := parentDir + "/" + filepath.Base(dst)
 	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scopes["default"], src)
 	if err != nil {
@@ -352,6 +353,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 			Expand:     false,
 			ReadHeader: false,
 		})
+
 		if err != nil {
 			return err
 		}
