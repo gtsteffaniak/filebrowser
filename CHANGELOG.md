@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
   - multiple sources support
 
  **Notes**:
+  - root paths now support symbolic links
   - downloads no longer open new window.
   - user permissions simplified to four permission groups (no config change required):
     - removed  : create, rename, delete, download
@@ -18,7 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
     - rules will come back in a different form (not applied to the user).
 
  **BugFixes**:
-  - 
+  - fix conflict resolution issue https://github.com/gtsteffaniak/filebrowser/issues/384
 
 ## v0.5.4-beta
 

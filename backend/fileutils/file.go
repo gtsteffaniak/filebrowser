@@ -1,28 +1,46 @@
 package fileutils
 
 import (
+	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,
 // the file copy is used as a fallback.
 func MoveFile(src, dst string) error {
-	if os.Rename(src, dst) == nil {
+	log.Println("os rename")
+
+	err := os.Rename(src, dst)
+	if err == nil {
 		return nil
 	}
+
 	// fallback
-	err := CopyFile(src, dst)
+	err = CopyFile(src, dst)
 	if err != nil {
-		_ = os.Remove(dst)
+		go func() {
+			err = os.Remove(src)
+			if err != nil {
+				logger.Error(fmt.Sprintf("os.Remove failed %v %v ", src, err))
+			}
+		}()
 		return err
 	}
-	if err := os.Remove(src); err != nil {
-		return err
-	}
+
+	go func() {
+		err = os.Remove(src)
+		if err != nil {
+			logger.Error(fmt.Sprintf("os.Remove failed %v %v ", src, err))
+		}
+	}()
+
 	return nil
 }
 

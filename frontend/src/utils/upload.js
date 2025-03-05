@@ -8,7 +8,7 @@ export function checkConflict(files, items) {
     items = [];
   }
 
-  let folder_upload = files[0].fullPath !== undefined;
+  let folder_upload = files[0].path !== undefined;
 
   let conflict = false;
   for (let i = 0; i < files.length; i++) {
@@ -16,7 +16,7 @@ export function checkConflict(files, items) {
     let name = file.name;
 
     if (folder_upload) {
-      let dirs = file.fullPath.split("/");
+      let dirs = file.path.split("/");
       if (dirs.length > 1) {
         name = dirs[0];
       }

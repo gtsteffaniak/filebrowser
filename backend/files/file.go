@@ -206,6 +206,8 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("debug what takes so long 6")
+
 	index := GetIndex(source)
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{

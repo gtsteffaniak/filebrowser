@@ -103,6 +103,7 @@ export default {
         };
         // Fetch destination files
         let dstResp = await filesApi.fetchFiles(this.dest);
+        console.log(dstResp, this.items);
         let conflict = upload.checkConflict(this.items, dstResp.items);
         let overwrite = false;
         let rename = false;

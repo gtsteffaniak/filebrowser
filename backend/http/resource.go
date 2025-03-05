@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -173,6 +174,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {
+			logger.Debug(fmt.Sprintf("Resource already exists: %v", fileInfo.RealPath))
 			return http.StatusConflict, nil
 		}
 
@@ -280,7 +282,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
-
+	fmt.Println("debug what takes so long 1")
 	idx := files.GetIndex(source)
 	// check target dir exists
 	parentDir, _, err := idx.GetRealPath(d.user.Scopes["default"], filepath.Dir(dst))
@@ -288,6 +290,8 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", d.user.Scopes["default"], filepath.Dir(dst), err))
 		return http.StatusNotFound, err
 	}
+	fmt.Println("debug what takes so long 2")
+
 	realDest := parentDir + "/" + filepath.Base(dst)
 	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scopes["default"], src)
 	if err != nil {
@@ -302,10 +306,13 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if overwrite && !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
+	log.Println("debug what takes so long 3")
+
 	err = patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
 	if err != nil {
 		logger.Debug(fmt.Sprintf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err))
 	}
+	log.Println("debug what takes so long 10")
 	return errToStatus(err), err
 }
 
@@ -352,12 +359,15 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 			Expand:     false,
 			ReadHeader: false,
 		})
+		log.Println("debug what takes so long 4")
+
 		if err != nil {
 			return err
 		}
 
 		// delete thumbnails
 		delThumbs(ctx, fileCache, fileInfo)
+		log.Println("debug what takes so long 11")
 		return files.MoveResource(index, src, dst, isSrcDir)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
