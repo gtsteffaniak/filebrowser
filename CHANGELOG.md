@@ -8,7 +8,6 @@ All notable changes to this project will be documented in this file. For commit 
   - multiple sources support
 
  **Notes**:
-  - root paths now support symbolic links
   - downloads no longer open new window.
   - user permissions simplified to four permission groups (no config change required):
     - removed  : create, rename, delete, download
