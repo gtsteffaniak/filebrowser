@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
   - removed user rules and commands.
     - commands feature has never been enabled so just removing the references.
     - rules will come back in a different form (not applied to the user).
+  - `server.root` is completely removed in favor of `server.sources`
 
  **BugFixes**:
   - fix conflict resolution issue https://github.com/gtsteffaniak/filebrowser/issues/384

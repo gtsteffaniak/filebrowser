@@ -35,34 +35,15 @@ func getStore(config string) (*storage.Storage, bool) {
 	if err2 != nil {
 		logger.Fatal(fmt.Sprintf("could not load users: %v", err2))
 	}
+
+	// maintain backwards compatibility, update user scope from scopes
+	// check for old format users (that don't have any scopes defined) and update them.
 	for _, user := range users {
-		newScopes := map[string]string{}
-		for sourcePath, source := range settings.Config.Server.SourceMap {
-			if _, ok := user.Scopes[sourcePath]; ok {
-				newScopes[source.Path] = user.Scopes[sourcePath]
-			} else if user.Perm.Admin {
-				newScopes[source.Path] = user.Scopes[sourcePath]
+		if len(user.Scopes) == 0 {
+			user.Scopes[settings.Config.Server.DefaultSource.Path] = user.Scope
+			if err != nil {
+				logger.Error(fmt.Sprintf("could not update user scopes: %v", err))
 			}
-		}
-		// maintain backwards compatibility, update user scope from scopes
-		if len(newScopes) == 0 {
-			newScopes[settings.Config.Server.DefaultSource.Path] = user.Scope
-		}
-		update := false
-		for scope := range newScopes {
-			value, ok := user.Scopes[scope]
-			if !ok || value != newScopes[scope] {
-				update = true
-			}
-		}
-		if !update {
-			continue
-		}
-		fmt.Println("user setup", user.Username, newScopes)
-		user.Scopes = newScopes
-		err := store.Users.Save(user, false)
-		if err != nil {
-			logger.Error(fmt.Sprintf("could not update user: %v", err))
 		}
 	}
 	return store, hasDB
