@@ -215,6 +215,13 @@ definitions:
       by:
         type: string
     type: object
+  users.SourceScope:
+    properties:
+      name:
+        type: string
+      scope:
+        type: string
+    type: object
   users.User:
     properties:
       apiKeys:
@@ -246,20 +253,15 @@ definitions:
       scope:
         type: string
       scopes:
-        additionalProperties:
-          type: string
-        type: object
+        items:
+          $ref: '#/definitions/users.SourceScope'
+        type: array
       showHidden:
         type: boolean
       singleClick:
         type: boolean
       sorting:
         $ref: '#/definitions/users.Sorting'
-      sources:
-        description: list of source names for the user
-        items:
-          type: string
-        type: array
       stickySidebar:
         type: boolean
       themeColor:
@@ -693,6 +695,11 @@ paths:
       - application/json
       description: Returns the current configuration settings for signup, user directories,
         rules, frontend.
+      parameters:
+      - description: Property to retrieve
+        in: query
+        name: property
+        type: string
       produces:
       - application/json
       responses:

@@ -173,6 +173,7 @@
     "video": "Video"
   },
   "settings": {
+    "scopes": "Define allowed sources and the user scope within them",
     "UserManagement": "User Management",
     "admin": "Admin",
     "administrator": "Administrator",

@@ -11,7 +11,7 @@ export const state = reactive({
   usages: {},
   editor: null,
   sources: {
-    current: "default",
+    current: "",
     count: 1,
     info: {},
   },

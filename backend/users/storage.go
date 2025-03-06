@@ -12,7 +12,7 @@ type StorageBackend interface {
 	GetBy(interface{}) (*User, error)
 	Gets() ([]*User, error)
 	Save(u *User, changePass bool) error
-	Update(u *User, fields ...string) error
+	Update(u *User, adminActor bool, fields ...string) error
 	DeleteByID(uint) error
 	DeleteByUsername(string) error
 }
@@ -21,7 +21,7 @@ type StorageBackend interface {
 type Store interface {
 	Get(id interface{}) (user *User, err error)
 	Gets() ([]*User, error)
-	Update(user *User, fields ...string) error
+	Update(user *User, adminActor bool, fields ...string) error
 	Save(user *User, changePass bool) error
 	Delete(id interface{}) error
 	LastUpdate(id uint) int64
@@ -65,8 +65,8 @@ func (s *Storage) Gets() ([]*User, error) {
 }
 
 // Update updates a user in the database.
-func (s *Storage) Update(user *User, fields ...string) error {
-	err := s.back.Update(user, fields...)
+func (s *Storage) Update(user *User, adminIActor bool, fields ...string) error {
+	err := s.back.Update(user, adminIActor, fields...)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 		user.ApiKeys = make(map[string]AuthToken)
 	}
 	user.ApiKeys[name] = key
-	err = s.Update(user, "ApiKeys")
+	err = s.Update(user, false, "ApiKeys")
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (s *Storage) DeleteApiKey(userID uint, name string) error {
 		user.ApiKeys = make(map[string]AuthToken)
 	}
 	delete(user.ApiKeys, name)
-	err = s.Update(user, "ApiKeys")
+	err = s.Update(user, false, "ApiKeys")
 	if err != nil {
 		return err
 	}

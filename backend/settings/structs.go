@@ -120,6 +120,7 @@ type SourceConfig struct {
 	Exclude               IndexFilter `json:"exclude"`
 	Include               IndexFilter `json:"include"`
 	DefaultUserScope      string      `json:"defaultUserScope"` // default "" should match folders under path
+	DefaultEnabled        bool        `json:"defaultEnabled"`
 	CreateUserDir         bool        `json:"createUserDir"`
 }
 
@@ -164,7 +165,4 @@ type UserDefaults struct {
 	ThemeColor           string            `json:"themeColor"`
 	QuickDownload        bool              `json:"quickDownload"`
 	DisableOnlyOfficeExt string            `json:"disableOnlyOfficeExt"`
-
-	// not exposed to config
-	Scopes map[string]string `json:"-"`
 }

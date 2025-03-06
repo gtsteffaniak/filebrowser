@@ -46,7 +46,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.Scopes[source], path),
+		Path:    filepath.Join(d.user.GetScopeByName(source), path),
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
 		Expand:  true,
@@ -60,7 +60,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		idx := files.GetIndex(source)
-		realPath, _, _ := idx.GetRealPath(d.user.Scopes[source], path)
+		realPath, _, _ := idx.GetRealPath(d.user.GetScopeByName(source), path)
 		checksums, err := files.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
@@ -103,7 +103,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, nil
 	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.Scopes["default"], path),
+		Path:   filepath.Join(d.user.GetScopeByName(source), path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -157,7 +157,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.Scopes["default"], path),
+		Path:   filepath.Join(d.user.GetScopeByName(source), path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -228,7 +228,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.Scopes["default"], path),
+		Path:   filepath.Join(d.user.GetScopeByName(source), path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -283,14 +283,14 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	idx := files.GetIndex(source)
 	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(d.user.Scopes["default"], filepath.Dir(dst))
+	parentDir, _, err := idx.GetRealPath(d.user.GetScopeByName(source), filepath.Dir(dst))
 	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", d.user.Scopes["default"], filepath.Dir(dst), err))
+		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", d.user.GetScopeByName(source), filepath.Dir(dst), err))
 		return http.StatusNotFound, err
 	}
 
 	realDest := parentDir + "/" + filepath.Base(dst)
-	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scopes["default"], src)
+	realSrc, isSrcDir, err := idx.GetRealPath(d.user.GetScopeByName(source), src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -395,7 +395,7 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 	if !ok {
 		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
 	}
-	if _, ok := d.user.Scopes[source.Path]; !ok {
+	if d.user.GetScopeByName(source.Path) == "" {
 		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
 	}
 	usage, err := disk.UsageWithContext(r.Context(), source.Path)

@@ -167,6 +167,7 @@
     "video": "Vídeo"
   },
   "settings": {
+    "scopes": "Definir fuentes permitidas y el alcance del usuario dentro de ellas",
     "admin": "Admin",
     "administrator": "Administrador",
     "allowCommands": "Ejecutar comandos",

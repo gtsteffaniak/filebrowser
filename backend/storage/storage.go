@@ -89,7 +89,13 @@ func quickSetup(store *Storage) {
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
-	user.Scopes = settings.Config.UserDefaults.Scopes
+	user.Scopes = []users.SourceScope{}
+	for _, val := range settings.Config.Server.Sources {
+		user.Scopes = append(user.Scopes, users.SourceScope{
+			Name:  val.Path, // backend name is path
+			Scope: "",
+		})
+	}
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false

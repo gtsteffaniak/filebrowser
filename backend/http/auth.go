@@ -83,6 +83,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the authentication method from the settings
 	auther, err := store.Auth.Get("password")
 	if err != nil {
+
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

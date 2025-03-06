@@ -57,7 +57,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:   filepath.Join(d.user.Scopes[source], path),
+		Path:   filepath.Join(d.user.GetScopeByName(source), path),
 		Modify: d.user.Perm.Modify,
 		Source: source,
 		Expand: true,

@@ -69,14 +69,13 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	path = splitFile[1]
 
 	if d.share == nil {
-		_, ok := d.user.Scopes[source]
-		if !ok {
+		if d.user.GetScopeByName(source) == "" {
 			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 		}
 	}
 
 	idx := files.GetIndex(source)
-	realPath, _, err := idx.GetRealPath(d.user.Scopes[source], path)
+	realPath, _, err := idx.GetRealPath(d.user.GetScopeByName(source), path)
 	if err != nil {
 		return fmt.Errorf("failed to get real path for %s: %v", path, err)
 	}
@@ -191,7 +190,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFilePath := splitFile[1]
 	fileName := filepath.Base(firstFilePath)
 	idx := files.GetIndex(firstFileSource)
-	realPath, isDir, err := idx.GetRealPath(d.user.Scopes[firstFileSource], firstFilePath)
+	realPath, isDir, err := idx.GetRealPath(d.user.GetScopeByName(firstFileSource), firstFilePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

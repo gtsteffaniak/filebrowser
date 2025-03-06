@@ -18,9 +18,10 @@ export const mutations = {
     emitStateChanged();
   },
   setSources: (user) => {
-    const currentSource = user.sources.length > 0 ? user.sources[0] : "default";
-    let sources = {info: {}, current: currentSource, count: user.sources.length};
-    for (const source of user.sources) {
+    const sourcesKeys = Object.keys(user.scopes);
+    const currentSource = sourcesKeys.length > 0 ? sourcesKeys[0] : "";
+    let sources = {info: {}, current: currentSource, count: sourcesKeys.length};
+    for (const source of sourcesKeys) {
       sources.info[source] = {
         pathPrefix: sources.count == 1 ? "" : source,
         used: 0,

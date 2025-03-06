@@ -638,6 +638,14 @@ const docTemplate = `{
                     "Settings"
                 ],
                 "summary": "Get system settings",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Property to retrieve",
+                        "name": "property",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "System settings data",
@@ -1507,6 +1515,17 @@ const docTemplate = `{
                 }
             }
         },
+        "users.SourceScope": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "scope": {
+                    "type": "string"
+                }
+            }
+        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -1553,9 +1572,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopes": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SourceScope"
                     }
                 },
                 "showHidden": {
@@ -1566,13 +1585,6 @@ const docTemplate = `{
                 },
                 "sorting": {
                     "$ref": "#/definitions/users.Sorting"
-                },
-                "sources": {
-                    "description": "list of source names for the user",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "stickySidebar": {
                     "type": "boolean"
