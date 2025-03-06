@@ -87,9 +87,9 @@ func setupSources() {
 	// clean up the in memory source list to be accurate and unique
 	sourceList := []Source{}
 	for k, source := range Config.Server.Sources {
-		_, ok := Config.Server.SourceMap[source.Path]
+		finalSource, ok := Config.Server.SourceMap[source.Path]
 		if ok {
-			sourceList = append(sourceList, source)
+			sourceList = append(sourceList, finalSource)
 		} else {
 			logger.Warning(fmt.Sprintf("source %v is not configured correctly, skipping", k))
 		}
@@ -229,45 +229,34 @@ func setDefaults() Settings {
 }
 
 func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, error) {
-	// convert the scope names back to paths for the backend to understand
 	newScopes := []users.SourceScope{}
-	scopeMap := map[string]users.SourceScope{} // ensure unique scopes
-	fmt.Println("ConvertToBackendScopes intro scopes", scopes)
 	for _, scope := range scopes {
-
 		// first check if its already a path name and keep it
 		source, ok := Config.Server.SourceMap[scope.Name]
 		if ok {
-			scopeMap[source.Path] = users.SourceScope{
+			newScopes = append(newScopes, users.SourceScope{
 				Name:  source.Path, // backend name is path
 				Scope: scope.Scope,
-			}
+			})
 			continue
 		}
 
 		// check if its the name of a source and convert it to a path
 		source, ok = Config.Server.NameToSource[scope.Name]
 		if !ok {
-			return newScopes, fmt.Errorf("invalid scope for source %v", source.Name)
+			return newScopes, fmt.Errorf("invalid scope for source %v", scope.Name)
 		}
-		scopeMap[source.Path] = users.SourceScope{
+		newScopes = append(newScopes, users.SourceScope{
 			Name:  source.Path, // backend name is path
 			Scope: scope.Scope,
-		}
+		})
 	}
-	for _, scope := range scopeMap {
-		newScopes = append(newScopes, scope)
-	}
-	fmt.Println("final scopes", newScopes)
-
 	return newScopes, nil
 }
 
 func ConvertToFrontendScopes(scopes []users.SourceScope) []users.SourceScope {
 	newScopes := []users.SourceScope{}
 	scopeMap := map[string]users.SourceScope{} // ensure unique scopes
-	fmt.Println("ConvertToFrontendScopes intro scopes", scopes)
-
 	for _, scope := range scopes {
 		source, ok := Config.Server.SourceMap[scope.Name]
 		if ok {
@@ -280,7 +269,37 @@ func ConvertToFrontendScopes(scopes []users.SourceScope) []users.SourceScope {
 	for _, scope := range scopeMap {
 		newScopes = append(newScopes, scope)
 	}
-	fmt.Println("final scopes", newScopes)
-
 	return newScopes
+}
+
+func HasSourceByPath(scopes []users.SourceScope, sourcePath string) bool {
+	for _, scope := range scopes {
+		if scope.Name == sourcePath {
+			return true
+		}
+	}
+	return false
+}
+
+func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (string, error) {
+	source, ok := Config.Server.NameToSource[sourceName]
+	if !ok {
+		return "", fmt.Errorf("source with name not found %v", sourceName)
+	}
+	for _, scope := range scopes {
+		if scope.Name == source.Path {
+			return scope.Scope, nil
+		}
+	}
+	return "", fmt.Errorf("scope not found for source %v", sourceName)
+}
+
+func GetScopeFromSourcePath(scopes []users.SourceScope, sourcePath string) (string, error) {
+	for _, scope := range scopes {
+		fmt.Println("checking scope", scope.Name)
+		if scope.Name == sourcePath {
+			return scope.Scope, nil
+		}
+	}
+	return "", fmt.Errorf("scope not found for source %v", sourcePath)
 }

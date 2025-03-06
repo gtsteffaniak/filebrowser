@@ -2,13 +2,15 @@
   <errors v-if="error" :errorCode="error.status" />
   <form @submit="save" class="card active" v-if="loaded">
     <div class="card-title">
-      <h2 v-if="user.id === 0">{{ $t("settings.newUser") }}</h2>
-      <h2 v-else>{{ $t("settings.user") }} {{ user.username }}</h2>
+      <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
+      <h2 v-else-if="actor.id == user.id">modify current user ({{ user.username }})</h2>
+      <h2 v-else>modify user: {{ user.username }}</h2>
     </div>
 
     <div class="card-content">
       <user-form
         v-model:user="user"
+        v-model:updatePassword="updatePassword"
         :createUserDir="createUserDir"
         :isDefault="false"
         :isNew="isNew"
@@ -50,13 +52,14 @@ export default {
       error: null,
       originalUser: null,
       user: {
-        scopes: { default: "" },
+        scopes: [],
         username: "",
         perm: { admin: false },
       },
       showDelete: false,
       createUserDir: false,
       loaded: false,
+      updatePassword: false,
     };
   },
   created() {
@@ -106,13 +109,13 @@ export default {
       try {
         if (this.isNew) {
           await usersApi.create(this.user); // Use the computed property
-          console.log(this.user);
           this.$router.push({ path: "/settings", hash: "#users-main" });
         } else {
           let which = ["all"];
-          if (!state.user.perm.admin && this.user.password != "") {
-            which = ["password"];
+          if (!this.updatePassword) {
+            this.user.password = "";
           }
+          console.log("this is user", this.user);
           await usersApi.update(this.user, which);
           notify.showSuccess(this.$t("settings.userUpdated"));
         }

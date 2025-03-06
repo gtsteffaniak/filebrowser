@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // searchHandler handles search requests for files based on the provided query.
@@ -62,7 +63,11 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	index := files.GetIndex(source)
-	userScope := strings.TrimPrefix(d.user.GetScopeByName(source), ".")
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	userScope := strings.TrimPrefix(userscope, ".")
 	combinedScope := strings.TrimPrefix(userScope+"/"+searchScope, "/")
 
 	// Perform the search using the provided query and user scope

@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -45,8 +46,12 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.GetScopeByName(source), path),
+		Path:    filepath.Join(userscope, path),
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
 		Expand:  true,
@@ -60,7 +65,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		idx := files.GetIndex(source)
-		realPath, _, _ := idx.GetRealPath(d.user.GetScopeByName(source), path)
+		realPath, _, _ := idx.GetRealPath(userscope, path)
 		checksums, err := files.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
@@ -102,8 +107,12 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if path == "/" {
 		return http.StatusForbidden, nil
 	}
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.GetScopeByName(source), path),
+		Path:   filepath.Join(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -156,8 +165,12 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.GetScopeByName(source), path),
+		Path:   filepath.Join(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -226,9 +239,12 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
 	}
-
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(d.user.GetScopeByName(source), path),
+		Path:   filepath.Join(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -282,15 +298,19 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
 	idx := files.GetIndex(source)
-	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(d.user.GetScopeByName(source), filepath.Dir(dst))
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", d.user.GetScopeByName(source), filepath.Dir(dst), err))
+		return http.StatusForbidden, err
+	}
+	// check target dir exists
+	parentDir, _, err := idx.GetRealPath(userscope, filepath.Dir(dst))
+	if err != nil {
+		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", userscope, filepath.Dir(dst), err))
 		return http.StatusNotFound, err
 	}
 
 	realDest := parentDir + "/" + filepath.Base(dst)
-	realSrc, isSrcDir, err := idx.GetRealPath(d.user.GetScopeByName(source), src)
+	realSrc, isSrcDir, err := idx.GetRealPath(userscope, src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -395,7 +415,9 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 	if !ok {
 		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
 	}
-	if d.user.GetScopeByName(source.Path) == "" {
+	_, err := settings.GetScopeFromSourceName(d.user.Scopes, sourceName)
+	if err != nil {
+		fmt.Println("user does not have permission to source", source.Path)
 		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
 	}
 	usage, err := disk.UsageWithContext(r.Context(), source.Path)

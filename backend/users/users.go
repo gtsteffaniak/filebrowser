@@ -75,21 +75,3 @@ var PublicUser = User{
 		Api:    false,
 	},
 }
-
-func (u *User) GetScopeByName(source string) string {
-	for _, scope := range u.Scopes {
-		if scope.Scope == source {
-			return scope.Name
-		}
-	}
-	return ""
-}
-
-func (u *User) GetScopeByPath(source string) string {
-	for _, scope := range u.Scopes {
-		if scope.Scope == source {
-			return scope.Name
-		}
-	}
-	return ""
-}

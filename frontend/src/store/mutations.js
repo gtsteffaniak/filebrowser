@@ -18,12 +18,11 @@ export const mutations = {
     emitStateChanged();
   },
   setSources: (user) => {
-    const sourcesKeys = Object.keys(user.scopes);
-    const currentSource = sourcesKeys.length > 0 ? sourcesKeys[0] : "";
-    let sources = {info: {}, current: currentSource, count: sourcesKeys.length};
-    for (const source of sourcesKeys) {
-      sources.info[source] = {
-        pathPrefix: sources.count == 1 ? "" : source,
+    const currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
+    let sources = {info: {}, current: currentSource, count: user.scopes.length};
+    for (const source of user.scopes) {
+      sources.info[source.name] = {
+        pathPrefix: sources.count == 1 ? "" : source.name,
         used: 0,
         total: 0,
         usedPercentage: 0,

@@ -7,8 +7,7 @@ services:
     volumes:
       - ./src/proxy/backend/default.conf:/etc/nginx/conf.d/default.conf
   filebrowser:
-    extra_hosts:
-      - "127.0.0.1:localhost"
+    hostname: filebrowser
     volumes:
       - '../frontend:/home/frontend'
       - "./src/proxy/backend/config.yaml:/home/filebrowser/config.yaml"

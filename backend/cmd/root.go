@@ -23,9 +23,9 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
-func getStore(config string) (*storage.Storage, bool) {
+func getStore(configFile string) (*storage.Storage, bool) {
 	// Use the config file (global flag)
-	settings.Initialize(config)
+	settings.Initialize(configFile)
 	store, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("could not load db info: %v", err))
@@ -40,17 +40,20 @@ func getStore(config string) (*storage.Storage, bool) {
 	for _, user := range usersList {
 		updateUser := false
 		newScopes := []users.SourceScope{}
-		for sourcePath, source := range settings.Config.Server.SourceMap {
-			name := user.GetScopeByPath(sourcePath)
-			if name == "" {
-				if user.Perm.Admin {
-					newScopes = append(newScopes, users.SourceScope{Scope: "", Name: source.Name})
+		for _, source := range settings.Config.Server.SourceMap {
+			scopePath := ""
+			if !user.Perm.Admin {
+				scopePath = source.Config.DefaultUserScope
+			}
+			fmt.Println("get source from path, ", source.Path, user.Scopes)
+			scope, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
+			if err != nil {
+				if user.Perm.Admin || source.Config.DefaultEnabled {
+					newScopes = append(newScopes, users.SourceScope{Scope: scopePath, Name: source.Path}) // backend name is path
 					updateUser = true
 				}
-				if source.Config.DefaultEnabled {
-					newScopes = append(newScopes, users.SourceScope{Scope: source.Config.DefaultUserScope, Name: source.Name})
-					updateUser = true
-				}
+			} else {
+				newScopes = append(newScopes, users.SourceScope{Scope: scope, Name: source.Path}) // backend name is path
 			}
 		}
 		user.Scopes = newScopes
@@ -58,8 +61,8 @@ func getStore(config string) (*storage.Storage, bool) {
 		if len(user.Scopes) == 0 {
 			user.Scopes = []users.SourceScope{
 				{
-					Scope: settings.Config.Server.DefaultSource.Config.DefaultUserScope,
-					Name:  settings.Config.Server.DefaultSource.Name,
+					Scope: user.Scope,
+					Name:  settings.Config.Server.DefaultSource.Path, // backend name is path
 				},
 			}
 			updateUser = true
