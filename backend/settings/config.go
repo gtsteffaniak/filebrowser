@@ -79,7 +79,9 @@ func setupSources() {
 	}
 	// if only one source listed, make sure its default
 	if len(Config.Server.SourceMap) == 1 {
-		for _, source := range Config.Server.SourceMap {
+		for path, source := range Config.Server.SourceMap {
+			source.Config.DefaultEnabled = true
+			Config.Server.SourceMap[path] = source
 			Config.Server.DefaultSource = source
 		}
 	}
@@ -296,7 +298,6 @@ func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (stri
 
 func GetScopeFromSourcePath(scopes []users.SourceScope, sourcePath string) (string, error) {
 	for _, scope := range scopes {
-		fmt.Println("checking scope", scope.Name)
 		if scope.Name == sourcePath {
 			return scope.Scope, nil
 		}

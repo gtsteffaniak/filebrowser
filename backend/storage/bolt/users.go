@@ -64,19 +64,23 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	if err != nil {
 		return err
 	}
+
 	fields, err = parseFields(user, fields)
 	if err != nil {
 		return err
 	}
+
 	if !actorIsAdmin {
 		err := checkRestrictedFields(existingUser, fields)
 		if err != nil {
 			return err
 		}
 	}
+
 	if len(fields) == 0 {
 		return fmt.Errorf("no fields to update")
 	}
+
 	// converting scopes to map of paths intead of names (names can change)
 	if slices.Contains(fields, "scopes") || slices.Contains(fields, "Scopes") {
 		adjustedScopes, err := settings.ConvertToBackendScopes(user.Scopes)
@@ -85,7 +89,6 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		}
 		user.Scopes = adjustedScopes
 	}
-
 	// Use reflection to access struct fields
 	userFields := reflect.ValueOf(user).Elem() // Get struct value
 
@@ -99,28 +102,25 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		}
 
 		// Ensure the field is settable
-		if !fieldValue.CanInterface() {
-			return fmt.Errorf("cannot get value of field: %s", correctedField)
+		if !fieldValue.CanSet() {
+			return fmt.Errorf("cannot set value of field: %s", correctedField)
 		}
 
 		// Get the value to be stored
-		userValue := fieldValue.Interface()
-		fmt.Println("saving value", user.Username, correctedField, userValue)
+		val := fieldValue.Interface()
 		// Update the database
-		if err := st.db.UpdateField(user, correctedField, userValue); err != nil {
+		if err := st.db.UpdateField(user, correctedField, val); err != nil {
 			return fmt.Errorf("failed to update user field: %s, error: %v", correctedField, err)
 		}
 	}
-
 	return nil
 }
 
 func (st usersBackend) Save(user *users.User, changePass bool) error {
-	fmt.Println("saving", user.Username, user.Password, user.Scopes)
-
 	if settings.Config.Auth.Methods.PasswordAuth.Enabled && changePass {
-		if len(user.Password) < settings.Config.Auth.Methods.PasswordAuth.MinLength {
-			return fmt.Errorf("password must be at least %d characters long", settings.Config.Auth.Methods.PasswordAuth.MinLength)
+		err := checkPassword(user.Password)
+		if err != nil {
+			return err
 		}
 		pass, err := users.HashPwd(user.Password)
 		if err != nil {
@@ -135,7 +135,6 @@ func (st usersBackend) Save(user *users.User, changePass bool) error {
 		return err
 	}
 	user.Scopes = adjustedScopes
-	fmt.Println("saving", user.Username, user.Password, user.Scopes)
 
 	err = st.db.Save(user)
 	if err == storm.ErrAlreadyExists {
@@ -190,17 +189,28 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 		// Dynamically populate fields to update
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
-			if field.Name == "Password" && user.Password != "" {
-				var err error
-				user.Password, err = users.HashPwd(user.Password)
-				if err != nil {
-					return fields, err
-				}
-				fields = append(fields, field.Name)
-			} else if field.Name != "Password" && field.Name != "Fs" && field.Name != "NonAdminEditable" {
+			if (field.Name == "password" && user.Password != "") || field.Name != "password" {
 				fields = append(fields, field.Name)
 			}
 		}
+	} else {
+		if slices.Contains(fields, "password") && user.Password != "" {
+			if settings.Config.Auth.Methods.PasswordAuth.Enabled {
+				pass, err := users.HashPwd(user.Password)
+				if err != nil {
+					return fields, err
+				}
+				user.Password = pass
+			}
+		}
 	}
+
 	return fields, nil
+}
+
+func checkPassword(password string) error {
+	if len(password) < settings.Config.Auth.Methods.PasswordAuth.MinLength {
+		return fmt.Errorf("password must be at least %d characters long", settings.Config.Auth.Methods.PasswordAuth.MinLength)
+	}
+	return nil
 }

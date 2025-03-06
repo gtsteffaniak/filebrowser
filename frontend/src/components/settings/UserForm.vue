@@ -7,7 +7,7 @@
       placeholder="enter new password"
       v-model="user.password"
       id="password"
-      @input="emitUpdate"
+      @input="setUpdatePassword"
     />
   </div>
   <div v-else>
@@ -137,6 +137,9 @@ export default {
     isNew: Boolean,
   },
   async mounted() {
+    if (!this.stateUser.perm.admin) {
+      return;
+    }
     this.sourceList = await settingsApi.get("sources");
     this.localUser = { ...this.user };
     this.selectedSources = [];
@@ -195,6 +198,9 @@ export default {
     },
   },
   methods: {
+    setUpdatePassword() {
+      this.$emit("update:updatePassword", true);
+    },
     updateParent(input) {
       let updatedScopes = {};
       // Update the selectedSources array directly

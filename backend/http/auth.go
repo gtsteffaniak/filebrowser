@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -17,7 +16,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
@@ -83,18 +81,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the authentication method from the settings
 	auther, err := store.Auth.Get("password")
 	if err != nil {
-
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 	// Authenticate the user based on the request
 	user, err := auther.Auth(r, store.Users)
-	if err == os.ErrPermission {
-		logger.Error(fmt.Sprintf("unable to get user: %v", err))
+	if err != nil {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		return
-	} else if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 	status, err := printToken(w, r, user) // Pass the data object

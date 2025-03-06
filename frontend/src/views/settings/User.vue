@@ -91,7 +91,6 @@ export default {
             return;
           }
           this.user = { ...(await usersApi.get(id)) };
-          console.log("this is user", this.user);
         }
       } catch (e) {
         notify.showError(e);
@@ -112,11 +111,10 @@ export default {
           this.$router.push({ path: "/settings", hash: "#users-main" });
         } else {
           let which = ["all"];
-          if (!this.updatePassword) {
-            this.user.password = "";
-          }
-          console.log("this is user", this.user);
           await usersApi.update(this.user, which);
+          if (this.updatePassword) {
+            await usersApi.update(this.user, ["password"]);
+          }
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {

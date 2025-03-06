@@ -45,7 +45,6 @@ func getStore(configFile string) (*storage.Storage, bool) {
 			if !user.Perm.Admin {
 				scopePath = source.Config.DefaultUserScope
 			}
-			fmt.Println("get source from path, ", source.Path, user.Scopes)
 			scope, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
 			if err != nil {
 				if user.Perm.Admin || source.Config.DefaultEnabled {
@@ -70,7 +69,6 @@ func getStore(configFile string) (*storage.Storage, bool) {
 		if !updateUser {
 			continue
 		}
-		fmt.Println("updating user", user.Username, "with scopes", user.Scopes, user.Scopes[0].Name, user.Scopes[0].Scope)
 		err := store.Users.Save(user, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("could not update user: %v", err))
