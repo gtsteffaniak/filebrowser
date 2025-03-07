@@ -38,7 +38,8 @@ export const mutations = {
   },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
-    router.push({ hash: "#" + value });
+    // Update the hash in the URL without reloading or changing history state
+    window.history.replaceState(null, "", "#" + value);
     const element = document.getElementById(value);
     if (element) {
       element.scrollIntoView({

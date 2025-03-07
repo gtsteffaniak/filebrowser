@@ -83,7 +83,7 @@ export default {
     },
     setView(view) {
       if (state.activeSettingsView === view) return;
-      //mutations.setActiveSettingsView(view);
+      mutations.setActiveSettingsView(view);
     },
     handleClick(event, view) {
       // Allow propagation if the click is on a link or a child element with default behavior
