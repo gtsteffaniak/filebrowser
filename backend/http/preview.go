@@ -155,6 +155,9 @@ func previewCacheKey(realPath, previewSize string, modTime time.Time) string {
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file files.ExtendedFileInfo) (int, error) {
 	idx := files.GetIndex(file.Source)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source not found: %s", file.Source)
+	}
 	realPath, _, _ := idx.GetRealPath(file.Path)
 	fd, err := os.Open(realPath)
 	if err != nil {

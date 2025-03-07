@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -63,6 +64,9 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	index := files.GetIndex(source)
+	if index == nil {
+		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", source)
+	}
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
 		return http.StatusForbidden, err

@@ -74,6 +74,10 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	}
 
 	idx := files.GetIndex(source)
+	if idx == nil {
+		return fmt.Errorf("source %s is not available", source)
+	}
+
 	realPath, _, err := idx.GetRealPath(userScope, path)
 	if err != nil {
 		return fmt.Errorf("failed to get real path for %s: %v", path, err)
@@ -195,6 +199,9 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return http.StatusForbidden, err
 	}
 	idx := files.GetIndex(firstFileSource)
+	if idx == nil {
+		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
+	}
 	realPath, isDir, err := idx.GetRealPath(userscope, firstFilePath)
 	if err != nil {
 		return http.StatusInternalServerError, err

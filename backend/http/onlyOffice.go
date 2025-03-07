@@ -14,6 +14,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
@@ -188,6 +189,9 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 
 func getOnlyOfficeId(source, path string) (string, error) {
 	idx := files.GetIndex(source)
+	if idx == nil {
+		return "", fmt.Errorf("source not found")
+	}
 	realpath, _, _ := idx.GetRealPath(path)
 	// error is intentionally ignored in order treat errors
 	// the same as a cache-miss
@@ -199,6 +203,10 @@ func getOnlyOfficeId(source, path string) (string, error) {
 }
 func deleteOfficeId(source, path string) {
 	idx := files.GetIndex(source)
+	if idx == nil {
+		logger.Error(fmt.Sprintf("deleteOfficeId: failed to find source index for user home dir creation: %s", source))
+		return
+	}
 	realpath, _, _ := idx.GetRealPath(path)
 	cache.OnlyOffice.Delete(realpath)
 }

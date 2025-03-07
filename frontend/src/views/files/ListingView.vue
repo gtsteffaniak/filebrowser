@@ -576,7 +576,7 @@ export default {
           break;
 
         case "F2":
-          if (!state.user.perm.modify || state.selected.length !== 1) return;
+          if (!state.user.perm.rename || state.selected.length !== 1) return;
           mutations.showHover("rename");
           break;
 
@@ -945,9 +945,7 @@ export default {
 .add-padding {
   padding-left: 0.5em;
 }
-
 .font-size-large h2 {
   font-size: 2em !important;
 }
-
 </style>

@@ -13,7 +13,7 @@
   <h3>FileBrowser Quantum</h3>
   A modern web-based file manager
   <br/><br/>
-  <img width="800" src="https://github.com/user-attachments/assets/c991fc69-a05b-4f34-b915-0d3cded887a7" title="Main Screenshot">
+  <img width="800" src="https://github.com/user-attachments/assets/c35a8455-c32d-47f5-853d-f285e160b022" title="Main Screenshot">
 </div>
 
 > [!WARNING]
@@ -25,7 +25,7 @@ FileBrowser Quantum is a fork of the file browser open-source project with the f
      - Real-time search results as you type
      - Search supports file/folder sizes and many file type filters.
      - Enhanced interactive results that show file/folder sizes.
-  2. ✅ Multiple sources at once
+  2. ✅ Multiple sources support
   3. ✅ Revamped UI
      - Additional compact view mode as well as refreshed view mode styles.
      - Many graphical and user experience improvements.
@@ -46,12 +46,6 @@ Notable features that this fork *does not* have (removed):
  - ❌ shell commands are completely removed and will not be returned.
 
 ## About
-
-This repository is a fork of the original [filebrowser](https://github.com/filebrowser/filebrowser)
- with a collection of changes that make this program work better in terms of
- aesthetics and performance. Improved search, simplified UI
- (without removing features) and more secure and up-to-date
- build are just a few examples.
 
 FileBrowser Quantum differs significantly from the original.
 There are hundreds of thousands of lines changed and they are generally
@@ -78,9 +72,7 @@ action panel. If the action is available based on context, it will show up as
 a popup menu.
 
 <p align="center">
-  <img width="800" src="https://github.com/user-attachments/assets/2be7a6c5-0f95-4d9f-bc05-484ee71246d8" title="Search GIF">
-  <img width="800" src="https://github.com/user-attachments/assets/f55a6f1f-b930-4399-98b5-94da6e90527a" title="Navigation GIF">
-  <img width="800" src="https://github.com/user-attachments/assets/93b019de-d38f-4aaa-bde3-3ba4e99ecd25" title="Main Screenshot">
+  <img width="1000" src="https://github.com/user-attachments/assets/aa32b05c-f917-47bb-b07f-857edc5e47f7" title="Search GIF">
 </p>
 
 ## Install and Configuration

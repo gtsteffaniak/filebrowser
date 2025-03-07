@@ -16,6 +16,9 @@ func BenchmarkFillIndex(b *testing.B) {
 		Path: "/srv",
 	})
 	idx := GetIndex("test")
+	if idx == nil {
+		b.Fatal("index is nil")
+	}
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {

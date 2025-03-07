@@ -12,7 +12,6 @@
         v-model:user="user"
         v-model:updatePassword="updatePassword"
         :createUserDir="createUserDir"
-        :isDefault="false"
         :isNew="isNew"
         @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
       />
