@@ -138,14 +138,15 @@ export default {
   },
   async mounted() {
     if (!this.stateUser.perm.admin) {
-      return;
+      this.sourceList = this.user.scopes;
+    } else {
+      this.sourceList = await settingsApi.get("sources");
     }
-    this.sourceList = await settingsApi.get("sources");
     this.localUser = { ...this.user };
     this.selectedSources = [];
-    this.availableSources = this.sourceList;
+    this.availableSources = [...this.sourceList];
     if (this.isNew) {
-      const newSource = this.availableSources.pop();
+      const newSource = this.availableSources.shift(); // Take the first item instead of last
       if (newSource) {
         this.selectedSources.push(newSource);
       }

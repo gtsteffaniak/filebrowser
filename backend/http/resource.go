@@ -417,7 +417,7 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 	}
 	_, err := settings.GetScopeFromSourceName(d.user.Scopes, sourceName)
 	if err != nil {
-		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
+		return 403, fmt.Errorf("user doesn't have access to '%s', contact your administrator for access", sourceName)
 	}
 	usage, err := disk.UsageWithContext(r.Context(), source.Path)
 	if err != nil {

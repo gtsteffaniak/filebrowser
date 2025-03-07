@@ -116,6 +116,9 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	if asAdmin {
 		userInfo.Perm = settings.AdminPerms()
 	}
+	if len(userInfo.Scopes) == 0 {
+		userInfo.Scopes = settings.Config.UserDefaults.DefaultScopes
+	}
 	// create new home directories
 	files.MakeUserDirs(newUser)
 

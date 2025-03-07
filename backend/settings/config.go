@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	yaml "github.com/goccy/go-yaml"
@@ -77,25 +78,35 @@ func setupSources() {
 			Config.Server.NameToSource[source.Name] = source
 		}
 	}
-	// if only one source listed, make sure its default
-	if len(Config.Server.SourceMap) == 1 {
-		for path, source := range Config.Server.SourceMap {
-			source.Config.DefaultEnabled = true
-			Config.Server.SourceMap[path] = source
-			Config.Server.DefaultSource = source
-		}
-	}
-
 	// clean up the in memory source list to be accurate and unique
 	sourceList := []Source{}
-	for k, source := range Config.Server.Sources {
-		finalSource, ok := Config.Server.SourceMap[source.Path]
-		if ok {
-			sourceList = append(sourceList, finalSource)
+	defaultScopes := []users.SourceScope{}
+	allSourceNames := []string{}
+	first := true
+	for _, sourcePathOnly := range Config.Server.Sources {
+		source, ok := Config.Server.SourceMap[sourcePathOnly.Path]
+		if ok && !slices.Contains(allSourceNames, source.Name) {
+			if first {
+				source.Config.DefaultEnabled = true
+				Config.Server.SourceMap[source.Path] = source
+				Config.Server.NameToSource[source.Name] = source
+				Config.Server.DefaultSource = source
+			}
+			first = false
+			sourceList = append(sourceList, source)
+			if source.Config.DefaultEnabled {
+				Config.Server.DefaultSource = source
+				defaultScopes = append(defaultScopes, users.SourceScope{
+					Name:  source.Path,
+					Scope: source.Config.DefaultUserScope,
+				})
+			}
+			allSourceNames = append(allSourceNames, source.Name)
 		} else {
-			logger.Warning(fmt.Sprintf("source %v is not configured correctly, skipping", k))
+			logger.Warning(fmt.Sprintf("source %v is not configured correctly, skipping", sourcePathOnly.Path))
 		}
 	}
+	Config.UserDefaults.DefaultScopes = defaultScopes
 	Config.Server.Sources = sourceList
 }
 
@@ -231,6 +242,9 @@ func setDefaults() Settings {
 }
 
 func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, error) {
+	if len(scopes) == 0 {
+		return Config.UserDefaults.DefaultScopes, nil
+	}
 	newScopes := []users.SourceScope{}
 	for _, scope := range scopes {
 		// first check if its already a path name and keep it
@@ -257,19 +271,15 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 }
 
 func ConvertToFrontendScopes(scopes []users.SourceScope) []users.SourceScope {
-	newScopes := []users.SourceScope{}
-	scopeMap := map[string]users.SourceScope{} // ensure unique scopes
+	newScopes := make([]users.SourceScope, 0, len(scopes)) // Preserve original order
 	for _, scope := range scopes {
-		source, ok := Config.Server.SourceMap[scope.Name]
-		if ok {
-			scopeMap[source.Name] = users.SourceScope{
+		if source, ok := Config.Server.SourceMap[scope.Name]; ok {
+			// Replace scope.Name with source.Path while keeping the same Scope value
+			newScopes = append(newScopes, users.SourceScope{
 				Name:  source.Name,
 				Scope: scope.Scope,
-			}
+			})
 		}
-	}
-	for _, scope := range scopeMap {
-		newScopes = append(newScopes, scope)
 	}
 	return newScopes
 }

@@ -35,7 +35,7 @@ type User struct {
 	ID              uint          `storm:"id,increment" json:"id"`
 	Username        string        `storm:"unique" json:"username"`
 	Scopes          []SourceScope `json:"scopes"`
-	Scope           string        `json:"scope"`
+	Scope           string        `json:"scope,omitempty"`
 	LockPassword    bool          `json:"lockPassword"`
 	Perm            Permissions   `json:"perm"`
 }
