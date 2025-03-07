@@ -30,14 +30,15 @@ type Sorting struct {
 // User describes a user.
 type User struct {
 	NonAdminEditable
-	StickySidebar   bool          `json:"stickySidebar"`
-	DisableSettings bool          `json:"disableSettings"`
-	ID              uint          `storm:"id,increment" json:"id"`
-	Username        string        `storm:"unique" json:"username"`
-	Scopes          []SourceScope `json:"scopes"`
-	Scope           string        `json:"scope,omitempty"`
-	LockPassword    bool          `json:"lockPassword"`
-	Perm            Permissions   `json:"perm"`
+	StickySidebar   bool                 `json:"stickySidebar"`
+	DisableSettings bool                 `json:"disableSettings"`
+	ID              uint                 `storm:"id,increment" json:"id"`
+	Username        string               `storm:"unique" json:"username"`
+	Scopes          []SourceScope        `json:"scopes"`
+	Scope           string               `json:"scope,omitempty"`
+	LockPassword    bool                 `json:"lockPassword"`
+	Perm            Permissions          `json:"perm"`
+	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"`
 }
 
 type SourceScope struct {
@@ -46,19 +47,18 @@ type SourceScope struct {
 }
 
 type NonAdminEditable struct {
-	DarkMode             bool                 `json:"darkMode"`
-	Password             string               `json:"password,omitempty"`
-	Locale               string               `json:"locale"`
-	ViewMode             string               `json:"viewMode"`
-	SingleClick          bool                 `json:"singleClick"`
-	Sorting              Sorting              `json:"sorting"`
-	ApiKeys              map[string]AuthToken `json:"apiKeys,omitempty"`
-	ShowHidden           bool                 `json:"showHidden"`
-	DateFormat           bool                 `json:"dateFormat"`
-	GallerySize          int                  `json:"gallerySize"`
-	ThemeColor           string               `json:"themeColor"`
-	QuickDownload        bool                 `json:"quickDownload"`
-	DisableOnlyOfficeExt string               `json:"disableOnlyOfficeExt"`
+	DarkMode             bool    `json:"darkMode"`
+	Password             string  `json:"password,omitempty"`
+	Locale               string  `json:"locale"`
+	ViewMode             string  `json:"viewMode"`
+	SingleClick          bool    `json:"singleClick"`
+	Sorting              Sorting `json:"sorting"`
+	ShowHidden           bool    `json:"showHidden"`
+	DateFormat           bool    `json:"dateFormat"`
+	GallerySize          int     `json:"gallerySize"`
+	ThemeColor           string  `json:"themeColor"`
+	QuickDownload        bool    `json:"quickDownload"`
+	DisableOnlyOfficeExt string  `json:"disableOnlyOfficeExt"`
 }
 
 var PublicUser = User{
