@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	yaml "github.com/goccy/go-yaml"
@@ -24,7 +25,6 @@ func Initialize(configFile string) {
 	setupLogging()
 	setupAuth()
 	setupSources()
-	setupUserScopes()
 	setupBaseURL()
 	setupFrontend()
 }
@@ -78,18 +78,36 @@ func setupSources() {
 			Config.Server.NameToSource[source.Name] = source
 		}
 	}
-	// if only one source listed, make sure its default
-	if len(Config.Server.SourceMap) == 1 {
-		for _, source := range Config.Server.SourceMap {
-			Config.Server.DefaultSource = source
+	// clean up the in memory source list to be accurate and unique
+	sourceList := []Source{}
+	defaultScopes := []users.SourceScope{}
+	allSourceNames := []string{}
+	first := true
+	for _, sourcePathOnly := range Config.Server.Sources {
+		source, ok := Config.Server.SourceMap[sourcePathOnly.Path]
+		if ok && !slices.Contains(allSourceNames, source.Name) {
+			if first {
+				source.Config.DefaultEnabled = true
+				Config.Server.SourceMap[source.Path] = source
+				Config.Server.NameToSource[source.Name] = source
+				Config.Server.DefaultSource = source
+			}
+			first = false
+			sourceList = append(sourceList, source)
+			if source.Config.DefaultEnabled {
+				Config.Server.DefaultSource = source
+				defaultScopes = append(defaultScopes, users.SourceScope{
+					Name:  source.Path,
+					Scope: source.Config.DefaultUserScope,
+				})
+			}
+			allSourceNames = append(allSourceNames, source.Name)
+		} else {
+			logger.Warning(fmt.Sprintf("source %v is not configured correctly, skipping", sourcePathOnly.Path))
 		}
 	}
-}
-
-func setupUserScopes() {
-	for _, source := range Config.Server.SourceMap {
-		Config.UserDefaults.Scopes[source.Path] = source.Config.DefaultUserScope
-	}
+	Config.UserDefaults.DefaultScopes = defaultScopes
+	Config.Server.Sources = sourceList
 }
 
 func setupBaseURL() {
@@ -100,6 +118,7 @@ func setupBaseURL() {
 		Config.Server.BaseURL = "/" + baseurl + "/"
 	}
 }
+
 func setupAuth() {
 	if Config.Auth.Method != "" {
 		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
@@ -209,7 +228,6 @@ func setDefaults() Settings {
 			ShowHidden:           false,
 			DarkMode:             true,
 			DisableSettings:      false,
-			Scopes:               map[string]string{},
 			ViewMode:             "normal",
 			Locale:               "en",
 			GallerySize:          3,
@@ -221,4 +239,78 @@ func setDefaults() Settings {
 			},
 		},
 	}
+}
+
+func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, error) {
+	if len(scopes) == 0 {
+		return Config.UserDefaults.DefaultScopes, nil
+	}
+	newScopes := []users.SourceScope{}
+	for _, scope := range scopes {
+		// first check if its already a path name and keep it
+		source, ok := Config.Server.SourceMap[scope.Name]
+		if ok {
+			newScopes = append(newScopes, users.SourceScope{
+				Name:  source.Path, // backend name is path
+				Scope: scope.Scope,
+			})
+			continue
+		}
+
+		// check if its the name of a source and convert it to a path
+		source, ok = Config.Server.NameToSource[scope.Name]
+		if !ok {
+			return newScopes, fmt.Errorf("invalid scope for source %v", scope.Name)
+		}
+		newScopes = append(newScopes, users.SourceScope{
+			Name:  source.Path, // backend name is path
+			Scope: scope.Scope,
+		})
+	}
+	return newScopes, nil
+}
+
+func ConvertToFrontendScopes(scopes []users.SourceScope) []users.SourceScope {
+	newScopes := make([]users.SourceScope, 0, len(scopes)) // Preserve original order
+	for _, scope := range scopes {
+		if source, ok := Config.Server.SourceMap[scope.Name]; ok {
+			// Replace scope.Name with source.Path while keeping the same Scope value
+			newScopes = append(newScopes, users.SourceScope{
+				Name:  source.Name,
+				Scope: scope.Scope,
+			})
+		}
+	}
+	return newScopes
+}
+
+func HasSourceByPath(scopes []users.SourceScope, sourcePath string) bool {
+	for _, scope := range scopes {
+		if scope.Name == sourcePath {
+			return true
+		}
+	}
+	return false
+}
+
+func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (string, error) {
+	source, ok := Config.Server.NameToSource[sourceName]
+	if !ok {
+		return "", fmt.Errorf("source with name not found %v", sourceName)
+	}
+	for _, scope := range scopes {
+		if scope.Name == source.Path {
+			return scope.Scope, nil
+		}
+	}
+	return "", fmt.Errorf("scope not found for source %v", sourceName)
+}
+
+func GetScopeFromSourcePath(scopes []users.SourceScope, sourcePath string) (string, error) {
+	for _, scope := range scopes {
+		if scope.Name == sourcePath {
+			return scope.Scope, nil
+		}
+	}
+	return "", fmt.Errorf("scope not found for source %v", sourcePath)
 }

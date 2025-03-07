@@ -89,7 +89,13 @@ func quickSetup(store *Storage) {
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Perm.Admin = true
-	user.Scopes = settings.Config.UserDefaults.Scopes
+	user.Scopes = []users.SourceScope{}
+	for _, val := range settings.Config.Server.Sources {
+		user.Scopes = append(user.Scopes, users.SourceScope{
+			Name:  val.Path, // backend name is path
+			Scope: "",
+		})
+	}
 	user.DarkMode = true
 	user.ViewMode = "normal"
 	user.LockPassword = false
@@ -109,6 +115,9 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	settings.ApplyUserDefaults(newUser)
 	if asAdmin {
 		userInfo.Perm = settings.AdminPerms()
+	}
+	if len(userInfo.Scopes) == 0 {
+		userInfo.Scopes = settings.Config.UserDefaults.DefaultScopes
 	}
 	// create new home directories
 	files.MakeUserDirs(newUser)

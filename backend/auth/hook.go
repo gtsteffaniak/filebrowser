@@ -164,14 +164,13 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 				ShowHidden:  a.Settings.UserDefaults.ShowHidden,
 			},
 			Username: a.Cred.Username,
-			Scopes:   a.Settings.UserDefaults.Scopes,
 			Perm:     a.Settings.UserDefaults.Perm,
 		}
 		u = a.GetUser(d)
 
 		files.MakeUserDirs(u)
 
-		err = a.Users.Save(u, true)
+		err = a.Users.Save(u, false)
 		if err != nil {
 			return nil, err
 		}
@@ -185,7 +184,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 	if len(a.Fields.Values) > 1 {
 		u = a.GetUser(u)
 		// update user with provided fields
-		err := a.Users.Update(u)
+		err := a.Users.Update(u, true)
 		if err != nil {
 			return nil, err
 		}

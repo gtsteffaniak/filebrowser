@@ -1,15 +1,14 @@
 import { fetchURL, fetchJSON } from "./utils";
 import { getApiPath } from "@/utils/url.js";
 
-const apiPath = getApiPath("api/settings");
 
-export function get() {
-  return fetchJSON(apiPath);
+export function get(property="") {
+  const path = getApiPath("api/settings", { property });
+  return fetchJSON(path);
 }
 
 export async function update(settings) {
-
-  await fetchURL(apiPath, {
+  await fetchURL("api/settings", {
     method: "PUT",
     body: JSON.stringify(settings),
   });

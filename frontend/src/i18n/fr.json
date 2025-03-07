@@ -167,6 +167,7 @@
     "video": "Video"
   },
   "settings": {
+    "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",
     "admin": "Admin",
     "administrator": "Administrateur",
     "allowCommands": "Exécuter des commandes",

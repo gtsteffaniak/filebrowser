@@ -30,15 +30,19 @@ type Sorting struct {
 // User describes a user.
 type User struct {
 	NonAdminEditable
-	StickySidebar   bool              `json:"stickySidebar"`
-	DisableSettings bool              `json:"disableSettings"`
-	ID              uint              `storm:"id,increment" json:"id"`
-	Username        string            `storm:"unique" json:"username"`
-	Scopes          map[string]string `json:"scopes,omitempty"`
-	Scope           string            `json:"scope"`
-	Sources         []string          `json:"sources"` // list of source names for the user
-	LockPassword    bool              `json:"lockPassword"`
-	Perm            Permissions       `json:"perm"`
+	StickySidebar   bool          `json:"stickySidebar"`
+	DisableSettings bool          `json:"disableSettings"`
+	ID              uint          `storm:"id,increment" json:"id"`
+	Username        string        `storm:"unique" json:"username"`
+	Scopes          []SourceScope `json:"scopes"`
+	Scope           string        `json:"scope,omitempty"`
+	LockPassword    bool          `json:"lockPassword"`
+	Perm            Permissions   `json:"perm"`
+}
+
+type SourceScope struct {
+	Name  string `json:"name"`
+	Scope string `json:"scope"`
 }
 
 type NonAdminEditable struct {

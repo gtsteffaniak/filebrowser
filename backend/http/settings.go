@@ -21,9 +21,28 @@ type settingsData struct {
 // @Tags Settings
 // @Accept json
 // @Produce json
+// @Param property query string false "Property to retrieve"
 // @Success 200 {object} settingsData "System settings data"
 // @Router /api/settings [get]
 func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	property := r.URL.Query().Get("property")
+	if property != "" {
+		// get property by name
+		switch property {
+		case "userDefaults":
+			return renderJSON(w, r, config.UserDefaults)
+		case "frontend":
+			return renderJSON(w, r, config.Frontend)
+		case "auth":
+			return renderJSON(w, r, config.Auth)
+		case "server":
+			return renderJSON(w, r, config.Server)
+		case "sources":
+			return renderJSON(w, r, config.Server.Sources)
+		default:
+			return http.StatusNotFound, nil
+		}
+	}
 	return renderJSON(w, r, config)
 }
 

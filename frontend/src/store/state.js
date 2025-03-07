@@ -11,7 +11,7 @@ export const state = reactive({
   usages: {},
   editor: null,
   sources: {
-    current: "default",
+    current: "",
     count: 1,
     info: {},
   },
@@ -23,6 +23,7 @@ export const state = reactive({
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
+    scopes: [],
     perm: {},
     rules: [], // Default to an empty array
     permissions: {}, // Default to an empty object for permissions

@@ -120,6 +120,7 @@ type SourceConfig struct {
 	Exclude               IndexFilter `json:"exclude"`
 	Include               IndexFilter `json:"include"`
 	DefaultUserScope      string      `json:"defaultUserScope"` // default "" should match folders under path
+	DefaultEnabled        bool        `json:"defaultEnabled"`
 	CreateUserDir         bool        `json:"createUserDir"`
 }
 
@@ -147,24 +148,22 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	StickySidebar        bool              `json:"stickySidebar"`
-	DarkMode             bool              `json:"darkMode"`
-	LockPassword         bool              `json:"lockPassword"`
-	DisableSettings      bool              `json:"disableSettings,omitempty"`
-	Scope                string            `json:"scope"` // deprecated
-	Locale               string            `json:"locale"`
-	ViewMode             string            `json:"viewMode"`
-	GallerySize          int               `json:"gallerySize"`
-	SingleClick          bool              `json:"singleClick"`
-	Perm                 users.Permissions `json:"perm"`
-	Permissions          users.Permissions `json:"permissions"`
-	Commands             []string          `json:"commands,omitempty"`
-	ShowHidden           bool              `json:"showHidden"`
-	DateFormat           bool              `json:"dateFormat"`
-	ThemeColor           string            `json:"themeColor"`
-	QuickDownload        bool              `json:"quickDownload"`
-	DisableOnlyOfficeExt string            `json:"disableOnlyOfficeExt"`
-
-	// not exposed to config
-	Scopes map[string]string `json:"-"`
+	StickySidebar        bool                `json:"stickySidebar"`
+	DarkMode             bool                `json:"darkMode"`
+	LockPassword         bool                `json:"lockPassword"`
+	DisableSettings      bool                `json:"disableSettings,omitempty"`
+	Scope                string              `json:"scope"` // deprecated
+	Locale               string              `json:"locale"`
+	ViewMode             string              `json:"viewMode"`
+	GallerySize          int                 `json:"gallerySize"`
+	SingleClick          bool                `json:"singleClick"`
+	Perm                 users.Permissions   `json:"perm"`
+	Permissions          users.Permissions   `json:"permissions"`
+	Commands             []string            `json:"commands,omitempty"`
+	ShowHidden           bool                `json:"showHidden"`
+	DateFormat           bool                `json:"dateFormat"`
+	ThemeColor           string              `json:"themeColor"`
+	QuickDownload        bool                `json:"quickDownload"`
+	DisableOnlyOfficeExt string              `json:"disableOnlyOfficeExt"`
+	DefaultScopes        []users.SourceScope `json:"-"`
 }

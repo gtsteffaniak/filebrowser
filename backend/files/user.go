@@ -37,11 +37,11 @@ func (idx *Index) MakeUserDir(username string, scope string) error {
 }
 
 func MakeUserDirs(u *users.User) {
-	for key, scope := range u.Scopes {
-		source := settings.Config.Server.SourceMap[key]
+	for _, scope := range u.Scopes {
+		source := settings.Config.Server.NameToSource[scope.Name]
 		if source.Config.CreateUserDir {
 			idx := GetIndex(source.Name)
-			err := idx.MakeUserDir(u.Username, scope)
+			err := idx.MakeUserDir(u.Username, scope.Scope)
 			if err != nil {
 				logger.Error(fmt.Sprintf("create user: failed to create user home dir: %s", err))
 			}

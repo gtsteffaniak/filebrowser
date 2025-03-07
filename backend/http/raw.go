@@ -15,6 +15,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -67,16 +68,13 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	}
 	source := splitFile[0]
 	path = splitFile[1]
-
-	if d.share == nil {
-		_, ok := d.user.Scopes[source]
-		if !ok {
-			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
-		}
+	userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if d.share == nil && err != nil {
+		return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 	}
 
 	idx := files.GetIndex(source)
-	realPath, _, err := idx.GetRealPath(d.user.Scopes[source], path)
+	realPath, _, err := idx.GetRealPath(userScope, path)
 	if err != nil {
 		return fmt.Errorf("failed to get real path for %s: %v", path, err)
 	}
@@ -187,11 +185,17 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if len(splitFile) != 2 {
 		return http.StatusBadRequest, fmt.Errorf("invalid file in files request: %v", fileList[0])
 	}
+
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
 	fileName := filepath.Base(firstFilePath)
+
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	idx := files.GetIndex(firstFileSource)
-	realPath, isDir, err := idx.GetRealPath(d.user.Scopes[firstFileSource], firstFilePath)
+	realPath, isDir, err := idx.GetRealPath(userscope, firstFilePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

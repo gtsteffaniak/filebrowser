@@ -5,20 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"sort"
 	"strconv"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
-)
-
-var (
-	NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm"}
 )
 
 type UserRequest struct {
@@ -57,10 +50,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 
 		selfUserList := []*users.User{}
 		for _, u := range userList {
-			stripInfo(u)
-			u.Password = ""
-			u.ApiKeys = nil
-			u.Scopes = nil
+			prepForFrontend(u)
 			if u.ID == d.user.ID {
 				selfUserList = append(selfUserList, u)
 			}
@@ -91,22 +81,14 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
-	for key, source := range config.Server.SourceMap {
-		if _, ok := d.user.Scopes[key]; ok {
-			u.Sources = append(u.Sources, source.Name)
-		}
-	}
-
-	stripInfo(u)
+	prepForFrontend(u)
 	return renderJSON(w, r, u)
 }
 
-func stripInfo(u *users.User) {
+func prepForFrontend(u *users.User) {
 	u.Password = ""
 	u.ApiKeys = nil
-	u.Scopes = nil
-
+	u.Scopes = settings.ConvertToFrontendScopes(u.Scopes)
 }
 
 // userDeleteHandler deletes a user by ID.
@@ -171,12 +153,6 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, err
 	}
 	r.Body.Close()
-	for key, source := range config.Server.SourceMap {
-		_, ok := req.Data.Scopes[key]
-		if !ok {
-			return http.StatusBadRequest, fmt.Errorf("invalid scope for source %s", source.Name)
-		}
-	}
 
 	if len(req.Which) != 0 {
 		return http.StatusBadRequest, nil
@@ -230,52 +206,8 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, err
 	}
 
-	// If `Which` is not specified, default to updating all fields
-	if len(req.Which) == 0 || req.Which[0] == "all" {
-		req.Which = []string{}
-		v := reflect.ValueOf(req.Data)
-		if v.Kind() == reflect.Ptr {
-			v = v.Elem()
-		}
-		t := v.Type()
-
-		// Dynamically populate fields to update
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-			if field.Name == "Password" && req.Data.Password != "" {
-				req.Which = append(req.Which, field.Name)
-			} else if field.Name != "Password" && field.Name != "Fs" {
-				req.Which = append(req.Which, field.Name)
-			}
-		}
-	}
-
-	// Process the fields to update
-	for _, field := range req.Which {
-
-		// Title case field names
-		field = cases.Title(language.English, cases.NoLower).String(field)
-
-		// Handle password update
-		if field == "Password" {
-			if !d.user.Perm.Admin && d.user.LockPassword {
-				return http.StatusForbidden, nil
-			}
-			req.Data.Password, err = users.HashPwd(req.Data.Password)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-		}
-
-		// Prevent non-admins from modifying certain fields
-		for _, restrictedField := range NonModifiableFieldsForNonAdmin {
-			if !d.user.Perm.Admin && field == restrictedField {
-				return http.StatusForbidden, nil
-			}
-		}
-	}
 	// Perform the user update
-	err = store.Users.Update(req.Data, req.Which...)
+	err = store.Users.Update(req.Data, d.user.Perm.Admin, req.Which...)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

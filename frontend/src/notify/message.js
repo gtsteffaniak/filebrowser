@@ -9,7 +9,7 @@ export function showPopup(type, message, autoclose = true) {
   }
 
   const [popup, popupContent] = getElements()
-  if (popup === undefined) {
+  if (popup === undefined || popup == null) {
     return
   }
   popup.classList.remove('success', 'error') // Clear previous types

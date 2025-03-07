@@ -23,27 +23,55 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
-func getStore(config string) (*storage.Storage, bool) {
+func getStore(configFile string) (*storage.Storage, bool) {
 	// Use the config file (global flag)
-	settings.Initialize(config)
+	settings.Initialize(configFile)
 	store, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("could not load db info: %v", err))
 	}
 	// update source info for users if names/sources/paths might have changed
-	users, err2 := store.Users.Gets()
+	usersList, err2 := store.Users.Gets()
 	if err2 != nil {
 		logger.Fatal(fmt.Sprintf("could not load users: %v", err2))
 	}
 
-	// maintain backwards compatibility, update user scope from scopes
-	// check for old format users (that don't have any scopes defined) and update them.
-	for _, user := range users {
-		if len(user.Scopes) == 0 {
-			user.Scopes[settings.Config.Server.DefaultSource.Path] = user.Scope
-			if err != nil {
-				logger.Error(fmt.Sprintf("could not update user scopes: %v", err))
+	// this function adds scopes as needed on startup
+	for _, user := range usersList {
+		updateUser := false
+		newScopes := []users.SourceScope{}
+		for _, source := range settings.Config.Server.SourceMap {
+			scopePath := ""
+			if !user.Perm.Admin {
+				scopePath = source.Config.DefaultUserScope
 			}
+			scope, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
+			if err != nil {
+				if user.Perm.Admin || source.Config.DefaultEnabled {
+					newScopes = append(newScopes, users.SourceScope{Scope: scopePath, Name: source.Path}) // backend name is path
+					updateUser = true
+				}
+			} else {
+				newScopes = append(newScopes, users.SourceScope{Scope: scope, Name: source.Path}) // backend name is path
+			}
+		}
+		user.Scopes = newScopes
+		// maintain backwards compatibility, update user scope from scopes
+		if len(user.Scopes) == 0 {
+			user.Scopes = []users.SourceScope{
+				{
+					Scope: user.Scope,
+					Name:  settings.Config.Server.DefaultSource.Path, // backend name is path
+				},
+			}
+			updateUser = true
+		}
+		if !updateUser {
+			continue
+		}
+		err := store.Users.Save(user, false)
+		if err != nil {
+			logger.Error(fmt.Sprintf("could not update user: %v", err))
 		}
 	}
 	return store, hasDB
@@ -128,8 +156,14 @@ func StartFilebrowser() {
 						Password: password,
 					},
 				}
-
-				newUser.Scopes = settings.Config.UserDefaults.Scopes
+				for _, source := range settings.Config.Server.SourceMap {
+					if source.Config.DefaultEnabled {
+						newUser.Scopes = append(newUser.Scopes, users.SourceScope{
+							Name:  source.Name,
+							Scope: source.Config.DefaultUserScope,
+						})
+					}
+				}
 
 				// Create the user logic
 				if asAdmin {

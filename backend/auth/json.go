@@ -55,7 +55,6 @@ func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, 
 	}
 	err = users.CheckPwd(cred.Password, u.Password)
 	if err != nil {
-		logger.Error(fmt.Sprintf("unable to check password: %v", err))
 		return nil, err
 	}
 

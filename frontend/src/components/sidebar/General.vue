@@ -143,7 +143,10 @@ export default {
   methods: {
     async updateUsage() {
       if (!disableUsedPercentage) {
-        for (const source of state.user.sources) {
+        if (state.sources.info === undefined) {
+          return;
+        }
+        for (const source of Object.keys(state.sources.info)) {
           let usage = await filesApi.usage(source);
           let sourceInfo = state.sources.info[source];
           sourceInfo.used = getHumanReadableFilesize(usage.used);

@@ -106,8 +106,7 @@ export default {
         state.sources.count > 1 &&
         (getters.routePath() === "/files/" || getters.routePath() === "/files")
       ) {
-        const source = state.sources.current;
-        router.push(`/files/${source}`);
+        router.push(`/files/${state.sources.current}`);
         return;
       }
 
