@@ -193,6 +193,9 @@ func DeleteFiles(source, absPath string, dirPath string) error {
 		return err
 	}
 	index := GetIndex(source)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", source)
+	}
 	refreshConfig := FileOptions{Path: dirPath, IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
@@ -208,6 +211,9 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	}
 
 	index := GetIndex(source)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", source)
+	}
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
 		Path:  realsrc,
@@ -233,6 +239,9 @@ func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
 		return err
 	}
 	index := GetIndex(source)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", source)
+	}
 	refreshConfig := FileOptions{Path: realdst, IsDir: true}
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
@@ -246,6 +255,9 @@ func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
 
 func WriteDirectory(opts FileOptions) error {
 	idx := GetIndex(opts.Source)
+	if idx == nil {
+		return fmt.Errorf("could not get index: %v ", opts.Source)
+	}
 	realPath, _, _ := idx.GetRealPath(opts.Path)
 	// Ensure the parent directories exist
 	err := os.MkdirAll(realPath, 0775)
@@ -261,6 +273,9 @@ func WriteDirectory(opts FileOptions) error {
 
 func WriteFile(opts FileOptions, in io.Reader) error {
 	idx := GetIndex(opts.Source)
+	if idx == nil {
+		return fmt.Errorf("could not get index: %v ", opts.Source)
+	}
 	dst, _, _ := idx.GetRealPath(opts.Path)
 	parentDir := filepath.Dir(dst)
 	// Create the directory and all necessary parents
@@ -367,6 +382,10 @@ func (i *ExtendedFileInfo) detectSubtitles(path string) {
 	}
 
 	idx := GetIndex(i.Source)
+	if idx == nil {
+		return
+	}
+
 	parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(i.Path), true)
 	if !exists {
 		return

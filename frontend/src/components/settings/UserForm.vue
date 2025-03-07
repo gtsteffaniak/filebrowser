@@ -34,7 +34,7 @@
       />
     </p>
 
-    <p v-if="!isDefault">
+    <p v-if="!isDefault && !isNew">
       <input
         type="checkbox"
         :checked="updatePassword"

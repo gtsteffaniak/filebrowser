@@ -65,6 +65,9 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		idx := files.GetIndex(source)
+		if idx == nil {
+			return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+		}
 		realPath, _, _ := idx.GetRealPath(userscope, path)
 		checksums, err := files.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
@@ -298,6 +301,9 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
 	idx := files.GetIndex(source)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+	}
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -441,6 +447,10 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	path, _ := url.QueryUnescape(encodedPath)
 	isNotDir := r.URL.Query().Get("isDir") == "false" // default to isDir true
 	index := files.GetIndex(source)
+	if index == nil {
+		http.Error(w, "source not found", http.StatusNotFound)
+		return
+	}
 	info, _ := index.GetReducedMetadata(path, !isNotDir)
 	renderJSON(w, r, info) // nolint:errcheck
 }

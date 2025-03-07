@@ -41,6 +41,10 @@ func MakeUserDirs(u *users.User) {
 		source := settings.Config.Server.NameToSource[scope.Name]
 		if source.Config.CreateUserDir {
 			idx := GetIndex(source.Name)
+			if idx == nil {
+				logger.Error(fmt.Sprintf("create user: failed to find source index for user home dir creation: %s", source.Name))
+				continue
+			}
 			err := idx.MakeUserDir(u.Username, scope.Scope)
 			if err != nil {
 				logger.Error(fmt.Sprintf("create user: failed to create user home dir: %s", err))
