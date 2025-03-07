@@ -57,6 +57,19 @@ definitions:
       type:
         type: string
     type: object
+  http.AuthTokenMin:
+    properties:
+      Permissions:
+        $ref: '#/definitions/users.Permissions'
+      created:
+        type: integer
+      expires:
+        type: integer
+      key:
+        type: string
+      name:
+        type: string
+    type: object
   http.DiskUsageResponse:
     properties:
       total:
@@ -84,6 +97,13 @@ definitions:
       signup:
         type: boolean
       userHomeBasePath:
+        type: string
+    type: object
+  http.signupBody:
+    properties:
+      password:
+        type: string
+      username:
         type: string
     type: object
   settings.ExternalLink:
@@ -274,6 +294,154 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/createApiKey:
+    post:
+      consumes:
+      - application/json
+      description: Create an API key with specified name, duration, and permissions.
+      parameters:
+      - description: Name of the API key
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: Duration of the API key in days
+        in: query
+        name: days
+        required: true
+        type: string
+      - description: Permissions for the API key (comma-separated)
+        in: query
+        name: permissions
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token created successfully, resoponse contains json object
+            with token key
+          schema:
+            $ref: '#/definitions/http.HttpResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create API key
+      tags:
+      - API Keys
+  /api/deleteApiKey:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an API key with specified name.
+      parameters:
+      - description: Name of the API key to delete
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: API key deleted successfully
+          schema:
+            $ref: '#/definitions/http.HttpResponse'
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete API key
+      tags:
+      - API Keys
+  /api/listApiKeys:
+    get:
+      consumes:
+      - application/json
+      description: List all API keys or retrieve details for a specific key.
+      parameters:
+      - description: Name of the API to retrieve details
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of API keys or specific key details
+          schema:
+            $ref: '#/definitions/http.AuthTokenMin'
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List API keys
+      tags:
+      - API Keys
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with a username and password.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token for authentication
+          schema:
+            type: string
+        "403":
+          description: Forbidden - authentication failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
+      tags:
+      - Auth
   /api/preview:
     get:
       consumes:
@@ -387,6 +555,33 @@ paths:
       summary: Get raw content of a file, multiple files, or directory
       tags:
       - Resources
+  /api/renew:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the authentication token for a logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New JWT token generated
+          schema:
+            type: string
+        "401":
+          description: Unauthorized - invalid token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Renew authentication token
+      tags:
+      - Auth
   /api/resources:
     delete:
       consumes:
@@ -876,6 +1071,52 @@ paths:
       summary: Delete a share link
       tags:
       - Shares
+  /api/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account with a username and password.
+      parameters:
+      - description: User signup details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.signupBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            type: string
+        "400":
+          description: Bad request - invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "405":
+          description: Method not allowed - signup is disabled
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict - user already exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User signup
+      tags:
+      - Auth
   /api/usage:
     get:
       consumes:

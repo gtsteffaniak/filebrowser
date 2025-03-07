@@ -72,6 +72,16 @@ func extractToken(r *http.Request) (string, error) {
 	return "", request.ErrNoTokenInRequest
 }
 
+// loginHandler handles user authentication via password.
+// @Summary User login
+// @Description Authenticate a user with a username and password.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "JWT token for authentication"
+// @Failure 403 {object} map[string]string "Forbidden - authentication failed"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/login [post]
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if !config.Auth.Methods.PasswordAuth.Enabled {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
@@ -101,6 +111,19 @@ type signupBody struct {
 	Password string `json:"password"`
 }
 
+// signupHandler registers a new user account.
+// @Summary User signup
+// @Description Register a new user account with a username and password.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param body body signupBody true "User signup details"
+// @Success 201 {string} string "User created successfully"
+// @Failure 400 {object} map[string]string "Bad request - invalid input"
+// @Failure 405 {object} map[string]string "Method not allowed - signup is disabled"
+// @Failure 409 {object} map[string]string "Conflict - user already exists"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/signup [post]
 func signupHandler(w http.ResponseWriter, r *http.Request) {
 	if !settings.Config.Auth.Signup {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
@@ -140,6 +163,16 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// renewHandler refreshes the authentication token for a logged-in user.
+// @Summary Renew authentication token
+// @Description Refresh the authentication token for a logged-in user.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "New JWT token generated"
+// @Failure 401 {object} map[string]string "Unauthorized - invalid token"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/renew [post]
 func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// check if x-auth header is present and token is
 	return printToken(w, r, d.user)

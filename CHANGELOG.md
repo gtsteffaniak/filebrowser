@@ -19,6 +19,8 @@ This is a significant step towards a stable release. There shouldn't be any majo
 
  **Notes**:
   - downloads no longer open new window.
+  - swagger updated with auth api help for things like api token.
+    - GET api keys now uses `name` query instead of `key`. eg `GET /api/auth/tokens?name=apikeyname`
   - user permissions simplified to four permission groups (no config change required):
     - **removed**  : create, rename, delete, download
     - **remaining**: admin, modify, share, api
@@ -41,6 +43,7 @@ This is a significant step towards a stable release. There shouldn't be any majo
   - preview navigation issue https://github.com/gtsteffaniak/filebrowser/issues/372
   - auth proxy password length error https://github.com/gtsteffaniak/filebrowser/issues/375
 
+<img width="294" alt="image" src="https://github.com/user-attachments/assets/669bca75-98d4-47c1-838b-1ffee2967d7d" />
 
 ## v0.5.3-beta
 

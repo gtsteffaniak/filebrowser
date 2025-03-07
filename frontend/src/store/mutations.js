@@ -1,6 +1,5 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
-import router from "@/router";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
@@ -38,7 +37,8 @@ export const mutations = {
   },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
-    router.push({ hash: "#" + value });
+    // Update the hash in the URL without reloading or changing history state
+    window.history.replaceState(null, "", "#" + value);
     const element = document.getElementById(value);
     if (element) {
       element.scrollIntoView({
