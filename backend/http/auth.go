@@ -75,7 +75,7 @@ func extractToken(r *http.Request) (string, error) {
 // loginHandler handles user authentication via password.
 // @Summary User login
 // @Description Authenticate a user with a username and password.
-// @Tags auth
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Success 200 {string} string "JWT token for authentication"
@@ -114,7 +114,7 @@ type signupBody struct {
 // signupHandler registers a new user account.
 // @Summary User signup
 // @Description Register a new user account with a username and password.
-// @Tags auth
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param body body signupBody true "User signup details"
@@ -166,7 +166,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 // renewHandler refreshes the authentication token for a logged-in user.
 // @Summary Renew authentication token
 // @Description Refresh the authentication token for a logged-in user.
-// @Tags auth
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Success 200 {string} string "New JWT token generated"

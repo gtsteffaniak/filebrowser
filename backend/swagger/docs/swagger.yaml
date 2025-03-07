@@ -441,7 +441,7 @@ paths:
             type: object
       summary: User login
       tags:
-      - auth
+      - Auth
   /api/preview:
     get:
       consumes:
@@ -581,7 +581,7 @@ paths:
             type: object
       summary: Renew authentication token
       tags:
-      - auth
+      - Auth
   /api/resources:
     delete:
       consumes:
@@ -1116,7 +1116,7 @@ paths:
             type: object
       summary: User signup
       tags:
-      - auth
+      - Auth
   /api/usage:
     get:
       consumes:
