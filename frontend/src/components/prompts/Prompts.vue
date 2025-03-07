@@ -73,8 +73,9 @@ export default {
       if (event.keyCode === 27) {
         event.stopImmediatePropagation();
         mutations.closeHovers();
+      } else if (event.KeyCode === 8) {
+        event.preventDefault();
       }
-
       // Enter
       if (event.keyCode === 13) {
         switch (currentPrompt.name) {

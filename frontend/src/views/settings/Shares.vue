@@ -121,9 +121,9 @@ export default {
   },
   methods: {
     deleteLink: async function (event, link) {
-      event.preventDefault();
       mutations.showHover({
         name: "share-delete",
+        props: { path: link.path },
         confirm: () => {
           mutations.closeHovers();
 

@@ -321,6 +321,7 @@ export default {
   methods: {
     updateSource(event) {
       this.selectedSource = event.target.value; // Correct way to get the new value
+      this.submit();
     },
     getRelative(path) {
       return "/files/" + this.selectedSource + "/" + path;

@@ -11,7 +11,7 @@
     />
   </div>
   <div v-else>
-    <p v-if="!isDefault">
+    <p>
       <label for="username">{{ $t("settings.username") }}</label>
       <input
         class="input input--block"
@@ -22,7 +22,7 @@
       />
     </p>
 
-    <p v-if="!isDefault">
+    <p>
       <label for="password">{{ $t("settings.password") }}</label>
       <input
         class="input input--block"
@@ -34,7 +34,7 @@
       />
     </p>
 
-    <p v-if="!isDefault && !isNew">
+    <p v-if="!isNew">
       <input
         type="checkbox"
         :checked="updatePassword"
@@ -43,10 +43,10 @@
       Change password on save
     </p>
 
-    <p v-if="!isDefault">
+    <p>
       <input
         type="checkbox"
-        :disabled="stateUser.perm?.admin"
+        :disabled="!stateUser.perm?.admin"
         v-model="user.lockPassword"
         @input="emitUpdate"
       />
@@ -133,7 +133,6 @@ export default {
   props: {
     user: Object, // Define user as a prop
     updatePassword: Boolean,
-    isDefault: Boolean,
     isNew: Boolean,
   },
   async mounted() {

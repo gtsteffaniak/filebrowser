@@ -4,22 +4,34 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.6.0-beta
 
+> [!WARNING]
+> This release includes several config changes that could cause issues. Please backup your database file before upgrading.
+
+This release has several changes that should work without issues... however, still backup your database file first and proceed with caution. User permissions and source config changes have been updated -- and the `server.root` paramter is no longer used.
+
+This is a significant step towards a stable release. There shouldn't be any major breaking config changes after this.
+
  **New Features**:
-  - multiple sources support
+  - multiple sources support https://github.com/gtsteffaniak/filebrowser/issues/360
+    - listing view keeps them independant, you switch between the two and the url address will have a prefix `/files/<sourcename>/path/to/file` when there is more than 1 source.
+    - search also happens independantly, with a selection toggle per source. searching current source searches the current scope in the listing view, if you toggle to an alternative source it will search from the source root.
+    - copy/moving is currently only supported within the same source -- that will come in a future release.
 
  **Notes**:
   - downloads no longer open new window.
   - user permissions simplified to four permission groups (no config change required):
-    - removed  : create, rename, delete, download
-    - remaining: admin, modify, share, api
-    - `scope` is deprecated, but still supported, applies to default source. if using multiple sources, set defaultUserScope at the source instead.
-  - removed user rules and commands.
+    - **removed**  : create, rename, delete, download
+    - **remaining**: admin, modify, share, api
+    - `scope` is deprecated, but still supported, applies to default source. if using multiple sources, set `defaultUserScope` at the [source config](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration#default-source-configuration) instead.
+  - **removed** user rules and commands.
     - commands feature has never been enabled so just removing the references.
     - rules will come back in a different form (not applied to the user).
   - `server.root` is completely removed in favor of `server.sources`
 
  **BugFixes**:
   - fix conflict resolution issue https://github.com/gtsteffaniak/filebrowser/issues/384
+  - many user creation page bugfixes.
+  - fix share delete issue https://github.com/gtsteffaniak/filebrowser/issues/408
 
 ## v0.5.4-beta
 
