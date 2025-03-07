@@ -1,6 +1,5 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
-import router from "@/router";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
