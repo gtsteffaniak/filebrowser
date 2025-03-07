@@ -16,8 +16,6 @@
   <img width="800" src="https://github.com/user-attachments/assets/c35a8455-c32d-47f5-853d-f285e160b022" title="Main Screenshot">
 </div>
 
-![alt text](image.png)
-
 > [!WARNING]
 > There is no stable version -- planned 2025.
 
@@ -27,7 +25,7 @@ FileBrowser Quantum is a fork of the file browser open-source project with the f
      - Real-time search results as you type
      - Search supports file/folder sizes and many file type filters.
      - Enhanced interactive results that show file/folder sizes.
-  2. ✅ Multiple sources at once
+  2. ✅ Multiple sources support
   3. ✅ Revamped UI
      - Additional compact view mode as well as refreshed view mode styles.
      - Many graphical and user experience improvements.
