@@ -312,11 +312,11 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
 
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, dstIndex)
+	userscopeDst, err := settings.GetScopeFromSourceName(d.user.Scopes, dstIndex)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, srcIndex)
+	userscopeSrc, err := settings.GetScopeFromSourceName(d.user.Scopes, srcIndex)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -326,19 +326,19 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusNotFound, fmt.Errorf("source %s not found", dstIndex)
 	}
 	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(userscope, filepath.Dir(dst))
+	parentDir, _, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
 	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", userscope, filepath.Dir(dst), err))
+		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err))
 		return http.StatusNotFound, err
 	}
 	realDest := parentDir + "/" + filepath.Base(dst)
 
 	idx2 := files.GetIndex(srcIndex)
-	if idx == nil {
+	if idx2 == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", srcIndex)
 	}
 
-	realSrc, isSrcDir, err := idx2.GetRealPath(userscope, src)
+	realSrc, isSrcDir, err := idx2.GetRealPath(userscopeSrc, src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
