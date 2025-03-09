@@ -84,7 +84,8 @@ func setupSources() {
 	allSourceNames := []string{}
 	first := true
 	for _, sourcePathOnly := range Config.Server.Sources {
-		source, ok := Config.Server.SourceMap[sourcePathOnly.Path]
+		realPath := getRealPath(sourcePathOnly.Path)
+		source, ok := Config.Server.SourceMap[realPath]
 		if ok && !slices.Contains(allSourceNames, source.Name) {
 			if first {
 				source.Config.DefaultEnabled = true
