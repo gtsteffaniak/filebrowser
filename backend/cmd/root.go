@@ -96,8 +96,16 @@ func StartFilebrowser() {
 	var help bool
 	// Override the default usage output to use generalUsage()
 	flag.Usage = generalUsage
-	flag.StringVar(&configPath, "c", "config.yaml", "Path to the config file, default: config.yaml")
+	flag.StringVar(&configPath, "c", "", "Path to the config file, default: config.yaml")
 	flag.BoolVar(&help, "h", false, "Get help about commands")
+
+	if configPath == "" {
+		configPath = os.Getenv("FILEBROWSER_CONFIG")
+	}
+
+	if configPath == "" {
+		configPath = "config.yaml"
+	}
 
 	// Parse global flags (before subcommands)
 	flag.Parse() // print generalUsage on error
