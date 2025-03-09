@@ -16,6 +16,7 @@ This is a significant step towards a stable release. There shouldn't be any majo
     - listing view keeps them independant, you switch between the two and the url address will have a prefix `/files/<sourcename>/path/to/file` when there is more than 1 source.
     - search also happens independantly, with a selection toggle per source. searching current source searches the current scope in the listing view, if you toggle to an alternative source it will search from the source root.
     - copy/moving is currently only supported within the same source -- that will come in a future release.
+  - `FILEBROWSER_CONFIG` environment variable is respected if no CLI config parameter is provided. https://github.com/gtsteffaniak/filebrowser/issues/413
 
  **Notes**:
   - downloads no longer open new window.
