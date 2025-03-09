@@ -5,6 +5,8 @@ server:
     - levels: "info|error|debug"
   sources:
     - path: "../frontend/tests/playwright-files"
+    - path: "."
+      name: "docker"
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true
@@ -12,16 +14,3 @@ frontend:
     - text: "A playwright test"
       url: "https://playwright.dev/"
       title: "Playwright"
-userDefaults:
-  darkMode: true
-  disableSettings: false
-  scope: "."
-  singleClick: false
-  permissions:
-    admin: false
-    create: false
-    rename: false
-    modify: false
-    delete: false
-    share: false
-    download: false

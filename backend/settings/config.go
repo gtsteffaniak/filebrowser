@@ -297,6 +297,7 @@ func HasSourceByPath(scopes []users.SourceScope, sourcePath string) bool {
 func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (string, error) {
 	source, ok := Config.Server.NameToSource[sourceName]
 	if !ok {
+		logger.Debug(fmt.Sprint("Could not get scope from source name: ", sourceName))
 		return "", fmt.Errorf("source with name not found %v", sourceName)
 	}
 	for _, scope := range scopes {
@@ -304,6 +305,7 @@ func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (stri
 			return scope.Scope, nil
 		}
 	}
+	logger.Debug(fmt.Sprintf("scope not found for source %v", sourceName))
 	return "", fmt.Errorf("scope not found for source %v", sourceName)
 }
 

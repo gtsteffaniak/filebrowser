@@ -42,7 +42,12 @@ export default {
   async mounted() {
     // Perform the setup and update the config
     try {
-      const refUrl = await filesApi.getDownloadURL(state.req.path, false, true);
+      const refUrl = await filesApi.getDownloadURL(
+        state.req.source,
+        state.req.path,
+        false,
+        true
+      );
       let configData = await fetchJSON(baseURL + `api/onlyoffice/config?url=${refUrl}`);
       configData.type = state.isMobile ? "mobile" : "desktop";
       this.clientConfig = configData;

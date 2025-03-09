@@ -1,11 +1,11 @@
 import { fetchURL, adjustedData } from './utils'
-import { getApiPath,extractSourceFromPath } from '@/utils/url.js'
+import { getApiPath, extractSourceFromPath } from '@/utils/url.js'
 import { state } from '@/store'
 import { notify } from '@/notify'
 import { externalUrl } from '@/utils/constants'
 
 // Notify if errors occur
-export async function fetchFiles(url, content = false) {
+export async function fetchFiles (url, content = false) {
   try {
     const result = extractSourceFromPath(url)
     const apiPath = getApiPath('api/resources', {
@@ -23,7 +23,7 @@ export async function fetchFiles(url, content = false) {
   }
 }
 
-async function resourceAction(url, method, content) {
+async function resourceAction (url, method, content) {
   try {
     const result = extractSourceFromPath(url)
     let source = result.source
@@ -42,7 +42,7 @@ async function resourceAction(url, method, content) {
   }
 }
 
-export async function remove(url) {
+export async function remove (url) {
   try {
     return await resourceAction(url, 'DELETE')
   } catch (err) {
@@ -51,7 +51,7 @@ export async function remove(url) {
   }
 }
 
-export async function put(url, content = '') {
+export async function put (url, content = '') {
   try {
     return await resourceAction(url, 'PUT', content)
   } catch (err) {
@@ -60,7 +60,7 @@ export async function put(url, content = '') {
   }
 }
 
-export function download(format, files) {
+export function download (format, files) {
   if (format !== 'zip') {
     format = 'tar.gz'
   }
@@ -68,14 +68,14 @@ export function download(format, files) {
     let fileargs = ''
     if (files.length === 1) {
       const result = extractSourceFromPath(decodeURI(files[0]))
-      fileargs = result.source + "::" + result.path + '||'
+      fileargs = result.source + '::' + result.path + '||'
     } else {
       for (let file of files) {
         const result = extractSourceFromPath(decodeURI(file))
-        fileargs += result.source + "::" + result.path + '||'
+        fileargs += result.source + '::' + result.path + '||'
       }
     }
-    fileargs = fileargs.slice(0, -2); // remove trailing "||"
+    fileargs = fileargs.slice(0, -2) // remove trailing "||"
     const apiPath = getApiPath('api/raw', {
       files: encodeURIComponent(fileargs),
       algo: format
@@ -94,7 +94,7 @@ export function download(format, files) {
   }
 }
 
-export async function post(url, content = '', overwrite = false, onupload) {
+export async function post (url, content = '', overwrite = false, onupload) {
   try {
     const result = extractSourceFromPath(url)
     let bufferContent
@@ -157,17 +157,13 @@ export async function moveCopy (
   try {
     // Create an array of fetch calls
     let promises = items.map(item => {
-      let topath = decodeURI(item.to)
-      let frompath = decodeURI(item.from)
-      const resultfrom = extractSourceFromPath(frompath)
-      const resultto = extractSourceFromPath(topath)
-
-      // Properly declare variables
-      let toPath = encodeURIComponent(resultto.path)
-      let fromPath = encodeURIComponent(resultfrom.path)
-
-      // Ensure 'source' is correctly referenced
-      let localParams = { ...params, destination: toPath, from: fromPath, source: resultfrom.source }
+      const fromResult = extractSourceFromPath(item.from)
+      const toResult = extractSourceFromPath(item.to)
+      let localParams = {
+        ...params,
+        destination: toResult.source + '::' + toResult.path,
+        from: fromResult.source + '::' + fromResult.path
+      }
       const apiPath = getApiPath('api/resources', localParams)
 
       return fetch(apiPath, { method: 'PATCH' }).then(response => {
@@ -190,7 +186,7 @@ export async function moveCopy (
   }
 }
 
-export async function checksum(url, algo) {
+export async function checksum (url, algo) {
   try {
     const result = extractSourceFromPath(url)
     const params = {
@@ -208,11 +204,10 @@ export async function checksum(url, algo) {
   }
 }
 
-export function getDownloadURL(path, inline, useExternal) {
+export function getDownloadURL (source, path, inline, useExternal) {
   try {
-    const result = extractSourceFromPath(decodeURI(path))
     const params = {
-      files: encodeURIComponent(result.source + "::" +result.path),
+      files: source + '::' + encodeURIComponent(path),
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)
@@ -226,7 +221,7 @@ export function getDownloadURL(path, inline, useExternal) {
   }
 }
 
-export function getPreviewURL(source, path, size, modified) {
+export function getPreviewURL (source, path, size, modified) {
   try {
     const params = {
       path: encodeURIComponent(path),
@@ -243,17 +238,7 @@ export function getPreviewURL(source, path, size, modified) {
   }
 }
 
-export function getSubtitlesURL(path) {
-  const result = extractSourceFromPath(decodeURI(path))
-  const params = {
-    inline: true,
-    files: result.source + "::" +result.path,
-  }
-  const apiPath = getApiPath('api/raw', params)
-  return window.origin + apiPath
-}
-
-export async function usage(source) {
+export async function usage (source) {
   try {
     const apiPath = getApiPath('api/usage', { source: source })
     const res = await fetchURL(apiPath)
