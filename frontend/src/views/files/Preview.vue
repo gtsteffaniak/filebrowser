@@ -118,7 +118,7 @@ export default {
   },
   computed: {
     raw() {
-      return filesApi.getDownloadURL(state.req.path, true);
+      return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -130,7 +130,7 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(state.req.path);
+      return filesApi.getDownloadURL(state.req.source, state.req.path);
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -274,7 +274,7 @@ export default {
     },
     prefetchUrl(item) {
       return this.fullSize
-        ? filesApi.getDownloadURL(item.url, true)
+        ? filesApi.getDownloadURL(item.source, item.path, true)
         : filesApi.getPreviewURL(item.source, item.path, "large", item.modified);
     },
     openMore() {

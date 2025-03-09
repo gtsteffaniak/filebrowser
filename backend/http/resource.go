@@ -277,10 +277,6 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
 	action := r.URL.Query().Get("action")
-	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = config.Server.DefaultSource.Name
-	}
 
 	if !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
@@ -297,26 +293,52 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return errToStatus(err), err
 	}
+
+	splitSrc := strings.Split(src, "::")
+	if len(splitSrc) <= 1 {
+		return http.StatusBadRequest, fmt.Errorf("invalid source path: %v", src)
+	}
+	srcIndex := splitSrc[0]
+	src = splitSrc[1]
+
+	splitDst := strings.Split(dst, "::")
+	if len(splitDst) <= 1 {
+		return http.StatusBadRequest, fmt.Errorf("invalid destination path: %v", dst)
+	}
+	dstIndex := splitDst[0]
+	dst = splitDst[1]
+
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
-	idx := files.GetIndex(source)
-	if idx == nil {
-		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
-	}
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+
+	userscopeDst, err := settings.GetScopeFromSourceName(d.user.Scopes, dstIndex)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(userscope, filepath.Dir(dst))
+	userscopeSrc, err := settings.GetScopeFromSourceName(d.user.Scopes, srcIndex)
 	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", userscope, filepath.Dir(dst), err))
-		return http.StatusNotFound, err
+		return http.StatusForbidden, err
 	}
 
+	idx := files.GetIndex(dstIndex)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", dstIndex)
+	}
+	// check target dir exists
+	parentDir, _, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
+	if err != nil {
+		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err))
+		return http.StatusNotFound, err
+	}
 	realDest := parentDir + "/" + filepath.Base(dst)
-	realSrc, isSrcDir, err := idx.GetRealPath(userscope, src)
+
+	idx2 := files.GetIndex(srcIndex)
+	if idx2 == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", srcIndex)
+	}
+
+	realSrc, isSrcDir, err := idx2.GetRealPath(userscopeSrc, src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -329,7 +351,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if overwrite && !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
-	err = patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
+	err = patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, srcIndex, dstIndex)
 	if err != nil {
 		logger.Debug(fmt.Sprintf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err))
 	}
@@ -359,13 +381,13 @@ func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFile
 	}
 }
 
-func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, index string) error {
+func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, srcIndex, destIndex string) error {
 	switch action {
 	case "copy":
 		if !d.user.Perm.Modify {
 			return errors.ErrPermissionDenied
 		}
-		err := files.CopyResource(index, src, dst, isSrcDir)
+		err := files.CopyResource(srcIndex, destIndex, src, dst, isSrcDir)
 		return err
 	case "rename", "move":
 		if !d.user.Perm.Modify {
@@ -373,7 +395,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		}
 		fileInfo, err := files.FileInfoFaster(files.FileOptions{
 			Path:       src,
-			Source:     index,
+			Source:     srcIndex,
 			IsDir:      isSrcDir,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
@@ -386,7 +408,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 
 		// delete thumbnails
 		delThumbs(ctx, fileCache, fileInfo)
-		return files.MoveResource(index, src, dst, isSrcDir)
+		return files.MoveResource(srcIndex, destIndex, src, dst, isSrcDir)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
 	}

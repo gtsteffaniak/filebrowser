@@ -70,14 +70,14 @@ export default {
 
       try {
         if (state.isSearchActive) {
-          await filesApi.remove(state.selected[0].path);
+          await filesApi.remove(state.selected[0].url);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
           mutations.closeHovers();
           return;
         }
         if (!this.isListing) {
-          await filesApi.remove(state.route.path);
+          await filesApi.remove(state.req.items[state.selected[0]].url);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
 
@@ -94,14 +94,13 @@ export default {
 
         let promises = [];
         for (let index of state.selected) {
-          promises.push(filesApi.remove(state.req.items[index].path));
+          promises.push(filesApi.remove(state.req.items[index].url));
         }
 
         await Promise.all(promises);
         buttons.success("delete");
         notify.showSuccess("Deleted item successfully! reloading...");
         mutations.setReload(true); // Handle reload as neededs
-
       } catch (e) {
         buttons.done("delete");
         notify.showError(e);

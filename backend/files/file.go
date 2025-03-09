@@ -204,15 +204,15 @@ func DeleteFiles(source, absPath string, dirPath string) error {
 	return nil
 }
 
-func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
+func MoveResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool) error {
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
 
-	index := GetIndex(source)
+	index := GetIndex(sourceIndex)
 	if index == nil {
-		return fmt.Errorf("could not get index: %v ", source)
+		return fmt.Errorf("could not get index: %v ", sourceIndex)
 	}
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
@@ -226,6 +226,10 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
 	}
+	index = GetIndex(dstIndex)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", dstIndex)
+	}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return fmt.Errorf("could not refresh index for dest: %v", err)
@@ -233,16 +237,32 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	return nil
 }
 
-func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
+func CopyResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool) error {
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(source)
+	index := GetIndex(sourceIndex)
 	if index == nil {
-		return fmt.Errorf("could not get index: %v ", source)
+		return fmt.Errorf("could not get index: %v ", sourceIndex)
+	}
+	// refresh info for source and dest
+	err = index.RefreshFileInfo(FileOptions{
+		Path:  realsrc,
+		IsDir: isSrcDir,
+	})
+	if err != nil {
+		return fmt.Errorf("could not refresh index for source: %v", err)
 	}
 	refreshConfig := FileOptions{Path: realdst, IsDir: true}
+	if !isSrcDir {
+		refreshConfig.Path = filepath.Dir(realdst)
+	}
+	index = GetIndex(dstIndex)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", dstIndex)
+	}
+	refreshConfig = FileOptions{Path: realdst, IsDir: true}
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
 	}
@@ -250,6 +270,7 @@ func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
 	if err != nil {
 		return errors.ErrEmptyKey
 	}
+
 	return nil
 }
 

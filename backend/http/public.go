@@ -27,7 +27,7 @@ import (
 // @Failure 400 {object} map[string]string "Invalid request path"
 // @Failure 404 {object} map[string]string "File or directory not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/raw [get]
+// @Router /public/dl [get]
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	filePrefix := ""
 	file, ok := d.raw.(files.ExtendedFileInfo)
