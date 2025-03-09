@@ -29,30 +29,28 @@ func GetSettingsConfig(nameType string, Value string) string {
 
 func AdminPerms() users.Permissions {
 	return users.Permissions{
-		Create:   true,
-		Rename:   true,
-		Modify:   true,
-		Delete:   true,
-		Share:    true,
-		Download: true,
-		Admin:    true,
-		Api:      true,
+		Modify: true,
+		Share:  true,
+		Admin:  true,
+		Api:    true,
 	}
 }
 
 // Apply applies the default options to a user.
-func ApplyUserDefaults(u users.User) users.User {
+func ApplyUserDefaults(u *users.User) {
 	u.StickySidebar = Config.UserDefaults.StickySidebar
 	u.DisableSettings = Config.UserDefaults.DisableSettings
 	u.DarkMode = Config.UserDefaults.DarkMode
-	u.Scope = Config.UserDefaults.Scope
 	u.Locale = Config.UserDefaults.Locale
 	u.ViewMode = Config.UserDefaults.ViewMode
 	u.SingleClick = Config.UserDefaults.SingleClick
 	u.Perm = Config.UserDefaults.Perm
-	u.Sorting = Config.UserDefaults.Sorting
-	u.Commands = Config.UserDefaults.Commands
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
-	return u
+	u.Scopes = []users.SourceScope{
+		{
+			Scope: Config.Server.DefaultSource.Config.DefaultUserScope,
+			Name:  Config.Server.DefaultSource.Path,
+		},
+	}
 }

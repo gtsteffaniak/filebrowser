@@ -1,9 +1,10 @@
 package files
 
 import (
+	"fmt"
 	"path/filepath"
 
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
@@ -71,9 +72,7 @@ func GetIndex(name string) *Index {
 	defer indexesMutex.Unlock()
 	index, ok := indexes[name]
 	if !ok {
-		return &Index{
-			Source: settings.Source{Name: "default", Path: "."},
-		}
+		logger.Error(fmt.Sprintf("index %s not found", name))
 	}
 	return index
 }

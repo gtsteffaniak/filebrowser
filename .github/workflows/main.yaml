@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.playwright-regular
+          file: ./_docker/Dockerfile.playwright-general
           push: false
   push_latest_to_registry:
     needs: [ test_playwright ]

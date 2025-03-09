@@ -1,5 +1,5 @@
 import { fetchURL, adjustedData } from './utils'
-import { removePrefix, getApiPath } from '@/utils/url.js'
+import { getApiPath, extractSourceFromPath } from '@/utils/url.js'
 import { state } from '@/store'
 import { notify } from '@/notify'
 import { externalUrl } from '@/utils/constants'
@@ -7,10 +7,11 @@ import { externalUrl } from '@/utils/constants'
 // Notify if errors occur
 export async function fetchFiles (url, content = false) {
   try {
-    let path = encodeURIComponent(removePrefix(url, 'files'))
+    const result = extractSourceFromPath(url)
     const apiPath = getApiPath('api/resources', {
-      path: path,
-      content: content
+      path: encodeURIComponent(result.path),
+      source: result.source,
+      ...(content && { content: 'true' })
     })
     const res = await fetchURL(apiPath)
     const data = await res.json()
@@ -24,12 +25,15 @@ export async function fetchFiles (url, content = false) {
 
 async function resourceAction (url, method, content) {
   try {
+    const result = extractSourceFromPath(url)
+    let source = result.source
+    let path = result.path
     let opts = { method }
     if (content) {
       opts.body = content
     }
-    let path = encodeURIComponent(removePrefix(url, 'files'))
-    const apiPath = getApiPath('api/resources', { path: path })
+    path = encodeURIComponent(path)
+    const apiPath = getApiPath('api/resources', { path: path, source: source })
     const res = await fetchURL(apiPath, opts)
     return res
   } catch (err) {
@@ -40,8 +44,7 @@ async function resourceAction (url, method, content) {
 
 export async function remove (url) {
   try {
-    let path = encodeURIComponent(removePrefix(url, 'files'))
-    return await resourceAction(path, 'DELETE')
+    return await resourceAction(url, 'DELETE')
   } catch (err) {
     notify.showError(err.message || 'Error deleting resource')
     throw err
@@ -50,8 +53,7 @@ export async function remove (url) {
 
 export async function put (url, content = '') {
   try {
-    let path = encodeURIComponent(removePrefix(url, 'files'))
-    return await resourceAction(path, 'PUT', content)
+    return await resourceAction(url, 'PUT', content)
   } catch (err) {
     notify.showError(err.message || 'Error putting resource')
     throw err
@@ -59,25 +61,34 @@ export async function put (url, content = '') {
 }
 
 export function download (format, files) {
-  if (format != 'zip') {
+  if (format !== 'zip') {
     format = 'tar.gz'
   }
   try {
     let fileargs = ''
     if (files.length === 1) {
-      fileargs = decodeURI(removePrefix(files[0], 'files'))
+      const result = extractSourceFromPath(decodeURI(files[0]))
+      fileargs = result.source + '::' + result.path + '||'
     } else {
       for (let file of files) {
-        fileargs += decodeURI(removePrefix(file, 'files')) + ',|'
+        const result = extractSourceFromPath(decodeURI(file))
+        fileargs += result.source + '::' + result.path + '||'
       }
-      fileargs = fileargs.substring(0, fileargs.length - 1)
     }
+    fileargs = fileargs.slice(0, -2) // remove trailing "||"
     const apiPath = getApiPath('api/raw', {
       files: encodeURIComponent(fileargs),
       algo: format
     })
     const url = window.origin + apiPath
-    window.open(url)
+
+    // Create a temporary <a> element to trigger the download
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', '') // Ensures it triggers a download
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link) // Clean up
   } catch (err) {
     notify.showError(err.message || 'Error downloading files')
   }
@@ -85,8 +96,7 @@ export function download (format, files) {
 
 export async function post (url, content = '', overwrite = false, onupload) {
   try {
-    url = removePrefix(url, 'files')
-
+    const result = extractSourceFromPath(url)
     let bufferContent
     if (
       content instanceof Blob &&
@@ -96,7 +106,8 @@ export async function post (url, content = '', overwrite = false, onupload) {
     }
 
     const apiPath = getApiPath('api/resources', {
-      path: url,
+      path: result.path,
+      source: result.source,
       override: overwrite
     })
     return new Promise((resolve, reject) => {
@@ -146,15 +157,17 @@ export async function moveCopy (
   try {
     // Create an array of fetch calls
     let promises = items.map(item => {
-      let toPath = encodeURIComponent(removePrefix(decodeURI(item.to), 'files'))
-      let fromPath = encodeURIComponent(
-        removePrefix(decodeURI(item.from), 'files')
-      )
-      let localParams = { ...params, destination: toPath, from: fromPath }
+      const fromResult = extractSourceFromPath(item.from)
+      const toResult = extractSourceFromPath(item.to)
+      let localParams = {
+        ...params,
+        destination: toResult.source + '::' + toResult.path,
+        from: fromResult.source + '::' + fromResult.path
+      }
       const apiPath = getApiPath('api/resources', localParams)
+
       return fetch(apiPath, { method: 'PATCH' }).then(response => {
         if (!response.ok) {
-          // Throw an error if the fetch fails
           return response.text().then(text => {
             throw new Error(
               `Failed to move/copy: ${text || response.statusText}`
@@ -173,10 +186,12 @@ export async function moveCopy (
   }
 }
 
-export async function checksum (path, algo) {
+export async function checksum (url, algo) {
   try {
+    const result = extractSourceFromPath(url)
     const params = {
-      path: encodeURIComponent(removePrefix(path, 'files')),
+      path: encodeURIComponent(result.path),
+      source: result.source,
       checksum: algo
     }
     const apiPath = getApiPath('api/resources', params)
@@ -189,10 +204,10 @@ export async function checksum (path, algo) {
   }
 }
 
-export function getDownloadURL (path, inline, useExternal) {
+export function getDownloadURL (source, path, inline, useExternal) {
   try {
     const params = {
-      files: encodeURIComponent(removePrefix(decodeURI(path), 'files')),
+      files: source + '::' + encodeURIComponent(path),
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)
@@ -206,12 +221,13 @@ export function getDownloadURL (path, inline, useExternal) {
   }
 }
 
-export function getPreviewURL (path, size, modified) {
+export function getPreviewURL (source, path, size, modified) {
   try {
     const params = {
-      path: encodeURIComponent(removePrefix(decodeURI(path), 'files')),
+      path: encodeURIComponent(path),
       size: size,
       key: Date.parse(modified),
+      source: source,
       inline: 'true'
     }
     const apiPath = getApiPath('api/preview', params)
@@ -220,16 +236,6 @@ export function getPreviewURL (path, size, modified) {
     notify.showError(err.message || 'Error getting preview URL')
     throw err
   }
-}
-
-export function getSubtitlesURL (path) {
-  const params = {
-    inline: true,
-    files: path,
-    source: 'default'
-  }
-  const apiPath = getApiPath('api/raw', params)
-  return window.origin + apiPath
 }
 
 export async function usage (source) {

@@ -13,7 +13,7 @@
       class="card-action"
       style="display: flex; align-items: center; justify-content: space-between"
     >
-      <template v-if="user.perm.create">
+      <template v-if="user.perm.modify">
         <button
           class="button button--flat"
           @click="$refs.fileList.createDir()"
@@ -76,14 +76,14 @@ export default {
     if (state.isSearchActive) {
       this.items = [
         {
-          from: "/files" + state.selected[0].path,
+          from: state.selected[0].url,
           name: state.selected[0].name,
         },
       ];
     } else {
       for (let item of state.selected) {
         this.items.push({
-          from: state.req.items[item].path,
+          from: state.req.items[item].url,
           // add to: dest
           name: state.req.items[item].name,
         });

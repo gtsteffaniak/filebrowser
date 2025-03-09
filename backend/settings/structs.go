@@ -15,7 +15,6 @@ const (
 type Settings struct {
 	Commands     map[string][]string `json:"commands"`
 	Shell        []string            `json:"shell"`
-	Rules        []users.Rule        `json:"rules"`
 	Server       Server              `json:"server"`
 	Auth         Auth                `json:"auth"`
 	Frontend     Frontend            `json:"frontend"`
@@ -35,6 +34,7 @@ type Auth struct {
 	Key                  []byte       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
+	AuthMethods          []string
 }
 
 type LoginMethods struct {
@@ -73,13 +73,16 @@ type Server struct {
 	BaseURL            string      `json:"baseURL"`
 	Logging            []LogConfig `json:"logging"`
 	Database           string      `json:"database"`
-	Root               string      `json:"root"`
+	Root               string      `json:"root"` // deprecated, use sources
 	UserHomeBasePath   string      `json:"userHomeBasePath"`
-	CreateUserDir      bool        `json:"createUserDir"`
 	Sources            []Source    `json:"sources"`
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
+	// not exposed to config
+	SourceMap     map[string]Source // uses realpath as key
+	NameToSource  map[string]Source // uses name as key
+	DefaultSource Source
 }
 
 type Integrations struct {
@@ -102,12 +105,12 @@ type LogConfig struct {
 }
 
 type Source struct {
-	Path   string      `json:"path"`
-	Name   string      `json:"name"`
-	Config IndexConfig `json:"config"`
+	Path   string       `json:"path"` // can be relative, filesystem path
+	Name   string       `json:"name"` // display name
+	Config SourceConfig `json:"config"`
 }
 
-type IndexConfig struct {
+type SourceConfig struct {
 	IndexingInterval      uint32      `json:"indexingInterval"`
 	Disabled              bool        `json:"disabled"`
 	MaxWatchers           int         `json:"maxWatchers"`
@@ -116,6 +119,9 @@ type IndexConfig struct {
 	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"`
 	Exclude               IndexFilter `json:"exclude"`
 	Include               IndexFilter `json:"include"`
+	DefaultUserScope      string      `json:"defaultUserScope"` // default "" should match folders under path
+	DefaultEnabled        bool        `json:"defaultEnabled"`
+	CreateUserDir         bool        `json:"createUserDir"`
 }
 
 type IndexFilter struct {
@@ -142,26 +148,22 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	StickySidebar   bool         `json:"stickySidebar"`
-	DarkMode        bool         `json:"darkMode"`
-	LockPassword    bool         `json:"lockPassword"`
-	DisableSettings bool         `json:"disableSettings,omitempty"`
-	Scope           string       `json:"scope"`
-	Locale          string       `json:"locale"`
-	ViewMode        string       `json:"viewMode"`
-	GallerySize     int          `json:"gallerySize"`
-	SingleClick     bool         `json:"singleClick"`
-	Rules           []users.Rule `json:"rules"`
-	Sorting         struct {
-		By  string `json:"by"`
-		Asc bool   `json:"asc"`
-	} `json:"sorting"`
-	Perm                 users.Permissions `json:"perm"`
-	Permissions          users.Permissions `json:"permissions"`
-	Commands             []string          `json:"commands,omitempty"`
-	ShowHidden           bool              `json:"showHidden"`
-	DateFormat           bool              `json:"dateFormat"`
-	ThemeColor           string            `json:"themeColor"`
-	QuickDownload        bool              `json:"quickDownload"`
-	DisableOnlyOfficeExt string            `json:"disableOnlyOfficeExt"`
+	StickySidebar        bool                `json:"stickySidebar"`
+	DarkMode             bool                `json:"darkMode"`
+	LockPassword         bool                `json:"lockPassword"`
+	DisableSettings      bool                `json:"disableSettings,omitempty"`
+	Scope                string              `json:"scope"` // deprecated
+	Locale               string              `json:"locale"`
+	ViewMode             string              `json:"viewMode"`
+	GallerySize          int                 `json:"gallerySize"`
+	SingleClick          bool                `json:"singleClick"`
+	Perm                 users.Permissions   `json:"perm"`
+	Permissions          users.Permissions   `json:"permissions"`
+	Commands             []string            `json:"commands,omitempty"`
+	ShowHidden           bool                `json:"showHidden"`
+	DateFormat           bool                `json:"dateFormat"`
+	ThemeColor           string              `json:"themeColor"`
+	QuickDownload        bool                `json:"quickDownload"`
+	DisableOnlyOfficeExt string              `json:"disableOnlyOfficeExt"`
+	DefaultScopes        []users.SourceScope `json:"-"`
 }

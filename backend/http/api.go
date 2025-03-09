@@ -10,31 +10,45 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
+// createApiKeyHandler creates an API key for the user.
+// @Summary Create API key
+// @Description Create an API key with specified name, duration, and permissions.
+// @Tags API Keys
+// @Accept json
+// @Produce json
+// @Param name query string true "Name of the API key"
+// @Param days query string true "Duration of the API key in days"
+// @Param permissions query string true "Permissions for the API key (comma-separated)"
+// @Success 200 {object} HttpResponse "Token created successfully, resoponse contains json object with token key"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 409 {object} map[string]string "Conflict"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/createApiKey [post]
 func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	name := r.URL.Query().Get("name")
 	durationStr := r.URL.Query().Get("days")
 	permissionsStr := r.URL.Query().Get("permissions")
 
+	if !d.user.Perm.Api {
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to create api keys")
+	}
+
 	if name == "" {
-		return http.StatusInternalServerError, fmt.Errorf("api name must be valid")
+		return http.StatusBadRequest, fmt.Errorf("api name must be valid")
 	}
 	if durationStr == "" {
-		return http.StatusInternalServerError, fmt.Errorf("api duration must be valid")
+		return http.StatusBadRequest, fmt.Errorf("api duration must be valid")
 	}
 	if permissionsStr == "" {
-		return http.StatusInternalServerError, fmt.Errorf("api permissions must be valid")
+		return http.StatusBadRequest, fmt.Errorf("api permissions must be valid")
 	}
 	// Parse permissions from the query parameter
 	permissions := users.Permissions{
-		Api:      strings.Contains(permissionsStr, "api") && d.user.Perm.Api,
-		Admin:    strings.Contains(permissionsStr, "admin") && d.user.Perm.Admin,
-		Execute:  strings.Contains(permissionsStr, "execute") && d.user.Perm.Execute,
-		Create:   strings.Contains(permissionsStr, "create") && d.user.Perm.Create,
-		Rename:   strings.Contains(permissionsStr, "rename") && d.user.Perm.Rename,
-		Modify:   strings.Contains(permissionsStr, "modify") && d.user.Perm.Modify,
-		Delete:   strings.Contains(permissionsStr, "delete") && d.user.Perm.Delete,
-		Share:    strings.Contains(permissionsStr, "share") && d.user.Perm.Share,
-		Download: strings.Contains(permissionsStr, "download") && d.user.Perm.Download,
+		Api:    strings.Contains(permissionsStr, "api") && d.user.Perm.Api,
+		Admin:  strings.Contains(permissionsStr, "admin") && d.user.Perm.Admin,
+		Modify: strings.Contains(permissionsStr, "modify") && d.user.Perm.Modify,
+		Share:  strings.Contains(permissionsStr, "share") && d.user.Perm.Share,
 	}
 
 	// Convert the duration string to an int64
@@ -45,7 +59,6 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Here we assume the duration is in seconds; convert to time.Duration
 	duration := time.Duration(durationInt) * time.Hour * 24
-
 	// get request body like:
 	token, err := makeSignedTokenAPI(d.user, name, duration, permissions)
 	if err != nil {
@@ -61,8 +74,22 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	return renderJSON(w, r, response)
 }
 
+// deleteApiKeyHandler deletes an API key for the user.
+// @Summary Delete API key
+// @Description Delete an API key with specified name.
+// @Tags API Keys
+// @Accept json
+// @Produce json
+// @Param name query string true "Name of the API key to delete"
+// @Success 200 {object} HttpResponse "API key deleted successfully"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/deleteApiKey [delete]
 func deleteApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	name := r.URL.Query().Get("name")
+	if !d.user.Perm.Api {
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to delete api keys")
+	}
 
 	keyInfo, ok := d.user.ApiKeys[name]
 	if !ok {
@@ -89,8 +116,22 @@ type AuthTokenMin struct {
 	Permissions users.Permissions `json:"Permissions"`
 }
 
+// listApiKeysHandler lists all API keys or retrieves details for a specific key.
+// @Summary List API keys
+// @Description List all API keys or retrieve details for a specific key.
+// @Tags API Keys
+// @Accept json
+// @Produce json
+// @Param name query string false "Name of the API to retrieve details"
+// @Success 200 {object} AuthTokenMin "List of API keys or specific key details"
+// @Failure 404 {object} map[string]string "Not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/listApiKeys [get]
 func listApiKeysHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	key := r.URL.Query().Get("key")
+	key := r.URL.Query().Get("name")
+	if !d.user.Perm.Api {
+		return http.StatusForbidden, fmt.Errorf("user does not have permission to list api keys")
+	}
 
 	if key != "" {
 		keyInfo, ok := d.user.ApiKeys[key]

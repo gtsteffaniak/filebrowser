@@ -1,7 +1,6 @@
-package settings
+package files
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -10,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 var (
@@ -17,25 +18,39 @@ var (
 	dashes               = regexp.MustCompile(`[\-]+`)
 )
 
+// todo fix this!!
 // MakeUserDir makes the user directory according to settings.
-func (s *Settings) MakeUserDir(username, userScope, serverRoot string) (string, error) {
-	userScope = strings.TrimSpace(userScope)
-	if userScope == "" && s.Server.CreateUserDir {
+func (idx *Index) MakeUserDir(username string, scope string) error {
+	if idx.Config.CreateUserDir {
 		username = cleanUsername(username)
 		if username == "" || username == "-" || username == "." {
 			logger.Error(fmt.Sprintf("create user: invalid user for home dir creation: [%s]", username))
-			return "", errors.New("invalid user for home dir creation")
 		}
-		userScope = path.Join(s.Server.UserHomeBasePath, username)
 	}
-
-	userScope = path.Join("/", userScope)
-
-	fullPath := filepath.Join(serverRoot, userScope)
+	userScope := path.Join("/", scope)
+	fullPath := filepath.Join(idx.Path, userScope)
+	logger.Debug(fmt.Sprintf("creating user home dir: [%s]", fullPath))
 	if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
-		return "", fmt.Errorf("failed to create user home dir: [%s]: %w", userScope, err)
+		return err
 	}
-	return userScope, nil
+	return nil
+}
+
+func MakeUserDirs(u *users.User) {
+	for _, scope := range u.Scopes {
+		source := settings.Config.Server.NameToSource[scope.Name]
+		if source.Config.CreateUserDir {
+			idx := GetIndex(source.Name)
+			if idx == nil {
+				logger.Error(fmt.Sprintf("create user: failed to find source index for user home dir creation: %s", source.Name))
+				continue
+			}
+			err := idx.MakeUserDir(u.Username, scope.Scope)
+			if err != nil {
+				logger.Error(fmt.Sprintf("create user: failed to create user home dir: %s", err))
+			}
+		}
+	}
 }
 
 func cleanUsername(s string) string {

@@ -15,6 +15,228 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/createApiKey": {
+            "post": {
+                "description": "Create an API key with specified name, duration, and permissions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API Keys"
+                ],
+                "summary": "Create API key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the API key",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Duration of the API key in days",
+                        "name": "days",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Permissions for the API key (comma-separated)",
+                        "name": "permissions",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token created successfully, resoponse contains json object with token key",
+                        "schema": {
+                            "$ref": "#/definitions/http.HttpResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/deleteApiKey": {
+            "delete": {
+                "description": "Delete an API key with specified name.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API Keys"
+                ],
+                "summary": "Delete API key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the API key to delete",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "API key deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/http.HttpResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/listApiKeys": {
+            "get": {
+                "description": "List all API keys or retrieve details for a specific key.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API Keys"
+                ],
+                "summary": "List API keys",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the API to retrieve details",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of API keys or specific key details",
+                        "schema": {
+                            "$ref": "#/definitions/http.AuthTokenMin"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "description": "Authenticate a user with a username and password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User login",
+                "responses": {
+                    "200": {
+                        "description": "JWT token for authentication",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - authentication failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/preview": {
             "get": {
                 "description": "Returns a preview image based on the requested path and size.",
@@ -114,7 +336,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Comma-separated list of specific files within the directory (required)",
+                        "description": "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)",
                         "name": "files",
                         "in": "query",
                         "required": true
@@ -140,7 +362,7 @@ const docTemplate = `{
                         }
                     },
                     "202": {
-                        "description": "Download permissions required",
+                        "description": "Modify permissions required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -159,6 +381,47 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "File or directory not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/renew": {
+            "post": {
+                "description": "Refresh the authentication token for a logged-in user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Renew authentication token",
+                "responses": {
+                    "200": {
+                        "description": "New JWT token generated",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -627,7 +890,7 @@ const docTemplate = `{
         },
         "/api/settings": {
             "get": {
-                "description": "Returns the current configuration settings for signup, user directories, rules, frontend, and commands.",
+                "description": "Returns the current configuration settings for signup, user directories, rules, frontend.",
                 "consumes": [
                     "application/json"
                 ],
@@ -638,6 +901,14 @@ const docTemplate = `{
                     "Settings"
                 ],
                 "summary": "Get system settings",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Property to retrieve",
+                        "name": "property",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "System settings data",
@@ -648,7 +919,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates the system configuration settings for signup, user directories, rules, frontend, and commands.",
+                "description": "Updates the system configuration settings for signup, user directories, rules, frontend.",
                 "consumes": [
                     "application/json"
                 ],
@@ -713,6 +984,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Resource path for which to retrieve share links",
                         "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for share links",
+                        "name": "source",
                         "in": "query",
                         "required": true
                     }
@@ -794,6 +1072,20 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/share.CreateBody"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source Path of the files to share",
+                        "name": "path",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name of the files to share",
+                        "name": "source",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -852,6 +1144,76 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad request - missing or invalid hash",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/signup": {
+            "post": {
+                "description": "Register a new user account with a username and password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User signup",
+                "parameters": [
+                    {
+                        "description": "User signup details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.signupBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Method not allowed - signup is disabled",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict - user already exists",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1164,6 +1526,86 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/public/dl": {
+            "get": {
+                "description": "Returns the raw content of a file, multiple files, or a directory. Supports downloading files as archives in various formats.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get raw content of a file, multiple files, or directory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)",
+                        "name": "files",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'.",
+                        "name": "inline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'.",
+                        "name": "algo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Raw file or directory content, or archive for multiple files",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "202": {
+                        "description": "Modify permissions required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File or directory not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1249,6 +1691,26 @@ const docTemplate = `{
                 }
             }
         },
+        "http.AuthTokenMin": {
+            "type": "object",
+            "properties": {
+                "Permissions": {
+                    "$ref": "#/definitions/users.Permissions"
+                },
+                "created": {
+                    "type": "integer"
+                },
+                "expires": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "http.DiskUsageResponse": {
             "type": "object",
             "properties": {
@@ -1277,15 +1739,6 @@ const docTemplate = `{
         "http.settingsData": {
             "type": "object",
             "properties": {
-                "commands": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
                 "createUserDir": {
                     "type": "boolean"
                 },
@@ -1295,16 +1748,21 @@ const docTemplate = `{
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
-                },
                 "signup": {
                     "type": "boolean"
                 },
                 "userHomeBasePath": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.signupBody": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -1388,13 +1846,8 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
-                },
                 "scope": {
+                    "description": "deprecated",
                     "type": "string"
                 },
                 "showHidden": {
@@ -1402,17 +1855,6 @@ const docTemplate = `{
                 },
                 "singleClick": {
                     "type": "boolean"
-                },
-                "sorting": {
-                    "type": "object",
-                    "properties": {
-                        "asc": {
-                            "type": "boolean"
-                        },
-                        "by": {
-                            "type": "string"
-                        }
-                    }
                 },
                 "stickySidebar": {
                     "type": "boolean"
@@ -1452,6 +1894,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "path": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 },
                 "token": {
@@ -1495,54 +1940,11 @@ const docTemplate = `{
                 "api": {
                     "type": "boolean"
                 },
-                "create": {
-                    "type": "boolean"
-                },
-                "delete": {
-                    "type": "boolean"
-                },
-                "download": {
-                    "type": "boolean"
-                },
-                "execute": {
-                    "type": "boolean"
-                },
                 "modify": {
-                    "type": "boolean"
-                },
-                "rename": {
                     "type": "boolean"
                 },
                 "share": {
                     "type": "boolean"
-                }
-            }
-        },
-        "users.Regexp": {
-            "type": "object",
-            "properties": {
-                "raw": {
-                    "type": "string"
-                }
-            }
-        },
-        "users.Rule": {
-            "type": "object",
-            "properties": {
-                "allow": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "regex": {
-                    "type": "boolean"
-                },
-                "regexp": {
-                    "$ref": "#/definitions/users.Regexp"
                 }
             }
         },
@@ -1557,6 +1959,17 @@ const docTemplate = `{
                 }
             }
         },
+        "users.SourceScope": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "scope": {
+                    "type": "string"
+                }
+            }
+        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -1564,12 +1977,6 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
-                    }
-                },
-                "commands": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
                     }
                 },
                 "darkMode": {
@@ -1605,14 +2012,14 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "rules": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.Rule"
-                    }
-                },
                 "scope": {
                     "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users.SourceScope"
+                    }
                 },
                 "showHidden": {
                     "type": "boolean"

@@ -28,7 +28,7 @@ import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
-//import { removePrefix } from "@/utils/url.js";
+import router from "@/router";
 
 export default {
   name: "files",
@@ -101,6 +101,15 @@ export default {
       }
     },
     async fetchData() {
+      // lets redirect if multiple sources and user went to /files/
+      if (
+        state.sources.count > 1 &&
+        (getters.routePath() === "/files/" || getters.routePath() === "/files")
+      ) {
+        router.push(`/files/${state.sources.current}`);
+        return;
+      }
+
       this.lastHash = "";
       // Set loading to true and reset the error.
       mutations.setLoading("files", true);
@@ -112,13 +121,15 @@ export default {
       try {
         // Fetch initial data
         let res = await filesApi.fetchFiles(getters.routePath());
-        console.log("fetched", res.name);
         // If not a directory, fetch content
         if (res.type != "directory") {
           const content = !getters.onlyOfficeEnabled();
           res = await filesApi.fetchFiles(getters.routePath(), content);
         }
         data = res;
+        if (state.sources.count > 1) {
+          mutations.setCurrentSource(data.source);
+        }
         document.title = `${document.title} - ${res.name}`;
       } catch (e) {
         notify.showError(e);

@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>{{ $t("prompts.deleteMessageShare", { path: "" }) }}</p>
+      <p>{{ $t("prompts.deleteMessageShare", { path }) }}</p>
     </div>
     <div class="card-action">
       <button
@@ -24,10 +24,13 @@
   </div>
 </template>
 <script>
-import { getters } from "@/store"; // Import your custom store
+import { getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "share-delete",
+  props: {
+    path: String,
+  },
   computed: {
     closeHovers() {
       return mutations.closeHovers();

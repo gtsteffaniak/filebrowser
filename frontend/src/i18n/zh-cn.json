@@ -166,6 +166,7 @@
     "video": "视频"
   },
   "settings": {
+    "scopes": "定义允许的来源及其中的用户范围",
     "admin": "管理员",
     "administrator": "管理员",
     "allowCommands": "执行命令（Shell 命令）",

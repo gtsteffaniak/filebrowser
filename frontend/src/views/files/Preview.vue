@@ -94,8 +94,6 @@ import { getTypeInfo } from "@/utils/mimetype";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 
-const mediaTypes = ["image", "video", "audio", "blob"];
-
 export default {
   name: "preview",
   components: {
@@ -120,7 +118,7 @@ export default {
   },
   computed: {
     raw() {
-      return filesApi.getDownloadURL(state.req.path, true);
+      return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -132,7 +130,7 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
-      return filesApi.getDownloadURL(state.req.path);
+      return filesApi.getDownloadURL(state.req.source, state.req.path);
     },
     showMore() {
       return getters.currentPromptName() === "more";
@@ -276,8 +274,8 @@ export default {
     },
     prefetchUrl(item) {
       return this.fullSize
-        ? filesApi.getDownloadURL(item.path, true)
-        : filesApi.getPreviewURL(item.path, "large", item.modified);
+        ? filesApi.getDownloadURL(item.source, item.path, true)
+        : filesApi.getPreviewURL(item.source, item.path, "large", item.modified);
     },
     openMore() {
       this.currentPrompt = "more";

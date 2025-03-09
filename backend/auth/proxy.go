@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -20,7 +19,7 @@ type ProxyAuth struct {
 // Auth authenticates the user via an HTTP header.
 func (a ProxyAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
 	username := r.Header.Get(a.Header)
-	user, err := usr.Get(files.RootPaths["default"], username)
+	user, err := usr.Get(username)
 	if err == errors.ErrNotExist {
 		return nil, os.ErrPermission
 	}

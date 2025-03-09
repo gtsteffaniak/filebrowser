@@ -11,6 +11,11 @@ vi.mock('@/store', () => {
         total: "0 B",
         usedPercentage: 0,
       },
+      sources: {
+        info: {default: {pathPrefix: "", used: "0 B", total: "0 B", usedPercentage: 0}},
+        current: "default",
+        count: 1,
+      },
       editor: null,
       user: {
         gallarySize: 0,

@@ -4,7 +4,10 @@
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
     <div aria-label="share-paths" class="searchContext">Path: {{ subpath }}</div>
-    <p>Note: anyone who has access to the link (and optional password) can access the shared files. There is no need to be logged in.</p>
+    <p>
+      Note: anyone who has access to the link (and optional password) can access the
+      shared files. There is no requirement to be logged in.
+    </p>
     <template v-if="listing">
       <div class="card-content">
         <table>
@@ -126,6 +129,7 @@ import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi, publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
+import { removePrefix } from "@/utils/url";
 import Clipboard from "clipboard";
 
 export default {
@@ -137,6 +141,7 @@ export default {
       links: [],
       clip: null,
       subpath: "",
+      source: "",
       password: "",
       listing: true,
     };
@@ -173,15 +178,27 @@ export default {
   },
   async beforeMount() {
     try {
+      let path = getters.routePath("files");
       if (state.isSearchActive) {
-        this.subpath = state.selected[0].path;
+        path = state.selected[0].path;
+        this.source = state.selected[0].source;
       } else {
-        let path = "." + getters.routePath("files");
+        this.source = state.req.source;
         if (getters.selectedCount() === 1) {
-          path = path + state.req.items[this.selected[0]].name;
+          if (state.sources.count > 1) {
+            path = removePrefix(
+              state.req.items[this.selected[0]].url,
+              "files/" + state.req.source
+            );
+          } else {
+            path = removePrefix(state.req.items[this.selected[0]].url, "files");
+          }
         }
-        this.subpath = decodeURIComponent(path);
+        if (state.sources.count > 1) {
+          path = removePrefix(path, state.req.source);
+        }
       }
+      this.subpath = decodeURIComponent(path);
       // get last element of the path
       const links = await shareApi.get(this.subpath);
       this.links = links;
@@ -211,10 +228,11 @@ export default {
       let res = null;
 
       if (isPermanent) {
-        res = await shareApi.create(this.subpath, this.password);
+        res = await shareApi.create(this.subpath, this.source, this.password);
       } else {
         res = await shareApi.create(
           this.subpath,
+          this.source,
           this.password,
           this.time.toString(),
           this.unit
@@ -251,6 +269,8 @@ export default {
       return this.selected.length === 1 && !state.req.items[this.selected[0]].isDir;
     },
     buildDownloadLink(share) {
+      share.source = this.source;
+      share.path = this.subpath;
       return publicApi.getDownloadURL(share);
     },
     sort() {

@@ -10,14 +10,9 @@ export async function fetchURL(url, opts, auth = true) {
 
   let res;
   try {
-    let userScope = "";
-    if (state.user) {
-      userScope = state.user.scope;
-    }
     res = await fetch(url, {
       headers: {
         "sessionId": state.sessionId,
-        "userScope": userScope,
         ...headers,
       },
       ...rest,
@@ -88,3 +83,4 @@ export function adjustedData(data, url) {
   }
   return data;
 }
+

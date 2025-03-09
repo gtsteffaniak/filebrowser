@@ -1,16 +1,17 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <form @submit="save" class="card active">
+  <form @submit="save" class="card active" v-if="loaded">
     <div class="card-title">
-      <h2 v-if="user.id === 0">{{ $t("settings.newUser") }}</h2>
-      <h2 v-else>{{ $t("settings.user") }} {{ user.username }}</h2>
+      <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
+      <h2 v-else-if="actor.id == user.id">modify current user ({{ user.username }})</h2>
+      <h2 v-else>modify user: {{ user.username }}</h2>
     </div>
 
     <div class="card-content">
       <user-form
         v-model:user="user"
+        v-model:updatePassword="updatePassword"
         :createUserDir="createUserDir"
-        :isDefault="false"
         :isNew="isNew"
         @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
       />
@@ -18,7 +19,7 @@
 
     <div class="card-action">
       <button
-        v-if="!isNew && user.perm.admin"
+        v-if="!isNew && actor.perm.admin"
         @click.prevent="deletePrompt"
         type="button"
         class="button button--flat button--red"
@@ -50,26 +51,28 @@ export default {
       error: null,
       originalUser: null,
       user: {
-        scope: ".",
+        scopes: [],
         username: "",
         perm: { admin: false },
       },
       showDelete: false,
       createUserDir: false,
+      loaded: false,
+      updatePassword: false,
     };
   },
   created() {
     this.fetchData();
   },
   computed: {
+    actor() {
+      return state.user;
+    },
     settings() {
       return state.settings;
     },
     isNew() {
       return getters.routePath().endsWith("settings/users/new");
-    },
-    userPayload() {
-      return JSON.parse(JSON.stringify(this.user)); // Deep copy for safety
     },
   },
   methods: {
@@ -77,16 +80,8 @@ export default {
       mutations.setLoading("users", true);
       try {
         if (this.isNew) {
-          let { defaults, createUserDir } = await settingsApi.get();
-          this.createUserDir = createUserDir;
-          this.user = {
-            ...defaults,
-            username: "",
-            password: "",
-            rules: [],
-            lockPassword: false,
-            id: 0,
-          };
+          let defaults = await settingsApi.get("userDefaults");
+          this.user = defaults;
         } else {
           const id = Array.isArray(state.route.params.id)
             ? state.route.params.id.join("")
@@ -101,6 +96,7 @@ export default {
         this.error = e;
       } finally {
         mutations.setLoading("users", false);
+        this.loaded = true;
       }
     },
     deletePrompt() {
@@ -110,15 +106,14 @@ export default {
       event.preventDefault();
       try {
         if (this.isNew) {
-          await usersApi.create(this.userPayload); // Use the computed property
+          await usersApi.create(this.user); // Use the computed property
           this.$router.push({ path: "/settings", hash: "#users-main" });
-          notify.showSuccess(this.$t("settings.userCreated"));
         } else {
           let which = ["all"];
-          if (!this.user.perm.admin) {
-            which = ["password"];
+          await usersApi.update(this.user, which);
+          if (this.updatePassword) {
+            await usersApi.update(this.user, ["password"]);
           }
-          await usersApi.update(this.userPayload, which);
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {

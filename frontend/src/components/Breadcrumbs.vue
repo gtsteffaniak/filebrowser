@@ -2,7 +2,7 @@
   <div class="breadcrumbs">
     <component
       :is="element"
-      :to="base || ''"
+      :to="homePath"
       :aria-label="$t('files.home')"
       :title="$t('files.home')"
     >
@@ -32,7 +32,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { removePrefix } from "@/utils/url.js";
+import { extractSourceFromPath, removePrefix, removeLeadingSlash } from "@/utils/url.js";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -43,28 +43,25 @@ export default {
   data() {
     return {
       gallerySize: state.user.gallerySize,
+      homePath: "/files/",
+      path: "",
     };
   },
   props: ["base", "noLink"],
+  mounted() {
+    this.updatePaths();
+  },
+  watch: {
+    $route() {
+      this.updatePaths();
+    },
+  },
   computed: {
     isCardView() {
       return getters.isCardView();
     },
     items() {
-      let relativePath = removePrefix(state.route.path, "files");
-      if (getters.currentView() == "share") {
-        // Split the path, filter out any empty elements, then join again with slashes
-        relativePath = removePrefix(state.route.path, "share");
-      }
-      let parts = relativePath.split("/");
-
-      if (parts[0] === "") {
-        parts.shift();
-      }
-      if (getters.currentView() == "share") {
-        parts.shift();
-      }
-
+      let parts = removeLeadingSlash(this.path).split("/");
       if (parts[parts.length - 1] === "") {
         parts.pop();
       }
@@ -104,11 +101,25 @@ export default {
     },
     showShare() {
       return (
-        state.user?.perm && state.user?.perm.share && state.user.username != "publicUser" && getters.currentView() != "share"
+        state.user?.perm &&
+        state.user?.perm.share &&
+        state.user.username != "publicUser" &&
+        getters.currentView() != "share"
       );
     },
   },
   methods: {
+    updatePaths() {
+      const result = extractSourceFromPath(getters.routePath());
+      this.path = removePrefix(result.path, "files");
+      if (getters.currentView() == "share") {
+        this.homePath = getters.sharePathBase();
+        this.path = removePrefix(getters.routePath(), this.homePath + "/");
+      }
+      if (state.sources.count > 1) {
+        this.homePath = "/files/" + result.source;
+      }
+    },
     updateGallerySize(event) {
       this.gallerySize = parseInt(event.target.value, 10);
     },

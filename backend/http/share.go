@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 )
 
@@ -59,12 +60,17 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Accept json
 // @Produce json
 // @Param path query string true "Resource path for which to retrieve share links"
+// @Param source query string true "Source name for share links"
 // @Success 200 {array} share.Link "List of share links for the specified path"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/share [get]
 func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
-	s, err := store.Share.Gets(path, d.user.ID)
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = settings.Config.Server.DefaultSource.Name
+	}
+	s, err := store.Share.Gets(path, source, d.user.ID)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
 	}
@@ -108,6 +114,8 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Accept json
 // @Produce json
 // @Param body body share.CreateBody true "Share link creation parameters"
+// @Param path path string true "Source Path of the files to share"
+// @Param source path string true "Source name of the files to share"
 // @Success 200 {object} share.Link "Created share link"
 // @Failure 400 {object} map[string]string "Bad request - failed to decode body"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -159,16 +167,21 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var token string
 	if len(hash) > 0 {
 		tokenBuffer := make([]byte, 24) //nolint:gomnd
-		if _, err := rand.Read(tokenBuffer); err != nil {
+		if _, err = rand.Read(tokenBuffer); err != nil {
 			return http.StatusInternalServerError, err
 		}
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 		stringHash = string(hash)
 	}
 	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = config.Server.DefaultSource.Name
+	}
 	s = &share.Link{
 		Path:         path,
 		Hash:         secure_hash,
+		Source:       source,
 		Expire:       expire,
 		UserID:       d.user.ID,
 		PasswordHash: stringHash,

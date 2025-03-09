@@ -32,7 +32,7 @@ test("2x copy from listing to new folder", async ({ page, context }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /');
+  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /playwright-files/');
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
   await page.locator('li[aria-label="myfolder"]').click();
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(1);
@@ -62,7 +62,7 @@ test("2x copy from listing to new folder", async ({ page, context }) => {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
+  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /playwright-files/myfolder/');
   await page.locator('li[aria-label="newfolder"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   const popup2 = page.locator('#popup-notification-content');
@@ -89,7 +89,7 @@ test("delete file", async ({ page, context }) => {
 })
 
 test("delete nested file prompt", async ({ page, context }) => {
-  await page.goto("/files/folder%23hash/");
+  await page.goto("/files/playwright-files/folder%23hash/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - folder#hash");
   await page.locator('a[aria-label="file#.sh"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="file#.sh"]').click({ button: "right" });

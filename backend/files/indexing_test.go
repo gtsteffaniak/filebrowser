@@ -16,6 +16,9 @@ func BenchmarkFillIndex(b *testing.B) {
 		Path: "/srv",
 	})
 	idx := GetIndex("test")
+	if idx == nil {
+		b.Fatal("index is nil")
+	}
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
@@ -165,7 +168,7 @@ func BenchmarkCheckIndexExclude(b *testing.B) {
 	idx := Index{
 		Source: settings.Source{
 			Name: "files",
-			Config: settings.IndexConfig{
+			Config: settings.SourceConfig{
 				IgnoreHidden: true,
 				Exclude: settings.IndexFilter{
 					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
@@ -202,7 +205,7 @@ func BenchmarkCheckIndexConditionsInclude(b *testing.B) {
 	idx2 := Index{
 		Source: settings.Source{
 			Name: "files",
-			Config: settings.IndexConfig{
+			Config: settings.SourceConfig{
 				IgnoreHidden: true,
 				Include: settings.IndexFilter{
 					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},

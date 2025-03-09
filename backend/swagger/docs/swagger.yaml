@@ -57,6 +57,19 @@ definitions:
       type:
         type: string
     type: object
+  http.AuthTokenMin:
+    properties:
+      Permissions:
+        $ref: '#/definitions/users.Permissions'
+      created:
+        type: integer
+      expires:
+        type: integer
+      key:
+        type: string
+      name:
+        type: string
+    type: object
   http.DiskUsageResponse:
     properties:
       total:
@@ -75,25 +88,22 @@ definitions:
     type: object
   http.settingsData:
     properties:
-      commands:
-        additionalProperties:
-          items:
-            type: string
-          type: array
-        type: object
       createUserDir:
         type: boolean
       defaults:
         $ref: '#/definitions/settings.UserDefaults'
       frontend:
         $ref: '#/definitions/settings.Frontend'
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
       signup:
         type: boolean
       userHomeBasePath:
+        type: string
+    type: object
+  http.signupBody:
+    properties:
+      password:
+        type: string
+      username:
         type: string
     type: object
   settings.ExternalLink:
@@ -148,23 +158,13 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
       scope:
+        description: deprecated
         type: string
       showHidden:
         type: boolean
       singleClick:
         type: boolean
-      sorting:
-        properties:
-          asc:
-            type: boolean
-          by:
-            type: string
-        type: object
       stickySidebar:
         type: boolean
       themeColor:
@@ -190,6 +190,8 @@ definitions:
       password_hash:
         type: string
       path:
+        type: string
+      source:
         type: string
       token:
         description: |-
@@ -221,38 +223,10 @@ definitions:
         type: boolean
       api:
         type: boolean
-      create:
-        type: boolean
-      delete:
-        type: boolean
-      download:
-        type: boolean
-      execute:
-        type: boolean
       modify:
-        type: boolean
-      rename:
         type: boolean
       share:
         type: boolean
-    type: object
-  users.Regexp:
-    properties:
-      raw:
-        type: string
-    type: object
-  users.Rule:
-    properties:
-      allow:
-        type: boolean
-      id:
-        type: string
-      path:
-        type: string
-      regex:
-        type: boolean
-      regexp:
-        $ref: '#/definitions/users.Regexp'
     type: object
   users.Sorting:
     properties:
@@ -261,16 +235,19 @@ definitions:
       by:
         type: string
     type: object
+  users.SourceScope:
+    properties:
+      name:
+        type: string
+      scope:
+        type: string
+    type: object
   users.User:
     properties:
       apiKeys:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
         type: object
-      commands:
-        items:
-          type: string
-        type: array
       darkMode:
         type: boolean
       dateFormat:
@@ -293,12 +270,12 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      rules:
-        items:
-          $ref: '#/definitions/users.Rule'
-        type: array
       scope:
         type: string
+      scopes:
+        items:
+          $ref: '#/definitions/users.SourceScope'
+        type: array
       showHidden:
         type: boolean
       singleClick:
@@ -317,6 +294,154 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/createApiKey:
+    post:
+      consumes:
+      - application/json
+      description: Create an API key with specified name, duration, and permissions.
+      parameters:
+      - description: Name of the API key
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: Duration of the API key in days
+        in: query
+        name: days
+        required: true
+        type: string
+      - description: Permissions for the API key (comma-separated)
+        in: query
+        name: permissions
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token created successfully, resoponse contains json object
+            with token key
+          schema:
+            $ref: '#/definitions/http.HttpResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create API key
+      tags:
+      - API Keys
+  /api/deleteApiKey:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an API key with specified name.
+      parameters:
+      - description: Name of the API key to delete
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: API key deleted successfully
+          schema:
+            $ref: '#/definitions/http.HttpResponse'
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete API key
+      tags:
+      - API Keys
+  /api/listApiKeys:
+    get:
+      consumes:
+      - application/json
+      description: List all API keys or retrieve details for a specific key.
+      parameters:
+      - description: Name of the API to retrieve details
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of API keys or specific key details
+          schema:
+            $ref: '#/definitions/http.AuthTokenMin'
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List API keys
+      tags:
+      - API Keys
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with a username and password.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token for authentication
+          schema:
+            type: string
+        "403":
+          description: Forbidden - authentication failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
+      tags:
+      - Auth
   /api/preview:
     get:
       consumes:
@@ -380,7 +505,8 @@ paths:
       description: Returns the raw content of a file, multiple files, or a directory.
         Supports downloading files as archives in various formats.
       parameters:
-      - description: Comma-separated list of specific files within the directory (required)
+      - description: a list of files in the following format 'source::filename' and
+          separated by '||' with additional items in the list. (required)
         in: query
         name: files
         required: true
@@ -403,7 +529,7 @@ paths:
           schema:
             type: file
         "202":
-          description: Download permissions required
+          description: Modify permissions required
           schema:
             additionalProperties:
               type: string
@@ -429,6 +555,33 @@ paths:
       summary: Get raw content of a file, multiple files, or directory
       tags:
       - Resources
+  /api/renew:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the authentication token for a logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New JWT token generated
+          schema:
+            type: string
+        "401":
+          description: Unauthorized - invalid token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Renew authentication token
+      tags:
+      - Auth
   /api/resources:
     delete:
       consumes:
@@ -736,7 +889,12 @@ paths:
       consumes:
       - application/json
       description: Returns the current configuration settings for signup, user directories,
-        rules, frontend, and commands.
+        rules, frontend.
+      parameters:
+      - description: Property to retrieve
+        in: query
+        name: property
+        type: string
       produces:
       - application/json
       responses:
@@ -751,7 +909,7 @@ paths:
       consumes:
       - application/json
       description: Updates the system configuration settings for signup, user directories,
-        rules, frontend, and commands.
+        rules, frontend.
       parameters:
       - description: Settings data to update
         in: body
@@ -789,6 +947,11 @@ paths:
       - description: Resource path for which to retrieve share links
         in: query
         name: path
+        required: true
+        type: string
+      - description: Source name for share links
+        in: query
+        name: source
         required: true
         type: string
       produces:
@@ -845,6 +1008,16 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/share.CreateBody'
+      - description: Source Path of the files to share
+        in: path
+        name: path
+        required: true
+        type: string
+      - description: Source name of the files to share
+        in: path
+        name: source
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -898,6 +1071,52 @@ paths:
       summary: Delete a share link
       tags:
       - Shares
+  /api/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account with a username and password.
+      parameters:
+      - description: User signup details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.signupBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            type: string
+        "400":
+          description: Bad request - invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "405":
+          description: Method not allowed - signup is disabled
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict - user already exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User signup
+      tags:
+      - Auth
   /api/usage:
     get:
       consumes:
@@ -1092,4 +1311,61 @@ paths:
       summary: Health Check
       tags:
       - Health
+  /public/dl:
+    get:
+      consumes:
+      - application/json
+      description: Returns the raw content of a file, multiple files, or a directory.
+        Supports downloading files as archives in various formats.
+      parameters:
+      - description: a list of files in the following format 'source::filename' and
+          separated by '||' with additional items in the list. (required)
+        in: query
+        name: files
+        required: true
+        type: string
+      - description: If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults
+          to 'attachment'.
+        in: query
+        name: inline
+        type: boolean
+      - description: 'Compression algorithm for archiving multiple files or directories.
+          Options: ''zip'' and ''tar.gz''. Default is ''zip''.'
+        in: query
+        name: algo
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Raw file or directory content, or archive for multiple files
+          schema:
+            type: file
+        "202":
+          description: Modify permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File or directory not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get raw content of a file, multiple files, or directory
+      tags:
+      - Resources
 swagger: "2.0"

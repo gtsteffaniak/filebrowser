@@ -5,85 +5,31 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	yaml "github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
 var Config Settings
 
 func Initialize(configFile string) {
-	yamlData, err := loadConfigFile(configFile)
-	if err != nil && configFile != "config.yaml" {
-		logger.Fatal("Could not load specified config file: " + err.Error())
-	}
+	err := loadConfigWithDefaults(configFile)
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
+		logger.Fatal(err.Error())
 	}
-	Config = setDefaults()
-	err = yaml.Unmarshal(yamlData, &Config)
-	if err != nil {
-		logger.Fatal(fmt.Sprintf("Error unmarshaling YAML data: %v", err))
-	}
-	if len(Config.Server.Logging) == 0 {
-		Config.Server.Logging = []LogConfig{
-			{
-				Output: "stdout",
-			},
-		}
-	}
-	for _, logConfig := range Config.Server.Logging {
-		err = logger.SetupLogger(
-			logConfig.Output,
-			logConfig.Levels,
-			logConfig.ApiLevels,
-			logConfig.NoColors,
-		)
-		if err != nil {
-			log.Println("[ERROR] Failed to set up logger:", err)
-		}
-	}
-	if Config.Auth.Method != "" {
-		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
-	}
-	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
-	// Convert relative path to absolute path
-	if len(Config.Server.Sources) > 0 {
-		if Config.Server.Root != "" {
-			logger.Warning("`server.root` is configured but will be ignored in favor of `server.sources`")
-		}
-		// TODO allow multiple sources not named default
-		for _, source := range Config.Server.Sources {
-			realPath, err2 := filepath.Abs(source.Path)
-			if err2 != nil {
-				logger.Fatal(fmt.Sprintf("Error getting source path: %v", err2))
-			}
-			source.Path = realPath
-			source.Name = "default"
-			Config.Server.Sources = []Source{source} // temporary set only one source
-		}
-	} else {
-		realPath, err2 := filepath.Abs(Config.Server.Root)
-		if err2 != nil {
-			logger.Fatal(fmt.Sprintf("Error getting source path: %v", err2))
-		}
-		Config.Server.Sources = []Source{
-			{
-				Name: "default",
-				Path: realPath,
-			},
-		}
-	}
+	setupLogging()
+	setupAuth()
+	setupSources()
+	setupBaseURL()
+	setupFrontend()
+}
 
-	baseurl := strings.Trim(Config.Server.BaseURL, "/")
-	if baseurl == "" {
-		Config.Server.BaseURL = "/"
-	} else {
-		Config.Server.BaseURL = "/" + baseurl + "/"
-	}
+func setupFrontend() {
 	if !Config.Frontend.DisableDefaultLinks {
 		Config.Frontend.ExternalLinks = append(Config.Frontend.ExternalLinks, ExternalLink{
 			Text:  fmt.Sprintf("(%v)", version.Version),
@@ -97,25 +43,153 @@ func Initialize(configFile string) {
 	}
 }
 
-func loadConfigFile(configFile string) ([]byte, error) {
+func getRealPath(path string) string {
+	realPath, err := filepath.Abs(path)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("could not find configured source path: %v", err))
+	}
+	// check path exists
+	if _, err = os.Stat(realPath); os.IsNotExist(err) {
+		logger.Fatal(fmt.Sprintf("configured source path does not exist: %v", realPath))
+	}
+	return realPath
+}
+
+func setupSources() {
+	if len(Config.Server.Sources) == 0 {
+		logger.Fatal("There are no `server.sources` configured. If you have `server.root` configured, please update the config and add at least one `server.sources` with a `path` configured.")
+	} else {
+		for k, source := range Config.Server.Sources {
+			realPath := getRealPath(source.Path)
+			name := utils.GetLastComponent(realPath)
+			source.Path = realPath // use absolute path
+			if source.Name == "" {
+				_, ok := Config.Server.SourceMap[source.Path]
+				if ok {
+					source.Name = name + fmt.Sprintf("-%v", k)
+				} else {
+					source.Name = name
+				}
+				if Config.Server.DefaultSource.Path == "" {
+					Config.Server.DefaultSource = source
+				}
+			}
+			Config.Server.SourceMap[source.Path] = source
+			Config.Server.NameToSource[source.Name] = source
+		}
+	}
+	// clean up the in memory source list to be accurate and unique
+	sourceList := []Source{}
+	defaultScopes := []users.SourceScope{}
+	allSourceNames := []string{}
+	first := true
+	for _, sourcePathOnly := range Config.Server.Sources {
+		realPath := getRealPath(sourcePathOnly.Path)
+		source, ok := Config.Server.SourceMap[realPath]
+		if ok && !slices.Contains(allSourceNames, source.Name) {
+			if first {
+				source.Config.DefaultEnabled = true
+				Config.Server.SourceMap[source.Path] = source
+				Config.Server.NameToSource[source.Name] = source
+				Config.Server.DefaultSource = source
+			}
+			first = false
+			sourceList = append(sourceList, source)
+			if source.Config.DefaultEnabled {
+				Config.Server.DefaultSource = source
+				defaultScopes = append(defaultScopes, users.SourceScope{
+					Name:  source.Path,
+					Scope: source.Config.DefaultUserScope,
+				})
+			}
+			allSourceNames = append(allSourceNames, source.Name)
+		} else {
+			logger.Warning(fmt.Sprintf("source %v is not configured correctly, skipping", sourcePathOnly.Path))
+		}
+	}
+	Config.UserDefaults.DefaultScopes = defaultScopes
+	Config.Server.Sources = sourceList
+}
+
+func setupBaseURL() {
+	baseurl := strings.Trim(Config.Server.BaseURL, "/")
+	if baseurl == "" {
+		Config.Server.BaseURL = "/"
+	} else {
+		Config.Server.BaseURL = "/" + baseurl + "/"
+	}
+}
+
+func setupAuth() {
+	if Config.Auth.Method != "" {
+		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
+	}
+	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
+	if Config.Auth.Methods.PasswordAuth.Enabled {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
+	}
+	if Config.Auth.Methods.ProxyAuth.Enabled {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Proxy")
+	}
+	if Config.Auth.Methods.NoAuth {
+		logger.Warning("Configured with no authentication, this is not recommended.")
+		Config.Auth.AuthMethods = []string{"Disabled"}
+	}
+	// use password auth as default if no auth methods are set
+	if len(Config.Auth.AuthMethods) == 0 {
+		Config.Auth.Methods.PasswordAuth.Enabled = true
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
+	}
+}
+
+func setupLogging() {
+	if len(Config.Server.Logging) == 0 {
+		Config.Server.Logging = []LogConfig{
+			{
+				Output: "stdout",
+			},
+		}
+	}
+	for _, logConfig := range Config.Server.Logging {
+		err := logger.SetupLogger(
+			logConfig.Output,
+			logConfig.Levels,
+			logConfig.ApiLevels,
+			logConfig.NoColors,
+		)
+		if err != nil {
+			log.Println("[ERROR] Failed to set up logger:", err)
+		}
+	}
+}
+
+func loadConfigWithDefaults(configFile string) error {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer yamlFile.Close()
 
 	stat, err := yamlFile.Stat()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	yamlData := make([]byte, stat.Size())
 	_, err = yamlFile.Read(yamlData)
-	if err != nil {
-		return nil, err
+	if err != nil && configFile != "config.yaml" {
+		return fmt.Errorf("could not load specified config file: " + err.Error())
 	}
-	return yamlData, nil
+	if err != nil {
+		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
+	}
+	Config = setDefaults()
+	err = yaml.Unmarshal(yamlData, &Config)
+	if err != nil {
+		return fmt.Errorf("error unmarshaling YAML data: %v", err)
+	}
+	return nil
 }
 
 func setDefaults() Settings {
@@ -128,7 +202,8 @@ func setDefaults() Settings {
 			NumImageProcessors: 4,
 			BaseURL:            "",
 			Database:           "database.db",
-			Root:               ".",
+			SourceMap:          map[string]Source{},
+			NameToSource:       map[string]Source{},
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",
@@ -139,14 +214,7 @@ func setDefaults() Settings {
 				Host: "",
 			},
 			Methods: LoginMethods{
-				ProxyAuth: ProxyAuthConfig{
-					Enabled:    false,
-					CreateUser: false,
-					Header:     "",
-				},
-				NoAuth: false,
 				PasswordAuth: PasswordAuthConfig{
-					Enabled:   true,
 					MinLength: 5,
 				},
 			},
@@ -157,7 +225,6 @@ func setDefaults() Settings {
 		UserDefaults: UserDefaults{
 			DisableOnlyOfficeExt: ".txt .csv .html",
 			StickySidebar:        true,
-			Scope:                ".",
 			LockPassword:         false,
 			ShowHidden:           false,
 			DarkMode:             true,
@@ -166,15 +233,87 @@ func setDefaults() Settings {
 			Locale:               "en",
 			GallerySize:          3,
 			Permissions: users.Permissions{
-				Create:   false,
-				Rename:   false,
-				Modify:   false,
-				Delete:   false,
-				Share:    false,
-				Download: false,
-				Admin:    false,
-				Api:      false,
+				Modify: false,
+				Share:  false,
+				Admin:  false,
+				Api:    false,
 			},
 		},
 	}
+}
+
+func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, error) {
+	if len(scopes) == 0 {
+		return Config.UserDefaults.DefaultScopes, nil
+	}
+	newScopes := []users.SourceScope{}
+	for _, scope := range scopes {
+		// first check if its already a path name and keep it
+		source, ok := Config.Server.SourceMap[scope.Name]
+		if ok {
+			newScopes = append(newScopes, users.SourceScope{
+				Name:  source.Path, // backend name is path
+				Scope: scope.Scope,
+			})
+			continue
+		}
+
+		// check if its the name of a source and convert it to a path
+		source, ok = Config.Server.NameToSource[scope.Name]
+		if !ok {
+			return newScopes, fmt.Errorf("invalid scope for source %v", scope.Name)
+		}
+		newScopes = append(newScopes, users.SourceScope{
+			Name:  source.Path, // backend name is path
+			Scope: scope.Scope,
+		})
+	}
+	return newScopes, nil
+}
+
+func ConvertToFrontendScopes(scopes []users.SourceScope) []users.SourceScope {
+	newScopes := make([]users.SourceScope, 0, len(scopes)) // Preserve original order
+	for _, scope := range scopes {
+		if source, ok := Config.Server.SourceMap[scope.Name]; ok {
+			// Replace scope.Name with source.Path while keeping the same Scope value
+			newScopes = append(newScopes, users.SourceScope{
+				Name:  source.Name,
+				Scope: scope.Scope,
+			})
+		}
+	}
+	return newScopes
+}
+
+func HasSourceByPath(scopes []users.SourceScope, sourcePath string) bool {
+	for _, scope := range scopes {
+		if scope.Name == sourcePath {
+			return true
+		}
+	}
+	return false
+}
+
+func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (string, error) {
+	source, ok := Config.Server.NameToSource[sourceName]
+	if !ok {
+		logger.Debug(fmt.Sprint("Could not get scope from source name: ", sourceName))
+		return "", fmt.Errorf("source with name not found %v", sourceName)
+	}
+	for _, scope := range scopes {
+		if scope.Name == source.Path {
+			return scope.Scope, nil
+		}
+	}
+	logger.Debug(fmt.Sprintf("scope not found for source %v", sourceName))
+	return "", fmt.Errorf("scope not found for source %v", sourceName)
+}
+
+func GetScopeFromSourcePath(scopes []users.SourceScope, sourcePath string) (string, error) {
+	for _, scope := range scopes {
+		if scope.Name == sourcePath {
+			return scope.Scope, nil
+		}
+	}
+	return "", fmt.Errorf("scope not found for source %v", sourcePath)
 }

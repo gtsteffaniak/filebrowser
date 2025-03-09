@@ -26,7 +26,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
@@ -73,7 +72,6 @@ type FileOptions struct {
 	Modify     bool
 	Expand     bool
 	ReadHeader bool
-	Checker    users.Checker
 	Content    bool
 }
 
@@ -84,7 +82,7 @@ func (f FileOptions) Components() (string, string) {
 func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	response := ExtendedFileInfo{}
 	if opts.Source == "" {
-		opts.Source = "default"
+		opts.Source = settings.Config.Server.DefaultSource.Name
 	}
 	index := GetIndex(opts.Source)
 	if index == nil {
@@ -95,9 +93,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	pathMutex := getMutex(opts.Path)
 	pathMutex.Lock()
 	defer pathMutex.Unlock()
-	if !opts.Checker.Check(opts.Path) {
-		return response, os.ErrPermission
-	}
 
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
@@ -133,7 +128,7 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
 	if opts.Content {
-		content, err := getContent("default", opts.Path)
+		content, err := getContent(realPath)
 		if err != nil {
 			return response, err
 		}
@@ -198,6 +193,9 @@ func DeleteFiles(source, absPath string, dirPath string) error {
 		return err
 	}
 	index := GetIndex(source)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", source)
+	}
 	refreshConfig := FileOptions{Path: dirPath, IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
@@ -206,12 +204,16 @@ func DeleteFiles(source, absPath string, dirPath string) error {
 	return nil
 }
 
-func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
+func MoveResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool) error {
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(source)
+
+	index := GetIndex(sourceIndex)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", sourceIndex)
+	}
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
 		Path:  realsrc,
@@ -224,6 +226,10 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
 	}
+	index = GetIndex(dstIndex)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", dstIndex)
+	}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return fmt.Errorf("could not refresh index for dest: %v", err)
@@ -231,13 +237,32 @@ func MoveResource(source, realsrc, realdst string, isSrcDir bool) error {
 	return nil
 }
 
-func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
+func CopyResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool) error {
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	index := GetIndex(source)
+	index := GetIndex(sourceIndex)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", sourceIndex)
+	}
+	// refresh info for source and dest
+	err = index.RefreshFileInfo(FileOptions{
+		Path:  realsrc,
+		IsDir: isSrcDir,
+	})
+	if err != nil {
+		return fmt.Errorf("could not refresh index for source: %v", err)
+	}
 	refreshConfig := FileOptions{Path: realdst, IsDir: true}
+	if !isSrcDir {
+		refreshConfig.Path = filepath.Dir(realdst)
+	}
+	index = GetIndex(dstIndex)
+	if index == nil {
+		return fmt.Errorf("could not get index: %v ", dstIndex)
+	}
+	refreshConfig = FileOptions{Path: realdst, IsDir: true}
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
 	}
@@ -245,11 +270,15 @@ func CopyResource(source, realsrc, realdst string, isSrcDir bool) error {
 	if err != nil {
 		return errors.ErrEmptyKey
 	}
+
 	return nil
 }
 
 func WriteDirectory(opts FileOptions) error {
 	idx := GetIndex(opts.Source)
+	if idx == nil {
+		return fmt.Errorf("could not get index: %v ", opts.Source)
+	}
 	realPath, _, _ := idx.GetRealPath(opts.Path)
 	// Ensure the parent directories exist
 	err := os.MkdirAll(realPath, 0775)
@@ -265,6 +294,9 @@ func WriteDirectory(opts FileOptions) error {
 
 func WriteFile(opts FileOptions, in io.Reader) error {
 	idx := GetIndex(opts.Source)
+	if idx == nil {
+		return fmt.Errorf("could not get index: %v ", opts.Source)
+	}
 	dst, _, _ := idx.GetRealPath(opts.Path)
 	parentDir := filepath.Dir(dst)
 	// Create the directory and all necessary parents
@@ -319,13 +351,7 @@ func resolveSymlinks(path string) (string, bool, error) {
 }
 
 // addContent reads and sets content based on the file type.
-func getContent(source, path string) (string, error) {
-	idx := GetIndex(source)
-	realPath, _, err := idx.GetRealPath(path)
-	if err != nil {
-		return "", err
-	}
-
+func getContent(realPath string) (string, error) {
 	content, err := os.ReadFile(realPath)
 	if err != nil {
 		return "", err
@@ -377,6 +403,10 @@ func (i *ExtendedFileInfo) detectSubtitles(path string) {
 	}
 
 	idx := GetIndex(i.Source)
+	if idx == nil {
+		return
+	}
+
 	parentInfo, exists := idx.GetReducedMetadata(filepath.Dir(i.Path), true)
 	if !exists {
 		return

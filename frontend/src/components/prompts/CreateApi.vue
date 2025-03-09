@@ -110,7 +110,7 @@ export default {
           permissions: permissionsString,
         };
 
-        usersApi.createApiKey(params);
+        await usersApi.createApiKey(params);
         notify.showSuccess("successfully created!");
         window.location.reload();
       } catch (error) {

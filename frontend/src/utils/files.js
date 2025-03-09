@@ -1,4 +1,5 @@
-export function getFileExtension (filename) {
+
+export function getFileExtension(filename) {
   if (typeof filename !== 'string') {
     return ''
   }

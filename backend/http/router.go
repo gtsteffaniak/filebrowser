@@ -109,7 +109,7 @@ func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage
 
 	// Public routes
 	api.HandleFunc("GET /public/publicUser", publicUserGetHandler)
-	api.HandleFunc("GET /public/dl", withHashFile(rawHandler))
+	api.HandleFunc("GET /public/dl", withHashFile(publicRawHandler))
 	api.HandleFunc("GET /public/share", withHashFile(publicShareHandler))
 
 	// Settings routes

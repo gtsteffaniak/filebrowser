@@ -37,7 +37,7 @@ test("navigate folders", async ({  page, context }) => {
 });
 
 test("navigating images", async ({  page, context }) => {
-  await page.goto("/files/myfolder/testdata/20130612_142406.jpg");
+  await page.goto("/files/playwright-files/myfolder/testdata/20130612_142406.jpg");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - 20130612_142406.jpg");
   await page.locator('button[aria-label="Previous"]').waitFor({ state: 'hidden' });
   await page.mouse.move(100, 100);

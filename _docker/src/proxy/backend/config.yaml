@@ -1,7 +1,10 @@
 server:
   port: 8080
   baseURL:  "/"
-  root: "../frontend/tests/playwright-files"
+  logging:
+    - levels: "info|error|debug"
+  sources:
+    - path: "../frontend/tests/playwright-files"
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true
@@ -12,9 +15,6 @@ frontend:
 auth:
   signup: false
   methods:
-    password:
-      enabled: false
-      minLength: 0
     proxy:
       enabled: true
       header: "X-Username"
@@ -27,9 +27,6 @@ userDefaults:
   singleClick: false
   permissions:
     admin: false
-    create: false
-    rename: false
     modify: false
-    delete: false
     share: false
-    download: false
+    api: false

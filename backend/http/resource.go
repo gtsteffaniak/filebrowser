@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -38,19 +39,22 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
+		Path:    filepath.Join(userscope, path),
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
 		Expand:  true,
-		Checker: d.user,
 		Content: r.URL.Query().Get("content") == "true",
 	})
 	if err != nil {
@@ -61,7 +65,10 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
 		idx := files.GetIndex(source)
-		realPath, _, _ := idx.GetRealPath(d.user.Scope, path)
+		if idx == nil {
+			return http.StatusNotFound, fmt.Errorf("source %s not found", source)
+		}
+		realPath, _, _ := idx.GetRealPath(userscope, path)
 		checksums, err := files.GetChecksum(realPath, algo)
 		if err == errors.ErrInvalidOption {
 			return http.StatusBadRequest, nil
@@ -93,22 +100,25 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if path == "/" || !d.user.Perm.Delete {
+	if path == "/" {
 		return http.StatusForbidden, nil
 	}
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(userscope, path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err != nil {
@@ -146,22 +156,27 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
+
+	if !d.user.Perm.Modify {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
+	}
+
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Perm.Create || !d.user.Check(path) {
-		return http.StatusForbidden, nil
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
 	}
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(userscope, path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	// Directories creation on POST.
 	if strings.HasSuffix(path, "/") {
@@ -174,6 +189,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {
+			logger.Debug(fmt.Sprintf("Resource already exists: %v", fileInfo.RealPath))
 			return http.StatusConflict, nil
 		}
 
@@ -210,9 +226,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
-
+	if !d.user.Perm.Modify {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
+	}
 	encodedPath := r.URL.Query().Get("path")
 
 	// Decode the URL-encoded path
@@ -220,21 +238,19 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	if !d.user.Perm.Modify || !d.user.Check(path) {
-		return http.StatusForbidden, nil
-	}
-
 	// Only allow PUT for files.
 	if strings.HasSuffix(path, "/") {
 		return http.StatusMethodNotAllowed, nil
 	}
-
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileOpts := files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Source:  source,
-		Modify:  d.user.Perm.Modify,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(userscope, path),
+		Source: source,
+		Modify: d.user.Perm.Modify,
+		Expand: false,
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	return errToStatus(err), err
@@ -261,10 +277,11 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
 	action := r.URL.Query().Get("action")
-	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = "default"
+
+	if !d.user.Perm.Modify {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
+
 	encodedFrom := r.URL.Query().Get("from")
 	// Decode the URL-encoded path
 	src, err := url.QueryUnescape(encodedFrom)
@@ -276,21 +293,52 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return errToStatus(err), err
 	}
-	if !d.user.Check(src) || !d.user.Check(dst) {
-		return http.StatusForbidden, fmt.Errorf("forbidden: user rules deny access to source or destination")
+
+	splitSrc := strings.Split(src, "::")
+	if len(splitSrc) <= 1 {
+		return http.StatusBadRequest, fmt.Errorf("invalid source path: %v", src)
 	}
+	srcIndex := splitSrc[0]
+	src = splitSrc[1]
+
+	splitDst := strings.Split(dst, "::")
+	if len(splitDst) <= 1 {
+		return http.StatusBadRequest, fmt.Errorf("invalid destination path: %v", dst)
+	}
+	dstIndex := splitDst[0]
+	dst = splitDst[1]
+
 	if dst == "/" || src == "/" {
 		return http.StatusForbidden, fmt.Errorf("forbidden: source or destination is attempting to modify root")
 	}
 
-	idx := files.GetIndex(source)
-	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(d.user.Scope, filepath.Dir(dst))
+	userscopeDst, err := settings.GetScopeFromSourceName(d.user.Scopes, dstIndex)
 	if err != nil {
+		return http.StatusForbidden, err
+	}
+	userscopeSrc, err := settings.GetScopeFromSourceName(d.user.Scopes, srcIndex)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+
+	idx := files.GetIndex(dstIndex)
+	if idx == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", dstIndex)
+	}
+	// check target dir exists
+	parentDir, _, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
+	if err != nil {
+		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err))
 		return http.StatusNotFound, err
 	}
 	realDest := parentDir + "/" + filepath.Base(dst)
-	realSrc, isSrcDir, err := idx.GetRealPath(d.user.Scope, src)
+
+	idx2 := files.GetIndex(srcIndex)
+	if idx2 == nil {
+		return http.StatusNotFound, fmt.Errorf("source %s not found", srcIndex)
+	}
+
+	realSrc, isSrcDir, err := idx2.GetRealPath(userscopeSrc, src)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -303,9 +351,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if overwrite && !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
-	err = d.Runner.RunHook(func() error {
-		return patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, source)
-	}, action, realSrc, realDest, d.user)
+	err = patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, srcIndex, dstIndex)
 	if err != nil {
 		logger.Debug(fmt.Sprintf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err))
 	}
@@ -335,34 +381,34 @@ func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFile
 	}
 }
 
-func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, index string) error {
+func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, srcIndex, destIndex string) error {
 	switch action {
 	case "copy":
-		if !d.user.Perm.Create {
+		if !d.user.Perm.Modify {
 			return errors.ErrPermissionDenied
 		}
-		err := files.CopyResource(index, src, dst, isSrcDir)
+		err := files.CopyResource(srcIndex, destIndex, src, dst, isSrcDir)
 		return err
 	case "rename", "move":
-		if !d.user.Perm.Rename {
+		if !d.user.Perm.Modify {
 			return errors.ErrPermissionDenied
 		}
 		fileInfo, err := files.FileInfoFaster(files.FileOptions{
 			Path:       src,
-			Source:     index,
+			Source:     srcIndex,
 			IsDir:      isSrcDir,
 			Modify:     d.user.Perm.Modify,
 			Expand:     false,
 			ReadHeader: false,
-			Checker:    d.user,
 		})
+
 		if err != nil {
 			return err
 		}
 
 		// delete thumbnails
 		delThumbs(ctx, fileCache, fileInfo)
-		return files.MoveResource(index, src, dst, isSrcDir)
+		return files.MoveResource(srcIndex, destIndex, src, dst, isSrcDir)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
 	}
@@ -385,21 +431,23 @@ type DiskUsageResponse struct {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/usage [get]
 func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = "default"
+	sourceName := r.URL.Query().Get("source")
+	if sourceName == "" {
+		sourceName = config.Server.DefaultSource.Name
 	}
-	value, ok := cache.DiskUsage.Get(source).(DiskUsageResponse)
+	value, ok := cache.DiskUsage.Get(sourceName).(DiskUsageResponse)
 	if ok {
 		return renderJSON(w, r, &value)
 	}
-
-	rootPath, ok := files.RootPaths[source]
+	source, ok := config.Server.NameToSource[sourceName]
 	if !ok {
-		return 400, fmt.Errorf("bad source path provided: %v", source)
+		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
 	}
-
-	usage, err := disk.UsageWithContext(r.Context(), rootPath)
+	_, err := settings.GetScopeFromSourceName(d.user.Scopes, sourceName)
+	if err != nil {
+		return 403, fmt.Errorf("user doesn't have access to '%s', contact your administrator for access", sourceName)
+	}
+	usage, err := disk.UsageWithContext(r.Context(), source.Path)
 	if err != nil {
 		return errToStatus(err), err
 	}
@@ -407,7 +455,7 @@ func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, 
 		Total: usage.Total,
 		Used:  usage.Used,
 	}
-	cache.DiskUsage.Set(source, latestUsage)
+	cache.DiskUsage.Set(sourceName, latestUsage)
 	return renderJSON(w, r, &latestUsage)
 }
 
@@ -415,12 +463,16 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)
 	isNotDir := r.URL.Query().Get("isDir") == "false" // default to isDir true
 	index := files.GetIndex(source)
+	if index == nil {
+		http.Error(w, "source not found", http.StatusNotFound)
+		return
+	}
 	info, _ := index.GetReducedMetadata(path, !isNotDir)
 	renderJSON(w, r, info) // nolint:errcheck
 }

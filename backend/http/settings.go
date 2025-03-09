@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
 type settingsData struct {
@@ -13,35 +12,43 @@ type settingsData struct {
 	CreateUserDir    bool                  `json:"createUserDir"`
 	UserHomeBasePath string                `json:"userHomeBasePath"`
 	Defaults         settings.UserDefaults `json:"defaults"`
-	Rules            []users.Rule          `json:"rules"`
 	Frontend         settings.Frontend     `json:"frontend"`
-	Commands         map[string][]string   `json:"commands"`
 }
 
 // settingsGetHandler retrieves the current system settings.
 // @Summary Get system settings
-// @Description Returns the current configuration settings for signup, user directories, rules, frontend, and commands.
+// @Description Returns the current configuration settings for signup, user directories, rules, frontend.
 // @Tags Settings
 // @Accept json
 // @Produce json
+// @Param property query string false "Property to retrieve"
 // @Success 200 {object} settingsData "System settings data"
 // @Router /api/settings [get]
 func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	data := &settingsData{
-		Signup:           config.Auth.Signup,
-		CreateUserDir:    config.Server.CreateUserDir,
-		UserHomeBasePath: config.Server.UserHomeBasePath,
-		Defaults:         config.UserDefaults,
-		Rules:            config.Rules,
-		Frontend:         config.Frontend,
+	property := r.URL.Query().Get("property")
+	if property != "" {
+		// get property by name
+		switch property {
+		case "userDefaults":
+			return renderJSON(w, r, config.UserDefaults)
+		case "frontend":
+			return renderJSON(w, r, config.Frontend)
+		case "auth":
+			return renderJSON(w, r, config.Auth)
+		case "server":
+			return renderJSON(w, r, config.Server)
+		case "sources":
+			return renderJSON(w, r, config.Server.Sources)
+		default:
+			return http.StatusNotFound, nil
+		}
 	}
-
-	return renderJSON(w, r, data)
+	return renderJSON(w, r, config)
 }
 
 // settingsPutHandler updates the system settings.
 // @Summary Update system settings
-// @Description Updates the system configuration settings for signup, user directories, rules, frontend, and commands.
+// @Description Updates the system configuration settings for signup, user directories, rules, frontend.
 // @Tags Settings
 // @Accept json
 // @Produce json
@@ -57,10 +64,8 @@ func settingsPutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusBadRequest, err
 	}
 
-	config.Server.CreateUserDir = req.CreateUserDir
 	config.Server.UserHomeBasePath = req.UserHomeBasePath
 	config.UserDefaults = req.Defaults
-	config.Rules = req.Rules
 	config.Frontend = req.Frontend
 	config.Auth.Signup = req.Signup
 	err = store.Settings.Save(config)

@@ -1,12 +1,35 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
-import router from "@/router";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 
 export const mutations = {
+  setCurrentSource: (value) => {
+    state.sources.current = value;
+    emitStateChanged();
+  },
+  updateSource: (sourcename,value) => {
+    if (state.sources.info[sourcename]) {
+      state.sources.info[sourcename] = value;
+    }
+    emitStateChanged();
+  },
+  setSources: (user) => {
+    const currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
+    let sources = {info: {}, current: currentSource, count: user.scopes.length};
+    for (const source of user.scopes) {
+      sources.info[source.name] = {
+        pathPrefix: sources.count == 1 ? "" : source.name,
+        used: 0,
+        total: 0,
+        usedPercentage: 0,
+      };
+    }
+    state.sources = sources;
+    emitStateChanged();
+  },
   setGallerySize: (value) => {
     state.user.gallerySize = value
     emitStateChanged();
@@ -14,7 +37,8 @@ export const mutations = {
   },
   setActiveSettingsView: (value) => {
     state.activeSettingsView = value;
-    router.push({ hash: "#" + value });
+    // Update the hash in the URL without reloading or changing history state
+    window.history.replaceState(null, "", "#" + value);
     const element = document.getElementById(value);
     if (element) {
       element.scrollIntoView({
@@ -57,8 +81,8 @@ export const mutations = {
     state.upload = value;
     emitStateChanged();
   },
-  setUsage: (value) => {
-    state.usage = value;
+  setUsage: (source,value) => {
+    state.usages[source] = value;
     emitStateChanged();
   },
   closeHovers: () => {
@@ -103,23 +127,26 @@ export const mutations = {
     emitStateChanged();
   },
   setCurrentUser: (value) => {
-    localStorage.setItem("userData", undefined);
-    // If value is null or undefined, emit state change and exit early
-    if (!value) {
+    try {
+      localStorage.setItem("userData", undefined);
+      // If value is null or undefined, emit state change and exit early
+      if (!value) {
+        state.user = value;
+        emitStateChanged();
+        return;
+      }
+      mutations.setSources(value);
+      if (value.username != "publicUser") {
+        localStorage.setItem("userData", JSON.stringify(value));
+      }
+      // Ensure locale exists and is valid
+      if (!value.locale) {
+        value.locale = i18n.detectLocale();  // Default to detected locale if missing
+      }
       state.user = value;
-      emitStateChanged();
-      return;
+    } catch (error) {
+      console.log(error);
     }
-
-    if (value.username != "publicUser") {
-      localStorage.setItem("userData", JSON.stringify(value));
-    }
-    // Ensure locale exists and is valid
-    if (!value.locale) {
-      value.locale = i18n.detectLocale();  // Default to detected locale if missing
-    }
-    state.user = value;
-    // Emit state change after setting the user and locale
     emitStateChanged();
   },
   setJWT: (value) => {

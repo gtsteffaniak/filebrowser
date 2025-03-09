@@ -8,12 +8,13 @@ export const state = reactive({
   isMobile: window.innerWidth <= 800,
   isSearchActive: false,
   showSidebar: false,
-  usage: {
-    used: "0 B",
-    total: "0 B",
-    usedPercentage: 0
-  },
+  usages: {},
   editor: null,
+  sources: {
+    current: "",
+    count: 1,
+    info: {},
+  },
   user: {
     quickDownloadEnabled: false,
     gallarySize: 0,
@@ -22,6 +23,7 @@ export const state = reactive({
     locale: detectLocale(), // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
+    scopes: [],
     perm: {},
     rules: [], // Default to an empty array
     permissions: {}, // Default to an empty object for permissions

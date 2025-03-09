@@ -696,7 +696,7 @@ export default {
       }
 
       let items = this.clipboard.items.map((item) => ({
-        from: item.from.endsWith("/") ? item.from.slice(0, -1) : item.from,
+        from: item.from,
         to: state.route.path + encodeURIComponent(item.name),
         name: item.name,
       }));

@@ -1,14 +1,18 @@
 <template>
-  <div class="card clickable" style="min-height: 4em">
+  <div class="card" style="min-height: 4em">
     <div class="card-wrapper user-card">
       <div @click="navigateTo('/settings#profile-main')" class="inner-card">
-        <i class="material-icons">person</i>
-        {{ user.username }}
-        <i aria-label="settings" class="material-icons">settings</i>
+        <button class="person-button action">
+          <i class="material-icons">person</i>
+          {{ user.username }}
+          <i aria-label="settings" class="material-icons">settings</i>
+        </button>
       </div>
 
-      <div class="inner-card logout-button" @click="logout">
-        <i v-if="canLogout" class="material-icons">exit_to_app</i>
+      <div class="inner-card" @click="logout">
+        <button aria-label="logout-button" class="logout-button action">
+          <i v-if="canLogout" class="material-icons">exit_to_app</i>
+        </button>
       </div>
     </div>
   </div>
@@ -43,24 +47,32 @@
   </div>
 
   <!-- Section for logged-in users -->
-  <div v-if="loginCheck" class="sidebar-scroll-list">
+  <div v-if="loginCheck && !disableUsedPercentage" class="sidebar-scroll-list">
     <div class="sources card">
       <span>Sources</span>
       <div class="inner-card">
         <!-- My Files button -->
         <button
-          class="action"
-          @click="navigateTo('/files/')"
+          v-for="(info, name) in sourceInfo"
+          :key="name"
+          class="action source-button"
+          :class="{ active: activeSource == name }"
+          @click="navigateTo('/files/' + info.pathPrefix)"
           :aria-label="$t('sidebar.myFiles')"
-          title="default"
+          :title="name"
         >
-          <i class="material-icons">folder</i>
-          <span>default</span>
+          <i class="material-icons source-icon">folder</i>
+          <span>{{ name }}</span>
           <div>
-            <progress-bar :val="usage.usedPercentage" size="medium"></progress-bar>
+            <progress-bar
+              :val="info.usedPercentage"
+              text-position="inside"
+              :text="info.usedPercentage + '%'"
+              size="large"
+              text-fg-color="white"
+            ></progress-bar>
             <div class="usage-info">
-              <span>{{ usage.usedPercentage }}%</span>
-              <span>{{ usage.used }} of {{ usage.total }} used</span>
+              <span>{{ info.used }} of {{ info.total }} used</span>
             </div>
           </div>
         </button>
@@ -93,9 +105,6 @@ export default {
       hoverText: "Quick Toggles", // Initially empty
     };
   },
-  mounted() {
-    this.updateUsage();
-  },
   computed: {
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
@@ -112,8 +121,9 @@ export default {
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,
-    usage: () => state.usage,
     route: () => state.route,
+    sourceInfo: () => state.sources.info,
+    activeSource: () => state.sources.current,
   },
   watch: {
     route() {
@@ -125,7 +135,27 @@ export default {
       }
     },
   },
+  mounted() {
+    if (this.loginCheck) {
+      this.updateUsage();
+    }
+  },
   methods: {
+    async updateUsage() {
+      if (!disableUsedPercentage) {
+        if (state.sources.info === undefined) {
+          return;
+        }
+        for (const source of Object.keys(state.sources.info)) {
+          let usage = await filesApi.usage(source);
+          let sourceInfo = state.sources.info[source];
+          sourceInfo.used = getHumanReadableFilesize(usage.used);
+          sourceInfo.total = getHumanReadableFilesize(usage.total);
+          sourceInfo.usedPercentage = Math.round((usage.used / usage.total) * 100);
+          mutations.updateSource(source, sourceInfo);
+        }
+      }
+    },
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
     },
@@ -144,24 +174,6 @@ export default {
     toggleSticky() {
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
-    async updateUsage() {
-      if (!this.checkLogin()) {
-        return;
-      }
-      let usageStats = { used: "0 B", total: "0 B", usedPercentage: 0 };
-      if (this.disableUsedPercentage) {
-        return usageStats;
-      }
-      let usage = await filesApi.usage("default");
-      usageStats = {
-        used: getHumanReadableFilesize(usage.used),
-        total: getHumanReadableFilesize(usage.total),
-        usedPercentage: Math.round((usage.used / usage.total) * 100),
-      };
-
-      mutations.setUsage(usageStats);
-    },
-
     navigateTo(path) {
       const hashIndex = path.indexOf("#");
       if (hashIndex !== -1) {
@@ -213,7 +225,6 @@ export default {
   align-items: center;
   flex-direction: column;
   padding: 1em;
-  margin-top: 0.5em !important;
 }
 
 .sources .inner-card {
@@ -250,9 +261,26 @@ button.action {
   background-color: var(--primaryColor) !important;
   border-radius: 10em;
 }
+
 .inner-card {
   display: flex;
   align-items: center;
   padding: 0px !important;
+}
+
+.source-button {
+  margin-top: 0.5em !important;
+}
+
+.source-button.active {
+  background: var(--alt-background);
+}
+.source-icon {
+  padding: 0.1em !important;
+}
+
+.logout-button,
+.person-button {
+  padding: 0 !important;
 }
 </style>

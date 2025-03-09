@@ -15,6 +15,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -32,20 +33,16 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param files query string true "Comma-separated list of specific files within the directory (required)"
+// @Param files query string true "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
-// @Failure 202 {object} map[string]string "Download permissions required"
+// @Failure 202 {object} map[string]string "Modify permissions required"
 // @Failure 400 {object} map[string]string "Invalid request path"
 // @Failure 404 {object} map[string]string "File or directory not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Perm.Download {
-		return http.StatusAccepted, nil
-	}
-
 	filePrefix := ""
 	file, ok := d.raw.(files.ExtendedFileInfo)
 	if ok {
@@ -57,7 +54,7 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	fileList := strings.Split(files, ",|")
+	fileList := strings.Split(files, "||")
 	for i, f := range fileList {
 		fileList[i] = filepath.Join(filePrefix, f)
 	}
@@ -65,10 +62,25 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 }
 
 func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *zip.Writer, flatten bool) error {
-	idx := files.GetIndex("default")
-	realPath, _, _ := idx.GetRealPath(d.user.Scope, path)
-	if !d.user.Check(realPath) {
-		return nil
+	splitFile := strings.Split(path, "::")
+	if len(splitFile) != 2 {
+		return fmt.Errorf("invalid file in files requested: %v", splitFile)
+	}
+	source := splitFile[0]
+	path = splitFile[1]
+	userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if d.share == nil && err != nil {
+		return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+	}
+
+	idx := files.GetIndex(source)
+	if idx == nil {
+		return fmt.Errorf("source %s is not available", source)
+	}
+
+	realPath, _, err := idx.GetRealPath(userScope, path)
+	if err != nil {
+		return fmt.Errorf("failed to get real path for %s: %v", path, err)
 	}
 	info, err := os.Stat(realPath)
 	if err != nil {
@@ -173,10 +185,24 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 }
 
 func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, fileList []string) (int, error) {
-	filePath := fileList[0]
-	fileName := filepath.Base(filePath)
-	idx := files.GetIndex("default")
-	realPath, isDir, err := idx.GetRealPath(d.user.Scope, filePath)
+	splitFile := strings.Split(fileList[0], "::")
+	if len(splitFile) != 2 {
+		return http.StatusBadRequest, fmt.Errorf("invalid file in files request: %v", fileList[0])
+	}
+
+	firstFileSource := splitFile[0]
+	firstFilePath := splitFile[1]
+	fileName := filepath.Base(firstFilePath)
+
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	idx := files.GetIndex(firstFileSource)
+	if idx == nil {
+		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
+	}
+	realPath, isDir, err := idx.GetRealPath(userscope, firstFilePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -246,9 +272,9 @@ func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
+			return err
 		}
 	}
-
 	return nil
 }
 
@@ -265,6 +291,7 @@ func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
+			return err
 		}
 	}
 

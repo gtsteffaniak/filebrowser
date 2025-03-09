@@ -14,6 +14,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
 
@@ -43,7 +44,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	encodedUrl := r.URL.Query().Get("url")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = settings.Config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	url, err := url.QueryUnescape(encodedUrl)
@@ -60,12 +61,15 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		replacement := strings.Split(url, "/api/raw")[0]
 		url = strings.Replace(url, replacement, settings.Config.Server.InternalUrl, 1)
 	}
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(d.user.Scope, path),
-		Modify:  d.user.Perm.Modify,
-		Source:  source,
-		Expand:  false,
-		Checker: d.user,
+		Path:   filepath.Join(userscope, path),
+		Modify: d.user.Perm.Modify,
+		Source: source,
+		Expand: false,
 	})
 
 	if err != nil {
@@ -92,8 +96,8 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"url":      url + "&auth=" + d.token,
 			"permissions": map[string]interface{}{
 				"edit":     d.user.Perm.Modify,
-				"download": d.user.Perm.Download,
-				"print":    d.user.Perm.Download,
+				"download": true,
+				"print":    true,
 			},
 		},
 		"editorConfig": map[string]interface{}{
@@ -137,7 +141,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
-		source = "default"
+		source = settings.Config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -167,20 +171,13 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		}
 		defer doc.Body.Close()
 
-		err = d.Runner.RunHook(func() error {
-			fileOpts := files.FileOptions{
-				Path:   path,
-				Source: source,
-			}
-			writeErr := files.WriteFile(fileOpts, doc.Body)
-			if writeErr != nil {
-				return writeErr
-			}
-			return nil
-		}, "save", path, "", d.user)
-
-		if err != nil {
-			return http.StatusInternalServerError, err
+		fileOpts := files.FileOptions{
+			Path:   path,
+			Source: source,
+		}
+		writeErr := files.WriteFile(fileOpts, doc.Body)
+		if writeErr != nil {
+			return http.StatusInternalServerError, writeErr
 		}
 	}
 
@@ -192,6 +189,9 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 
 func getOnlyOfficeId(source, path string) (string, error) {
 	idx := files.GetIndex(source)
+	if idx == nil {
+		return "", fmt.Errorf("source not found")
+	}
 	realpath, _, _ := idx.GetRealPath(path)
 	// error is intentionally ignored in order treat errors
 	// the same as a cache-miss
@@ -203,6 +203,10 @@ func getOnlyOfficeId(source, path string) (string, error) {
 }
 func deleteOfficeId(source, path string) {
 	idx := files.GetIndex(source)
+	if idx == nil {
+		logger.Error(fmt.Sprintf("deleteOfficeId: failed to find source index for user home dir creation: %s", source))
+		return
+	}
 	realpath, _, _ := idx.GetRealPath(path)
 	cache.OnlyOffice.Delete(realpath)
 }

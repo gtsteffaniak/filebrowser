@@ -23,12 +23,56 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
-func getStore(config string) (*storage.Storage, bool) {
+func getStore(configFile string) (*storage.Storage, bool) {
 	// Use the config file (global flag)
-	settings.Initialize(config)
+	settings.Initialize(configFile)
 	store, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("could not load db info: %v", err))
+	}
+	// update source info for users if names/sources/paths might have changed
+	usersList, err2 := store.Users.Gets()
+	if err2 != nil {
+		logger.Fatal(fmt.Sprintf("could not load users: %v", err2))
+	}
+
+	// this function adds scopes as needed on startup
+	for _, user := range usersList {
+		updateUser := false
+		newScopes := []users.SourceScope{}
+		for _, source := range settings.Config.Server.SourceMap {
+			scopePath := ""
+			if !user.Perm.Admin {
+				scopePath = source.Config.DefaultUserScope
+			}
+			scope, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
+			if err != nil {
+				if user.Perm.Admin || source.Config.DefaultEnabled {
+					newScopes = append(newScopes, users.SourceScope{Scope: scopePath, Name: source.Path}) // backend name is path
+					updateUser = true
+				}
+			} else {
+				newScopes = append(newScopes, users.SourceScope{Scope: scope, Name: source.Path}) // backend name is path
+			}
+		}
+		user.Scopes = newScopes
+		// maintain backwards compatibility, update user scope from scopes
+		if len(user.Scopes) == 0 {
+			user.Scopes = []users.SourceScope{
+				{
+					Scope: user.Scope,
+					Name:  settings.Config.Server.DefaultSource.Path, // backend name is path
+				},
+			}
+			updateUser = true
+		}
+		if !updateUser {
+			continue
+		}
+		err := store.Users.Save(user, false)
+		if err != nil {
+			logger.Error(fmt.Sprintf("could not update user: %v", err))
+		}
 	}
 	return store, hasDB
 }
@@ -52,8 +96,16 @@ func StartFilebrowser() {
 	var help bool
 	// Override the default usage output to use generalUsage()
 	flag.Usage = generalUsage
-	flag.StringVar(&configPath, "c", "config.yaml", "Path to the config file, default: config.yaml")
+	flag.StringVar(&configPath, "c", "", "Path to the config file, default: config.yaml")
 	flag.BoolVar(&help, "h", false, "Get help about commands")
+
+	if configPath == "" {
+		configPath = os.Getenv("FILEBROWSER_CONFIG")
+	}
+
+	if configPath == "" {
+		configPath = "config.yaml"
+	}
 
 	// Parse global flags (before subcommands)
 	flag.Parse() // print generalUsage on error
@@ -104,17 +156,23 @@ func StartFilebrowser() {
 			if !ok {
 				logger.Fatal("could not load db info")
 			}
-			user, err := store.Users.Get("", username)
+			user, err := store.Users.Get(username)
 			if err != nil {
 				newUser := users.User{
 					Username: username,
-					Password: password,
+					NonAdminEditable: users.NonAdminEditable{
+						Password: password,
+					},
 				}
-				if scope != "" {
-					newUser.Scope = scope
-				} else {
-					newUser.Scope = settings.Config.UserDefaults.Scope
+				for _, source := range settings.Config.Server.SourceMap {
+					if source.Config.DefaultEnabled {
+						newUser.Scopes = append(newUser.Scopes, users.SourceScope{
+							Name:  source.Name,
+							Scope: source.Config.DefaultUserScope,
+						})
+					}
 				}
+
 				// Create the user logic
 				if asAdmin {
 					logger.Info(fmt.Sprintf("Creating user as admin: %s\n", username))
@@ -128,13 +186,10 @@ func StartFilebrowser() {
 				return
 			}
 			user.Password = password
-			if scope != "" {
-				user.Scope = scope
-			}
 			if asAdmin {
 				user.Perm.Admin = true
 			}
-			err = store.Users.Save(user)
+			err = store.Users.Save(user, true)
 			if err != nil {
 				logger.Error(fmt.Sprintf("could not update user: %v", err))
 			}
@@ -150,43 +205,30 @@ Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 			return
 		}
 	}
+
 	store, dbExists := getStore(configPath)
 	database := fmt.Sprintf("Using existing database  : %v", settings.Config.Server.Database)
 	if !dbExists {
 		database = fmt.Sprintf("Creating new database    : %v", settings.Config.Server.Database)
 	}
-	sources := []string{}
-	for _, v := range settings.Config.Server.Sources {
-		sources = append(sources, v.Name+": "+v.Path)
+	sourceList := []string{}
+	for path, source := range settings.Config.Server.SourceMap {
+		sourceList = append(sourceList, fmt.Sprintf("%v: %v", source.Name, path))
 	}
-
-	authMethods := []string{}
-	if settings.Config.Auth.Methods.PasswordAuth.Enabled {
-		authMethods = append(authMethods, "Password")
-	}
-	if settings.Config.Auth.Methods.ProxyAuth.Enabled {
-		authMethods = append(authMethods, "Proxy")
-	}
-	if settings.Config.Auth.Methods.NoAuth {
-		logger.Warning("Configured with no authentication, this is not recommended.")
-		authMethods = []string{"Disabled"}
-	}
-
 	logger.Info(fmt.Sprintf("Initializing FileBrowser Quantum (%v)", version.Version))
 	logger.Info(fmt.Sprintf("Using Config file        : %v", configPath))
-	logger.Info(fmt.Sprintf("Auth Methods             : %v", authMethods))
+	logger.Info(fmt.Sprintf("Auth Methods             : %v", settings.Config.Auth.AuthMethods))
 	logger.Info(database)
-	logger.Info(fmt.Sprintf("Sources                  : %v", sources))
+	logger.Info(fmt.Sprintf("Sources                  : %v", sourceList))
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
 	swag.Register(docs.SwaggerInfo.InstanceName(), swagInfo)
 	// initialize indexing and schedule indexing ever n minutes (default 5)
-	sourceConfigs := settings.Config.Server.Sources
-	if len(sourceConfigs) == 0 {
+	if len(settings.Config.Server.SourceMap) == 0 {
 		logger.Fatal("No sources configured, exiting...")
 	}
-	for _, source := range sourceConfigs {
+	for _, source := range settings.Config.Server.SourceMap {
 		go files.Initialize(source)
 	}
 	// Start the rootCMD in a goroutine

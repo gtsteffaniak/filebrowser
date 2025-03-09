@@ -92,3 +92,15 @@ func HashSHA256(data string) string {
 	bytes := sha256.Sum256([]byte(data))
 	return hex.EncodeToString(bytes[:])
 }
+
+func GetLastComponent(path string) string {
+	if path == "" {
+		return ""
+	}
+	path = strings.TrimSuffix(path, "/") // Remove trailing slash if any
+	lastSlash := strings.LastIndex(path, "/")
+	if lastSlash == -1 {
+		return path // No parent directory for a relative path without slashes
+	}
+	return path[lastSlash+1:]
+}

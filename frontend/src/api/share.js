@@ -28,8 +28,8 @@ export async function remove(hash) {
   });
 }
 
-export async function create(path, password = "", expires = "", unit = "hours") {
-  const params = { path };
+export async function create(path, source, password = "", expires = "", unit = "hours") {
+  const params = { path: path, source: source };
   const apiPath = getApiPath("api/share",params);
   let body = "{}";
   if (password != "" || expires !== "" || unit !== "hours") {

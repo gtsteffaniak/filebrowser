@@ -1,7 +1,8 @@
 server:
   port: 80
   baseURL:  "/"
-  root: "/srv"
+  sources:
+    - path: "/srv"
 auth:
   signup: false
 userDefaults:
@@ -11,9 +12,6 @@ userDefaults:
   singleClick: false
   permissions:
     admin: false
-    create: false
-    rename: false
     modify: false
-    delete: false
     share: false
-    download: false
+    api: false

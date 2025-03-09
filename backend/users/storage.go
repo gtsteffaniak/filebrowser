@@ -11,24 +11,22 @@ import (
 type StorageBackend interface {
 	GetBy(interface{}) (*User, error)
 	Gets() ([]*User, error)
-	Save(u *User) error
-	Update(u *User, fields ...string) error
+	Save(u *User, changePass bool) error
+	Update(u *User, adminActor bool, fields ...string) error
 	DeleteByID(uint) error
 	DeleteByUsername(string) error
 }
 
 // Store is an interface for user storage.
 type Store interface {
-	Get(baseScope string, id interface{}) (user *User, err error)
-	Gets(baseScope string) ([]*User, error)
-	Update(user *User, fields ...string) error
-	Save(user *User) error
+	Get(id interface{}) (user *User, err error)
+	Gets() ([]*User, error)
+	Update(user *User, adminActor bool, fields ...string) error
+	Save(user *User, changePass bool) error
 	Delete(id interface{}) error
 	LastUpdate(id uint) int64
 	AddApiKey(username uint, name string, key AuthToken) error
 	DeleteApiKey(username uint, name string) error
-	AddRule(username string, rule Rule) error
-	DeleteRule(username string, ruleID string) error
 }
 
 // Storage is a users storage.
@@ -49,7 +47,7 @@ func NewStorage(back StorageBackend) *Storage {
 // Get allows you to get a user by its name or username. The provided
 // id must be a string for username lookup or a uint for id lookup. If id
 // is neither, a ErrInvalidDataType will be returned.
-func (s *Storage) Get(baseScope string, id interface{}) (user *User, err error) {
+func (s *Storage) Get(id interface{}) (user *User, err error) {
 	user, err = s.back.GetBy(id)
 	if err != nil {
 		return
@@ -58,7 +56,7 @@ func (s *Storage) Get(baseScope string, id interface{}) (user *User, err error) 
 }
 
 // Gets gets a list of all users.
-func (s *Storage) Gets(baseScope string) ([]*User, error) {
+func (s *Storage) Gets() ([]*User, error) {
 	users, err := s.back.Gets()
 	if err != nil {
 		return nil, err
@@ -67,8 +65,8 @@ func (s *Storage) Gets(baseScope string) ([]*User, error) {
 }
 
 // Update updates a user in the database.
-func (s *Storage) Update(user *User, fields ...string) error {
-	err := s.back.Update(user, fields...)
+func (s *Storage) Update(user *User, adminIActor bool, fields ...string) error {
+	err := s.back.Update(user, adminIActor, fields...)
 	if err != nil {
 		return err
 	}
@@ -79,25 +77,8 @@ func (s *Storage) Update(user *User, fields ...string) error {
 	return nil
 }
 
-// AddRule adds a rule to the user's rules list and updates the user in the database.
-func (s *Storage) AddRule(userID string, rule Rule) error {
-	user, err := s.Get("", userID)
-	if err != nil {
-		return err
-	}
-
-	user.Rules = append(user.Rules, rule)
-
-	err = s.Update(user, "Rules")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
-	user, err := s.Get("", userID)
+	user, err := s.Get(userID)
 	if err != nil {
 		return err
 	}
@@ -106,7 +87,7 @@ func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 		user.ApiKeys = make(map[string]AuthToken)
 	}
 	user.ApiKeys[name] = key
-	err = s.Update(user, "ApiKeys")
+	err = s.Update(user, false, "ApiKeys")
 	if err != nil {
 		return err
 	}
@@ -115,7 +96,7 @@ func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 }
 
 func (s *Storage) DeleteApiKey(userID uint, name string) error {
-	user, err := s.Get("", userID)
+	user, err := s.Get(userID)
 	if err != nil {
 		return err
 	}
@@ -124,32 +105,7 @@ func (s *Storage) DeleteApiKey(userID uint, name string) error {
 		user.ApiKeys = make(map[string]AuthToken)
 	}
 	delete(user.ApiKeys, name)
-	err = s.Update(user, "ApiKeys")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// DeleteRule deletes a rule specified by ID from the user's rules list and updates the user in the database.
-func (s *Storage) DeleteRule(userID string, ruleID string) error {
-	user, err := s.Get("", userID)
-	if err != nil {
-		return err
-	}
-
-	// Find and remove the rule with the specified ID
-	var updatedRules []Rule
-	for _, r := range user.Rules {
-		if r.Id != ruleID {
-			updatedRules = append(updatedRules, r)
-		}
-	}
-
-	user.Rules = updatedRules
-
-	err = s.Update(user, "Rules")
+	err = s.Update(user, false, "ApiKeys")
 	if err != nil {
 		return err
 	}
@@ -158,8 +114,8 @@ func (s *Storage) DeleteRule(userID string, ruleID string) error {
 }
 
 // Save saves the user in a storage.
-func (s *Storage) Save(user *User) error {
-	return s.back.Save(user)
+func (s *Storage) Save(user *User, changePass bool) error {
+	return s.back.Save(user, changePass)
 }
 
 // Delete allows you to delete a user by its name or username. The provided

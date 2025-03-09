@@ -54,17 +54,14 @@ jobs:
         id: modify-json
         run: |
           JSON='${{ steps.meta.outputs.json }}'  # Assuming the JSON output is stored in steps.meta.outputs.json
-      
           # Process the JSON array using jq
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(sub(":v"; ":")) | 
             if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta"] else . end |
             if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable"] else . end
           ')
-      
           # Convert JSON to a comma-separated string for Docker tags
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
-      
           echo "$TAGS_CSV" > modified_tags.txt  # Save for debugging
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
 

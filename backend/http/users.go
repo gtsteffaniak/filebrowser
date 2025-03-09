@@ -5,28 +5,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"sort"
 	"strconv"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
-var (
-	NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm", "Commands", "Rules"}
-)
-
-// SortingSettings represents the sorting settings.
-type Sorting struct {
-	By  string `json:"by"`
-	Asc bool   `json:"asc"`
-}
 type UserRequest struct {
 	What  string      `json:"what"`
 	Which []string    `json:"which"`
@@ -56,15 +43,14 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		givenUserId = d.user.ID
 	} else if givenUserIdString == "" {
 
-		userList, err := store.Users.Gets(files.RootPaths["default"])
+		userList, err := store.Users.Gets()
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 
 		selfUserList := []*users.User{}
 		for _, u := range userList {
-			u.Password = ""
-			u.ApiKeys = nil
+			prepForFrontend(u)
 			if u.ID == d.user.ID {
 				selfUserList = append(selfUserList, u)
 			}
@@ -88,22 +74,21 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Fetch the user details
-	u, err := store.Users.Get(files.RootPaths["default"], givenUserId)
+	u, err := store.Users.Get(givenUserId)
 	if err == errors.ErrNotExist {
 		return http.StatusNotFound, err
 	}
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	prepForFrontend(u)
+	return renderJSON(w, r, u)
+}
 
-	// Remove the password from the response if the user is not an admin
+func prepForFrontend(u *users.User) {
 	u.Password = ""
 	u.ApiKeys = nil
-	if !d.user.Perm.Admin {
-		u.Scope = ""
-	}
-
-	return renderJSON(w, r, u)
+	u.Scopes = settings.ConvertToFrontendScopes(u.Scopes)
 }
 
 // userDeleteHandler deletes a user by ID.
@@ -157,26 +142,17 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
-
-	// Validate the user's scope
-	idx := files.GetIndex("default")
-	_, _, err := idx.GetRealPath(d.user.Scope)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
 	// Read the JSON body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	defer r.Body.Close()
-
 	// Parse the JSON into the UserRequest struct
 	var req UserRequest
 	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
+	r.Body.Close()
 
 	if len(req.Which) != 0 {
 		return http.StatusBadRequest, nil
@@ -217,13 +193,6 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusForbidden, nil
 	}
 
-	// Validate the user's scope
-	idx := files.GetIndex("default")
-	_, _, err := idx.GetRealPath(d.user.Scope)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
 	// Read the JSON body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -237,51 +206,8 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, err
 	}
 
-	// If `Which` is not specified, default to updating all fields
-	if len(req.Which) == 0 || req.Which[0] == "all" {
-		req.Which = []string{}
-		v := reflect.ValueOf(req.Data)
-		if v.Kind() == reflect.Ptr {
-			v = v.Elem()
-		}
-		t := v.Type()
-
-		// Dynamically populate fields to update
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-			if field.Name == "Password" && req.Data.Password != "" {
-				req.Which = append(req.Which, field.Name)
-			} else if field.Name != "Password" && field.Name != "Fs" {
-				req.Which = append(req.Which, field.Name)
-			}
-		}
-	}
-
-	// Process the fields to update
-	for _, field := range req.Which {
-		// Title case field names
-		field = cases.Title(language.English, cases.NoLower).String(field)
-
-		// Handle password update
-		if field == "Password" {
-			if !d.user.Perm.Admin && d.user.LockPassword {
-				return http.StatusForbidden, nil
-			}
-			req.Data.Password, err = users.HashPwd(req.Data.Password)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-		}
-
-		// Prevent non-admins from modifying certain fields
-		for _, restrictedField := range NonModifiableFieldsForNonAdmin {
-			if !d.user.Perm.Admin && field == restrictedField {
-				return http.StatusForbidden, nil
-			}
-		}
-	}
 	// Perform the user update
-	err = store.Users.Update(req.Data, req.Which...)
+	err = store.Users.Update(req.Data, d.user.Perm.Admin, req.Which...)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
