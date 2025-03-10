@@ -204,7 +204,7 @@ export async function checksum (url, algo) {
   }
 }
 
-export function getDownloadURL (source, path, inline, useExternal) {
+export function getDownloadURL(source, path, inline, useExternal) {
   try {
     const params = {
       files: source + '::' + encodeURIComponent(path),

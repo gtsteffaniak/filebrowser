@@ -51,6 +51,7 @@ export default {
       let configData = await fetchJSON(baseURL + `api/onlyoffice/config?url=${refUrl}`);
       configData.type = state.isMobile ? "mobile" : "desktop";
       this.clientConfig = configData;
+      console.log("Client config:", this.clientConfig);
       this.ready = true;
     } catch (error) {
       console.error("Error during setup:", error);

@@ -37,24 +37,21 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if settings.Config.Integrations.OnlyOffice.Url == "" {
 		return http.StatusInternalServerError, errors.New("only-office integration must be configured in settings")
 	}
-
-	if !d.user.Perm.Modify {
-		return http.StatusForbidden, nil
-	}
 	encodedUrl := r.URL.Query().Get("url")
-	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = settings.Config.Server.DefaultSource.Name
-	}
 	// Decode the URL-encoded path
 	url, err := url.QueryUnescape(encodedUrl)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-
 	// get path from url
-	pathParts := strings.Split(url, "/api/raw?files=/")
-	path := pathParts[len(pathParts)-1]
+	pathParts := strings.Split(url, "/api/raw?files=")
+	sourceFile := pathParts[len(pathParts)-1]
+	sourceSplit := strings.Split(sourceFile, "::")
+	if len(sourceSplit) != 2 {
+		return http.StatusBadRequest, fmt.Errorf("invalid url path %v", url)
+	}
+	source := sourceSplit[0]
+	path := sourceSplit[1]
 	urlFirst := pathParts[0]
 	if settings.Config.Server.InternalUrl != "" {
 		urlFirst = strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
@@ -87,7 +84,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if d.user.DarkMode {
 		theme = "dark"
 	}
-
+	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, path, d.token)
 	clientConfig := map[string]interface{}{
 		"document": map[string]interface{}{
 			"fileType": fileType,
@@ -101,7 +98,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			},
 		},
 		"editorConfig": map[string]interface{}{
-			"callbackUrl": fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, path, d.token),
+			"callbackUrl": callbackURL,
 			"user": map[string]interface{}{
 				"id":   strconv.FormatUint(uint64(d.user.ID), 10),
 				"name": d.user.Username,
@@ -201,6 +198,7 @@ func getOnlyOfficeId(source, path string) (string, error) {
 	}
 	return "", fmt.Errorf("document key not found")
 }
+
 func deleteOfficeId(source, path string) {
 	idx := files.GetIndex(source)
 	if idx == nil {
