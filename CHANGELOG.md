@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.6.1-beta
+
+ **BugFixes**:
+ - fixed onlyoffice bug https://github.com/gtsteffaniak/filebrowser/issues/418
+
 ## v0.6.0-beta
 
 > [!WARNING]
