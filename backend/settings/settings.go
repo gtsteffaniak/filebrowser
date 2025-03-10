@@ -47,10 +47,13 @@ func ApplyUserDefaults(u *users.User) {
 	u.Perm = Config.UserDefaults.Perm
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
-	u.Scopes = []users.SourceScope{
-		{
-			Scope: Config.Server.DefaultSource.Config.DefaultUserScope,
-			Name:  Config.Server.DefaultSource.Path,
-		},
+	if len(u.Scopes) == 0 {
+		u.Scopes = []users.SourceScope{
+			{
+				Scope: Config.Server.DefaultSource.Config.DefaultUserScope,
+				Name:  Config.Server.DefaultSource.Path,
+			},
+		}
 	}
+
 }

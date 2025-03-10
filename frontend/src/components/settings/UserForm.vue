@@ -227,7 +227,9 @@ export default {
       if (this.availableSources.length > 0) {
         const newSource = this.availableSources.pop();
         if (newSource) {
-          this.selectedSources.push({ name: newSource.name, scope: "" });
+          const scope = { name: newSource.name, scope: "" };
+          this.selectedSources.push(scope);
+          this.updateParent({ source: scope, input: { target: { value: "" } } });
         }
       }
     },

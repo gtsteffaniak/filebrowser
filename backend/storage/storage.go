@@ -96,8 +96,6 @@ func quickSetup(store *Storage) {
 			Scope: "",
 		})
 	}
-	user.DarkMode = true
-	user.ViewMode = "normal"
 	user.LockPassword = false
 	user.Perm = settings.AdminPerms()
 	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v\n", user.Username, user.Password))
@@ -112,6 +110,7 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	if userInfo.Username == "" || userInfo.Password == "" {
 		return errors.ErrInvalidRequestParams
 	}
+	logger.Debug(fmt.Sprintf("Creating user: %v %v\n", userInfo.Username, userInfo.Scopes))
 	settings.ApplyUserDefaults(newUser)
 	if asAdmin {
 		userInfo.Perm = settings.AdminPerms()
