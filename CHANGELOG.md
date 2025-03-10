@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - fixed onlyoffice bug https://github.com/gtsteffaniak/filebrowser/issues/418
+ - files in breadcrumbs issue https://github.com/gtsteffaniak/filebrowser/issues/419
+
 
 ## v0.6.0-beta
 

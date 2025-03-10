@@ -9,7 +9,11 @@
       <i class="material-icons">home</i>
     </component>
 
-    <span v-for="(link, index) in items" :key="index">
+    <span
+      :aria-label="'breadcrumb-link-' + link.name"
+      v-for="(link, index) in items"
+      :key="index"
+    >
       <span class="chevron"><i class="material-icons">keyboard_arrow_right</i></span>
       <component :is="element" :to="link.url">{{ link.name }}</component>
     </span>
@@ -111,7 +115,7 @@ export default {
   methods: {
     updatePaths() {
       const result = extractSourceFromPath(getters.routePath());
-      this.path = removePrefix(result.path, "files");
+      this.path = result.path;
       if (getters.currentView() == "share") {
         this.homePath = getters.sharePathBase();
         this.path = removePrefix(getters.routePath(), this.homePath + "/");
