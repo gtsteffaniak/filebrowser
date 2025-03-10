@@ -148,7 +148,7 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 	}
 	defer file.Close()
 
-	info, err := os.Stat(realPath)
+	info, err := file.Stat()
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,6 @@ func addSingleFile(realPath, archivePath string, zipWriter *zip.Writer, tarWrite
 		if err != nil {
 			return err
 		}
-		// Ensure correct relative path
 		header.Name = filepath.ToSlash(archivePath)
 		if err = tarWriter.WriteHeader(header); err != nil {
 			return err
@@ -213,20 +212,18 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		defer fd.Close()
 
-		// Get file information
-		fileInfo, err3 := fd.Stat()
-		if err3 != nil {
-			return http.StatusInternalServerError, err
-		}
-
 		// Set headers and serve the file
 		setContentDisposition(w, r, fileName)
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 
 		// Serve the content
-		http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)
-		return 0, nil
+		// Stream file to response
+		_, err = io.Copy(w, fd)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		return 200, nil
 	}
 
 	algo := r.URL.Query().Get("algo")
@@ -265,6 +262,10 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
+	// Stream the response to avoid high memory usage
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
 
 	// Check if we have exactly one directory
 	//flatten := len(filenames) == 1
@@ -273,6 +274,10 @@ func createZip(w io.Writer, d *requestContext, filenames ...string) error {
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
 			return err
+		}
+		// Flush after adding each file
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
 		}
 	}
 	return nil
@@ -285,6 +290,10 @@ func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 	tarWriter := tar.NewWriter(gzWriter)
 	defer tarWriter.Close()
 
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+
 	// Check if we have exactly one directory
 	//flatten := len(filenames) == 1
 	for _, fname := range filenames {
@@ -292,6 +301,9 @@ func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
 			return err
+		}
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
 		}
 	}
 
