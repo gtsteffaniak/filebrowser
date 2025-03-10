@@ -19,25 +19,25 @@ test("breadcrumbs navigation checks", async ({ page }) => {
 
   // Ensure no <span> children exist directly under .breadcrumbs (ie no breadcrumbs paths)
   let spanChildrenCount = await page.locator('.breadcrumbs > span').count();
-  await page.waitForSelector('.breadcrumbs > span');
+  await page.waitForSelector('.breadcrumbs');
   expect(spanChildrenCount).toBe(0);
 
   await page.goto("/files/playwright-files/myfolder");
-  await page.waitForSelector('.breadcrumbs > span');
+  await page.waitForSelector('.breadcrumbs');
   spanChildrenCount = await page.locator('.breadcrumbs > span').count();
   expect(spanChildrenCount).toBe(1);
   let breadCrumbLink = page.locator('span[aria-label="breadcrumb-link-myfolder"] a')
   await expect(breadCrumbLink).toHaveText("myfolder");
 
   await page.goto("/files/playwright-files/myfolder/testdata");
-  await page.waitForSelector('.breadcrumbs > span');
+  await page.waitForSelector('.breadcrumbs');
   spanChildrenCount = await page.locator('.breadcrumbs > span').count();
   expect(spanChildrenCount).toBe(2);
   breadCrumbLink = page.locator('span[aria-label="breadcrumb-link-testdata"] a')
   await expect(breadCrumbLink).toHaveText("testdata");
 
   await page.goto("/files/playwright-files/files");
-  await page.waitForSelector('.breadcrumbs > span');
+  await page.waitForSelector('.breadcrumbs');
   spanChildrenCount = await page.locator('.breadcrumbs > span').count();
   expect(spanChildrenCount).toBe(1);
   breadCrumbLink = page.locator('span[aria-label="breadcrumb-link-files"] a')
