@@ -571,12 +571,12 @@ export default {
           break;
 
         case "Delete":
-          if (!state.user.perm.delete || state.selected.length === 0) return;
+          if (!state.user.perm.modify || state.selected.length === 0) return;
           mutations.showHover("delete");
           break;
 
         case "F2":
-          if (!state.user.perm.rename || state.selected.length !== 1) return;
+          if (!state.user.perm.modify || state.selected.length !== 1) return;
           mutations.showHover("rename");
           break;
 

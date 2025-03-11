@@ -94,11 +94,12 @@ func TestMakeIndexPath(t *testing.T) {
 		{"Trailing slash removed", "/test/", "/test"},
 		{"Subpath without root prefix", "/other/test", "/other/test"},
 		{"Complex nested paths", "/nested/path", "/nested/path"},
+		// TODO fix {"has source name as start", "/srv.tar.gz", "/srv.tar.gz"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			idx := &Index{Source: settings.Source{Path: "/"}}
+			idx := &Index{Source: settings.Source{Path: "/srv"}}
 			result := idx.makeIndexPath(tt.subPath)
 			if result != tt.expected {
 				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)

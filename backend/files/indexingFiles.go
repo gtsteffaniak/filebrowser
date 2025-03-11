@@ -191,6 +191,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	return nil
 }
 
+// input should be non-index path.
 func (idx *Index) makeIndexPath(subPath string) string {
 	if strings.HasPrefix(subPath, "./") {
 		subPath = strings.TrimPrefix(subPath, ".")
@@ -200,8 +201,8 @@ func (idx *Index) makeIndexPath(subPath string) string {
 	}
 	// clean path
 	subPath = strings.TrimSuffix(subPath, "/")
-	// remove index prefix
 	adjustedPath := strings.TrimPrefix(subPath, idx.Source.Path)
+	// remove index prefix
 	adjustedPath = strings.ReplaceAll(adjustedPath, "\\", "/")
 	// remove trailing slash
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
@@ -253,8 +254,6 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 	if !refreshOptions.IsDir {
 		refreshOptions.Path = idx.makeIndexPath(filepath.Dir(refreshOptions.Path))
 		refreshOptions.IsDir = true
-	} else {
-		refreshOptions.Path = idx.makeIndexPath(refreshOptions.Path)
 	}
 	err := idx.indexDirectory(refreshOptions.Path, false, false)
 	if err != nil {

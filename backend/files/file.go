@@ -17,7 +17,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -27,11 +26,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
-)
-
-var (
-	pathMutexes   = make(map[string]*sync.Mutex)
-	pathMutexesMu sync.Mutex // Mutex to protect the pathMutexes map
 )
 
 type ItemInfo struct {
@@ -88,11 +82,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	opts.Path = index.makeIndexPath(opts.Path)
-	// Lock access for the specific path
-	pathMutex := getMutex(opts.Path)
-	pathMutex.Lock()
-	defer pathMutex.Unlock()
 
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
@@ -118,7 +107,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	//	}
 	//	return info, nil
 	//}
-
 	err = index.RefreshFileInfo(opts)
 	if err != nil {
 		return response, err
@@ -187,7 +175,7 @@ func GetChecksum(fullPath, algo string) (map[string]string, error) {
 	return subs, nil
 }
 
-func DeleteFiles(source, absPath string, dirPath string) error {
+func DeleteFiles(source, absPath string, absDirPath string) error {
 	err := os.RemoveAll(absPath)
 	if err != nil {
 		return err
@@ -196,7 +184,7 @@ func DeleteFiles(source, absPath string, dirPath string) error {
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	refreshConfig := FileOptions{Path: dirPath, IsDir: true}
+	refreshConfig := FileOptions{Path: index.makeIndexPath(absDirPath), IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return err
@@ -216,15 +204,15 @@ func MoveResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool)
 	}
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
-		Path:  realsrc,
+		Path:  index.makeIndexPath(realsrc),
 		IsDir: isSrcDir,
 	})
 	if err != nil {
 		return fmt.Errorf("could not refresh index for source: %v", err)
 	}
-	refreshConfig := FileOptions{Path: realdst, IsDir: true}
+	refreshConfig := FileOptions{Path: index.makeIndexPath(realdst), IsDir: true}
 	if !isSrcDir {
-		refreshConfig.Path = filepath.Dir(realdst)
+		refreshConfig.Path = index.makeIndexPath(filepath.Dir(realdst))
 	}
 	index = GetIndex(dstIndex)
 	if index == nil {
@@ -254,7 +242,7 @@ func CopyResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool)
 	if err != nil {
 		return fmt.Errorf("could not refresh index for source: %v", err)
 	}
-	refreshConfig := FileOptions{Path: realdst, IsDir: true}
+	refreshConfig := FileOptions{Path: index.makeIndexPath(realdst), IsDir: true}
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
 	}
@@ -262,9 +250,9 @@ func CopyResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool)
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", dstIndex)
 	}
-	refreshConfig = FileOptions{Path: realdst, IsDir: true}
+	refreshConfig = FileOptions{Path: index.makeIndexPath(realdst), IsDir: true}
 	if !isSrcDir {
-		refreshConfig.Path = filepath.Dir(realdst)
+		refreshConfig.Path = index.makeIndexPath(filepath.Dir(realdst))
 	}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
@@ -317,7 +305,7 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
-	opts.Path = parentDir
+	opts.Path = idx.makeIndexPath(parentDir)
 	opts.IsDir = true
 	return idx.RefreshFileInfo(opts)
 }
@@ -433,19 +421,6 @@ func IsNamedPipe(mode os.FileMode) bool {
 
 func IsSymlink(mode os.FileMode) bool {
 	return mode&os.ModeSymlink != 0
-}
-
-func getMutex(path string) *sync.Mutex {
-	// Lock access to pathMutexes map
-	pathMutexesMu.Lock()
-	defer pathMutexesMu.Unlock()
-
-	// Create a mutex for the path if it doesn't exist
-	if pathMutexes[path] == nil {
-		pathMutexes[path] = &sync.Mutex{}
-	}
-
-	return pathMutexes[path]
 }
 
 func Exists(path string) bool {
