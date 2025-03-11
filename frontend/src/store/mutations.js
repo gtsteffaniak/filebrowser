@@ -155,6 +155,7 @@ export const mutations = {
   },
   setSession: (value) => {
     state.sessionId = value;
+    localStorage.setItem("sessionId", value);
     emitStateChanged();
   },
   setMultiple: (value) => {

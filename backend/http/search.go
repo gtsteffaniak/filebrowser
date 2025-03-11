@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
@@ -60,7 +61,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		source = config.Server.DefaultSource.Name
 	}
 	searchScope := strings.TrimPrefix(r.URL.Query().Get("scope"), ".")
-	searchScope = strings.TrimPrefix(searchScope, "/")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	index := files.GetIndex(source)
@@ -71,11 +71,9 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	userScope := strings.TrimPrefix(userscope, ".")
-	combinedScope := strings.TrimPrefix(userScope+"/"+searchScope, "/")
-
+	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope))
 	// Perform the search using the provided query and user scope
-	response := index.Search(query, combinedScope, sessionId)
+	response := index.Search(query, combinedPath, sessionId)
 	// Set the Content-Type header to application/json
 	w.Header().Set("Content-Type", "application/json")
 	return renderJSON(w, r, response)

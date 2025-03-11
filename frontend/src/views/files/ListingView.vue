@@ -517,7 +517,7 @@ export default {
       }
     },
     keyEvent(event) {
-      if (state.isSearchActive) {
+      if (state.isSearchActive || getters.currentView() !== "files") {
         return;
       }
       const { key, ctrlKey, metaKey, which } = event;

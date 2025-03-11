@@ -184,7 +184,7 @@ func DeleteFiles(source, absPath string, absDirPath string) error {
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	refreshConfig := FileOptions{Path: index.makeIndexPath(absDirPath), IsDir: true}
+	refreshConfig := FileOptions{Path: index.MakeIndexPath(absDirPath), IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return err
@@ -204,15 +204,15 @@ func MoveResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool)
 	}
 	// refresh info for source and dest
 	err = index.RefreshFileInfo(FileOptions{
-		Path:  index.makeIndexPath(realsrc),
+		Path:  index.MakeIndexPath(realsrc),
 		IsDir: isSrcDir,
 	})
 	if err != nil {
 		return fmt.Errorf("could not refresh index for source: %v", err)
 	}
-	refreshConfig := FileOptions{Path: index.makeIndexPath(realdst), IsDir: true}
+	refreshConfig := FileOptions{Path: index.MakeIndexPath(realdst), IsDir: true}
 	if !isSrcDir {
-		refreshConfig.Path = index.makeIndexPath(filepath.Dir(realdst))
+		refreshConfig.Path = index.MakeIndexPath(filepath.Dir(realdst))
 	}
 	index = GetIndex(dstIndex)
 	if index == nil {
@@ -242,7 +242,7 @@ func CopyResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool)
 	if err != nil {
 		return fmt.Errorf("could not refresh index for source: %v", err)
 	}
-	refreshConfig := FileOptions{Path: index.makeIndexPath(realdst), IsDir: true}
+	refreshConfig := FileOptions{Path: index.MakeIndexPath(realdst), IsDir: true}
 	if !isSrcDir {
 		refreshConfig.Path = filepath.Dir(realdst)
 	}
@@ -250,9 +250,9 @@ func CopyResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool)
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", dstIndex)
 	}
-	refreshConfig = FileOptions{Path: index.makeIndexPath(realdst), IsDir: true}
+	refreshConfig = FileOptions{Path: index.MakeIndexPath(realdst), IsDir: true}
 	if !isSrcDir {
-		refreshConfig.Path = index.makeIndexPath(filepath.Dir(realdst))
+		refreshConfig.Path = index.MakeIndexPath(filepath.Dir(realdst))
 	}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
@@ -305,7 +305,7 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
-	opts.Path = idx.makeIndexPath(parentDir)
+	opts.Path = idx.MakeIndexPath(parentDir)
 	opts.IsDir = true
 	return idx.RefreshFileInfo(opts)
 }

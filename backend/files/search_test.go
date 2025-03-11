@@ -97,6 +97,11 @@ func TestSearchIndexes(t *testing.T) {
 				{Name: "video.mp4", Type: "video"},
 				{Name: "video.MP4", Type: "video"},
 			}},
+			"/first Dir": {
+				Files: []ItemInfo{
+					{Name: "space jam.zip", Size: 100, Type: "archive"},
+				},
+			},
 			"/new/test/path": {Files: []ItemInfo{{Name: "archive.zip", Type: "archive"}}},
 			"/firstDir": {
 				Files: []ItemInfo{
@@ -127,7 +132,7 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/new/",
 			expectedResult: []SearchResult{
 				{
-					Path: "test/audio.wav",
+					Path: "/new/test/audio.wav",
 					Type: "audio",
 					Size: 0,
 				},
@@ -138,12 +143,12 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/",
 			expectedResult: []SearchResult{
 				{
-					Path: "test/",
+					Path: "/test/",
 					Type: "directory",
 					Size: 0,
 				},
 				{
-					Path: "new/test/",
+					Path: "/new/test/",
 					Type: "directory",
 					Size: 0,
 				},
@@ -154,12 +159,12 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/",
 			expectedResult: []SearchResult{
 				{
-					Path: "firstDir/archive.zip",
+					Path: "/firstDir/archive.zip",
 					Type: "archive",
 					Size: 100,
 				},
 				{
-					Path: "new/test/path/archive.zip",
+					Path: "/new/test/path/archive.zip",
 					Type: "archive",
 					Size: 0,
 				},
@@ -170,7 +175,18 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/firstDir",
 			expectedResult: []SearchResult{
 				{
-					Path: "archive.zip",
+					Path: "/firstDir/archive.zip",
+					Type: "archive",
+					Size: 100,
+				},
+			},
+		},
+		{
+			search: "space jam",
+			scope:  "/first Dir/",
+			expectedResult: []SearchResult{
+				{
+					Path: "/first Dir/space jam.zip",
 					Type: "archive",
 					Size: 100,
 				},
@@ -181,7 +197,7 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/",
 			expectedResult: []SearchResult{
 				{
-					Path: "firstDir/thisIsDir/",
+					Path: "/firstDir/thisIsDir/",
 					Type: "directory",
 					Size: 2097152,
 				},
@@ -192,7 +208,7 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/",
 			expectedResult: []SearchResult{
 				{
-					Path: "firstDir/thisIsDir/",
+					Path: "/firstDir/thisIsDir/",
 					Type: "directory",
 					Size: 2097152,
 				},
@@ -203,12 +219,12 @@ func TestSearchIndexes(t *testing.T) {
 			scope:  "/",
 			expectedResult: []SearchResult{
 				{
-					Path: "new/test/video.MP4",
+					Path: "/new/test/video.MP4",
 					Type: "video",
 					Size: 0,
 				},
 				{
-					Path: "new/test/video.mp4",
+					Path: "/new/test/video.mp4",
 					Type: "video",
 					Size: 0,
 				},
