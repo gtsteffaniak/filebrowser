@@ -98,7 +98,7 @@ func quickSetup(store *Storage) {
 	}
 	user.LockPassword = false
 	user.Perm = settings.AdminPerms()
-	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v\n", user.Username, user.Password))
+	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v", user.Username, user.Password))
 	err = store.Users.Save(user, true)
 	utils.CheckErr("store.Users.Save", err)
 }

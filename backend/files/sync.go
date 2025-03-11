@@ -15,7 +15,7 @@ func (idx *Index) UpdateMetadata(info *FileInfo) bool {
 	return true
 }
 
-// GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
+// GetMetadataInfo retrieves the FileInfo from the specified file or directory in the index.
 func (idx *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
@@ -48,7 +48,7 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool
 
 }
 
-// GetMetadataInfo retrieves the FileInfo from the specified directory in the index.
+// raw directory info retrieval -- does not work on files, only returns a directory
 func (idx *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()

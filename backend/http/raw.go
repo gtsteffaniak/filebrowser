@@ -205,27 +205,47 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	// Compute estimated download size
+	estimatedSize, err := computeArchiveSize(fileList, d)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// if larger than 100 megabytes, log it
+	if estimatedSize > 100*1024/1024 {
+		logger.Debug(fmt.Sprintf("User %v is downloading large payload: %d MB", d.user.Username, estimatedSize/1024/1024))
+	}
+
+	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
 		fd, err2 := os.Open(realPath)
 		if err2 != nil {
-			return http.StatusInternalServerError, err
+			return http.StatusInternalServerError, err2
 		}
 		defer fd.Close()
 
-		// Set headers and serve the file
+		// Get file size
+		fileInfo, err2 := fd.Stat()
+		if err2 != nil {
+			return http.StatusInternalServerError, err2
+		}
+
+		// Set headers
 		setContentDisposition(w, r, fileName)
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 
-		// Serve the content
 		// Stream file to response
-		_, err = io.Copy(w, fd)
-		if err != nil {
-			return http.StatusInternalServerError, err
+		_, err2 = io.Copy(w, fd)
+		if err2 != nil {
+			return http.StatusInternalServerError, err2
 		}
 		return 200, nil
 	}
 
+	// ** Archive (ZIP/TAR.GZ) handling **
 	algo := r.URL.Query().Get("algo")
 	var extension string
 	switch algo {
@@ -236,6 +256,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	default:
 		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
+
 	baseDirName := filepath.Base(filepath.Dir(realPath))
 	if baseDirName == "" || baseDirName == "/" {
 		baseDirName = "download"
@@ -244,19 +265,52 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		baseDirName = filepath.Base(realPath)
 	}
 	downloadFileName := url.PathEscape(baseDirName + extension)
+
+	// Set headers for archive
 	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+downloadFileName)
-	// Create the archive and stream it directly to the response
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", estimatedSize))
+
+	// Create archive and stream it
 	if extension == ".zip" {
 		err = createZip(w, d, fileList...)
 	} else {
 		err = createTarGz(w, d, fileList...)
 	}
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	return 0, nil
+}
+
+func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
+	var estimatedSize int64
+	for _, fname := range fileList {
+		splitFile := strings.Split(fname, "::")
+		if len(splitFile) != 2 {
+			return http.StatusBadRequest, fmt.Errorf("invalid file in files request: %v", fileList[0])
+		}
+		source := splitFile[0]
+		path := splitFile[1]
+		idx := files.GetIndex(source)
+		if idx == nil {
+			return 0, fmt.Errorf("source %s is not available", source)
+		}
+		userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if d.share == nil && err != nil {
+			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		}
+		_, isDir, err := idx.GetRealPath(userScope, path)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		info, ok := idx.GetReducedMetadata(path, isDir)
+		if !ok {
+			return 0, fmt.Errorf("failed to get metadata info for %s", path)
+		}
+		estimatedSize += info.Size
+	}
+	return estimatedSize, nil
 }
 
 func createZip(w io.Writer, d *requestContext, filenames ...string) error {

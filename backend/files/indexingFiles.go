@@ -191,6 +191,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	return nil
 }
 
+// input should be non-index path.
 func (idx *Index) makeIndexPath(subPath string) string {
 	if strings.HasPrefix(subPath, "./") {
 		subPath = strings.TrimPrefix(subPath, ".")

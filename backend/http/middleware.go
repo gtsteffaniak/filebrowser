@@ -206,7 +206,7 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 
 			// Write the JSON error response
 			if _, writeErr := w.Write(errorBytes); writeErr != nil {
-				logger.Error(fmt.Sprintf("Error writing error response: %v", writeErr))
+				logger.Debug(fmt.Sprintf("Error writing error response: %v", writeErr))
 			}
 			return
 		}

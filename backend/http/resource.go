@@ -114,13 +114,12 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileOpts := files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(files.FileOptions{
 		Path:   filepath.Join(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
-	}
-	fileInfo, err := files.FileInfoFaster(fileOpts)
+	})
 	if err != nil {
 		return errToStatus(err), err
 	}

@@ -88,11 +88,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	opts.Path = index.makeIndexPath(opts.Path)
-	// Lock access for the specific path
-	pathMutex := getMutex(opts.Path)
-	pathMutex.Lock()
-	defer pathMutex.Unlock()
 
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
@@ -118,7 +113,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	//	}
 	//	return info, nil
 	//}
-
 	err = index.RefreshFileInfo(opts)
 	if err != nil {
 		return response, err
@@ -433,19 +427,6 @@ func IsNamedPipe(mode os.FileMode) bool {
 
 func IsSymlink(mode os.FileMode) bool {
 	return mode&os.ModeSymlink != 0
-}
-
-func getMutex(path string) *sync.Mutex {
-	// Lock access to pathMutexes map
-	pathMutexesMu.Lock()
-	defer pathMutexesMu.Unlock()
-
-	// Create a mutex for the path if it doesn't exist
-	if pathMutexes[path] == nil {
-		pathMutexes[path] = &sync.Mutex{}
-	}
-
-	return pathMutexes[path]
 }
 
 func Exists(path string) bool {
