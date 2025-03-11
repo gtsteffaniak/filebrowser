@@ -23,7 +23,6 @@ type SearchResult struct {
 
 func (idx *Index) Search(search string, scope string, sourceSession string) []SearchResult {
 	// Remove slashes
-	scope = idx.makeIndexPath(scope)
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)

@@ -23,6 +23,9 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool
 	if !isDir {
 		checkDir = idx.makeIndexPath(filepath.Dir(target))
 	}
+	if checkDir == "" {
+		checkDir = "/"
+	}
 	dir, exists := idx.Directories[checkDir]
 	if !exists {
 		return nil, false
@@ -56,7 +59,10 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
 	if !isDir {
 		checkDir = idx.makeIndexPath(filepath.Dir(target))
 	}
-	dir, exists := idx.Directories[checkDir]
+	if checkDir == "" {
+		checkDir = "/"
+	}
+	dir, exists := idx.Directories[target]
 	return dir, exists
 }
 
