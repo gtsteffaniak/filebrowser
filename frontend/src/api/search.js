@@ -4,13 +4,11 @@ import { removePrefix, getApiPath } from "@/utils/url.js";
 
 export default async function search(base, source, query) {
   try {
-    base = removePrefix(base,"files");
     query = encodeURIComponent(query);
 
     if (!base.endsWith("/")) {
       base += "/";
     }
-
     const apiPath = getApiPath("api/search", { scope: base, query: query, source: source });
     const res = await fetchURL(apiPath);
     let data = await res.json();

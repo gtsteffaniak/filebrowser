@@ -120,7 +120,7 @@ export default {
         this.homePath = getters.sharePathBase();
         this.path = removePrefix(getters.routePath(), this.homePath + "/");
       }
-      if (state.sources.count > 1) {
+      if (state.serverHasMultipleSources) {
         this.homePath = "/files/" + result.source;
       }
     },

@@ -10,6 +10,7 @@ export const state = reactive({
   showSidebar: false,
   usages: {},
   editor: null,
+  serverHasMultipleSources: false,
   sources: {
     current: "",
     count: 1,

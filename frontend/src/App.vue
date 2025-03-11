@@ -11,7 +11,6 @@ export default {
   computed: {},
   setup() {
     onMounted(() => {
-      console.log("static vars", window.FileBrowser);
       mutations.setLoading("main-app", false);
       // Query the loading element and remove it from the DOM
       const loadingDiv = document.getElementById("loading");

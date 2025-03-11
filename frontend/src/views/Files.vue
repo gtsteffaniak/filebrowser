@@ -103,7 +103,7 @@ export default {
     async fetchData() {
       // lets redirect if multiple sources and user went to /files/
       if (
-        state.sources.count > 1 &&
+        state.serverHasMultipleSources &&
         (getters.routePath() === "/files/" || getters.routePath() === "/files")
       ) {
         router.push(`/files/${state.sources.current}`);

@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -60,7 +61,12 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	if source == "" {
 		source = config.Server.DefaultSource.Name
 	}
-	searchScope := strings.TrimPrefix(r.URL.Query().Get("scope"), ".")
+	scope := r.URL.Query().Get("scope")
+	unencodedScope, err := url.QueryUnescape(scope)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+	searchScope := strings.TrimPrefix(unencodedScope, ".")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
 	index := files.GetIndex(source)

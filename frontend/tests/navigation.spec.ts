@@ -44,3 +44,15 @@ test("breadcrumbs navigation checks", async ({ page }) => {
   await expect(breadCrumbLink).toHaveText("files");
 
 });
+
+
+test("navigate from search item", async ({ page }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await page.locator('#search').click()
+  await page.locator('#main-input').fill('for testing');
+  await expect(page.locator('#result-list')).toHaveCount(1);
+  await page.locator('li[aria-label="for testing.md"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - for testing.md");
+  await expect(page.locator('.topTitle')).toHaveText('for testing.md');
+});

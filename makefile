@@ -19,7 +19,7 @@ build:
 build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'"
 
-run: run-frontend
+run: build-frontend
 	cd backend && swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' ./swagger/docs/docs.go; \
@@ -29,7 +29,7 @@ run: run-frontend
 	FILEBROWSER_NO_EMBEDED=true go run \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
 
-run-frontend:
+build-frontend:
 	cd backend/http && rm -rf dist && rm -rf embed/* && ln -s ../../frontend/dist && \
 	cd ../../frontend && npm run build
 
@@ -51,7 +51,7 @@ test-backend:
 test-frontend:
 	cd frontend && npm run test
 
-test-playwright: run-frontend
+test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser . && cd .. && \
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general . && \
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests && \

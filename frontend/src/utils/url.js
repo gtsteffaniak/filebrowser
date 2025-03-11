@@ -118,11 +118,11 @@ export function base64Encode(str) {
 export function extractSourceFromPath(url) {
   let source;
   let path = removePrefix(url, 'files');
-  if (state.sources.count <= 1) {
-    source = state.sources.current;
-  } else {
+  if (state.serverHasMultipleSources) {
     source = path.split('/')[1];
     path = removePrefix(path, source);
+  } else {
+    source = state.sources.current;
   }
   return { source, path };
 }
