@@ -192,68 +192,66 @@ func DeleteFiles(source, absPath string, absDirPath string) error {
 	return nil
 }
 
-func MoveResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool) error {
+func MoveResource(sourceIndex, destIndex, realsrc, realdst string) error {
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-
-	index := GetIndex(sourceIndex)
-	if index == nil {
+	idxSrc := GetIndex(sourceIndex)
+	if idxSrc == nil {
 		return fmt.Errorf("could not get index: %v ", sourceIndex)
 	}
+	idxDst := GetIndex(destIndex)
+	if idxDst == nil {
+		return fmt.Errorf("could not get index: %v ", sourceIndex)
+	}
+	refreshSourceDir := idxSrc.MakeIndexPath(filepath.Dir(realsrc))
+	refreshDestDir := idxDst.MakeIndexPath(filepath.Dir(realdst))
 	// refresh info for source and dest
-	err = index.RefreshFileInfo(FileOptions{
-		Path:  index.MakeIndexPath(realsrc),
-		IsDir: isSrcDir,
+	err = idxSrc.RefreshFileInfo(FileOptions{
+		Path:  refreshSourceDir,
+		IsDir: true,
 	})
 	if err != nil {
 		return fmt.Errorf("could not refresh index for source: %v", err)
 	}
-	refreshConfig := FileOptions{Path: index.MakeIndexPath(realdst), IsDir: true}
-	if !isSrcDir {
-		refreshConfig.Path = index.MakeIndexPath(filepath.Dir(realdst))
+	if refreshSourceDir == refreshDestDir {
+		return nil
 	}
-	index = GetIndex(dstIndex)
-	if index == nil {
-		return fmt.Errorf("could not get index: %v ", dstIndex)
-	}
-	err = index.RefreshFileInfo(refreshConfig)
+	refreshConfig := FileOptions{Path: refreshDestDir, IsDir: true}
+	err = idxDst.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return fmt.Errorf("could not refresh index for dest: %v", err)
 	}
 	return nil
 }
 
-func CopyResource(sourceIndex, dstIndex, realsrc, realdst string, isSrcDir bool) error {
+func CopyResource(sourceIndex, destIndex, realsrc, realdst string) error {
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
+	idxSrc := GetIndex(sourceIndex)
+	if idxSrc == nil {
+		return fmt.Errorf("could not get index: %v ", sourceIndex)
+	}
+	idxDst := GetIndex(destIndex)
+	if idxDst == nil {
+		return fmt.Errorf("could not get index: %v ", sourceIndex)
+	}
+	refreshSourceDir := idxSrc.MakeIndexPath(filepath.Dir(realsrc))
+	refreshDestDir := idxDst.MakeIndexPath(filepath.Dir(realdst))
 	index := GetIndex(sourceIndex)
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", sourceIndex)
 	}
+	refreshConfig := FileOptions{Path: refreshSourceDir, IsDir: true}
 	// refresh info for source and dest
-	err = index.RefreshFileInfo(FileOptions{
-		Path:  realsrc,
-		IsDir: isSrcDir,
-	})
+	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return fmt.Errorf("could not refresh index for source: %v", err)
 	}
-	refreshConfig := FileOptions{Path: index.MakeIndexPath(realdst), IsDir: true}
-	if !isSrcDir {
-		refreshConfig.Path = filepath.Dir(realdst)
-	}
-	index = GetIndex(dstIndex)
-	if index == nil {
-		return fmt.Errorf("could not get index: %v ", dstIndex)
-	}
-	refreshConfig = FileOptions{Path: index.MakeIndexPath(realdst), IsDir: true}
-	if !isSrcDir {
-		refreshConfig.Path = index.MakeIndexPath(filepath.Dir(realdst))
-	}
+	refreshConfig.Path = refreshDestDir
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
 		return errors.ErrEmptyKey
