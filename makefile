@@ -9,7 +9,6 @@ setup:
 	echo "installing npm requirements for frontend..." && \
 	cd frontend && npm i
 
-
 update:
 	cd backend && go get -u ./... && go mod tidy && cd ../frontend && npm update
 
