@@ -212,11 +212,6 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return http.StatusInternalServerError, err
 	}
 
-	// if larger than 100 megabytes, log it
-	if estimatedSize > 100*1024/1024 {
-		logger.Debug(fmt.Sprintf("User %v is downloading large payload: %d MB", d.user.Username, estimatedSize/1024/1024))
-	}
-
 	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
 		fd, err2 := os.Open(realPath)
@@ -236,7 +231,10 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
-
+		// if larger than 100 megabytes, log it
+		if estimatedSize > 100*1024/1024 {
+			logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, estimatedSize/1024/1024, fileName))
+		}
 		// Stream file to response
 		_, err2 = io.Copy(w, fd)
 		if err2 != nil {
@@ -264,12 +262,15 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if len(fileList) == 1 && isDir {
 		baseDirName = filepath.Base(realPath)
 	}
-	downloadFileName := url.PathEscape(baseDirName + extension)
+	fileName = url.PathEscape(baseDirName + extension)
 
 	// Set headers for archive
-	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+downloadFileName)
+	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+fileName)
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", estimatedSize))
-
+	// if larger than 100 megabytes, log it
+	if estimatedSize > 100*1024/1024 {
+		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, estimatedSize/1024/1024, fileName))
+	}
 	// Create archive and stream it
 	if extension == ".zip" {
 		err = createZip(w, d, fileList...)

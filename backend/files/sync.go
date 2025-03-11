@@ -62,7 +62,7 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
 	if checkDir == "" {
 		checkDir = "/"
 	}
-	dir, exists := idx.Directories[target]
+	dir, exists := idx.Directories[checkDir]
 	return dir, exists
 }
 
