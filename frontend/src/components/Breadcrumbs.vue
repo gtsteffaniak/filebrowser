@@ -105,7 +105,7 @@ export default {
       }
       this.base = baseURL;
       if (state.serverHasMultipleSources) {
-        this.base = `${this.base}${result.source}`;
+        this.base = `${this.base}${result.source}/`;
       }
     },
     updateGallerySize(event) {
