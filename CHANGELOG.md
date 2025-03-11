@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.6.1-beta
+
+ **New Feature**:
+ - download size information is added, including when downloding multiple files in zip/tar.gz. The browser will see the XMB of X GB and will show browser native progress.
+
+ **BugFixes**:
+ - fixed onlyoffice bug https://github.com/gtsteffaniak/filebrowser/issues/418
+ - fixed breadcrumbs bug https://github.com/gtsteffaniak/filebrowser/issues/419
+ - fixed search context bug https://github.com/gtsteffaniak/filebrowser/issues/417
+ - fixed sessionID for search
+
 ## v0.6.0-beta
 
 > [!WARNING]

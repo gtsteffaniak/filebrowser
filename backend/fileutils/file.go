@@ -22,17 +22,12 @@ func MoveFile(src, dst string) error {
 	// fallback
 	err = CopyFile(src, dst)
 	if err != nil {
-		go func() {
-			err = os.Remove(src)
-			if err != nil {
-				logger.Error(fmt.Sprintf("os.Remove failed %v %v ", src, err))
-			}
-		}()
+		logger.Error(fmt.Sprintf("CopyFile failed %v %v %v ", src, dst, err))
 		return err
 	}
 
 	go func() {
-		err = os.Remove(src)
+		err = os.RemoveAll(src)
 		if err != nil {
 			logger.Error(fmt.Sprintf("os.Remove failed %v %v ", src, err))
 		}

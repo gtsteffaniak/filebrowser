@@ -22,8 +22,11 @@ type SearchResult struct {
 }
 
 func (idx *Index) Search(search string, scope string, sourceSession string) []SearchResult {
+	scope = strings.TrimSuffix(scope, "/")
+	if search == "" {
+		scope = ""
+	}
 	// Remove slashes
-	scope = idx.makeIndexPath(scope)
 	runningHash := utils.InsecureRandomIdentifier(4)
 	sessionInProgress.Store(sourceSession, runningHash) // Store the value in the sync.Map
 	searchOptions := ParseSearch(search)
@@ -46,7 +49,6 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 		}
 		idx.mu.Lock()
 		for _, dirName := range directories {
-			scopedPath := strings.TrimPrefix(strings.TrimPrefix(dirName, scope), "/") + "/"
 			idx.mu.Unlock()
 			dir, found := idx.GetReducedMetadata(dirName, true)
 			idx.mu.Lock()
@@ -63,16 +65,12 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 			}
 			matches := reducedDir.containsSearchTerm(searchTerm, searchOptions)
 			if matches {
-				results[scopedPath] = SearchResult{Path: scopedPath, Type: "directory", Size: dir.Size}
+				results[dirName+"/"] = SearchResult{Path: dirName + "/", Type: "directory", Size: dir.Size}
 				count++
 			}
 			// search files first
 			for _, item := range dir.Files {
 				fullPath := dirName + "/" + item.Name
-				scopedPath := strings.TrimPrefix(strings.TrimPrefix(fullPath, scope), "/")
-				if item.Type == "directory" {
-					scopedPath += "/"
-				}
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					idx.mu.Unlock()
@@ -83,7 +81,7 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 				}
 				matches := item.containsSearchTerm(searchTerm, searchOptions)
 				if matches {
-					results[scopedPath] = SearchResult{Path: scopedPath, Type: item.Type, Size: item.Size}
+					results[fullPath] = SearchResult{Path: fullPath, Type: item.Type, Size: item.Size}
 					count++
 				}
 			}

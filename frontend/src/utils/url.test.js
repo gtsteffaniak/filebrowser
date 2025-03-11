@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { removePrefix,extractSourceFromPath } from './url.js';
-
+import { removePrefix, extractSourceFromPath } from './url.js';
 
 describe('testurl', () => {
 
@@ -25,11 +24,10 @@ describe('extractSourceFromPath', () => {
     vi.doMock("@/store", () => {
       return {
         state: {
-          count: 1,
-          current: "default",
+          serverHasMultipleSources: false,
           sources: {
-            first: { pathPrefix: "", used: "0 B", total: "0 B", usedPercentage: 0 },
-          },
+            current: "default",
+          }
         },
       };
     });
@@ -54,11 +52,13 @@ describe('extractSourceFromPath2', () => {
     vi.doMock("@/store", () => {
       return {
         state: {
-          count: 2,
-          current: "first",
+          serverHasMultipleSources: true,
           sources: {
-            first: { pathPrefix: "first", used: "0 B", total: "0 B", usedPercentage: 0 },
-            second: { pathPrefix: "second", used: "0 B", total: "0 B", usedPercentage: 0 },
+            current: "first",
+            list: [
+              { pathPrefix: "first", used: "0 B", total: "0 B", usedPercentage: 0 },
+              { pathPrefix: "second", used: "0 B", total: "0 B", usedPercentage: 0 }
+            ],
           },
         },
       };
@@ -68,13 +68,11 @@ describe('extractSourceFromPath2', () => {
       { url: "/files/first/root/file1.txt", expected: { source: "first", path: "/root/file1.txt" } },
       { url: "/files/second/root/folder1/file1.txt", expected: { source: "second", path: "/root/folder1/file1.txt" } },
     ];
-
     for (const test of tests) {
       const result = extractSourceFromPath(test.url);
       expect(result.source).toEqual(test.expected.source);
       expect(result.path).toEqual(test.expected.path);
     }
-
     vi.resetModules(); // Reset modules between tests
   });
 });

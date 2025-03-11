@@ -18,6 +18,7 @@ const resizePreview = window.FileBrowser.ResizePreview;
 const enableExec = window.FileBrowser.EnableExec;
 const externalUrl = window.FileBrowser.ExternalUrl
 const onlyOfficeUrl = window.FileBrowser.OnlyOfficeUrl
+const serverHasMultipleSources = window.FileBrowser.SourceCount > 1;
 const origin = window.location.origin;
 
 const settings = [
@@ -29,6 +30,7 @@ const settings = [
 ]
 
 export {
+  serverHasMultipleSources,
   name,
   externalUrl,
   disableExternal,

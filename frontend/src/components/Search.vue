@@ -232,7 +232,7 @@ export default {
         mutations.closeHovers();
         return;
       }
-      if (state.sources.count > 1) {
+      if (state.serverHasMultipleSources) {
         this.selectedSource = state.sources.current;
       }
       setTimeout(() => {
@@ -248,7 +248,7 @@ export default {
     },
   },
   mounted() {
-    if (state.sources.count > 1) {
+    if (state.serverHasMultipleSources) {
       this.selectedSource = state.sources.current;
     }
   },
@@ -320,11 +320,13 @@ export default {
   },
   methods: {
     updateSource(event) {
-      this.selectedSource = event.target.value; // Correct way to get the new value
+      this.selectedSource = event.target.value;
       this.submit();
     },
     getRelative(path) {
-      return "/files/" + this.selectedSource + "/" + path;
+      path = path.slice(1); // remove leading slash
+      const fullpath = "/files/" + this.selectedSource + "/" + encodeURIComponent(path);
+      return fullpath;
     },
     getIcon(mimetype) {
       return getMaterialIconForType(mimetype);
@@ -433,7 +435,11 @@ export default {
       if (source == "") {
         source = state.sources.current;
       }
-      this.results = await search(this.getContext, source, searchTypesFull + this.value);
+      this.results = await search(
+        encodeURIComponent(this.getContext),
+        source,
+        searchTypesFull + this.value
+      );
 
       this.ongoing = false;
       if (this.results.length == 0) {

@@ -158,7 +158,7 @@ export default {
       return this.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      return this.readOnly == undefined && state.user.perm?.rename;
+      return this.readOnly == undefined && state.user.perm?.modify;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
@@ -326,7 +326,7 @@ export default {
           name: state.req.items[i].name,
         });
       }
-      let response = await filesApi.fetchFiles(el.__vue__.url);
+      let response = await filesApi.fetchFiles(decodeURIComponent(el.__vue__.url));
 
       let action = async (overwrite, rename) => {
         await filesApi.moveCopy(items, "move", overwrite, rename);
@@ -334,7 +334,6 @@ export default {
           mutations.setReload(true);
         }, 50);
       };
-
       let conflict = upload.checkConflict(items, response.items);
 
       let overwrite = false;

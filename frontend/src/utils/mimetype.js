@@ -63,6 +63,7 @@ export function getTypeInfo(mimeType) {
         mimeType === "application/gzip" ||
         mimeType === "application/x-xz" ||
         mimeType === "application/x-zip-compressed" ||
+        mimeType === "application/x-compressed" ||
         mimeType === "application/x-gzip"
     ) {
         return {

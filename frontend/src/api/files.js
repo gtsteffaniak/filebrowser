@@ -5,7 +5,7 @@ import { notify } from '@/notify'
 import { externalUrl } from '@/utils/constants'
 
 // Notify if errors occur
-export async function fetchFiles (url, content = false) {
+export async function fetchFiles(url, content = false) {
   try {
     const result = extractSourceFromPath(url)
     const apiPath = getApiPath('api/resources', {
@@ -23,7 +23,7 @@ export async function fetchFiles (url, content = false) {
   }
 }
 
-async function resourceAction (url, method, content) {
+async function resourceAction(url, method, content) {
   try {
     const result = extractSourceFromPath(url)
     let source = result.source
@@ -42,7 +42,7 @@ async function resourceAction (url, method, content) {
   }
 }
 
-export async function remove (url) {
+export async function remove(url) {
   try {
     return await resourceAction(url, 'DELETE')
   } catch (err) {
@@ -51,7 +51,7 @@ export async function remove (url) {
   }
 }
 
-export async function put (url, content = '') {
+export async function put(url, content = '') {
   try {
     return await resourceAction(url, 'PUT', content)
   } catch (err) {
@@ -60,7 +60,7 @@ export async function put (url, content = '') {
   }
 }
 
-export function download (format, files) {
+export function download(format, files) {
   if (format !== 'zip') {
     format = 'tar.gz'
   }
@@ -94,7 +94,7 @@ export function download (format, files) {
   }
 }
 
-export async function post (url, content = '', overwrite = false, onupload) {
+export async function post(url, content = '', overwrite = false, onupload) {
   try {
     const result = extractSourceFromPath(url)
     let bufferContent
@@ -143,7 +143,7 @@ export async function post (url, content = '', overwrite = false, onupload) {
   }
 }
 
-export async function moveCopy (
+export async function moveCopy(
   items,
   action = 'copy',
   overwrite = false,
@@ -186,7 +186,7 @@ export async function moveCopy (
   }
 }
 
-export async function checksum (url, algo) {
+export async function checksum(url, algo) {
   try {
     const result = extractSourceFromPath(url)
     const params = {
@@ -204,7 +204,7 @@ export async function checksum (url, algo) {
   }
 }
 
-export function getDownloadURL (source, path, inline, useExternal) {
+export function getDownloadURL(source, path, inline, useExternal) {
   try {
     const params = {
       files: source + '::' + encodeURIComponent(path),
@@ -221,7 +221,7 @@ export function getDownloadURL (source, path, inline, useExternal) {
   }
 }
 
-export function getPreviewURL (source, path, size, modified) {
+export function getPreviewURL(source, path, size, modified) {
   try {
     const params = {
       path: encodeURIComponent(path),
@@ -238,7 +238,7 @@ export function getPreviewURL (source, path, size, modified) {
   }
 }
 
-export async function usage (source) {
+export async function usage(source) {
   try {
     const apiPath = getApiPath('api/usage', { source: source })
     const res = await fetchURL(apiPath)

@@ -69,6 +69,9 @@ export default {
     if (state.user.themeColor) {
       document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
     }
+    if (!state.sessionId) {
+      mutations.setSession(localStorage.getItem("sessionId"));
+    }
   },
   computed: {
     showPadding() {

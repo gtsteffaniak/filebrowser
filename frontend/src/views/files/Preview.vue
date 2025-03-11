@@ -274,8 +274,8 @@ export default {
     },
     prefetchUrl(item) {
       return this.fullSize
-        ? filesApi.getDownloadURL(item.source, item.path, true)
-        : filesApi.getPreviewURL(item.source, item.path, "large", item.modified);
+        ? filesApi.getDownloadURL(state.req.source, item.path, true)
+        : filesApi.getPreviewURL(state.req.source, item.path, "large", item.modified);
     },
     openMore() {
       this.currentPrompt = "more";

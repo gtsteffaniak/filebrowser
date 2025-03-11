@@ -140,7 +140,7 @@ func TestUpdateFileMetadata(t *testing.T) {
 
 	fileInfo, exists := index.GetReducedMetadata("/testpath/testfile.txt", false)
 	if !exists || fileInfo.Name != "testfile.txt" {
-		t.Fatalf("expected testfile.txt to be updated in the directory metadata:%v %v", exists, info.Name)
+		t.Fatalf("expected '%v' to exist in the directory metadata. %v ", info.Name, exists)
 	}
 }
 
