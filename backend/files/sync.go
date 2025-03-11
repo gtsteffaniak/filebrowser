@@ -19,9 +19,9 @@ func (idx *Index) UpdateMetadata(info *FileInfo) bool {
 func (idx *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool) {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
-	checkDir := idx.makeIndexPath(target)
+	checkDir := idx.MakeIndexPath(target)
 	if !isDir {
-		checkDir = idx.makeIndexPath(filepath.Dir(target))
+		checkDir = idx.MakeIndexPath(filepath.Dir(target))
 	}
 	if checkDir == "" {
 		checkDir = "/"
@@ -55,9 +55,9 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*FileInfo, bool
 func (idx *Index) GetMetadataInfo(target string, isDir bool) (*FileInfo, bool) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
-	checkDir := idx.makeIndexPath(target)
+	checkDir := idx.MakeIndexPath(target)
 	if !isDir {
-		checkDir = idx.makeIndexPath(filepath.Dir(target))
+		checkDir = idx.MakeIndexPath(filepath.Dir(target))
 	}
 	if checkDir == "" {
 		checkDir = "/"

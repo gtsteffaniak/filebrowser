@@ -146,8 +146,8 @@
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path, s.type === "directory")
-                }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path, s.type === "directory") }}
+                <b>{{ baseName(s.path) }}</b>
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -324,7 +324,7 @@ export default {
       this.submit();
     },
     getRelative(path) {
-      return "/files/" + this.selectedSource + "/" + path;
+      return "/files/" + this.selectedSource + path;
     },
     getIcon(mimetype) {
       return getMaterialIconForType(mimetype);

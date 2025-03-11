@@ -100,9 +100,9 @@ func TestMakeIndexPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "/srv"}}
-			result := idx.makeIndexPath(tt.subPath)
+			result := idx.MakeIndexPath(tt.subPath)
 			if result != tt.expected {
-				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
+				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
 		})
 	}
@@ -121,9 +121,9 @@ func TestMakeIndexPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "C:\\Users"}}
-			result := idx.makeIndexPath(tt.subPath)
+			result := idx.MakeIndexPath(tt.subPath)
 			if result != tt.expected {
-				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
+				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
 		})
 	}
@@ -142,9 +142,9 @@ func TestMakeIndexPathRoot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			idx := &Index{Source: settings.Source{Path: "/rootpath", Name: "default"}}
-			result := idx.makeIndexPath(tt.subPath)
+			result := idx.MakeIndexPath(tt.subPath)
 			if result != tt.expected {
-				t.Errorf("makeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
+				t.Errorf("MakeIndexPath(%q)\ngot %q\nwant %q", tt.name, result, tt.expected)
 			}
 		})
 	}
