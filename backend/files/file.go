@@ -17,7 +17,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -27,11 +26,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
-)
-
-var (
-	pathMutexes   = make(map[string]*sync.Mutex)
-	pathMutexesMu sync.Mutex // Mutex to protect the pathMutexes map
 )
 
 type ItemInfo struct {

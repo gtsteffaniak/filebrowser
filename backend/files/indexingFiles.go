@@ -202,8 +202,7 @@ func (idx *Index) makeIndexPath(subPath string) string {
 	// clean path
 	subPath = strings.TrimSuffix(subPath, "/")
 	// remove index prefix
-	adjustedPath := strings.TrimPrefix(subPath, idx.Source.Path)
-	adjustedPath = strings.ReplaceAll(adjustedPath, "\\", "/")
+	adjustedPath := strings.ReplaceAll(subPath, "\\", "/")
 	// remove trailing slash
 	adjustedPath = strings.TrimSuffix(adjustedPath, "/")
 	if !strings.HasPrefix(adjustedPath, "/") {
