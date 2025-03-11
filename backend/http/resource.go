@@ -276,7 +276,6 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	// TODO source := r.URL.Query().Get("source")
 	action := r.URL.Query().Get("action")
-
 	if !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
@@ -383,17 +382,14 @@ func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFile
 func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, srcIndex, destIndex string) error {
 	switch action {
 	case "copy":
-		if !d.user.Perm.Modify {
-			return errors.ErrPermissionDenied
-		}
-		err := files.CopyResource(srcIndex, destIndex, src, dst, isSrcDir)
+		err := files.CopyResource(srcIndex, destIndex, src, dst)
 		return err
 	case "rename", "move":
-		if !d.user.Perm.Modify {
-			return errors.ErrPermissionDenied
-		}
+		idx := files.GetIndex(srcIndex)
+		srcPath := idx.MakeIndexPath(src)
+		fmt.Println("srcPath", srcPath)
 		fileInfo, err := files.FileInfoFaster(files.FileOptions{
-			Path:       src,
+			Path:       srcPath,
 			Source:     srcIndex,
 			IsDir:      isSrcDir,
 			Modify:     d.user.Perm.Modify,
@@ -407,7 +403,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 
 		// delete thumbnails
 		delThumbs(ctx, fileCache, fileInfo)
-		return files.MoveResource(srcIndex, destIndex, src, dst, isSrcDir)
+		return files.MoveResource(srcIndex, destIndex, src, dst)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
 	}

@@ -774,6 +774,8 @@ export default {
     },
     async drop(event) {
       event.preventDefault();
+      console.log("items", items);
+
       this.dragCounter = 0;
       this.resetOpacity();
 
@@ -812,7 +814,6 @@ export default {
         path = el.__vue__.url;
         items = state.req.items;
       }
-
       const conflict = upload.checkConflict(uploadFiles, items);
       try {
         if (conflict) {

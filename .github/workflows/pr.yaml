@@ -9,7 +9,7 @@ on:
 
 jobs:
   test_playwright:
-    name: Test Playwright - regular
+    name: Test Playwright - general
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
