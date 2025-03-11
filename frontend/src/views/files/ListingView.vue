@@ -774,8 +774,6 @@ export default {
     },
     async drop(event) {
       event.preventDefault();
-      console.log("items", items);
-
       this.dragCounter = 0;
       this.resetOpacity();
 

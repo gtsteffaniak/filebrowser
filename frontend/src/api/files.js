@@ -7,7 +7,6 @@ import { externalUrl } from '@/utils/constants'
 // Notify if errors occur
 export async function fetchFiles(url, content = false) {
   try {
-    console.log('fetchFiles', url, content)
     const result = extractSourceFromPath(url)
     const apiPath = getApiPath('api/resources', {
       path: encodeURIComponent(result.path),
