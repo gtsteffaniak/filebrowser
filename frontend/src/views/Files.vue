@@ -1,6 +1,6 @@
 <template>
   <div>
-    <breadcrumbs v-if="showBreadCrumbs" base="/files" />
+    <breadcrumbs v-if="showBreadCrumbs" />
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
     <div v-else>
