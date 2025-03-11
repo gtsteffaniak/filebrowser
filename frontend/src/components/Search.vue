@@ -320,7 +320,7 @@ export default {
   },
   methods: {
     updateSource(event) {
-      this.selectedSource = event.target.value.source; // Correct way to get the new value
+      this.selectedSource = event.target.value;
       this.submit();
     },
     getRelative(path) {
