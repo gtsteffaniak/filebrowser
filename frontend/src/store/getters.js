@@ -2,7 +2,7 @@ import { removePrefix } from "@/utils/url.js";
 import { getFileExtension } from  "@/utils/files.js";
 import { state } from "./state.js";
 import { mutations } from "./mutations.js";
-import { noAuth,baseURL } from "@/utils/constants.js";
+import { noAuth } from "@/utils/constants.js";
 
 export const getters = {
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
