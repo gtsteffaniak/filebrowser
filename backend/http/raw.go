@@ -192,9 +192,8 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
 	fileName := filepath.Base(firstFilePath)
-
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
-	if err != nil {
+	if err != nil && d.user.Username != "publicUser" {
 		return http.StatusForbidden, err
 	}
 	idx := files.GetIndex(firstFileSource)

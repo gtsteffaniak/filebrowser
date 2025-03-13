@@ -233,7 +233,7 @@ export default {
       window.location.href = this.getRelative(path);
     },
     getUrl() {
-      return baseURL.slice(0, -1) + this.url;
+      return url.removePrefix(this.url);
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
@@ -433,7 +433,7 @@ export default {
     },
     open() {
       location.hash = state.req.items[this.index].name;
-      const newurl = url.removePrefix(this.url);
+      let newurl = url.removePrefix(this.url, baseURL);
       router.push({ path: newurl });
     },
   },

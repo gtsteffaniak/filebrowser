@@ -65,7 +65,6 @@ export default {
       if (parts[parts.length - 1] === "") {
         parts.pop();
       }
-
       let breadcrumbs = [];
       let buildRef = this.base;
       parts.forEach((element) => {
@@ -100,12 +99,13 @@ export default {
       if (getters.currentView() == "share") {
         this.base = getters.sharePathBase();
         this.path = removePrefix(getters.routePath(), this.base + "/");
+        this.path = this.path.split("/").slice(3).join(); // remove first two components /share/sharename
       } else {
         this.path = decodeURIComponent(result.path);
-      }
-      this.base = baseURL;
-      if (state.serverHasMultipleSources) {
-        this.base = `${this.base}${result.source}/`;
+        this.base = baseURL;
+        if (state.serverHasMultipleSources) {
+          this.base = `${this.base}${result.source}/`;
+        }
       }
     },
     updateGallerySize(event) {

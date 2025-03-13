@@ -806,7 +806,6 @@ export default {
       const uploadFiles = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fullPath = folderUpload ? file.webkitRelativePath : undefined;
         uploadFiles.push({
           file,
           name: file.name,
