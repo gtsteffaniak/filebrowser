@@ -276,9 +276,7 @@ export default {
       mutations.setMultiple(false);
       mutations.closeHovers();
       try {
-        console.log("fetching share", this.subPath, this.hash, this.password);
         let file = await publicApi.fetchPub(this.subPath, this.hash, this.password);
-        console.log(file);
         file.hash = this.hash;
         this.token = file.token;
         mutations.replaceRequest(file);

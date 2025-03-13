@@ -55,7 +55,6 @@ export async function fetchJSON(url, opts) {
 }
 
 export function adjustedData(data, url) {
-  console.log("adjustedData", url);
   data.url = url;
   if (data.type === "directory") {
     if (!data.url.endsWith("/")) data.url += "/";
@@ -65,7 +64,6 @@ export function adjustedData(data, url) {
 
     data.items = data.items.map((item) => {
       item.url = `${data.url}${encodeURIComponent(item.name)}`;
-      console.log("item", item.url);
       if (data.path == "/") {
         item.path = `/${item.name}`
       } else {
