@@ -298,7 +298,6 @@ export default {
     this.colunmsResize();
     // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
-    window.addEventListener("scroll", this.scrollEvent);
     window.addEventListener("resize", this.windowsResize);
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
@@ -307,7 +306,9 @@ export default {
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu
-      this.$el.addEventListener("touchstart", this.openContextForSafari);
+      this.$el.addEventListener("touchstart", this.openContextForSafari, {
+        passive: true,
+      });
       this.$el.addEventListener("mousedown", this.openContextForSafari);
       this.$el.addEventListener("touchmove", this.handleTouchMove);
 
@@ -316,10 +317,10 @@ export default {
       this.$el.addEventListener("mouseup", this.cancelContext);
     } else {
       // For other browsers, use regular contextmenu
-      window.addEventListener("contextmenu", this.openContext);
+      this.$el.addEventListener("contextmenu", this.openContext);
     }
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (!state.user.perm?.create) return;
+    if (!state.user.perm?.modify) return;
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
@@ -327,7 +328,6 @@ export default {
   beforeUnmount() {
     // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
-    window.removeEventListener("scroll", this.scrollEvent);
     window.removeEventListener("resize", this.windowsResize);
     // If Safari, remove touchstart listener
     if (state.isSafari) {
@@ -337,7 +337,7 @@ export default {
       this.$el.removeEventListener("mouseup", this.cancelContext);
       this.$el.removeEventListener("touchmove", this.handleTouchMove);
     } else {
-      window.removeEventListener("contextmenu", this.openContext);
+      this.$el.removeEventListener("contextmenu", this.openContext);
     }
   },
   methods: {
@@ -517,7 +517,7 @@ export default {
       }
     },
     keyEvent(event) {
-      if (state.isSearchActive || getters.currentView() !== "files") {
+      if (state.isSearchActive || getters.currentView() !== "listingView") {
         return;
       }
       const { key, ctrlKey, metaKey, which } = event;
@@ -553,6 +553,7 @@ export default {
         }
         return;
       }
+
       // Handle key events using a switch statement
       switch (key) {
         case "Enter":
@@ -793,24 +794,25 @@ export default {
       let files = await upload.scanFiles(dt);
       const folderUpload = Boolean(files[0].webkitRelativePath);
 
+      let items = state.req.items;
+      let path = getters.routePath();
+
+      if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
+        let response = await filesApi.fetchFiles(decodeURIComponent(el.__vue__.url));
+        path = el.__vue__.url;
+        items = response.items;
+      }
+
       const uploadFiles = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const fullPath = folderUpload ? file.webkitRelativePath : undefined;
         uploadFiles.push({
-          file, // File object directly
+          file,
           name: file.name,
+          source: state.req.source,
           size: file.size,
-          isDir: false,
-          fullPath,
         });
-      }
-      let items = state.req.items;
-      let path = getters.routePath();
-
-      if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
-        path = el.__vue__.url;
-        items = state.req.items;
       }
       const conflict = upload.checkConflict(uploadFiles, items);
       try {

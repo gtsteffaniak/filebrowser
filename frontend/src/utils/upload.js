@@ -103,32 +103,28 @@ export function scanFiles(dt) {
 }
 
 export async function handleFiles(files, base, overwrite = false) {
+  console.log("Uploading files", files);
   let blockUpdates = false;
   let c = 0
   let count = files.length
   for (const file of files) {
     c += 1
     const id = state.upload.id;
-    let path = base;
-
-    if (file.fullPath !== undefined) {
-      path += url.encodePath(file.fullPath);
-    } else {
-      path += url.encodeRFC5987ValueChars(file.name);
-    }
+    let path = url.removeTrailingSlash(base) + "/" +file.name;
 
     if (file.type == "directory") {
       path += "/";
     }
 
     const item = {
-      id,
-      path,
+      id: id,
+      path: path,
       file: file.file, // Ensure `file.file` is the Blob or File
       overwrite,
     };
     let last = 0;
     notify.showPopup("success", `(${c} of ${count}) Uploading ${file.name}`, false);
+    console.log(`Uploading ${file.name}`, item);
     await filesApi.post(
       item.path,
       item.file,

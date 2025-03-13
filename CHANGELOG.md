@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.6.2-beta
+
+ **BugFixes**:
+ - Context menu should only be available inside the folder/files container https://github.com/gtsteffaniak/filebrowser/issues/430
+ - drag and drop files from desktop to browser is fixed.
+ - replace prompt cancel button didn't work.
+ - key events on listing page not working (like delete key)
+
+
 ## v0.6.1-beta
 
  **New Feature**:
@@ -47,6 +56,8 @@ This is a significant step towards a stable release. There shouldn't be any majo
   - many user creation page bugfixes.
   - fix share delete issue https://github.com/gtsteffaniak/filebrowser/issues/408
 
+<img width="294" alt="image" src="https://github.com/user-attachments/assets/669bca75-98d4-47c1-838b-1ffee2967d7d" />
+
 ## v0.5.4-beta
 
  **BugFixes**:
@@ -54,8 +65,6 @@ This is a significant step towards a stable release. There shouldn't be any majo
   - drag and drop on empty folders https://github.com/gtsteffaniak/filebrowser/issues/361
   - preview navigation issue https://github.com/gtsteffaniak/filebrowser/issues/372
   - auth proxy password length error https://github.com/gtsteffaniak/filebrowser/issues/375
-
-<img width="294" alt="image" src="https://github.com/user-attachments/assets/669bca75-98d4-47c1-838b-1ffee2967d7d" />
 
 ## v0.5.3-beta
 

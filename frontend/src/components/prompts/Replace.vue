@@ -11,7 +11,7 @@
     <div class="card-action">
       <button
         class="button button--flat button--grey"
-        @click="currentPrompt.action"
+        @click="closeHovers"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
       >
@@ -29,13 +29,18 @@
   </div>
 </template>
 <script>
-import { getters } from "@/store"; // Import your custom store
+import { getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "replace",
   computed: {
     currentPrompt() {
       return getters.currentPrompt(); // Access the getter directly from the store
+    },
+  },
+  methods: {
+    closeHovers() {
+      mutations.closeHovers();
     },
   },
 };
