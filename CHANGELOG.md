@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
  - drag and drop files from desktop to browser is fixed.
  - replace prompt cancel button didn't work.
  - key events on listing page not working (like delete key)
+ - fixed share viewing issue https://github.com/gtsteffaniak/filebrowser/issues/429
 
 
 ## v0.6.1-beta
