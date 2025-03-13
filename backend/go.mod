@@ -1,7 +1,6 @@
 module github.com/gtsteffaniak/filebrowser/backend
 
 go 1.23
-
 toolchain go1.23.1
 
 require (
@@ -16,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.4
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/image v0.24.0
 	golang.org/x/sys v0.30.0
 )
@@ -41,7 +40,7 @@ require (
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.etcd.io/bbolt v1.4.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
