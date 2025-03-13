@@ -5,6 +5,7 @@ describe('testurl', () => {
 
   it('url prefix', () => {
     let tests = [
+      {input: "/files/share/something/", trimArg: "",expected:"/share/something/"},
       {input: "test/iscool/", trimArg: "test",expected:"/iscool/"},
       {input: "test",trimArg: "",expected:"/test"},
       {input: "/test", trimArg: "test",expected:"/"},
@@ -22,7 +23,7 @@ describe('testurl', () => {
 describe('getapipath', () => {
   it('url prefix', () => {
     let tests = [
-      {input: "/share/to/thing", expected: "/files/share/to/thing/",},
+      {input: "/share/to/thing", expected: "/files/share/to/thing",},
     ]
     for (let test of tests) {
       expect(getApiPath(test.input)).toEqual(test.expected);

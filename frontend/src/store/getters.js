@@ -21,7 +21,7 @@ export const getters = {
     if (noAuth) {
       return true
     }
-    if (state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser") {
+    if (state.user !== null && state.user?.username != "" && state.user?.username != "publicUser") {
       return true;
     }
     const userData = localStorage.getItem("userData");

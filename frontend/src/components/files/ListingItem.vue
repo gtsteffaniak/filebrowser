@@ -433,11 +433,7 @@ export default {
     },
     open() {
       location.hash = state.req.items[this.index].name;
-      let newurl = url.removePrefix(this.url);
-      if (getters.currentView() == "share") {
-        newurl = this.url;
-      }
-      console.log("newurl", newurl);
+      let newurl = url.removePrefix(this.url, baseURL);
       router.push({ path: newurl });
     },
   },
