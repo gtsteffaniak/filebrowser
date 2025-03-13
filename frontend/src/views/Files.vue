@@ -109,7 +109,7 @@ export default {
         router.push(`/files/${state.sources.current}`);
         return;
       }
-
+      console.log("Fetching data", getters.routePath(), state.user, state.sources);
       this.lastHash = "";
       // Set loading to true and reset the error.
       mutations.setLoading("files", true);

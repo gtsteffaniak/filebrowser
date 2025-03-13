@@ -270,7 +270,7 @@ export default {
     },
     buildDownloadLink(share) {
       share.source = this.source;
-      share.path = this.subpath;
+      share.path = "/";
       return publicApi.getDownloadURL(share);
     },
     sort() {

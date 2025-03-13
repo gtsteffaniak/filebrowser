@@ -17,6 +17,7 @@ export const state = reactive({
     info: {},
   },
   user: {
+    username: "",
     quickDownloadEnabled: false,
     gallarySize: 0,
     singleClick: false,
