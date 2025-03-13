@@ -1,5 +1,5 @@
 import { adjustedData } from "./utils";
-import { getApiPath, removePrefix,extractSourceFromPath } from "@/utils/url.js";
+import { getApiPath, removePrefix, extractSourceFromPath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 // Fetch public share data
@@ -18,7 +18,7 @@ export async function fetchPub(path, hash, password = "") {
     throw error;
   }
   let data = await response.json()
-  const adjusted = adjustedData(data, getApiPath(`share/${hash}${path}`));
+  const adjusted = adjustedData(data, removePrefix(getApiPath(`share/${hash}${path}`)));
   return adjusted
 }
 

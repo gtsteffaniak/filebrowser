@@ -251,6 +251,34 @@ export default {
     if (state.serverHasMultipleSources) {
       this.selectedSource = state.sources.current;
     }
+    // Adjust contextmenu listener based on browser
+    if (state.isSafari) {
+      // For Safari, add touchstart or mousedown to open the context menu
+      this.$el.addEventListener("touchstart", this.openContextForSafari, {
+        passive: true,
+      });
+      this.$el.addEventListener("mousedown", this.openContextForSafari);
+      this.$el.addEventListener("touchmove", this.handleTouchMove);
+
+      // Also clear the timeout if the user clicks or taps quickly
+      this.$el.addEventListener("touchend", this.cancelContext);
+      this.$el.addEventListener("mouseup", this.cancelContext);
+    } else {
+      // For other browsers, use regular contextmenu
+      this.$el.addEventListener("contextmenu", this.openContext);
+    }
+  },
+  beforeUnmount() {
+    // If Safari, remove touchstart listener
+    if (state.isSafari) {
+      this.$el.removeEventListener("touchstart", this.openContextForSafari);
+      this.$el.removeEventListener("mousedown", this.openContextForSafari);
+      this.$el.removeEventListener("touchend", this.cancelContext);
+      this.$el.removeEventListener("mouseup", this.cancelContext);
+      this.$el.removeEventListener("touchmove", this.handleTouchMove);
+    } else {
+      this.$el.removeEventListener("contextmenu", this.openContext);
+    }
   },
   computed: {
     showOptions() {
@@ -319,6 +347,57 @@ export default {
     },
   },
   methods: {
+    openContext(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      mutations.showHover({
+        name: "ContextMenu",
+        props: {
+          posX: event.clientX,
+          posY: event.clientY,
+        },
+      });
+    },
+    cancelContext() {
+      if (this.contextTimeout) {
+        clearTimeout(this.contextTimeout);
+        this.contextTimeout = null;
+      }
+      this.isLongPress = false;
+    },
+    openContextForSafari(event) {
+      this.cancelContext(); // Clear any previous timeouts
+      this.isLongPress = false; // Reset state
+      this.isSwipe = false; // Reset swipe detection
+
+      const touch = event.touches[0];
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+
+      // Start the long press detection
+      this.contextTimeout = setTimeout(() => {
+        if (!this.isSwipe) {
+          this.isLongPress = true;
+          event.preventDefault(); // Suppress Safari's callout menu
+          this.openContext(event); // Open the custom context menu
+        }
+      }, 500); // Long press delay (adjust as needed)
+    },
+    handleTouchMove(event) {
+      const touch = event.touches[0];
+      const deltaX = Math.abs(touch.clientX - this.touchStartX);
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      // Set a threshold for movement to detect a swipe
+      const movementThreshold = 10; // Adjust as needed
+      if (deltaX > movementThreshold || deltaY > movementThreshold) {
+        this.isSwipe = true;
+        this.cancelContext(); // Cancel long press if swipe is detected
+      }
+    },
+    handleTouchEnd() {
+      this.cancelContext(); // Clear timeout
+      this.isSwipe = false; // Reset swipe state
+    },
     updateSource(event) {
       this.selectedSource = event.target.value;
       this.submit();

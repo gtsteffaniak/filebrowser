@@ -2,7 +2,7 @@ import { removePrefix } from "@/utils/url.js";
 import { getFileExtension } from  "@/utils/files.js";
 import { state } from "./state.js";
 import { mutations } from "./mutations.js";
-import { noAuth,baseURL } from "@/utils/constants.js";
+import { noAuth } from "@/utils/constants.js";
 
 export const getters = {
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
@@ -21,7 +21,7 @@ export const getters = {
     if (noAuth) {
       return true
     }
-    if (state.user !== null && state.user?.username != undefined && state.user?.username != "publicUser") {
+    if (state.user !== null && state.user?.username != "" && state.user?.username != "publicUser") {
       return true;
     }
     const userData = localStorage.getItem("userData");
@@ -142,7 +142,7 @@ export const getters = {
     // Step 1: Split the path by '/'
     let parts = urlPath.split("/");
     // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
-    return baseURL + "share/"+ parts[1];
+    return "/share/"+ parts[1];
   },
   currentView: () => {
     const pathname = getters.routePath()

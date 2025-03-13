@@ -94,11 +94,6 @@ export default {
       if (conflict) {
         mutations.showHover({
           name: "replace",
-          action: async (event) => {
-            event.preventDefault();
-            mutations.closeHovers();
-            await upload.handleFiles(uploadFiles, path, false);
-          },
           confirm: async (event) => {
             event.preventDefault();
             mutations.closeHovers();

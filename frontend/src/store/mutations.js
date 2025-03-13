@@ -137,8 +137,8 @@ export const mutations = {
         emitStateChanged();
         return;
       }
-      mutations.setSources(value);
       if (value.username != "publicUser") {
+        mutations.setSources(value);
         localStorage.setItem("userData", JSON.stringify(value));
       }
       // Ensure locale exists and is valid
