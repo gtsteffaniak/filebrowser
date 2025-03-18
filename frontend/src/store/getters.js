@@ -142,7 +142,7 @@ export const getters = {
     // Step 1: Split the path by '/'
     let parts = urlPath.split("/");
     // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
-    return "/share/"+ parts[1];
+    return "/share/"+ parts[1] + "/";
   },
   currentView: () => {
     const pathname = getters.routePath()

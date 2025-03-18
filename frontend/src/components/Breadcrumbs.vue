@@ -97,8 +97,7 @@ export default {
       const result = extractSourceFromPath(getters.routePath());
       if (getters.currentView() == "share") {
         this.base = getters.sharePathBase();
-        this.path = removePrefix(getters.routePath(), this.base + "/");
-        this.path = this.path.split("/").slice(3).join(); // remove first two components /share/sharename
+        this.path = getters.routePath(this.base);
       } else {
         this.path = decodeURIComponent(result.path);
         this.base = "/";
