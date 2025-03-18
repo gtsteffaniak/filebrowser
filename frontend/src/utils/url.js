@@ -115,14 +115,17 @@ export function base64Encode(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
 
+// expect url to include /files/ prefix
 export function extractSourceFromPath(url) {
   let source;
-  let path = removePrefix(url, 'files');
+  let path = url;
   if (state.serverHasMultipleSources) {
-    source = path.split('/')[1];
-    path = removePrefix(path, source);
+    source = path.split('/')[2];
+    path = removePrefix(path, `/files/${source}`);
   } else {
     source = state.sources.current;
+    path = removePrefix(path, '/files');
   }
+
   return { source, path };
 }

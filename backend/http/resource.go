@@ -387,7 +387,6 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 	case "rename", "move":
 		idx := files.GetIndex(srcIndex)
 		srcPath := idx.MakeIndexPath(src)
-		fmt.Println("srcPath", srcPath)
 		fileInfo, err := files.FileInfoFaster(files.FileOptions{
 			Path:       srcPath,
 			Source:     srcIndex,

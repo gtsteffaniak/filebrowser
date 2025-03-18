@@ -96,7 +96,6 @@ import { fromNow } from "@/utils/moment";
 import { filesApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
-import { baseURL } from "@/utils/constants";
 import { router } from "@/router";
 import { url } from "@/utils";
 import Icon from "@/components/Icon.vue";
@@ -233,7 +232,7 @@ export default {
       window.location.href = this.getRelative(path);
     },
     getUrl() {
-      return baseURL.slice(0, -1) + this.url;
+      return url.removePrefix(this.url);
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
@@ -433,8 +432,7 @@ export default {
     },
     open() {
       location.hash = state.req.items[this.index].name;
-      const newurl = url.removePrefix(this.url);
-      router.push({ path: newurl });
+      router.push({ path: this.url });
     },
   },
 };

@@ -90,9 +90,7 @@ import {
   noAuth,
   loginPage,
 } from "@/utils/constants";
-import { filesApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -135,27 +133,7 @@ export default {
       }
     },
   },
-  mounted() {
-    if (this.loginCheck) {
-      this.updateUsage();
-    }
-  },
   methods: {
-    async updateUsage() {
-      if (!disableUsedPercentage) {
-        if (state.sources.info === undefined) {
-          return;
-        }
-        for (const source of Object.keys(state.sources.info)) {
-          let usage = await filesApi.usage(source);
-          let sourceInfo = state.sources.info[source];
-          sourceInfo.used = getHumanReadableFilesize(usage.used);
-          sourceInfo.total = getHumanReadableFilesize(usage.total);
-          sourceInfo.usedPercentage = Math.round((usage.used / usage.total) * 100);
-          mutations.updateSource(source, sourceInfo);
-        }
-      }
-    },
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
     },

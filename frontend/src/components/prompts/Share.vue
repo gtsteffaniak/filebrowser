@@ -3,7 +3,7 @@
     <div class="card-title">
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
-    <div aria-label="share-paths" class="searchContext">Path: {{ subpath }}</div>
+    <div aria-label="share-path" class="searchContext">Path: {{ subpath }}</div>
     <p>
       Note: anyone who has access to the link (and optional password) can access the
       shared files. There is no requirement to be logged in.
@@ -115,7 +115,7 @@
         <button
           class="button button--flat button--blue"
           @click="submit"
-          :aria-label="$t('buttons.share')"
+          aria-label="Share-Confirm"
           :title="$t('buttons.share')"
         >
           {{ $t("buttons.share") }}
@@ -131,6 +131,7 @@ import { shareApi, publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
 import { removePrefix } from "@/utils/url";
 import Clipboard from "clipboard";
+import { baseURL } from "@/utils/constants";
 
 export default {
   name: "share",
@@ -178,7 +179,7 @@ export default {
   },
   async beforeMount() {
     try {
-      let path = getters.routePath("files");
+      let path = getters.routePath(baseURL);
       if (state.isSearchActive) {
         path = state.selected[0].path;
         this.source = state.selected[0].source;
@@ -270,7 +271,7 @@ export default {
     },
     buildDownloadLink(share) {
       share.source = this.source;
-      share.path = this.subpath;
+      share.path = "/";
       return publicApi.getDownloadURL(share);
     },
     sort() {

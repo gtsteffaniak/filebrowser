@@ -187,10 +187,11 @@ main .spinner .bounce2 {
 }
 
 #previewer .preview .info {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   font-size: 1.5em;
   color: #fff;
 }
@@ -245,10 +246,6 @@ main .spinner .bounce2 {
 
 #previewer>button>i {
   padding: 0.4em;
-}
-
-#previewer>button:first-of-type {
-  left: 0.5em;
 }
 
 #previewer>button:last-of-type {

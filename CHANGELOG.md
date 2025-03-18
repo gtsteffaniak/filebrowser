@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file. For commit 
  **New Feature**:
  - download size information is added, including when downloding multiple files in zip/tar.gz. The browser will see the XMB of X GB and will show browser native progress.
 
+ **Notes**:
+ - Added playwright tests for bugfixes for permantent fix for stability.
+    (except onlyoffice since it requires integrations)
+
  **BugFixes**:
  - fixed onlyoffice bug https://github.com/gtsteffaniak/filebrowser/issues/418
  - fixed breadcrumbs bug https://github.com/gtsteffaniak/filebrowser/issues/419

@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../test-setup";
 
-test("sidebar links", async ({ page }) => {
+test("sidebar links", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
 
   // Verify the page title
@@ -17,9 +17,11 @@ test("sidebar links", async ({ page }) => {
 
   // Assert that the <a> does not contain the text 'Help'
   await expect(credits.locator("span").locator("a")).not.toHaveText('Help');
+  // Check for console errors
+  checkForErrors();
 });
 
-test("adjusting theme colors", async ({ page }) => {
+test("adjusting theme colors", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   const originalPrimaryColor = await page.evaluate(() => {
     return getComputedStyle(document.documentElement).getPropertyValue('--primaryColor').trim();
@@ -38,4 +40,6 @@ test("adjusting theme colors", async ({ page }) => {
     return getComputedStyle(document.documentElement).getPropertyValue('--primaryColor').trim();
   });
   await expect(newPrimaryColor).toBe('#9b59b6');
+  // Check for console errors
+  checkForErrors();
 });
