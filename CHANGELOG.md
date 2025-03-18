@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fixed breadcrumbs bug https://github.com/gtsteffaniak/filebrowser/issues/419
  - fixed search context bug https://github.com/gtsteffaniak/filebrowser/issues/417
  - fixed sessionID for search
+ - disableUsedPercentage hides entire source https://github.com/gtsteffaniak/filebrowser/issues/438
 
 ## v0.6.0-beta
 
