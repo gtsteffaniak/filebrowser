@@ -31,7 +31,6 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { baseURL } from "@/utils/constants.js";
 import { extractSourceFromPath, removePrefix, removeLeadingSlash } from "@/utils/url.js";
 import Action from "@/components/Action.vue";
 
@@ -102,7 +101,7 @@ export default {
         this.path = this.path.split("/").slice(3).join(); // remove first two components /share/sharename
       } else {
         this.path = decodeURIComponent(result.path);
-        this.base = baseURL;
+        this.base = "/";
         if (state.serverHasMultipleSources) {
           this.base = `${this.base}${result.source}/`;
         }

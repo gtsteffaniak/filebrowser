@@ -792,7 +792,6 @@ export default {
       }
 
       let files = await upload.scanFiles(dt);
-      const folderUpload = Boolean(files[0].webkitRelativePath);
 
       let items = state.req.items;
       let path = getters.routePath();

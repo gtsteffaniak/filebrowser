@@ -16,6 +16,8 @@ async function globalSetup() {
   expect(cookies.find((c) => c.name === "auth")?.value).toBeDefined();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
+  await page.waitForURL("**/files/playwright-files", { timeout: 100 });
+
   // Create a share
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="myfolder"]').click({ button: "right" });
@@ -29,10 +31,10 @@ async function globalSetup() {
   if (!shareHash) {
     throw new Error("Failed to retrieve shareHash");
   }
-    // Store shareHash in localStorage
-    await page.evaluate((hash) => {
-        localStorage.setItem('shareHash', hash);
-    }, shareHash);
+  // Store shareHash in localStorage
+  await page.evaluate((hash) => {
+    localStorage.setItem('shareHash', hash);
+  }, shareHash);
 
   await context.storageState({ path: "./loginAuth.json" });
   await browser.close();

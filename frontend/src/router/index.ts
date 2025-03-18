@@ -139,7 +139,7 @@ router.beforeResolve(async (to, from, next) => {
   // Handle auth requirements
   if (to.matched.some((record) => record.meta.requiresAuth)) {
 
-    if (state != null && state.user != null && !('username' in state.user)) {
+    if (state != null && state.user != null && !state.user.username){
       await validateLogin();
     }
 

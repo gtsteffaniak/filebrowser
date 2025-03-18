@@ -1,7 +1,6 @@
 import { removePrefix } from "@/utils/url.js";
 import { getFileExtension } from  "@/utils/files.js";
 import { state } from "./state.js";
-import { mutations } from "./mutations.js";
 import { noAuth } from "@/utils/constants.js";
 import { getTypeInfo } from "@/utils/mimetype";
 
@@ -25,18 +24,6 @@ export const getters = {
     }
     if (state.user !== null && state.user?.username != "" && state.user?.username != "publicUser") {
       return true;
-    }
-    const userData = localStorage.getItem("userData");
-    if (userData == undefined) {
-      return false;
-    }
-    try {
-      const userInfo = JSON.parse(userData);
-      if (userInfo.username != "publicUser") {
-        return true;
-      }
-    } catch (error) {
-      return false;
     }
     return false
   },

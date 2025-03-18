@@ -29,7 +29,7 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import router from "@/router";
-import { validateLogin } from "@/utils/auth";
+import { baseURL } from "@/utils/constants";
 
 export default {
   name: "files",
@@ -102,19 +102,13 @@ export default {
     },
     async fetchData() {
       if (!getters.isLoggedIn()) {
-        console.log("not logged in");
         return;
       }
+      const routePath = getters.routePath(`${baseURL}files/`);
       // lets redirect if multiple sources and user went to /files/
-      if (
-        state.serverHasMultipleSources &&
-        (getters.routePath() === "/files/" || getters.routePath() === "/files")
-      ) {
-        router.push(`/files/${state.sources.current}`);
+      if (state.serverHasMultipleSources && routePath === "/") {
+        router.push(`/files${routePath}${state.sources.current}`);
         return;
-      }
-      if (!state.user?.by) {
-        await validateLogin();
       }
       this.lastHash = "";
       // Set loading to true and reset the error.

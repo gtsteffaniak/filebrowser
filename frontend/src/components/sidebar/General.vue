@@ -90,7 +90,6 @@ import {
   noAuth,
   loginPage,
 } from "@/utils/constants";
-import { filesApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 

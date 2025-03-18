@@ -96,7 +96,6 @@ import { fromNow } from "@/utils/moment";
 import { filesApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
-import { baseURL } from "@/utils/constants";
 import { router } from "@/router";
 import { url } from "@/utils";
 import Icon from "@/components/Icon.vue";
