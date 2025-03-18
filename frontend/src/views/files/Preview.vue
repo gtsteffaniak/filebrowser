@@ -1,10 +1,9 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview">
-      <ExtendedImage v-if="getSimpleType(req.type) == 'image'" :src="raw">
-      </ExtendedImage>
+      <ExtendedImage v-if="previewType == 'image'" :src="raw"> </ExtendedImage>
       <audio
-        v-else-if="getSimpleType(req.type) == 'audio'"
+        v-else-if="previewType == 'audio'"
         ref="player"
         :src="raw"
         controls
@@ -12,7 +11,7 @@
         @play="autoPlay = true"
       ></audio>
       <video
-        v-else-if="getSimpleType(req.type) == 'video'"
+        v-else-if="previewType == 'video'"
         ref="player"
         :src="raw"
         controls
@@ -29,11 +28,7 @@
         />
       </video>
 
-      <object
-        v-else-if="getSimpleType(req.type) == 'pdf'"
-        class="pdf"
-        :data="raw"
-      ></object>
+      <object v-else-if="previewType == 'pdf'" class="pdf" :data="raw"></object>
       <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
@@ -90,7 +85,6 @@ import url from "@/utils/url.js";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
-import { getTypeInfo } from "@/utils/mimetype";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 
@@ -117,6 +111,12 @@ export default {
     };
   },
   computed: {
+    sidebarShowing() {
+      return getters.isSidebarVisible();
+    },
+    previewType() {
+      return getters.previewType();
+    },
     raw() {
       return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
@@ -183,9 +183,6 @@ export default {
         });
       }
       return subs;
-    },
-    getSimpleType(mimetype) {
-      return getTypeInfo(mimetype).simpleType;
     },
     deleteFile() {
       this.currentPrompt = {

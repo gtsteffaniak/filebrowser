@@ -1,19 +1,20 @@
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../test-setup";
 
-test("navigate with hash in file name", async ({ page, context }) => {
-    await page.goto("/files/");
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-    await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
-    await page.locator('a[aria-label="folder#hash"]').dblclick();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - folder#hash");
-    await page.locator('a[aria-label="file#.sh"]').waitFor({ state: 'visible' });
-    await page.locator('a[aria-label="file#.sh"]').dblclick();
-    await expect(page).toHaveTitle("Graham's Filebrowser - Files - file#.sh");
-    await expect(page.locator('.topTitle')).toHaveText('file#.sh');
+test("navigate with hash in file name", async({ page, checkForErrors, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await page.locator('a[aria-label="folder#hash"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="folder#hash"]').dblclick();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - folder#hash");
+  await page.locator('a[aria-label="file#.sh"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="file#.sh"]').dblclick();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - file#.sh");
+  await expect(page.locator('.topTitle')).toHaveText('file#.sh');
+  checkForErrors()
 })
 
-test("breadcrumbs navigation checks", async ({ page }) => {
+test("breadcrumbs navigation checks", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page.locator('a[aria-label="Home"]')).toHaveAttribute("href", "/playwright-files/");
 
@@ -42,11 +43,10 @@ test("breadcrumbs navigation checks", async ({ page }) => {
   expect(spanChildrenCount).toBe(1);
   breadCrumbLink = page.locator('span[aria-label="breadcrumb-link-files"] a')
   await expect(breadCrumbLink).toHaveText("files");
-
+  checkForErrors();
 });
 
-
-test("navigate from search item", async ({ page }) => {
+test("navigate from search item", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search').click()
@@ -55,4 +55,5 @@ test("navigate from search item", async ({ page }) => {
   await page.locator('li[aria-label="for testing.md"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - for testing.md");
   await expect(page.locator('.topTitle')).toHaveText('for testing.md');
+  checkForErrors()
 });

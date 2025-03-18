@@ -3,8 +3,10 @@ import { getFileExtension } from  "@/utils/files.js";
 import { state } from "./state.js";
 import { mutations } from "./mutations.js";
 import { noAuth } from "@/utils/constants.js";
+import { getTypeInfo } from "@/utils/mimetype";
 
 export const getters = {
+  previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
   currentHash: () => state.route.hash.replace("#", ""),
   isMobile: () => state.isMobile,
@@ -31,7 +33,6 @@ export const getters = {
     try {
       const userInfo = JSON.parse(userData);
       if (userInfo.username != "publicUser") {
-        mutations.setCurrentUser(userInfo);
         return true;
       }
     } catch (error) {
@@ -94,34 +95,46 @@ export const getters = {
     return { dirs, files };
   },
   isSidebarVisible: () => {
+    const currentView = getters.currentView();
     let visible = (state.showSidebar || getters.isStickySidebar()) && state.user.username != "publicUser"
-    if (getters.currentView() == "settings") {
+    if (currentView == "settings") {
       visible = !getters.isMobile();
     }
-    if (getters.currentView() == "share") {
+    if (currentView == "share") {
       visible = false
     }
     if (typeof getters.currentPromptName() === "string" && !getters.isStickySidebar()) {
       visible = false;
     }
+    if (currentView == "preview") {
+      const contentType = getters.previewType()
+      if (
+        contentType == "audio" ||
+        contentType == "video" ||
+        contentType == "image" ||
+        contentType == "pdf"
+      ) {
+        visible = false
+      }
+    }
     if (
-        getters.currentView() == "editor" ||
-        getters.currentView() == "preview" ||
-        getters.currentView() == "onlyOfficeEditor"
+      currentView == "editor" ||
+      currentView == "onlyOfficeEditor"
       ) {
       visible = false;
     }
     return visible
   },
   isStickySidebar: () => {
-    let sticky = state.user?.stickySidebar
-    if (getters.currentView() == "settings") {
+    let sticky = state.user?.stickySidebar;
+    const currentView = getters.currentView();
+    if (currentView == "settings") {
       sticky = true
     }
-    if (getters.currentView() == null && !getters.isLoading() && getters.isShare() ) {
+    if (currentView == null && !getters.isLoading() && getters.isShare() ) {
       sticky = true
     }
-    if (getters.isMobile() || getters.currentView() == "preview") {
+    if (getters.isMobile()) {
       sticky = false
     }
     return sticky

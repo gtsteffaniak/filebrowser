@@ -85,6 +85,6 @@ vi.mock('@/store', () => {
 
 vi.mock('@/utils/constants', () => {
   return {
-    baseURL: "/files/",
+    baseURL: "http://example.com",
   };
 });

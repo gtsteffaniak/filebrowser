@@ -3,7 +3,7 @@
     <div class="card-title">
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
-    <div aria-label="share-paths" class="searchContext">Path: {{ subpath }}</div>
+    <div aria-label="share-path" class="searchContext">Path: {{ subpath }}</div>
     <p>
       Note: anyone who has access to the link (and optional password) can access the
       shared files. There is no requirement to be logged in.
@@ -115,7 +115,7 @@
         <button
           class="button button--flat button--blue"
           @click="submit"
-          :aria-label="$t('buttons.share')"
+          aria-label="Share-Confirm"
           :title="$t('buttons.share')"
         >
           {{ $t("buttons.share") }}

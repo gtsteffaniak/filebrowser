@@ -81,6 +81,7 @@ export default {
       return getters.isLoggedIn();
     },
     moveWithSidebar() {
+      console.log(getters.isSidebarVisible(), getters.isStickySidebar());
       return getters.isSidebarVisible() && getters.isStickySidebar();
     },
     progress() {

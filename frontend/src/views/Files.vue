@@ -29,6 +29,7 @@ import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 import { notify } from "@/notify";
 import router from "@/router";
+import { validateLogin } from "@/utils/auth";
 
 export default {
   name: "files",
@@ -70,7 +71,6 @@ export default {
     $route: "fetchData",
     reload(value) {
       if (value) {
-        console.log("Reloading");
         this.fetchData();
       }
     },
@@ -102,6 +102,7 @@ export default {
     },
     async fetchData() {
       if (!getters.isLoggedIn()) {
+        console.log("not logged in");
         return;
       }
       // lets redirect if multiple sources and user went to /files/
@@ -111,6 +112,9 @@ export default {
       ) {
         router.push(`/files/${state.sources.current}`);
         return;
+      }
+      if (!state.user?.by) {
+        await validateLogin();
       }
       this.lastHash = "";
       // Set loading to true and reset the error.
