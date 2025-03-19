@@ -12,7 +12,7 @@ import (
 
 // todo fix this!!
 // MakeUserDir makes the user directory according to settings.
-func (idx *Index) MakeUserDir(fullPath string) error {
+func MakeUserDir(fullPath string) error {
 	logger.Debug(fmt.Sprintf("creating user home dir: [%s]", fullPath))
 	if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
 		return err
@@ -28,11 +28,7 @@ func MakeUserDirs(u *users.User) error {
 	for i, scope := range u.Scopes {
 		source := settings.Config.Server.SourceMap[scope.Name]
 		if source.Config.CreateUserDir {
-			idx := GetIndex(source.Name)
-			if idx == nil {
-				return fmt.Errorf("create user: failed to get index for user home dir creation: %s", source.Name)
-			}
-			if !idx.Config.CreateUserDir {
+			if !source.Config.CreateUserDir {
 				continue
 			}
 			fullPath := ""
@@ -42,7 +38,7 @@ func MakeUserDirs(u *users.User) error {
 			} else {
 				fullPath = filepath.Join(source.Path, scope.Scope, cleanedUserName)
 			}
-			err := idx.MakeUserDir(fullPath)
+			err := MakeUserDir(fullPath)
 			if err != nil {
 				return fmt.Errorf("create user: failed to create user home dir: %s", err)
 			}

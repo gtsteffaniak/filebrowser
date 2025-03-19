@@ -167,7 +167,7 @@ func checkRestrictedFields(existingUser *users.User, fields []string) error {
 		return fmt.Errorf("password is locked")
 	}
 	// Use reflection to get the field names of NonAdminEditable
-	editableFields := reflect.ValueOf(existingUser.NonAdminEditable)
+	editableFields := reflect.ValueOf(existingUser)
 	if editableFields.Kind() == reflect.Struct {
 		for i := 0; i < editableFields.NumField(); i++ {
 			fieldName := editableFields.Type().Field(i).Name
