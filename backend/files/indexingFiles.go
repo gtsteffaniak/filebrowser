@@ -280,6 +280,28 @@ func (idx *Index) RefreshFileInfo(opts FileOptions) error {
 	return nil
 }
 
+func (idx *Index) GetDefaultScope() *FileInfo {
+	if idx.Config.DefaultUserScope == "" {
+		idx.Config.DefaultUserScope = "/"
+	}
+	idx.RefreshFileInfo(FileOptions{Path: idx.Config.DefaultUserScope, IsDir: true})
+	info, exists := idx.GetMetadataInfo(idx.Config.DefaultUserScope, true)
+	if !exists {
+		logger.Warning(fmt.Sprintf("Default user scope does not yet exist for `%v` , creating directory `%v`", idx.Name, idx.Config.DefaultUserScope))
+		// Create the directory and all necessary parents
+		err := os.MkdirAll(strings.TrimSuffix(idx.Path, "/")+idx.Config.DefaultUserScope, 0755)
+		if err != nil {
+			logger.Fatal(fmt.Sprintf("Error creating Default user scope directory: %v", err))
+		}
+		idx.RefreshFileInfo(FileOptions{Path: idx.Config.DefaultUserScope, IsDir: true})
+		info, exists = idx.GetMetadataInfo(idx.Config.DefaultUserScope, true)
+	}
+	if !exists {
+		logger.Fatal(fmt.Sprintf("Default user scope does not exist even after automatically creating the directory. Try creating the directory manually if this persists: %v %v", idx.Name, idx.Config.DefaultUserScope))
+	}
+	return info
+}
+
 func isHidden(file os.FileInfo, srcPath string) bool {
 	// Check if the file starts with a dot (common on Unix systems)
 	if file.Name()[0] == '.' {

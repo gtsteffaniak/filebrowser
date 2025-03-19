@@ -8,6 +8,7 @@ import (
 	storm "github.com/asdine/storm/v3"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
@@ -135,6 +136,8 @@ func (st usersBackend) Save(user *users.User, changePass bool) error {
 		return err
 	}
 	user.Scopes = adjustedScopes
+
+	files.MakeUserDirs(user)
 
 	err = st.db.Save(user)
 	if err == storm.ErrAlreadyExists {
