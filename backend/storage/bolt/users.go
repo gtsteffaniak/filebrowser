@@ -216,7 +216,10 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 		if err == nil {
 			user.Scopes = newScopes
 		}
-		files.MakeUserDirs(user)
+		err = files.MakeUserDirs(user)
+		if err != nil {
+			logger.Error(err.Error())
+		}
 	}
 	return newfields, nil
 }
