@@ -30,22 +30,21 @@ func MakeUserDirs(u *users.User) error {
 		if source.Config.CreateUserDir {
 			idx := GetIndex(source.Name)
 			if idx == nil {
-				stringErr := fmt.Sprintf("create user: failed to get index for user home dir creation: %s", source.Name)
-				logger.Error(stringErr)
-				return fmt.Errorf(stringErr)
+				return fmt.Errorf("create user: failed to get index for user home dir creation: %s", source.Name)
 			}
-			if !idx.Config.CreateUserDir || u.Perm.Admin {
+			if !idx.Config.CreateUserDir {
 				continue
 			}
-			if filepath.Base(scope.Scope) != cleanedUserName {
+			fullPath := ""
+			if filepath.Base(scope.Scope) != cleanedUserName && !u.Perm.Admin {
 				scope.Scope = filepath.Join(scope.Scope, cleanedUserName)
+				fullPath = filepath.Join(source.Path, scope.Scope)
+			} else {
+				fullPath = filepath.Join(source.Path, scope.Scope, cleanedUserName)
 			}
-			fullPath := filepath.Join(source.Path, scope.Scope)
 			err := idx.MakeUserDir(fullPath)
 			if err != nil {
-				stringErr := fmt.Sprintf("create user: failed to create user home dir: %s", err)
-				logger.Error(stringErr)
-				return fmt.Errorf(stringErr)
+				return fmt.Errorf("create user: failed to create user home dir: %s", err)
 			}
 			// update scope to reflect new user home dir
 			u.Scopes[i] = scope

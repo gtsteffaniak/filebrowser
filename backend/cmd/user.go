@@ -19,7 +19,7 @@ func validateUserInfo() {
 	}
 }
 
-func updateUserScopes(user *users.User) error {
+func updateUserScopes(user *users.User) {
 	updateUser := false
 	newScopes := []users.SourceScope{}
 	for _, source := range settings.Config.Server.SourceMap {
@@ -56,11 +56,10 @@ func updateUserScopes(user *users.User) error {
 		updateUser = true
 	}
 	if !updateUser {
-		return nil
+		return
 	}
 	err := store.Users.Save(user, false)
 	if err != nil {
 		logger.Error(fmt.Sprintf("could not update user: %v", err))
 	}
-	return nil
 }
