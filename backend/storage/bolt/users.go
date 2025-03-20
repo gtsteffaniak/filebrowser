@@ -8,6 +8,8 @@ import (
 	storm "github.com/asdine/storm/v3"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 	"github.com/gtsteffaniak/filebrowser/backend/utils"
@@ -93,24 +95,22 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	userFields := reflect.ValueOf(user).Elem() // Get struct value
 
 	for _, field := range fields {
-		correctedField := utils.CapitalizeFirst(field)
-
 		// Get the corresponding field using reflection
-		fieldValue := userFields.FieldByName(correctedField)
+		fieldValue := userFields.FieldByName(field)
 		if !fieldValue.IsValid() {
-			return fmt.Errorf("invalid field: %s", correctedField)
+			return fmt.Errorf("invalid field: %s", field)
 		}
 
 		// Ensure the field is settable
 		if !fieldValue.CanSet() {
-			return fmt.Errorf("cannot set value of field: %s", correctedField)
+			return fmt.Errorf("cannot set value of field: %s", field)
 		}
 
 		// Get the value to be stored
 		val := fieldValue.Interface()
 		// Update the database
-		if err := st.db.UpdateField(user, correctedField, val); err != nil {
-			return fmt.Errorf("failed to update user field: %s, error: %v", correctedField, err)
+		if err := st.db.UpdateField(user, field, val); err != nil {
+			return fmt.Errorf("failed to update user field: %s, error: %v", field, err)
 		}
 	}
 	return nil
@@ -136,6 +136,10 @@ func (st usersBackend) Save(user *users.User, changePass bool) error {
 	}
 	user.Scopes = adjustedScopes
 
+	err = files.MakeUserDirs(user)
+	if err != nil {
+		logger.Error(err.Error())
+	}
 	err = st.db.Save(user)
 	if err == storm.ErrAlreadyExists {
 		return errors.ErrExist
@@ -163,7 +167,7 @@ func checkRestrictedFields(existingUser *users.User, fields []string) error {
 		return fmt.Errorf("password is locked")
 	}
 	// Use reflection to get the field names of NonAdminEditable
-	editableFields := reflect.ValueOf(existingUser.NonAdminEditable)
+	editableFields := reflect.ValueOf(existingUser)
 	if editableFields.Kind() == reflect.Struct {
 		for i := 0; i < editableFields.NumField(); i++ {
 			fieldName := editableFields.Type().Field(i).Name
@@ -193,19 +197,31 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 				fields = append(fields, field.Name)
 			}
 		}
-	} else {
-		if slices.Contains(fields, "password") && user.Password != "" {
-			if settings.Config.Auth.Methods.PasswordAuth.Enabled {
-				pass, err := users.HashPwd(user.Password)
-				if err != nil {
-					return fields, err
-				}
-				user.Password = pass
+	}
+	newfields := []string{}
+	for _, field := range fields {
+		newfields = append(newfields, utils.CapitalizeFirst(field))
+	}
+	if slices.Contains(newfields, "Password") && user.Password != "" {
+		if settings.Config.Auth.Methods.PasswordAuth.Enabled {
+			pass, err := users.HashPwd(user.Password)
+			if err != nil {
+				return newfields, err
 			}
+			user.Password = pass
 		}
 	}
-
-	return fields, nil
+	if slices.Contains(newfields, "Scopes") {
+		newScopes, err := settings.ConvertToBackendScopes(user.Scopes)
+		if err == nil {
+			user.Scopes = newScopes
+		}
+		err = files.MakeUserDirs(user)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}
+	return newfields, nil
 }
 
 func checkPassword(password string) error {

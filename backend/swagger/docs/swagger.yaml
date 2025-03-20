@@ -134,10 +134,6 @@ definitions:
     type: object
   settings.UserDefaults:
     properties:
-      commands:
-        items:
-          type: string
-        type: array
       darkMode:
         type: boolean
       dateFormat:

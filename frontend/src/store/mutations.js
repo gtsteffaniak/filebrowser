@@ -130,16 +130,14 @@ export const mutations = {
   },
   setCurrentUser: (value) => {
     try {
-      localStorage.setItem("userData", undefined);
       // If value is null or undefined, emit state change and exit early
       if (!value) {
         state.user = value;
         emitStateChanged();
         return;
       }
-      mutations.setSources(value);
       if (value.username != "publicUser") {
-        localStorage.setItem("userData", JSON.stringify(value));
+        mutations.setSources(value);
       }
       // Ensure locale exists and is valid
       if (!value.locale) {
@@ -189,7 +187,6 @@ export const mutations = {
     emitStateChanged();
   },
   updateCurrentUser: (value) => {
-    localStorage.setItem("userData", undefined);
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;
 
@@ -220,9 +217,6 @@ export const mutations = {
       usersApi.update(state.user, Object.keys(value));
     }
 
-    if (state.user.username != "publicUser") {
-      localStorage.setItem("userData", JSON.stringify(state.user));
-    }
     // Emit state change event
     emitStateChanged();
   },

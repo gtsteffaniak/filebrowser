@@ -1,6 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../test-setup";
 
-test("info from listing", async ({  page, context }) => {
+
+test("info from listing", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="file.tar.gz"]').waitFor({ state: 'visible' });
@@ -9,9 +10,10 @@ test("info from listing", async ({  page, context }) => {
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Info"]').click();
   await expect(page.locator('.break-word')).toHaveText('Display Name: file.tar.gz');
+  checkForErrors();
 });
 
-test("info from search", async ({ page, context }) => {
+test("info from search", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search').click()
@@ -22,9 +24,22 @@ test("info from search", async ({ page, context }) => {
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Info"]').click();
   await expect(page.locator('.break-word')).toHaveText('Display Name: file.tar.gz');
+  checkForErrors();
 })
 
-test("2x copy from listing to new folder", async ({ page, context }) => {
+test("open from search", async({ page, checkForErrors, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await page.locator('#search').click()
+  await page.locator('#main-input').fill('file.tar.gz');
+  await expect(page.locator('#result-list')).toHaveCount(1);
+  await page.locator('li[aria-label="file.tar.gz"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - file.tar.gz");
+  await expect(page.locator('#previewer')).toContainText('Preview is not available for this file.');
+  checkForErrors();
+})
+
+test("2x copy from listing to new folder", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="copyme.txt"]').waitFor({ state: 'visible' });
@@ -70,9 +85,10 @@ test("2x copy from listing to new folder", async ({ page, context }) => {
   await expect(popup2).toHaveText("Successfully copied file/folder, redirecting...");
   await page.waitForURL('**/newfolder/');
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - newfolder");
+  checkForErrors();
 })
 
-test("delete file", async ({ page, context }) => {
+test("delete file", async({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('a[aria-label="deleteme.txt"]').waitFor({ state: 'visible' });
@@ -86,9 +102,11 @@ test("delete file", async ({ page, context }) => {
   const popup = page.locator('#popup-notification-content');
   await popup.waitFor({ state: 'visible' });
   await expect(popup).toHaveText("Deleted item successfully! reloading...");
+  checkForErrors();
+
 })
 
-test("delete nested file prompt", async ({ page, context }) => {
+test("delete nested file prompt", async({ page, checkForErrors, context }) => {
   await page.goto("/files/playwright-files/folder%23hash/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - folder#hash");
   await page.locator('a[aria-label="file#.sh"]').waitFor({ state: 'visible' });
@@ -98,5 +116,5 @@ test("delete nested file prompt", async ({ page, context }) => {
   await page.locator('button[aria-label="Delete"]').click();
   await expect(page.locator('.card-content')).toHaveText('Are you sure you want to delete this file/folder?/folder#hash/file#.sh');
   await expect(page.locator('div[aria-label="delete-path"]')).toHaveText('/folder#hash/file#.sh');
-
+  checkForErrors();
 })

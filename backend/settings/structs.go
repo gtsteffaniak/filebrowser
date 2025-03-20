@@ -159,7 +159,6 @@ type UserDefaults struct {
 	SingleClick          bool                `json:"singleClick"`
 	Perm                 users.Permissions   `json:"perm"`
 	Permissions          users.Permissions   `json:"permissions"`
-	Commands             []string            `json:"commands,omitempty"`
 	ShowHidden           bool                `json:"showHidden"`
 	DateFormat           bool                `json:"dateFormat"`
 	ThemeColor           string              `json:"themeColor"`

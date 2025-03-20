@@ -1,10 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { removePrefix, extractSourceFromPath } from './url.js';
+import { removePrefix, extractSourceFromPath, getApiPath } from './url.js';
 
 describe('testurl', () => {
 
   it('url prefix', () => {
     let tests = [
+      {input: "/files/files", trimArg: "/files/",expected: "/files",},
+      {input: "/files/share/something/", trimArg: "files", expected:"/share/something/"},
       {input: "test/iscool/", trimArg: "test",expected:"/iscool/"},
       {input: "test",trimArg: "",expected:"/test"},
       {input: "/test", trimArg: "test",expected:"/"},
@@ -17,6 +19,17 @@ describe('testurl', () => {
     }
   });
 
+});
+
+describe('getapipath', () => {
+  it('url prefix', () => {
+    let tests = [
+      {input: "/share/to/thing", expected: "/files/share/to/thing",},
+    ]
+    for (let test of tests) {
+      expect(getApiPath(test.input)).toEqual(test.expected);
+    }
+  });
 });
 
 describe('extractSourceFromPath', () => {

@@ -192,9 +192,8 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
 	fileName := filepath.Base(firstFilePath)
-
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
-	if err != nil {
+	if err != nil && d.user.Username != "publicUser" {
 		return http.StatusForbidden, err
 	}
 	idx := files.GetIndex(firstFileSource)
@@ -231,9 +230,10 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+		sizeInMB := estimatedSize / 1024 / 1024
 		// if larger than 100 megabytes, log it
-		if estimatedSize > 100*1024/1024 {
-			logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, estimatedSize/1024/1024, fileName))
+		if sizeInMB > 100 {
+			logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
 		}
 		// Stream file to response
 		_, err2 = io.Copy(w, fd)
@@ -267,9 +267,11 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	// Set headers for archive
 	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+fileName)
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", estimatedSize))
+
+	sizeInMB := estimatedSize / 1024 / 1024
 	// if larger than 100 megabytes, log it
-	if estimatedSize > 100*1024/1024 {
-		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, estimatedSize/1024/1024, fileName))
+	if sizeInMB > 100 {
+		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
 	}
 	// Create archive and stream it
 	if extension == ".zip" {

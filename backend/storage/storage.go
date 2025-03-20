@@ -8,7 +8,6 @@ import (
 	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
@@ -110,7 +109,7 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	if userInfo.Username == "" || userInfo.Password == "" {
 		return errors.ErrInvalidRequestParams
 	}
-	logger.Debug(fmt.Sprintf("Creating user: %v %v\n", userInfo.Username, userInfo.Scopes))
+	logger.Debug(fmt.Sprintf("Creating user: %v %v", userInfo.Username, userInfo.Scopes))
 	settings.ApplyUserDefaults(newUser)
 	if asAdmin {
 		userInfo.Perm = settings.AdminPerms()
@@ -119,8 +118,6 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 		userInfo.Scopes = settings.Config.UserDefaults.DefaultScopes
 	}
 	// create new home directories
-	files.MakeUserDirs(newUser)
-
 	err := store.Users.Save(newUser, true)
 	if err != nil {
 		return err

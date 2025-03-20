@@ -11,8 +11,8 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
+	"github.com/gtsteffaniak/filebrowser/backend/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
@@ -56,7 +56,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-		data.path = link.Path + "/" + path
+
+		data.path = strings.TrimSuffix(link.Path, "/") + "/" + strings.TrimPrefix(path, "/")
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
 			Path:   data.path,
@@ -68,7 +69,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
-
 		// Set the file info in the `data` object
 		data.raw = file
 
@@ -111,13 +111,17 @@ func withUserHelper(fn handleFunc) handleFunc {
 					return http.StatusInternalServerError, err
 				}
 				if config.Auth.Methods.ProxyAuth.CreateUser {
-					newUser := &users.User{Username: proxyUser}
-					settings.ApplyUserDefaults(newUser)
-					err := store.Users.Save(newUser, false)
+					hashpass, err := users.HashPwd(proxyUser)
 					if err != nil {
 						return http.StatusInternalServerError, err
 					}
-					data.user, err = store.Users.Get(proxyUser)
+					newUser := storage.CreateUser(users.User{
+						Username: proxyUser,
+						NonAdminEditable: users.NonAdminEditable{
+							Password: hashpass, // hashed password that can't actually be used
+						},
+					}, false)
+					data.user, err = store.Users.Get(newUser)
 					if err != nil {
 						return http.StatusInternalServerError, err
 					}

@@ -31,8 +31,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { baseURL } from "@/utils/constants.js";
-import { extractSourceFromPath, removePrefix, removeLeadingSlash } from "@/utils/url.js";
+import { extractSourceFromPath, removeLeadingSlash } from "@/utils/url.js";
 import Action from "@/components/Action.vue";
 
 export default {
@@ -65,7 +64,6 @@ export default {
       if (parts[parts.length - 1] === "") {
         parts.pop();
       }
-
       let breadcrumbs = [];
       let buildRef = this.base;
       parts.forEach((element) => {
@@ -99,13 +97,13 @@ export default {
       const result = extractSourceFromPath(getters.routePath());
       if (getters.currentView() == "share") {
         this.base = getters.sharePathBase();
-        this.path = removePrefix(getters.routePath(), this.base + "/");
+        this.path = getters.routePath(this.base);
       } else {
         this.path = decodeURIComponent(result.path);
-      }
-      this.base = baseURL;
-      if (state.serverHasMultipleSources) {
-        this.base = `${this.base}${result.source}/`;
+        this.base = "/";
+        if (state.serverHasMultipleSources) {
+          this.base = `${this.base}${result.source}/`;
+        }
       }
     },
     updateGallerySize(event) {

@@ -11,8 +11,8 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   //globalSetup: "./global-setup",
-  timeout: 6000,
-  testDir: "./tests-proxy",
+  timeout: 5000,
+  testDir: "./tests-noauth",
   /* Run tests in files in parallel */
   fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

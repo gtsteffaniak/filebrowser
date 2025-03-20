@@ -3,32 +3,16 @@ package files
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
 
-var (
-	invalidFilenameChars = regexp.MustCompile(`[^0-9A-Za-z@_\-.]`)
-	dashes               = regexp.MustCompile(`[\-]+`)
-)
-
 // todo fix this!!
 // MakeUserDir makes the user directory according to settings.
-func (idx *Index) MakeUserDir(username string, scope string) error {
-	if idx.Config.CreateUserDir {
-		username = cleanUsername(username)
-		if username == "" || username == "-" || username == "." {
-			logger.Error(fmt.Sprintf("create user: invalid user for home dir creation: [%s]", username))
-		}
-	}
-	userScope := path.Join("/", scope)
-	fullPath := filepath.Join(idx.Path, userScope)
+func MakeUserDir(fullPath string) error {
 	logger.Debug(fmt.Sprintf("creating user home dir: [%s]", fullPath))
 	if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
 		return err
@@ -36,32 +20,31 @@ func (idx *Index) MakeUserDir(username string, scope string) error {
 	return nil
 }
 
-func MakeUserDirs(u *users.User) {
-	for _, scope := range u.Scopes {
-		source := settings.Config.Server.NameToSource[scope.Name]
+func MakeUserDirs(u *users.User) error {
+	cleanedUserName := users.CleanUsername(u.Username)
+	if cleanedUserName == "" || cleanedUserName == "-" || cleanedUserName == "." {
+		logger.Error(fmt.Sprintf("create user: invalid user for home dir creation: [%s]", u.Username))
+	}
+	for i, scope := range u.Scopes {
+		source := settings.Config.Server.SourceMap[scope.Name]
 		if source.Config.CreateUserDir {
-			idx := GetIndex(source.Name)
-			if idx == nil {
-				logger.Error(fmt.Sprintf("create user: failed to find source index for user home dir creation: %s", source.Name))
+			if !source.Config.CreateUserDir {
 				continue
 			}
-			err := idx.MakeUserDir(u.Username, scope.Scope)
-			if err != nil {
-				logger.Error(fmt.Sprintf("create user: failed to create user home dir: %s", err))
+			fullPath := ""
+			if filepath.Base(scope.Scope) != cleanedUserName && !u.Perm.Admin {
+				scope.Scope = filepath.Join(scope.Scope, cleanedUserName)
+				fullPath = filepath.Join(source.Path, scope.Scope)
+			} else {
+				fullPath = filepath.Join(source.Path, scope.Scope, cleanedUserName)
 			}
+			err := MakeUserDir(fullPath)
+			if err != nil {
+				return fmt.Errorf("create user: failed to create user home dir: %s", err)
+			}
+			// update scope to reflect new user home dir
+			u.Scopes[i] = scope
 		}
 	}
-}
-
-func cleanUsername(s string) string {
-	// Remove any trailing space to avoid ending on -
-	s = strings.Trim(s, " ")
-	s = strings.Replace(s, "..", "", -1)
-
-	// Replace all characters which not in the list `0-9A-Za-z@_\-.` with a dash
-	s = invalidFilenameChars.ReplaceAllString(s, "-")
-
-	// Remove any multiple dashes caused by replacements above
-	s = dashes.ReplaceAllString(s, "-")
-	return s
+	return nil
 }

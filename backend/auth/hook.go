@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
@@ -167,8 +166,6 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 			Perm:     a.Settings.UserDefaults.Perm,
 		}
 		u = a.GetUser(d)
-
-		files.MakeUserDirs(u)
 
 		err = a.Users.Save(u, false)
 		if err != nil {

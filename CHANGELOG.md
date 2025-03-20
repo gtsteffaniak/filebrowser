@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.6.2-beta
+
+ **Notes**:
+ - Added playwright tests for bugfixes for permantent fix for stability.
+    (except onlyoffice since it requires integrations)
+
+ **BugFixes**:
+ - Context menu should only be available inside the folder/files container https://github.com/gtsteffaniak/filebrowser/issues/430
+ - drag and drop files from desktop to browser is fixed.
+ - replace prompt cancel button didn't work.
+ - key events on listing page not working (like delete key)
+ - fixed share viewing issue https://github.com/gtsteffaniak/filebrowser/issues/429
+ - disableUsedPercentage hides entire source https://github.com/gtsteffaniak/filebrowser/issues/438
+ - createUserDir fix for proxy users and new users https://github.com/gtsteffaniak/filebrowser/issues/440
+
 ## v0.6.1-beta
 
  **New Feature**:
