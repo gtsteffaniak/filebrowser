@@ -8,6 +8,7 @@
       <p>{{ $t("prompts.newFileMessage") }}</p>
       <input
         class="input input--block"
+        aria-label="FileName Field"
         v-focus
         type="text"
         @keyup.enter="submit"
@@ -82,7 +83,6 @@ export default {
       } catch (error) {
         notify.showError(error);
       }
-
     },
   },
 };

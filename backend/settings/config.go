@@ -248,9 +248,13 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 	}
 	newScopes := []users.SourceScope{}
 	for _, scope := range scopes {
+		if scope.Scope == "" {
+			scope.Scope = "/"
+		}
 		// first check if its already a path name and keep it
 		source, ok := Config.Server.SourceMap[scope.Name]
 		if ok {
+
 			newScopes = append(newScopes, users.SourceScope{
 				Name:  source.Path, // backend name is path
 				Scope: scope.Scope,

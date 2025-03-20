@@ -1810,12 +1810,6 @@ const docTemplate = `{
         "settings.UserDefaults": {
             "type": "object",
             "properties": {
-                "commands": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "darkMode": {
                     "type": "boolean"
                 },

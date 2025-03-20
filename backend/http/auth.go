@@ -15,7 +15,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/share"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
@@ -150,8 +149,6 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	settings.ApplyUserDefaults(user)
 	user.Username = info.Username
 	user.Password = info.Password
-
-	files.MakeUserDirs(user)
 
 	err = store.Users.Save(user, true)
 	if err == errors.ErrExist {
