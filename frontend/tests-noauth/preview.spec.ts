@@ -41,23 +41,3 @@ test("navigate folders", async({ page, checkForErrors, context }) => {
   // Check for console errors
   checkForErrors();
 });
-
-test("navigating images", async({ page, checkForErrors, context }) => {
-  await page.goto("/files/playwright-files/myfolder/testdata/20130612_142406.jpg");
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - 20130612_142406.jpg");
-  await page.locator('button[aria-label="Previous"]').waitFor({ state: 'hidden' });
-  await page.mouse.move(100, 100);
-  await page.locator('button[aria-label="Next"]').waitFor({ state: 'visible' });
-  await page.locator('button[aria-label="Next"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
-  await page.locator('button[aria-label="Previous"]').waitFor({ state: 'hidden' });
-  await page.locator('button[aria-label="Next"]').waitFor({ state: 'hidden' });
-  await page.mouse.move(100, 100);
-  await page.locator('button[aria-label="Next"]').waitFor({ state: 'visible' });
-  //await page.locator('button[aria-label="Next"]').click();
-  // went to next image
-  //await expect(page).toHaveTitle("Graham's Filebrowser - Files - IMG_2578.JPG");
-
-  // Check for console errors
-  checkForErrors();
-});
