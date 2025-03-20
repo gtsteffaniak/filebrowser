@@ -127,5 +127,6 @@ export function extractSourceFromPath(url) {
     path = removePrefix(path, '/files');
   }
 
+  console.log("extractSourceFromPath", source, path);
   return { source, path };
 }

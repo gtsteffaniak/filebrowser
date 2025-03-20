@@ -11,7 +11,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   //globalSetup: "./global-setup",
-  timeout: 6000,
+  timeout: 5000,
   testDir: "./tests-noauth",
   /* Run tests in files in parallel */
   fullyParallel: false,

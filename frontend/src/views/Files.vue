@@ -104,10 +104,16 @@ export default {
       if (!getters.isLoggedIn()) {
         return;
       }
-      const routePath = getters.routePath(`${baseURL}files/`);
+      const routePath = url.removeTrailingSlash(getters.routePath(`${baseURL}files`));
+      console.log(routePath);
+      const rootRoute =
+        routePath == "/files" ||
+        routePath == "/files/" ||
+        routePath == "" ||
+        routePath == "/";
       // lets redirect if multiple sources and user went to /files/
-      if (state.serverHasMultipleSources && routePath === "/") {
-        router.push(`/files${routePath}${state.sources.current}`);
+      if (state.serverHasMultipleSources && rootRoute) {
+        router.push(`${routePath}/${state.sources.current}`);
         return;
       }
       this.lastHash = "";

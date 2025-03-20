@@ -1,6 +1,6 @@
 server:
   port: 80
-  baseURL:  "/"
+  baseURL:  "/files/"
   logging:
     - levels: "info|error|debug"
   sources:
