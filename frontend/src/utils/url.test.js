@@ -5,6 +5,7 @@ describe('testurl', () => {
 
   it('url prefix', () => {
     let tests = [
+      {input: "/files/files", trimArg: "/files/",expected: "/files",},
       {input: "/files/share/something/", trimArg: "files", expected:"/share/something/"},
       {input: "test/iscool/", trimArg: "test",expected:"/iscool/"},
       {input: "test",trimArg: "",expected:"/test"},

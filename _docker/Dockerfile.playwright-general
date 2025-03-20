@@ -1,6 +1,6 @@
 FROM gtstef/playwright-base
 WORKDIR /app
-COPY [ "./_docker/src/regular/", "./" ]
+COPY [ "./_docker/src/general/", "./" ]
 WORKDIR /app/frontend
 COPY [ "./frontend/", "./" ]
 WORKDIR /app/backend/

@@ -11,7 +11,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   globalSetup: "./global-setup",
-  timeout: 6000,
+  timeout: 5000,
   testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: false,
@@ -28,7 +28,7 @@ export default defineConfig({
     actionTimeout: 5000,
     storageState: "loginAuth.json",
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: "http://127.0.0.1",
+    baseURL: "http://127.0.0.1/",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
