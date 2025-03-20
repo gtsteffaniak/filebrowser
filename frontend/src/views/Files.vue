@@ -105,7 +105,6 @@ export default {
         return;
       }
       const routePath = url.removeTrailingSlash(getters.routePath(`${baseURL}files`));
-      console.log(routePath);
       const rootRoute =
         routePath == "/files" ||
         routePath == "/files/" ||

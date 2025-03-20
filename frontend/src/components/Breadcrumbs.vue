@@ -31,7 +31,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { extractSourceFromPath, removePrefix, removeLeadingSlash } from "@/utils/url.js";
+import { extractSourceFromPath, removeLeadingSlash } from "@/utils/url.js";
 import Action from "@/components/Action.vue";
 
 export default {
