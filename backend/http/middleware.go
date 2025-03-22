@@ -56,8 +56,9 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-
+		fmt.Println("link path", link.Path)
 		data.path = strings.TrimSuffix(link.Path, "/") + "/" + strings.TrimPrefix(path, "/")
+		fmt.Println("data path", data.path)
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
 			Path:   data.path,

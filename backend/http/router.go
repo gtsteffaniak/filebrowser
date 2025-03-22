@@ -103,7 +103,7 @@ func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage
 
 	// Share routes
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))
-	api.HandleFunc("GET /share", withPermShare(shareGetsHandler))
+	api.HandleFunc("GET /share", withPermShare(shareGetHandler))
 	api.HandleFunc("POST /share", withPermShare(sharePostHandler))
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 
