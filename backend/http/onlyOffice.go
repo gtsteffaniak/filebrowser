@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 const (
@@ -63,7 +63,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusForbidden, err
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:   filepath.Join(userscope, path),
+		Path:   utils.JoinPathAsUnix(userscope, path),
 		Modify: d.user.Perm.Modify,
 		Source: source,
 		Expand: false,

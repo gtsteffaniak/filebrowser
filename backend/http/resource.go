@@ -18,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -50,8 +51,9 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusForbidden, err
 	}
+
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:    filepath.Join(userscope, path),
+		Path:    utils.JoinPathAsUnix(userscope, path),
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
 		Expand:  true,
@@ -115,7 +117,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 		return http.StatusForbidden, err
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:   filepath.Join(userscope, path),
+		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -172,7 +174,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusForbidden, err
 	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(userscope, path),
+		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,
@@ -246,7 +248,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, err
 	}
 	fileOpts := files.FileOptions{
-		Path:   filepath.Join(userscope, path),
+		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
 		Expand: false,

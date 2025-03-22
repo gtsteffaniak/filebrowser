@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.6.2-beta
 
  **Notes**:
+ - windows directories get better naming, root directories like "D:\ get named "D", otherwise base filepath is the name when unselected "D:\path\to\folder" gets named "folder" (just like linux)
+
+ **BugFixes**:
+ - windows would not refresh file info automatically when viewing because of path issue.
+ - Windows paths without name for "D:\" would cause issues.
+
+## v0.6.2-beta
+
+ **Notes**:
  - Added playwright tests for bugfixes for permantent fix for stability.
     (except onlyoffice since it requires integrations)
 

@@ -184,10 +184,8 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	}
 
 	dirFileInfo.SortItems()
-
 	// Update the current directory metadata in the index
 	idx.UpdateMetadata(dirFileInfo)
-
 	return nil
 }
 

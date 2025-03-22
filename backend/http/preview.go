@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/img"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 type ImgService interface {
@@ -61,7 +62,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusForbidden, err
 	}
 	fileInfo, err := files.FileInfoFaster(files.FileOptions{
-		Path:   filepath.Join(userscope, path),
+		Path:   utils.JoinPathAsUnix(userscope, path),
 		Modify: d.user.Perm.Modify,
 		Source: source,
 		Expand: true,
