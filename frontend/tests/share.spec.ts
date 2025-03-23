@@ -24,7 +24,7 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) 
   checkForErrors();
 });
 
-test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) => {
+test("root share path is valid", async ({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('button[aria-label="Show-Share"]').waitFor({ state: 'visible' });
