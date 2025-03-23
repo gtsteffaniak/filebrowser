@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v0.6.2-beta
+## v0.6.3-beta
 
  **Notes**:
  - windows directories get better naming, root directories like "D:\ get named "D", otherwise base filepath is the name when unselected "D:\path\to\folder" gets named "folder" (just like linux)
@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - windows would not refresh file info automatically when viewing because of path issue.
  - Windows paths without name for "D:\" would cause issues.
+ - share path error https://github.com/gtsteffaniak/filebrowser/issues/429
 
 ## v0.6.2-beta
 
