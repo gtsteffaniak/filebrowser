@@ -24,7 +24,7 @@ async function globalSetup() {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Share"]').click();
-  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /myfolder/');
+  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /myfolder');
   await page.locator('button[aria-label="Share-Confirm"]').click();
   await expect(page.locator("#share .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
   const shareHash = await page.locator("#share .card-content table tbody tr:not(:has(th)) td").first().textContent();
