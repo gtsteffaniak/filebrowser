@@ -184,6 +184,9 @@ export default {
       if (state.isSearchActive) {
         path = state.selected[0].path;
         this.source = state.selected[0].source;
+      } else if (getters.selectedCount() === 1) {
+        path = state.req.items[this.selected[0]].path;
+        this.source = state.req.items[this.selected[0]].source;
       }
       this.subpath = decodeURIComponent(path);
       // get last element of the path
