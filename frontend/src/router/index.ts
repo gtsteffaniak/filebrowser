@@ -143,7 +143,7 @@ router.beforeResolve(async (to, from, next) => {
       await validateLogin();
     }
 
-    if (!getters.isLoggedIn()) {
+    if (!getters.isLoggedIn() && state.user.username != "publicUser") {
       next({
         path: "/login",
         query: { redirect: to.fullPath },
