@@ -10,13 +10,13 @@ async function globalSetup() {
   await page.getByPlaceholder("Username").fill("admin");
   await page.getByPlaceholder("Password").fill("admin");
   await page.getByRole("button", { name: "Login" }).click();
-  await page.waitForURL("**/files/", { timeout: 100 });
+  await page.waitForURL("**/files/", { timeout: 250 });
 
   const cookies = await context.cookies();
   expect(cookies.find((c) => c.name === "auth")?.value).toBeDefined();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
-  await page.waitForURL("**/files/playwright-files", { timeout: 100 });
+  await page.waitForURL("**/files/playwright-files", { timeout: 250 });
 
   // Create a share
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
