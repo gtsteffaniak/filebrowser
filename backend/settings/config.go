@@ -11,7 +11,6 @@ import (
 	yaml "github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
 
@@ -61,7 +60,10 @@ func setupSources() {
 	} else {
 		for k, source := range Config.Server.Sources {
 			realPath := getRealPath(source.Path)
-			name := utils.GetLastComponent(realPath)
+			name := filepath.Base(realPath)
+			if name == "\\" {
+				name = strings.Split(realPath, ":")[0]
+			}
 			source.Path = realPath // use absolute path
 			if source.Name == "" {
 				_, ok := Config.Server.SourceMap[source.Path]
@@ -223,7 +225,7 @@ func setDefaults() Settings {
 			Name: "FileBrowser Quantum",
 		},
 		UserDefaults: UserDefaults{
-			DisableOnlyOfficeExt: ".txt .csv .html",
+			DisableOnlyOfficeExt: ".txt .csv .html .pdf",
 			StickySidebar:        true,
 			LockPassword:         false,
 			ShowHidden:           false,

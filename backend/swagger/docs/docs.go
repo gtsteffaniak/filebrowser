@@ -904,7 +904,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Property to retrieve",
+                        "description": "Property to retrieve: ` + "`" + `userDefaults` + "`" + `, ` + "`" + `frontend` + "`" + `, ` + "`" + `auth` + "`" + `, ` + "`" + `server` + "`" + `, ` + "`" + `sources` + "`" + `",
                         "name": "property",
                         "in": "query"
                     }

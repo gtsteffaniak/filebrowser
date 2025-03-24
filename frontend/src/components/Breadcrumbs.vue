@@ -12,7 +12,13 @@
       <span class="chevron"><i class="material-icons">keyboard_arrow_right</i></span>
       <router-link :to="link.url">{{ link.name }}</router-link>
     </span>
-    <action style="display: contents" v-if="showShare" icon="share" show="share" />
+    <action
+      aria-label="Show-Share"
+      style="display: contents"
+      v-if="showShare"
+      icon="share"
+      show="share"
+    />
     <div v-if="isCardView">
       Size:
       <input
@@ -67,7 +73,7 @@ export default {
       let breadcrumbs = [];
       let buildRef = this.base;
       parts.forEach((element) => {
-        buildRef = buildRef + encodeURIComponent(element) + "/";
+        buildRef = buildRef + encodeURIComponent(decodeURIComponent(element)) + "/";
         breadcrumbs.push({
           name: decodeURIComponent(element),
           url: buildRef,

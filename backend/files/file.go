@@ -82,7 +82,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
 		return response, err
@@ -115,7 +114,12 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	if !exists {
 		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
-	if opts.Content {
+	if opts.Content && strings.HasPrefix(info.Type, "text") {
+		// Check file size
+		if info.Size > 50*1024*1024 { // 50 megabytes in bytes
+			logger.Debug(fmt.Sprintf("Reading large text file contents: "+info.Path, info.Name))
+		}
+
 		content, err := getContent(realPath)
 		if err != nil {
 			return response, err

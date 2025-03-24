@@ -129,7 +129,7 @@ import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi, publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
-import { removePrefix } from "@/utils/url";
+import { extractSourceFromPath } from "@/utils/url";
 import Clipboard from "clipboard";
 import { baseURL } from "@/utils/constants";
 
@@ -178,30 +178,21 @@ export default {
     },
   },
   async beforeMount() {
+    let path = state.req.path;
+    this.source = state.req.source;
+    if (state.isSearchActive) {
+      path = state.selected[0].path;
+      this.source = state.selected[0].source;
+    } else if (getters.selectedCount() === 1) {
+      const selected = getters.getFirstSelected();
+      path = selected.path;
+      this.source = selected.source;
+      this.source = state.req.items[state.selected[0]].source;
+    }
+    this.subpath = decodeURIComponent(path);
     try {
-      let path = getters.routePath(baseURL);
-      if (state.isSearchActive) {
-        path = state.selected[0].path;
-        this.source = state.selected[0].source;
-      } else {
-        this.source = state.req.source;
-        if (getters.selectedCount() === 1) {
-          if (state.sources.count > 1) {
-            path = removePrefix(
-              state.req.items[this.selected[0]].url,
-              "files/" + state.req.source
-            );
-          } else {
-            path = removePrefix(state.req.items[this.selected[0]].url, "files");
-          }
-        }
-        if (state.sources.count > 1) {
-          path = removePrefix(path, state.req.source);
-        }
-      }
-      this.subpath = decodeURIComponent(path);
       // get last element of the path
-      const links = await shareApi.get(this.subpath);
+      const links = await shareApi.get(this.subpath, this.source);
       this.links = links;
     } catch (err) {
       notify.showError(err);
@@ -225,9 +216,7 @@ export default {
   methods: {
     async submit() {
       let isPermanent = !this.time || this.time === 0;
-
       let res = null;
-
       if (isPermanent) {
         res = await shareApi.create(this.subpath, this.source, this.password);
       } else {

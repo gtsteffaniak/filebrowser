@@ -64,7 +64,7 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Success 200 {array} share.Link "List of share links for the specified path"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/share [get]
-func shareGetsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {

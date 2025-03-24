@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../test-setup";
 
-test("Create first new file", async ({  page, context }) => {
+test("Create first new file", async ({  page, checkForErrors, context }) => {
   await page.goto("/");
   await expect(page.locator('#listingView .message > span')).toHaveText('It feels lonely here...');
   await page.locator('#listingView').click({ button: "right" });
@@ -10,4 +10,5 @@ test("Create first new file", async ({  page, context }) => {
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - test.txt");
   await page.locator('button[aria-label="Close"]').click();
   await expect(page.locator('#listingView .file-items')).toHaveCount(1);
+  checkForErrors();
 });

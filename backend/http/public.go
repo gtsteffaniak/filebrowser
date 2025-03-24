@@ -29,21 +29,13 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/dl [get]
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	filePrefix := ""
-	file, ok := d.raw.(files.ExtendedFileInfo)
-	if ok {
-		filePrefix = file.Source + "::"
-	}
-	encodedFiles := file.Path + r.URL.Query().Get("files")
+	encodedFiles := r.URL.Query().Get("files")
 	// Decode the URL-encoded path
 	files, err := url.QueryUnescape(encodedFiles)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileList := strings.Split(files, "||")
-	for i, f := range fileList {
-		fileList[i] = filePrefix + f
-	}
 	return rawFilesHandler(w, r, d, fileList)
 }
 

@@ -6,7 +6,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	math "math/rand"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"time"
 
@@ -103,4 +105,12 @@ func GetLastComponent(path string) string {
 		return path // No parent directory for a relative path without slashes
 	}
 	return path[lastSlash+1:]
+}
+
+func JoinPathAsUnix(parts ...string) string {
+	joinedPath := filepath.Join(parts...)
+	if runtime.GOOS == "windows" {
+		joinedPath = strings.ReplaceAll(joinedPath, "\\", "/")
+	}
+	return joinedPath
 }

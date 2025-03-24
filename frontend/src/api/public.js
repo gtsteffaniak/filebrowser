@@ -18,7 +18,7 @@ export async function fetchPub(path, hash, password = "") {
     throw error;
   }
   let data = await response.json()
-  const adjusted = adjustedData(data, removePrefix(getApiPath(`share/${hash}${path}`)));
+  const adjusted = adjustedData(data, `/share/${hash}${path}`);
   return adjusted
 }
 

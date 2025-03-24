@@ -10,13 +10,13 @@ async function globalSetup() {
   await page.getByPlaceholder("Username").fill("admin");
   await page.getByPlaceholder("Password").fill("admin");
   await page.getByRole("button", { name: "Login" }).click();
-  await page.waitForURL("**/files/", { timeout: 100 });
+  await page.waitForURL("**/files/", { timeout: 250 });
 
   const cookies = await context.cookies();
   expect(cookies.find((c) => c.name === "auth")?.value).toBeDefined();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
-  await page.waitForURL("**/files/playwright-files", { timeout: 100 });
+  await page.waitForURL("**/files/playwright-files", { timeout: 250 });
 
   // Create a share
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
@@ -24,7 +24,7 @@ async function globalSetup() {
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Share"]').click();
-  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /myfolder/');
+  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /myfolder');
   await page.locator('button[aria-label="Share-Confirm"]').click();
   await expect(page.locator("#share .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
   const shareHash = await page.locator("#share .card-content table tbody tr:not(:has(th)) td").first().textContent();

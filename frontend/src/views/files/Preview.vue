@@ -256,14 +256,18 @@ export default {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
           this.previousLink = composedListing.url;
-          this.previousRaw = this.prefetchUrl(composedListing);
+          if (getTypeInfo(composedListing.type).simpleType == "image") {
+            this.previousRaw = this.prefetchUrl(composedListing);
+          }
           break;
         }
         for (let j = i + 1; j < this.listing.length; j++) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
           this.nextLink = composedListing.url;
-          this.nextRaw = this.prefetchUrl(composedListing);
+          if (getTypeInfo(composedListing.type).simpleType == "image") {
+            this.nextRaw = this.prefetchUrl(composedListing);
+          }
           break;
         }
         return;
