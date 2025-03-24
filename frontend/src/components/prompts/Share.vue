@@ -129,7 +129,7 @@ import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi, publicApi } from "@/api";
 import { fromNow } from "@/utils/moment";
-import { removePrefix } from "@/utils/url";
+import { extractSourceFromPath } from "@/utils/url";
 import Clipboard from "clipboard";
 import { baseURL } from "@/utils/constants";
 
@@ -179,29 +179,18 @@ export default {
   },
   async beforeMount() {
     try {
-      let path = getters.routePath(baseURL);
+      let path = state.req.path;
+      this.source = state.req.source;
       if (state.isSearchActive) {
         path = state.selected[0].path;
         this.source = state.selected[0].source;
-      } else {
-        this.source = state.req.source;
-        if (getters.selectedCount() === 1) {
-          if (state.sources.count > 1) {
-            path = removePrefix(
-              state.req.items[this.selected[0]].url,
-              "files/" + state.req.source
-            );
-          } else {
-            path = removePrefix(state.req.items[this.selected[0]].url, "files");
-          }
-        }
-        if (state.sources.count > 1) {
-          path = removePrefix(path, state.req.source);
-        }
+      } else if (getters.selectedCount() === 1) {
+        path = state.req.items[this.selected[0]].path;
+        this.source = state.req.items[this.selected[0]].source;
       }
       this.subpath = decodeURIComponent(path);
       // get last element of the path
-      const links = await shareApi.get(this.subpath);
+      const links = await shareApi.get(this.subpath, this.source);
       this.links = links;
     } catch (err) {
       notify.showError(err);

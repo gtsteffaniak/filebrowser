@@ -8,12 +8,12 @@ export async function list() {
   return fetchJSON(apiPath);
 }
 
-export async function get(path, hash) {
+export async function get(path, source) {
   try {
-    const params = { path, hash };
+    const params = { path, source };
     const apiPath = getApiPath("api/share",params);
     let data = fetchJSON(apiPath);
-    return adjustedData(data, `api/share${path}`);
+    return adjustedData(data, path);
   } catch (err) {
     notify.showError(err.message || "Error fetching data");
     throw err;

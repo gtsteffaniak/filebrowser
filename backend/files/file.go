@@ -82,7 +82,6 @@ func FileInfoFaster(opts FileOptions) (ExtendedFileInfo, error) {
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	fmt.Println("opts.Path: ", opts.Path)
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
 		return response, err

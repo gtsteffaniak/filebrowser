@@ -23,3 +23,12 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) 
 
   checkForErrors();
 });
+
+test("root share path is valid", async ({ page, checkForErrors, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await page.locator('button[aria-label="Show-Share"]').waitFor({ state: 'visible' });
+  await page.locator('button[aria-label="Show-Share"]').click();
+  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
+  checkForErrors();
+});

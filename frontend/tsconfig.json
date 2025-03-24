@@ -20,6 +20,6 @@
     },
     "checkJs": false, // check later
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.vue", "tests/auth.spec.ts"],
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.vue", "tests-playwright/general/auth.spec.ts"],
   "exclude": ["node_modules", "dist"]
 }
