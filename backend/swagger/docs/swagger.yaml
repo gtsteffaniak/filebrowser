@@ -887,7 +887,8 @@ paths:
       description: Returns the current configuration settings for signup, user directories,
         rules, frontend.
       parameters:
-      - description: Property to retrieve
+      - description: 'Property to retrieve: `userDefaults`, `frontend`, `auth`, `server`,
+          `sources`'
         in: query
         name: property
         type: string

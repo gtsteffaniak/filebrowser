@@ -64,6 +64,7 @@ export function adjustedData(data, url) {
 
     data.items = data.items.map((item) => {
       item.url = `${data.url}${encodeURIComponent(item.name)}`;
+      item.source = data.source
       if (data.path == "/") {
         item.path = `/${item.name}`
       } else {

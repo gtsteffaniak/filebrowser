@@ -225,7 +225,7 @@ func setDefaults() Settings {
 			Name: "FileBrowser Quantum",
 		},
 		UserDefaults: UserDefaults{
-			DisableOnlyOfficeExt: ".txt .csv .html",
+			DisableOnlyOfficeExt: ".txt .csv .html .pdf",
 			StickySidebar:        true,
 			LockPassword:         false,
 			ShowHidden:           false,

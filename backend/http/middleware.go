@@ -57,6 +57,8 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			}
 		}
 		data.path = strings.TrimSuffix(link.Path, "/") + "/" + strings.TrimPrefix(path, "/")
+		fmt.Println("filepath", data.path)
+
 		// Get file information with options
 		file, err := FileInfoFasterFunc(files.FileOptions{
 			Path:   data.path,
@@ -66,11 +68,11 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		})
 		file.Token = link.Token
 		if err != nil {
+			fmt.Println("error fetching file", err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
 		// Set the file info in the `data` object
 		data.raw = file
-
 		// Call the next handler with the data
 		return fn(w, r, data)
 	}

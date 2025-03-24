@@ -6,11 +6,13 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - windows directories get better naming, root directories like "D:\ get named "D", otherwise base filepath is the name when unselected "D:\path\to\folder" gets named "folder" (just like linux)
+ - `.pdf` files added to default onlyoffice exclusion list.
 
  **BugFixes**:
  - windows would not refresh file info automatically when viewing because of path issue.
- - Windows paths without name for "D:\" would cause issues.
+ - windows paths without name for "D:\" would cause issues.
  - share path error https://github.com/gtsteffaniak/filebrowser/issues/429
+ - fix bug where resource content flag would load entire file into memory.
 
 ## v0.6.2-beta
 

@@ -178,17 +178,22 @@ export default {
     },
   },
   async beforeMount() {
+    console.log("mounted");
+    let path = state.req.path;
+    this.source = state.req.source;
+    if (state.isSearchActive) {
+      path = state.selected[0].path;
+      this.source = state.selected[0].source;
+    } else if (getters.selectedCount() === 1) {
+      const selected = getters.getFirstSelected();
+      console.log("selected", selected);
+      path = selected.path;
+      this.source = selected.source;
+      this.source = state.req.items[state.selected[0]].source;
+    }
+    console.log("path", this.source, state.req);
+    this.subpath = decodeURIComponent(path);
     try {
-      let path = state.req.path;
-      this.source = state.req.source;
-      if (state.isSearchActive) {
-        path = state.selected[0].path;
-        this.source = state.selected[0].source;
-      } else if (getters.selectedCount() === 1) {
-        path = state.req.items[this.selected[0]].path;
-        this.source = state.req.items[this.selected[0]].source;
-      }
-      this.subpath = decodeURIComponent(path);
       // get last element of the path
       const links = await shareApi.get(this.subpath, this.source);
       this.links = links;
@@ -214,9 +219,8 @@ export default {
   methods: {
     async submit() {
       let isPermanent = !this.time || this.time === 0;
-
       let res = null;
-
+      console.log("creating with source", this.source);
       if (isPermanent) {
         res = await shareApi.create(this.subpath, this.source, this.password);
       } else {

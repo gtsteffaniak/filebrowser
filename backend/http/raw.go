@@ -43,11 +43,6 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	filePrefix := ""
-	file, ok := d.raw.(files.ExtendedFileInfo)
-	if ok {
-		filePrefix = file.Path
-	}
 	encodedFiles := r.URL.Query().Get("files")
 	// Decode the URL-encoded path
 	files, err := url.QueryUnescape(encodedFiles)
@@ -55,9 +50,6 @@ func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	fileList := strings.Split(files, "||")
-	for i, f := range fileList {
-		fileList[i] = filepath.Join(filePrefix, f)
-	}
 	return rawFilesHandler(w, r, d, fileList)
 }
 
