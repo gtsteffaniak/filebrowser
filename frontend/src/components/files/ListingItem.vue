@@ -232,7 +232,7 @@ export default {
       window.location.href = this.getRelative(path);
     },
     getUrl() {
-      return url.removePrefix(this.url);
+      return this.url;
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
