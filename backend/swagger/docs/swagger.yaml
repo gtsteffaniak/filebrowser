@@ -1,62 +1,4 @@
 definitions:
-  files.FileInfo:
-    properties:
-      files:
-        description: files in the directory
-        items:
-          $ref: '#/definitions/files.ItemInfo'
-        type: array
-      folders:
-        description: folders in the directory
-        items:
-          $ref: '#/definitions/files.ItemInfo'
-        type: array
-      hidden:
-        description: whether the file is hidden
-        type: boolean
-      modified:
-        description: modification time
-        type: string
-      name:
-        description: name of the file
-        type: string
-      path:
-        description: path scoped to the associated index
-        type: string
-      size:
-        description: length in bytes for regular files
-        type: integer
-      type:
-        description: type of the file, either "directory" or a file mimetype
-        type: string
-    type: object
-  files.ItemInfo:
-    properties:
-      hidden:
-        description: whether the file is hidden
-        type: boolean
-      modified:
-        description: modification time
-        type: string
-      name:
-        description: name of the file
-        type: string
-      size:
-        description: length in bytes for regular files
-        type: integer
-      type:
-        description: type of the file, either "directory" or a file mimetype
-        type: string
-    type: object
-  files.SearchResult:
-    properties:
-      path:
-        type: string
-      size:
-        type: integer
-      type:
-        type: string
-    type: object
   http.AuthTokenMin:
     properties:
       Permissions:
@@ -106,6 +48,64 @@ definitions:
       username:
         type: string
     type: object
+  indexing.SearchResult:
+    properties:
+      path:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+    type: object
+  iteminfo.FileInfo:
+    properties:
+      files:
+        description: files in the directory
+        items:
+          $ref: '#/definitions/iteminfo.ItemInfo'
+        type: array
+      folders:
+        description: folders in the directory
+        items:
+          $ref: '#/definitions/iteminfo.ItemInfo'
+        type: array
+      hidden:
+        description: whether the file is hidden
+        type: boolean
+      modified:
+        description: modification time
+        type: string
+      name:
+        description: name of the file
+        type: string
+      path:
+        description: path scoped to the associated index
+        type: string
+      size:
+        description: length in bytes for regular files
+        type: integer
+      type:
+        description: type of the file, either "directory" or a file mimetype
+        type: string
+    type: object
+  iteminfo.ItemInfo:
+    properties:
+      hidden:
+        description: whether the file is hidden
+        type: boolean
+      modified:
+        description: modification time
+        type: string
+      name:
+        description: name of the file
+        type: string
+      size:
+        description: length in bytes for regular files
+        type: integer
+      type:
+        description: type of the file, either "directory" or a file mimetype
+        type: string
+    type: object
   settings.ExternalLink:
     properties:
       text:
@@ -153,6 +153,8 @@ definitions:
       permissions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
+        type: boolean
+      realtime:
         type: boolean
       scope:
         description: deprecated
@@ -265,6 +267,8 @@ definitions:
       perm:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
+        type: boolean
+      realtime:
         type: boolean
       scope:
         type: string
@@ -656,7 +660,7 @@ paths:
         "200":
           description: Resource metadata
           schema:
-            $ref: '#/definitions/files.FileInfo'
+            $ref: '#/definitions/iteminfo.FileInfo'
         "404":
           description: Resource not found
           schema:
@@ -869,7 +873,7 @@ paths:
           description: List of search results
           schema:
             items:
-              $ref: '#/definitions/files.SearchResult'
+              $ref: '#/definitions/indexing.SearchResult'
             type: array
         "400":
           description: Bad Request

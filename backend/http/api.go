@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
 // createApiKeyHandler creates an API key for the user.

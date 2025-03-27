@@ -17,6 +17,17 @@ export const mutations = {
     }
     emitStateChanged();
   },
+  updateSourceInfo: (value) => {
+    for (const source of value) {
+      if (state.sources.info[source.name]) {
+        source.used = getHumanReadableFilesize(usage.used);
+        source.total = getHumanReadableFilesize(usage.total);
+        source.usedPercentage = Math.round((usage.used / usage.total) * 100);
+        source.status = source.status;
+      }
+    }
+    emitStateChanged();
+  },
   setSources: (user) => {
     state.serverHasMultipleSources = serverHasMultipleSources;
     const currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";

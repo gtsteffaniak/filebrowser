@@ -7,7 +7,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
+import { notify, events } from "@/notify";
+
+events.startSSE();
 
 export default {
   name: "notifications",

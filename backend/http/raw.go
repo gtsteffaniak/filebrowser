@@ -13,9 +13,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -65,7 +65,7 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 		return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 	}
 
-	idx := files.GetIndex(source)
+	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("source %s is not available", source)
 	}
@@ -188,7 +188,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if err != nil && d.user.Username != "publicUser" {
 		return http.StatusForbidden, err
 	}
-	idx := files.GetIndex(firstFileSource)
+	idx := indexing.GetIndex(firstFileSource)
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
 	}
@@ -287,7 +287,7 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		}
 		source := splitFile[0]
 		path := splitFile[1]
-		idx := files.GetIndex(source)
+		idx := indexing.GetIndex(source)
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}

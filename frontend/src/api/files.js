@@ -238,13 +238,13 @@ export function getPreviewURL(source, path, size, modified) {
   }
 }
 
-export async function usage(source) {
+export async function sources() {
   try {
-    const apiPath = getApiPath('api/usage', { source: source })
+    const apiPath = getApiPath('api/job/status/sources')
     const res = await fetchURL(apiPath)
     return await res.json()
   } catch (err) {
-    notify.showError(err.message || 'Error fetching usage data')
+    notify.showError(err.message || 'Error fetching usage sources')
     throw err
   }
 }

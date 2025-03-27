@@ -491,7 +491,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Resource metadata",
                         "schema": {
-                            "$ref": "#/definitions/files.FileInfo"
+                            "$ref": "#/definitions/iteminfo.FileInfo"
                         }
                     },
                     "404": {
@@ -872,7 +872,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/files.SearchResult"
+                                "$ref": "#/definitions/indexing.SearchResult"
                             }
                         }
                     },
@@ -1609,88 +1609,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "files.FileInfo": {
-            "type": "object",
-            "properties": {
-                "files": {
-                    "description": "files in the directory",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/files.ItemInfo"
-                    }
-                },
-                "folders": {
-                    "description": "folders in the directory",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/files.ItemInfo"
-                    }
-                },
-                "hidden": {
-                    "description": "whether the file is hidden",
-                    "type": "boolean"
-                },
-                "modified": {
-                    "description": "modification time",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "name of the file",
-                    "type": "string"
-                },
-                "path": {
-                    "description": "path scoped to the associated index",
-                    "type": "string"
-                },
-                "size": {
-                    "description": "length in bytes for regular files",
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "type of the file, either \"directory\" or a file mimetype",
-                    "type": "string"
-                }
-            }
-        },
-        "files.ItemInfo": {
-            "type": "object",
-            "properties": {
-                "hidden": {
-                    "description": "whether the file is hidden",
-                    "type": "boolean"
-                },
-                "modified": {
-                    "description": "modification time",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "name of the file",
-                    "type": "string"
-                },
-                "size": {
-                    "description": "length in bytes for regular files",
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "type of the file, either \"directory\" or a file mimetype",
-                    "type": "string"
-                }
-            }
-        },
-        "files.SearchResult": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
         "http.AuthTokenMin": {
             "type": "object",
             "properties": {
@@ -1767,6 +1685,88 @@ const docTemplate = `{
                 }
             }
         },
+        "indexing.SearchResult": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "iteminfo.FileInfo": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "description": "files in the directory",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.ItemInfo"
+                    }
+                },
+                "folders": {
+                    "description": "folders in the directory",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.ItemInfo"
+                    }
+                },
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "modified": {
+                    "description": "modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "name of the file",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "path scoped to the associated index",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "length in bytes for regular files",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
+                    "type": "string"
+                }
+            }
+        },
+        "iteminfo.ItemInfo": {
+            "type": "object",
+            "properties": {
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "modified": {
+                    "description": "modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "name of the file",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "length in bytes for regular files",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
+                    "type": "string"
+                }
+            }
+        },
         "settings.ExternalLink": {
             "type": "object",
             "properties": {
@@ -1838,6 +1838,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "quickDownload": {
+                    "type": "boolean"
+                },
+                "realtime": {
                     "type": "boolean"
                 },
                 "scope": {
@@ -2004,6 +2007,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "quickDownload": {
+                    "type": "boolean"
+                },
+                "realtime": {
                     "type": "boolean"
                 },
                 "scope": {

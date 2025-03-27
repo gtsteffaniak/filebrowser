@@ -7,17 +7,17 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
-	"github.com/gtsteffaniak/filebrowser/backend/img"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/swaggo/swag"
 
-	"github.com/gtsteffaniak/filebrowser/backend/version"
+	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 )
 
 var store *storage.Storage
@@ -83,7 +83,7 @@ func StartFilebrowser() {
 		logger.Fatal("No sources configured, exiting...")
 	}
 	for _, source := range settings.Config.Server.SourceMap {
-		go files.Initialize(source)
+		go indexing.Initialize(source)
 	}
 	validateUserInfo()
 	// Start the rootCMD in a goroutine

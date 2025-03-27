@@ -13,12 +13,14 @@ import (
 
 	"github.com/shirou/gopsutil/v3/disk"
 
-	"github.com/gtsteffaniak/filebrowser/backend/cache"
-	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/cache"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -32,7 +34,7 @@ import (
 // @Param source query string false "Name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
 // @Param checksum query string false "Optional checksum validation"
-// @Success 200 {object} files.FileInfo "Resource metadata"
+// @Success 200 {object} iteminfo.FileInfo "Resource metadata"
 // @Failure 404 {object} map[string]string "Resource not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [get]
@@ -52,7 +54,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return http.StatusForbidden, err
 	}
 
-	fileInfo, err := files.FileInfoFaster(files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:    utils.JoinPathAsUnix(userscope, path),
 		Modify:  d.user.Perm.Modify,
 		Source:  source,
@@ -66,7 +68,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		return renderJSON(w, r, fileInfo)
 	}
 	if algo := r.URL.Query().Get("checksum"); algo != "" {
-		idx := files.GetIndex(source)
+		idx := indexing.GetIndex(source)
 		if idx == nil {
 			return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 		}
@@ -116,7 +118,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileInfo, err := files.FileInfoFaster(files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
@@ -173,7 +175,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileOpts := files.FileOptions{
+	fileOpts := iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
@@ -247,7 +249,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileOpts := files.FileOptions{
+	fileOpts := iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
 		Modify: d.user.Perm.Modify,
@@ -263,8 +265,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param from query string true "Path from resource"
-// @Param source query string false "Source name for the desired source, default is used if not provided"
+// @Param from query string true "Path from resource in <source_name>::<index_path> format"
 // @Param destination query string true "Destination path for the resource"
 // @Param action query string true "Action to perform (copy, rename)"
 // @Param overwrite query bool false "Overwrite if destination exists"
@@ -276,7 +277,6 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	// TODO source := r.URL.Query().Get("source")
 	action := r.URL.Query().Get("action")
 	if !d.user.Perm.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
@@ -321,7 +321,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusForbidden, err
 	}
 
-	idx := files.GetIndex(dstIndex)
+	idx := indexing.GetIndex(dstIndex)
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", dstIndex)
 	}
@@ -333,7 +333,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	realDest := parentDir + "/" + filepath.Base(dst)
 
-	idx2 := files.GetIndex(srcIndex)
+	idx2 := indexing.GetIndex(srcIndex)
 	if idx2 == nil {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", srcIndex)
 	}
@@ -374,8 +374,8 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func delThumbs(ctx context.Context, fileCache FileCache, file files.ExtendedFileInfo) {
-	err := fileCache.Delete(ctx, previewCacheKey(file.RealPath, "small", file.FileInfo.ModTime))
+func delThumbs(ctx context.Context, fileCache FileCache, file iteminfo.ExtendedFileInfo) {
+	err := fileCache.Delete(ctx, previewCacheKey(file.RealPath, "small", file.ItemInfo.ModTime))
 	if err != nil {
 		logger.Debug(fmt.Sprintf("Could not delete small thumbnail: %v", err))
 	}
@@ -387,9 +387,9 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		err := files.CopyResource(srcIndex, destIndex, src, dst)
 		return err
 	case "rename", "move":
-		idx := files.GetIndex(srcIndex)
+		idx := indexing.GetIndex(srcIndex)
 		srcPath := idx.MakeIndexPath(src)
-		fileInfo, err := files.FileInfoFaster(files.FileOptions{
+		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 			Path:       srcPath,
 			Source:     srcIndex,
 			IsDir:      isSrcDir,
@@ -464,7 +464,7 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)
 	isNotDir := r.URL.Query().Get("isDir") == "false" // default to isDir true
-	index := files.GetIndex(source)
+	index := indexing.GetIndex(source)
 	if index == nil {
 		http.Error(w, "source not found", http.StatusNotFound)
 		return
@@ -481,6 +481,6 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 	if err != nil || err2 != nil {
 		return
 	}
-	mockDir := files.CreateMockData(NumDirs, numFiles)
+	mockDir := utils.CreateMockData(NumDirs, numFiles)
 	renderJSON(w, r, mockDir) // nolint:errcheck
 }

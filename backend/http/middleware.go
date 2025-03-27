@@ -2,6 +2,7 @@ package http
 
 import (
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,11 +10,12 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/share"
-	"github.com/gtsteffaniak/filebrowser/backend/storage"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 type requestContext struct {
@@ -22,6 +24,7 @@ type requestContext struct {
 	path  string
 	token string
 	share *share.Link
+	ctx   context.Context
 }
 
 type HttpResponse struct {
@@ -59,7 +62,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		data.path = strings.TrimSuffix(link.Path, "/") + "/" + strings.TrimPrefix(path, "/")
 
 		// Get file information with options
-		file, err := FileInfoFasterFunc(files.FileOptions{
+		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:   data.path,
 			Source: link.Source,
 			Modify: false,
@@ -361,4 +364,10 @@ func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, 
 func acceptsGzip(r *http.Request) bool {
 	ae := r.Header.Get("Accept-Encoding")
 	return ae != "" && strings.Contains(ae, "gzip")
+}
+
+func (w *ResponseWriterWrapper) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
 }

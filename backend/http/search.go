@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
 // searchHandler handles search requests for files based on the provided query.
@@ -52,7 +52,7 @@ import (
 // @Param query query string true "Search query"
 // @Param scope query string false "path within user scope to search, for example '/first/second' to search within the second directory only"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
-// @Success 200 {array} files.SearchResult "List of search results"
+// @Success 200 {array} indexing.SearchResult "List of search results"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Router /api/search [get]
 func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -69,7 +69,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	searchScope := strings.TrimPrefix(unencodedScope, ".")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
-	index := files.GetIndex(source)
+	index := indexing.GetIndex(source)
 	if index == nil {
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", source)
 	}
