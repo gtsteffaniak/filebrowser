@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strings"
 
 	storm "github.com/asdine/storm/v3"
 
@@ -72,6 +73,10 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		return err
 	}
 
+	if !slices.Contains(fields, "Password") {
+		user.Password = existingUser.Password
+	}
+
 	if !actorIsAdmin {
 		err := checkRestrictedFields(existingUser, fields)
 		if err != nil {
@@ -109,7 +114,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		// Get the value to be stored
 		val := fieldValue.Interface()
 		// Update the database
-		if err := st.db.UpdateField(user, field, val); err != nil {
+		if err := st.db.UpdateField(existingUser, field, val); err != nil {
 			return fmt.Errorf("failed to update user field: %s, error: %v", field, err)
 		}
 	}
@@ -193,34 +198,35 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 		// Dynamically populate fields to update
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
-			if (field.Name == "password" && user.Password != "") || field.Name != "password" {
+			// which=all can't update password
+			if strings.ToLower(field.Name) != "password" && strings.ToLower(field.Name) != "id" && strings.ToLower(field.Name) != "username" {
 				fields = append(fields, field.Name)
 			}
 		}
 	}
 	newfields := []string{}
 	for _, field := range fields {
-		newfields = append(newfields, utils.CapitalizeFirst(field))
-	}
-	if slices.Contains(newfields, "Password") && user.Password != "" {
-		if settings.Config.Auth.Methods.PasswordAuth.Enabled {
-			pass, err := users.HashPwd(user.Password)
-			if err != nil {
-				return newfields, err
+		capitalField := utils.CapitalizeFirst(field)
+		if capitalField == "Scopes" {
+			newScopes, err := settings.ConvertToBackendScopes(user.Scopes)
+			if err == nil {
+				user.Scopes = newScopes
 			}
-			user.Password = pass
+			err = files.MakeUserDirs(user)
+			if err != nil {
+				logger.Error(err.Error())
+			}
 		}
+		if capitalField == "Password" {
+			value, err := users.HashPwd(user.Password)
+			if err != nil {
+				logger.Error(err.Error())
+			}
+			user.Password = value
+		}
+		newfields = append(newfields, capitalField)
 	}
-	if slices.Contains(newfields, "Scopes") {
-		newScopes, err := settings.ConvertToBackendScopes(user.Scopes)
-		if err == nil {
-			user.Scopes = newScopes
-		}
-		err = files.MakeUserDirs(user)
-		if err != nil {
-			logger.Error(err.Error())
-		}
-	}
+
 	return newfields, nil
 }
 

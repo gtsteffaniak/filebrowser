@@ -13,7 +13,6 @@ import (
 // todo fix this!!
 // MakeUserDir makes the user directory according to settings.
 func MakeUserDir(fullPath string) error {
-	logger.Debug(fmt.Sprintf("creating user home dir: [%s]", fullPath))
 	if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
 		return err
 	}
