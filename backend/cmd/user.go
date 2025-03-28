@@ -15,6 +15,13 @@ func validateUserInfo() {
 		logger.Fatal(fmt.Sprintf("could not load users: %v", err))
 	}
 	for _, user := range usersList {
+		if user.Username == "publicUser" {
+			settings.ApplyUserDefaults(user)
+			err := store.Users.Save(user, false)
+			if err != nil {
+				logger.Error(fmt.Sprintf("could not update user: %v", err))
+			}
+		}
 		updateUserScopes(user)
 	}
 }

@@ -72,6 +72,10 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		return err
 	}
 
+	if !slices.Contains(fields, "Password") {
+		user.Password = existingUser.Password
+	}
+
 	if !actorIsAdmin {
 		err := checkRestrictedFields(existingUser, fields)
 		if err != nil {
@@ -109,7 +113,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		// Get the value to be stored
 		val := fieldValue.Interface()
 		// Update the database
-		if err := st.db.UpdateField(user, field, val); err != nil {
+		if err := st.db.UpdateField(existingUser, field, val); err != nil {
 			return fmt.Errorf("failed to update user field: %s, error: %v", field, err)
 		}
 	}
