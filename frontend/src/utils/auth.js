@@ -7,7 +7,6 @@ import { recaptcha, loginPage, disableUsedPercentage } from "@/utils/constants";
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
   mutations.setJWT(token);
-  mutations.setSession(generateRandomCode(8));
 }
 
 export async function validateLogin() {
@@ -65,7 +64,7 @@ export async function renew(jwt) {
   }
 }
 
-function generateRandomCode(length) {
+export function generateRandomCode(length) {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let code = '';
   for (let i = 0; i < length; i++) {

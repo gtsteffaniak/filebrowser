@@ -147,8 +147,6 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      realtime:
-        type: boolean
       scope:
         description: deprecated
         type: string
@@ -216,6 +214,8 @@ definitions:
         type: boolean
       modify:
         type: boolean
+      realtime:
+        type: boolean
       share:
         type: boolean
     type: object
@@ -260,8 +260,6 @@ definitions:
       perm:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
-        type: boolean
-      realtime:
         type: boolean
       scope:
         type: string

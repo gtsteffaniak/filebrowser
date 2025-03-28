@@ -164,6 +164,5 @@ type UserDefaults struct {
 	ThemeColor           string              `json:"themeColor"`
 	QuickDownload        bool                `json:"quickDownload"`
 	DisableOnlyOfficeExt string              `json:"disableOnlyOfficeExt"`
-	Realtime             bool                `json:"realtime"`
 	DefaultScopes        []users.SourceScope `json:"-"`
 }

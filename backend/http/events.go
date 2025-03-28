@@ -14,8 +14,9 @@ type messenger struct {
 	writer  io.Writer
 }
 
+// expects message with double quotes around string
 func (msgr messenger) sendEvent(eventType, message string) error {
-	_, err := fmt.Fprintf(msgr.writer, "data: {\"eventType\":\"%s\",\"message\":\"%s\"}\n\n", eventType, message)
+	_, err := fmt.Fprintf(msgr.writer, "data: {\"eventType\":\"%s\",\"message\":%s}\n\n", eventType, message)
 	if err != nil {
 		return err
 	}
@@ -25,7 +26,7 @@ func (msgr messenger) sendEvent(eventType, message string) error {
 
 // Handle SSE connection
 func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Realtime {
+	if !d.user.Perm.Realtime {
 		return http.StatusForbidden, fmt.Errorf("realtime is disabled for this user")
 	}
 	// Set headers for SSE
@@ -46,14 +47,14 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 
 	// Listen for messages and client disconnection
 	clientGone := r.Context().Done()
-	err := msgr.sendEvent("acknowledge", "connection established")
+	err := msgr.sendEvent("acknowledge", "\"connection established\"")
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error sending message: %v, user: %s, SessionId: %s", err, username, sessionId)
 	}
 	for {
 		select {
 		case <-d.ctx.Done():
-			err := msgr.sendEvent("notification", "server is shutting down, terminating connection.")
+			err := msgr.sendEvent("notification", "\"server is shutting down, terminating connection.\"")
 			if err != nil {
 				return http.StatusInternalServerError, fmt.Errorf("error sending message: %v, user: %s, SessionId: %s", err, username, sessionId)
 			}

@@ -17,26 +17,29 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
-type Index struct {
-	// expose to json
-	NumDirs                    uint64        `json:"numDirs"`
-	NumFiles                   uint64        `json:"numFiles"`
-	NumDeleted                 uint64        `json:"numDeleted"`
-	FilesChangedDuringIndexing bool          `json:"filesChangedDuringIndexing"`
-	CurrentSchedule            int           `json:"currentSchedule"`
-	Assessment                 string        `json:"assessment"`
-	IndexingTime               int           `json:"indexingTime"`
-	LastIndexed                time.Time     `json:"lastIndexed"`
-	SmartModifier              time.Duration `json:"smartModifier"`
-	Used                       int64         `json:"used"`
-	Total                      int64         `json:"total"`
-	Status                     string        `json:"status"`
+// reduced index is json exposed to the client
+type ReducedIndex struct {
+	DiskUsed      int64     `json:"used"`
+	DiskTotal     int64     `json:"total"`
+	Status        string    `json:"status"`
+	NumDirs       uint64    `json:"numDirs"`
+	NumFiles      uint64    `json:"numFiles"`
+	NumDeleted    uint64    `json:"numDeleted"`
+	LastIndexed   time.Time `json:"lastIndexed"`
+	QuickScanTime int       `json:"quickScanDurationSeconds"`
+	FullScanTime  int       `json:"fullScanDurationSeconds"`
+	Assessment    string    `json:"assessment"`
+}
 
-	// not exposed to json
-	settings.Source     `json:"-"`
-	Directories         map[string]*iteminfo.FileInfo `json:"-"`
-	mu                  sync.RWMutex                  `json:"-"`
-	runningScannerCount int                           `json:"-"`
+type Index struct {
+	ReducedIndex
+	CurrentSchedule            int `json:"-"`
+	settings.Source            `json:"-"`
+	Directories                map[string]*iteminfo.FileInfo `json:"-"`
+	mu                         sync.RWMutex                  `json:"-"`
+	runningScannerCount        int                           `json:"-"`
+	SmartModifier              time.Duration                 `json:"-"`
+	FilesChangedDuringIndexing bool                          `json:"-"`
 }
 
 var (
@@ -53,7 +56,9 @@ func Initialize(source settings.Source) {
 	newIndex := Index{
 		Source:      source,
 		Directories: make(map[string]*iteminfo.FileInfo),
-		Status:      "indexing",
+	}
+	newIndex.ReducedIndex = ReducedIndex{
+		Status: "indexing",
 	}
 	indexes[newIndex.Source.Name] = &newIndex
 	indexesMutex.Unlock()
@@ -362,7 +367,7 @@ func SetUsage(source string, usage DiskUsage) {
 	if idx, ok := indexes[source]; ok {
 		idx.mu.Lock()
 		defer idx.mu.Unlock()
-		idx.Used = int64(usage.Used)
-		idx.Total = int64(usage.Total)
+		idx.ReducedIndex.DiskUsed = int64(usage.Used)
+		idx.ReducedIndex.DiskTotal = int64(usage.Total)
 	}
 }

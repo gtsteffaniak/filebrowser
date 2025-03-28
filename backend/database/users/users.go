@@ -23,10 +23,11 @@ type AuthToken struct {
 }
 
 type Permissions struct {
-	Api    bool `json:"api"`
-	Admin  bool `json:"admin"`
-	Modify bool `json:"modify"`
-	Share  bool `json:"share"`
+	Api      bool `json:"api"`
+	Admin    bool `json:"admin"`
+	Modify   bool `json:"modify"`
+	Share    bool `json:"share"`
+	Realtime bool `json:"realtime"`
 }
 
 // SortingSettings represents the sorting settings.
@@ -46,7 +47,6 @@ type User struct {
 	Scope           string               `json:"scope,omitempty"`
 	LockPassword    bool                 `json:"lockPassword"`
 	Perm            Permissions          `json:"perm"`
-	Realtime        bool                 `json:"realtime"`
 	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"`
 }
 
@@ -77,12 +77,7 @@ var PublicUser = User{
 	},
 	Username:     "publicUser", // temp user not registered
 	LockPassword: true,
-	Perm: Permissions{
-		Modify: false,
-		Share:  false,
-		Admin:  false,
-		Api:    false,
-	},
+	Perm:         Permissions{},
 }
 
 func CleanUsername(s string) string {

@@ -1774,9 +1774,6 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "realtime": {
-                    "type": "boolean"
-                },
                 "scope": {
                     "description": "deprecated",
                     "type": "string"
@@ -1874,6 +1871,9 @@ const docTemplate = `{
                 "modify": {
                     "type": "boolean"
                 },
+                "realtime": {
+                    "type": "boolean"
+                },
                 "share": {
                     "type": "boolean"
                 }
@@ -1941,9 +1941,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "quickDownload": {
-                    "type": "boolean"
-                },
-                "realtime": {
                     "type": "boolean"
                 },
                 "scope": {

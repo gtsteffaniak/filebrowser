@@ -108,6 +108,13 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 
 		// Get the value to be stored
 		val := fieldValue.Interface()
+		var err error
+		if settings.Config.Auth.Methods.PasswordAuth.Enabled && field == "Password" {
+			val, err = users.HashPwd(user.Password)
+			if err != nil {
+				logger.Error(err.Error())
+			}
+		}
 		// Update the database
 		if err := st.db.UpdateField(user, field, val); err != nil {
 			return fmt.Errorf("failed to update user field: %s, error: %v", field, err)
@@ -117,6 +124,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 }
 
 func (st usersBackend) Save(user *users.User, changePass bool) error {
+	logger.Debug(fmt.Sprintf("Saving user: %s", user.Username))
 	if settings.Config.Auth.Methods.PasswordAuth.Enabled && changePass {
 		err := checkPassword(user.Password)
 		if err != nil {
@@ -201,15 +209,6 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 	newfields := []string{}
 	for _, field := range fields {
 		newfields = append(newfields, utils.CapitalizeFirst(field))
-	}
-	if slices.Contains(newfields, "Password") && user.Password != "" {
-		if settings.Config.Auth.Methods.PasswordAuth.Enabled {
-			pass, err := users.HashPwd(user.Password)
-			if err != nil {
-				return newfields, err
-			}
-			user.Password = pass
-		}
 	}
 	if slices.Contains(newfields, "Scopes") {
 		newScopes, err := settings.ConvertToBackendScopes(user.Scopes)

@@ -1763,9 +1763,6 @@
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "realtime": {
-                    "type": "boolean"
-                },
                 "scope": {
                     "description": "deprecated",
                     "type": "string"
@@ -1863,6 +1860,9 @@
                 "modify": {
                     "type": "boolean"
                 },
+                "realtime": {
+                    "type": "boolean"
+                },
                 "share": {
                     "type": "boolean"
                 }
@@ -1930,9 +1930,6 @@
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "quickDownload": {
-                    "type": "boolean"
-                },
-                "realtime": {
                     "type": "boolean"
                 },
                 "scope": {

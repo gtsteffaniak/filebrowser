@@ -43,7 +43,6 @@ func (idx *Index) newScanner(origin string) {
 		} else {
 			idx.RunIndexing(origin, true) // Quick scan
 		}
-		idx.PostScan()
 		idx.UpdateSchedule()
 	}
 }
@@ -109,7 +108,6 @@ func SendSourceUpdateEvent() {
 
 func (idx *Index) RunIndexing(origin string, quick bool) {
 	idx.PreScan()
-	fmt.Println("RunIndexing1: ", idx.runningScannerCount)
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
@@ -129,15 +127,18 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	firstRun := idx.LastIndexed == time.Time{}
 	// Update the LastIndexed time
 	idx.LastIndexed = time.Now()
-	idx.IndexingTime = int(time.Since(startTime).Seconds())
-	if !quick {
+	if quick {
+		idx.QuickScanTime = int(time.Since(startTime).Seconds())
+		logger.Debug(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.QuickScanTime))
+	} else {
+		idx.FullScanTime = int(time.Since(startTime).Seconds())
 		// update smart indexing
-		if idx.IndexingTime < 3 || idx.NumDirs < 10000 {
+		if idx.FullScanTime < 3 || idx.NumDirs < 10000 {
 			idx.Assessment = "simple"
 			idx.SmartModifier = 4 * time.Minute
-		} else if idx.IndexingTime > 120 || idx.NumDirs > 500000 {
+		} else if idx.FullScanTime > 120 || idx.NumDirs > 500000 {
 			idx.Assessment = "complex"
-			modifier := idx.IndexingTime / 10 // seconds
+			modifier := idx.FullScanTime / 10 // seconds
 			idx.SmartModifier = time.Duration(modifier) * time.Minute
 		} else {
 			idx.Assessment = "normal"
@@ -150,12 +151,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		if idx.NumDirs != prevNumDirs || idx.NumFiles != prevNumFiles {
 			idx.FilesChangedDuringIndexing = true
 		}
+		logger.Debug(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.FullScanTime))
 	}
-	if firstRun {
-		logger.Info(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.IndexingTime))
-	} else {
-		logger.Debug(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.IndexingTime))
-	}
+
 	idx.PostScan()
 }
 

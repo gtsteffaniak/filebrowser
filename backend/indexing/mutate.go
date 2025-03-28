@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/shirou/gopsutil/v3/disk"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
@@ -84,8 +87,29 @@ func GetIndex(name string) *Index {
 	return index
 }
 
-func GetIndexesInfo() map[string]*Index {
+func GetIndexesInfo() map[string]ReducedIndex {
+	// update usage if needed
+	for _, source := range settings.Config.Server.Sources {
+		cacheKey := "usageCache-" + source.Name
+		_, ok := cache.DiskUsage.Get(cacheKey).(bool)
+		if !ok {
+			usage, err := disk.Usage(source.Path)
+			if err != nil {
+				logger.Error(fmt.Sprintf("error getting disk usage for %s: %v", source.Path, err))
+			}
+			latestUsage := DiskUsage{
+				Total: usage.Total,
+				Used:  usage.Used,
+			}
+			SetUsage(source.Name, latestUsage)
+			cache.DiskUsage.Set(cacheKey, true)
+		}
+	}
 	indexesMutex.RLock()
 	defer indexesMutex.RUnlock()
-	return indexes
+	reducedIndexes := make(map[string]ReducedIndex)
+	for k, v := range indexes {
+		reducedIndexes[k] = v.ReducedIndex
+	}
+	return reducedIndexes
 }

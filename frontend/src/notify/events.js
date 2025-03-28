@@ -1,18 +1,20 @@
-import { mutations,getters } from "@/store";
+import { mutations,getters,state } from "@/store";
 
 export async function startSSE() {
     if (!getters.isLoggedIn()) {
-        console.log("Not logged in, not starting SSE.");
         return;
     }
-    localStorage.getItem("sessionId");
-    const eventSrc = new EventSource(`/api/events?sessionId=`);
+    if (!state.user.perm.realtime) {
+        return;
+    }
+    const eventSrc = new EventSource(`/api/events?sessionId=${state.sessionId}`);
 
     eventSrc.onopen = () => {
         console.log("SSE connection established.");
     };
 
     eventSrc.onerror = (err) => {
+        mutations.updateSourceInfo("error");
         console.log("SSE error:", err);
     };
 
@@ -22,7 +24,7 @@ export async function startSSE() {
             eventRouter(msg.eventType,msg.message);
             console.log("Received event:", msg);
         } catch (err) {
-            console.log("Error parsing event data:", err);
+            console.log("Error parsing event data:", err,event.data);
         }
     };
 }
@@ -30,8 +32,11 @@ export async function startSSE() {
 
 async function eventRouter(eventType,message) {
     switch (eventType) {
-        case "sources":
-            mutations.updateSourcesStatus(message);
+        case "sourceUpdate":
+            mutations.updateSourceInfo(message);
+            break
+        case "acknowledge":
+            mutations.setRealtimeActive(message);
             break
         default:
             console.log("something happened but don't know what", message);

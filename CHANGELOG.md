@@ -8,11 +8,11 @@ All notable changes to this project will be documented in this file. For commit 
     #- New authentication methods:
     - Enhanced source info on the UI
     - Added "realtime" events mechanism
-      - User must have `realtime: true` property to get realtime events.
-      - Sources shows status of the directory `ok`, `indexing`, and `unavailable`
+      - User must have permission `realtime: true` property to get realtime events.
+      - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
 
   **Notes**:
-    -
+    - sesssionId is now unique per window. Previously it was shared accross browser tabs.
 
   **Bug Fixes**:
     -

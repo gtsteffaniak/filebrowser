@@ -7,10 +7,6 @@
 </template>
 
 <script>
-import { notify, events } from "@/notify";
-
-events.startSSE();
-
 export default {
   name: "notifications",
   data: function () {

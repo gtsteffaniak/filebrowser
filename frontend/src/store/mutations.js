@@ -19,19 +19,26 @@ export const mutations = {
     emitStateChanged();
   },
   updateSourceInfo: (value) => {
-    console.log("updateSourceInfo", value);
-    for (const k of Object.keys(value)) {
-      console.log("updateSourceInfo", k, value[k]);
-      const source = value[k];
-      if (state.sources.info[k]) {
-        state.sources.info[k].used = getHumanReadableFilesize(source.used);
-        state.sources.info[k].total = getHumanReadableFilesize(source.total);
-        state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
-        state.sources.info[k].status = source.status;
+    if (value == "error") {
+      state.realtimeActive = false;
+      for (const k of Object.keys(state.sources.info)) {
+        state.sources.info[k].status = "error";
+      }
+    } else {
+      for (const k of Object.keys(value)) {
+        const source = value[k];
+        if (state.sources.info[k]) {
+          state.sources.info[k].used = getHumanReadableFilesize(source.used);
+          state.sources.info[k].total = getHumanReadableFilesize(source.total);
+          state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
+          state.sources.info[k].status = source.status;
+        }
       }
     }
-    console.log("updateSourceInfo", state.sources.info);
     emitStateChanged();
+  },
+  setRealtimeActive: () => {
+    state.realtimeActive = true;
   },
   setSources: (user) => {
     state.serverHasMultipleSources = serverHasMultipleSources;
@@ -171,7 +178,6 @@ export const mutations = {
   },
   setSession: (value) => {
     state.sessionId = value;
-    localStorage.setItem("sessionId", value);
     emitStateChanged();
   },
   setMultiple: (value) => {
