@@ -109,8 +109,7 @@ export default {
           await usersApi.create(this.user); // Use the computed property
           this.$router.push({ path: "/settings", hash: "#users-main" });
         } else {
-          let which = ["all"];
-          await usersApi.update(this.user, which);
+          await usersApi.update(this.user, ["all"]);
           if (this.updatePassword) {
             await usersApi.update(this.user, ["password"]);
           }

@@ -323,3 +323,15 @@ func GetScopeFromSourcePath(scopes []users.SourceScope, sourcePath string) (stri
 	}
 	return "", fmt.Errorf("scope not found for source %v", sourcePath)
 }
+
+// assumes backend style scopes
+func GetSources(u *users.User) []string {
+	sources := []string{}
+	for _, scope := range u.Scopes {
+		source, ok := Config.Server.SourceMap[scope.Name]
+		if ok {
+			sources = append(sources, source.Name)
+		}
+	}
+	return sources
+}

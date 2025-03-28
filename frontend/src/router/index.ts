@@ -140,7 +140,11 @@ router.beforeResolve(async (to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
 
     if (state != null && state.user != null && !state.user.username) {
-      await validateLogin();
+      try {
+        await validateLogin();
+      } catch (error) {
+        console.error("Error validating login");
+      }
     }
     if (!getters.isLoggedIn()) {
       next({

@@ -1,12 +1,7 @@
 import { mutations,getters,state } from "@/store";
 
 export async function startSSE() {
-    if (!getters.isLoggedIn()) {
-        return;
-    }
-    if (!state.user.perm.realtime) {
-        return;
-    }
+
     const eventSrc = new EventSource(`/api/events?sessionId=${state.sessionId}`);
 
     eventSrc.onopen = () => {

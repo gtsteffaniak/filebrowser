@@ -52,7 +52,7 @@ func (idx *Index) PreScan() {
 	idx.runningScannerCount++
 	idx.Status = "indexing"
 	idx.mu.Unlock()
-	SendSourceUpdateEvent()
+	idx.SendSourceUpdateEvent()
 }
 
 func (idx *Index) PostScan() {
@@ -62,7 +62,7 @@ func (idx *Index) PostScan() {
 		idx.Status = "ready"
 	}
 	idx.mu.Unlock()
-	SendSourceUpdateEvent()
+	idx.SendSourceUpdateEvent()
 }
 
 func (idx *Index) UpdateSchedule() {
@@ -92,8 +92,8 @@ func (idx *Index) UpdateSchedule() {
 	}
 }
 
-func SendSourceUpdateEvent() {
-	message, err := json.Marshal(GetIndexesInfo())
+func (idx *Index) SendSourceUpdateEvent() {
+	message, err := json.Marshal(GetIndexesInfo(idx.Name))
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error marshalling source update message: %v", err))
 		return

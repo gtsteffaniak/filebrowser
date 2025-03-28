@@ -9,7 +9,7 @@ test("redirect to login from root", async ({ page, context }) => {
 
 test("redirect to login from files", async ({ page, context }) => {
   await context.clearCookies();
-  await page.goto("/files/files/");
+  await page.goto("/files/");
   await expect(page).toHaveURL(/\/login\?redirect=\/files\//);
 });
 

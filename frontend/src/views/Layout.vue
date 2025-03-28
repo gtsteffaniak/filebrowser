@@ -42,6 +42,7 @@ import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import Notifications from "@/components/Notifications.vue";
 
+import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
@@ -73,7 +74,7 @@ export default {
     if (!state.sessionId) {
       mutations.setSession(generateRandomCode(8));
     }
-    events.startSSE();
+    this.updateSourceInfo();
   },
   computed: {
     showPadding() {
@@ -125,6 +126,14 @@ export default {
     },
   },
   methods: {
+    async updateSourceInfo() {
+      if (getters.isLoggedIn() && state.user.perm.realtime) {
+        events.startSSE();
+      } else {
+        const sourceinfo = await filesApi.sources();
+        mutations.updateSourceInfo(sourceinfo);
+      }
+    },
     updateIsMobile() {
       mutations.setMobile();
     },
