@@ -10,18 +10,10 @@ export async function setNewToken(token) {
 }
 
 export async function validateLogin() {
-  try {
-    let userInfo = await usersApi.get("self");
-    mutations.setCurrentUser(userInfo);
-  } catch (error) {
-    console.log("Error validating login");
-  }
-  if (!disableUsedPercentage) {
-    const sourcedata = await filesApi.sources();
-    mutations.updateSourceInfo(sourcedata);
-  }
-
-  return getters.isLoggedIn()
+  let userInfo = await usersApi.get("self");
+  mutations.setCurrentUser(userInfo);
+  getters.isLoggedIn()
+  return
 }
 
 export async function login(username, password, recaptcha) {
