@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.6.4-beta
+
+ **BugFixes**:
+ - fix preview arow issue. https://github.com/gtsteffaniak/filebrowser/issues/457
+ - fix password change issue.
+ - apply user defaults to publi user on startup https://github.com/gtsteffaniak/filebrowser/issues/451
+
 ## v0.6.3-beta
 
  **Notes**:

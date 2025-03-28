@@ -87,6 +87,7 @@ import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
+import { getTypeInfo } from "@/utils/mimetype";
 
 export default {
   name: "preview",
