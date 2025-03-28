@@ -1,35 +1,19 @@
-import { mutations, getters, state } from "@/store";
+import { mutations, getters } from "@/store";
 import router from "@/router";
-import { usersApi,filesApi } from "@/api";
+import { usersApi } from "@/api";
 import { getApiPath } from "@/utils/url.js";
-import { recaptcha, loginPage, disableUsedPercentage } from "@/utils/constants";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { recaptcha, loginPage } from "@/utils/constants";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
   mutations.setJWT(token);
-  mutations.setSession(generateRandomCode(8));
 }
 
 export async function validateLogin() {
-  try {
-    let userInfo = await usersApi.get("self");
-    mutations.setCurrentUser(userInfo);
-  } catch (error) {
-    console.log("Error validating login");
-  }
-  if (!disableUsedPercentage) {
-    for (const source of Object.keys(state.sources.info)) {
-      let usage = await filesApi.usage(source);
-      let sourceInfo = state.sources.info[source];
-      sourceInfo.used = getHumanReadableFilesize(usage.used);
-      sourceInfo.total = getHumanReadableFilesize(usage.total);
-      sourceInfo.usedPercentage = Math.round((usage.used / usage.total) * 100);
-      mutations.updateSource(source, sourceInfo);
-    }
-  }
-
-  return getters.isLoggedIn()
+  let userInfo = await usersApi.get("self");
+  mutations.setCurrentUser(userInfo);
+  getters.isLoggedIn()
+  return
 }
 
 export async function login(username, password, recaptcha) {
@@ -72,7 +56,7 @@ export async function renew(jwt) {
   }
 }
 
-function generateRandomCode(length) {
+export function generateRandomCode(length) {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let code = '';
   for (let i = 0; i < length; i++) {

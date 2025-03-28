@@ -8,15 +8,15 @@ import (
 	"time"
 
 	storm "github.com/asdine/storm/v3"
-	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/img"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/share"
-	"github.com/gtsteffaniak/filebrowser/backend/storage"
-	"github.com/gtsteffaniak/filebrowser/backend/storage/bolt"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
 )
 
 func setupTestEnv(t *testing.T) {
@@ -48,11 +48,11 @@ func mockFileInfoFaster(t *testing.T) {
 	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
 
 	// Mock the function to skip execution
-	FileInfoFasterFunc = func(opts files.FileOptions) (files.ExtendedFileInfo, error) {
-		return files.ExtendedFileInfo{
-			FileInfo: files.FileInfo{
+	FileInfoFasterFunc = func(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error) {
+		return iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{
 				Path: opts.Path,
-				ItemInfo: files.ItemInfo{
+				ItemInfo: iteminfo.ItemInfo{
 					Name: "mocked_file",
 					Size: 12345,
 				},

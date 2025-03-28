@@ -5,6 +5,7 @@ import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export const mutations = {
   setCurrentSource: (value) => {
@@ -16,6 +17,28 @@ export const mutations = {
       state.sources.info[sourcename] = value;
     }
     emitStateChanged();
+  },
+  updateSourceInfo: (value) => {
+    if (value == "error") {
+      state.realtimeActive = false;
+      for (const k of Object.keys(state.sources.info)) {
+        state.sources.info[k].status = "error";
+      }
+    } else {
+      for (const k of Object.keys(value)) {
+        const source = value[k];
+        if (state.sources.info[k]) {
+          state.sources.info[k].used = getHumanReadableFilesize(source.used);
+          state.sources.info[k].total = getHumanReadableFilesize(source.total);
+          state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
+          state.sources.info[k].status = source.status;
+        }
+      }
+    }
+    emitStateChanged();
+  },
+  setRealtimeActive: () => {
+    state.realtimeActive = true;
   },
   setSources: (user) => {
     state.serverHasMultipleSources = serverHasMultipleSources;
@@ -155,7 +178,6 @@ export const mutations = {
   },
   setSession: (value) => {
     state.sessionId = value;
-    localStorage.setItem("sessionId", value);
     emitStateChanged();
   },
   setMultiple: (value) => {

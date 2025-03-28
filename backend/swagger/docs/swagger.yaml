@@ -1,62 +1,4 @@
 definitions:
-  files.FileInfo:
-    properties:
-      files:
-        description: files in the directory
-        items:
-          $ref: '#/definitions/files.ItemInfo'
-        type: array
-      folders:
-        description: folders in the directory
-        items:
-          $ref: '#/definitions/files.ItemInfo'
-        type: array
-      hidden:
-        description: whether the file is hidden
-        type: boolean
-      modified:
-        description: modification time
-        type: string
-      name:
-        description: name of the file
-        type: string
-      path:
-        description: path scoped to the associated index
-        type: string
-      size:
-        description: length in bytes for regular files
-        type: integer
-      type:
-        description: type of the file, either "directory" or a file mimetype
-        type: string
-    type: object
-  files.ItemInfo:
-    properties:
-      hidden:
-        description: whether the file is hidden
-        type: boolean
-      modified:
-        description: modification time
-        type: string
-      name:
-        description: name of the file
-        type: string
-      size:
-        description: length in bytes for regular files
-        type: integer
-      type:
-        description: type of the file, either "directory" or a file mimetype
-        type: string
-    type: object
-  files.SearchResult:
-    properties:
-      path:
-        type: string
-      size:
-        type: integer
-      type:
-        type: string
-    type: object
   http.AuthTokenMin:
     properties:
       Permissions:
@@ -69,13 +11,6 @@ definitions:
         type: string
       name:
         type: string
-    type: object
-  http.DiskUsageResponse:
-    properties:
-      total:
-        type: integer
-      used:
-        type: integer
     type: object
   http.HttpResponse:
     properties:
@@ -104,6 +39,64 @@ definitions:
       password:
         type: string
       username:
+        type: string
+    type: object
+  indexing.SearchResult:
+    properties:
+      path:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+    type: object
+  iteminfo.FileInfo:
+    properties:
+      files:
+        description: files in the directory
+        items:
+          $ref: '#/definitions/iteminfo.ItemInfo'
+        type: array
+      folders:
+        description: folders in the directory
+        items:
+          $ref: '#/definitions/iteminfo.ItemInfo'
+        type: array
+      hidden:
+        description: whether the file is hidden
+        type: boolean
+      modified:
+        description: modification time
+        type: string
+      name:
+        description: name of the file
+        type: string
+      path:
+        description: path scoped to the associated index
+        type: string
+      size:
+        description: length in bytes for regular files
+        type: integer
+      type:
+        description: type of the file, either "directory" or a file mimetype
+        type: string
+    type: object
+  iteminfo.ItemInfo:
+    properties:
+      hidden:
+        description: whether the file is hidden
+        type: boolean
+      modified:
+        description: modification time
+        type: string
+      name:
+        description: name of the file
+        type: string
+      size:
+        description: length in bytes for regular files
+        type: integer
+      type:
+        description: type of the file, either "directory" or a file mimetype
         type: string
     type: object
   settings.ExternalLink:
@@ -220,6 +213,8 @@ definitions:
       api:
         type: boolean
       modify:
+        type: boolean
+      realtime:
         type: boolean
       share:
         type: boolean
@@ -656,7 +651,7 @@ paths:
         "200":
           description: Resource metadata
           schema:
-            $ref: '#/definitions/files.FileInfo'
+            $ref: '#/definitions/iteminfo.FileInfo'
         "404":
           description: Resource not found
           schema:
@@ -677,14 +672,10 @@ paths:
       - application/json
       description: Moves or renames a resource to a new destination.
       parameters:
-      - description: Path from resource
+      - description: Path from resource in <source_name>::<index_path> format
         in: query
         name: from
         required: true
-        type: string
-      - description: Source name for the desired source, default is used if not provided
-        in: query
-        name: source
         type: string
       - description: Destination path for the resource
         in: query
@@ -869,7 +860,7 @@ paths:
           description: List of search results
           schema:
             items:
-              $ref: '#/definitions/files.SearchResult'
+              $ref: '#/definitions/indexing.SearchResult'
             type: array
         "400":
           description: Bad Request
@@ -1114,38 +1105,6 @@ paths:
       summary: User signup
       tags:
       - Auth
-  /api/usage:
-    get:
-      consumes:
-      - application/json
-      description: Returns the total and used disk space for a specified directory.
-      parameters:
-      - description: Source name for the desired source, default is used if not provided
-        in: query
-        name: source
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Disk usage details
-          schema:
-            $ref: '#/definitions/http.DiskUsageResponse'
-        "404":
-          description: Directory not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get disk usage
-      tags:
-      - Resources
   /api/users:
     post:
       consumes:

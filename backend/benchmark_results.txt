@@ -5,8 +5,8 @@
 ?   	github.com/gtsteffaniak/filebrowser/backend/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/backend/cmd	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/diskcache	0.005s
-?   	github.com/gtsteffaniak/filebrowser/backend/errors	[no test files]
+ok  	github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache	0.005s
+?   	github.com/gtsteffaniak/filebrowser/backend/common/errors	[no test files]
 /home/graham/git/filebrowser /home/graham/git/filebrowser
 /home/graham/git/filebrowser/files/file.go /home/graham/git/filebrowser
 /home/graham/git/filebrowser/mnt/doesnt/exist /home/graham/git/filebrowser
@@ -22,7 +22,7 @@ ok  	github.com/gtsteffaniak/filebrowser/backend/diskcache	0.005s
 2025/01/04 14:04:56 Next scan in 1m0s
 goos: linux
 goarch: amd64
-pkg: github.com/gtsteffaniak/filebrowser/backend/files
+pkg: github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
 BenchmarkFillIndex-8                     	2025/01/04 14:04:57 Initializing index and assessing file system complexity
 2025/01/04 14:04:57 Starting full scan
@@ -44,23 +44,23 @@ BenchmarkSearchAllIndexes-8              	2025/01/04 14:04:59 Initializing index
 2025/01/04 14:04:59 Next scan in 1m0s
       10	    766822 ns/op	   34230 B/op	     900 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/files	5.094s
+ok  	github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files	5.094s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/fileutils	0.002s
+ok  	github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils	0.002s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/backend/http	0.184s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/img	0.123s
+ok  	github.com/gtsteffaniak/filebrowser/backend/preview/img	0.123s
 PASS
 ok  	github.com/gtsteffaniak/filebrowser/backend/runner	0.004s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/settings	0.005s
-?   	github.com/gtsteffaniak/filebrowser/backend/share	[no test files]
-?   	github.com/gtsteffaniak/filebrowser/backend/storage	[no test files]
-?   	github.com/gtsteffaniak/filebrowser/backend/storage/bolt	[no test files]
+ok  	github.com/gtsteffaniak/filebrowser/backend/common/settings	0.005s
+?   	github.com/gtsteffaniak/filebrowser/backend/database/share	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/backend/database/storage	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/backend/swagger/docs	[no test files]
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/users	0.003s
+ok  	github.com/gtsteffaniak/filebrowser/backend/database/users	0.003s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/utils	0.002s
-?   	github.com/gtsteffaniak/filebrowser/backend/version	[no test files]
+ok  	github.com/gtsteffaniak/filebrowser/backend/common/utils	0.002s
+?   	github.com/gtsteffaniak/filebrowser/backend/common/version	[no test files]

@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 )
@@ -40,9 +40,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(files.ExtendedFileInfo)
+	file, ok := d.raw.(iteminfo.ExtendedFileInfo)
 	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type iteminfo.FileInfo")
 	}
 	file.Path = strings.TrimPrefix(file.Path, file.Source)
 	return renderJSON(w, r, file)

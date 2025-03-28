@@ -11,10 +11,10 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/storage"
-	"github.com/gtsteffaniak/filebrowser/backend/version"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/version"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
 )
@@ -93,7 +93,6 @@ func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage
 	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
 	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
 	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
-	api.HandleFunc("GET /usage", withUser(diskUsage))
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	api.HandleFunc("GET /preview", withUser(previewHandler))
 	if version.Version == "testing" || version.Version == "untracked" {
@@ -115,6 +114,15 @@ func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
 	api.HandleFunc("PUT /settings", withAdmin(settingsPutHandler))
+
+	// Events routes
+	api.HandleFunc("GET /events", withUser(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+		d.ctx = ctx // Pass the parent context to ensure proper shutdown
+		return sseHandler(w, r, d)
+	}))
+
+	// Job routes
+	api.HandleFunc("GET /job/{action}/{target}", withUser(getJobHandler))
 
 	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
 	api.HandleFunc("POST /onlyoffice/callback", withUser(onlyofficeCallbackHandler))

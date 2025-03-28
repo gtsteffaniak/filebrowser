@@ -11,11 +11,13 @@ import (
 	"strings"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/gtsteffaniak/filebrowser/backend/cache"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/cache"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 const (
@@ -62,7 +64,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileInfo, err := files.FileInfoFaster(files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Modify: d.user.Perm.Modify,
 		Source: source,
@@ -168,7 +170,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		}
 		defer doc.Body.Close()
 
-		fileOpts := files.FileOptions{
+		fileOpts := iteminfo.FileOptions{
 			Path:   path,
 			Source: source,
 		}
@@ -185,7 +187,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 }
 
 func getOnlyOfficeId(source, path string) (string, error) {
-	idx := files.GetIndex(source)
+	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return "", fmt.Errorf("source not found")
 	}
@@ -200,7 +202,7 @@ func getOnlyOfficeId(source, path string) (string, error) {
 }
 
 func deleteOfficeId(source, path string) {
-	idx := files.GetIndex(source)
+	idx := indexing.GetIndex(source)
 	if idx == nil {
 		logger.Error(fmt.Sprintf("deleteOfficeId: failed to find source index for user home dir creation: %s", source))
 		return

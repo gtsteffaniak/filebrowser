@@ -61,8 +61,22 @@
           :aria-label="$t('sidebar.myFiles')"
           :title="name"
         >
-          <i class="material-icons source-icon">folder</i>
-          <span>{{ name }}</span>
+          <div class="source-container">
+            <svg
+              v-if="!realtime"
+              class="realtime-pulse"
+              :class="{
+                danger: info.status != 'indexing' && info.status != 'ready',
+                warning: info.status == 'indexing',
+                ready: info.status == 'ready',
+              }"
+            >
+              <circle cx="50%" cy="50%" r="7px"></circle>
+              <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
+            </svg>
+            <i v-else class="material-icons source-icon">folder</i>
+            <span>{{ name }}</span>
+          </div>
           <div>
             <progress-bar
               :val="info.usedPercentage"
@@ -116,6 +130,7 @@ export default {
     route: () => state.route,
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,
+    realtime: () => state.user.realtime,
   },
   watch: {
     route() {
@@ -254,5 +269,57 @@ button.action {
 .logout-button,
 .person-button {
   padding: 0 !important;
+}
+
+.pulse {
+  fill: #21d721;
+  stroke: #21d721;
+  fill-opacity: 0;
+  transform-origin: 50% 50%;
+  animation: pulse 10s infinite backwards;
+}
+
+/* Trigger it once every 30 seconds using a visibility trick */
+@keyframes pulse {
+  from {
+    stroke-width: 3px;
+    stroke-opacity: 1;
+    transform: scale(0.3);
+  }
+  to {
+    stroke-width: 0;
+    stroke-opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+.source-container {
+  display: flex;
+  flex-direction: row;
+  color: var(--textPrimary);
+  align-content: center;
+  align-items: center;
+}
+
+.realtime-pulse {
+  width: 2em;
+  height: 2em;
+}
+
+.realtime-pulse.ready > circle {
+  fill: #21d721;
+}
+
+.realtime-pulse.danger > circle {
+  fill: rgb(235, 55, 55);
+}
+
+.realtime-pulse.warning > circle {
+  fill: rgb(255, 157, 0);
+}
+
+.realtime-pulse.danger .pulse,
+.realtime-pulse.warning .pulse {
+  display: none;
 }
 </style>

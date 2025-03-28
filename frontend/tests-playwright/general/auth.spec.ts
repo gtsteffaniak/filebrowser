@@ -1,11 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-test("redirect to login", async ({ page, context }) => {
+test("redirect to login from root", async ({ page, context }) => {
   await context.clearCookies();
-
   await page.goto("/");
   await expect(page).toHaveURL(/\/login/);
 
+});
+
+test("redirect to login from files", async ({ page, context }) => {
+  await context.clearCookies();
   await page.goto("/files/");
   await expect(page).toHaveURL(/\/login\?redirect=\/files\//);
 });

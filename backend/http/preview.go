@@ -11,11 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/img"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
 )
 
 type ImgService interface {
@@ -61,7 +63,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileInfo, err := files.FileInfoFaster(files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Modify: d.user.Perm.Modify,
 		Source: source,
@@ -108,7 +110,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	return 0, nil
 }
 
-func createPreview(imgSvc ImgService, fileCache FileCache, file files.ExtendedFileInfo, previewSize string) ([]byte, error) {
+func createPreview(imgSvc ImgService, fileCache FileCache, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
 	fd, err := os.Open(file.RealPath)
 	if err != nil {
 		return nil, err
@@ -140,7 +142,7 @@ func createPreview(imgSvc ImgService, fileCache FileCache, file files.ExtendedFi
 	}
 
 	go func() {
-		cacheKey := previewCacheKey(file.RealPath, previewSize, file.FileInfo.ModTime)
+		cacheKey := previewCacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 		if err := fileCache.Store(context.Background(), cacheKey, buf.Bytes()); err != nil {
 			logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
 		}
@@ -154,8 +156,8 @@ func previewCacheKey(realPath, previewSize string, modTime time.Time) string {
 	return fmt.Sprintf("%x%x%x", realPath, modTime.Unix(), previewSize)
 }
 
-func rawFileHandler(w http.ResponseWriter, r *http.Request, file files.ExtendedFileInfo) (int, error) {
-	idx := files.GetIndex(file.Source)
+func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
+	idx := indexing.GetIndex(file.Source)
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source not found: %s", file.Source)
 	}

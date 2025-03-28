@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.0-beta
+
+  **New Features**:
+    #- New authentication methods:
+    - Enhanced source info on the UI
+    - Added "realtime" events mechanism
+      - User must have permission `realtime: true` property to get realtime events.
+      - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
+
+  **Notes**:
+    - sesssionId is now unique per window. Previously it was shared accross browser tabs.
+    #- disableUsedPercentage is a backend property now.
+
+  **Bug Fixes**:
+    -
+
 ## v0.6.3-beta
 
  **Notes**:

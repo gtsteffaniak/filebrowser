@@ -42,8 +42,10 @@ import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import Notifications from "@/components/Notifications.vue";
 
-import { enableExec } from "@/utils/constants";
+import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
+import { events } from "@/notify";
+import { generateRandomCode } from "@/utils/auth";
 
 export default {
   name: "layout",
@@ -70,8 +72,9 @@ export default {
       document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
     }
     if (!state.sessionId) {
-      mutations.setSession(localStorage.getItem("sessionId"));
+      mutations.setSession(generateRandomCode(8));
     }
+    this.updateSourceInfo();
   },
   computed: {
     showPadding() {
@@ -107,9 +110,6 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
-    isExecEnabled() {
-      return enableExec;
-    },
     currentView() {
       return getters.currentView();
     },
@@ -126,6 +126,14 @@ export default {
     },
   },
   methods: {
+    async updateSourceInfo() {
+      if (getters.isLoggedIn() && state.user.perm.realtime) {
+        events.startSSE();
+      } else {
+        const sourceinfo = await filesApi.sources();
+        mutations.updateSourceInfo(sourceinfo);
+      }
+    },
     updateIsMobile() {
       mutations.setMobile();
     },
