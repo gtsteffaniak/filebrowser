@@ -85,7 +85,7 @@ func GetIndex(name string) *Index {
 }
 
 func GetIndexesInfo() map[string]*Index {
-	indexesMutex.Lock()
-	defer indexesMutex.Unlock()
+	indexesMutex.RLock()
+	defer indexesMutex.RUnlock()
 	return indexes
 }

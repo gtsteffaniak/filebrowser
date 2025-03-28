@@ -11,9 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/shirou/gopsutil/v3/disk"
-
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
@@ -408,51 +405,6 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
 	}
-}
-
-type DiskUsageResponse struct {
-	Total uint64 `json:"total"`
-	Used  uint64 `json:"used"`
-}
-
-// diskUsage returns the disk usage information for a given directory.
-// @Summary Get disk usage
-// @Description Returns the total and used disk space for a specified directory.
-// @Tags Resources
-// @Accept json
-// @Produce json
-// @Param source query string false "Source name for the desired source, default is used if not provided"
-// @Success 200 {object} DiskUsageResponse "Disk usage details"
-// @Failure 404 {object} map[string]string "Directory not found"
-// @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/usage [get]
-func diskUsage(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	sourceName := r.URL.Query().Get("source")
-	if sourceName == "" {
-		sourceName = config.Server.DefaultSource.Name
-	}
-	value, ok := cache.DiskUsage.Get(sourceName).(DiskUsageResponse)
-	if ok {
-		return renderJSON(w, r, &value)
-	}
-	source, ok := config.Server.NameToSource[sourceName]
-	if !ok {
-		return 403, fmt.Errorf("source '%s' either does not exist or user does not have permission to it", sourceName)
-	}
-	_, err := settings.GetScopeFromSourceName(d.user.Scopes, sourceName)
-	if err != nil {
-		return 403, fmt.Errorf("user doesn't have access to '%s', contact your administrator for access", sourceName)
-	}
-	usage, err := disk.UsageWithContext(r.Context(), source.Path)
-	if err != nil {
-		return errToStatus(err), err
-	}
-	latestUsage := DiskUsageResponse{
-		Total: usage.Total,
-		Used:  usage.Used,
-	}
-	cache.DiskUsage.Set(sourceName, latestUsage)
-	return renderJSON(w, r, &latestUsage)
 }
 
 func inspectIndex(w http.ResponseWriter, r *http.Request) {

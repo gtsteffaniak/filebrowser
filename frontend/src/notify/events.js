@@ -1,6 +1,10 @@
-import { mutations } from "@/store";
+import { mutations,getters } from "@/store";
 
 export async function startSSE() {
+    if (!getters.isLoggedIn()) {
+        console.log("Not logged in, not starting SSE.");
+        return;
+    }
     localStorage.getItem("sessionId");
     const eventSrc = new EventSource(`/api/events?sessionId=`);
 

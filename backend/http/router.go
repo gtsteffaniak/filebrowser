@@ -93,7 +93,6 @@ func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage
 	api.HandleFunc("POST /resources", withUser(resourcePostHandler))
 	api.HandleFunc("PUT /resources", withUser(resourcePutHandler))
 	api.HandleFunc("PATCH /resources", withUser(resourcePatchHandler))
-	api.HandleFunc("GET /usage", withUser(diskUsage))
 	api.HandleFunc("GET /raw", withUser(rawHandler))
 	api.HandleFunc("GET /preview", withUser(previewHandler))
 	if version.Version == "testing" || version.Version == "untracked" {

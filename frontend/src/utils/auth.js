@@ -1,9 +1,8 @@
-import { mutations, getters, state } from "@/store";
+import { mutations, getters } from "@/store";
 import router from "@/router";
 import { usersApi,filesApi } from "@/api";
 import { getApiPath } from "@/utils/url.js";
 import { recaptcha, loginPage, disableUsedPercentage } from "@/utils/constants";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
@@ -19,14 +18,8 @@ export async function validateLogin() {
     console.log("Error validating login");
   }
   if (!disableUsedPercentage) {
-    for (const source of Object.keys(state.sources.info)) {
-      let usage = await filesApi.usage(source);
-      let sourceInfo = state.sources.info[source];
-      sourceInfo.used = getHumanReadableFilesize(usage.used);
-      sourceInfo.total = getHumanReadableFilesize(usage.total);
-      sourceInfo.usedPercentage = Math.round((usage.used / usage.total) * 100);
-      mutations.updateSource(source, sourceInfo);
-    }
+    const sourcedata = await filesApi.sources();
+    mutations.updateSourceInfo(sourcedata);
   }
 
   return getters.isLoggedIn()

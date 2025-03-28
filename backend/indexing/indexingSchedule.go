@@ -37,7 +37,6 @@ func (idx *Index) newScanner(origin string) {
 		// Log and sleep before indexing
 		logger.Debug(fmt.Sprintf("Next scan in %v", sleepTime))
 		time.Sleep(sleepTime)
-		idx.PreScan()
 		if fullScanCounter == 5 {
 			idx.RunIndexing(origin, false) // Full scan
 			fullScanCounter = 0
@@ -50,9 +49,9 @@ func (idx *Index) newScanner(origin string) {
 }
 
 func (idx *Index) PreScan() {
-	idx.scannerMu.Lock()
 	idx.mu.Lock()
 	idx.runningScannerCount++
+	idx.Status = "indexing"
 	idx.mu.Unlock()
 	SendSourceUpdateEvent()
 }
@@ -60,8 +59,10 @@ func (idx *Index) PreScan() {
 func (idx *Index) PostScan() {
 	idx.mu.Lock()
 	idx.runningScannerCount--
+	if idx.runningScannerCount == 0 {
+		idx.Status = "ready"
+	}
 	idx.mu.Unlock()
-	idx.scannerMu.Unlock()
 	SendSourceUpdateEvent()
 }
 
@@ -107,6 +108,8 @@ func SendSourceUpdateEvent() {
 }
 
 func (idx *Index) RunIndexing(origin string, quick bool) {
+	idx.PreScan()
+	fmt.Println("RunIndexing1: ", idx.runningScannerCount)
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
@@ -153,6 +156,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	} else {
 		logger.Debug(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.IndexingTime))
 	}
+	idx.PostScan()
 }
 
 func (idx *Index) setupIndexingScanners() {

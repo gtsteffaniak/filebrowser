@@ -28,12 +28,15 @@ type Index struct {
 	IndexingTime               int           `json:"indexingTime"`
 	LastIndexed                time.Time     `json:"lastIndexed"`
 	SmartModifier              time.Duration `json:"smartModifier"`
+	Used                       int64         `json:"used"`
+	Total                      int64         `json:"total"`
+	Status                     string        `json:"status"`
+
 	// not exposed to json
 	settings.Source     `json:"-"`
 	Directories         map[string]*iteminfo.FileInfo `json:"-"`
 	mu                  sync.RWMutex                  `json:"-"`
 	runningScannerCount int                           `json:"-"`
-	scannerMu           sync.Mutex                    `json:"-"`
 }
 
 var (
@@ -50,6 +53,7 @@ func Initialize(source settings.Source) {
 	newIndex := Index{
 		Source:      source,
 		Directories: make(map[string]*iteminfo.FileInfo),
+		Status:      "indexing",
 	}
 	indexes[newIndex.Source.Name] = &newIndex
 	indexesMutex.Unlock()
@@ -345,4 +349,20 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) boo
 	}
 
 	return false
+}
+
+type DiskUsage struct {
+	Total uint64 `json:"total"`
+	Used  uint64 `json:"used"`
+}
+
+func SetUsage(source string, usage DiskUsage) {
+	indexesMutex.Lock()
+	defer indexesMutex.Unlock()
+	if idx, ok := indexes[source]; ok {
+		idx.mu.Lock()
+		defer idx.mu.Unlock()
+		idx.Used = int64(usage.Used)
+		idx.Total = int64(usage.Total)
+	}
 }

@@ -5,6 +5,7 @@ import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export const mutations = {
   setCurrentSource: (value) => {
@@ -18,14 +19,18 @@ export const mutations = {
     emitStateChanged();
   },
   updateSourceInfo: (value) => {
-    for (const source of value) {
-      if (state.sources.info[source.name]) {
-        source.used = getHumanReadableFilesize(usage.used);
-        source.total = getHumanReadableFilesize(usage.total);
-        source.usedPercentage = Math.round((usage.used / usage.total) * 100);
-        source.status = source.status;
+    console.log("updateSourceInfo", value);
+    for (const k of Object.keys(value)) {
+      console.log("updateSourceInfo", k, value[k]);
+      const source = value[k];
+      if (state.sources.info[k]) {
+        state.sources.info[k].used = getHumanReadableFilesize(source.used);
+        state.sources.info[k].total = getHumanReadableFilesize(source.total);
+        state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
+        state.sources.info[k].status = source.status;
       }
     }
+    console.log("updateSourceInfo", state.sources.info);
     emitStateChanged();
   },
   setSources: (user) => {

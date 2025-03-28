@@ -751,16 +751,10 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path from resource",
+                        "description": "Path from resource in \u003csource_name\u003e::\u003cindex_path\u003e format",
                         "name": "from",
                         "in": "query",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -1233,55 +1227,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/usage": {
-            "get": {
-                "description": "Returns the total and used disk space for a specified directory.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Get disk usage",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Disk usage details",
-                        "schema": {
-                            "$ref": "#/definitions/http.DiskUsageResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Directory not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/users": {
             "post": {
                 "description": "Adds a new user to the system.",
@@ -1626,17 +1571,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "http.DiskUsageResponse": {
-            "type": "object",
-            "properties": {
-                "total": {
-                    "type": "integer"
-                },
-                "used": {
-                    "type": "integer"
                 }
             }
         },

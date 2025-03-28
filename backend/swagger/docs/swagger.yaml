@@ -12,13 +12,6 @@ definitions:
       name:
         type: string
     type: object
-  http.DiskUsageResponse:
-    properties:
-      total:
-        type: integer
-      used:
-        type: integer
-    type: object
   http.HttpResponse:
     properties:
       message:
@@ -681,14 +674,10 @@ paths:
       - application/json
       description: Moves or renames a resource to a new destination.
       parameters:
-      - description: Path from resource
+      - description: Path from resource in <source_name>::<index_path> format
         in: query
         name: from
         required: true
-        type: string
-      - description: Source name for the desired source, default is used if not provided
-        in: query
-        name: source
         type: string
       - description: Destination path for the resource
         in: query
@@ -1118,38 +1107,6 @@ paths:
       summary: User signup
       tags:
       - Auth
-  /api/usage:
-    get:
-      consumes:
-      - application/json
-      description: Returns the total and used disk space for a specified directory.
-      parameters:
-      - description: Source name for the desired source, default is used if not provided
-        in: query
-        name: source
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Disk usage details
-          schema:
-            $ref: '#/definitions/http.DiskUsageResponse'
-        "404":
-          description: Directory not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get disk usage
-      tags:
-      - Resources
   /api/users:
     post:
       consumes:
