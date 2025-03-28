@@ -1,8 +1,8 @@
 import { mutations, getters } from "@/store";
 import router from "@/router";
-import { usersApi,filesApi } from "@/api";
+import { usersApi } from "@/api";
 import { getApiPath } from "@/utils/url.js";
-import { recaptcha, loginPage, disableUsedPercentage } from "@/utils/constants";
+import { recaptcha, loginPage } from "@/utils/constants";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;

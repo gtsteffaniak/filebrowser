@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Notes**:
     - sesssionId is now unique per window. Previously it was shared accross browser tabs.
+    #- disableUsedPercentage is a backend property now.
 
   **Bug Fixes**:
     -
