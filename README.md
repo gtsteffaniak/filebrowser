@@ -19,6 +19,9 @@
 > [!WARNING]
 > There is no stable version -- planned 2025.
 
+> [!NOTE]
+> [Read about upcoming 0.7.0 release](https://github.com/gtsteffaniak/filebrowser/discussions/459)
+
 FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
 
   1. ✅ Indexes files (See [indexing Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.)
