@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strings"
 
 	storm "github.com/asdine/storm/v3"
 
@@ -198,7 +199,7 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 			// which=all can't update password
-			if field.Name != "password" && field.Name != "ID" && field.Name != "Username" {
+			if strings.ToLower(field.Name) != "password" && strings.ToLower(field.Name) != "id" && strings.ToLower(field.Name) != "username" {
 				fields = append(fields, field.Name)
 			}
 		}
