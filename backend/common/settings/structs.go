@@ -73,9 +73,8 @@ type Server struct {
 	BaseURL            string      `json:"baseURL"`
 	Logging            []LogConfig `json:"logging"`
 	Database           string      `json:"database"`
-	Root               string      `json:"root"` // deprecated, use sources
 	UserHomeBasePath   string      `json:"userHomeBasePath"`
-	Sources            []Source    `json:"sources"`
+	Sources            []Source    `json:"sources" validate:"required,dive"`
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
