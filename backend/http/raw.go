@@ -60,9 +60,13 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	}
 	source := splitFile[0]
 	path = splitFile[1]
-	userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
-	if d.share == nil && err != nil {
-		return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+	var err error
+	userScope := "/"
+	if d.user.Username != "publicUser" {
+		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if d.share == nil && err != nil {
+			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		}
 	}
 
 	idx := files.GetIndex(source)
@@ -184,9 +188,13 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
 	fileName := filepath.Base(firstFilePath)
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
-	if err != nil && d.user.Username != "publicUser" {
-		return http.StatusForbidden, err
+	var err error
+	userscope := "/"
+	if d.user.Username != "publicUser" {
+		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
+		if err != nil {
+			return http.StatusForbidden, err
+		}
 	}
 	idx := files.GetIndex(firstFileSource)
 	if idx == nil {
@@ -291,9 +299,13 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
-		userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
-		if d.share == nil && err != nil {
-			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		var err error
+		userScope := "/"
+		if d.user.Username != "publicUser" {
+			userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+			if d.share == nil && err != nil {
+				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+			}
 		}
 		_, isDir, err := idx.GetRealPath(userScope, path)
 		if err != nil {
