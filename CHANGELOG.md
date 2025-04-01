@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.6.5-beta
+
+  **Notes**:
+    - added more share and download tests
+
+  **BugFixes**:
+    - fix share download issue https://github.com/gtsteffaniak/filebrowser/issues/465
+    - fix content length size calculation issue when downloading multiple files.
+
 ## v0.6.4-beta
 
  **BugFixes**:

@@ -31,11 +31,20 @@ import (
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	encodedFiles := r.URL.Query().Get("files")
 	// Decode the URL-encoded path
-	files, err := url.QueryUnescape(encodedFiles)
+	f, err := url.QueryUnescape(encodedFiles)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-	fileList := strings.Split(files, "||")
+
+	fileInfo, ok := d.raw.(files.ExtendedFileInfo)
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
+	}
+	prefix := fileInfo.Path
+	fileList := []string{}
+	for _, file := range strings.Split(f, "||") {
+		fileList = append(fileList, fileInfo.Source+"::"+prefix+file)
+	}
 	return rawFilesHandler(w, r, d, fileList)
 }
 

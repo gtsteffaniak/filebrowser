@@ -1,5 +1,5 @@
 import { adjustedData } from "./utils";
-import { getApiPath, removePrefix, extractSourceFromPath } from "@/utils/url.js";
+import { getApiPath, extractSourceFromPath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 // Fetch public share data
@@ -37,7 +37,6 @@ export function download(share, ...files) {
     }
     fileargs = fileargs.slice(0, -2); // remove trailing "||"
     const params = {
-      "path": removePrefix(share.path, "share"),
       "files": fileargs,
       "hash": share.hash,
       "token": share.token,
