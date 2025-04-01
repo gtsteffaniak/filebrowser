@@ -22,13 +22,12 @@ export default function download() {
       format: files.length ? "zip" : null,
     };
     // Perform download without opening a new window
-    publicApi.download(share, ...files);
+    startDownload(share, files, true);
     return;
   }
 
   if (getters.isSingleFileSelected()) {
-    // Single file download without new window
-    filesApi.download(null, [getters.selectedDownloadUrl()]);
+    startDownload(null, [getters.selectedDownloadUrl()]);
     return;
   }
 
@@ -45,13 +44,20 @@ export default function download() {
       } else {
         files.push(state.route.path);
       }
-      try {
-        // Initiate download without new window
-        filesApi.download(format, files);
-        notify.showSuccess("Download started");
-      } catch (e) {
-        notify.showError("Error downloading", e);
-      }
+      startDownload(format, files);
     },
   });
+}
+
+async function startDownload(config,files, isPublic) {
+  try {
+    if (isPublic) {
+      publicApi.download(config, files);
+    } else {
+      filesApi.download(config, files);
+    }
+    notify.showSuccess("Downloading...");
+  } catch (e) {
+    notify.showError("Error downloading", e);
+  }
 }

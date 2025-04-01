@@ -47,7 +47,9 @@ test("share download single file", async ({ page, checkForErrors, context }) => 
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
-
+  const popup = page.locator('#popup-notification-content');
+  await popup.waitFor({ state: 'visible' });
+  await expect(popup).toHaveText("Downloading...");
   checkForErrors();
 });
 
@@ -79,6 +81,8 @@ test("share download multiple files", async ({ page, checkForErrors, context }) 
 
   await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
   await page.locator('button[aria-label="Download"]').click();
-
+  const popup2 = page.locator('#popup-notification-content');
+  await popup2.waitFor({ state: 'visible' });
+  await expect(popup2).toHaveText("Downloading...");
   checkForErrors();
 });

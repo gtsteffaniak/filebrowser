@@ -40,9 +40,10 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
 	}
+	prefix := fileInfo.Path
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
-		fileList = append(fileList, fileInfo.Source+"::"+strings.TrimSpace(file))
+		fileList = append(fileList, fileInfo.Source+"::"+prefix+file)
 	}
 	return rawFilesHandler(w, r, d, fileList)
 }

@@ -37,7 +37,6 @@ export function download(share, ...files) {
     }
     fileargs = fileargs.slice(0, -2); // remove trailing "||"
     const params = {
-      "path": removePrefix(share.path, "share"),
       "files": fileargs,
       "hash": share.hash,
       "token": share.token,

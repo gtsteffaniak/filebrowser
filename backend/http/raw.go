@@ -3,6 +3,7 @@ package http
 import (
 	"archive/tar"
 	"archive/zip"
+	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -205,14 +206,13 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return http.StatusInternalServerError, err
 	}
 
-	// Compute estimated download size
-	estimatedSize, err := computeArchiveSize(fileList, d)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
 	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
+		// Compute estimated download size
+		estimatedSize, err := computeArchiveSize(fileList, d)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
 		fd, err2 := os.Open(realPath)
 		if err2 != nil {
 			return http.StatusInternalServerError, err2
@@ -255,7 +255,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
 
-	baseDirName := filepath.Base(filepath.Dir(realPath))
+	baseDirName := filepath.Base(filepath.Dir(firstFilePath))
 	if baseDirName == "" || baseDirName == "/" {
 		baseDirName = "download"
 	}
@@ -264,21 +264,29 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 	fileName = url.PathEscape(baseDirName + extension)
 
-	// Set headers for archive
-	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+fileName)
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", estimatedSize))
+	var archiveData []byte
+	if extension == ".zip" {
+		archiveData, err = createZip(d, fileList...)
+	} else {
+		archiveData, err = createTarGz(d, fileList...)
+	}
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-	sizeInMB := estimatedSize / 1024 / 1024
+	calculatedSize := len(archiveData)
+	sizeInMB := calculatedSize / 1024 / 1024
 	// if larger than 100 megabytes, log it
 	if sizeInMB > 100 {
 		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
 	}
-	// Create archive and stream it
-	if extension == ".zip" {
-		err = createZip(w, d, fileList...)
-	} else {
-		err = createTarGz(w, d, fileList...)
-	}
+
+	// Set headers AFTER computing actual archive size
+	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+fileName)
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", calculatedSize))
+
+	// Write archive data to response
+	_, err = w.Write(archiveData)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -320,53 +328,36 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 	return estimatedSize, nil
 }
 
-func createZip(w io.Writer, d *requestContext, filenames ...string) error {
-	zipWriter := zip.NewWriter(w)
-	defer zipWriter.Close()
-	// Stream the response to avoid high memory usage
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
-	}
+func createZip(d *requestContext, filenames ...string) ([]byte, error) {
+	var buf bytes.Buffer
+	zipWriter := zip.NewWriter(&buf)
 
-	// Check if we have exactly one directory
-	//flatten := len(filenames) == 1
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
-			return err
-		}
-		// Flush after adding each file
-		if f, ok := w.(http.Flusher); ok {
-			f.Flush()
+			return nil, err
 		}
 	}
-	return nil
+	zipWriter.Close()
+
+	return buf.Bytes(), nil
 }
 
-func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
-	gzWriter := gzip.NewWriter(w)
-	defer gzWriter.Close()
-
+func createTarGz(d *requestContext, filenames ...string) ([]byte, error) {
+	var buf bytes.Buffer
+	gzWriter := gzip.NewWriter(&buf)
 	tarWriter := tar.NewWriter(gzWriter)
-	defer tarWriter.Close()
 
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
-	}
-
-	// Check if we have exactly one directory
-	//flatten := len(filenames) == 1
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
-			return err
-		}
-		if f, ok := w.(http.Flusher); ok {
-			f.Flush()
+			return nil, err
 		}
 	}
+	tarWriter.Close()
+	gzWriter.Close()
 
-	return nil
+	return buf.Bytes(), nil
 }
