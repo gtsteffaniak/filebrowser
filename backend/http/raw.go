@@ -208,8 +208,9 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
+		var estimatedSize int64
 		// Compute estimated download size
-		estimatedSize, err := computeArchiveSize(fileList, d)
+		estimatedSize, err = computeArchiveSize(fileList, d)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

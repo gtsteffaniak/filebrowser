@@ -1,5 +1,5 @@
 import { adjustedData } from "./utils";
-import { getApiPath, removePrefix, extractSourceFromPath } from "@/utils/url.js";
+import { getApiPath, extractSourceFromPath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 // Fetch public share data
