@@ -29,11 +29,10 @@ export function download(format, files) {
   }
   let fileargs = ''
   if (files.length === 1) {
-    fileargs = result.path + '||'
+    fileargs = file + '||'
   } else {
     for (let file of files) {
-      const result = extractSourceFromPath(decodeURI(file))
-      fileargs += result.path + '||'
+      fileargs += file + '||'
     }
   }
   fileargs = fileargs.slice(0, -2) // remove trailing "||"
