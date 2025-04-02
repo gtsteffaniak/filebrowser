@@ -29,7 +29,7 @@ export function download(format, files) {
   }
   let fileargs = ''
   if (files.length === 1) {
-    fileargs = file + '||'
+    fileargs = files[0] + '||'
   } else {
     for (let file of files) {
       fileargs += file + '||'

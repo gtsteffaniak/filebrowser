@@ -58,6 +58,6 @@ async function startDownload(config, files, isPublic) {
     }
     notify.showSuccess("Downloading...");
   } catch (e) {
-    notify.showError("Error downloading: ${e}");
+    notify.showError(`Error downloading: ${e}`);
   }
 }
