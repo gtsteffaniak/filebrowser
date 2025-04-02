@@ -23,31 +23,33 @@ export async function fetchPub(path, hash, password = "") {
 }
 
 // Download files with given parameters
-export function download(share, ...files) {
-  try {
-    let fileargs = ''
-    if (files.length === 1) {
-      const result = extractSourceFromPath(decodeURI(files[0]))
-      fileargs = result.path + '||'
-    } else {
-      for (let file of files) {
-        const result = extractSourceFromPath(decodeURI(file))
-        fileargs += result.path + '||'
-      }
-    }
-    fileargs = fileargs.slice(0, -2); // remove trailing "||"
-    const params = {
-      "files": fileargs,
-      "hash": share.hash,
-      "token": share.token,
-      "inline": share.inline,
-    };
-    const apiPath = getApiPath("api/public/dl", params);
-    window.open(window.origin+apiPath)
-  } catch (err) {
-    notify.showError(err.message || "Error downloading files");
-    throw err;
+export function download(format, files) {
+  if (format !== 'zip') {
+    format = 'tar.gz'
   }
+  let fileargs = ''
+  if (files.length === 1) {
+    fileargs = result.path + '||'
+  } else {
+    for (let file of files) {
+      const result = extractSourceFromPath(decodeURI(file))
+      fileargs += result.path + '||'
+    }
+  }
+  fileargs = fileargs.slice(0, -2) // remove trailing "||"
+  const apiPath = getApiPath('api/public/dl', {
+    files: encodeURIComponent(fileargs),
+    algo: format
+  })
+  const url = window.origin + apiPath
+  // Create a temporary <a> element to trigger the download
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', '') // Ensures it triggers a download
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link) // Clean up
+
 }
 
 // Get the public user data

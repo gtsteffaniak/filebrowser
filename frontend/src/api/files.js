@@ -64,34 +64,32 @@ export function download(format, files) {
   if (format !== 'zip') {
     format = 'tar.gz'
   }
-  try {
-    let fileargs = ''
-    if (files.length === 1) {
-      const result = extractSourceFromPath(decodeURI(files[0]))
-      fileargs = result.source + '::' + result.path + '||'
-    } else {
-      for (let file of files) {
-        const result = extractSourceFromPath(decodeURI(file))
-        fileargs += result.source + '::' + result.path + '||'
-      }
-    }
-    fileargs = fileargs.slice(0, -2) // remove trailing "||"
-    const apiPath = getApiPath('api/raw', {
-      files: encodeURIComponent(fileargs),
-      algo: format
-    })
-    const url = window.origin + apiPath
 
-    // Create a temporary <a> element to trigger the download
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', '') // Ensures it triggers a download
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link) // Clean up
-  } catch (err) {
-    notify.showError(err.message || 'Error downloading files')
+  let fileargs = ''
+  if (files.length === 1) {
+    const result = extractSourceFromPath(decodeURI(files[0]))
+    fileargs = result.source + '::' + result.path + '||'
+  } else {
+    for (let file of files) {
+      const result = extractSourceFromPath(decodeURI(file))
+      fileargs += result.source + '::' + result.path + '||'
+    }
   }
+  fileargs = fileargs.slice(0, -2) // remove trailing "||"
+  const apiPath = getApiPath('api/raw', {
+    files: encodeURIComponent(fileargs),
+    algo: format
+  })
+  const url = window.origin + apiPath
+
+  // Create a temporary <a> element to trigger the download
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', '') // Ensures it triggers a download
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link) // Clean up
+
 }
 
 export async function post(url, content = '', overwrite = false, onupload) {

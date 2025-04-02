@@ -49,7 +49,7 @@ export default function download() {
   });
 }
 
-async function startDownload(config,files, isPublic) {
+async function startDownload(config, files, isPublic) {
   try {
     if (isPublic) {
       publicApi.download(config, files);
