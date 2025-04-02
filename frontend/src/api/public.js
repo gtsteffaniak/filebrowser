@@ -1,5 +1,5 @@
 import { adjustedData } from "./utils";
-import { getApiPath, extractSourceFromPath } from "@/utils/url.js";
+import { getApiPath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 // Fetch public share data
@@ -24,21 +24,19 @@ export async function fetchPub(path, hash, password = "") {
 
 // Download files with given parameters
 export function download(format, files) {
-  if (format !== 'zip') {
-    format = 'tar.gz'
-  }
+  console.log("Downloading files:",format, files)
   let fileargs = ''
   if (files.length === 1) {
-    fileargs = files[0] + '||'
+    fileargs = decodeURI(files[0]) + '||'
   } else {
     for (let file of files) {
-      fileargs += file + '||'
+      fileargs += decodeURI(file) + '||'
     }
   }
   fileargs = fileargs.slice(0, -2) // remove trailing "||"
   const apiPath = getApiPath('api/public/dl', {
     files: encodeURIComponent(fileargs),
-    algo: format
+    hash: format.hash,
   })
   const url = window.origin + apiPath
   // Create a temporary <a> element to trigger the download
