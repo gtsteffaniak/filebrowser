@@ -1,8 +1,8 @@
 import { fetchURL, adjustedData } from './utils'
-import { getApiPath, extractSourceFromPath } from '@/utils/url.js'
+import { getApiPath, extractSourceFromPath,removePrefix } from '@/utils/url.js'
 import { state } from '@/store'
 import { notify } from '@/notify'
-import { externalUrl } from '@/utils/constants'
+import { externalUrl,baseURL } from '@/utils/constants'
 
 // Notify if errors occur
 export async function fetchFiles(url, content = false) {
@@ -210,7 +210,8 @@ export function getDownloadURL(source, path, inline, useExternal) {
     }
     const apiPath = getApiPath('api/raw', params)
     if (externalUrl && useExternal) {
-      return externalUrl + apiPath
+
+      return externalUrl + removePrefix(apiPath,baseURL)
     }
     return window.origin + apiPath
   } catch (err) {
