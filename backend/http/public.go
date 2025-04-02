@@ -19,7 +19,7 @@ import (
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param files query string true "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)"
+// @Param files query string true "a list of files in the following format 'filename' and separated by '||' with additional items in the list. (required)"
 // @Param inline query bool false "If true, sets 'Content-Disposition' to 'inline'. Otherwise, defaults to 'attachment'."
 // @Param algo query string false "Compression algorithm for archiving multiple files or directories. Options: 'zip' and 'tar.gz'. Default is 'zip'."
 // @Success 200 {file} file "Raw file or directory content, or archive for multiple files"
@@ -40,12 +40,16 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if !ok {
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
 	}
-	prefix := fileInfo.Path
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
-		fileList = append(fileList, fileInfo.Source+"::"+prefix+file)
+		fileList = append(fileList, fileInfo.Source+"::"+fileInfo.Path+file)
 	}
-	return rawFilesHandler(w, r, d, fileList)
+	var status int
+	status, err = rawFilesHandler(w, r, d, fileList)
+	if err != nil {
+		return status, fmt.Errorf("error processing filelist: %v", f)
+	}
+	return status, nil
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
