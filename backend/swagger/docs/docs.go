@@ -1543,7 +1543,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "a list of files in the following format 'source::filename' and separated by '||' with additional items in the list. (required)",
+                        "description": "a list of files in the following format 'filename' and separated by '||' with additional items in the list. (required)",
                         "name": "files",
                         "in": "query",
                         "required": true
@@ -1830,9 +1830,6 @@ const docTemplate = `{
                 },
                 "lockPassword": {
                     "type": "boolean"
-                },
-                "perm": {
-                    "$ref": "#/definitions/users.Permissions"
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"

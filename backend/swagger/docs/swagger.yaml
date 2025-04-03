@@ -148,8 +148,6 @@ definitions:
         type: string
       lockPassword:
         type: boolean
-      perm:
-        $ref: '#/definitions/users.Permissions'
       permissions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
@@ -1315,8 +1313,8 @@ paths:
       description: Returns the raw content of a file, multiple files, or a directory.
         Supports downloading files as archives in various formats.
       parameters:
-      - description: a list of files in the following format 'source::filename' and
-          separated by '||' with additional items in the list. (required)
+      - description: a list of files in the following format 'filename' and separated
+          by '||' with additional items in the list. (required)
         in: query
         name: files
         required: true
