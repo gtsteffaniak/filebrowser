@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.6.6-beta
 
-
+ **New Feature**:
+ - limit tar size creation to limit server burden. For example, don't let customers try to download the entire filesystem as a zip. see `server.maxArchiveSize` on config wiki.
 
  **Notes**:
  - disableUsedPercentage also hides text and source bar.
@@ -12,7 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - fix proxy user creation issue
-
+ - externalUrl prefix issue fixed for shares.
 
 ## v0.6.5-beta
 

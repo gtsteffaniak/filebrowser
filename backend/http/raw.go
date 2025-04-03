@@ -205,15 +205,13 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
+	// Compute estimated download size
+	estimatedSize, err := computeArchiveSize(fileList, d)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
-		var estimatedSize int64
-		// Compute estimated download size
-		estimatedSize, err = computeArchiveSize(fileList, d)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
 		fd, err2 := os.Open(realPath)
 		if err2 != nil {
 			return http.StatusInternalServerError, err2
@@ -244,6 +242,12 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return 200, nil
 	}
 
+	if config.Server.MaxArchiveSizeGB > 0 {
+		maxSize := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		if estimatedSize > maxSize {
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("pre-archive combined size of files exceeds maximum limit of %d GB", config.Server.MaxArchiveSizeGB)
+		}
+	}
 	// ** Archive (ZIP/TAR.GZ) handling **
 	algo := r.URL.Query().Get("algo")
 	var extension string

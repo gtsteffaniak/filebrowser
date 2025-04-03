@@ -205,6 +205,7 @@ func setDefaults() Settings {
 			Database:           "database.db",
 			SourceMap:          map[string]Source{},
 			NameToSource:       map[string]Source{},
+			MaxArchiveSizeGB:   50,
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",

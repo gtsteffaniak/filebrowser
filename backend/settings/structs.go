@@ -79,6 +79,7 @@ type Server struct {
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
+	MaxArchiveSizeGB   int64       `json:"maxArchiveSize"`
 	// not exposed to config
 	SourceMap     map[string]Source // uses realpath as key
 	NameToSource  map[string]Source // uses name as key
