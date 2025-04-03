@@ -4,9 +4,14 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.6.6-beta
 
+
+
+ **Notes**:
+ - disableUsedPercentage also hides text and source bar.
+ - share errors show up in logs in more verbose way.
+
  **BugFixes**:
  - fix proxy user creation issue
- - 
 
 
 ## v0.6.5-beta

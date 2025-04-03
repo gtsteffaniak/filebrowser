@@ -83,7 +83,13 @@
 
 <script>
 import * as auth from "@/utils/auth";
-import { signup, disableExternal, noAuth, loginPage } from "@/utils/constants";
+import {
+  signup,
+  disableExternal,
+  noAuth,
+  loginPage,
+  disableUsedPercentage,
+} from "@/utils/constants";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 

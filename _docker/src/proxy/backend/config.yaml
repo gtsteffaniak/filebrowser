@@ -7,7 +7,8 @@ server:
     - path: "../frontend/tests/playwright-files"
       config:
         defaultEnabled: true
-        createUserDir: true
+        createUserDir: false
+
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true
@@ -15,6 +16,7 @@ frontend:
     - text: "A playwright test"
       url: "https://playwright.dev/"
       title: "Playwright"
+
 auth:
   signup: false
   methods:
