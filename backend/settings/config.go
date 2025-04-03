@@ -235,6 +235,7 @@ func setDefaults() Settings {
 			ViewMode:             "normal",
 			Locale:               "en",
 			GallerySize:          3,
+			ThemeColor:           "var(--blue)",
 			Permissions: users.Permissions{
 				Modify: false,
 				Share:  false,
