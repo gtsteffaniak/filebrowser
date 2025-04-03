@@ -49,7 +49,7 @@ export default function download() {
   });
 }
 
-async function startDownload(config,files, isPublic) {
+async function startDownload(config, files, isPublic) {
   try {
     if (isPublic) {
       publicApi.download(config, files);
@@ -58,6 +58,6 @@ async function startDownload(config,files, isPublic) {
     }
     notify.showSuccess("Downloading...");
   } catch (e) {
-    notify.showError("Error downloading", e);
+    notify.showError(`Error downloading: ${e}`);
   }
 }

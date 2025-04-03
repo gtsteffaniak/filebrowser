@@ -126,7 +126,6 @@ func setupAuth() {
 	if Config.Auth.Method != "" {
 		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
 	}
-	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
 	}
@@ -206,6 +205,8 @@ func setDefaults() Settings {
 			Database:           "database.db",
 			SourceMap:          map[string]Source{},
 			NameToSource:       map[string]Source{},
+			MaxArchiveSizeGB:   50,
+			CacheDir:           "tmp",
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",
@@ -234,6 +235,7 @@ func setDefaults() Settings {
 			ViewMode:             "normal",
 			Locale:               "en",
 			GallerySize:          3,
+			ThemeColor:           "var(--blue)",
 			Permissions: users.Permissions{
 				Modify: false,
 				Share:  false,
@@ -252,6 +254,9 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 	for _, scope := range scopes {
 		if scope.Scope == "" {
 			scope.Scope = "/"
+		}
+		if !strings.HasPrefix(scope.Scope, "/") {
+			scope.Scope = "/" + scope.Scope
 		}
 		// first check if its already a path name and keep it
 		source, ok := Config.Server.SourceMap[scope.Name]
