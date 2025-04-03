@@ -206,6 +206,7 @@ func setDefaults() Settings {
 			SourceMap:          map[string]Source{},
 			NameToSource:       map[string]Source{},
 			MaxArchiveSizeGB:   50,
+			CacheDir:           "tmp",
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",

@@ -3,7 +3,6 @@ package http
 import (
 	"archive/tar"
 	"archive/zip"
-	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -17,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/files"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/utils"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -269,30 +269,47 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 	fileName = url.PathEscape(baseDirName + extension)
 
-	var archiveData []byte
+	archiveData := filepath.Join(config.Server.CacheDir, utils.InsecureRandomIdentifier(10))
 	if extension == ".zip" {
-		archiveData, err = createZip(d, fileList...)
+		archiveData = archiveData + ".zip"
+		err = createZip(d, archiveData, fileList...)
 	} else {
-		archiveData, err = createTarGz(d, fileList...)
+		archiveData = archiveData + ".tar.gz"
+		err = createTarGz(d, archiveData, fileList...)
 	}
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	calculatedSize := len(archiveData)
-	sizeInMB := calculatedSize / 1024 / 1024
-	// if larger than 100 megabytes, log it
+	// stream archive to response
+	fd, err := os.Open(archiveData)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer fd.Close()
+
+	// Get file size
+	fileInfo, err := fd.Stat()
+	if err != nil {
+		os.Remove(archiveData) // Remove the file if stat fails
+		return http.StatusInternalServerError, err
+	}
+
+	sizeInMB := fileInfo.Size() / 1024 / 1024
 	if sizeInMB > 100 {
 		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
 	}
 
 	// Set headers AFTER computing actual archive size
 	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+fileName)
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", calculatedSize))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+	w.Header().Set("Content-Type", "application/octet-stream")
 
-	// Write archive data to response
-	_, err = w.Write(archiveData)
+	// Stream the file
+	_, err = io.Copy(w, fd)
+	os.Remove(archiveData) // Remove the file after streaming
 	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to copy archive data to response: %v", err))
 		return http.StatusInternalServerError, err
 	}
 
@@ -333,36 +350,46 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 	return estimatedSize, nil
 }
 
-func createZip(d *requestContext, filenames ...string) ([]byte, error) {
-	var buf bytes.Buffer
-	zipWriter := zip.NewWriter(&buf)
+func createZip(d *requestContext, tmpDirPath string, filenames ...string) error {
+	file, err := os.Create(tmpDirPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	zipWriter := zip.NewWriter(file)
+	defer zipWriter.Close()
 
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
-			return nil, err
+			return err
 		}
 	}
-	zipWriter.Close()
 
-	return buf.Bytes(), nil
+	return nil
 }
 
-func createTarGz(d *requestContext, filenames ...string) ([]byte, error) {
-	var buf bytes.Buffer
-	gzWriter := gzip.NewWriter(&buf)
+func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) error {
+	file, err := os.Create(tmpDirPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	gzWriter := gzip.NewWriter(file)
+	defer gzWriter.Close()
 	tarWriter := tar.NewWriter(gzWriter)
+	defer tarWriter.Close()
 
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
-			return nil, err
+			return err
 		}
 	}
-	tarWriter.Close()
-	gzWriter.Close()
 
-	return buf.Bytes(), nil
+	return nil
 }

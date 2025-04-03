@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - disableUsedPercentage also hides text and source bar.
  - share errors show up in logs in more verbose way.
+ - archive creation occurs on disk rather than in memory, use `server.cacheDir` to determine where temp files are stored.
 
  **BugFixes**:
  - fix proxy user creation issue
