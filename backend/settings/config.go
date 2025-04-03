@@ -255,6 +255,9 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 		if scope.Scope == "" {
 			scope.Scope = "/"
 		}
+		if !strings.HasPrefix(scope.Scope, "/") {
+			scope.Scope = "/" + scope.Scope
+		}
 		// first check if its already a path name and keep it
 		source, ok := Config.Server.SourceMap[scope.Name]
 		if ok {
