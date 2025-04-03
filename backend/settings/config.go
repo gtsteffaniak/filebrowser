@@ -126,7 +126,6 @@ func setupAuth() {
 	if Config.Auth.Method != "" {
 		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
 	}
-	Config.UserDefaults.Perm = Config.UserDefaults.Permissions
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
 	}

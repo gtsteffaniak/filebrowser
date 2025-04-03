@@ -44,7 +44,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.Locale = Config.UserDefaults.Locale
 	u.ViewMode = Config.UserDefaults.ViewMode
 	u.SingleClick = Config.UserDefaults.SingleClick
-	u.Perm = Config.UserDefaults.Perm
+	u.Perm = Config.UserDefaults.Permissions
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
 	if len(u.Scopes) == 0 {
@@ -55,5 +55,4 @@ func ApplyUserDefaults(u *users.User) {
 			},
 		}
 	}
-
 }

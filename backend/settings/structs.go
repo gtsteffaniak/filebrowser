@@ -157,7 +157,6 @@ type UserDefaults struct {
 	ViewMode             string              `json:"viewMode"`
 	GallerySize          int                 `json:"gallerySize"`
 	SingleClick          bool                `json:"singleClick"`
-	Perm                 users.Permissions   `json:"perm"`
 	Permissions          users.Permissions   `json:"permissions"`
 	ShowHidden           bool                `json:"showHidden"`
 	DateFormat           bool                `json:"dateFormat"`

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/files"
+	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -38,6 +39,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	fileInfo, ok := d.raw.(files.ExtendedFileInfo)
 	if !ok {
+		logger.Error("public share handler: failed to assert type files.FileInfo")
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
 	}
 	fileList := []string{}
@@ -47,6 +49,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
 	if err != nil {
+		logger.Error(fmt.Sprintf("public share handler: error processing filelist: %v", err))
 		return status, fmt.Errorf("error processing filelist: %v", f)
 	}
 	return status, nil
