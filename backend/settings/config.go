@@ -235,6 +235,7 @@ func setDefaults() Settings {
 			ViewMode:             "normal",
 			Locale:               "en",
 			GallerySize:          3,
+			ThemeColor:           "var(--blue)",
 			Permissions: users.Permissions{
 				Modify: false,
 				Share:  false,
@@ -253,6 +254,9 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 	for _, scope := range scopes {
 		if scope.Scope == "" {
 			scope.Scope = "/"
+		}
+		if !strings.HasPrefix(scope.Scope, "/") {
+			scope.Scope = "/" + scope.Scope
 		}
 		// first check if its already a path name and keep it
 		source, ok := Config.Server.SourceMap[scope.Name]
