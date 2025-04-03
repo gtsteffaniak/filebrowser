@@ -115,13 +115,16 @@ func withUserHelper(fn handleFunc) handleFunc {
 					if err != nil {
 						return http.StatusInternalServerError, err
 					}
-					newUser := storage.CreateUser(users.User{
+					err = storage.CreateUser(users.User{
 						Username: proxyUser,
 						NonAdminEditable: users.NonAdminEditable{
 							Password: hashpass, // hashed password that can't actually be used
 						},
 					}, false)
-					data.user, err = store.Users.Get(newUser)
+					if err != nil {
+						return http.StatusInternalServerError, err
+					}
+					data.user, err = store.Users.Get(proxyUser)
 					if err != nil {
 						return http.StatusInternalServerError, err
 					}
@@ -140,7 +143,6 @@ func withUserHelper(fn handleFunc) handleFunc {
 			return http.StatusUnauthorized, err
 		}
 		data.token = tokenString
-
 		var tk users.AuthToken
 		token, err := jwt.ParseWithClaims(tokenString, &tk, keyFunc)
 		if err != nil {

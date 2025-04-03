@@ -63,7 +63,7 @@
         >
           <i class="material-icons source-icon">folder</i>
           <span>{{ name }}</span>
-          <div>
+          <div v-if="!disableUsedPercentage">
             <progress-bar
               :val="info.usedPercentage"
               text-position="inside"
