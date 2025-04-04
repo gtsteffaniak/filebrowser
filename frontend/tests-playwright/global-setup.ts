@@ -18,7 +18,7 @@ async function globalSetup() {
 
   await page.waitForURL("**/files/playwright-files", { timeout: 250 });
 
-  // Create a share
+  // Create a share of folder
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="myfolder"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
@@ -35,6 +35,26 @@ async function globalSetup() {
   await page.evaluate((hash) => {
     localStorage.setItem('shareHash', hash);
   }, shareHash);
+
+  await page.goto("http://127.0.0.1/files/playwright-files", { timeout: 250 });
+  // Create a share of file
+  await page.locator('a[aria-label="1file1.txt"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="1file1.txt"]').click({ button: "right" });
+  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+  await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
+  await page.locator('button[aria-label="Share"]').click();
+  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /1file1.txt');
+  await page.locator('button[aria-label="Share-Confirm"]').click();
+  await expect(page.locator("#share .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
+  const shareHashFile = await page.locator("#share .card-content table tbody tr:not(:has(th)) td").first().textContent();
+  if (!shareHashFile) {
+    throw new Error("Failed to retrieve shareHash");
+  }
+  // Store shareHash in localStorage
+  await page.evaluate((hash) => {
+    localStorage.setItem('shareHashFile', hash);
+  }, shareHashFile);
+
 
   await context.storageState({ path: "./loginAuth.json" });
   await browser.close();
