@@ -39,7 +39,6 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
 	}
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -174,14 +173,16 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		stringHash = string(hash)
 	}
 	path := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = config.Server.DefaultSource.Name
+	sourceName := r.URL.Query().Get("source")
+	if sourceName == "" {
+		sourceName = config.Server.DefaultSource.Name
 	}
+	source := config.Server.NameToSource[sourceName]
+
 	s = &share.Link{
 		Path:         path,
 		Hash:         secure_hash,
-		Source:       source,
+		Source:       source.Path,
 		Expire:       expire,
 		UserID:       d.user.ID,
 		PasswordHash: stringHash,

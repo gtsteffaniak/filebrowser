@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 .SILENT:
 SHELL := /bin/bash
 

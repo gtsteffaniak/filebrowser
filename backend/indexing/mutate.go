@@ -8,6 +8,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+
 	"github.com/shirou/gopsutil/v3/disk"
 )
 
@@ -82,7 +83,17 @@ func GetIndex(name string) *Index {
 	defer indexesMutex.Unlock()
 	index, ok := indexes[name]
 	if !ok {
-		logger.Error(fmt.Sprintf("index %s not found", name))
+		// try path if name fails
+		// todo: update everywhere else so this isn't needed.
+		source, ok := settings.Config.Server.SourceMap[name]
+		if !ok {
+			logger.Error(fmt.Sprintf("index %s not found", name))
+		}
+		index, ok = indexes[source.Name]
+		if !ok {
+			logger.Error(fmt.Sprintf("index %s not found", name))
+		}
+
 	}
 	return index
 }

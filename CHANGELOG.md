@@ -17,6 +17,33 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bug Fixes**:
     -
+## v0.6.6-beta
+
+ **New Feature**:
+ - limit tar size creation to limit server burden. For example, don't let customers try to download the entire filesystem as a zip. see `server.maxArchiveSize` on config wiki.
+
+ **Notes**:
+ - disableUsedPercentage also hides text and source bar.
+ - share errors show up in logs in more verbose way.
+ - archive creation occurs on disk rather than in memory, use `server.cacheDir` to determine where temp files are stored.
+ - automatically ensures leading slash for scope
+   - https://github.com/gtsteffaniak/filebrowser/issues/472
+   - https://github.com/gtsteffaniak/filebrowser/issues/476
+
+ **BugFixes**:
+ - fix proxy user creation issue https://github.com/gtsteffaniak/filebrowser/issues/478
+ - externalUrl prefix issue fixed for shares. https://github.com/gtsteffaniak/filebrowser/issues/465
+ - fix File Opens Instead of Just Downloading https://github.com/gtsteffaniak/filebrowser/issues/480
+ - fix Download file name https://github.com/gtsteffaniak/filebrowser/issues/481
+
+## v0.6.5-beta
+
+ **Notes**:
+ - added more share and download tests
+
+ **BugFixes**:
+ - fix share download issue https://github.com/gtsteffaniak/filebrowser/issues/465
+ - fix content length size calculation issue when downloading multiple files.
 
 ## v0.6.4-beta
 
