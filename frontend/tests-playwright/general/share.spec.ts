@@ -33,6 +33,21 @@ test("root share path is valid", async ({ page, checkForErrors, context }) => {
   checkForErrors();
 });
 
+
+test("share file works", async ({ page, checkForErrors, context }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  const shareHashFile = await page.evaluate(() => localStorage.getItem('shareHashFile'));
+  if (shareHashFile == "") {
+    throw new Error("Share hash not found in localStorage");
+  }
+
+  await page.goto("/share/" + shareHashFile);
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - 1file1.txt");
+  await expect(page.locator('a[aria-label="Home"]')).toHaveAttribute("href", `/share/${shareHashFile}/`);
+  checkForErrors();
+});
+
 test("share download single file", async ({ page, checkForErrors, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
