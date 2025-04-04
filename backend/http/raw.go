@@ -15,12 +15,13 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
 	if r.URL.Query().Get("inline") == "true" {
-		w.Header().Set("Content-Disposition", "inline")
+		w.Header().Set("Content-Disposition", "inline; filename*=utf-8''"+url.PathEscape(fileName))
 	} else {
 		// As per RFC6266 section 4.3
 		w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(fileName))
@@ -60,9 +61,13 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	}
 	source := splitFile[0]
 	path = splitFile[1]
-	userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
-	if d.share == nil && err != nil {
-		return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+	var err error
+	userScope := "/"
+	if d.user.Username != "publicUser" {
+		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if d.share == nil && err != nil {
+			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		}
 	}
 
 	idx := indexing.GetIndex(source)
@@ -184,9 +189,13 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
 	fileName := filepath.Base(firstFilePath)
-	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
-	if err != nil && d.user.Username != "publicUser" {
-		return http.StatusForbidden, err
+	var err error
+	userscope := "/"
+	if d.user.Username != "publicUser" {
+		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
+		if err != nil {
+			return http.StatusForbidden, err
+		}
 	}
 	idx := indexing.GetIndex(firstFileSource)
 	if idx == nil {
@@ -196,13 +205,11 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	// Compute estimated download size
 	estimatedSize, err := computeArchiveSize(fileList, d)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	// ** Single file download with Content-Length **
 	if len(fileList) == 1 && !isDir {
 		fd, err2 := os.Open(realPath)
@@ -235,6 +242,12 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return 200, nil
 	}
 
+	if config.Server.MaxArchiveSizeGB > 0 {
+		maxSize := config.Server.MaxArchiveSizeGB * 1024 * 1024 * 1024
+		if estimatedSize > maxSize {
+			return http.StatusRequestEntityTooLarge, fmt.Errorf("pre-archive combined size of files exceeds maximum limit of %d GB", config.Server.MaxArchiveSizeGB)
+		}
+	}
 	// ** Archive (ZIP/TAR.GZ) handling **
 	algo := r.URL.Query().Get("algo")
 	var extension string
@@ -247,7 +260,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		return http.StatusInternalServerError, errors.New("format not implemented")
 	}
 
-	baseDirName := filepath.Base(filepath.Dir(realPath))
+	baseDirName := filepath.Base(filepath.Dir(firstFilePath))
 	if baseDirName == "" || baseDirName == "/" {
 		baseDirName = "download"
 	}
@@ -256,22 +269,47 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 	fileName = url.PathEscape(baseDirName + extension)
 
-	// Set headers for archive
-	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+fileName)
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", estimatedSize))
+	archiveData := filepath.Join(config.Server.CacheDir, utils.InsecureRandomIdentifier(10))
+	if extension == ".zip" {
+		archiveData = archiveData + ".zip"
+		err = createZip(d, archiveData, fileList...)
+	} else {
+		archiveData = archiveData + ".tar.gz"
+		err = createTarGz(d, archiveData, fileList...)
+	}
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-	sizeInMB := estimatedSize / 1024 / 1024
-	// if larger than 100 megabytes, log it
+	// stream archive to response
+	fd, err := os.Open(archiveData)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer fd.Close()
+
+	// Get file size
+	fileInfo, err := fd.Stat()
+	if err != nil {
+		os.Remove(archiveData) // Remove the file if stat fails
+		return http.StatusInternalServerError, err
+	}
+
+	sizeInMB := fileInfo.Size() / 1024 / 1024
 	if sizeInMB > 100 {
 		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
 	}
-	// Create archive and stream it
-	if extension == ".zip" {
-		err = createZip(w, d, fileList...)
-	} else {
-		err = createTarGz(w, d, fileList...)
-	}
+
+	// Set headers AFTER computing actual archive size
+	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+fileName)
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+	w.Header().Set("Content-Type", "application/octet-stream")
+
+	// Stream the file
+	_, err = io.Copy(w, fd)
+	os.Remove(archiveData) // Remove the file after streaming
 	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to copy archive data to response: %v", err))
 		return http.StatusInternalServerError, err
 	}
 
@@ -291,9 +329,13 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
-		userScope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
-		if d.share == nil && err != nil {
-			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		var err error
+		userScope := "/"
+		if d.user.Username != "publicUser" {
+			userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+			if d.share == nil && err != nil {
+				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+			}
 		}
 		_, isDir, err := idx.GetRealPath(userScope, path)
 		if err != nil {
@@ -308,51 +350,44 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 	return estimatedSize, nil
 }
 
-func createZip(w io.Writer, d *requestContext, filenames ...string) error {
-	zipWriter := zip.NewWriter(w)
-	defer zipWriter.Close()
-	// Stream the response to avoid high memory usage
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
+func createZip(d *requestContext, tmpDirPath string, filenames ...string) error {
+	file, err := os.Create(tmpDirPath)
+	if err != nil {
+		return err
 	}
+	defer file.Close()
 
-	// Check if we have exactly one directory
-	//flatten := len(filenames) == 1
+	zipWriter := zip.NewWriter(file)
+	defer zipWriter.Close()
+
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
 			return err
 		}
-		// Flush after adding each file
-		if f, ok := w.(http.Flusher); ok {
-			f.Flush()
-		}
 	}
+
 	return nil
 }
 
-func createTarGz(w io.Writer, d *requestContext, filenames ...string) error {
-	gzWriter := gzip.NewWriter(w)
-	defer gzWriter.Close()
+func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) error {
+	file, err := os.Create(tmpDirPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
 
+	gzWriter := gzip.NewWriter(file)
+	defer gzWriter.Close()
 	tarWriter := tar.NewWriter(gzWriter)
 	defer tarWriter.Close()
 
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
-	}
-
-	// Check if we have exactly one directory
-	//flatten := len(filenames) == 1
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
 			return err
-		}
-		if f, ok := w.(http.Flusher); ok {
-			f.Flush()
 		}
 	}
 

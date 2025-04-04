@@ -78,6 +78,7 @@ type Server struct {
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
+	MaxArchiveSizeGB   int64       `json:"maxArchiveSize"`
 	// not exposed to config
 	SourceMap     map[string]Source // uses realpath as key
 	NameToSource  map[string]Source // uses name as key
@@ -156,7 +157,6 @@ type UserDefaults struct {
 	ViewMode             string              `json:"viewMode"`
 	GallerySize          int                 `json:"gallerySize"`
 	SingleClick          bool                `json:"singleClick"`
-	Perm                 users.Permissions   `json:"perm"`
 	Permissions          users.Permissions   `json:"permissions"`
 	ShowHidden           bool                `json:"showHidden"`
 	DateFormat           bool                `json:"dateFormat"`

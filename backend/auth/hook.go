@@ -163,7 +163,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 				ShowHidden:  a.Settings.UserDefaults.ShowHidden,
 			},
 			Username: a.Cred.Username,
-			Perm:     a.Settings.UserDefaults.Perm,
+			Perm:     a.Settings.UserDefaults.Permissions,
 		}
 		u = a.GetUser(d)
 

@@ -326,7 +326,7 @@ export default {
             token: this.token,
             format: format,
           };
-          publicApi.download(share, ...files);
+          publicApi.download(share, files);
         },
       });
     },

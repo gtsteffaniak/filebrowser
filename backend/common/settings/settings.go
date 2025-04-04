@@ -44,9 +44,14 @@ func ApplyUserDefaults(u *users.User) {
 	u.Locale = Config.UserDefaults.Locale
 	u.ViewMode = Config.UserDefaults.ViewMode
 	u.SingleClick = Config.UserDefaults.SingleClick
-	u.Perm = Config.UserDefaults.Perm
+	u.Perm = Config.UserDefaults.Permissions
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
+	u.DisableOnlyOfficeExt = Config.UserDefaults.DisableOnlyOfficeExt
+	u.ThemeColor = Config.UserDefaults.ThemeColor
+	u.GallerySize = Config.UserDefaults.GallerySize
+	u.QuickDownload = Config.UserDefaults.QuickDownload
+	u.LockPassword = Config.UserDefaults.LockPassword
 	if len(u.Scopes) == 0 {
 		u.Scopes = []users.SourceScope{
 			{
@@ -55,5 +60,4 @@ func ApplyUserDefaults(u *users.User) {
 			},
 		}
 	}
-
 }
