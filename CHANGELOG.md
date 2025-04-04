@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.7.0-beta
 
   **New Features**:
+    - config file validation changes
+      - fails when config file contains unknown fields (helps spot typos)
+      - some light validation on values for certain fields.
     #- New authentication methods:
     - Enhanced source info on the UI
     - Added "realtime" events mechanism
