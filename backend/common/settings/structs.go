@@ -87,6 +87,7 @@ type Server struct {
 
 type Integrations struct {
 	OnlyOffice OnlyOffice `json:"office"`
+	Media      Media      `json:"media"`
 }
 
 // onlyoffice secret is stored in the local.json file
@@ -94,6 +95,10 @@ type Integrations struct {
 type OnlyOffice struct {
 	Url    string `json:"url"`
 	Secret string `json:"secret"`
+}
+
+type Media struct {
+	FfmpegPath string `json:"ffmpegPath"`
 }
 
 type LogConfig struct {

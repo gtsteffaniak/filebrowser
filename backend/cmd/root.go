@@ -13,7 +13,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
-	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/swaggo/swag"
 
@@ -111,8 +110,6 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 	if serverConfig.NumImageProcessors < 1 {
 		logger.Fatal("Image resize workers count could not be < 1")
 	}
-	imgSvc := img.New(serverConfig.NumImageProcessors)
-
 	cacheDir := settings.Config.Server.CacheDir
 	var fileCache diskcache.Interface
 
@@ -127,7 +124,7 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
-	fbhttp.StartHttp(ctx, imgSvc, store, fileCache, shutdownComplete)
+	fbhttp.StartHttp(ctx, store, fileCache, shutdownComplete)
 
 	return nil
 }
