@@ -8,7 +8,6 @@ import (
 	"time"
 
 	storm "github.com/asdine/storm/v3"
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
@@ -16,7 +15,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
 )
 
 func setupTestEnv(t *testing.T) {
@@ -35,10 +33,8 @@ func setupTestEnv(t *testing.T) {
 		Share:    shareStore,
 		Settings: settingsStore,
 	}
-	fileCache = diskcache.NewNoOp() // mocked
-	imgSvc = img.New(1)             // mocked
-	config = &settings.Config       // mocked
-	mockFileInfoFaster(t)           // Mock FileInfoFasterFunc for this test
+	config = &settings.Config // mocked
+	mockFileInfoFaster(t)     // Mock FileInfoFasterFunc for this test
 }
 
 func mockFileInfoFaster(t *testing.T) {

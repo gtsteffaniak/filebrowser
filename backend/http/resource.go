@@ -372,13 +372,6 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func delThumbs(ctx context.Context, fileCache FileCache, file iteminfo.ExtendedFileInfo) {
-	err := fileCache.Delete(ctx, preview.CacheKey(file.RealPath, "small", file.ItemInfo.ModTime))
-	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not delete small thumbnail: %v", err))
-	}
-}
-
 func patchAction(ctx context.Context, action, src, dst string, d *requestContext, isSrcDir bool, srcIndex, destIndex string) error {
 	switch action {
 	case "copy":

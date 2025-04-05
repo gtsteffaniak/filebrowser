@@ -69,18 +69,19 @@ func GeneratePreview(ctx context.Context, in io.Reader, fileName string, outPath
 	var err error
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff":
-		outFile, err := os.Create(outPathPattern)
+		var outFile *os.File
+		outFile, err = os.Create(outPathPattern)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create output file for image: %w", err)
 		}
 		defer outFile.Close()
 
-		if err := service.Resize(ctx, in, 640, 360, outFile); err != nil {
+		if err = service.Resize(ctx, in, 640, 360, outFile); err != nil {
 			return nil, fmt.Errorf("failed to resize image: %w", err)
 		}
 
 	case ".mp4", ".mov", ".avi", ".webm", ".mkv":
-		if err := service.GeneratePreviewImages(fileName, outPathPattern, 1); err != nil {
+		if err = service.GeneratePreviewImages(fileName, outPathPattern, 1); err != nil {
 			return nil, fmt.Errorf("failed to generate video preview: %w", err)
 		}
 
