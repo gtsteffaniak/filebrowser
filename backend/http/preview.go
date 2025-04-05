@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -16,11 +15,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
 )
-
-type ImgService interface {
-	FormatFromExtension(ext string) (img.Format, error)
-	Resize(ctx context.Context, in io.Reader, width, height int, out io.Writer, options ...img.Option) error
-}
 
 type FileCache interface {
 	Store(ctx context.Context, key string, value []byte) error
@@ -81,7 +75,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		(previewSize == "small" && !config.Server.EnableThumbnails) {
 		return rawFileHandler(w, r, fileInfo)
 	}
-	previewImg, err := preview.GeneratePreview(fileInfo, previewSize)
+	previewImg, err := preview.GetPreviewForFile(fileInfo, previewSize)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

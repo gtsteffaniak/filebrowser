@@ -37,15 +37,13 @@ func (d dirFS) Open(name string) (fs.File, error) {
 }
 
 var (
-	store     *storage.Storage
-	config    *settings.Settings
-	fileCache FileCache
-	assetFs   fs.FS
+	store   *storage.Storage
+	config  *settings.Settings
+	assetFs fs.FS
 )
 
-func StartHttp(ctx context.Context, storage *storage.Storage, cache FileCache, shutdownComplete chan struct{}) {
+func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete chan struct{}) {
 	store = storage
-	fileCache = cache
 	config = &settings.Config
 	var err error
 

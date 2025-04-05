@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/swaggo/swag"
 
@@ -110,13 +111,14 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 		logger.Fatal("Image resize workers count could not be < 1")
 	}
 	cacheDir := settings.Config.Server.CacheDir
-
+	numWorkers := settings.Config.Server.NumImageProcessors
+	ffpmpegPath := settings.Config.Integrations.Media.FfmpegPath
 	// setup disk cache
-	err := preview.Start(config.Server.NumImageProcessors, config.Integrations.Media.FfmpegPath, cacheDir)
+	err := preview.Start(numWorkers, ffpmpegPath, cacheDir)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Error starting preview service: %v", err))
 	}
-	fbhttp.StartHttp(ctx, store, fileCache, shutdownComplete)
+	fbhttp.StartHttp(ctx, store, shutdownComplete)
 
 	return nil
 }
