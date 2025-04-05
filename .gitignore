@@ -44,3 +44,4 @@ yarn-error.log*
 *.sw*
 bin/
 build/
+*__debug*
