@@ -15,7 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
-
+	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
 )
 
@@ -38,20 +38,18 @@ func (d dirFS) Open(name string) (fs.File, error) {
 }
 
 var (
-	store     *storage.Storage
-	config    *settings.Settings
-	fileCache FileCache
-	imgSvc    ImgService
-	assetFs   fs.FS
+	store      *storage.Storage
+	config     *settings.Settings
+	fileCache  FileCache
+	previewSvc *preview.Service
+	assetFs    fs.FS
 )
 
-func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage, cache FileCache, shutdownComplete chan struct{}) {
-
+func StartHttp(ctx context.Context, storage *storage.Storage, cache FileCache, shutdownComplete chan struct{}) {
 	store = storage
 	fileCache = cache
-	imgSvc = Service
 	config = &settings.Config
-
+	previewSvc = preview.New(config.Server.NumImageProcessors, config.Integrations.Media.FfmpegPath)
 	var err error
 
 	if embeddedFS {
