@@ -14,7 +14,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
+	"github.com/gtsteffaniak/filebrowser/backend/preview"
 )
 
 type ImgService interface {
@@ -81,7 +81,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		(previewSize == "small" && !config.Server.EnableThumbnails) {
 		return rawFileHandler(w, r, fileInfo)
 	}
-	previewImg, err := previewSvc.GeneratePreviewFromFile()
+	previewImg, err := preview.GeneratePreview(fileInfo, previewSize)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

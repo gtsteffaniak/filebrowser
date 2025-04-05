@@ -1,4 +1,4 @@
-package video
+package preview
 
 import (
 	"os/exec"
@@ -9,9 +9,9 @@ import (
 // videoPath: path to the input video file.
 // outputPathPattern: path pattern where the generated preview images will be saved (e.g., "/tmp/output_%03d.jpg").
 // numImages: number of preview images to generate.
-func GeneratePreviewImages(ffmpegPath, videoPath, outputPathPattern string, numImages int) error {
+func (s *Service) GeneratePreviewImages(videoPath, outputPathPattern string, numImages int) error {
 	cmd := exec.Command(
-		ffmpegPath,
+		s.ffmpegPath,
 		"-i", videoPath,
 		"-vf", "thumbnail,scale=640:360",
 		"-frames:v", strconv.Itoa(numImages),

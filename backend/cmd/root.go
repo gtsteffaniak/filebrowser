@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
@@ -111,18 +110,11 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 		logger.Fatal("Image resize workers count could not be < 1")
 	}
 	cacheDir := settings.Config.Server.CacheDir
-	var fileCache diskcache.Interface
 
-	// Use file cache if cacheDir is specified
-	if cacheDir != "" {
-		var err error
-		fileCache, err = diskcache.NewFileCache(cacheDir)
-		if err != nil {
-			logger.Fatal(fmt.Sprintf("failed to create file cache: %v", err))
-		}
-	} else {
-		// No-op cache if no cacheDir is specified
-		fileCache = diskcache.NewNoOp()
+	// setup disk cache
+	err := preview.Start(config.Server.NumImageProcessors, config.Integrations.Media.FfmpegPath, cacheDir)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("Error starting preview service: %v", err))
 	}
 	fbhttp.StartHttp(ctx, store, fileCache, shutdownComplete)
 
