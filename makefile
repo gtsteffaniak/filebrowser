@@ -1,7 +1,6 @@
 SHELL := /bin/bash
-.SILENT:
-SHELL := /bin/bash
 
+.SILENT:
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
 	if [ ! -f backend/test_config.yaml ]; then \
@@ -62,7 +61,7 @@ test-frontend:
 
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
-	cd .. && docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests

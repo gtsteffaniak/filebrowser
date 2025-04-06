@@ -127,11 +127,13 @@ export default {
   },
   methods: {
     async updateSourceInfo() {
-      if (getters.isLoggedIn() && state.user.permissions.realtime) {
-        events.startSSE();
-      } else {
-        const sourceinfo = await filesApi.sources();
-        mutations.updateSourceInfo(sourceinfo);
+      if (getters.isLoggedIn()) {
+        if (state.user.permissions.realtime) {
+          events.startSSE();
+        } else {
+          const sourceinfo = await filesApi.sources();
+          mutations.updateSourceInfo(sourceinfo);
+        }
       }
     },
     updateIsMobile() {

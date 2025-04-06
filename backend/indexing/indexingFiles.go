@@ -374,7 +374,6 @@ func (idx *Index) SetUsage(usage DiskUsage) {
 	defer idx.mu.Unlock()
 	idx.ReducedIndex.DiskUsed = int64(usage.Used)
 	idx.ReducedIndex.DiskTotal = int64(usage.Total)
-
 }
 
 func (idx *Index) SetStatus(status IndexStatus) {

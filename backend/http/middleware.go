@@ -63,10 +63,15 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if path == "" || path == "/" {
 			data.path = link.Path
 		}
+
+		source, ok := config.Server.SourceMap[link.Source]
+		if !ok {
+			return http.StatusNotFound, fmt.Errorf("source not found")
+		}
 		// Get file information with options
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:   data.path,
-			Source: link.Source,
+			Source: source.Name,
 			Modify: false,
 			Expand: true,
 		})

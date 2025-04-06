@@ -34,7 +34,13 @@ func setupTestEnv(t *testing.T) {
 		Settings: settingsStore,
 	}
 	config = &settings.Config // mocked
-	mockFileInfoFaster(t)     // Mock FileInfoFasterFunc for this test
+	config.Server.SourceMap = map[string]settings.Source{
+		"/srv": settings.Source{
+			Path: "/srv",
+			Name: "srv",
+		},
+	}
+	mockFileInfoFaster(t) // Mock FileInfoFasterFunc for this test
 }
 
 func mockFileInfoFaster(t *testing.T) {
@@ -151,7 +157,8 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Public share, no auth required",
 			share: &share.Link{
-				Hash: "public_hash",
+				Hash:   "public_hash",
+				Source: "/srv",
 			},
 			expectedStatusCode: 0, // zero means 200 on helpers
 		},
@@ -172,6 +179,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
+				Source:       "/srv",
 			},
 			token:              "123",
 			expectedStatusCode: 0, // zero means 200 on helpers
