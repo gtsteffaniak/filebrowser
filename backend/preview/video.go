@@ -1,27 +1,28 @@
 package preview
 
 import (
+	"os"
 	"os/exec"
 	"strconv"
 )
 
-// GeneratePreviewImages generates preview images from a video using ffmpeg.
+// GenerateVideoPreview generates a single preview image from a video using ffmpeg.
 // videoPath: path to the input video file.
-// outputPathPattern: path pattern where the generated preview images will be saved (e.g., "/tmp/output_%03d.jpg").
-// numImages: number of preview images to generate.
-func (s *Service) GeneratePreviewImages(videoPath, outputPathPattern string, numImages int) error {
+// outputPath: path where the generated preview image will be saved (e.g., "/tmp/preview.jpg").
+// seekTime: how many seconds into the video to seek before capturing the frame.
+func (s *Service) GenerateVideoPreview(videoPath, outputPath string, seekTime int) error {
 	cmd := exec.Command(
 		s.ffmpegPath,
+		"-ss", strconv.Itoa(seekTime), // seek to a better frame
 		"-i", videoPath,
-		"-vf", "thumbnail,scale=640:360",
-		"-frames:v", strconv.Itoa(numImages),
-		"-vsync", "vfr",
-		outputPathPattern,
+		"-frames:v", "1",
+		"-q:v", "10", // quality 1 is best, 31 is worst
+		outputPath,
 	)
 
-	// Optional: capture stdout/stderr if needed for debugging
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
+	// Optional: capture stdout/stderr for debugging
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
 }

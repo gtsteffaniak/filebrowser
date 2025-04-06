@@ -13,6 +13,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
@@ -54,51 +55,46 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 }
 
 func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
+	if !AvailablePreview(file) {
+		return nil, ErrUnsupportedMedia
+	}
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
 		return nil, fmt.Errorf("failed to load from cache: %w", err)
 	} else if found {
 		return data, nil
 	}
-	return service.CreatePreview(file, previewSize)
-
+	return GeneratePreview(file, previewSize)
 }
 
-func GeneratePreview(ctx context.Context, in io.Reader, fileName string, outPathPattern string) ([]byte, error) {
-	ext := strings.ToLower(filepath.Ext(fileName))
+func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
+	ext := strings.ToLower(filepath.Ext(file.Name))
 	var err error
+	var data []byte
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff":
-		var outFile *os.File
-		outFile, err = os.Create(outPathPattern)
+		data, err = service.CreatePreview(file, previewSize)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create output file for image: %w", err)
-		}
-		defer outFile.Close()
-
-		if err = service.Resize(ctx, in, 640, 360, outFile); err != nil {
-			return nil, fmt.Errorf("failed to resize image: %w", err)
+			return nil, fmt.Errorf("failed to create image preview: %w", err)
 		}
 
 	case ".mp4", ".mov", ".avi", ".webm", ".mkv":
-		if err = service.GeneratePreviewImages(fileName, outPathPattern, 1); err != nil {
+		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)+".jpg")
+		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern, 5); err != nil {
 			return nil, fmt.Errorf("failed to generate video preview: %w", err)
 		}
-
+		// Read and return the generated preview
+		outFile, err := os.Open(outPathPattern)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open generated preview file: %w", err)
+		}
+		defer outFile.Close()
+		data, err = io.ReadAll(outFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read generated preview file: %w", err)
+		}
 	default:
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
-	}
-
-	// Read and return the generated preview
-	outFile, err := os.Open(outPathPattern)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open generated preview file: %w", err)
-	}
-	defer outFile.Close()
-
-	data, err := io.ReadAll(outFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read generated preview file: %w", err)
 	}
 
 	return data, nil
@@ -152,4 +148,12 @@ func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 	if err != nil {
 		logger.Debug(fmt.Sprintf("Could not delete small thumbnail: %v", err))
 	}
+}
+
+func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
+	if strings.HasPrefix(file.Type, "image") ||
+		strings.HasPrefix(file.Type, "video") {
+		return true
+	}
+	return false
 }

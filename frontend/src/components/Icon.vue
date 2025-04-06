@@ -1,7 +1,10 @@
 <template>
-  <span>
-    <!-- Material Icon -->
-    <i v-if="isMaterialIcon" :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
+  <span v-if="isPreviewImg">
+    <img v-lazy="thumbnailUrl" class="icon" ref="thumbnail"  />
+  </span>
+  <span v-else>
+     <!-- Material Icon -->
+    <i  :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
   </span>
 </template>
 
@@ -17,7 +20,11 @@ export default {
     },
     active: {
       type: Boolean,
-    }
+    },
+    thumbnailUrl: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
@@ -30,14 +37,17 @@ export default {
     isMaterialIcon() {
       return this.materialIcon !== "";
     },
+    isPreviewImg() {
+      return this.getIconForType().simpleType === "image" ||  this.getIconForType().simpleType === "video";
+    },
   },
   methods: {
-    getIconForType(mimetype) {
-      return getTypeInfo(mimetype);
+    getIconForType() {
+      return getTypeInfo(this.mimetype);
     },
   },
   mounted() {
-    const result = this.getIconForType(this.mimetype);
+    const result = this.getIconForType();
     this.classes = result.classes || "material-icons"; // Default class
     this.color = result.color || "lightgray"; // Default color
     this.materialIcon = result.materialIcon || "";

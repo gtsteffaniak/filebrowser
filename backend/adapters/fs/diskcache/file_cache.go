@@ -31,9 +31,10 @@ type FileCache struct {
 
 // NewFileCache creates a new FileCache
 func NewFileCache(dir string) (*FileCache, error) {
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(filepath.Join(dir, "thumbnails", "video"), 0700); err != nil {
 		return nil, fmt.Errorf("can't make directory %s: %v", dir, err)
 	}
+
 	return &FileCache{dir: dir}, nil
 }
 

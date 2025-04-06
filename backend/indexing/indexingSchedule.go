@@ -103,7 +103,7 @@ func (idx *Index) SendSourceUpdateEvent() {
 		Message:   string(message),
 	}
 	events.BroadcastChan <- msg
-	logger.Info("Broadcasted source update to all SSE clients.")
+	logger.Debug("Broadcasted source update to all SSE clients.")
 }
 
 func (idx *Index) RunIndexing(origin string, quick bool) {

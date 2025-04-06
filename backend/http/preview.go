@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -67,7 +66,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
 	}
 	setContentDisposition(w, r, fileInfo.Name)
-	if !strings.HasPrefix(fileInfo.Type, "image") {
+	if !preview.AvailablePreview(fileInfo) {
 		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", fileInfo.Type)
 	}
 

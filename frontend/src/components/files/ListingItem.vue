@@ -26,18 +26,7 @@
     @mouseup="cancelContext($event)"
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
-      <img
-        v-if="
-          readOnly === undefined &&
-          type.startsWith('image') &&
-          isThumbsEnabled &&
-          isInView
-        "
-        v-lazy="thumbnailUrl"
-        :class="{ activeimg: isMaximized && isSelected }"
-        ref="thumbnail"
-      />
-      <Icon v-else :mimetype="type" :active="isSelected" />
+      <Icon :mimetype="type" :active="isSelected" :thumbnailUrl />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">

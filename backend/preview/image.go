@@ -15,7 +15,7 @@ import (
 )
 
 // ErrUnsupportedFormat means the given image format is not supported.
-var ErrUnsupportedFormat = errors.New("unsupported image format")
+var ErrUnsupportedFormat = errors.New("preview is not available for provided file format")
 
 // Format is an image file format.
 /*
