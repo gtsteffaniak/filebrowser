@@ -195,7 +195,7 @@
     "password": "Wachtwoord",
     "passwordUpdated": "Wachtwoord bijgewerkt!",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Bestanden en mappen aanmaken",
       "delete": "Bestanden en mappen verwijderen",
       "download": "Downloaden",

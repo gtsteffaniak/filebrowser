@@ -8,15 +8,15 @@
     </p>
     <p>
       <input type="checkbox" :disabled="admin" v-model="perm.modify" />
-      {{ $t("settings.perm.modify") }}
+      {{ $t("settings.permissions.modify") }}
     </p>
     <p>
       <input type="checkbox" :disabled="admin" v-model="perm.share" />
-      {{ $t("settings.perm.share") }}
+      {{ $t("settings.permissions.share") }}
     </p>
     <p>
       <input type="checkbox" v-model="perm.api" />
-      {{ $t("settings.perm.api") }}
+      {{ $t("settings.permissions.api") }}
     </p>
     <p>
       <input type="checkbox" v-model="perm.realtime" />
@@ -28,20 +28,20 @@
 <script>
 export default {
   name: "permissions",
-  props: ["perm"],
+  props: ["permissions"],
   computed: {
     admin: {
       get() {
-        return this.perm.admin;
+        return this.permissions.admin;
       },
       set(value) {
         if (value) {
-          for (const key in this.perm) {
-            this.perm[key] = true;
+          for (const key in this.permissions) {
+            this.permissions[key] = true;
           }
         }
 
-        this.perm.admin = value;
+        this.permissions.admin = value;
       },
     },
   },

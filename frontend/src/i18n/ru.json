@@ -203,7 +203,7 @@
     "password": "Пароль",
     "passwordUpdated": "Пароль обновлен!",
     "path": "Путь",
-    "perm": {
+    "permissions": {
       "create": "Создавать файлы и каталоги",
       "delete": "Удалять файлы и каталоги",
       "download": "Скачивать",

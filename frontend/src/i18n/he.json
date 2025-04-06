@@ -206,7 +206,7 @@
     "password": "סיסמא",
     "passwordUpdated": "הסיסמא עודכנה!",
     "path": "נתיב",
-    "perm": {
+    "permissions": {
       "create": "יצירת קבצים ותקיות",
       "delete": "מחיקת קבצים ותקיות",
       "download": "הורדת קבצים ותקיות",

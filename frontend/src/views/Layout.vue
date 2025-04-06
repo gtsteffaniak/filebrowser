@@ -127,7 +127,7 @@ export default {
   },
   methods: {
     async updateSourceInfo() {
-      if (getters.isLoggedIn() && state.user.perm.realtime) {
+      if (getters.isLoggedIn() && state.user.permissions.realtime) {
         events.startSSE();
       } else {
         const sourceinfo = await filesApi.sources();

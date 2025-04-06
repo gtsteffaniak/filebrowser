@@ -207,7 +207,7 @@
     "password": "Senha",
     "passwordUpdated": "Senha atualizada!",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Criar arquivos e diretórios",
       "delete": "Apagar arquivos e diretórios",
       "download": "Baixar",

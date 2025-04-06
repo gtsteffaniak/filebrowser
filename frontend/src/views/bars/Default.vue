@@ -21,7 +21,7 @@ export default {
   },
   computed: {
     ismarkdownEditable() {
-      return state.req.type == "text/markdown" && state.user.perm.modify;
+      return state.req.type == "text/markdown" && state.user.permissions.modify;
     },
     notShare() {
       return getters.currentView() != "share";

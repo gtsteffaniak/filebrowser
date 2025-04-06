@@ -27,7 +27,6 @@ export const state = reactive({
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
     scopes: [],
-    perm: {},
     rules: [], // Default to an empty array
     permissions: {}, // Default to an empty object for permissions
     darkMode: true, // Default to false, assuming this is a boolean

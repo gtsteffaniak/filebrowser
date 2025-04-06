@@ -209,7 +209,7 @@
     "password": "Kennwort",
     "passwordUpdated": "Kennwort aktualisiert!",
     "path": "Pfad",
-    "perm": {
+    "permissions": {
       "create": "Dateien und Ordner erstellen",
       "delete": "Dateien und Ordner löschen",
       "download": "Download",

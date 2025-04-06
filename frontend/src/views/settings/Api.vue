@@ -34,7 +34,7 @@
             <td>
               <span
                 v-for="(value, perm) in link.Permissions"
-                :key="perm"
+                :key="permissions"
                 :title="`${perm}: ${value ? 'Enabled' : 'Disabled'}`"
                 class="clickable"
                 @click.prevent="infoPrompt(name, link)"

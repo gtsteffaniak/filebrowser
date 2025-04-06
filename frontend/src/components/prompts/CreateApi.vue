@@ -36,7 +36,7 @@
         permission.
       </p>
       <div>
-        <p v-for="(isEnabled, perm) in availablePermissions" :key="perm">
+        <p v-for="(isEnabled, perm) in availablePermissions" :key="permissions">
           <input type="checkbox" v-model="permissions[perm]" />
           {{ perm }}
         </p>
@@ -80,7 +80,7 @@ export default {
   },
   computed: {
     availablePermissions() {
-      return state.user.perm;
+      return state.user.permissions;
     },
     durationInDays() {
       // Calculate duration based on unit

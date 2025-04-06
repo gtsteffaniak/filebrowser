@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!stateUser.perm.admin && !isNew">
+  <div v-if="!stateUser.permissions.admin && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
     <input
       class="input input--block"
@@ -46,7 +46,7 @@
     <p>
       <input
         type="checkbox"
-        :disabled="!stateUser.perm?.admin"
+        :disabled="!stateUser.permissions?.admin"
         v-model="user.lockPassword"
         @input="emitUpdate"
       />
@@ -100,7 +100,7 @@
       ></languages>
     </p>
 
-    <permissions :perm="localUser.perm" />
+    <permissions :perm="localUser.permissions" />
   </div>
 </template>
 
@@ -132,7 +132,7 @@ export default {
     isNew: Boolean,
   },
   async mounted() {
-    if (!this.stateUser.perm.admin) {
+    if (!this.stateUser.permissions.admin) {
       this.sourceList = this.user.scopes;
     } else {
       this.sourceList = await settingsApi.get("sources");
@@ -159,7 +159,7 @@ export default {
     }
   },
   watch: {
-    "user.perm.admin": function (newValue) {
+    "user.permissions.admin": function (newValue) {
       if (newValue) {
         this.user.lockPassword = false;
       }

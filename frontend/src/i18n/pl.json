@@ -196,7 +196,7 @@
     "password": "Hasło",
     "passwordUpdated": "Hasło zostało zapisane!",
     "path": "Ścieżka",
-    "perm": {
+    "permissions": {
       "create": "Tworzenie plików i katalogów",
       "delete": "Usuwanie plików i katalogów",
       "download": "Pobieranie",

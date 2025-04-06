@@ -146,7 +146,7 @@ export default {
       return this.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      return this.readOnly == undefined && state.user.perm?.modify;
+      return this.readOnly == undefined && state.user.permissions?.modify;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
