@@ -383,9 +383,7 @@ func (idx *Index) SetStatus(status IndexStatus) {
 	switch status {
 	case INDEXING:
 		idx.runningScannerCount++
-	case READY:
-		idx.runningScannerCount--
-	case UNAVAILABLE:
+	case READY, UNAVAILABLE:
 		idx.runningScannerCount = 0
 	}
 	idx.mu.Unlock()

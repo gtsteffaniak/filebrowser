@@ -80,9 +80,12 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize string) ([]byte
 
 	case ".mp4", ".mov", ".avi", ".webm", ".mkv":
 		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)+".jpg")
+		defer os.Remove(outPathPattern) // always clean up preview after its used (should be in cache now)
+
 		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern, 5); err != nil {
 			return nil, fmt.Errorf("failed to generate video preview: %w", err)
 		}
+
 		// Read and return the generated preview
 		outFile, err := os.Open(outPathPattern)
 		if err != nil {
@@ -93,10 +96,16 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize string) ([]byte
 		if err != nil {
 			return nil, fmt.Errorf("failed to read generated preview file: %w", err)
 		}
+
 	default:
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
-
+	go func() {
+		cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
+		if err := service.fileCache.Store(context.Background(), cacheKey, data); err != nil {
+			logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
+		}
+	}()
 	return data, nil
 }
 
@@ -128,13 +137,6 @@ func (s *Service) CreatePreview(file iteminfo.ExtendedFileInfo, previewSize stri
 	if err := s.Resize(context.Background(), fd, width, height, buf, options...); err != nil {
 		return nil, err
 	}
-
-	go func() {
-		cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
-		if err := s.fileCache.Store(context.Background(), cacheKey, buf.Bytes()); err != nil {
-			logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
-		}
-	}()
 
 	return buf.Bytes(), nil
 }
