@@ -219,26 +219,24 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		defer fd.Close()
 
 		// Get file size
-		//fileInfo, err2 := fd.Stat()
-		//if err2 != nil {
-		//	return http.StatusInternalServerError, err2
-		//}
+		fileInfo, err2 := fd.Stat()
+		if err2 != nil {
+			return http.StatusInternalServerError, err2
+		}
 
 		// Set headers
 		setContentDisposition(w, r, fileName)
 		w.Header().Set("Cache-Control", "private")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		//w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 		sizeInMB := estimatedSize / 1024 / 1024
-		// if larger than 100 megabytes, log it
-		if sizeInMB > 100 {
+		// if larger than 500 MB, log it
+		if sizeInMB > 500 {
 			logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
 		}
-		// Stream file to response
-		_, err2 = io.Copy(w, fd)
-		if err2 != nil {
-			return http.StatusInternalServerError, err2
-		}
+		// serve content allows for range requests.
+		// video scrubbing, etc.
+		http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)
 		return 200, nil
 	}
 
@@ -296,7 +294,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 
 	sizeInMB := fileInfo.Size() / 1024 / 1024
-	if sizeInMB > 100 {
+	if sizeInMB > 500 {
 		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
 	}
 

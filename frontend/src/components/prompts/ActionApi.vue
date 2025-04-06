@@ -22,8 +22,8 @@
       <h3>Permissions:</h3>
       <table>
         <tbody>
-          <tr v-for="(isEnabled, perm) in info.Permissions" :key="permissions">
-            <td>{{ perm }}</td>
+          <tr v-for="(isEnabled, permission) in info.Permissions" :key="permission">
+            <td>{{ permission }}</td>
             <td>{{ isEnabled ? "✓" : "✗" }}</td>
           </tr>
         </tbody>

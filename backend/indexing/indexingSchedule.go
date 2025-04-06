@@ -20,6 +20,7 @@ var scanSchedule = []time.Duration{
 	3 * time.Hour,
 	4 * time.Hour, // 4 hours for quick scan & 20 hours for a full scan
 }
+
 var fullScanAnchor = 3 // index of the schedule for a full scan
 
 func (idx *Index) newScanner(origin string) {
@@ -48,21 +49,16 @@ func (idx *Index) newScanner(origin string) {
 }
 
 func (idx *Index) PreScan() {
-	idx.mu.Lock()
-	idx.runningScannerCount++
-	idx.Status = "indexing"
-	idx.mu.Unlock()
-	idx.SendSourceUpdateEvent()
+	idx.SetStatus(INDEXING)
 }
 
 func (idx *Index) PostScan() {
 	idx.mu.Lock()
 	idx.runningScannerCount--
-	if idx.runningScannerCount == 0 {
-		idx.Status = "ready"
-	}
 	idx.mu.Unlock()
-	idx.SendSourceUpdateEvent()
+	if idx.runningScannerCount == 0 {
+		idx.SetStatus(READY)
+	}
 }
 
 func (idx *Index) UpdateSchedule() {

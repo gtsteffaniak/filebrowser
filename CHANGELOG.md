@@ -20,7 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
     #- disableUsedPercentage is a backend property now.
 
   **Bug Fixes**:
-    -
+    - Fix nil pointer error when source media is disconnected while running.
 
 ## v0.6.6-beta
 

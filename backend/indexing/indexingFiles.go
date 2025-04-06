@@ -19,16 +19,16 @@ import (
 
 // reduced index is json exposed to the client
 type ReducedIndex struct {
-	DiskUsed      int64     `json:"used"`
-	DiskTotal     int64     `json:"total"`
-	Status        string    `json:"status"`
-	NumDirs       uint64    `json:"numDirs"`
-	NumFiles      uint64    `json:"numFiles"`
-	NumDeleted    uint64    `json:"numDeleted"`
-	LastIndexed   time.Time `json:"lastIndexed"`
-	QuickScanTime int       `json:"quickScanDurationSeconds"`
-	FullScanTime  int       `json:"fullScanDurationSeconds"`
-	Assessment    string    `json:"assessment"`
+	DiskUsed      int64       `json:"used"`
+	DiskTotal     int64       `json:"total"`
+	Status        IndexStatus `json:"status"`
+	NumDirs       uint64      `json:"numDirs"`
+	NumFiles      uint64      `json:"numFiles"`
+	NumDeleted    uint64      `json:"numDeleted"`
+	LastIndexed   time.Time   `json:"lastIndexed"`
+	QuickScanTime int         `json:"quickScanDurationSeconds"`
+	FullScanTime  int         `json:"fullScanDurationSeconds"`
+	Assessment    string      `json:"assessment"`
 }
 
 type Index struct {
@@ -45,6 +45,14 @@ type Index struct {
 var (
 	indexes      map[string]*Index
 	indexesMutex sync.RWMutex
+)
+
+type IndexStatus string
+
+const (
+	READY       IndexStatus = "ready"
+	INDEXING    IndexStatus = "indexing"
+	UNAVAILABLE IndexStatus = "unavailable"
 )
 
 func init() {
@@ -361,13 +369,25 @@ type DiskUsage struct {
 	Used  uint64 `json:"used"`
 }
 
-func SetUsage(source string, usage DiskUsage) {
-	indexesMutex.Lock()
-	defer indexesMutex.Unlock()
-	if idx, ok := indexes[source]; ok {
-		idx.mu.Lock()
-		defer idx.mu.Unlock()
-		idx.ReducedIndex.DiskUsed = int64(usage.Used)
-		idx.ReducedIndex.DiskTotal = int64(usage.Total)
+func (idx *Index) SetUsage(usage DiskUsage) {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+	idx.ReducedIndex.DiskUsed = int64(usage.Used)
+	idx.ReducedIndex.DiskTotal = int64(usage.Total)
+
+}
+
+func (idx *Index) SetStatus(status IndexStatus) {
+	idx.mu.Lock()
+	idx.ReducedIndex.Status = status
+	switch status {
+	case INDEXING:
+		idx.runningScannerCount++
+	case READY:
+		idx.runningScannerCount--
+	case UNAVAILABLE:
+		idx.runningScannerCount = 0
 	}
+	idx.mu.Unlock()
+	idx.SendSourceUpdateEvent()
 }

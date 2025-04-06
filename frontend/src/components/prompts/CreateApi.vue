@@ -36,9 +36,9 @@
         permission.
       </p>
       <div>
-        <p v-for="(isEnabled, perm) in availablePermissions" :key="permissions">
-          <input type="checkbox" v-model="permissions[perm]" />
-          {{ perm }}
+        <p v-for="(isEnabled, permission) in permissions" :key="permission">
+          <input type="checkbox" v-model="permissions[permission]" />
+          {{ permission }}
         </p>
       </div>
     </div>
@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
 
@@ -75,23 +75,19 @@ export default {
       apiName: "",
       duration: 1,
       unit: "days",
-      permissions: {},
     };
   },
-  computed: {
-    availablePermissions() {
-      return state.user.permissions;
+  props: {
+    permissions: {
+      type: Object,
+      required: true,
     },
+  },
+  computed: {
     durationInDays() {
       // Calculate duration based on unit
       return this.unit === "days" ? this.duration : this.duration * 30; // assuming 30 days per month
     },
-  },
-  created() {
-    // Initialize permissions with the same structure as availablePermissions
-    this.permissions = Object.fromEntries(
-      Object.keys(this.availablePermissions).map((perm) => [perm, false])
-    );
   },
   methods: {
     closeHovers() {

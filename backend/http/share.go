@@ -31,7 +31,7 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		s   []*share.Link
 		err error
 	)
-	if d.user.Perm.Admin {
+	if d.user.Permissions.Admin {
 		s, err = store.Share.All()
 	} else {
 		s, err = store.Share.FindByUserID(d.user.ID)

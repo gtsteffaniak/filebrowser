@@ -256,6 +256,10 @@ definitions:
       password:
         type: string
       perm:
+        allOf:
+        - $ref: '#/definitions/users.Permissions'
+        description: legacy for migration purposes... og filebrowser has perm attribute
+      permissions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean

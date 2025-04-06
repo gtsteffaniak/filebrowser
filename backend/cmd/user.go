@@ -15,34 +15,43 @@ func validateUserInfo() {
 		logger.Fatal(fmt.Sprintf("could not load users: %v", err))
 	}
 	for _, user := range usersList {
+		updateUser := false
 		if user.Username == "publicUser" {
 			settings.ApplyUserDefaults(user)
+			updateUser = true
+		}
+		if updateUserScopes(user) {
+			updateUser = true
+		}
+		if updatePermissions(user) {
+			updateUser = true
+		}
+		if updateUser {
 			err := store.Users.Save(user, false)
 			if err != nil {
 				logger.Error(fmt.Sprintf("could not update user: %v", err))
 			}
 		}
-		updateUserScopes(user)
 	}
 }
 
-func updateUserScopes(user *users.User) {
+func updateUserScopes(user *users.User) bool {
 	updateUser := false
 	newScopes := []users.SourceScope{}
 	for _, source := range settings.Config.Server.SourceMap {
 		scopePath, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
-		if !user.Perm.Admin {
+		if !user.Permissions.Admin {
 			scopePath = source.Config.DefaultUserScope
 		}
 		if scopePath == "" {
 			scopePath = "/"
 		}
-		if source.Config.CreateUserDir && !user.Perm.Admin {
+		if source.Config.CreateUserDir && !user.Permissions.Admin {
 			scopePath = fmt.Sprintf("%s%s", scopePath, users.CleanUsername(user.Username))
 		}
 		// if user doesn't yet have scope for source, add it for admins and default sources
 		if err != nil {
-			if user.Perm.Admin || source.Config.DefaultEnabled {
+			if user.Permissions.Admin || source.Config.DefaultEnabled {
 				newScopes = append(newScopes, users.SourceScope{Scope: scopePath, Name: source.Path}) // backend name is path
 				updateUser = true
 			}
@@ -62,11 +71,28 @@ func updateUserScopes(user *users.User) {
 		}
 		updateUser = true
 	}
-	if !updateUser {
-		return
+	return updateUser
+}
+
+// func to convert legacy user with perm key to permissions
+func updatePermissions(user *users.User) bool {
+	updateUser := false
+	// if any keys are true, set the permissions to true
+	if user.Perm.Api {
+		user.Permissions.Api = true
+		updateUser = true
 	}
-	err := store.Users.Save(user, false)
-	if err != nil {
-		logger.Error(fmt.Sprintf("could not update user: %v", err))
+	if user.Perm.Admin {
+		user.Permissions.Admin = true
+		updateUser = true
 	}
+	if user.Perm.Modify {
+		user.Permissions.Modify = true
+		updateUser = true
+	}
+	if user.Perm.Share {
+		user.Permissions.Share = true
+		updateUser = true
+	}
+	return updateUser
 }

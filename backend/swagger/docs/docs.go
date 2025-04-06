@@ -1935,6 +1935,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "perm": {
+                    "description": "legacy for migration purposes... og filebrowser has perm attribute",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.Permissions"
+                        }
+                    ]
+                },
+                "permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "quickDownload": {

@@ -55,7 +55,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Source: source,
 		Expand: true,
 	})

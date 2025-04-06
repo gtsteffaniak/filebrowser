@@ -54,7 +54,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:    utils.JoinPathAsUnix(userscope, path),
-		Modify:  d.user.Perm.Modify,
+		Modify:  d.user.Permissions.Modify,
 		Source:  source,
 		Expand:  true,
 		Content: r.URL.Query().Get("content") == "true",
@@ -119,7 +119,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Expand: false,
 	})
 	if err != nil {
@@ -160,7 +160,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		source = config.Server.DefaultSource.Name
 	}
 
-	if !d.user.Perm.Modify {
+	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 
@@ -176,7 +176,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	fileOpts := iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Expand: false,
 	}
 	// Directories creation on POST.
@@ -195,7 +195,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 
 		// Permission for overwriting the file
-		if !d.user.Perm.Modify {
+		if !d.user.Permissions.Modify {
 			return http.StatusForbidden, nil
 		}
 
@@ -229,7 +229,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if source == "" {
 		source = config.Server.DefaultSource.Name
 	}
-	if !d.user.Perm.Modify {
+	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 	encodedPath := r.URL.Query().Get("path")
@@ -250,7 +250,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	fileOpts := iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Expand: false,
 	}
 	err = files.WriteFile(fileOpts, r.Body)
@@ -276,7 +276,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	action := r.URL.Query().Get("action")
-	if !d.user.Perm.Modify {
+	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 
@@ -346,7 +346,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		realDest = addVersionSuffix(realDest)
 	}
 	// Permission for overwriting the file
-	if overwrite && !d.user.Perm.Modify {
+	if overwrite && !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
 	err = patchAction(r.Context(), action, realSrc, realDest, d, isSrcDir, srcIndex, dstIndex)
@@ -384,7 +384,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 			Path:       srcPath,
 			Source:     srcIndex,
 			IsDir:      isSrcDir,
-			Modify:     d.user.Perm.Modify,
+			Modify:     d.user.Permissions.Modify,
 			Expand:     false,
 			ReadHeader: false,
 		})

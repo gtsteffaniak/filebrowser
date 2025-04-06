@@ -61,14 +61,14 @@ func TestWithAdminHelper(t *testing.T) {
 	setupTestEnv(t)
 	// Mock a user who has admin permissions
 	adminUser := &users.User{
-		ID:       1,
-		Username: "admin",
-		Perm:     users.Permissions{Admin: true}, // Ensure the user is an admin
+		ID:          1,
+		Username:    "admin",
+		Permissions: users.Permissions{Admin: true}, // Ensure the user is an admin
 	}
 	nonAdminUser := &users.User{
-		ID:       2,
-		Username: "non-admin",
-		Perm:     users.Permissions{Admin: false}, // Non-admin user
+		ID:          2,
+		Username:    "non-admin",
+		Permissions: users.Permissions{Admin: false}, // Non-admin user
 	}
 	// Save the users to the mock database
 	if err := store.Users.Save(adminUser, true); err != nil {

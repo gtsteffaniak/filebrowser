@@ -33,9 +33,9 @@
             <td>{{ formatTime(link.expires) }}</td>
             <td>
               <span
-                v-for="(value, perm) in link.Permissions"
-                :key="permissions"
-                :title="`${perm}: ${value ? 'Enabled' : 'Disabled'}`"
+                v-for="(value, permission) in link.Permissions"
+                :key="permission"
+                :title="`${permission}: ${value ? 'Enabled' : 'Disabled'}`"
                 class="clickable"
                 @click.prevent="infoPrompt(name, link)"
               >
@@ -126,7 +126,7 @@ export default {
       return value ? "✓" : "✗";
     },
     createPrompt() {
-      mutations.showHover({ name: "CreateApi", props: { user: this.user } });
+      mutations.showHover({ name: "CreateApi", props: { permissions: this.user.permissions } });
     },
     infoPrompt(name, info) {
       mutations.showHover({ name: "ActionApi", props: { name: name, info: info } });

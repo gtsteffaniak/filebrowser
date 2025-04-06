@@ -105,7 +105,7 @@ func runCLI() bool {
 			}
 			user.Password = password
 			if asAdmin {
-				user.Perm.Admin = true
+				user.Permissions.Admin = true
 			}
 			err = store.Users.Save(user, true)
 			if err != nil {
