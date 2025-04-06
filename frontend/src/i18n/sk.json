@@ -203,7 +203,7 @@
     "password": "Heslo",
     "passwordUpdated": "Heslo zmenené!",
     "path": "Cesta",
-    "perm": {
+    "permissions": {
       "create": "Vytvárať súbory a priečinky",
       "delete": "Odstraňovať súbory a priečinky",
       "download": "Stiahnuť",

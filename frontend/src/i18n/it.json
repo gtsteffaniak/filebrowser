@@ -195,7 +195,7 @@
     "password": "Password",
     "passwordUpdated": "Password aggiornata!",
     "path": "Percorso",
-    "perm": {
+    "permissions": {
       "create": "Creare file e cartelle",
       "delete": "Eliminare file e cartelle",
       "download": "Scaricare",

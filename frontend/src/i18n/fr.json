@@ -205,7 +205,7 @@
     "password": "Mot de passe",
     "passwordUpdated": "Mot de passe mis à jour !",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Créer des fichiers et des dossiers",
       "delete": "Supprimer des fichiers et des dossiers",
       "download": "Télécharger",

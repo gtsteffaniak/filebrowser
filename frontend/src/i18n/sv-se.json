@@ -195,7 +195,7 @@
     "password": "Lösenord",
     "passwordUpdated": "Lösenord uppdaterat",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Skapa filer och mappar",
       "delete": "Ta bort filer och mappar",
       "download": "Ladda ner",

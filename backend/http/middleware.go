@@ -63,10 +63,15 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if path == "" || path == "/" {
 			data.path = link.Path
 		}
+
+		source, ok := config.Server.SourceMap[link.Source]
+		if !ok {
+			return http.StatusNotFound, fmt.Errorf("source not found")
+		}
 		// Get file information with options
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:   data.path,
-			Source: link.Source,
+			Source: source.Name,
 			Modify: false,
 			Expand: true,
 		})
@@ -86,7 +91,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 func withAdminHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// Ensure the user has admin permissions
-		if !data.user.Perm.Admin {
+		if !data.user.Permissions.Admin {
 			return http.StatusForbidden, nil
 		}
 		return fn(w, r, data)
@@ -181,7 +186,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// Check if the current user is the same as the requested user or if they are an admin
-		if !data.user.Perm.Admin {
+		if !data.user.Permissions.Admin {
 			return http.StatusForbidden, nil
 		}
 		// Call the actual handler function with the updated context
@@ -231,7 +236,7 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 
 func withPermShareHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		if !d.user.Perm.Share {
+		if !d.user.Permissions.Share {
 			return http.StatusForbidden, nil
 		}
 		return fn(w, r, d)

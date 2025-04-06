@@ -30,7 +30,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	durationStr := r.URL.Query().Get("days")
 	permissionsStr := r.URL.Query().Get("permissions")
 
-	if !d.user.Perm.Api {
+	if !d.user.Permissions.Api {
 		return http.StatusForbidden, fmt.Errorf("user does not have permission to create api keys")
 	}
 
@@ -45,10 +45,10 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	// Parse permissions from the query parameter
 	permissions := users.Permissions{
-		Api:    strings.Contains(permissionsStr, "api") && d.user.Perm.Api,
-		Admin:  strings.Contains(permissionsStr, "admin") && d.user.Perm.Admin,
-		Modify: strings.Contains(permissionsStr, "modify") && d.user.Perm.Modify,
-		Share:  strings.Contains(permissionsStr, "share") && d.user.Perm.Share,
+		Api:    strings.Contains(permissionsStr, "api") && d.user.Permissions.Api,
+		Admin:  strings.Contains(permissionsStr, "admin") && d.user.Permissions.Admin,
+		Modify: strings.Contains(permissionsStr, "modify") && d.user.Permissions.Modify,
+		Share:  strings.Contains(permissionsStr, "share") && d.user.Permissions.Share,
 	}
 
 	// Convert the duration string to an int64
@@ -87,7 +87,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Router /api/deleteApiKey [delete]
 func deleteApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	name := r.URL.Query().Get("name")
-	if !d.user.Perm.Api {
+	if !d.user.Permissions.Api {
 		return http.StatusForbidden, fmt.Errorf("user does not have permission to delete api keys")
 	}
 
@@ -129,7 +129,7 @@ type AuthTokenMin struct {
 // @Router /api/listApiKeys [get]
 func listApiKeysHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	key := r.URL.Query().Get("name")
-	if !d.user.Perm.Api {
+	if !d.user.Permissions.Api {
 		return http.StatusForbidden, fmt.Errorf("user does not have permission to list api keys")
 	}
 

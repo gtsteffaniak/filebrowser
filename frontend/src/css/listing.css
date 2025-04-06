@@ -62,14 +62,13 @@ body.rtl #listingView {
   vertical-align: bottom;
 }
 
-
 #listingView .item img {
+  padding: 0;
+  height: 3.2em;
   width: 4em;
-  height: 4em;
-  object-fit: cover;
-  margin-right: 0.1em;
-  vertical-align: bottom;
   border-radius: 0.5em;
+  object-fit: cover;
+  vertical-align: bottom;
 }
 
 .message {
@@ -111,10 +110,6 @@ body.rtl #listingView {
 
 #listingView .item:hover {
   box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .24) !important;
-}
-
-#listingView .item div:first-of-type {
-  width: 5em;
 }
 
 #listingView .item div:last-of-type {
@@ -206,8 +201,9 @@ body.rtl #listingView {
 }
 
 #listingView.compact .item div:first-of-type img {
-  width: 2em;
-  height: 2em;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: .25em;
 }
 
 #listingView.compact .item div:last-of-type {
@@ -346,8 +342,8 @@ body.rtl #listingView {
 }
 
 #listingView.list .item div:first-of-type img {
-  width: 2em;
-  height: 2em;
+  width: 1.5em;
+  height: 1.5em;
   border-radius: 0.2em;
 }
 

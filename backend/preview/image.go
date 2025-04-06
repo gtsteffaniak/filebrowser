@@ -1,5 +1,5 @@
 //go:generate go-enum --sql --marshal --file $GOFILE
-package img
+package preview
 
 import (
 	"bytes"
@@ -11,43 +11,11 @@ import (
 
 	"github.com/disintegration/imaging"
 	exif "github.com/dsoprea/go-exif/v3"
-
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
 )
 
 // ErrUnsupportedFormat means the given image format is not supported.
-var ErrUnsupportedFormat = errors.New("unsupported image format")
-
-// Service
-type Service struct {
-	sem chan struct{}
-}
-
-// New initializes the service with a specified number of workers (concurrency limit).
-func New(workers int) *Service {
-	return &Service{
-		sem: make(chan struct{}, workers), // Buffered channel to limit concurrency.
-	}
-}
-
-// acquire blocks until a worker is available or the context is canceled.
-func (s *Service) acquire(ctx context.Context) error {
-	select {
-	case s.sem <- struct{}{}: // Reserve a worker.
-		return nil
-	case <-ctx.Done(): // Context canceled or deadline exceeded.
-		return ctx.Err()
-	}
-}
-
-// release frees up a worker slot.
-func (s *Service) release() {
-	select {
-	case <-s.sem: // Free a worker slot.
-	default:
-		// Shouldn't happen, but guard against releasing more than acquired.
-	}
-}
+var ErrUnsupportedFormat = errors.New("preview is not available for provided file format")
 
 // Format is an image file format.
 /*
@@ -124,8 +92,9 @@ func (s *Service) FormatFromExtension(ext string) (Format, error) {
 		return FormatTiff, nil
 	case imaging.BMP:
 		return FormatBmp, nil
+	default:
+		return -1, ErrUnsupportedFormat
 	}
-	return -1, ErrUnsupportedFormat
 }
 
 type resizeConfig struct {
@@ -194,7 +163,7 @@ func (s *Service) Resize(ctx context.Context, in io.Reader, width, height int, o
 	case ResizeModeFill:
 		img = imaging.Fill(img, width, height, imaging.Center, config.quality.resampleFilter())
 	case ResizeModeFit:
-		fallthrough //nolint:gocritic
+		fallthrough
 	default:
 		img = imaging.Fit(img, width, height, config.quality.resampleFilter())
 	}
@@ -224,15 +193,15 @@ func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
 	r := io.TeeReader(in, buf)
 	wrappedReader := io.MultiReader(buf, in)
 
-	offset := 0
 	offsets := []int{12, 30}
-	head := make([]byte, 0xffff) //nolint:gomnd
+	head := make([]byte, 0xffff)
 
 	_, err := r.Read(head)
 	if err != nil {
 		return nil, wrappedReader, err
 	}
 
+	var offset int
 	for _, offset = range offsets {
 		if _, err = exif.ParseExifHeader(head[offset:]); err == nil {
 			break
@@ -262,21 +231,12 @@ func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
 	return thm, wrappedReader, err
 }
 
-// CreateThumbnail takes raw image data and creates a thumbnail image.
+// CreateThumbnail decodes an image and creates a fixed-size thumbnail.
 func CreateThumbnail(rawData io.Reader, width, height int) (image.Image, error) {
-	// Decode the raw image to get an image.Image.
 	img, _, err := image.Decode(rawData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode image: %w", err)
 	}
-
-	// Resize the image to create a thumbnail using the specified dimensions.
 	thumb := imaging.Fit(img, width, height, imaging.Lanczos)
-
-	// Optionally, convert the thumbnail to grayscale if needed.
-	// Uncomment the line below if you want the result to be grayscale.
-	// thumb = imaging.Grayscale(thumb)
-
-	// Return the resized thumbnail image.
 	return thumb, nil
 }

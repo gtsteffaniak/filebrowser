@@ -3,7 +3,7 @@
     <action icon="close" :label="$t('buttons.close')" @action="close()" />
     <title class="topTitle">{{ req.name }}</title>
     <action
-      v-if="user.perm.modify"
+      v-if="user.permissions.modify"
       id="save-button"
       icon="save"
       :label="$t('buttons.save')"

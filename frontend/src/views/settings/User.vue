@@ -19,7 +19,7 @@
 
     <div class="card-action">
       <button
-        v-if="!isNew && actor.perm.admin"
+        v-if="!isNew && actor.permissions.admin"
         @click.prevent="deletePrompt"
         type="button"
         class="button button--flat button--red"
@@ -53,7 +53,7 @@ export default {
       user: {
         scopes: [],
         username: "",
-        perm: { admin: false },
+        permissions: { admin: false },
       },
       showDelete: false,
       createUserDir: false,

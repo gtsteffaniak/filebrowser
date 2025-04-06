@@ -156,9 +156,9 @@ export default {
     },
     userPerms() {
       return {
-        upload: state.user.perm?.modify && state.selected.length > 0,
-        share: state.user.perm.share,
-        modify: state.user.perm.modify,
+        upload: state.user.permissions?.modify && state.selected.length > 0,
+        share: state.user.permissions.share,
+        modify: state.user.permissions.modify,
       };
     },
   },

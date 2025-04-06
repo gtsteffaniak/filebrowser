@@ -46,8 +46,11 @@ type User struct {
 	Scopes          []SourceScope        `json:"scopes"`
 	Scope           string               `json:"scope,omitempty"`
 	LockPassword    bool                 `json:"lockPassword"`
-	Perm            Permissions          `json:"perm"`
+	Permissions     Permissions          `json:"permissions"`
 	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"`
+
+	// legacy for migration purposes... og filebrowser has perm attribute
+	Perm Permissions `json:"perm"`
 }
 
 type SourceScope struct {
@@ -77,7 +80,7 @@ var PublicUser = User{
 	},
 	Username:     "publicUser", // temp user not registered
 	LockPassword: true,
-	Perm:         Permissions{},
+	Permissions:  Permissions{},
 }
 
 func CleanUsername(s string) string {

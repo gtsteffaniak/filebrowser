@@ -195,7 +195,7 @@
     "password": "Lykilorð",
     "passwordUpdated": "Lykilorð vistað!",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Búa til sköl og möppur",
       "delete": "Eyða skjölum og möppum",
       "download": "Sækja",

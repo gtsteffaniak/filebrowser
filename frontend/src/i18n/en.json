@@ -220,7 +220,7 @@
     "password": "Password",
     "passwordUpdated": "Password updated!",
     "path": "Path",
-    "perm": {
+    "permissions": {
       "create": "Create files and directories",
       "delete": "Delete files and directories",
       "download": "Download",

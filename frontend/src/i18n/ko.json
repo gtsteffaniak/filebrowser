@@ -195,7 +195,7 @@
     "password": "비밀번호",
     "passwordUpdated": "비밀번호 수정 완료!",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "파일이나 디렉토리 생성하기",
       "delete": "화일이나 디렉토리 삭제하기",
       "download": "다운로드",

@@ -87,7 +87,7 @@ func quickSetup(store *Storage) {
 	settings.ApplyUserDefaults(user)
 	user.Username = settings.Config.Auth.AdminUsername
 	user.Password = settings.Config.Auth.AdminPassword
-	user.Perm.Admin = true
+	user.Permissions.Admin = true
 	user.Scopes = []users.SourceScope{}
 	for _, val := range settings.Config.Server.Sources {
 		user.Scopes = append(user.Scopes, users.SourceScope{
@@ -96,7 +96,7 @@ func quickSetup(store *Storage) {
 		})
 	}
 	user.LockPassword = false
-	user.Perm = settings.AdminPerms()
+	user.Permissions = settings.AdminPerms()
 	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v", user.Username, user.Password))
 	err = store.Users.Save(user, true)
 	utils.CheckErr("store.Users.Save", err)
@@ -112,7 +112,7 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	logger.Debug(fmt.Sprintf("Creating user: %v %v", userInfo.Username, userInfo.Scopes))
 	settings.ApplyUserDefaults(newUser)
 	if asAdmin {
-		userInfo.Perm = settings.AdminPerms()
+		userInfo.Permissions = settings.AdminPerms()
 	}
 	if len(userInfo.Scopes) == 0 {
 		userInfo.Scopes = settings.Config.UserDefaults.DefaultScopes

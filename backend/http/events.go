@@ -26,7 +26,7 @@ func (msgr messenger) sendEvent(eventType, message string) error {
 
 // Handle SSE connection
 func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Perm.Realtime {
+	if !d.user.Permissions.Realtime {
 		return http.StatusForbidden, fmt.Errorf("realtime is disabled for this user")
 	}
 	// Set headers for SSE

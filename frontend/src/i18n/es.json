@@ -208,7 +208,7 @@
     "password": "Contraseña",
     "passwordUpdated": "¡Contraseña actualizada!",
     "path": "Ruta",
-    "perm": {
+    "permissions": {
       "create": "Crear ficheros y directorios",
       "delete": "Eliminar ficheros y directorios",
       "download": "Descargar",

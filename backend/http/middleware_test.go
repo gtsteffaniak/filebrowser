@@ -8,7 +8,6 @@ import (
 	"time"
 
 	storm "github.com/asdine/storm/v3"
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
@@ -16,7 +15,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
 )
 
 func setupTestEnv(t *testing.T) {
@@ -35,10 +33,14 @@ func setupTestEnv(t *testing.T) {
 		Share:    shareStore,
 		Settings: settingsStore,
 	}
-	fileCache = diskcache.NewNoOp() // mocked
-	imgSvc = img.New(1)             // mocked
-	config = &settings.Config       // mocked
-	mockFileInfoFaster(t)           // Mock FileInfoFasterFunc for this test
+	config = &settings.Config // mocked
+	config.Server.SourceMap = map[string]settings.Source{
+		"/srv": settings.Source{
+			Path: "/srv",
+			Name: "srv",
+		},
+	}
+	mockFileInfoFaster(t) // Mock FileInfoFasterFunc for this test
 }
 
 func mockFileInfoFaster(t *testing.T) {
@@ -65,14 +67,14 @@ func TestWithAdminHelper(t *testing.T) {
 	setupTestEnv(t)
 	// Mock a user who has admin permissions
 	adminUser := &users.User{
-		ID:       1,
-		Username: "admin",
-		Perm:     users.Permissions{Admin: true}, // Ensure the user is an admin
+		ID:          1,
+		Username:    "admin",
+		Permissions: users.Permissions{Admin: true}, // Ensure the user is an admin
 	}
 	nonAdminUser := &users.User{
-		ID:       2,
-		Username: "non-admin",
-		Perm:     users.Permissions{Admin: false}, // Non-admin user
+		ID:          2,
+		Username:    "non-admin",
+		Permissions: users.Permissions{Admin: false}, // Non-admin user
 	}
 	// Save the users to the mock database
 	if err := store.Users.Save(adminUser, true); err != nil {
@@ -155,7 +157,8 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Public share, no auth required",
 			share: &share.Link{
-				Hash: "public_hash",
+				Hash:   "public_hash",
+				Source: "/srv",
 			},
 			expectedStatusCode: 0, // zero means 200 on helpers
 		},
@@ -176,6 +179,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
+				Source:       "/srv",
 			},
 			token:              "123",
 			expectedStatusCode: 0, // zero means 200 on helpers

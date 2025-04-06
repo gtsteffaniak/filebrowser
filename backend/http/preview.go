@@ -4,26 +4,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
+	"github.com/gtsteffaniak/filebrowser/backend/preview"
 )
-
-type ImgService interface {
-	FormatFromExtension(ext string) (img.Format, error)
-	Resize(ctx context.Context, in io.Reader, width, height int, out io.Writer, options ...img.Option) error
-}
 
 type FileCache interface {
 	Store(ctx context.Context, key string, value []byte) error
@@ -65,7 +55,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Source: source,
 		Expand: true,
 	})
@@ -76,7 +66,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
 	}
 	setContentDisposition(w, r, fileInfo.Name)
-	if !strings.HasPrefix(fileInfo.Type, "image") {
+	if !preview.AvailablePreview(fileInfo) {
 		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", fileInfo.Type)
 	}
 
@@ -84,76 +74,13 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		(previewSize == "small" && !config.Server.EnableThumbnails) {
 		return rawFileHandler(w, r, fileInfo)
 	}
-
-	format, err := imgSvc.FormatFromExtension(filepath.Ext(fileInfo.Name))
-	// Unsupported extensions directly return the raw data
-	if err == img.ErrUnsupportedFormat || format == img.FormatGif {
-		return rawFileHandler(w, r, fileInfo)
-	}
+	previewImg, err := preview.GetPreviewForFile(fileInfo, previewSize)
 	if err != nil {
-		return errToStatus(err), err
-	}
-	cacheKey := previewCacheKey(fileInfo.RealPath, previewSize, fileInfo.ModTime)
-	resizedImage, ok, err := fileCache.Load(r.Context(), cacheKey)
-	if err != nil {
-		return errToStatus(err), err
-	}
-
-	if !ok {
-		resizedImage, err = createPreview(imgSvc, fileCache, fileInfo, previewSize)
-		if err != nil {
-			return errToStatus(err), err
-		}
+		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, fileInfo.RealPath, fileInfo.ModTime, bytes.NewReader(resizedImage))
+	http.ServeContent(w, r, fileInfo.RealPath, fileInfo.ModTime, bytes.NewReader(previewImg))
 	return 0, nil
-}
-
-func createPreview(imgSvc ImgService, fileCache FileCache, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
-	fd, err := os.Open(file.RealPath)
-	if err != nil {
-		return nil, err
-	}
-	defer fd.Close()
-
-	var (
-		width   int
-		height  int
-		options []img.Option
-	)
-
-	switch {
-	case previewSize == "large":
-		width = 1080
-		height = 1080
-		options = append(options, img.WithMode(img.ResizeModeFit), img.WithQuality(img.QualityMedium))
-	case previewSize == "small":
-		width = 256
-		height = 256
-		options = append(options, img.WithMode(img.ResizeModeFill), img.WithQuality(img.QualityLow), img.WithFormat(img.FormatJpeg))
-	default:
-		return nil, img.ErrUnsupportedFormat
-	}
-
-	buf := &bytes.Buffer{}
-	if err := imgSvc.Resize(context.Background(), fd, width, height, buf, options...); err != nil {
-		return nil, err
-	}
-
-	go func() {
-		cacheKey := previewCacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
-		if err := fileCache.Store(context.Background(), cacheKey, buf.Bytes()); err != nil {
-			logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
-		}
-	}()
-
-	return buf.Bytes(), nil
-}
-
-// Generates a cache key for the preview image
-func previewCacheKey(realPath, previewSize string, modTime time.Time) string {
-	return fmt.Sprintf("%x%x%x", realPath, modTime.Unix(), previewSize)
 }
 
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {

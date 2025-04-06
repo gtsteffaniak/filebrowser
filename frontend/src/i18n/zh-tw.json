@@ -195,7 +195,7 @@
     "password": "密碼",
     "passwordUpdated": "密碼已更新！",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "建立檔案和資料夾",
       "delete": "刪除檔案和資料夾",
       "download": "下載",

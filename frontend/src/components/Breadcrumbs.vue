@@ -91,8 +91,8 @@ export default {
     },
     showShare() {
       return (
-        state.user?.perm &&
-        state.user?.perm.share &&
+        state.user?.permissions &&
+        state.user?.permissions.share &&
         state.user.username != "publicUser" &&
         getters.currentView() != "share"
       );

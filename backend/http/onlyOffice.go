@@ -66,7 +66,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Source: source,
 		Expand: false,
 	})
@@ -94,7 +94,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"title":    fileInfo.Name,
 			"url":      url + "&auth=" + d.token,
 			"permissions": map[string]interface{}{
-				"edit":     d.user.Perm.Modify,
+				"edit":     d.user.Permissions.Modify,
 				"download": true,
 				"print":    true,
 			},
@@ -160,7 +160,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
 		data.Status == onlyOfficeStatusForceSaveWhileDocumentStillOpen {
-		if !d.user.Perm.Modify {
+		if !d.user.Permissions.Modify {
 			return http.StatusForbidden, nil
 		}
 

@@ -20,9 +20,9 @@ RUN npm run build-docker
 FROM alpine:latest
 ENV FILEBROWSER_NO_EMBEDED="true"
 RUN apk --no-cache add ca-certificates mailcap
-WORKDIR /home/filebrowser
 RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
+WORKDIR /home/filebrowser
 COPY --from=base --chown=filebrowser:1000 /app/filebrowser* ./
 COPY --from=base --chown=filebrowser:1000 /app/config.yaml ./
 COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/

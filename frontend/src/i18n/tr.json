@@ -201,7 +201,7 @@
     "password": "Şifre",
     "passwordUpdated": "Şifre güncellendi",
     "path": "Yol",
-    "perm": {
+    "permissions": {
       "create": "Dosyalar ve dizinler oluşturun",
       "delete": "Dosyalar ve dizinleri silin",
       "download": "İndir",

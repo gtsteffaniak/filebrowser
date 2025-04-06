@@ -30,7 +30,7 @@ func MakeUserDirs(u *users.User) error {
 				continue
 			}
 			fullPath := ""
-			if filepath.Base(scope.Scope) != cleanedUserName && !u.Perm.Admin {
+			if filepath.Base(scope.Scope) != cleanedUserName && !u.Permissions.Admin {
 				scope.Scope = filepath.Join(scope.Scope, cleanedUserName)
 				fullPath = filepath.Join(source.Path, scope.Scope)
 			} else {

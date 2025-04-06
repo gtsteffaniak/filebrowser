@@ -11,7 +11,7 @@
           <tr>
             <th>{{ $t("settings.path") }}</th>
             <th>{{ $t("settings.shareDuration") }}</th>
-            <th v-if="user.perm.admin">{{ $t("settings.username") }}</th>
+            <th v-if="user.permissions.admin">{{ $t("settings.username") }}</th>
             <th></th>
             <th></th>
           </tr>
@@ -25,7 +25,7 @@
               <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
               <template v-else>{{ $t("permanent") }}</template>
             </td>
-            <td v-if="user.perm.admin">{{ link.username }}</td>
+            <td v-if="user.permissions.admin">{{ link.username }}</td>
             <td class="small">
               <button
                 class="action"
@@ -81,7 +81,7 @@ export default {
     mutations.setLoading("shares", true);
     try {
       let links = await shareApi.list();
-      if (state.user.perm.admin) {
+      if (state.user.permissions.admin) {
         let userMap = new Map();
         for (let user of await usersApi.getAllUsers())
           userMap.set(user.id, user.username);

@@ -18,6 +18,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/preview"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -53,7 +54,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:    utils.JoinPathAsUnix(userscope, path),
-		Modify:  d.user.Perm.Modify,
+		Modify:  d.user.Permissions.Modify,
 		Source:  source,
 		Expand:  true,
 		Content: r.URL.Query().Get("content") == "true",
@@ -118,7 +119,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Expand: false,
 	})
 	if err != nil {
@@ -126,7 +127,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	}
 
 	// delete thumbnails
-	delThumbs(r.Context(), fileCache, fileInfo)
+	preview.DelThumbs(r.Context(), fileInfo)
 
 	err = files.DeleteFiles(source, fileInfo.RealPath, filepath.Dir(fileInfo.RealPath))
 	if err != nil {
@@ -159,7 +160,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		source = config.Server.DefaultSource.Name
 	}
 
-	if !d.user.Perm.Modify {
+	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 
@@ -175,7 +176,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	fileOpts := iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Expand: false,
 	}
 	// Directories creation on POST.
@@ -194,11 +195,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 
 		// Permission for overwriting the file
-		if !d.user.Perm.Modify {
+		if !d.user.Permissions.Modify {
 			return http.StatusForbidden, nil
 		}
 
-		delThumbs(r.Context(), fileCache, fileInfo)
+		preview.DelThumbs(r.Context(), fileInfo)
 	}
 	err = files.WriteFile(fileOpts, r.Body)
 	if err != nil {
@@ -228,7 +229,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if source == "" {
 		source = config.Server.DefaultSource.Name
 	}
-	if !d.user.Perm.Modify {
+	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 	encodedPath := r.URL.Query().Get("path")
@@ -249,7 +250,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	fileOpts := iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Expand: false,
 	}
 	err = files.WriteFile(fileOpts, r.Body)
@@ -275,7 +276,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Router /api/resources [patch]
 func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	action := r.URL.Query().Get("action")
-	if !d.user.Perm.Modify {
+	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
 
@@ -345,10 +346,10 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		realDest = addVersionSuffix(realDest)
 	}
 	// Permission for overwriting the file
-	if overwrite && !d.user.Perm.Modify {
+	if overwrite && !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
-	err = patchAction(r.Context(), action, realSrc, realDest, d, fileCache, isSrcDir, srcIndex, dstIndex)
+	err = patchAction(r.Context(), action, realSrc, realDest, d, isSrcDir, srcIndex, dstIndex)
 	if err != nil {
 		logger.Debug(fmt.Sprintf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err))
 	}
@@ -371,14 +372,7 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func delThumbs(ctx context.Context, fileCache FileCache, file iteminfo.ExtendedFileInfo) {
-	err := fileCache.Delete(ctx, previewCacheKey(file.RealPath, "small", file.ItemInfo.ModTime))
-	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not delete small thumbnail: %v", err))
-	}
-}
-
-func patchAction(ctx context.Context, action, src, dst string, d *requestContext, fileCache FileCache, isSrcDir bool, srcIndex, destIndex string) error {
+func patchAction(ctx context.Context, action, src, dst string, d *requestContext, isSrcDir bool, srcIndex, destIndex string) error {
 	switch action {
 	case "copy":
 		err := files.CopyResource(srcIndex, destIndex, src, dst)
@@ -390,7 +384,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 			Path:       srcPath,
 			Source:     srcIndex,
 			IsDir:      isSrcDir,
-			Modify:     d.user.Perm.Modify,
+			Modify:     d.user.Permissions.Modify,
 			Expand:     false,
 			ReadHeader: false,
 		})
@@ -400,7 +394,7 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 		}
 
 		// delete thumbnails
-		delThumbs(ctx, fileCache, fileInfo)
+		preview.DelThumbs(ctx, fileInfo)
 		return files.MoveResource(srcIndex, destIndex, src, dst)
 	default:
 		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)

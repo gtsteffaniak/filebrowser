@@ -27,7 +27,7 @@ export const getters = {
     }
     return false
   },
-  isAdmin: () => state.user.perm?.admin == true,
+  isAdmin: () => state.user.permissions?.admin == true,
   isFiles: () => state.route.name === "Files",
   isListing: () => getters.isFiles() && state.req.type === "directory",
   selectedCount: () => Array.isArray(state.selected) ? state.selected.length : 0,

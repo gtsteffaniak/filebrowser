@@ -195,7 +195,7 @@
     "password": "パスワード",
     "passwordUpdated": "パスワードは更新されました！",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Create files and directories",
       "delete": "Delete files and directories",
       "download": "Download",

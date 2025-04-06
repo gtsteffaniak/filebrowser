@@ -101,24 +101,26 @@ func GetIndex(name string) *Index {
 func GetIndexesInfo(sources ...string) map[string]ReducedIndex {
 	// update usage if needed
 	for _, source := range sources {
-		s, ok := settings.Config.Server.NameToSource[source]
+		idx, ok := indexes[source]
 		if !ok {
 			logger.Error(fmt.Sprintf("source %s not found", source))
 			continue
 		}
-		sourcePath := s.Path
+		sourcePath := idx.Path
 		cacheKey := "usageCache-" + source
 		_, ok = cache.DiskUsage.Get(cacheKey).(bool)
 		if !ok {
 			usage, err := disk.Usage(sourcePath)
 			if err != nil {
 				logger.Error(fmt.Sprintf("error getting disk usage for %s: %v", sourcePath, err))
+				idx.SetStatus(UNAVAILABLE)
+				continue
 			}
 			latestUsage := DiskUsage{
 				Total: usage.Total,
 				Used:  usage.Used,
 			}
-			SetUsage(source, latestUsage)
+			idx.SetUsage(latestUsage)
 			cache.DiskUsage.Set(cacheKey, true)
 		}
 	}

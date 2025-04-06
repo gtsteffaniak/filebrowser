@@ -320,7 +320,7 @@ export default {
       this.$el.addEventListener("contextmenu", this.openContext);
     }
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (!state.user.perm?.modify) return;
+    if (!state.user.permissions?.modify) return;
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
@@ -572,12 +572,12 @@ export default {
           break;
 
         case "Delete":
-          if (!state.user.perm.modify || state.selected.length === 0) return;
+          if (!state.user.permissions.modify || state.selected.length === 0) return;
           mutations.showHover("delete");
           break;
 
         case "F2":
-          if (!state.user.perm.modify || state.selected.length !== 1) return;
+          if (!state.user.permissions.modify || state.selected.length !== 1) return;
           mutations.showHover("rename");
           break;
 

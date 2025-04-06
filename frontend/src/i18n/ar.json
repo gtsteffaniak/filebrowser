@@ -195,7 +195,7 @@
     "password": "كلمة المرور",
     "passwordUpdated": "تم تغيير كلمة المرور",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Create files and directories",
       "delete": "Delete files and directories",
       "download": "Download",

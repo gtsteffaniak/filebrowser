@@ -28,9 +28,9 @@ export default {
   },
   methods: {
     shouldShow(setting) {
-      const perm = setting?.perm || {};
+      const perm = setting?.permissions || {};
       // Check if all keys in setting.perm exist in state.user.perm and have truthy values
-      return Object.keys(perm).every((key) => state.user.perm[key]);
+      return Object.keys(perm).every((key) => state.user.permissions[key]);
     },
     active: (view) => state.activeSettingsView === view,
     setView(view) {

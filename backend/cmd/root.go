@@ -7,13 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
-	"github.com/gtsteffaniak/filebrowser/backend/preview/img"
+	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/swaggo/swag"
 
@@ -111,23 +110,15 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 	if serverConfig.NumImageProcessors < 1 {
 		logger.Fatal("Image resize workers count could not be < 1")
 	}
-	imgSvc := img.New(serverConfig.NumImageProcessors)
-
 	cacheDir := settings.Config.Server.CacheDir
-	var fileCache diskcache.Interface
-
-	// Use file cache if cacheDir is specified
-	if cacheDir != "" {
-		var err error
-		fileCache, err = diskcache.NewFileCache(cacheDir)
-		if err != nil {
-			logger.Fatal(fmt.Sprintf("failed to create file cache: %v", err))
-		}
-	} else {
-		// No-op cache if no cacheDir is specified
-		fileCache = diskcache.NewNoOp()
+	numWorkers := settings.Config.Server.NumImageProcessors
+	ffpmpegPath := settings.Config.Integrations.Media.FfmpegPath
+	// setup disk cache
+	err := preview.Start(numWorkers, ffpmpegPath, cacheDir)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("Error starting preview service: %v", err))
 	}
-	fbhttp.StartHttp(ctx, imgSvc, store, fileCache, shutdownComplete)
+	fbhttp.StartHttp(ctx, store, shutdownComplete)
 
 	return nil
 }
