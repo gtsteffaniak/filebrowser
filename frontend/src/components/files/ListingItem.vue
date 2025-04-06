@@ -196,6 +196,7 @@ export default {
   methods: {
     downloadFile(event) {
       event.preventDefault();
+      event.stopPropagation();
       mutations.resetSelected();
       mutations.addSelected(this.index);
       downloadFiles();

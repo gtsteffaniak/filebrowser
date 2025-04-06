@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 .SILENT:
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..." && \

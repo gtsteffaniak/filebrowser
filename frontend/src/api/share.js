@@ -1,7 +1,7 @@
 import { fetchURL, fetchJSON, adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath } from "@/utils/url.js";
-import { externalUrl } from "@/utils/constants";
+import { getApiPath,removePrefix } from "@/utils/url.js";
+import { externalUrl,baseURL } from "@/utils/constants";
 
 export async function list() {
   const apiPath = getApiPath("api/shares");
@@ -43,7 +43,8 @@ export async function create(path, source, password = "", expires = "", unit = "
 
 export function getShareURL(share) {
   if (externalUrl) {
-    return externalUrl+getApiPath(`share/${share.hash}`);
+    const apiPath = getApiPath(`share/${share.hash}`)
+    return externalUrl + removePrefix(apiPath, baseURL);
   }
   return window.origin+getApiPath(`share/${share.hash}`);
 }

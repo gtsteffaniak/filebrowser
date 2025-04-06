@@ -1,5 +1,5 @@
 import { adjustedData } from "./utils";
-import { getApiPath, extractSourceFromPath } from "@/utils/url.js";
+import { getApiPath } from "@/utils/url.js";
 import { notify } from "@/notify";
 
 // Fetch public share data
@@ -23,31 +23,30 @@ export async function fetchPub(path, hash, password = "") {
 }
 
 // Download files with given parameters
-export function download(share, ...files) {
-  try {
-    let fileargs = ''
-    if (files.length === 1) {
-      const result = extractSourceFromPath(decodeURI(files[0]))
-      fileargs = result.path + '||'
-    } else {
-      for (let file of files) {
-        const result = extractSourceFromPath(decodeURI(file))
-        fileargs += result.path + '||'
-      }
+export function download(format, files) {
+  console.log("Downloading files:",format, files)
+  let fileargs = ''
+  if (files.length === 1) {
+    fileargs = decodeURI(files[0]) + '||'
+  } else {
+    for (let file of files) {
+      fileargs += decodeURI(file) + '||'
     }
-    fileargs = fileargs.slice(0, -2); // remove trailing "||"
-    const params = {
-      "files": fileargs,
-      "hash": share.hash,
-      "token": share.token,
-      "inline": share.inline,
-    };
-    const apiPath = getApiPath("api/public/dl", params);
-    window.open(window.origin+apiPath)
-  } catch (err) {
-    notify.showError(err.message || "Error downloading files");
-    throw err;
   }
+  fileargs = fileargs.slice(0, -2) // remove trailing "||"
+  const apiPath = getApiPath('api/public/dl', {
+    files: encodeURIComponent(fileargs),
+    hash: format.hash,
+  })
+  const url = window.origin + apiPath
+  // Create a temporary <a> element to trigger the download
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', '') // Ensures it triggers a download
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link) // Clean up
+
 }
 
 // Get the public user data
