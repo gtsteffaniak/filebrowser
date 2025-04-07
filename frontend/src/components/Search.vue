@@ -403,8 +403,13 @@ export default {
       this.submit();
     },
     getRelative(path) {
-      path = path.slice(1); // remove leading slash
-      const fullpath = "/files/" + this.selectedSource + "/" + encodeURIComponent(path);
+      path = decodeURI(path.slice(1)); // remove leading slash
+      let fullpath = path;
+      if (state.sources.count === 1) {
+        fullpath = "/files/" + encodeURIComponent(path);
+      } else {
+        fullpath = "/files/" + this.selectedSource + "/" + encodeURIComponent(path);
+      }
       return fullpath;
     },
     getIcon(mimetype) {
@@ -430,9 +435,9 @@ export default {
         return "";
       }
       parts.pop();
-      parts = parts.join("/") + "/";
+      parts = parts.join("/");
       if (isDir) {
-        parts = "/" + parts; // fix weird rtl thing
+        parts = "/" + parts + "/"; // fix weird rtl thing
       }
 
       return parts;
