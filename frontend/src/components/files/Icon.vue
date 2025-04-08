@@ -1,14 +1,15 @@
 <template>
   <span v-if="isPreviewImg">
-    <img v-lazy="thumbnailUrl" class="icon" ref="thumbnail"  />
+    <img v-lazy="thumbnailUrl" class="icon" ref="thumbnail" />
   </span>
   <span v-else>
-     <!-- Material Icon -->
-    <i  :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
+    <!-- Material Icon -->
+    <i :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
   </span>
 </template>
 
 <script>
+import { onlyOfficeUrl } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 
 export default {
@@ -38,7 +39,23 @@ export default {
       return this.materialIcon !== "";
     },
     isPreviewImg() {
-      return this.getIconForType().simpleType === "image" ||  this.getIconForType().simpleType === "video";
+      // todo support webp previews
+      if (this.mimetype == "text/csv" || this.mimetype == "image/webp") {
+        return false;
+      }
+      if (this.getIconForType().simpleType === "image") {
+        return true;
+      }
+      if (this.getIconForType().simpleType === "video") {
+        return true;
+      }
+      if (this.getIconForType().simpleType === "document" && onlyOfficeUrl != "") {
+        return true;
+      }
+      if (this.getIconForType().simpleType === "pdf" && onlyOfficeUrl != "") {
+        return true;
+      }
+      return false;
     },
   },
   methods: {
@@ -76,7 +93,7 @@ export default {
   fill: currentColor;
   /* Uses inherited color */
   border-radius: 0.2em;
-  padding: .1em;
+  padding: 0.1em;
   background: var(--alt-background);
 }
 
@@ -97,7 +114,6 @@ export default {
 .primary-icons.active {
   text-shadow: 0px 0px 1px #000;
 }
-
 
 .lightblue-icons {
   color: lightskyblue;

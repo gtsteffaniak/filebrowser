@@ -165,7 +165,7 @@ import { getters, mutations, state } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
 
-import Icon from "@/components/Icon.vue";
+import Icon from "@/components/files/Icon.vue";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },

@@ -12,7 +12,9 @@ All notable changes to this project will be documented in this file. For commit 
     - Enhanced source info on the UI
       - User must have permission `realtime: true` property to get realtime events.
       - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
-    - video thumbnails available via ffmpeg integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
+    - new preview types:
+      - video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
+      - office file previews if you have office integration enabled.
 
   **Notes**:
     - sesssionId is now unique per window. Previously it was shared accross browser tabs.
@@ -20,6 +22,13 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bug Fixes**:
     - Fix nil pointer error when source media is disconnected while running.
+
+TODO:
+
+- saftey checks ffmpeg on startup, test and warn if binary has errors and disable if it does.
+- only show pulse when confirmed realtime connection
+- onlyoffice 
+
 
 ## v0.6.7-beta
 

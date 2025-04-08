@@ -57,7 +57,7 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 	return nil
 }
 
-func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
+func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
 	if !AvailablePreview(file) {
 		return nil, ErrUnsupportedMedia
 	}
@@ -67,21 +67,24 @@ func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize string) ([]by
 	} else if found {
 		return data, nil
 	}
-	return GeneratePreview(file, previewSize)
+	return GeneratePreview(file, previewSize, rawUrl)
 }
 
-func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
+func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	var err error
 	var data []byte
-	switch ext {
-	case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff":
+	if file.OnlyOfficeId != "" {
+		data, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, rawUrl)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create image for office file: %w", err)
+		}
+	} else if strings.HasPrefix(file.Type, "image") {
 		data, err = service.CreatePreview(file, previewSize)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create image preview: %w", err)
+			return nil, fmt.Errorf("failed to create image for video: %w", err)
 		}
-
-	case ".mp4", ".mov", ".avi", ".webm", ".mkv":
+	} else if strings.HasPrefix(file.Type, "video") {
 		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)+".jpg")
 		defer os.Remove(outPathPattern) // always clean up preview after its used (should be in cache now)
 
@@ -99,10 +102,10 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize string) ([]byte
 		if err != nil {
 			return nil, fmt.Errorf("failed to read generated preview file: %w", err)
 		}
-
-	default:
+	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
+
 	go func() {
 		cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 		if err := service.fileCache.Store(context.Background(), cacheKey, data); err != nil {
@@ -158,6 +161,12 @@ func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	if strings.HasPrefix(file.Type, "image") ||
 		strings.HasPrefix(file.Type, "video") {
+		return true
+	}
+	if file.OnlyOfficeId != "" {
+		return true
+	}
+	if file.Type == "application/pdf" {
 		return true
 	}
 	return false
