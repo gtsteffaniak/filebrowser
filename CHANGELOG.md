@@ -6,8 +6,10 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - added full tests for single source example.
- - adds descriptive error if temp dir can't be created
+ - adds descriptive error if temp dir can't be created on fatal startup
  - clears temp directory on shutdown.
+ - removed put settings api (unused)
+ - removed more unused config properties.
 
  **BugFixes**:
  - fix url encoding issue for search links when theres only one source https://github.com/gtsteffaniak/filebrowser/issues/501
