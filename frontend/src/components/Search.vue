@@ -403,7 +403,11 @@ export default {
       this.submit();
     },
     getRelative(path) {
-      path = decodeURI(path.slice(1)); // remove leading slash
+      // double encode # to fix issue with # in path
+      // replace all # with %23
+      path = path.replace(/#/g, "%23");
+
+      path = path.slice(1); // remove leading slash
       let fullpath = path;
       if (state.sources.count === 1) {
         fullpath = "/files/" + encodeURIComponent(path);
