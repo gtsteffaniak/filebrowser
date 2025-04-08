@@ -6,7 +6,8 @@
     </div>
 
     <div class="card-content">
-      Currently there are no global config options, You can edit the configuration yaml to adjust system settings.
+      Currently there are no global config options, You can edit the configuration yaml to
+      adjust system settings.
     </div>
 
     <div class="card-action">
@@ -19,7 +20,6 @@
 import { notify } from "@/notify";
 import { state, mutations, getters } from "@/store";
 import { settingsApi } from "@/api";
-import { enableExec } from "@/utils/constants";
 import Errors from "@/views/Errors.vue";
 
 export default {
@@ -41,7 +41,6 @@ export default {
     user() {
       return state.user;
     },
-    isExecEnabled: () => enableExec,
   },
   async created() {
     mutations.setLoading("settings", true);

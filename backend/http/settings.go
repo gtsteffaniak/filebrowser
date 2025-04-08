@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
@@ -44,30 +43,4 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		}
 	}
 	return renderJSON(w, r, config)
-}
-
-// settingsPutHandler updates the system settings.
-// @Summary Update system settings
-// @Description Updates the system configuration settings for signup, user directories, rules, frontend.
-// @Tags Settings
-// @Accept json
-// @Produce json
-// @Param body body settingsData true "Settings data to update"
-// @Success 200 "Settings updated successfully"
-// @Failure 400 {object} map[string]string "Bad request - failed to decode body"
-// @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/settings [put]
-func settingsPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	req := &settingsData{}
-	err := json.NewDecoder(r.Body).Decode(req)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
-	config.Server.UserHomeBasePath = req.UserHomeBasePath
-	config.UserDefaults = req.Defaults
-	config.Frontend = req.Frontend
-	config.Auth.Signup = req.Signup
-	err = store.Settings.Save(config)
-	return errToStatus(err), err
 }

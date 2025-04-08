@@ -101,7 +101,6 @@
     </p>
 
     <permissions :perm="localUser.perm" />
-    <commands v-if="isExecEnabled" v-model:commands="user.commands" />
   </div>
 </template>
 
@@ -109,7 +108,6 @@
 import Languages from "./Languages.vue";
 import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
-import { enableExec } from "@/utils/constants";
 import { state } from "@/store";
 import { settingsApi } from "@/api";
 
@@ -192,9 +190,6 @@ export default {
     },
     displayHomeDirectoryCheckbox() {
       return this.isNew && this.createUserDir;
-    },
-    isExecEnabled() {
-      return enableExec; // Removed arrow function
     },
   },
   methods: {

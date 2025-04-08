@@ -13,24 +13,20 @@ const (
 )
 
 type Settings struct {
-	Commands     map[string][]string `json:"commands"`
-	Shell        []string            `json:"shell"`
-	Server       Server              `json:"server"`
-	Auth         Auth                `json:"auth"`
-	Frontend     Frontend            `json:"frontend"`
-	Users        []UserDefaults      `json:"users,omitempty"`
-	UserDefaults UserDefaults        `json:"userDefaults"`
-	Integrations Integrations        `json:"integrations"`
+	Server       Server         `json:"server"`
+	Auth         Auth           `json:"auth"`
+	Frontend     Frontend       `json:"frontend"`
+	Users        []UserDefaults `json:"users,omitempty"`
+	UserDefaults UserDefaults   `json:"userDefaults"`
+	Integrations Integrations   `json:"integrations"`
 }
 
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"`
 	Recaptcha            Recaptcha    `json:"recaptcha"`
 	Methods              LoginMethods `json:"methods"`
-	Command              string       `json:"command"`
 	Signup               bool         `json:"signup"`
 	Method               string       `json:"method"`
-	Shell                string       `json:"shell"`
 	Key                  []byte       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
@@ -73,17 +69,15 @@ type Server struct {
 	BaseURL            string      `json:"baseURL"`
 	Logging            []LogConfig `json:"logging"`
 	Database           string      `json:"database"`
-	Root               string      `json:"root"` // deprecated, use sources
-	UserHomeBasePath   string      `json:"userHomeBasePath"`
 	Sources            []Source    `json:"sources"`
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
 	MaxArchiveSizeGB   int64       `json:"maxArchiveSize"`
 	// not exposed to config
-	SourceMap     map[string]Source // uses realpath as key
-	NameToSource  map[string]Source // uses name as key
-	DefaultSource Source
+	SourceMap     map[string]Source `json:"-"` // uses realpath as key
+	NameToSource  map[string]Source `json:"-"` // uses name as key
+	DefaultSource Source            `json:"-"`
 }
 
 type Integrations struct {
@@ -135,8 +129,6 @@ type Frontend struct {
 	Name                  string         `json:"name"`
 	DisableDefaultLinks   bool           `json:"disableDefaultLinks"`
 	DisableUsedPercentage bool           `json:"disableUsedPercentage"`
-	Files                 string         `json:"files"`
-	Color                 string         `json:"color"`
 	ExternalLinks         []ExternalLink `json:"externalLinks"`
 }
 
