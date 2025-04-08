@@ -66,7 +66,6 @@ export function removePrefix(path, prefix = "") {
   if (!path.startsWith('/')) {
     path = '/' + path;
   }
-
   return path;
 }
 

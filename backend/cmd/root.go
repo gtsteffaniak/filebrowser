@@ -100,6 +100,7 @@ func StartFilebrowser() {
 	case <-done:
 		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
+	fileutils.ClearCacheDir()
 
 	<-shutdownComplete // Ensure we don't exit prematurely
 	// Wait for the server to stop
@@ -117,6 +118,21 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 	err := preview.Start(numWorkers, ffpmpegPath, cacheDir)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Error starting preview service: %v", err))
+	var fileCache diskcache.Interface
+
+	// Use file cache if cacheDir is specified
+	if cacheDir != "" {
+		var err error
+		fileCache, err = diskcache.NewFileCache(cacheDir)
+		if err != nil {
+			if cacheDir == "tmp" {
+				logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. filebrowser is trying to use the default `server.cacheDir: tmp` , but you can change this location if you need to. Please see configuration wiki for more information about this error. https://github.com/gtsteffaniak/filebrowser/wiki/Configuration")
+			}
+			logger.Fatal(fmt.Sprintf("failed to create file cache path, which is now require to run the server: %v", err))
+		}
+	} else {
+		// No-op cache if no cacheDir is specified
+		fileCache = diskcache.NewNoOp()
 	}
 	fbhttp.StartHttp(ctx, store, shutdownComplete)
 

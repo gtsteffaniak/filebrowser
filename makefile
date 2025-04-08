@@ -8,8 +8,11 @@ setup:
 	fi
 	echo "installing swagger needed to generate backend api docs..."
 	go install github.com/swaggo/swag/cmd/swag@latest
+<<<<<<< HEAD
 	echo "installing golangci-lint needed for linting..."
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64
+=======
+>>>>>>> main
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
 
@@ -34,12 +37,17 @@ run: build-frontend
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
 
 build-frontend:
+<<<<<<< HEAD
 	cd backend/http && rm -rf dist embed/* && ln -s ../../frontend/dist
 	if [ "$(OS)" = "Windows_NT" ]; then \
 		cd frontend && npm run build-windows; \
 	else \
 		cd frontend && npm run build; \
 	fi
+=======
+	cd backend/http && rm -rf dist && rm -rf embed/* && ln -s ../../frontend/dist
+	cd frontend && npm run build
+>>>>>>> main
 
 lint-frontend:
 	cd frontend && npm run lint
@@ -62,8 +70,16 @@ test-frontend:
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
+<<<<<<< HEAD
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
+=======
+	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
+	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
+	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
+>>>>>>> main

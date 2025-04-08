@@ -92,7 +92,8 @@ func TestSearchWhileIndexing(t *testing.T) {
 func TestSearchIndexes(t *testing.T) {
 	index := Index{
 		Directories: map[string]*iteminfo.FileInfo{
-			"/test":      {Files: []iteminfo.ItemInfo{{Name: "audio1.wav", Type: "audio"}}},
+			"/":          {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
+			"/test":      {Files: []iteminfo.ItemInfo{{Name: "audio-one.wav", Type: "audio"}}},
 			"/test/path": {Files: []iteminfo.ItemInfo{{Name: "file.txt", Type: "text"}}},
 			"/new/test": {Files: []iteminfo.ItemInfo{
 				{Name: "audio.wav", Type: "audio"},
@@ -228,6 +229,27 @@ func TestSearchIndexes(t *testing.T) {
 				{
 					Path: "/new/test/video.mp4",
 					Type: "video",
+					Size: 0,
+				},
+			},
+		},
+		{
+			search: "audio",
+			scope:  "/",
+			expectedResult: []SearchResult{
+				{
+					Path: "/audio-one.wav",
+					Type: "audio",
+					Size: 0,
+				},
+				{
+					Path: "/test/audio-one.wav",
+					Type: "audio",
+					Size: 0,
+				},
+				{
+					Path: "/new/test/audio.wav",
+					Type: "audio",
 					Size: 0,
 				},
 			},
