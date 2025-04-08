@@ -2,7 +2,7 @@
   <div id="login" :class="{ recaptcha: recaptcha, 'dark-mode': isDarkMode }">
     <form class="card login-card" @submit="submit">
       <div class="login-brand">
-        <Icon mimetype="directory"/>
+        <Icon mimetype="directory" />
       </div>
       <div class="login-brand brand-text">
         <h3>{{ loginName }}</h3>
@@ -49,7 +49,7 @@
 <script>
 import router from "@/router";
 import { state } from "@/store";
-import Icon from "@/components/Icon.vue";
+import Icon from "@/components/files/Icon.vue";
 import { signupLogin, login, initAuth } from "@/utils/auth";
 import {
   name,
@@ -73,8 +73,8 @@ export default {
       return darkMode;
     },
     loginName() {
-      return name
-    }
+      return name;
+    },
   },
   data: function () {
     return {
@@ -166,5 +166,4 @@ export default {
   padding-top: 0em !important;
   padding-bottom: 0em !important;
 }
-
 </style>

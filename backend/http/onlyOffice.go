@@ -47,6 +47,8 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 	// get path from url
 	pathParts := strings.Split(url, "/api/raw?files=")
+	origPathParts := strings.Split(encodedUrl, "/api/raw?files=")
+	encodedPath := origPathParts[len(origPathParts)-1]
 	sourceFile := pathParts[len(pathParts)-1]
 	sourceSplit := strings.Split(sourceFile, "::")
 	if len(sourceSplit) != 2 {
@@ -86,7 +88,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if d.user.DarkMode {
 		theme = "dark"
 	}
-	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, path, d.token)
+	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, encodedPath, d.token)
 	clientConfig := map[string]interface{}{
 		"document": map[string]interface{}{
 			"fileType": fileType,
@@ -209,4 +211,30 @@ func deleteOfficeId(source, path string) {
 	}
 	realpath, _, _ := idx.GetRealPath(path)
 	cache.OnlyOffice.Delete(realpath)
+}
+
+func onlyofficeGetTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// get config from body
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer r.Body.Close()
+
+	var payload map[string]interface{}
+	// marshall to struct
+	err = json.Unmarshal(body, &payload)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	if settings.Config.Integrations.OnlyOffice.Secret != "" {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(payload))
+		ss, err := token.SignedString([]byte(settings.Config.Integrations.OnlyOffice.Secret))
+		if err != nil {
+			return 500, errors.New("could not generate a new jwt")
+		}
+		return renderJSON(w, r, map[string]string{"token": ss})
+	}
+	return 400, fmt.Errorf("bad request")
 }
