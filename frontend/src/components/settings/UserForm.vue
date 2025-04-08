@@ -107,7 +107,6 @@
 <script>
 import Languages from "./Languages.vue";
 import Permissions from "./Permissions.vue";
-import Commands from "./Commands.vue";
 import { state } from "@/store";
 import { settingsApi } from "@/api";
 
@@ -116,7 +115,6 @@ export default {
   components: {
     Permissions,
     Languages,
-    Commands,
   },
   data() {
     return {

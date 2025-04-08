@@ -2,17 +2,7 @@ package http
 
 import (
 	"net/http"
-
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
 )
-
-type settingsData struct {
-	Signup           bool                  `json:"signup"`
-	CreateUserDir    bool                  `json:"createUserDir"`
-	UserHomeBasePath string                `json:"userHomeBasePath"`
-	Defaults         settings.UserDefaults `json:"defaults"`
-	Frontend         settings.Frontend     `json:"frontend"`
-}
 
 // settingsGetHandler retrieves the current system settings.
 // @Summary Get system settings
