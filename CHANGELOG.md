@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.6.7-beta
+
+ **Notes**:
+ - added full tests for single source example.
+
+ **BugFixes**:
+ - fix url encoding issue for search links when theres only one source https://github.com/gtsteffaniak/filebrowser/issues/501
+ - 
+
+
 ## v0.6.6-beta
 
  **New Feature**:
