@@ -83,7 +83,7 @@ func StartFilebrowser() {
 		logger.Fatal("No sources configured, exiting...")
 	}
 	for _, source := range settings.Config.Server.SourceMap {
-		go indexing.Initialize(source)
+		go indexing.Initialize(source, false)
 	}
 	validateUserInfo()
 	// Start the rootCMD in a goroutine

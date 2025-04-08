@@ -89,6 +89,10 @@ func (idx *Index) UpdateSchedule() {
 }
 
 func (idx *Index) SendSourceUpdateEvent() {
+	if idx.mock {
+		logger.Debug("Skipping source update event for mock index.")
+		return
+	}
 	message, err := json.Marshal(GetIndexesInfo(idx.Name))
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error marshalling source update message: %v", err))
