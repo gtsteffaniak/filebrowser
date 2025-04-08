@@ -25,10 +25,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 TODO:
 
-- saftey checks ffmpeg on startup, test and warn if binary has errors and disable if it does.
+- safely checks ffmpeg on startup, test and warn if binary has errors and disable if it does.
 - only show pulse when confirmed realtime connection
-- onlyoffice 
-
+- test all onlyoffice file previews, things like csv do not work.
 
 ## v0.6.7-beta
 

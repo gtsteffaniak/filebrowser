@@ -83,7 +83,7 @@ func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byt
 	var response officePreviewResponse
 
 	// Now decode the raw response into struct
-	if err := json.Unmarshal(bodyBytes, &response); err != nil {
+	if err = json.Unmarshal(bodyBytes, &response); err != nil {
 		return data, fmt.Errorf("could not decode JSON: %w", err)
 	}
 	if response.Error != "" {
