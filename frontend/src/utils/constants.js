@@ -15,7 +15,6 @@ const noAuth = window.FileBrowser.NoAuth;
 const loginPage = window.FileBrowser.LoginPage;
 const enableThumbs = window.FileBrowser.EnableThumbs;
 const resizePreview = window.FileBrowser.ResizePreview;
-const enableExec = window.FileBrowser.EnableExec;
 const externalUrl = window.FileBrowser.ExternalUrl
 const onlyOfficeUrl = window.FileBrowser.OnlyOfficeUrl
 const serverHasMultipleSources = window.FileBrowser.SourceCount > 1;
@@ -47,7 +46,6 @@ export {
   loginPage,
   enableThumbs,
   resizePreview,
-  enableExec,
   origin,
   darkMode,
   settings,

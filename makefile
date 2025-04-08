@@ -1,13 +1,13 @@
 SHELL := /bin/bash
 .SILENT:
 setup:
-	echo "creating ./backend/test_config.yaml for local testing..." && \
+	echo "creating ./backend/test_config.yaml for local testing..."
 	if [ ! -f backend/test_config.yaml ]; then \
 		cp backend/config.yaml backend/test_config.yaml; \
 	fi
-	echo "installing swagger needed to generate backend api docs..." && \
-	go install github.com/swaggo/swag/cmd/swag@latest && \
-	echo "installing npm requirements for frontend..." && \
+	echo "installing swagger needed to generate backend api docs..."
+	go install github.com/swaggo/swag/cmd/swag@latest
+	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
 
 update:
@@ -30,8 +30,8 @@ run: build-frontend
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
 
 build-frontend:
-	cd backend/http && rm -rf dist && rm -rf embed/* && ln -s ../../frontend/dist && \
-	cd ../../frontend && npm run build
+	cd backend/http && rm -rf dist && rm -rf embed/* && ln -s ../../frontend/dist
+	cd frontend && npm run build
 
 lint-frontend:
 	cd frontend && npm run lint
@@ -52,15 +52,10 @@ test-frontend:
 	cd frontend && npm run test
 
 test-playwright: build-frontend
-	cd backend && GOOS=linux go build -o filebrowser . && cd .. && \
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general . && \
-	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests && \
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth . && \
-	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests && \
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy . && \
+	cd backend && GOOS=linux go build -o filebrowser .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
-
-# Run on a windows machine!
-release-windows:
-	cd frontend && npm run build-windows && \
-	cd ../backend && go build --ldflags="-w -s -X github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version='" .
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
+	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
+	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests

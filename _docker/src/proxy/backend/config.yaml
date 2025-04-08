@@ -8,6 +8,7 @@ server:
       config:
         defaultEnabled: true
         createUserDir: true
+
 frontend:
   name: "Graham's Filebrowser"
   disableDefaultLinks: true
@@ -15,6 +16,7 @@ frontend:
     - text: "A playwright test"
       url: "https://playwright.dev/"
       title: "Playwright"
+
 auth:
   signup: false
   methods:

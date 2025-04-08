@@ -114,7 +114,6 @@ func StartHttp(ctx context.Context, Service ImgService, storage *storage.Storage
 
 	// Settings routes
 	api.HandleFunc("GET /settings", withAdmin(settingsGetHandler))
-	api.HandleFunc("PUT /settings", withAdmin(settingsPutHandler))
 
 	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
 	api.HandleFunc("POST /onlyoffice/callback", withUser(onlyofficeCallbackHandler))

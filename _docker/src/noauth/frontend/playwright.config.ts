@@ -10,7 +10,7 @@ import { defineConfig, devices } from "@playwright/test";
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  //globalSetup: "./global-setup",
+  globalSetup: "./tests-playwright/noauth-setup",
   timeout: 5000,
   testDir: "./tests-playwright/noauth",
   /* Run tests in files in parallel */
@@ -25,6 +25,7 @@ export default defineConfig({
   reporter: "line",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    storageState: "noauth.json",
     actionTimeout: 5000,
     //storageState: "loginAuth.json",
     /* Base URL to use in actions like `await page.goto('/')`. */
