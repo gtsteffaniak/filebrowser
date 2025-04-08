@@ -190,6 +190,25 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
+
+	adminPassword, adminPassPresent := os.LookupEnv("FILEBROWSER_ADMIN_PASSWORD")
+	if adminPassPresent {
+		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
+		Config.Auth.AdminPassword = adminPassword
+	}
+
+	recaptchaSecret, recaptchaSecretPresent := os.LookupEnv("FILEBROWSER_RECAPTCHA_SECRET")
+	if recaptchaSecretPresent {
+		logger.Info("Using recaptcha secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
+		Config.Auth.Recaptcha.Secret = recaptchaSecret
+	}
+
+	officeSecret, officeSecretPresent := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
+	if officeSecretPresent {
+		logger.Info("Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable")
+		Config.Integrations.OnlyOffice.Secret = officeSecret
+	}
+
 	return nil
 }
 
