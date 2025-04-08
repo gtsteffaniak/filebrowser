@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
 // MoveFile moves a file from src to dst.
@@ -174,4 +175,21 @@ func CommonPrefix(sep byte, paths ...string) string {
 	}
 
 	return string(c)
+}
+
+func ClearCacheDir() {
+	cacheDir := settings.Config.Server.CacheDir
+	entries, err := os.ReadDir(cacheDir)
+	if err != nil {
+		logger.Error(fmt.Sprintf("failed clear cache dir: %v", err))
+	}
+
+	for _, entry := range entries {
+		path := filepath.Join(cacheDir, entry.Name())
+		err = os.RemoveAll(path)
+		if err != nil {
+			logger.Error(fmt.Sprintf("failed clear cache dir: %v", err))
+		}
+	}
+
 }

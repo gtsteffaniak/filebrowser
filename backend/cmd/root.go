@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
@@ -82,7 +83,7 @@ func StartFilebrowser() {
 		logger.Fatal("No sources configured, exiting...")
 	}
 	for _, source := range settings.Config.Server.SourceMap {
-		go indexing.Initialize(source)
+		go indexing.Initialize(source, false)
 	}
 	validateUserInfo()
 	// Start the rootCMD in a goroutine
@@ -100,6 +101,7 @@ func StartFilebrowser() {
 	case <-done:
 		logger.Info("Server stopped unexpectedly. Shutting down...")
 	}
+	fileutils.ClearCacheDir()
 
 	<-shutdownComplete // Ensure we don't exit prematurely
 	// Wait for the server to stop

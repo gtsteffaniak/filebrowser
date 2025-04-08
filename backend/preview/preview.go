@@ -36,7 +36,10 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 		var err error
 		fileCache, err = diskcache.NewFileCache(cacheDir)
 		if err != nil {
-			logger.Fatal(fmt.Sprintf("failed to create file cache: %v", err))
+			if cacheDir == "tmp" {
+				logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. filebrowser is trying to use the default `server.cacheDir: tmp` , but you can change this location if you need to. Please see configuration wiki for more information about this error. https://github.com/gtsteffaniak/filebrowser/wiki/Configuration")
+			}
+			logger.Fatal(fmt.Sprintf("failed to create file cache path, which is now require to run the server: %v", err))
 		}
 	} else {
 		// No-op cache if no cacheDir is specified

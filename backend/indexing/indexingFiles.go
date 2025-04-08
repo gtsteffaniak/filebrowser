@@ -36,10 +36,11 @@ type Index struct {
 	CurrentSchedule            int `json:"-"`
 	settings.Source            `json:"-"`
 	Directories                map[string]*iteminfo.FileInfo `json:"-"`
-	mu                         sync.RWMutex                  `json:"-"`
 	runningScannerCount        int                           `json:"-"`
 	SmartModifier              time.Duration                 `json:"-"`
 	FilesChangedDuringIndexing bool                          `json:"-"`
+	mock                       bool
+	mu                         sync.RWMutex
 }
 
 var (
@@ -59,9 +60,10 @@ func init() {
 	indexes = make(map[string]*Index)
 }
 
-func Initialize(source settings.Source) {
+func Initialize(source settings.Source, mock bool) {
 	indexesMutex.Lock()
 	newIndex := Index{
+		mock:        mock,
 		Source:      source,
 		Directories: make(map[string]*iteminfo.FileInfo),
 	}

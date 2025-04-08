@@ -6,17 +6,7 @@ async function globalSetup() {
   const context = await browser.newContext();
   const page: Page = await context.newPage();
 
-  await page.goto("http://127.0.0.1/login");
-  await page.getByPlaceholder("Username").fill("admin");
-  await page.getByPlaceholder("Password").fill("admin");
-  await page.getByRole("button", { name: "Login" }).click();
-  await page.waitForURL("**/files/", { timeout: 500 });
-
-  const cookies = await context.cookies();
-  expect(cookies.find((c) => c.name === "auth")?.value).toBeDefined();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-
-  await page.waitForURL("**/files/playwright-files", { timeout: 500 });
+  await page.goto("http://127.0.0.1/files", { timeout: 500 });
 
   // Create a share of folder
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
@@ -36,7 +26,7 @@ async function globalSetup() {
     localStorage.setItem('shareHash', hash);
   }, shareHash);
 
-  await page.goto("http://127.0.0.1/files/playwright-files", { timeout: 500 });
+  await page.goto("http://127.0.0.1/files", { timeout: 500 });
   // Create a share of file
   await page.locator('a[aria-label="1file1.txt"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="1file1.txt"]').click({ button: "right" });
@@ -56,7 +46,7 @@ async function globalSetup() {
   }, shareHashFile);
 
 
-  await context.storageState({ path: "./loginAuth.json" });
+  await context.storageState({ path: "./noauth.json" });
   await browser.close();
 }
 

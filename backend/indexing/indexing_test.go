@@ -12,7 +12,7 @@ func BenchmarkFillIndex(b *testing.B) {
 	Initialize(settings.Source{
 		Name: "test",
 		Path: "/srv",
-	})
+	}, true)
 	idx := GetIndex("test")
 	if idx == nil {
 		b.Fatal("index is nil")

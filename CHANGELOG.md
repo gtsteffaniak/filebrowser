@@ -13,7 +13,6 @@ All notable changes to this project will be documented in this file. For commit 
       - User must have permission `realtime: true` property to get realtime events.
       - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
     - video thumbnails available via ffmpeg integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
-    
 
   **Notes**:
     - sesssionId is now unique per window. Previously it was shared accross browser tabs.
@@ -21,6 +20,19 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bug Fixes**:
     - Fix nil pointer error when source media is disconnected while running.
+
+## v0.6.7-beta
+
+ **Notes**:
+ - added full tests for single source example.
+ - adds descriptive error if temp dir can't be created on fatal startup
+ - clears temp directory on shutdown.
+ - removed put settings api (unused)
+ - removed more unused config properties.
+
+ **BugFixes**:
+ - fix url encoding issue for search links when theres only one source https://github.com/gtsteffaniak/filebrowser/issues/501
+ - files with # could have problems, double encoded.
 
 ## v0.6.6-beta
 
