@@ -20,7 +20,7 @@ build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'"
 
 run: build-frontend
-	cd backend && swag init --output swagger/docs
+	cd backend && swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' ./swagger/docs/docs.go; \
 	else \
