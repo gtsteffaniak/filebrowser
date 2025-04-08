@@ -1,0 +1,4 @@
+FROM mwader/static-ffmpeg AS ffmpeg
+FROM local/filebrowser
+COPY --from=mwader/static-ffmpeg:4.4.1 /ffmpeg /usr/local/bin/
+ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
