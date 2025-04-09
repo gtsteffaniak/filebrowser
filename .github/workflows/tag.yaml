@@ -51,7 +51,7 @@ jobs:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{ secrets.PAT }}
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata (tags, labels) for Docker and GHCR
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -62,13 +62,27 @@ jobs:
         id: modify-json
         run: |
           JSON='${{ steps.meta.outputs.json }}'
-          # Process the JSON array using jq
           MODIFIED_JSON=$(echo "$JSON" | jq '
-            .tags |= map(sub(":v"; ":")) | 
-            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta", "ghcr.io/gtsteffaniak/filebrowser:beta"] else . end |
-            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable", "ghcr.io/gtsteffaniak/filebrowser:stable"] else . end
+            .tags |= map(sub(":v"; ":")) |
+            if any(.tags[]; test("beta")) then
+              .tags += [
+                "gtstef/filebrowser:beta",
+                "ghcr.io/gtsteffaniak/filebrowser:beta",
+                "gtstef/filebrowser:latest",
+                "ghcr.io/gtsteffaniak/filebrowser:latest"
+              ]
+            else . end |
+            if any(.tags[]; test("stable")) then
+              .tags += [
+                "gtstef/filebrowser:stable",
+                "ghcr.io/gtsteffaniak/filebrowser:stable",
+                "gtstef/filebrowser:latest",
+                "ghcr.io/gtsteffaniak/filebrowser:latest"
+              ]
+            else . end
           ')
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
+          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -86,13 +100,27 @@ jobs:
         id: modify-json-media
         run: |
           JSON='${{ steps.meta.outputs.json }}'
-          # Process the JSON array using jq
           MODIFIED_JSON=$(echo "$JSON" | jq '
-            .tags |= map(sub(":v"; ":")) | 
-            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta-media", "ghcr.io/gtsteffaniak/filebrowser:beta-media"] else . end |
-            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable-media", "ghcr.io/gtsteffaniak/filebrowser:stable-media"] else . end
+            .tags |= map(sub(":v"; ":")) |
+            if any(.tags[]; test("beta")) then
+              .tags += [
+                "gtstef/filebrowser:beta-media",
+                "ghcr.io/gtsteffaniak/filebrowser:beta-media",
+                "gtstef/filebrowser:media",
+                "ghcr.io/gtsteffaniak/filebrowser:media",
+              ]
+            else . end |
+            if any(.tags[]; test("stable")) then
+              .tags += [
+                "gtstef/filebrowser:stable-media",
+                "ghcr.io/gtsteffaniak/filebrowser:stable-media",
+                "gtstef/filebrowser:media",
+                "ghcr.io/gtsteffaniak/filebrowser:media",
+              ]
+            else . end
           ')
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
+          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push media image
         uses: docker/build-push-action@v6
