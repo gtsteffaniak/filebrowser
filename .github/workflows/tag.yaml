@@ -64,8 +64,22 @@ jobs:
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(sub(":v"; ":")) |
-            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta", "ghcr.io/gtsteffaniak/filebrowser:beta"] else . end |
-            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable", "ghcr.io/gtsteffaniak/filebrowser:stable"] else . end
+            if any(.tags[]; test("beta")) then
+              .tags += [
+                "gtstef/filebrowser:beta",
+                "ghcr.io/gtsteffaniak/filebrowser:beta",
+                "gtstef/filebrowser:latest",
+                "ghcr.io/gtsteffaniak/filebrowser:latest"
+              ]
+            else . end |
+            if any(.tags[]; test("stable")) then
+              .tags += [
+                "gtstef/filebrowser:stable",
+                "ghcr.io/gtsteffaniak/filebrowser:stable",
+                "gtstef/filebrowser:latest",
+                "ghcr.io/gtsteffaniak/filebrowser:latest"
+              ]
+            else . end
           ')
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
           echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
