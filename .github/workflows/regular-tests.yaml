@@ -105,16 +105,17 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            gtstef/filebrowser-media
-            ghcr.io/gtsteffaniak/filebrowser-media
+            gtstef/filebrowser
+            ghcr.io/gtsteffaniak/filebrowser
       - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
         id: modify-json-media
         run: |
           JSON='${{ steps.meta-media.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(sub(":v"; ":")) | 
-            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser-media:beta", "ghcr.io/gtsteffaniak/filebrowser-media:beta"] else . end |
-            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser-media:stable", "ghcr.io/gtsteffaniak/filebrowser-media:stable"] else . end
+            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser-media:media-beta", "ghcr.io/gtsteffaniak/filebrowser:media-beta"] else . end |
+            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser-media:media-stable", "ghcr.io/gtsteffaniak/filebrowser-media:media-stable"] else . end |
+            .tags |= map(gsub(":(.+)$"; ":media-\\1") | gsub(":media-media-"; ":media-"))
           ')
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
@@ -123,8 +124,8 @@ jobs:
         with:
           context: .
           build-args: |
-            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            VERSION=${{ fromJSON(steps.meta-media.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta-media.outputs.json).labels['org.opencontainers.image.revision'] }}
           file: ./_docker/Dockerfile.media
           push: true
           tags: ${{ steps.modify-json-media.outputs.cleaned_tag }}
