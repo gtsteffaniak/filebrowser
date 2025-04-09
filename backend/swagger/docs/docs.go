@@ -907,7 +907,7 @@ const docTemplate = `{
                     "200": {
                         "description": "System settings data",
                         "schema": {
-                            "$ref": "#/definitions/http.settingsData"
+                            "$ref": "#/definitions/settings.Settings"
                         }
                     }
                 }
@@ -1541,26 +1541,6 @@ const docTemplate = `{
                 }
             }
         },
-        "http.settingsData": {
-            "type": "object",
-            "properties": {
-                "createUserDir": {
-                    "type": "boolean"
-                },
-                "defaults": {
-                    "$ref": "#/definitions/settings.UserDefaults"
-                },
-                "frontend": {
-                    "$ref": "#/definitions/settings.Frontend"
-                },
-                "signup": {
-                    "type": "boolean"
-                },
-                "userHomeBasePath": {
-                    "type": "string"
-                }
-            }
-        },
         "http.signupBody": {
             "type": "object",
             "properties": {
@@ -1654,6 +1634,44 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.Auth": {
+            "type": "object",
+            "properties": {
+                "adminPassword": {
+                    "type": "string"
+                },
+                "adminUsername": {
+                    "type": "string"
+                },
+                "authMethods": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "key": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "method": {
+                    "type": "string"
+                },
+                "methods": {
+                    "$ref": "#/definitions/settings.LoginMethods"
+                },
+                "recaptcha": {
+                    "$ref": "#/definitions/settings.Recaptcha"
+                },
+                "signup": {
+                    "type": "boolean"
+                },
+                "tokenExpirationHours": {
+                    "type": "integer"
+                }
+            }
+        },
         "settings.ExternalLink": {
             "type": "object",
             "properties": {
@@ -1685,6 +1703,282 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "settings.IndexFilter": {
+            "type": "object",
+            "properties": {
+                "fileEndsWith": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "settings.Integrations": {
+            "type": "object",
+            "properties": {
+                "media": {
+                    "$ref": "#/definitions/settings.Media"
+                },
+                "office": {
+                    "$ref": "#/definitions/settings.OnlyOffice"
+                }
+            }
+        },
+        "settings.LogConfig": {
+            "type": "object",
+            "properties": {
+                "apiLevels": {
+                    "type": "string"
+                },
+                "json": {
+                    "type": "boolean"
+                },
+                "levels": {
+                    "type": "string"
+                },
+                "noColors": {
+                    "type": "boolean"
+                },
+                "output": {
+                    "type": "string"
+                }
+            }
+        },
+        "settings.LoginMethods": {
+            "type": "object",
+            "properties": {
+                "noauth": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "$ref": "#/definitions/settings.PasswordAuthConfig"
+                },
+                "proxy": {
+                    "$ref": "#/definitions/settings.ProxyAuthConfig"
+                }
+            }
+        },
+        "settings.Media": {
+            "type": "object",
+            "properties": {
+                "ffmpegPath": {
+                    "type": "string"
+                }
+            }
+        },
+        "settings.OnlyOffice": {
+            "type": "object",
+            "properties": {
+                "secret": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "settings.PasswordAuthConfig": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "minLength": {
+                    "type": "integer"
+                }
+            }
+        },
+        "settings.ProxyAuthConfig": {
+            "type": "object",
+            "properties": {
+                "createUser": {
+                    "type": "boolean"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "header": {
+                    "type": "string"
+                }
+            }
+        },
+        "settings.Recaptcha": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "secret": {
+                    "type": "string"
+                }
+            }
+        },
+        "settings.Server": {
+            "type": "object",
+            "required": [
+                "sources"
+            ],
+            "properties": {
+                "authHook": {
+                    "type": "string"
+                },
+                "baseURL": {
+                    "type": "string"
+                },
+                "cacheDir": {
+                    "type": "string"
+                },
+                "database": {
+                    "type": "string"
+                },
+                "enableExec": {
+                    "type": "boolean"
+                },
+                "enableThumbnails": {
+                    "type": "boolean"
+                },
+                "externalUrl": {
+                    "type": "string"
+                },
+                "internalUrl": {
+                    "description": "used by integrations",
+                    "type": "string"
+                },
+                "logging": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.LogConfig"
+                    }
+                },
+                "maxArchiveSize": {
+                    "type": "integer"
+                },
+                "numImageProcessors": {
+                    "type": "integer"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "resizePreview": {
+                    "type": "boolean"
+                },
+                "socket": {
+                    "type": "string"
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.Source"
+                    }
+                },
+                "tlsCert": {
+                    "type": "string"
+                },
+                "tlsKey": {
+                    "type": "string"
+                }
+            }
+        },
+        "settings.Settings": {
+            "type": "object",
+            "properties": {
+                "auth": {
+                    "$ref": "#/definitions/settings.Auth"
+                },
+                "frontend": {
+                    "$ref": "#/definitions/settings.Frontend"
+                },
+                "integrations": {
+                    "$ref": "#/definitions/settings.Integrations"
+                },
+                "server": {
+                    "$ref": "#/definitions/settings.Server"
+                },
+                "userDefaults": {
+                    "$ref": "#/definitions/settings.UserDefaults"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/settings.UserDefaults"
+                    }
+                }
+            }
+        },
+        "settings.Source": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/settings.SourceConfig"
+                },
+                "name": {
+                    "description": "display name",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "can be relative, filesystem path",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.SourceConfig": {
+            "type": "object",
+            "properties": {
+                "createUserDir": {
+                    "type": "boolean"
+                },
+                "defaultEnabled": {
+                    "type": "boolean"
+                },
+                "defaultUserScope": {
+                    "description": "default \"\" should match folders under path",
+                    "type": "string"
+                },
+                "disabled": {
+                    "type": "boolean"
+                },
+                "exclude": {
+                    "$ref": "#/definitions/settings.IndexFilter"
+                },
+                "ignoreHidden": {
+                    "type": "boolean"
+                },
+                "ignoreZeroSizeFolders": {
+                    "type": "boolean"
+                },
+                "include": {
+                    "$ref": "#/definitions/settings.IndexFilter"
+                },
+                "indexingInterval": {
+                    "type": "integer"
+                },
+                "maxWatchers": {
+                    "type": "integer"
+                },
+                "neverWatchPaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

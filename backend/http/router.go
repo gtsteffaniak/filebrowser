@@ -118,6 +118,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 
 	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
 	api.HandleFunc("POST /onlyoffice/callback", withUser(onlyofficeCallbackHandler))
+	api.HandleFunc("GET /onlyoffice/getToken", withUser(onlyofficeGetTokenHandler))
 
 	api.HandleFunc("GET /search", withUser(searchHandler))
 	apiPath := config.Server.BaseURL + "api"

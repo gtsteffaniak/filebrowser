@@ -87,7 +87,7 @@ import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { router } from "@/router";
 import { url } from "@/utils";
-import Icon from "@/components/Icon.vue";
+import Icon from "@/components/files/Icon.vue";
 
 export default {
   name: "item",

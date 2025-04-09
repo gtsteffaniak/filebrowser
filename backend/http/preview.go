@@ -74,7 +74,17 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		(previewSize == "small" && !config.Server.EnableThumbnails) {
 		return rawFileHandler(w, r, fileInfo)
 	}
-	previewImg, err := preview.GetPreviewForFile(fileInfo, previewSize)
+	pathUrl := fmt.Sprintf("/api/raw?files=%s::%s", source, path)
+	rawUrl := pathUrl
+	if config.Server.InternalUrl != "" {
+		rawUrl = config.Server.InternalUrl + pathUrl
+	}
+	rawUrl = rawUrl + "&auth=" + d.token
+	previewImg, err := preview.GetPreviewForFile(fileInfo, previewSize, rawUrl)
+	if err == preview.ErrUnsupportedFormat {
+		return rawFileHandler(w, r, fileInfo)
+	}
+
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
