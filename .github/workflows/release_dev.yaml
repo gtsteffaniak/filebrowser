@@ -45,18 +45,6 @@ jobs:
           CLEANED_TAGS=$(echo "$TAGS" | sed 's/filebrowser:dev-v/filebrowser:/g' | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev/g')
           # Add dev tag to both registries
           CLEANED_TAGS="$CLEANED_TAGS,gtstef/filebrowser:dev,ghcr.io/gtsteffaniak/filebrowser:dev"
-          echo "cleaned_tag<<EOF" >> $GITHUB_OUTPUT
-          echo "$CLEANED_TAGS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          build-args: |
-            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          platforms: linux/amd64
-          file: ./_docker/Dockerfile
-          push: true
-          tags: ${{ steps.modify-json.outputs.cleaned_tag }}
-          labels: ${{ steps.meta.outputs.labels }}
+          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
+          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
+          echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT

@@ -83,9 +83,7 @@ jobs:
           ')
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
           echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
-          echo "cleaned_tag<<EOF" >> $GITHUB_OUTPUT
-          echo "$TAGS_CSV" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
