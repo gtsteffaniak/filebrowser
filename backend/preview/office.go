@@ -21,7 +21,6 @@ type officePreviewResponse struct {
 
 // GenerateOfficePreview generates a preview for an office document using OnlyOffice.
 func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byte, error) {
-	fmt.Println("generating preview for office file", filetype, key, title, url)
 	data := []byte{}
 	// Create the request payload
 	requestPayload := map[string]interface{}{
@@ -51,12 +50,7 @@ func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byt
 	if err != nil {
 		return data, err
 	}
-
-	fmt.Println("\n\n", ss, "\n\n", buf.String())
-
 	convertURL := settings.Config.Integrations.OnlyOffice.Url + "/converter"
-	fmt.Println("\n\n ", convertURL)
-
 	// Send the request with buf.Bytes() — not jsonData
 	req, err := http.NewRequest("POST", convertURL, buf)
 	if err != nil {
@@ -79,9 +73,7 @@ func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byt
 	if err != nil {
 		return data, err
 	}
-	fmt.Println("Raw response body:", string(bodyBytes))
 	var response officePreviewResponse
-
 	// Now decode the raw response into struct
 	if err = json.Unmarshal(bodyBytes, &response); err != nil {
 		return data, fmt.Errorf("could not decode JSON: %w", err)
@@ -90,7 +82,6 @@ func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byt
 		return data, fmt.Errorf("error from OnlyOffice: %s", response.Error)
 	}
 
-	fmt.Println("Preview generated successfully:", response.FileURL)
 	// make get request to binary data response.FileURL and return the body as a byte array data
 	resp, err = http.Get(response.FileURL)
 	if err != nil {

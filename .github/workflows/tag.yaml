@@ -45,26 +45,30 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker and GHCR
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: gtstef/filebrowser
+          images: |
+            gtstef/filebrowser
+            ghcr.io/gtstef/filebrowser
       - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
         id: modify-json
         run: |
-          JSON='${{ steps.meta.outputs.json }}'  # Assuming the JSON output is stored in steps.meta.outputs.json
-          # Process the JSON array using jq
+          JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(sub(":v"; ":")) | 
-            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta"] else . end |
-            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable"] else . end
+            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta", "ghcr.io/gtstef/filebrowser:beta"] else . end |
+            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable", "ghcr.io/gtstef/filebrowser:stable"] else . end
           ')
-          # Convert JSON to a comma-separated string for Docker tags
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
-          echo "$TAGS_CSV" > modified_tags.txt  # Save for debugging
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
-
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -77,3 +81,33 @@ jobs:
           push: true
           tags: ${{ steps.modify-json.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Extract metadata (tags, labels) for Docker and GHCR
+        id: meta-media
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            gtstef/filebrowser-media
+            ghcr.io/gtstef/filebrowser-media
+      - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
+        id: modify-json-media
+        run: |
+          JSON='${{ steps.meta-media.outputs.json }}'
+          MODIFIED_JSON=$(echo "$JSON" | jq '
+            .tags |= map(sub(":v"; ":")) | 
+            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser-media:beta", "ghcr.io/gtstef/filebrowser-media:beta"] else . end |
+            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser-media:stable", "ghcr.io/gtstef/filebrowser-media:stable"] else . end
+          ')
+          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
+          echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
+      - name: Build and push media image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: |
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          platforms: linux/amd64,linux/arm64
+          file: ./_docker/Dockerfile.media
+          push: true
+          tags: ${{ steps.modify-json-media.outputs.cleaned_tag }}
+          labels: ${{ steps.meta-media.outputs.labels }}

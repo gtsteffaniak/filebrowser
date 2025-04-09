@@ -159,14 +159,18 @@ func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 }
 
 func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
-	if strings.HasPrefix(file.Type, "image") ||
-		strings.HasPrefix(file.Type, "video") {
+	if strings.HasPrefix(file.Type, "video") && settings.Config.Integrations.Media.FfmpegPath != "" {
 		return true
 	}
 	if file.OnlyOfficeId != "" {
 		return true
 	}
 	if file.Type == "application/pdf" {
+		return true
+	}
+	ext := strings.ToLower(filepath.Ext(file.Name))
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
 		return true
 	}
 	return false
