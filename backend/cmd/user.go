@@ -3,10 +3,13 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
+
+var createBackup = []bool{}
 
 func validateUserInfo() {
 	// update source info for users if names/sources/paths might have changed
@@ -27,6 +30,9 @@ func validateUserInfo() {
 			updateUser = true
 		}
 		if updateUser {
+			if len(createBackup) == 1 {
+				fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
+			}
 			err := store.Users.Save(user, false)
 			if err != nil {
 				logger.Error(fmt.Sprintf("could not update user: %v", err))
@@ -93,6 +99,9 @@ func updatePermissions(user *users.User) bool {
 	if user.Perm.Share {
 		user.Permissions.Share = true
 		updateUser = true
+	}
+	if updateUser {
+		createBackup = append(createBackup, true)
 	}
 	return updateUser
 }
