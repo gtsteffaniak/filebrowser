@@ -6,12 +6,11 @@
   [![DockerHub Pulls](https://img.shields.io/docker/pulls/gtstef/filebrowser?label=latest%20Docker%20pulls)](https://hub.docker.com/r/gtstef/filebrowser)
   [![Apache-2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-  [![Poll](https://img.shields.io/badge/poll-vote_most_important_features-purple)](https://github.com/gtsteffaniak/filebrowser/discussions/368)
-  [![Donate with PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate/?business=W5XKNXHJM2WPE&no_recurring=0&currency_code=USD)
+  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate/?business=W5XKNXHJM2WPE&no_recurring=0&currency_code=USD)
 
   <img width="150" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" title="Logo">
   <h3>FileBrowser Quantum</h3>
-  A modern web-based file manager
+  The best free self-hosted web-based file manager.
   <br/><br/>
   <img width="800" src="https://github.com/user-attachments/assets/c35a8455-c32d-47f5-853d-f285e160b022" title="Main Screenshot">
 </div>
@@ -19,51 +18,45 @@
 > [!WARNING]
 > There is no stable version -- planned 2025.
 
-> [!NOTE]
-> [Read about upcoming 0.7.0 release](https://github.com/gtsteffaniak/filebrowser/discussions/459)
+FileBrowser Quantum is a massive fork of the file browser open-source project with the following changes:
 
-FileBrowser Quantum is a fork of the file browser open-source project with the following changes:
-
-  1. ✅ Indexes files (See [indexing Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.)
-     - Real-time search results as you type
-     - Search supports file/folder sizes and many file type filters.
-     - Enhanced interactive results that show file/folder sizes.
-  2. ✅ Multiple sources support
+  1. ✅ Multiple sources support
+  2. ✅ Login support for OIDC, LDAP, SSO, password, and proxy.
   3. ✅ Revamped UI
-     - Additional compact view mode as well as refreshed view mode styles.
-     - Many graphical and user experience improvements.
-     - right-click context menu
-  4. ✅ Revamped and simplified configuration via `config.yaml` config file.
-  5. ✅ Better listing browsing
-     - Instantly Switches view modes and sort order without reloading data.
-     - Folder sizes are displayed
-     - Navigating remembers the scroll position, navigating back keeps the last scroll position.
-  6. ✅ Developer API support
+  4. ✅ Simplified configuration via `config.yaml` config file.
+  5. ✅ Ultra-efficient [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) and real-time monitoring
+     - Real-time search results as you type.
+     - Real-time monitoring and updates in the UI.
+     - Search supports file and folder sizes, along with various filters.
+  6. ✅ Better listing browsing
+     - More file type previews such as office and video file previews
+     - Instantly switches view modes and sort order without reloading data.
+     - Folder sizes are displayed.
+     - Navigating remembers the last scroll position.
+  7. ✅ Developer API support
      - Ability to create long-live API Tokens.
      - Helpful Swagger page available at `/swagger` endpoint.
 
 Notable features that this fork *does not* have (removed):
 
  - ❌ jobs are not supported yet (planned).
- - ❌ rules are not supported yet (planned).
  - ❌ shell commands are completely removed and will not be returned.
 
 ## About
 
-FileBrowser Quantum differs significantly from the original.
-There are hundreds of thousands of lines changed and they are generally
-no longer compatible with each other. This has been intentional -- the
-focus of this fork is on a few key principles:
-  - Simplicity and improved user experience
-  - Improving performance and faster feedback when making changes.
-  - Minimize external dependencies and standard library usage.
-  - Of course -- adding much-needed features.
+FileBrowser Quantum differs significantly from the original version. Many of these changes required a significant overhaul. Creating a fork was a necessary process to make the program better. There has been lots of growing pains along the way, but a stable release is planned and coming soon.
+
+This version is called "Quantum" because it packs tons of advanced features in a tiny executable file. Unlike the majority of alternative options, FileBrowser Quantum is simple to install and easy to configure.
+
+The goal for this repo is to become the best opens-source self-hosted file browsing application that exists -- **all for free**.
+
+This repo will always be free and open-source.
 
 For more, see the [Q&A Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A)
 
 ## Look
 
-The UI has a simple three-component navigation system :
+The UI has a simple three-component navigation system:
 
   1. (Left) The slide-out action panel button
   2. (Middle) The powerful search bar.
@@ -128,9 +121,8 @@ Indexed Search?               | ✅ | ❌ | ❌ | configurable | ✅ | ✅ |
 Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
 Custom job support            | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
 Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-Single sign-on support        | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-2FA sign-on support           | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Single sign-on support        | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
+LDAP sign-on support          | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Long-live API key support     | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 API documentation page        | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
@@ -142,7 +134,7 @@ Metrics                       | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 file space quotas             | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 text-based files editor       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 office file support           | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
-Office file previews          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+Office file previews          | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Themes                        | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
 Branding support              | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
 activity log                  | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |

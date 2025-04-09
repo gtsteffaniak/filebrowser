@@ -28,12 +28,6 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
           username: ${{github.actor}}
           password: ${{ secrets.PAT }}
       - name: Extract metadata (tags, labels) for Docker and GHCR
@@ -51,7 +45,9 @@ jobs:
           CLEANED_TAGS=$(echo "$TAGS" | sed 's/filebrowser:dev-v/filebrowser:/g' | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev/g')
           # Add dev tag to both registries
           CLEANED_TAGS="$CLEANED_TAGS,gtstef/filebrowser:dev,ghcr.io/gtstef/filebrowser:dev"
-          echo "cleaned_tag=$CLEANED_TAGS" >> $GITHUB_OUTPUT
+          echo "cleaned_tag<<EOF" >> $GITHUB_OUTPUT
+          echo "$CLEANED_TAGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -72,7 +68,9 @@ jobs:
           CLEANED_TAGS=$(echo "$TAGS" | sed 's/filebrowser:dev-v/filebrowser:/g' | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev-media/g')
           # Add dev tag to both registries
           CLEANED_TAGS="$CLEANED_TAGS,gtstef/filebrowser:dev-media,ghcr.io/gtstef/filebrowser:dev-media"
-          echo "cleaned_tag=$CLEANED_TAGS" >> $GITHUB_OUTPUT
+          echo "cleaned_tag<<EOF" >> $GITHUB_OUTPUT
+          echo "$CLEANED_TAGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
       - name: Build and push media image
         uses: docker/build-push-action@v6
         with:
