@@ -22,6 +22,7 @@ func Initialize(configFile string) {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
+	loadEnvConfig()
 	setupLogging()
 	setupAuth()
 	setupSources()
@@ -199,6 +200,33 @@ func loadConfigWithDefaults(configFile string) error {
 	}
 
 	return nil
+}
+
+func loadEnvConfig() {
+
+	adminPassword, ok := os.LookupEnv("FILEBROWSER_ADMIN_PASSWORD")
+	if ok {
+		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
+		Config.Auth.AdminPassword = adminPassword
+	}
+
+	recaptchaSecret, ok := os.LookupEnv("FILEBROWSER_RECAPTCHA_SECRET")
+	if ok {
+		logger.Info("Using recaptcha secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
+		Config.Auth.Recaptcha.Secret = recaptchaSecret
+	}
+
+	officeSecret, ok := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
+	if ok {
+		logger.Info("Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable")
+		Config.Integrations.OnlyOffice.Secret = officeSecret
+	}
+
+	ffmpegPath, ok := os.LookupEnv("FILEBROWSER_FFMPEG_PATH")
+	if ok {
+		Config.Integrations.Media.FfmpegPath = ffmpegPath
+	}
+
 }
 
 func setDefaults() Settings {

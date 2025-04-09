@@ -40,7 +40,7 @@ export default {
     },
     isPreviewImg() {
       // todo support webp previews
-      if (this.mimetype == "text/csv" || this.mimetype == "image/webp") {
+      if (this.mimetype == "text/csv") {
         return false;
       }
       if (this.getIconForType().simpleType === "image") {
