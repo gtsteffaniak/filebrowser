@@ -77,15 +77,15 @@ jobs:
         with:
           images: |
             gtstef/filebrowser
-            ghcr.io/gtstef/filebrowser
+            ghcr.io/gtsteffaniak/filebrowser
       - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
         id: modify-json
         run: |
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(sub(":v"; ":")) | 
-            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta", "ghcr.io/gtstef/filebrowser:beta"] else . end |
-            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable", "ghcr.io/gtstef/filebrowser:stable"] else . end
+            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta", "ghcr.io/gtsteffaniak/filebrowser:beta"] else . end |
+            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable", "ghcr.io/gtsteffaniak/filebrowser:stable"] else . end
           ')
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
@@ -106,15 +106,15 @@ jobs:
         with:
           images: |
             gtstef/filebrowser-media
-            ghcr.io/gtstef/filebrowser-media
+            ghcr.io/gtsteffaniak/filebrowser-media
       - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
         id: modify-json-media
         run: |
           JSON='${{ steps.meta-media.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(sub(":v"; ":")) | 
-            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser-media:beta", "ghcr.io/gtstef/filebrowser-media:beta"] else . end |
-            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser-media:stable", "ghcr.io/gtstef/filebrowser-media:stable"] else . end
+            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser-media:beta", "ghcr.io/gtsteffaniak/filebrowser-media:beta"] else . end |
+            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser-media:stable", "ghcr.io/gtsteffaniak/filebrowser-media:stable"] else . end
           ')
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
