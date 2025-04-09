@@ -21,6 +21,7 @@ func Initialize(configFile string) {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
+	loadEnvConfig()
 	setupLogging()
 	setupAuth()
 	setupSources()
@@ -191,25 +192,25 @@ func loadConfigWithDefaults(configFile string) error {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
 
-	adminPassword, adminPassPresent := os.LookupEnv("FILEBROWSER_ADMIN_PASSWORD")
-	if adminPassPresent {
+	return nil
+}
+
+func loadEnvConfig() {
+	adminPassword, ok := os.LookupEnv("FILEBROWSER_ADMIN_PASSWORD")
+	if ok {
 		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
 		Config.Auth.AdminPassword = adminPassword
 	}
-
-	recaptchaSecret, recaptchaSecretPresent := os.LookupEnv("FILEBROWSER_RECAPTCHA_SECRET")
-	if recaptchaSecretPresent {
+	recaptchaSecret, ok := os.LookupEnv("FILEBROWSER_RECAPTCHA_SECRET")
+	if ok {
 		logger.Info("Using recaptcha secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
 		Config.Auth.Recaptcha.Secret = recaptchaSecret
 	}
-
-	officeSecret, officeSecretPresent := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
-	if officeSecretPresent {
+	officeSecret, ok := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
+	if ok {
 		logger.Info("Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable")
 		Config.Integrations.OnlyOffice.Secret = officeSecret
 	}
-
-	return nil
 }
 
 func setDefaults() Settings {
