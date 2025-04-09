@@ -51,6 +51,7 @@ func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byt
 		return data, err
 	}
 	convertURL := settings.Config.Integrations.OnlyOffice.Url + "/converter"
+
 	// Send the request with buf.Bytes() — not jsonData
 	req, err := http.NewRequest("POST", convertURL, buf)
 	if err != nil {
@@ -74,6 +75,7 @@ func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byt
 		return data, err
 	}
 	var response officePreviewResponse
+
 	// Now decode the raw response into struct
 	if err = json.Unmarshal(bodyBytes, &response); err != nil {
 		return data, fmt.Errorf("could not decode JSON: %w", err)

@@ -173,5 +173,11 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
 		return true
 	}
+	if file.OnlyOfficeId != "" {
+		return true
+	}
+	if file.Type == "application/pdf" {
+		return true
+	}
 	return false
 }

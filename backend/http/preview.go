@@ -81,11 +81,10 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 	rawUrl = rawUrl + "&auth=" + d.token
 	previewImg, err := preview.GetPreviewForFile(fileInfo, previewSize, rawUrl)
-	// Unsupported extensions directly return the raw data
 	if err == preview.ErrUnsupportedFormat {
 		return rawFileHandler(w, r, fileInfo)
 	}
-	// todo concele this error
+
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
