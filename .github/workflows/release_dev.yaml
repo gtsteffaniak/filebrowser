@@ -36,7 +36,7 @@ jobs:
         with:
           images: |
             gtstef/filebrowser
-            ghcr.io/gtstef/filebrowser
+            ghcr.io/gtsteffaniak/filebrowser
       - name: Modify version names
         id: modify-json
         run: |
@@ -44,7 +44,7 @@ jobs:
           # Apply modifications to both docker.io and ghcr.io tags
           CLEANED_TAGS=$(echo "$TAGS" | sed 's/filebrowser:dev-v/filebrowser:/g' | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev/g')
           # Add dev tag to both registries
-          CLEANED_TAGS="$CLEANED_TAGS,gtstef/filebrowser:dev,ghcr.io/gtstef/filebrowser:dev"
+          CLEANED_TAGS="$CLEANED_TAGS,gtstef/filebrowser:dev,ghcr.io/gtsteffaniak/filebrowser:dev"
           echo "cleaned_tag<<EOF" >> $GITHUB_OUTPUT
           echo "$CLEANED_TAGS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -67,7 +67,7 @@ jobs:
           # Apply modifications to both docker.io and ghcr.io tags
           CLEANED_TAGS=$(echo "$TAGS" | sed 's/filebrowser:dev-v/filebrowser:/g' | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev-media/g')
           # Add dev tag to both registries
-          CLEANED_TAGS="$CLEANED_TAGS,gtstef/filebrowser:dev-media,ghcr.io/gtstef/filebrowser:dev-media"
+          CLEANED_TAGS="$CLEANED_TAGS,gtstef/filebrowser:dev-media,ghcr.io/gtsteffaniak/filebrowser:dev-media"
           echo "cleaned_tag<<EOF" >> $GITHUB_OUTPUT
           echo "$CLEANED_TAGS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
