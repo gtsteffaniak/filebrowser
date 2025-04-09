@@ -31,7 +31,10 @@ func validateUserInfo() {
 		}
 		if updateUser {
 			if len(createBackup) == 1 {
-				fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
+				err = fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
+				if err != nil {
+					logger.Fatal(fmt.Sprintf("Unable to create automatic backup of database due to error: %v", err))
+				}
 			}
 			err := store.Users.Save(user, false)
 			if err != nil {
