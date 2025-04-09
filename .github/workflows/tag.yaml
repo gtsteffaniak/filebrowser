@@ -45,26 +45,47 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{ secrets.PAT }}
+      - name: Extract metadata (tags, labels) for Docker and GHCR
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: gtstef/filebrowser
+          images: |
+            gtstef/filebrowser
+            ghcr.io/gtsteffaniak/filebrowser
       - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
         id: modify-json
         run: |
-          JSON='${{ steps.meta.outputs.json }}'  # Assuming the JSON output is stored in steps.meta.outputs.json
-          # Process the JSON array using jq
+          JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
-            .tags |= map(sub(":v"; ":")) | 
-            if any(.tags[]; test("beta")) then .tags += ["gtstef/filebrowser:beta"] else . end |
-            if any(.tags[]; test("stable")) then .tags += ["gtstef/filebrowser:stable"] else . end
+            .tags |= map(sub(":v"; ":")) |
+            if any(.tags[]; test("beta")) then
+              .tags += [
+                "gtstef/filebrowser:beta",
+                "ghcr.io/gtsteffaniak/filebrowser:beta",
+                "gtstef/filebrowser:latest",
+                "ghcr.io/gtsteffaniak/filebrowser:latest"
+              ]
+            else . end |
+            if any(.tags[]; test("stable")) then
+              .tags += [
+                "gtstef/filebrowser:stable",
+                "ghcr.io/gtsteffaniak/filebrowser:stable",
+                "gtstef/filebrowser:latest",
+                "ghcr.io/gtsteffaniak/filebrowser:latest"
+              ]
+            else . end
           ')
-          # Convert JSON to a comma-separated string for Docker tags
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
-          echo "$TAGS_CSV" > modified_tags.txt  # Save for debugging
-          echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
-
+          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
+          echo "cleaned_tag<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAGS_CSV" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
