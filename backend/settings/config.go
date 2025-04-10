@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	yaml "github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
@@ -181,15 +182,21 @@ func loadConfigWithDefaults(configFile string) error {
 	yamlData := make([]byte, stat.Size())
 	_, err = yamlFile.Read(yamlData)
 	if err != nil && configFile != "config.yaml" {
-		return fmt.Errorf("could not load specified config file: " + err.Error())
+		return fmt.Errorf("could not load specified config file: %v", err.Error())
 	}
 	if err != nil {
 		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
 	}
 	Config = setDefaults()
-	err = yaml.Unmarshal(yamlData, &Config)
+	err = yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
+	}
+
+	validate := validator.New()
+	err = validate.Struct(Config)
+	if err != nil {
+		return fmt.Errorf("could not validate %v", err)
 	}
 
 	return nil

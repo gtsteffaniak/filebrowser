@@ -1,0 +1,34 @@
+server:
+  numImageProcessors: 4
+  socket: ""
+  tlsKey: ""
+  tlsCert: ""
+  enableThumbnails: false
+  resizePreview: true
+  port: 80
+  baseURL: "/"
+  database: "mydb.db"
+  sources:
+    - path: "."
+auth:
+  recaptcha:
+    host: ""
+    key: ""
+    secret: ""
+  signup: false
+frontend:
+  name: ""
+  disableUsedPercentage: true
+userDefaults:
+  scope: ""
+  locale: ""
+  viewMode: ""
+  darkMode: true
+  disableSettings: false
+  singleClick: true
+  permissions:
+    admin: true
+    modify: true
+    share: true
+    api: true
+  dateFormat: false

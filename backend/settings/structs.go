@@ -30,7 +30,7 @@ type Auth struct {
 	Key                  []byte       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
-	AuthMethods          []string
+	AuthMethods          []string     `json:"-"`
 }
 
 type LoginMethods struct {
@@ -55,7 +55,6 @@ type Recaptcha struct {
 	Key    string `json:"key"`
 	Secret string `json:"secret"`
 }
-
 type Server struct {
 	NumImageProcessors int         `json:"numImageProcessors"`
 	Socket             string      `json:"socket"`
@@ -69,7 +68,7 @@ type Server struct {
 	BaseURL            string      `json:"baseURL"`
 	Logging            []LogConfig `json:"logging"`
 	Database           string      `json:"database"`
-	Sources            []Source    `json:"sources"`
+	Sources            []Source    `json:"sources" validate:"required,dive"`
 	ExternalUrl        string      `json:"externalUrl"`
 	InternalUrl        string      `json:"internalUrl"` // used by integrations
 	CacheDir           string      `json:"cacheDir"`
