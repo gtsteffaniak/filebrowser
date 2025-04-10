@@ -3,6 +3,8 @@ package settings
 import (
 	"reflect"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestInitialize(t *testing.T) {
@@ -35,5 +37,46 @@ func Test_setDefaults(t *testing.T) {
 				t.Errorf("setDefaults() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestConfigLoadChanged(t *testing.T) {
+	defaultConfig := setDefaults()
+	err := loadConfigWithDefaults("./validConfig.yaml")
+	if err != nil {
+		t.Fatalf("error loading config file: %v", err)
+	}
+	// Use go-cmp to compare the two structs
+	if diff := cmp.Diff(defaultConfig, Config); diff == "" {
+		t.Errorf("No change when there should have been (-want +got):\n%s", diff)
+	}
+}
+
+func TestConfigLoadSpecificValues(t *testing.T) {
+	defaultConfig := setDefaults()
+	err := loadConfigWithDefaults("./validConfig.yaml")
+	if err != nil {
+		t.Fatalf("error loading config file: %v", err)
+	}
+	testCases := []struct {
+		fieldName string
+		globalVal interface{}
+		newVal    interface{}
+	}{
+		{"Server.Database", Config.Server.Database, defaultConfig.Server.Database},
+	}
+
+	for _, tc := range testCases {
+		if tc.globalVal == tc.newVal {
+			t.Errorf("Differences should have been found:\nConfig.%s: %v \nSetConfig: %v \n", tc.fieldName, tc.globalVal, tc.newVal)
+		}
+	}
+}
+
+func TestInvalidConfig(t *testing.T) {
+	configFile := "./invalidConfig.yaml"
+	err := loadConfigWithDefaults(configFile)
+	if err == nil {
+		t.Fatalf("expected error loading config file %s, got nil", configFile)
 	}
 }
