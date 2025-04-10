@@ -285,10 +285,12 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 		if !strings.HasPrefix(scope.Scope, "/") {
 			scope.Scope = "/" + scope.Scope
 		}
+		if !strings.HasSuffix(scope.Scope, "/") {
+			scope.Scope = scope.Scope + "/"
+		}
 		// first check if its already a path name and keep it
 		source, ok := Config.Server.SourceMap[scope.Name]
 		if ok {
-
 			newScopes = append(newScopes, users.SourceScope{
 				Name:  source.Path, // backend name is path
 				Scope: scope.Scope,
@@ -310,7 +312,7 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 }
 
 func ConvertToFrontendScopes(scopes []users.SourceScope) []users.SourceScope {
-	newScopes := make([]users.SourceScope, 0, len(scopes)) // Preserve original order
+	newScopes := []users.SourceScope{}
 	for _, scope := range scopes {
 		if source, ok := Config.Server.SourceMap[scope.Name]; ok {
 			// Replace scope.Name with source.Path while keeping the same Scope value
