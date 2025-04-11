@@ -84,7 +84,6 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err == preview.ErrUnsupportedFormat {
 		return rawFileHandler(w, r, fileInfo)
 	}
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

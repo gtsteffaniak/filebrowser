@@ -79,6 +79,8 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	api.HandleFunc("GET /auth/token", withUser(createApiKeyHandler))
 	api.HandleFunc("DELETE /auth/token", withUser(deleteApiKeyHandler))
 	api.HandleFunc("GET /auth/tokens", withUser(listApiKeysHandler))
+	api.HandleFunc("GET /auth/oidc/callback", wrapHandler(oidcCallbackHandler))
+	api.HandleFunc("GET /auth/oidc/login", wrapHandler(oidcLoginHandler))
 
 	// Resources routes
 	api.HandleFunc("GET /resources", withUser(resourceGetHandler))

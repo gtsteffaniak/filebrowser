@@ -62,6 +62,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"ExternalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"OnlyOfficeUrl":         settings.Config.Integrations.OnlyOffice.Url,
 		"SourceCount":           len(config.Server.Sources),
+		"OidcAvailable":         config.Auth.Methods.OidcAuth.Enabled,
+		"PasswordAvailable":     config.Auth.Methods.PasswordAuth.Enabled,
 	}
 
 	if config.Auth.Methods.PasswordAuth.Enabled {

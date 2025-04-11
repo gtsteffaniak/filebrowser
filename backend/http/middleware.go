@@ -126,7 +126,8 @@ func withUserHelper(fn handleFunc) handleFunc {
 						return http.StatusInternalServerError, err
 					}
 					err = storage.CreateUser(users.User{
-						Username: proxyUser,
+						LoginMethod: users.LoginMethodProxy,
+						Username:    proxyUser,
 						NonAdminEditable: users.NonAdminEditable{
 							Password: hashpass, // hashed password that can't actually be used
 						},
@@ -379,4 +380,14 @@ func (w *ResponseWriterWrapper) Flush() {
 	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
 		flusher.Flush()
 	}
+}
+
+func getScheme(r *http.Request) string {
+	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
+		return proto
+	}
+	if r.TLS != nil {
+		return "https"
+	}
+	return "http"
 }

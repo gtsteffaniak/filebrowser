@@ -28,6 +28,8 @@ TODO:
 - safely checks ffmpeg on startup, test and warn if binary has errors and disable if it does.
 - only show pulse when confirmed realtime connection
 - test all onlyoffice file previews, things like csv do not work.
+- add debouncer to source broadcasts
+- ensure source broadcast doesn't send to wrong users info
 
 ## v0.6.7-beta
 

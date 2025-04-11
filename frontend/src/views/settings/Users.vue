@@ -15,6 +15,7 @@
         <thead>
           <tr>
             <th>{{ $t("settings.username") }}</th>
+            <th>login method</th>
             <th>{{ $t("settings.admin") }}</th>
             <th>scopes</th>
             <th></th>
@@ -23,6 +24,7 @@
         <tbody>
           <tr v-for="user in users" :key="user.id">
             <td>{{ user.username }}</td>
+            <td>{{ user.loginMethod }}</td>
             <td>
               <i v-if="user.permissions.admin" class="material-icons">done</i>
               <i v-else class="material-icons">close</i>

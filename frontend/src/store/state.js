@@ -18,6 +18,7 @@ export const state = reactive({
     info: {},
   },
   user: {
+    loginType: "",
     username: "",
     quickDownloadEnabled: false,
     gallarySize: 0,
@@ -27,7 +28,6 @@ export const state = reactive({
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
     scopes: [],
-    rules: [], // Default to an empty array
     permissions: {}, // Default to an empty object for permissions
     darkMode: true, // Default to false, assuming this is a boolean
     profile: { // Example of additional user properties

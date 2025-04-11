@@ -4,7 +4,6 @@ package preview
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -13,9 +12,6 @@ import (
 	exif "github.com/dsoprea/go-exif/v3"
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
 )
-
-// ErrUnsupportedFormat means the given image format is not supported.
-var ErrUnsupportedFormat = errors.New("preview is not available for provided file format")
 
 // Format is an image file format.
 /*
