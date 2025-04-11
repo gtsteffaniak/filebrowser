@@ -40,20 +40,20 @@ type LoginMethods struct {
 }
 
 type PasswordAuthConfig struct {
-	Enabled   bool `json:"enabled"`
+	Enabled   bool `json:"enabled" validate:"required"`
 	MinLength int  `json:"minLength"`
 }
 
 type ProxyAuthConfig struct {
-	Enabled    bool   `json:"enabled"`
+	Enabled    bool   `json:"enabled" validate:"required"`
 	CreateUser bool   `json:"createUser"`
 	Header     string `json:"header"`
 }
 
 type Recaptcha struct {
-	Host   string `json:"host"`
-	Key    string `json:"key"`
-	Secret string `json:"secret"`
+	Host   string `json:"host" validate:"required"`
+	Key    string `json:"key" validate:"required"`
+	Secret string `json:"secret" validate:"required"`
 }
 type Server struct {
 	NumImageProcessors int         `json:"numImageProcessors"`
@@ -86,8 +86,8 @@ type Integrations struct {
 // onlyoffice secret is stored in the local.json file
 // docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
 type OnlyOffice struct {
-	Url    string `json:"url"`
-	Secret string `json:"secret"`
+	Url    string `json:"url" validate:"required"`
+	Secret string `json:"secret" validate:"required"`
 }
 
 type LogConfig struct {
@@ -99,8 +99,8 @@ type LogConfig struct {
 }
 
 type Source struct {
-	Path   string       `json:"path"` // can be relative, filesystem path
-	Name   string       `json:"name"` // display name
+	Path   string       `json:"path" validate:"required"` // file system path. (Can be relative)
+	Name   string       `json:"name"`                     // display name
 	Config SourceConfig `json:"config"`
 }
 
@@ -132,9 +132,9 @@ type Frontend struct {
 }
 
 type ExternalLink struct {
-	Text  string `json:"text"`
+	Text  string `json:"text" validate:"required"`
 	Title string `json:"title"`
-	Url   string `json:"url"`
+	Url   string `json:"url" validate:"required"`
 }
 
 // UserDefaults is a type that holds the default values
