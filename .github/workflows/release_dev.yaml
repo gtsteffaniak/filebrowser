@@ -40,14 +40,12 @@ jobs:
       - name: Modify version names
         id: modify-json
         run: |
-          TAGS="${{ steps.meta.outputs.tags }}"
-          # Apply modifications to both docker.io and ghcr.io tags
-          CLEANED_TAGS=$(echo "$TAGS" | sed 's/filebrowser:dev-v/filebrowser:/g' | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev/g')
-          # Add dev tag to both registries
-          CLEANED_TAGS="$CLEANED_TAGS,gtstef/filebrowser:dev,ghcr.io/gtsteffaniak/filebrowser:dev"
-          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
-          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
-          echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
+          JSON="${{ steps.meta.outputs.tags }}"
+          # Use jq to remove 'v' from the version field
+          JSON=$(echo "$JSON" | sed 's/filebrowser:dev-v/filebrowser:/')
+          JSON=$(echo "$JSON" | sed -E 's/(filebrowser:[0-9]+\.[0-9]+\.[0-9]+)/\1-dev/g')
+          JSON="$JSON,gtstef/filebrowser:dev,ghcr.io/gtsteffaniak/filebrowser:dev"
+          echo "cleaned_tag=$JSON" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
