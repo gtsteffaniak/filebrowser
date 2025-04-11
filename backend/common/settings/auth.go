@@ -39,7 +39,6 @@ type Recaptcha struct {
 // OpenID OAuth2.0
 type OidcConfig struct {
 	Enabled          bool   `json:"enabled"` // whether to enable OIDC authentication
-	CreateUser       bool   `json:"createUser"`
 	ClientID         string `json:"clientId"`
 	ClientSecret     string `json:"clientSecret"`
 	AuthorizationUrl string `json:"authorizationUrl"`

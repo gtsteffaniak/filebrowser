@@ -279,9 +279,9 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 
 func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	code := r.URL.Query().Get("code")
-	state := r.URL.Query().Get("state")
-
-	fmt.Println("State:", state)
+	//state := r.URL.Query().Get("state")
+	//
+	//fmt.Println("State:", state)
 	origin := r.Header.Get("Origin")
 	if origin == "" {
 		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
@@ -296,8 +296,6 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	data.Set("client_secret", config.Auth.Methods.OidcAuth.ClientSecret)
 	data.Set("redirect_uri", redirectURI)
 
-	// print payload for debugging
-	fmt.Println("Payload:", data.Encode())
 	req, _ := http.NewRequest("POST", config.Auth.Methods.OidcAuth.TokenUrl, strings.NewReader(data.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	client := &http.Client{}
@@ -316,14 +314,13 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		AccessToken string `json:"access_token"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
 		return 500, fmt.Errorf("failed to parse token response: %v", err)
 	}
 	// Step 2: Use the access token to fetch user info from the UserInfo URL
 	userInfoURL := config.Auth.Methods.OidcAuth.UserInfoUrl
 	req, _ = http.NewRequest("GET", userInfoURL, nil)
 	req.Header.Set("Authorization", "Bearer "+tokenResp.AccessToken)
-	fmt.Println("making request:", userInfoURL, "Bearer "+tokenResp.AccessToken)
 
 	resp, err = client.Do(req)
 	if err != nil || resp.StatusCode != 200 {
@@ -331,11 +328,11 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	defer resp.Body.Close()
 
-	var userInfo userInfo
-	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+	var userdata userInfo
+	if err = json.NewDecoder(resp.Body).Decode(&userdata); err != nil {
 		return 500, fmt.Errorf("failed to parse user info: %v", err)
 	}
-	return loginWithOidcUser(w, r, userInfo)
+	return loginWithOidcUser(w, r, userdata)
 }
 
 func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -357,7 +354,6 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			r.URL.Query().Get("fb_redirect"),
 		)
 
-		fmt.Println("Redirecting to OIDC provider:", authURL)
 		http.Redirect(w, r, authURL, http.StatusFound)
 		return 0, nil
 	}
@@ -376,27 +372,24 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo
 		if err.Error() != "the resource does not exist" {
 			return http.StatusInternalServerError, err
 		}
-		if config.Auth.Methods.OidcAuth.CreateUser {
-			hashpass, err := users.HashPwd(username) // hashed password that can't actually be used, gets double hashed
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			err = storage.CreateUser(users.User{
-				LoginMethod: users.LoginMethodOidc,
-				Username:    username,
-				NonAdminEditable: users.NonAdminEditable{
-					Password: hashpass, // hashed password that can't actually be used
-				},
-			}, false)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			user, err = store.Users.Get(username)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-		} else {
-			return http.StatusUnauthorized, fmt.Errorf("oidc authentication failed - no user found")
+		hashpass := ""
+		hashpass, err = users.HashPwd(username) // hashed password that can't actually be used, gets double hashed
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		err = storage.CreateUser(users.User{
+			LoginMethod: users.LoginMethodOidc,
+			Username:    username,
+			NonAdminEditable: users.NonAdminEditable{
+				Password: hashpass, // hashed password that can't actually be used
+			},
+		}, false)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		user, err = store.Users.Get(username)
+		if err != nil {
+			return http.StatusInternalServerError, err
 		}
 	}
 	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
