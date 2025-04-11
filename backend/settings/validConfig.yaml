@@ -11,10 +11,6 @@ server:
   sources:
     - path: "."
 auth:
-  recaptcha:
-    host: ""
-    key: ""
-    secret: ""
   signup: false
 frontend:
   name: ""

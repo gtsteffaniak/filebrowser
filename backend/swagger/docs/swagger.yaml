@@ -122,6 +122,9 @@ definitions:
         type: string
       url:
         type: string
+    required:
+    - text
+    - url
     type: object
   settings.Frontend:
     properties:
@@ -184,6 +187,9 @@ definitions:
         type: string
       url:
         type: string
+    required:
+    - secret
+    - url
     type: object
   settings.PasswordAuthConfig:
     properties:
@@ -191,6 +197,8 @@ definitions:
         type: boolean
       minLength:
         type: integer
+    required:
+    - enabled
     type: object
   settings.ProxyAuthConfig:
     properties:
@@ -200,6 +208,8 @@ definitions:
         type: boolean
       header:
         type: string
+    required:
+    - enabled
     type: object
   settings.Recaptcha:
     properties:
@@ -209,6 +219,10 @@ definitions:
         type: string
       secret:
         type: string
+    required:
+    - host
+    - key
+    - secret
     type: object
   settings.Server:
     properties:
@@ -279,8 +293,10 @@ definitions:
         description: display name
         type: string
       path:
-        description: can be relative, filesystem path
+        description: file system path. (Can be relative)
         type: string
+    required:
+    - path
     type: object
   settings.SourceConfig:
     properties:

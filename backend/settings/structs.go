@@ -23,7 +23,7 @@ type Settings struct {
 
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"`
-	Recaptcha            Recaptcha    `json:"recaptcha"`
+	Recaptcha            Recaptcha    `json:"recaptcha" validate:"omitempty,dive"`
 	Methods              LoginMethods `json:"methods"`
 	Signup               bool         `json:"signup"`
 	Method               string       `json:"method"`
@@ -34,9 +34,9 @@ type Auth struct {
 }
 
 type LoginMethods struct {
-	ProxyAuth    ProxyAuthConfig    `json:"proxy"`
-	NoAuth       bool               `json:"noauth"`
-	PasswordAuth PasswordAuthConfig `json:"password"`
+	ProxyAuth    ProxyAuthConfig    `json:"proxy" validate:"omitempty"`
+	NoAuth       bool               `json:"noauth" validate:"omitempty"`
+	PasswordAuth PasswordAuthConfig `json:"password" validate:"omitempty"`
 }
 
 type PasswordAuthConfig struct {
@@ -74,13 +74,13 @@ type Server struct {
 	CacheDir           string      `json:"cacheDir"`
 	MaxArchiveSizeGB   int64       `json:"maxArchiveSize"`
 	// not exposed to config
-	SourceMap     map[string]Source `json:"-"` // uses realpath as key
-	NameToSource  map[string]Source `json:"-"` // uses name as key
-	DefaultSource Source            `json:"-"`
+	SourceMap     map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
+	NameToSource  map[string]Source `json:"-" validate:"omitempty"` // uses name as key
+	DefaultSource Source            `json:"-" validate:"omitempty"`
 }
 
 type Integrations struct {
-	OnlyOffice OnlyOffice `json:"office"`
+	OnlyOffice OnlyOffice `json:"office" validate:"omitempty,dive"`
 }
 
 // onlyoffice secret is stored in the local.json file

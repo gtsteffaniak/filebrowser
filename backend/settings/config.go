@@ -240,11 +240,9 @@ func setDefaults() Settings {
 			AdminPassword:        "admin",
 			TokenExpirationHours: 2,
 			Signup:               false,
-			Recaptcha: Recaptcha{
-				Host: "",
-			},
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
+					Enabled:   true,
 					MinLength: 5,
 				},
 			},

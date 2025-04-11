@@ -1734,6 +1734,10 @@ const docTemplate = `{
         },
         "settings.ExternalLink": {
             "type": "object",
+            "required": [
+                "text",
+                "url"
+            ],
             "properties": {
                 "text": {
                     "type": "string"
@@ -1833,6 +1837,10 @@ const docTemplate = `{
         },
         "settings.OnlyOffice": {
             "type": "object",
+            "required": [
+                "secret",
+                "url"
+            ],
             "properties": {
                 "secret": {
                     "type": "string"
@@ -1844,6 +1852,9 @@ const docTemplate = `{
         },
         "settings.PasswordAuthConfig": {
             "type": "object",
+            "required": [
+                "enabled"
+            ],
             "properties": {
                 "enabled": {
                     "type": "boolean"
@@ -1855,6 +1866,9 @@ const docTemplate = `{
         },
         "settings.ProxyAuthConfig": {
             "type": "object",
+            "required": [
+                "enabled"
+            ],
             "properties": {
                 "createUser": {
                     "type": "boolean"
@@ -1869,6 +1883,11 @@ const docTemplate = `{
         },
         "settings.Recaptcha": {
             "type": "object",
+            "required": [
+                "host",
+                "key",
+                "secret"
+            ],
             "properties": {
                 "host": {
                     "type": "string"
@@ -1975,6 +1994,9 @@ const docTemplate = `{
         },
         "settings.Source": {
             "type": "object",
+            "required": [
+                "path"
+            ],
             "properties": {
                 "config": {
                     "$ref": "#/definitions/settings.SourceConfig"
@@ -1984,7 +2006,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "path": {
-                    "description": "can be relative, filesystem path",
+                    "description": "file system path. (Can be relative)",
                     "type": "string"
                 }
             }
