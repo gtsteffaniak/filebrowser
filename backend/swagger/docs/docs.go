@@ -1766,6 +1766,9 @@ const docTemplate = `{
                 "noauth": {
                     "type": "boolean"
                 },
+                "oidc": {
+                    "$ref": "#/definitions/settings.OidcConfig"
+                },
                 "password": {
                     "$ref": "#/definitions/settings.PasswordAuthConfig"
                 },
@@ -1778,6 +1781,45 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ffmpegPath": {
+                    "type": "string"
+                }
+            }
+        },
+        "settings.OidcConfig": {
+            "type": "object",
+            "properties": {
+                "authorizationUrl": {
+                    "type": "string"
+                },
+                "clientId": {
+                    "type": "string"
+                },
+                "clientSecret": {
+                    "type": "string"
+                },
+                "createUser": {
+                    "type": "boolean"
+                },
+                "enabled": {
+                    "description": "whether to enable OIDC authentication",
+                    "type": "boolean"
+                },
+                "jwksUrl": {
+                    "description": "currently not used by filebrowser",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "space separated list of scopes",
+                    "type": "string"
+                },
+                "tokenUrl": {
+                    "type": "string"
+                },
+                "userIdentifier": {
+                    "description": "which attribute should be used as the username?",
+                    "type": "string"
+                },
+                "userInfoUrl": {
                     "type": "string"
                 }
             }
@@ -2097,6 +2139,19 @@ const docTemplate = `{
                 }
             }
         },
+        "users.LoginMethod": {
+            "type": "string",
+            "enum": [
+                "password",
+                "proxy",
+                "oidc"
+            ],
+            "x-enum-varnames": [
+                "LoginMethodPassword",
+                "LoginMethodProxy",
+                "LoginMethodOidc"
+            ]
+        },
         "users.Permissions": {
             "type": "object",
             "properties": {
@@ -2171,6 +2226,9 @@ const docTemplate = `{
                 },
                 "lockPassword": {
                     "type": "boolean"
+                },
+                "loginMethod": {
+                    "$ref": "#/definitions/users.LoginMethod"
                 },
                 "password": {
                     "type": "string"

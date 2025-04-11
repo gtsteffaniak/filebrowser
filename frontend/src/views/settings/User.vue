@@ -7,7 +7,7 @@
       <h2 v-else>modify user: {{ user.username }}</h2>
     </div>
 
-    <div class="card-content">
+    <div class="card-content minimal-card">
       <user-form
         v-model:user="user"
         v-model:updatePassword="updatePassword"
@@ -122,3 +122,11 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.minimal-card {
+  /* margin-bottom: 16px; */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+</style>

@@ -1,5 +1,7 @@
 <template>
-  <div v-if="!stateUser.permissions.admin && !isNew">
+  <div
+    v-if="!stateUser.permissions.admin && !isNew && stateUser.loginMethod == 'password'"
+  >
     <label for="password">{{ $t("settings.password") }}</label>
     <input
       class="input input--block"
@@ -11,7 +13,7 @@
     />
   </div>
   <div v-else>
-    <p>
+    <p v-if="isNew">
       <label for="username">{{ $t("settings.username") }}</label>
       <input
         class="input input--block"
@@ -22,7 +24,7 @@
       />
     </p>
 
-    <p>
+    <p v-if="stateUser.loginMethod == 'password'">
       <label for="password">{{ $t("settings.password") }}</label>
       <input
         class="input input--block"
@@ -34,7 +36,7 @@
       />
     </p>
 
-    <p v-if="!isNew">
+    <p v-if="!isNew && stateUser.loginMethod == 'password'">
       <input
         type="checkbox"
         :checked="updatePassword"
@@ -43,7 +45,7 @@
       Change password on save
     </p>
 
-    <p>
+    <p v-if="stateUser.loginMethod == 'password'">
       <input
         type="checkbox"
         :disabled="!stateUser.permissions?.admin"
@@ -52,32 +54,33 @@
       />
       {{ $t("settings.lockPassword") }}
     </p>
+    <div v-if="stateUser.permissions.admin">
+      <label for="scopes">{{ $t("settings.scopes") }}</label>
+      <div class="scope-list" v-for="(source, index) in selectedSources" :key="index">
+        <!-- Select dropdown -->
+        <select class="input flat-right" v-model="source.name">
+          <option v-for="s in sourceList" :key="s" :value="s.name">
+            {{ s.name }}
+          </option>
+        </select>
 
-    <label for="scopes">{{ $t("settings.scopes") }}</label>
-    <div class="scope-list" v-for="(source, index) in selectedSources" :key="index">
-      <!-- Select dropdown -->
-      <select class="input flat-right" v-model="source.name">
-        <option v-for="s in sourceList" :key="s" :value="s.name">
-          {{ s.name }}
-        </option>
-      </select>
-
-      <!-- Input field for scope, bound to the selectedSources array -->
-      <input
-        class="input flat-left scope-input"
-        placeholder="scope eg. 'subfolder', leave blank for root"
-        @input="updateParent({ source: source, input: $event })"
-        :value="source.scope"
-        :class="{ 'flat-right': index != 0 }"
-      />
-      <!-- Remove button -->
-      <button
-        v-if="index != 0"
-        class="button flat-left no-height"
-        @click="removeScope(index)"
-      >
-        <i class="material-icons material-size">delete</i>
-      </button>
+        <!-- Input field for scope, bound to the selectedSources array -->
+        <input
+          class="input flat-left scope-input"
+          placeholder="scope eg. 'subfolder', leave blank for root"
+          @input="updateParent({ source: source, input: $event })"
+          :value="source.scope"
+          :class="{ 'flat-right': index != 0 }"
+        />
+        <!-- Remove button -->
+        <button
+          v-if="index != 0"
+          class="button flat-left no-height"
+          @click="removeScope(index)"
+        >
+          <i class="material-icons material-size">delete</i>
+        </button>
+      </div>
     </div>
 
     <!-- Button to add more sources -->

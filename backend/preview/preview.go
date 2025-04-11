@@ -18,8 +18,9 @@ import (
 )
 
 var (
-	ErrUnsupportedMedia = errors.New("unsupported media type")
-	service             *Service
+	ErrUnsupportedFormat = errors.New("preview is not available for provided file format")
+	ErrUnsupportedMedia  = errors.New("unsupported media type")
+	service              *Service
 )
 
 type Service struct {
@@ -60,6 +61,10 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
 	if !AvailablePreview(file) {
 		return nil, ErrUnsupportedMedia
+	}
+	// tell preview to use image
+	if !ConvertableImage(file) {
+		return nil, ErrUnsupportedFormat
 	}
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
@@ -168,15 +173,22 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	if file.Type == "application/pdf" {
 		return true
 	}
-	ext := strings.ToLower(filepath.Ext(file.Name))
-	switch ext {
-	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
+	if strings.HasPrefix(file.Type, "image") {
 		return true
 	}
 	if file.OnlyOfficeId != "" {
 		return true
 	}
 	if file.Type == "application/pdf" {
+		return true
+	}
+	return false
+}
+
+func ConvertableImage(file iteminfo.ExtendedFileInfo) bool {
+	ext := strings.ToLower(filepath.Ext(file.Name))
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
 		return true
 	}
 	return false

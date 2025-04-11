@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	libError "errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,6 +20,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
@@ -114,6 +116,13 @@ type signupBody struct {
 	Password string `json:"password"`
 }
 
+type userInfo struct {
+	Name              string `json:"name"`
+	PreferredUsername string `json:"preferred_username"`
+	Email             string `json:"email"`
+	Sub               string `json:"sub"`
+}
+
 // signupHandler registers a new user account.
 // @Summary User signup
 // @Description Register a new user account with a username and password.
@@ -180,7 +189,6 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 }
 
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-
 	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
@@ -266,5 +274,142 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 		}
 		return 401, err
 	}
+	return 200, nil
+}
+
+func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	code := r.URL.Query().Get("code")
+	//state := r.URL.Query().Get("state")
+	//
+	//fmt.Println("State:", state)
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+	}
+
+	redirectURI := fmt.Sprintf("%s/api/auth/oidc/callback", origin)
+	// Step 1: Exchange the code for tokens
+	data := url.Values{}
+	data.Set("grant_type", "authorization_code")
+	data.Set("code", code)
+	data.Set("client_id", config.Auth.Methods.OidcAuth.ClientID)
+	data.Set("client_secret", config.Auth.Methods.OidcAuth.ClientSecret)
+	data.Set("redirect_uri", redirectURI)
+
+	req, _ := http.NewRequest("POST", config.Auth.Methods.OidcAuth.TokenUrl, strings.NewReader(data.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return 500, fmt.Errorf("token request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// print body in response
+		body, _ := io.ReadAll(resp.Body)
+		return 500, fmt.Errorf("failed to fetch token: %v %v", resp.StatusCode, string(body))
+	}
+	var tokenResp struct {
+		AccessToken string `json:"access_token"`
+	}
+
+	if err = json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+		return 500, fmt.Errorf("failed to parse token response: %v", err)
+	}
+	// Step 2: Use the access token to fetch user info from the UserInfo URL
+	userInfoURL := config.Auth.Methods.OidcAuth.UserInfoUrl
+	req, _ = http.NewRequest("GET", userInfoURL, nil)
+	req.Header.Set("Authorization", "Bearer "+tokenResp.AccessToken)
+
+	resp, err = client.Do(req)
+	if err != nil || resp.StatusCode != 200 {
+		return 500, fmt.Errorf("failed to fetch user info: %v %v", resp.StatusCode, err)
+	}
+	defer resp.Body.Close()
+
+	var userdata userInfo
+	if err = json.NewDecoder(resp.Body).Decode(&userdata); err != nil {
+		return 500, fmt.Errorf("failed to parse user info: %v", err)
+	}
+	return loginWithOidcUser(w, r, userdata)
+}
+
+func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if config.Auth.Methods.OidcAuth.Enabled {
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+		}
+
+		nonce := utils.InsecureRandomIdentifier(16)
+		redirectURI := fmt.Sprintf("%s/api/auth/oidc/callback", origin)
+
+		authURL := fmt.Sprintf("%s?client_id=%s&response_type=code&scope=%s&redirect_uri=%s&state=%s&fb_redirect=%s",
+			config.Auth.Methods.OidcAuth.AuthorizationUrl,
+			url.QueryEscape(config.Auth.Methods.OidcAuth.ClientID),
+			url.QueryEscape(config.Auth.Methods.OidcAuth.Scopes),
+			url.QueryEscape(redirectURI),
+			nonce,
+			r.URL.Query().Get("fb_redirect"),
+		)
+
+		http.Redirect(w, r, authURL, http.StatusFound)
+		return 0, nil
+	}
+
+	return http.StatusForbidden, fmt.Errorf("oidc authentication is not enabled")
+}
+
+func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo) (int, error) {
+	username := userInfo.PreferredUsername
+	if userInfo.PreferredUsername == "email" {
+		username = userInfo.Email
+	}
+	// Retrieve the user from the store and store it in the context
+	user, err := store.Users.Get(username)
+	if err != nil {
+		if err.Error() != "the resource does not exist" {
+			return http.StatusInternalServerError, err
+		}
+		hashpass := ""
+		hashpass, err = users.HashPwd(username) // hashed password that can't actually be used, gets double hashed
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		err = storage.CreateUser(users.User{
+			LoginMethod: users.LoginMethodOidc,
+			Username:    username,
+			NonAdminEditable: users.NonAdminEditable{
+				Password: hashpass, // hashed password that can't actually be used
+			},
+		}, false)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		user, err = store.Users.Get(username)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+	}
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
+	if err != nil {
+		if strings.Contains(err.Error(), "key already exists with same name") {
+			return http.StatusConflict, err
+		}
+		return http.StatusInternalServerError, err
+	}
+
+	// set signed.Key in the cookie as auth
+	cookie := &http.Cookie{
+		Name:   "auth",
+		Value:  signed.Key,
+		Domain: strings.Split(r.Host, ":")[0],
+		Path:   "/",
+	}
+	http.SetCookie(w, cookie)
+	setUserInResponseWriter(w, user)
+
+	http.Redirect(w, r, "/", http.StatusFound)
 	return 200, nil
 }

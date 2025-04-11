@@ -29,6 +29,9 @@ func validateUserInfo() {
 		if updatePermissions(user) {
 			updateUser = true
 		}
+		if updateLoginType(user) {
+			updateUser = true
+		}
 		if updateUser {
 			if len(createBackup) == 1 {
 				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
@@ -112,4 +115,12 @@ func updatePermissions(user *users.User) bool {
 		createBackup = append(createBackup, true)
 	}
 	return updateUser
+}
+
+func updateLoginType(user *users.User) bool {
+	if user.LoginMethod == "" {
+		user.LoginMethod = users.LoginMethodPassword
+		return true
+	}
+	return false
 }

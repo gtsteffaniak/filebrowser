@@ -171,12 +171,12 @@ func checkRestrictedFields(existingUser *users.User, fields []string) error {
 	if existingUser.LockPassword && slices.Contains(fields, "password") {
 		return fmt.Errorf("password is locked")
 	}
-	// Use reflection to get the field names of NonAdminEditable
+	// Use reflection to get the field names of fileds except NonAdminEditable
 	editableFields := reflect.ValueOf(existingUser)
 	if editableFields.Kind() == reflect.Struct {
 		for i := 0; i < editableFields.NumField(); i++ {
 			fieldName := editableFields.Type().Field(i).Name
-			if slices.Contains(fields, fieldName) {
+			if slices.Contains(fields, utils.CapitalizeFirst(fieldName)) {
 				return fmt.Errorf("non-admins cannot modify field: %s", fieldName)
 			}
 		}
@@ -208,6 +208,9 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 	for _, field := range fields {
 		capitalField := utils.CapitalizeFirst(field)
 		if capitalField == "Scopes" {
+			if !user.Permissions.Admin {
+				continue
+			}
 			newScopes, err := settings.ConvertToBackendScopes(user.Scopes)
 			if err == nil {
 				user.Scopes = newScopes
@@ -218,6 +221,9 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 			}
 		}
 		if capitalField == "Password" {
+			if user.LoginMethod != users.LoginMethodPassword {
+				return nil, fmt.Errorf("password cannot be changed when login method is not password")
+			}
 			value, err := users.HashPwd(user.Password)
 			if err != nil {
 				logger.Error(err.Error())

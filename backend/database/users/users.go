@@ -12,6 +12,16 @@ var (
 	dashes               = regexp.MustCompile(`[\-]+`)
 )
 
+const ()
+
+type LoginMethod string
+
+const (
+	LoginMethodPassword LoginMethod = "password"
+	LoginMethodProxy    LoginMethod = "proxy"
+	LoginMethodOidc     LoginMethod = "oidc"
+)
+
 type AuthToken struct {
 	Key                  string      `json:"key"`
 	Name                 string      `json:"name"`
@@ -48,7 +58,7 @@ type User struct {
 	LockPassword    bool                 `json:"lockPassword"`
 	Permissions     Permissions          `json:"permissions"`
 	ApiKeys         map[string]AuthToken `json:"apiKeys,omitempty"`
-
+	LoginMethod     LoginMethod          `json:"loginMethod"`
 	// legacy for migration purposes... og filebrowser has perm attribute
 	Perm Permissions `json:"perm"`
 }

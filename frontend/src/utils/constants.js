@@ -18,6 +18,8 @@ const resizePreview = window.FileBrowser.ResizePreview;
 const externalUrl = window.FileBrowser.ExternalUrl
 const onlyOfficeUrl = window.FileBrowser.OnlyOfficeUrl
 const serverHasMultipleSources = window.FileBrowser.SourceCount > 1;
+const oidcAvailable = window.FileBrowser.OidcAvailable;
+const passwordAvailable = window.FileBrowser.PasswordAvailable;
 const origin = window.location.origin;
 
 const settings = [
@@ -29,6 +31,8 @@ const settings = [
 ]
 
 export {
+  oidcAvailable,
+  passwordAvailable,
   serverHasMultipleSources,
   name,
   externalUrl,
