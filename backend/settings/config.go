@@ -125,9 +125,6 @@ func setupBaseURL() {
 }
 
 func setupAuth() {
-	if Config.Auth.Method != "" {
-		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
-	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
 	}
@@ -208,11 +205,6 @@ func loadEnvConfig() {
 		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
 		Config.Auth.AdminPassword = adminPassword
 	}
-	recaptchaSecret, ok := os.LookupEnv("FILEBROWSER_RECAPTCHA_SECRET")
-	if ok {
-		logger.Info("Using recaptcha secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
-		Config.Auth.Recaptcha.Secret = recaptchaSecret
-	}
 	officeSecret, ok := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
 	if ok {
 		logger.Info("Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable")
@@ -225,7 +217,6 @@ func setDefaults() Settings {
 		Server: Server{
 			EnableThumbnails:   true,
 			ResizePreview:      false,
-			EnableExec:         false,
 			Port:               80,
 			NumImageProcessors: 4,
 			BaseURL:            "",

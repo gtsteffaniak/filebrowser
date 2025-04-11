@@ -1715,14 +1715,8 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "method": {
-                    "type": "string"
-                },
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
-                },
-                "recaptcha": {
-                    "$ref": "#/definitions/settings.Recaptcha"
                 },
                 "signup": {
                     "type": "boolean"
@@ -1881,34 +1875,12 @@ const docTemplate = `{
                 }
             }
         },
-        "settings.Recaptcha": {
-            "type": "object",
-            "required": [
-                "host",
-                "key",
-                "secret"
-            ],
-            "properties": {
-                "host": {
-                    "type": "string"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "secret": {
-                    "type": "string"
-                }
-            }
-        },
         "settings.Server": {
             "type": "object",
             "required": [
                 "sources"
             ],
             "properties": {
-                "authHook": {
-                    "type": "string"
-                },
                 "baseURL": {
                     "type": "string"
                 },
@@ -1917,9 +1889,6 @@ const docTemplate = `{
                 },
                 "database": {
                     "type": "string"
-                },
-                "enableExec": {
-                    "type": "boolean"
                 },
                 "enableThumbnails": {
                     "type": "boolean"

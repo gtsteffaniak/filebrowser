@@ -23,10 +23,8 @@ type Settings struct {
 
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"`
-	Recaptcha            Recaptcha    `json:"recaptcha" validate:"omitempty,dive"`
 	Methods              LoginMethods `json:"methods"`
 	Signup               bool         `json:"signup"`
-	Method               string       `json:"method"`
 	Key                  []byte       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
@@ -50,11 +48,6 @@ type ProxyAuthConfig struct {
 	Header     string `json:"header"`
 }
 
-type Recaptcha struct {
-	Host   string `json:"host" validate:"required"`
-	Key    string `json:"key" validate:"required"`
-	Secret string `json:"secret" validate:"required"`
-}
 type Server struct {
 	NumImageProcessors int         `json:"numImageProcessors"`
 	Socket             string      `json:"socket"`
@@ -62,8 +55,6 @@ type Server struct {
 	TLSCert            string      `json:"tlsCert"`
 	EnableThumbnails   bool        `json:"enableThumbnails"`
 	ResizePreview      bool        `json:"resizePreview"`
-	EnableExec         bool        `json:"enableExec"`
-	AuthHook           string      `json:"authHook"`
 	Port               int         `json:"port"`
 	BaseURL            string      `json:"baseURL"`
 	Logging            []LogConfig `json:"logging"`

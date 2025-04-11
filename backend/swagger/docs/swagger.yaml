@@ -103,12 +103,8 @@ definitions:
         items:
           type: integer
         type: array
-      method:
-        type: string
       methods:
         $ref: '#/definitions/settings.LoginMethods'
-      recaptcha:
-        $ref: '#/definitions/settings.Recaptcha'
       signup:
         type: boolean
       tokenExpirationHours:
@@ -211,31 +207,14 @@ definitions:
     required:
     - enabled
     type: object
-  settings.Recaptcha:
-    properties:
-      host:
-        type: string
-      key:
-        type: string
-      secret:
-        type: string
-    required:
-    - host
-    - key
-    - secret
-    type: object
   settings.Server:
     properties:
-      authHook:
-        type: string
       baseURL:
         type: string
       cacheDir:
         type: string
       database:
         type: string
-      enableExec:
-        type: boolean
       enableThumbnails:
         type: boolean
       externalUrl:
