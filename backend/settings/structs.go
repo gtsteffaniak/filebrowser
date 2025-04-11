@@ -135,7 +135,6 @@ type UserDefaults struct {
 	DarkMode             bool                `json:"darkMode"`
 	LockPassword         bool                `json:"lockPassword"`
 	DisableSettings      bool                `json:"disableSettings,omitempty"`
-	Scope                string              `json:"scope"` // deprecated
 	Locale               string              `json:"locale"`
 	ViewMode             string              `json:"viewMode"`
 	GallerySize          int                 `json:"gallerySize"`

@@ -2052,10 +2052,6 @@ const docTemplate = `{
                 "quickDownload": {
                     "type": "boolean"
                 },
-                "scope": {
-                    "description": "deprecated",
-                    "type": "string"
-                },
                 "showHidden": {
                     "type": "boolean"
                 },

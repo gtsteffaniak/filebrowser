@@ -325,9 +325,6 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      scope:
-        description: deprecated
-        type: string
       showHidden:
         type: boolean
       singleClick:
