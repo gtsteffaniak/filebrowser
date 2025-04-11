@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.6.8-beta
+
+ **New Features**
+ - environment variables are available for certain secrets.
+   - see wiki https://github.com/gtsteffaniak/filebrowser/wiki/Environment-Variables
+   - thanks @aaronkyriesenbach https://github.com/gtsteffaniak/filebrowser/pull/511
+
+ **Notes**:
+ - config validation
+   - fails when config file contains unknown fields (helps spot typos)
+   - some light value validation on certain fields
+   - removed recaptcha -- was disabled and not used before.
+
+ **BugFixes**:
+ - fix scope reset on restart https://github.com/gtsteffaniak/filebrowser/issues/515
+ - Clicking empty space to deselect https://github.com/gtsteffaniak/filebrowser/issues/492
+
 ## v0.6.7-beta
 
  **Notes**:

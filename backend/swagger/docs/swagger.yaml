@@ -103,12 +103,8 @@ definitions:
         items:
           type: integer
         type: array
-      method:
-        type: string
       methods:
         $ref: '#/definitions/settings.LoginMethods'
-      recaptcha:
-        $ref: '#/definitions/settings.Recaptcha'
       signup:
         type: boolean
       tokenExpirationHours:
@@ -122,6 +118,9 @@ definitions:
         type: string
       url:
         type: string
+    required:
+    - text
+    - url
     type: object
   settings.Frontend:
     properties:
@@ -184,6 +183,9 @@ definitions:
         type: string
       url:
         type: string
+    required:
+    - secret
+    - url
     type: object
   settings.PasswordAuthConfig:
     properties:
@@ -191,6 +193,8 @@ definitions:
         type: boolean
       minLength:
         type: integer
+    required:
+    - enabled
     type: object
   settings.ProxyAuthConfig:
     properties:
@@ -200,28 +204,17 @@ definitions:
         type: boolean
       header:
         type: string
-    type: object
-  settings.Recaptcha:
-    properties:
-      host:
-        type: string
-      key:
-        type: string
-      secret:
-        type: string
+    required:
+    - enabled
     type: object
   settings.Server:
     properties:
-      authHook:
-        type: string
       baseURL:
         type: string
       cacheDir:
         type: string
       database:
         type: string
-      enableExec:
-        type: boolean
       enableThumbnails:
         type: boolean
       externalUrl:
@@ -279,8 +272,10 @@ definitions:
         description: display name
         type: string
       path:
-        description: can be relative, filesystem path
+        description: file system path. (Can be relative)
         type: string
+    required:
+    - path
     type: object
   settings.SourceConfig:
     properties:

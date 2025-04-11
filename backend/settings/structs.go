@@ -23,10 +23,8 @@ type Settings struct {
 
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"`
-	Recaptcha            Recaptcha    `json:"recaptcha"`
 	Methods              LoginMethods `json:"methods"`
 	Signup               bool         `json:"signup"`
-	Method               string       `json:"method"`
 	Key                  []byte       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
@@ -34,27 +32,22 @@ type Auth struct {
 }
 
 type LoginMethods struct {
-	ProxyAuth    ProxyAuthConfig    `json:"proxy"`
-	NoAuth       bool               `json:"noauth"`
-	PasswordAuth PasswordAuthConfig `json:"password"`
+	ProxyAuth    ProxyAuthConfig    `json:"proxy" validate:"omitempty"`
+	NoAuth       bool               `json:"noauth" validate:"omitempty"`
+	PasswordAuth PasswordAuthConfig `json:"password" validate:"omitempty"`
 }
 
 type PasswordAuthConfig struct {
-	Enabled   bool `json:"enabled"`
+	Enabled   bool `json:"enabled" validate:"required"`
 	MinLength int  `json:"minLength"`
 }
 
 type ProxyAuthConfig struct {
-	Enabled    bool   `json:"enabled"`
+	Enabled    bool   `json:"enabled" validate:"required"`
 	CreateUser bool   `json:"createUser"`
 	Header     string `json:"header"`
 }
 
-type Recaptcha struct {
-	Host   string `json:"host"`
-	Key    string `json:"key"`
-	Secret string `json:"secret"`
-}
 type Server struct {
 	NumImageProcessors int         `json:"numImageProcessors"`
 	Socket             string      `json:"socket"`
@@ -62,8 +55,6 @@ type Server struct {
 	TLSCert            string      `json:"tlsCert"`
 	EnableThumbnails   bool        `json:"enableThumbnails"`
 	ResizePreview      bool        `json:"resizePreview"`
-	EnableExec         bool        `json:"enableExec"`
-	AuthHook           string      `json:"authHook"`
 	Port               int         `json:"port"`
 	BaseURL            string      `json:"baseURL"`
 	Logging            []LogConfig `json:"logging"`
@@ -74,20 +65,20 @@ type Server struct {
 	CacheDir           string      `json:"cacheDir"`
 	MaxArchiveSizeGB   int64       `json:"maxArchiveSize"`
 	// not exposed to config
-	SourceMap     map[string]Source `json:"-"` // uses realpath as key
-	NameToSource  map[string]Source `json:"-"` // uses name as key
-	DefaultSource Source            `json:"-"`
+	SourceMap     map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
+	NameToSource  map[string]Source `json:"-" validate:"omitempty"` // uses name as key
+	DefaultSource Source            `json:"-" validate:"omitempty"`
 }
 
 type Integrations struct {
-	OnlyOffice OnlyOffice `json:"office"`
+	OnlyOffice OnlyOffice `json:"office" validate:"omitempty,dive"`
 }
 
 // onlyoffice secret is stored in the local.json file
 // docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
 type OnlyOffice struct {
-	Url    string `json:"url"`
-	Secret string `json:"secret"`
+	Url    string `json:"url" validate:"required"`
+	Secret string `json:"secret" validate:"required"`
 }
 
 type LogConfig struct {
@@ -99,8 +90,8 @@ type LogConfig struct {
 }
 
 type Source struct {
-	Path   string       `json:"path"` // can be relative, filesystem path
-	Name   string       `json:"name"` // display name
+	Path   string       `json:"path" validate:"required"` // file system path. (Can be relative)
+	Name   string       `json:"name"`                     // display name
 	Config SourceConfig `json:"config"`
 }
 
@@ -132,9 +123,9 @@ type Frontend struct {
 }
 
 type ExternalLink struct {
-	Text  string `json:"text"`
+	Text  string `json:"text" validate:"required"`
 	Title string `json:"title"`
-	Url   string `json:"url"`
+	Url   string `json:"url" validate:"required"`
 }
 
 // UserDefaults is a type that holds the default values

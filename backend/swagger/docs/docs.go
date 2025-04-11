@@ -1715,14 +1715,8 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "method": {
-                    "type": "string"
-                },
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
-                },
-                "recaptcha": {
-                    "$ref": "#/definitions/settings.Recaptcha"
                 },
                 "signup": {
                     "type": "boolean"
@@ -1734,6 +1728,10 @@ const docTemplate = `{
         },
         "settings.ExternalLink": {
             "type": "object",
+            "required": [
+                "text",
+                "url"
+            ],
             "properties": {
                 "text": {
                     "type": "string"
@@ -1833,6 +1831,10 @@ const docTemplate = `{
         },
         "settings.OnlyOffice": {
             "type": "object",
+            "required": [
+                "secret",
+                "url"
+            ],
             "properties": {
                 "secret": {
                     "type": "string"
@@ -1844,6 +1846,9 @@ const docTemplate = `{
         },
         "settings.PasswordAuthConfig": {
             "type": "object",
+            "required": [
+                "enabled"
+            ],
             "properties": {
                 "enabled": {
                     "type": "boolean"
@@ -1855,6 +1860,9 @@ const docTemplate = `{
         },
         "settings.ProxyAuthConfig": {
             "type": "object",
+            "required": [
+                "enabled"
+            ],
             "properties": {
                 "createUser": {
                     "type": "boolean"
@@ -1867,29 +1875,12 @@ const docTemplate = `{
                 }
             }
         },
-        "settings.Recaptcha": {
-            "type": "object",
-            "properties": {
-                "host": {
-                    "type": "string"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "secret": {
-                    "type": "string"
-                }
-            }
-        },
         "settings.Server": {
             "type": "object",
             "required": [
                 "sources"
             ],
             "properties": {
-                "authHook": {
-                    "type": "string"
-                },
                 "baseURL": {
                     "type": "string"
                 },
@@ -1898,9 +1889,6 @@ const docTemplate = `{
                 },
                 "database": {
                     "type": "string"
-                },
-                "enableExec": {
-                    "type": "boolean"
                 },
                 "enableThumbnails": {
                     "type": "boolean"
@@ -1975,6 +1963,9 @@ const docTemplate = `{
         },
         "settings.Source": {
             "type": "object",
+            "required": [
+                "path"
+            ],
             "properties": {
                 "config": {
                     "$ref": "#/definitions/settings.SourceConfig"
@@ -1984,7 +1975,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "path": {
-                    "description": "can be relative, filesystem path",
+                    "description": "file system path. (Can be relative)",
                     "type": "string"
                 }
             }
