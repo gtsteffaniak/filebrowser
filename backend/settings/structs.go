@@ -71,7 +71,7 @@ type Server struct {
 }
 
 type Integrations struct {
-	OnlyOffice OnlyOffice `json:"office" validate:"omitempty,dive"`
+	OnlyOffice OnlyOffice `json:"office" validate:"omitempty"`
 }
 
 // onlyoffice secret is stored in the local.json file
