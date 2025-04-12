@@ -6,7 +6,6 @@ server:
   sources:
     - path: "../frontend/tests/playwright-files"
 auth:
-  signup: false
   methods:
     noauth: true
 frontend:

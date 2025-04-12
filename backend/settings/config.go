@@ -175,7 +175,6 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		return err
 	}
-
 	yamlData := make([]byte, stat.Size())
 	_, err = yamlFile.Read(yamlData)
 	if err != nil && configFile != "config.yaml" {
@@ -184,6 +183,20 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
 	}
+	err = ValidateConfig(yamlData)
+	if err != nil {
+		errmsg := "the provided config file failed validation. "
+		errmsg += "If you are seeing this on a config that worked previeously, "
+		errmsg += "this is because v0.6.8 requires a fully validated config to run. "
+		errmsg += "Please review your config for typos and invalid keys which are no longer supported. "
+		errmsg += "visit https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example for more information."
+		logger.Error(errmsg)
+	}
+	return err
+}
+
+func ValidateConfig(yamlData []byte) error {
+	var err error
 	Config = setDefaults()
 	err = yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
 	if err != nil {
@@ -195,7 +208,6 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		return fmt.Errorf("could not validate %v", err)
 	}
-
 	return nil
 }
 
@@ -230,11 +242,11 @@ func setDefaults() Settings {
 			AdminUsername:        "admin",
 			AdminPassword:        "admin",
 			TokenExpirationHours: 2,
-			Signup:               false,
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
 					Enabled:   true,
 					MinLength: 5,
+					Signup:    false,
 				},
 			},
 		},

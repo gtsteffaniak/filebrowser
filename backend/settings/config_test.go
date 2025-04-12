@@ -2,6 +2,7 @@ package settings
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -78,5 +79,130 @@ func TestInvalidConfig(t *testing.T) {
 	err := loadConfigWithDefaults(configFile)
 	if err == nil {
 		t.Fatalf("expected error loading config file %s, got nil", configFile)
+	}
+}
+
+func TestValidationVarious(t *testing.T) {
+	testCases := []struct {
+		name       string
+		configFile []byte
+		searchErr  string
+	}{
+		{
+			name: "valid minimal config",
+			configFile: []byte(`
+server:
+  port: 8080
+  sources:
+    - path: "/data"
+auth:
+  tokenExpirationHours: 24
+  methods:
+    password:
+      enabled: true
+      signup: false
+  key: ""
+  adminUsername: "admin"
+  adminPassword: "password"
+frontend:
+  name: "MyApp"
+userDefaults:
+  stickySidebar: false
+  darkMode: false
+  lockPassword: false
+  locale: "en"
+  viewMode: "grid"
+  gallerySize: 5
+  singleClick: false
+  showHidden: false
+  dateFormat: false
+  themeColor: "#ffffff"
+  quickDownload: false
+integrations:
+  office:
+    url: "https://office.example.com"
+    secret: "secret-key"
+`),
+			searchErr: "",
+		},
+		{
+			name: "missing required server.sources",
+			configFile: []byte(`
+server:
+  port: 8080
+`),
+			searchErr: "Field validation for 'Sources' failed on the 'required'",
+		},
+		{
+			name: "missing onlyoffice.secret",
+			configFile: []byte(`
+server:
+  port: 8080
+  sources:
+   - path: "/data"
+integrations:
+  office:
+    url: "https://office.example.com"
+`),
+			searchErr: "Field validation for 'Secret' failed on the 'required'",
+		},
+		{
+			name: "typo: Server with lowercase s",
+			configFile: []byte(`
+serverx:
+  port: 8080
+  sources:
+    - path: "/data"
+`),
+			searchErr: "unknown field \"serverx\"",
+		},
+		{
+			name: "typo in auth.methods.password",
+			configFile: []byte(`
+server:
+  port: 8080
+  sources:
+    - path: "/data"
+auth:
+  tokenExpirationHours: 24
+  methods:
+    passwrd:
+      enabled: true
+      signup: false
+  key: ""
+  adminUsername: "admin"
+  adminPassword: "password"
+`),
+			searchErr: "unknown field \"passwrd\"",
+		},
+		{
+			name: "invalid userDefaults",
+			configFile: []byte(`
+server:
+  sources:
+    - path: "/data"
+userDefaults:
+  permissions:
+    download: false
+`),
+			searchErr: "unknown field \"download\"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateConfig(tc.configFile)
+			if !(err == nil && tc.searchErr == "") {
+				if err == nil || !strings.Contains(err.Error(), tc.searchErr) {
+					t.Fatalf("testcase %v could not find error: '%v', got: %v", tc.name, tc.searchErr, err)
+				}
+			}
+			if err != nil && tc.searchErr == "" {
+				t.Fatalf("testcase %v should not have failed but got: %v", tc.name, err)
+			}
+			if err == nil && tc.searchErr != "" {
+				t.Fatalf("testcase %v should have failed but got: %v", tc.name, err)
+			}
+		})
 	}
 }

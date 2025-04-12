@@ -5,8 +5,6 @@ server:
     - levels: "info|debug|warning|error"
   sources:
     - path: "/srv"
-auth:
-  signup: false
 userDefaults:
   darkMode: true
   disableSettings: false
