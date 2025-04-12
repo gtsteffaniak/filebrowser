@@ -183,8 +183,16 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
 	}
-
-	return ValidateConfig(yamlData)
+	err = ValidateConfig(yamlData)
+	if err != nil {
+		errmsg := "the provided config file failed validation. "
+		errmsg += "If you are seeing this on a config that worked previeously, "
+		errmsg += "this is because v0.6.8 requires a fully validated config to run. "
+		errmsg += "Please review your config for typos and invalid keys which are no longer supported. "
+		errmsg += "visit https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example for more information."
+		logger.Error(errmsg)
+	}
+	return err
 }
 
 func ValidateConfig(yamlData []byte) error {
@@ -234,11 +242,11 @@ func setDefaults() Settings {
 			AdminUsername:        "admin",
 			AdminPassword:        "admin",
 			TokenExpirationHours: 2,
-			Signup:               false,
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
 					Enabled:   true,
 					MinLength: 5,
+					Signup:    false,
 				},
 			},
 		},

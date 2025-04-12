@@ -1,18 +1,4 @@
 server:
-  port: 80
-  baseURL:  "/"
-  logging:
-    - levels: "info|debug|warning|error"
+  port: 8080
   sources:
-    - path: "/srv"
-auth:
-  signup: false
-userDefaults:
-  darkMode: true
-  disableSettings: false
-  singleClick: false
-  permissions:
-    admin: false
-    modify: false
-    share: false
-    api: false
+    - path: "."

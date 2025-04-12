@@ -47,7 +47,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"Version":               version.Version,
 		"CommitSHA":             version.CommitSHA,
 		"StaticURL":             config.Server.BaseURL + "static",
-		"Signup":                settings.Config.Auth.Signup,
+		"Signup":                settings.Config.Auth.Methods.PasswordAuth.Signup,
 		"NoAuth":                config.Auth.Methods.NoAuth,
 		"PasswordAuth":          config.Auth.Methods.PasswordAuth,
 		"LoginPage":             auther.LoginPage(),

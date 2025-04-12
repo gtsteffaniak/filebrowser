@@ -100,7 +100,7 @@ auth:
   methods:
     password:
       enabled: true
-  signup: false
+      signup: false
   key: ""
   adminUsername: "admin"
   adminPassword: "password"
@@ -168,7 +168,7 @@ auth:
   methods:
     passwrd:
       enabled: true
-  signup: false
+      signup: false
   key: ""
   adminUsername: "admin"
   adminPassword: "password"
@@ -176,29 +176,16 @@ auth:
 			searchErr: "unknown field \"passwrd\"",
 		},
 		{
-			name: "missing userDefaults",
+			name: "invalid userDefaults",
 			configFile: []byte(`
 server:
-  port: 8080
   sources:
     - path: "/data"
-auth:
-  tokenExpirationHours: 24
-  methods:
-    password:
-      enabled: true
-  signup: false
-  key: ""
-  adminUsername: "admin"
-  adminPassword: "password"
-frontend:
-  name: "MyApp"
-integrations:
-  office:
-    url: "https://office.example.com"
-    secret: "secret-key"
+userDefaults:
+  permissions:
+    download: false
 `),
-			searchErr: "Field validation for 'Locale' failed", // or related subfields
+			searchErr: "unknown field \"download\"",
 		},
 	}
 

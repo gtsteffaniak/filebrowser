@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
    - fails when config file contains unknown fields (helps spot typos)
    - some light value validation on certain fields
    - removed recaptcha -- was disabled and not used before.
+   - moved `recaptcha` and `signup` configs to `auth.methods.password`
 
  **BugFixes**:
  - fix scope reset on restart https://github.com/gtsteffaniak/filebrowser/issues/515

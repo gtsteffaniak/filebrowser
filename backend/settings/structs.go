@@ -24,7 +24,6 @@ type Settings struct {
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"`
 	Methods              LoginMethods `json:"methods"`
-	Signup               bool         `json:"signup"`
 	Key                  string       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
@@ -38,8 +37,16 @@ type LoginMethods struct {
 }
 
 type PasswordAuthConfig struct {
-	Enabled   bool `json:"enabled" validate:"required"`
-	MinLength int  `json:"minLength"`
+	Enabled   bool      `json:"enabled" validate:"required"`
+	MinLength int       `json:"minLength" validate:"omitempty,min=5"`
+	Signup    bool      `json:"signup" validate:"omitempty"`
+	Recaptcha Recaptcha `json:"recaptcha"  validate:"omitempty"`
+}
+
+type Recaptcha struct {
+	Host   string `json:"host" validate:"required"`
+	Key    string `json:"key" validate:"required"`
+	Secret string `json:"secret" validate:"required"`
 }
 
 type ProxyAuthConfig struct {
