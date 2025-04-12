@@ -37,7 +37,7 @@ type LoginMethods struct {
 }
 
 type PasswordAuthConfig struct {
-	Enabled   bool      `json:"enabled" validate:"required"`
+	Enabled   bool      `json:"enabled"`
 	MinLength int       `json:"minLength" validate:"omitempty,min=5"`
 	Signup    bool      `json:"signup" validate:"omitempty"`
 	Recaptcha Recaptcha `json:"recaptcha"  validate:"omitempty"`
@@ -50,7 +50,7 @@ type Recaptcha struct {
 }
 
 type ProxyAuthConfig struct {
-	Enabled    bool   `json:"enabled" validate:"required"`
+	Enabled    bool   `json:"enabled"`
 	CreateUser bool   `json:"createUser"`
 	Header     string `json:"header"`
 }
