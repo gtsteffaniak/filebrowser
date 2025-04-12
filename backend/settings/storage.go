@@ -28,9 +28,6 @@ func (s *Storage) Get() (*Settings, error) {
 	if err != nil {
 		return nil, err
 	}
-	if set.Server.UserHomeBasePath == "" {
-		set.Server.UserHomeBasePath = DefaultUsersHomeBasePath
-	}
 	return set, nil
 }
 

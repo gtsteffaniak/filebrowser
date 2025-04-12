@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"text/template"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
@@ -47,7 +44,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"DisableExternal":       config.Frontend.DisableDefaultLinks,
 		"DisableUsedPercentage": config.Frontend.DisableUsedPercentage,
 		"darkMode":              settings.Config.UserDefaults.DarkMode,
-		"Color":                 config.Frontend.Color,
 		"BaseURL":               config.Server.BaseURL,
 		"Version":               version.Version,
 		"CommitSHA":             version.CommitSHA,
@@ -66,19 +62,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"ExternalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"OnlyOfficeUrl":         settings.Config.Integrations.OnlyOffice.Url,
 		"SourceCount":           len(config.Server.Sources),
-	}
-
-	if config.Frontend.Files != "" {
-		fPath := filepath.Join(config.Frontend.Files, "custom.css")
-		_, err := os.Stat(fPath) //nolint:govet
-
-		if err != nil && !os.IsNotExist(err) {
-			logger.Error(fmt.Sprintf("couldn't load custom styles: %v", err))
-		}
-
-		if err == nil {
-			data["CSS"] = true
-		}
 	}
 
 	if config.Auth.Methods.PasswordAuth.Enabled {

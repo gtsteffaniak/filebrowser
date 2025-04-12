@@ -71,6 +71,9 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 			// search files first
 			for _, item := range dir.Files {
 				fullPath := dirName + "/" + item.Name
+				if dirName == "/" {
+					fullPath = dirName + item.Name
+				}
 				value, found := sessionInProgress.Load(sourceSession)
 				if !found || value != runningHash {
 					idx.mu.Unlock()

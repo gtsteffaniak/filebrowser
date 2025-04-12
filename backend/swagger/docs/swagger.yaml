@@ -117,8 +117,6 @@ definitions:
     type: object
   settings.Frontend:
     properties:
-      color:
-        type: string
       disableDefaultLinks:
         type: boolean
       disableUsedPercentage:
@@ -127,8 +125,6 @@ definitions:
         items:
           $ref: '#/definitions/settings.ExternalLink'
         type: array
-      files:
-        type: string
       name:
         type: string
     type: object
@@ -898,38 +894,6 @@ paths:
           schema:
             $ref: '#/definitions/http.settingsData'
       summary: Get system settings
-      tags:
-      - Settings
-    put:
-      consumes:
-      - application/json
-      description: Updates the system configuration settings for signup, user directories,
-        rules, frontend.
-      parameters:
-      - description: Settings data to update
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/http.settingsData'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Settings updated successfully
-        "400":
-          description: Bad request - failed to decode body
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Update system settings
       tags:
       - Settings
   /api/share:

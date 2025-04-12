@@ -917,53 +917,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "put": {
-                "description": "Updates the system configuration settings for signup, user directories, rules, frontend.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Settings"
-                ],
-                "summary": "Update system settings",
-                "parameters": [
-                    {
-                        "description": "Settings data to update",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.settingsData"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Settings updated successfully"
-                    },
-                    "400": {
-                        "description": "Bad request - failed to decode body",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
             }
         },
         "/api/share": {
@@ -1784,9 +1737,6 @@ const docTemplate = `{
         "settings.Frontend": {
             "type": "object",
             "properties": {
-                "color": {
-                    "type": "string"
-                },
                 "disableDefaultLinks": {
                     "type": "boolean"
                 },
@@ -1798,9 +1748,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/settings.ExternalLink"
                     }
-                },
-                "files": {
-                    "type": "string"
                 },
                 "name": {
                     "type": "string"

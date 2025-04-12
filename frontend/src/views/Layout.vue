@@ -42,7 +42,6 @@ import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import Notifications from "@/components/Notifications.vue";
 
-import { enableExec } from "@/utils/constants";
 import { state, getters, mutations } from "@/store";
 
 export default {
@@ -106,9 +105,6 @@ export default {
     },
     isDarkMode() {
       return getters.isDarkMode();
-    },
-    isExecEnabled() {
-      return enableExec;
     },
     currentView() {
       return getters.currentView();
