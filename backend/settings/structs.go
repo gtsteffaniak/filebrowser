@@ -25,7 +25,7 @@ type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"`
 	Methods              LoginMethods `json:"methods"`
 	Signup               bool         `json:"signup"`
-	Key                  []byte       `json:"key"`
+	Key                  string       `json:"key"`
 	AdminUsername        string       `json:"adminUsername"`
 	AdminPassword        string       `json:"adminPassword"`
 	AuthMethods          []string     `json:"-"`

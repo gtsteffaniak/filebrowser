@@ -230,8 +230,8 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 		sizeInMB := estimatedSize / 1024 / 1024
-		// if larger than 100 megabytes, log it
-		if sizeInMB > 100 {
+		// if larger than 500 megabytes, log it
+		if sizeInMB > 500 {
 			logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
 		}
 		// Stream file to response

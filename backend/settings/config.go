@@ -175,7 +175,6 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		return err
 	}
-
 	yamlData := make([]byte, stat.Size())
 	_, err = yamlFile.Read(yamlData)
 	if err != nil && configFile != "config.yaml" {
@@ -184,6 +183,12 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
 	}
+
+	return ValidateConfig(yamlData)
+}
+
+func ValidateConfig(yamlData []byte) error {
+	var err error
 	Config = setDefaults()
 	err = yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
 	if err != nil {
@@ -195,7 +200,6 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		return fmt.Errorf("could not validate %v", err)
 	}
-
 	return nil
 }
 
