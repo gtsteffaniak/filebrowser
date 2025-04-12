@@ -18,7 +18,6 @@ frontend:
       title: "Playwright"
 
 auth:
-  signup: false
   methods:
     proxy:
       enabled: true

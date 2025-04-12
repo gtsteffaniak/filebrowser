@@ -134,7 +134,7 @@ func Error(msg string) {
 	if len(loggers) > 0 {
 		Log(levels.ERROR, msg, true, false, RED)
 	} else {
-		log.Println("[ERROR] ", msg)
+		log.Println("[ERROR]", msg)
 	}
 }
 

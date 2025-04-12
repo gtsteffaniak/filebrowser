@@ -88,14 +88,6 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		return fmt.Errorf("no fields to update")
 	}
 
-	// converting scopes to map of paths intead of names (names can change)
-	if slices.Contains(fields, "scopes") || slices.Contains(fields, "Scopes") {
-		adjustedScopes, err := settings.ConvertToBackendScopes(user.Scopes)
-		if err != nil {
-			return err
-		}
-		user.Scopes = adjustedScopes
-	}
 	// Use reflection to access struct fields
 	userFields := reflect.ValueOf(user).Elem() // Get struct value
 

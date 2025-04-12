@@ -7,6 +7,8 @@ setup:
 	fi
 	echo "installing swagger needed to generate backend api docs..."
 	go install github.com/swaggo/swag/cmd/swag@latest
+	echo "installing golangci-lint needed to lint backend code..."
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
 

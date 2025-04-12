@@ -5,10 +5,6 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  {{ if .ReCaptcha }}
-  <script src="{{ .ReCaptchaHost }}/recaptcha/api.js?render=explicit" data-vite-ignore></script>
-  {{ end }}
-
   <title>{{ if .Name }}{{ .Name }}{{ else }}FileBrowser Quantum{{ end }}</title>
 
   <link rel="icon" type="image/png" sizes="256x256" href="{{ .StaticURL }}/img/icons/favicon-256x256.png">

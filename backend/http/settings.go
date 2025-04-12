@@ -11,7 +11,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param property query string false "Property to retrieve: `userDefaults`, `frontend`, `auth`, `server`, `sources`"
-// @Success 200 {object} settingsData "System settings data"
+// @Success 200 {object} settings.Settings "System settings data"
 // @Router /api/settings [get]
 func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	property := r.URL.Query().Get("property")

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/version"
 )
@@ -48,40 +47,17 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"Version":               version.Version,
 		"CommitSHA":             version.CommitSHA,
 		"StaticURL":             config.Server.BaseURL + "static",
-		"Signup":                settings.Config.Auth.Signup,
+		"Signup":                settings.Config.Auth.Methods.PasswordAuth.Signup,
 		"NoAuth":                config.Auth.Methods.NoAuth,
 		"PasswordAuth":          config.Auth.Methods.PasswordAuth,
 		"LoginPage":             auther.LoginPage(),
 		"CSS":                   false,
-		"ReCaptcha":             false,
 		"EnableThumbs":          config.Server.EnableThumbnails,
 		"ResizePreview":         config.Server.ResizePreview,
-		"EnableExec":            config.Server.EnableExec,
-		"ReCaptchaHost":         config.Auth.Recaptcha.Host,
 		"ExternalLinks":         config.Frontend.ExternalLinks,
 		"ExternalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"OnlyOfficeUrl":         settings.Config.Integrations.OnlyOffice.Url,
 		"SourceCount":           len(config.Server.Sources),
-	}
-
-	if config.Auth.Methods.PasswordAuth.Enabled {
-		raw, err := store.Auth.Get("password") //nolint:govet
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		auther, ok := raw.(*auth.JSONAuth)
-		if !ok {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		if auther.ReCaptcha != nil {
-			data["ReCaptcha"] = auther.ReCaptcha.Key != "" && auther.ReCaptcha.Secret != ""
-			data["ReCaptchaHost"] = auther.ReCaptcha.Host
-			data["ReCaptchaKey"] = auther.ReCaptcha.Key
-		}
 	}
 
 	b, err := json.Marshal(data)

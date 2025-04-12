@@ -3,10 +3,13 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/users"
 )
+
+var createBackup = []bool{}
 
 func validateUserInfo() {
 	// update source info for users if names/sources/paths might have changed
@@ -15,23 +18,37 @@ func validateUserInfo() {
 		logger.Fatal(fmt.Sprintf("could not load users: %v", err))
 	}
 	for _, user := range usersList {
+		updateUser := false
 		if user.Username == "publicUser" {
 			settings.ApplyUserDefaults(user)
+			updateUser = true
+		}
+		if updateUserScopes(user) {
+			updateUser = true
+		}
+		if updateUser {
+			if len(createBackup) == 1 {
+				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
+				err = fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
+				if err != nil {
+					logger.Fatal(fmt.Sprintf("Unable to create automatic backup of database due to error: %v", err))
+				}
+			}
 			err := store.Users.Save(user, false)
 			if err != nil {
 				logger.Error(fmt.Sprintf("could not update user: %v", err))
 			}
 		}
-		updateUserScopes(user)
 	}
 }
 
-func updateUserScopes(user *users.User) {
+func updateUserScopes(user *users.User) bool {
 	updateUser := false
 	newScopes := []users.SourceScope{}
 	for _, source := range settings.Config.Server.SourceMap {
 		scopePath, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
-		if !user.Perm.Admin {
+		// apply default scope if it doesn't exist
+		if !user.Perm.Admin && scopePath == "" {
 			scopePath = source.Config.DefaultUserScope
 		}
 		if scopePath == "" {
@@ -49,12 +66,11 @@ func updateUserScopes(user *users.User) {
 		} else {
 			newScopes = append(newScopes, users.SourceScope{Scope: scopePath, Name: source.Path}) // backend name is path
 		}
-		user.Scopes = newScopes
 	}
 
 	// maintain backwards compatibility, update user scope from scopes
-	if len(user.Scopes) == 0 {
-		user.Scopes = []users.SourceScope{
+	if len(newScopes) == 0 {
+		newScopes = []users.SourceScope{
 			{
 				Scope: settings.Config.Server.DefaultSource.Config.DefaultUserScope,
 				Name:  settings.Config.Server.DefaultSource.Path, // backend name is path
@@ -62,11 +78,6 @@ func updateUserScopes(user *users.User) {
 		}
 		updateUser = true
 	}
-	if !updateUser {
-		return
-	}
-	err := store.Users.Save(user, false)
-	if err != nil {
-		logger.Error(fmt.Sprintf("could not update user: %v", err))
-	}
+	user.Scopes = newScopes
+	return updateUser
 }

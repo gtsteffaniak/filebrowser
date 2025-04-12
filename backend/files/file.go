@@ -312,32 +312,30 @@ func WriteFile(opts FileOptions, in io.Reader) error {
 	return idx.RefreshFileInfo(opts)
 }
 
-// resolveSymlinks resolves symlinks in the given path
 func resolveSymlinks(path string) (string, bool, error) {
-	for {
-		// Get the file info using os.Lstat to handle symlinks
+	const maxSymlinks = 25
+	for i := 0; i < maxSymlinks; i++ {
 		info, err := os.Lstat(path)
 		if err != nil {
 			return path, false, fmt.Errorf("could not stat path: %s, %v", path, err)
 		}
-
-		// Check if the path is a symlink
 		if info.Mode()&os.ModeSymlink != 0 {
-			// Read the symlink target
 			target, err := os.Readlink(path)
 			if err != nil {
 				return path, false, fmt.Errorf("could not read symlink: %s, %v", path, err)
 			}
-
-			// Resolve the symlink's target relative to its directory
-			// This ensures the resolved path is absolute and correctly calculated
-			path = filepath.Join(filepath.Dir(path), target)
-		} else {
-			// Not a symlink, so return the resolved path and whether it's a directory
-			isDir := info.IsDir()
-			return path, isDir, nil
+			path = filepath.Clean(filepath.Join(filepath.Dir(path), target))
+			if !filepath.IsAbs(path) {
+				path, err = filepath.Abs(path)
+				if err != nil {
+					return path, false, fmt.Errorf("could not resolve absolute path: %s, %v", path, err)
+				}
+			}
+			continue
 		}
+		return path, info.IsDir(), nil
 	}
+	return path, false, fmt.Errorf("too many symlink resolutions for path: %s", path)
 }
 
 // addContent reads and sets content based on the file type.

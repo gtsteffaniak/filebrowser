@@ -86,25 +86,29 @@ definitions:
       token:
         type: string
     type: object
-  http.settingsData:
-    properties:
-      createUserDir:
-        type: boolean
-      defaults:
-        $ref: '#/definitions/settings.UserDefaults'
-      frontend:
-        $ref: '#/definitions/settings.Frontend'
-      signup:
-        type: boolean
-      userHomeBasePath:
-        type: string
-    type: object
   http.signupBody:
     properties:
       password:
         type: string
       username:
         type: string
+    type: object
+  settings.Auth:
+    properties:
+      adminPassword:
+        type: string
+      adminUsername:
+        type: string
+      key:
+        items:
+          type: integer
+        type: array
+      methods:
+        $ref: '#/definitions/settings.LoginMethods'
+      signup:
+        type: boolean
+      tokenExpirationHours:
+        type: integer
     type: object
   settings.ExternalLink:
     properties:
@@ -114,6 +118,9 @@ definitions:
         type: string
       url:
         type: string
+    required:
+    - text
+    - url
     type: object
   settings.Frontend:
     properties:
@@ -127,6 +134,176 @@ definitions:
         type: array
       name:
         type: string
+    type: object
+  settings.IndexFilter:
+    properties:
+      fileEndsWith:
+        items:
+          type: string
+        type: array
+      files:
+        items:
+          type: string
+        type: array
+      folders:
+        items:
+          type: string
+        type: array
+    type: object
+  settings.Integrations:
+    properties:
+      office:
+        $ref: '#/definitions/settings.OnlyOffice'
+    type: object
+  settings.LogConfig:
+    properties:
+      apiLevels:
+        type: string
+      json:
+        type: boolean
+      levels:
+        type: string
+      noColors:
+        type: boolean
+      output:
+        type: string
+    type: object
+  settings.LoginMethods:
+    properties:
+      noauth:
+        type: boolean
+      password:
+        $ref: '#/definitions/settings.PasswordAuthConfig'
+      proxy:
+        $ref: '#/definitions/settings.ProxyAuthConfig'
+    type: object
+  settings.OnlyOffice:
+    properties:
+      secret:
+        type: string
+      url:
+        type: string
+    required:
+    - secret
+    - url
+    type: object
+  settings.PasswordAuthConfig:
+    properties:
+      enabled:
+        type: boolean
+      minLength:
+        type: integer
+    required:
+    - enabled
+    type: object
+  settings.ProxyAuthConfig:
+    properties:
+      createUser:
+        type: boolean
+      enabled:
+        type: boolean
+      header:
+        type: string
+    required:
+    - enabled
+    type: object
+  settings.Server:
+    properties:
+      baseURL:
+        type: string
+      cacheDir:
+        type: string
+      database:
+        type: string
+      enableThumbnails:
+        type: boolean
+      externalUrl:
+        type: string
+      internalUrl:
+        description: used by integrations
+        type: string
+      logging:
+        items:
+          $ref: '#/definitions/settings.LogConfig'
+        type: array
+      maxArchiveSize:
+        type: integer
+      numImageProcessors:
+        type: integer
+      port:
+        type: integer
+      resizePreview:
+        type: boolean
+      socket:
+        type: string
+      sources:
+        items:
+          $ref: '#/definitions/settings.Source'
+        type: array
+      tlsCert:
+        type: string
+      tlsKey:
+        type: string
+    required:
+    - sources
+    type: object
+  settings.Settings:
+    properties:
+      auth:
+        $ref: '#/definitions/settings.Auth'
+      frontend:
+        $ref: '#/definitions/settings.Frontend'
+      integrations:
+        $ref: '#/definitions/settings.Integrations'
+      server:
+        $ref: '#/definitions/settings.Server'
+      userDefaults:
+        $ref: '#/definitions/settings.UserDefaults'
+      users:
+        items:
+          $ref: '#/definitions/settings.UserDefaults'
+        type: array
+    type: object
+  settings.Source:
+    properties:
+      config:
+        $ref: '#/definitions/settings.SourceConfig'
+      name:
+        description: display name
+        type: string
+      path:
+        description: file system path. (Can be relative)
+        type: string
+    required:
+    - path
+    type: object
+  settings.SourceConfig:
+    properties:
+      createUserDir:
+        type: boolean
+      defaultEnabled:
+        type: boolean
+      defaultUserScope:
+        description: default "" should match folders under path
+        type: string
+      disabled:
+        type: boolean
+      exclude:
+        $ref: '#/definitions/settings.IndexFilter'
+      ignoreHidden:
+        type: boolean
+      ignoreZeroSizeFolders:
+        type: boolean
+      include:
+        $ref: '#/definitions/settings.IndexFilter'
+      indexingInterval:
+        type: integer
+      maxWatchers:
+        type: integer
+      neverWatchPaths:
+        items:
+          type: string
+        type: array
     type: object
   settings.UserDefaults:
     properties:
@@ -148,9 +325,6 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      scope:
-        description: deprecated
-        type: string
       showHidden:
         type: boolean
       singleClick:
@@ -892,7 +1066,7 @@ paths:
         "200":
           description: System settings data
           schema:
-            $ref: '#/definitions/http.settingsData'
+            $ref: '#/definitions/settings.Settings'
       summary: Get system settings
       tags:
       - Settings
