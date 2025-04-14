@@ -1643,29 +1643,11 @@ const docTemplate = `{
                 "adminUsername": {
                     "type": "string"
                 },
-                "authMethods": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "key": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "method": {
                     "type": "string"
                 },
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
-                },
-                "recaptcha": {
-                    "$ref": "#/definitions/settings.Recaptcha"
-                },
-                "signup": {
-                    "type": "boolean"
                 },
                 "tokenExpirationHours": {
                     "type": "integer"
@@ -1674,6 +1656,10 @@ const docTemplate = `{
         },
         "settings.ExternalLink": {
             "type": "object",
+            "required": [
+                "text",
+                "url"
+            ],
             "properties": {
                 "text": {
                     "type": "string"
@@ -1787,6 +1773,14 @@ const docTemplate = `{
         },
         "settings.OidcConfig": {
             "type": "object",
+            "required": [
+                "authorizationUrl",
+                "clientId",
+                "clientSecret",
+                "scopes",
+                "tokenUrl",
+                "userInfoUrl"
+            ],
             "properties": {
                 "authorizationUrl": {
                     "type": "string"
@@ -1796,9 +1790,6 @@ const docTemplate = `{
                 },
                 "clientSecret": {
                     "type": "string"
-                },
-                "createUser": {
-                    "type": "boolean"
                 },
                 "enabled": {
                     "description": "whether to enable OIDC authentication",
@@ -1826,6 +1817,10 @@ const docTemplate = `{
         },
         "settings.OnlyOffice": {
             "type": "object",
+            "required": [
+                "secret",
+                "url"
+            ],
             "properties": {
                 "secret": {
                     "type": "string"
@@ -1842,7 +1837,14 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "minLength": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 5
+                },
+                "recaptcha": {
+                    "$ref": "#/definitions/settings.Recaptcha"
+                },
+                "signup": {
+                    "type": "boolean"
                 }
             }
         },
@@ -1862,6 +1864,11 @@ const docTemplate = `{
         },
         "settings.Recaptcha": {
             "type": "object",
+            "required": [
+                "host",
+                "key",
+                "secret"
+            ],
             "properties": {
                 "host": {
                     "type": "string"
@@ -1880,9 +1887,6 @@ const docTemplate = `{
                 "sources"
             ],
             "properties": {
-                "authHook": {
-                    "type": "string"
-                },
                 "baseURL": {
                     "type": "string"
                 },
@@ -1891,9 +1895,6 @@ const docTemplate = `{
                 },
                 "database": {
                     "type": "string"
-                },
-                "enableExec": {
-                    "type": "boolean"
                 },
                 "enableThumbnails": {
                     "type": "boolean"
@@ -1968,6 +1969,9 @@ const docTemplate = `{
         },
         "settings.Source": {
             "type": "object",
+            "required": [
+                "path"
+            ],
             "properties": {
                 "config": {
                     "$ref": "#/definitions/settings.SourceConfig"
@@ -1977,7 +1981,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "path": {
-                    "description": "can be relative, filesystem path",
+                    "description": "file system path. (Can be relative)",
                     "type": "string"
                 }
             }
@@ -2053,10 +2057,6 @@ const docTemplate = `{
                 },
                 "quickDownload": {
                     "type": "boolean"
-                },
-                "scope": {
-                    "description": "deprecated",
-                    "type": "string"
                 },
                 "showHidden": {
                     "type": "boolean"

@@ -97,32 +97,32 @@ jobs:
           tags: ${{ steps.modify-json.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Modify version names
-        id: modify-json-media
+        id: modify-json-entangled
         run: |
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(sub(":v"; ":")) |
             if any(.tags[]; test("beta")) then
               .tags += [
-                "gtstef/filebrowser:beta-media",
-                "ghcr.io/gtsteffaniak/filebrowser:beta-media",
-                "gtstef/filebrowser:media",
-                "ghcr.io/gtsteffaniak/filebrowser:media",
+                "gtstef/filebrowser:beta-entangled",
+                "ghcr.io/gtsteffaniak/filebrowser:beta-entangled",
+                "gtstef/filebrowser:entangled",
+                "ghcr.io/gtsteffaniak/filebrowser:entangled",
               ]
             else . end |
             if any(.tags[]; test("stable")) then
               .tags += [
-                "gtstef/filebrowser:stable-media",
-                "ghcr.io/gtsteffaniak/filebrowser:stable-media",
-                "gtstef/filebrowser:media",
-                "ghcr.io/gtsteffaniak/filebrowser:media",
+                "gtstef/filebrowser:stable-entangled",
+                "ghcr.io/gtsteffaniak/filebrowser:stable-entangled",
+                "gtstef/filebrowser:entangled",
+                "ghcr.io/gtsteffaniak/filebrowser:entangled",
               ]
             else . end
           ')
           TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
           echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
-      - name: Build and push media image
+      - name: Build and push entangled image
         uses: docker/build-push-action@v6
         with:
           context: .

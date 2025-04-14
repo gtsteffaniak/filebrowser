@@ -92,22 +92,10 @@ definitions:
         type: string
       adminUsername:
         type: string
-      authMethods:
-        items:
-          type: string
-        type: array
       key:
-        items:
-          type: integer
-        type: array
-      method:
         type: string
       methods:
         $ref: '#/definitions/settings.LoginMethods'
-      recaptcha:
-        $ref: '#/definitions/settings.Recaptcha'
-      signup:
-        type: boolean
       tokenExpirationHours:
         type: integer
     type: object
@@ -119,6 +107,9 @@ definitions:
         type: string
       url:
         type: string
+    required:
+    - text
+    - url
     type: object
   settings.Frontend:
     properties:
@@ -192,8 +183,6 @@ definitions:
         type: string
       clientSecret:
         type: string
-      createUser:
-        type: boolean
       enabled:
         description: whether to enable OIDC authentication
         type: boolean
@@ -210,6 +199,13 @@ definitions:
         type: string
       userInfoUrl:
         type: string
+    required:
+    - authorizationUrl
+    - clientId
+    - clientSecret
+    - scopes
+    - tokenUrl
+    - userInfoUrl
     type: object
   settings.OnlyOffice:
     properties:
@@ -217,13 +213,21 @@ definitions:
         type: string
       url:
         type: string
+    required:
+    - secret
+    - url
     type: object
   settings.PasswordAuthConfig:
     properties:
       enabled:
         type: boolean
       minLength:
+        minimum: 5
         type: integer
+      recaptcha:
+        $ref: '#/definitions/settings.Recaptcha'
+      signup:
+        type: boolean
     type: object
   settings.ProxyAuthConfig:
     properties:
@@ -242,19 +246,19 @@ definitions:
         type: string
       secret:
         type: string
+    required:
+    - host
+    - key
+    - secret
     type: object
   settings.Server:
     properties:
-      authHook:
-        type: string
       baseURL:
         type: string
       cacheDir:
         type: string
       database:
         type: string
-      enableExec:
-        type: boolean
       enableThumbnails:
         type: boolean
       externalUrl:
@@ -312,8 +316,10 @@ definitions:
         description: display name
         type: string
       path:
-        description: can be relative, filesystem path
+        description: file system path. (Can be relative)
         type: string
+    required:
+    - path
     type: object
   settings.SourceConfig:
     properties:
@@ -363,9 +369,6 @@ definitions:
         $ref: '#/definitions/users.Permissions'
       quickDownload:
         type: boolean
-      scope:
-        description: deprecated
-        type: string
       showHidden:
         type: boolean
       singleClick:
