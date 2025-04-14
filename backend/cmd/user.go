@@ -76,7 +76,7 @@ func updateUserScopes(user *users.User) bool {
 
 	// maintain backwards compatibility, update user scope from scopes
 	if len(newScopes) == 0 {
-		newScopes = []users.SourceScope{
+		user.Scopes = []users.SourceScope{
 			{
 				Scope: settings.Config.Server.DefaultSource.Config.DefaultUserScope,
 				Name:  settings.Config.Server.DefaultSource.Path, // backend name is path
