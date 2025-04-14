@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	yaml "github.com/goccy/go-yaml"
+	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -22,7 +22,16 @@ func Initialize(configFile string) {
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	loadEnvConfig()
+	err = ValidateConfig(Config)
+	if err != nil {
+		errmsg := "the provided config file failed validation. "
+		errmsg += "If you are seeing this on a config that worked previeously, "
+		errmsg += "this is because v0.6.8 requires a fully validated config to run. "
+		errmsg += "Please review your config for typos and invalid keys which are no longer supported. "
+		errmsg += "visit https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example for more information."
+		logger.Error(errmsg)
+		logger.Fatal(err.Error())
+	}
 	setupLogging()
 	setupAuth()
 	setupSources()
@@ -125,9 +134,6 @@ func setupBaseURL() {
 }
 
 func setupAuth() {
-	if Config.Auth.Method != "" {
-		logger.Warning("The `auth.method` setting is deprecated and will be removed in a future version. Please use `auth.methods` instead.")
-	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
 	}
@@ -167,18 +173,17 @@ func setupLogging() {
 }
 
 func loadConfigWithDefaults(configFile string) error {
+	Config = setDefaults()
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
 		return err
 	}
 	defer yamlFile.Close()
-
 	stat, err := yamlFile.Stat()
 	if err != nil {
 		return err
 	}
-
 	yamlData := make([]byte, stat.Size())
 	_, err = yamlFile.Read(yamlData)
 	if err != nil && configFile != "config.yaml" {
@@ -187,18 +192,20 @@ func loadConfigWithDefaults(configFile string) error {
 	if err != nil {
 		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
 	}
-	Config = setDefaults()
 	err = yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
 	}
+	loadEnvConfig()
+	return nil
+}
 
+func ValidateConfig(config Settings) error {
 	validate := validator.New()
-	err = validate.Struct(Config)
+	err := validate.Struct(Config)
 	if err != nil {
-		return fmt.Errorf("could not validate %v", err)
+		return fmt.Errorf("could not validate config: %v", err)
 	}
-
 	return nil
 }
 
@@ -209,13 +216,6 @@ func loadEnvConfig() {
 		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
 		Config.Auth.AdminPassword = adminPassword
 	}
-
-	recaptchaSecret, ok := os.LookupEnv("FILEBROWSER_RECAPTCHA_SECRET")
-	if ok {
-		logger.Info("Using recaptcha secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
-		Config.Auth.Recaptcha.Secret = recaptchaSecret
-	}
-
 	officeSecret, ok := os.LookupEnv("FILEBROWSER_ONLYOFFICE_SECRET")
 	if ok {
 		logger.Info("Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable")
@@ -234,7 +234,6 @@ func setDefaults() Settings {
 		Server: Server{
 			EnableThumbnails:   true,
 			ResizePreview:      false,
-			EnableExec:         false,
 			Port:               80,
 			NumImageProcessors: 4,
 			BaseURL:            "",
@@ -248,12 +247,9 @@ func setDefaults() Settings {
 			AdminUsername:        "admin",
 			AdminPassword:        "admin",
 			TokenExpirationHours: 2,
-			Signup:               false,
-			Recaptcha: Recaptcha{
-				Host: "",
-			},
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
+					Enabled:   true,
 					MinLength: 5,
 				},
 			},
@@ -294,10 +290,12 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 		if !strings.HasPrefix(scope.Scope, "/") {
 			scope.Scope = "/" + scope.Scope
 		}
+		if !strings.HasSuffix(scope.Scope, "/") {
+			scope.Scope = scope.Scope + "/"
+		}
 		// first check if its already a path name and keep it
 		source, ok := Config.Server.SourceMap[scope.Name]
 		if ok {
-
 			newScopes = append(newScopes, users.SourceScope{
 				Name:  source.Path, // backend name is path
 				Scope: scope.Scope,
@@ -319,7 +317,7 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 }
 
 func ConvertToFrontendScopes(scopes []users.SourceScope) []users.SourceScope {
-	newScopes := make([]users.SourceScope, 0, len(scopes)) // Preserve original order
+	newScopes := []users.SourceScope{}
 	for _, scope := range scopes {
 		if source, ok := Config.Server.SourceMap[scope.Name]; ok {
 			// Replace scope.Name with source.Path while keeping the same Scope value

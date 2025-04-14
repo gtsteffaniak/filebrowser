@@ -10,17 +10,18 @@ server:
   database: "mydb.db"
   sources:
     - path: "."
+integrations:
+  office:
+    url: "http://localhost:9052"
+    secret: 6H1H7GzUk2alRkNxAPav0W02g8JS5oUd
 auth:
-  recaptcha:
-    host: ""
-    key: ""
-    secret: ""
-  signup: false
+  methods:
+    password:
+      enabled: true
 frontend:
   name: ""
   disableUsedPercentage: true
 userDefaults:
-  scope: ""
   locale: ""
   viewMode: ""
   darkMode: true

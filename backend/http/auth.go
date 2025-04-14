@@ -137,7 +137,7 @@ type userInfo struct {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/signup [post]
 func signupHandler(w http.ResponseWriter, r *http.Request) {
-	if !settings.Config.Auth.Signup {
+	if !settings.Config.Auth.Methods.PasswordAuth.Signup {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
@@ -234,7 +234,7 @@ func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	tokenString, err := token.SignedString(config.Auth.Key)
+	tokenString, err := token.SignedString([]byte(config.Auth.Key))
 	if err != nil {
 		return claim, err
 	}

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.0-beta
 
- **New Features**: 
+ **New Features**:
  - New authentication methods:
    - OIDC (OpenID Connect)
    - LDAP
@@ -27,6 +27,23 @@ TODO:
 - test all onlyoffice file previews, things like csv do not work.
 - add debouncer to source broadcasts
 - ensure source broadcast doesn't send to wrong users info
+## v0.6.8-beta
+
+ **New Features**
+ - environment variables are available for certain secrets.
+   - see wiki https://github.com/gtsteffaniak/filebrowser/wiki/Environment-Variables
+   - thanks @aaronkyriesenbach https://github.com/gtsteffaniak/filebrowser/pull/511
+
+ **Notes**:
+ - config validation (see https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example)
+   - fails when config file contains unknown fields (helps spot typos)
+   - some light value validation on certain fields
+   - removed recaptcha -- was disabled and not used before.
+   - moved `recaptcha` and `signup` configs to `auth.methods.password`
+
+ **BugFixes**:
+ - fix scope reset on restart https://github.com/gtsteffaniak/filebrowser/issues/515
+ - Clicking empty space to deselect https://github.com/gtsteffaniak/filebrowser/issues/492
 
 ## v0.6.7-beta
 

@@ -53,7 +53,8 @@ func updateUserScopes(user *users.User) bool {
 	newScopes := []users.SourceScope{}
 	for _, source := range settings.Config.Server.SourceMap {
 		scopePath, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
-		if !user.Permissions.Admin {
+		// apply default scope if it doesn't exist
+		if !user.Perm.Admin && scopePath == "" {
 			scopePath = source.Config.DefaultUserScope
 		}
 		if scopePath == "" {
@@ -71,12 +72,11 @@ func updateUserScopes(user *users.User) bool {
 		} else {
 			newScopes = append(newScopes, users.SourceScope{Scope: scopePath, Name: source.Path}) // backend name is path
 		}
-		user.Scopes = newScopes
 	}
 
 	// maintain backwards compatibility, update user scope from scopes
-	if len(user.Scopes) == 0 {
-		user.Scopes = []users.SourceScope{
+	if len(newScopes) == 0 {
+		newScopes = []users.SourceScope{
 			{
 				Scope: settings.Config.Server.DefaultSource.Config.DefaultUserScope,
 				Name:  settings.Config.Server.DefaultSource.Path, // backend name is path

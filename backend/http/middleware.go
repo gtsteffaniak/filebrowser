@@ -147,7 +147,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			return fn(w, r, data)
 		}
 		keyFunc := func(token *jwt.Token) (interface{}, error) {
-			return config.Auth.Key, nil
+			return []byte(config.Auth.Key), nil
 		}
 		tokenString, err := extractToken(r)
 		if err != nil {
