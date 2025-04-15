@@ -8,6 +8,10 @@ import { serverHasMultipleSources } from "@/utils/constants.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export const mutations = {
+  updateListing: (value) => {
+    state.listing = value;
+    emitStateChanged();
+  },
   setCurrentSource: (value) => {
     state.sources.current = value;
     emitStateChanged();

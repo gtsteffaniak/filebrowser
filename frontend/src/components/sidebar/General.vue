@@ -1,5 +1,5 @@
 <template>
-  <div class="card" style="min-height: 4em">
+  <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div @click="navigateTo('/settings#profile-main')" class="inner-card">
         <button class="person-button action">
@@ -15,10 +15,7 @@
         </button>
       </div>
     </div>
-  </div>
-  <div class="card" style="min-height: 6em">
     <div class="card-wrapper" @mouseleave="resetHoverTextToDefault">
-      <span>{{ hoverText }}</span>
       <div class="quick-toggles">
         <div
           :class="{ active: user?.singleClick }"
@@ -327,5 +324,19 @@ button.action {
 .realtime-pulse.danger .pulse,
 .realtime-pulse.warning .pulse {
   display: none;
+}
+
+.card-wrapper {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0em !important;
+  /* overflow: auto; */
+  border-radius: 1em;
+}
+
+.headline-card {
+  padding: 1em;
 }
 </style>

@@ -4,6 +4,7 @@
     :class="{
       item: true,
       'no-select': true,
+      'listing-item': true,
       activebutton: isMaximized && isSelected,
       hiddenFile: isHiddenNotSelected,
     }"
@@ -16,6 +17,7 @@
     @drop="drop"
     :data-dir="isDir"
     :data-type="type"
+    :data-name="name"
     :aria-label="name"
     :aria-selected="isSelected"
     @contextmenu="onRightClick($event)"

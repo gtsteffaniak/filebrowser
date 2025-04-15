@@ -131,5 +131,5 @@ jobs:
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           file: ./_docker/Dockerfile.media
           push: true
-          tags: ${{ steps.modify-json-media.outputs.cleaned_tag }}
+          tags: ${{ steps.modify-json-entangled.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}

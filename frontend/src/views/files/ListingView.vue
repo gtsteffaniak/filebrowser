@@ -182,8 +182,44 @@ export default {
       this.columnWidth = 250 + state.user.gallerySize * 50;
       this.colunmsResize();
     },
+    scrolling(scrollRatio) {
+      const scrollContainer = this.$refs.listingView;
+      if (!scrollContainer) return;
+
+      // Select all visible listing items
+      const itemNodes = scrollContainer.querySelectorAll(".listing-item");
+
+      // Find the first item near the top of the viewport
+      let topItem = null;
+      let minTop = Infinity;
+      itemNodes.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top < minTop) {
+          minTop = rect.top;
+          topItem = el;
+        }
+      });
+
+      if (!topItem) return;
+
+      const letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+
+      // Decide category by checking which section is above
+      const fileSection = this.$el.querySelector(".file-items");
+      const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
+      const category = fileTop <= 0 ? "files" : "folders";
+
+      mutations.updateListing({
+        ...state.listing,
+        category,
+        letter,
+      });
+    },
   },
   computed: {
+    scrolling() {
+      return state.listing.scrollRatio;
+    },
     isStickySidebar() {
       return getters.isStickySidebar();
     },
@@ -302,7 +338,6 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
-
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu

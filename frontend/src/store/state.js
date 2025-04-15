@@ -45,6 +45,12 @@ export const state = reactive({
     numDirs: 0,
     numFiles: 0,
   },
+  listing: {
+    category: "folders",
+    letter: "A",
+    scrolling: false,
+    scrollRatio: 0,
+  },
   previewRaw: "",
   oldReq: {},
   clipboard: {
