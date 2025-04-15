@@ -241,7 +241,7 @@ export default {
         return 1;
       }
       let columns = Math.floor(
-        document.querySelector("main").offsetWidth / this.columnWidth
+        document.querySelector("#main").offsetWidth / this.columnWidth
       );
       if (columns === 0) columns = 1;
       return columns;

@@ -1,5 +1,5 @@
 <template>
-  <Scrollbar letter="A" category="folders">
+  <div>
     <breadcrumbs v-if="showBreadCrumbs" />
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView"></component>
@@ -13,7 +13,7 @@
         <span>{{ $t("files.loading") }}</span>
       </h2>
     </div>
-  </Scrollbar>
+  </div>
 </template>
 
 <script>
@@ -22,7 +22,6 @@ import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
-import Scrollbar from "@/components/files/Scrollbar.vue";
 import Editor from "@/views/files/Editor.vue";
 import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
 import MarkdownViewer from "./files/MarkdownViewer.vue";
@@ -42,7 +41,6 @@ export default {
     Editor,
     OnlyOfficeEditor,
     MarkdownViewer,
-    Scrollbar,
   },
   data() {
     return {

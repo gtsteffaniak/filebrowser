@@ -15,14 +15,14 @@
   color: var(--blue);
 }
 
-main .spinner {
+#main .spinner {
   display: block;
   text-align: center;
   line-height: 0;
   padding: 1em 0;
 }
 
-main .spinner > div {
+#main .spinner > div {
   width: .8em;
   height: .8em;
   margin: 0 .1em;
@@ -33,11 +33,11 @@ main .spinner > div {
   animation: sk-bouncedelay 1.4s infinite ease-in-out both;
 }
 
-main .spinner .bounce1 {
+#main .spinner .bounce1 {
   animation-delay: -0.32s;
 }
 
-main .spinner .bounce2 {
+#main .spinner .bounce2 {
   animation-delay: -0.16s;
 }
 
