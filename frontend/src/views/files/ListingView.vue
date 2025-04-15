@@ -182,7 +182,7 @@ export default {
       this.columnWidth = 250 + state.user.gallerySize * 50;
       this.colunmsResize();
     },
-    scrolling(scrollRatio) {
+    scrolling() {
       const scrollContainer = this.$refs.listingView;
       if (!scrollContainer) return;
 

@@ -178,7 +178,7 @@ export default {
     this.$refs.wrapper.addEventListener("mousemove", this.handleMouseMove);
     this.$refs.wrapper.addEventListener("scroll", this.handleScroll, { passive: true });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.$refs.wrapper.removeEventListener("mousemove", this.handleMouseMove);
     this.$refs.wrapper.removeEventListener("scroll", this.handleScroll);
   },
