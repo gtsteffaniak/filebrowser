@@ -84,7 +84,7 @@ over
 
 
 /* Main Content */
-main {
+#main {
   position: fixed;
   padding-top: 4em;
   overflow: scroll;
@@ -93,10 +93,6 @@ main {
   width: 100%;
   display: flex;
   flex-direction: column;
-}
-
-main > div {
-  height: 100%;
 }
 
 .main-padding {

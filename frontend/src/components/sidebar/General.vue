@@ -1,43 +1,58 @@
 <template>
-  <div class="card" style="min-height: 4em">
+  <div class="tooltip">
+    <span class="tooltiptext-first" :class="{ visible: hoverText != '' }">{{
+      this.hoverText
+    }}</span>
+  </div>
+  <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div @click="navigateTo('/settings#profile-main')" class="inner-card">
-        <button class="person-button action">
+        <button
+          class="person-button action"
+          :title="user.username"
+          @mouseover="updateHoverText('Settings For User: ' + user.username)"
+          @mouseleave="resetHoverTextToDefault"
+        >
           <i class="material-icons">person</i>
           {{ user.username }}
-          <i aria-label="settings" class="material-icons">settings</i>
+          <i aria-label="settings" class="material-icons"> settings</i>
         </button>
       </div>
 
       <div class="inner-card" @click="logout">
-        <button aria-label="logout-button" class="logout-button action">
+        <button
+          aria-label="logout-button"
+          class="logout-button action"
+          @mouseover="updateHoverText('Logout')"
+          @mouseleave="resetHoverTextToDefault"
+        >
           <i v-if="canLogout" class="material-icons">exit_to_app</i>
         </button>
       </div>
     </div>
-  </div>
-  <div class="card" style="min-height: 6em">
     <div class="card-wrapper" @mouseleave="resetHoverTextToDefault">
-      <span>{{ hoverText }}</span>
       <div class="quick-toggles">
         <div
           :class="{ active: user?.singleClick }"
           @click="toggleClick"
-          @mouseover="updateHoverText('Toggle single click')"
+          @mouseover="updateHoverText('Toggle Single Click')"
+          @mouseleave="resetHoverTextToDefault"
         >
           <i class="material-icons">ads_click</i>
         </div>
         <div
           :class="{ active: user?.darkMode }"
           @click="toggleDarkMode"
-          @mouseover="updateHoverText('Toggle dark mode')"
+          @mouseover="updateHoverText('Toggle Dark Mode')"
+          @mouseleave="resetHoverTextToDefault"
         >
           <i class="material-icons">dark_mode</i>
         </div>
         <div
           :class="{ active: isStickySidebar }"
           @click="toggleSticky"
-          @mouseover="updateHoverText('Toggle sticky sidebar')"
+          @mouseover="updateHoverText('Toggle Sticky Mode')"
+          @mouseleave="resetHoverTextToDefault"
           v-if="!isMobile"
         >
           <i class="material-icons">push_pin</i>
@@ -114,7 +129,7 @@ export default {
   },
   data() {
     return {
-      hoverText: "Quick Toggles", // Initially empty
+      hoverText: "", // Initially empty
     };
   },
   computed: {
@@ -156,7 +171,7 @@ export default {
       this.hoverText = text;
     },
     resetHoverTextToDefault() {
-      this.hoverText = "Quick Toggles"; // Reset to default hover text
+      this.hoverText = ""; // Reset to default hover text
     },
     toggleClick() {
       mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
@@ -192,6 +207,39 @@ export default {
 </script>
 
 <style>
+.tooltip {
+  position: absolute;
+  display: inline-block;
+  left: 50%;
+  top: 2em;
+}
+
+.tooltiptext-first {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  position: absolute;
+  width: max-content;
+  max-width: 20em;
+  background-color: var(--alt-background);
+  color: var(--textPrimary);
+  text-align: center;
+  border-radius: 1em;
+  padding: 0.5em;
+  z-index: 1000;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.2);
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.tooltiptext-first.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
 .user-card {
   flex-direction: row !important;
   justify-content: space-between !important;
@@ -268,6 +316,7 @@ button.action {
 .source-button.active {
   background: var(--alt-background);
 }
+
 .source-icon {
   padding: 0.1em !important;
 }
@@ -285,7 +334,6 @@ button.action {
   animation: pulse 10s infinite backwards;
 }
 
-/* Trigger it once every 30 seconds using a visibility trick */
 @keyframes pulse {
   from {
     stroke-width: 3px;
@@ -327,5 +375,23 @@ button.action {
 .realtime-pulse.danger .pulse,
 .realtime-pulse.warning .pulse {
   display: none;
+}
+
+.card-wrapper {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0em !important;
+  border-radius: 1em;
+}
+
+.headline-card {
+  padding: 1em;
+  overflow: hidden !important;
+}
+
+.person-button {
+  max-width: 13em;
 }
 </style>

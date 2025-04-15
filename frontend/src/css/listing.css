@@ -108,9 +108,6 @@ body.rtl #listingView {
   border-radius: 0em;
 }
 
-#listingView .item:hover {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .24) !important;
-}
 
 #listingView .item div:last-of-type {
   width: 100%;
@@ -130,8 +127,24 @@ body.rtl #listingView {
 
 #listingView.normal .item,
 #listingView.gallery .item {
-  transition: width 0.25s, height 0.25s;
+  transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
+
+
+#listingView.normal .item:hover,
+#listingView.gallery .item:hover {
+  box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background),
+  0.3em 0.3em 1em rgba(114, 114, 114, 0.341) !important; /* Adjust shadow values as needed */
+transform: scale(1.02); /* Slightly enlarges the element */
+}
+
+#listingView.list .item:hover,
+#listingView.compact .item:hover {
+  box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background),
+  0.3em 0.3em 1em rgba(114, 114, 114, 0.341) !important; /* Adjust shadow values as needed */
+  transform: translateY(-3px);
+}
+
 
 #listingView.gallery .item .text {
   width: 100%;
