@@ -5,9 +5,12 @@
     :id="setting.id + '-sidebar'"
     class="card clickable"
     @click="setView(setting.id + '-main')"
-    :class="{ hidden: !shouldShow(setting), 'active-settings': active(setting.id + '-main') }"
+    :class="{
+      hidden: !shouldShow(setting),
+      'active-settings': active(setting.id + '-main'),
+    }"
   >
-    <div v-if="shouldShow(setting)" class="card-wrapper">{{ setting.label }}</div>
+    <div v-if="shouldShow(setting)" class="settings-card">{{ setting.label }}</div>
   </div>
 </template>
 
@@ -48,5 +51,9 @@ export default {
   font-weight: bold;
   /* border-color: white; */
   border-style: solid;
+}
+.settings-card {
+  padding: 1em;
+  text-align: center;
 }
 </style>

@@ -9,15 +9,22 @@
       @mouseleave="handleMouseLeave"
     >
       <div
-        class="thumb"
+        class="thumb no-select"
         ref="thumb"
         :class="{ ready: isReady, visible: isVisible }"
         @mousedown="startDrag"
         @touchstart.prevent="startDrag"
       >
-        <div class="thumb-letters">{{ this.letter() }}</div>
+        <div v-if="isNotListing" class="thumb-letters"><hr /></div>
+        <div v-else class="thumb-letters no-select">
+          {{ this.letter() }}
+        </div>
       </div>
-      <div class="thumb-section-id" ref="sectionId">
+      <div
+        :class="{ hidden: isNotListing }"
+        class="thumb-section-id no-select"
+        ref="sectionId"
+      >
         <i class="material-icons" :class="{ 'primary-icons': isFolder }">
           {{ isFolder ? "folder" : "description" }}
         </i>
@@ -27,7 +34,7 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
+import { state, mutations, getters } from "@/store";
 
 const offsetFromBottom = 75;
 
@@ -45,6 +52,9 @@ export default {
     };
   },
   computed: {
+    isNotListing() {
+      return getters.currentView() != "listingView";
+    },
     isFolder() {
       return this.category() === "folders";
     },

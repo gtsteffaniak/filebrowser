@@ -434,6 +434,7 @@ export default {
 .icon-download {
   font-size: 0.5em;
 }
+
 .item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
 }
