@@ -19,15 +19,16 @@
     ></editorBar>
     <defaultBar v-else :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar></sidebar>
-    <main
+    <Scrollbar
+      id="main"
       :class="{
         'dark-mode': isDarkMode,
         moveWithSidebar: moveWithSidebar,
         'main-padding': showPadding,
       }"
     >
-      <router-view></router-view>
-    </main>
+      <router-view />
+    </Scrollbar>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
   </div>
   <Notifications />
@@ -41,7 +42,7 @@ import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import Notifications from "@/components/Notifications.vue";
-
+import Scrollbar from "@/components/files/Scrollbar.vue";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events } from "@/notify";
@@ -57,6 +58,7 @@ export default {
     listingBar,
     Sidebar,
     Prompts,
+    Scrollbar,
   },
   data() {
     return {
@@ -153,7 +155,7 @@ export default {
   padding-bottom: 30% !important;
 }
 
-main {
+#main {
   -ms-overflow-style: none;
   /* Internet Explorer 10+ */
   scrollbar-width: none;
@@ -161,11 +163,11 @@ main {
   transition: 0.5s ease;
 }
 
-main.moveWithSidebar {
+#main.moveWithSidebar {
   padding-left: 20em;
 }
 
-main::-webkit-scrollbar {
+#main::-webkit-scrollbar {
   display: none;
   /* Safari and Chrome */
 }

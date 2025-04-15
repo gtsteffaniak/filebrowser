@@ -73,7 +73,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .file-icons [aria-label^="."] {
   opacity: 0.33;
 }

@@ -6,30 +6,32 @@
     <div class="card-content">
       <form>
         <div class="card-content">
-          <p>
-            <input type="checkbox" v-model="dateFormat" />
-            {{ $t("settings.setDateFormat") }}
-          </p>
-          <p>
-            <input type="checkbox" v-model="showHidden" />
-            Show hidden files
-          </p>
-          <p>
-            <input type="checkbox" v-model="quickDownload" />
-            Always show download icon for quick access
-          </p>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="dateFormat"
+              :name="$t('settings.setDateFormat')"
+            />
+            <ToggleSwitch class="item" v-model="showHidden" :name="`Show hidden files`" />
+            <ToggleSwitch
+              class="item"
+              v-model="quickDownload"
+              :name="`Always show download icon for quick access`"
+            />
+          </div>
+
           <div v-if="hasOnlyOfficeEnabled">
-            <h3>Disable onlyoffice viewer for certain file extentions</h3>
+            <h3>Disable onlyoffice viewer for certain file extensions</h3>
             <p>
-              A space separated list of file extensions to disable the only office viewer
-              for. (eg <code>.txt .html</code>)
+              A space-separated list of file extensions to disable the OnlyOffice viewer
+              for. (e.g., <code>.txt .html</code>)
             </p>
             <div class="onlyoffice-group">
               <input
                 class="input input--block onlyoffice-form"
                 :class="{ 'invalid-form': !formValidation() }"
                 type="text"
-                placeholder="enter file extentions"
+                placeholder="enter file extensions"
                 id="onlyofficeExt"
                 v-model="disableOnlyOfficeExt"
               />
@@ -65,12 +67,14 @@ import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
 import i18n, { rtlLanguages } from "@/i18n";
 import ButtonGroup from "@/components/ButtonGroup.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "settings",
   components: {
     Languages,
     ButtonGroup,
+    ToggleSwitch,
   },
   data() {
     return {
@@ -196,7 +200,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .onlyoffice-group {
   display: flex;
   flex-direction: row;
@@ -210,5 +214,14 @@ export default {
 }
 .invalid-form {
   border-color: red !important;
+}
+
+.item {
+  padding: 1em;
+  border-radius: 1em;
+}
+
+.item:hover {
+  background-color: var(--surfaceSecondary);
 }
 </style>

@@ -21,8 +21,8 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          <tr v-for="user in users" :key="user.id">
+        <tbody class="settings-items">
+          <tr class="item" v-for="user in users" :key="user.id">
             <td>{{ user.username }}</td>
             <td>{{ user.loginMethod }}</td>
             <td>

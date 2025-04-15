@@ -79,7 +79,14 @@ export default {
   methods: {
     shouldShow(setting) {
       const perm = setting?.permissions || {};
-      console.log("Checking permissions for setting:", setting.id, "Permissions:", perm, "User Permissions:", state.user.permissions);
+      console.log(
+        "Checking permissions for setting:",
+        setting.id,
+        "Permissions:",
+        perm,
+        "User Permissions:",
+        state.user.permissions
+      );
       return Object.keys(perm).every((key) => state.user.permissions[key]);
     },
     setView(view) {
@@ -112,5 +119,14 @@ export default {
 .settings-views .card {
   border-style: solid;
   opacity: 1;
+}
+
+.settings-items > .item {
+  padding: 1em;
+  border-radius: 1em;
+}
+
+.settings-items > .item:hover {
+  background-color: var(--surfaceSecondary);
 }
 </style>
