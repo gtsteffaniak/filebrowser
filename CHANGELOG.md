@@ -7,13 +7,13 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - New authentication methods:
    - OIDC (OpenID Connect)
-   - LDAP
+   #- LDAP
  - Enhanced source info on the UI
    - User must have permission `realtime: true` property to get realtime events.
    - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
  - new preview types:
    - Video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
-   - Office file previews if you have office integration enabled.
+   - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
  - New scrollbar which includes information about the listing https://github.com/gtsteffaniak/filebrowser/issues/304
  - Refreshed icons and styles to provide more contrast https://github.com/gtsteffaniak/filebrowser/issues/493
   **Notes**:
