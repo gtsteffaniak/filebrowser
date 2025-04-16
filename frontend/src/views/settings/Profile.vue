@@ -215,13 +215,4 @@ export default {
 .invalid-form {
   border-color: red !important;
 }
-
-.item {
-  padding: 1em;
-  border-radius: 1em;
-}
-
-.item:hover {
-  background-color: var(--surfaceSecondary);
-}
 </style>

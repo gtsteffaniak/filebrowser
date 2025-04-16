@@ -212,7 +212,7 @@
       "rename": "Premenovať a presúvať súbory a priečinky",
       "share": "Zdieľať súbory"
     },
-    "permissions": "Práva",
+    "permissions-name": "Práva",
     "permissionsHelp": "Môžete nastaviť používateľa, aby bol administrátorom alebo vybrať práva jednotlivo. Ak zvolíte \"Administrator\", všetky ďalšie budú automaticky zaškrtnuté. Manažment používateľov ostáva v správe administrátora.\n",
     "profileSettings": "Nastavenia profilu",
     "ruleExample1": "blokuje prístup ku všetkým súborom začínajúcim bodkou (napríklad .git, .gitignore) v každom priečinku.\n",

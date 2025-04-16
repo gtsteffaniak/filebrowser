@@ -36,24 +36,21 @@
       />
     </p>
 
-    <p v-if="!isNew && stateUser.loginMethod == 'password'">
-      <input
-        type="checkbox"
-        :checked="updatePassword"
-        @change="(event) => $emit('update:updatePassword', event.target.checked)"
+    <div class="settings-items">
+      <ToggleSwitch
+        class="item"
+        :modelValue="updatePassword"
+        @update:modelValue="(val) => $emit('update:updatePassword', val)"
+        :name="$t('settings.changePassword')"
       />
-      Change password on save
-    </p>
+      <ToggleSwitch
+        v-if="localUser.loginMethod == 'password' && stateUser.permissions?.admin"
+        class="item"
+        v-model="localUser.lockPassword"
+        :name="$t('settings.lockPassword')"
+      />
+    </div>
 
-    <p v-if="stateUser.loginMethod == 'password'">
-      <input
-        type="checkbox"
-        :disabled="!stateUser.permissions?.admin"
-        v-model="user.lockPassword"
-        @input="emitUpdate"
-      />
-      {{ $t("settings.lockPassword") }}
-    </p>
     <div v-if="stateUser.permissions.admin">
       <label for="scopes">{{ $t("settings.scopes") }}</label>
       <div class="scope-list" v-for="(source, index) in selectedSources" :key="index">
@@ -87,11 +84,14 @@
     <button v-if="hasMoreSources" @click="addNewScopeSource" class="button no-height">
       <i class="material-icons material-size">add</i>
     </button>
-
-    <p class="small" v-if="displayHomeDirectoryCheckbox">
-      <input type="checkbox" v-model="createUserDir" />
-      {{ $t("settings.createUserHomeDirectory") }}
-    </p>
+    <div class="settings-items">
+      <ToggleSwitch
+        v-if="displayHomeDirectoryCheckbox"
+        class="item"
+        v-model="createUserDir"
+        :name="$t('settings.createUserHomeDirectory')"
+      />
+    </div>
 
     <p>
       <label for="locale">{{ $t("settings.language") }}</label>
@@ -103,7 +103,7 @@
       ></languages>
     </p>
 
-    <permissions :perm="localUser.permissions" />
+    <permissions :permissions="localUser.permissions" />
   </div>
 </template>
 
@@ -112,13 +112,16 @@ import Languages from "./Languages.vue";
 import Permissions from "./Permissions.vue";
 import { state } from "@/store";
 import { settingsApi } from "@/api";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "UserForm",
   components: {
     Permissions,
     Languages,
+    ToggleSwitch,
   },
+
   data() {
     return {
       createUserDir: false,

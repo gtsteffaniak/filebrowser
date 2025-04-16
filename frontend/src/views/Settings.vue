@@ -79,14 +79,6 @@ export default {
   methods: {
     shouldShow(setting) {
       const perm = setting?.permissions || {};
-      console.log(
-        "Checking permissions for setting:",
-        setting.id,
-        "Permissions:",
-        perm,
-        "User Permissions:",
-        state.user.permissions
-      );
       return Object.keys(perm).every((key) => state.user.permissions[key]);
     },
     setView(view) {

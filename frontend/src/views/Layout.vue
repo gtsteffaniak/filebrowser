@@ -130,11 +130,10 @@ export default {
   methods: {
     async updateSourceInfo() {
       if (getters.isLoggedIn()) {
+        const sourceinfo = await filesApi.sources();
+        mutations.updateSourceInfo(sourceinfo);
         if (state.user.permissions.realtime) {
           events.startSSE();
-        } else {
-          const sourceinfo = await filesApi.sources();
-          mutations.updateSourceInfo(sourceinfo);
         }
       }
     },
@@ -170,5 +169,9 @@ export default {
 #main::-webkit-scrollbar {
   display: none;
   /* Safari and Chrome */
+}
+
+#main > div {
+  min-height: 100%;
 }
 </style>

@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Refreshed icons and styles to provide more contrast https://github.com/gtsteffaniak/filebrowser/issues/493
   **Notes**:
     - sesssionId is now unique per window. Previously it was shared accross browser tabs.
-    - replaced checkboxes with toggles https://github.com/gtsteffaniak/filebrowser/issues/461
+    - replaced checkboxes with toggles switches https://github.com/gtsteffaniak/filebrowser/issues/461
     #- disableUsedPercentage is a backend property now.
   **Bug Fixes**:
     - Fix nil pointer error when source media is disconnected while running.

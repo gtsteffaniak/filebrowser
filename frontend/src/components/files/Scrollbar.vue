@@ -17,7 +17,9 @@
       >
         <div v-if="isNotListing" class="thumb-letters"><hr /></div>
         <div v-else class="thumb-letters no-select">
-          {{ this.letter() }}
+          <i class="material-icons" :class="{ 'primary-icons': isFolder }">
+            {{ isFolder ? "folder" : "description" }}
+          </i>
         </div>
       </div>
       <div
@@ -25,9 +27,7 @@
         class="thumb-section-id no-select"
         ref="sectionId"
       >
-        <i class="material-icons" :class="{ 'primary-icons': isFolder }">
-          {{ isFolder ? "folder" : "description" }}
-        </i>
+        {{ this.letter() }}
       </div>
     </div>
   </div>

@@ -10,6 +10,7 @@ export async function startSSE() {
 
     eventSrc.onerror = (err) => {
         mutations.updateSourceInfo("error");
+        mutations.setRealtimeActive(false);
         console.log("SSE error:", err);
     };
 
@@ -31,7 +32,7 @@ async function eventRouter(eventType,message) {
             mutations.updateSourceInfo(message);
             break
         case "acknowledge":
-            mutations.setRealtimeActive(message);
+            mutations.setRealtimeActive(true);
             break
         default:
             console.log("something happened but don't know what", message);
