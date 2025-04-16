@@ -12,6 +12,7 @@ export const state = reactive({
   usages: {},
   editor: null,
   serverHasMultipleSources: false,
+  realtimeActive: false,
   sources: {
     current: "",
     count: 1,

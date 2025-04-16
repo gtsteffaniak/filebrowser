@@ -35,11 +35,14 @@
         Choose at least one permission for the key. Your User must also have the
         permission.
       </p>
-      <div>
-        <p v-for="(isEnabled, permission) in permissions" :key="permission">
-          <input type="checkbox" v-model="permissions[permission]" />
-          {{ permission }}
-        </p>
+      <div class="settings-items">
+        <ToggleSwitch
+          v-for="(isEnabled, permission) in permissions"
+          :key="permission"
+          class="item"
+          v-model="permissions[permission]"
+          :name="permission"
+        />
       </div>
     </div>
 
@@ -67,6 +70,7 @@
 import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "CreateAPI",
@@ -76,6 +80,9 @@ export default {
       duration: 1,
       unit: "days",
     };
+  },
+  components: {
+    ToggleSwitch,
   },
   props: {
     permissions: {

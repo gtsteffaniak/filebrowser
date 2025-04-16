@@ -4,6 +4,15 @@
       this.hoverText
     }}</span>
   </div>
+  <div class="tooltip-sources">
+    <span class="tooltiptext-sources" :class="{ visible: sourceInfoTooltip != '' }">
+      <span>{{ sourceInfoTooltip.name }}</span>
+      <p>status: {{ sourceInfoTooltip.status }}</p>
+      <p>used: {{ sourceInfoTooltip.used }}</p>
+      <p>total: {{ sourceInfoTooltip.total }}</p>
+      <p>usedPercentage: {{ sourceInfoTooltip.usedPercentage }}</p>
+    </span>
+  </div>
   <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div @click="navigateTo('/settings#profile-main')" class="inner-card">
@@ -73,23 +82,24 @@
           class="action source-button"
           :class="{ active: activeSource == name }"
           @click="navigateTo('/files/' + info.pathPrefix)"
+          @mouseover="updateSourceTooltip(info)"
+          @mouseleave="resetSourceTooltip"
           :aria-label="$t('sidebar.myFiles')"
           :title="name"
         >
           <div class="source-container">
             <svg
-              v-if="!realtime"
               class="realtime-pulse"
               :class="{
+                active: realtimeActive,
                 danger: info.status != 'indexing' && info.status != 'ready',
                 warning: info.status == 'indexing',
                 ready: info.status == 'ready',
               }"
             >
-              <circle cx="50%" cy="50%" r="7px"></circle>
+              <circle class="center" cx="50%" cy="50%" r="7px"></circle>
               <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
             </svg>
-            <i v-else class="material-icons source-icon">folder</i>
             <span>{{ name }}</span>
           </div>
           <div v-if="info.used != 0" class="usage-info">
@@ -130,6 +140,7 @@ export default {
   data() {
     return {
       hoverText: "", // Initially empty
+      sourceInfoTooltip: "",
     };
   },
   computed: {
@@ -151,7 +162,7 @@ export default {
     route: () => state.route,
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,
-    realtime: () => state.user.realtime,
+    realtimeActive: () => state.realtimeActive,
   },
   watch: {
     route() {
@@ -166,6 +177,12 @@ export default {
   methods: {
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
+    },
+    updateSourceTooltip(text) {
+      this.sourceInfoTooltip = text;
+    },
+    resetSourceTooltip() {
+      this.sourceInfoTooltip = ""; // Reset to default hover text
     },
     updateHoverText(text) {
       this.hoverText = text;
@@ -238,6 +255,44 @@ export default {
 .tooltiptext-first.visible {
   visibility: visible;
   opacity: 1;
+}
+
+.tooltiptext-sources.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-sources {
+  position: absolute;
+  display: inline-block;
+  left: 50%;
+  top: 20em;
+}
+
+.tooltiptext-sources {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  position: absolute;
+  width: max-content;
+  max-width: 20em;
+  background-color: var(--alt-background);
+  color: var(--textPrimary);
+  text-align: center;
+  border-radius: 1em;
+  padding: 0.5em;
+  z-index: 1000;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.2);
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.tooltiptext-first,
+.tooltiptext-sources {
+  pointer-events: none;
 }
 
 .user-card {
@@ -326,12 +381,30 @@ button.action {
   padding: 0 !important;
 }
 
-.pulse {
-  fill: #21d721;
-  stroke: #21d721;
+.realtime-pulse > .pulse {
+  display: none;
   fill-opacity: 0;
   transform-origin: 50% 50%;
   animation: pulse 10s infinite backwards;
+}
+
+.realtime-pulse.active > .pulse {
+  display: block;
+}
+
+.realtime-pulse.ready > .pulse {
+  fill: #21d721;
+  stroke: #21d721;
+}
+
+.realtime-pulse.danger > .pulse {
+  fill: rgb(190, 147, 147);
+  stroke: rgb(235, 55, 55);
+}
+
+.realtime-pulse.warning > .pulse {
+  fill: rgb(255, 157, 0);
+  stroke: rgb(255, 157, 0);
 }
 
 @keyframes pulse {
@@ -360,21 +433,16 @@ button.action {
   height: 2em;
 }
 
-.realtime-pulse.ready > circle {
+.realtime-pulse.ready > .center {
   fill: #21d721;
 }
 
-.realtime-pulse.danger > circle {
+.realtime-pulse.danger > .center {
   fill: rgb(235, 55, 55);
 }
 
-.realtime-pulse.warning > circle {
+.realtime-pulse.warning > .center {
   fill: rgb(255, 157, 0);
-}
-
-.realtime-pulse.danger .pulse,
-.realtime-pulse.warning .pulse {
-  display: none;
 }
 
 .card-wrapper {

@@ -44,7 +44,7 @@ export default {
 .switch {
   position: relative;
   display: inline-block;
-  width: 60px;
+  padding-right: 4em;
   height: 34px;
 }
 
@@ -61,8 +61,8 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
   transition: 0.4s;
+  background-color: gray;
 }
 
 .slider:before {
