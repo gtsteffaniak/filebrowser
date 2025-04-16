@@ -22,7 +22,7 @@
             <th>Name</th>
             <th>Created</th>
             <th>Expires</th>
-            <th>{{ $t("settings.permissions") }}</th>
+            <th>{{ $t("settings.permissions-name") }}</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -126,7 +126,10 @@ export default {
       return value ? "✓" : "✗";
     },
     createPrompt() {
-      mutations.showHover({ name: "CreateApi", props: { permissions: this.user.permissions } });
+      mutations.showHover({
+        name: "CreateApi",
+        props: { permissions: this.user.permissions },
+      });
     },
     infoPrompt(name, info) {
       mutations.showHover({ name: "ActionApi", props: { name: name, info: info } });

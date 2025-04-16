@@ -23,6 +23,8 @@ export const mutations = {
     emitStateChanged();
   },
   updateSourceInfo: (value) => {
+    console.log("sourceUpdate",value);
+
     if (value == "error") {
       state.realtimeActive = false;
       for (const k of Object.keys(state.sources.info)) {
@@ -41,8 +43,8 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setRealtimeActive: () => {
-    state.realtimeActive = true;
+  setRealtimeActive: (value) => {
+    state.realtimeActive = value;
   },
   setSources: (user) => {
     state.serverHasMultipleSources = serverHasMultipleSources;
