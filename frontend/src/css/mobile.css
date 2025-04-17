@@ -35,9 +35,6 @@
     margin-right: unset;
   }
 
-  body.rtl .breadcrumbs {
-    transform: translateX(16em);
-  }
 
   body.rtl #nav .wrapper {
     margin-right: unset;

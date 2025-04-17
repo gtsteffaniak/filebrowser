@@ -5,6 +5,7 @@ import { noAuth } from "@/utils/constants.js";
 import { getTypeInfo } from "@/utils/mimetype";
 
 export const getters = {
+  isScrollable: () => getters.currentView() === "settings" || getters.currentView() === "listingView",
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
   currentHash: () => state.route.hash.replace("#", ""),

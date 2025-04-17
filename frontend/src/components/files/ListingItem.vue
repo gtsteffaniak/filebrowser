@@ -26,6 +26,7 @@
     @touchmove="handleTouchMove($event)"
     @touchend="cancelContext($event)"
     @mouseup="cancelContext($event)"
+
   >
     <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
       <Icon :mimetype="type" :active="isSelected" :thumbnailUrl />
@@ -45,6 +46,8 @@
       </p>
     </div>
     <Icon
+      @mouseenter="handleMouseEnter($event)"
+      @mouseleave="handleMouseLeave($event)"
       @click="downloadFile"
       v-if="quickDownloadEnabled"
       mimetype="file_download"
@@ -185,6 +188,12 @@ export default {
     }
   },
   methods: {
+    handleMouseEnter(event) {
+      mutations.setPreviewSource(this.thumbnailUrl);
+    },
+    handleMouseLeave(event) {
+      mutations.setPreviewSource("");
+    },
     downloadFile(event) {
       event.preventDefault();
       event.stopPropagation();

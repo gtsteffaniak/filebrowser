@@ -6,6 +6,8 @@
   --surfaceSecondary: lightgray;
   --textPrimary: #546e7a;
   --textSecondary: gray;
+  --iconBackground: #dddddd;
+  --activeWhiteIcon: gray;
 }
 
 body {
@@ -87,7 +89,7 @@ over
 #main {
   position: fixed;
   padding-top: 4em;
-  overflow: scroll;
+  overflow: unset;
   top: 0;
   height: 100%;
   width: 100%;
@@ -101,36 +103,6 @@ over
 
 }
 
-.breadcrumbs {
-  overflow-x: auto;
-  height: auto;
-  min-height: 3em;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  color: #6f6f6f;
-  padding-left: 0.5em;
-}
-
-.breadcrumbs span,
-.breadcrumbs a {
-  color: inherit;
-  transition: 0.1s ease-in;
-  display: flex;
-  border-radius: 0.125em;
-}
-
-body.rtl .breadcrumbs a {
-  transform: translateX(-16em);
-}
-
-.breadcrumbs a:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.breadcrumbs span a {
-  padding: 0.2em;
-}
 
 /* Files */
 .files {

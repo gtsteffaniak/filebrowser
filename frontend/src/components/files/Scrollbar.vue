@@ -52,6 +52,9 @@ export default {
     };
   },
   computed: {
+    isScrollable() {
+      return getters.isScrollable();
+    },
     isNotListing() {
       return getters.currentView() != "listingView";
     },
@@ -193,9 +196,6 @@ export default {
 }
 
 .custom-scrollbar {
-  position: absolute;
-  top: 0;
-  right: -5em;
   display: none;
   width: 2em;
   height: 100%;

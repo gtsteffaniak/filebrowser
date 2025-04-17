@@ -13,6 +13,7 @@ export const state = reactive({
   editor: null,
   serverHasMultipleSources: false,
   realtimeActive: false,
+  popupPreviewSource: "",
   sources: {
     current: "",
     count: 1,

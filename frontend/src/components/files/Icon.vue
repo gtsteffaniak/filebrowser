@@ -94,9 +94,11 @@ export default {
   /* Uses inherited color */
   border-radius: 0.2em;
   padding: 0.1em;
-  background: var(--alt-background);
+  background: var(--iconBackground);
 }
-
+.icon.active {
+  background: var(--background);
+}
 .purple-icons {
   color: purple;
 }
@@ -135,8 +137,13 @@ export default {
   color: rgb(246, 70, 70);
 }
 
-.beige-icons {
-  color: beige;
+.white-icons {
+  color: white;
+}
+
+#listingView.gallery .item i.white-icons,
+.active.white-icons {
+  color: var(--activeWhiteIcon);
 }
 
 .deep-blue-icons {

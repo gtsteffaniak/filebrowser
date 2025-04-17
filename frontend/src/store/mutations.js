@@ -8,6 +8,10 @@ import { serverHasMultipleSources } from "@/utils/constants.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export const mutations = {
+  setPreviewSource: (value) => {
+    state.popupPreviewSource = value;
+    emitStateChanged();
+  },
   updateListing: (value) => {
     state.listing = value;
     emitStateChanged();
