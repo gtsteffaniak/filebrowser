@@ -209,7 +209,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			handler := withHashFileHelper(publicShareHandler)
 			if err := store.Settings.Save(&settings.Settings{
 				Auth: settings.Auth{
-					Key: []byte("key"),
+					Key: "key",
 				},
 			}); err != nil {
 				t.Fatalf("failed to save settings: %v", err)

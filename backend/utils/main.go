@@ -21,13 +21,13 @@ func CheckErr(source string, err error) {
 	}
 }
 
-func GenerateKey() []byte {
+func GenerateKey() string {
 	b := make([]byte, 64)
 	_, err := rand.Read(b)
 	if err != nil {
-		return nil
+		return ""
 	}
-	return b
+	return string(b)
 }
 
 // CapitalizeFirst returns the input string with the first letter capitalized.
