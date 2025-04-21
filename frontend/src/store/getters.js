@@ -1,6 +1,6 @@
 import { removePrefix } from "@/utils/url.js";
 import { getFileExtension } from  "@/utils/files.js";
-import { state,mutations } from "./state.js";
+import { state,mutations } from "@/store";
 import { noAuth } from "@/utils/constants.js";
 import { getTypeInfo } from "@/utils/mimetype";
 import * as i18n from "@/i18n";
