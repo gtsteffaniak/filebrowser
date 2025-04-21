@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file. For commit 
    - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
  - New scrollbar which includes information about the listing https://github.com/gtsteffaniak/filebrowser/issues/304
  - Refreshed icons and styles to provide more contrast https://github.com/gtsteffaniak/filebrowser/issues/493
+ - user-configurable popup previewer and user can control preview size of images
+ - 
   **Notes**:
     - sesssionId is now unique per window. Previously it was shared accross browser tabs.
     - replaced checkboxes with toggles switches https://github.com/gtsteffaniak/filebrowser/issues/461

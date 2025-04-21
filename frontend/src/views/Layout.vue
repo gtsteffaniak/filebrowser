@@ -25,7 +25,7 @@
         'dark-mode': isDarkMode,
         moveWithSidebar: moveWithSidebar,
         'main-padding': showPadding,
-        'scrollable': scrollable
+        scrollable: scrollable,
       }"
     >
       <router-view />
@@ -129,6 +129,12 @@ export default {
       mutations.setMultiple(false);
       if (getters.currentPromptName() !== "success") {
         mutations.closeHovers();
+      }
+      if (window.location.hash == "") {
+        const element = document.getElementById("main");
+        if (element) {
+          element.scrollTop = 0;
+        }
       }
     },
   },

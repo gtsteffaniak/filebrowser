@@ -8,6 +8,9 @@ import { serverHasMultipleSources } from "@/utils/constants.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export const mutations = {
+  setWatchDirChangeAvailable() {
+    state.req.hasUpdate = true;
+  },
   setPreviewSource: (value) => {
     state.popupPreviewSource = value;
     emitStateChanged();
@@ -27,8 +30,6 @@ export const mutations = {
     emitStateChanged();
   },
   updateSourceInfo: (value) => {
-    console.log("sourceUpdate",value);
-
     if (value == "error") {
       state.realtimeActive = false;
       for (const k of Object.keys(state.sources.info)) {
@@ -238,15 +239,12 @@ export const mutations = {
       //state.user.locale = i18n.detectLocale();
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
+      localStorage.setItem("userLocale", state.user.locale);
     }
 
     // Update localStorage if stickySidebar exists
     if ('stickySidebar' in state.user) {
       localStorage.setItem("stickySidebar", state.user.stickySidebar);
-    }
-    // Update users if there's any change in state.user
-    if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      usersApi.update(state.user, Object.keys(value));
     }
 
     // Emit state change event

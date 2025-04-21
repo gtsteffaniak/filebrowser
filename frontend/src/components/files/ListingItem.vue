@@ -46,8 +46,6 @@
       </p>
     </div>
     <Icon
-      @mouseenter="handleMouseEnter($event)"
-      @mouseleave="handleMouseLeave($event)"
       @click="downloadFile"
       v-if="quickDownloadEnabled"
       mimetype="file_download"
@@ -164,7 +162,7 @@ export default {
     },
     thumbnailUrl() {
       let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
-      return filesApi.getPreviewURL(state.req.source, path, "small", state.req.modified);
+      return filesApi.getPreviewURL(state.req.source, path, state.req.modified);
     },
     isThumbsEnabled() {
       return enableThumbs;
@@ -188,12 +186,6 @@ export default {
     }
   },
   methods: {
-    handleMouseEnter(event) {
-      mutations.setPreviewSource(this.thumbnailUrl);
-    },
-    handleMouseLeave(event) {
-      mutations.setPreviewSource("");
-    },
     downloadFile(event) {
       event.preventDefault();
       event.stopPropagation();

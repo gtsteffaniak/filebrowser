@@ -6,20 +6,54 @@
     <div class="card-content">
       <form>
         <div class="card-content">
+          <h3>Listing options</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
-              v-model="dateFormat"
+              v-model="localuser.dateFormat"
               :name="$t('settings.setDateFormat')"
             />
-            <ToggleSwitch class="item" v-model="showHidden" :name="`Show hidden files`" />
             <ToggleSwitch
               class="item"
-              v-model="quickDownload"
+              v-model="localuser.showHidden"
+              :name="`Show hidden files`"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.quickDownload"
               :name="`Always show download icon for quick access`"
             />
           </div>
-
+          <h3>File preview options</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.image"
+              name="Preview images"
+            />
+            <ToggleSwitch
+              v-if="mediaEnabled"
+              class="item"
+              v-model="localuser.preview.video"
+              name="Preview videos"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.highQuality"
+              name="Enable higher quality previews"
+            />
+            <ToggleSwitch
+              v-if="hasOnlyOfficeEnabled"
+              class="item"
+              v-model="localuser.preview.office"
+              name="Preview office files"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.popup"
+              name="Enable popup previewer"
+            />
+          </div>
           <div v-if="hasOnlyOfficeEnabled">
             <h3>Disable onlyoffice viewer for certain file extensions</h3>
             <p>
@@ -33,7 +67,7 @@
                 type="text"
                 placeholder="enter file extensions"
                 id="onlyofficeExt"
-                v-model="disableOnlyOfficeExt"
+                v-model="localuser.disableOnlyOfficeExt"
               />
               <button class="button onlyoffice-button" @click="submitOnlyOfficeChange">
                 save
@@ -45,12 +79,12 @@
           <ButtonGroup
             :buttons="colorChoices"
             @button-clicked="setColor"
-            :initialActive="color"
+            :initialActive="localuser.themeColor"
           />
           <h3>{{ $t("settings.language") }}</h3>
           <Languages
             class="input input--block"
-            :locale="locale"
+            :locale="localuser.locale"
             @update:locale="updateLocale"
           ></Languages>
         </div>
@@ -61,11 +95,10 @@
 
 <script>
 import { notify } from "@/notify";
-import { onlyOfficeUrl } from "@/utils/constants.js";
+import { onlyOfficeUrl, mediaAvailable } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
-import i18n, { rtlLanguages } from "@/i18n";
 import ButtonGroup from "@/components/ButtonGroup.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
@@ -78,13 +111,8 @@ export default {
   },
   data() {
     return {
-      dateFormat: false,
+      localuser: {preview: {}},
       initialized: false,
-      locale: "",
-      color: "",
-      showHidden: false,
-      quickDownload: false,
-      disableOnlyOfficeExt: "",
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
         { label: "red", value: "var(--red)" },
@@ -96,25 +124,23 @@ export default {
     };
   },
   watch: {
-    showHidden: function () {
-      if (this.initialized) {
-        this.updateSettings(); // Only run if initialized
-      }
-    },
-    quickDownload: function () {
-      if (this.initialized) {
-        this.updateSettings(); // Only run if initialized
-      }
-    },
-    dateFormat: function () {
-      if (this.initialized) {
-        this.updateSettings(); // Only run if initialized
-      }
+    localuser: {
+      handler: function () {
+        console.log("localuser changed", this.localuser);
+        if (this.initialized) {
+          this.updateSettings(); // Ensure updateSettings() is called when localuser changes
+        }
+        this.initialized = true;
+      },
+      deep: true, // Watch nested properties of localuser
     },
   },
   computed: {
     hasOnlyOfficeEnabled() {
       return onlyOfficeUrl != "";
+    },
+    mediaEnabled() {
+      return mediaAvailable;
     },
     settings() {
       return state.settings;
@@ -122,28 +148,17 @@ export default {
     active() {
       return state.activeSettingsView === "profile-main";
     },
-    user() {
-      return state.user;
-    },
-  },
-  created() {
-    this.locale = state.user.locale;
-    this.showHidden = state.user.showHidden;
-    this.dateFormat = state.user.dateFormat;
-    this.color = state.user.themeColor;
-    this.quickDownload = state.user?.quickDownload;
-    this.disableOnlyOfficeExt = state.user.disableOnlyOfficeExt;
   },
   mounted() {
-    this.initialized = true;
+    this.localuser = { ...state.user };
   },
   methods: {
     formValidation() {
-      if (this.disableOnlyOfficeExt == "") {
+      if (this.localuser.disableOnlyOfficeExt == "") {
         return true;
       }
       let regex = /^\.\w+(?: \.\w+)*$/;
-      return regex.test(this.disableOnlyOfficeExt);
+      return regex.test(this.localuser.disableOnlyOfficeExt);
     },
     submitOnlyOfficeChange(event) {
       if (!this.formValidation()) {
@@ -153,28 +168,22 @@ export default {
       this.updateSettings(event);
     },
     setColor(string) {
-      this.color = string;
+      this.localuser.themeColor = string;
       this.updateSettings();
     },
     async updateSettings(event) {
       if (event !== undefined) {
         event.preventDefault();
       }
-      if (this.color != "") {
-        document.documentElement.style.setProperty("--primaryColor", this.color);
+      if (this.localuser.themeColor != "") {
+        document.documentElement.style.setProperty(
+          "--primaryColor",
+          this.localuser.themeColor
+        );
       }
       try {
-        const data = {
-          id: state.user.id,
-          locale: this.locale,
-          showHidden: this.showHidden,
-          dateFormat: this.dateFormat,
-          themeColor: this.color,
-          quickDownload: this.quickDownload,
-          disableOnlyOfficeExt: this.disableOnlyOfficeExt,
-        };
-        const shouldReload =
-          rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
+        const data = this.localuser;
+        mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "locale",
           "showHidden",
@@ -182,18 +191,15 @@ export default {
           "themeColor",
           "quickDownload",
           "disableOnlyOfficeExt",
+          "preview",
         ]);
-        mutations.updateCurrentUser(data);
-        if (shouldReload) {
-          location.reload();
-        }
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
         notify.showError(e);
       }
     },
     updateLocale(updatedLocale) {
-      this.locale = updatedLocale;
+      this.localuser.locale = updatedLocale;
       this.updateSettings();
     },
   },
@@ -201,6 +207,10 @@ export default {
 </script>
 
 <style scoped>
+.card-content h3 {
+  text-align: center;
+}
+
 .onlyoffice-group {
   display: flex;
   flex-direction: row;

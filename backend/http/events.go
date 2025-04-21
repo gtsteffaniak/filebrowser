@@ -54,7 +54,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 	for {
 		select {
 		case <-d.ctx.Done():
-			err := msgr.sendEvent("notification", "\"server is shutting down, terminating connection.\"")
+			err := msgr.sendEvent("notification", "\"the server is shutting down\"")
 			if err != nil {
 				return http.StatusInternalServerError, fmt.Errorf("error sending message: %v, user: %s, SessionId: %s", err, username, sessionId)
 			}

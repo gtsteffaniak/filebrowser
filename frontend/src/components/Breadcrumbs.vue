@@ -12,6 +12,7 @@
           :aria-label="'breadcrumb-link-' + link.name"
           :title="link.name"
           :key="index"
+          :class="{ changeAvailable: hasUpdate }"
         >
           {{ link.name }}
         </router-link>
@@ -60,6 +61,9 @@ export default {
     },
   },
   computed: {
+    hasUpdate() {
+      return state.req.hasUpdate;
+    },
     isStickySidebar() {
       return getters.isStickySidebar();
     },
@@ -67,20 +71,25 @@ export default {
       return getters.isCardView();
     },
     items() {
-      let parts = removeLeadingSlash(this.path).split("/");
+      // double encode # to fix issue with # in path
+      // replace all # with %23
+      const path = state.req.path.replace(/#/g, "%23");
+      let parts = path.split("/");
+      if (parts[0] === "") {
+        parts.shift();
+      }
       if (parts[parts.length - 1] === "") {
         parts.pop();
       }
       let breadcrumbs = [];
       let buildRef = this.base;
       parts.forEach((element) => {
-        buildRef = buildRef + encodeURIComponent(decodeURIComponent(element)) + "/";
+        buildRef = buildRef + encodeURIComponent(element) + "/";
         breadcrumbs.push({
-          name: decodeURIComponent(element),
+          name: element,
           url: buildRef,
         });
       });
-
       if (breadcrumbs.length > 3) {
         while (breadcrumbs.length !== 4) {
           breadcrumbs.shift();
@@ -201,4 +210,10 @@ export default {
 #breadcrumbs ul li a:hover::after {
   border-left-color: var(--primaryColor);
 }
+
+#breadcrumbs ul li:last-child a.changeAvailable {
+  filter: contrast(0.8) hue-rotate(200deg) saturate(1);
+}
+
 </style>
+

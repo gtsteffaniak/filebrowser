@@ -12,7 +12,7 @@ export const state = reactive({
   usages: {},
   editor: null,
   serverHasMultipleSources: false,
-  realtimeActive: false,
+  realtimeActive: undefined,
   popupPreviewSource: "",
   sources: {
     current: "",
@@ -20,13 +20,19 @@ export const state = reactive({
     info: {},
   },
   user: {
+    preview: {
+      video: true,
+      image: true,
+      popup: true,
+      highQuality: true,
+    },
     loginType: "",
     username: "",
     quickDownloadEnabled: false,
     gallarySize: 0,
     singleClick: false,
     stickySidebar: stickyStartup(),
-    locale: detectLocale(), // Default to the locale from moment
+    locale: "", // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
     scopes: [],
@@ -39,6 +45,7 @@ export const state = reactive({
     }
   },
   req: {
+    hasUpdate: false,
     sorting: {
       by: 'name', // Initial sorting field
       asc: true,  // Initial sorting order

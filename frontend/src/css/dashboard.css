@@ -190,8 +190,7 @@ table tr>*:last-child {
 }
 
 .card .card-title {
-  padding: 1.5em 1em 1em;
-  display: flex;
+  text-align: center;
 }
 
 .card .card-title>*:first-child {

@@ -14,8 +14,7 @@
       </h2>
     </div>
   </div>
-  <PopupPreview/>
-
+  <PopupPreview v-if="popupEnabled" />
 </template>
 
 <script>
@@ -56,6 +55,9 @@ export default {
     };
   },
   computed: {
+    popupEnabled() {
+      return state.user.preview.popup;
+    },
     showBreadCrumbs() {
       return getters.showBreadCrumbs();
     },
