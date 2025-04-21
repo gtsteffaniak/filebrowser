@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
    - User-configurable popup previewer and user can control preview size of images.
    - Enhanced user settings page with more toggle options.
    - Replaced checkboxes with toggles switches https://github.com/gtsteffaniak/filebrowser/issues/461
+   - Refreshed Breadcrumbs style.
    - Enhanced source info on the UI
      - User must have permission `realtime: true` property to get realtime events.
      - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
