@@ -87,11 +87,6 @@ body.rtl #listingView {
   display: block;
 }
 
-#listingView {
-  padding-top: 1em;
-  padding-bottom: 30em;
-}
-
 #listingView.gallery .item,
 #listingView.compact .item,
 #listingView.normal .item,
@@ -107,7 +102,6 @@ body.rtl #listingView {
   max-width: 100%;
   border-radius: 0em;
 }
-
 
 #listingView .item div:last-of-type {
   width: 100%;
@@ -130,7 +124,8 @@ body.rtl #listingView {
   transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
 
-
+#listingView.list .item:hover,
+#listingView.compact .item:hover,
 #listingView.normal .item:hover,
 #listingView.gallery .item:hover {
   box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background),
@@ -138,12 +133,8 @@ body.rtl #listingView {
 transform: scale(1.02); /* Slightly enlarges the element */
 }
 
-#listingView.list .item:hover,
-#listingView.compact .item:hover {
-  box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background),
-  0.3em 0.3em 1em rgba(114, 114, 114, 0.341) !important; /* Adjust shadow values as needed */
-  transform: translateY(-3px);
-}
+
+
 
 
 #listingView.gallery .item .text {
@@ -171,6 +162,8 @@ transform: scale(1.02); /* Slightly enlarges the element */
   font-size: 8em;
   background: none;
 }
+
+
 
 #listingView.gallery .item span {
   display: flex;
@@ -377,7 +370,7 @@ transform: scale(1.02); /* Slightly enlarges the element */
 
 #listingView.list .header i,
 #listingView.normal .header i,
-#listingView.gallary .header i {
+#listingView.gallery .header i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;

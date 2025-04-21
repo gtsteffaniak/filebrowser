@@ -306,7 +306,8 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 		// check if its the name of a source and convert it to a path
 		source, ok = Config.Server.NameToSource[scope.Name]
 		if !ok {
-			return newScopes, fmt.Errorf("invalid scope for source %v", scope.Name)
+			// source might no longer be configured
+			continue
 		}
 		newScopes = append(newScopes, users.SourceScope{
 			Name:  source.Path, // backend name is path

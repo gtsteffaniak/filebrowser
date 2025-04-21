@@ -180,6 +180,11 @@ export default {
     this.fetchData();
   },
   mounted() {
+    if (state.locale == "") {
+      mutations.updateCurrentUser({
+        locale: this.$i18n.locale,
+      });
+    }
     window.addEventListener("keydown", this.keyEvent);
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
@@ -333,8 +338,3 @@ export default {
   },
 };
 </script>
-<style>
-.share {
-  padding-bottom: 35vh;
-}
-</style>

@@ -90,8 +90,8 @@ func (s *Storage) GetPermanent(path, source string, id uint) (*Link, error) {
 }
 
 // Gets wraps a StorageBackend.Gets
-func (s *Storage) Gets(path, source string, id uint) ([]*Link, error) {
-	links, err := s.back.Gets(path, source, id)
+func (s *Storage) Gets(sourcePath, source string, id uint) ([]*Link, error) {
+	links, err := s.back.Gets(sourcePath, source, id)
 
 	if err != nil {
 		return nil, err

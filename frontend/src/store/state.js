@@ -12,13 +12,20 @@ export const state = reactive({
   usages: {},
   editor: null,
   serverHasMultipleSources: false,
-  realtimeActive: false,
+  realtimeActive: undefined,
+  popupPreviewSource: "",
   sources: {
     current: "",
     count: 1,
     info: {},
   },
   user: {
+    preview: {
+      video: true,
+      image: true,
+      popup: true,
+      highQuality: true,
+    },
     loginType: "",
     username: "",
     quickDownloadEnabled: false,

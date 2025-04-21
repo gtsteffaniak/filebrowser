@@ -367,6 +367,8 @@ definitions:
         type: boolean
       permissions:
         $ref: '#/definitions/users.Permissions'
+      preview:
+        $ref: '#/definitions/users.PreviewOptions'
       quickDownload:
         type: boolean
       showHidden:
@@ -448,6 +450,19 @@ definitions:
       share:
         type: boolean
     type: object
+  users.PreviewOptions:
+    properties:
+      highQuality:
+        type: boolean
+      image:
+        type: boolean
+      office:
+        type: boolean
+      popup:
+        type: boolean
+      video:
+        type: boolean
+    type: object
   users.Sorting:
     properties:
       asc:
@@ -494,6 +509,8 @@ definitions:
         description: legacy for migration purposes... og filebrowser has perm attribute
       permissions:
         $ref: '#/definitions/users.Permissions'
+      preview:
+        $ref: '#/definitions/users.PreviewOptions'
       quickDownload:
         type: boolean
       scope:

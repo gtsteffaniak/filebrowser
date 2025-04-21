@@ -2055,6 +2055,9 @@ const docTemplate = `{
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
+                "preview": {
+                    "$ref": "#/definitions/users.PreviewOptions"
+                },
                 "quickDownload": {
                     "type": "boolean"
                 },
@@ -2172,6 +2175,26 @@ const docTemplate = `{
                 }
             }
         },
+        "users.PreviewOptions": {
+            "type": "object",
+            "properties": {
+                "highQuality": {
+                    "type": "boolean"
+                },
+                "image": {
+                    "type": "boolean"
+                },
+                "office": {
+                    "type": "boolean"
+                },
+                "popup": {
+                    "type": "boolean"
+                },
+                "video": {
+                    "type": "boolean"
+                }
+            }
+        },
         "users.Sorting": {
             "type": "object",
             "properties": {
@@ -2243,6 +2266,9 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
+                },
+                "preview": {
+                    "$ref": "#/definitions/users.PreviewOptions"
                 },
                 "quickDownload": {
                     "type": "boolean"

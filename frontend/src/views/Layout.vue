@@ -25,6 +25,7 @@
         'dark-mode': isDarkMode,
         moveWithSidebar: moveWithSidebar,
         'main-padding': showPadding,
+        scrollable: scrollable,
       }"
     >
       <router-view />
@@ -34,6 +35,7 @@
   <Notifications />
   <ContextMenu></ContextMenu>
 </template>
+
 <script>
 import editorBar from "./bars/EditorBar.vue";
 import defaultBar from "./bars/Default.vue";
@@ -79,6 +81,9 @@ export default {
     this.updateSourceInfo();
   },
   computed: {
+    scrollable() {
+      return getters.isScrollable();
+    },
     showPadding() {
       return getters.showBreadCrumbs() || getters.currentView() === "settings";
     },
@@ -125,6 +130,12 @@ export default {
       if (getters.currentPromptName() !== "success") {
         mutations.closeHovers();
       }
+      if (window.location.hash == "") {
+        const element = document.getElementById("main");
+        if (element) {
+          element.scrollTop = 0;
+        }
+      }
     },
   },
   methods: {
@@ -150,11 +161,14 @@ export default {
 </script>
 
 <style>
-#layout-container {
-  padding-bottom: 30% !important;
+.scrollable {
+  overflow: scroll !important;
+  -webkit-overflow-scrolling: touch;
+  /* Enable momentum scrolling in iOS */
 }
 
 #main {
+  overflow: unset;
   -ms-overflow-style: none;
   /* Internet Explorer 10+ */
   scrollbar-width: none;
@@ -172,6 +186,6 @@ export default {
 }
 
 #main > div {
-  min-height: 100%;
+  height: 100%;
 }
 </style>

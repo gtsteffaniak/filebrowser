@@ -53,10 +53,9 @@ func (s shareBackend) GetPermanent(path, source string, id uint) (*share.Link, e
 	return &v, nil
 }
 
-func (s shareBackend) Gets(path, source string, id uint) ([]*share.Link, error) {
+func (s shareBackend) Gets(path, sourcePath string, id uint) ([]*share.Link, error) {
 	var v []*share.Link
-	// TODO remove legacy and return notfound errors
-	_ = s.db.Select(q.Eq("Path", path), q.Eq("Source", source), q.Eq("UserID", id)).Find(&v)
+	_ = s.db.Select(q.Eq("Path", path), q.Eq("Source", sourcePath), q.Eq("UserID", id)).Find(&v)
 	filteredList := []*share.Link{}
 	var err error
 	// through and filter out expired share
@@ -70,7 +69,6 @@ func (s shareBackend) Gets(path, source string, id uint) ([]*share.Link, error) 
 			filteredList = append(filteredList, v[i])
 		}
 	}
-
 	return filteredList, err
 }
 

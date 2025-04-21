@@ -62,7 +62,7 @@
       :counter="selectedCount"
     />
     <action
-      v-if="!showCreate && selectedCount == 1 && userPerms.share"
+      v-if="selectedCount <= 1 && showShare"
       icon="share"
       :label="$t('buttons.share')"
       show="share"
@@ -91,6 +91,7 @@
       :label="$t('buttons.delete')"
       show="delete"
     />
+
   </div>
 </template>
 
@@ -113,6 +114,14 @@ export default {
     };
   },
   computed: {
+    showShare() {
+      return (
+        state.user?.permissions &&
+        state.user?.permissions.share &&
+        state.user.username != "publicUser" &&
+        getters.currentView() != "share"
+      );
+    },
     showContext() {
       if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
         this.setPositions();

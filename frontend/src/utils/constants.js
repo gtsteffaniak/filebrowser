@@ -14,12 +14,12 @@ const logoURL = `${staticURL}/img/logo.png`;
 const noAuth = window.FileBrowser.NoAuth;
 const loginPage = window.FileBrowser.LoginPage;
 const enableThumbs = window.FileBrowser.EnableThumbs;
-const resizePreview = window.FileBrowser.ResizePreview;
 const externalUrl = window.FileBrowser.ExternalUrl
 const onlyOfficeUrl = window.FileBrowser.OnlyOfficeUrl
 const serverHasMultipleSources = window.FileBrowser.SourceCount > 1;
 const oidcAvailable = window.FileBrowser.OidcAvailable;
 const passwordAvailable = window.FileBrowser.PasswordAvailable;
+const mediaAvailable = window.FileBrowser.MediaAvailable;
 const origin = window.location.origin;
 
 const settings = [
@@ -31,6 +31,7 @@ const settings = [
 ]
 
 export {
+  mediaAvailable,
   oidcAvailable,
   passwordAvailable,
   serverHasMultipleSources,
@@ -49,7 +50,6 @@ export {
   noAuth,
   loginPage,
   enableThumbs,
-  resizePreview,
   origin,
   darkMode,
   settings,

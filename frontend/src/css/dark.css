@@ -7,6 +7,9 @@
   --divider: rgba(255, 255, 255, 0.12);
   --textPrimary: rgba(255, 255, 255, 0.87);
   --textSecondary: rgba(255, 255, 255, 0.6);
+  --iconBackground: #1e1f20;
+  --activeWhiteIcon: white;
+
 }
 
 .dark-mode #loading {
@@ -81,20 +84,6 @@
 /* Navigation */
 .dark-mode nav > div {
   border-color: var(--divider);
-}
-
-/* Breadcrumbs */
-.dark-mode .breadcrumbs {
-  border-color: var(--divider);
-  color: var(--textPrimary) !important;
-}
-
-.dark-mode .breadcrumbs span {
-  color: var(--textPrimary) !important;
-}
-
-.dark-mode .breadcrumbs a:hover {
-  background-color: rgba(255, 255, 255, .1);
 }
 
 /* Listing items */
