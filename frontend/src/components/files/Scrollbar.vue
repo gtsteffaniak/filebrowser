@@ -52,6 +52,9 @@ export default {
     };
   },
   computed: {
+    isScrollable() {
+      return getters.isScrollable();
+    },
     isNotListing() {
       return getters.currentView() != "listingView";
     },
@@ -120,7 +123,6 @@ export default {
       this.isVisible = true;
       this.scheduleHide();
       this.updateThumbPosition(content.scrollTop);
-
       mutations.updateListing({
         ...state.listing,
         scrolling: true,
@@ -195,10 +197,10 @@ export default {
 .custom-scrollbar {
   position: absolute;
   top: 0;
-  right: -5em;
+  right: 0;
+  height: 100%;
   display: none;
   width: 2em;
-  height: 100%;
   z-index: 1000;
   pointer-events: none;
   transition: right 0.25s ease;

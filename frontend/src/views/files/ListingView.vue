@@ -203,11 +203,13 @@ export default {
       if (!topItem) return;
 
       const letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
-
-      // Decide category by checking which section is above
-      const fileSection = this.$el.querySelector(".file-items");
-      const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
-      const category = fileTop <= 0 ? "files" : "folders";
+      let category = "folders"; // Default category
+      if (this.numFiles > 0) {
+        // Decide category by checking which section is above
+        const fileSection = this.$el.querySelector(".file-items");
+        const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
+        category = fileTop <= 0 ? "files" : "folders";
+      }
 
       mutations.updateListing({
         ...state.listing,

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -45,6 +46,13 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 	} else {
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
+	}
+	if ffmpegPath != "" {
+		err := CheckValidFFmpeg(ffmpegPath)
+		if err != nil {
+			logger.Fatal(fmt.Sprintf("the configured ffmpeg path is not a valid %s, err: %v", ffmpegPath, err))
+		}
+		ffmpegPath = ""
 	}
 	return &Service{
 		sem:        make(chan struct{}, concurrencyLimit),
@@ -136,10 +144,10 @@ func (s *Service) CreatePreview(file iteminfo.ExtendedFileInfo, previewSize stri
 	switch previewSize {
 	case "large":
 		width, height = 1080, 1080
-		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityMedium)}
+		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityHigh), WithFormat(FormatJpeg)}
 	case "small":
 		width, height = 256, 256
-		options = []Option{WithMode(ResizeModeFill), WithQuality(QualityLow), WithFormat(FormatJpeg)}
+		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityMedium), WithFormat(FormatJpeg)}
 	default:
 		return nil, ErrUnsupportedFormat
 	}
@@ -164,7 +172,7 @@ func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 }
 
 func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
-	if strings.HasPrefix(file.Type, "video") && settings.Config.Integrations.Media.FfmpegPath != "" {
+	if strings.HasPrefix(file.Type, "video") {
 		return true
 	}
 	if file.OnlyOfficeId != "" {
@@ -186,10 +194,21 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 }
 
 func ConvertableImage(file iteminfo.ExtendedFileInfo) bool {
+	if strings.HasPrefix(file.Type, "video") && service.ffmpegPath != "" {
+		return true
+	}
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
 		return true
 	}
 	return false
+}
+
+func CheckValidFFmpeg(path string) error {
+	cmd := exec.Command(
+		path,
+		"-version",
+	)
+	return cmd.Run()
 }

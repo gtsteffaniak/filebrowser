@@ -16,19 +16,19 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) 
 
   await page.dblclick('a[aria-label="testdata"]');
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
-  // Ensure no <span> children exist directly under .breadcrumbs (ie no breadcrumbs paths)
-  let spanChildrenCount = await page.locator('.breadcrumbs > span').count();
-  await page.waitForSelector('.breadcrumbs');
+  await page.waitForSelector('#breadcrumbs');
+  // Ensure no <span> children exist directly under #breadcrumbs (ie no breadcrumbs paths)
+  let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
 
   checkForErrors();
 });
 
-test("root share path is valid", async ({ page, checkForErrors, context }) => {
+test("root share path is valid", async ({ page, checkForErrors, openContextMenu, context }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
-  await page.locator('button[aria-label="Show-Share"]').waitFor({ state: 'visible' });
-  await page.locator('button[aria-label="Show-Share"]').click();
+  await openContextMenu();
+  await page.locator('button[aria-label="Share"]').click();
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
   checkForErrors();
 });

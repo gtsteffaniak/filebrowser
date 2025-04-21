@@ -1,6 +1,12 @@
 <template>
   <span v-if="isPreviewImg">
-    <img v-lazy="thumbnailUrl" class="icon" ref="thumbnail" />
+    <img
+      @mouseenter="handleMouseEnter($event)"
+      @mouseleave="handleMouseLeave($event)"
+      v-lazy="thumbnailUrl"
+      class="icon"
+      ref="thumbnail"
+    />
   </span>
   <span v-else>
     <!-- Material Icon -->
@@ -9,9 +15,9 @@
 </template>
 
 <script>
-import { onlyOfficeUrl } from "@/utils/constants";
+import { onlyOfficeUrl, mediaAvailable } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
-
+import { mutations,state } from "@/store";
 export default {
   name: "Icon",
   props: {
@@ -43,22 +49,28 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      if (this.getIconForType().simpleType === "image") {
+      if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
         return true;
       }
-      if (this.getIconForType().simpleType === "video") {
+      if (this.getIconForType().simpleType === "video" && state.user.preview?.video && mediaAvailable) {
         return true;
       }
-      if (this.getIconForType().simpleType === "document" && onlyOfficeUrl != "") {
+      if (this.getIconForType().simpleType === "document" && state.user.preview?.office && onlyOfficeUrl != "") {
         return true;
       }
-      if (this.getIconForType().simpleType === "pdf" && onlyOfficeUrl != "") {
+      if (this.getIconForType().simpleType === "pdf" && state.user.preview?.office && onlyOfficeUrl != "") {
         return true;
       }
       return false;
     },
   },
   methods: {
+    handleMouseEnter() {
+      mutations.setPreviewSource(this.thumbnailUrl);
+    },
+    handleMouseLeave() {
+      mutations.setPreviewSource("");
+    },
     getIconForType() {
       return getTypeInfo(this.mimetype);
     },
@@ -94,9 +106,11 @@ export default {
   /* Uses inherited color */
   border-radius: 0.2em;
   padding: 0.1em;
-  background: var(--alt-background);
+  background: var(--iconBackground);
 }
-
+.icon.active {
+  background: var(--background);
+}
 .purple-icons {
   color: purple;
 }
@@ -135,8 +149,13 @@ export default {
   color: rgb(246, 70, 70);
 }
 
-.beige-icons {
-  color: beige;
+.white-icons {
+  color: white;
+}
+
+#listingView.gallery .item i.white-icons,
+.active.white-icons {
+  color: var(--activeWhiteIcon);
 }
 
 .deep-blue-icons {

@@ -220,11 +220,11 @@ export function getDownloadURL(source, path, inline, useExternal) {
   }
 }
 
-export function getPreviewURL(source, path, size, modified) {
+export function getPreviewURL(source, path, modified) {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: size,
+      size: state.user.preview.highQuality ? 'large' : 'small',
       key: Date.parse(modified),
       source: source,
       inline: 'true'

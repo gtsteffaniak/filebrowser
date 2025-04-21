@@ -187,7 +187,10 @@ export default {
       this.source = selected.source;
       this.source = state.req.items[state.selected[0]].source;
     }
-    this.subpath = decodeURIComponent(path);
+    // double encode # to fix issue with # in path
+    // replace all # with %23
+    this.subpath = path.replace(/#/g, "%23");
+
     try {
       // get last element of the path
       const links = await shareApi.get(this.subpath, this.source);

@@ -109,19 +109,20 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	StickySidebar        bool                `json:"stickySidebar"`
-	DarkMode             bool                `json:"darkMode"`
-	LockPassword         bool                `json:"lockPassword"`
-	DisableSettings      bool                `json:"disableSettings,omitempty"`
-	Locale               string              `json:"locale"`
-	ViewMode             string              `json:"viewMode"`
-	GallerySize          int                 `json:"gallerySize"`
-	SingleClick          bool                `json:"singleClick"`
-	Permissions          users.Permissions   `json:"permissions"`
-	ShowHidden           bool                `json:"showHidden"`
-	DateFormat           bool                `json:"dateFormat"`
-	ThemeColor           string              `json:"themeColor"`
-	QuickDownload        bool                `json:"quickDownload"`
-	DisableOnlyOfficeExt string              `json:"disableOnlyOfficeExt"`
-	DefaultScopes        []users.SourceScope `json:"-"`
+	PreviewOptions       users.PreviewOptions `json:"preview"`
+	StickySidebar        bool                 `json:"stickySidebar"`
+	DarkMode             bool                 `json:"darkMode"`
+	LockPassword         bool                 `json:"lockPassword"`
+	DisableSettings      bool                 `json:"disableSettings,omitempty"`
+	Locale               string               `json:"locale"`
+	ViewMode             string               `json:"viewMode"`
+	GallerySize          int                  `json:"gallerySize"`
+	SingleClick          bool                 `json:"singleClick"`
+	Permissions          users.Permissions    `json:"permissions"`
+	ShowHidden           bool                 `json:"showHidden"`
+	DateFormat           bool                 `json:"dateFormat"`
+	ThemeColor           string               `json:"themeColor"`
+	QuickDownload        bool                 `json:"quickDownload"`
+	DisableOnlyOfficeExt string               `json:"disableOnlyOfficeExt"`
+	DefaultScopes        []users.SourceScope  `json:"-"`
 }

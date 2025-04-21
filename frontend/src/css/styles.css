@@ -282,25 +282,6 @@
   flex: 1;
 }
 
-#editor-container .breadcrumbs {
-  height: 2.3em;
-  padding: 0 1em;
-}
-
-/*** RTL - flip and position arrow of path ***/
-body.rtl .breadcrumbs .chevron {
-  transform: scaleX(-1) translateX(16em);
-}
-
-#editor-container .breadcrumbs span {
-  font-size: .75rem;
-}
-
-#editor-container .breadcrumbs i {
-  font-size: 1rem;
-}
-
-
 /* * * * * * * * * * * * * * * *
  *          ANIMATIONS         *
  * * * * * * * * * * * * * * * */

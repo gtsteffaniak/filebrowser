@@ -131,7 +131,7 @@ export function getTypeInfo(mimeType) {
 
     if (mimeType === "text/plain" || mimeType === "text/markdown") {
         return {
-            classes: "beige-icons material-icons",
+            classes: "white-icons material-icons",
             materialIcon: "description",
             simpleType: "text",
         };

@@ -84,7 +84,7 @@ import downloadFiles from "@/utils/download";
 
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { fromNow } from "@/utils/moment";
-import { filesApi } from "@/api";
+import { filesApi, shareApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { router } from "@/router";
@@ -161,7 +161,14 @@ export default {
     },
     thumbnailUrl() {
       let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
-      return filesApi.getPreviewURL(state.req.source, path, "small", state.req.modified);
+
+      if (getters.currentView() == "share") {
+        let urlPath = getters.routePath("share");
+        // Step 1: Split the path by '/'
+        const hash = urlPath.split("/")[1];
+        return shareApi.getPreviewURL(hash, path, state.req.modified);
+      }
+      return filesApi.getPreviewURL(state.req.source, path, state.req.modified);
     },
     isThumbsEnabled() {
       return enableThumbs;

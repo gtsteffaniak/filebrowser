@@ -14,6 +14,7 @@
       </h2>
     </div>
   </div>
+  <PopupPreview v-if="popupEnabled" />
 </template>
 
 <script>
@@ -30,6 +31,7 @@ import { url } from "@/utils";
 import { notify } from "@/notify";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
+import PopupPreview from "@/components/files/PopupPreview.vue";
 
 export default {
   name: "files",
@@ -41,6 +43,7 @@ export default {
     Editor,
     OnlyOfficeEditor,
     MarkdownViewer,
+    PopupPreview,
   },
   data() {
     return {
@@ -48,9 +51,13 @@ export default {
       width: window.innerWidth,
       lastPath: "",
       lastHash: "",
+      popupSource: "",
     };
   },
   computed: {
+    popupEnabled() {
+      return state.user.preview.popup;
+    },
     showBreadCrumbs() {
       return getters.showBreadCrumbs();
     },
