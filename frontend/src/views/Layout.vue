@@ -161,10 +161,6 @@ export default {
 </script>
 
 <style>
-#layout-container {
-  padding-bottom: 30% !important;
-}
-
 .scrollable {
   overflow: scroll !important;
   -webkit-overflow-scrolling: touch;
@@ -190,6 +186,6 @@ export default {
 }
 
 #main > div {
-  min-height: 100%;
+  height: 100%;
 }
 </style>

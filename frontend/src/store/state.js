@@ -1,4 +1,5 @@
 import { reactive } from 'vue';
+import { detectLocale } from "@/i18n";
 
 export const state = reactive({
   sessionId: "",
@@ -31,7 +32,7 @@ export const state = reactive({
     gallarySize: 0,
     singleClick: false,
     stickySidebar: stickyStartup(),
-    locale: "", // Default to the locale from moment
+    locale: detectLocale(), // Default to the locale from moment
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
     scopes: [],

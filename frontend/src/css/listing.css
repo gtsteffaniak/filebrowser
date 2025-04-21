@@ -87,10 +87,6 @@ body.rtl #listingView {
   display: block;
 }
 
-#listingView {
-  padding-bottom: 30em;
-}
-
 #listingView.gallery .item,
 #listingView.compact .item,
 #listingView.normal .item,

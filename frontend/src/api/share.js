@@ -1,4 +1,5 @@
 import { fetchURL, fetchJSON, adjustedData } from "./utils";
+import { state } from '@/store'
 import { notify } from "@/notify";
 import { getApiPath,removePrefix } from "@/utils/url.js";
 import { externalUrl,baseURL } from "@/utils/constants";
@@ -47,4 +48,20 @@ export function getShareURL(share) {
     return externalUrl + removePrefix(apiPath, baseURL);
   }
   return window.origin+getApiPath(`share/${share.hash}`);
+}
+
+export function getPreviewURL(hash, path) {
+  try {
+    const params = {
+      path: encodeURIComponent(path),
+      size: state.user.preview.highQuality ? 'large' : 'small',
+      hash: hash,
+      inline: 'true'
+    }
+    const apiPath = getApiPath('api/public/preview', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting preview URL')
+    throw err
+  }
 }

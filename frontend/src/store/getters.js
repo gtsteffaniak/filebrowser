@@ -1,12 +1,18 @@
 import { removePrefix } from "@/utils/url.js";
 import { getFileExtension } from  "@/utils/files.js";
-import { state } from "./state.js";
+import { state,mutations } from "./state.js";
 import { noAuth } from "@/utils/constants.js";
 import { getTypeInfo } from "@/utils/mimetype";
 import * as i18n from "@/i18n";
 
 export const getters = {
-  isScrollable: () => getters.currentView() === "settings" || getters.currentView() === "listingView",
+  isScrollable: () => {
+    const currentView = getters.currentView();
+    if (currentView == "settings" || currentView == "share" || currentView == "listingView") {
+      return true
+    }
+    return false
+  },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,
   currentHash: () => state.route.hash.replace("#", ""),
@@ -21,16 +27,15 @@ export const getters = {
     return state.user.darkMode === true;
   },
   isLoggedIn: () => {
-    if (state.locale == "" || state.locale == undefined) {
-      const savedLocale = localStorage.getItem("userLocale");
-      if (savedLocale) {
-        i18n.setLocale(savedLocale);
-        i18n.default.locale = savedLocale;
-      } else {
-        const browserLocale = i18n.detectLocale();
-        i18n.setLocale(browserLocale);
-        i18n.default.locale = browserLocale;
+    if (state.user == null) {
+      return false;
+    }
+    if (state.user.locale == undefined || state.user.locale == null) {
+      let savedLocale = localStorage.getItem("userLocale");
+      if (!savedLocale) {
+        savedLocale = i18n.detectLocale();
       }
+      mutations.updateCurrentUser({ locale: savedLocale });
     }
     if (noAuth) {
       return true

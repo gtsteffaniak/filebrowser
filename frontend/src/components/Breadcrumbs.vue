@@ -1,5 +1,5 @@
 <template>
-  <div id="breadcrumbs" :class="{ 'add-padding': isStickySidebar }">
+  <div id="breadcrumbs" :class="{ 'add-padding': addPadding }">
     <ul>
       <li>
         <router-link :to="base" :aria-label="$t('files.home')" :title="$t('files.home')">
@@ -60,8 +60,8 @@ export default {
     hasUpdate() {
       return state.req.hasUpdate;
     },
-    isStickySidebar() {
-      return getters.isStickySidebar();
+    addPadding() {
+      return getters.isStickySidebar() || getters.currentView() == "share";
     },
     isCardView() {
       return getters.isCardView();
@@ -69,7 +69,12 @@ export default {
     items() {
       // double encode # to fix issue with # in path
       // replace all # with %23
-      const path = state.req.path.replace(/#/g, "%23");
+      const req = state.req;
+      let path = ""
+      if (req.path !== undefined) {
+        path = state.req.path.replace(/#/g, "%23");
+      }
+      console.log("path", path);
       let parts = path.split("/");
       if (parts[0] === "") {
         parts.shift();

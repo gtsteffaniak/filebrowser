@@ -1,9 +1,10 @@
 import { mutations,state } from "@/store";
 import { notify } from "@/notify";
+import { baseURL } from "@/utils/constants";
 
 export async function startSSE() {
 
-    const eventSrc = new EventSource(`/api/events?sessionId=${state.sessionId}`);
+    const eventSrc = new EventSource(`${baseURL}api/events?sessionId=${state.sessionId}`);
 
     eventSrc.onopen = () => {
         console.log("SSE connection established.");
