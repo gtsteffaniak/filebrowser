@@ -35,7 +35,7 @@ export default {
   mounted() {
     window.addEventListener("mousemove", this.updateCursorPosition);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("mousemove", this.updateCursorPosition);
   },
   methods: {
@@ -47,12 +47,10 @@ export default {
       const popup = this.$refs.popup;
       if (!popup) return;
 
-      const { innerWidth, innerHeight } = window;
+      const { innerWidth } = window;
       const width = popup.offsetWidth;
-      const height = popup.offsetHeight;
 
       let left = this.cursorX - width / 2;
-      let top = this.cursorY - height / 2;
 
       // Apply 100px shift if cursor is in the left half
       if ((this.cursorX < innerWidth / 2) && !state.isMobile) {

@@ -65,10 +65,10 @@ export default {
     },
   },
   methods: {
-    handleMouseEnter(event) {
+    handleMouseEnter() {
       mutations.setPreviewSource(this.thumbnailUrl);
     },
-    handleMouseLeave(event) {
+    handleMouseLeave() {
       mutations.setPreviewSource("");
     },
     getIconForType() {

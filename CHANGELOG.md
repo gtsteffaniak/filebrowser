@@ -5,30 +5,30 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.7.0-beta
 
  **New Features**:
- - New authentication methods:
-   - OIDC (OpenID Connect)
-   #- LDAP
- - Enhanced source info on the UI
-   - User must have permission `realtime: true` property to get realtime events.
-   - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
- - new preview types:
+ - New authentication method: OIDC (OpenID Connect)
+ - UI refresh
+   - Refreshed icons and styles to provide more contrast https://github.com/gtsteffaniak/filebrowser/issues/493
+   - New scrollbar which includes information about the listing https://github.com/gtsteffaniak/filebrowser/issues/304
+   - User-configurable popup previewer and user can control preview size of images.
+   - Enhanced user settings page with more toggle options.
+   - Replaced checkboxes with toggles switches https://github.com/gtsteffaniak/filebrowser/issues/461
+   - Enhanced source info on the UI
+     - User must have permission `realtime: true` property to get realtime events.
+     - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
+ - New file preview types:
    - Video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
    - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
- - New scrollbar which includes information about the listing https://github.com/gtsteffaniak/filebrowser/issues/304
- - Refreshed icons and styles to provide more contrast https://github.com/gtsteffaniak/filebrowser/issues/493
- - user-configurable popup previewer and user can control preview size of images
- - 
+
   **Notes**:
     - sesssionId is now unique per window. Previously it was shared accross browser tabs.
-    - replaced checkboxes with toggles switches https://github.com/gtsteffaniak/filebrowser/issues/461
-    #- disableUsedPercentage is a backend property now.
+    - disableUsedPercentage is a backend property now, so users can't "hack" the information to be shown.
+
   **Bug Fixes**:
     - Fix nil pointer error when source media is disconnected while running.
 
 TODO:
 
 - Safely checks ffmpeg on startup, test and warn if binary has errors and disable if it does.
-- only show pulse when confirmed realtime connection
 - test all onlyoffice file previews, things like csv do not work.
 - add debouncer to source broadcasts
 - ensure source broadcast doesn't send to wrong users info

@@ -36,14 +36,10 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { extractSourceFromPath, removeLeadingSlash } from "@/utils/url.js";
-import Action from "@/components/Action.vue";
+import { extractSourceFromPath } from "@/utils/url.js";
 
 export default {
   name: "breadcrumbs",
-  components: {
-    Action,
-  },
   data() {
     return {
       gallerySize: state.user.gallerySize,

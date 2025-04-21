@@ -1,5 +1,4 @@
 import { reactive } from 'vue';
-import { detectLocale } from "@/i18n";
 
 export const state = reactive({
   sessionId: "",
@@ -45,7 +44,6 @@ export const state = reactive({
     }
   },
   req: {
-    hasUpdate: false,
     sorting: {
       by: 'name', // Initial sorting field
       asc: true,  // Initial sorting order

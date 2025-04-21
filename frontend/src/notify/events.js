@@ -9,7 +9,7 @@ export async function startSSE() {
         console.log("SSE connection established.");
     };
 
-    eventSrc.onerror = (err) => {
+    eventSrc.onerror = () => {
         mutations.updateSourceInfo("error");
         if (state.realtimeActive === true) {
             mutations.setRealtimeActive(false);
