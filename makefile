@@ -6,10 +6,8 @@ setup:
 	if [ ! -f backend/test_config.yaml ]; then \
 		cp backend/config.yaml backend/test_config.yaml; \
 	fi
-	echo "installing swagger needed to generate backend api docs..."
-	go install github.com/swaggo/swag/cmd/swag@latest
-	echo "installing golangci-lint needed for linting backend code..."
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64
+	echo "installing backend tooling..."
+	cd backend && go get tool
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
 
@@ -24,7 +22,7 @@ build-backend:
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'"
 
 run: build-frontend
-	cd backend && swag init --output swagger/docs && \
+	cd backend && go tool swag init --output swagger/docs && \
 	if [ "$(shell uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' ./swagger/docs/docs.go; \
 	else \
@@ -45,7 +43,7 @@ lint-frontend:
 	cd frontend && npm run lint
 
 lint-backend:
-	cd backend && golangci-lint run --path-prefix=backend
+	cd backend && go tool golangci-lint run --path-prefix=backend
 
 lint: lint-backend lint-frontend
 
