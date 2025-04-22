@@ -7,7 +7,7 @@ setup:
 		cp backend/config.yaml backend/test_config.yaml; \
 	fi
 	echo "installing backend tooling..."
-	go get tool
+	cd backend && go get tool
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
 
