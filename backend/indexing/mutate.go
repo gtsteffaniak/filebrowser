@@ -98,37 +98,27 @@ func GetIndex(name string) *Index {
 	return index
 }
 
-func GetIndexesInfo(sources ...string) map[string]ReducedIndex {
-	// update usage if needed
-	for _, source := range sources {
-		idx, ok := indexes[source]
-		if !ok {
-			logger.Error(fmt.Sprintf("source %s not found", source))
-			continue
-		}
-		sourcePath := idx.Path
-		cacheKey := "usageCache-" + source
-		_, ok = cache.DiskUsage.Get(cacheKey).(bool)
-		if !ok {
-			usage, err := disk.Usage(sourcePath)
-			if err != nil {
-				logger.Error(fmt.Sprintf("error getting disk usage for %s: %v", sourcePath, err))
-				idx.SetStatus(UNAVAILABLE)
-				continue
-			}
-			latestUsage := DiskUsage{
-				Total: usage.Total,
-				Used:  usage.Used,
-			}
-			idx.SetUsage(latestUsage)
-			cache.DiskUsage.Set(cacheKey, true)
-		}
+func GetIndexInfo(sourceName string) (ReducedIndex, error) {
+	idx, ok := indexes[sourceName]
+	if !ok {
+		return ReducedIndex{}, fmt.Errorf("index %s not found", sourceName)
 	}
-	indexesMutex.RLock()
-	defer indexesMutex.RUnlock()
-	reducedIndexes := make(map[string]ReducedIndex)
-	for k, v := range indexes {
-		reducedIndexes[k] = v.ReducedIndex
+	sourcePath := idx.Path
+	cacheKey := "usageCache-" + sourceName
+	_, ok = cache.DiskUsage.Get(cacheKey).(bool)
+	if !ok {
+		usage, err := disk.Usage(sourcePath)
+		if err != nil {
+			logger.Error(fmt.Sprintf("error getting disk usage for %s: %v", sourcePath, err))
+			idx.SetStatus(UNAVAILABLE)
+			return ReducedIndex{}, fmt.Errorf("error getting disk usage for %s: %v", sourcePath, err)
+		}
+		latestUsage := DiskUsage{
+			Total: usage.Total,
+			Used:  usage.Used,
+		}
+		idx.SetUsage(latestUsage)
+		cache.DiskUsage.Set(cacheKey, true)
 	}
-	return reducedIndexes
+	return idx.ReducedIndex, nil
 }

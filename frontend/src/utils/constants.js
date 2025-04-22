@@ -1,7 +1,6 @@
 const name = window.FileBrowser.Name;
 const disableExternal = window.FileBrowser.DisableExternal;
 const externalLinks = window.FileBrowser.ExternalLinks;
-const disableUsedPercentage = window.FileBrowser.DisableUsedPercentage;
 const baseURL = window.FileBrowser.BaseURL;
 const staticURL = window.FileBrowser.StaticURL;
 const darkMode = window.FileBrowser.darkMode;
@@ -39,7 +38,6 @@ export {
   externalUrl,
   disableExternal,
   externalLinks,
-  disableUsedPercentage,
   baseURL,
   logoURL,
   recaptcha,

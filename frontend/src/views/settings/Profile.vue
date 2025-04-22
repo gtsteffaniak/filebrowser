@@ -111,7 +111,7 @@ export default {
   },
   data() {
     return {
-      localuser: {preview: {}},
+      localuser: { preview: {} },
       initialized: false,
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
@@ -126,7 +126,6 @@ export default {
   watch: {
     localuser: {
       handler: function () {
-        console.log("localuser changed", this.localuser);
         if (this.initialized) {
           this.updateSettings(); // Ensure updateSettings() is called when localuser changes
         }

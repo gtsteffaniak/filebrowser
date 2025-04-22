@@ -88,7 +88,6 @@ export const state = reactive({
     rules: [],
     frontend: {
       disableExternal: false,
-      disableUsedPercentage: false,
       name: "",
       files: "",
     },

@@ -239,7 +239,7 @@ export function getPreviewURL(source, path, modified) {
 
 export async function sources() {
   try {
-    const apiPath = getApiPath('api/job/status/sources')
+    const apiPath = getApiPath('api/jobs/status/sources')
     const res = await fetchURL(apiPath)
     return await res.json()
   } catch (err) {

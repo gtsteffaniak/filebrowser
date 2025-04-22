@@ -117,7 +117,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	}))
 
 	// Job routes
-	api.HandleFunc("GET /job/{action}/{target}", withUser(getJobHandler))
+	api.HandleFunc("GET /jobs/{action}/{target}", withUser(getJobsHandler))
 
 	api.HandleFunc("GET /onlyoffice/config", withUser(onlyofficeClientConfigGetHandler))
 	api.HandleFunc("POST /onlyoffice/callback", withUser(onlyofficeCallbackHandler))

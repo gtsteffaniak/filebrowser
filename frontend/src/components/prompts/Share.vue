@@ -128,7 +128,6 @@
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi, publicApi } from "@/api";
-import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 
 export default {
@@ -248,7 +247,7 @@ export default {
       }
     },
     humanTime(time) {
-      return fromNow(time, state.user.locale);
+      return getters.getTime(time);
     },
     buildLink(share) {
       return shareApi.getShareURL(share);

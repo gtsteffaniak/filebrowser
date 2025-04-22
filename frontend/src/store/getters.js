@@ -3,9 +3,22 @@ import { getFileExtension } from  "@/utils/files.js";
 import { state,mutations } from "@/store";
 import { noAuth } from "@/utils/constants.js";
 import { getTypeInfo } from "@/utils/mimetype";
+import { fromNow } from "@/utils/moment";
 import * as i18n from "@/i18n";
 
 export const getters = {
+  getTime: (timestamp) => {
+    if (state.user.dateFormat) {
+      // Truncate the fractional seconds to 3 digits (milliseconds)
+      const sanitizedString = timestamp.replace(/\.\d+/, (match) =>
+        match.slice(0, 4)
+      );
+      // Parse the sanitized string into a Date object
+      const date = new Date(sanitizedString);
+      return date.toLocaleString();
+    }
+    return fromNow(timestamp, state.user.locale);
+  },
   isScrollable: () => {
     const currentView = getters.currentView();
     if (currentView == "settings" || currentView == "share" || currentView == "listingView") {

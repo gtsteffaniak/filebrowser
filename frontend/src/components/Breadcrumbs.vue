@@ -70,11 +70,10 @@ export default {
       // double encode # to fix issue with # in path
       // replace all # with %23
       const req = state.req;
-      let path = ""
+      let path = "";
       if (req.path !== undefined) {
         path = state.req.path.replace(/#/g, "%23");
       }
-      console.log("path", path);
       let parts = path.split("/");
       if (parts[0] === "") {
         parts.shift();
@@ -100,7 +99,6 @@ export default {
 
       return breadcrumbs;
     },
-
   },
   methods: {
     updatePaths() {
@@ -215,6 +213,4 @@ export default {
 #breadcrumbs ul li:last-child a.changeAvailable {
   filter: contrast(0.8) hue-rotate(200deg) saturate(1);
 }
-
 </style>
-

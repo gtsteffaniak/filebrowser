@@ -50,11 +50,45 @@ func validateUserInfo() {
 
 func updateUserScopes(user *users.User) bool {
 	updateUser := false
-	newScopes := []users.SourceScope{}
+	finalScopes := []users.SourceScope{}
+	seenNames := make(map[string]bool)
+
+	// Step 1: Start by including all existing scopes, updating Name if source.Path matches
+	for _, existingScope := range user.Scopes {
+		updated := false
+		for _, source := range settings.Config.Server.SourceMap {
+			if existingScope.Name == source.Path || existingScope.Scope == source.Path {
+				// Update Name to match source.Path
+				existingScope.Name = source.Path
+				updated = true
+				break
+			}
+		}
+		if !seenNames[existingScope.Name] {
+			finalScopes = append(finalScopes, existingScope)
+			seenNames[existingScope.Name] = true
+			if updated {
+				updateUser = true
+			}
+		}
+	}
+
+	// Step 2: Add missing scopes from SourceMap if admin or DefaultEnabled
 	for _, source := range settings.Config.Server.SourceMap {
+		if seenNames[source.Path] {
+			continue
+		}
+
+		// Check if scope exists already via path
 		scopePath, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
-		// apply default scope if it doesn't exist
-		if !user.Perm.Admin && scopePath == "" {
+
+		// If user has no access, skip unless admin or default-enabled
+		if err != nil && !(user.Permissions.Admin || source.Config.DefaultEnabled) {
+			continue
+		}
+
+		// Determine scope path
+		if scopePath == "" {
 			scopePath = source.Config.DefaultUserScope
 		}
 		if scopePath == "" {
@@ -63,28 +97,46 @@ func updateUserScopes(user *users.User) bool {
 		if source.Config.CreateUserDir && !user.Permissions.Admin {
 			scopePath = fmt.Sprintf("%s%s", scopePath, users.CleanUsername(user.Username))
 		}
-		// if user doesn't yet have scope for source, add it for admins and default sources
-		if err != nil {
-			if user.Permissions.Admin || source.Config.DefaultEnabled {
-				newScopes = append(newScopes, users.SourceScope{Scope: scopePath, Name: source.Path}) // backend name is path
-				updateUser = true
-			}
-		} else {
-			newScopes = append(newScopes, users.SourceScope{Scope: scopePath, Name: source.Path}) // backend name is path
-		}
-	}
 
-	// maintain backwards compatibility, update user scope from scopes
-	if len(newScopes) == 0 {
-		user.Scopes = []users.SourceScope{
-			{
-				Scope: settings.Config.Server.DefaultSource.Config.DefaultUserScope,
-				Name:  settings.Config.Server.DefaultSource.Path, // backend name is path
-			},
-		}
+		// Add new scope
+		finalScopes = append(finalScopes, users.SourceScope{
+			Scope: scopePath,
+			Name:  source.Path,
+		})
+		seenNames[source.Path] = true
 		updateUser = true
 	}
+
+	// Step 3: If no scopes, apply default
+	if len(finalScopes) == 0 {
+		defaultScope := users.SourceScope{
+			Scope: settings.Config.Server.DefaultSource.Config.DefaultUserScope,
+			Name:  settings.Config.Server.DefaultSource.Path,
+		}
+		finalScopes = append(finalScopes, defaultScope)
+		updateUser = true
+	}
+
+	// Step 4: Assign only if different
+	if !scopesEqual(user.Scopes, finalScopes) {
+		user.Scopes = finalScopes
+		updateUser = true
+	}
+
 	return updateUser
+}
+
+// scopesEqual does a deep comparison to avoid unnecessary writes
+func scopesEqual(a, b []users.SourceScope) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].Scope != b[i].Scope || a[i].Name != b[i].Name {
+			return false
+		}
+	}
+	return true
 }
 
 // func to convert legacy user with perm key to permissions

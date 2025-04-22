@@ -93,17 +93,20 @@ func (idx *Index) SendSourceUpdateEvent() {
 		logger.Debug("Skipping source update event for mock index.")
 		return
 	}
-	message, err := json.Marshal(GetIndexesInfo(idx.Name))
+	reducedIndex, err := GetIndexInfo(idx.Name)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error getting index info: %v", err))
+		return
+	}
+	sourceAsMap := map[string]ReducedIndex{
+		idx.Name: reducedIndex,
+	}
+	message, err := json.Marshal(sourceAsMap)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error marshalling source update message: %v", err))
 		return
 	}
-	msg := events.EventMessage{
-		EventType: "sourceUpdate",
-		Message:   string(message),
-	}
-	events.BroadcastChan <- msg
-	logger.Debug("Broadcasted source update to all SSE clients.")
+	events.SendSourceUpdate(idx.Name, string(message))
 }
 
 func (idx *Index) RunIndexing(origin string, quick bool) {
@@ -127,6 +130,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	firstRun := idx.LastIndexed == time.Time{}
 	// Update the LastIndexed time
 	idx.LastIndexed = time.Now()
+	idx.LastIndexedUnix = idx.LastIndexed.Unix()
 	if quick {
 		idx.QuickScanTime = int(time.Since(startTime).Seconds())
 		logger.Debug(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.QuickScanTime))

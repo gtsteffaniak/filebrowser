@@ -125,7 +125,6 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
-	fmt.Println(d.share.Path, path)
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(d.share.Path, path),
 		Modify: d.user.Permissions.Modify,

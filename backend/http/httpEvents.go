@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
 )
 
@@ -20,52 +21,59 @@ func (msgr messenger) sendEvent(eventType, message string) error {
 	if err != nil {
 		return err
 	}
-	msgr.flusher.Flush() // Flush to send immediately
+	msgr.flusher.Flush()
 	return nil
 }
 
-// Handle SSE connection
 func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !d.user.Permissions.Realtime {
 		return http.StatusForbidden, fmt.Errorf("realtime is disabled for this user")
 	}
-	// Set headers for SSE
+
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("Access-Control-Allow-Origin", "*") // For CORS support
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	sessionId := r.URL.Query().Get("sessionId")
 	username := d.user.Username
-	// Check if the writer supports flushing
+
 	f, ok := w.(http.Flusher)
 	if !ok {
-		// Log the issue for debugging purposes
 		logger.Debug(fmt.Sprintf("error: ResponseWriter does not support Flusher. User: %s, SessionId: %s", username, sessionId))
 		return http.StatusInternalServerError, fmt.Errorf("streaming not supported")
 	}
-	msgr := messenger{flusher: f, writer: w}
 
-	// Listen for messages and client disconnection
+	msgr := messenger{flusher: f, writer: w}
 	clientGone := r.Context().Done()
-	err := msgr.sendEvent("acknowledge", "\"connection established\"")
-	if err != nil {
+
+	// Initial ack
+	if err := msgr.sendEvent("acknowledge", "\"connection established\""); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error sending message: %v, user: %s, SessionId: %s", err, username, sessionId)
 	}
+
+	// Register this client with the events system
+	sendChan := events.Register(username, settings.GetSources(d.user))
+	defer events.Unregister(username, sendChan)
+
 	for {
 		select {
 		case <-d.ctx.Done():
-			err := msgr.sendEvent("notification", "\"the server is shutting down\"")
-			if err != nil {
-				return http.StatusInternalServerError, fmt.Errorf("error sending message: %v, user: %s, SessionId: %s", err, username, sessionId)
-			}
+			_ = msgr.sendEvent("notification", "\"the server is shutting down\"")
 			return http.StatusOK, nil
+
 		case <-clientGone:
 			logger.Debug(fmt.Sprintf("client disconnected. user: %s, SessionId: %s", username, sessionId))
 			return http.StatusOK, nil
+
 		case msg := <-events.BroadcastChan:
-			err := msgr.sendEvent(msg.EventType, msg.Message)
-			if err != nil {
-				return http.StatusInternalServerError, fmt.Errorf("error sending message: %v, user: %s, SessionId: %s", err, username, sessionId)
+			if err := msgr.sendEvent(msg.EventType, msg.Message); err != nil {
+				return http.StatusInternalServerError, fmt.Errorf("error sending broadcast: %v, user: %s", err, username)
+			}
+
+		case msg := <-sendChan:
+			if err := msgr.sendEvent(msg.EventType, msg.Message); err != nil {
+				return http.StatusInternalServerError, fmt.Errorf("error sending targeted message: %v, user: %s", err, username)
 			}
 		}
 	}

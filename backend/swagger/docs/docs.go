@@ -253,6 +253,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "source hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "File path of the image to preview",
                         "name": "path",
                         "in": "query",

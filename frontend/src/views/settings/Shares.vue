@@ -61,7 +61,6 @@
 import { notify } from "@/notify";
 import { shareApi, usersApi } from "@/api";
 import { state, mutations, getters } from "@/store";
-import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
 
@@ -138,7 +137,7 @@ export default {
       });
     },
     humanTime(time) {
-      return fromNow(time * 1000, state.user.locale);
+      return getters.getTime(time);
     },
     buildLink(share) {
       return shareApi.getShareURL(share);

@@ -21,18 +21,11 @@ All notable changes to this project will be documented in this file. For commit 
    - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
 
   **Notes**:
-    - sesssionId is now unique per window. Previously it was shared accross browser tabs.
-    - disableUsedPercentage is a backend property now, so users can't "hack" the information to be shown.
+  - sesssionId is now unique per window. Previously it was shared accross browser tabs.
+  - disableUsedPercentage is a backend property now, so users can't "hack" the information to be shown.
 
   **Bug Fixes**:
-    - Fix nil pointer error when source media is disconnected while running.
-
-TODO:
-
-- Safely checks ffmpeg on startup, test and warn if binary has errors and disable if it does.
-- test all onlyoffice file previews, things like csv do not work.
-- add debouncer to source broadcasts
-- ensure source broadcast doesn't send to wrong users info
+  - Fix nil pointer error when source media is disconnected while running.
 
 ## v0.6.8-beta
 

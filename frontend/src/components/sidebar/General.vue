@@ -5,13 +5,49 @@
     }}</span>
   </div>
   <div class="tooltip-sources">
-    <span class="tooltiptext-sources" :class="{ visible: sourceInfoTooltip != '' }">
-      <span>{{ sourceInfoTooltip.name }}</span>
-      <p>status: {{ sourceInfoTooltip.status }}</p>
-      <p>used: {{ sourceInfoTooltip.used }}</p>
-      <p>total: {{ sourceInfoTooltip.total }}</p>
-      <p>usedPercentage: {{ sourceInfoTooltip.usedPercentage }}</p>
-    </span>
+    <div
+      class="tooltiptext-sources"
+      :style="{ top: mouseY - 500 + 'px' }"
+      :class="{ visible: sourceInfoTooltip != '' }"
+    >
+      <table class="tooltip-table">
+        <thead>
+          <tr>
+            <th colspan="2">{{ sourceInfoTooltip.name }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Status</td>
+            <td>{{ sourceInfoTooltip.status }}</td>
+          </tr>
+          <tr>
+            <td>Assessment</td>
+            <td>{{ sourceInfoTooltip.assessment }}</td>
+          </tr>
+          <tr>
+            <td>Files</td>
+            <td>{{ sourceInfoTooltip.files }}</td>
+          </tr>
+          <tr>
+            <td>Folders</td>
+            <td>{{ sourceInfoTooltip.folders }}</td>
+          </tr>
+          <tr>
+            <td>Last Updated</td>
+            <td>{{ gethumanReadable }}</td>
+          </tr>
+          <tr>
+            <td>Quick Scan Seconds</td>
+            <td>{{ humanReadableQuickScan }}</td>
+          </tr>
+          <tr>
+            <td>Full Scan Seconds</td>
+            <td>{{ humanReadableFullScan }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <div class="card headline-card">
     <div class="card-wrapper user-card">
@@ -19,7 +55,7 @@
         <button
           class="person-button action"
           :title="user.username"
-          @mouseover="updateHoverText('Settings For User: ' + user.username)"
+          @mouseover="updateHoverText('Settings For User')"
           @mouseleave="resetHoverTextToDefault"
         >
           <i class="material-icons">person</i>
@@ -82,10 +118,9 @@
           class="action source-button"
           :class="{ active: activeSource == name }"
           @click="navigateTo('/files/' + info.pathPrefix)"
-          @mouseover="updateSourceTooltip(info)"
+          @mouseenter="updateSourceTooltip($event, info)"
           @mouseleave="resetSourceTooltip"
           :aria-label="$t('sidebar.myFiles')"
-          :title="name"
         >
           <div class="source-container">
             <svg
@@ -102,7 +137,7 @@
             </svg>
             <span>{{ name }}</span>
           </div>
-          <div v-if="info.used != 0" class="usage-info">
+          <div v-if="info.total != 0" class="usage-info">
             <progress-bar
               :val="info.usedPercentage"
               text-position="inside"
@@ -111,7 +146,10 @@
               text-fg-color="white"
             ></progress-bar>
             <div class="usage-info">
-              <span>{{ info.used }} of {{ info.total }} used</span>
+              <span
+                >{{ getHumanReadableFilesize(info.used) }} of
+                {{ getHumanReadableFilesize(info.total) }} used</span
+              >
             </div>
           </div>
         </button>
@@ -122,15 +160,10 @@
 
 <script>
 import * as auth from "@/utils/auth";
-import {
-  signup,
-  disableExternal,
-  noAuth,
-  loginPage,
-  disableUsedPercentage,
-} from "@/utils/constants";
+import { signup, disableExternal, noAuth, loginPage } from "@/utils/constants";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export default {
   name: "SidebarGeneral",
@@ -139,6 +172,7 @@ export default {
   },
   data() {
     return {
+      mouseY: 0,
       hoverText: "", // Initially empty
       sourceInfoTooltip: "",
     };
@@ -157,12 +191,30 @@ export default {
     version: () => version,
     commitSHA: () => commitSHA,
     disableExternal: () => disableExternal,
-    disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && loginPage,
     route: () => state.route,
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
+    humanReadableQuickScan() {
+      const tooltip = this.getTooltipInfo();
+      if (!tooltip || isNaN(Number(tooltip.quickScanDurationSeconds))) return "";
+      return Number(tooltip.quickScanDurationSeconds);
+    },
+    humanReadableFullScan() {
+      const tooltip = this.getTooltipInfo();
+      if (!tooltip || isNaN(Number(tooltip.fullScanDurationSeconds))) return "";
+      return Number(tooltip.fullScanDurationSeconds);
+    },
+    gethumanReadable() {
+      const tooltip = this.getTooltipInfo();
+      if (!tooltip || isNaN(Number(tooltip.lastIndex))) return "";
+      let val = Number(tooltip.lastIndex);
+      if (val === 0) {
+        return "still scanning";
+      }
+      return getters.getTime(val);
+    },
   },
   watch: {
     route() {
@@ -175,10 +227,17 @@ export default {
     },
   },
   methods: {
+    getHumanReadableFilesize(size) {
+      return getHumanReadableFilesize(size);
+    },
+    getTooltipInfo() {
+      return this.sourceInfoTooltip || null;
+    },
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
     },
-    updateSourceTooltip(text) {
+    updateSourceTooltip(event, text) {
+      this.mouseY = event.clientY;
       this.sourceInfoTooltip = text;
     },
     resetSourceTooltip() {
@@ -200,6 +259,7 @@ export default {
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     navigateTo(path) {
+      this.sourceInfoTooltip = ""; // Reset tooltip when navigating
       const hashIndex = path.indexOf("#");
       if (hashIndex !== -1) {
         // Extract the hash
@@ -275,6 +335,7 @@ export default {
   transition: opacity 0.2s ease;
   position: absolute;
   width: max-content;
+  height: fit-content;
   max-width: 20em;
   background-color: var(--alt-background);
   color: var(--textPrimary);
@@ -288,6 +349,35 @@ export default {
   box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.2);
   white-space: normal;
   overflow-wrap: break-word;
+}
+
+.tooltiptext-sources .tooltip-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tooltiptext-sources .tooltip-table th {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #888;
+}
+
+.tooltiptext-sources .tooltip-table td {
+  padding: 0.2em 0.5em;
+  vertical-align: top;
+  border-bottom: 1px solid #ccc !important; /* force apply thin gray lines */
+  border-style: hidden;
+}
+
+.tooltiptext-sources .tooltip-table tr {
+  border-style: hidden;
+}
+
+.tooltiptext-sources .tooltip-table tr:last-child td {
+  border-bottom: none !important;
 }
 
 .tooltiptext-first,
@@ -457,6 +547,7 @@ button.action {
 .headline-card {
   padding: 1em;
   overflow: hidden !important;
+  min-height: fit-content;
 }
 
 .person-button {
