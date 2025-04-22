@@ -18,7 +18,7 @@
         </router-link>
       </li>
     </ul>
-    <div v-if="isCardView">
+    <div v-if="isCardView" class="gallery-size">
       Size:
       <input
         v-model="gallerySize"
@@ -212,5 +212,13 @@ export default {
 
 #breadcrumbs ul li:last-child a.changeAvailable {
   filter: contrast(0.8) hue-rotate(200deg) saturate(1);
+}
+
+.gallery-size {
+  background: var(--alt-background);
+  width: fit-content;
+  padding: 0.5em;
+  border-radius: 1em;
+  margin-bottom: 0.5em;
 }
 </style>
