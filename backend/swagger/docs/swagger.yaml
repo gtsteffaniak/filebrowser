@@ -691,6 +691,11 @@ paths:
       - application/json
       description: Returns a preview image based on the requested path and size.
       parameters:
+      - description: source hash
+        in: query
+        name: hash
+        required: true
+        type: string
       - description: File path of the image to preview
         in: query
         name: path

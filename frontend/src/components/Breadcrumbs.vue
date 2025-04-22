@@ -18,7 +18,7 @@
         </router-link>
       </li>
     </ul>
-    <div v-if="isCardView">
+    <div v-if="isCardView" class="gallery-size">
       Size:
       <input
         v-model="gallerySize"
@@ -70,11 +70,10 @@ export default {
       // double encode # to fix issue with # in path
       // replace all # with %23
       const req = state.req;
-      let path = ""
+      let path = "";
       if (req.path !== undefined) {
         path = state.req.path.replace(/#/g, "%23");
       }
-      console.log("path", path);
       let parts = path.split("/");
       if (parts[0] === "") {
         parts.shift();
@@ -100,7 +99,6 @@ export default {
 
       return breadcrumbs;
     },
-
   },
   methods: {
     updatePaths() {
@@ -216,5 +214,11 @@ export default {
   filter: contrast(0.8) hue-rotate(200deg) saturate(1);
 }
 
+.gallery-size {
+  background: var(--alt-background);
+  width: fit-content;
+  padding: 0.5em;
+  border-radius: 1em;
+  margin-bottom: 0.5em;
+}
 </style>
-

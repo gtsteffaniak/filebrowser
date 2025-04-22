@@ -5,7 +5,6 @@ import { usersApi } from "@/api";
 import { notify } from "@/notify";
 import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
-import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export const mutations = {
   setWatchDirChangeAvailable() {
@@ -39,10 +38,17 @@ export const mutations = {
       for (const k of Object.keys(value)) {
         const source = value[k];
         if (state.sources.info[k]) {
-          state.sources.info[k].used = getHumanReadableFilesize(source.used);
-          state.sources.info[k].total = getHumanReadableFilesize(source.total);
+          state.sources.info[k].used = source.used;
+          state.sources.info[k].total = source.total;
           state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
           state.sources.info[k].status = source.status;
+          state.sources.info[k].name = source.name;
+          state.sources.info[k].files = source.numFiles;
+          state.sources.info[k].folders = source.numDirs;
+          state.sources.info[k].lastIndex = source.lastIndexedUnixTime;
+          state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds;
+          state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds;
+          state.sources.info[k].assessment = source.assessment;
         }
       }
     }

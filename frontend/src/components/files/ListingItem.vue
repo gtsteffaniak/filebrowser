@@ -83,7 +83,6 @@ import { enableThumbs } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { fromNow } from "@/utils/moment";
 import { filesApi, shareApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
@@ -266,16 +265,7 @@ export default {
         : getHumanReadableFilesize(this.size);
     },
     getTime() {
-      if (state.user.dateFormat) {
-        // Truncate the fractional seconds to 3 digits (milliseconds)
-        const sanitizedString = this.modified.replace(/\.\d+/, (match) =>
-          match.slice(0, 4)
-        );
-        // Parse the sanitized string into a Date object
-        const date = new Date(sanitizedString);
-        return date.toLocaleString();
-      }
-      return fromNow(this.modified, state.user.locale);
+      return getters.getTime(this.modified);
     },
     dragStart() {
       if (getters.selectedCount() === 0) {

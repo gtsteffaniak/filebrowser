@@ -1,6 +1,12 @@
-import { mutations,state } from "@/store";
+import { mutations, state } from "@/store";
 import { notify } from "@/notify";
 import { baseURL } from "@/utils/constants";
+import { filesApi } from "@/api"
+
+async function updateSourceInfo() {
+    const sourceinfo = await filesApi.sources();
+    mutations.updateSourceInfo(sourceinfo);
+}
 
 export async function startSSE() {
 
@@ -8,6 +14,7 @@ export async function startSSE() {
 
     eventSrc.onopen = () => {
         console.log("SSE connection established.");
+        updateSourceInfo()
     };
 
     eventSrc.onerror = () => {

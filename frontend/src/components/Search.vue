@@ -577,6 +577,7 @@ export default {
 .searchContext.input {
   background-color: var(--primaryColor) !important;
   border-radius: 0em;
+  color: white;
   border: unset;
   width: 25%;
   min-width: 7em;
