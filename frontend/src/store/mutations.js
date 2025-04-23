@@ -7,6 +7,10 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  toggleOverflowMenu: () => {
+    state.showOverflowMenu = !state.showOverflowMenu;
+    emitStateChanged();
+  },
   setWatchDirChangeAvailable() {
     state.req.hasUpdate = true;
   },
@@ -251,6 +255,11 @@ export const mutations = {
     // Update localStorage if stickySidebar exists
     if ('stickySidebar' in state.user) {
       localStorage.setItem("stickySidebar", state.user.stickySidebar);
+    }
+
+    // Update users if there's any change in state.user
+    if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
+      usersApi.update(state.user, Object.keys(value));
     }
 
     // Emit state change event

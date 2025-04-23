@@ -16,9 +16,11 @@ All notable changes to this project will be documented in this file. For commit 
    - Enhanced source info on the UI
      - User must have permission `realtime: true` property to get realtime events.
      - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
+   - top-right overflow menu added https://github.com/gtsteffaniak/filebrowser/issues/456
  - New file preview types:
    - Video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
    - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
+
 
   **Notes**:
   - sesssionId is now unique per window. Previously it was shared accross browser tabs.
@@ -26,6 +28,7 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bug Fixes**:
   - Fix nil pointer error when source media is disconnected while running.
+  - fixed editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
 
 ## v0.6.8-beta
 

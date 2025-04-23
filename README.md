@@ -24,7 +24,7 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
   2. ✅ Login support for OIDC, LDAP, SSO, password, and proxy.
   3. ✅ Revamped UI
   4. ✅ Simplified configuration via `config.yaml` config file.
-  5. ✅ Ultra-efficient [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) and real-time monitoring
+  5. ✅ Ultra-efficient [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) and real-time updates
      - Real-time search results as you type.
      - Real-time monitoring and updates in the UI.
      - Search supports file and folder sizes, along with various filters.
@@ -40,6 +40,7 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
 Notable features that this fork *does not* have (removed):
 
  - ❌ jobs are not supported yet (planned).
+ - ❌ rules are not supported yet (planned).
  - ❌ shell commands are completely removed and will not be returned.
 
 ## About

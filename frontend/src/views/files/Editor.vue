@@ -5,11 +5,9 @@
 </template>
 
 <script>
-import { router } from "@/router";
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
 import { filesApi } from "@/api";
-import url from "@/utils/url.js";
 import ace from "ace-builds/src-min-noconflict/ace.js";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";
@@ -22,35 +20,6 @@ export default {
   computed: {
     isDarkMode() {
       return getters.isDarkMode();
-    },
-    breadcrumbs() {
-      let parts = state.route.path.split("/");
-
-      if (parts[0] === "") {
-        parts.shift();
-      }
-
-      if (parts[parts.length - 1] === "") {
-        parts.pop();
-      }
-
-      let breadcrumbs = [];
-
-      for (let i = 0; i < parts.length; i++) {
-        breadcrumbs.push({ name: decodeURIComponent(parts[i]) });
-      }
-
-      breadcrumbs.shift();
-
-      if (breadcrumbs.length > 3) {
-        while (breadcrumbs.length !== 4) {
-          breadcrumbs.shift();
-        }
-
-        breadcrumbs[0].name = "...";
-      }
-
-      return breadcrumbs;
     },
   },
   created() {
@@ -80,22 +49,15 @@ export default {
   },
   methods: {
     handleEditorValueRequest() {
-      filesApi.put(state.req.path, this.editor.getValue());
+      filesApi.put(state.req.path, state.req.source, this.editor.getValue());
     },
     back() {
-      let uri = url.removeLastDir(state.route.path) + "/";
-      this.$router.push({ path: uri });
+      this.$router.push(-1);
     },
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName() != null) {
         return;
-      }
-      if (key == "Backspace") {
-        // go back
-        let currentPath = state.route.path.replace(/\/+$/, "");
-        let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-        router.push({ path: newPath });
       }
       if (!ctrlKey && !metaKey) {
         return;

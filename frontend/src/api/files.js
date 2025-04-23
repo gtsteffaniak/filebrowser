@@ -2,7 +2,7 @@ import { fetchURL, adjustedData } from './utils'
 import { getApiPath, extractSourceFromPath,removePrefix } from '@/utils/url.js'
 import { state } from '@/store'
 import { notify } from '@/notify'
-import { externalUrl,baseURL } from '@/utils/constants'
+import { externalUrl,baseURL,serverHasMultipleSources } from '@/utils/constants'
 
 // Notify if errors occur
 export async function fetchFiles(url, content = false) {
@@ -51,9 +51,14 @@ export async function remove(url) {
   }
 }
 
-export async function put(url, content = '') {
+export async function put(path,source, content = '') {
   try {
-    return await resourceAction(url, 'PUT', content)
+    if (serverHasMultipleSources) {
+      path = `/files/${source}${path}`
+    } else {
+      path = `/files${path}`
+    }
+    return await resourceAction(path, 'PUT', content)
   } catch (err) {
     notify.showError(err.message || 'Error putting resource')
     throw err
