@@ -109,8 +109,8 @@
       :label="$t('buttons.delete')"
       show="delete"
     />
-    <action v-if="showEdit" icon="save" :label="$t('buttons.save')" @action="save()" />
-    <action v-if="ismarkdownEditable" icon="edit" @action="edit()" />
+    <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
+    <action v-if="showEdit" icon="edit" @action="edit()" />
   </div>
 </template>
 
@@ -138,6 +138,9 @@ export default {
   computed: {
     showEdit() {
       return window.location.hash == "#edit" && state.user.permissions.modify;
+    },
+    showSave() {
+      return getters.currentView() == "editor" && state.user.permissions.modify;
     },
     showOverflow() {
       return getters.currentPromptName() == "OverflowMenu";

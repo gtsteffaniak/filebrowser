@@ -3,7 +3,7 @@
     <action v-if="notShare" icon="close" :label="$t('buttons.close')" @action="close()" />
     <title v-if="isSettings" class="topTitle">Settings</title>
     <title v-else class="topTitle">{{ req.name }}</title>
-    <action v-else :icon="iconName" @click="toggleOverflow" />
+    <action :icon="iconName" @click="toggleOverflow" />
   </header>
 </template>
 
