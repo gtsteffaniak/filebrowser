@@ -13,10 +13,6 @@
       :class="{ 'dark-mode-header': isDarkMode }"
       v-if="currentView == 'listingView'"
     ></listingBar>
-    <editorBar
-      :class="{ 'dark-mode-header': isDarkMode }"
-      v-else-if="currentView == 'editor'"
-    ></editorBar>
     <defaultBar v-else :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar></sidebar>
     <Scrollbar
@@ -37,7 +33,6 @@
 </template>
 
 <script>
-import editorBar from "./bars/EditorBar.vue";
 import defaultBar from "./bars/Default.vue";
 import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
@@ -56,7 +51,6 @@ export default {
     ContextMenu,
     Notifications,
     defaultBar,
-    editorBar,
     listingBar,
     Sidebar,
     Prompts,

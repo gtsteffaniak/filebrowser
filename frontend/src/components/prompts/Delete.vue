@@ -37,6 +37,7 @@ import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
+import router from "@/router";
 
 export default {
   name: "delete",
@@ -51,7 +52,7 @@ export default {
       return getters.currentPrompt();
     },
     nav() {
-      if (state.isSearchActive) {
+      if (state.isSearchActive || getters.currentView() == "preview") {
         return [state.selected[0].path];
       }
       let paths = [];
@@ -69,11 +70,14 @@ export default {
       buttons.loading("delete");
 
       try {
-        if (state.isSearchActive) {
+        if (state.isSearchActive || getters.currentView() == "preview") {
           await filesApi.remove(state.selected[0].url);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
           mutations.closeHovers();
+          if (getters.currentView() == "preview") {
+            router.go(-1);
+          }
           return;
         }
         if (!this.isListing) {

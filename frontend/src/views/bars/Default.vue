@@ -3,8 +3,7 @@
     <action v-if="notShare" icon="close" :label="$t('buttons.close')" @action="close()" />
     <title v-if="isSettings" class="topTitle">Settings</title>
     <title v-else class="topTitle">{{ req.name }}</title>
-    <action v-if="ismarkdownEditable" icon="edit" @action="edit()"/>
-    <action v-else icon="hide_source" />
+    <action v-else :icon="iconName" @click="toggleOverflow" />
   </header>
 </template>
 
@@ -19,7 +18,15 @@ export default {
   components: {
     Action,
   },
+
   computed: {
+    iconName() {
+      let icon = "more_vert";
+      if (getters.currentPromptName() == "OverflowMenu") {
+        icon = "keyboard_arrow_up";
+      }
+      return icon;
+    },
     ismarkdownEditable() {
       return state.req.type == "text/markdown" && state.user.permissions.modify;
     },
@@ -34,9 +41,17 @@ export default {
     },
   },
   methods: {
-    async edit() {
-      window.location.hash = "#edit";
+    toggleOverflow() {
+      if (getters.currentPromptName() == "OverflowMenu") {
+        mutations.closeHovers();
+        return;
+      } else {
+        mutations.showHover({
+          name: "OverflowMenu",
+        });
+      }
     },
+
     close() {
       mutations.closeHovers();
 
@@ -47,13 +62,13 @@ export default {
       }
 
       if (getters.currentView() === "onlyOfficeEditor") {
-        const current = window.location.pathname
-        const newpath = removeLastDir(current)
+        const current = window.location.pathname;
+        const newpath = removeLastDir(current);
         window.location = newpath + "#" + state.req.name;
         return;
       }
       mutations.replaceRequest({});
-      router.go(-1)
+      router.go(-1);
     },
   },
 };

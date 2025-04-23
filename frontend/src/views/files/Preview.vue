@@ -155,6 +155,15 @@ export default {
     window.addEventListener("keydown", this.key);
     this.subtitlesList = await this.subtitles();
     this.updatePreview();
+    mutations.resetSelected();
+    mutations.addSelected({
+      name: state.req.name,
+      path: state.req.path,
+      size: state.req.size,
+      type: state.req.type,
+      source: state.req.source,
+      url: state.req.url,
+    });
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.key);

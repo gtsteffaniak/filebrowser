@@ -2,7 +2,7 @@
   <div
     id="context-menu"
     ref="contextMenu"
-    v-show="showContext"
+    v-if="showContext"
     :style="{
       top: `${top}px`,
       left: `${left}px`,
@@ -91,15 +91,37 @@
       :label="$t('buttons.delete')"
       show="delete"
     />
-
+  </div>
+  <div
+    id="context-menu"
+    ref="contextMenu"
+    v-else-if="showOverflow"
+    :style="{
+      top: '3em',
+      right: '1em',
+    }"
+    class="button no-select"
+    :class="{ 'dark-mode': isDarkMode }"
+  >
+    <action
+      v-if="user.permissions.modify"
+      icon="delete"
+      :label="$t('buttons.delete')"
+      show="delete"
+    />
+    <action v-if="showEdit" icon="save" :label="$t('buttons.save')" @action="save()" />
+    <action v-if="ismarkdownEditable" icon="edit" @action="edit()" />
   </div>
 </template>
 
 <script>
 import downloadFiles from "@/utils/download";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import { onlyOfficeUrl } from "@/utils/constants.js";
+import buttons from "@/utils/buttons";
+import { notify } from "@/notify";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "ContextMenu",
@@ -114,6 +136,12 @@ export default {
     };
   },
   computed: {
+    showEdit() {
+      return window.location.hash == "#edit" && state.user.permissions.modify;
+    },
+    showOverflow() {
+      return getters.currentPromptName() == "OverflowMenu";
+    },
     showShare() {
       return (
         state.user?.permissions &&
@@ -123,7 +151,7 @@ export default {
       );
     },
     showContext() {
-      if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
+      if (getters.currentPromptName() == "ContextMenu") {
         this.setPositions();
         return true;
       }
@@ -214,6 +242,22 @@ export default {
     startDownload() {
       downloadFiles();
     },
+    async edit() {
+      window.location.hash = "#edit";
+    },
+    async save() {
+      const button = "save";
+      buttons.loading("save");
+      try {
+        eventBus.emit("handleEditorValueRequest", "data");
+        buttons.success(button);
+        notify.showSuccess("File Saved!");
+      } catch (e) {
+        buttons.done(button);
+        notify.showError("Error saving file: ", e);
+      }
+      mutations.closeHovers();
+    },
   },
 };
 </script>
@@ -222,7 +266,7 @@ export default {
 #context-menu {
   position: absolute;
   z-index: 1000;
-  background-color: white;
+  background-color: var(--background);
   max-width: 20em;
   min-width: 15em;
   min-height: 4em;
@@ -254,20 +298,11 @@ export default {
 #context-menu > span {
   display: inline-block;
   margin-left: 1em;
-  color: #6f6f6f;
+  color: var(--textPrimary);
   margin-right: auto;
 }
 
 #context-menu .action span {
   display: none;
-}
-
-/* File selection */
-#context-menu.dark-mode {
-  background: var(--surfaceSecondary) !important;
-}
-
-#context-menu.dark-mode span {
-  color: var(--textPrimary) !important;
 }
 </style>

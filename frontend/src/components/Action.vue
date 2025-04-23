@@ -1,5 +1,11 @@
 <template>
-  <button @click="action" :aria-label="label" :title="label" class="action no-select">
+  <button
+    :disabled="isDisabled"
+    @click="action"
+    :aria-label="label"
+    :title="label"
+    class="action no-select"
+  >
     <i class="material-icons">{{ icon }}</i>
     <span>{{ label }}</span>
     <span v-if="counter > 0" class="counter">{{ counter }}</span>
@@ -11,7 +17,8 @@ import { mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "action",
-  props: ["icon", "label", "counter", "show"],
+  props: ["icon", "label", "counter", "show", "isDisabled"],
+
   methods: {
     action: function () {
       if (this.show) {
@@ -24,5 +31,7 @@ export default {
 </script>
 
 <style>
-
+.action {
+  min-width: 3em;
+}
 </style>
