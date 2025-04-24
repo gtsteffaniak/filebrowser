@@ -1,6 +1,11 @@
 <template>
   <header :class="{ 'dark-mode-header': isDarkMode }">
-    <action v-if="notShare" icon="close" :label="$t('buttons.close')" @action="close()" />
+    <action
+      v-if="notShare"
+      icon="close_back"
+      :label="$t('buttons.close')"
+      @action="close()"
+    />
     <title v-if="isSettings" class="topTitle">Settings</title>
     <title v-else class="topTitle">{{ req.name }}</title>
     <action :icon="iconName" @click="toggleOverflow" />
@@ -18,7 +23,7 @@ export default {
   components: {
     Action,
   },
-
+  mounted() {},
   computed: {
     iconName() {
       let icon = "more_vert";

@@ -611,20 +611,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the resource",
+                        "description": "Destination path where to place the files inside the destination source",
                         "name": "path",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
+                        "description": "Name for the desired filebrowser destination source name, default is used if not provided",
                         "name": "source",
                         "in": "query"
                     },

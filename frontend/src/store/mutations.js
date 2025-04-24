@@ -7,6 +7,10 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setMultiButtonState: (value) => {
+    state.multiButtonState = value;
+    emitStateChanged();
+  },
   toggleOverflowMenu: () => {
     state.showOverflowMenu = !state.showOverflowMenu;
     emitStateChanged();
@@ -114,6 +118,11 @@ export const mutations = {
       state.showSidebar = false;
     } else {
       state.showSidebar = !state.showSidebar;
+    }
+    if (state.showSidebar) {
+      state.multiButtonState = "back";
+    } else {
+      state.multiButtonState = "menu";
     }
     emitStateChanged();
   },
@@ -255,6 +264,11 @@ export const mutations = {
     // Update localStorage if stickySidebar exists
     if ('stickySidebar' in state.user) {
       localStorage.setItem("stickySidebar", state.user.stickySidebar);
+      if (state.user.stickySidebar) {
+        state.multiButtonState = "menu";
+      } else if (state.showSidebar) {
+        state.multiButtonState = "back";
+      }
     }
 
     // Update users if there's any change in state.user

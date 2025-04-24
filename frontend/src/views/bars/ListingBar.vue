@@ -2,7 +2,7 @@
   <header>
     <action
       class="menu-button"
-      icon="menu"
+      icon="close_back"
       :label="$t('buttons.toggleSidebar')"
       @action="toggleSidebar()"
       :disabled="isSearchActive"
