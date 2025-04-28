@@ -9,11 +9,7 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar
-      :class="{ 'dark-mode-header': isDarkMode }"
-      v-if="currentView == 'listingView'"
-    ></listingBar>
-    <defaultBar v-else :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
+    <defaultBar :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar></sidebar>
     <Scrollbar
       id="main"
@@ -34,7 +30,6 @@
 
 <script>
 import defaultBar from "./bars/Default.vue";
-import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
@@ -51,7 +46,6 @@ export default {
     ContextMenu,
     Notifications,
     defaultBar,
-    listingBar,
     Sidebar,
     Prompts,
     Scrollbar,
@@ -72,6 +66,7 @@ export default {
     if (!state.sessionId) {
       mutations.setSession(generateRandomCode(8));
     }
+    this.reEval()
     this.updateSourceInfo();
   },
   computed: {
@@ -89,9 +84,6 @@ export default {
     },
     progress() {
       return getters.progress(); // Access getter directly from the store
-    },
-    isListing() {
-      return getters.isListing(); // Access getter directly from the store
     },
     currentPrompt() {
       return getters.currentPrompt(); // Access getter directly from the store
@@ -117,22 +109,35 @@ export default {
   },
   watch: {
     $route() {
+      this.reEval()
+    },
+  },
+  methods: {
+    reEval() {
       if (!getters.isLoggedIn()) {
         return;
       }
+      const currentView = getters.currentView()
       mutations.setMultiple(false);
       if (getters.currentPromptName() !== "success") {
         mutations.closeHovers();
       }
-      if (window.location.hash == "") {
+      console.log(currentView)
+      if (window.location.hash == "" && currentView == "listingView") {
         const element = document.getElementById("main");
         if (element) {
           element.scrollTop = 0;
         }
       }
+      if (currentView == "settings") {
+        mutations.setActiveSettingsView(getters.currentHash());
+      }
+      if (currentView != "listingView") {
+        mutations.setMultiButtonState("back")
+      } else {
+        mutations.setMultiButtonState("menu");
+      }
     },
-  },
-  methods: {
     async updateSourceInfo() {
       if (getters.isLoggedIn()) {
         const sourceinfo = await filesApi.sources();

@@ -6,13 +6,14 @@
       'no-select': true,
       'listing-item': true,
       activebutton: isMaximized && isSelected,
-      hiddenFile: isHiddenNotSelected,
+      hiddenFile: isHiddenNotSelected && !this.isDraggedOver,
     }"
     :id="getID"
     role="button"
     tabindex="0"
     :draggable="isDraggable"
     @dragstart="dragStart"
+    @dragleave="dragLeave"
     @dragover="dragOver"
     @drop="drop"
     :data-dir="isDir"
@@ -104,6 +105,7 @@ export default {
       touchStartY: 0,
       isLongPress: false,
       isSwipe: false,
+      isDraggedOver: false
     };
   },
   props: [
@@ -116,14 +118,14 @@ export default {
     "index",
     "readOnly",
     "path",
-    "hidden",
+    "reducedOpacity",
   ],
   computed: {
     quickDownloadEnabled() {
       return state.user?.quickDownload;
     },
     isHiddenNotSelected() {
-      return !this.isSelected && this.hidden;
+      return !this.isSelected && this.reducedOpacity;
     },
     getID() {
       return url.base64Encode(encodeURIComponent(this.name));
@@ -267,6 +269,9 @@ export default {
     getTime() {
       return getters.getTime(this.modified);
     },
+    dragLeave() {
+      this.isDraggedOver = false
+    },
     dragStart() {
       if (getters.selectedCount() === 0) {
         mutations.addSelected(this.index);
@@ -280,17 +285,8 @@ export default {
     },
     dragOver(event) {
       if (!this.canDrop) return;
-
       event.preventDefault();
-      let el = event.target;
-
-      for (let i = 0; i < 5; i++) {
-        if (!el.classList.contains("item")) {
-          el = el.parentElement;
-        }
-      }
-
-      el.style.opacity = 1;
+      this.isDraggedOver = true
     },
     async drop(event) {
       if (!this.canDrop) return;

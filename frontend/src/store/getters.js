@@ -194,6 +194,8 @@ export const getters = {
         } else {
           return "preview";
         }
+      } else {
+        return "listingView"
       }
     }
     return null

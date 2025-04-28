@@ -104,7 +104,7 @@
     :class="{ 'dark-mode': isDarkMode }"
   >
     <action
-      v-if="user.permissions.modify"
+      v-if="showDelete"
       icon="delete"
       :label="$t('buttons.delete')"
       show="delete"
@@ -136,8 +136,14 @@ export default {
     };
   },
   computed: {
+    noItems() {
+      return !this.showEdit && !this.showSave && !this.showDelete
+    },
     showEdit() {
       return window.location.hash == "#edit" && state.user.permissions.modify;
+    },
+    showDelete() {
+      return state.user.permissions.modify && getters.currentView() == "preview"
     },
     showSave() {
       return getters.currentView() == "editor" && state.user.permissions.modify;

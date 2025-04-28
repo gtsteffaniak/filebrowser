@@ -28,8 +28,9 @@ All notable changes to this project will be documented in this file. For commit 
 
   **Bug Fixes**:
   - Fix nil pointer error when source media is disconnected while running.
-  - fixed editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
+  - Fixed editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
   - Links in setting page does not navigate to correct location https://github.com/gtsteffaniak/filebrowser/issues/474
+  - Fix user disableSettings property to be respected.
 
 ## v0.6.8-beta
 

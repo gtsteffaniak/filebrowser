@@ -74,7 +74,6 @@ export default {
   mounted() {
     mutations.closeHovers();
     mutations.setSearch(false);
-    mutations.setActiveSettingsView(getters.currentHash());
   },
   methods: {
     shouldShow(setting) {

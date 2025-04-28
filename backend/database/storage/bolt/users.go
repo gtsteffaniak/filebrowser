@@ -121,8 +121,11 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 }
 
 func (st usersBackend) Save(user *users.User, changePass bool) error {
+	if user.LoginMethod == "" {
+		user.LoginMethod = users.LoginMethodPassword
+	}
 	logger.Debug(fmt.Sprintf("Saving user [%s] changepass: %v", user.Username, changePass))
-	if settings.Config.Auth.Methods.PasswordAuth.Enabled && changePass {
+	if user.LoginMethod == users.LoginMethodPassword && changePass {
 		err := checkPassword(user.Password)
 		if err != nil {
 			return err
@@ -223,6 +226,10 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 		if capitalField == "Password" {
 			if user.LoginMethod != users.LoginMethodPassword {
 				return nil, fmt.Errorf("password cannot be changed when login method is not password")
+			}
+			err := checkPassword(user.Password)
+			if err != nil {
+				return nil, fmt.Errorf("password does not meet complexity requirements")
 			}
 			value, err := users.HashPwd(user.Password)
 			if err != nil {
