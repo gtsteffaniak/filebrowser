@@ -17,29 +17,9 @@
         close: multistate == 'close',
       }"
     >
-      <path
-        class="line top"
-        d="m 30,33 h 40 c 0,0 8.5,-0.68551 8.5,10.375 0,8.292653 -6.122707,9.002293 -8.5,6.625 l -11.071429,-11.071429"
-        v-show="multistate !== 'close'"
-      />
-      <path
-        class="line top close-line"
-        d="M 30,30 L 70,70"
-        v-show="multistate === 'close'"
-      />
-
-      <path class="line middle" d="m 70,50 h -40" />
-
-      <path
-        class="line bottom"
-        d="m 30,67 h 40 c 0,0 8.5,0.68551 8.5,-10.375 0,-8.292653 -6.122707,-9.002293 -8.5,-6.625 l -11.071429,11.071429"
-        v-show="multistate !== 'close'"
-      />
-      <path
-        class="line bottom close-line"
-        d="M 30,70 L 70,30"
-        v-show="multistate === 'close'"
-      />
+      <path class="line top" d="M 30,33 H 70" />
+      <path class="line middle" d="M 30,50 H 70" />
+      <path class="line bottom" d="M 30,67 H 70" />
     </svg>
   </button>
   <button
@@ -91,8 +71,6 @@ export default {
 .ham {
   width: 2.5em;
   margin-top: 0.25em;
-  margin-left: 0.25em;
-  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: transform 400ms;
   -moz-user-select: none;
@@ -110,64 +88,39 @@ export default {
   stroke: var(--textPrimary);
   stroke-width: 5.5;
   stroke-linecap: round;
-  transition: all 400ms ease-in-out, transform 400ms ease-in-out,
-    opacity 400ms ease-in-out;
+  transition: stroke 400ms ease, transform 400ms ease, opacity 400ms ease, stroke-dasharray 400ms ease, stroke-dashoffset 400ms ease;
+  transform-origin: 50% 50%;
 }
 
-.ham.menu .line {
-  stroke-dasharray: none;
-}
-
-.ham.close .line {
-  stroke-dasharray: none;
-}
-
-.ham.back .line {
-  stroke-dasharray: none;
-}
-
-.ham5 .top {
-  stroke-dasharray: 40 82;
-}
-
+/* Menu (default) */
+.ham5 .top,
+.ham5 .middle,
 .ham5 .bottom {
+  transform: none;
+  opacity: 1;
   stroke-dasharray: 40 82;
+  stroke-dashoffset: 0;
 }
 
+/* Close (X) */
+.ham5.close .top {
+  transform: translateY(1em) translateX(-0.75em) rotate(45deg);
+}
+
+.ham5.close .middle {
+  opacity: 0;
+}
+
+.ham5.close .bottom {
+  transform: translateY(-0.5em) translateX(-0.75em) rotate(-45deg);
+}
+
+/* Back (Arrow) */
 .ham5.back .top {
-  stroke-dasharray: 14 82;
-  stroke-dashoffset: -72px;
+  transform: translate(0,0.2em) rotate(45deg) scaleX(0.5);
 }
 
 .ham5.back .bottom {
-  stroke-dasharray: 14 82;
-  stroke-dashoffset: -72px;
-}
-.action {
-  width: 3em;
-}
-
-.line.bottom-arrow {
-  fill: var(--textPrimary); /* Fill color for arrow */
-  transition: fill 400ms; /* Transition for fill color */
-}
-
-.ham5.back .bottom-arrow {
-  fill: transparent; /* Change fill color on active state */
-}
-
-.ham5.close .middle {
-  opacity: 0;
-}
-
-.ham5.close .middle {
-  opacity: 0;
-}
-
-.close-line {
-  stroke: var(--textPrimary);
-  stroke-width: 5.5;
-  stroke-linecap: round;
-  transition: stroke 400ms ease-in-out;
+  transform: translate(0, -0.2em) rotate(-45deg) scaleX(0.5);
 }
 </style>

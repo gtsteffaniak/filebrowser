@@ -536,7 +536,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the resource",
+                        "description": "Destination path where to place the files inside the destination source",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -611,7 +611,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Destination path where to place the files inside the destination source",
+                        "description": "Destination path where to place the files inside the destination source, a directory must end in / to create a directory",
                         "name": "path",
                         "in": "query",
                         "required": true

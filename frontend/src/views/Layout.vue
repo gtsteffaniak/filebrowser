@@ -131,7 +131,7 @@ export default {
       if (currentView == "settings" ) {
         mutations.setActiveSettingsView(getters.currentHash());
         mutations.setMultiButtonState("back")
-      } else if (currentView == "editor" || currentView =="preview" || currentView == "onlyOfficeEditor") {
+      } else if (currentView == "editor" || currentView == "preview" || currentView == "onlyOfficeEditor") {
         mutations.setMultiButtonState("close")
       } else {
         mutations.setMultiButtonState("menu");

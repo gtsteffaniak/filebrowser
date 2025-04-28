@@ -265,7 +265,7 @@ export const mutations = {
     // Update localStorage if stickySidebar exists
     if ('stickySidebar' in state.user) {
       localStorage.setItem("stickySidebar", state.user.stickySidebar);
-      if (state.user.stickySidebar && getters.currentView == "listingView") {
+      if (state.user.stickySidebar && getters.currentView() == "listingView") {
         state.multiButtonState = "menu";
       } else if (state.showSidebar) {
         state.multiButtonState = "back";

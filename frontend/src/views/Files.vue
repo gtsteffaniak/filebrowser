@@ -149,6 +149,15 @@ export default {
         mutations.replaceRequest({});
       } finally {
         mutations.replaceRequest(data);
+        const currentView = getters.currentView()
+        if (currentView == "settings" ) {
+          mutations.setActiveSettingsView(getters.currentHash());
+          mutations.setMultiButtonState("back")
+        } else if (currentView == "editor" || currentView == "preview" || currentView == "onlyOfficeEditor") {
+          mutations.setMultiButtonState("close")
+        } else {
+          mutations.setMultiButtonState("menu");
+        }
         mutations.setLoading("files", false);
       }
       setTimeout(() => {

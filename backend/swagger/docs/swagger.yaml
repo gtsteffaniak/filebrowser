@@ -991,7 +991,7 @@ paths:
         Supports file uploads and directory creation.
       parameters:
       - description: Destination path where to place the files inside the destination
-          source
+          source, a directory must end in / to create a directory
         in: query
         name: path
         required: true
@@ -1042,7 +1042,8 @@ paths:
       - application/json
       description: Updates an existing file at the specified path.
       parameters:
-      - description: Path to the resource
+      - description: Destination path where to place the files inside the destination
+          source
         in: query
         name: path
         required: true

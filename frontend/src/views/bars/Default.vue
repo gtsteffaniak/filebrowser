@@ -1,12 +1,12 @@
 <template>
   <header :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
-    <action v-if="notShare" icon="close_back" :label="$t('buttons.close')" @action="multiAction" />
+    <action v-if="!isShare" icon="close_back" :label="$t('buttons.close')" @action="multiAction" />
     <search v-if="showSearch" />
     <title v-else-if="isSettings" class="topTitle">Settings</title>
     <title v-else class="topTitle">{{ req.name }}</title>
     <action v-if="isListingView" class="menu-button" :icon="viewIcon" :label="$t('buttons.switchView')"
       @action="switchView" :disabled="isSearchActive" />
-    <action v-else :icon="iconName" :disabled="noItems" @click="toggleOverflow" />
+    <action v-else-if="!isShare" :icon="iconName" :disabled="noItems" @click="toggleOverflow" />
   </header>
 </template>
 
@@ -46,8 +46,8 @@ export default {
       };
       return icons[state.user.viewMode] || "grid_view";
     },
-    notShare() {
-      return getters.currentView() !== "share";
+    isShare() {
+      return getters.currentView() == "share";
     },
     noItems() {
       console.log(!this.showEdit && !this.showSave && !this.showDelete)

@@ -184,29 +184,30 @@ export const getters = {
     return "/share/"+ parts[1] + "/";
   },
   currentView: () => {
+    let listingView = null
     const pathname = getters.routePath()
     if (pathname.startsWith(`/settings`)) {
-      return "settings"
+      listingView = "settings"
     } else if (pathname.startsWith(`/share`)) {
-      return "share"
+      listingView = "share"
     } else if (pathname.startsWith(`/files`)) {
       if (state.req.type !== undefined) {
         if (state.req.type == "directory") {
-          return "listingView";
+          listingView = "listingView";
         } else if (getters.onlyOfficeEnabled(state.req.name)) {
-          return "onlyOfficeEditor";
+          listingView = "onlyOfficeEditor";
         } else if ("content" in state.req && state.req.type == "text/markdown" && window.location.hash != "#edit") {
-          return "markdownViewer";
+          listingView = "markdownViewer";
         } else if ("content" in state.req) {
-          return "editor";
+          listingView = "editor";
         } else {
-          return "preview";
+          listingView = "preview";
         }
       } else {
-        return "listingView"
+        listingView = "listingView"
       }
     }
-    return null
+    return listingView
   },
   progress: () => {
     // Check if state.upload is defined and valid
