@@ -143,7 +143,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "Destination path where to place the files inside the destination source"
+// @Param path query string true "Destination path where to place the files inside the destination source, a directory must end in / to create a directory"
 // @Param source query string false "Name for the desired filebrowser destination source name, default is used if not provided"
 // @Param override query bool false "Override existing file if true"
 // @Success 200 "Resource created successfully"
@@ -214,7 +214,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "Path to the resource"
+// @Param path query string true "Destination path where to place the files inside the destination source"
 // @Param source query string false "Source name for the desired source, default is used if not provided"
 // @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 "Resource updated successfully"
