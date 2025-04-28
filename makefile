@@ -65,3 +65,6 @@ test-playwright: build-frontend
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
 	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
+
+run-proxy: build-frontend
+	cd _docker && docker compose up -d --build

@@ -51,9 +51,9 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-
+	scopePath := utils.JoinPathAsUnix(userscope, path)
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Path:    utils.JoinPathAsUnix(userscope, path),
+		Path:    scopePath,
 		Modify:  d.user.Permissions.Modify,
 		Source:  source,
 		Expand:  true,
@@ -61,6 +61,12 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	})
 	if err != nil {
 		return errToStatus(err), err
+	}
+	if userscope != "/" {
+		fileInfo.Path = strings.TrimPrefix(fileInfo.Path, userscope)
+	}
+	if fileInfo.Path == "" {
+		fileInfo.Path = "/"
 	}
 	if fileInfo.Type == "directory" {
 		return renderJSON(w, r, fileInfo)

@@ -39,6 +39,7 @@
     <div class="settings-items">
       <ToggleSwitch
         class="item"
+        v-if="localUser.loginMethod == 'password'"
         :modelValue="updatePassword"
         @update:modelValue="(val) => $emit('update:updatePassword', val)"
         :name="$t('settings.changePassword')"
@@ -93,7 +94,7 @@
       />
     </div>
 
-    <p>
+    <p v-if="stateUser.username != localUser.username">
       <label for="locale">{{ $t("settings.language") }}</label>
       <languages
         class="input input--block"
@@ -103,7 +104,7 @@
       ></languages>
     </p>
 
-    <permissions :permissions="localUser.permissions" />
+    <permissions v-if="stateUser.permissions.admin" :permissions="localUser.permissions" />
   </div>
 </template>
 

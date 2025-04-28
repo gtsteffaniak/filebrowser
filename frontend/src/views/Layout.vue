@@ -122,18 +122,17 @@ export default {
       if (getters.currentPromptName() !== "success") {
         mutations.closeHovers();
       }
-      console.log(currentView)
       if (window.location.hash == "" && currentView == "listingView") {
         const element = document.getElementById("main");
         if (element) {
           element.scrollTop = 0;
         }
       }
-      if (currentView == "settings") {
+      if (currentView == "settings" ) {
         mutations.setActiveSettingsView(getters.currentHash());
-      }
-      if (currentView != "listingView") {
         mutations.setMultiButtonState("back")
+      } else if (currentView == "editor" || currentView =="preview" || currentView == "onlyOfficeEditor") {
+        mutations.setMultiButtonState("close")
       } else {
         mutations.setMultiButtonState("menu");
       }

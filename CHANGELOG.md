@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
      - User must have permission `realtime: true` property to get realtime events.
      - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
    - top-right overflow menu for deleting / editing files in peview https://github.com/gtsteffaniak/filebrowser/issues/456
+   - helpful UI animation for drag and drop files, to get feedback where the drop target is.
  - New file preview types:
    - Video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
    - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
@@ -32,6 +33,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Fixed editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
   - Links in setting page does not navigate to correct location https://github.com/gtsteffaniak/filebrowser/issues/474
   - Fix user disableSettings property to be respected.
+  - Fix non admin users updating admin settings.
 
 ## v0.6.8-beta
 

@@ -73,6 +73,9 @@ export const getters = {
   },
   reqNumDirs: () => {
     let dirCount = 0;
+    if (!state.req.items) {
+      return 0;
+    }
     state.req.items.forEach((item) => {
       // Check if the item is a directory
       if (item.type == "directory") {
@@ -85,6 +88,9 @@ export const getters = {
   },
   reqNumFiles: () => {
     let fileCount = 0;
+    if (!state.req.items) {
+      return 0;
+    }
     state.req.items.forEach((item) => {
       // Check if the item is a directory
       if (item.type != "directory") {
@@ -101,7 +107,9 @@ export const getters = {
     }
     const dirs = [];
     const files = [];
-
+    if (!state.req.items) {
+      return { dirs, files };
+    }
     state.req.items.forEach((item) => {
       if (item.type == "directory") {
         dirs.push(item);
