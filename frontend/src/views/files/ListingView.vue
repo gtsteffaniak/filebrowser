@@ -42,7 +42,7 @@
         v-else
         id="listingView"
         ref="listingView"
-        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
+        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true,'dropping': isDragging  }"
         class="file-icons"
       >
         <div>
@@ -107,7 +107,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-            v-bind:hidden="item.hidden"
+            v-bind:reducedOpacity="item.hidden || isDragging"
           />
         </div>
         <div v-if="numFiles > 0">
@@ -127,7 +127,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-            v-bind:hidden="item.hidden"
+            v-bind:reducedOpacity="item.hidden || isDragging"
           />
         </div>
 
@@ -219,6 +219,9 @@ export default {
     },
   },
   computed: {
+    isDragging() {
+      return this.dragCounter > 0
+    },
     scrolling() {
       return state.listing.scrollRatio;
     },
@@ -798,22 +801,14 @@ export default {
     },
     dragEnter() {
       this.dragCounter++;
-      let items = document.getElementsByClassName("item");
 
-      Array.from(items).forEach((file) => {
-        file.style.opacity = 0.5;
-      });
     },
     dragLeave() {
       this.dragCounter--;
-      if (this.dragCounter === 0) {
-        this.resetOpacity();
-      }
     },
     async drop(event) {
       event.preventDefault();
       this.dragCounter = 0;
-      this.resetOpacity();
 
       let dt = event.dataTransfer;
       let el = event.target;
@@ -898,12 +893,6 @@ export default {
       await upload.handleFiles(files, path);
       mutations.setReload(true);
     },
-    resetOpacity() {
-      let items = document.getElementsByClassName("item");
-      Array.from(items).forEach((file) => {
-        file.style.opacity = 1;
-      });
-    },
     sort(field) {
       let asc = false;
       if (
@@ -983,5 +972,11 @@ export default {
 }
 .font-size-large h2 {
   font-size: 2em !important;
+}
+
+#listingView.dropping {
+  transform: scale(0.97);
+  border-radius: 1em;
+  box-shadow: var(--primaryColor) 0 0 1em;
 }
 </style>

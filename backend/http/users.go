@@ -196,7 +196,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	// Read the JSON body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusBadRequest, err
 	}
 	defer r.Body.Close()
 
@@ -209,7 +209,7 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	// Perform the user update
 	err = store.Users.Update(req.Data, d.user.Permissions.Admin, req.Which...)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusBadRequest, err
 	}
 
 	// Return the updated user (with the password hidden) as JSON response

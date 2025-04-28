@@ -1,5 +1,6 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
+import { getters } from "./getters.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
@@ -7,6 +8,10 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setMultiButtonState: (value) => {
+    state.multiButtonState = value;
+    emitStateChanged();
+  },
   toggleOverflowMenu: () => {
     state.showOverflowMenu = !state.showOverflowMenu;
     emitStateChanged();
@@ -114,6 +119,11 @@ export const mutations = {
       state.showSidebar = false;
     } else {
       state.showSidebar = !state.showSidebar;
+    }
+    if (state.showSidebar) {
+      state.multiButtonState = "back";
+    } else {
+      state.multiButtonState = "menu";
     }
     emitStateChanged();
   },
@@ -255,11 +265,28 @@ export const mutations = {
     // Update localStorage if stickySidebar exists
     if ('stickySidebar' in state.user) {
       localStorage.setItem("stickySidebar", state.user.stickySidebar);
+      if (state.user.stickySidebar && getters.currentView() == "listingView") {
+        state.multiButtonState = "menu";
+      } else if (state.showSidebar) {
+        state.multiButtonState = "back";
+      }
     }
 
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      usersApi.update(state.user, Object.keys(value));
+      usersApi.update(state.user, [
+        "locale",
+        "dateFormat",
+        "themeColor",
+        "quickDownload",
+        "disableOnlyOfficeExt",
+        "preview",
+        "stickySidebar",
+        "darkMode",
+        "showHidden",
+        "sorting",
+        "gallerySize",
+      ]);
     }
 
     // Emit state change event

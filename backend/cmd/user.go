@@ -29,6 +29,9 @@ func validateUserInfo() {
 		if updatePermissions(user) {
 			updateUser = true
 		}
+		if updatePreviewSettings(user) {
+			updateUser = true
+		}
 		if updateLoginType(user) {
 			updateUser = true
 		}
@@ -172,6 +175,16 @@ func updatePermissions(user *users.User) bool {
 func updateLoginType(user *users.User) bool {
 	if user.LoginMethod == "" {
 		user.LoginMethod = users.LoginMethodPassword
+		return true
+	}
+	return false
+}
+
+func updatePreviewSettings(user *users.User) bool {
+	// if user hasn't been updated yet
+	if user.LoginMethod == "" {
+		user.Preview.Image = true
+		user.Preview.PopUp = true
 		return true
 	}
 	return false

@@ -13,22 +13,27 @@ All notable changes to this project will be documented in this file. For commit 
    - Enhanced user settings page with more toggle options.
    - Replaced checkboxes with toggles switches https://github.com/gtsteffaniak/filebrowser/issues/461
    - Refreshed Breadcrumbs style.
+   - main navbar icon is multipurpose menu, close, back and animates
    - Enhanced source info on the UI
      - User must have permission `realtime: true` property to get realtime events.
      - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
-   - top-right overflow menu added https://github.com/gtsteffaniak/filebrowser/issues/456
+   - top-right overflow menu for deleting / editing files in peview https://github.com/gtsteffaniak/filebrowser/issues/456
+   - helpful UI animation for drag and drop files, to get feedback where the drop target is.
  - New file preview types:
    - Video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
    - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
 
-
   **Notes**:
   - sesssionId is now unique per window. Previously it was shared accross browser tabs.
   - disableUsedPercentage is a backend property now, so users can't "hack" the information to be shown.
+  - updated documentation for resources api https://github.com/gtsteffaniak/filebrowser/issues/560
 
   **Bug Fixes**:
   - Fix nil pointer error when source media is disconnected while running.
-  - fixed editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
+  - Fixed editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
+  - Links in setting page does not navigate to correct location https://github.com/gtsteffaniak/filebrowser/issues/474
+  - Fix user disableSettings property to be respected.
+  - Fix non admin users updating admin settings.
 
 ## v0.6.8-beta
 

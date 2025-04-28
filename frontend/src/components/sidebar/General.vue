@@ -51,16 +51,21 @@
   </div>
   <div class="card headline-card">
     <div class="card-wrapper user-card">
-      <div @click="navigateTo('/settings#profile-main')" class="inner-card">
+      <div v-if="settingsAllowed" @click="navigateTo('/settings#profile-main')" class="inner-card">
         <button
           class="person-button action"
-          :title="user.username"
           @mouseover="updateHoverText('Settings For User')"
           @mouseleave="resetHoverTextToDefault"
         >
           <i class="material-icons">person</i>
           {{ user.username }}
           <i aria-label="settings" class="material-icons"> settings</i>
+        </button>
+      </div>
+      <div v-else class="inner-card">
+        <button class="person-button action" >
+          <i class="material-icons">person</i>
+          {{ user.username }}
         </button>
       </div>
 
@@ -178,6 +183,7 @@ export default {
     };
   },
   computed: {
+    settingsAllowed: () => !state.user.disableSettings,
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
     isMobile: () => getters.isMobile(),
@@ -552,5 +558,6 @@ button.action {
 
 .person-button {
   max-width: 13em;
+  padding-right: 1em !important;
 }
 </style>

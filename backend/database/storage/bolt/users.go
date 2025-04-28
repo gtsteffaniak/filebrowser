@@ -78,10 +78,12 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	}
 
 	if !actorIsAdmin {
+		fmt.Println("User is not admin, checking restricted fields")
 		err := checkRestrictedFields(existingUser, fields)
 		if err != nil {
 			return err
 		}
+		fmt.Println("existingUser, fields", existingUser, fields)
 	}
 
 	if len(fields) == 0 {
@@ -121,8 +123,11 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 }
 
 func (st usersBackend) Save(user *users.User, changePass bool) error {
+	if user.LoginMethod == "" {
+		user.LoginMethod = users.LoginMethodPassword
+	}
 	logger.Debug(fmt.Sprintf("Saving user [%s] changepass: %v", user.Username, changePass))
-	if settings.Config.Auth.Methods.PasswordAuth.Enabled && changePass {
+	if user.LoginMethod == users.LoginMethodPassword && changePass {
 		err := checkPassword(user.Password)
 		if err != nil {
 			return err
@@ -167,22 +172,26 @@ func (st usersBackend) DeleteByUsername(username string) error {
 
 // Define a function to check for restricted fields
 func checkRestrictedFields(existingUser *users.User, fields []string) error {
-	// Check if 'password' field is locked
-	if existingUser.LockPassword && slices.Contains(fields, "password") {
-		return fmt.Errorf("password is locked")
-	}
-	// Use reflection to get the field names of fileds except NonAdminEditable
-	editableFields := reflect.ValueOf(existingUser)
-	if editableFields.Kind() == reflect.Struct {
-		for i := 0; i < editableFields.NumField(); i++ {
-			fieldName := editableFields.Type().Field(i).Name
-			if slices.Contains(fields, utils.CapitalizeFirst(fieldName)) {
-				return fmt.Errorf("non-admins cannot modify field: %s", fieldName)
-			}
+	// Get a list of allowed fields from NonAdminEditable
+	allowed := getNonAdminEditableFieldNames()
+
+	for _, field := range fields {
+		if !slices.Contains(allowed, field) {
+			return fmt.Errorf("non-admins cannot modify field: %s", field)
 		}
 	}
-	// No restricted fields found, return nil (no error)
+
 	return nil
+}
+
+// Helper to return list of field names from NonAdminEditable struct
+func getNonAdminEditableFieldNames() []string {
+	var names []string
+	t := reflect.TypeOf(users.NonAdminEditable{})
+	for i := 0; i < t.NumField(); i++ {
+		names = append(names, t.Field(i).Name)
+	}
+	return names
 }
 
 func parseFields(user *users.User, fields []string) ([]string, error) {
@@ -223,6 +232,10 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 		if capitalField == "Password" {
 			if user.LoginMethod != users.LoginMethodPassword {
 				return nil, fmt.Errorf("password cannot be changed when login method is not password")
+			}
+			err := checkPassword(user.Password)
+			if err != nil {
+				return nil, fmt.Errorf("password does not meet complexity requirements")
 			}
 			value, err := users.HashPwd(user.Password)
 			if err != nil {

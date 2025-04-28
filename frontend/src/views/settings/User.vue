@@ -62,6 +62,7 @@ export default {
     };
   },
   created() {
+    mutations.setActiveSettingsView("");
     this.fetchData();
   },
   computed: {

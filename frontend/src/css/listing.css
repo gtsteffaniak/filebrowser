@@ -2,7 +2,9 @@
   --item-selected: white;
   transition: all;
   animation-duration: 0.25s;
+  transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
   user-select: none;
+  min-height: 75vh;
 }
 
 body.rtl #listingView {
@@ -132,10 +134,6 @@ body.rtl #listingView {
   0.3em 0.3em 1em rgba(114, 114, 114, 0.341) !important; /* Adjust shadow values as needed */
 transform: scale(1.02); /* Slightly enlarges the element */
 }
-
-
-
-
 
 #listingView.gallery .item .text {
   width: 100%;

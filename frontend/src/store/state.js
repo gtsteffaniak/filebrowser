@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  multiButtonState: "menu",
   showOverflowMenu: false,
   sessionId: "",
   disableOnlyOfficeExt: "",
