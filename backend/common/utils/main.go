@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 func CheckErr(source string, err error) {
@@ -116,7 +117,8 @@ func JoinPathAsUnix(parts ...string) string {
 	return joinedPath
 }
 
-// resolveSymlinks resolves symlinks in the given path
+// ResolveSymlinks resolves symlinks in the given path and returns
+// the final resolved path, whether it's a directory (considering bundle logic), and any error.
 func ResolveSymlinks(path string) (string, bool, error) {
 	for {
 		// Get the file info using os.Lstat to handle symlinks
@@ -134,11 +136,10 @@ func ResolveSymlinks(path string) (string, bool, error) {
 			}
 
 			// Resolve the symlink's target relative to its directory
-			// This ensures the resolved path is absolute and correctly calculated
 			path = filepath.Join(filepath.Dir(path), target)
 		} else {
-			// Not a symlink, so return the resolved path and whether it's a directory
-			isDir := info.IsDir()
+			// Not a symlink, check with bundle-aware directory logic
+			isDir := iteminfo.IsDirectory(info)
 			return path, isDir, nil
 		}
 	}

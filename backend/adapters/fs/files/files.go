@@ -73,7 +73,6 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 		if info.Size > 50*1024*1024 { // 50 megabytes in bytes
 			logger.Debug(fmt.Sprintf("Reading large text file contents: "+info.Path, info.Name))
 		}
-
 		content, err := getContent(realPath)
 		if err != nil {
 			return response, err

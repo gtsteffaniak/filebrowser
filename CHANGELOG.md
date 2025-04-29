@@ -29,11 +29,19 @@ All notable changes to this project will be documented in this file. For commit 
   - updated documentation for resources api https://github.com/gtsteffaniak/filebrowser/issues/560
 
   **Bug Fixes**:
-  - Fix nil pointer error when source media is disconnected while running.
-  - Fixed editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
+  - Nil pointer error when source media is disconnected while running.
+  - source selection buggy https://github.com/gtsteffaniak/filebrowser/issues/537
+  - upload folder structure https://github.com/gtsteffaniak/filebrowser/issues/539
+  - Editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
+  - Prevent the user from changing the password https://github.com/gtsteffaniak/filebrowser/issues/550
   - Links in setting page does not navigate to correct location https://github.com/gtsteffaniak/filebrowser/issues/474
-  - Fix user disableSettings property to be respected.
-  - Fix non admin users updating admin settings.
+  - Url encoding issue https://github.com/gtsteffaniak/filebrowser/issues/530
+  - certain file types being treated as folders https://github.com/gtsteffaniak/filebrowser/issues/555
+  - source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/557
+  - onlyoffice support on proxy auth https://github.com/gtsteffaniak/filebrowser/issues/559
+  - User disableSettings property to be respected.
+  - Non admin users updating admin settings.
+  - Right click context issue on safari desktop.
 
 ## v0.6.8-beta
 

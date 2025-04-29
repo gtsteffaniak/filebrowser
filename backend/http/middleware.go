@@ -13,7 +13,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
@@ -113,36 +112,11 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
-			var err error
-			// Retrieve the user from the store and store it in the context
-			data.user, err = store.Users.Get(proxyUser)
+			user, err := setupProxyUser(r, data, proxyUser)
 			if err != nil {
-				if err.Error() != "the resource does not exist" {
-					return http.StatusInternalServerError, err
-				}
-				if config.Auth.Methods.ProxyAuth.CreateUser {
-					hashpass, err := users.HashPwd(proxyUser)
-					if err != nil {
-						return http.StatusInternalServerError, err
-					}
-					err = storage.CreateUser(users.User{
-						LoginMethod: users.LoginMethodProxy,
-						Username:    proxyUser,
-						NonAdminEditable: users.NonAdminEditable{
-							Password: hashpass, // hashed password that can't actually be used
-						},
-					}, false)
-					if err != nil {
-						return http.StatusInternalServerError, err
-					}
-					data.user, err = store.Users.Get(proxyUser)
-					if err != nil {
-						return http.StatusInternalServerError, err
-					}
-				} else {
-					return http.StatusUnauthorized, fmt.Errorf("proxy authentication failed - no user found")
-				}
+				return http.StatusForbidden, err
 			}
+			data.user = user
 			setUserInResponseWriter(w, data.user)
 			return fn(w, r, data)
 		}
