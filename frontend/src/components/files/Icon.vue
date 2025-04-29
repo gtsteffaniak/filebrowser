@@ -45,6 +45,9 @@ export default {
       return this.materialIcon !== "";
     },
     isPreviewImg() {
+      if (this.thumbnailUrl == "") {
+        return false;
+      }
       // todo support webp previews
       if (this.mimetype == "text/csv") {
         return false;

@@ -18,6 +18,26 @@ var AllFiletypeOptions = []string{
 	"text",
 }
 
+// Known bundle-style extensions that are technically directories but treated as files
+var BundleExtensions = []string{
+	".app",       // macOS application bundle
+	".bundle",    // macOS plugin bundle
+	".framework", // macOS framework
+	".plugin",    // macOS plugin
+	".kext",      // macOS kernel extension
+	".pkg",       // macOS installer package
+	".mpkg",      // macOS multi-package
+	".apk",       // Android package
+	".aab",       // Android App Bundle
+	".appx",      // Windows application package
+	".msix",      // Windows modern app package
+	".deb",       // Debian package
+	".snap",      // Snap package
+	".flatpak",   // Flatpak application
+	".dmg",       // macOS disk image
+	".iso",       // ISO disk image
+}
+
 // Document file extensions
 var documentTypes = []string{
 	// Common Document Formats
@@ -291,4 +311,30 @@ func (fi ItemInfo) ContainsSearchTerm(searchTerm string, options SearchOptions) 
 	}
 
 	return true
+}
+
+// IsDirectory determines if a path should be treated as a directory.
+// It treats known bundle-style directories as files instead.
+func IsDirectory(fileInfo os.FileInfo) bool {
+	if !fileInfo.IsDir() {
+		return false
+	}
+
+	if !hasBundleExtension(fileInfo.Name()) {
+		return true
+	}
+
+	// For bundle-type dirs, treat them as files
+	return false
+}
+
+// hasBundleExtension checks if a file has a known bundle-style extension.
+func hasBundleExtension(name string) bool {
+	ext := strings.ToLower(filepath.Ext(name))
+	for _, bundleExt := range BundleExtensions {
+		if ext == bundleExt {
+			return true
+		}
+	}
+	return false
 }

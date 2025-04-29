@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/cache"
+
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -146,7 +147,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	// Process each file and directory in the current directory
 	for _, file := range files {
 		isHidden := isHidden(file, idx.Source.Path+combinedPath)
-		isDir := file.IsDir()
+		isDir := iteminfo.IsDirectory(file)
 		fullCombined := combinedPath + file.Name()
 		if idx.shouldSkip(isDir, isHidden, fullCombined) {
 			continue
@@ -157,10 +158,6 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			Hidden:  isHidden,
 		}
 
-		// fix for .app files on macos which are technically directories, but we don't want to treat them as such
-		if isDir && strings.HasSuffix(file.Name(), ".app") {
-			isDir = false
-		}
 		if isDir {
 
 			// skip non-indexable dirs.

@@ -36,6 +36,9 @@ All notable changes to this project will be documented in this file. For commit 
   - Prevent the user from changing the password https://github.com/gtsteffaniak/filebrowser/issues/550
   - Links in setting page does not navigate to correct location https://github.com/gtsteffaniak/filebrowser/issues/474
   - Url encoding issue https://github.com/gtsteffaniak/filebrowser/issues/530
+  - certain file types being treated as folders https://github.com/gtsteffaniak/filebrowser/issues/555
+  - source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/557
+  - onlyoffice support on proxy auth https://github.com/gtsteffaniak/filebrowser/issues/559
   - User disableSettings property to be respected.
   - Non admin users updating admin settings.
   - Right click context issue on safari desktop.

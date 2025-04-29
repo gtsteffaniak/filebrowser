@@ -74,6 +74,40 @@ func extractToken(r *http.Request) (string, error) {
 	return "", request.ErrNoTokenInRequest
 }
 
+func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*users.User, error) {
+	var err error
+	// Retrieve the user from the store and store it in the context
+	data.user, err = store.Users.Get(proxyUser)
+	if err != nil {
+		if err.Error() != "the resource does not exist" {
+			return nil, err
+		}
+		if config.Auth.Methods.ProxyAuth.CreateUser {
+			hashpass, err := users.HashPwd(proxyUser)
+			if err != nil {
+				return nil, err
+			}
+			err = storage.CreateUser(users.User{
+				LoginMethod: users.LoginMethodProxy,
+				Username:    proxyUser,
+				NonAdminEditable: users.NonAdminEditable{
+					Password: hashpass, // hashed password that can't actually be used
+				},
+			}, false)
+			if err != nil {
+				return nil, err
+			}
+			data.user, err = store.Users.Get(proxyUser)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, fmt.Errorf("proxy authentication failed - no user found")
+		}
+	}
+	return data.user, nil
+}
+
 // loginHandler handles user authentication via password.
 // @Summary User login
 // @Description Authenticate a user with a username and password.
@@ -85,6 +119,19 @@ func extractToken(r *http.Request) (string, error) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/login [post]
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+	proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+	if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
+		user, err := setupProxyUser(r, &requestContext{}, proxyUser)
+		if err != nil {
+			http.Error(w, err.Error(), 403)
+			return
+		}
+		status, err := printToken(w, r, user) // Pass the data object
+		if err != nil {
+			http.Error(w, http.StatusText(status), status)
+		}
+		return
+	}
 	if !config.Auth.Methods.PasswordAuth.Enabled {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
