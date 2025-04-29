@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file. For commit 
   - certain file types being treated as folders https://github.com/gtsteffaniak/filebrowser/issues/555
   - source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/557
   - onlyoffice support on proxy auth https://github.com/gtsteffaniak/filebrowser/issues/559
+  - downloading with user scope https://github.com/gtsteffaniak/filebrowser/issues/564
   - User disableSettings property to be respected.
   - Non admin users updating admin settings.
   - Right click context issue on safari desktop.
