@@ -128,7 +128,7 @@ export default {
       return !this.isSelected && this.reducedOpacity;
     },
     getID() {
-      return url.base64Encode(encodeURIComponent(this.name));
+      return url.base64Encode(this.name);
     },
     quickNav() {
       return state.user.singleClick && !state.multiple;

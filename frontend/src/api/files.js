@@ -86,6 +86,7 @@ export function download(format, files) {
     algo: format
   })
   const url = window.origin + apiPath
+  console.log('Download URL:', url,files,fileargs)
 
   // Create a temporary <a> element to trigger the download
   const link = document.createElement('a')
