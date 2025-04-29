@@ -39,15 +39,16 @@
     <div class="settings-items">
       <ToggleSwitch
         class="item"
-        v-if="localUser.loginMethod == 'password'"
+        v-if="user.loginMethod === 'password'"
         :modelValue="updatePassword"
-        @update:modelValue="(val) => $emit('update:updatePassword', val)"
+        @update:modelValue="$emit('update:updatePassword', $event)"
         :name="$t('settings.changePassword')"
       />
       <ToggleSwitch
-        v-if="localUser.loginMethod == 'password' && stateUser.permissions?.admin"
+        v-if="user.loginMethod === 'password' && stateUser.permissions?.admin"
         class="item"
-        v-model="localUser.lockPassword"
+        :modelValue="user.lockPassword"
+        @update:modelValue="(val) => updateUserField('lockPassword', val)"
         :name="$t('settings.lockPassword')"
       />
     </div>
@@ -60,7 +61,6 @@
         v-for="(source, index) in selectedSources"
         :key="index"
       >
-        <!-- Select dropdown -->
         <select
           @change="handleSourceChange(source, $event, source.name)"
           class="input flat-right"
@@ -71,7 +71,6 @@
           </option>
         </select>
 
-        <!-- Input field for scope, bound to the selectedSources array -->
         <input
           class="input flat-left scope-input"
           placeholder="scope eg. 'subfolder', leave blank for root"
@@ -79,7 +78,6 @@
           :value="source.scope"
           :class="{ 'flat-right': selectedSources.length > 1 }"
         />
-        <!-- Remove button -->
         <button
           v-if="selectedSources.length > 1"
           class="button flat-left no-height"
@@ -90,10 +88,10 @@
       </div>
     </div>
 
-    <!-- Button to add more sources -->
     <button v-if="hasMoreSources" @click="addNewScopeSource" class="button no-height">
       <i class="material-icons material-size">add</i>
     </button>
+
     <div class="settings-items">
       <ToggleSwitch
         v-if="displayHomeDirectoryCheckbox"
@@ -103,7 +101,7 @@
       />
     </div>
 
-    <p v-if="stateUser.username != localUser.username">
+    <p v-if="stateUser.username !== user.username">
       <label for="locale">{{ $t("settings.language") }}</label>
       <languages
         class="input input--block"
@@ -113,10 +111,7 @@
       ></languages>
     </p>
 
-    <permissions
-      v-if="stateUser.permissions.admin"
-      :permissions="localUser.permissions"
-    />
+    <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
   </div>
 </template>
 
@@ -134,57 +129,44 @@ export default {
     Languages,
     ToggleSwitch,
   },
-
+  props: {
+    user: Object,
+    updatePassword: Boolean,
+    isNew: Boolean,
+  },
   data() {
     return {
       createUserDir: false,
       originalUserScope: ".",
-      localUser: { ...this.user },
       sourceList: [],
       availableSources: [],
       selectedSources: [],
     };
   },
-  props: {
-    user: Object, // Define user as a prop
-    updatePassword: Boolean,
-    isNew: Boolean,
-  },
   async mounted() {
     if (!this.stateUser.permissions.admin) {
-      this.sourceList = this.user.scopes;
+      this.sourceList = this.user.scopes || [];
     } else {
       this.sourceList = await settingsApi.get("sources");
     }
-    this.localUser = { ...this.user };
-    this.selectedSources = [];
-    this.availableSources = [...this.sourceList];
-    if (this.isNew) {
-      const newSource = this.availableSources.shift(); // Take the first item instead of last
+
+    this.selectedSources = this.user.scopes || [];
+    this.availableSources = this.sourceList.filter(
+      (s) => !this.selectedSources.some((sel) => sel.name === s.name)
+    );
+
+    if (this.isNew && this.availableSources.length) {
+      const newSource = this.availableSources.shift();
       if (newSource) {
         this.selectedSources.push(newSource);
-      }
-    } else {
-      // Populate selectedSources with existing user scopes
-      if (this.user.scopes) {
-        this.selectedSources = this.user.scopes;
-        // remove items with same name from availableSources
-        for (const source of this.selectedSources) {
-          this.availableSources = this.availableSources.filter(
-            (s) => source.name != s.name
-          );
-        }
+        this.emitUserUpdate();
       }
     }
   },
   watch: {
-    "user.permissions.admin": function (newValue) {
-      if (newValue) {
-        this.user.lockPassword = false;
-      }
-    },
     createUserDir(newVal) {
       this.user.scopes = newVal ? { default: "" } : this.originalUserScope;
+      this.emitUserUpdate();
     },
   },
   computed: {
@@ -195,97 +177,79 @@ export default {
     hasMoreSources() {
       return this.selectedSources.length < this.sourceList.length;
     },
-    sourceInfo() {
-      return state.sources.info;
-    },
     stateUser() {
       return state.user;
     },
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
-    scopePlaceholder() {
-      return this.createUserDir
-        ? this.$t("settings.userScopeGenerationPlaceholder")
-        : "./";
-    },
     displayHomeDirectoryCheckbox() {
       return this.isNew && this.createUserDir;
     },
   },
   methods: {
-    handleSourceChange(source, event, oldName) {
-      const newName = event.target.value;
-
-      // Remove the newly selected source from availableSources
-      this.availableSources = this.availableSources.filter((s) => s.name !== newName);
-
-      // Only add back the old source if it's not already in availableSources
-      if (oldName && !this.availableSources.some((s) => s.name === oldName)) {
-        this.availableSources.push({ name: oldName });
-      }
-
-      // Update the source name
-      source.name = newName;
-
-      this.updateParent({ source, input: { target: { value: source.scope || "" } } });
+    emitUserUpdate() {
+      this.$emit("update:user", { ...this.user, scopes: this.selectedSources });
+    },
+    emitUpdate() {
+      this.$emit("update:user", { ...this.user });
     },
     setUpdatePassword() {
       this.$emit("update:updatePassword", true);
     },
     updateParent(input) {
-      let updatedScopes = {};
-      // Update the selectedSources array directly
-      this.selectedSources.forEach((source) => {
-        if (source.name === input.source.name) {
-          updatedScopes[source.name] = input.input.target.value;
-        } else {
-          updatedScopes[source.name] = source.scope;
-        }
-      });
-      let intermediate = [];
-      Object.entries(updatedScopes).forEach(([key, value]) => {
-        intermediate.push({ name: key, scope: value });
-      });
-      let final = [];
-      for (const source of intermediate) {
-        final.push(source);
-      }
-      this.selectedSources = final;
-      this.$emit("update:user", { ...this.user, scopes: this.selectedSources });
+      const updatedScopes = this.selectedSources.map((source) =>
+        source.name === input.source.name
+          ? { ...source, scope: input.input.target.value }
+          : source
+      );
+      this.selectedSources = updatedScopes;
+      this.emitUserUpdate();
     },
     addNewScopeSource(event) {
       event.preventDefault();
       if (this.hasMoreSources) {
         this.selectedSources.push({ name: "", scope: "" });
+        this.emitUserUpdate();
       }
     },
     removeScope(index) {
-      const removedSource = this.selectedSources.splice(index, 1)[0];
-      this.availableSources.push({ name: removedSource.name }); // Make source available again
+      const removed = this.selectedSources.splice(index, 1)[0];
+      this.availableSources.push({ name: removed.name });
+      this.emitUserUpdate();
+    },
+    handleSourceChange(source, event, oldName) {
+      const newName = event.target.value;
+      this.availableSources = this.availableSources.filter((s) => s.name !== newName);
+      if (oldName && !this.availableSources.find((s) => s.name === oldName)) {
+        this.availableSources.push({ name: oldName });
+      }
+      source.name = newName;
+      this.emitUserUpdate();
+    },
+    updateUserField(field, value) {
+      this.user[field] = value;
+      this.emitUserUpdate();
     },
   },
 };
 </script>
+
 <style>
 .scope-list {
   display: flex;
 }
-
 .flat-right {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
-
 .flat-left {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
 }
-
 .scope-input {
   width: 100%;
 }
-
 .no-height {
   height: unset;
 }

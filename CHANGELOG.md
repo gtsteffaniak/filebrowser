@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file. For commit 
   - source selection buggy https://github.com/gtsteffaniak/filebrowser/issues/537
   - upload folder structure https://github.com/gtsteffaniak/filebrowser/issues/539
   - Editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
+  - Prevent the user from changing the password https://github.com/gtsteffaniak/filebrowser/issues/550
   - Links in setting page does not navigate to correct location https://github.com/gtsteffaniak/filebrowser/issues/474
   - Url encoding issue https://github.com/gtsteffaniak/filebrowser/issues/530
   - User disableSettings property to be respected.
