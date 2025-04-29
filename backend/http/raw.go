@@ -335,11 +335,12 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 			}
 		}
-		_, isDir, err := idx.GetRealPath(userScope, path)
+		realPath, isDir, err := idx.GetRealPath(userScope, path)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		info, ok := idx.GetReducedMetadata(path, isDir)
+		indexPath := idx.MakeIndexPath(realPath)
+		info, ok := idx.GetReducedMetadata(indexPath, isDir)
 		if !ok {
 			return 0, fmt.Errorf("failed to get metadata info for %s", path)
 		}

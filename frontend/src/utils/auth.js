@@ -1,4 +1,4 @@
-import { mutations, getters } from "@/store";
+import { mutations, getters,state } from "@/store";
 import router from "@/router";
 import { usersApi } from "@/api";
 import { getApiPath } from "@/utils/url.js";
@@ -13,6 +13,18 @@ export async function validateLogin() {
   let userInfo = await usersApi.get("self");
   mutations.setCurrentUser(userInfo);
   getters.isLoggedIn()
+  if (state.user.loginMethod == "proxy") {
+    let apiPath = getApiPath("api/auth/login")
+    const res = await fetch(apiPath, {
+      method: "POST",
+    });
+    const body = await res.text();
+    if (res.status === 200) {
+      await setNewToken(body);
+    } else {
+      throw new Error(body);
+    }
+  }
   return
 }
 

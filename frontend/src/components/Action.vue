@@ -37,12 +37,15 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { mutations, state, getters } from "@/store";
 
 export default {
   name: "action",
   props: ["icon", "label", "counter", "show", "isDisabled"],
   computed: {
+    req() {
+      return state.req;
+    },
     multistate() {
       return state.multiButtonState;
     },
@@ -50,7 +53,26 @@ export default {
       return state.stickSidebar;
     },
   },
+  watch: {
+    $route() {
+      this.reEvalAction()
+    },
+    req() {
+      this.reEvalAction()
+    },
+  },
   methods: {
+    reEvalAction() {
+      const currentView = getters.currentView()
+      if (currentView == "settings" ) {
+        mutations.setActiveSettingsView(getters.currentHash());
+        mutations.setMultiButtonState("back")
+      } else if (currentView == "editor" || currentView == "preview" || currentView == "onlyOfficeEditor" || currentView == "markdownViewer") {
+        mutations.setMultiButtonState("close")
+      } else {
+        mutations.setMultiButtonState("menu");
+      }
+    },
     actionMultiIcon() {
       if (this.show) {
         mutations.showHover(this.show);

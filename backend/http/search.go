@@ -80,6 +80,14 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope))
 	// Perform the search using the provided query and user scope
 	response := index.Search(query, combinedPath, sessionId)
+	for i := range response {
+		// Remove the user scope from the path
+		response[i].Path = strings.TrimPrefix(response[i].Path, userscope)
+		if response[i].Path == "" {
+			response[i].Path = "/"
+		}
+	}
+	// trim user scope from each result path
 	// Set the Content-Type header to application/json
 	w.Header().Set("Content-Type", "application/json")
 	return renderJSON(w, r, response)

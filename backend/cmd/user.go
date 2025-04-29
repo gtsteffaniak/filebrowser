@@ -67,6 +67,10 @@ func updateUserScopes(user *users.User) bool {
 				break
 			}
 		}
+		if existingScope.Scope == "" {
+			existingScope.Scope = "/"
+			updateUser = true
+		}
 		if !seenNames[existingScope.Name] {
 			finalScopes = append(finalScopes, existingScope)
 			seenNames[existingScope.Name] = true

@@ -139,7 +139,7 @@ router.beforeResolve(async (to, from, next) => {
       try {
         await validateLogin();
       } catch (error) {
-        console.error("Error validating login");
+        console.error("Error validating login:",error);
       }
     }
 

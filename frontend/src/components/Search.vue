@@ -146,8 +146,7 @@
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path, s.type === "directory")
-                }}<b>{{ baseName(s.path) }}</b>
+                {{ basePath(s.path,s.type == 'directory')}}/{{ baseName(s.path) }}/
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -406,8 +405,9 @@ export default {
       // double encode # to fix issue with # in path
       // replace all # with %23
       path = path.replace(/#/g, "%23");
-
-      path = path.slice(1); // remove leading slash
+      if (path.startsWith("/")) {
+        path = path.slice(1); // remove leading slash
+      }
       let fullpath = path;
       if (state.sources.count === 1) {
         fullpath = "/files/" + encodeURIComponent(path);
@@ -430,25 +430,17 @@ export default {
     humanSize(size) {
       return getHumanReadableFilesize(size);
     },
-    basePath(str, isDir) {
-      let parts = str.replace(/(\/$|^\/)/, "").split("/");
-      if (parts.length <= 1) {
-        if (isDir) {
-          return "/";
-        }
-        return "";
+    basePath(str,isDir) {
+      let result = url.removeLastDir(str)
+      if (!isDir) {
+        result = url.removeLeadingSlash(result); // fix weird rtl thing
       }
-      parts.pop();
-      parts = parts.join("/");
-      if (isDir) {
-        parts = "/" + parts + "/"; // fix weird rtl thing
-      }
-
-      return parts;
+      return result;
     },
     baseName(str) {
-      let parts = str.replace(/(\/$|^\/)/, "").split("/");
-      return parts.pop();
+      let parts = url.removeTrailingSlash(str).split("/");
+      let part = parts.pop();
+      return part;
     },
     open() {
       if (!state.isSearchActive) {
@@ -524,7 +516,7 @@ export default {
         source = state.sources.current;
       }
       this.results = await search(
-        encodeURIComponent(this.getContext),
+        this.getContext,
         source,
         searchTypesFull + this.value
       );
@@ -542,7 +534,10 @@ export default {
     },
     addSelected(event, s) {
       const pathParts = url.removeTrailingSlash(s.path).split("/");
-      const path = this.getContext + s.path;
+      let path = this.getContext + s.path;
+      if (this.getContext === "/") {
+        path = s.path;
+      }
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
