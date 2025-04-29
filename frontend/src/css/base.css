@@ -169,8 +169,9 @@ button:disabled {
 }
 
 #popup-notification.success {
-  background: var(--blue);
+  background: var(--primaryColor);
 }
+
 #popup-notification.error {
   background: var(--red);
 }

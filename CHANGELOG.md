@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
      - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
    - top-right overflow menu for deleting / editing files in peview https://github.com/gtsteffaniak/filebrowser/issues/456
    - helpful UI animation for drag and drop files, to get feedback where the drop target is.
+   - more consistent theme color https://github.com/gtsteffaniak/filebrowser/issues/538
  - New file preview types:
    - Video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
    - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
