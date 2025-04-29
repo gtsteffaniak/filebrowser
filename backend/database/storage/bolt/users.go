@@ -68,7 +68,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		return err
 	}
 
-	fields, err = parseFields(user, fields)
+	fields, err = parseFields(user, fields, actorIsAdmin)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func getNonAdminEditableFieldNames() []string {
 	return names
 }
 
-func parseFields(user *users.User, fields []string) ([]string, error) {
+func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string, error) {
 	// If `Which` is not specified, default to updating all fields
 	if len(fields) == 0 || fields[0] == "all" {
 		fields = []string{}
@@ -217,7 +217,7 @@ func parseFields(user *users.User, fields []string) ([]string, error) {
 	for _, field := range fields {
 		capitalField := utils.CapitalizeFirst(field)
 		if capitalField == "Scopes" {
-			if !user.Permissions.Admin {
+			if !actorIsAdmin {
 				continue
 			}
 			newScopes, err := settings.ConvertToBackendScopes(user.Scopes)

@@ -130,8 +130,7 @@ body.rtl #listingView {
 #listingView.compact .item:hover,
 #listingView.normal .item:hover,
 #listingView.gallery .item:hover {
-  box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background),
-  0.3em 0.3em 1em rgba(114, 114, 114, 0.341) !important; /* Adjust shadow values as needed */
+  box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background) !important; /* Adjust shadow values as needed */
 transform: scale(1.02); /* Slightly enlarges the element */
 }
 

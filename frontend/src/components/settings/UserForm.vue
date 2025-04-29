@@ -54,10 +54,19 @@
 
     <div v-if="stateUser.permissions.admin">
       <label for="scopes">{{ $t("settings.scopes") }}</label>
-      <div class="scope-list" v-for="(source, index) in selectedSources" :key="index">
+      <div
+        class="scope-list"
+        :class="{ 'invalid-form': duplicateSources.includes(source.name) }"
+        v-for="(source, index) in selectedSources"
+        :key="index"
+      >
         <!-- Select dropdown -->
-        <select class="input flat-right" v-model="source.name">
-          <option v-for="s in sourceList" :key="s" :value="s.name">
+        <select
+          @change="handleSourceChange(source, $event, source.name)"
+          class="input flat-right"
+          v-model="source.name"
+        >
+          <option v-for="s in sourceList" :key="s.name" :value="s.name">
             {{ s.name }}
           </option>
         </select>
@@ -68,11 +77,11 @@
           placeholder="scope eg. 'subfolder', leave blank for root"
           @input="updateParent({ source: source, input: $event })"
           :value="source.scope"
-          :class="{ 'flat-right': index != 0 }"
+          :class="{ 'flat-right': selectedSources.length > 1 }"
         />
         <!-- Remove button -->
         <button
-          v-if="index != 0"
+          v-if="selectedSources.length > 1"
           class="button flat-left no-height"
           @click="removeScope(index)"
         >
@@ -104,7 +113,10 @@
       ></languages>
     </p>
 
-    <permissions v-if="stateUser.permissions.admin" :permissions="localUser.permissions" />
+    <permissions
+      v-if="stateUser.permissions.admin"
+      :permissions="localUser.permissions"
+    />
   </div>
 </template>
 
@@ -176,8 +188,12 @@ export default {
     },
   },
   computed: {
+    duplicateSources() {
+      const names = this.selectedSources.map((s) => s.name);
+      return names.filter((name, idx) => names.indexOf(name) !== idx);
+    },
     hasMoreSources() {
-      return this.availableSources.length > 0;
+      return this.selectedSources.length < this.sourceList.length;
     },
     sourceInfo() {
       return state.sources.info;
@@ -198,6 +214,22 @@ export default {
     },
   },
   methods: {
+    handleSourceChange(source, event, oldName) {
+      const newName = event.target.value;
+
+      // Remove the newly selected source from availableSources
+      this.availableSources = this.availableSources.filter((s) => s.name !== newName);
+
+      // Only add back the old source if it's not already in availableSources
+      if (oldName && !this.availableSources.some((s) => s.name === oldName)) {
+        this.availableSources.push({ name: oldName });
+      }
+
+      // Update the source name
+      source.name = newName;
+
+      this.updateParent({ source, input: { target: { value: source.scope || "" } } });
+    },
     setUpdatePassword() {
       this.$emit("update:updatePassword", true);
     },
@@ -224,13 +256,8 @@ export default {
     },
     addNewScopeSource(event) {
       event.preventDefault();
-      if (this.availableSources.length > 0) {
-        const newSource = this.availableSources.pop();
-        if (newSource) {
-          const scope = { name: newSource.name, scope: "" };
-          this.selectedSources.push(scope);
-          this.updateParent({ source: scope, input: { target: { value: "" } } });
-        }
+      if (this.hasMoreSources) {
+        this.selectedSources.push({ name: "", scope: "" });
       }
     },
     removeScope(index) {

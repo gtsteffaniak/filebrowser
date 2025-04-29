@@ -42,7 +42,11 @@
         v-else
         id="listingView"
         ref="listingView"
-        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true,'dropping': isDragging  }"
+        :class="{
+          'add-padding': isStickySidebar,
+          [listingViewMode]: true,
+          dropping: isDragging,
+        }"
         class="file-icons"
       >
         <div>
@@ -220,7 +224,7 @@ export default {
   },
   computed: {
     isDragging() {
-      return this.dragCounter > 0
+      return this.dragCounter > 0;
     },
     scrolling() {
       return state.listing.scrollRatio;
@@ -343,6 +347,7 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
+    this.$el.addEventListener("contextmenu", this.openContext);
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu
@@ -355,10 +360,8 @@ export default {
       // Also clear the timeout if the user clicks or taps quickly
       this.$el.addEventListener("touchend", this.cancelContext);
       this.$el.addEventListener("mouseup", this.cancelContext);
-    } else {
-      // For other browsers, use regular contextmenu
-      this.$el.addEventListener("contextmenu", this.openContext);
     }
+
     // if safari , make sure click and hold opens context menu, but not for any other browser
     if (!state.user.permissions?.modify) return;
     this.$el.addEventListener("dragenter", this.dragEnter);
@@ -369,6 +372,8 @@ export default {
     // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("resize", this.windowsResize);
+    this.$el.removeEventListener("contextmenu", this.openContext);
+
     // If Safari, remove touchstart listener
     if (state.isSafari) {
       this.$el.removeEventListener("touchstart", this.openContextForSafari);
@@ -376,8 +381,6 @@ export default {
       this.$el.removeEventListener("touchend", this.cancelContext);
       this.$el.removeEventListener("mouseup", this.cancelContext);
       this.$el.removeEventListener("touchmove", this.handleTouchMove);
-    } else {
-      this.$el.removeEventListener("contextmenu", this.openContext);
     }
   },
   methods: {
@@ -801,7 +804,6 @@ export default {
     },
     dragEnter() {
       this.dragCounter++;
-
     },
     dragLeave() {
       this.dragCounter--;
@@ -813,9 +815,7 @@ export default {
       let dt = event.dataTransfer;
       let el = event.target;
 
-      if (dt.files.length <= 0) {
-        return;
-      }
+      if (dt.files.length <= 0) return;
 
       for (let i = 0; i < 5; i++) {
         if (el !== null && !el.classList.contains("item")) {
@@ -823,27 +823,25 @@ export default {
         }
       }
 
-      let files = await upload.scanFiles(dt);
-
+      let rawFiles = await upload.scanFiles(dt);
       let items = state.req.items;
       let path = getters.routePath();
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
-        let response = await filesApi.fetchFiles(decodeURIComponent(el.__vue__.url));
+        const response = await filesApi.fetchFiles(decodeURIComponent(el.__vue__.url));
         path = el.__vue__.url;
         items = response.items;
       }
 
-      const uploadFiles = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        uploadFiles.push({
-          file,
-          name: file.name,
-          source: state.req.source,
-          size: file.size,
-        });
-      }
+      const uploadFiles = rawFiles.map((file) => ({
+        file,
+        name: file.name,
+        size: file.size,
+        path: file.fullPath || file.webkitRelativePath || file.name,
+        fullPath: file.fullPath || file.webkitRelativePath || file.name,
+        source: state.req.source,
+      }));
+
       const conflict = upload.checkConflict(uploadFiles, items);
       try {
         if (conflict) {
@@ -863,20 +861,29 @@ export default {
         console.log("failed to upload files");
       }
     },
+
     async uploadInput(event) {
       mutations.closeHovers();
-      let files = event.currentTarget.files;
-      let folder_upload =
-        files[0].webkitRelativePath !== undefined && files[0].webkitRelativePath !== "";
+      const rawFiles = event.currentTarget.files;
+      if (!rawFiles || rawFiles.length === 0) return;
 
-      if (folder_upload) {
-        for (let i = 0; i < files.length; i++) {
-          files[i].fullPath = files[i].webkitRelativePath;
-        }
+      const uploadFiles = [];
+
+      for (let i = 0; i < rawFiles.length; i++) {
+        const file = rawFiles[i];
+        const fullPath = file.webkitRelativePath || file.name;
+        uploadFiles.push({
+          file,
+          name: file.name,
+          size: file.size,
+          path: fullPath,
+          fullPath: fullPath,
+          source: state.req.source,
+        });
       }
 
-      let path = getters.routePath();
-      const conflict = upload.checkConflict(files, state.req.items);
+      const path = getters.routePath();
+      const conflict = upload.checkConflict(uploadFiles, state.req.items);
 
       if (conflict) {
         mutations.showHover({
@@ -884,13 +891,12 @@ export default {
           confirm: async (event) => {
             event.preventDefault();
             mutations.closeHovers();
-            await upload.handleFiles(files, path, true);
+            await upload.handleFiles(uploadFiles, path, true);
           },
         });
-        return;
+      } else {
+        await upload.handleFiles(uploadFiles, path);
       }
-
-      await upload.handleFiles(files, path);
       mutations.setReload(true);
     },
     sort(field) {
