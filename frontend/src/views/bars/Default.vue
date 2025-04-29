@@ -50,7 +50,6 @@ export default {
       return getters.currentView() == "share";
     },
     noItems() {
-      console.log(!this.showEdit && !this.showSave && !this.showDelete)
       return !this.showEdit && !this.showSave && !this.showDelete
     },
     showEdit() {

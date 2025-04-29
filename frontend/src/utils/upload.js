@@ -101,7 +101,6 @@ export function scanFiles (dt) {
 }
 
 export async function handleFiles (files, base, overwrite = false) {
-  console.log('Uploading files', files)
   let blockUpdates = false
   let c = 0
   const count = files.length

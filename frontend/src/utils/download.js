@@ -27,7 +27,6 @@ export default function download() {
   }
 
   if (state.isSearchActive) {
-    console.log("search download", state.selected);
     startDownload(null, [state.selected[0].url]);
     return;
   }

@@ -128,14 +128,6 @@ export default {
           element.scrollTop = 0;
         }
       }
-      if (currentView == "settings" ) {
-        mutations.setActiveSettingsView(getters.currentHash());
-        mutations.setMultiButtonState("back")
-      } else if (currentView == "editor" || currentView == "preview" || currentView == "onlyOfficeEditor") {
-        mutations.setMultiButtonState("close")
-      } else {
-        mutations.setMultiButtonState("menu");
-      }
     },
     async updateSourceInfo() {
       if (getters.isLoggedIn()) {

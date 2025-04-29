@@ -146,7 +146,7 @@
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path,s.type == 'directory')}}{{ baseName(s.path) }}
+                {{ basePath(s.path,s.type == 'directory')}}/{{ baseName(s.path) }}/
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -405,8 +405,9 @@ export default {
       // double encode # to fix issue with # in path
       // replace all # with %23
       path = path.replace(/#/g, "%23");
-
-      path = path.slice(1); // remove leading slash
+      if (path.startsWith("/")) {
+        path = path.slice(1); // remove leading slash
+      }
       let fullpath = path;
       if (state.sources.count === 1) {
         fullpath = "/files/" + encodeURIComponent(path);
@@ -437,10 +438,9 @@ export default {
       return result;
     },
     baseName(str) {
-      console.log(str)
       let parts = url.removeTrailingSlash(str).split("/");
       let part = parts.pop();
-      return "/" + part + "/";
+      return part;
     },
     open() {
       if (!state.isSearchActive) {
