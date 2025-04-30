@@ -73,7 +73,7 @@
 
         <input
           class="input flat-left scope-input"
-          placeholder="scope eg. 'subfolder', leave blank for root"
+          placeholder="scope eg. '/subfolder', leave blank for default path"
           @input="updateParent({ source: source, input: $event })"
           :value="source.scope"
           :class="{ 'flat-right': selectedSources.length > 1 }"
