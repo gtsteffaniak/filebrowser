@@ -259,7 +259,7 @@ definitions:
         type: string
       database:
         type: string
-      enableThumbnails:
+      disablePreview:
         type: boolean
       externalUrl:
         type: string

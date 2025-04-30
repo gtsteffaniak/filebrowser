@@ -52,9 +52,14 @@ export default {
 
       let left = this.cursorX - width / 2;
 
-      // Apply 100px shift if cursor is in the left half
-      if ((this.cursorX < innerWidth / 2) && !state.isMobile) {
-        left += 120;
+      if (state.isMobile) {
+        // Center the popup if it's mobile
+        left = (innerWidth - width) / 2;
+      } else {
+        // Apply 100px shift if cursor is in the left half
+        if (this.cursorX < innerWidth / 2) {
+          left += 120;
+        }
       }
 
       // Clamp to viewport

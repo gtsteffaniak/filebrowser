@@ -19,12 +19,13 @@ import (
 )
 
 type requestContext struct {
-	user  *users.User
-	raw   interface{}
-	path  string
-	token string
-	share *share.Link
-	ctx   context.Context
+	user     *users.User
+	raw      interface{}
+	fileInfo iteminfo.ExtendedFileInfo
+	path     string
+	token    string
+	share    *share.Link
+	ctx      context.Context
 }
 
 type HttpResponse struct {

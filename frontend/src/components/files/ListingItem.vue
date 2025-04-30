@@ -161,8 +161,10 @@ export default {
       return true;
     },
     thumbnailUrl() {
+      if (!enableThumbs) {
+        return "";
+      }
       let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
-
       if (getters.currentView() == "share") {
         let urlPath = getters.routePath("share");
         // Step 1: Split the path by '/'

@@ -232,8 +232,6 @@ func loadEnvConfig() {
 func setDefaults() Settings {
 	return Settings{
 		Server: Server{
-			EnableThumbnails:   true,
-			ResizePreview:      false,
 			Port:               80,
 			NumImageProcessors: 4,
 			BaseURL:            "",

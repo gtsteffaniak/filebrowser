@@ -1897,7 +1897,7 @@ const docTemplate = `{
                 "database": {
                     "type": "string"
                 },
-                "enableThumbnails": {
+                "disablePreview": {
                     "type": "boolean"
                 },
                 "externalUrl": {

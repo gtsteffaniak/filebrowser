@@ -26,8 +26,8 @@ type Server struct {
 	Socket             string      `json:"socket"`
 	TLSKey             string      `json:"tlsKey"`
 	TLSCert            string      `json:"tlsCert"`
-	EnableThumbnails   bool        `json:"enableThumbnails"`
-	ResizePreview      bool        `json:"resizePreview"`
+	DisablePreviews    bool        `json:"disablePreview"`
+	ResizePreviews     bool        `json:"resizePreview"`
 	Port               int         `json:"port"`
 	BaseURL            string      `json:"baseURL"`
 	Logging            []LogConfig `json:"logging"`
