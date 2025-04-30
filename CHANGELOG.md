@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. For commit 
   - sesssionId is now unique per window. Previously it was shared accross browser tabs.
   - disableUsedPercentage is a backend property now, so users can't "hack" the information to be shown.
   - updated documentation for resources api https://github.com/gtsteffaniak/filebrowser/issues/560
+  - updated placeholder for scopes https://github.com/gtsteffaniak/filebrowser/issues/475
 
   **Bug Fixes**:
   - Nil pointer error when source media is disconnected while running.
