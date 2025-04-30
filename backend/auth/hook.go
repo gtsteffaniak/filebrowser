@@ -181,7 +181,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 	if len(a.Fields.Values) > 1 {
 		u = a.GetUser(u)
 		// update user with provided fields
-		err := a.Users.Update(u, true)
+		err := a.Users.Update(u, u.Permissions.Admin)
 		if err != nil {
 			return nil, err
 		}

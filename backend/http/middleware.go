@@ -11,6 +11,7 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
@@ -136,7 +137,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if isRevokedApiKey(tk.Key) || tk.Expires < time.Now().Unix() {
+		if auth.IsRevokedApiKey(tk.Key) || tk.Expires < time.Now().Unix() {
 			return http.StatusUnauthorized, fmt.Errorf("token expired or revoked")
 		}
 		// Check if the token is about to expire and send a header to renew it

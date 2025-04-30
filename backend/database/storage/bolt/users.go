@@ -9,6 +9,7 @@ import (
 	storm "github.com/asdine/storm/v3"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -121,6 +122,13 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 		// Update the database
 		if err := st.db.UpdateField(existingUser, field, val); err != nil {
 			return fmt.Errorf("failed to update user field: %s, error: %v", field, err)
+		}
+	}
+
+	// last revoke api keys if needed.
+	if existingUser.Permissions.Api && !user.Permissions.Api && slices.Contains(fields, "Permissions") {
+		for _, key := range existingUser.ApiKeys {
+			auth.RevokeAPIKey(key.Key) // add to blacklist
 		}
 	}
 	return nil

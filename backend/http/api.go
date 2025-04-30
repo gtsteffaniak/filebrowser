@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
@@ -101,7 +102,7 @@ func deleteApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return http.StatusNotFound, err
 	}
 
-	revokeAPIKey(keyInfo.Key) // add to blacklist
+	auth.RevokeAPIKey(keyInfo.Key) // add to blacklist
 	response := HttpResponse{
 		Message: "successfully deleted api key from user",
 	}

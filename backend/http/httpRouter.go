@@ -15,7 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
-	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
+	// http-swagger middleware
 )
 
 // Embed the files in the frontend/dist directory
@@ -135,14 +135,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)
 
 	// Swagger
-	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL),
-		httpSwagger.Handler(
-			httpSwagger.URL(config.Server.BaseURL+"swagger/doc.json"), //The url pointing to API definition
-			httpSwagger.DeepLinking(true),
-			httpSwagger.DocExpansion("none"),
-			httpSwagger.DomID("swagger-ui"),
-		),
-	)
+	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL), withUser(swaggerHandler))
 
 	var scheme string
 	port := ""

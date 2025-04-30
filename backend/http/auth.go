@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -22,11 +21,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
-)
-
-var (
-	revokedApiKeyList map[string]bool
-	revokeMu          sync.Mutex
 )
 
 // first checks for cookie
@@ -248,17 +242,6 @@ func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, 
 		return http.StatusInternalServerError, err
 	}
 	return 0, nil
-}
-
-func isRevokedApiKey(key string) bool {
-	_, exists := revokedApiKeyList[key]
-	return exists
-}
-
-func revokeAPIKey(key string) {
-	revokeMu.Lock()
-	delete(revokedApiKeyList, key)
-	revokeMu.Unlock()
 }
 
 func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {

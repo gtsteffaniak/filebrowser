@@ -87,7 +87,7 @@ func (s *Storage) AddApiKey(userID uint, name string, key AuthToken) error {
 		user.ApiKeys = make(map[string]AuthToken)
 	}
 	user.ApiKeys[name] = key
-	err = s.Update(user, false, "ApiKeys")
+	err = s.Update(user, true, "ApiKeys")
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (s *Storage) DeleteApiKey(userID uint, name string) error {
 		user.ApiKeys = make(map[string]AuthToken)
 	}
 	delete(user.ApiKeys, name)
-	err = s.Update(user, false, "ApiKeys")
+	err = s.Update(user, true, "ApiKeys")
 	if err != nil {
 		return err
 	}

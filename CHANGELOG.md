@@ -13,35 +13,36 @@ All notable changes to this project will be documented in this file. For commit 
    - Enhanced user settings page with more toggle options.
    - Replaced checkboxes with toggles switches https://github.com/gtsteffaniak/filebrowser/issues/461
    - Refreshed Breadcrumbs style.
-   - main navbar icon is multipurpose menu, close, back and animates
+   - Main navbar icon is multipurpose menu, close, back and animates
    - Enhanced source info on the UI
      - User must have permission `realtime: true` property to get realtime events.
      - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
-   - top-right overflow menu for deleting / editing files in peview https://github.com/gtsteffaniak/filebrowser/issues/456
-   - helpful UI animation for drag and drop files, to get feedback where the drop target is.
-   - more consistent theme color https://github.com/gtsteffaniak/filebrowser/issues/538
+   - Top-right overflow menu for deleting / editing files in peview https://github.com/gtsteffaniak/filebrowser/issues/456
+   - Helpful UI animation for drag and drop files, to get feedback where the drop target is.
+   - More consistent theme color https://github.com/gtsteffaniak/filebrowser/issues/538
  - New file preview types:
    - Video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
    - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
 
   **Notes**:
   - sesssionId is now unique per window. Previously it was shared accross browser tabs.
-  - disableUsedPercentage is a backend property now, so users can't "hack" the information to be shown.
-  - updated documentation for resources api https://github.com/gtsteffaniak/filebrowser/issues/560
-  - updated placeholder for scopes https://github.com/gtsteffaniak/filebrowser/issues/475
+  - DisableUsedPercentage is a backend property now, so users can't "hack" the information to be shown.
+  - Updated documentation for resources api https://github.com/gtsteffaniak/filebrowser/issues/560
+  - Updated placeholder for scopes https://github.com/gtsteffaniak/filebrowser/issues/475
+  - When user's API permissions are removed, any api keys the user had will be revoked.
 
   **Bug Fixes**:
   - Nil pointer error when source media is disconnected while running.
-  - source selection buggy https://github.com/gtsteffaniak/filebrowser/issues/537
-  - upload folder structure https://github.com/gtsteffaniak/filebrowser/issues/539
+  - Source selection buggy https://github.com/gtsteffaniak/filebrowser/issues/537
+  - Upload folder structure https://github.com/gtsteffaniak/filebrowser/issues/539
   - Editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
   - Prevent the user from changing the password https://github.com/gtsteffaniak/filebrowser/issues/550
   - Links in setting page does not navigate to correct location https://github.com/gtsteffaniak/filebrowser/issues/474
   - Url encoding issue https://github.com/gtsteffaniak/filebrowser/issues/530
-  - certain file types being treated as folders https://github.com/gtsteffaniak/filebrowser/issues/555
-  - source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/557
-  - onlyoffice support on proxy auth https://github.com/gtsteffaniak/filebrowser/issues/559
-  - downloading with user scope https://github.com/gtsteffaniak/filebrowser/issues/564
+  - Certain file types being treated as folders https://github.com/gtsteffaniak/filebrowser/issues/555
+  - Source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/557
+  - Onlyoffice support on proxy auth https://github.com/gtsteffaniak/filebrowser/issues/559
+  - Downloading with user scope https://github.com/gtsteffaniak/filebrowser/issues/564
   - User disableSettings property to be respected.
   - Non admin users updating admin settings.
   - Right click context issue on safari desktop.
