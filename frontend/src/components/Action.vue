@@ -53,6 +53,9 @@ export default {
       return state.stickSidebar;
     },
   },
+  mounted() {
+    this.reEvalAction();
+  },
   watch: {
     $route() {
       this.reEvalAction()

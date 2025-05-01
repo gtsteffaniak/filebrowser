@@ -5,7 +5,7 @@ import Files from "@/views/Files.vue";
 import Share from "@/views/Share.vue";
 import Settings from "@/views/Settings.vue";
 import Errors from "@/views/Errors.vue";
-import { baseURL, name } from "@/utils/constants";
+import { baseURL, name, oidcAvailable, passwordAvailable } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
 import { validateLogin } from "@/utils/auth";
@@ -144,9 +144,18 @@ router.beforeResolve(async (to, from, next) => {
     }
 
     if (!getters.isLoggedIn()) {
-      next({ path: "/login", query: { redirect: to.fullPath } });
-      return;
+      if (passwordAvailable) {
+        next({ path: "/login", query: { redirect: to.fullPath } });
+        return;
+      }
+
+      if (oidcAvailable) {
+        console.log("OIDC login available, redirecting to OIDC login");
+        window.location.href = `/api/auth/oidc/login?redirect=${encodeURIComponent(to.fullPath)}`;
+        return;
+      }
     }
+
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
       if (!getters.isAdmin()) {

@@ -1,11 +1,12 @@
 <template>
-  <div class="popup-preview" v-if="source" ref="popup" :style="popupStyle">
+  <div class="popup-preview" v-show="source" ref="popup" :style="popupStyle">
     <img :src="source" alt="Popup image" />
   </div>
 </template>
 
 <script>
-import { state } from "@/store";
+import { state, getters } from "@/store";
+
 export default {
   name: "PopupPreview",
   data() {
@@ -42,32 +43,55 @@ export default {
     updateCursorPosition(event) {
       this.cursorX = event.clientX;
       this.cursorY = event.clientY;
+      if (!state.isMobile) this.positionPopup();
     },
     positionPopup() {
+      if (!this.source) return;
       const popup = this.$refs.popup;
       if (!popup) return;
 
-      const { innerWidth } = window;
+      const { innerWidth, innerHeight } = window;
       const width = popup.offsetWidth;
+      const height = popup.offsetHeight;
+      const padding = 10;
 
+      const minLeft = getters.isSidebarVisible() ? 320 : padding;
+      const minTop = padding + 100;
+
+      if (state.isMobile) {
+        this.popupStyle = {
+          left: "50%",
+          width: "90%",
+          transform: "translate(-50%, 10em)",
+        };
+        return;
+      }
+
+      // Position near cursor (prefer center horizontally)
       let left = this.cursorX - width / 2;
+      left = Math.max(minLeft, Math.min(left, innerWidth - width));
 
-      // Apply 100px shift if cursor is in the left half
-      if ((this.cursorX < innerWidth / 2) && !state.isMobile) {
-        left += 120;
+      // Prefer below or above cursor based on Y position
+      let top;
+      const isBottomHalf = this.cursorY > innerHeight / 2;
+
+      if (isBottomHalf) {
+        // Place above
+        top = this.cursorY - height - padding;
+        top = Math.max(minTop, top);
+      } else {
+        // Place below
+        top = this.cursorY + padding;
+        if (top + height > innerHeight) {
+          top = innerHeight - height;
+          top = Math.max(minTop, top); // Enforce minTop again
+        }
       }
-
-      // Clamp to viewport
-      if (left + width > innerWidth) {
-        left = innerWidth - width;
-      }
-
-      if (left < 0) left = 0;
 
       this.popupStyle = {
-        position: "fixed",
-        top: this.cursorY + "px",
+        top: `${top}px`,
         left: `${left}px`,
+        transform: "none",
       };
     },
   },
@@ -76,22 +100,28 @@ export default {
 
 <style scoped>
 .popup-preview {
-  pointer-events: none;
-
+  height: unset !important;
   position: fixed;
+  pointer-events: none;
   border-radius: 1em;
-  max-height: 60vh;
-  max-width: 50vw;
-  transition: all 0.3s ease-in-out;
+  border-style: solid;
+  border-width: 0.2em;
+  box-shadow: 0 0 0.5em black;
+  border-color: var(--primaryColor);
+  overflow: hidden;
+
+  max-height: 80vh;
+  max-width: 80vw;
   z-index: 1000;
+  transition: all 0.3s ease-in-out;
 }
 
 .popup-preview img {
   pointer-events: none;
-
-  width: 100%;
+  width: auto;
   height: auto;
+  max-width: 100%;
+  max-height: 100%;
   display: block;
-  border-radius: 5px;
 }
 </style>

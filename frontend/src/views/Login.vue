@@ -42,7 +42,7 @@
         </p>
       </div>
       <div v-if="oidcAvailable" class="password-entry">
-        <div class="or">OR</div>
+        <div v-if="passwordAvailable" class="or">OR</div>
         <a href="/api/auth/oidc/login" class="button button--block direct-login">
           OpenID Connect
         </a>

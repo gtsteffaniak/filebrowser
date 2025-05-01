@@ -51,7 +51,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"PasswordAuth":      config.Auth.Methods.PasswordAuth,
 		"LoginPage":         auther.LoginPage(),
 		"CSS":               false,
-		"EnableThumbs":      config.Server.EnableThumbnails,
+		"EnableThumbs":      !config.Server.DisablePreviews,
 		"ExternalLinks":     config.Frontend.ExternalLinks,
 		"ExternalUrl":       strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"OnlyOfficeUrl":     settings.Config.Integrations.OnlyOffice.Url,

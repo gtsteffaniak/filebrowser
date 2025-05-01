@@ -140,6 +140,9 @@ func setupAuth() {
 	if Config.Auth.Methods.ProxyAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Proxy")
 	}
+	if Config.Auth.Methods.OidcAuth.Enabled {
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "OIDC")
+	}
 	if Config.Auth.Methods.NoAuth {
 		logger.Warning("Configured with no authentication, this is not recommended.")
 		Config.Auth.AuthMethods = []string{"Disabled"}
@@ -232,8 +235,6 @@ func loadEnvConfig() {
 func setDefaults() Settings {
 	return Settings{
 		Server: Server{
-			EnableThumbnails:   true,
-			ResizePreview:      false,
 			Port:               80,
 			NumImageProcessors: 4,
 			BaseURL:            "",

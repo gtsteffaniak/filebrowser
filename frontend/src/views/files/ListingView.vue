@@ -187,6 +187,7 @@ export default {
       this.colunmsResize();
     },
     scrolling() {
+      mutations.setPreviewSource("");
       const scrollContainer = this.$refs.listingView;
       if (!scrollContainer) return;
 

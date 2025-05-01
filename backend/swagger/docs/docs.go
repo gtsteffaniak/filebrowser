@@ -1897,7 +1897,10 @@ const docTemplate = `{
                 "database": {
                     "type": "string"
                 },
-                "enableThumbnails": {
+                "disablePreview": {
+                    "type": "boolean"
+                },
+                "disableTypeDetectionByHeader": {
                     "type": "boolean"
                 },
                 "externalUrl": {

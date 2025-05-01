@@ -32,7 +32,6 @@ type Service struct {
 
 func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 	var fileCache diskcache.Interface
-
 	// Use file cache if cacheDir is specified
 	if cacheDir != "" {
 		var err error
@@ -52,7 +51,6 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 		if err != nil {
 			logger.Fatal(fmt.Sprintf("the configured ffmpeg path is not a valid %s, err: %v", ffmpegPath, err))
 		}
-		ffmpegPath = ""
 	}
 	return &Service{
 		sem:        make(chan struct{}, concurrencyLimit),
@@ -67,17 +65,9 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 }
 
 func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
-	if !AvailablePreview(file) {
-		return nil, ErrUnsupportedMedia
-	}
-	// tell preview to use image
-	if !ConvertableImage(file) {
-		return nil, ErrUnsupportedFormat
-	}
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
-	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
-		return nil, fmt.Errorf("failed to load from cache: %w", err)
-	} else if found {
+	data, found, _ := service.fileCache.Load(context.Background(), cacheKey)
+	if found {
 		return data, nil
 	}
 	return GeneratePreview(file, previewSize, rawUrl)
@@ -100,11 +90,9 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string)
 	} else if strings.HasPrefix(file.Type, "video") {
 		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)+".jpg")
 		defer os.Remove(outPathPattern) // always clean up preview after its used (should be in cache now)
-
-		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern, 5); err != nil {
+		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern); err != nil {
 			return nil, fmt.Errorf("failed to generate video preview: %w", err)
 		}
-
 		// Read and return the generated preview
 		outFile, err := os.Open(outPathPattern)
 		if err != nil {
@@ -118,13 +106,11 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string)
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
-
-	go func() {
-		cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
-		if err := service.fileCache.Store(context.Background(), cacheKey, data); err != nil {
-			logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
-		}
-	}()
+	fmt.Println("preview size", previewSize, "file cache", settings.Config.Server.CacheDir)
+	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
+	if err := service.fileCache.Store(context.Background(), cacheKey, data); err != nil {
+		logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
+	}
 	return data, nil
 }
 
@@ -165,41 +151,34 @@ func CacheKey(realPath, previewSize string, modTime time.Time) string {
 }
 
 func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
-	err := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "small", file.ItemInfo.ModTime))
-	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not delete small thumbnail: %v", err))
+	errSmall := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "small", file.ItemInfo.ModTime))
+	if errSmall != nil {
+		errLarge := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "large", file.ItemInfo.ModTime))
+		if errLarge != nil {
+			logger.Debug(fmt.Sprintf("Could not delete thumbnail: %v", file.Name))
+		}
 	}
 }
 
 func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
-	if strings.HasPrefix(file.Type, "video") {
-		return true
-	}
-	if file.OnlyOfficeId != "" {
-		return true
-	}
-	if file.Type == "application/pdf" {
-		return true
-	}
-	if strings.HasPrefix(file.Type, "image") {
-		return true
-	}
-	if file.OnlyOfficeId != "" {
-		return true
-	}
-	if file.Type == "application/pdf" {
-		return true
-	}
-	return false
-}
-
-func ConvertableImage(file iteminfo.ExtendedFileInfo) bool {
 	if strings.HasPrefix(file.Type, "video") && service.ffmpegPath != "" {
+		return true
+	}
+	if file.OnlyOfficeId != "" {
+		return true
+	}
+	if file.Type == "application/pdf" {
 		return true
 	}
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
+		return true
+	}
+	if file.OnlyOfficeId != "" {
+		return true
+	}
+	if file.Type == "application/pdf" {
 		return true
 	}
 	return false

@@ -3,7 +3,7 @@ server:
   socket: ""
   tlsKey: ""
   tlsCert: ""
-  enableThumbnails: false
+  disablePreview: false
   resizePreview: true
   port: 80
   baseURL: "/"

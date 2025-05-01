@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,7 +13,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/filebrowser/backend/preview"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 )
@@ -113,14 +111,13 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/preview [get]
 func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if config.Server.DisablePreviews {
+		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
+	}
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = settings.Config.Server.DefaultSource.Name
-	}
-	previewSize := r.URL.Query().Get("size")
-	if previewSize != "small" {
-		previewSize = "large"
 	}
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
@@ -138,29 +135,6 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if fileInfo.Type == "directory" {
 		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
 	}
-	setContentDisposition(w, r, fileInfo.Name)
-	if !preview.AvailablePreview(fileInfo) {
-		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", fileInfo.Type)
-	}
-
-	if (previewSize == "large" && !config.Server.ResizePreview) ||
-		(previewSize == "small" && !config.Server.EnableThumbnails) {
-		return rawFileHandler(w, r, fileInfo)
-	}
-	pathUrl := fmt.Sprintf("/api/raw?files=%s::%s", source, path)
-	rawUrl := pathUrl
-	if config.Server.InternalUrl != "" {
-		rawUrl = config.Server.InternalUrl + pathUrl
-	}
-	rawUrl = rawUrl + "&auth=" + d.token
-	previewImg, err := preview.GetPreviewForFile(fileInfo, previewSize, rawUrl)
-	if err == preview.ErrUnsupportedFormat {
-		return rawFileHandler(w, r, fileInfo)
-	}
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, fileInfo.RealPath, fileInfo.ModTime, bytes.NewReader(previewImg))
-	return 0, nil
+	d.fileInfo = fileInfo
+	return previewHelperFunc(w, r, d)
 }
