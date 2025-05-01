@@ -86,6 +86,7 @@ func StartFilebrowser() {
 		go indexing.Initialize(source, false)
 	}
 	validateUserInfo()
+	validateOfficeIntegration()
 	// Start the rootCMD in a goroutine
 	go func() {
 		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {
@@ -121,6 +122,5 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 		logger.Fatal(fmt.Sprintf("Error starting preview service: %v", err))
 	}
 	fbhttp.StartHttp(ctx, store, shutdownComplete)
-
 	return nil
 }

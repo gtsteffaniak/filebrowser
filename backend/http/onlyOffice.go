@@ -58,7 +58,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	path := sourceSplit[1]
 	urlFirst := pathParts[0]
 	if settings.Config.Server.InternalUrl != "" {
-		urlFirst = strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
+		urlFirst = settings.Config.Server.InternalUrl
 		replacement := strings.Split(url, "/api/raw")[0]
 		url = strings.Replace(url, replacement, settings.Config.Server.InternalUrl, 1)
 	}
@@ -132,7 +132,6 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	var data OnlyOfficeCallback
 	err = json.Unmarshal(body, &data)
 	if err != nil {
@@ -140,12 +139,16 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	}
 
 	encodedPath := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
+	pathParts := strings.Split(encodedPath,"::")
+	if len(pathParts) < 2 {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+	source := pathParts[0]
 	if source == "" {
 		source = settings.Config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
+	path, err := url.QueryUnescape(pathParts[1])
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}

@@ -42,6 +42,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
+
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
@@ -96,7 +97,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 	setContentDisposition(w, r, d.fileInfo.Name)
 	isImage := strings.HasPrefix(d.fileInfo.Type, "image")
-	if !config.Server.ResizePreviews && isImage {
+	if config.Server.DisableResize && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
 	if !preview.AvailablePreview(d.fileInfo) {

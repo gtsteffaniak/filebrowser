@@ -16,7 +16,7 @@ import (
 func (s *Service) GenerateVideoPreview(videoPath, outputPath string) error {
 	// Step 1: Get video stream duration (v:0)
 	probeCmd := exec.Command(
-		"ffprobe",
+		s.ffprobePath,
 		"-v", "error",
 		"-select_streams", "v:0",
 		"-show_entries", "stream=duration",

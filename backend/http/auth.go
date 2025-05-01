@@ -162,6 +162,7 @@ type userInfo struct {
 	PreferredUsername string `json:"preferred_username"`
 	Email             string `json:"email"`
 	Sub               string `json:"sub"`
+	Phone             string `json:"phone_number"`
 }
 
 // signupHandler registers a new user account.
@@ -393,8 +394,11 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo) (int, error) {
 	username := userInfo.PreferredUsername
-	if userInfo.PreferredUsername == "email" {
+	switch config.Auth.Methods.OidcAuth.UserIdentifier {
+	case "email":
 		username = userInfo.Email
+	case "username":
+		username = userInfo.PreferredUsername
 	}
 	// Retrieve the user from the store and store it in the context
 	user, err := store.Users.Get(username)
