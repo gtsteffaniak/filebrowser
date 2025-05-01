@@ -48,6 +48,7 @@ All notable changes to this project will be documented in this file. For commit 
   - User disableSettings property to be respected.
   - Non admin users updating admin settings.
   - Right click context issue on safari desktop.
+  - office save file issue.
 
 ## v0.6.8-beta
 

@@ -32,10 +32,11 @@ func Initialize(configFile string) {
 		logger.Error(errmsg)
 		logger.Fatal(err.Error())
 	}
+	
 	setupLogging()
 	setupAuth()
 	setupSources()
-	setupBaseURL()
+	setupUrls()
 	setupFrontend()
 }
 
@@ -124,13 +125,16 @@ func setupSources() {
 	Config.Server.Sources = sourceList
 }
 
-func setupBaseURL() {
+func setupUrls() {
 	baseurl := strings.Trim(Config.Server.BaseURL, "/")
 	if baseurl == "" {
 		Config.Server.BaseURL = "/"
 	} else {
 		Config.Server.BaseURL = "/" + baseurl + "/"
 	}
+	Config.Server.InternalUrl = strings.Trim(Config.Server.InternalUrl, "/")
+	Config.Server.ExternalUrl = strings.Trim(Config.Server.ExternalUrl, "/")
+	Config.Integrations.OnlyOffice.Url = strings.Trim(Config.Integrations.OnlyOffice.Url, "/")
 }
 
 func setupAuth() {
@@ -204,6 +208,7 @@ func loadConfigWithDefaults(configFile string) error {
 }
 
 func ValidateConfig(config Settings) error {
+
 	validate := validator.New()
 	err := validate.Struct(Config)
 	if err != nil {
