@@ -21,10 +21,10 @@ export const getters = {
   },
   isScrollable: () => {
     const currentView = getters.currentView();
-    if (currentView == "settings" || currentView == "share" || currentView == "listingView") {
-      return true
+    if (currentView == "preview") {
+      return false;
     }
-    return false
+    return true
   },
   previewType: () => getTypeInfo(state.req.type).simpleType,
   isCardView: () => (state.user.viewMode == "gallery" || state.user.viewMode == "normal" ) && getters.currentView() == "listingView" ,

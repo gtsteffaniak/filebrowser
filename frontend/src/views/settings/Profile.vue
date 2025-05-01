@@ -67,9 +67,9 @@
                 type="text"
                 placeholder="enter file extensions"
                 id="onlyofficeExt"
-                v-model="localuser.disableOnlyOfficeExt"
+                v-model="formOnlyOfficeExt"
               />
-              <button class="button onlyoffice-button" @click="submitOnlyOfficeChange">
+              <button type="button" class="button onlyoffice-button" @click="submitOnlyOfficeChange">
                 save
               </button>
             </div>
@@ -113,6 +113,7 @@ export default {
     return {
       localuser: { preview: {} },
       initialized: false,
+      formOnlyOfficeExt: "", // holds temporary input before saving
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
         { label: "red", value: "var(--red)" },
@@ -150,25 +151,25 @@ export default {
   },
   mounted() {
     this.localuser = { ...state.user };
+    this.formOnlyOfficeExt = this.localuser.disableOnlyOfficeExt;
   },
   methods: {
     formValidation() {
-      if (this.localuser.disableOnlyOfficeExt == "") {
+      if (this.formOnlyOfficeExt == "") {
         return true;
       }
       let regex = /^\.\w+(?: \.\w+)*$/;
-      return regex.test(this.localuser.disableOnlyOfficeExt);
+      return regex.test(this.formOnlyOfficeExt);
     },
     submitOnlyOfficeChange(event) {
       if (!this.formValidation()) {
         notify.showError("Invalid input, does not match requirement.");
         return;
       }
-      this.updateSettings(event);
+      this.localuser.disableOnlyOfficeExt = this.formOnlyOfficeExt;
     },
     setColor(string) {
       this.localuser.themeColor = string;
-      this.updateSettings();
     },
     async updateSettings(event) {
       if (event !== undefined) {
@@ -199,7 +200,6 @@ export default {
     },
     updateLocale(updatedLocale) {
       this.localuser.locale = updatedLocale;
-      this.updateSettings();
     },
   },
 };

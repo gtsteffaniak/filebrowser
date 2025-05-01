@@ -261,6 +261,8 @@ definitions:
         type: string
       disablePreview:
         type: boolean
+      disableTypeDetectionByHeader:
+        type: boolean
       externalUrl:
         type: string
       internalUrl:

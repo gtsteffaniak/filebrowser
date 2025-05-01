@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 )
 
 var AllFiletypeOptions = []string{
@@ -234,18 +236,29 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	if i.Type == "" {
 		i.Type = ExtendedMimeTypeCheck(ext)
 	}
-	if i.Type == "blob" {
-		// Read only the first 512 bytes for efficient MIME detection
-		file, err := os.Open(realPath)
-		if err != nil {
-
-		} else {
-			defer file.Close()
-			buffer := make([]byte, 512)
-			n, _ := file.Read(buffer) // Ignore errors from Read
-			i.Type = strings.Split(http.DetectContentType(buffer[:n]), ";")[0]
+	// do header detection for certain files to ensure the type is correct for undetected or ambiguous files
+	switch ext {
+	case ".ts", "blob":
+		if !settings.Config.Server.DisableTypeDetectionByHeader {
+			i.Type = DetectTypeByHeader(realPath)
 		}
 	}
+}
+
+// DetectTypeByHeader detects the MIME type of a file based on its header.
+func DetectTypeByHeader(realPath string) string {
+	file, err := os.Open(realPath)
+	if err != nil {
+		return "blob"
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil {
+		return "blob"
+	}
+	return http.DetectContentType(buffer[:n])
 }
 
 // returns true if the file name contains the search term

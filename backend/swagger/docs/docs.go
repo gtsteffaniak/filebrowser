@@ -1900,6 +1900,9 @@ const docTemplate = `{
                 "disablePreview": {
                     "type": "boolean"
                 },
+                "disableTypeDetectionByHeader": {
+                    "type": "boolean"
+                },
                 "externalUrl": {
                     "type": "string"
                 },

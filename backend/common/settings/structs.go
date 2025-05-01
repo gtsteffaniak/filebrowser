@@ -22,21 +22,22 @@ type Settings struct {
 }
 
 type Server struct {
-	NumImageProcessors int         `json:"numImageProcessors"`
-	Socket             string      `json:"socket"`
-	TLSKey             string      `json:"tlsKey"`
-	TLSCert            string      `json:"tlsCert"`
-	DisablePreviews    bool        `json:"disablePreview"`
-	ResizePreviews     bool        `json:"resizePreview"`
-	Port               int         `json:"port"`
-	BaseURL            string      `json:"baseURL"`
-	Logging            []LogConfig `json:"logging"`
-	Database           string      `json:"database"`
-	Sources            []Source    `json:"sources" validate:"required,dive"`
-	ExternalUrl        string      `json:"externalUrl"`
-	InternalUrl        string      `json:"internalUrl"` // used by integrations
-	CacheDir           string      `json:"cacheDir"`
-	MaxArchiveSizeGB   int64       `json:"maxArchiveSize"`
+	NumImageProcessors           int         `json:"numImageProcessors"`
+	Socket                       string      `json:"socket"`
+	TLSKey                       string      `json:"tlsKey"`
+	TLSCert                      string      `json:"tlsCert"`
+	DisablePreviews              bool        `json:"disablePreview"`
+	ResizePreviews               bool        `json:"resizePreview"`
+	DisableTypeDetectionByHeader bool        `json:"disableTypeDetectionByHeader"`
+	Port                         int         `json:"port"`
+	BaseURL                      string      `json:"baseURL"`
+	Logging                      []LogConfig `json:"logging"`
+	Database                     string      `json:"database"`
+	Sources                      []Source    `json:"sources" validate:"required,dive"`
+	ExternalUrl                  string      `json:"externalUrl"`
+	InternalUrl                  string      `json:"internalUrl"` // used by integrations
+	CacheDir                     string      `json:"cacheDir"`
+	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"`
 	// not exposed to config
 	SourceMap     map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource  map[string]Source `json:"-" validate:"omitempty"` // uses name as key

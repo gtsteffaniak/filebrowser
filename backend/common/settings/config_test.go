@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -45,6 +46,24 @@ func TestConfigLoadChanged(t *testing.T) {
 	err := loadConfigWithDefaults("./validConfig.yaml")
 	if err != nil {
 		t.Fatalf("error loading config file: %v", err)
+	}
+	// Use go-cmp to compare the two structs
+	if diff := cmp.Diff(defaultConfig, Config); diff == "" {
+		t.Errorf("No change when there should have been (-want +got):\n%s", diff)
+	}
+}
+
+func TestConfigLoadEnvVars(t *testing.T) {
+	defaultConfig := setDefaults()
+	expectedKey := "MYKEY"
+	// mock environment variables
+	os.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", expectedKey)
+	err := loadConfigWithDefaults("./validConfig.yaml")
+	if err != nil {
+		t.Fatalf("error loading config file: %v", err)
+	}
+	if Config.Integrations.OnlyOffice.Secret != expectedKey {
+		t.Errorf("Expected OnlyOffice.Secret to be '%v', got '%s'", expectedKey, Config.Integrations.OnlyOffice.Secret)
 	}
 	// Use go-cmp to compare the two structs
 	if diff := cmp.Diff(defaultConfig, Config); diff == "" {

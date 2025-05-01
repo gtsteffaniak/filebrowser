@@ -1,12 +1,28 @@
 <template>
   <header :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
-    <action v-if="!isShare" icon="close_back" :label="$t('buttons.close')" @action="multiAction" />
+    <action
+      v-if="!isShare"
+      icon="close_back"
+      :label="$t('buttons.close')"
+      @action="multiAction"
+    />
     <search v-if="showSearch" />
     <title v-else-if="isSettings" class="topTitle">Settings</title>
     <title v-else class="topTitle">{{ req.name }}</title>
-    <action v-if="isListingView" class="menu-button" :icon="viewIcon" :label="$t('buttons.switchView')"
-      @action="switchView" :disabled="isSearchActive" />
-    <action v-else-if="!isShare" :icon="iconName" :disabled="noItems" @click="toggleOverflow" />
+    <action
+      v-if="isListingView"
+      class="menu-button"
+      :icon="viewIcon"
+      :label="$t('buttons.switchView')"
+      @action="switchView"
+      :disabled="isSearchActive"
+    />
+    <action
+      v-else-if="!isShare"
+      :icon="iconName"
+      :disabled="noItems"
+      @click="toggleOverflow"
+    />
   </header>
 </template>
 
@@ -30,7 +46,7 @@ export default {
   },
   computed: {
     isListingView() {
-      return getters.currentView() == "listingView"
+      return getters.currentView() == "listingView";
     },
     iconName() {
       return getters.currentPromptName() === "OverflowMenu"
@@ -50,13 +66,13 @@ export default {
       return getters.currentView() == "share";
     },
     noItems() {
-      return !this.showEdit && !this.showSave && !this.showDelete
+      return !this.showEdit && !this.showSave && !this.showDelete;
     },
     showEdit() {
       return window.location.hash == "#edit" && state.user.permissions.modify;
     },
     showDelete() {
-      return state.user.permissions.modify && getters.currentView() == "preview"
+      return state.user.permissions.modify && getters.currentView() == "preview";
     },
     showSave() {
       return getters.currentView() == "editor" && state.user.permissions.modify;
@@ -112,7 +128,7 @@ export default {
         if (listingView === "onlyOfficeEditor") {
           const current = window.location.pathname;
           const newpath = removeLastDir(current);
-          router.replace({ path: newpath, hash: state.req.name });
+          window.location = newpath + "#" + state.req.name;
           return;
         }
         mutations.replaceRequest({});
