@@ -96,7 +96,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 	}
 	setContentDisposition(w, r, d.fileInfo.Name)
 	isImage := strings.HasPrefix(d.fileInfo.Type, "image")
-	if !config.Server.ResizePreviews && isImage {
+	if config.Server.DisableResize && isImage {
 		return rawFileHandler(w, r, d.fileInfo)
 	}
 	if !preview.AvailablePreview(d.fileInfo) {

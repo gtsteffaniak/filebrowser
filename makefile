@@ -28,6 +28,8 @@ run: build-frontend
 	else \
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi && \
+	go run ./tools/yaml.go -input ./common/settings/settings.go -output=http/embed/config.generated.yaml && \
+	cp http/embed/config.generated.yaml http/dist/config.generated.yaml && \
 	FILEBROWSER_NO_EMBEDED=true go run \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
 

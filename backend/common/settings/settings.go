@@ -1,3 +1,4 @@
+//go:generate go run ./tools/yaml.go -input=common/settings/settings.go -output=config.generated.yaml
 package settings
 
 import (
