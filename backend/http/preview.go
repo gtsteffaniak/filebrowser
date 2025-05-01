@@ -42,6 +42,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
+
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {

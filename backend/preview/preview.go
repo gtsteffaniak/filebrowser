@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"runtime"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
@@ -27,6 +28,7 @@ var (
 type Service struct {
 	sem        chan struct{}
 	ffmpegPath string
+	ffprobePath string
 	fileCache  diskcache.Interface
 }
 
@@ -46,15 +48,23 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
+	ffprobePath := ""
+	ffmpegMainPath := ""
+	var err error
 	if ffmpegPath != "" {
-		err := CheckValidFFmpeg(ffmpegPath)
+		ffmpegMainPath, err = CheckValidFFmpeg(ffmpegPath)
 		if err != nil {
-			logger.Fatal(fmt.Sprintf("the configured ffmpeg path is not a valid %s, err: %v", ffmpegPath, err))
+			logger.Fatal(fmt.Sprintf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err))
+		}
+		ffprobePath, err = CheckValidFFprobe(ffmpegPath)
+		if err != nil {
+			logger.Fatal(fmt.Sprintf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err))
 		}
 	}
 	return &Service{
 		sem:        make(chan struct{}, concurrencyLimit),
-		ffmpegPath: ffmpegPath,
+		ffmpegPath: ffmpegMainPath,
+		ffprobePath: ffprobePath,
 		fileCache:  fileCache,
 	}
 }
@@ -65,6 +75,7 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 }
 
 func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
+	fmt.Println("modtime",file.ItemInfo.ModTime)
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 	data, found, _ := service.fileCache.Load(context.Background(), cacheKey)
 	if found {
@@ -106,7 +117,6 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string)
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
-	fmt.Println("preview size", previewSize, "file cache", settings.Config.Server.CacheDir)
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 	if err := service.fileCache.Store(context.Background(), cacheKey, data); err != nil {
 		logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
@@ -184,10 +194,24 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	return false
 }
 
-func CheckValidFFmpeg(path string) error {
-	cmd := exec.Command(
-		path,
-		"-version",
-	)
-	return cmd.Run()
+func CheckValidFFmpeg(path string) (string,error) {
+	var exeExt string
+	if runtime.GOOS == "windows" {
+		exeExt = ".exe"
+	}
+
+	ffmpegPath := filepath.Join(path, "ffmpeg" + exeExt)
+	cmd := exec.Command(ffmpegPath, "-version")
+	return ffmpegPath, cmd.Run()
+}
+
+func CheckValidFFprobe(path string) (string,error) {
+	var exeExt string
+	if runtime.GOOS == "windows" {
+		exeExt = ".exe"
+	}
+
+	ffprobePath := filepath.Join(path, "ffprobe" + exeExt)
+	cmd := exec.Command(ffprobePath, "-version")
+	return ffprobePath, cmd.Run()
 }
