@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { state } from "@/store";
+import { state, getters } from "@/store";
 
 export default {
   name: "PopupPreview",
@@ -46,11 +46,19 @@ export default {
       if (!state.isMobile) this.positionPopup();
     },
     positionPopup() {
+      if (!this.source) return;
       const popup = this.$refs.popup;
       if (!popup) return;
 
+      const { innerWidth, innerHeight } = window;
+      const width = popup.offsetWidth;
+      const height = popup.offsetHeight;
+      const padding = 10;
+
+      const minLeft = getters.isSidebarVisible() ? 320 : padding;
+      const minTop = padding + 100;
+
       if (state.isMobile) {
-        // Mobile: center in parent
         this.popupStyle = {
           left: "50%",
           width: "90%",
@@ -59,29 +67,25 @@ export default {
         return;
       }
 
-      // Desktop behavior
-      const { innerWidth, innerHeight } = window;
-      const width = popup.offsetWidth;
-      const height = popup.offsetHeight;
-
-      const minLeft = 320; // 20em ≈ 320px
+      // Position near cursor (prefer center horizontally)
       let left = this.cursorX - width / 2;
-      let top = this.cursorY;
+      left = Math.max(minLeft, Math.min(left, innerWidth - width));
 
-      // Clamp left
-      if (left + width > innerWidth) {
-        left = innerWidth - width;
-      }
-      if (left < minLeft) {
-        left = minLeft;
-      }
+      // Prefer below or above cursor based on Y position
+      let top;
+      const isBottomHalf = this.cursorY > innerHeight / 2;
 
-      // Clamp top
-      if (top + height > innerHeight) {
-        top = innerHeight - height;
-      }
-      if (top < 0) {
-        top = 0;
+      if (isBottomHalf) {
+        // Place above
+        top = this.cursorY - height - padding;
+        top = Math.max(minTop, top);
+      } else {
+        // Place below
+        top = this.cursorY + padding;
+        if (top + height > innerHeight) {
+          top = innerHeight - height;
+          top = Math.max(minTop, top); // Enforce minTop again
+        }
       }
 
       this.popupStyle = {

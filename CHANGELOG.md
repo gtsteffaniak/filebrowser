@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Updated documentation for resources api https://github.com/gtsteffaniak/filebrowser/issues/560
   - Updated placeholder for scopes https://github.com/gtsteffaniak/filebrowser/issues/475
   - When user's API permissions are removed, any api keys the user had will be revoked.
+  - `server.enableThumbnails` moved to `server.disablePreviews` defaulting to false.
 
   **Bug Fixes**:
   - Nil pointer error when source media is disconnected while running.

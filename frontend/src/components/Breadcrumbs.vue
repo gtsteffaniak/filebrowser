@@ -203,7 +203,7 @@ export default {
 
 #breadcrumbs ul li a:hover {
   background: var(--primaryColor);
-  color: var(--textPrimary);
+  color: white;
 }
 
 #breadcrumbs ul li a:hover::after {
