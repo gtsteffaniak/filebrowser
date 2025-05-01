@@ -9,9 +9,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
-	"runtime"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
@@ -26,10 +26,10 @@ var (
 )
 
 type Service struct {
-	sem        chan struct{}
-	ffmpegPath string
+	sem         chan struct{}
+	ffmpegPath  string
 	ffprobePath string
-	fileCache  diskcache.Interface
+	fileCache   diskcache.Interface
 }
 
 func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
@@ -62,10 +62,10 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 		}
 	}
 	return &Service{
-		sem:        make(chan struct{}, concurrencyLimit),
-		ffmpegPath: ffmpegMainPath,
+		sem:         make(chan struct{}, concurrencyLimit),
+		ffmpegPath:  ffmpegMainPath,
 		ffprobePath: ffprobePath,
-		fileCache:  fileCache,
+		fileCache:   fileCache,
 	}
 }
 
@@ -75,7 +75,6 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 }
 
 func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
-	fmt.Println("modtime",file.ItemInfo.ModTime)
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 	data, found, _ := service.fileCache.Load(context.Background(), cacheKey)
 	if found {
@@ -194,24 +193,24 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	return false
 }
 
-func CheckValidFFmpeg(path string) (string,error) {
+func CheckValidFFmpeg(path string) (string, error) {
 	var exeExt string
 	if runtime.GOOS == "windows" {
 		exeExt = ".exe"
 	}
 
-	ffmpegPath := filepath.Join(path, "ffmpeg" + exeExt)
+	ffmpegPath := filepath.Join(path, "ffmpeg"+exeExt)
 	cmd := exec.Command(ffmpegPath, "-version")
 	return ffmpegPath, cmd.Run()
 }
 
-func CheckValidFFprobe(path string) (string,error) {
+func CheckValidFFprobe(path string) (string, error) {
 	var exeExt string
 	if runtime.GOOS == "windows" {
 		exeExt = ".exe"
 	}
 
-	ffprobePath := filepath.Join(path, "ffprobe" + exeExt)
+	ffprobePath := filepath.Join(path, "ffprobe"+exeExt)
 	cmd := exec.Command(ffprobePath, "-version")
 	return ffprobePath, cmd.Run()
 }

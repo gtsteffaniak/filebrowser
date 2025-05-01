@@ -56,7 +56,7 @@ type OnlyOffice struct {
 }
 
 type Media struct {
-	FfmpegPath string `json:"ffmpegPath"` // path to ffmpeg binary, including the binary name (eg. /usr/bin/ffmpeg)
+	FfmpegPath string `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
 }
 
 type LogConfig struct {

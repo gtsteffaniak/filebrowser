@@ -9,9 +9,7 @@ async function updateSourceInfo() {
 }
 
 export async function startSSE() {
-
     const eventSrc = new EventSource(`${baseURL}api/events?sessionId=${state.sessionId}`);
-
     eventSrc.onopen = () => {
         console.log("SSE connection established.");
         updateSourceInfo()
@@ -29,7 +27,6 @@ export async function startSSE() {
         try {
             const msg = JSON.parse(event.data);
             eventRouter(msg.eventType,msg.message);
-            //console.log("Received event:", msg);
         } catch (err) {
             console.log("Error parsing event data:", err,event.data);
         }

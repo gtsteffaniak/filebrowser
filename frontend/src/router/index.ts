@@ -150,7 +150,6 @@ router.beforeResolve(async (to, from, next) => {
       }
 
       if (oidcAvailable) {
-        console.log("OIDC login available, redirecting to OIDC login");
         window.location.href = `/api/auth/oidc/login?redirect=${encodeURIComponent(to.fullPath)}`;
         return;
       }

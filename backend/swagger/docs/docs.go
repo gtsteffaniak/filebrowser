@@ -1787,7 +1787,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ffmpegPath": {
-                    "description": "path to ffmpeg binary, including the binary name (eg. /usr/bin/ffmpeg)",
+                    "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
                     "type": "string"
                 }
             }
