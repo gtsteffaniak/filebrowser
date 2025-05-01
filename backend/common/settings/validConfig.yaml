@@ -3,8 +3,8 @@ server:
   socket: ""
   tlsKey: ""
   tlsCert: ""
-  disablePreview: false
-  resizePreview: true
+  disablePreviews: false
+  disablePreviewResize: false
   port: 80
   baseURL: "/"
   database: "mydb.db"
