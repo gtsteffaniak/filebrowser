@@ -18,6 +18,7 @@ require (
 	golang.org/x/crypto v0.37.0
 	golang.org/x/image v0.26.0
 	golang.org/x/sys v0.32.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -91,7 +92,7 @@ require (
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
-	github.com/golang/geo v0.0.0-20250422092327-39c32da97703 // indirect
+	github.com/golang/geo v0.0.0-20250502111831-0a52ac3e94b1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golangci/dupl v0.0.0-20250308024227-f665c8d69b32 // indirect
 	github.com/golangci/go-printf-func-name v0.1.0 // indirect
@@ -222,7 +223,6 @@ require (
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
 	mvdan.cc/gofumpt v0.7.0 // indirect
 	mvdan.cc/unparam v0.0.0-20240528143540-8a5130ca722f // indirect
