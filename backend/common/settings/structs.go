@@ -51,8 +51,9 @@ type Integrations struct {
 // onlyoffice secret is stored in the local.json file
 // docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
 type OnlyOffice struct {
-	Url    string `json:"url" validate:"required"` // URL to the OnlyOffice Document Server
-	Secret string `json:"secret" validate:"required"`
+	Url         string `json:"url" validate:"required"` // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
+	InternalUrl string `json:"internalUrl"`             // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
+	Secret      string `json:"secret" validate:"required"`
 }
 
 type Media struct {

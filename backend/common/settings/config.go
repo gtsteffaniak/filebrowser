@@ -32,6 +32,7 @@ func Initialize(configFile string) {
 		logger.Error(errmsg)
 		logger.Fatal(err.Error())
 	}
+	
 	setupLogging()
 	setupAuth()
 	setupSources()

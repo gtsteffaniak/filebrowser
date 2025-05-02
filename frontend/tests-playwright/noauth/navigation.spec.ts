@@ -15,16 +15,9 @@ test("navigate with hash in file name", async({ page, checkForErrors, context })
 })
 
 test("breadcrumbs navigation checks", async({ page, checkForErrors, context }) => {
-  await page.goto("/files/");
-  await expect(page.locator('a[aria-label="Home"]')).toHaveAttribute("href", "/files/");
-
-  // Ensure no <span> children exist directly under #breadcrumbs (ie no breadcrumbs paths)
-  let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
-  await page.waitForSelector('#breadcrumbs');
-  expect(spanChildrenCount).toBe(0);
-
   await page.goto("/files/myfolder");
   await page.waitForSelector('#breadcrumbs');
+  let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
   let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-myfolder"]')

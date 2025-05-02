@@ -15,9 +15,9 @@
         <thead>
           <tr>
             <th>{{ $t("settings.username") }}</th>
-            <th>login method</th>
+            <th>Login Method</th>
             <th>{{ $t("settings.admin") }}</th>
-            <th>scopes</th>
+            <th>Scopes</th>
             <th></th>
           </tr>
         </thead>

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -74,21 +75,21 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 	return nil
 }
 
-func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
+func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string, originalRequest *http.Request) ([]byte, error) {
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 	data, found, _ := service.fileCache.Load(context.Background(), cacheKey)
 	if found {
 		return data, nil
 	}
-	return GeneratePreview(file, previewSize, rawUrl)
+	return GeneratePreview(file, previewSize, rawUrl, originalRequest)
 }
 
-func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
+func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string, originalRequest *http.Request) ([]byte, error) {
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	var err error
 	var data []byte
 	if file.OnlyOfficeId != "" {
-		data, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, rawUrl)
+		data, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, rawUrl, originalRequest)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}

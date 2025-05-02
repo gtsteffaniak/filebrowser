@@ -34,7 +34,7 @@
             <td>{{ sourceInfoTooltip.folders }}</td>
           </tr>
           <tr>
-            <td>Last Updated</td>
+            <td>Last Scanned</td>
             <td>{{ gethumanReadable }}</td>
           </tr>
           <tr>
@@ -51,7 +51,11 @@
   </div>
   <div class="card headline-card">
     <div class="card-wrapper user-card">
-      <div v-if="settingsAllowed" @click="navigateTo('/settings#profile-main')" class="inner-card">
+      <div
+        v-if="settingsAllowed"
+        @click="navigateTo('/settings#profile-main')"
+        class="inner-card"
+      >
         <button
           class="person-button action"
           @mouseover="updateHoverText('Settings For User')"
@@ -63,7 +67,7 @@
         </button>
       </div>
       <div v-else class="inner-card">
-        <button class="person-button action" >
+        <button class="person-button action">
           <i class="material-icons">person</i>
           {{ user.username }}
         </button>

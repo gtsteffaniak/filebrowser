@@ -28,7 +28,7 @@
     @touchend="cancelContext($event)"
     @mouseup="cancelContext($event)"
   >
-    <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
+    <div @click="toggleClick" :class="{ 'gallery-div': galleryView }">
       <Icon :mimetype="type" :active="isSelected" :thumbnailUrl />
     </div>
 
@@ -53,31 +53,6 @@
     />
   </a>
 </template>
-
-<style>
-.activebutton {
-  height: 10em;
-}
-
-.activecontent {
-  height: 5em !important;
-  display: grid !important;
-}
-
-.activeimg {
-  width: 8em !important;
-  height: 8em !important;
-}
-
-.iconActive {
-  font-size: 6em !important;
-}
-
-.activetitle {
-  width: 9em !important;
-  margin-right: 1em !important;
-}
-</style>
 
 <script>
 import { enableThumbs } from "@/utils/constants";
@@ -105,7 +80,7 @@ export default {
       touchStartY: 0,
       isLongPress: false,
       isSwipe: false,
-      isDraggedOver: false
+      isDraggedOver: false,
     };
   },
   props: [
@@ -121,6 +96,9 @@ export default {
     "reducedOpacity",
   ],
   computed: {
+    galleryView() {
+      return state.user.viewMode === "gallery";
+    },
     quickDownloadEnabled() {
       return state.user?.quickDownload;
     },
@@ -272,7 +250,7 @@ export default {
       return getters.getTime(this.modified);
     },
     dragLeave() {
-      this.isDraggedOver = false
+      this.isDraggedOver = false;
     },
     dragStart() {
       if (getters.selectedCount() === 0) {
@@ -288,7 +266,7 @@ export default {
     dragOver(event) {
       if (!this.canDrop) return;
       event.preventDefault();
-      this.isDraggedOver = true
+      this.isDraggedOver = true;
     },
     async drop(event) {
       if (!this.canDrop) return;
@@ -436,5 +414,27 @@ export default {
 
 .hiddenFile {
   opacity: 0.5;
+}
+.activebutton {
+  height: 10em;
+}
+
+.activecontent {
+  height: 5em !important;
+  display: grid !important;
+}
+
+.activeimg {
+  width: 8em !important;
+  height: 8em !important;
+}
+
+.iconActive {
+  font-size: 6em !important;
+}
+
+.activetitle {
+  width: 9em !important;
+  margin-right: 1em !important;
 }
 </style>

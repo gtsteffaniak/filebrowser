@@ -15,6 +15,7 @@ export const state = reactive({
   editor: null,
   serverHasMultipleSources: false,
   realtimeActive: undefined,
+  realtimeDownCount: 0,
   popupPreviewSource: "",
   sources: {
     current: "",

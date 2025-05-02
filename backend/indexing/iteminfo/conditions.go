@@ -237,9 +237,13 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 		i.Type = ExtendedMimeTypeCheck(ext)
 	}
 	// do header detection for certain files to ensure the type is correct for undetected or ambiguous files
-	switch ext {
-	case ".ts", "blob":
-		if !settings.Config.Server.DisableTypeDetectionByHeader {
+	if !settings.Config.Server.DisableTypeDetectionByHeader {
+		switch ext {
+		case ".ts", ".xcf":
+			i.Type = DetectTypeByHeader(realPath)
+			return
+		}
+		if i.Type == "blob" {
 			i.Type = DetectTypeByHeader(realPath)
 		}
 	}

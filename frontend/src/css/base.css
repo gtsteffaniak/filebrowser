@@ -17,16 +17,11 @@ body {
   color: #333333;
   overflow:auto;
   overflow:initial;
-}
-body::-webkit-scrollbar {
-  z-index: 1000;
-}
-
-/* Hiding scrollbar for IE, Edge and Firefox */
-body {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  -webkit-overflow-scrolling: touch;
 }
+
 body.rtl {
   direction: rtl;
 }
@@ -84,9 +79,10 @@ over
   padding-bottom: 4em;
 }
 
-
 /* Main Content */
 #main {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
   position: fixed;
   padding-top: 4em;
   overflow: unset;
@@ -95,12 +91,20 @@ over
   width: 100%;
   display: flex;
   flex-direction: column;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar for WebKit browsers */
+#main::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* Optional: just make scrollbar invisible */
+  display: none;
+  -webkit-appearance: none;
 }
 
 .main-padding {
   padding: 0.5em;
   padding-top: 4em;
-
 }
 
 
