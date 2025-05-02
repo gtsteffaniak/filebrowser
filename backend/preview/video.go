@@ -3,7 +3,6 @@ package preview
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
