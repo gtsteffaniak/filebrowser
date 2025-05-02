@@ -146,7 +146,7 @@
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path,s.type == 'directory')}}/{{ baseName(s.path) }}/
+                {{ basePath(s.path, s.type == "directory") }}/{{ baseName(s.path) }}/
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -165,6 +165,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
 
 import Icon from "@/components/files/Icon.vue";
+import { serverHasMultipleSources } from "@/utils/constants";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -409,10 +410,10 @@ export default {
         path = path.slice(1); // remove leading slash
       }
       let fullpath = path;
-      if (state.sources.count === 1) {
-        fullpath = "/files/" + encodeURIComponent(path);
-      } else {
+      if (serverHasMultipleSources) {
         fullpath = "/files/" + this.selectedSource + "/" + encodeURIComponent(path);
+      } else {
+        fullpath = "/files/" + encodeURIComponent(path);
       }
       return fullpath;
     },
@@ -430,8 +431,8 @@ export default {
     humanSize(size) {
       return getHumanReadableFilesize(size);
     },
-    basePath(str,isDir) {
-      let result = url.removeLastDir(str)
+    basePath(str, isDir) {
+      let result = url.removeLastDir(str);
       if (!isDir) {
         result = url.removeLeadingSlash(result); // fix weird rtl thing
       }
@@ -515,11 +516,7 @@ export default {
       if (source == "") {
         source = state.sources.current;
       }
-      this.results = await search(
-        this.getContext,
-        source,
-        searchTypesFull + this.value
-      );
+      this.results = await search(this.getContext, source, searchTypesFull + this.value);
 
       this.ongoing = false;
       if (this.results.length == 0) {

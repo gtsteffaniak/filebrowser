@@ -69,13 +69,9 @@ function setupSSE () {
     cleanup()
     mutations.setRealtimeActive(false)
     mutations.updateSourceInfo('error')
-
-    if (state.realtimeDownCount === 2) {
-      notify.showError(
-        'The connection to server was lost. Trying to reconnect...'
-      )
+    if (state.realtimeDownCount == 2 && !isManuallyClosed) {
+      notify.showError('The connection to server was lost. Trying to reconnect...')
     }
-
     scheduleReconnect()
   }
 }
