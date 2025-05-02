@@ -24,7 +24,6 @@ export async function fetchPub(path, hash, password = "") {
 
 // Download files with given parameters
 export function download(format, files) {
-  console.log("Downloading files:",format, files)
   let fileargs = ''
   if (files.length === 1) {
     fileargs = decodeURI(files[0]) + '||'

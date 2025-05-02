@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 	"runtime"
@@ -26,10 +27,17 @@ var (
 )
 
 type Service struct {
+<<<<<<< HEAD
 	sem        chan struct{}
 	ffmpegPath string
 	ffprobePath string
 	fileCache  diskcache.Interface
+=======
+	sem         chan struct{}
+	ffmpegPath  string
+	ffprobePath string
+	fileCache   diskcache.Interface
+>>>>>>> e66cdfde43018af62a0438ae65ab877beb0834b3
 }
 
 func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
@@ -62,10 +70,10 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 		}
 	}
 	return &Service{
-		sem:        make(chan struct{}, concurrencyLimit),
-		ffmpegPath: ffmpegMainPath,
+		sem:         make(chan struct{}, concurrencyLimit),
+		ffmpegPath:  ffmpegMainPath,
 		ffprobePath: ffprobePath,
-		fileCache:  fileCache,
+		fileCache:   fileCache,
 	}
 }
 
@@ -194,15 +202,36 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	return false
 }
 
+<<<<<<< HEAD
 func CheckValidFFmpeg(path string) (string,error) {
+=======
+func CheckValidFFmpeg(path string) (string, error) {
+>>>>>>> e66cdfde43018af62a0438ae65ab877beb0834b3
 	var exeExt string
 	if runtime.GOOS == "windows" {
 		exeExt = ".exe"
 	}
 
+<<<<<<< HEAD
 	ffmpegPath := filepath.Join(path, "ffmpeg" + exeExt)
 	cmd := exec.Command(ffmpegPath, "-version")
 	return ffmpegPath, cmd.Run()
+=======
+	ffmpegPath := filepath.Join(path, "ffmpeg"+exeExt)
+	cmd := exec.Command(ffmpegPath, "-version")
+	return ffmpegPath, cmd.Run()
+}
+
+func CheckValidFFprobe(path string) (string, error) {
+	var exeExt string
+	if runtime.GOOS == "windows" {
+		exeExt = ".exe"
+	}
+
+	ffprobePath := filepath.Join(path, "ffprobe"+exeExt)
+	cmd := exec.Command(ffprobePath, "-version")
+	return ffprobePath, cmd.Run()
+>>>>>>> e66cdfde43018af62a0438ae65ab877beb0834b3
 }
 
 func CheckValidFFprobe(path string) (string,error) {

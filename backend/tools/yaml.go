@@ -38,7 +38,10 @@ func collectComments(srcPath string) (commentsMap, error) {
 					continue
 				}
 				for _, spec := range gen.Specs {
-					ts := spec.(*ast.TypeSpec)
+					ts, ok := spec.(*ast.TypeSpec)
+					if !ok {
+						continue
+					}
 					st, ok := ts.Type.(*ast.StructType)
 					if !ok {
 						continue

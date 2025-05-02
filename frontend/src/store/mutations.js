@@ -90,12 +90,16 @@ export const mutations = {
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
     window.history.replaceState(null, "", "#" + value);
+    const container = document.getElementById("main");
     const element = document.getElementById(value);
-    if (element) {
-      element.scrollIntoView({
+    if (container && element) {
+      const offset = 4 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
+      const containerTop = container.getBoundingClientRect().top;
+      const elementTop = element.getBoundingClientRect().top;
+      const scrollOffset = elementTop - containerTop - offset;
+      container.scrollTo({
+        top: container.scrollTop + scrollOffset,
         behavior: "smooth",
-        block: "center",
-        inline: "nearest",
       });
     }
     emitStateChanged();

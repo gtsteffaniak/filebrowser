@@ -161,7 +161,7 @@ export default {
       let regex = /^\.\w+(?: \.\w+)*$/;
       return regex.test(this.formOnlyOfficeExt);
     },
-    submitOnlyOfficeChange(event) {
+    submitOnlyOfficeChange() {
       if (!this.formValidation()) {
         notify.showError("Invalid input, does not match requirement.");
         return;
