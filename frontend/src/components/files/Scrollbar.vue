@@ -15,7 +15,9 @@
         @mousedown="startDrag"
         @touchstart.prevent="startDrag"
       >
-        <div v-if="isNotListing" class="thumb-letters"><hr /></div>
+        <div v-if="isNotListing" class="thumb-letters">
+          <hr />
+        </div>
         <div v-else class="thumb-letters no-select">
           <i class="material-icons" :class="{ 'primary-icons': isFolder }">
             {{ isFolder ? "folder" : "description" }}
@@ -63,6 +65,12 @@ export default {
     },
   },
   methods: {
+    handleResize() {
+      if (!this.isReady) return;
+      // Force scroll event to re-compute thumb position
+      const content = this.$refs.wrapper;
+      this.updateThumbPosition(content.scrollTop);
+    },
     category() {
       return state.listing.category;
     },
@@ -179,8 +187,10 @@ export default {
     }, 100);
     this.$refs.wrapper.addEventListener("mousemove", this.handleMouseMove);
     this.$refs.wrapper.addEventListener("scroll", this.handleScroll, { passive: true });
+    window.addEventListener("resize", this.handleResize);
   },
   beforeUnmount() {
+    window.removeEventListener("resize", this.handleResize);
     this.$refs.wrapper.removeEventListener("mousemove", this.handleMouseMove);
     this.$refs.wrapper.removeEventListener("scroll", this.handleScroll);
   },
@@ -219,7 +229,8 @@ export default {
 }
 
 .thumb {
-  right: -5em; /* <- Start hidden */
+  right: -5em;
+  /* <- Start hidden */
   display: none;
   border-style: solid;
   border-color: var(--background);

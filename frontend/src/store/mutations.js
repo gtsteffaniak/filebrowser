@@ -64,6 +64,11 @@ export const mutations = {
     emitStateChanged();
   },
   setRealtimeActive: (value) => {
+    if ( value == false ) {
+      state.realtimeDownCount = state.realtimeDownCount + 1;
+    } else {
+      state.realtimeDownCount = 0;
+    }
     state.realtimeActive = value;
   },
   setSources: (user) => {

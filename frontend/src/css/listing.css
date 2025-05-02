@@ -117,6 +117,9 @@ body.rtl #listingView {
   justify-content: center;
   padding: 0;
 }
+#listingView.gallery .item .gallery-div {
+  display: contents;
+}
 
 #listingView.normal .item,
 #listingView.gallery .item {

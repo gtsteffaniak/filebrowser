@@ -28,7 +28,7 @@
     @touchend="cancelContext($event)"
     @mouseup="cancelContext($event)"
   >
-    <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
+    <div @click="toggleClick" :class="{ 'gallery-div': galleryView }">
       <Icon :mimetype="type" :active="isSelected" :thumbnailUrl />
     </div>
 
@@ -80,7 +80,7 @@ export default {
       touchStartY: 0,
       isLongPress: false,
       isSwipe: false,
-      isDraggedOver: false
+      isDraggedOver: false,
     };
   },
   props: [
@@ -96,6 +96,9 @@ export default {
     "reducedOpacity",
   ],
   computed: {
+    galleryView() {
+      return state.user.viewMode === "gallery";
+    },
     quickDownloadEnabled() {
       return state.user?.quickDownload;
     },
@@ -247,7 +250,7 @@ export default {
       return getters.getTime(this.modified);
     },
     dragLeave() {
-      this.isDraggedOver = false
+      this.isDraggedOver = false;
     },
     dragStart() {
       if (getters.selectedCount() === 0) {
@@ -263,7 +266,7 @@ export default {
     dragOver(event) {
       if (!this.canDrop) return;
       event.preventDefault();
-      this.isDraggedOver = true
+      this.isDraggedOver = true;
     },
     async drop(event) {
       if (!this.canDrop) return;

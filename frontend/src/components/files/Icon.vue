@@ -17,7 +17,7 @@
 <script>
 import { onlyOfficeUrl, mediaAvailable } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
-import { mutations,state } from "@/store";
+import { mutations, state } from "@/store";
 export default {
   name: "Icon",
   props: {
@@ -55,13 +55,25 @@ export default {
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
         return true;
       }
-      if (this.getIconForType().simpleType === "video" && state.user.preview?.video && mediaAvailable) {
+      if (
+        this.getIconForType().simpleType === "video" &&
+        state.user.preview?.video &&
+        mediaAvailable
+      ) {
         return true;
       }
-      if (this.getIconForType().simpleType === "document" && state.user.preview?.office && onlyOfficeUrl != "") {
+      if (
+        this.getIconForType().simpleType === "document" &&
+        state.user.preview?.office &&
+        onlyOfficeUrl != ""
+      ) {
         return true;
       }
-      if (this.getIconForType().simpleType === "pdf" && state.user.preview?.office && onlyOfficeUrl != "") {
+      if (
+        this.getIconForType().simpleType === "pdf" &&
+        state.user.preview?.office &&
+        onlyOfficeUrl != ""
+      ) {
         return true;
       }
       return false;
@@ -69,6 +81,10 @@ export default {
   },
   methods: {
     handleMouseEnter() {
+      if (state.user.viewMode == "gallery" && !state.user.preview.highQuality) {
+        // skip popup for gallary view with small images
+        return;
+      }
       mutations.setPreviewSource(this.thumbnailUrl);
     },
     handleMouseLeave() {

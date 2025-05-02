@@ -1,6 +1,6 @@
 <template>
   <div id="breadcrumbs" :class="{ 'add-padding': addPadding }">
-    <ul>
+    <ul v-if="items.length > 0">
       <li>
         <router-link :to="base" :aria-label="$t('files.home')" :title="$t('files.home')">
           <i class="material-icons">home</i>
@@ -126,6 +126,7 @@ export default {
 
 <style scoped>
 #breadcrumbs {
+  margin-top: 0.5em;
   overflow-y: hidden;
 }
 #breadcrumbs * {
@@ -135,9 +136,8 @@ export default {
 #breadcrumbs ul {
   display: flex;
   margin: 0;
-  margin-bottom: 0.5em;
-  margin-top: 0.5em;
   padding: 0;
+  margin-bottom: 0.5em;
 }
 
 #breadcrumbs ul li {
@@ -220,5 +220,8 @@ export default {
   padding: 0.5em;
   border-radius: 1em;
   margin-bottom: 0.5em;
+}
+input[type="range"] {
+  accent-color: var(--primaryColor);
 }
 </style>
