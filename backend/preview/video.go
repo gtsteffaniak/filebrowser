@@ -24,7 +24,7 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string) error {
 	)
 
 	var probeOut bytes.Buffer
-	//probeCmd.Stdout = &probeOut
+	probeCmd.Stdout = &probeOut
 	//probeCmd.Stderr = os.Stderr
 
 	if err := probeCmd.Run(); err != nil {

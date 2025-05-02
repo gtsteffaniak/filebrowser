@@ -221,7 +221,7 @@ export default {
       if (!tooltip || isNaN(Number(tooltip.lastIndex))) return "";
       let val = Number(tooltip.lastIndex);
       if (val === 0) {
-        return "still scanning";
+        return "now";
       }
       return getters.getTime(val);
     },

@@ -32,7 +32,6 @@ func Initialize(configFile string) {
 		logger.Error(errmsg)
 		logger.Fatal(err.Error())
 	}
-	
 	setupLogging()
 	setupAuth()
 	setupSources()
@@ -135,6 +134,7 @@ func setupUrls() {
 	Config.Server.InternalUrl = strings.Trim(Config.Server.InternalUrl, "/")
 	Config.Server.ExternalUrl = strings.Trim(Config.Server.ExternalUrl, "/")
 	Config.Integrations.OnlyOffice.Url = strings.Trim(Config.Integrations.OnlyOffice.Url, "/")
+	Config.Integrations.OnlyOffice.InternalUrl = strings.Trim(Config.Integrations.OnlyOffice.InternalUrl, "/")
 }
 
 func setupAuth() {
