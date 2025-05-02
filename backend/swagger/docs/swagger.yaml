@@ -104,6 +104,23 @@ definitions:
         description: the number of hours until the token expires. Default is 2 hours.
         type: integer
     type: object
+  settings.Auth:
+    properties:
+      adminPassword:
+        type: string
+      adminUsername:
+        type: string
+      key:
+        items:
+          type: integer
+        type: array
+      methods:
+        $ref: '#/definitions/settings.LoginMethods'
+      signup:
+        type: boolean
+      tokenExpirationHours:
+        type: integer
+    type: object
   settings.ExternalLink:
     properties:
       text:

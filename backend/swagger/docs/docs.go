@@ -1659,6 +1659,32 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.Auth": {
+            "type": "object",
+            "properties": {
+                "adminPassword": {
+                    "type": "string"
+                },
+                "adminUsername": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "methods": {
+                    "$ref": "#/definitions/settings.LoginMethods"
+                },
+                "signup": {
+                    "type": "boolean"
+                },
+                "tokenExpirationHours": {
+                    "type": "integer"
+                }
+            }
+        },
         "settings.ExternalLink": {
             "type": "object",
             "required": [
