@@ -85,6 +85,7 @@ func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl strin
 	}
 	return GeneratePreview(file, previewSize, rawUrl)
 }
+
 func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	var (
@@ -120,7 +121,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string)
 
 	// Resize the imageBytes to requested previewSize
 	tmpFilePath := filepath.Join(settings.Config.Server.CacheDir, "tmp", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)+".jpg")
-	if err := os.WriteFile(tmpFilePath, imageBytes, 0644); err != nil {
+	if err = os.WriteFile(tmpFilePath, imageBytes, 0644); err != nil {
 		return nil, fmt.Errorf("failed to write temp file for resizing: %w", err)
 	}
 	defer os.Remove(tmpFilePath)
