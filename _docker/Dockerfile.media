@@ -19,7 +19,7 @@ COPY  ./frontend/ ./
 RUN npm run build-docker
 
 FROM alpine:latest
-COPY --from=ffmpeg [ "/ffmpeg", "ffprobe", "/usr/local/bin/" ]
+COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_NO_EMBEDED="true"
 RUN apk --no-cache add ca-certificates mailcap
