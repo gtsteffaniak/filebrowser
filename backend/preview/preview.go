@@ -76,7 +76,6 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 }
 
 func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string, originalRequest *http.Request) ([]byte, error) {
-	fmt.Println("modtime", file.ItemInfo.ModTime)
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 	data, found, _ := service.fileCache.Load(context.Background(), cacheKey)
 	if found {
