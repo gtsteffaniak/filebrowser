@@ -20,8 +20,17 @@ type officePreviewResponse struct {
 }
 
 // GenerateOfficePreview generates a preview for an office document using OnlyOffice.
-func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byte, error) {
+func (s *Service) GenerateOfficePreview(filetype, key, title, url string, originalRequest *http.Request) ([]byte, error) {
 	data := []byte{}
+
+	// Extract headers and cookies from the original request
+	headers := make(http.Header)
+	for name, values := range originalRequest.Header {
+		headers[name] = values
+	}
+
+	cookies := originalRequest.Cookies()
+
 	// Create the request payload
 	requestPayload := map[string]interface{}{
 		"Filetype":   filetype,
@@ -57,6 +66,13 @@ func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byt
 	if err != nil {
 		return data, err
 	}
+
+	// Set headers and cookies from the original request to the new request
+	req.Header = headers
+	for _, cookie := range cookies {
+		req.AddCookie(cookie)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+ss)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}

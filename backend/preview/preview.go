@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
-	"runtime"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
@@ -27,17 +27,10 @@ var (
 )
 
 type Service struct {
-<<<<<<< HEAD
-	sem        chan struct{}
-	ffmpegPath string
-	ffprobePath string
-	fileCache  diskcache.Interface
-=======
 	sem         chan struct{}
 	ffmpegPath  string
 	ffprobePath string
 	fileCache   diskcache.Interface
->>>>>>> e66cdfde43018af62a0438ae65ab877beb0834b3
 }
 
 func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
@@ -82,22 +75,22 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 	return nil
 }
 
-func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
-	fmt.Println("modtime",file.ItemInfo.ModTime)
+func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string, originalRequest *http.Request) ([]byte, error) {
+	fmt.Println("modtime", file.ItemInfo.ModTime)
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
 	data, found, _ := service.fileCache.Load(context.Background(), cacheKey)
 	if found {
 		return data, nil
 	}
-	return GeneratePreview(file, previewSize, rawUrl)
+	return GeneratePreview(file, previewSize, rawUrl, originalRequest)
 }
 
-func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
+func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string, originalRequest *http.Request) ([]byte, error) {
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	var err error
 	var data []byte
 	if file.OnlyOfficeId != "" {
-		data, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, rawUrl)
+		data, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, rawUrl, originalRequest)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
@@ -202,21 +195,12 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	return false
 }
 
-<<<<<<< HEAD
-func CheckValidFFmpeg(path string) (string,error) {
-=======
 func CheckValidFFmpeg(path string) (string, error) {
->>>>>>> e66cdfde43018af62a0438ae65ab877beb0834b3
 	var exeExt string
 	if runtime.GOOS == "windows" {
 		exeExt = ".exe"
 	}
 
-<<<<<<< HEAD
-	ffmpegPath := filepath.Join(path, "ffmpeg" + exeExt)
-	cmd := exec.Command(ffmpegPath, "-version")
-	return ffmpegPath, cmd.Run()
-=======
 	ffmpegPath := filepath.Join(path, "ffmpeg"+exeExt)
 	cmd := exec.Command(ffmpegPath, "-version")
 	return ffmpegPath, cmd.Run()
@@ -229,18 +213,6 @@ func CheckValidFFprobe(path string) (string, error) {
 	}
 
 	ffprobePath := filepath.Join(path, "ffprobe"+exeExt)
-	cmd := exec.Command(ffprobePath, "-version")
-	return ffprobePath, cmd.Run()
->>>>>>> e66cdfde43018af62a0438ae65ab877beb0834b3
-}
-
-func CheckValidFFprobe(path string) (string,error) {
-	var exeExt string
-	if runtime.GOOS == "windows" {
-		exeExt = ".exe"
-	}
-
-	ffprobePath := filepath.Join(path, "ffprobe" + exeExt)
 	cmd := exec.Command(ffprobePath, "-version")
 	return ffprobePath, cmd.Run()
 }

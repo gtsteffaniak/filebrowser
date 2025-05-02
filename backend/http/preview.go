@@ -112,7 +112,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		rawUrl = config.Server.InternalUrl + pathUrl
 	}
 	rawUrl = rawUrl + "&auth=" + d.token
-	previewImg, err := preview.GetPreviewForFile(d.fileInfo, previewSize, rawUrl)
+	previewImg, err := preview.GetPreviewForFile(d.fileInfo, previewSize, rawUrl, r)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
