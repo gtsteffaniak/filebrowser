@@ -5,8 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -75,53 +73,74 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 	return nil
 }
 
-func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string, originalRequest *http.Request) ([]byte, error) {
+func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
+	if !AvailablePreview(file) {
+		return nil, ErrUnsupportedMedia
+	}
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
-	data, found, _ := service.fileCache.Load(context.Background(), cacheKey)
-	if found {
+	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
+		return nil, fmt.Errorf("failed to load from cache: %w", err)
+	} else if found {
 		return data, nil
 	}
-	return GeneratePreview(file, previewSize, rawUrl, originalRequest)
+	return GeneratePreview(file, previewSize, rawUrl)
 }
-
-func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string, originalRequest *http.Request) ([]byte, error) {
+func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
 	ext := strings.ToLower(filepath.Ext(file.Name))
-	var err error
-	var data []byte
+	var (
+		err        error
+		imageBytes []byte
+	)
+
+	// Generate an image from office document
 	if file.OnlyOfficeId != "" {
-		data, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, rawUrl, originalRequest)
+		imageBytes, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, rawUrl)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "image") {
-		data, err = service.CreatePreview(file, previewSize)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create image for video: %w", err)
-		}
+		// Directly resize the image
+		return service.CreatePreview(file, previewSize)
 	} else if strings.HasPrefix(file.Type, "video") {
+		// Generate thumbnail image from video
 		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)+".jpg")
-		defer os.Remove(outPathPattern) // always clean up preview after its used (should be in cache now)
+		defer os.Remove(outPathPattern) // cleanup
+
 		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern); err != nil {
 			return nil, fmt.Errorf("failed to generate video preview: %w", err)
 		}
-		// Read and return the generated preview
-		outFile, err := os.Open(outPathPattern)
+
+		imageBytes, err = os.ReadFile(outPathPattern)
 		if err != nil {
-			return nil, fmt.Errorf("failed to open generated preview file: %w", err)
-		}
-		defer outFile.Close()
-		data, err = io.ReadAll(outFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read generated preview file: %w", err)
+			return nil, fmt.Errorf("failed to read video thumbnail: %w", err)
 		}
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
+
+	// Resize the imageBytes to requested previewSize
+	tmpFilePath := filepath.Join(settings.Config.Server.CacheDir, "tmp", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)+".jpg")
+	if err := os.WriteFile(tmpFilePath, imageBytes, 0644); err != nil {
+		return nil, fmt.Errorf("failed to write temp file for resizing: %w", err)
+	}
+	defer os.Remove(tmpFilePath)
+
+	// Create a temp ExtendedFileInfo to reuse CreatePreview
+	tmpFile := file
+	tmpFile.RealPath = tmpFilePath
+
+	resizedBytes, err := service.CreatePreview(tmpFile, previewSize)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resize preview image: %w", err)
+	}
+
+	// Cache and return
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
-	if err := service.fileCache.Store(context.Background(), cacheKey, data); err != nil {
+	if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
 		logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
 	}
-	return data, nil
+
+	return resizedBytes, nil
 }
 
 func (s *Service) CreatePreview(file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {

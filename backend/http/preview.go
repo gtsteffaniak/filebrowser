@@ -107,12 +107,17 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", d.fileInfo.Type)
 	}
 	pathUrl := fmt.Sprintf("/api/raw?files=%s::%s", d.fileInfo.Source, d.fileInfo.Path)
-	rawUrl := pathUrl
-	if config.Server.InternalUrl != "" {
-		rawUrl = config.Server.InternalUrl + pathUrl
+	pathUrl = pathUrl + "&auth=" + d.token
+	if settings.Config.Server.InternalUrl != "" {
+		pathUrl = config.Server.InternalUrl + pathUrl
+	} else {
+		scheme := "http"
+		if r.TLS != nil {
+			scheme = "https"
+		}
+		pathUrl = scheme + "://" + r.Host + pathUrl
 	}
-	rawUrl = rawUrl + "&auth=" + d.token
-	previewImg, err := preview.GetPreviewForFile(d.fileInfo, previewSize, rawUrl, r)
+	previewImg, err := preview.GetPreviewForFile(d.fileInfo, previewSize, pathUrl)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
