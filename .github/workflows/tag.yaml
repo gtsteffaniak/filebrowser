@@ -107,7 +107,7 @@ jobs:
                 "gtstef/filebrowser:beta-media",
                 "ghcr.io/gtsteffaniak/filebrowser:beta-media",
                 "gtstef/filebrowser:media",
-                "ghcr.io/gtsteffaniak/filebrowser:media",
+                "ghcr.io/gtsteffaniak/filebrowser:media"
               ]
             else . end |
             if any(.tags[]; test("stable")) then
@@ -115,7 +115,7 @@ jobs:
                 "gtstef/filebrowser:stable-media",
                 "ghcr.io/gtsteffaniak/filebrowser:stable-media",
                 "gtstef/filebrowser:media",
-                "ghcr.io/gtsteffaniak/filebrowser:media",
+                "ghcr.io/gtsteffaniak/filebrowser:media"
               ]
             else . end
           ')
