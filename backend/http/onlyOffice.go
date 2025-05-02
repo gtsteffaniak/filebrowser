@@ -72,18 +72,15 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		Source: source,
 		Expand: false,
 	})
-
 	if err != nil {
 		return errToStatus(err), err
 	}
-
 	id, err := getOnlyOfficeId(source, fileInfo.Path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 	split := strings.Split(fileInfo.Name, ".")
 	fileType := split[len(split)-1]
-
 	theme := "light"
 	if d.user.DarkMode {
 		theme = "dark"
@@ -139,7 +136,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	}
 
 	encodedPath := r.URL.Query().Get("path")
-	pathParts := strings.Split(encodedPath,"::")
+	pathParts := strings.Split(encodedPath, "::")
 	if len(pathParts) < 2 {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}

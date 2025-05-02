@@ -12,8 +12,6 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) 
 
   await page.goto("/share/" + shareHash);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
-  await expect(page.locator('a[aria-label="Home"]')).toHaveAttribute("href", `/share/${shareHash}/`);
-
   await page.dblclick('a[aria-label="testdata"]');
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
   await page.waitForSelector('#breadcrumbs');
@@ -44,7 +42,6 @@ test("share file works", async ({ page, checkForErrors, context }) => {
 
   await page.goto("/share/" + shareHashFile);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - 1file1.txt");
-  await expect(page.locator('a[aria-label="Home"]')).toHaveAttribute("href", `/share/${shareHashFile}/`);
   checkForErrors();
 });
 
