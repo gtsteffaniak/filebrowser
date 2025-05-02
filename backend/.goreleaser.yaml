@@ -6,7 +6,7 @@ builds:
   # Build configuration for darwin and linux
   - id: default
     ldflags: &ldflags
-      - -s -w -X github.com/gtsteffaniak/filebrowser/backend/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA={{ .ShortCommit }}
+      - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
     main: main.go
     binary: filebrowser
     goos:
@@ -35,7 +35,7 @@ builds:
       post:
         - upx {{ .Path }}  # Compress the binary with UPX
 
-  # Build configuration for windows without arm & upx
+  # Build configuration for macos without upx
   - id: macos
     ldflags: *ldflags
     main: main.go
@@ -45,6 +45,16 @@ builds:
     goarch:
       - amd64
       - arm64
+
+  # Build configuration for freebsd without arm & upx
+  - id: freeBSD
+    ldflags: *ldflags
+    main: main.go
+    binary: filebrowser
+    goos:
+      - freebsd
+    goarch:
+      - amd64
 
 archives:
   - name_template: >
