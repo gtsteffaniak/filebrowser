@@ -114,6 +114,7 @@ export default {
   },
   methods: {
     reEval() {
+      mutations.setPreviewSource("");
       if (!getters.isLoggedIn()) {
         return;
       }

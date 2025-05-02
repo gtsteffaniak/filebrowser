@@ -54,31 +54,6 @@
   </a>
 </template>
 
-<style>
-.activebutton {
-  height: 10em;
-}
-
-.activecontent {
-  height: 5em !important;
-  display: grid !important;
-}
-
-.activeimg {
-  width: 8em !important;
-  height: 8em !important;
-}
-
-.iconActive {
-  font-size: 6em !important;
-}
-
-.activetitle {
-  width: 9em !important;
-  margin-right: 1em !important;
-}
-</style>
-
 <script>
 import { enableThumbs } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
@@ -436,5 +411,27 @@ export default {
 
 .hiddenFile {
   opacity: 0.5;
+}
+.activebutton {
+  height: 10em;
+}
+
+.activecontent {
+  height: 5em !important;
+  display: grid !important;
+}
+
+.activeimg {
+  width: 8em !important;
+  height: 8em !important;
+}
+
+.iconActive {
+  font-size: 6em !important;
+}
+
+.activetitle {
+  width: 9em !important;
+  margin-right: 1em !important;
 }
 </style>

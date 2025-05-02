@@ -2,7 +2,7 @@ server:
   port: 80
   baseURL:  "/"
   logging:
-    - levels: "info|debug|warning|error"
+    - levels: "info|warning|error"
   sources:
     - path: "/srv"
 userDefaults:

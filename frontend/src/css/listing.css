@@ -39,7 +39,7 @@ body.rtl #listingView {
   align-items: center;
   cursor: pointer;
   user-select: none;
-  overflow:hidden;
+  overflow: hidden;
   width: var(--item-width);
   height: var(--item-height);
 }
@@ -109,15 +109,12 @@ body.rtl #listingView {
   width: 100%;
 }
 
-#listingView.gallery .item div {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  padding: 0.5em;
-}
-#listingView.gallery .item  {
-  min-width: 12em;
-  min-height: 12em;
+#listingView.gallery .item {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  overflow: hidden;
+  justify-content: center;
   padding: 0;
 }
 
@@ -130,24 +127,22 @@ body.rtl #listingView {
 #listingView.compact .item:hover,
 #listingView.normal .item:hover,
 #listingView.gallery .item:hover {
-  box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background) !important; /* Adjust shadow values as needed */
-transform: scale(1.02); /* Slightly enlarges the element */
+  box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background) !important;
+  /* Adjust shadow values as needed */
+  transform: scale(1.02);
+  /* Slightly enlarges the element */
 }
 
 #listingView.gallery .item .text {
-  width: 100%;
-  height: 100%;
-  display:flex;
-  min-width: 12em;
-  min-height: 12em;
   text-shadow: 0 0 2px white;
+  position: absolute;
+  transform: translate(0, 5.5em);
+  text-shadow: 0 0 2px white;
+  pointer-events: none;
 }
 
-#listingView.gallery .item div:last-of-type {
-  position: absolute;
-  padding: 1em;
+#listingView.gallery .item .text .name {
   text-align: center;
-  display: block;
 }
 
 #listingView.gallery .item[data-type=image] div:last-of-type {
@@ -159,8 +154,6 @@ transform: scale(1.02); /* Slightly enlarges the element */
   font-size: 8em;
   background: none;
 }
-
-
 
 #listingView.gallery .item span {
   display: flex;
@@ -218,7 +211,7 @@ transform: scale(1.02); /* Slightly enlarges the element */
   margin-right: 1.5em;
 }
 
-#listingView .header > p {
+#listingView .header>p {
   margin: 0;
   cursor: pointer;
 }
@@ -385,7 +378,7 @@ transform: scale(1.02); /* Slightly enlarges the element */
   border-top-right-radius: 1em;
 }
 
-#listingView.compact .lastGroup > div:last-child {
+#listingView.compact .lastGroup>div:last-child {
   border-bottom-left-radius: 1em;
   border-bottom-right-radius: 1em;
 }
@@ -399,10 +392,11 @@ transform: scale(1.02); /* Slightly enlarges the element */
   margin-bottom: .5em;
 }
 
-#listingView > * >  .header > div  {
-  display:flex;
+#listingView>*>.header>div {
+  display: flex;
   width: 100%;
 }
+
 #listingView.list .header,
 #listingView.normal .header,
 #listingView.gallery .header {

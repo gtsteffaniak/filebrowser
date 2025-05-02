@@ -4,14 +4,14 @@
     <div
       class="custom-scrollbar"
       ref="scrollbar"
-      :class="{ ready: isReady, visible: isVisible }"
+      :class="{ ready: isReady, visible: isVisible && isScrollable }"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
     >
       <div
         class="thumb no-select"
         ref="thumb"
-        :class="{ ready: isReady, visible: isVisible }"
+        :class="{ ready: isReady, visible: isVisible && isScrollable }"
         @mousedown="startDrag"
         @touchstart.prevent="startDrag"
       >

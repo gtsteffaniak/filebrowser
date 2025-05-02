@@ -61,7 +61,7 @@ export default {
       if (state.isMobile) {
         this.popupStyle = {
           left: "50%",
-          width: "90%",
+          "max-width": "90%",
           transform: "translate(-50%, 10em)",
         };
         return;
@@ -91,6 +91,7 @@ export default {
       this.popupStyle = {
         top: `${top}px`,
         left: `${left}px`,
+        "max-width": "50%",
         transform: "none",
       };
     },

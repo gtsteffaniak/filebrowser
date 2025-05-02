@@ -119,12 +119,6 @@ export default {
         mutations.toggleSidebar();
       } else {
         mutations.closeHovers();
-        if (listingView == "settings") {
-          if (!state.route.path.includes("/settings/users/")) {
-            router.push({ path: "/files/", hash: "" });
-            return;
-          }
-        }
         if (listingView === "onlyOfficeEditor") {
           const current = window.location.pathname;
           const newpath = removeLastDir(current);

@@ -290,6 +290,7 @@ export const mutations = {
         "showHidden",
         "sorting",
         "gallerySize",
+        "viewMode",
       ]);
     }
 
