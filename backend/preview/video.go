@@ -25,8 +25,8 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string) error {
 	)
 
 	var probeOut bytes.Buffer
-	probeCmd.Stdout = &probeOut
-	probeCmd.Stderr = os.Stderr
+	//probeCmd.Stdout = &probeOut
+	//probeCmd.Stderr = os.Stderr
 
 	if err := probeCmd.Run(); err != nil {
 		return fmt.Errorf("ffprobe failed: %w", err)
@@ -54,8 +54,8 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string) error {
 		outputPath,
 	)
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
 
 	return cmd.Run()
 }
