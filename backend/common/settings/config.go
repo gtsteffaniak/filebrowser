@@ -257,6 +257,7 @@ func setDefaults() Settings {
 				PasswordAuth: PasswordAuthConfig{
 					Enabled:   true,
 					MinLength: 5,
+					Signup:    false,
 				},
 			},
 		},
