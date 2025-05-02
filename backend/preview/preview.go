@@ -138,7 +138,7 @@ func (s *Service) CreatePreview(file iteminfo.ExtendedFileInfo, previewSize stri
 
 	switch previewSize {
 	case "large":
-		width, height = 1080, 1080
+		width, height = 512, 512
 		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityHigh), WithFormat(FormatJpeg)}
 	case "small":
 		width, height = 256, 256
