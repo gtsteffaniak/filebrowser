@@ -3,7 +3,7 @@ name: Manual Docker Build
 on:
   workflow_dispatch:
     inputs:
-      version:
+      branch:
         description: "Tag or Branch (format: v0.0.0-beta)"
         required: true
         type: string
@@ -16,8 +16,11 @@ jobs:
     name: Push release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }} # Uses the Personal Access Token
+          ref: "${{ github.event.inputs.branch }}"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
