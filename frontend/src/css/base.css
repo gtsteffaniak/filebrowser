@@ -6,6 +6,8 @@
   --surfaceSecondary: lightgray;
   --textPrimary: #546e7a;
   --textSecondary: gray;
+  --iconBackground: #dddddd;
+  --activeWhiteIcon: gray;
 }
 
 body {
@@ -15,16 +17,11 @@ body {
   color: #333333;
   overflow:auto;
   overflow:initial;
-}
-body::-webkit-scrollbar {
-  z-index: 1000;
-}
-
-/* Hiding scrollbar for IE, Edge and Firefox */
-body {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  -webkit-overflow-scrolling: touch;
 }
+
 body.rtl {
   direction: rtl;
 }
@@ -82,59 +79,34 @@ over
   padding-bottom: 4em;
 }
 
-
 /* Main Content */
-main {
+#main {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
   position: fixed;
   padding-top: 4em;
-  overflow: scroll;
+  overflow: unset;
   top: 0;
   height: 100%;
   width: 100%;
   display: flex;
   flex-direction: column;
+  -webkit-overflow-scrolling: touch;
 }
 
-main > div {
-  height: 100%;
+/* Hide scrollbar for WebKit browsers */
+#main::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* Optional: just make scrollbar invisible */
+  display: none;
+  -webkit-appearance: none;
 }
 
 .main-padding {
   padding: 0.5em;
   padding-top: 4em;
-
 }
 
-.breadcrumbs {
-  overflow-x: auto;
-  height: auto;
-  min-height: 3em;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  color: #6f6f6f;
-  padding-left: 0.5em;
-}
-
-.breadcrumbs span,
-.breadcrumbs a {
-  color: inherit;
-  transition: 0.1s ease-in;
-  display: flex;
-  border-radius: 0.125em;
-}
-
-body.rtl .breadcrumbs a {
-  transform: translateX(-16em);
-}
-
-.breadcrumbs a:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.breadcrumbs span a {
-  padding: 0.2em;
-}
 
 /* Files */
 .files {
@@ -201,8 +173,9 @@ button:disabled {
 }
 
 #popup-notification.success {
-  background: var(--blue);
+  background: var(--primaryColor);
 }
+
 #popup-notification.error {
   background: var(--red);
 }

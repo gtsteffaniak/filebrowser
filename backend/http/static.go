@@ -8,8 +8,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/version"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 )
 
 var templateRenderer *TemplateRenderer
@@ -39,25 +39,26 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 	}
 
 	data := map[string]interface{}{
-		"Name":                  config.Frontend.Name,
-		"DisableExternal":       config.Frontend.DisableDefaultLinks,
-		"DisableUsedPercentage": config.Frontend.DisableUsedPercentage,
-		"darkMode":              settings.Config.UserDefaults.DarkMode,
-		"BaseURL":               config.Server.BaseURL,
-		"Version":               version.Version,
-		"CommitSHA":             version.CommitSHA,
-		"StaticURL":             config.Server.BaseURL + "static",
-		"Signup":                settings.Config.Auth.Methods.PasswordAuth.Signup,
-		"NoAuth":                config.Auth.Methods.NoAuth,
-		"PasswordAuth":          config.Auth.Methods.PasswordAuth,
-		"LoginPage":             auther.LoginPage(),
-		"CSS":                   false,
-		"EnableThumbs":          config.Server.EnableThumbnails,
-		"ResizePreview":         config.Server.ResizePreview,
-		"ExternalLinks":         config.Frontend.ExternalLinks,
-		"ExternalUrl":           strings.TrimSuffix(config.Server.ExternalUrl, "/"),
-		"OnlyOfficeUrl":         settings.Config.Integrations.OnlyOffice.Url,
-		"SourceCount":           len(config.Server.Sources),
+		"Name":              config.Frontend.Name,
+		"DisableExternal":   config.Frontend.DisableDefaultLinks,
+		"darkMode":          settings.Config.UserDefaults.DarkMode,
+		"BaseURL":           config.Server.BaseURL,
+		"Version":           version.Version,
+		"CommitSHA":         version.CommitSHA,
+		"StaticURL":         config.Server.BaseURL + "static",
+		"Signup":            settings.Config.Auth.Methods.PasswordAuth.Signup,
+		"NoAuth":            config.Auth.Methods.NoAuth,
+		"PasswordAuth":      config.Auth.Methods.PasswordAuth,
+		"LoginPage":         auther.LoginPage(),
+		"CSS":               false,
+		"EnableThumbs":      !config.Server.DisablePreviews,
+		"ExternalLinks":     config.Frontend.ExternalLinks,
+		"ExternalUrl":       strings.TrimSuffix(config.Server.ExternalUrl, "/"),
+		"OnlyOfficeUrl":     settings.Config.Integrations.OnlyOffice.Url,
+		"SourceCount":       len(config.Server.Sources),
+		"OidcAvailable":     config.Auth.Methods.OidcAuth.Enabled,
+		"PasswordAvailable": config.Auth.Methods.PasswordAuth.Enabled,
+		"MediaAvailable":    config.Integrations.Media.FfmpegPath != "",
 	}
 
 	b, err := json.Marshal(data)

@@ -2,7 +2,7 @@ import { fetchURL, adjustedData } from './utils'
 import { getApiPath, extractSourceFromPath,removePrefix } from '@/utils/url.js'
 import { state } from '@/store'
 import { notify } from '@/notify'
-import { externalUrl,baseURL } from '@/utils/constants'
+import { externalUrl,baseURL,serverHasMultipleSources } from '@/utils/constants'
 
 // Notify if errors occur
 export async function fetchFiles(url, content = false) {
@@ -51,9 +51,14 @@ export async function remove(url) {
   }
 }
 
-export async function put(url, content = '') {
+export async function put(path,source, content = '') {
   try {
-    return await resourceAction(url, 'PUT', content)
+    if (serverHasMultipleSources) {
+      path = `/files/${source}${path}`
+    } else {
+      path = `/files${path}`
+    }
+    return await resourceAction(path, 'PUT', content)
   } catch (err) {
     notify.showError(err.message || 'Error putting resource')
     throw err
@@ -220,11 +225,11 @@ export function getDownloadURL(source, path, inline, useExternal) {
   }
 }
 
-export function getPreviewURL(source, path, size, modified) {
+export function getPreviewURL(source, path, modified) {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: size,
+      size: state.user.preview.highQuality ? 'large' : 'small',
       key: Date.parse(modified),
       source: source,
       inline: 'true'
@@ -237,13 +242,13 @@ export function getPreviewURL(source, path, size, modified) {
   }
 }
 
-export async function usage(source) {
+export async function sources() {
   try {
-    const apiPath = getApiPath('api/usage', { source: source })
+    const apiPath = getApiPath('api/jobs/status/sources')
     const res = await fetchURL(apiPath)
     return await res.json()
   } catch (err) {
-    notify.showError(err.message || 'Error fetching usage data')
+    notify.showError(err.message || 'Error fetching usage sources')
     throw err
   }
 }

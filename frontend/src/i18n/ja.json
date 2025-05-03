@@ -195,7 +195,7 @@
     "password": "パスワード",
     "passwordUpdated": "パスワードは更新されました！",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Create files and directories",
       "delete": "Delete files and directories",
       "download": "Download",
@@ -204,7 +204,7 @@
       "rename": "Rename or move files and directories",
       "share": "Share files"
     },
-    "permissions": "権限",
+    "permissions-name": "権限",
     "permissionsHelp": "あなたはユーザーを管理者に設定し、または権限を個々に設定しできます。\"管理者\"を選択する場合、その他のすべての選択肢は自動的に設定されます。ユーザーの管理は管理者の権限として保留されました。",
     "profileSettings": "プロファイル設定",
     "ruleExample1": "各フォルダに名前はドットで始まるファイル（例えば、.git、.gitignore）へのアクセスを制限します。",

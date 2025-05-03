@@ -196,7 +196,7 @@
     "password": "Hasło",
     "passwordUpdated": "Hasło zostało zapisane!",
     "path": "Ścieżka",
-    "perm": {
+    "permissions": {
       "create": "Tworzenie plików i katalogów",
       "delete": "Usuwanie plików i katalogów",
       "download": "Pobieranie",
@@ -205,7 +205,7 @@
       "rename": "Zmiana nazw lub przenoszenie plików i katalogów",
       "share": "Udostępnianie plików"
     },
-    "permissions": "Uprawnienia",
+    "permissions-name": "Uprawnienia",
     "permissionsHelp": "Możesz uczynić użytkownika administratorem, lub wybrać uprawnienia indywidualnie. Jeśli zaznaczysz opcję \"Administrator\", wszystkie pozostałe opcje zostaną automatycznie zaznaczone. Zarządzanie użytkownikami pozostaje przywilejem administratora.\n",
     "profileSettings": "Twój profil",
     "ruleExample1": "uniemożliwia dostęp do któregokolwiek z ukrytych plików (takich jak .git, .gitignore) w każdym folderze.\n",

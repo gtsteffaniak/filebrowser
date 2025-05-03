@@ -220,17 +220,14 @@
     "password": "Password",
     "passwordUpdated": "Password updated!",
     "path": "Path",
-    "perm": {
-      "create": "Create files and directories",
-      "delete": "Delete files and directories",
-      "download": "Download",
-      "execute": "Execute commands",
+    "permissions": {
+      "admin": "Administrator",
       "modify": "Edit files",
-      "rename": "Rename or move files and directories",
       "share": "Share files",
-      "api": "Create and manage long-live API keys"
+      "api": "Create and manage long-live API keys",
+      "realtime": "Enable real-time connections and updates"
     },
-    "permissions": "Permissions",
+    "permissions-name": "Permissions",
     "permissionsHelp": "You can set the user to be an administrator or choose the permissions individually. If you select \"Administrator\", all of the other options will be automatically checked. The management of users remains a privilege of an administrator.\n",
     "profileSettings": "Profile Settings",
     "ruleExample1": "prevents the access to any dot file (such as .git, .gitignore) in every folder.\n",

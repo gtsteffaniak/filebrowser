@@ -141,7 +141,6 @@ export default {
 
       if (this.textPosition == "middle" || this.textPosition == "inside") {
         style["min-height"] = this.size_px + "px";
-        style["z-index"] = "-2";
       }
 
       if (this.barBorderRadius > 0) {

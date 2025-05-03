@@ -4,18 +4,21 @@
     :class="{
       item: true,
       'no-select': true,
+      'listing-item': true,
       activebutton: isMaximized && isSelected,
-      hiddenFile: isHiddenNotSelected,
+      hiddenFile: isHiddenNotSelected && !this.isDraggedOver,
     }"
     :id="getID"
     role="button"
     tabindex="0"
     :draggable="isDraggable"
     @dragstart="dragStart"
+    @dragleave="dragLeave"
     @dragover="dragOver"
     @drop="drop"
     :data-dir="isDir"
     :data-type="type"
+    :data-name="name"
     :aria-label="name"
     :aria-selected="isSelected"
     @contextmenu="onRightClick($event)"
@@ -25,19 +28,8 @@
     @touchend="cancelContext($event)"
     @mouseup="cancelContext($event)"
   >
-    <div @click="toggleClick" :class="{ activetitle: isMaximized && isSelected }">
-      <img
-        v-if="
-          readOnly === undefined &&
-          type.startsWith('image') &&
-          isThumbsEnabled &&
-          isInView
-        "
-        v-lazy="thumbnailUrl"
-        :class="{ activeimg: isMaximized && isSelected }"
-        ref="thumbnail"
-      />
-      <Icon v-else :mimetype="type" :active="isSelected" />
+    <div @click="toggleClick" :class="{ 'gallery-div': galleryView }">
+      <Icon :mimetype="type" :active="isSelected" :thumbnailUrl />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
@@ -62,43 +54,17 @@
   </a>
 </template>
 
-<style>
-.activebutton {
-  height: 10em;
-}
-
-.activecontent {
-  height: 5em !important;
-  display: grid !important;
-}
-
-.activeimg {
-  width: 8em !important;
-  height: 8em !important;
-}
-
-.iconActive {
-  font-size: 6em !important;
-}
-
-.activetitle {
-  width: 9em !important;
-  margin-right: 1em !important;
-}
-</style>
-
 <script>
 import { enableThumbs } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { fromNow } from "@/utils/moment";
-import { filesApi } from "@/api";
+import { filesApi, shareApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { router } from "@/router";
 import { url } from "@/utils";
-import Icon from "@/components/Icon.vue";
+import Icon from "@/components/files/Icon.vue";
 
 export default {
   name: "item",
@@ -114,6 +80,7 @@ export default {
       touchStartY: 0,
       isLongPress: false,
       isSwipe: false,
+      isDraggedOver: false,
     };
   },
   props: [
@@ -126,17 +93,20 @@ export default {
     "index",
     "readOnly",
     "path",
-    "hidden",
+    "reducedOpacity",
   ],
   computed: {
+    galleryView() {
+      return state.user.viewMode === "gallery";
+    },
     quickDownloadEnabled() {
       return state.user?.quickDownload;
     },
     isHiddenNotSelected() {
-      return !this.isSelected && this.hidden;
+      return !this.isSelected && this.reducedOpacity;
     },
     getID() {
-      return url.base64Encode(encodeURIComponent(this.name));
+      return url.base64Encode(this.name);
     },
     quickNav() {
       return state.user.singleClick && !state.multiple;
@@ -157,7 +127,7 @@ export default {
       return this.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
-      return this.readOnly == undefined && state.user.perm?.modify;
+      return this.readOnly == undefined && state.user.permissions?.modify;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
@@ -169,8 +139,17 @@ export default {
       return true;
     },
     thumbnailUrl() {
+      if (!enableThumbs) {
+        return "";
+      }
       let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
-      return filesApi.getPreviewURL(state.req.source, path, "small", state.req.modified);
+      if (getters.currentView() == "share") {
+        let urlPath = getters.routePath("share");
+        // Step 1: Split the path by '/'
+        const hash = urlPath.split("/")[1];
+        return shareApi.getPreviewURL(hash, path, state.req.modified);
+      }
+      return filesApi.getPreviewURL(state.req.source, path, state.req.modified);
     },
     isThumbsEnabled() {
       return enableThumbs;
@@ -268,16 +247,10 @@ export default {
         : getHumanReadableFilesize(this.size);
     },
     getTime() {
-      if (state.user.dateFormat) {
-        // Truncate the fractional seconds to 3 digits (milliseconds)
-        const sanitizedString = this.modified.replace(/\.\d+/, (match) =>
-          match.slice(0, 4)
-        );
-        // Parse the sanitized string into a Date object
-        const date = new Date(sanitizedString);
-        return date.toLocaleString();
-      }
-      return fromNow(this.modified, state.user.locale);
+      return getters.getTime(this.modified);
+    },
+    dragLeave() {
+      this.isDraggedOver = false;
     },
     dragStart() {
       if (getters.selectedCount() === 0) {
@@ -292,17 +265,8 @@ export default {
     },
     dragOver(event) {
       if (!this.canDrop) return;
-
       event.preventDefault();
-      let el = event.target;
-
-      for (let i = 0; i < 5; i++) {
-        if (!el.classList.contains("item")) {
-          el = el.parentElement;
-        }
-      }
-
-      el.style.opacity = 1;
+      this.isDraggedOver = true;
     },
     async drop(event) {
       if (!this.canDrop) return;
@@ -443,11 +407,34 @@ export default {
 .icon-download {
   font-size: 0.5em;
 }
+
 .item {
   -webkit-touch-callout: none; /* Disable the default long press preview */
 }
 
 .hiddenFile {
   opacity: 0.5;
+}
+.activebutton {
+  height: 10em;
+}
+
+.activecontent {
+  height: 5em !important;
+  display: grid !important;
+}
+
+.activeimg {
+  width: 8em !important;
+  height: 8em !important;
+}
+
+.iconActive {
+  font-size: 6em !important;
+}
+
+.activetitle {
+  width: 9em !important;
+  margin-right: 1em !important;
 }
 </style>

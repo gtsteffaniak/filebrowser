@@ -128,7 +128,6 @@
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi, publicApi } from "@/api";
-import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 
 export default {
@@ -187,7 +186,10 @@ export default {
       this.source = selected.source;
       this.source = state.req.items[state.selected[0]].source;
     }
-    this.subpath = decodeURIComponent(path);
+    // double encode # to fix issue with # in path
+    // replace all # with %23
+    this.subpath = path.replace(/#/g, "%23");
+
     try {
       // get last element of the path
       const links = await shareApi.get(this.subpath, this.source);
@@ -245,7 +247,7 @@ export default {
       }
     },
     humanTime(time) {
-      return fromNow(time, state.user.locale);
+      return getters.getTime(time);
     },
     buildLink(share) {
       return shareApi.getShareURL(share);

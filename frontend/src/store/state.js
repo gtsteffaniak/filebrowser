@@ -2,6 +2,9 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  multiButtonState: "menu",
+  showOverflowMenu: false,
+  sessionId: "",
   disableOnlyOfficeExt: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
@@ -11,12 +14,22 @@ export const state = reactive({
   usages: {},
   editor: null,
   serverHasMultipleSources: false,
+  realtimeActive: undefined,
+  realtimeDownCount: 0,
+  popupPreviewSource: "",
   sources: {
     current: "",
     count: 1,
     info: {},
   },
   user: {
+    preview: {
+      video: true,
+      image: true,
+      popup: true,
+      highQuality: true,
+    },
+    loginType: "",
     username: "",
     quickDownloadEnabled: false,
     gallarySize: 0,
@@ -26,8 +39,6 @@ export const state = reactive({
     viewMode: 'normal', // Default to mosaic view
     showHidden: false, // Default to false, assuming this is a boolean
     scopes: [],
-    perm: {},
-    rules: [], // Default to an empty array
     permissions: {}, // Default to an empty object for permissions
     darkMode: true, // Default to false, assuming this is a boolean
     profile: { // Example of additional user properties
@@ -44,6 +55,12 @@ export const state = reactive({
     items: [],
     numDirs: 0,
     numFiles: 0,
+  },
+  listing: {
+    category: "folders",
+    letter: "A",
+    scrolling: false,
+    scrollRatio: 0,
   },
   previewRaw: "",
   oldReq: {},
@@ -74,7 +91,6 @@ export const state = reactive({
     rules: [],
     frontend: {
       disableExternal: false,
-      disableUsedPercentage: false,
       name: "",
       files: "",
     },

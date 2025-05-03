@@ -6,15 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/share"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 )
 
 // shareListHandler returns a list of all share links.
@@ -31,7 +32,7 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		s   []*share.Link
 		err error
 	)
-	if d.user.Perm.Admin {
+	if d.user.Permissions.Admin {
 		s, err = store.Share.All()
 	} else {
 		s, err = store.Share.FindByUserID(d.user.ID)
@@ -64,12 +65,22 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/share [get]
 func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	path := r.URL.Query().Get("path")
+	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = settings.Config.Server.DefaultSource.Name
 	}
-	s, err := store.Share.Gets(path, source, d.user.ID)
+	// Decode the URL-encoded path
+	path, err := url.QueryUnescape(encodedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+
+	sourcePath, ok := config.Server.NameToSource[source]
+	if !ok {
+		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", source)
+	}
+	s, err := store.Share.Gets(path, sourcePath.Path, d.user.ID)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
 	}
@@ -172,7 +183,12 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 		stringHash = string(hash)
 	}
-	path := r.URL.Query().Get("path")
+	encodedPath := r.URL.Query().Get("path")
+	// Decode the URL-encoded path
+	path, err := url.QueryUnescape(encodedPath)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
 	sourceName := r.URL.Query().Get("source")
 	if sourceName == "" {
 		sourceName = config.Server.DefaultSource.Name
@@ -182,7 +198,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	s = &share.Link{
 		Path:         path,
 		Hash:         secure_hash,
-		Source:       source.Path,
+		Source:       source.Path, // path instead to persist accoss name change
 		Expire:       expire,
 		UserID:       d.user.ID,
 		PasswordHash: stringHash,

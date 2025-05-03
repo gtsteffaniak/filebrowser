@@ -80,7 +80,6 @@
 </template>
 <script>
 import { filesApi } from "@/api";
-import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url.js";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
@@ -136,9 +135,6 @@ export default {
     showMore() {
       return getters.currentPromptName() === "more";
     },
-    isResizeEnabled() {
-      return resizePreview;
-    },
     getSubtitles() {
       return this.subtitles();
     },
@@ -159,6 +155,15 @@ export default {
     window.addEventListener("keydown", this.key);
     this.subtitlesList = await this.subtitles();
     this.updatePreview();
+    mutations.resetSelected();
+    mutations.addSelected({
+      name: state.req.name,
+      path: state.req.path,
+      size: state.req.size,
+      type: state.req.type,
+      source: state.req.source,
+      url: state.req.url,
+    });
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.key);
@@ -277,7 +282,7 @@ export default {
     prefetchUrl(item) {
       return this.fullSize
         ? filesApi.getDownloadURL(state.req.source, item.path, true)
-        : filesApi.getPreviewURL(state.req.source, item.path, "large", item.modified);
+        : filesApi.getPreviewURL(state.req.source, item.path, item.modified);
     },
     openMore() {
       this.currentPrompt = "more";

@@ -88,3 +88,12 @@ vi.mock('@/utils/constants', () => {
     baseURL: "/files/",
   };
 });
+
+vi.mock('@/notify', () => ({
+  events: {
+    startSSE: vi.fn(),
+  },
+  notify: {
+    closePopUp: vi.fn(),
+  },
+}));

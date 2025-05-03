@@ -209,7 +209,7 @@
     "password": "Kennwort",
     "passwordUpdated": "Kennwort aktualisiert!",
     "path": "Pfad",
-    "perm": {
+    "permissions": {
       "create": "Dateien und Ordner erstellen",
       "delete": "Dateien und Ordner löschen",
       "download": "Download",
@@ -218,7 +218,7 @@
       "rename": "Umbenennen oder Verschieben von Dateien oder Ordnern",
       "share": "Datei teilen"
     },
-    "permissions": "Berechtigungen",
+    "permissions-name": "Berechtigungen",
     "permissionsHelp": "Sie können einem Benutzer Administratorrechte einräumen oder die Berechtigunen individuell festlegen.  Wenn Sie \"Administrator\" auswählen, werden alle anderen Rechte automatisch vergeben. Die Nutzerverwaltung kann nur durch einen Administrator erfolgen.\n",
     "profileSettings": "Profileinstellungen",
     "ruleExample1": "Verhindert den Zugang zu versteckten Dateien (dot-Files, wie .git, .gitignore) in allen Ordnern\n",

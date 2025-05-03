@@ -7,7 +7,7 @@
       <h2 v-else>modify user: {{ user.username }}</h2>
     </div>
 
-    <div class="card-content">
+    <div class="card-content minimal-card">
       <user-form
         v-model:user="user"
         v-model:updatePassword="updatePassword"
@@ -19,7 +19,7 @@
 
     <div class="card-action">
       <button
-        v-if="!isNew && actor.perm.admin"
+        v-if="!isNew && actor.permissions.admin"
         @click.prevent="deletePrompt"
         type="button"
         class="button button--flat button--red"
@@ -53,7 +53,7 @@ export default {
       user: {
         scopes: [],
         username: "",
-        perm: { admin: false },
+        permissions: { admin: false },
       },
       showDelete: false,
       createUserDir: false,
@@ -62,6 +62,7 @@ export default {
     };
   },
   created() {
+    mutations.setActiveSettingsView("");
     this.fetchData();
   },
   computed: {
@@ -109,8 +110,7 @@ export default {
           await usersApi.create(this.user); // Use the computed property
           this.$router.push({ path: "/settings", hash: "#users-main" });
         } else {
-          let which = ["all"];
-          await usersApi.update(this.user, which);
+          await usersApi.update(this.user, ["all"]);
           if (this.updatePassword) {
             await usersApi.update(this.user, ["password"]);
           }
@@ -123,3 +123,11 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.minimal-card {
+  /* margin-bottom: 16px; */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+</style>

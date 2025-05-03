@@ -15,16 +15,18 @@
         <thead>
           <tr>
             <th>{{ $t("settings.username") }}</th>
+            <th>Login Method</th>
             <th>{{ $t("settings.admin") }}</th>
-            <th>scopes</th>
+            <th>Scopes</th>
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          <tr v-for="user in users" :key="user.id">
+        <tbody class="settings-items">
+          <tr class="item" v-for="user in users" :key="user.id">
             <td>{{ user.username }}</td>
+            <td>{{ user.loginMethod }}</td>
             <td>
-              <i v-if="user.perm.admin" class="material-icons">done</i>
+              <i v-if="user.permissions.admin" class="material-icons">done</i>
               <i v-else class="material-icons">close</i>
             </td>
             <td>{{ user.scopes }}</td>
@@ -67,7 +69,7 @@ export default {
       return state.settings;
     },
     isAdmin() {
-      return state.user.perm.admin;
+      return state.user.permissions.admin;
     },
     // Access the loading state directly from the store
     loading() {

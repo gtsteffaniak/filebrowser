@@ -2,6 +2,7 @@ package http
 
 import (
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,19 +10,22 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/share"
-	"github.com/gtsteffaniak/filebrowser/backend/storage"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 type requestContext struct {
-	user  *users.User
-	raw   interface{}
-	path  string
-	token string
-	share *share.Link
+	user     *users.User
+	raw      interface{}
+	fileInfo iteminfo.ExtendedFileInfo
+	path     string
+	token    string
+	share    *share.Link
+	ctx      context.Context
 }
 
 type HttpResponse struct {
@@ -60,10 +64,15 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if path == "" || path == "/" {
 			data.path = link.Path
 		}
+
+		source, ok := config.Server.SourceMap[link.Source]
+		if !ok {
+			return http.StatusNotFound, fmt.Errorf("source not found")
+		}
 		// Get file information with options
-		file, err := FileInfoFasterFunc(files.FileOptions{
+		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
 			Path:   data.path,
-			Source: link.Source,
+			Source: source.Name,
 			Modify: false,
 			Expand: true,
 		})
@@ -83,7 +92,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 func withAdminHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// Ensure the user has admin permissions
-		if !data.user.Perm.Admin {
+		if !data.user.Permissions.Admin {
 			return http.StatusForbidden, nil
 		}
 		return fn(w, r, data)
@@ -105,35 +114,11 @@ func withUserHelper(fn handleFunc) handleFunc {
 		}
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
-			var err error
-			// Retrieve the user from the store and store it in the context
-			data.user, err = store.Users.Get(proxyUser)
+			user, err := setupProxyUser(r, data, proxyUser)
 			if err != nil {
-				if err.Error() != "the resource does not exist" {
-					return http.StatusInternalServerError, err
-				}
-				if config.Auth.Methods.ProxyAuth.CreateUser {
-					hashpass, err := users.HashPwd(proxyUser)
-					if err != nil {
-						return http.StatusInternalServerError, err
-					}
-					err = storage.CreateUser(users.User{
-						Username: proxyUser,
-						NonAdminEditable: users.NonAdminEditable{
-							Password: hashpass, // hashed password that can't actually be used
-						},
-					}, false)
-					if err != nil {
-						return http.StatusInternalServerError, err
-					}
-					data.user, err = store.Users.Get(proxyUser)
-					if err != nil {
-						return http.StatusInternalServerError, err
-					}
-				} else {
-					return http.StatusUnauthorized, fmt.Errorf("proxy authentication failed - no user found")
-				}
+				return http.StatusForbidden, err
 			}
+			data.user = user
 			setUserInResponseWriter(w, data.user)
 			return fn(w, r, data)
 		}
@@ -153,7 +138,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if isRevokedApiKey(tk.Key) || tk.Expires < time.Now().Unix() {
+		if auth.IsRevokedApiKey(tk.Key) || tk.Expires < time.Now().Unix() {
 			return http.StatusUnauthorized, fmt.Errorf("token expired or revoked")
 		}
 		// Check if the token is about to expire and send a header to renew it
@@ -178,7 +163,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 func withSelfOrAdminHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// Check if the current user is the same as the requested user or if they are an admin
-		if !data.user.Perm.Admin {
+		if !data.user.Permissions.Admin {
 			return http.StatusForbidden, nil
 		}
 		// Call the actual handler function with the updated context
@@ -228,7 +213,7 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 
 func withPermShareHelper(fn handleFunc) handleFunc {
 	return withUserHelper(func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-		if !d.user.Perm.Share {
+		if !d.user.Permissions.Share {
 			return http.StatusForbidden, nil
 		}
 		return fn(w, r, d)
@@ -365,4 +350,20 @@ func renderJSON(w http.ResponseWriter, r *http.Request, data interface{}) (int, 
 func acceptsGzip(r *http.Request) bool {
 	ae := r.Header.Get("Accept-Encoding")
 	return ae != "" && strings.Contains(ae, "gzip")
+}
+
+func (w *ResponseWriterWrapper) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+func getScheme(r *http.Request) string {
+	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
+		return proto
+	}
+	if r.TLS != nil {
+		return "https"
+	}
+	return "http"
 }

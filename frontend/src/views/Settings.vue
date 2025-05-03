@@ -74,12 +74,11 @@ export default {
   mounted() {
     mutations.closeHovers();
     mutations.setSearch(false);
-    mutations.setActiveSettingsView(getters.currentHash());
   },
   methods: {
     shouldShow(setting) {
-      const perm = setting?.perm || {};
-      return Object.keys(perm).every((key) => state.user.perm[key]);
+      const perm = setting?.permissions || {};
+      return Object.keys(perm).every((key) => state.user.permissions[key]);
     },
     setView(view) {
       if (state.activeSettingsView === view) return;
@@ -104,12 +103,20 @@ export default {
 }
 .settings-views {
   max-width: 1000px;
-  padding-bottom: 35vh;
   width: 100%;
 }
 
 .settings-views .card {
   border-style: solid;
   opacity: 1;
+}
+
+.settings-items > .item {
+  padding: 1em;
+  border-radius: 1em;
+}
+
+.settings-items > .item:hover {
+  background-color: var(--surfaceSecondary);
 }
 </style>

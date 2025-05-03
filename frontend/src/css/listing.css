@@ -2,7 +2,9 @@
   --item-selected: white;
   transition: all;
   animation-duration: 0.25s;
+  transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
   user-select: none;
+  min-height: 75vh;
 }
 
 body.rtl #listingView {
@@ -37,7 +39,7 @@ body.rtl #listingView {
   align-items: center;
   cursor: pointer;
   user-select: none;
-  overflow:hidden;
+  overflow: hidden;
   width: var(--item-width);
   height: var(--item-height);
 }
@@ -62,14 +64,13 @@ body.rtl #listingView {
   vertical-align: bottom;
 }
 
-
 #listingView .item img {
+  padding: 0;
+  height: 3.2em;
   width: 4em;
-  height: 4em;
-  object-fit: cover;
-  margin-right: 0.1em;
-  vertical-align: bottom;
   border-radius: 0.5em;
+  object-fit: cover;
+  vertical-align: bottom;
 }
 
 .message {
@@ -88,11 +89,6 @@ body.rtl #listingView {
   display: block;
 }
 
-#listingView {
-  padding-top: 1em;
-  padding-bottom: 30em;
-}
-
 #listingView.gallery .item,
 #listingView.compact .item,
 #listingView.normal .item,
@@ -109,49 +105,47 @@ body.rtl #listingView {
   border-radius: 0em;
 }
 
-#listingView .item:hover {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .24) !important;
-}
-
-#listingView .item div:first-of-type {
-  width: 5em;
-}
-
 #listingView .item div:last-of-type {
   width: 100%;
 }
 
-#listingView.gallery .item div {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  padding: 0.5em;
-}
-#listingView.gallery .item  {
-  min-width: 12em;
-  min-height: 12em;
+#listingView.gallery .item {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  overflow: hidden;
+  justify-content: center;
   padding: 0;
+}
+#listingView.gallery .item .gallery-div {
+  display: contents;
 }
 
 #listingView.normal .item,
 #listingView.gallery .item {
-  transition: width 0.25s, height 0.25s;
+  transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+#listingView.list .item:hover,
+#listingView.compact .item:hover,
+#listingView.normal .item:hover,
+#listingView.gallery .item:hover {
+  box-shadow: inset 0 -3em 3em rgba(217, 217, 217, 0.211), 0 0 0 2px var(--alt-background) !important;
+  /* Adjust shadow values as needed */
+  transform: scale(1.02);
+  /* Slightly enlarges the element */
 }
 
 #listingView.gallery .item .text {
-  width: 100%;
-  height: 100%;
-  display:flex;
-  min-width: 12em;
-  min-height: 12em;
   text-shadow: 0 0 2px white;
+  position: absolute;
+  transform: translate(0, 5.5em);
+  text-shadow: 0 0 2px white;
+  pointer-events: none;
 }
 
-#listingView.gallery .item div:last-of-type {
-  position: absolute;
-  padding: 1em;
+#listingView.gallery .item .text .name {
   text-align: center;
-  display: block;
 }
 
 #listingView.gallery .item[data-type=image] div:last-of-type {
@@ -206,8 +200,9 @@ body.rtl #listingView {
 }
 
 #listingView.compact .item div:first-of-type img {
-  width: 2em;
-  height: 2em;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: .25em;
 }
 
 #listingView.compact .item div:last-of-type {
@@ -219,7 +214,7 @@ body.rtl #listingView {
   margin-right: 1.5em;
 }
 
-#listingView .header > p {
+#listingView .header>p {
   margin: 0;
   cursor: pointer;
 }
@@ -346,8 +341,8 @@ body.rtl #listingView {
 }
 
 #listingView.list .item div:first-of-type img {
-  width: 2em;
-  height: 2em;
+  width: 1.5em;
+  height: 1.5em;
   border-radius: 0.2em;
 }
 
@@ -368,7 +363,7 @@ body.rtl #listingView {
 
 #listingView.list .header i,
 #listingView.normal .header i,
-#listingView.gallary .header i {
+#listingView.gallery .header i {
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: .2em;
@@ -386,7 +381,7 @@ body.rtl #listingView {
   border-top-right-radius: 1em;
 }
 
-#listingView.compact .lastGroup > div:last-child {
+#listingView.compact .lastGroup>div:last-child {
   border-bottom-left-radius: 1em;
   border-bottom-right-radius: 1em;
 }
@@ -400,10 +395,11 @@ body.rtl #listingView {
   margin-bottom: .5em;
 }
 
-#listingView > * >  .header > div  {
-  display:flex;
+#listingView>*>.header>div {
+  display: flex;
   width: 100%;
 }
+
 #listingView.list .header,
 #listingView.normal .header,
 #listingView.gallery .header {

@@ -35,11 +35,14 @@
         Choose at least one permission for the key. Your User must also have the
         permission.
       </p>
-      <div>
-        <p v-for="(isEnabled, perm) in availablePermissions" :key="perm">
-          <input type="checkbox" v-model="permissions[perm]" />
-          {{ perm }}
-        </p>
+      <div class="settings-items">
+        <ToggleSwitch
+          v-for="(isEnabled, permission) in permissions"
+          :key="permission"
+          class="item"
+          v-model="permissions[permission]"
+          :name="permission"
+        />
       </div>
     </div>
 
@@ -64,9 +67,10 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "CreateAPI",
@@ -75,23 +79,22 @@ export default {
       apiName: "",
       duration: 1,
       unit: "days",
-      permissions: {},
     };
   },
-  computed: {
-    availablePermissions() {
-      return state.user.perm;
+  components: {
+    ToggleSwitch,
+  },
+  props: {
+    permissions: {
+      type: Object,
+      required: true,
     },
+  },
+  computed: {
     durationInDays() {
       // Calculate duration based on unit
       return this.unit === "days" ? this.duration : this.duration * 30; // assuming 30 days per month
     },
-  },
-  created() {
-    // Initialize permissions with the same structure as availablePermissions
-    this.permissions = Object.fromEntries(
-      Object.keys(this.availablePermissions).map((perm) => [perm, false])
-    );
   },
   methods: {
     closeHovers() {

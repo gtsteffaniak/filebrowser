@@ -2,7 +2,7 @@
   <div
     id="context-menu"
     ref="contextMenu"
-    v-show="showContext"
+    v-if="showContext"
     :style="{
       top: `${top}px`,
       left: `${left}px`,
@@ -62,7 +62,7 @@
       :counter="selectedCount"
     />
     <action
-      v-if="!showCreate && selectedCount == 1 && userPerms.share"
+      v-if="selectedCount <= 1 && showShare"
       icon="share"
       :label="$t('buttons.share')"
       show="share"
@@ -92,13 +92,36 @@
       show="delete"
     />
   </div>
+  <div
+    id="context-menu"
+    ref="contextMenu"
+    v-else-if="showOverflow"
+    :style="{
+      top: '3em',
+      right: '1em',
+    }"
+    class="button no-select"
+    :class="{ 'dark-mode': isDarkMode }"
+  >
+    <action
+      v-if="showDelete"
+      icon="delete"
+      :label="$t('buttons.delete')"
+      show="delete"
+    />
+    <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
+    <action v-if="showEdit" icon="edit" @action="edit()" />
+  </div>
 </template>
 
 <script>
 import downloadFiles from "@/utils/download";
-import { state, getters, mutations } from "@/store"; // Import your custom store
+import { state, getters, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import { onlyOfficeUrl } from "@/utils/constants.js";
+import buttons from "@/utils/buttons";
+import { notify } from "@/notify";
+import { eventBus } from "@/store/eventBus";
 
 export default {
   name: "ContextMenu",
@@ -113,8 +136,31 @@ export default {
     };
   },
   computed: {
+    noItems() {
+      return !this.showEdit && !this.showSave && !this.showDelete
+    },
+    showEdit() {
+      return window.location.hash == "#edit" && state.user.permissions.modify;
+    },
+    showDelete() {
+      return state.user.permissions.modify && getters.currentView() == "preview"
+    },
+    showSave() {
+      return getters.currentView() == "editor" && state.user.permissions.modify;
+    },
+    showOverflow() {
+      return getters.currentPromptName() == "OverflowMenu";
+    },
+    showShare() {
+      return (
+        state.user?.permissions &&
+        state.user?.permissions.share &&
+        state.user.username != "publicUser" &&
+        getters.currentView() != "share"
+      );
+    },
     showContext() {
-      if (getters.currentPromptName() == "ContextMenu" && state.prompts != []) {
+      if (getters.currentPromptName() == "ContextMenu") {
         this.setPositions();
         return true;
       }
@@ -156,9 +202,9 @@ export default {
     },
     userPerms() {
       return {
-        upload: state.user.perm?.modify && state.selected.length > 0,
-        share: state.user.perm.share,
-        modify: state.user.perm.modify,
+        upload: state.user.permissions?.modify && state.selected.length > 0,
+        share: state.user.permissions.share,
+        modify: state.user.permissions.modify,
       };
     },
   },
@@ -205,6 +251,22 @@ export default {
     startDownload() {
       downloadFiles();
     },
+    async edit() {
+      window.location.hash = "#edit";
+    },
+    async save() {
+      const button = "save";
+      buttons.loading("save");
+      try {
+        eventBus.emit("handleEditorValueRequest", "data");
+        buttons.success(button);
+        notify.showSuccess("File Saved!");
+      } catch (e) {
+        buttons.done(button);
+        notify.showError("Error saving file: ", e);
+      }
+      mutations.closeHovers();
+    },
   },
 };
 </script>
@@ -213,7 +275,7 @@ export default {
 #context-menu {
   position: absolute;
   z-index: 1000;
-  background-color: white;
+  background-color: var(--background);
   max-width: 20em;
   min-width: 15em;
   min-height: 4em;
@@ -245,20 +307,11 @@ export default {
 #context-menu > span {
   display: inline-block;
   margin-left: 1em;
-  color: #6f6f6f;
+  color: var(--textPrimary);
   margin-right: auto;
 }
 
 #context-menu .action span {
   display: none;
-}
-
-/* File selection */
-#context-menu.dark-mode {
-  background: var(--surfaceSecondary) !important;
-}
-
-#context-menu.dark-mode span {
-  color: var(--textPrimary) !important;
 }
 </style>

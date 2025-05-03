@@ -5,7 +5,7 @@ import Files from "@/views/Files.vue";
 import Share from "@/views/Share.vue";
 import Settings from "@/views/Settings.vue";
 import Errors from "@/views/Errors.vue";
-import { baseURL, name } from "@/utils/constants";
+import { baseURL, name, oidcAvailable, passwordAvailable } from "@/utils/constants";
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
 import { validateLogin } from "@/utils/auth";
@@ -62,6 +62,7 @@ const routes = [
     component: Layout,
     meta: {
       requiresAuth: true,
+      requireSettingsEnabled: true
     },
     children: [
       {
@@ -123,44 +124,53 @@ const router = createRouter({
 function isSameRoute(to: RouteLocation, from: RouteLocation) {
   return to.path === from.path && JSON.stringify(to.params) === JSON.stringify(from.params) && to.hash === from.hash;
 }
-
 router.beforeResolve(async (to, from, next) => {
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
     return next(false);
   }
-  // Set the page title using i18n
-  const title = i18n.global.t(titles[to.name as keyof typeof titles]);
-  document.title = name + " - " + title ;
 
-  // Update store with the current route
+  const title = i18n.global.t(titles[to.name as keyof typeof titles]);
+  document.title = name + " - " + title;
   mutations.setRoute(to);
 
-  // Handle auth requirements
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-
-    if (state != null && state.user != null && !state.user.username) {
-      await validateLogin();
+    if (!state?.user?.username) {
+      try {
+        await validateLogin();
+      } catch (error) {
+        console.error("Error validating login:",error);
+      }
     }
 
     if (!getters.isLoggedIn()) {
-      next({
-        path: "/login",
-        query: { redirect: to.fullPath },
-      });
-      return;
+      if (passwordAvailable) {
+        next({ path: "/login", query: { redirect: to.fullPath } });
+        return;
+      }
+
+      if (oidcAvailable) {
+        window.location.href = `/api/auth/oidc/login?redirect=${encodeURIComponent(to.fullPath)}`;
+        return;
+      }
     }
 
-    // Handle admin-only routes
+
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
-      if (!state.user || !getters.isAdmin()) {
+      if (!getters.isAdmin()) {
         next({ path: "/403" });
+        return;
+      }
+    }
+
+    if (to.matched.some((record) => record.meta.requireSettingsEnabled)) {
+      if (state.user?.disableSettings) {
+        next({ path: "/files/" });
         return;
       }
     }
   }
 
-  // Redirect logged-in users from login page
   if (to.path.endsWith("/login") && getters.isLoggedIn()) {
     next({ path: "/files/" });
     return;

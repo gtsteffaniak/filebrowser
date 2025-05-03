@@ -208,7 +208,7 @@
     "password": "Contraseña",
     "passwordUpdated": "¡Contraseña actualizada!",
     "path": "Ruta",
-    "perm": {
+    "permissions": {
       "create": "Crear ficheros y directorios",
       "delete": "Eliminar ficheros y directorios",
       "download": "Descargar",
@@ -217,7 +217,7 @@
       "rename": "Renombrar o mover ficheros y directorios",
       "share": "Compartir ficheros"
     },
-    "permissions": "Permisos",
+    "permissions-name": "Permisos",
     "permissionsHelp": "Puedes nombrar al usuario como administrador o elegir los permisos individualmente. Si seleccionas \"Administrador\", todas las otras opciones serán activadas automáticamente. La administración de usuarios es un privilegio de administrador.\n",
     "profileSettings": "Ajustes del perfil",
     "ruleExample1": "previene el acceso a una extensión de archivo (Como .git) en cada carpeta.\n",

@@ -7,18 +7,17 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
-	"github.com/gtsteffaniak/filebrowser/backend/img"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/swaggo/swag"
 
-	"github.com/gtsteffaniak/filebrowser/backend/version"
+	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 )
 
 var store *storage.Storage
@@ -84,9 +83,10 @@ func StartFilebrowser() {
 		logger.Fatal("No sources configured, exiting...")
 	}
 	for _, source := range settings.Config.Server.SourceMap {
-		go files.Initialize(source)
+		go indexing.Initialize(source, false)
 	}
 	validateUserInfo()
+	validateOfficeIntegration()
 	// Start the rootCMD in a goroutine
 	go func() {
 		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {
@@ -113,26 +113,14 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 	if serverConfig.NumImageProcessors < 1 {
 		logger.Fatal("Image resize workers count could not be < 1")
 	}
-	imgSvc := img.New(serverConfig.NumImageProcessors)
-
 	cacheDir := settings.Config.Server.CacheDir
-	var fileCache diskcache.Interface
-
-	// Use file cache if cacheDir is specified
-	if cacheDir != "" {
-		var err error
-		fileCache, err = diskcache.NewFileCache(cacheDir)
-		if err != nil {
-			if cacheDir == "tmp" {
-				logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. filebrowser is trying to use the default `server.cacheDir: tmp` , but you can change this location if you need to. Please see configuration wiki for more information about this error. https://github.com/gtsteffaniak/filebrowser/wiki/Configuration")
-			}
-			logger.Fatal(fmt.Sprintf("failed to create file cache path, which is now require to run the server: %v", err))
-		}
-	} else {
-		// No-op cache if no cacheDir is specified
-		fileCache = diskcache.NewNoOp()
+	numWorkers := settings.Config.Server.NumImageProcessors
+	ffpmpegPath := settings.Config.Integrations.Media.FfmpegPath
+	// setup disk cache
+	err := preview.Start(numWorkers, ffpmpegPath, cacheDir)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("Error starting preview service: %v", err))
 	}
-	fbhttp.StartHttp(ctx, imgSvc, store, fileCache, shutdownComplete)
-
+	fbhttp.StartHttp(ctx, store, shutdownComplete)
 	return nil
 }

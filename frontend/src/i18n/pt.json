@@ -195,7 +195,7 @@
     "password": "Palavra-passe",
     "passwordUpdated": "Palavra-passe atualizada!",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Criar ficheiros e pastas",
       "delete": "Eliminar ficheiros e pastas",
       "download": "Descarregar",
@@ -204,7 +204,7 @@
       "rename": "Alterar o nome ou mover ficheiros e pastas",
       "share": "Partilhar ficheiros"
     },
-    "permissions": "Permissões",
+    "permissions-name": "Permissões",
     "permissionsHelp": "Pode definir o utilizador como administrador ou escolher as permissões manualmente. Se selecionar a opção \"Administrador\", todas as outras opções serão automaticamente selecionadas. A gestão dos utilizadores é um privilégio restringido aos administradores.\n",
     "profileSettings": "Configurações do utilizador",
     "ruleExample1": "previne o acesso a qualquer \"dotfile\" (como .git, .gitignore) em qualquer pasta\n",

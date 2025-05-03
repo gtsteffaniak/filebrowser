@@ -1,0 +1,35 @@
+server:
+  numImageProcessors: 4
+  socket: ""
+  tlsKey: ""
+  tlsCert: ""
+  disablePreviews: false
+  disablePreviewResize: false
+  port: 80
+  baseURL: "/"
+  database: "mydb.db"
+  sources:
+    - path: "."
+integrations:
+  office:
+    url: "http://localhost:9052"
+    secret: 6H1H7GzUk2alRkNxAPav0W02g8JS5oUd
+auth:
+  methods:
+    password:
+      enabled: true
+frontend:
+  name: ""
+  disableUsedPercentage: true
+userDefaults:
+  locale: ""
+  viewMode: ""
+  darkMode: true
+  disableSettings: false
+  singleClick: true
+  permissions:
+    admin: true
+    modify: true
+    share: true
+    api: true
+  dateFormat: false

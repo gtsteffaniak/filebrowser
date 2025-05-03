@@ -142,7 +142,6 @@
 import { notify } from "@/notify";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { publicApi } from "@/api";
-import { fromNow } from "@/utils/moment";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import QrcodeVue from "qrcode.vue";
@@ -180,6 +179,11 @@ export default {
     this.fetchData();
   },
   mounted() {
+    if (state.locale == "") {
+      mutations.updateCurrentUser({
+        locale: this.$i18n.locale,
+      });
+    }
     window.addEventListener("keydown", this.keyEvent);
     this.clip = new Clipboard(".copy-clipboard");
     this.clip.on("success", () => {
@@ -223,8 +227,7 @@ export default {
       return getHumanReadableFilesize(state.req.size);
     },
     humanTime() {
-      if (state.req.modified === undefined) return 0;
-      return fromNow(state.req.modified, state.user.locale);
+      return getters.getTime(state.req.modified);
     },
     modTime() {
       return new Date(Date.parse(state.req.modified)).toLocaleString();
@@ -333,8 +336,3 @@ export default {
   },
 };
 </script>
-<style>
-.share {
-  padding-bottom: 35vh;
-}
-</style>

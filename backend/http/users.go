@@ -8,10 +8,10 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/storage"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
 type UserRequest struct {
@@ -60,7 +60,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 			return userList[i].ID < userList[j].ID
 		})
 
-		if !d.user.Perm.Admin {
+		if !d.user.Permissions.Admin {
 			userList = selfUserList
 		}
 		return renderJSON(w, r, userList)
@@ -69,7 +69,7 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		givenUserId = uint(num)
 	}
 
-	if givenUserId != d.user.ID && !d.user.Perm.Admin {
+	if givenUserId != d.user.ID && !d.user.Permissions.Admin {
 		return http.StatusForbidden, nil
 	}
 
@@ -111,7 +111,7 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusForbidden, fmt.Errorf("cannot delete your own user")
 	}
 
-	if !d.user.Perm.Admin {
+	if !d.user.Permissions.Admin {
 		return http.StatusForbidden, fmt.Errorf("cannot delete users without admin permissions")
 	}
 
@@ -139,7 +139,7 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 // @Failure 500 {object} map[string]string "Internal Server Error"
 // @Router /api/users [post]
 func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if !d.user.Perm.Admin {
+	if !d.user.Permissions.Admin {
 		return http.StatusForbidden, nil
 	}
 	// Read the JSON body
@@ -162,7 +162,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
-	err = storage.CreateUser(*req.Data, req.Data.Perm.Admin)
+	err = storage.CreateUser(*req.Data, req.Data.Permissions.Admin)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -189,14 +189,14 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
 	givenUserId := uint(num)
 
-	if givenUserId != d.user.ID && !d.user.Perm.Admin {
+	if givenUserId != d.user.ID && !d.user.Permissions.Admin {
 		return http.StatusForbidden, nil
 	}
 
 	// Read the JSON body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusBadRequest, err
 	}
 	defer r.Body.Close()
 
@@ -207,9 +207,9 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	}
 
 	// Perform the user update
-	err = store.Users.Update(req.Data, d.user.Perm.Admin, req.Which...)
+	err = store.Users.Update(req.Data, d.user.Permissions.Admin, req.Which...)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusBadRequest, err
 	}
 
 	// Return the updated user (with the password hidden) as JSON response

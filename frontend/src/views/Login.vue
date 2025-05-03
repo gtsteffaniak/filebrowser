@@ -2,46 +2,51 @@
   <div id="login" :class="{ recaptcha: recaptcha, 'dark-mode': isDarkMode }">
     <form class="card login-card" @submit="submit">
       <div class="login-brand">
-        <Icon mimetype="directory"/>
+        <Icon mimetype="directory" />
       </div>
       <div class="login-brand brand-text">
         <h3>{{ loginName }}</h3>
       </div>
+      <div v-if="passwordAvailable" class="password-entry">
+        <div v-if="error !== ''" class="wrong">{{ error }}</div>
+        <input
+          autofocus
+          class="input input--block"
+          type="text"
+          autocapitalize="off"
+          v-model="username"
+          :placeholder="$t('login.username')"
+        />
+        <input
+          class="input input--block"
+          type="password"
+          v-model="password"
+          :placeholder="$t('login.password')"
+        />
+        <input
+          class="input input--block"
+          v-if="createMode"
+          type="password"
+          v-model="passwordConfirm"
+          :placeholder="$t('login.passwordConfirm')"
+        />
 
-      <div v-if="error !== ''" class="wrong">{{ error }}</div>
-
-      <input
-        autofocus
-        class="input input--block"
-        type="text"
-        autocapitalize="off"
-        v-model="username"
-        :placeholder="$t('login.username')"
-      />
-      <input
-        class="input input--block"
-        type="password"
-        v-model="password"
-        :placeholder="$t('login.password')"
-      />
-      <input
-        class="input input--block"
-        v-if="createMode"
-        type="password"
-        v-model="passwordConfirm"
-        :placeholder="$t('login.passwordConfirm')"
-      />
-
-      <div v-if="recaptcha" id="recaptcha"></div>
-      <input
-        class="button button--block"
-        type="submit"
-        :value="createMode ? $t('login.signup') : $t('login.submit')"
-      />
-
-      <p @click="toggleMode" v-if="signup">
-        {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
-      </p>
+        <div v-if="recaptcha" id="recaptcha"></div>
+        <input
+          class="button button--block"
+          type="submit"
+          :value="createMode ? $t('login.signup') : $t('login.submit')"
+        />
+        <p @click="toggleMode" v-if="signup">
+          {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
+        </p>
+      </div>
+      <div v-if="oidcAvailable" class="password-entry">
+        <div v-if="passwordAvailable" class="or">OR</div>
+        <a href="/api/auth/oidc/login" class="button button--block direct-login">
+          OpenID Connect
+        </a>
+      </div>
     </form>
   </div>
 </template>
@@ -49,7 +54,7 @@
 <script>
 import router from "@/router";
 import { state } from "@/store";
-import Icon from "@/components/Icon.vue";
+import Icon from "@/components/files/Icon.vue";
 import { signupLogin, login, initAuth } from "@/utils/auth";
 import {
   name,
@@ -58,6 +63,8 @@ import {
   recaptchaKey,
   signup,
   darkMode,
+  oidcAvailable,
+  passwordAvailable,
 } from "@/utils/constants";
 
 export default {
@@ -67,14 +74,16 @@ export default {
   },
   computed: {
     signup: () => signup,
+    oidcAvailable: () => oidcAvailable,
+    passwordAvailable: () => passwordAvailable,
     name: () => name || "FileBrowser Quantum",
     logoURL: () => logoURL,
     isDarkMode() {
       return darkMode;
     },
     loginName() {
-      return name
-    }
+      return name;
+    },
   },
   data: function () {
     return {
@@ -167,4 +176,40 @@ export default {
   padding-bottom: 0em !important;
 }
 
+.password-entry {
+  padding: 0em !important;
+}
+.direct-login {
+  display: flex !important;
+  justify-content: center;
+}
+
+.or {
+  margin-left: 4em;
+  margin-right: 4em;
+  position: relative;
+  line-height: 50px;
+  text-align: center;
+}
+
+.or::before,
+.or::after {
+  position: absolute;
+  width: 2em;
+  height: 1px;
+
+  top: 24px;
+
+  background-color: #aaa;
+
+  content: "";
+}
+
+.or::before {
+  left: 0;
+}
+
+.or::after {
+  right: 0;
+}
 </style>

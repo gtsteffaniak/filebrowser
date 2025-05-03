@@ -253,6 +253,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "source hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "File path of the image to preview",
                         "name": "path",
                         "in": "query",
@@ -491,7 +498,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Resource metadata",
                         "schema": {
-                            "$ref": "#/definitions/files.FileInfo"
+                            "$ref": "#/definitions/iteminfo.FileInfo"
                         }
                     },
                     "404": {
@@ -529,7 +536,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the resource",
+                        "description": "Destination path where to place the files inside the destination source",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -604,20 +611,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the resource",
+                        "description": "Destination path where to place the files inside the destination source, a directory must end in / to create a directory",
                         "name": "path",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
+                        "description": "Name for the desired filebrowser destination source name, default is used if not provided",
                         "name": "source",
                         "in": "query"
                     },
@@ -751,16 +752,10 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path from resource",
+                        "description": "Path from resource in \u003csource_name\u003e::\u003cindex_path\u003e format",
                         "name": "from",
                         "in": "query",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -872,7 +867,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/files.SearchResult"
+                                "$ref": "#/definitions/indexing.SearchResult"
                             }
                         }
                     },
@@ -1167,55 +1162,6 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Conflict - user already exists",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/usage": {
-            "get": {
-                "description": "Returns the total and used disk space for a specified directory.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Get disk usage",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Disk usage details",
-                        "schema": {
-                            "$ref": "#/definitions/http.DiskUsageResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Directory not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1562,21 +1508,80 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "files.FileInfo": {
+        "http.AuthTokenMin": {
+            "type": "object",
+            "properties": {
+                "Permissions": {
+                    "$ref": "#/definitions/users.Permissions"
+                },
+                "created": {
+                    "type": "integer"
+                },
+                "expires": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.HttpResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.signupBody": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "indexing.SearchResult": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "iteminfo.FileInfo": {
             "type": "object",
             "properties": {
                 "files": {
                     "description": "files in the directory",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/files.ItemInfo"
+                        "$ref": "#/definitions/iteminfo.ItemInfo"
                     }
                 },
                 "folders": {
                     "description": "folders in the directory",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/files.ItemInfo"
+                        "$ref": "#/definitions/iteminfo.ItemInfo"
                     }
                 },
                 "hidden": {
@@ -1605,7 +1610,7 @@ const docTemplate = `{
                 }
             }
         },
-        "files.ItemInfo": {
+        "iteminfo.ItemInfo": {
             "type": "object",
             "properties": {
                 "hidden": {
@@ -1630,73 +1635,27 @@ const docTemplate = `{
                 }
             }
         },
-        "files.SearchResult": {
+        "settings.Auth": {
             "type": "object",
             "properties": {
-                "path": {
+                "adminPassword": {
+                    "description": "the password of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
-                "size": {
-                    "type": "integer"
-                },
-                "type": {
+                "adminUsername": {
+                    "description": "the username of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
-                }
-            }
-        },
-        "http.AuthTokenMin": {
-            "type": "object",
-            "properties": {
-                "Permissions": {
-                    "$ref": "#/definitions/users.Permissions"
-                },
-                "created": {
-                    "type": "integer"
-                },
-                "expires": {
-                    "type": "integer"
                 },
                 "key": {
+                    "description": "the key used to sign the JWT tokens. If not set, a random key will be generated.",
                     "type": "string"
                 },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.DiskUsageResponse": {
-            "type": "object",
-            "properties": {
-                "total": {
+                "methods": {
+                    "$ref": "#/definitions/settings.LoginMethods"
+                },
+                "tokenExpirationHours": {
+                    "description": "the number of hours until the token expires. Default is 2 hours.",
                     "type": "integer"
-                },
-                "used": {
-                    "type": "integer"
-                }
-            }
-        },
-        "http.HttpResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.signupBody": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
@@ -1734,12 +1693,15 @@ const docTemplate = `{
             ],
             "properties": {
                 "text": {
+                    "description": "the text to display on the link",
                     "type": "string"
                 },
                 "title": {
+                    "description": "the title to display on hover",
                     "type": "string"
                 },
                 "url": {
+                    "description": "the url to link to",
                     "type": "string"
                 }
             }
@@ -1748,9 +1710,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "disableDefaultLinks": {
+                    "description": "disable default links in the sidebar",
                     "type": "boolean"
                 },
                 "disableUsedPercentage": {
+                    "description": "disable used percentage for the sources in the sidebar",
                     "type": "boolean"
                 },
                 "externalLinks": {
@@ -1760,6 +1724,7 @@ const docTemplate = `{
                     }
                 },
                 "name": {
+                    "description": "display name",
                     "type": "string"
                 }
             }
@@ -1768,18 +1733,21 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "fileEndsWith": {
+                    "description": "array of file names to include/exclude (eg \"a.jpg\")",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "files": {
+                    "description": "array of file names to include/exclude",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "folders": {
+                    "description": "array of folder names to include/exclude",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1790,6 +1758,9 @@ const docTemplate = `{
         "settings.Integrations": {
             "type": "object",
             "properties": {
+                "media": {
+                    "$ref": "#/definitions/settings.Media"
+                },
                 "office": {
                     "$ref": "#/definitions/settings.OnlyOffice"
                 }
@@ -1799,18 +1770,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "apiLevels": {
+                    "description": "separated list of log levels to enable for the API. (eg. \"info|warning|error\")",
                     "type": "string"
                 },
                 "json": {
+                    "description": "output in json format, currently not supported",
                     "type": "boolean"
                 },
                 "levels": {
+                    "description": "separated list of log levels to enable. (eg. \"info|warning|error|debug\")",
                     "type": "string"
                 },
                 "noColors": {
+                    "description": "disable colors in the output",
                     "type": "boolean"
                 },
                 "output": {
+                    "description": "output location. (eg. \"stdout\" or \"path/to/file.log\")",
                     "type": "string"
                 }
             }
@@ -1819,13 +1795,75 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "noauth": {
+                    "description": "if set to true, overrides all other auth methods and disables authentication",
                     "type": "boolean"
+                },
+                "oidc": {
+                    "$ref": "#/definitions/settings.OidcConfig"
                 },
                 "password": {
                     "$ref": "#/definitions/settings.PasswordAuthConfig"
                 },
                 "proxy": {
                     "$ref": "#/definitions/settings.ProxyAuthConfig"
+                }
+            }
+        },
+        "settings.Media": {
+            "type": "object",
+            "properties": {
+                "ffmpegPath": {
+                    "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.OidcConfig": {
+            "type": "object",
+            "required": [
+                "authorizationUrl",
+                "clientId",
+                "clientSecret",
+                "scopes",
+                "tokenUrl",
+                "userInfoUrl"
+            ],
+            "properties": {
+                "authorizationUrl": {
+                    "description": "authorization URL of the OIDC provider",
+                    "type": "string"
+                },
+                "clientId": {
+                    "description": "client id of the OIDC application",
+                    "type": "string"
+                },
+                "clientSecret": {
+                    "description": "client secret of the OIDC application",
+                    "type": "string"
+                },
+                "enabled": {
+                    "description": "whether to enable OIDC authentication",
+                    "type": "boolean"
+                },
+                "jwksUrl": {
+                    "description": "currently not used by filebrowser",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "space separated list of scopes to request from the OIDC provider",
+                    "type": "string"
+                },
+                "tokenUrl": {
+                    "description": "token URL of the OIDC provider",
+                    "type": "string"
+                },
+                "userIdentifier": {
+                    "description": "optional: which attribute should be used as the username? options: email, username, name, phone_number, sub",
+                    "type": "string"
+                },
+                "userInfoUrl": {
+                    "description": "user info URL of the OIDC provider",
+                    "type": "string"
                 }
             }
         },
@@ -1836,41 +1874,74 @@ const docTemplate = `{
                 "url"
             ],
             "properties": {
+                "internalUrl": {
+                    "description": "An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.",
+                    "type": "string"
+                },
                 "secret": {
                     "type": "string"
                 },
                 "url": {
+                    "description": "The URL to the OnlyOffice Document Server, needs to be accessible to the user.",
                     "type": "string"
                 }
             }
         },
         "settings.PasswordAuthConfig": {
             "type": "object",
-            "required": [
-                "enabled"
-            ],
             "properties": {
                 "enabled": {
                     "type": "boolean"
                 },
                 "minLength": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 5
+                },
+                "recaptcha": {
+                    "description": "recaptcha config, only used if signup is enabled",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.Recaptcha"
+                        }
+                    ]
+                },
+                "signup": {
+                    "description": "currently not used by filebrowser",
+                    "type": "boolean"
                 }
             }
         },
         "settings.ProxyAuthConfig": {
             "type": "object",
-            "required": [
-                "enabled"
-            ],
             "properties": {
                 "createUser": {
+                    "description": "create user if not exists",
                     "type": "boolean"
                 },
                 "enabled": {
                     "type": "boolean"
                 },
                 "header": {
+                    "description": "required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.Recaptcha": {
+            "type": "object",
+            "required": [
+                "host",
+                "key",
+                "secret"
+            ],
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "secret": {
                     "type": "string"
                 }
             }
@@ -1882,22 +1953,35 @@ const docTemplate = `{
             ],
             "properties": {
                 "baseURL": {
+                    "description": "base URL for the server, the subpath that the server is running on.",
                     "type": "string"
                 },
                 "cacheDir": {
+                    "description": "path to the cache directory, used for thumbnails and other cached files",
                     "type": "string"
                 },
                 "database": {
+                    "description": "path to the database file",
                     "type": "string"
                 },
-                "enableThumbnails": {
+                "disablePreviewResize": {
+                    "description": "disable resizing of previews for faster loading over slow connections",
+                    "type": "boolean"
+                },
+                "disablePreviews": {
+                    "description": "disable all previews thumbnails, simple icons will be used",
+                    "type": "boolean"
+                },
+                "disableTypeDetectionByHeader": {
+                    "description": "disable type detection by header, useful if filesystem is slow.",
                     "type": "boolean"
                 },
                 "externalUrl": {
+                    "description": "used by share links if set",
                     "type": "string"
                 },
                 "internalUrl": {
-                    "description": "used by integrations",
+                    "description": "used by integrations if set, this is the url that an integration service will use to communicate with filebrowser",
                     "type": "string"
                 },
                 "logging": {
@@ -1907,18 +1991,19 @@ const docTemplate = `{
                     }
                 },
                 "maxArchiveSize": {
+                    "description": "max pre-archive combined size of files/folder that are allowed to be archived (in GB)",
                     "type": "integer"
                 },
                 "numImageProcessors": {
+                    "description": "number of concurrent image processing jobs",
                     "type": "integer"
                 },
                 "port": {
+                    "description": "port to listen on",
                     "type": "integer"
                 },
-                "resizePreview": {
-                    "type": "boolean"
-                },
                 "socket": {
+                    "description": "socket to listen on",
                     "type": "string"
                 },
                 "sources": {
@@ -1928,9 +2013,11 @@ const docTemplate = `{
                     }
                 },
                 "tlsCert": {
+                    "description": "path to TLS cert",
                     "type": "string"
                 },
                 "tlsKey": {
+                    "description": "path to TLS key",
                     "type": "string"
                 }
             }
@@ -1952,12 +2039,6 @@ const docTemplate = `{
                 },
                 "userDefaults": {
                     "$ref": "#/definitions/settings.UserDefaults"
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/settings.UserDefaults"
-                    }
                 }
             }
         },
@@ -1984,37 +2065,55 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "createUserDir": {
+                    "description": "create a user directory for each user",
                     "type": "boolean"
                 },
                 "defaultEnabled": {
+                    "description": "should be added as a default source for new users?",
                     "type": "boolean"
                 },
                 "defaultUserScope": {
-                    "description": "default \"\" should match folders under path",
+                    "description": "default \"/\" should match folders under path",
                     "type": "string"
                 },
                 "disabled": {
+                    "description": "disable the indexing of this source",
                     "type": "boolean"
                 },
                 "exclude": {
-                    "$ref": "#/definitions/settings.IndexFilter"
+                    "description": "exclude files and folders from indexing, if include is not set",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.IndexFilter"
+                        }
+                    ]
                 },
                 "ignoreHidden": {
+                    "description": "ignore hidden files and folders.",
                     "type": "boolean"
                 },
                 "ignoreZeroSizeFolders": {
+                    "description": "ignore folders with 0 size",
                     "type": "boolean"
                 },
                 "include": {
-                    "$ref": "#/definitions/settings.IndexFilter"
+                    "description": "include files and folders from indexing, if exclude is not set",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.IndexFilter"
+                        }
+                    ]
                 },
                 "indexingInterval": {
+                    "description": "optional manual overide interval in seconds to re-index the source",
                     "type": "integer"
                 },
                 "maxWatchers": {
+                    "description": "number of concurrent watchers to use for this source, currently not supported",
                     "type": "integer"
                 },
                 "neverWatchPaths": {
+                    "description": "paths to never watch, relative to the source path (eg. \"/folder/file.txt\")",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -2048,6 +2147,9 @@ const docTemplate = `{
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
+                },
+                "preview": {
+                    "$ref": "#/definitions/users.PreviewOptions"
                 },
                 "quickDownload": {
                     "type": "boolean"
@@ -2133,6 +2235,19 @@ const docTemplate = `{
                 }
             }
         },
+        "users.LoginMethod": {
+            "type": "string",
+            "enum": [
+                "password",
+                "proxy",
+                "oidc"
+            ],
+            "x-enum-varnames": [
+                "LoginMethodPassword",
+                "LoginMethodProxy",
+                "LoginMethodOidc"
+            ]
+        },
         "users.Permissions": {
             "type": "object",
             "properties": {
@@ -2145,7 +2260,30 @@ const docTemplate = `{
                 "modify": {
                     "type": "boolean"
                 },
+                "realtime": {
+                    "type": "boolean"
+                },
                 "share": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "users.PreviewOptions": {
+            "type": "object",
+            "properties": {
+                "highQuality": {
+                    "type": "boolean"
+                },
+                "image": {
+                    "type": "boolean"
+                },
+                "office": {
+                    "type": "boolean"
+                },
+                "popup": {
+                    "type": "boolean"
+                },
+                "video": {
                     "type": "boolean"
                 }
             }
@@ -2205,11 +2343,25 @@ const docTemplate = `{
                 "lockPassword": {
                     "type": "boolean"
                 },
+                "loginMethod": {
+                    "$ref": "#/definitions/users.LoginMethod"
+                },
                 "password": {
                     "type": "string"
                 },
                 "perm": {
+                    "description": "legacy for migration purposes... og filebrowser has perm attribute",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.Permissions"
+                        }
+                    ]
+                },
+                "permissions": {
                     "$ref": "#/definitions/users.Permissions"
+                },
+                "preview": {
+                    "$ref": "#/definitions/users.PreviewOptions"
                 },
                 "quickDownload": {
                     "type": "boolean"
