@@ -1,0 +1,120 @@
+name: Manual Docker Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag or Branch (format: v0.0.0-beta)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  push_release_to_registry:
+    name: Push release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.0.0
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{ secrets.PAT }}
+      - name: Extract metadata (tags, labels) for Docker and GHCR
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            gtstef/filebrowser
+            ghcr.io/gtsteffaniak/filebrowser
+      - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
+        id: modify-json
+        run: |
+          JSON='${{ steps.meta.outputs.json }}'
+          MODIFIED_JSON=$(echo "$JSON" | jq '
+            .tags |= map(sub(":v"; ":")) |
+            if any(.tags[]; test("beta")) then
+              .tags += [
+                "gtstef/filebrowser:beta",
+                "ghcr.io/gtsteffaniak/filebrowser:beta",
+                "gtstef/filebrowser:latest",
+                "ghcr.io/gtsteffaniak/filebrowser:latest"
+              ]
+            else . end |
+            if any(.tags[]; test("stable")) then
+              .tags += [
+                "gtstef/filebrowser:stable",
+                "ghcr.io/gtsteffaniak/filebrowser:stable",
+                "gtstef/filebrowser:latest",
+                "ghcr.io/gtsteffaniak/filebrowser:latest"
+              ]
+            else . end
+          ')
+          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
+          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
+          echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: |
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          file: ./_docker/Dockerfile
+          push: true
+          tags: ${{ steps.modify-json.outputs.cleaned_tag }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Modify version names
+        id: modify-json-media
+        run: |
+          JSON='${{ steps.meta.outputs.json }}'
+          MODIFIED_JSON=$(echo "$JSON" | jq '
+            .tags |= map(
+              sub(":v"; ":") + "-media"
+            ) |
+            if any(.tags[]; test("beta-media")) then
+              .tags += [
+                "gtstef/filebrowser:beta-media",
+                "ghcr.io/gtsteffaniak/filebrowser:beta-media",
+                "gtstef/filebrowser:media",
+                "ghcr.io/gtsteffaniak/filebrowser:media"
+              ]
+            else . end |
+            if any(.tags[]; test("stable-media")) then
+              .tags += [
+                "gtstef/filebrowser:stable-media",
+                "ghcr.io/gtsteffaniak/filebrowser:stable-media",
+                "gtstef/filebrowser:media",
+                "ghcr.io/gtsteffaniak/filebrowser:media"
+              ]
+            else . end
+          ')
+          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
+          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
+          echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
+      - name: Build and push media image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: |
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          file: ./_docker/Dockerfile.media
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.modify-json-media.outputs.cleaned_tag }}
+          labels: ${{ steps.meta.outputs.labels }}
