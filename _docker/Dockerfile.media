@@ -7,8 +7,8 @@ COPY ./backend ./
 #RUN swag init --output swagger/docs
 RUN ln -s swagger /usr/local/go/src/
 RUN go build -ldflags="-w -s \
-  -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=${VERSION}' \
-  -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=${REVISION}'" \
+  -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
+  -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
 FROM node:slim AS nbuild
