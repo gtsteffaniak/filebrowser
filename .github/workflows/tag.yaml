@@ -102,7 +102,7 @@ jobs:
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(
-              sub("^v"; "") + "-media"
+              sub(":v"; ":") + "-media"
             ) |
             if any(.tags[]; test("beta-media")) then
               .tags += [
