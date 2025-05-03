@@ -43,6 +43,8 @@ jobs:
           images: |
             gtstef/filebrowser
             ghcr.io/gtsteffaniak/filebrowser
+          tags: |
+            type=raw,value=${{ github.event.inputs.branch }}
       - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
         id: modify-json
         run: |
