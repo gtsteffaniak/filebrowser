@@ -101,8 +101,10 @@ jobs:
         run: |
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
-            .tags |= map(sub(":v"; ":")) |
-            if any(.tags[]; test("beta")) then
+            .tags |= map(
+              sub("^v"; "") + "-media"
+            ) |
+            if any(.tags[]; test("beta-media")) then
               .tags += [
                 "gtstef/filebrowser:beta-media",
                 "ghcr.io/gtsteffaniak/filebrowser:beta-media",
@@ -110,7 +112,7 @@ jobs:
                 "ghcr.io/gtsteffaniak/filebrowser:media"
               ]
             else . end |
-            if any(.tags[]; test("stable")) then
+            if any(.tags[]; test("stable-media")) then
               .tags += [
                 "gtstef/filebrowser:stable-media",
                 "ghcr.io/gtsteffaniak/filebrowser:stable-media",
@@ -130,6 +132,7 @@ jobs:
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           file: ./_docker/Dockerfile.media
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.modify-json-media.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
