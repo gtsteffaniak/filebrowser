@@ -111,8 +111,8 @@ webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Docker image size             | 31 MB  | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
-Min. Memory Requirements      | 128 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 4 GB   |
+Docker image size             | 200 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
+Min. Memory Requirements      | 256 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 4 GB   |
 has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 price                         | free | free | free | free tier | free tier | $99+ |
 rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -123,13 +123,13 @@ Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
 Custom job support            | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
 Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Single sign-on support        | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-LDAP sign-on support          | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
+LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Long-live API key support     | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 API documentation page        | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
 open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 tags support                  | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
-shareable web links?           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+shareable web links?          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Event-based notifications     | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Metrics                       | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 file space quotas             | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
@@ -146,3 +146,6 @@ Chromecast support            | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 Share collections of files    | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can archive selected files    | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 Can browse archive files      | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+Can convert documents         | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+Can convert videos            | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+Can convert photos            | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
