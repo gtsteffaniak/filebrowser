@@ -395,14 +395,16 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// Step 2: Process ID Token if available and JWKS URL is configured
 	if tokenResp.IDToken != "" && config.Auth.Methods.OidcAuth.JwksUrl != "" {
 		// getKeySet now returns jwk.Set (interface)
-		jwks, err := getKeySet(config.Auth.Methods.OidcAuth.JwksUrl)
+		var jwks jwk.Set
+		jwks, err = getKeySet(config.Auth.Methods.OidcAuth.JwksUrl)
 		if err != nil {
 			// Log the error but don't fail yet, try UserInfo endpoint as a fallback
 			logger.Warning("Failed to fetch or decode JWKS: %v. Falling back to UserInfo endpoint. Ensure your OidcAuth.JwksUrl is correct.")
 		} else {
+			var token *jwt.Token
 			// Parse the ID token. We need to provide a key function to `jwt.Parse`
 			// that looks up the key in the JWKS based on the token's `kid`.
-			token, err := jwt.Parse(tokenResp.IDToken, func(token *jwt.Token) (interface{}, error) {
+			token, err = jwt.Parse(tokenResp.IDToken, func(token *jwt.Token) (interface{}, error) {
 				switch alg := token.Method.Alg(); alg {
 				case "RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "EdDSA":
 					// accepted
@@ -423,8 +425,8 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				// Return the public key from the first matching JWK
 				// In a real scenario, you might need more sophisticated key selection logic.
 				// The jwk.Key interface has a PublicKey() method to get the public key.
-				publicKey, err := key.PublicKey() // Corrected to PublicKey()
-				if err != nil {
+				publicKey, publicKeyErr := key.PublicKey()
+				if publicKeyErr != nil {
 					return nil, fmt.Errorf("failed to get public key from JWK: %v", err)
 				}
 				return publicKey, nil
