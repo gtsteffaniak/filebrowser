@@ -10,6 +10,7 @@ var (
 	RealPath      = NewCache(48*time.Hour, 72*time.Hour)
 	SearchResults = NewCache(15*time.Second, time.Hour)
 	OnlyOffice    = NewCache(48*time.Hour, 1*time.Hour)
+	JwtCache      = NewCache(24*time.Hour, 1*time.Hour)
 )
 
 func NewCache(expires time.Duration, cleanup time.Duration) *KeyCache {

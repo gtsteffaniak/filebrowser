@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
