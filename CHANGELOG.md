@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.1-beta
+
+The media tags have been removed in favor of adding ffmpeg by default to all docker images.
+
+  **New Features**:
+  - changes to support jwks token authentication needed for authelia -- still needs testing to ensure it works https://github.com/gtsteffaniak/filebrowser/issues/575
+
+  **Bug Fixes**:
+  - right click context menu issue https://github.com/gtsteffaniak/filebrowser/issues/598
+  - upload file issue https://github.com/gtsteffaniak/filebrowser/issues/597
+
 ## v0.7.0-beta
 
  **New Features**:

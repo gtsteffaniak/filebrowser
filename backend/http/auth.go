@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"git.autodesk.com/compute-platform/acp-worker/utils/log"
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"github.com/lestrrat-go/jwx/v3/jwk"
@@ -433,7 +432,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 			if err != nil {
 				// Log the verification error but fall back to UserInfo endpoint
-				log.Error(fmt.Sprintf("failed to parse or verify ID token: %v. Falling back to UserInfo endpoint.", err))
+				logger.Error(fmt.Sprintf("failed to parse or verify ID token: %v. Falling back to UserInfo endpoint.", err))
 			} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 				// --- IMPORTANT OIDC VALIDATION ---
