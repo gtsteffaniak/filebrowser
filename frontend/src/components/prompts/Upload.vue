@@ -28,7 +28,13 @@
         <i class="material-icons">folder</i>
         <div class="title">{{ $t("buttons.folder") }}</div>
       </div>
-      <input ref="fileInput" @change="onFilePicked" type="file" multiple style="display: none" />
+      <input
+        ref="fileInput"
+        @change="onFilePicked"
+        type="file"
+        multiple
+        style="display: none"
+      />
       <input
         ref="folderInput"
         @change="onFolderPicked"
@@ -54,11 +60,11 @@ export default {
     const folderInput = ref(null);
 
     const triggerFilePicker = () => {
-      fileInput.value.click();
+      if (fileInput.value) fileInput.value.click();
     };
 
     const triggerFolderPicker = () => {
-      folderInput.value.click();
+      if (folderInput.value) folderInput.value.click();
     };
 
     const onFilePicked = (event) => {
@@ -117,6 +123,8 @@ export default {
       triggerFolderPicker,
       onFilePicked,
       onFolderPicked,
+      fileInput,
+      folderInput,
     };
   },
 };
