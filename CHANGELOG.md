@@ -20,6 +20,7 @@ The media tags have been removed in favor of adding ffmpeg by default to all doc
   - upload file issue https://github.com/gtsteffaniak/filebrowser/issues/597
   - defaultUserScope is not respected https://github.com/gtsteffaniak/filebrowser/issues/589
   - defaultEnabled is not respected https://github.com/gtsteffaniak/filebrowser/issues/603
+  - user has weird navigation barhttps://github.com/gtsteffaniak/filebrowser/issues/593
 
 ## v0.7.0-beta
 

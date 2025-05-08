@@ -159,7 +159,6 @@ func (st usersBackend) Save(user *users.User, changePass bool) error {
 		return err
 	}
 	user.Scopes = adjustedScopes
-
 	err = files.MakeUserDirs(user)
 	if err != nil {
 		logger.Error(err.Error())
@@ -232,14 +231,6 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 		if capitalField == "Scopes" {
 			if !actorIsAdmin {
 				continue
-			}
-			newScopes, err := settings.ConvertToBackendScopes(user.Scopes)
-			if err == nil {
-				user.Scopes = newScopes
-			}
-			err = files.MakeUserDirs(user)
-			if err != nil {
-				logger.Error(err.Error())
 			}
 		}
 		if capitalField == "Password" {

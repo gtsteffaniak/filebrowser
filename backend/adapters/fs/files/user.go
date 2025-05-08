@@ -27,12 +27,12 @@ func MakeUserDirs(u *users.User) error {
 		if !ok {
 			return fmt.Errorf("create user: source not found: %s", scope.Name)
 		}
-
 		// create directory and append user name
 		if filepath.Base(scope.Scope) != cleanedUserName && source.Config.CreateUserDir {
-			fullPath := filepath.Join(source.Path, scope.Scope)
+			fullPath := filepath.Join(source.Path, scope.Scope, cleanedUserName)
+			parentDir := filepath.Join(source.Path, scope.Scope)
 			// validate that scope path exists
-			if !Exists(fullPath) {
+			if !Exists(parentDir) {
 				return fmt.Errorf("create user: scope path does not exist: %s", scope.Scope)
 			}
 			scope.Scope = filepath.Join(scope.Scope, cleanedUserName)

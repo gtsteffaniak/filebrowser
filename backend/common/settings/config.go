@@ -307,8 +307,8 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 			if !strings.HasPrefix(scope.Scope, "/") {
 				scope.Scope = "/" + scope.Scope
 			}
-			if !strings.HasSuffix(scope.Scope, "/") {
-				scope.Scope = scope.Scope + "/"
+			if scope.Scope != "/" && strings.HasSuffix(scope.Scope, "/") {
+				scope.Scope = strings.TrimSuffix(scope.Scope, "/")
 			}
 			newScopes = append(newScopes, users.SourceScope{
 				Name:  source.Path, // backend name is path
@@ -329,8 +329,8 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 		if !strings.HasPrefix(scope.Scope, "/") {
 			scope.Scope = "/" + scope.Scope
 		}
-		if !strings.HasSuffix(scope.Scope, "/") {
-			scope.Scope = scope.Scope + "/"
+		if scope.Scope != "/" && strings.HasSuffix(scope.Scope, "/") {
+			scope.Scope = strings.TrimSuffix(scope.Scope, "/")
 		}
 		newScopes = append(newScopes, users.SourceScope{
 			Name:  source.Path, // backend name is path
