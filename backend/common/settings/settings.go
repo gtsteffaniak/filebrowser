@@ -54,11 +54,13 @@ func ApplyUserDefaults(u *users.User) {
 	u.QuickDownload = Config.UserDefaults.QuickDownload
 	u.LockPassword = Config.UserDefaults.LockPassword
 	if len(u.Scopes) == 0 {
-		u.Scopes = []users.SourceScope{
-			{
-				Scope: Config.Server.DefaultSource.Config.DefaultUserScope,
-				Name:  Config.Server.DefaultSource.Path,
-			},
+		for _, source := range Config.Server.Sources {
+			if source.Config.DefaultEnabled {
+				u.Scopes = append(u.Scopes, users.SourceScope{
+					Name:  source.Path, // backend name is path
+					Scope: source.Config.DefaultUserScope,
+				})
+			}
 		}
 	}
 }
