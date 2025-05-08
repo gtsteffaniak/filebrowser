@@ -87,6 +87,9 @@ func setupSources() {
 					Config.Server.DefaultSource = source
 				}
 			}
+			if source.Config.DefaultUserScope == "" {
+				source.Config.DefaultUserScope = "/"
+			}
 			Config.Server.SourceMap[source.Path] = source
 			Config.Server.NameToSource[source.Name] = source
 		}
@@ -96,20 +99,20 @@ func setupSources() {
 	defaultScopes := []users.SourceScope{}
 	allSourceNames := []string{}
 	first := true
+	potentialDefaultSource := Config.Server.DefaultSource
 	for _, sourcePathOnly := range Config.Server.Sources {
 		realPath := getRealPath(sourcePathOnly.Path)
 		source, ok := Config.Server.SourceMap[realPath]
 		if ok && !slices.Contains(allSourceNames, source.Name) {
 			if first {
-				source.Config.DefaultEnabled = true
-				Config.Server.SourceMap[source.Path] = source
-				Config.Server.NameToSource[source.Name] = source
-				Config.Server.DefaultSource = source
+				potentialDefaultSource = source
 			}
 			first = false
 			sourceList = append(sourceList, source)
 			if source.Config.DefaultEnabled {
-				Config.Server.DefaultSource = source
+				if Config.Server.DefaultSource.Path == "" {
+					Config.Server.DefaultSource = source
+				}
 				defaultScopes = append(defaultScopes, users.SourceScope{
 					Name:  source.Path,
 					Scope: source.Config.DefaultUserScope,
@@ -119,6 +122,9 @@ func setupSources() {
 		} else {
 			logger.Warning(fmt.Sprintf("source %v is not configured correctly, skipping", sourcePathOnly.Path))
 		}
+	}
+	if Config.Server.DefaultSource.Path == "" {
+		Config.Server.DefaultSource = potentialDefaultSource
 	}
 	Config.UserDefaults.DefaultScopes = defaultScopes
 	Config.Server.Sources = sourceList
@@ -291,18 +297,19 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 	}
 	newScopes := []users.SourceScope{}
 	for _, scope := range scopes {
-		if scope.Scope == "" {
-			scope.Scope = "/"
-		}
-		if !strings.HasPrefix(scope.Scope, "/") {
-			scope.Scope = "/" + scope.Scope
-		}
-		if !strings.HasSuffix(scope.Scope, "/") {
-			scope.Scope = scope.Scope + "/"
-		}
+
 		// first check if its already a path name and keep it
 		source, ok := Config.Server.SourceMap[scope.Name]
 		if ok {
+			if scope.Scope == "" {
+				scope.Scope = source.Config.DefaultUserScope
+			}
+			if !strings.HasPrefix(scope.Scope, "/") {
+				scope.Scope = "/" + scope.Scope
+			}
+			if !strings.HasSuffix(scope.Scope, "/") {
+				scope.Scope = scope.Scope + "/"
+			}
 			newScopes = append(newScopes, users.SourceScope{
 				Name:  source.Path, // backend name is path
 				Scope: scope.Scope,
@@ -315,6 +322,15 @@ func ConvertToBackendScopes(scopes []users.SourceScope) ([]users.SourceScope, er
 		if !ok {
 			// source might no longer be configured
 			continue
+		}
+		if scope.Scope == "" {
+			scope.Scope = source.Config.DefaultUserScope
+		}
+		if !strings.HasPrefix(scope.Scope, "/") {
+			scope.Scope = "/" + scope.Scope
+		}
+		if !strings.HasSuffix(scope.Scope, "/") {
+			scope.Scope = scope.Scope + "/"
 		}
 		newScopes = append(newScopes, users.SourceScope{
 			Name:  source.Path, // backend name is path

@@ -106,11 +106,15 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
+        let fields = ["all"]
+        if (!state.user.permissions.admin) {
+          fields = ["password"];
+        }
         if (this.isNew) {
           await usersApi.create(this.user); // Use the computed property
           this.$router.push({ path: "/settings", hash: "#users-main" });
         } else {
-          await usersApi.update(this.user, ["all"]);
+          await usersApi.update(this.user, fields);
           if (this.updatePassword) {
             await usersApi.update(this.user, ["password"]);
           }

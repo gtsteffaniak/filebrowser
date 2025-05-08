@@ -9,9 +9,17 @@ The media tags have been removed in favor of adding ffmpeg by default to all doc
   **New Features**:
   - changes to support jwks token authentication needed for authelia -- still needs testing to ensure it works https://github.com/gtsteffaniak/filebrowser/issues/575
 
+  **Notes**:
+  - updated createUserDir logic, https://github.com/gtsteffaniak/filebrowser/issues/541
+    - it always creats user dir (even for admins)
+    - scope path must exist if it doesn't end in username, and if it does, the parent dir must exist
+    - enforced user login methods types -- can't be changed. a password user cannot login as oidc, etc.
+
   **Bug Fixes**:
   - right click context menu issue https://github.com/gtsteffaniak/filebrowser/issues/598
   - upload file issue https://github.com/gtsteffaniak/filebrowser/issues/597
+  - defaultUserScope is not respected https://github.com/gtsteffaniak/filebrowser/issues/589
+  - defaultEnabled is not respected https://github.com/gtsteffaniak/filebrowser/issues/603
 
 ## v0.7.0-beta
 

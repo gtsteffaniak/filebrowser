@@ -101,6 +101,9 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 			return nil, fmt.Errorf("proxy authentication failed - no user found")
 		}
 	}
+	if data.user.LoginMethod != users.LoginMethodProxy {
+		return nil, fmt.Errorf("user %s is not allowed to login with proxy authentication", proxyUser)
+	}
 	return data.user, nil
 }
 
@@ -144,6 +147,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := auther.Auth(r, store.Users)
 	if err != nil {
 		logger.Debug(err.Error())
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+	if user.LoginMethod != users.LoginMethodPassword {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}
@@ -577,6 +584,9 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
+	}
+	if user.LoginMethod != users.LoginMethodOidc {
+		return http.StatusForbidden, fmt.Errorf("user %s is not allowed to login with OIDC", username)
 	}
 	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
 	if err != nil {
