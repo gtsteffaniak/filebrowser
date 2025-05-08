@@ -377,12 +377,14 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	client := &http.Client{} // Consider using a client with a timeout
 	resp, err := client.Do(req)
 	if err != nil {
+		logger.Debug(fmt.Sprintf("failed to send token request: %v", err))
 		return 500, fmt.Errorf("token request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
+		logger.Debug(fmt.Sprintf("failed to fetch token: %v %v", resp.StatusCode, string(body)))
 		return 500, fmt.Errorf("failed to fetch token: %v %v", resp.StatusCode, string(body))
 	}
 
@@ -393,6 +395,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	if err = json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+		logger.Debug(fmt.Sprintf("failed to parse token response: %v", err))
 		return 500, fmt.Errorf("failed to parse token response: %v", err)
 	}
 
@@ -401,6 +404,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	// Step 2: Process ID Token if available and JWKS URL is configured
 	if tokenResp.IDToken != "" && config.Auth.Methods.OidcAuth.JwksUrl != "" {
+		logger.Debug(fmt.Sprintf("ID token received `%v` attempting to verify using JWKS URL", tokenResp.IDToken))
 		// getKeySet now returns jwk.Set (interface)
 		var jwks jwk.Set
 		jwks, err = getKeySet(config.Auth.Methods.OidcAuth.JwksUrl)
@@ -416,17 +420,20 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				case "RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "EdDSA":
 					// accepted
 				default:
-					return nil, fmt.Errorf("unexpected signing method: %v", alg)
+					logger.Debug(fmt.Sprintf("unsupported signing method recieved `%v`", alg))
+					return nil, fmt.Errorf("unsupported signing method recieved: %v", alg)
 				}
 				// Find the key in the JWKS that matches the token's kid (Key ID)
 				keyID, ok := token.Header["kid"].(string)
 				if !ok {
+					logger.Debug("kid header not found in ID token")
 					return nil, fmt.Errorf("kid header not found in ID token")
 				}
 				// Use the jwk.Set interface to find the key
 				// LookupKeyID returns a slice of jwk.Key and a boolean indicating if any keys were found.
 				key, found := jwks.LookupKeyID(keyID) // Called on the jwk.Set interface
 				if !found {
+					logger.Debug(fmt.Sprintf("key with kid %s not found in JWKS", keyID))
 					return nil, fmt.Errorf("key with kid %s not found in JWKS", keyID)
 				}
 				// Return the public key from the first matching JWK
@@ -434,6 +441,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				// The jwk.Key interface has a PublicKey() method to get the public key.
 				publicKey, publicKeyErr := key.PublicKey()
 				if publicKeyErr != nil {
+					logger.Debug(fmt.Sprintf("failed to get public key from JWK: %v", publicKeyErr))
 					return nil, fmt.Errorf("failed to get public key from JWK: %v", err)
 				}
 				return publicKey, nil
@@ -443,6 +451,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				// Log the verification error but fall back to UserInfo endpoint
 				logger.Error(fmt.Sprintf("failed to parse or verify ID token: %v. Falling back to UserInfo endpoint.", err))
 			} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+				logger.Debug("ID token verified successfully, claims extracted.")
 
 				// --- IMPORTANT OIDC VALIDATION ---
 				// In a production application, you MUST perform additional validations on the ID token claims:

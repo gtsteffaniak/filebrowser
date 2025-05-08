@@ -4,7 +4,7 @@
       this.hoverText
     }}</span>
   </div>
-  <div class="tooltip-sources">
+  <div v-if="info.total != 0" class="tooltip-sources">
     <div
       class="tooltiptext-sources"
       :style="{ top: mouseY - 500 + 'px' }"
