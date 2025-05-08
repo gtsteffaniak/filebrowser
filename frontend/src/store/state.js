@@ -20,6 +20,7 @@ export const state = reactive({
   sources: {
     current: "",
     count: 1,
+    hasSourceInfo: false,
     info: {},
   },
   user: {

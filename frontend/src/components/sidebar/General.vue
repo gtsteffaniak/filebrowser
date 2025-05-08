@@ -4,7 +4,7 @@
       this.hoverText
     }}</span>
   </div>
-  <div v-if="info.total != 0" class="tooltip-sources">
+  <div v-if="hasSourceInfo" class="tooltip-sources">
     <div
       class="tooltiptext-sources"
       :style="{ top: mouseY - 500 + 'px' }"
@@ -146,7 +146,7 @@
             </svg>
             <span>{{ name }}</span>
           </div>
-          <div v-if="info.total != 0" class="usage-info">
+          <div v-if="hasSourceInfo" class="usage-info">
             <progress-bar
               :val="info.usedPercentage"
               text-position="inside"
@@ -187,6 +187,9 @@ export default {
     };
   },
   computed: {
+    hasSourceInfo() {
+      return state.sources.hasSourceInfo;
+    },
     settingsAllowed: () => !state.user.disableSettings,
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
