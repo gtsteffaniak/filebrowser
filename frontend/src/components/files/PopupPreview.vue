@@ -60,9 +60,10 @@ export default {
 
       if (state.isMobile) {
         this.popupStyle = {
-          left: "50%",
           "max-width": "90%",
-          transform: "translate(-50%, 10em)",
+          "max-height": "75%",
+          "margin": "1em",
+          transform: "translate(0, 4em)",
         };
         return;
       }
@@ -110,9 +111,6 @@ export default {
   box-shadow: 0 0 0.5em black;
   border-color: var(--primaryColor);
   overflow: hidden;
-
-  max-height: 80vh;
-  max-width: 80vw;
   z-index: 1000;
   transition: all 0.3s ease-in-out;
 }

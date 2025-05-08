@@ -47,6 +47,11 @@ export const mutations = {
       for (const k of Object.keys(value)) {
         const source = value[k];
         if (state.sources.info[k]) {
+          if (source.total == 0) {
+            state.sources.hasSourceInfo = false
+          } else {
+            state.sources.hasSourceInfo = true
+          }
           state.sources.info[k].used = source.used;
           state.sources.info[k].total = source.total;
           state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
