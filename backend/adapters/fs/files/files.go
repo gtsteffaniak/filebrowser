@@ -17,8 +17,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"

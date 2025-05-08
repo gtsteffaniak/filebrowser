@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.1-beta
+
+The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.
+
+  **Notes**:
+  - changes to support jwks url needed for authelia - still needs testing to ensure it works https://github.com/gtsteffaniak/filebrowser/issues/575, added debug logs to help identify any further issues.
+  - added apache license file back https://github.com/gtsteffaniak/filebrowser/discussions/599
+  - updated toggle view icons to better match.
+  - adjusted popup preview position on mobile.
+  - updated createUserDir logic, https://github.com/gtsteffaniak/filebrowser/issues/541
+    - it always creats user dir (even for admins)
+    - scope path must exist if it doesn't end in username, and if it does, the parent dir must exist
+    - enforced user login methods types -- can't be changed. a password user cannot login as oidc, etc.
+
+  **Bug Fixes**:
+  - right click context menu issue https://github.com/gtsteffaniak/filebrowser/issues/598
+  - upload file issue https://github.com/gtsteffaniak/filebrowser/issues/597
+  - defaultUserScope is not respected https://github.com/gtsteffaniak/filebrowser/issues/589
+  - defaultEnabled is not respected https://github.com/gtsteffaniak/filebrowser/issues/603
+  - user has weird navigation barhttps://github.com/gtsteffaniak/filebrowser/issues/593
+  - fix multibutton state issue for close overlay https://github.com/gtsteffaniak/filebrowser/issues/596
+
 ## v0.7.0-beta
 
  **New Features**:

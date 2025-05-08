@@ -83,12 +83,10 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	}
 
 	if !actorIsAdmin {
-		fmt.Println("User is not admin, checking restricted fields")
 		err := checkRestrictedFields(existingUser, fields)
 		if err != nil {
 			return err
 		}
-		fmt.Println("existingUser, fields", existingUser, fields)
 	}
 
 	if len(fields) == 0 {
@@ -102,6 +100,10 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 			return err
 		}
 		user.Scopes = adjustedScopes
+		err = files.MakeUserDirs(user)
+		if err != nil {
+			return err
+		}
 	}
 	// Use reflection to access struct fields
 	userFields := reflect.ValueOf(user).Elem() // Get struct value
@@ -157,7 +159,6 @@ func (st usersBackend) Save(user *users.User, changePass bool) error {
 		return err
 	}
 	user.Scopes = adjustedScopes
-
 	err = files.MakeUserDirs(user)
 	if err != nil {
 		logger.Error(err.Error())
@@ -186,7 +187,6 @@ func (st usersBackend) DeleteByUsername(username string) error {
 func checkRestrictedFields(existingUser *users.User, fields []string) error {
 	// Get a list of allowed fields from NonAdminEditable
 	allowed := getNonAdminEditableFieldNames()
-
 	for _, field := range fields {
 		if !slices.Contains(allowed, field) {
 			return fmt.Errorf("non-admins cannot modify field: %s", field)
@@ -231,14 +231,6 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 		if capitalField == "Scopes" {
 			if !actorIsAdmin {
 				continue
-			}
-			newScopes, err := settings.ConvertToBackendScopes(user.Scopes)
-			if err == nil {
-				user.Scopes = newScopes
-			}
-			err = files.MakeUserDirs(user)
-			if err != nil {
-				logger.Error(err.Error())
 			}
 		}
 		if capitalField == "Password" {

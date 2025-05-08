@@ -55,10 +55,10 @@ export default {
     },
     viewIcon() {
       const icons = {
-        list: "view_module",
-        compact: "view_module",
-        normal: "grid_view",
-        gallery: "view_list",
+        list: "view_list",
+        compact: "table_rows_narrow",
+        normal: "view_module",
+        gallery: "grid_view",
       };
       return icons[state.user.viewMode] || "grid_view";
     },

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
@@ -58,25 +59,16 @@ func updateUserScopes(user *users.User) bool {
 
 	// Step 1: Start by including all existing scopes, updating Name if source.Path matches
 	for _, existingScope := range user.Scopes {
-		updated := false
-		for _, source := range settings.Config.Server.SourceMap {
-			if existingScope.Name == source.Path || existingScope.Scope == source.Path {
-				// Update Name to match source.Path
-				existingScope.Name = source.Path
-				updated = true
-				break
-			}
+		if existingScope.Scope != "/" {
+			existingScope.Scope = strings.TrimSuffix(existingScope.Scope, "/")
 		}
 		if existingScope.Scope == "" {
-			existingScope.Scope = "/"
 			updateUser = true
+			continue
 		}
 		if !seenNames[existingScope.Name] {
 			finalScopes = append(finalScopes, existingScope)
 			seenNames[existingScope.Name] = true
-			if updated {
-				updateUser = true
-			}
 		}
 	}
 
@@ -85,24 +77,24 @@ func updateUserScopes(user *users.User) bool {
 		if seenNames[source.Path] {
 			continue
 		}
-
 		// Check if scope exists already via path
-		scopePath, err := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
-
-		// If user has no access, skip unless admin or default-enabled
-		if err != nil && !(user.Permissions.Admin || source.Config.DefaultEnabled) {
-			continue
-		}
-
-		// Determine scope path
+		scopePath, _ := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
 		if scopePath == "" {
-			scopePath = source.Config.DefaultUserScope
-		}
-		if scopePath == "" {
-			scopePath = "/"
-		}
-		if source.Config.CreateUserDir && !user.Permissions.Admin {
-			scopePath = fmt.Sprintf("%s%s", scopePath, users.CleanUsername(user.Username))
+			// must be new scope for user
+			// If user has no access, skip unless default-enabled
+			if !source.Config.DefaultEnabled {
+				continue
+			}
+			// Determine scope path
+			if scopePath == "" {
+				scopePath = source.Config.DefaultUserScope
+			}
+			if scopePath == "" {
+				scopePath = "/"
+			}
+			if scopePath != "/" {
+				scopePath = strings.TrimSuffix(scopePath, "/")
+			}
 		}
 
 		// Add new scope

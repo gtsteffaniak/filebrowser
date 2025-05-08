@@ -1,15 +1,9 @@
 package users
 
 import (
-	"regexp"
 	"strings"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-)
-
-var (
-	invalidFilenameChars = regexp.MustCompile(`[^0-9A-Za-z@_\-.]`)
-	dashes               = regexp.MustCompile(`[\-]+`)
 )
 
 const ()
@@ -106,11 +100,5 @@ func CleanUsername(s string) string {
 	// Remove any trailing space to avoid ending on -
 	s = strings.Trim(s, " ")
 	s = strings.Replace(s, "..", "", -1)
-
-	// Replace all characters which not in the list `0-9A-Za-z@_\-.` with a dash
-	s = invalidFilenameChars.ReplaceAllString(s, "-")
-
-	// Remove any multiple dashes caused by replacements above
-	s = dashes.ReplaceAllString(s, "-")
 	return s
 }

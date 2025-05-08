@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/cache"
+	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )

@@ -9,6 +9,9 @@ import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
   setMultiButtonState: (value) => {
+    if (state.multiButtonLastState != value) {
+      state.multiButtonLastState = state.multiButtonState;
+    }
     state.multiButtonState = value;
     emitStateChanged();
   },
@@ -47,6 +50,11 @@ export const mutations = {
       for (const k of Object.keys(value)) {
         const source = value[k];
         if (state.sources.info[k]) {
+          if (source.total == 0) {
+            state.sources.hasSourceInfo = false
+          } else {
+            state.sources.hasSourceInfo = true
+          }
           state.sources.info[k].used = source.used;
           state.sources.info[k].total = source.total;
           state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
@@ -151,6 +159,9 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
+    const previousState = state.multiButtonLastState;
+    state.multiButtonLastState = mutations.multiButtonState;
+    state.multiButtonState = previousState;
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
