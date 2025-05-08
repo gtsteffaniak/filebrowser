@@ -4,12 +4,11 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.1-beta
 
-The media tags have been removed in favor of adding ffmpeg by default to all docker images.
-
-  **New Features**:
-  - changes to support jwks token authentication needed for authelia -- still needs testing to ensure it works https://github.com/gtsteffaniak/filebrowser/issues/575
+The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.
 
   **Notes**:
+  - changes to support jwks url needed for authelia - still needs testing to ensure it works https://github.com/gtsteffaniak/filebrowser/issues/575, added debug logs to help identify any further issues.
+  - added apache license file back https://github.com/gtsteffaniak/filebrowser/discussions/599
   - updated toggle view icons to better match.
   - adjusted popup preview position on mobile.
   - updated createUserDir logic, https://github.com/gtsteffaniak/filebrowser/issues/541
@@ -23,6 +22,7 @@ The media tags have been removed in favor of adding ffmpeg by default to all doc
   - defaultUserScope is not respected https://github.com/gtsteffaniak/filebrowser/issues/589
   - defaultEnabled is not respected https://github.com/gtsteffaniak/filebrowser/issues/603
   - user has weird navigation barhttps://github.com/gtsteffaniak/filebrowser/issues/593
+  - fix multibutton state issue for close overlay https://github.com/gtsteffaniak/filebrowser/issues/596
 
 ## v0.7.0-beta
 

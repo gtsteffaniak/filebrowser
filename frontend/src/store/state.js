@@ -3,6 +3,7 @@ import { detectLocale } from "@/i18n";
 
 export const state = reactive({
   multiButtonState: "menu",
+  multiButtonLastState: "menu",
   showOverflowMenu: false,
   sessionId: "",
   disableOnlyOfficeExt: "",

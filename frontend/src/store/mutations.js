@@ -9,6 +9,9 @@ import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
   setMultiButtonState: (value) => {
+    if (state.multiButtonLastState != value) {
+      state.multiButtonLastState = state.multiButtonState;
+    }
     state.multiButtonState = value;
     emitStateChanged();
   },
@@ -156,6 +159,9 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
+    const previousState = state.multiButtonLastState;
+    state.multiButtonLastState = mutations.multiButtonState;
+    state.multiButtonState = previousState;
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
