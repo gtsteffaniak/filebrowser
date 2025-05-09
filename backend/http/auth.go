@@ -554,10 +554,11 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		redirectURI := fmt.Sprintf("%s/api/auth/oidc/callback", origin)
 
 		// Construct the authorization URL
-		authURL := fmt.Sprintf("%s?client_id=%s&response_type=code&scope=%s&redirect_uri=%s&state=%s",
+		authURL := fmt.Sprintf("%s?client_id=%s&response_type=code&scope=%s&redirect_uri=%s&redirect_uris=%s&state=%s",
 			config.Auth.Methods.OidcAuth.AuthorizationUrl,
 			url.QueryEscape(config.Auth.Methods.OidcAuth.ClientID),
 			url.QueryEscape(config.Auth.Methods.OidcAuth.Scopes),
+			url.QueryEscape(redirectURI),
 			url.QueryEscape(redirectURI),
 			url.QueryEscape(state), // Use the state parameter
 		)

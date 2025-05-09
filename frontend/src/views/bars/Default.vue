@@ -118,7 +118,6 @@ export default {
       if (listingView == "listingView") {
         mutations.toggleSidebar();
       } else {
-        console.log("mutlactions",listingView);
         mutations.closeHovers();
         if (listingView === "settings") {
           router.push({path: "/files" });
