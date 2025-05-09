@@ -118,13 +118,19 @@ export default {
       if (listingView == "listingView") {
         mutations.toggleSidebar();
       } else {
+        console.log("mutlactions",listingView);
         mutations.closeHovers();
+        if (listingView === "settings") {
+          router.push({path: "/files" });
+          return;
+        }
         if (listingView === "onlyOfficeEditor") {
           const current = window.location.pathname;
           const newpath = removeLastDir(current);
           window.location = newpath + "#" + state.req.name;
           return;
         }
+
         mutations.replaceRequest({});
         router.go(-1);
       }

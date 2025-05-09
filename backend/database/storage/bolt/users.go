@@ -100,7 +100,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 			return err
 		}
 		user.Scopes = adjustedScopes
-		err = files.MakeUserDirs(user)
+		err = files.MakeUserDirs(user, true)
 		if err != nil {
 			return err
 		}
@@ -159,7 +159,7 @@ func (st usersBackend) Save(user *users.User, changePass bool) error {
 		return err
 	}
 	user.Scopes = adjustedScopes
-	err = files.MakeUserDirs(user)
+	err = files.MakeUserDirs(user, false)
 	if err != nil {
 		logger.Error(err.Error())
 	}

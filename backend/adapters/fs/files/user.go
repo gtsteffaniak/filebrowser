@@ -17,7 +17,7 @@ func MakeUserDir(fullPath string) error {
 	return nil
 }
 
-func MakeUserDirs(u *users.User) error {
+func MakeUserDirs(u *users.User, disableScopeChange bool) error {
 	cleanedUserName := users.CleanUsername(u.Username)
 	if cleanedUserName == "" || cleanedUserName == "-" || cleanedUserName == "." {
 		return fmt.Errorf("create user: invalid user for home dir creation: [%s]", u.Username)
@@ -28,7 +28,7 @@ func MakeUserDirs(u *users.User) error {
 			return fmt.Errorf("create user: source not found: %s", scope.Name)
 		}
 		// create directory and append user name
-		if filepath.Base(scope.Scope) != cleanedUserName && source.Config.CreateUserDir {
+		if filepath.Base(scope.Scope) != cleanedUserName && source.Config.CreateUserDir && !disableScopeChange {
 			fullPath := filepath.Join(source.Path, scope.Scope, cleanedUserName)
 			parentDir := filepath.Join(source.Path, scope.Scope)
 			// validate that scope path exists
@@ -53,9 +53,9 @@ func MakeUserDirs(u *users.User) error {
 			}
 		} else {
 			// just assigning scope to path provided, so just check that it exists
-			parentDir := filepath.Join(source.Path, scope.Scope)
-			if !Exists(parentDir) {
-				return fmt.Errorf("create user: parent folder does not exist: %s", parentDir)
+			path := filepath.Join(source.Path, scope.Scope)
+			if !Exists(path) {
+				return fmt.Errorf("create user: scope folder does not exist: %s", path)
 			}
 		}
 		u.Scopes[i] = scope

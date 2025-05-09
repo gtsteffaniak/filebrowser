@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.2-beta
+
+The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.
+
+  **Notes**:
+  - Reverts enforced user login methods types -- until suitable methods to alter are available.
+  - When updating a user, updating scope always sets to the exact scope specified on updated.
+  - Redirect api messages are INFO instead of WARN
+  - Settings has close button instead of back https://github.com/gtsteffaniak/filebrowser/issues/583
+
+  **Bug Fixes**:
+  - Hover bug when exact timestamp setting enabled https://github.com/gtsteffaniak/filebrowser/issues/585
+
 ## v0.7.1-beta
 
 The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.
