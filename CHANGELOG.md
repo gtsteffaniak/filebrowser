@@ -7,11 +7,11 @@ All notable changes to this project will be documented in this file. For commit 
 The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.
 
   **Notes**:
-  - reverts enforced user login methods types -- until suitable methods to alter are available.
+  - Reverts enforced user login methods types -- until suitable methods to alter are available.
+  - When updating a user, updating scope always sets to the exact scope specified on updated.
 
   **Bug Fixes**:
-  - hover bug when exact timestamp setting enabled https://github.com/gtsteffaniak/filebrowser/issues/585
-
+  - Hover bug when exact timestamp setting enabled https://github.com/gtsteffaniak/filebrowser/issues/585
 
 ## v0.7.1-beta
 
