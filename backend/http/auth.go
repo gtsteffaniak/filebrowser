@@ -103,6 +103,7 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 	}
 	if data.user.LoginMethod != users.LoginMethodProxy {
 		logger.Warning(fmt.Sprintf("user %s is not allowed to login with proxy authentication, bypassing and updating login method", data.user.Username))
+		data.user.LoginMethod = users.LoginMethodProxy
 		//return nil, fmt.Errorf("user %s is not allowed to login with proxy authentication", proxyUser)
 	}
 	return data.user, nil
