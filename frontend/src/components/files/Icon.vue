@@ -38,6 +38,7 @@ export default {
       materialIcon: "",
       classes: "",
       svgPath: "",
+      previewTimeouts: [], // Store timeout IDs
     };
   },
   computed: {
@@ -81,13 +82,49 @@ export default {
   },
   methods: {
     handleMouseEnter() {
-      if (state.user.viewMode == "gallery" && !state.user.preview.highQuality) {
-        // skip popup for gallary view with small images
+      if (state.user.viewMode === "gallery" && !state.user.preview.highQuality) {
         return;
       }
+
       mutations.setPreviewSource(this.thumbnailUrl);
+
+      if (!state.user.preview.motionVideoPreview) {
+        return;
+      }
+
+      console.log("motion preview");
+
+      const sequence = [
+        this.thumbnailUrl,
+        this.thumbnailUrl + "&atPercentage=25",
+        this.thumbnailUrl + "&atPercentage=50",
+        this.thumbnailUrl + "&atPercentage=75",
+      ];
+
+      let index = 0;
+
+      const prefetchImage = (url) => {
+        const img = new Image();
+        img.src = url;
+      };
+
+      const updateThumbnailUrl = () => {
+        const currentUrl = sequence[index];
+        mutations.setPreviewSource(currentUrl);
+
+        // Prefetch the next URL
+        const nextIndex = (index + 1) % sequence.length;
+        prefetchImage(sequence[nextIndex]);
+
+        index = nextIndex;
+        const timeoutId = setTimeout(updateThumbnailUrl, 1000);
+        this.previewTimeouts.push(timeoutId);
+      };
+      updateThumbnailUrl();
     },
     handleMouseLeave() {
+      this.previewTimeouts.forEach(clearTimeout);
+      this.previewTimeouts = [];
       mutations.setPreviewSource("");
     },
     getIconForType() {

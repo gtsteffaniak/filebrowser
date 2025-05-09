@@ -38,6 +38,18 @@
               name="Preview videos"
             />
             <ToggleSwitch
+              v-if="mediaEnabled"
+              class="item"
+              v-model="localuser.preview.motionVideoPreview"
+              name="Motion previews for videos"
+            />
+            <ToggleSwitch
+              v-if="mediaEnabled"
+              class="item"
+              v-model="localuser.preview.livePhotoPreview"
+              name="Motion previews for live photos"
+            />
+            <ToggleSwitch
               class="item"
               v-model="localuser.preview.highQuality"
               name="Enable higher quality previews"

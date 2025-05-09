@@ -12,7 +12,7 @@ import (
 // videoPath: path to the input video file.
 // outputPath: path where the generated preview image will be saved (e.g., "/tmp/preview.jpg").
 // seekTime: how many seconds into the video to seek before capturing the frame.
-func (s *Service) GenerateVideoPreview(videoPath, outputPath string) error {
+func (s *Service) GenerateVideoPreview(videoPath, outputPath string, percentageSeek int) error {
 	// Step 1: Get video stream duration (v:0)
 	probeCmd := exec.Command(
 		s.ffprobePath,
@@ -37,12 +37,15 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string) error {
 		return fmt.Errorf("invalid duration: %v", err)
 	}
 
-	// Step 2: Truncate and compute 10% of video length
+	// Step 2: Get the duration of the video in whole seconds
 	duration := int(durationFloat)
-	seekSeconds := duration / 10
-	seekTime := strconv.Itoa(seekSeconds)
 
-	// Step 3: Extract frame at seek time
+	// Step 3: Calculate seek time based on percentageSeek (percentage value)
+	seekSeconds := duration * percentageSeek / 100
+
+	// Step 4: Convert seekSeconds to string for ffmpeg command
+	seekTime := strconv.Itoa(seekSeconds)
+	// Step 5: Extract frame at seek time
 	cmd := exec.Command(
 		s.ffmpegPath,
 		"-ss", seekTime,
