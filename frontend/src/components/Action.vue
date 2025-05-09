@@ -49,6 +49,9 @@ export default {
       return state.req;
     },
     multistate() {
+      if (!state.multiButtonState) {
+        return "close";
+      }
       return state.multiButtonState;
     },
     stickSidebar() {
@@ -65,13 +68,16 @@ export default {
     req() {
       this.reEvalAction()
     },
+    currentView() {
+      this.reEvalAction()
+    },
   },
   methods: {
     reEvalAction() {
       const currentView = getters.currentView()
       if (currentView == "settings" ) {
         mutations.setActiveSettingsView(getters.currentHash());
-        mutations.setMultiButtonState("back")
+        mutations.setMultiButtonState("close")
       } else if (currentView == "editor" || currentView == "preview" || currentView == "onlyOfficeEditor" || currentView == "markdownViewer") {
         mutations.setMultiButtonState("close")
       } else {

@@ -102,7 +102,14 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 		}
 	}
 	if data.user.LoginMethod != users.LoginMethodProxy {
-		return nil, fmt.Errorf("user %s is not allowed to login with proxy authentication", proxyUser)
+		logger.Warning(fmt.Sprintf("user %s is not allowed to login with proxy authentication, bypassing and updating login method", data.user.Username))
+		data.user.LoginMethod = users.LoginMethodProxy
+		// Perform the user update
+		err := store.Users.Update(data.user, true, "LoginMethod")
+		if err != nil {
+			logger.Debug(err.Error())
+		}
+		//return nil, fmt.Errorf("user %s is not allowed to login with proxy authentication", proxyUser)
 	}
 	return data.user, nil
 }
@@ -151,8 +158,15 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.LoginMethod != users.LoginMethodPassword {
-		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		return
+		logger.Warning(fmt.Sprintf("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username))
+		user.LoginMethod = users.LoginMethodPassword
+		// Perform the user update
+		err = store.Users.Update(user, true, "LoginMethod")
+		if err != nil {
+			logger.Debug(err.Error())
+		}
+		//http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		//return
 	}
 
 	status, err := printToken(w, r, user) // Pass the data object
@@ -540,10 +554,11 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		redirectURI := fmt.Sprintf("%s/api/auth/oidc/callback", origin)
 
 		// Construct the authorization URL
-		authURL := fmt.Sprintf("%s?client_id=%s&response_type=code&scope=%s&redirect_uri=%s&state=%s",
+		authURL := fmt.Sprintf("%s?client_id=%s&response_type=code&scope=%s&redirect_uri=%s&redirect_uris=%s&state=%s",
 			config.Auth.Methods.OidcAuth.AuthorizationUrl,
 			url.QueryEscape(config.Auth.Methods.OidcAuth.ClientID),
 			url.QueryEscape(config.Auth.Methods.OidcAuth.Scopes),
+			url.QueryEscape(redirectURI),
 			url.QueryEscape(redirectURI),
 			url.QueryEscape(state), // Use the state parameter
 		)
@@ -595,7 +610,13 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo
 		}
 	}
 	if user.LoginMethod != users.LoginMethodOidc {
-		return http.StatusForbidden, fmt.Errorf("user %s is not allowed to login with OIDC", username)
+		logger.Warning(fmt.Sprintf("user %s is not allowed to login with oidc authentication, bypassing and updating login method", user.Username))
+		user.LoginMethod = users.LoginMethodOidc
+		err = store.Users.Update(user, true, "LoginMethod")
+		if err != nil {
+			logger.Debug(err.Error())
+		}
+		//return http.StatusForbidden, fmt.Errorf("user %s is not allowed to login with OIDC", username)
 	}
 	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
 	if err != nil {
