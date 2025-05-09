@@ -173,6 +173,7 @@ import { signup, disableExternal, noAuth, loginPage } from "@/utils/constants";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { fromNow } from "@/utils/moment";
 
 export default {
   name: "SidebarGeneral",
@@ -226,7 +227,7 @@ export default {
       if (val === 0) {
         return "now";
       }
-      return getters.getTime(val);
+      return fromNow(val, state.user.locale);
     },
   },
   watch: {
