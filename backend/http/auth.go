@@ -105,7 +105,10 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 		logger.Warning(fmt.Sprintf("user %s is not allowed to login with proxy authentication, bypassing and updating login method", data.user.Username))
 		data.user.LoginMethod = users.LoginMethodProxy
 		// Perform the user update
-		go store.Users.Update(data.user, true, "LoginMethod")
+		err := store.Users.Update(data.user, true, "LoginMethod")
+		if err != nil {
+			logger.Debug(err.Error())
+		}
 		//return nil, fmt.Errorf("user %s is not allowed to login with proxy authentication", proxyUser)
 	}
 	return data.user, nil
@@ -158,7 +161,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Warning(fmt.Sprintf("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username))
 		user.LoginMethod = users.LoginMethodPassword
 		// Perform the user update
-		go store.Users.Update(user, true, "LoginMethod")
+		err = store.Users.Update(user, true, "LoginMethod")
+		if err != nil {
+			logger.Debug(err.Error())
+		}
 		//http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		//return
 	}
@@ -605,7 +611,10 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo
 	if user.LoginMethod != users.LoginMethodOidc {
 		logger.Warning(fmt.Sprintf("user %s is not allowed to login with oidc authentication, bypassing and updating login method", user.Username))
 		user.LoginMethod = users.LoginMethodOidc
-		go store.Users.Update(user, true, "LoginMethod")
+		err = store.Users.Update(user, true, "LoginMethod")
+		if err != nil {
+			logger.Debug(err.Error())
+		}
 		//return http.StatusForbidden, fmt.Errorf("user %s is not allowed to login with OIDC", username)
 	}
 	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
