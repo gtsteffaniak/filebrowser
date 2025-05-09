@@ -41,11 +41,13 @@ type Sorting struct {
 }
 
 type PreviewOptions struct {
-	HighQuality bool `json:"highQuality"`
-	Image       bool `json:"image"`
-	Video       bool `json:"video"`
-	Office      bool `json:"office"`
-	PopUp       bool `json:"popup"`
+	HighQuality        bool `json:"highQuality"`
+	Image              bool `json:"image"`
+	Video              bool `json:"video"`
+	MotionVideoPreview bool `json:"motionVideoPreview"`
+	LivePhotoPreview   bool `json:"livePhotoPreview"`
+	Office             bool `json:"office"`
+	PopUp              bool `json:"popup"`
 }
 
 // User describes a user.

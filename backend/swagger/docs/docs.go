@@ -2251,6 +2251,12 @@ const docTemplate = `{
                 "image": {
                     "type": "boolean"
                 },
+                "livePhotoPreview": {
+                    "type": "boolean"
+                },
+                "motionVideoPreview": {
+                    "type": "boolean"
+                },
                 "office": {
                     "type": "boolean"
                 },

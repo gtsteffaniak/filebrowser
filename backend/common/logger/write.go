@@ -97,7 +97,8 @@ func Log(level string, msg string, prefix, api bool, color string) {
 
 func Api(msg string, statusCode int) {
 	// redirects are not warnings anymore
-	if statusCode > 302 && statusCode < 500 {
+	// content not modified is not a warning anymore
+	if statusCode > 304 && statusCode < 500 {
 		Log(levels.WARNING, msg, false, true, YELLOW)
 	} else if statusCode >= 500 {
 		Log(levels.ERROR, msg, false, true, RED)

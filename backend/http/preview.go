@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
@@ -39,6 +40,7 @@ type FileCache interface {
 // @Failure 501 {object} map[string]string "Preview generation not implemented"
 // @Router /api/preview [get]
 func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+
 	if config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
@@ -88,6 +90,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 }
 
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+
 	previewSize := r.URL.Query().Get("size")
 	if previewSize != "small" {
 		previewSize = "large"
@@ -106,18 +109,35 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		}
 		return http.StatusNotImplemented, fmt.Errorf("can't create preview for %s type", d.fileInfo.Type)
 	}
-	pathUrl := fmt.Sprintf("/api/raw?files=%s::%s", d.fileInfo.Source, d.fileInfo.Path)
-	pathUrl = pathUrl + "&auth=" + d.token
-	if settings.Config.Server.InternalUrl != "" {
-		pathUrl = config.Server.InternalUrl + pathUrl
-	} else {
-		scheme := "http"
-		if r.TLS != nil {
-			scheme = "https"
+	seekPercentage := 0
+	percentage := r.URL.Query().Get("atPercentage")
+	if percentage != "" {
+		var err error
+		// convert string to int
+		seekPercentage, err = strconv.Atoi(percentage)
+		if err != nil {
+			seekPercentage = 10
 		}
-		pathUrl = scheme + "://" + r.Host + pathUrl
+		if seekPercentage < 0 || seekPercentage > 100 {
+			seekPercentage = 10
+		}
 	}
-	previewImg, err := preview.GetPreviewForFile(d.fileInfo, previewSize, pathUrl)
+
+	officeUrl := ""
+	if d.fileInfo.OnlyOfficeId != "" {
+		pathUrl := fmt.Sprintf("/api/raw?files=%s::%s", d.fileInfo.Source, d.fileInfo.Path)
+		pathUrl = pathUrl + "&auth=" + d.token
+		if settings.Config.Server.InternalUrl != "" {
+			officeUrl = config.Server.InternalUrl + pathUrl
+		} else {
+			scheme := "http"
+			if r.TLS != nil {
+				scheme = "https"
+			}
+			officeUrl = scheme + "://" + r.Host + pathUrl
+		}
+	}
+	previewImg, err := preview.GetPreviewForFile(d.fileInfo, previewSize, officeUrl, seekPercentage)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
