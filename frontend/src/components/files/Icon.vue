@@ -109,6 +109,12 @@ export default {
       };
 
       const updateThumbnailUrl = () => {
+        // if source was unset clear.
+        if (state.popupPreviewSource == "") {
+          this.previewTimeouts.forEach(clearTimeout);
+          this.previewTimeouts = [];
+          return
+        }
         const currentUrl = sequence[index];
         mutations.setPreviewSource(currentUrl);
 
