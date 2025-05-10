@@ -45,8 +45,8 @@ test("open nested file in /files dir from search", async({ page, checkForErrors,
   await page.locator('#search').click()
   await page.locator('#main-input').fill('graham');
   await expect(page.locator('#result-list')).toHaveCount(1);
-  await page.locator('li[aria-label="graham.xlsx"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - graham.xlsx");
+  await page.locator('li[aria-label="archive.bin"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - archive.bin");
   await expect(page.locator('#previewer')).toContainText('Preview is not available for this file.');
   checkForErrors();
 })
