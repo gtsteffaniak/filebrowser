@@ -265,7 +265,8 @@ export default {
         buttons.done(button);
         notify.showError("Error saving file: ", e);
       }
-      mutations.closeHovers();
+
+     mutations.closeHovers();
     },
   },
 };

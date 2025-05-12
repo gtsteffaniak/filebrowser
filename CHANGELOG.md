@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.3-beta
+
+- [x] add highlights to text editor
+- [x] open all text files in text editor (javascript files do not, why?)
+- fix popup preview issue scrolling
+- hard refresh often refresh logs out user, why?
+- [x] editor save shows notification
+
 ## v0.7.2-beta
 
 The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.

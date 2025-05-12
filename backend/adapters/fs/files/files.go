@@ -68,16 +68,16 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	if !exists {
 		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
-	if opts.Content && strings.HasPrefix(info.Type, "text") {
-		// Check file size
-		if info.Size > 50*1024*1024 { // 50 megabytes in bytes
-			logger.Debug(fmt.Sprintf("Reading large text file contents: "+info.Path, info.Name))
+	if opts.Content {
+		if info.Size < 20*1024*1024 { // 20 megabytes in bytes
+			content, err := getContent(realPath)
+			if err != nil {
+				return response, err
+			}
+			response.Content = content
+		} else {
+			logger.Debug(fmt.Sprintf("skipping large text file contents (20MB limit): "+info.Path, info.Name))
 		}
-		content, err := getContent(realPath)
-		if err != nil {
-			return response, err
-		}
-		response.Content = content
 	}
 	response.FileInfo = *info
 	response.RealPath = realPath
@@ -268,12 +268,35 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	return idx.RefreshFileInfo(opts)
 }
 
-// addContent reads and sets content based on the file type.
+// getContent reads and returns the file content only if it's ASCII-readable.
 func getContent(realPath string) (string, error) {
+	const headerSize = 4096
+
+	// Open file
+	f, err := os.Open(realPath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	// Read header
+	buf := make([]byte, headerSize)
+	n, err := f.Read(buf)
+	if err != nil && err != io.EOF {
+		return "", err
+	}
+
+	// Check if header is ASCII
+	if !isASCII(buf[:n]) {
+		return "", nil
+	}
+
+	// Now read full file
 	content, err := os.ReadFile(realPath)
 	if err != nil {
 		return "", err
 	}
+
 	stringContent := string(content)
 	if !utf8.ValidString(stringContent) {
 		return "", nil
@@ -282,6 +305,15 @@ func getContent(realPath string) (string, error) {
 		return "empty-file-x6OlSil", nil
 	}
 	return stringContent, nil
+}
+
+func isASCII(data []byte) bool {
+	for _, b := range data {
+		if b < 0x09 || (b > 0x0D && b < 0x20) || b > 0x7E {
+			return false
+		}
+	}
+	return true
 }
 
 func IsNamedPipe(mode os.FileMode) bool {
