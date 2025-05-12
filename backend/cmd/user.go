@@ -50,6 +50,20 @@ func validateUserInfo() {
 			}
 		}
 	}
+	if settings.Config.Auth.ResetAdminOnStart {
+		logger.Info("Resetting admin user to default username and password.")
+		adminUser, err := store.Users.Get(1)
+		if err != nil {
+			logger.Fatal(fmt.Sprintf("could not load admin user: %v", err))
+		}
+		adminUser.Username = settings.Config.Auth.AdminUsername
+		adminUser.Password = settings.Config.Auth.AdminPassword
+		adminUser.Permissions.Admin = true
+		err = store.Users.Save(adminUser, true)
+		if err != nil {
+			logger.Error(fmt.Sprintf("could not Save admin user: %v", err))
+		}
+	}
 }
 
 func updateUserScopes(user *users.User) bool {

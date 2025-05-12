@@ -153,7 +153,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Authenticate the user based on the request
 	user, err := auther.Auth(r, store.Users)
 	if err != nil {
-		logger.Debug(err.Error())
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}
