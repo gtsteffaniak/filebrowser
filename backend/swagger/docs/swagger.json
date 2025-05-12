@@ -2116,7 +2116,7 @@
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.PreviewOptions"
+                    "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
                     "type": "boolean"
@@ -2235,7 +2235,7 @@
                 }
             }
         },
-        "users.PreviewOptions": {
+        "users.Preview": {
             "type": "object",
             "properties": {
                 "highQuality": {
@@ -2331,7 +2331,7 @@
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.PreviewOptions"
+                    "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
                     "type": "boolean"

@@ -441,7 +441,7 @@ definitions:
       permissions:
         $ref: '#/definitions/users.Permissions'
       preview:
-        $ref: '#/definitions/users.PreviewOptions'
+        $ref: '#/definitions/users.Preview'
       quickDownload:
         type: boolean
       showHidden:
@@ -523,7 +523,7 @@ definitions:
       share:
         type: boolean
     type: object
-  users.PreviewOptions:
+  users.Preview:
     properties:
       highQuality:
         type: boolean
@@ -585,7 +585,7 @@ definitions:
       permissions:
         $ref: '#/definitions/users.Permissions'
       preview:
-        $ref: '#/definitions/users.PreviewOptions'
+        $ref: '#/definitions/users.Preview'
       quickDownload:
         type: boolean
       scope:

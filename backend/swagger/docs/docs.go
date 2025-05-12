@@ -2127,7 +2127,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.PreviewOptions"
+                    "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
                     "type": "boolean"
@@ -2246,7 +2246,7 @@ const docTemplate = `{
                 }
             }
         },
-        "users.PreviewOptions": {
+        "users.Preview": {
             "type": "object",
             "properties": {
                 "highQuality": {
@@ -2342,7 +2342,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.PreviewOptions"
+                    "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
                     "type": "boolean"

@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - editor save shows notification
+ - preview settings resetting on startup
 
 ## v0.7.2-beta
 
