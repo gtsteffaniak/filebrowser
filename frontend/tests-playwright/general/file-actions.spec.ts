@@ -43,10 +43,10 @@ test("open nested file in /files dir from search", async({ page, checkForErrors,
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await page.locator('#search').click()
-  await page.locator('#main-input').fill('archive');
+  await page.locator('#main-input').fill('binary');
   await expect(page.locator('#result-list')).toHaveCount(1);
-  await page.locator('li[aria-label="archive.bin"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - archive.bin");
+  await page.locator('li[aria-label="binary.dat"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - binary.dat");
   await expect(page.locator('#previewer')).toContainText('Preview is not available for this file.');
   checkForErrors();
 })
