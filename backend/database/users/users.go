@@ -45,7 +45,6 @@ type PreviewOptions struct {
 	Image              bool `json:"image"`
 	Video              bool `json:"video"`
 	MotionVideoPreview bool `json:"motionVideoPreview"`
-	LivePhotoPreview   bool `json:"livePhotoPreview"`
 	Office             bool `json:"office"`
 	PopUp              bool `json:"popup"`
 }
