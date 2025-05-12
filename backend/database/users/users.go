@@ -40,12 +40,11 @@ type Sorting struct {
 	Asc bool   `json:"asc"`
 }
 
-type PreviewOptions struct {
+type Preview struct {
 	HighQuality        bool `json:"highQuality"`
 	Image              bool `json:"image"`
 	Video              bool `json:"video"`
 	MotionVideoPreview bool `json:"motionVideoPreview"`
-	LivePhotoPreview   bool `json:"livePhotoPreview"`
 	Office             bool `json:"office"`
 	PopUp              bool `json:"popup"`
 }
@@ -71,21 +70,22 @@ type SourceScope struct {
 	Scope string `json:"scope"`
 }
 
+// json tags must match variable name with smaller case first letter
 type NonAdminEditable struct {
-	Preview              PreviewOptions `json:"preview"`
-	StickySidebar        bool           `json:"stickySidebar"`
-	DarkMode             bool           `json:"darkMode"`
-	Password             string         `json:"password,omitempty"`
-	Locale               string         `json:"locale"`
-	ViewMode             string         `json:"viewMode"`
-	SingleClick          bool           `json:"singleClick"`
-	Sorting              Sorting        `json:"sorting"`
-	ShowHidden           bool           `json:"showHidden"`
-	DateFormat           bool           `json:"dateFormat"`
-	GallerySize          int            `json:"gallerySize"`
-	ThemeColor           string         `json:"themeColor"`
-	QuickDownload        bool           `json:"quickDownload"`
-	DisableOnlyOfficeExt string         `json:"disableOnlyOfficeExt"`
+	Preview              Preview `json:"preview"`
+	StickySidebar        bool    `json:"stickySidebar"`
+	DarkMode             bool    `json:"darkMode"`
+	Password             string  `json:"password,omitempty"`
+	Locale               string  `json:"locale"`
+	ViewMode             string  `json:"viewMode"`
+	SingleClick          bool    `json:"singleClick"`
+	Sorting              Sorting `json:"sorting"`
+	ShowHidden           bool    `json:"showHidden"`
+	DateFormat           bool    `json:"dateFormat"`
+	GallerySize          int     `json:"gallerySize"`
+	ThemeColor           string  `json:"themeColor"`
+	QuickDownload        bool    `json:"quickDownload"`
+	DisableOnlyOfficeExt string  `json:"disableOnlyOfficeExt"`
 }
 
 var PublicUser = User{

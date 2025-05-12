@@ -32,6 +32,7 @@ func (st usersBackend) GetBy(i interface{}) (user *users.User, err error) {
 		arg = "ID"
 	case int:
 		val = uint(i)
+		arg = "ID"
 	case string:
 		arg = "Username"
 		val = i

@@ -116,12 +116,13 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 
 			// attach validate and comments inline
 			var parts []string
-			if vt := sf.Tag.Get("validate"); vt != "" {
-				parts = append(parts, fmt.Sprintf("validate:%s", vt))
-			}
 			if cm := comm[typeName][sf.Name]; cm != "" {
-				parts = append(parts, fmt.Sprintf("comments:\"%s\"", cm))
+				parts = append(parts, fmt.Sprintf("\"%s\"", cm))
 			}
+			if vt := sf.Tag.Get("validate"); vt != "" {
+				parts = append(parts, fmt.Sprintf(" validate:%s", vt))
+			}
+
 			if len(parts) > 0 {
 				keyNode.LineComment = strings.Join(parts, " ")
 			}

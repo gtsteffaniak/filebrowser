@@ -1653,6 +1653,10 @@ const docTemplate = `{
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
                 },
+                "resetAdminOnStart": {
+                    "description": "if set to true, the admin user will be reset to the default username and password on startup.",
+                    "type": "boolean"
+                },
                 "tokenExpirationHours": {
                     "description": "the number of hours until the token expires. Default is 2 hours.",
                     "type": "integer"
@@ -2123,7 +2127,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.PreviewOptions"
+                    "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
                     "type": "boolean"
@@ -2242,16 +2246,13 @@ const docTemplate = `{
                 }
             }
         },
-        "users.PreviewOptions": {
+        "users.Preview": {
             "type": "object",
             "properties": {
                 "highQuality": {
                     "type": "boolean"
                 },
                 "image": {
-                    "type": "boolean"
-                },
-                "livePhotoPreview": {
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
@@ -2341,7 +2342,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.PreviewOptions"
+                    "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
                     "type": "boolean"

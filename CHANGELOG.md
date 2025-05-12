@@ -4,11 +4,17 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.3-beta
 
-- [x] add highlights to text editor
-- [x] open all text files in text editor (javascript files do not, why?)
-- fix popup preview issue scrolling
-- hard refresh often refresh logs out user, why?
-- [x] editor save shows notification
+ **New Features**
+ - Added code highlights to text editor and enabled text editor for all asci files under 25MB
+ - Motion previews for videos -- cycles screenshots of vidoes at 10%-25%-50%-75%.
+ - Optionally reset default admin username/password on startup, to guarentee a username/password on startup if needed.
+
+ **Notes**:
+ - 
+
+ **BugFixes**:
+ - editor save shows notification
+ - preview settings resetting on startup
 
 ## v0.7.2-beta
 

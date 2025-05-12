@@ -3,9 +3,10 @@ package settings
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"` // the number of hours until the token expires. Default is 2 hours.
 	Methods              LoginMethods `json:"methods"`
-	Key                  string       `json:"key"`           // the key used to sign the JWT tokens. If not set, a random key will be generated.
-	AdminUsername        string       `json:"adminUsername"` // the username of the admin user. If not set, the default is "admin".
-	AdminPassword        string       `json:"adminPassword"` // the password of the admin user. If not set, the default is "admin".
+	Key                  string       `json:"key"`               // the key used to sign the JWT tokens. If not set, a random key will be generated.
+	AdminUsername        string       `json:"adminUsername"`     // the username of the admin user. If not set, the default is "admin".
+	AdminPassword        string       `json:"adminPassword"`     // the password of the admin user. If not set, the default is "admin".
+	ResetAdminOnStart    bool         `json:"resetAdminOnStart"` // if set to true, the admin user will be reset to the default username and password on startup.
 	AuthMethods          []string     `json:"-"`
 }
 
