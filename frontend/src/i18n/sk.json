@@ -35,7 +35,9 @@
     "toggleSidebar": "Prepnúť sidebar",
     "update": "Aktualizovať",
     "upload": "Nahrať",
-    "openFile": "Otvoriť súbor"
+    "openFile": "Otvoriť súbor",
+    "copyDownloadLinkToClipboard": "Skopírujte odkaz na stiahnutie do schránky",
+    "continue": "Pokračovať"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -101,7 +103,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "Swedish (Sweden)",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -116,7 +118,8 @@
     "submit": "Prihlásiť",
     "username": "Používateľské meno",
     "usernameTaken": "Meno je už obsadené",
-    "wrongCredentials": "Nesprávne prihlasovacie údaje"
+    "wrongCredentials": "Nesprávne prihlasovacie údaje",
+    "or": "ALEBO"
   },
   "permanent": "Trvalé",
   "prompts": {
@@ -132,7 +135,6 @@
     "downloadMessage": "Vyberte formát, ktorý chcete stiahnuť.",
     "error": "Niečo sa pokazilo",
     "fileInfo": "Informácie o súbore",
-    "filesSelected": "{count} súborov vybratých.",
     "lastModified": "Dátum zmeny",
     "move": "Presunúť",
     "moveMessage": "Zvoľte nový domov pre vaše súbory/priečinky:",
@@ -153,7 +155,12 @@
     "size": "Veľkosť",
     "upload": "Nahrať",
     "uploadMessage": "Zvoľte možnosť nahrávania.",
-    "optionalPassword": "Voliteľné heslo"
+    "optionalPassword": "Voliteľné heslo",
+    "deleteUserMessage": "Ste si istí, že chcete odstrániť tohto používateľa?",
+    "filesSelected": "vybrané súbory",
+    "uploadFiles": "Uploading {files} files...",
+    "typeName": "Typ:",
+    "selected": "vybrané"
   },
   "search": {
     "images": "Obrázky",
@@ -163,7 +170,12 @@
     "search": "Hľadať...",
     "typeToSearch": "Vyhľadáte písaním...",
     "types": "Typy",
-    "video": "Video"
+    "video": "Video",
+    "path": "Cesta:",
+    "smallerThan": "Menšie ako:",
+    "largerThan": "Väčšie ako:",
+    "helpText1": "Vyhľadávanie prebieha na základe každého zadaného znaku (minimálne 3 znaky pre hľadané výrazy).",
+    "helpText2": "Index: Vyhľadávanie využíva index, ktorý sa automaticky aktualizuje v nastavenom intervale (predvolené: 5 minút). Vyhľadávanie, keď sa program práve spustil, môže viesť k neúplným výsledkom."
   },
   "settings": {
     "admin": "Admin",
@@ -210,7 +222,10 @@
       "execute": "Vykonávať príkazy",
       "modify": "Upravovať súbory",
       "rename": "Premenovať a presúvať súbory a priečinky",
-      "share": "Zdieľať súbory"
+      "share": "Zdieľať súbory",
+      "admin": "Správca",
+      "api": "Vytváranie a správa kľúčov API s dlhou životnosťou",
+      "realtime": "Povolenie pripojení a aktualizácií v reálnom čase"
     },
     "permissions-name": "Práva",
     "permissionsHelp": "Môžete nastaviť používateľa, aby bol administrátorom alebo vybrať práva jednotlivo. Ak zvolíte \"Administrator\", všetky ďalšie budú automaticky zaškrtnuté. Manažment používateľov ostáva v správe administrátora.\n",
@@ -239,7 +254,27 @@
     "userManagement": "Správa používateľov",
     "userUpdated": "Používateľ upravený!",
     "username": "Meno používateľa",
-    "users": "Používatelia"
+    "users": "Používatelia",
+    "loginMethod": "Spôsob prihlásenia",
+    "modifyOtherUser": "Upravte používateľa:",
+    "modifyCurrentUser": "Úprava aktuálneho používateľa",
+    "themeColor": "Farba témy",
+    "disableOfficePreviewDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má prehliadač OnlyOffice vypnúť. (napr. \".txt .html\").",
+    "disableOfficePreview": "Zakázať prehliadač OnlyOffice pre určité prípony súborov",
+    "filePreviewOptions": "Možnosti náhľadu súborov",
+    "listingOptions": "Možnosti uvedenia v zozname",
+    "emptyGlobal": "V súčasnosti neexistujú žiadne globálne konfiguračné možnosti, Môžete upraviť konfiguračný yaml upraviť nastavenia systému.",
+    "scopes": "Definovanie povolených zdrojov a používateľského rozsahu v rámci nich",
+    "UserManagement": "Správa používateľov",
+    "tusUploads": "Nahrávanie v častiach",
+    "tusUploadsHelp": "Prehliadač súborov podporuje sekané odosielanie súborov, čo umožňuje vytvárať efektívne, spoľahlivé, obnoviteľné a sekané odosielanie súborov aj v nespoľahlivých sieťach.",
+    "tusUploadsChunkSize": "Udáva maximálnu veľkosť požiadavky (pre menšie odoslania sa použije priame odoslanie). Môžete zadať obyčajné celé číslo označujúce vstup v bajtoch alebo reťazec, napríklad 10 MB, 1 GB atď.",
+    "tusUploadsRetryCount": "Počet opakovaných pokusov, ktoré sa vykonajú, ak sa nepodarí nahrať časť.",
+    "userHomeBasePath": "Základná cesta pre domovské adresáre používateľov",
+    "userScopeGenerationPlaceholder": "Rozsah sa vygeneruje automaticky",
+    "createUserHomeDirectory": "Vytvorenie domovského adresára používateľa",
+    "api": "Kľúče API",
+    "setDateFormat": "Nastavenie presného formátu dátumu"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -263,5 +298,49 @@
     "minutes": "Minúty",
     "seconds": "Sekundy",
     "unit": "Jednotka času"
+  },
+  "upload": {
+    "abortUpload": "Ste si istí, že chcete prerušiť tehotenstvo?"
+  },
+  "share": {
+    "notice": "Poznámka: prístup k zdieľaným súborom má každý, kto má prístup k odkazu (a voliteľnému heslu). Nie je potrebné byť prihlásený."
+  },
+  "api": {
+    "title": "Kľúče API:",
+    "keyName": "Názov kľúča API:",
+    "createdAt": "Vytvorené v:",
+    "expiresAt": "Platnosť končí na:",
+    "permissions": "Oprávnenia:",
+    "createTitle": "Vytvorenie kľúča API",
+    "keyNamePlaceholder": "Zadajte jedinečný názov kľúča API:",
+    "tokenDuration": "Trvanie žetónu:",
+    "durationNumberPlaceholder": "Číslo",
+    "days": "Dni",
+    "months": "Mesiace",
+    "permissionNote": "Vyberte aspoň jedno povolenie pre kľúč. Oprávnenie musí mať aj váš používateľ.",
+    "createKeyFailed": "Nepodarilo sa vytvoriť kľúč API.",
+    "createKeySuccess": "Kľúč API bol úspešne vytvorený.",
+    "description": "Kľúče API sú založené na používateľovi, ktorý ich vytvoril. Pozri .",
+    "swaggerLinkText": "swagger stránka",
+    "name": "Názov",
+    "created": "Vytvorené",
+    "expires": "Platnosť končí na",
+    "actions": "Činnosti",
+    "enabled": "Povolené",
+    "disabled": "Bezbariérový"
+  },
+  "index": {
+    "status": "Stav",
+    "assessment": "Hodnotenie",
+    "files": "Súbory",
+    "folders": "Priečinky",
+    "lastScanned": "Posledné skenovanie",
+    "quickScan": "Sekundy rýchleho skenovania",
+    "fullScan": "Sekundy úplného skenovania",
+    "settingsHover": "Nastavenia pre používateľa",
+    "logout": "Odhlásenie",
+    "toggleClick": "Prepínanie jedným kliknutím",
+    "toggleDark": "Prepínanie tmavého režimu",
+    "toggleSticky": "Prepnutie režimu Sticky"
   }
 }

@@ -120,13 +120,8 @@ export default {
 
       let index = 0;
 
-      const prefetchImage = (url) => {
-        const img = new Image();
-        img.src = url;
-      };
-
       const updateThumbnailUrl = () => {
-        if (state.popupPreviewSource == "") {
+        if (state.popupPreviewSource === "") {
           this.previewTimeouts.forEach(clearTimeout);
           this.previewTimeouts = [];
           return;
@@ -136,16 +131,25 @@ export default {
 
         const img = new Image();
         img.onload = () => {
+          // Set the thumbnail or popup preview
           if (state.user.preview.popup) {
             mutations.setPreviewSource(currentUrl);
           } else {
             this.currentThumbnail = currentUrl;
           }
 
-          index = (index + 1) % sequence.length;
+          // Preload the next image if it exists
+          const nextIndex = (index + 1) % sequence.length;
+          const nextUrl = sequence[nextIndex];
+          const preloadImg = new Image();
+          preloadImg.src = nextUrl;
+
+          // Schedule next update
+          index = nextIndex;
           const timeoutId = setTimeout(updateThumbnailUrl, 1000);
           this.previewTimeouts.push(timeoutId);
         };
+
         img.src = currentUrl;
       };
       updateThumbnailUrl();

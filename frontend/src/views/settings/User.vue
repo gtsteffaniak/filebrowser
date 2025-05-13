@@ -3,8 +3,8 @@
   <form @submit="save" class="card active" v-if="loaded">
     <div class="card-title">
       <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
-      <h2 v-else-if="actor.id == user.id">modify current user ({{ user.username }})</h2>
-      <h2 v-else>modify user: {{ user.username }}</h2>
+      <h2 v-else-if="actor.id == user.id"> {{ $t('settings.modifyCurrentUser') }} ({{ user.username }})</h2> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <h2 v-else> {{ $t('settings.modifyOtherUser') }} {{ user.username }}</h2>
     </div>
 
     <div class="card-content minimal-card">

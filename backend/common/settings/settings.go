@@ -46,6 +46,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.ViewMode = Config.UserDefaults.ViewMode
 	u.SingleClick = Config.UserDefaults.SingleClick
 	u.Permissions = Config.UserDefaults.Permissions
+	u.Preview = Config.UserDefaults.Preview
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
 	u.DisableOnlyOfficeExt = Config.UserDefaults.DisableOnlyOfficeExt

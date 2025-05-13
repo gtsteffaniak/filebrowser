@@ -2092,24 +2092,31 @@
             "type": "object",
             "properties": {
                 "darkMode": {
+                    "description": "should dark mode be enabled",
                     "type": "boolean"
                 },
                 "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
                 "disableOnlyOfficeExt": {
+                    "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
                 },
                 "disableSettings": {
+                    "description": "disable the user from viewing the settings page",
                     "type": "boolean"
                 },
                 "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
                 "locale": {
+                    "description": "language to use: eg. de, en, or fr",
                     "type": "string"
                 },
                 "lockPassword": {
+                    "description": "disable the user from changing their password",
                     "type": "boolean"
                 },
                 "permissions": {
@@ -2119,21 +2126,27 @@
                     "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
+                    "description": "show icon to download in one click",
                     "type": "boolean"
                 },
                 "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
                 "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
                 },
                 "stickySidebar": {
+                    "description": "keep sidebar open when navigating",
                     "type": "boolean"
                 },
                 "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
                 }
             }
@@ -2239,21 +2252,27 @@
             "type": "object",
             "properties": {
                 "highQuality": {
+                    "description": "generate high quality preview images",
                     "type": "boolean"
                 },
                 "image": {
+                    "description": "show real image as icon instead of generic photo icon",
                     "type": "boolean"
                 },
                 "motionVideoPreview": {
+                    "description": "show multiple frames for videos in preview when hovering",
                     "type": "boolean"
                 },
                 "office": {
+                    "description": "show preview image for office files",
                     "type": "boolean"
                 },
                 "popup": {
+                    "description": "show larger popup preview when hovering",
                     "type": "boolean"
                 },
                 "video": {
+                    "description": "show preview image for video files",
                     "type": "boolean"
                 }
             }
@@ -2290,24 +2309,29 @@
                     }
                 },
                 "darkMode": {
+                    "description": "should dark mode be enabled",
                     "type": "boolean"
                 },
                 "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
                 "disableOnlyOfficeExt": {
+                    "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
                 },
                 "disableSettings": {
                     "type": "boolean"
                 },
                 "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "locale": {
+                    "description": "language to use: eg. de, en, or fr",
                     "type": "string"
                 },
                 "lockPassword": {
@@ -2334,6 +2358,7 @@
                     "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
+                    "description": "show icon to download in one click",
                     "type": "boolean"
                 },
                 "scope": {
@@ -2346,24 +2371,29 @@
                     }
                 },
                 "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
                 "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
                 },
                 "sorting": {
                     "$ref": "#/definitions/users.Sorting"
                 },
                 "stickySidebar": {
+                    "description": "keep sidebar open when navigating",
                     "type": "boolean"
                 },
                 "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
                 },
                 "username": {
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
                 }
             }

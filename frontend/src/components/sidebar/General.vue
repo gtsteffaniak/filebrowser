@@ -1,9 +1,10 @@
 <template>
   <div class="tooltip">
-    <span class="tooltiptext-first" :class="{ visible: hoverText != '' }">{{
-      this.hoverText
-    }}</span>
+    <span class="tooltiptext-first" :class="{ visible: hoverText != '' }">
+      {{ hoverText }}
+    </span>
   </div>
+
   <div v-if="hasSourceInfo" class="tooltip-sources">
     <div
       class="tooltiptext-sources"
@@ -18,37 +19,38 @@
         </thead>
         <tbody>
           <tr>
-            <td>Status</td>
+            <td>{{ $t("index.status") }}</td>
             <td>{{ sourceInfoTooltip.status }}</td>
           </tr>
           <tr>
-            <td>Assessment</td>
+            <td>{{ $t("index.assessment") }}</td>
             <td>{{ sourceInfoTooltip.assessment }}</td>
           </tr>
           <tr>
-            <td>Files</td>
+            <td>{{ $t("index.files") }}</td>
             <td>{{ sourceInfoTooltip.files }}</td>
           </tr>
           <tr>
-            <td>Folders</td>
+            <td>{{ $t("index.folders") }}</td>
             <td>{{ sourceInfoTooltip.folders }}</td>
           </tr>
           <tr>
-            <td>Last Scanned</td>
+            <td>{{ $t("index.lastScanned") }}</td>
             <td>{{ gethumanReadable }}</td>
           </tr>
           <tr>
-            <td>Quick Scan Seconds</td>
+            <td>{{ $t("index.quickScan") }}</td>
             <td>{{ humanReadableQuickScan }}</td>
           </tr>
           <tr>
-            <td>Full Scan Seconds</td>
+            <td>{{ $t("index.fullScan") }}</td>
             <td>{{ humanReadableFullScan }}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+
   <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div
@@ -58,12 +60,12 @@
       >
         <button
           class="person-button action"
-          @mouseover="updateHoverText('Settings For User')"
+          @mouseover="updateHoverText($t('index.settingsHover'))"
           @mouseleave="resetHoverTextToDefault"
         >
           <i class="material-icons">person</i>
           {{ user.username }}
-          <i aria-label="settings" class="material-icons"> settings</i>
+          <i aria-label="settings" class="material-icons">settings</i>
         </button>
       </div>
       <div v-else class="inner-card">
@@ -77,19 +79,20 @@
         <button
           aria-label="logout-button"
           class="logout-button action"
-          @mouseover="updateHoverText('Logout')"
+          @mouseover="updateHoverText($t('index.logout'))"
           @mouseleave="resetHoverTextToDefault"
         >
           <i v-if="canLogout" class="material-icons">exit_to_app</i>
         </button>
       </div>
     </div>
+
     <div class="card-wrapper" @mouseleave="resetHoverTextToDefault">
       <div class="quick-toggles">
         <div
           :class="{ active: user?.singleClick }"
           @click="toggleClick"
-          @mouseover="updateHoverText('Toggle Single Click')"
+          @mouseover="updateHoverText($t('index.toggleClick'))"
           @mouseleave="resetHoverTextToDefault"
         >
           <i class="material-icons">ads_click</i>
@@ -97,7 +100,7 @@
         <div
           :class="{ active: user?.darkMode }"
           @click="toggleDarkMode"
-          @mouseover="updateHoverText('Toggle Dark Mode')"
+          @mouseover="updateHoverText($t('index.toggleDark'))"
           @mouseleave="resetHoverTextToDefault"
         >
           <i class="material-icons">dark_mode</i>
@@ -105,7 +108,7 @@
         <div
           :class="{ active: isStickySidebar }"
           @click="toggleSticky"
-          @mouseover="updateHoverText('Toggle Sticky Mode')"
+          @mouseover="updateHoverText($t('index.toggleSticky'))"
           @mouseleave="resetHoverTextToDefault"
           v-if="!isMobile"
         >
@@ -114,11 +117,10 @@
       </div>
     </div>
   </div>
-
   <!-- Section for logged-in users -->
   <div v-if="loginCheck" class="sidebar-scroll-list">
     <div class="sources card">
-      <span>Sources</span>
+      <span> {{ $t("sidebar.sources") }}</span>
       <div class="inner-card">
         <!-- My Files button -->
         <button
@@ -147,18 +149,18 @@
             <span>{{ name }}</span>
           </div>
           <div v-if="hasSourceInfo" class="usage-info">
-            <progress-bar
+            <ProgressBar
               :val="info.usedPercentage"
               text-position="inside"
               :text="info.usedPercentage + '%'"
               size="large"
               text-fg-color="white"
-            ></progress-bar>
+            ></ProgressBar>
             <div class="usage-info">
-              <span
-                >{{ getHumanReadableFilesize(info.used) }} of
-                {{ getHumanReadableFilesize(info.total) }} used</span
-              >
+              <span>
+                {{ getHumanReadableFilesize(info.used) }} {{ $t("index.of") }}
+                {{ getHumanReadableFilesize(info.total) }} {{ $t("index.used") }}
+              </span>
             </div>
           </div>
         </button>

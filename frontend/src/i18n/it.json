@@ -31,7 +31,13 @@
     "switchView": "Cambia vista",
     "toggleSidebar": "Mostra/nascondi la barra laterale",
     "update": "Aggiorna",
-    "upload": "Carica"
+    "upload": "Carica",
+    "copyDownloadLinkToClipboard": "Copiare il link di download negli appunti",
+    "file": "File",
+    "folder": "Cartella",
+    "submit": "Invia",
+    "openFile": "Aprire il file",
+    "continue": "Continua"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -41,7 +47,8 @@
   "errors": {
     "forbidden": "Non hai i permessi per accedere a questo file.",
     "internal": "Qualcosa è andato veramente male.",
-    "notFound": "Questo percorso non può essere raggiunto."
+    "notFound": "Questo percorso non può essere raggiunto.",
+    "connection": "Il server non è raggiungibile."
   },
   "files": {
     "body": "Contenuto",
@@ -59,7 +66,8 @@
     "size": "Dimensione",
     "sortByLastModified": "Ordina per ultima modifica",
     "sortByName": "Ordina per nome",
-    "sortBySize": "Ordina per dimensione"
+    "sortBySize": "Ordina per dimensione",
+    "noPreview": "L'anteprima non è disponibile per questo file."
   },
   "help": {
     "click": "seleziona un file o una cartella",
@@ -95,7 +103,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -110,7 +118,8 @@
     "submit": "Entra",
     "username": "Nome utente",
     "usernameTaken": "Username già usato",
-    "wrongCredentials": "Credenziali errate"
+    "wrongCredentials": "Credenziali errate",
+    "or": "O"
   },
   "permanent": "Permanente",
   "prompts": {
@@ -125,7 +134,6 @@
     "downloadMessage": "Seleziona il formato che vuoi scaricare.",
     "error": "Qualcosa è andato per il verso storto",
     "fileInfo": "Informazioni sul file",
-    "filesSelected": "{count} file selezionati.",
     "lastModified": "Ultima modifica",
     "move": "Sposta",
     "moveMessage": "Seleziona la nuova posizione per i tuoi file e/o cartella/e:",
@@ -145,7 +153,14 @@
     "show": "Mostra",
     "size": "Dimensione",
     "upload": "Carica",
-    "uploadMessage": "Seleziona un'opzione per il caricamento."
+    "uploadMessage": "Seleziona un'opzione per il caricamento.",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
+    "deleteUserMessage": "Siete sicuri di voler eliminare questo utente?",
+    "filesSelected": "file selezionati",
+    "uploadFiles": "Uploading {files} files...",
+    "optionalPassword": "Password opzionale",
+    "typeName": "Tipo:",
+    "selected": "selezionato"
   },
   "search": {
     "images": "Immagini",
@@ -155,7 +170,12 @@
     "search": "Cerca...",
     "typeToSearch": "Scrivi per cercare...",
     "types": "Tipi",
-    "video": "Video"
+    "video": "Video",
+    "path": "Percorso:",
+    "smallerThan": "Più piccolo di:",
+    "largerThan": "Più grande di:",
+    "helpText1": "La ricerca avviene per ogni carattere digitato (minimo 3 caratteri per i termini di ricerca).",
+    "helpText2": "L'indice: La ricerca utilizza l'indice che viene aggiornato automaticamente all'intervallo configurato (default: 5 minuti). La ricerca quando il programma è appena stato avviato può dare risultati incompleti."
   },
   "settings": {
     "admin": "Admin",
@@ -202,7 +222,10 @@
       "execute": "Eseguire comandi",
       "modify": "Modificare file",
       "rename": "Rinominare o spostare file e cartelle",
-      "share": "Condividere file"
+      "share": "Condividere file",
+      "admin": "Amministratore",
+      "api": "Creare e gestire chiavi API a lunga durata",
+      "realtime": "Consentire connessioni e aggiornamenti in tempo reale"
     },
     "permissions-name": "Permessi",
     "permissionsHelp": "È possibile impostare l'utente come amministratore o scegliere i permessi singolarmente. Se si seleziona \"Amministratore\", tutte le altre opzioni saranno automaticamente assegnate. La gestione degli utenti rimane un privilegio di un amministratore.\n",
@@ -230,7 +253,28 @@
     "userManagement": "Gestione degli utenti",
     "userUpdated": "Utente aggiornato!",
     "username": "Nome utente",
-    "users": "Utenti"
+    "users": "Utenti",
+    "loginMethod": "Metodo di accesso",
+    "modifyOtherUser": "Modificare l'utente:",
+    "modifyCurrentUser": "Modificare l'utente corrente",
+    "themeColor": "Colore del tema",
+    "disableOfficePreviewDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare il visualizzatore di OnlyOffice. (ad esempio, '.txt .html').",
+    "disableOfficePreview": "Disabilitare il visualizzatore onlyoffice per alcune estensioni di file",
+    "filePreviewOptions": "Opzioni di anteprima dei file",
+    "listingOptions": "Opzioni di quotazione",
+    "emptyGlobal": "Attualmente non ci sono opzioni di configurazione globale, ma è possibile modificare lo yaml di configurazione per regolare le impostazioni del sistema.",
+    "scopes": "Definire le fonti consentite e l'ambito dell'utente all'interno di esse",
+    "UserManagement": "Gestione degli utenti",
+    "tusUploads": "Caricamenti spezzettati",
+    "tusUploadsHelp": "File Browser supporta il caricamento di file a pezzetti, consentendo la creazione di upload di file efficienti, affidabili, riprendibili e a pezzetti anche su reti inaffidabili.",
+    "tusUploadsChunkSize": "Indica la dimensione massima di una richiesta (i caricamenti diretti saranno utilizzati per i caricamenti più piccoli). È possibile immettere un numero intero semplice che indica un input in byte o una stringa come 10MB, 1GB ecc.",
+    "tusUploadsRetryCount": "Numero di tentativi da eseguire se un chunk non riesce a essere caricato.",
+    "userHomeBasePath": "Percorso di base per le directory home degli utenti",
+    "userScopeGenerationPlaceholder": "L'ambito sarà generato automaticamente",
+    "createUserHomeDirectory": "Creare la directory home dell'utente",
+    "api": "Chiavi API",
+    "setDateFormat": "Impostare il formato esatto della data",
+    "shareDeleted": "Condividi cancellato!"
   },
   "sidebar": {
     "help": "Aiuto",
@@ -254,5 +298,49 @@
     "minutes": "Minuti",
     "seconds": "Secondi",
     "unit": "Unità di tempo"
+  },
+  "upload": {
+    "abortUpload": "Sei sicura di voler abortire?"
+  },
+  "share": {
+    "notice": "Nota: chiunque abbia accesso al link (e alla password opzionale) può accedere ai file condivisi. Non è necessario effettuare il login."
+  },
+  "api": {
+    "title": "Chiavi API:",
+    "keyName": "Nome della chiave API:",
+    "createdAt": "Creato a:",
+    "expiresAt": "Scade a:",
+    "permissions": "Permessi:",
+    "createTitle": "Creare la chiave API",
+    "keyNamePlaceholder": "Inserire un nome univoco per la chiave API:",
+    "tokenDuration": "Durata del gettone:",
+    "durationNumberPlaceholder": "Numero",
+    "days": "Giorni",
+    "months": "Mesi",
+    "permissionNote": "Scegliere almeno un'autorizzazione per la chiave. Anche l'utente deve avere l'autorizzazione.",
+    "createKeyFailed": "Impossibile creare la chiave API.",
+    "createKeySuccess": "Chiave API creata con successo.",
+    "description": "Le chiavi API si basano sull'utente che le crea. Vedere",
+    "swaggerLinkText": "pagina swagger",
+    "name": "Nome",
+    "created": "Creato",
+    "expires": "Scadenza",
+    "actions": "Azioni",
+    "enabled": "Abilitato",
+    "disabled": "Disabili"
+  },
+  "index": {
+    "status": "Stato",
+    "assessment": "Valutazione",
+    "files": "File",
+    "folders": "Cartelle",
+    "lastScanned": "Ultima scansione",
+    "quickScan": "Scansione rapida Secondi",
+    "fullScan": "Secondi di scansione completa",
+    "settingsHover": "Impostazioni per l'utente",
+    "logout": "Disconnessione",
+    "toggleClick": "Alterna il clic singolo",
+    "toggleDark": "Alterna la modalità scura",
+    "toggleSticky": "Alterna la modalità appiccicosa"
   }
 }

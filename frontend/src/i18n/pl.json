@@ -31,7 +31,13 @@
     "switchView": "Zmień widok",
     "toggleSidebar": "Pokaż/ukryj panel boczny",
     "update": "Aktualizuj",
-    "upload": "Wgraj"
+    "upload": "Wgraj",
+    "copyDownloadLinkToClipboard": "Skopiuj łącze pobierania do schowka",
+    "file": "Plik",
+    "folder": "Folder",
+    "submit": "Prześlij",
+    "openFile": "Otwórz plik",
+    "continue": "Kontynuuj"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -41,7 +47,8 @@
   "errors": {
     "forbidden": "Nie posiadasz uprawnień potrzebnych, by uzyskać do tego dostęp.",
     "internal": "Pojawił się poważny problem.",
-    "notFound": "Ten adres nie jest poprawny."
+    "notFound": "Ten adres nie jest poprawny.",
+    "connection": "Nie można uzyskać dostępu do serwera."
   },
   "files": {
     "body": "Body",
@@ -59,7 +66,8 @@
     "size": "Rozmiar",
     "sortByLastModified": "Sortuj wg. daty modyfikacji",
     "sortByName": "Sortuj wg. nazwy",
-    "sortBySize": "Sortuj wg. rozmiaru"
+    "sortBySize": "Sortuj wg. rozmiaru",
+    "noPreview": "Podgląd nie jest dostępny dla tego pliku."
   },
   "help": {
     "click": "wybierz plik lub foler",
@@ -95,7 +103,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "Svenska (Sverige)",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -110,7 +118,8 @@
     "submit": "Logowanie",
     "username": "Nazwa użytkownika",
     "usernameTaken": "Nazwa użytkownika już zajęta",
-    "wrongCredentials": "Błędne dane logowania"
+    "wrongCredentials": "Błędne dane logowania",
+    "or": "LUB"
   },
   "permanent": "Permanentny",
   "prompts": {
@@ -125,7 +134,6 @@
     "downloadMessage": "Wybierz format, jaki chesz pobrać.",
     "error": "Pojawił się nieznany błąd",
     "fileInfo": "Informacje o pliku",
-    "filesSelected": "{count} plików zostało zaznaczonych.",
     "lastModified": "Osatnio Zmodyfikowane",
     "move": "Przenieś",
     "moveMessage": "Wybierz nową lokalizację dla swoich plik(ów)/folder(ów):",
@@ -145,8 +153,14 @@
     "show": "Pokaż",
     "size": "Rozmiar",
     "upload": "Prześlij",
-    "uploadMessage": "Proszę wybrać metodę przesyłania"
-
+    "uploadMessage": "Proszę wybrać metodę przesyłania",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
+    "deleteUserMessage": "Czy na pewno chcesz usunąć tego użytkownika?",
+    "filesSelected": "wybrane pliki",
+    "uploadFiles": "Uploading {files} files...",
+    "optionalPassword": "Hasło opcjonalne",
+    "typeName": "Typ:",
+    "selected": "wybrany"
   },
   "search": {
     "images": "Zdjęcia",
@@ -156,7 +170,12 @@
     "search": "Szukaj...",
     "typeToSearch": "Zacznij pisać, aby wyszukać...",
     "types": "Typy",
-    "video": "Wideo"
+    "video": "Wideo",
+    "path": "Ścieżka:",
+    "smallerThan": "Mniejszy niż:",
+    "largerThan": "Większy niż:",
+    "helpText1": "Wyszukiwanie odbywa się po każdym wpisanym znaku (minimum 3 znaki dla wyszukiwanych haseł).",
+    "helpText2": "Indeks: Wyszukiwanie wykorzystuje indeks, który jest automatycznie aktualizowany w skonfigurowanych odstępach czasu (domyślnie: 5 minut). Wyszukiwanie po uruchomieniu programu może skutkować niekompletnymi wynikami."
   },
   "settings": {
     "admin": "Admin",
@@ -203,7 +222,10 @@
       "execute": "Wykonywanie poleceń",
       "modify": "Edycja plików",
       "rename": "Zmiana nazw lub przenoszenie plików i katalogów",
-      "share": "Udostępnianie plików"
+      "share": "Udostępnianie plików",
+      "admin": "Administrator",
+      "api": "Tworzenie i zarządzanie kluczami API o długiej żywotności",
+      "realtime": "Połączenia i aktualizacje w czasie rzeczywistym"
     },
     "permissions-name": "Uprawnienia",
     "permissionsHelp": "Możesz uczynić użytkownika administratorem, lub wybrać uprawnienia indywidualnie. Jeśli zaznaczysz opcję \"Administrator\", wszystkie pozostałe opcje zostaną automatycznie zaznaczone. Zarządzanie użytkownikami pozostaje przywilejem administratora.\n",
@@ -231,7 +253,28 @@
     "userManagement": "Zarządzanie użytkownikami",
     "userUpdated": "Użytkownik zapisany!",
     "username": "Nazwa użytkownika",
-    "users": "Użytkownicy"
+    "users": "Użytkownicy",
+    "loginMethod": "Metoda logowania",
+    "modifyOtherUser": "Modyfikacja użytkownika:",
+    "modifyCurrentUser": "Modyfikacja bieżącego użytkownika",
+    "themeColor": "Kolor motywu",
+    "disableOfficePreviewDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których przeglądarka OnlyOffice ma zostać wyłączona. (np. \".txt .html\").",
+    "disableOfficePreview": "Wyłącz przeglądarkę onlyoffice dla niektórych rozszerzeń plików",
+    "filePreviewOptions": "Opcje podglądu plików",
+    "listingOptions": "Opcje aukcji",
+    "emptyGlobal": "Obecnie nie ma globalnych opcji konfiguracyjnych, można edytować konfigurację yaml, aby dostosować ustawienia systemu.",
+    "scopes": "Definiowanie dozwolonych źródeł i zakresu użytkowników w ich obrębie",
+    "UserManagement": "Zarządzanie użytkownikami",
+    "tusUploads": "Zbiorcze przesyłanie plików",
+    "tusUploadsHelp": "File Browser obsługuje przesyłanie plików w postaci fragmentów, umożliwiając tworzenie wydajnych, niezawodnych, wznawianych i podzielonych na fragmenty plików nawet w niewiarygodnych sieciach.",
+    "tusUploadsChunkSize": "Wskazuje maksymalny rozmiar żądania (bezpośrednie przesyłanie będzie używane do przesyłania mniejszych plików). Możesz wprowadzić zwykłą liczbę całkowitą oznaczającą bajty wejściowe lub ciąg znaków, taki jak 10 MB, 1 GB itp.",
+    "tusUploadsRetryCount": "Liczba ponawianych prób w przypadku niepowodzenia przesłania fragmentu.",
+    "userHomeBasePath": "Ścieżka podstawowa dla katalogów domowych użytkownika",
+    "userScopeGenerationPlaceholder": "Zakres zostanie wygenerowany automatycznie",
+    "createUserHomeDirectory": "Tworzenie katalogu domowego użytkownika",
+    "api": "Klucze API",
+    "setDateFormat": "Ustaw dokładny format daty",
+    "shareDeleted": "Usunięto udostępnianie!"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -255,5 +298,49 @@
     "minutes": "Minuty",
     "seconds": "Sekundy",
     "unit": "Jednostka czasu"
+  },
+  "upload": {
+    "abortUpload": "Czy na pewno chcesz przerwać ciążę?"
+  },
+  "share": {
+    "notice": "Uwaga: każdy, kto ma dostęp do linku (i opcjonalnie hasło), może uzyskać dostęp do udostępnionych plików. Nie ma wymogu bycia zalogowanym."
+  },
+  "api": {
+    "title": "Klucze API:",
+    "keyName": "Nazwa klucza API:",
+    "createdAt": "Utworzono w:",
+    "expiresAt": "Wygasa w:",
+    "permissions": "Uprawnienia:",
+    "createTitle": "Tworzenie klucza API",
+    "keyNamePlaceholder": "Wprowadź unikalną nazwę klucza API:",
+    "tokenDuration": "Czas trwania tokena:",
+    "durationNumberPlaceholder": "Liczba",
+    "days": "Dni",
+    "months": "Miesiące",
+    "permissionNote": "Wybierz co najmniej jedno uprawnienie dla klucza. Użytkownik również musi mieć to uprawnienie.",
+    "createKeyFailed": "Nie udało się utworzyć klucza API.",
+    "createKeySuccess": "Klucz API został pomyślnie utworzony.",
+    "description": "Klucze API są oparte na użytkowniku, który je utworzył. Zobacz",
+    "swaggerLinkText": "strona swagger",
+    "name": "Nazwa",
+    "created": "Utworzony",
+    "expires": "Wygasa",
+    "actions": "Działania",
+    "enabled": "Włączone",
+    "disabled": "Wyłączony"
+  },
+  "index": {
+    "status": "Status",
+    "assessment": "Ocena",
+    "files": "Pliki",
+    "folders": "Foldery",
+    "lastScanned": "Ostatnio skanowane",
+    "quickScan": "Sekundy szybkiego skanowania",
+    "fullScan": "Sekundy pełnego skanowania",
+    "settingsHover": "Ustawienia dla użytkownika",
+    "logout": "Wylogowanie",
+    "toggleClick": "Przełączanie jednym kliknięciem",
+    "toggleDark": "Przełączanie trybu ciemnego",
+    "toggleSticky": "Przełączanie trybu samoprzylepnego"
   }
 }

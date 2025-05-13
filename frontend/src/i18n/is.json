@@ -95,7 +95,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -125,7 +125,6 @@
     "downloadMessage": "Veldu skrárgerð sem þú vilt sækja.",
     "error": "Eitthvað fór úrskeiðis",
     "fileInfo": "Upplýsingar um gögn",
-    "filesSelected": "{count} skjöl valin.",
     "lastModified": "Seinast breytt",
     "move": "Færa",
     "moveMessage": "Velja nýtt hús fyrir skjöl/möppur:",
@@ -145,7 +144,8 @@
     "show": "Sýna",
     "size": "Stærð",
     "upload": "",
-    "uploadMessage": ""
+    "uploadMessage": "",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
   },
   "search": {
     "images": "Myndir",
@@ -254,5 +254,9 @@
     "minutes": "Mínútur",
     "seconds": "Sekúndur",
     "unit": "Tímastilling"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }
