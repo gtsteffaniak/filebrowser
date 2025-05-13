@@ -1798,14 +1798,6 @@ const docTemplate = `{
         },
         "settings.OidcConfig": {
             "type": "object",
-            "required": [
-                "authorizationUrl",
-                "clientId",
-                "clientSecret",
-                "scopes",
-                "tokenUrl",
-                "userInfoUrl"
-            ],
             "properties": {
                 "authorizationUrl": {
                     "description": "authorization URL of the OIDC provider",
@@ -1841,6 +1833,10 @@ const docTemplate = `{
                 },
                 "userInfoUrl": {
                     "description": "user info URL of the OIDC provider",
+                    "type": "string"
+                },
+                "wellKnownUrl": {
+                    "description": "URL to the well-known configuration of the OIDC provider. If set, the other URLs will be ignored.",
                     "type": "string"
                 }
             }
