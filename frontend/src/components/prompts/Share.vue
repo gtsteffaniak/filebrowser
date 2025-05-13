@@ -3,8 +3,8 @@
     <div class="card-title">
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
-    <div aria-label="share-path" class="searchContext"> {{$('search.path')}} {{ subpath }}</div>
-    <p> {{ $('share.notice') }} </p>
+    <div aria-label="share-path" class="searchContext"> {{$t('search.path')}} {{ subpath }}</div>
+    <p> {{ $t('share.notice') }} </p>
     <template v-if="listing">
       <div class="card-content">
         <table>

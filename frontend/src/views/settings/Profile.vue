@@ -6,7 +6,7 @@
     <div class="card-content">
       <form>
         <div class="card-content">
-          <h3>{{ $('settings.listingOptions') }}</h3>
+          <h3>{{ $t('settings.listingOptions') }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
@@ -24,7 +24,7 @@
               :name="`Always show download icon for quick access`"
             />
           </div>
-          <h3> {{ $('settings.filePreviewOptions') }}</h3>
+          <h3> {{ $t('settings.filePreviewOptions') }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
@@ -61,9 +61,9 @@
             />
           </div>
           <div v-if="hasOnlyOfficeEnabled">
-            <h3> {{ $('settings.disableOfficePreview')}} </h3>
+            <h3> {{ $t('settings.disableOfficePreview')}} </h3>
             <p>
-              {{ $('settings.disableOfficePreviewDescription') }}
+              {{ $t('settings.disableOfficePreviewDescription') }}
             </p>
             <div class="onlyoffice-group">
               <input
@@ -74,11 +74,11 @@
                 id="onlyofficeExt"
                 v-model="formOnlyOfficeExt"
               />
-              <button type="button" class="button onlyoffice-button" @click="submitOnlyOfficeChange"> {{ $('buttons.save') }} </button>
+              <button type="button" class="button onlyoffice-button" @click="submitOnlyOfficeChange"> {{ $t('buttons.save') }} </button>
             </div>
           </div>
 
-          <h3> {{ $('settings.themeColor') }} </h3>
+          <h3> {{ $t('settings.themeColor') }} </h3>
           <ButtonGroup
             :buttons="colorChoices"
             @button-clicked="setColor"

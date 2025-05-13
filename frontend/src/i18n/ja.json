@@ -159,7 +159,8 @@
     "filesSelected": "選択されたファイル",
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "任意のパスワード",
-    "typeName": "タイプ"
+    "typeName": "タイプ",
+    "selected": "選ばれた"
   },
   "search": {
     "images": "画像",

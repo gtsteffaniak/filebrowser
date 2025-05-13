@@ -159,7 +159,8 @@
     "deleteUserMessage": "Bu kullanıcıyı silmek istediğinizden emin misiniz?",
     "filesSelected": "seçilen dosyalar",
     "uploadFiles": "Uploading {files} files...",
-    "typeName": "Tip:"
+    "typeName": "Tip:",
+    "selected": "seçilmiş"
   },
   "search": {
     "images": "Görseller",

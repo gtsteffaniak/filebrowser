@@ -159,7 +159,8 @@
     "filesSelected": "fișiere selectate",
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Parolă opțională",
-    "typeName": "Tip:"
+    "typeName": "Tip:",
+    "selected": "selectat"
   },
   "search": {
     "images": "Imagini",

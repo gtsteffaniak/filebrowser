@@ -159,7 +159,8 @@
     "filesSelected": "الملفات المحددة",
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "كلمة مرور اختيارية",
-    "typeName": "النوع:"
+    "typeName": "النوع:",
+    "selected": "مختارة"
   },
   "search": {
     "images": "الصور",

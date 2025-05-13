@@ -159,7 +159,8 @@
     "filesSelected": "선택한 파일",
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "선택적 비밀번호",
-    "typeName": "유형:"
+    "typeName": "유형:",
+    "selected": "선택"
   },
   "search": {
     "images": "이미지",

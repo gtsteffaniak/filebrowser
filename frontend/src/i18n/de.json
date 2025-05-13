@@ -159,7 +159,8 @@
     "optionalPassword": "Optionales Kennwort",
     "deleteUserMessage": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?",
     "filesSelected": "ausgewählte Dateien",
-    "typeName": "Art:"
+    "typeName": "Art:",
+    "selected": "ausgewählt"
   },
   "search": {
     "images": "Bilder",

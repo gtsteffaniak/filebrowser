@@ -42,7 +42,7 @@
         </p>
       </div>
       <div v-if="oidcAvailable" class="password-entry">
-        <div v-if="passwordAvailable" class="or">{{ $('login.or') }}</div>
+        <div v-if="passwordAvailable" class="or">{{ $t('login.or') }}</div>
         <a href="/api/auth/oidc/login" class="button button--block direct-login"> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           OpenID Connect
         </a>

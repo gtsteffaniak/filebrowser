@@ -17,7 +17,7 @@
         <span id="content_length"></span> {{ humanSize }}
       </p>
       <p v-if="!dir || selected.length > 1">
-        <strong>{{$('prompts.typeName')}}</strong>
+        <strong>{{$t('prompts.typeName')}}</strong>
         <span id="content_length"></span> {{ type }}
       </p>
       <p v-if="selected.length < 2" :title="modTime">

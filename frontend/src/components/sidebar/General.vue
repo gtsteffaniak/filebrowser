@@ -19,31 +19,31 @@
         </thead>
         <tbody>
           <tr>
-            <td>{{ $t('index.status') }}</td>
+            <td>{{ $t("index.status") }}</td>
             <td>{{ sourceInfoTooltip.status }}</td>
           </tr>
           <tr>
-            <td>{{ $t('index.assessment') }}</td>
+            <td>{{ $t("index.assessment") }}</td>
             <td>{{ sourceInfoTooltip.assessment }}</td>
           </tr>
           <tr>
-            <td>{{ $t('index.files') }}</td>
+            <td>{{ $t("index.files") }}</td>
             <td>{{ sourceInfoTooltip.files }}</td>
           </tr>
           <tr>
-            <td>{{ $t('index.folders') }}</td>
+            <td>{{ $t("index.folders") }}</td>
             <td>{{ sourceInfoTooltip.folders }}</td>
           </tr>
           <tr>
-            <td>{{ $t('index.lastScanned') }}</td>
+            <td>{{ $t("index.lastScanned") }}</td>
             <td>{{ gethumanReadable }}</td>
           </tr>
           <tr>
-            <td>{{ $t('index.quickScan') }}</td>
+            <td>{{ $t("index.quickScan") }}</td>
             <td>{{ humanReadableQuickScan }}</td>
           </tr>
           <tr>
-            <td>{{ $t('index.fullScan') }}</td>
+            <td>{{ $t("index.fullScan") }}</td>
             <td>{{ humanReadableFullScan }}</td>
           </tr>
         </tbody>
@@ -117,17 +117,71 @@
       </div>
     </div>
   </div>
+  <!-- Section for logged-in users -->
+  <div v-if="loginCheck" class="sidebar-scroll-list">
+    <div class="sources card">
+      <span> {{ $t("sidebar.sources") }}</span>
+      <div class="inner-card">
+        <!-- My Files button -->
+        <button
+          v-for="(info, name) in sourceInfo"
+          :key="name"
+          class="action source-button"
+          :class="{ active: activeSource == name }"
+          @click="navigateTo('/files/' + info.pathPrefix)"
+          @mouseenter="updateSourceTooltip($event, info)"
+          @mouseleave="resetSourceTooltip"
+          :aria-label="$t('sidebar.myFiles')"
+        >
+          <div class="source-container">
+            <svg
+              class="realtime-pulse"
+              :class="{
+                active: realtimeActive,
+                danger: info.status != 'indexing' && info.status != 'ready',
+                warning: info.status == 'indexing',
+                ready: info.status == 'ready',
+              }"
+            >
+              <circle class="center" cx="50%" cy="50%" r="7px"></circle>
+              <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
+            </svg>
+            <span>{{ name }}</span>
+          </div>
+          <div v-if="hasSourceInfo" class="usage-info">
+            <ProgressBar
+              :val="info.usedPercentage"
+              text-position="inside"
+              :text="info.usedPercentage + '%'"
+              size="large"
+              text-fg-color="white"
+            ></ProgressBar>
+            <div class="usage-info">
+              <span>
+                {{ getHumanReadableFilesize(info.used) }} {{ $t("index.of") }}
+                {{ getHumanReadableFilesize(info.total) }} {{ $t("index.used") }}
+              </span>
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import * as auth from "@/utils/auth";
 import { signup, disableExternal, noAuth, loginPage } from "@/utils/constants";
+import ProgressBar from "@/components/ProgressBar.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { fromNow } from "@/utils/moment";
 
 export default {
   name: "SidebarGeneral",
+  components: {
+    ProgressBar,
+  },
   data() {
     return {
       mouseY: 0,

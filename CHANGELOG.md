@@ -7,10 +7,10 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**
  - Added code highlights to text editor and enabled text editor for all asci files under 25MB
  - Motion previews for videos -- cycles screenshots of vidoes at 10%-25%-50%-75%.
- - Optionally reset default admin username/password on startup, to guarentee a username/password on startup if needed.
+ - Optionally reset default admin username/password on startup, to guarentee a username/password on startup if needed. Use by setting `auth.resetAdminOnStart` true
 
  **Notes**:
- - 
+ - updated translations everywhere.
 
  **BugFixes**:
  - editor save shows notification

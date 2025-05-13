@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-content">
-      <p>{{$('prompts.deleteUserMessage')}}</p>
+      <p>{{$t('prompts.deleteUserMessage')}}</p>
     </div>
     <div class="card-action">
       <button

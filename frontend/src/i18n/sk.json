@@ -159,7 +159,8 @@
     "deleteUserMessage": "Ste si istí, že chcete odstrániť tohto používateľa?",
     "filesSelected": "vybrané súbory",
     "uploadFiles": "Uploading {files} files...",
-    "typeName": "Typ:"
+    "typeName": "Typ:",
+    "selected": "vybrané"
   },
   "search": {
     "images": "Obrázky",

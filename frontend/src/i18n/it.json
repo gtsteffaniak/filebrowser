@@ -159,7 +159,8 @@
     "filesSelected": "file selezionati",
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Password opzionale",
-    "typeName": "Tipo:"
+    "typeName": "Tipo:",
+    "selected": "selezionato"
   },
   "search": {
     "images": "Immagini",

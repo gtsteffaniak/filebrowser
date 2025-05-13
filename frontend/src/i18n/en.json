@@ -143,6 +143,7 @@
     "downloadMessage": "Choose the format you want to download.",
     "error": "Something went wrong",
     "fileInfo": "File information",
+    "selected": "selected",
     "filesSelected": "files selected",
     "lastModified": "Last Modified",
     "move": "Move",
@@ -287,6 +288,7 @@
     "newFolder": "New folder",
     "preview": "Preview",
     "settings": "Settings",
+    "sources": "Sources",
     "signup": "Signup",
     "siteSettings": "Site Settings"
   },
@@ -336,6 +338,8 @@
     "logout": "Logout",
     "toggleClick": "Toggle Single Click",
     "toggleDark": "Toggle Dark Mode",
-    "toggleSticky": "Toggle Sticky Mode"
+    "toggleSticky": "Toggle Sticky Mode",
+    "of": "of",
+    "used": "used"
   }
 }

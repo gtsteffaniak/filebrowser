@@ -159,7 +159,8 @@
     "deleteUserMessage": "Вы уверены, что хотите удалить этого пользователя?",
     "filesSelected": "выбранные файлы",
     "uploadFiles": "Uploading {files} files...",
-    "typeName": "Тип:"
+    "typeName": "Тип:",
+    "selected": "выбранные"
   },
   "search": {
     "images": "Изображения",

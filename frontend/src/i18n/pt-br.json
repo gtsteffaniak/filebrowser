@@ -159,7 +159,8 @@
     "optionalPassword": "Senha opcional",
     "deleteUserMessage": "Tem certeza de que deseja excluir esse usuário?",
     "filesSelected": "arquivos selecionados",
-    "typeName": "Tipo:"
+    "typeName": "Tipo:",
+    "selected": "selecionado"
   },
   "search": {
     "images": "Imagens",

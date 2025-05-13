@@ -163,7 +163,8 @@
     "currentlyNavigating": "Αυτή τη στιγμή πλοηγείστε στο:",
     "deleteUserMessage": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον χρήστη;",
     "filesSelected": "επιλεγμένα αρχεία",
-    "typeName": "Τύπος:"
+    "typeName": "Τύπος:",
+    "selected": "επιλεγμένο"
   },
   "search": {
     "images": "Εικόνες",
