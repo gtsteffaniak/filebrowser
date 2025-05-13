@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	libError "errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,10 +11,9 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
-	"github.com/lestrrat-go/jwx/v3/jwk"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
@@ -331,155 +329,71 @@ type userInfo struct {
 	Phone             string `json:"phone_number"`
 }
 
-// getKeySet fetches the JWKS from the given URL, using the provided cache.
-func getKeySet(jwksUrl string) (jwk.Set, error) {
-	// Check cache first
-	value := cache.JwtCache.Get(jwksUrl)
-	jwks, ok := value.(jwk.Set)
-	if ok {
-		return jwks, nil
-	}
-	logger.Debug("JWKS not found in cache for, fetching...")
-	// Fetch the JWKS from the URL
-	resp, err := http.Get(jwksUrl)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch JWKS from %s: %v", jwksUrl, err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("failed to fetch JWKS from %s: received status code %d with body: %s", jwksUrl, resp.StatusCode, string(bodyBytes))
-	}
-
-	// Decode the JWKS using jwk.ParseReader
-	jwks, err = jwk.ParseReader(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode JWKS: %v", err)
-	}
-
-	// Store in cache. Assuming your cache handles expiration (e.g., 1 hour).
-	cache.JwtCache.Set(jwksUrl, jwks) // Store the jwk.Set
-	return jwks, nil                  // Return the jwk.Set after type assertion
-}
-
 // oidcCallbackHandler handles the OIDC callback after the user authenticates with the provider.
-// It exchanges the authorization code for tokens, then attempts to verify the ID token using JWKS
-// if configured, falling back to the UserInfo endpoint if necessary.
+// It exchanges the authorization code for tokens, attempts to verify the ID token.
+// If ID token verification or essential claims extraction fails, it falls back to the UserInfo endpoint.
 func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	ctx := r.Context()
 	code := r.URL.Query().Get("code")
 	// state := r.URL.Query().Get("state") // You might want to validate the state parameter for CSRF protection
 
-	origin := r.Header.Get("Origin")
-	if origin == "" {
-		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+	oidcCfg := settings.Config.Auth.Methods.OidcAuth
+	if oidcCfg.Provider == nil || oidcCfg.Verifier == nil {
+		// Ensure Provider and Verifier are initialized on application startup
+		// This check is good, keep it.
+		logger.Error("OIDC provider or verifier not initialized.")
+		return http.StatusInternalServerError, fmt.Errorf("OIDC provider or verifier not initialized")
 	}
 
-	redirectURI := fmt.Sprintf("%s/api/auth/oidc/callback", origin)
+	// The redirect URI MUST match the one registered with the OIDC provider
+	// and used in the initial /api/auth/oidc/login handler.
+	// Using r.Host here might be tricky if running behind a proxy.
+	// Consider using a fixed redirect URL from settings if possible.
+	redirectURL := fmt.Sprintf("%s://%s/api/auth/oidc/callback", getScheme(r), r.Host)
 
-	// Step 1: Exchange the code for tokens
-	data := url.Values{}
-	data.Set("grant_type", "authorization_code")
-	data.Set("code", code)
-	data.Set("client_id", config.Auth.Methods.OidcAuth.ClientID)
-	data.Set("client_secret", config.Auth.Methods.OidcAuth.ClientSecret)
-	data.Set("redirect_uri", redirectURI)
+	oauth2Config := &oauth2.Config{
+		ClientID:     oidcCfg.ClientID,
+		ClientSecret: oidcCfg.ClientSecret,
+		Endpoint:     oidcCfg.Provider.Endpoint(), // Use endpoint from discovered provider
+		RedirectURL:  redirectURL,                 // Use the dynamically determined redirect URL
+		Scopes:       strings.Split(oidcCfg.Scopes, " "),
+	}
 
-	req, _ := http.NewRequest("POST", config.Auth.Methods.OidcAuth.TokenUrl, strings.NewReader(data.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	client := &http.Client{} // Consider using a client with a timeout
-	resp, err := client.Do(req)
+	// Exchange the authorization code for tokens
+	token, err := oauth2Config.Exchange(ctx, code)
 	if err != nil {
-		logger.Debug(fmt.Sprintf("failed to send token request: %v", err))
-		return 500, fmt.Errorf("token request failed: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		logger.Debug(fmt.Sprintf("failed to fetch token: %v %v", resp.StatusCode, string(body)))
-		return 500, fmt.Errorf("failed to fetch token: %v %v", resp.StatusCode, string(body))
+		logger.Error(fmt.Sprintf("failed to exchange token: %v", err))
+		return http.StatusInternalServerError, fmt.Errorf("failed to exchange token: %v", err)
 	}
 
-	// Decode the token response, expecting access_token and potentially id_token
-	var tokenResp struct {
-		AccessToken string `json:"access_token"`
-		IDToken     string `json:"id_token"` // OIDC providers include id_token here
-	}
+	rawIDToken, ok := token.Extra("id_token").(string)
+	// accessToken := token.AccessToken // Access token is needed for UserInfo, already in 'token'
 
-	if err = json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
-		logger.Debug(fmt.Sprintf("failed to parse token response: %v", err))
-		return 500, fmt.Errorf("failed to parse token response: %v", err)
-	}
+	var userdata userInfo      // Declare userdata here to be populated by either source
+	claimsFromIDToken := false // Flag to track if we successfully got claims from ID token
 
-	var userdata userInfo       // This will hold the user claims, using the original struct
-	useUserInfoEndpoint := true // Flag to determine if we need to call the UserInfo endpoint
+	// --- Attempt to process ID Token ---
+	if ok && rawIDToken != "" {
+		logger.Debug("ID token found in token response, attempting verification.")
 
-	// Step 2: Process ID Token if available and JWKS URL is configured
-	if tokenResp.IDToken != "" && config.Auth.Methods.OidcAuth.JwksUrl != "" {
-		logger.Debug(fmt.Sprintf("ID token received `%v` attempting to verify using JWKS URL", tokenResp.IDToken))
-		// getKeySet now returns jwk.Set (interface)
-		var jwks jwk.Set
-		jwks, err = getKeySet(config.Auth.Methods.OidcAuth.JwksUrl)
+		// Verify the ID token
+		// This uses the verifier initialized with the provider's JWKS endpoint and client ID
+		idToken, err := oidcCfg.Verifier.Verify(ctx, rawIDToken)
 		if err != nil {
-			// Log the error but don't fail yet, try UserInfo endpoint as a fallback
-			logger.Warning("Failed to fetch or decode JWKS: %v. Falling back to UserInfo endpoint. Ensure your OidcAuth.JwksUrl is correct.")
+			logger.Warning(fmt.Sprintf("failed to verify ID token: %v. Falling back to UserInfo endpoint.", err))
+			// Verification failed, claimsFromIDToken remains false
 		} else {
-			var token *jwt.Token
-			// Parse the ID token. We need to provide a key function to `jwt.Parse`
-			// that looks up the key in the JWKS based on the token's `kid`.
-			token, err = jwt.Parse(tokenResp.IDToken, func(token *jwt.Token) (interface{}, error) {
-				switch alg := token.Method.Alg(); alg {
-				case "RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "EdDSA":
-					// accepted
-				default:
-					logger.Debug(fmt.Sprintf("unsupported signing method recieved `%v`", alg))
-					return nil, fmt.Errorf("unsupported signing method recieved: %v", alg)
-				}
-				// Find the key in the JWKS that matches the token's kid (Key ID)
-				keyID, ok := token.Header["kid"].(string)
-				if !ok {
-					logger.Debug("kid header not found in ID token")
-					return nil, fmt.Errorf("kid header not found in ID token")
-				}
-				// Use the jwk.Set interface to find the key
-				// LookupKeyID returns a slice of jwk.Key and a boolean indicating if any keys were found.
-				key, found := jwks.LookupKeyID(keyID) // Called on the jwk.Set interface
-				if !found {
-					logger.Debug(fmt.Sprintf("key with kid %s not found in JWKS", keyID))
-					return nil, fmt.Errorf("key with kid %s not found in JWKS", keyID)
-				}
-				// Return the public key from the first matching JWK
-				// In a real scenario, you might need more sophisticated key selection logic.
-				// The jwk.Key interface has a PublicKey() method to get the public key.
-				publicKey, publicKeyErr := key.PublicKey()
-				if publicKeyErr != nil {
-					logger.Debug(fmt.Sprintf("failed to get public key from JWK: %v", publicKeyErr))
-					return nil, fmt.Errorf("failed to get public key from JWK: %v", err)
-				}
-				return publicKey, nil
-			})
+			var claims map[string]interface{}
+			// Decode the ID token claims into a map to handle arbitrary structure
+			// This is where the JWE unmarshalling error occurs if the token is encrypted
+			if err := idToken.Claims(&claims); err != nil {
+				logger.Warning(fmt.Sprintf("failed to decode ID token claims: %v. Falling back to UserInfo endpoint.", err))
+				// Claims decoding failed, claimsFromIDToken remains false
+			} else {
+				// Successfully verified and decoded ID token claims
+				logger.Debug(fmt.Sprintf("ID Token verified and claims decoded: %+v", claims))
 
-			if err != nil {
-				// Log the verification error but fall back to UserInfo endpoint
-				logger.Error(fmt.Sprintf("failed to parse or verify ID token: %v. Falling back to UserInfo endpoint.", err))
-			} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-				logger.Debug("ID token verified successfully, claims extracted.")
-
-				// --- IMPORTANT OIDC VALIDATION ---
-				// In a production application, you MUST perform additional validations on the ID token claims:
-				// - Issuer (iss): Must match the expected issuer URL.
-				// - Audience (aud): Must contain your client ID.
-				// - Expiration Time (exp): Token must not be expired (jwt.Parse handles this if clock skew is accounted for).
-				// - Issued At Time (iat): Token must not be issued in the future.
-				// - Nonce (nonce): If a nonce was sent in the authorization request, it must match the 'nonce' claim in the ID token.
-				// - Authorized Party (azp): If 'aud' has multiple values, 'azp' must be present and equal to your client ID.
-				// - at_hash and c_hash: If the access token or authorization code were issued, validate their hashes if present in the ID token.
-				// A dedicated OIDC library handles these validations correctly and securely.
-				// This simplified example only verifies the signature and basic validity.
-				// --- END IMPORTANT OIDC VALIDATION ---
-
-				// Populate the userInfo struct from the ID token claims (map)
+				// Populate userdata from ID token claims
 				if name, ok := claims["name"].(string); ok {
 					userdata.Name = name
 				}
@@ -496,41 +410,47 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 					userdata.Phone = phone
 				}
 
-				useUserInfoEndpoint = false // Successfully processed ID token, no need for UserInfo endpoint
-
-			} else {
-				// ID token signature verification failed or token is invalid for other reasons
-				logger.Error("id token signature verification failed or token is invalid. Falling back to UserInfo endpoint.")
+				// Decide if we rely on ID token claims or still need UserInfo
+				// Even if parsing succeeded, if essential claims are missing, use UserInfo
+				if userdata.Email != "" || userdata.Sub != "" {
+					claimsFromIDToken = true // ID token provided essential info
+					logger.Debug("Essential claims found in ID token.")
+				} else {
+					logger.Warning("Essential claims (email/sub) missing in ID token despite successful verification/decoding. Falling back to UserInfo endpoint to ensure data completeness.")
+					// claimsFromIDToken remains false
+				}
 			}
 		}
+	} else {
+		logger.Debug("No ID token found in token response or it was empty. Falling back to UserInfo endpoint.")
+		// claimsFromIDToken remains false
 	}
 
-	// Step 3: Use the access token to fetch user info from the UserInfo URL if needed
-	// This step is skipped if the ID token was successfully processed and verified.
-	if useUserInfoEndpoint {
-		userInfoURL := config.Auth.Methods.OidcAuth.UserInfoUrl
-		req, _ = http.NewRequest("GET", userInfoURL, nil)
-		req.Header.Set("Authorization", "Bearer "+tokenResp.AccessToken)
-
-		resp, err = client.Do(req)
+	// --- Fallback to UserInfo endpoint if ID token processing did not provide essential claims ---
+	if !claimsFromIDToken {
+		// Use the access token obtained from the initial exchange
+		// oauth2Config.TokenSource creates a token source that uses the provided token.
+		userInfoResp, err := oidcCfg.Provider.UserInfo(ctx, oauth2Config.TokenSource(ctx, token))
 		if err != nil {
-			return 500, fmt.Errorf("failed to fetch user info: %v", err)
+			logger.Error(fmt.Sprintf("failed to fetch user info from endpoint: %v", err))
+			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info from endpoint: %v", err)
 		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			bodyBytes, _ := io.ReadAll(resp.Body)
-			return 500, fmt.Errorf("failed to fetch user info: received status code %d with body: %s", resp.StatusCode, string(bodyBytes))
-		}
-
-		// Decode the UserInfo response directly into the original userdata struct
-		if err = json.NewDecoder(resp.Body).Decode(&userdata); err != nil {
-			return 500, fmt.Errorf("failed to parse user info: %v", err)
+		// Decode the UserInfo response directly into the userdata struct
+		// The UserInfo endpoint is expected to return standard JSON
+		if err := userInfoResp.Claims(&userdata); err != nil {
+			logger.Error(fmt.Sprintf("failed to decode user info from endpoint: %v", err))
+			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info from endpoint: %v", err)
 		}
 	}
 
-	// Now userdata contains claims from either the verified ID token or the UserInfo endpoint.
-	// Proceed with logging in the user based on the extracted claims.
+	// Final check to ensure we got at least a sub or email from either source
+	if userdata.Sub == "" && userdata.Email == "" {
+		logger.Error("Neither ID token (if attempted) nor UserInfo endpoint provided sufficient claims (sub or email). Cannot proceed with login.")
+		return http.StatusInternalServerError, fmt.Errorf("authentication failed: essential user info missing")
+	}
+
+	// Proceed to log the user in with the OIDC data
+	// userdata struct now contains info from either verified ID token or UserInfo endpoint
 	return loginWithOidcUser(w, r, userdata)
 }
 
@@ -538,37 +458,31 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // This function remains largely the same, but includes the 'fb_redirect' parameter
 // to redirect the user back to the original page after successful login.
 func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if config.Auth.Methods.OidcAuth.Enabled {
-		origin := r.Header.Get("Origin")
-		if origin == "" {
-			origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
-		}
-
-		// Generate a nonce for CSRF protection (optional but recommended)
-		// You should store this nonce and validate it in the callback handler.
-		nonce := utils.InsecureRandomIdentifier(16)
-		// For state parameter, you might include the nonce and the original redirect URL
-		state := fmt.Sprintf("%s:%s", nonce, r.URL.Query().Get("fb_redirect")) // Example state parameter structure
-
-		redirectURI := fmt.Sprintf("%s/api/auth/oidc/callback", origin)
-
-		// Construct the authorization URL
-		authURL := fmt.Sprintf("%s?client_id=%s&response_type=code&scope=%s&redirect_uri=%s&redirect_uris=%s&state=%s",
-			config.Auth.Methods.OidcAuth.AuthorizationUrl,
-			url.QueryEscape(config.Auth.Methods.OidcAuth.ClientID),
-			url.QueryEscape(config.Auth.Methods.OidcAuth.Scopes),
-			url.QueryEscape(redirectURI),
-			url.QueryEscape(redirectURI),
-			url.QueryEscape(state), // Use the state parameter
-		)
-
-		// Redirect the user to the OIDC provider
-		http.Redirect(w, r, authURL, http.StatusFound)
-		return 0, nil // Indicate that the request has been handled by the redirect
+	oidcCfg := settings.Config.Auth.Methods.OidcAuth
+	if !oidcCfg.Enabled {
+		return http.StatusForbidden, fmt.Errorf("oidc authentication is not enabled")
 	}
 
-	// OIDC authentication is not enabled
-	return http.StatusForbidden, fmt.Errorf("oidc authentication is not enabled")
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+	}
+
+	oauth2Config := &oauth2.Config{
+		ClientID:     oidcCfg.ClientID,
+		ClientSecret: oidcCfg.ClientSecret,
+		Endpoint:     oidcCfg.Provider.Endpoint(),
+		RedirectURL:  fmt.Sprintf("%s/api/auth/oidc/callback", origin),
+		Scopes:       strings.Split(oidcCfg.Scopes, " "),
+	}
+
+	nonce := utils.InsecureRandomIdentifier(16)
+	fbRedirect := r.URL.Query().Get("fb_redirect")
+	state := fmt.Sprintf("%s:%s", nonce, fbRedirect)
+
+	authURL := oauth2Config.AuthCodeURL(state)
+	http.Redirect(w, r, authURL, http.StatusFound)
+	return 0, nil
 }
 
 // loginWithOidcUser extracts the username from the user claims (userInfo)

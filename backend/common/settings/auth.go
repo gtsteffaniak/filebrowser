@@ -1,5 +1,13 @@
 package settings
 
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/coreos/go-oidc/v3/oidc"
+)
+
 type Auth struct {
 	TokenExpirationHours int          `json:"tokenExpirationHours"` // the number of hours until the token expires. Default is 2 hours.
 	Methods              LoginMethods `json:"methods"`
@@ -38,13 +46,33 @@ type Recaptcha struct {
 
 // OpenID OAuth2.0
 type OidcConfig struct {
-	Enabled          bool   `json:"enabled"`                              // whether to enable OIDC authentication
-	ClientID         string `json:"clientId" validate:"required"`         // client id of the OIDC application
-	ClientSecret     string `json:"clientSecret" validate:"required"`     // client secret of the OIDC application
-	AuthorizationUrl string `json:"authorizationUrl" validate:"required"` // authorization URL of the OIDC provider
-	TokenUrl         string `json:"tokenUrl" validate:"required"`         // token URL of the OIDC provider
-	UserInfoUrl      string `json:"userInfoUrl" validate:"required"`      // user info URL of the OIDC provider
-	Scopes           string `json:"scopes" validate:"required"`           // space separated list of scopes to request from the OIDC provider
-	UserIdentifier   string `json:"userIdentifier"`                       // optional: which attribute should be used as the username? options: email, username, name, phone_number, sub
-	JwksUrl          string `json:"jwksUrl"`                              // currently not used by filebrowser
+	Enabled        bool                  `json:"enabled"`        // whether to enable OIDC authentication
+	ClientID       string                `json:"clientId"`       // client id of the OIDC application
+	ClientSecret   string                `json:"clientSecret"`   // client secret of the OIDC application
+	IssuerUrl      string                `json:"issuerUrl"`      // authorization URL of the OIDC provider
+	Scopes         string                `json:"scopes"`         // scopes to request from the OIDC provider
+	UserIdentifier string                `json:"userIdentifier"` // the user identifier to use for authentication. Default is "username".
+	Provider       *oidc.Provider        `json:"-"`              // OIDC provider
+	Verifier       *oidc.IDTokenVerifier `json:"-"`              // OIDC verifier
+}
+
+// ValidateOidcAuth processes the OIDC callback and retrieves user identity
+func validateOidcAuth() error {
+	oidcCfg := Config.Auth.Methods.OidcAuth
+	if !oidcCfg.Enabled {
+		return errors.New("OIDC is not enabled")
+	}
+
+	ctx := context.Background()
+	provider, err := oidc.NewProvider(ctx, oidcCfg.IssuerUrl)
+	if err != nil {
+		return fmt.Errorf("url '%v' failed to create OIDC provider: %w", oidcCfg.IssuerUrl, err)
+	}
+	Config.Auth.Methods.OidcAuth.Provider = provider
+	Config.Auth.Methods.OidcAuth.Verifier = provider.Verifier(&oidc.Config{ClientID: oidcCfg.ClientID})
+	if oidcCfg.Scopes == "" {
+		Config.Auth.Methods.OidcAuth.Scopes = "openid email profile"
+	}
+
+	return nil
 }
