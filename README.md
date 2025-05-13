@@ -100,19 +100,19 @@ See the [Migration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Migrat
 
  Application Name | <img width="48" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" > Quantum | <img width="48" src="https://github.com/filebrowser/filebrowser/blob/master/frontend/public/img/logo.svg" > Filebrowser | <img width="48" src="https://github.com/mickael-kerjean/filestash/blob/master/public/assets/logo/app_icon.png?raw=true" > Filestash | <img width="48" src="https://avatars.githubusercontent.com/u/19211038?s=200&v=4" >  Nextcloud | <img width="48" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google_Drive_logo.png/480px-Google_Drive_logo.png" > Google_Drive | <img width="48" src="https://avatars.githubusercontent.com/u/6422152?v=4" > FileRun
 --- | --- | --- | --- | --- | --- | --- |
-Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Filesystem support            | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Linux                         | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-Windows                       | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+Windows                       | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
+Mac                           | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 Self hostable                 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Has Stable Release?           | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
+S3 support                    | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
 webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Docker image size             | 200 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
-Min. Memory Requirements      | 256 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 4 GB   |
+Min. Memory Requirements      | 256 MB | 128 MB | 128 MB (main image) | 128 MB | ❌ | 512 MB   |
 has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 price                         | free | free | free | free tier | free tier | $99+ |
 rich media preview            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -127,7 +127,7 @@ LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 Long-live API key support     | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 API documentation page        | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
-open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 tags support                  | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 shareable web links?          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Event-based notifications     | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
