@@ -35,7 +35,9 @@
     "toggleSidebar": "Mostrar/Ocultar menú",
     "update": "Actualizar",
     "upload": "Subir",
-    "openFile": "Abrir archivo"
+    "openFile": "Abrir archivo",
+    "copyDownloadLinkToClipboard": "Copiar enlace de descarga al portapapeles",
+    "continue": "Continúe en"
   },
   "download": {
     "downloadFile": "Descargar fichero",
@@ -101,7 +103,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "Swedish (Sweden)",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -116,7 +118,8 @@
     "submit": "Iniciar sesión",
     "username": "Usuario",
     "usernameTaken": "Nombre usuario no disponible",
-    "wrongCredentials": "Usuario y/o contraseña incorrectos"
+    "wrongCredentials": "Usuario y/o contraseña incorrectos",
+    "or": "O"
   },
   "permanent": "Permanente",
   "prompts": {
@@ -132,7 +135,6 @@
     "downloadMessage": "Elige el formato de descarga.",
     "error": "Algo ha fallado",
     "fileInfo": "Información del archivo",
-    "filesSelected": "{count} archivos seleccionados.",
     "lastModified": "Última modificación",
     "move": "Mover",
     "moveMessage": "Elige una nueva casa para tus archivo(s)/carpeta(s):",
@@ -154,7 +156,10 @@
     "upload": "Subir",
     "uploadFiles": "Subiendo {files} archivos...",
     "uploadMessage": "Seleccione una opción para subir.",
-    "optionalPassword": "Contraseña opcional"
+    "optionalPassword": "Contraseña opcional",
+    "deleteUserMessage": "¿Está seguro de que desea eliminar este usuario?",
+    "filesSelected": "archivos seleccionados",
+    "typeName": "Tipo:"
   },
   "search": {
     "images": "Imágenes",
@@ -164,7 +169,12 @@
     "search": "Buscar...",
     "typeToSearch": "Escribe para realizar una busqueda...",
     "types": "Tipos",
-    "video": "Vídeo"
+    "video": "Vídeo",
+    "path": "Senda:",
+    "smallerThan": "Más pequeño que:",
+    "largerThan": "Más grande que:",
+    "helpText1": "La búsqueda se realiza por cada carácter que escriba (mínimo de 3 caracteres para los términos de búsqueda).",
+    "helpText2": "El índice: La búsqueda utiliza el índice que se actualiza automáticamente en el intervalo configurado (por defecto: 5 minutos). La búsqueda cuando el programa acaba de iniciarse puede dar lugar a resultados incompletos."
   },
   "settings": {
     "scopes": "Definir fuentes permitidas y el alcance del usuario dentro de ellas",
@@ -215,7 +225,10 @@
       "execute": "Executar comandos",
       "modify": "Editar ficheros",
       "rename": "Renombrar o mover ficheros y directorios",
-      "share": "Compartir ficheros"
+      "share": "Compartir ficheros",
+      "admin": "Administrador",
+      "api": "Crear y gestionar claves API de larga duración",
+      "realtime": "Permitir conexiones y actualizaciones en tiempo real"
     },
     "permissions-name": "Permisos",
     "permissionsHelp": "Puedes nombrar al usuario como administrador o elegir los permisos individualmente. Si seleccionas \"Administrador\", todas las otras opciones serán activadas automáticamente. La administración de usuarios es un privilegio de administrador.\n",
@@ -245,7 +258,22 @@
     "userManagement": "Administración de usuarios",
     "userUpdated": "¡Usuario actualizado!",
     "username": "Usuario",
-    "users": "Usuarios"
+    "users": "Usuarios",
+    "loginMethod": "Método de inicio de sesión",
+    "modifyOtherUser": "Modificar usuario:",
+    "modifyCurrentUser": "Modificar el usuario actual",
+    "themeColor": "Tema Color",
+    "disableOfficePreviewDescription": "Una lista separada por espacios de las extensiones de archivo para las que desea desactivar el visor de OnlyOffice. (por ejemplo, '.txt .html').",
+    "disableOfficePreview": "Desactivar onlyoffice viewer para determinadas extensiones de archivo",
+    "filePreviewOptions": "Opciones de previsualización de archivos",
+    "listingOptions": "Opciones de listado",
+    "emptyGlobal": "Actualmente no hay opciones de configuración global, puede editar el yaml de configuración para ajustar la configuración del sistema.",
+    "UserManagement": "Gestión de usuarios",
+    "tusUploads": "Subidas en trozos",
+    "tusUploadsHelp": "File Browser admite la carga de archivos en trozos, lo que permite crear cargas de archivos eficientes, fiables, reanudables y en trozos, incluso en redes poco fiables.",
+    "tusUploadsChunkSize": "Indica el tamaño máximo de una solicitud (las cargas directas se utilizarán para cargas más pequeñas). Puede introducir un número entero que indique una entrada en bytes o una cadena como 10 MB, 1 GB, etc.",
+    "tusUploadsRetryCount": "Número de reintentos a realizar si falla la subida de un chunk.",
+    "api": "Claves API"
   },
   "sidebar": {
     "help": "Ayuda",
@@ -269,5 +297,49 @@
     "minutes": "Minutos",
     "seconds": "Segundos",
     "unit": "Unidad"
+  },
+  "upload": {
+    "abortUpload": "¿Seguro que quieres abortar?"
+  },
+  "share": {
+    "notice": "Nota: cualquiera que tenga acceso al enlace (y contraseña opcional) puede acceder a los archivos compartidos. No es necesario haber iniciado sesión."
+  },
+  "api": {
+    "title": "Claves API:",
+    "keyName": "Nombre de la clave API:",
+    "createdAt": "Creado en:",
+    "expiresAt": "Expira en:",
+    "permissions": "Permisos:",
+    "createTitle": "Crear clave API",
+    "keyNamePlaceholder": "Introduzca un nombre de clave de API único:",
+    "tokenDuration": "Duración de la ficha:",
+    "durationNumberPlaceholder": "Número",
+    "days": "Días",
+    "months": "Meses",
+    "permissionNote": "Elija al menos un permiso para la clave. Su usuario también debe tener el permiso.",
+    "createKeyFailed": "Error al crear la clave API.",
+    "createKeySuccess": "Clave API creada correctamente.",
+    "description": "Las claves API se basan en el usuario que las crea. Véase",
+    "swaggerLinkText": "página swagger",
+    "name": "Nombre",
+    "created": "Creado",
+    "expires": "Expira en",
+    "actions": "Acciones",
+    "enabled": "Activado",
+    "disabled": "Discapacitados"
+  },
+  "index": {
+    "status": "Estado",
+    "assessment": "Evaluación",
+    "files": "Archivos",
+    "folders": "Carpetas",
+    "lastScanned": "Último escaneado",
+    "quickScan": "Segundos de exploración rápida",
+    "fullScan": "Segundos de exploración completa",
+    "settingsHover": "Ajustes para el usuario",
+    "logout": "Cierre de sesión",
+    "toggleClick": "Conmutar un solo clic",
+    "toggleDark": "Activar el modo oscuro",
+    "toggleSticky": "Conmutar el modo adhesivo"
   }
 }

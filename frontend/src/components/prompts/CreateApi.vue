@@ -1,40 +1,37 @@
 <template>
   <div class="card floating create-api__prompt__card" id="create-api">
     <div class="card-title">
-      <h2>Create API Key</h2>
+      <h2>{{ $t('api.createTitle') }}</h2>
     </div>
 
     <div class="card-content">
       <!-- API Key Name Input -->
-      <p>API Key Name</p>
+      <p>{{ $t('api.keyName') }}</p>
       <input
         class="input input--block"
         type="text"
         v-model.trim="apiName"
-        placeholder="enter a uinque api key name"
+        :placeholder="$t('api.keyNamePlaceholder')"
       />
 
       <!-- Duration Input -->
-      <p>Token Duration</p>
+      <p>{{ $t('api.tokenDuration') }}</p>
       <div class="inputWrapper">
         <input
           class="sizeInput roundedInputLeft input"
           v-model.number="duration"
           type="number"
           min="1"
-          placeholder="number"
+          :placeholder="$t('api.durationNumberPlaceholder')"
         />
         <select v-model="unit" class="roundedInputRight input">
-          <option value="days">days</option>
-          <option value="months">months</option>
+          <option value="days">{{ $t('api.days') }}</option>
+          <option value="months">{{ $t('api.months') }}</option>
         </select>
       </div>
 
       <!-- Permissions Input -->
-      <p>
-        Choose at least one permission for the key. Your User must also have the
-        permission.
-      </p>
+      <p>{{ $t('api.permissionNote') }}</p>
       <div class="settings-items">
         <ToggleSwitch
           v-for="(isEnabled, permission) in permissions"
@@ -114,10 +111,10 @@ export default {
         };
 
         await usersApi.createApiKey(params);
-        notify.showSuccess("successfully created!");
+        notify.showSuccess($t("api.createKeySuccess"));
         window.location.reload();
       } catch (error) {
-        notify.showError(this.$t("errors.createKeyFailed"));
+        notify.showError($t("api.createKeyFailed"));
       }
     },
   },

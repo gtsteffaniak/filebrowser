@@ -36,7 +36,8 @@
     "update": "Aktualisieren",
     "upload": "Upload",
     "openFile": "Datei öffnen",
-    "continue": "Fortfahren"
+    "continue": "Fortfahren",
+    "copyDownloadLinkToClipboard": "Download-Link in die Zwischenablage kopieren"
   },
   "download": {
     "downloadFile": "Download Datei",
@@ -117,7 +118,8 @@
     "submit": "Anmelden",
     "username": "Benutzername",
     "usernameTaken": "Benutzername ist bereits vergeben",
-    "wrongCredentials": "Falsche Zugangsdaten"
+    "wrongCredentials": "Falsche Zugangsdaten",
+    "or": "OR"
   },
   "permanent": "Permanent",
   "prompts": {
@@ -133,7 +135,6 @@
     "downloadMessage": "Wählen Sie ein Format zum Herunterladen aus.",
     "error": "Etwas ist schief gelaufen",
     "fileInfo": "Dateiinformation",
-    "filesSelected": "{count} Dateien ausgewählt.",
     "lastModified": "Zuletzt geändert",
     "move": "Verschieben",
     "moveMessage": "Wählen Sie einen neuen Ort für ihre Datei(en)/Ordner:",
@@ -155,7 +156,10 @@
     "upload": "Upload",
     "uploadFiles": "Upload von {files} Dateien...",
     "uploadMessage": "Wählen Sie eine Upload-Methode",
-    "optionalPassword": "Optionales Kennwort"
+    "optionalPassword": "Optionales Kennwort",
+    "deleteUserMessage": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?",
+    "filesSelected": "ausgewählte Dateien",
+    "typeName": "Art:"
   },
   "search": {
     "images": "Bilder",
@@ -165,7 +169,12 @@
     "search": "Suche...",
     "typeToSearch": "Tippen, um zu suchen...",
     "types": "Typen",
-    "video": "Video"
+    "video": "Video",
+    "path": "Pfad:",
+    "smallerThan": "Kleiner als:",
+    "largerThan": "Größer als:",
+    "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben (mindestens 3 Zeichen für Suchbegriffe).",
+    "helpText2": "Der Index: Die Suche verwendet den Index, der automatisch in dem konfigurierten Intervall aktualisiert wird (Standard: 5 Minuten). Eine Suche, wenn das Programm gerade gestartet wurde, kann zu unvollständigen Ergebnissen führen."
   },
   "settings": {
     "admin": "Admin",
@@ -216,7 +225,10 @@
       "execute": "Befehle ausführen",
       "modify": "Dateien bearbeiten",
       "rename": "Umbenennen oder Verschieben von Dateien oder Ordnern",
-      "share": "Datei teilen"
+      "share": "Datei teilen",
+      "admin": "Verwalter",
+      "api": "Erstellen und Verwalten von API-Schlüsseln mit langer Lebensdauer",
+      "realtime": "Verbindungen und Aktualisierungen in Echtzeit ermöglichen"
     },
     "permissions-name": "Berechtigungen",
     "permissionsHelp": "Sie können einem Benutzer Administratorrechte einräumen oder die Berechtigunen individuell festlegen.  Wenn Sie \"Administrator\" auswählen, werden alle anderen Rechte automatisch vergeben. Die Nutzerverwaltung kann nur durch einen Administrator erfolgen.\n",
@@ -246,7 +258,22 @@
     "userManagement": "Benutzerverwaltung",
     "userUpdated": "Benutzer aktualisiert!",
     "username": "Benutzername",
-    "users": "Benutzer"
+    "users": "Benutzer",
+    "loginMethod": "Login-Methode",
+    "modifyOtherUser": "Benutzer ändern:",
+    "modifyCurrentUser": "Aktuellen Benutzer ändern",
+    "themeColor": "Thema Farbe",
+    "disableOfficePreviewDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der OnlyOffice-Viewer deaktiviert werden soll. (z. B. '.txt .html').",
+    "disableOfficePreview": "Onlyoffice-Viewer für bestimmte Dateierweiterungen deaktivieren",
+    "filePreviewOptions": "Optionen für die Dateivorschau",
+    "listingOptions": "Auflistung der Optionen",
+    "emptyGlobal": "Derzeit gibt es keine globalen Konfigurationsoptionen. Sie können die Konfigurations-Yaml bearbeiten, um die Systemeinstellungen anzupassen.",
+    "scopes": "Definition der zulässigen Quellen und des Benutzerbereichs innerhalb dieser Quellen",
+    "UserManagement": "Benutzerverwaltung",
+    "userHomeBasePath": "Basispfad für Benutzer-Home-Verzeichnisse",
+    "userScopeGenerationPlaceholder": "Der Bereich wird automatisch generiert",
+    "createUserHomeDirectory": "Benutzer-Home-Verzeichnis erstellen",
+    "api": "API-Schlüssel"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -270,5 +297,49 @@
     "minutes": "Minuten",
     "seconds": "Sekunden",
     "unit": "Zeiteinheit"
+  },
+  "upload": {
+    "abortUpload": "Sind Sie sicher, dass Sie abtreiben wollen?"
+  },
+  "share": {
+    "notice": "Hinweis: Jeder, der Zugang zum Link (und optional zum Passwort) hat, kann auf die gemeinsamen Dateien zugreifen. Es ist nicht erforderlich, dass Sie eingeloggt sind."
+  },
+  "api": {
+    "title": "API-Schlüssel:",
+    "keyName": "API-Schlüssel Name:",
+    "createdAt": "Erstellt am:",
+    "expiresAt": "Läuft ab bei:",
+    "permissions": "Erlaubt:",
+    "createTitle": "API-Schlüssel erstellen",
+    "keyNamePlaceholder": "Geben Sie einen eindeutigen API-Schlüsselnamen ein:",
+    "tokenDuration": "Token Dauer:",
+    "durationNumberPlaceholder": "Nummer",
+    "days": "Tage",
+    "months": "Monate",
+    "permissionNote": "Wählen Sie mindestens eine Berechtigung für den Schlüssel. Ihr Benutzer muss ebenfalls über diese Berechtigung verfügen.",
+    "createKeyFailed": "API-Schlüssel konnte nicht erstellt werden.",
+    "createKeySuccess": "API-Schlüssel erfolgreich erstellt.",
+    "description": "Die API-Schlüssel basieren auf dem Benutzer, der sie erstellt. Siehe",
+    "swaggerLinkText": "Angeberseite",
+    "name": "Name",
+    "created": "Erstellt",
+    "expires": "Abgelaufen",
+    "actions": "Aktionen",
+    "enabled": "Aktiviert",
+    "disabled": "Behinderte"
+  },
+  "index": {
+    "status": "Status",
+    "assessment": "Bewertung",
+    "files": "Dateien",
+    "folders": "Ordner",
+    "lastScanned": "Zuletzt gescannt",
+    "quickScan": "Schnell-Scan-Sekunden",
+    "fullScan": "Vollständiger Scan in Sekunden",
+    "settingsHover": "Einstellungen für Benutzer",
+    "logout": "Abmeldung",
+    "toggleClick": "Einzelklick umschalten",
+    "toggleDark": "Dunkler Modus umschalten",
+    "toggleSticky": "Sticky-Modus umschalten"
   }
 }

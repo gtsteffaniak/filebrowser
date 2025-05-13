@@ -6,7 +6,7 @@
     <div class="card-content">
       <form>
         <div class="card-content">
-          <h3>Listing options</h3>
+          <h3>{{ $('settings.listingOptions') }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
@@ -24,7 +24,7 @@
               :name="`Always show download icon for quick access`"
             />
           </div>
-          <h3>File preview options</h3>
+          <h3> {{ $('settings.filePreviewOptions') }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
@@ -61,10 +61,9 @@
             />
           </div>
           <div v-if="hasOnlyOfficeEnabled">
-            <h3>Disable onlyoffice viewer for certain file extensions</h3>
+            <h3> {{ $('settings.disableOfficePreview')}} </h3>
             <p>
-              A space-separated list of file extensions to disable the OnlyOffice viewer
-              for. (e.g., <code>.txt .html</code>)
+              {{ $('settings.disableOfficePreviewDescription') }}
             </p>
             <div class="onlyoffice-group">
               <input
@@ -75,13 +74,11 @@
                 id="onlyofficeExt"
                 v-model="formOnlyOfficeExt"
               />
-              <button type="button" class="button onlyoffice-button" @click="submitOnlyOfficeChange">
-                save
-              </button>
+              <button type="button" class="button onlyoffice-button" @click="submitOnlyOfficeChange"> {{ $('buttons.save') }} </button>
             </div>
           </div>
 
-          <h3>Theme Color</h3>
+          <h3> {{ $('settings.themeColor') }} </h3>
           <ButtonGroup
             :buttons="colorChoices"
             @button-clicked="setColor"

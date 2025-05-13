@@ -81,7 +81,7 @@
               <!-- Inputs for filtering by file size -->
               <div class="sizeConstraints">
                 <div class="sizeInputWrapper">
-                  <p>Smaller Than:</p>
+                  <p> {{ $t('search.smallerThan') }} </p>
                   <input
                     class="sizeInput"
                     v-model="smallerThan"
@@ -89,17 +89,17 @@
                     min="0"
                     placeholder="number"
                   />
-                  <p>MB</p>
+                  <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 </div>
                 <div class="sizeInputWrapper">
-                  <p>Larger Than:</p>
+                  <p> {{ $t('search.largerThan') }} </p>
                   <input
                     class="sizeInput"
                     v-model="largerThan"
                     type="number"
                     placeholder="number"
                   />
-                  <p>MB</p>
+                  <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 </div>
               </div>
             </div>
@@ -112,27 +112,12 @@
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
-          <div class="helpButton" @click="toggleHelp()">Help</div>
+          <div class="helpButton" @click="toggleHelp()"> {{ $t('sidebar.help') }} </div>
         </div>
         <!-- Help text section -->
         <div class="helpText" v-if="showHelp">
-          <p>
-            Search occurs on each character you type (3 character minimum for search
-            terms).
-          </p>
-          <p>
-            <b>The index:</b> Search utilizes the index which automatically gets updated
-            on the configured interval (default: 5 minutes). Searching when the program
-            has just started may result in incomplete results.
-          </p>
-          <p>
-            <b>Filter by type:</b> You can have multiple type filters by adding
-            <code>type:condition</code> followed by search terms.
-          </p>
-          <p>
-            <b>Multiple Search terms:</b> Additional terms separated by <code>|</code>,
-            for example <code>"test|not"</code> searches for both terms independently.
-          </p>
+          <p>{{ $t('search.helpText1') }}</p>
+          <p>{{ $t('search.helpText2') }}</p>
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
@@ -146,7 +131,7 @@
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path, s.type == "directory") }}/{{ baseName(s.path) }}/
+                {{ basePath(s.path, s.type == "directory") }}/{{ baseName(s.path) }}/ <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>

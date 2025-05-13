@@ -7,7 +7,7 @@
       @action="multiAction"
     />
     <search v-if="showSearch" />
-    <title v-else-if="isSettings" class="topTitle">Settings</title>
+    <title v-else-if="isSettings" class="topTitle">{{ $('sidebar.settings') }}</title>
     <title v-else class="topTitle">{{ req.name }}</title>
     <action
       v-if="isListingView"

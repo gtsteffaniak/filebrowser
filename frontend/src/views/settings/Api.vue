@@ -2,28 +2,28 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card" :class="{ active: active }">
     <div class="card-title">
-      <h2>{{ $t("settings.api") }}</h2>
+      <h2>{{ $t("api.title") }}</h2>
       <div>
         <button @click.prevent="createPrompt" class="button">
           {{ $t("buttons.new") }}
         </button>
       </div>
     </div>
+
     <div class="card-content full" v-if="Object.keys(links).length > 0">
       <p>
-        API keys are based on the user that creates them. See
-        <a class="link" href="swagger/index.html">swagger page</a> for how to use them.
-        Keys are associated with your user and the user must have access to the permission
-        level you want to use the key with.
+        {{ $t("api.description") }}
+        <a class="link" href="swagger/index.html">{{ $t("api.swaggerLinkText") }}</a>
       </p>
+
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Created</th>
-            <th>Expires</th>
+            <th>{{ $t("api.name") }}</th>
+            <th>{{ $t("api.created") }}</th>
+            <th>{{ $t("api.expires") }}</th>
             <th>{{ $t("settings.permissions-name") }}</th>
-            <th>Actions</th>
+            <th>{{ $t("api.actions") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -35,7 +35,7 @@
               <span
                 v-for="(value, permission) in link.Permissions"
                 :key="permission"
-                :title="`${permission}: ${value ? 'Enabled' : 'Disabled'}`"
+                :title="`${permission}: ${value ? $t('api.enabled') : $t('api.disabled')}`"
                 class="clickable"
                 @click.prevent="infoPrompt(name, link)"
               >
@@ -61,6 +61,7 @@
         </tbody>
       </table>
     </div>
+
     <h2 class="message" v-else>
       <i class="material-icons">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>

@@ -35,7 +35,9 @@
     "toggleSidebar": "Afficher/Masquer la barre latérale",
     "update": "Mettre à jour",
     "upload": "Importer",
-    "openFile": "Ouvrir le fichier"
+    "openFile": "Ouvrir le fichier",
+    "copyDownloadLinkToClipboard": "Copier le lien de téléchargement dans le presse-papiers",
+    "continue": "Continuer"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -101,7 +103,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -116,7 +118,8 @@
     "submit": "Se connecter",
     "username": "Utilisateur",
     "usernameTaken": "Le nom d'utilisateur est déjà pris",
-    "wrongCredentials": "Identifiants incorrects !"
+    "wrongCredentials": "Identifiants incorrects !",
+    "or": "OU"
   },
   "permanent": "Permanent",
   "prompts": {
@@ -132,7 +135,6 @@
     "downloadMessage": "Choisissez le format de téléchargement :",
     "error": "Quelque chose s'est mal passé",
     "fileInfo": "Informations",
-    "filesSelected": "{count} éléments sélectionnés",
     "lastModified": "Dernière modification",
     "move": "Déplacer",
     "moveMessage": "Choisissez l'emplacement où déplacer la sélection :",
@@ -154,7 +156,10 @@
     "upload": "Importer",
     "uploadFiles": "Importation de {files} fichiers...",
     "uploadMessage": "Séléctionnez une option d'import.",
-    "optionalPassword": "Mot de passe optionnel"
+    "optionalPassword": "Mot de passe optionnel",
+    "deleteUserMessage": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
+    "filesSelected": "fichiers sélectionnés",
+    "typeName": "Type :"
   },
   "search": {
     "images": "Images",
@@ -164,7 +169,12 @@
     "search": "Recherche en cours...",
     "typeToSearch": "Écrivez pour chercher...",
     "types": "Types",
-    "video": "Video"
+    "video": "Video",
+    "path": "Trajectoire :",
+    "smallerThan": "Plus petit que :",
+    "largerThan": "Plus grand que :",
+    "helpText1": "La recherche s'effectue sur chaque caractère saisi (3 caractères minimum pour les termes de recherche).",
+    "helpText2": "L'index : La recherche utilise l'index qui est automatiquement mis à jour à l'intervalle configuré (par défaut : 5 minutes). Une recherche effectuée alors que le programme vient de démarrer peut donner des résultats incomplets."
   },
   "settings": {
     "scopes": "Définir les sources autorisées et la portée de l'utilisateur au sein de celles-ci",
@@ -181,7 +191,7 @@
     "brandingHelp": "Vous pouvez personnaliser l'apparence de votre instance de File Browser en changeant son nom, en remplaçant le logo, en ajoutant des styles personnalisés et même en désactivant les liens externes vers GitHub.\nPour plus d'informations sur la personnalisation de l'image de marque, veuillez consulter la {0}.",
     "changePassword": "Modifier le mot de passe",
     "commandRunner": "Command runner",
-    "commandRunnerHelp" : "Ici, vous pouvez définir les commandes qui sont exécutées pour les événements nommés précédemments. Vous devez en écrire une par ligne. Les variables d'environnement {0} et {1} seront disponibles, {0} étant relatif à {1}. Pour plus d'informations sur cette fonctionnalité et les variables d'environnement disponibles, veuillez lire la {2}.",
+    "commandRunnerHelp": "Ici, vous pouvez définir les commandes qui sont exécutées pour les événements nommés précédemments. Vous devez en écrire une par ligne. Les variables d'environnement {0} et {1} seront disponibles, {0} étant relatif à {1}. Pour plus d'informations sur cette fonctionnalité et les variables d'environnement disponibles, veuillez lire la {2}.",
     "commandsUpdated": "Commandes mises à jour !",
     "createUserDir": "Créer automatiquement un dossier pour l'utilisateur",
     "customStylesheet": "Feuille de style personnalisée",
@@ -204,7 +214,7 @@
     "newUser": "Nouvel Utilisateur",
     "password": "Mot de passe",
     "passwordUpdated": "Mot de passe mis à jour !",
-    "path": "",
+    "path": "Trajectoire",
     "permissions": {
       "create": "Créer des fichiers et des dossiers",
       "delete": "Supprimer des fichiers et des dossiers",
@@ -212,7 +222,10 @@
       "execute": "Exécuter des commandes",
       "modify": "Modifier des fichiers",
       "rename": "Renommer ou déplacer des fichiers ou des dossiers",
-      "share": "Partager des fichiers"
+      "share": "Partager des fichiers",
+      "admin": "Administrateur",
+      "api": "Créer et gérer des clés API à longue durée de vie",
+      "realtime": "Permettre des connexions et des mises à jour en temps réel"
     },
     "permissions-name": "Permissions",
     "permissionsHelp": "Vous pouvez définir l'utilisateur comme étant un administrateur ou encore choisir les permissions individuellement. Si vous sélectionnez \"Administrateur\", toutes les autres options seront automatiquement activées. La gestion des utilisateurs est un privilège que seul l'administrateur possède.\n",
@@ -242,7 +255,25 @@
     "userManagement": "Gestion des utilisateurs",
     "userUpdated": "Utilisateur mis à jour !",
     "username": "Nom d'utilisateur",
-    "users": "Utilisateurs"
+    "users": "Utilisateurs",
+    "loginMethod": "Méthode de connexion",
+    "modifyOtherUser": "Modifier l'utilisateur :",
+    "modifyCurrentUser": "Modifier l'utilisateur actuel",
+    "themeColor": "Couleur du thème",
+    "disableOfficePreviewDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles le visualisateur OnlyOffice doit être désactivé. (par exemple, '.txt .html').",
+    "disableOfficePreview": "Désactiver la visionneuse d'Office pour certaines extensions de fichiers",
+    "filePreviewOptions": "Options de prévisualisation des fichiers",
+    "listingOptions": "Options d'inscription",
+    "emptyGlobal": "Actuellement, il n'y a pas d'options de configuration globale. Vous pouvez éditer le fichier de configuration yaml pour ajuster les paramètres du système.",
+    "UserManagement": "Gestion des utilisateurs",
+    "tusUploads": "Chargements groupés",
+    "tusUploadsHelp": "File Browser prend en charge les téléchargements de fichiers par morceaux, ce qui permet de créer des téléchargements de fichiers efficaces, fiables, résumables et par morceaux, même sur des réseaux peu fiables.",
+    "tusUploadsChunkSize": "Indique la taille maximale d'une demande (les téléchargements directs seront utilisés pour les téléchargements plus petits). Vous pouvez saisir un nombre entier simple correspondant à un nombre d'octets ou une chaîne de caractères telle que 10 Mo, 1 Go, etc.",
+    "tusUploadsRetryCount": "Nombre de tentatives à effectuer si un bloc ne parvient pas à être téléchargé.",
+    "userHomeBasePath": "Chemin de base pour les répertoires personnels des utilisateurs",
+    "userScopeGenerationPlaceholder": "Le champ d'application sera généré automatiquement",
+    "createUserHomeDirectory": "Créer le répertoire personnel de l'utilisateur",
+    "api": "Clés API"
   },
   "sidebar": {
     "help": "Aide",
@@ -266,5 +297,49 @@
     "minutes": "Minutes",
     "seconds": "Secondes",
     "unit": "Unité de temps"
+  },
+  "upload": {
+    "abortUpload": "Êtes-vous sûre de vouloir avorter ?"
+  },
+  "share": {
+    "notice": "Remarque : toute personne ayant accès au lien (et au mot de passe facultatif) peut accéder aux fichiers partagés. Il n'est pas nécessaire d'être connecté."
+  },
+  "api": {
+    "title": "Clés API :",
+    "keyName": "Nom de la clé API :",
+    "createdAt": "Créé à :",
+    "expiresAt": "Expire le :",
+    "permissions": "Permissions :",
+    "createTitle": "Créer une clé API",
+    "keyNamePlaceholder": "Saisissez un nom de clé API unique :",
+    "tokenDuration": "Durée du jeton :",
+    "durationNumberPlaceholder": "Nombre",
+    "days": "Jours",
+    "months": "Mois",
+    "permissionNote": "Choisissez au moins une autorisation pour la clé. Votre utilisateur doit également disposer de cette autorisation.",
+    "createKeyFailed": "Échec de la création de la clé API.",
+    "createKeySuccess": "Clé API créée avec succès.",
+    "description": "Les clés d'API sont basées sur l'utilisateur qui les a créées. Voir les",
+    "swaggerLinkText": "page swagger",
+    "name": "Nom",
+    "created": "Créée",
+    "expires": "Expiration",
+    "actions": "Actions",
+    "enabled": "Activé",
+    "disabled": "Handicapés"
+  },
+  "index": {
+    "status": "Statut",
+    "assessment": "L'évaluation",
+    "files": "Dossiers",
+    "folders": "Dossiers",
+    "lastScanned": "Dernière numérisation",
+    "quickScan": "Balayage rapide Secondes",
+    "fullScan": "Balayage complet en secondes",
+    "settingsHover": "Paramètres pour l'utilisateur",
+    "logout": "Déconnexion",
+    "toggleClick": "Toggle Single Click",
+    "toggleDark": "Basculer en mode sombre",
+    "toggleSticky": "Basculer le mode collant"
   }
 }

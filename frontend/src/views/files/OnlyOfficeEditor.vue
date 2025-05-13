@@ -8,7 +8,7 @@
     :onLoadComponentError="onLoadComponentError"
   />
   <div v-else>
-    <p>Loading editor...</p>
+    <p>{{ $t('files.loading') }}</p>
   </div>
 </template>
 

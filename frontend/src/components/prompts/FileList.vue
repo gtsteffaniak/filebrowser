@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div aria-label="filelist-path" class="searchContext">Path: {{ nav }}</div>
+    <div aria-label="filelist-path" class="searchContext">{{$('search.path')}} {{ nav }}</div>
     <ul class="file-list">
       <li
         @click="itemClick"

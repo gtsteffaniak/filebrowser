@@ -15,9 +15,9 @@
         <thead>
           <tr>
             <th>{{ $t("settings.username") }}</th>
-            <th>Login Method</th>
+            <th> {{ t("settings.loginMethod") }} </th>
             <th>{{ $t("settings.admin") }}</th>
-            <th>Scopes</th>
+            <th>Scopes</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             <th></th>
           </tr>
         </thead>

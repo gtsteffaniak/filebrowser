@@ -13,48 +13,48 @@
         <strong>{{ $t("prompts.displayName") }}</strong> {{ name }}
       </p>
       <p v-if="!dir || selected.length > 1">
-        <strong>{{ $t("prompts.size") }}:</strong>
+        <strong>{{ $t("prompts.size") }}:</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <span id="content_length"></span> {{ humanSize }}
       </p>
       <p v-if="!dir || selected.length > 1">
-        <strong>Type:</strong>
+        <strong>{{$('prompts.typeName')}}</strong>
         <span id="content_length"></span> {{ type }}
       </p>
       <p v-if="selected.length < 2" :title="modTime">
-        <strong>{{ $t("prompts.lastModified") }}:</strong> {{ humanTime }}
+        <strong>{{ $t("prompts.lastModified") }}:</strong> {{ humanTime }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </p>
 
       <template v-if="dir && selected.length === 0">
         <p>
-          <strong>{{ $t("prompts.numberFiles") }}:</strong> {{ req.numFiles }}
+          <strong>{{ $t("prompts.numberFiles") }}:</strong> {{ req.numFiles }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </p>
         <p>
-          <strong>{{ $t("prompts.numberDirs") }}:</strong> {{ req.numDirs }}
+          <strong>{{ $t("prompts.numberDirs") }}:</strong> {{ req.numDirs }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </p>
       </template>
 
       <template v-if="!dir">
         <p>
-          <strong>MD5: </strong
-          ><code
+          <strong>MD5: </strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <code
             ><a @click="checksum($event, 'md5')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
-          <strong>SHA1: </strong
-          ><code
+          <strong>SHA1: </strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <code
             ><a @click="checksum($event, 'sha1')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
-          <strong>SHA256: </strong
-          ><code
+          <strong>SHA256: </strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <code
             ><a @click="checksum($event, 'sha256')">{{ $t("prompts.show") }}</a></code
           >
         </p>
         <p>
-          <strong>SHA512: </strong
-          ><code
+          <strong>SHA512: </strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <code
             ><a @click="checksum($event, 'sha512')">{{ $t("prompts.show") }}</a></code
           >
         </p>

@@ -101,7 +101,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "Swedish（Sweden）",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文（简体）",
     "zhTW": "中文（繁體）"
@@ -132,7 +132,6 @@
     "downloadMessage": "请选择要下载的压缩格式。",
     "error": "出了一点问题...",
     "fileInfo": "文件信息",
-    "filesSelected": "已选择 {count} 个文件。",
     "lastModified": "最后修改",
     "move": "移动",
     "moveMessage": "请选择欲移动至的目录：",
@@ -265,5 +264,9 @@
     "minutes": "分钟",
     "seconds": "秒",
     "unit": "时间单位"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

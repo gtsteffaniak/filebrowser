@@ -132,7 +132,6 @@
     "downloadMessage": "בחר את הפורמט שברצונך להוריד",
     "error": "משהו השתבש",
     "fileInfo": "מידע על הקובץ",
-    "filesSelected": "{count} קבצים נבחרו.",
     "lastModified": "שונה לאחרונה",
     "move": "העבר",
     "moveMessage": "בחר מיקום חדש לקובץ / תקייה:",
@@ -267,5 +266,9 @@
     "minutes": "דקות",
     "seconds": "שניות",
     "unit": "יחידת זמן"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

@@ -76,10 +76,10 @@
             <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
           </div>
           <div class="share__box__element" :title="modTime">
-            <strong>{{ $t("prompts.lastModified") }}:</strong> {{ humanTime }}
+            <strong>{{ $t("prompts.lastModified") }}:</strong> {{ humanTime }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </div>
           <div class="share__box__element">
-            <strong>{{ $t("prompts.size") }}:</strong> {{ humanSize }}
+            <strong>{{ $t("prompts.size") }}:</strong> {{ humanSize }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </div>
           <div class="share__box__element share__box__center">
             <a target="_blank" :href="getLink(false)" class="button button--flat">

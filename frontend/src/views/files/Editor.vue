@@ -8,7 +8,7 @@
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
 import { filesApi } from "@/api";
-import ace, { Ace, version as ace_version } from "ace-builds";
+import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";

@@ -95,7 +95,7 @@
     "ru": "Russo",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "Chinês simplificado",
     "zhTW": "Chinês tradicional"
@@ -125,7 +125,6 @@
     "downloadMessage": "Escolha o formato do ficheiro que quer descarregar.",
     "error": "Algo correu mal",
     "fileInfo": "Informação do ficheiro",
-    "filesSelected": "{count} ficheiros selecionados.",
     "lastModified": "Última alteração",
     "move": "Mover",
     "moveMessage": "Escolha uma nova casa para os seus ficheiros/pastas:",
@@ -145,7 +144,8 @@
     "show": "Mostrar",
     "size": "Tamanho",
     "upload": "",
-    "uploadMessage": ""
+    "uploadMessage": "",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
   },
   "search": {
     "images": "Imagens",
@@ -254,5 +254,9 @@
     "minutes": "Minutos",
     "seconds": "Segundos",
     "unit": "Unidades de tempo"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

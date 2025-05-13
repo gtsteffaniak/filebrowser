@@ -20,7 +20,7 @@
         </div>
         <div v-else class="thumb-letters no-select">
           <i class="material-icons" :class="{ 'primary-icons': isFolder }">
-            {{ isFolder ? "folder" : "description" }}
+            {{ isFolder ? "folder" : "description" }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </i>
         </div>
       </div>
