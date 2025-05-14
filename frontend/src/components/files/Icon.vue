@@ -146,7 +146,7 @@ export default {
 
           // Schedule next update
           index = nextIndex;
-          const timeoutId = setTimeout(updateThumbnailUrl, 1000);
+          const timeoutId = setTimeout(updateThumbnailUrl, 750);
           this.previewTimeouts.push(timeoutId);
         };
 

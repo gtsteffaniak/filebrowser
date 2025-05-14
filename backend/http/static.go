@@ -48,7 +48,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"StaticURL":         config.Server.BaseURL + "static",
 		"Signup":            settings.Config.Auth.Methods.PasswordAuth.Signup,
 		"NoAuth":            config.Auth.Methods.NoAuth,
-		"PasswordAuth":      config.Auth.Methods.PasswordAuth,
 		"LoginPage":         auther.LoginPage(),
 		"CSS":               false,
 		"EnableThumbs":      !config.Server.DisablePreviews,

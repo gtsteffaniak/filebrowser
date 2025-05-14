@@ -274,7 +274,9 @@
     "createUserHomeDirectory": "사용자 홈 디렉터리 만들기",
     "api": "API 키",
     "setDateFormat": "정확한 날짜 형식 설정",
-    "shareDeleted": "공유 삭제됨!"
+    "shareDeleted": "공유 삭제됨!",
+    "loginMethodDescription": "사용자에게 허용된 로그인 방법을 설정합니다.",
+    "userNotAdmin": "사용자가 관리자가 아닙니다."
   },
   "sidebar": {
     "help": "도움말",
@@ -287,7 +289,8 @@
     "preview": "미리보기",
     "settings": "설정",
     "signup": "가입하기",
-    "siteSettings": "사이트 설정"
+    "siteSettings": "사이트 설정",
+    "sources": "출처"
   },
   "success": {
     "linkCopied": "링크가 복사되었습니다!"
@@ -341,6 +344,8 @@
     "logout": "로그아웃",
     "toggleClick": "클릭 한 번으로 토글",
     "toggleDark": "다크 모드 전환",
-    "toggleSticky": "고정 모드 토글"
+    "toggleSticky": "고정 모드 토글",
+    "of": "의",
+    "used": "사용됨"
   }
 }

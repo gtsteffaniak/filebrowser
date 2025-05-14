@@ -274,7 +274,9 @@
     "createUserHomeDirectory": "إنشاء الدليل الرئيسي للمستخدم",
     "api": "مفاتيح واجهة برمجة التطبيقات",
     "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
-    "shareDeleted": "تم حذف المشاركة"
+    "shareDeleted": "تم حذف المشاركة",
+    "loginMethodDescription": "طريقة تسجيل الدخول المسموح بها للمستخدم.",
+    "userNotAdmin": "المستخدم ليس مسؤولاً"
   },
   "sidebar": {
     "help": "مساعدة",
@@ -287,7 +289,8 @@
     "preview": "معاينة",
     "settings": "الإعدادات",
     "signup": "Signup",
-    "siteSettings": "إعدادات الموقع"
+    "siteSettings": "إعدادات الموقع",
+    "sources": "المصادر"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -341,6 +344,8 @@
     "logout": "تسجيل الخروج",
     "toggleClick": "تبديل نقرة واحدة",
     "toggleDark": "تبديل الوضع الداكن",
-    "toggleSticky": "تبديل الوضع اللاصق"
+    "toggleSticky": "تبديل الوضع اللاصق",
+    "of": "من",
+    "used": "مستعمل"
   }
 }

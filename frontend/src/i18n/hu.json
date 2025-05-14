@@ -274,7 +274,9 @@
     "tusUploadsChunkSize": "A kérés maximális méretét jelzi (a kisebb feltöltéseknél a közvetlen feltöltést használják). Beadhat egy egyszerű egész számot, amely a bájtos bemenetet jelöli, vagy egy karakterláncot, például 10MB, 1GB stb.",
     "tusUploadsRetryCount": "Az újbóli próbálkozások száma, ha egy darabkát nem sikerül feltölteni.",
     "disableUsedDiskPercentage": "A használt lemez százalékos grafikonjának kikapcsolása",
-    "api": "API kulcsok"
+    "api": "API kulcsok",
+    "loginMethodDescription": "engedélyezett bejelentkezési módszer a felhasználó számára.",
+    "userNotAdmin": "A felhasználó nem rendszergazda"
   },
   "sidebar": {
     "help": "Súgó",
@@ -287,7 +289,8 @@
     "preview": "Előnézet",
     "settings": "Beállítások",
     "signup": "Regisztráció",
-    "siteSettings": "Oldalbeállítások"
+    "siteSettings": "Oldalbeállítások",
+    "sources": "Források"
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -341,6 +344,8 @@
     "logout": "Kijelentkezés",
     "toggleClick": "Egyetlen kattintás kapcsolása",
     "toggleDark": "Sötét üzemmód átkapcsolása",
-    "toggleSticky": "Ragadós mód átkapcsolása"
+    "toggleSticky": "Ragadós mód átkapcsolása",
+    "of": "a",
+    "used": "használt"
   }
 }

@@ -16,6 +16,7 @@
       :class="{
         'dark-mode': isDarkMode,
         moveWithSidebar: moveWithSidebar,
+        'remove-padding-top': isOnlyOffice,
         'main-padding': showPadding,
         scrollable: scrollable,
       }"
@@ -70,6 +71,9 @@ export default {
     this.updateSourceInfo();
   },
   computed: {
+    isOnlyOffice() {
+      return getters.currentView() === "onlyOfficeEditor";
+    },
     scrollable() {
       return getters.isScrollable();
     },
@@ -156,6 +160,10 @@ export default {
   overflow: scroll !important;
   -webkit-overflow-scrolling: touch;
   /* Enable momentum scrolling in iOS */
+}
+
+.remove-padding-top {
+  padding-top: 0 !important;
 }
 
 #main {

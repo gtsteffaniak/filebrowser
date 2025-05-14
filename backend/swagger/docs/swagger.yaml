@@ -209,6 +209,10 @@ definitions:
       clientSecret:
         description: client secret of the OIDC application
         type: string
+      disableVerifyTLS:
+        description: disable TLS verification for the OIDC provider. This is insecure
+          and should only be used for testing.
+        type: boolean
       enabled:
         description: whether to enable OIDC authentication
         type: boolean
@@ -219,7 +223,8 @@ definitions:
         description: scopes to request from the OIDC provider
         type: string
       userIdentifier:
-        description: the user identifier to use for authentication. Default is "username".
+        description: the user identifier to use for authentication. Default is "username",
+          can be "email" or "username", or "phone"
         type: string
     type: object
   settings.OnlyOffice:
@@ -430,6 +435,9 @@ definitions:
       lockPassword:
         description: disable the user from changing their password
         type: boolean
+      loginMethod:
+        description: 'login method to use: eg. password, proxy, oidc'
+        type: string
       permissions:
         $ref: '#/definitions/users.Permissions'
       preview:

@@ -274,7 +274,9 @@
     "createUserHomeDirectory": "Crearea directorului home al utilizatorului",
     "api": "Chei API",
     "setDateFormat": "Setați formatul exact al datei",
-    "shareDeleted": "Share șters!"
+    "shareDeleted": "Share șters!",
+    "loginMethodDescription": "metoda de conectare permisă pentru utilizator.",
+    "userNotAdmin": "Utilizatorul nu este administrator"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -287,7 +289,8 @@
     "preview": "Previzualizare",
     "settings": "Setări",
     "signup": "Înregistrare",
-    "siteSettings": "Setări site"
+    "siteSettings": "Setări site",
+    "sources": "Surse"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -341,6 +344,8 @@
     "logout": "Ieșire",
     "toggleClick": "Comutare clic unic",
     "toggleDark": "Comutarea modului întunecat",
-    "toggleSticky": "Schimbarea modului lipicios"
+    "toggleSticky": "Schimbarea modului lipicios",
+    "of": "de",
+    "used": "utilizate"
   }
 }

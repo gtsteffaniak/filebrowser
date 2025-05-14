@@ -144,17 +144,17 @@ func setupUrls() {
 
 func setupAuth() {
 	if Config.Auth.Methods.PasswordAuth.Enabled {
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
 	if Config.Auth.Methods.ProxyAuth.Enabled {
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Proxy")
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "proxy")
 	}
 	if Config.Auth.Methods.OidcAuth.Enabled {
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "OIDC")
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "oidc")
 	}
 	if Config.Auth.Methods.NoAuth {
 		logger.Warning("Configured with no authentication, this is not recommended.")
-		Config.Auth.AuthMethods = []string{"Disabled"}
+		Config.Auth.AuthMethods = []string{"disabled"}
 	}
 	if Config.Auth.Methods.OidcAuth.Enabled {
 		err := validateOidcAuth()
@@ -167,8 +167,9 @@ func setupAuth() {
 	// use password auth as default if no auth methods are set
 	if len(Config.Auth.AuthMethods) == 0 {
 		Config.Auth.Methods.PasswordAuth.Enabled = true
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
+	Config.UserDefaults.LoginMethod = Config.Auth.AuthMethods[0]
 
 }
 

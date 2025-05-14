@@ -274,7 +274,9 @@
     "tusUploadsHelp": "File Browser admite la carga de archivos en trozos, lo que permite crear cargas de archivos eficientes, fiables, reanudables y en trozos, incluso en redes poco fiables.",
     "tusUploadsChunkSize": "Indica el tamaño máximo de una solicitud (las cargas directas se utilizarán para cargas más pequeñas). Puede introducir un número entero que indique una entrada en bytes o una cadena como 10 MB, 1 GB, etc.",
     "tusUploadsRetryCount": "Número de reintentos a realizar si falla la subida de un chunk.",
-    "api": "Claves API"
+    "api": "Claves API",
+    "loginMethodDescription": "método de inicio de sesión permitido para el usuario.",
+    "userNotAdmin": "El usuario no es administrador"
   },
   "sidebar": {
     "help": "Ayuda",
@@ -287,7 +289,8 @@
     "preview": "Vista previa",
     "settings": "Ajustes",
     "signup": "Registrate",
-    "siteSettings": "Ajustes del sitio"
+    "siteSettings": "Ajustes del sitio",
+    "sources": "Fuentes"
   },
   "success": {
     "linkCopied": "¡Link copiado!"
@@ -341,6 +344,8 @@
     "logout": "Cierre de sesión",
     "toggleClick": "Conmutar un solo clic",
     "toggleDark": "Activar el modo oscuro",
-    "toggleSticky": "Conmutar el modo adhesivo"
+    "toggleSticky": "Conmutar el modo adhesivo",
+    "of": "de",
+    "used": "usado"
   }
 }

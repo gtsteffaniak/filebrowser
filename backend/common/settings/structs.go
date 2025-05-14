@@ -126,4 +126,5 @@ type UserDefaults struct {
 	Preview              users.Preview       `json:"preview"`
 	DefaultScopes        []users.SourceScope `json:"-"`
 	Permissions          users.Permissions   `json:"permissions"`
+	LoginMethod          string              `json:"loginMethod,omitempty"` // login method to use: eg. password, proxy, oidc
 }

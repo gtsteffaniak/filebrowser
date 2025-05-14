@@ -274,7 +274,9 @@
     "userHomeBasePath": "Chemin de base pour les répertoires personnels des utilisateurs",
     "userScopeGenerationPlaceholder": "Le champ d'application sera généré automatiquement",
     "createUserHomeDirectory": "Créer le répertoire personnel de l'utilisateur",
-    "api": "Clés API"
+    "api": "Clés API",
+    "loginMethodDescription": "méthode de connexion autorisée pour l'utilisateur.",
+    "userNotAdmin": "L'utilisateur n'est pas un administrateur"
   },
   "sidebar": {
     "help": "Aide",
@@ -287,7 +289,8 @@
     "preview": "Prévisualiser",
     "settings": "Paramètres",
     "signup": "S'inscrire",
-    "siteSettings": "Paramètres du site"
+    "siteSettings": "Paramètres du site",
+    "sources": "Sources d'information"
   },
   "success": {
     "linkCopied": "Lien copié!"
@@ -341,6 +344,8 @@
     "logout": "Déconnexion",
     "toggleClick": "Toggle Single Click",
     "toggleDark": "Basculer en mode sombre",
-    "toggleSticky": "Basculer le mode collant"
+    "toggleSticky": "Basculer le mode collant",
+    "of": "de",
+    "used": "utilisé"
   }
 }

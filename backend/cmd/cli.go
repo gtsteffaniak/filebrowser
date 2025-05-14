@@ -107,7 +107,7 @@ func runCLI() bool {
 			if asAdmin {
 				user.Permissions.Admin = true
 			}
-			err = store.Users.Save(user, true)
+			err = store.Users.Save(user, true, false)
 			if err != nil {
 				logger.Error(fmt.Sprintf("could not update user: %v", err))
 			}

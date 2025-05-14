@@ -10,14 +10,13 @@
     <div class="card-content minimal-card">
       <user-form
         v-model:user="user"
-        v-model:updatePassword="updatePassword"
         :createUserDir="createUserDir"
         :isNew="isNew"
         @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
       />
     </div>
 
-    <div class="card-action">
+    <div v-if="actor.permissions.admin" class="card-action">
       <button
         v-if="!isNew && actor.permissions.admin"
         @click.prevent="deletePrompt"
@@ -58,7 +57,6 @@ export default {
       showDelete: false,
       createUserDir: false,
       loaded: false,
-      updatePassword: false,
     };
   },
   created() {
@@ -108,16 +106,14 @@ export default {
       try {
         let fields = ["all"]
         if (!state.user.permissions.admin) {
-          fields = ["password"];
+          notify.showError(this.$t("settings.userNotAdmin"));
+          return;
         }
         if (this.isNew) {
           await usersApi.create(this.user); // Use the computed property
           this.$router.push({ path: "/settings", hash: "#users-main" });
         } else {
           await usersApi.update(this.user, fields);
-          if (this.updatePassword) {
-            await usersApi.update(this.user, ["password"]);
-          }
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {
