@@ -1,5 +1,5 @@
 <template>
-  <header :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
+  <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
     <action
       v-if="!isShare"
       icon="close_back"
@@ -45,6 +45,9 @@ export default {
     };
   },
   computed: {
+    isOnlyOffice() {
+      return getters.currentView() === "onlyOfficeEditor";
+    },
     isListingView() {
       return getters.currentView() == "listingView";
     },
@@ -123,13 +126,6 @@ export default {
           router.push({path: "/files" });
           return;
         }
-        if (listingView === "onlyOfficeEditor") {
-          const current = window.location.pathname;
-          const newpath = removeLastDir(current);
-          window.location = newpath + "#" + state.req.name;
-          return;
-        }
-
         mutations.replaceRequest({});
         router.go(-1);
       }

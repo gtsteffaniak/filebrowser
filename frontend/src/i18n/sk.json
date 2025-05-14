@@ -274,7 +274,9 @@
     "userScopeGenerationPlaceholder": "Rozsah sa vygeneruje automaticky",
     "createUserHomeDirectory": "Vytvorenie domovského adresára používateľa",
     "api": "Kľúče API",
-    "setDateFormat": "Nastavenie presného formátu dátumu"
+    "setDateFormat": "Nastavenie presného formátu dátumu",
+    "loginMethodDescription": "povolená metóda prihlásenia pre používateľa.",
+    "userNotAdmin": "Používateľ nie je správca"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -287,7 +289,8 @@
     "preview": "Náhľad",
     "settings": "Nastavenia",
     "signup": "Registrovať",
-    "siteSettings": "Nastavenia stránky"
+    "siteSettings": "Nastavenia stránky",
+    "sources": "Zdroje"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -341,6 +344,8 @@
     "logout": "Odhlásenie",
     "toggleClick": "Prepínanie jedným kliknutím",
     "toggleDark": "Prepínanie tmavého režimu",
-    "toggleSticky": "Prepnutie režimu Sticky"
+    "toggleSticky": "Prepnutie režimu Sticky",
+    "of": "z",
+    "used": "použité"
   }
 }

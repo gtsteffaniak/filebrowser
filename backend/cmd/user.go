@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
+	"reflect"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
@@ -44,7 +44,7 @@ func validateUserInfo() {
 					logger.Fatal(fmt.Sprintf("Unable to create automatic backup of database due to error: %v", err))
 				}
 			}
-			err := store.Users.Save(user, false)
+			err := store.Users.Save(user, false, true)
 			if err != nil {
 				logger.Error(fmt.Sprintf("could not update user: %v", err))
 			}
@@ -59,7 +59,7 @@ func validateUserInfo() {
 		adminUser.Username = settings.Config.Auth.AdminUsername
 		adminUser.Password = settings.Config.Auth.AdminPassword
 		adminUser.Permissions.Admin = true
-		err = store.Users.Save(adminUser, true)
+		err = store.Users.Save(adminUser, true, true)
 		if err != nil {
 			logger.Error(fmt.Sprintf("could not Save admin user: %v", err))
 		}
@@ -67,89 +67,49 @@ func validateUserInfo() {
 }
 
 func updateUserScopes(user *users.User) bool {
-	updateUser := false
-	finalScopes := []users.SourceScope{}
-	seenNames := make(map[string]bool)
+	newScopes := []users.SourceScope{}
+	seen := make(map[string]bool)
 
-	// Step 1: Start by including all existing scopes, updating Name if source.Path matches
-	for _, existingScope := range user.Scopes {
-		if existingScope.Scope != "/" {
-			existingScope.Scope = strings.TrimSuffix(existingScope.Scope, "/")
-		}
-		if existingScope.Scope == "" {
-			updateUser = true
-			continue
-		}
-		if !seenNames[existingScope.Name] {
-			finalScopes = append(finalScopes, existingScope)
-			seenNames[existingScope.Name] = true
-		}
+	// Build map for existing scopes by Name
+	existing := make(map[string]users.SourceScope)
+	for _, s := range user.Scopes {
+		existing[s.Name] = s
 	}
 
-	// Step 2: Add missing scopes from SourceMap if admin or DefaultEnabled
-	for _, source := range settings.Config.Server.SourceMap {
-		if seenNames[source.Path] {
+	// Preserve order by using Config.Server.Sources
+	for _, src := range settings.Config.Server.Sources {
+		realsource, ok := settings.Config.Server.NameToSource[src.Name]
+		if !ok {
 			continue
 		}
-		// Check if scope exists already via path
-		scopePath, _ := settings.GetScopeFromSourcePath(user.Scopes, source.Path)
-		if scopePath == "" {
-			// must be new scope for user
-			// If user has no access, skip unless default-enabled
-			if !source.Config.DefaultEnabled {
-				continue
+		existingScope, ok := existing[realsource.Path]
+		if ok {
+			// If scope is empty and there's a default, apply default
+			if existingScope.Scope == "" {
+				existingScope.Scope = src.Config.DefaultUserScope
 			}
-			// Determine scope path
-			if scopePath == "" {
-				scopePath = source.Config.DefaultUserScope
-			}
-			if scopePath == "" {
-				scopePath = "/"
-			}
-			if scopePath != "/" {
-				scopePath = strings.TrimSuffix(scopePath, "/")
-			}
+		} else if realsource.Config.DefaultEnabled {
+			existingScope.Scope = realsource.Config.DefaultUserScope
+		} else {
+			continue
 		}
 
-		// Add new scope
-		finalScopes = append(finalScopes, users.SourceScope{
-			Scope: scopePath,
-			Name:  source.Path,
+		newScopes = append(newScopes, users.SourceScope{
+			Name:  realsource.Path,
+			Scope: existingScope.Scope,
 		})
-		seenNames[source.Path] = true
-		updateUser = true
+		seen[realsource.Path] = true
 	}
 
-	// Step 3: If no scopes, apply default
-	if len(finalScopes) == 0 {
-		defaultScope := users.SourceScope{
-			Scope: settings.Config.Server.DefaultSource.Config.DefaultUserScope,
-			Name:  settings.Config.Server.DefaultSource.Path,
-		}
-		finalScopes = append(finalScopes, defaultScope)
-		updateUser = true
-	}
-
-	// Step 4: Assign only if different
-	if !scopesEqual(user.Scopes, finalScopes) {
-		user.Scopes = finalScopes
-		updateUser = true
-	}
-
-	return updateUser
-}
-
-// scopesEqual does a deep comparison to avoid unnecessary writes
-func scopesEqual(a, b []users.SourceScope) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i].Scope != b[i].Scope || a[i].Name != b[i].Name {
-			return false
+	// Preserve user-defined scopes not matching current sources, append to end
+	for _, s := range user.Scopes {
+		if !seen[s.Name] {
+			newScopes = append(newScopes, s)
 		}
 	}
-	return true
+	changed := !reflect.DeepEqual(user.Scopes, newScopes)
+	user.Scopes = newScopes
+	return changed
 }
 
 // func to convert legacy user with perm key to permissions

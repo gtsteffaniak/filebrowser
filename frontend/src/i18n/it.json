@@ -274,7 +274,9 @@
     "createUserHomeDirectory": "Creare la directory home dell'utente",
     "api": "Chiavi API",
     "setDateFormat": "Impostare il formato esatto della data",
-    "shareDeleted": "Condividi cancellato!"
+    "shareDeleted": "Condividi cancellato!",
+    "loginMethodDescription": "metodo di accesso consentito per l'utente.",
+    "userNotAdmin": "L'utente non è un amministratore"
   },
   "sidebar": {
     "help": "Aiuto",
@@ -287,7 +289,8 @@
     "preview": "Anteprima",
     "settings": "Impostazioni",
     "signup": "Registrati",
-    "siteSettings": "Impostazioni del sito"
+    "siteSettings": "Impostazioni del sito",
+    "sources": "Fonti"
   },
   "success": {
     "linkCopied": "Link copiato!"
@@ -341,6 +344,8 @@
     "logout": "Disconnessione",
     "toggleClick": "Alterna il clic singolo",
     "toggleDark": "Alterna la modalità scura",
-    "toggleSticky": "Alterna la modalità appiccicosa"
+    "toggleSticky": "Alterna la modalità appiccicosa",
+    "of": "di",
+    "used": "usato"
   }
 }

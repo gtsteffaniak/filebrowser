@@ -274,7 +274,9 @@
     "createUserHomeDirectory": "ユーザーホームディレクトリの作成",
     "api": "APIキー",
     "setDateFormat": "正確な日付書式を設定する",
-    "shareDeleted": "削除されたシェア"
+    "shareDeleted": "削除されたシェア",
+    "loginMethodDescription": "ユーザーに許可されたログイン方法。",
+    "userNotAdmin": "ユーザーが管理者でない"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -287,7 +289,8 @@
     "preview": "プレビュー",
     "settings": "設定",
     "signup": "Signup",
-    "siteSettings": "サイト設定"
+    "siteSettings": "サイト設定",
+    "sources": "情報源"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -341,6 +344,8 @@
     "logout": "ログアウト",
     "toggleClick": "トグル・シングルクリック",
     "toggleDark": "ダークモードの切り替え",
-    "toggleSticky": "スティッキーモードの切り替え"
+    "toggleSticky": "スティッキーモードの切り替え",
+    "of": "の",
+    "used": "中古"
   }
 }

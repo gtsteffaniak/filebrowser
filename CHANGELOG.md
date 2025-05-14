@@ -8,17 +8,25 @@ Note: OIDC changes require config update.
 
  **New Features**
  - Added code highlights to text editor and enabled text editor for all asci files under 25MB
- - Motion previews for videos -- cycles screenshots of vidoes at 10%-25%-50%-75%.
- - Optionally reset default admin username/password on startup, to guarentee a username/password on startup if needed. Use by setting `auth.resetAdminOnStart` true
+ - Motion previews for videos -- cycles screenshots of vidoes. https://github.com/gtsteffaniak/filebrowser/issues/588
+ - Optionally reset default admin username/password on startup, to guarentee a username/password on startup if needed. Use by setting `auth.resetAdminOnStart` true https://github.com/gtsteffaniak/filebrowser/issues/625
 
  **Notes**:
- - updated translations everywhere.
+ - updated translations everywhere. https://github.com/gtsteffaniak/filebrowser/issues/627
  - OIDC config and provider changes: now you only provide `issuerUrl` and filebrowser autoconfigure the rest.
+ - admins allowed to change user login methods in user settings when creating or updating users.
+   - https://github.com/gtsteffaniak/filebrowser/issues/618
+   - https://github.com/gtsteffaniak/filebrowser/issues/617
+ - hide header when showing only office https://github.com/gtsteffaniak/filebrowser/issues/542
 
  **BugFixes**:
  - editor save shows notification
  - preview settings resetting on startup
  - not all languages show correctly https://github.com/gtsteffaniak/filebrowser/issues/623
+ - update save password option
+   - https://github.com/gtsteffaniak/filebrowser/issues/587
+   - https://github.com/gtsteffaniak/filebrowser/issues/619
+   - https://github.com/gtsteffaniak/filebrowser/issues/615
 
 ## v0.7.2-beta
 

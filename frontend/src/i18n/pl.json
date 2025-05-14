@@ -274,7 +274,9 @@
     "createUserHomeDirectory": "Tworzenie katalogu domowego użytkownika",
     "api": "Klucze API",
     "setDateFormat": "Ustaw dokładny format daty",
-    "shareDeleted": "Usunięto udostępnianie!"
+    "shareDeleted": "Usunięto udostępnianie!",
+    "loginMethodDescription": "dozwolona metoda logowania dla użytkownika.",
+    "userNotAdmin": "Użytkownik nie jest administratorem"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -287,7 +289,8 @@
     "preview": "Podgląd",
     "settings": "Ustawienia",
     "signup": "Rejestracja",
-    "siteSettings": "Ustawienia Strony"
+    "siteSettings": "Ustawienia Strony",
+    "sources": "Źródła"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -341,6 +344,8 @@
     "logout": "Wylogowanie",
     "toggleClick": "Przełączanie jednym kliknięciem",
     "toggleDark": "Przełączanie trybu ciemnego",
-    "toggleSticky": "Przełączanie trybu samoprzylepnego"
+    "toggleSticky": "Przełączanie trybu samoprzylepnego",
+    "of": "z",
+    "used": "używany"
   }
 }

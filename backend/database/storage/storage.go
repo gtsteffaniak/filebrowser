@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
@@ -33,13 +34,16 @@ func InitializeDb(path string) (*Storage, bool, error) {
 		panic(err)
 	}
 	db, err := storm.Open(path)
-
-	utils.CheckErr(fmt.Sprintf("storm.Open path %v", path), err)
+	if err != nil {
+		if strings.Contains(err.Error(), "timeout") {
+			logger.Fatal("the database is locked, please close all other instances of filebrowser before starting.")
+		}
+		logger.Fatal(fmt.Sprintf("could not open database: %v", err))
+	}
 	authStore, userStore, shareStore, settingsStore, err := bolt.NewStorage(db)
 	if err != nil {
 		return nil, exists, err
 	}
-
 	err = bolt.Save(db, "version", 2)
 	if err != nil {
 		return nil, exists, err
@@ -98,15 +102,26 @@ func quickSetup(store *Storage) {
 	user.LockPassword = false
 	user.Permissions = settings.AdminPerms()
 	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v", user.Username, user.Password))
-	err = store.Users.Save(user, true)
+	err = store.Users.Save(user, true, true)
 	utils.CheckErr("store.Users.Save", err)
 }
 
 // create new user
 func CreateUser(userInfo users.User, asAdmin bool) error {
 	newUser := &userInfo
+	if userInfo.LoginMethod == "password" {
+		if userInfo.Password != "" {
+			return errors.ErrInvalidRequestParams
+		}
+	} else {
+		hashpass, err := users.HashPwd(userInfo.Username)
+		if err != nil {
+			return err
+		}
+		userInfo.Password = hashpass
+	}
 	// must have username or password to create
-	if userInfo.Username == "" || userInfo.Password == "" {
+	if userInfo.Username == "" {
 		return errors.ErrInvalidRequestParams
 	}
 	logger.Debug(fmt.Sprintf("Creating user: %v %v", userInfo.Username, userInfo.Scopes))
@@ -115,7 +130,7 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 		userInfo.Permissions = settings.AdminPerms()
 	}
 	// create new home directories
-	err := store.Users.Save(newUser, true)
+	err := store.Users.Save(newUser, true, false)
 	if err != nil {
 		return err
 	}

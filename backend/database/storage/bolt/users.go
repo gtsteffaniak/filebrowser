@@ -137,7 +137,7 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 	return nil
 }
 
-func (st usersBackend) Save(user *users.User, changePass bool) error {
+func (st usersBackend) Save(user *users.User, changePass, disableScopeChange bool) error {
 	if user.LoginMethod == "" {
 		user.LoginMethod = users.LoginMethodPassword
 	}
@@ -160,13 +160,13 @@ func (st usersBackend) Save(user *users.User, changePass bool) error {
 		return err
 	}
 	user.Scopes = adjustedScopes
-	err = files.MakeUserDirs(user, false)
+	err = files.MakeUserDirs(user, disableScopeChange)
 	if err != nil {
 		logger.Error(err.Error())
 	}
 	err = st.db.Save(user)
 	if err == storm.ErrAlreadyExists {
-		return errors.ErrExist
+		return fmt.Errorf("user with provided username already exists")
 	}
 	return err
 }

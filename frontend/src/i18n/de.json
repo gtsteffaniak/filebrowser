@@ -274,7 +274,9 @@
     "userHomeBasePath": "Basispfad für Benutzer-Home-Verzeichnisse",
     "userScopeGenerationPlaceholder": "Der Bereich wird automatisch generiert",
     "createUserHomeDirectory": "Benutzer-Home-Verzeichnis erstellen",
-    "api": "API-Schlüssel"
+    "api": "API-Schlüssel",
+    "loginMethodDescription": "erlaubte Anmeldemethode für den Benutzer.",
+    "userNotAdmin": "Benutzer ist kein Administrator"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -287,7 +289,8 @@
     "preview": "Vorschau",
     "settings": "Einstellungen",
     "signup": "Registrieren",
-    "siteSettings": "Seiteneinstellungen"
+    "siteSettings": "Seiteneinstellungen",
+    "sources": "Quellen"
   },
   "success": {
     "linkCopied": "Verweis wurde kopiert!"
@@ -341,6 +344,8 @@
     "logout": "Abmeldung",
     "toggleClick": "Einzelklick umschalten",
     "toggleDark": "Dunkler Modus umschalten",
-    "toggleSticky": "Sticky-Modus umschalten"
+    "toggleSticky": "Sticky-Modus umschalten",
+    "of": "von",
+    "used": "gebraucht"
   }
 }

@@ -32,7 +32,6 @@ type HookAuth struct {
 // Auth authenticates the user via a json in content body.
 func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
 	var cred hookCred
-
 	if r.Body == nil {
 		return nil, os.ErrPermission
 	}
@@ -52,6 +51,8 @@ func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error
 	if err != nil {
 		return nil, err
 	}
+	logger.Debug(fmt.Sprintf("hook auth %v", action))
+
 	switch action {
 	case "auth":
 		u, err := a.SaveUser()
@@ -167,7 +168,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 		}
 		u = a.GetUser(d)
 
-		err = a.Users.Save(u, false)
+		err = a.Users.Save(u, false, false)
 		if err != nil {
 			return nil, err
 		}

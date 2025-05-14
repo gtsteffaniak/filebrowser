@@ -186,6 +186,7 @@
   },
   "settings": {
     "loginMethod": "Login method",
+    "loginMethodDescription": "allowed login method for the user.",
     "modifyOtherUser": "Modify user:",
     "modifyCurrentUser": "Modify current user",
     "themeColor": "Theme Color",
@@ -197,6 +198,7 @@
     "scopes": "Define allowed sources and the user scope within them",
     "UserManagement": "User Management",
     "admin": "Admin",
+    "userNotAdmin": "User is not an administrator",
     "administrator": "Administrator",
     "allowCommands": "Execute commands",
     "allowEdit": "Edit, rename and delete files or directories",

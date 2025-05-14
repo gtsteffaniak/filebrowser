@@ -274,7 +274,9 @@
     "userScopeGenerationPlaceholder": "Kapsam otomatik olarak oluşturulacaktır",
     "createUserHomeDirectory": "Kullanıcı ev dizini oluşturma",
     "api": "API Anahtarları",
-    "setDateFormat": "Tam tarih biçimini ayarlama"
+    "setDateFormat": "Tam tarih biçimini ayarlama",
+    "loginMethodDescription": "kullanıcı için izin verilen oturum açma yöntemi.",
+    "userNotAdmin": "Kullanıcı yönetici değil"
   },
   "sidebar": {
     "help": "Yardım",
@@ -287,7 +289,8 @@
     "preview": "Önizleme",
     "settings": "Ayarlar",
     "signup": "Kayıt",
-    "siteSettings": "Site ayarları!"
+    "siteSettings": "Site ayarları!",
+    "sources": "Kaynaklar"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -341,6 +344,8 @@
     "logout": "Oturum Kapatma",
     "toggleClick": "Tek Tıklamayı Değiştir",
     "toggleDark": "Karanlık Modu Aç / Kapat",
-    "toggleSticky": "Yapışkan Modunu Değiştir"
+    "toggleSticky": "Yapışkan Modunu Değiştir",
+    "of": ".",
+    "used": "kullanılmış"
   }
 }

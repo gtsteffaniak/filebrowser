@@ -8,7 +8,10 @@
     :onLoadComponentError="onLoadComponentError"
   />
   <div v-else>
-    <p>{{ $t('files.loading') }}</p>
+    <p>{{ $t("files.loading") }}</p>
+  </div>
+  <div @click="close" class="floating-close button">
+   <i class="material-icons">close</i>
   </div>
 </template>
 
@@ -19,6 +22,7 @@ import { state } from "@/store";
 import { fetchJSON } from "@/api/utils";
 import { filesApi } from "@/api";
 import { baseURL } from "@/utils/constants";
+import { removeLastDir } from "@/utils/url";
 
 export default {
   name: "onlyOfficeEditor",
@@ -58,5 +62,29 @@ export default {
       // Handle setup failure if needed
     }
   },
+  methods: {
+    close() {
+      const current = window.location.pathname;
+      const newpath = removeLastDir(current);
+      window.location = newpath + "#" + state.req.name;
+    },
+  },
 };
 </script>
+
+<style scoped>
+.floating-close {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, 2.75em);
+  background: var(--surfaceSecondary);
+  font-size: .5em;
+  padding:  !important;
+}
+.floating-close i {
+  font-size: 2em;
+  padding-right: 1em;
+  padding-left: 1em;
+}
+</style>

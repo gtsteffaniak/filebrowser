@@ -2110,6 +2110,10 @@ const docTemplate = `{
                     "description": "disable the user from changing their password",
                     "type": "boolean"
                 },
+                "loginMethod": {
+                    "description": "login method to use: eg. password, proxy, oidc",
+                    "type": "string"
+                },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },

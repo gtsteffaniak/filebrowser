@@ -65,16 +65,16 @@
             <p>
               {{ $t('settings.disableOfficePreviewDescription') }}
             </p>
-            <div class="onlyoffice-group">
+            <div class="form-group">
               <input
-                class="input input--block onlyoffice-form"
+                class="input input--block form-form flat-right"
                 :class="{ 'invalid-form': !formValidation() }"
                 type="text"
                 placeholder="enter file extensions"
                 id="onlyofficeExt"
                 v-model="formOnlyOfficeExt"
               />
-              <button type="button" class="button onlyoffice-button" @click="submitOnlyOfficeChange"> {{ $t('buttons.save') }} </button>
+              <button type="button" class="button form-button" @click="submitOnlyOfficeChange"> {{ $t('buttons.save') }} </button>
             </div>
           </div>
 
@@ -213,18 +213,5 @@ export default {
   text-align: center;
 }
 
-.onlyoffice-group {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-}
-.onlyoffice-button {
-  margin-left: 1em;
-}
-.onlyoffice-form {
-  height: 3em;
-}
-.invalid-form {
-  border-color: red !important;
-}
+
 </style>

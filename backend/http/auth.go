@@ -77,16 +77,9 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 			return nil, err
 		}
 		if config.Auth.Methods.ProxyAuth.CreateUser {
-			hashpass, err := users.HashPwd(proxyUser)
-			if err != nil {
-				return nil, err
-			}
 			err = storage.CreateUser(users.User{
 				LoginMethod: users.LoginMethodProxy,
 				Username:    proxyUser,
-				NonAdminEditable: users.NonAdminEditable{
-					Password: hashpass, // hashed password that can't actually be used
-				},
 			}, false)
 			if err != nil {
 				return nil, err
@@ -217,7 +210,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	user.Username = info.Username
 	user.Password = info.Password
 
-	err = store.Users.Save(user, true)
+	err = store.Users.Save(user, true, false)
 	if err == errors.ErrExist {
 		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
 		return
@@ -489,6 +482,11 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
 func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo) (int, error) {
+	preferred := config.Auth.Methods.OidcAuth.UserIdentifier
+	if preferred == "" {
+		preferred = "username" // Default to email if not specified
+	}
+	logger.Debug(fmt.Sprintf("selecting user identifier %v from OIDC user info: %v", preferred, userInfo))
 	username := userInfo.PreferredUsername
 	switch config.Auth.Methods.OidcAuth.UserIdentifier {
 	case "email":
@@ -496,23 +494,17 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo
 	case "username":
 		username = userInfo.PreferredUsername
 	}
+	logger.Debug(fmt.Sprintf("Successfully authenticated OIDC username: %s", username))
 	// Retrieve the user from the store and store it in the context
 	user, err := store.Users.Get(username)
 	if err != nil {
 		if err.Error() != "the resource does not exist" {
 			return http.StatusInternalServerError, err
 		}
-		hashpass := ""
-		hashpass, err = users.HashPwd(username) // hashed password that can't actually be used, gets double hashed
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
+
 		err = storage.CreateUser(users.User{
 			LoginMethod: users.LoginMethodOidc,
 			Username:    username,
-			NonAdminEditable: users.NonAdminEditable{
-				Password: hashpass, // hashed password that can't actually be used
-			},
 		}, false)
 		if err != nil {
 			return http.StatusInternalServerError, err
