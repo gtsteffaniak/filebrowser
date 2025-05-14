@@ -14,6 +14,7 @@ Note: OIDC changes require config update.
  **Notes**:
  - updated translations everywhere. https://github.com/gtsteffaniak/filebrowser/issues/627
  - OIDC config and provider changes: now you only provide `issuerUrl` and filebrowser autoconfigure the rest.
+ - OIDC config addition - `oidc.disableVerifyTLS`
  - admins allowed to change user login methods in user settings when creating or updating users.
    - https://github.com/gtsteffaniak/filebrowser/issues/618
    - https://github.com/gtsteffaniak/filebrowser/issues/617

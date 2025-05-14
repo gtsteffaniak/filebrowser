@@ -1,6 +1,7 @@
 package http
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	libError "errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
@@ -327,8 +329,6 @@ type userInfo struct {
 // If ID token verification or essential claims extraction fails, it falls back to the UserInfo endpoint.
 func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	ctx := r.Context()
-	code := r.URL.Query().Get("code")
-	// state := r.URL.Query().Get("state") // You might want to validate the state parameter for CSRF protection
 
 	oidcCfg := settings.Config.Auth.Methods.OidcAuth
 	if oidcCfg.Provider == nil || oidcCfg.Verifier == nil {
@@ -337,6 +337,20 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Error("OIDC provider or verifier not initialized.")
 		return http.StatusInternalServerError, fmt.Errorf("OIDC provider or verifier not initialized")
 	}
+	// If disableVerifyTLS is true, create a custom HTTP client
+	// and set it in the context for the OIDC provider.
+	if oidcCfg.DisableVerifyTLS {
+		// Create a custom transport with InsecureSkipVerify set to true
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		customClient := &http.Client{
+			Transport: transport,
+		}
+		ctx = oidc.ClientContext(ctx, customClient)
+	}
+	code := r.URL.Query().Get("code")
+	// state := r.URL.Query().Get("state") // You might want to validate the state parameter for CSRF protection
 
 	// The redirect URI MUST match the one registered with the OIDC provider
 	// and used in the initial /api/auth/oidc/login handler.
@@ -364,6 +378,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 	var userdata userInfo      // Declare userdata here to be populated by either source
 	claimsFromIDToken := false // Flag to track if we successfully got claims from ID token
+	loginUsername := ""        // Variable to hold the login username
 
 	// --- Attempt to process ID Token ---
 	if ok && rawIDToken != "" {
@@ -402,15 +417,24 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				if phone, ok := claims["phone_number"].(string); ok {
 					userdata.Phone = phone
 				}
-
 				// Decide if we rely on ID token claims or still need UserInfo
 				// Even if parsing succeeded, if essential claims are missing, use UserInfo
-				if userdata.Email != "" || userdata.Sub != "" {
-					claimsFromIDToken = true // ID token provided essential info
-					logger.Debug("Essential claims found in ID token.")
-				} else {
-					logger.Warning("Essential claims (email/sub) missing in ID token despite successful verification/decoding. Falling back to UserInfo endpoint to ensure data completeness.")
-					// claimsFromIDToken remains false
+				switch oidcCfg.UserIdentifier {
+				case "email":
+					if userdata.Email != "" {
+						claimsFromIDToken = true
+						loginUsername = userdata.Email
+					}
+				case "username":
+					if userdata.PreferredUsername != "" {
+						claimsFromIDToken = true
+						loginUsername = userdata.PreferredUsername
+					}
+				case "phone":
+					if userdata.Phone != "" {
+						claimsFromIDToken = true
+						loginUsername = userdata.Phone
+					}
 				}
 			}
 		}
@@ -434,17 +458,24 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			logger.Error(fmt.Sprintf("failed to decode user info from endpoint: %v", err))
 			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info from endpoint: %v", err)
 		}
+		// Decide if we rely on ID token claims or still need UserInfo
+		// Even if parsing succeeded, if essential claims are missing, use UserInfo
+		switch oidcCfg.UserIdentifier {
+		case "email":
+			loginUsername = userdata.Email
+		case "username":
+			loginUsername = userdata.PreferredUsername
+		case "phone":
+			loginUsername = userdata.Phone
+		}
 	}
-
-	// Final check to ensure we got at least a sub or email from either source
-	if userdata.Sub == "" && userdata.Email == "" {
-		logger.Error("Neither ID token (if attempted) nor UserInfo endpoint provided sufficient claims (sub or email). Cannot proceed with login.")
-		return http.StatusInternalServerError, fmt.Errorf("authentication failed: essential user info missing")
+	if loginUsername == "" {
+		logger.Error("No valid username found in ID token or UserInfo response.")
+		return http.StatusInternalServerError, fmt.Errorf("no valid username found in ID token or UserInfo response from claims")
 	}
-
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
-	return loginWithOidcUser(w, r, userdata)
+	return loginWithOidcUser(w, r, loginUsername)
 }
 
 // oidcLoginHandler redirects the user to the OIDC provider's authorization endpoint.
@@ -481,19 +512,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // loginWithOidcUser extracts the username from the user claims (userInfo)
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
-func loginWithOidcUser(w http.ResponseWriter, r *http.Request, userInfo userInfo) (int, error) {
-	preferred := config.Auth.Methods.OidcAuth.UserIdentifier
-	if preferred == "" {
-		preferred = "username" // Default to email if not specified
-	}
-	logger.Debug(fmt.Sprintf("selecting user identifier %v from OIDC user info: %v", preferred, userInfo))
-	username := userInfo.PreferredUsername
-	switch config.Auth.Methods.OidcAuth.UserIdentifier {
-	case "email":
-		username = userInfo.Email
-	case "username":
-		username = userInfo.PreferredUsername
-	}
+func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string) (int, error) {
 	logger.Debug(fmt.Sprintf("Successfully authenticated OIDC username: %s", username))
 	// Retrieve the user from the store and store it in the context
 	user, err := store.Users.Get(username)

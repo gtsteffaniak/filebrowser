@@ -1796,6 +1796,10 @@
                     "description": "client secret of the OIDC application",
                     "type": "string"
                 },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.",
+                    "type": "boolean"
+                },
                 "enabled": {
                     "description": "whether to enable OIDC authentication",
                     "type": "boolean"
@@ -1809,7 +1813,7 @@
                     "type": "string"
                 },
                 "userIdentifier": {
-                    "description": "the user identifier to use for authentication. Default is \"username\".",
+                    "description": "the user identifier to use for authentication. Default is \"username\", can be \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }

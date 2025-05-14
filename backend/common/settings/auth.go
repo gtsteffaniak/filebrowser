@@ -2,10 +2,13 @@ package settings
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 )
 
 type Auth struct {
@@ -46,32 +49,53 @@ type Recaptcha struct {
 
 // OpenID OAuth2.0
 type OidcConfig struct {
-	Enabled        bool                  `json:"enabled"`        // whether to enable OIDC authentication
-	ClientID       string                `json:"clientId"`       // client id of the OIDC application
-	ClientSecret   string                `json:"clientSecret"`   // client secret of the OIDC application
-	IssuerUrl      string                `json:"issuerUrl"`      // authorization URL of the OIDC provider
-	Scopes         string                `json:"scopes"`         // scopes to request from the OIDC provider
-	UserIdentifier string                `json:"userIdentifier"` // the user identifier to use for authentication. Default is "username".
-	Provider       *oidc.Provider        `json:"-"`              // OIDC provider
-	Verifier       *oidc.IDTokenVerifier `json:"-"`              // OIDC verifier
+	Enabled          bool                  `json:"enabled"`          // whether to enable OIDC authentication
+	ClientID         string                `json:"clientId"`         // client id of the OIDC application
+	ClientSecret     string                `json:"clientSecret"`     // client secret of the OIDC application
+	IssuerUrl        string                `json:"issuerUrl"`        // authorization URL of the OIDC provider
+	Scopes           string                `json:"scopes"`           // scopes to request from the OIDC provider
+	UserIdentifier   string                `json:"userIdentifier"`   // the user identifier to use for authentication. Default is "username", can be "email" or "username", or "phone"
+	DisableVerifyTLS bool                  `json:"disableVerifyTLS"` // disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.
+	Provider         *oidc.Provider        `json:"-"`                // OIDC provider
+	Verifier         *oidc.IDTokenVerifier `json:"-"`                // OIDC verifier
 }
 
 // ValidateOidcAuth processes the OIDC callback and retrieves user identity
 func validateOidcAuth() error {
-	oidcCfg := Config.Auth.Methods.OidcAuth
+	oidcCfg := &Config.Auth.Methods.OidcAuth // Use a pointer to modify the original config
 	if !oidcCfg.Enabled {
 		return errors.New("OIDC is not enabled")
 	}
+	if oidcCfg.UserIdentifier == "" {
+		oidcCfg.UserIdentifier = "username"
+	}
 
 	ctx := context.Background()
+
+	// If disableVerifyTLS is true, create a custom HTTP client
+	// and set it in the context for the OIDC provider.
+	if oidcCfg.DisableVerifyTLS {
+		// Create a custom transport with InsecureSkipVerify set to true
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		customClient := &http.Client{
+			Transport: transport,
+		}
+		// Use oidc.ClientContext to pass the custom client to the OIDC library
+		ctx = oidc.ClientContext(ctx, customClient)
+		// Log that TLS verification is disabled (important for security awareness)
+		logger.Warning("OIDC TLS verification is disabled.")
+	}
+
 	provider, err := oidc.NewProvider(ctx, oidcCfg.IssuerUrl)
 	if err != nil {
 		return fmt.Errorf("url '%v' failed to create OIDC provider: %w", oidcCfg.IssuerUrl, err)
 	}
-	Config.Auth.Methods.OidcAuth.Provider = provider
-	Config.Auth.Methods.OidcAuth.Verifier = provider.Verifier(&oidc.Config{ClientID: oidcCfg.ClientID})
+	oidcCfg.Provider = provider
+	oidcCfg.Verifier = provider.Verifier(&oidc.Config{ClientID: oidcCfg.ClientID})
 	if oidcCfg.Scopes == "" {
-		Config.Auth.Methods.OidcAuth.Scopes = "openid email profile"
+		oidcCfg.Scopes = "openid email profile"
 	}
 
 	return nil
