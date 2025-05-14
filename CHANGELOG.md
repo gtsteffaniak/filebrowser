@@ -12,19 +12,20 @@ Note: OIDC changes require config update.
  - Optionally reset default admin username/password on startup, to guarentee a username/password on startup if needed. Use by setting `auth.resetAdminOnStart` true https://github.com/gtsteffaniak/filebrowser/issues/625
 
  **Notes**:
- - updated translations everywhere. https://github.com/gtsteffaniak/filebrowser/issues/627
+ - Updated translations everywhere. https://github.com/gtsteffaniak/filebrowser/issues/627
  - OIDC config and provider changes: now you only provide `issuerUrl` and filebrowser autoconfigure the rest.
  - OIDC config addition - `oidc.disableVerifyTLS`
- - admins allowed to change user login methods in user settings when creating or updating users.
+ - Aadmins allowed to change user login methods in user settings when creating or updating users.
    - https://github.com/gtsteffaniak/filebrowser/issues/618
    - https://github.com/gtsteffaniak/filebrowser/issues/617
- - hide header when showing only office https://github.com/gtsteffaniak/filebrowser/issues/542
+ - Hide header when showing only office https://github.com/gtsteffaniak/filebrowser/issues/542
 
  **BugFixes**:
- - editor save shows notification
- - preview settings resetting on startup
- - not all languages show correctly https://github.com/gtsteffaniak/filebrowser/issues/623
- - update save password option
+ - Editor save shows notification
+ - Preview settings resetting on startup
+ - Not all languages show correctly https://github.com/gtsteffaniak/filebrowser/issues/623
+ - scopes sometimes reset on startup https://github.com/gtsteffaniak/filebrowser/issues/636
+ - Update save password option
    - https://github.com/gtsteffaniak/filebrowser/issues/587
    - https://github.com/gtsteffaniak/filebrowser/issues/619
    - https://github.com/gtsteffaniak/filebrowser/issues/615
