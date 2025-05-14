@@ -1788,10 +1788,6 @@
         "settings.OidcConfig": {
             "type": "object",
             "properties": {
-                "authorizationUrl": {
-                    "description": "authorization URL of the OIDC provider",
-                    "type": "string"
-                },
                 "clientId": {
                     "description": "client id of the OIDC application",
                     "type": "string"
@@ -1804,28 +1800,16 @@
                     "description": "whether to enable OIDC authentication",
                     "type": "boolean"
                 },
-                "jwksUrl": {
-                    "description": "currently not used by filebrowser",
+                "issuerUrl": {
+                    "description": "authorization URL of the OIDC provider",
                     "type": "string"
                 },
                 "scopes": {
-                    "description": "space separated list of scopes to request from the OIDC provider",
-                    "type": "string"
-                },
-                "tokenUrl": {
-                    "description": "token URL of the OIDC provider",
+                    "description": "scopes to request from the OIDC provider",
                     "type": "string"
                 },
                 "userIdentifier": {
-                    "description": "optional: which attribute should be used as the username? options: email, username, name, phone_number, sub",
-                    "type": "string"
-                },
-                "userInfoUrl": {
-                    "description": "user info URL of the OIDC provider",
-                    "type": "string"
-                },
-                "wellKnownUrl": {
-                    "description": "URL to the well-known configuration of the OIDC provider. If set, the other URLs will be ignored.",
+                    "description": "the user identifier to use for authentication. Default is \"username\".",
                     "type": "string"
                 }
             }

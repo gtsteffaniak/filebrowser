@@ -156,13 +156,12 @@ func setupAuth() {
 		logger.Warning("Configured with no authentication, this is not recommended.")
 		Config.Auth.AuthMethods = []string{"Disabled"}
 	}
-	if Config.Auth.Methods.OidcAuth.IssuerUrl != "" {
+	if Config.Auth.Methods.OidcAuth.Enabled {
 		err := validateOidcAuth()
 		if err != nil {
 			logger.Fatal(fmt.Sprintf("Error validating OIDC auth: %v", err))
 		}
 		logger.Info("OIDC Auth configured successfully")
-
 	}
 
 	// use password auth as default if no auth methods are set

@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.3-beta
 
+Note: OIDC changes require config update.
+
  **New Features**
  - Added code highlights to text editor and enabled text editor for all asci files under 25MB
  - Motion previews for videos -- cycles screenshots of vidoes at 10%-25%-50%-75%.
@@ -11,10 +13,12 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - updated translations everywhere.
+ - OIDC config and provider changes: now you only provide `issuerUrl` and filebrowser autoconfigure the rest.
 
  **BugFixes**:
  - editor save shows notification
  - preview settings resetting on startup
+ - not all languages show correctly https://github.com/gtsteffaniak/filebrowser/issues/623
 
 ## v0.7.2-beta
 
