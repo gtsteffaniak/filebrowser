@@ -13,6 +13,7 @@ Note: OIDC changes require config update.
 
  **Notes**:
  - Updated translations everywhere. https://github.com/gtsteffaniak/filebrowser/issues/627
+ - Office viewer is now full-screen with floating close button. https://github.com/gtsteffaniak/filebrowser/issues/542
  - OIDC config additions
    - `issuerUrl` required now to get relevant oidc configurations.
    - `disableVerifyTLS` optionally, disable verifying HTTPS provider endpoints.

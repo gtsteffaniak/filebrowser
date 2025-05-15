@@ -647,6 +647,17 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/auth/logout:
+    get:
+      description: logs a user out of the application.
+      responses:
+        "302":
+          description: Redirect to redirect URL if configured in oidc config.
+          schema:
+            type: string
+      summary: User Logout
+      tags:
+      - Auth
   /api/createApiKey:
     post:
       consumes:
@@ -793,21 +804,6 @@ paths:
               type: string
             type: object
       summary: User login
-      tags:
-      - Auth
-  /api/logout:
-    get:
-      consumes:
-      - application/json
-      description: logs a user out of the application.
-      produces:
-      - application/json
-      responses:
-        "302":
-          description: Redirect to the login page
-          schema:
-            type: string
-      summary: User lgout
       tags:
       - Auth
   /api/preview:

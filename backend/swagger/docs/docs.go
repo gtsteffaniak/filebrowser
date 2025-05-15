@@ -15,6 +15,23 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/auth/logout": {
+            "get": {
+                "description": "logs a user out of the application.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User Logout",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to redirect URL if configured in oidc config.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/createApiKey": {
             "post": {
                 "description": "Create an API key with specified name, duration, and permissions.",
@@ -232,29 +249,6 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/logout": {
-            "get": {
-                "description": "logs a user out of the application.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "User lgout",
-                "responses": {
-                    "302": {
-                        "description": "Redirect to the login page",
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 }
