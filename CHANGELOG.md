@@ -13,8 +13,12 @@ Note: OIDC changes require config update.
 
  **Notes**:
  - Updated translations everywhere. https://github.com/gtsteffaniak/filebrowser/issues/627
- - OIDC config and provider changes: now you only provide `issuerUrl` and filebrowser autoconfigure the rest.
- - OIDC config addition - `oidc.disableVerifyTLS`
+ - Office viewer is now full-screen with floating close button. https://github.com/gtsteffaniak/filebrowser/issues/542
+ - OIDC config additions
+   - `issuerUrl` required now to get relevant oidc configurations.
+   - `disableVerifyTLS` optionally, disable verifying HTTPS provider endpoints.
+   - `logoutRedirectUrl` optionally, redirect the user to this URL on logout.
+   - other URL config parameters are no longer accepted -- replace with issuerUrl.
  - Aadmins allowed to change user login methods in user settings when creating or updating users.
    - https://github.com/gtsteffaniak/filebrowser/issues/618
    - https://github.com/gtsteffaniak/filebrowser/issues/617

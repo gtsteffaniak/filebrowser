@@ -15,6 +15,23 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/auth/logout": {
+            "get": {
+                "description": "logs a user out of the application.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User Logout",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to redirect URL if configured in oidc config.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/createApiKey": {
             "post": {
                 "description": "Create an API key with specified name, duration, and permissions.",
@@ -1817,6 +1834,10 @@ const docTemplate = `{
                 },
                 "issuerUrl": {
                     "description": "authorization URL of the OIDC provider",
+                    "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
                     "type": "string"
                 },
                 "scopes": {

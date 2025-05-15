@@ -219,6 +219,10 @@ definitions:
       issuerUrl:
         description: authorization URL of the OIDC provider
         type: string
+      logoutRedirectUrl:
+        description: if provider logout url is provided, filebrowser will also redirect
+          to logout url. Custom logout query params are respected.
+        type: string
       scopes:
         description: scopes to request from the OIDC provider
         type: string
@@ -643,6 +647,17 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/auth/logout:
+    get:
+      description: logs a user out of the application.
+      responses:
+        "302":
+          description: Redirect to redirect URL if configured in oidc config.
+          schema:
+            type: string
+      summary: User Logout
+      tags:
+      - Auth
   /api/createApiKey:
     post:
       consumes:

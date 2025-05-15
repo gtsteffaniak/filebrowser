@@ -96,6 +96,13 @@ export async function signupLogin(username, password) {
 }
 
 export function logout() {
+  if (state.user.loginMethod == "oidc") {
+    document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+    mutations.setCurrentUser(null);
+    let apiPath = getApiPath("api/auth/logout")
+    window.location.href = apiPath;
+    return
+  }
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
   mutations.setCurrentUser(null);
   router.push({ path: "/login" });

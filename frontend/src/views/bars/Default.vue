@@ -4,6 +4,7 @@
       v-if="!isShare"
       icon="close_back"
       :label="$t('buttons.close')"
+      :disabled="isSearchActive"
       @action="multiAction"
     />
     <search v-if="showSearch" />

@@ -49,7 +49,7 @@ export default {
       return state.req;
     },
     multistate() {
-      if (!state.multiButtonState) {
+      if (!state.multiButtonState && getters.currentView() == "settings") {
         return "close";
       }
       return state.multiButtonState;
