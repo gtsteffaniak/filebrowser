@@ -49,15 +49,16 @@ type Recaptcha struct {
 
 // OpenID OAuth2.0
 type OidcConfig struct {
-	Enabled          bool                  `json:"enabled"`          // whether to enable OIDC authentication
-	ClientID         string                `json:"clientId"`         // client id of the OIDC application
-	ClientSecret     string                `json:"clientSecret"`     // client secret of the OIDC application
-	IssuerUrl        string                `json:"issuerUrl"`        // authorization URL of the OIDC provider
-	Scopes           string                `json:"scopes"`           // scopes to request from the OIDC provider
-	UserIdentifier   string                `json:"userIdentifier"`   // the user identifier to use for authentication. Default is "username", can be "email" or "username", or "phone"
-	DisableVerifyTLS bool                  `json:"disableVerifyTLS"` // disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.
-	Provider         *oidc.Provider        `json:"-"`                // OIDC provider
-	Verifier         *oidc.IDTokenVerifier `json:"-"`                // OIDC verifier
+	Enabled           bool                  `json:"enabled"`           // whether to enable OIDC authentication
+	ClientID          string                `json:"clientId"`          // client id of the OIDC application
+	ClientSecret      string                `json:"clientSecret"`      // client secret of the OIDC application
+	IssuerUrl         string                `json:"issuerUrl"`         // authorization URL of the OIDC provider
+	Scopes            string                `json:"scopes"`            // scopes to request from the OIDC provider
+	UserIdentifier    string                `json:"userIdentifier"`    // the user identifier to use for authentication. Default is "username", can be "email" or "username", or "phone"
+	DisableVerifyTLS  bool                  `json:"disableVerifyTLS"`  // disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.
+	LogoutRedirectUrl string                `json:"logoutRedirectUrl"` // if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
+	Provider          *oidc.Provider        `json:"-"`                 // OIDC provider
+	Verifier          *oidc.IDTokenVerifier `json:"-"`                 // OIDC verifier
 }
 
 // ValidateOidcAuth processes the OIDC callback and retrieves user identity

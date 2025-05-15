@@ -167,6 +167,29 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// logoutHandler handles user logout, specifically used for OIDC.
+// @Summary User Logout
+// @Description logs a user out of the application.
+// @Tags Auth
+// @Success 302 {string} string "Redirect to redirect URL if configured in oidc config."
+// @Router /api/auth/logout [get]
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+	}
+	logoutUrl := fmt.Sprintf("%s/login", origin)
+
+	oidcCfg := settings.Config.Auth.Methods.OidcAuth
+	if oidcCfg.Enabled && oidcCfg.LogoutRedirectUrl != "" {
+		logoutUrl = oidcCfg.LogoutRedirectUrl
+		http.Redirect(w, r, logoutUrl, http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, logoutUrl, http.StatusFound)
+}
+
 type signupBody struct {
 	Username string `json:"username"`
 	Password string `json:"password"`

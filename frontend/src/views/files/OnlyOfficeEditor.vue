@@ -10,7 +10,8 @@
   <div v-else>
     <p>{{ $t("files.loading") }}</p>
   </div>
-  <div @click="close" class="floating-close button">
+  <div @click="close" class="floating-close button" :class="{ 'float-in': floatIn }"
+  >
    <i class="material-icons">close</i>
   </div>
 </template>
@@ -33,6 +34,7 @@ export default {
     return {
       ready: false, // Flag to indicate whether the setup is complete
       clientConfig: {},
+      floatIn: false, // Flag for the float-in animation
     };
   },
   computed: {
@@ -57,6 +59,10 @@ export default {
       this.clientConfig = configData;
       console.log("Client config:", this.clientConfig);
       this.ready = true;
+      // Trigger float-in animation
+      setTimeout(() => {
+        this.floatIn = true;
+      }, 100); // slight delay to allow rendering
     } catch (error) {
       console.error("Error during setup:", error);
       // Handle setup failure if needed
@@ -75,13 +81,18 @@ export default {
 <style scoped>
 .floating-close {
   position: fixed;
-  top: 0;
   left: 50%;
-  transform: translate(-50%, 2.75em);
+  transform: translate(-50%, -5em); /* Start offscreen */
+  transition: transform 0.4s ease;
   background: var(--surfaceSecondary);
   font-size: .5em;
-  padding:  !important;
+  top: 0;
 }
+
+.float-in {
+  transform: translate(-50%, 2.75em); /* Animate to final position */
+}
+
 .floating-close i {
   font-size: 2em;
   padding-right: 1em;

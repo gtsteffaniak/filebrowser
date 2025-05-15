@@ -237,6 +237,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/logout": {
+            "get": {
+                "description": "logs a user out of the application.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User lgout",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to the login page",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/preview": {
             "get": {
                 "description": "Returns a preview image based on the requested path and size.",
@@ -1817,6 +1840,10 @@ const docTemplate = `{
                 },
                 "issuerUrl": {
                     "description": "authorization URL of the OIDC provider",
+                    "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
                     "type": "string"
                 },
                 "scopes": {
