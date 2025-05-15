@@ -276,7 +276,10 @@
     "disableUsedDiskPercentage": "A használt lemez százalékos grafikonjának kikapcsolása",
     "api": "API kulcsok",
     "loginMethodDescription": "engedélyezett bejelentkezési módszer a felhasználó számára.",
-    "userNotAdmin": "A felhasználó nem rendszergazda"
+    "userNotAdmin": "A felhasználó nem rendszergazda",
+    "enterPassword": "Jelszó megadása",
+    "enterPasswordAgain": "Adja meg újra a jelszót",
+    "passwordsDoNotMatch": "A jelszavak nem egyeznek"
   },
   "sidebar": {
     "help": "Súgó",

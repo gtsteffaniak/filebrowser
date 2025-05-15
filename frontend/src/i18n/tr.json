@@ -276,7 +276,10 @@
     "api": "API Anahtarları",
     "setDateFormat": "Tam tarih biçimini ayarlama",
     "loginMethodDescription": "kullanıcı için izin verilen oturum açma yöntemi.",
-    "userNotAdmin": "Kullanıcı yönetici değil"
+    "userNotAdmin": "Kullanıcı yönetici değil",
+    "enterPassword": "Şifre girin",
+    "enterPasswordAgain": "Şifreyi tekrar girin",
+    "passwordsDoNotMatch": "Parolalar eşleşmiyor"
   },
   "sidebar": {
     "help": "Yardım",

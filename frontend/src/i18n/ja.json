@@ -276,7 +276,10 @@
     "setDateFormat": "正確な日付書式を設定する",
     "shareDeleted": "削除されたシェア",
     "loginMethodDescription": "ユーザーに許可されたログイン方法。",
-    "userNotAdmin": "ユーザーが管理者でない"
+    "userNotAdmin": "ユーザーが管理者でない",
+    "enterPassword": "パスワードを入力",
+    "enterPasswordAgain": "もう一度パスワードを入力する",
+    "passwordsDoNotMatch": "パスワードが一致しない"
   },
   "sidebar": {
     "help": "ヘルプ",

@@ -185,8 +185,8 @@
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },
   "settings": {
-    "enterPassword": "Enter your password",
-    "enterPasswordAgain": "Enter your password again",
+    "enterPassword": "Enter password",
+    "enterPasswordAgain": "Enter the password again",
     "passwordsDoNotMatch": "Passwords do not match",
     "loginMethod": "Login method",
     "loginMethodDescription": "allowed login method for the user.",

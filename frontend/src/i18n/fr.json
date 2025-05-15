@@ -276,7 +276,10 @@
     "createUserHomeDirectory": "Créer le répertoire personnel de l'utilisateur",
     "api": "Clés API",
     "loginMethodDescription": "méthode de connexion autorisée pour l'utilisateur.",
-    "userNotAdmin": "L'utilisateur n'est pas un administrateur"
+    "userNotAdmin": "L'utilisateur n'est pas un administrateur",
+    "enterPassword": "Saisir le mot de passe",
+    "enterPasswordAgain": "Saisir à nouveau le mot de passe",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas"
   },
   "sidebar": {
     "help": "Aide",

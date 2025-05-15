@@ -276,7 +276,10 @@
     "setDateFormat": "Ustaw dokładny format daty",
     "shareDeleted": "Usunięto udostępnianie!",
     "loginMethodDescription": "dozwolona metoda logowania dla użytkownika.",
-    "userNotAdmin": "Użytkownik nie jest administratorem"
+    "userNotAdmin": "Użytkownik nie jest administratorem",
+    "enterPassword": "Wprowadź hasło",
+    "enterPasswordAgain": "Wprowadź hasło ponownie",
+    "passwordsDoNotMatch": "Hasła nie są zgodne"
   },
   "sidebar": {
     "help": "Pomoc",

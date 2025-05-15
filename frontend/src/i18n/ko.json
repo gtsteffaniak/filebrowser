@@ -276,7 +276,10 @@
     "setDateFormat": "정확한 날짜 형식 설정",
     "shareDeleted": "공유 삭제됨!",
     "loginMethodDescription": "사용자에게 허용된 로그인 방법을 설정합니다.",
-    "userNotAdmin": "사용자가 관리자가 아닙니다."
+    "userNotAdmin": "사용자가 관리자가 아닙니다.",
+    "enterPassword": "비밀번호 입력",
+    "enterPasswordAgain": "비밀번호를 다시 입력합니다.",
+    "passwordsDoNotMatch": "비밀번호가 일치하지 않습니다."
   },
   "sidebar": {
     "help": "도움말",

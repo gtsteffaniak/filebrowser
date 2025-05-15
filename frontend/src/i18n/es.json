@@ -276,7 +276,10 @@
     "tusUploadsRetryCount": "Número de reintentos a realizar si falla la subida de un chunk.",
     "api": "Claves API",
     "loginMethodDescription": "método de inicio de sesión permitido para el usuario.",
-    "userNotAdmin": "El usuario no es administrador"
+    "userNotAdmin": "El usuario no es administrador",
+    "enterPassword": "Introduzca la contraseña",
+    "enterPasswordAgain": "Vuelva a introducir la contraseña",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden"
   },
   "sidebar": {
     "help": "Ayuda",

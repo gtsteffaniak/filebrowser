@@ -48,6 +48,38 @@
         @input="emitUpdate"
       />
     </p>
+
+    <div v-if="user.loginMethod == 'password' && passwordAvailable && isNew">
+    <label for="password">{{ $t("settings.password") }}</label>
+    <div class="form-group">
+      <input
+        class="input input--block form-form"
+        :class="{ 'invalid-form': invalidPassword }"
+        type="password"
+        :placeholder="$t('settings.enterPassword')"
+        v-model="passwordRef"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        class="input input--block form-form"
+        :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+        type="password"
+        :placeholder="$t('settings.enterPasswordAgain')"
+        v-model="user.password"
+        id="password"
+      />
+      <button
+        v-if="!isNew"
+        type="button"
+        class="button form-button"
+        @click="submitUpdatePassword"
+      >
+        {{ $t("buttons.update") }}
+      </button>
+    </div>
+    </div>
+
     <div
       v-if="user.loginMethod == 'password' && passwordAvailable"
       class="settings-items"

@@ -276,7 +276,10 @@
     "createUserHomeDirectory": "Создайте домашний каталог пользователя",
     "api": "Ключи API",
     "loginMethodDescription": "разрешенный метод входа для пользователя.",
-    "userNotAdmin": "Пользователь не является администратором"
+    "userNotAdmin": "Пользователь не является администратором",
+    "enterPassword": "Введите пароль",
+    "enterPasswordAgain": "Введите пароль еще раз",
+    "passwordsDoNotMatch": "Пароли не совпадают"
   },
   "sidebar": {
     "help": "Помощь",
