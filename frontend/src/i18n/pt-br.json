@@ -276,7 +276,10 @@
     "tusUploadsRetryCount": "Número de novas tentativas a serem executadas se houver falha no upload de um bloco.",
     "api": "Chaves de API",
     "loginMethodDescription": "método de login permitido para o usuário.",
-    "userNotAdmin": "O usuário não é um administrador"
+    "userNotAdmin": "O usuário não é um administrador",
+    "enterPassword": "Digite a senha",
+    "enterPasswordAgain": "Digite a senha novamente",
+    "passwordsDoNotMatch": "As senhas não correspondem"
   },
   "sidebar": {
     "help": "Ajuda",

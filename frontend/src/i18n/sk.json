@@ -276,7 +276,10 @@
     "api": "Kľúče API",
     "setDateFormat": "Nastavenie presného formátu dátumu",
     "loginMethodDescription": "povolená metóda prihlásenia pre používateľa.",
-    "userNotAdmin": "Používateľ nie je správca"
+    "userNotAdmin": "Používateľ nie je správca",
+    "enterPassword": "Zadajte heslo",
+    "enterPasswordAgain": "Znovu zadajte heslo",
+    "passwordsDoNotMatch": "Heslá sa nezhodujú"
   },
   "sidebar": {
     "help": "Pomoc",

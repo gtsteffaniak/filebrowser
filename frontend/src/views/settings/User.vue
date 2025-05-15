@@ -52,6 +52,7 @@ export default {
       user: {
         scopes: [],
         username: "",
+        password: "",
         permissions: { admin: false },
       },
       showDelete: false,
@@ -81,6 +82,7 @@ export default {
         if (this.isNew) {
           let defaults = await settingsApi.get("userDefaults");
           this.user = defaults;
+          this.user.password = "";
         } else {
           const id = Array.isArray(state.route.params.id)
             ? state.route.params.id.join("")
@@ -89,6 +91,7 @@ export default {
             return;
           }
           this.user = { ...(await usersApi.get(id)) };
+          this.user.password = "";
         }
       } catch (e) {
         notify.showError(e);

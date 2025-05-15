@@ -276,7 +276,10 @@
     "createUserHomeDirectory": "Benutzer-Home-Verzeichnis erstellen",
     "api": "API-Schlüssel",
     "loginMethodDescription": "erlaubte Anmeldemethode für den Benutzer.",
-    "userNotAdmin": "Benutzer ist kein Administrator"
+    "userNotAdmin": "Benutzer ist kein Administrator",
+    "enterPassword": "Passwort eingeben",
+    "enterPasswordAgain": "Geben Sie das Passwort erneut ein",
+    "passwordsDoNotMatch": "Passwörter stimmen nicht überein"
   },
   "sidebar": {
     "help": "Hilfe",

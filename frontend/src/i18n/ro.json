@@ -276,7 +276,10 @@
     "setDateFormat": "Setați formatul exact al datei",
     "shareDeleted": "Share șters!",
     "loginMethodDescription": "metoda de conectare permisă pentru utilizator.",
-    "userNotAdmin": "Utilizatorul nu este administrator"
+    "userNotAdmin": "Utilizatorul nu este administrator",
+    "enterPassword": "Introduceți parola",
+    "enterPasswordAgain": "Introduceți din nou parola",
+    "passwordsDoNotMatch": "Parolele nu se potrivesc"
   },
   "sidebar": {
     "help": "Ajutor",

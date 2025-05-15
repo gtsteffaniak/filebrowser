@@ -276,7 +276,10 @@
     "setDateFormat": "Impostare il formato esatto della data",
     "shareDeleted": "Condividi cancellato!",
     "loginMethodDescription": "metodo di accesso consentito per l'utente.",
-    "userNotAdmin": "L'utente non è un amministratore"
+    "userNotAdmin": "L'utente non è un amministratore",
+    "enterPassword": "Inserire la password",
+    "enterPasswordAgain": "Immettere nuovamente la password",
+    "passwordsDoNotMatch": "Le password non corrispondono"
   },
   "sidebar": {
     "help": "Aiuto",

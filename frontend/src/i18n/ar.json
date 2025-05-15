@@ -276,7 +276,10 @@
     "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
     "shareDeleted": "تم حذف المشاركة",
     "loginMethodDescription": "طريقة تسجيل الدخول المسموح بها للمستخدم.",
-    "userNotAdmin": "المستخدم ليس مسؤولاً"
+    "userNotAdmin": "المستخدم ليس مسؤولاً",
+    "enterPassword": "أدخل كلمة المرور",
+    "enterPasswordAgain": "أدخل كلمة المرور مرة أخرى",
+    "passwordsDoNotMatch": "كلمات المرور غير متطابقة"
   },
   "sidebar": {
     "help": "مساعدة",
