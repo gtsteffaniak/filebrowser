@@ -6,22 +6,36 @@
     <i class="material-icons">sentiment_dissatisfied</i>
     <span>{{ $t("files.lonely") }}</span>
   </h2>
-
-  <div v-if="user.loginMethod == 'password' && passwordAvailable">
+  <div v-if="user.loginMethod == 'password' && passwordAvailable && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
     <div class="form-group">
       <input
         class="input input--block form-form"
-        :class="{ 'flat-right': !isNew }"
+        :class="{ 'invalid-form': invalidPassword }"
         type="password"
-        placeholder="enter new password"
+        :placeholder="$t('settings.enterPassword')"
+        v-model="passwordRef"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        class="input input--block form-form"
+        :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+        type="password"
+        :placeholder="$t('settings.enterPasswordAgain')"
         v-model="user.password"
         id="password"
       />
-      <button v-if="!isNew" type="button" class="button form-button" @click="submitUpdatePassword">
+      <button
+        v-if="!isNew"
+        type="button"
+        class="button form-button"
+        @click="submitUpdatePassword"
+      >
         {{ $t("buttons.update") }}
       </button>
     </div>
+    <hr />
   </div>
   <div v-if="stateUser.permissions.admin">
     <p v-if="isNew">
@@ -34,14 +48,10 @@
         @input="emitUpdate"
       />
     </p>
-    <div v-if="user.loginMethod == 'password' && passwordAvailable" class="settings-items">
-      <ToggleSwitch
-        class="item"
-        v-if="user.loginMethod === 'password'"
-        :modelValue="updatePassword"
-        @update:modelValue="$emit('update:updatePassword', $event)"
-        :name="$t('settings.changePassword')"
-      />
+    <div
+      v-if="user.loginMethod == 'password' && passwordAvailable"
+      class="settings-items"
+    >
       <ToggleSwitch
         v-if="user.loginMethod === 'password' && stateUser.permissions?.admin"
         class="item"
@@ -147,6 +157,7 @@ export default {
       sourceList: [],
       availableSources: [],
       selectedSources: [],
+      passwordRef: "",
     };
   },
   async mounted() {
@@ -156,6 +167,7 @@ export default {
       this.sourceList = await settingsApi.get("sources");
     }
 
+    this.user.password = this.user.password || "";
     this.selectedSources = this.user.scopes || [];
     this.availableSources = this.sourceList.filter(
       (s) => !this.selectedSources.some((sel) => sel.name === s.name)
@@ -176,6 +188,10 @@ export default {
     },
   },
   computed: {
+    invalidPassword() {
+      const matching = this.user.password != this.passwordRef && this.user.password.length > 0 ;
+      return matching;
+    },
     passwordAvailable: () => passwordAvailable,
     duplicateSources() {
       const names = this.selectedSources.map((s) => s.name);
@@ -197,6 +213,10 @@ export default {
   methods: {
     async submitUpdatePassword() {
       event.preventDefault();
+      if (this.invalidPassword) {
+        notify.showError(this.$t("settings.passwordsDoNotMatch"));
+        return;
+      }
       try {
         await usersApi.update(this.user, ["password"]);
         notify.showSuccess(this.$t("settings.userUpdated"));
