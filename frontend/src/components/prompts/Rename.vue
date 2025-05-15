@@ -6,8 +6,7 @@
 
     <div class="card-content">
       <p>
-        {{ $t("prompts.renameMessage") }} <code>{{ oldName() }}</code
-        >:
+        {{ $t("prompts.renameMessage") }} <code>{{ oldName() }}</code>: <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </p>
       <input
         class="input input--block"

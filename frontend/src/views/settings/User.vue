@@ -3,21 +3,20 @@
   <form @submit="save" class="card active" v-if="loaded">
     <div class="card-title">
       <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
-      <h2 v-else-if="actor.id == user.id">modify current user ({{ user.username }})</h2>
-      <h2 v-else>modify user: {{ user.username }}</h2>
+      <h2 v-else-if="actor.id == user.id"> {{ $t('settings.modifyCurrentUser') }} ({{ user.username }})</h2> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <h2 v-else> {{ $t('settings.modifyOtherUser') }} {{ user.username }}</h2>
     </div>
 
     <div class="card-content minimal-card">
       <user-form
         v-model:user="user"
-        v-model:updatePassword="updatePassword"
         :createUserDir="createUserDir"
         :isNew="isNew"
         @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
       />
     </div>
 
-    <div class="card-action">
+    <div v-if="actor.permissions.admin" class="card-action">
       <button
         v-if="!isNew && actor.permissions.admin"
         @click.prevent="deletePrompt"
@@ -53,12 +52,12 @@ export default {
       user: {
         scopes: [],
         username: "",
+        password: "",
         permissions: { admin: false },
       },
       showDelete: false,
       createUserDir: false,
       loaded: false,
-      updatePassword: false,
     };
   },
   created() {
@@ -83,6 +82,7 @@ export default {
         if (this.isNew) {
           let defaults = await settingsApi.get("userDefaults");
           this.user = defaults;
+          this.user.password = "";
         } else {
           const id = Array.isArray(state.route.params.id)
             ? state.route.params.id.join("")
@@ -91,6 +91,7 @@ export default {
             return;
           }
           this.user = { ...(await usersApi.get(id)) };
+          this.user.password = "";
         }
       } catch (e) {
         notify.showError(e);
@@ -108,16 +109,14 @@ export default {
       try {
         let fields = ["all"]
         if (!state.user.permissions.admin) {
-          fields = ["password"];
+          notify.showError(this.$t("settings.userNotAdmin"));
+          return;
         }
         if (this.isNew) {
           await usersApi.create(this.user); // Use the computed property
           this.$router.push({ path: "/settings", hash: "#users-main" });
         } else {
           await usersApi.update(this.user, fields);
-          if (this.updatePassword) {
-            await usersApi.update(this.user, ["password"]);
-          }
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {

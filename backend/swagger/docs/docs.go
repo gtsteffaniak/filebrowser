@@ -15,6 +15,23 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/auth/logout": {
+            "get": {
+                "description": "logs a user out of the application.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User Logout",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to redirect URL if configured in oidc config.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/createApiKey": {
             "post": {
                 "description": "Create an API key with specified name, duration, and permissions.",
@@ -1653,6 +1670,10 @@ const docTemplate = `{
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
                 },
+                "resetAdminOnStart": {
+                    "description": "if set to true, the admin user will be reset to the default username and password on startup.",
+                    "type": "boolean"
+                },
                 "tokenExpirationHours": {
                     "description": "the number of hours until the token expires. Default is 2 hours.",
                     "type": "integer"
@@ -1794,19 +1815,7 @@ const docTemplate = `{
         },
         "settings.OidcConfig": {
             "type": "object",
-            "required": [
-                "authorizationUrl",
-                "clientId",
-                "clientSecret",
-                "scopes",
-                "tokenUrl",
-                "userInfoUrl"
-            ],
             "properties": {
-                "authorizationUrl": {
-                    "description": "authorization URL of the OIDC provider",
-                    "type": "string"
-                },
                 "clientId": {
                     "description": "client id of the OIDC application",
                     "type": "string"
@@ -1815,28 +1824,28 @@ const docTemplate = `{
                     "description": "client secret of the OIDC application",
                     "type": "string"
                 },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.",
+                    "type": "boolean"
+                },
                 "enabled": {
                     "description": "whether to enable OIDC authentication",
                     "type": "boolean"
                 },
-                "jwksUrl": {
-                    "description": "currently not used by filebrowser",
+                "issuerUrl": {
+                    "description": "authorization URL of the OIDC provider",
+                    "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
                     "type": "string"
                 },
                 "scopes": {
-                    "description": "space separated list of scopes to request from the OIDC provider",
-                    "type": "string"
-                },
-                "tokenUrl": {
-                    "description": "token URL of the OIDC provider",
+                    "description": "scopes to request from the OIDC provider",
                     "type": "string"
                 },
                 "userIdentifier": {
-                    "description": "optional: which attribute should be used as the username? options: email, username, name, phone_number, sub",
-                    "type": "string"
-                },
-                "userInfoUrl": {
-                    "description": "user info URL of the OIDC provider",
+                    "description": "the user identifier to use for authentication. Default is \"username\", can be \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -2099,48 +2108,65 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "darkMode": {
+                    "description": "should dark mode be enabled",
                     "type": "boolean"
                 },
                 "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
                 "disableOnlyOfficeExt": {
+                    "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
                 },
                 "disableSettings": {
+                    "description": "disable the user from viewing the settings page",
                     "type": "boolean"
                 },
                 "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
                 "locale": {
+                    "description": "language to use: eg. de, en, or fr",
                     "type": "string"
                 },
                 "lockPassword": {
+                    "description": "disable the user from changing their password",
                     "type": "boolean"
+                },
+                "loginMethod": {
+                    "description": "login method to use: eg. password, proxy, oidc",
+                    "type": "string"
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.PreviewOptions"
+                    "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
+                    "description": "show icon to download in one click",
                     "type": "boolean"
                 },
                 "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
                 "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
                 },
                 "stickySidebar": {
+                    "description": "keep sidebar open when navigating",
                     "type": "boolean"
                 },
                 "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
                 }
             }
@@ -2242,22 +2268,31 @@ const docTemplate = `{
                 }
             }
         },
-        "users.PreviewOptions": {
+        "users.Preview": {
             "type": "object",
             "properties": {
                 "highQuality": {
+                    "description": "generate high quality preview images",
                     "type": "boolean"
                 },
                 "image": {
+                    "description": "show real image as icon instead of generic photo icon",
+                    "type": "boolean"
+                },
+                "motionVideoPreview": {
+                    "description": "show multiple frames for videos in preview when hovering",
                     "type": "boolean"
                 },
                 "office": {
+                    "description": "show preview image for office files",
                     "type": "boolean"
                 },
                 "popup": {
+                    "description": "show larger popup preview when hovering",
                     "type": "boolean"
                 },
                 "video": {
+                    "description": "show preview image for video files",
                     "type": "boolean"
                 }
             }
@@ -2294,24 +2329,29 @@ const docTemplate = `{
                     }
                 },
                 "darkMode": {
+                    "description": "should dark mode be enabled",
                     "type": "boolean"
                 },
                 "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
                 "disableOnlyOfficeExt": {
+                    "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
                 },
                 "disableSettings": {
                     "type": "boolean"
                 },
                 "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "locale": {
+                    "description": "language to use: eg. de, en, or fr",
                     "type": "string"
                 },
                 "lockPassword": {
@@ -2335,9 +2375,10 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.Permissions"
                 },
                 "preview": {
-                    "$ref": "#/definitions/users.PreviewOptions"
+                    "$ref": "#/definitions/users.Preview"
                 },
                 "quickDownload": {
+                    "description": "show icon to download in one click",
                     "type": "boolean"
                 },
                 "scope": {
@@ -2350,24 +2391,29 @@ const docTemplate = `{
                     }
                 },
                 "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
                 "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
                 },
                 "sorting": {
                     "$ref": "#/definitions/users.Sorting"
                 },
                 "stickySidebar": {
+                    "description": "keep sidebar open when navigating",
                     "type": "boolean"
                 },
                 "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
                 },
                 "username": {
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
                 }
             }

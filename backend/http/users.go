@@ -158,7 +158,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, nil
 	}
 
-	if req.Data.Password == "" {
+	if req.Data.Password == "" && req.Data.LoginMethod == "password" {
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 

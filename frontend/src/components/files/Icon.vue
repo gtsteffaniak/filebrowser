@@ -1,9 +1,16 @@
 <template>
   <span v-if="isPreviewImg">
+    <i
+      v-if="hasMotion"
+      class="material-icons"
+      :class="{ larger: showLarger, smaller: !showLarger }"
+      >animation</i
+    >
     <img
       @mouseenter="handleMouseEnter($event)"
       @mouseleave="handleMouseLeave($event)"
       v-lazy="thumbnailUrl"
+      :src="currentThumbnail"
       class="icon"
       ref="thumbnail"
     />
@@ -38,9 +45,22 @@ export default {
       materialIcon: "",
       classes: "",
       svgPath: "",
+      previewTimeouts: [], // Store timeout IDs
+      currentThumbnail: this.thumbnailUrl,
     };
   },
   computed: {
+    showLarger() {
+      return state.user.viewMode === "gallery" || state.user.viewMode === "normal";
+    },
+    hasMotion() {
+      return (
+        this.getIconForType().simpleType === "video" &&
+        state.user.preview?.video &&
+        mediaAvailable &&
+        state.user.preview.motionVideoPreview
+      );
+    },
     isMaterialIcon() {
       return this.materialIcon !== "";
     },
@@ -81,14 +101,64 @@ export default {
   },
   methods: {
     handleMouseEnter() {
-      if (state.user.viewMode == "gallery" && !state.user.preview.highQuality) {
-        // skip popup for gallary view with small images
+      if (state.user.viewMode === "gallery" && !state.user.preview.highQuality) {
         return;
       }
+
       mutations.setPreviewSource(this.thumbnailUrl);
+
+      if (!state.user.preview.motionVideoPreview) {
+        return;
+      }
+
+      const sequence = [
+        this.thumbnailUrl,
+        this.thumbnailUrl + "&atPercentage=25",
+        this.thumbnailUrl + "&atPercentage=50",
+        this.thumbnailUrl + "&atPercentage=75",
+      ];
+
+      let index = 0;
+
+      const updateThumbnailUrl = () => {
+        if (state.popupPreviewSource === "") {
+          this.previewTimeouts.forEach(clearTimeout);
+          this.previewTimeouts = [];
+          return;
+        }
+
+        const currentUrl = sequence[index];
+
+        const img = new Image();
+        img.onload = () => {
+          // Set the thumbnail or popup preview
+          if (state.user.preview.popup) {
+            mutations.setPreviewSource(currentUrl);
+          } else {
+            this.currentThumbnail = currentUrl;
+          }
+
+          // Preload the next image if it exists
+          const nextIndex = (index + 1) % sequence.length;
+          const nextUrl = sequence[nextIndex];
+          const preloadImg = new Image();
+          preloadImg.src = nextUrl;
+
+          // Schedule next update
+          index = nextIndex;
+          const timeoutId = setTimeout(updateThumbnailUrl, 750);
+          this.previewTimeouts.push(timeoutId);
+        };
+
+        img.src = currentUrl;
+      };
+      updateThumbnailUrl();
     },
     handleMouseLeave() {
+      this.previewTimeouts.forEach(clearTimeout);
+      this.previewTimeouts = [];
       mutations.setPreviewSource("");
+      this.currentThumbnail = this.thumbnailUrl;
     },
     getIconForType() {
       return getTypeInfo(this.mimetype);
@@ -105,6 +175,20 @@ export default {
 </script>
 
 <style>
+.larger {
+  position: absolute;
+  opacity: 0.5;
+  padding: 0.1em !important;
+  font-size: 2em !important;
+}
+
+.smaller {
+  position: absolute;
+  opacity: 0.5;
+  padding: 0.1em !important;
+  font-size: 1em !important;
+}
+
 .file-icons [aria-label^="."] {
   opacity: 0.33;
 }

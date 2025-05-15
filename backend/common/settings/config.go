@@ -24,10 +24,9 @@ func Initialize(configFile string) {
 	}
 	err = ValidateConfig(Config)
 	if err != nil {
-		errmsg := "the provided config file failed validation. "
+		errmsg := "The provided config file failed validation. "
 		errmsg += "If you are seeing this on a config that worked previeously, "
-		errmsg += "this is because v0.6.8 requires a fully validated config to run. "
-		errmsg += "Please review your config for typos and invalid keys which are no longer supported. "
+		errmsg += "please review your config for typos and invalid keys which are no longer supported. "
 		errmsg += "visit https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example for more information."
 		logger.Error(errmsg)
 		logger.Fatal(err.Error())
@@ -145,23 +144,33 @@ func setupUrls() {
 
 func setupAuth() {
 	if Config.Auth.Methods.PasswordAuth.Enabled {
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
 	if Config.Auth.Methods.ProxyAuth.Enabled {
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Proxy")
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "proxy")
 	}
 	if Config.Auth.Methods.OidcAuth.Enabled {
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "OIDC")
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "oidc")
 	}
 	if Config.Auth.Methods.NoAuth {
 		logger.Warning("Configured with no authentication, this is not recommended.")
-		Config.Auth.AuthMethods = []string{"Disabled"}
+		Config.Auth.AuthMethods = []string{"disabled"}
 	}
+	if Config.Auth.Methods.OidcAuth.Enabled {
+		err := validateOidcAuth()
+		if err != nil {
+			logger.Fatal(fmt.Sprintf("Error validating OIDC auth: %v", err))
+		}
+		logger.Info("OIDC Auth configured successfully")
+	}
+
 	// use password auth as default if no auth methods are set
 	if len(Config.Auth.AuthMethods) == 0 {
 		Config.Auth.Methods.PasswordAuth.Enabled = true
-		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "Password")
+		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
+	Config.UserDefaults.LoginMethod = Config.Auth.AuthMethods[0]
+
 }
 
 func setupLogging() {

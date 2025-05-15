@@ -3,17 +3,14 @@
     <div class="card-title">
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
-    <div aria-label="share-path" class="searchContext">Path: {{ subpath }}</div>
-    <p>
-      Note: anyone who has access to the link (and optional password) can access the
-      shared files. There is no requirement to be logged in.
-    </p>
+    <div aria-label="share-path" class="searchContext"> {{$t('search.path')}} {{ subpath }}</div>
+    <p> {{ $t('share.notice') }} </p>
     <template v-if="listing">
       <div class="card-content">
         <table>
           <tbody>
             <tr>
-              <th>#</th>
+              <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               <th>{{ $t("settings.shareDuration") }}</th>
               <th></th>
               <th></th>

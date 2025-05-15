@@ -6,7 +6,7 @@
     <div class="card-content">
       <form>
         <div class="card-content">
-          <h3>Listing options</h3>
+          <h3>{{ $t('settings.listingOptions') }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
@@ -24,7 +24,7 @@
               :name="`Always show download icon for quick access`"
             />
           </div>
-          <h3>File preview options</h3>
+          <h3> {{ $t('settings.filePreviewOptions') }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
@@ -36,6 +36,12 @@
               class="item"
               v-model="localuser.preview.video"
               name="Preview videos"
+            />
+            <ToggleSwitch
+              v-if="mediaEnabled"
+              class="item"
+              v-model="localuser.preview.motionVideoPreview"
+              name="Motion previews for videos"
             />
             <ToggleSwitch
               class="item"
@@ -55,27 +61,24 @@
             />
           </div>
           <div v-if="hasOnlyOfficeEnabled">
-            <h3>Disable onlyoffice viewer for certain file extensions</h3>
+            <h3> {{ $t('settings.disableOfficePreview')}} </h3>
             <p>
-              A space-separated list of file extensions to disable the OnlyOffice viewer
-              for. (e.g., <code>.txt .html</code>)
+              {{ $t('settings.disableOfficePreviewDescription') }}
             </p>
-            <div class="onlyoffice-group">
+            <div class="form-group">
               <input
-                class="input input--block onlyoffice-form"
+                class="input input--block form-form flat-right"
                 :class="{ 'invalid-form': !formValidation() }"
                 type="text"
                 placeholder="enter file extensions"
                 id="onlyofficeExt"
                 v-model="formOnlyOfficeExt"
               />
-              <button type="button" class="button onlyoffice-button" @click="submitOnlyOfficeChange">
-                save
-              </button>
+              <button type="button" class="button form-button" @click="submitOnlyOfficeChange"> {{ $t('buttons.save') }} </button>
             </div>
           </div>
 
-          <h3>Theme Color</h3>
+          <h3> {{ $t('settings.themeColor') }} </h3>
           <ButtonGroup
             :buttons="colorChoices"
             @button-clicked="setColor"
@@ -210,18 +213,5 @@ export default {
   text-align: center;
 }
 
-.onlyoffice-group {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-}
-.onlyoffice-button {
-  margin-left: 1em;
-}
-.onlyoffice-form {
-  height: 3em;
-}
-.invalid-form {
-  border-color: red !important;
-}
+
 </style>

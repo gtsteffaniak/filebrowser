@@ -95,7 +95,7 @@
     "ru": "Russisch",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "Chinees (vereenvoudigd)",
     "zhTW": "Chinees (traditioneel)"
@@ -125,7 +125,6 @@
     "downloadMessage": "Kies het vermat dat u wilt downloaden. ",
     "error": "Er ging iets fout",
     "fileInfo": "Bestandinformatie",
-    "filesSelected": "{count} geselecteerde bestanden",
     "lastModified": "Laatst Bewerkt",
     "move": "Verplaatsen",
     "moveMessage": "Kies een nieuwe locatie voor je bestand(en)/map(pen)",
@@ -145,7 +144,8 @@
     "show": "Tonen",
     "size": "Grootte",
     "upload": "",
-    "uploadMessage": ""
+    "uploadMessage": "",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -254,5 +254,9 @@
     "minutes": "Minuten",
     "seconds": "Seconden",
     "unit": "Tijdseenheid"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

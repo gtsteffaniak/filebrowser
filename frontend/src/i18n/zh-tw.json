@@ -95,7 +95,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "Swedish（Sweden）",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -125,7 +125,6 @@
     "downloadMessage": "請選擇要下載的壓縮格式。",
     "error": "發出了一點錯誤...",
     "fileInfo": "檔案資訊",
-    "filesSelected": "已選擇 {count} 個檔案。",
     "lastModified": "最後修改",
     "move": "移動",
     "moveMessage": "請選擇欲移動至的目錄：",
@@ -145,7 +144,8 @@
     "show": "顯示",
     "size": "大小",
     "upload": "上傳",
-    "uploadMessage": "選擇上傳項。"
+    "uploadMessage": "選擇上傳項。",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
   },
   "search": {
     "images": "影像",
@@ -254,5 +254,9 @@
     "minutes": "分鐘",
     "seconds": "秒",
     "unit": "時間單位"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

@@ -11,7 +11,7 @@
     :class="{ 'dark-mode': isDarkMode, centered: centered }"
   >
     <div v-if="selectedCount > 0" class="button selected-count-header">
-      <span>{{ selectedCount }} selected</span>
+      <span>{{ selectedCount }} {{ $t('prompts.selected') }} </span>
     </div>
 
     <action
@@ -265,7 +265,8 @@ export default {
         buttons.done(button);
         notify.showError("Error saving file: ", e);
       }
-      mutations.closeHovers();
+
+     mutations.closeHovers();
     },
   },
 };

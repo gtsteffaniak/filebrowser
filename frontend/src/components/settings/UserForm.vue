@@ -1,18 +1,43 @@
 <template>
-  <div
-    v-if="!stateUser.permissions.admin && !isNew && stateUser.loginMethod == 'password'"
+  <h2
+    class="message"
+    v-if="user.loginMethod != 'password' && !stateUser.permissions.admin"
   >
+    <i class="material-icons">sentiment_dissatisfied</i>
+    <span>{{ $t("files.lonely") }}</span>
+  </h2>
+  <div v-if="user.loginMethod == 'password' && passwordAvailable && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
-    <input
-      class="input input--block"
-      type="password"
-      placeholder="enter new password"
-      v-model="user.password"
-      id="password"
-      @input="setUpdatePassword"
-    />
+    <div class="form-group">
+      <input
+        class="input input--block form-form"
+        :class="{ 'invalid-form': invalidPassword }"
+        type="password"
+        :placeholder="$t('settings.enterPassword')"
+        v-model="passwordRef"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        class="input input--block form-form"
+        :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+        type="password"
+        :placeholder="$t('settings.enterPasswordAgain')"
+        v-model="user.password"
+        id="password"
+      />
+      <button
+        v-if="!isNew"
+        type="button"
+        class="button form-button"
+        @click="submitUpdatePassword"
+      >
+        {{ $t("buttons.update") }}
+      </button>
+    </div>
+    <hr />
   </div>
-  <div v-else>
+  <div v-if="stateUser.permissions.admin">
     <p v-if="isNew">
       <label for="username">{{ $t("settings.username") }}</label>
       <input
@@ -24,26 +49,41 @@
       />
     </p>
 
-    <p v-if="stateUser.loginMethod == 'password'">
-      <label for="password">{{ $t("settings.password") }}</label>
+    <div v-if="user.loginMethod == 'password' && passwordAvailable && isNew">
+    <label for="password">{{ $t("settings.password") }}</label>
+    <div class="form-group">
       <input
-        class="input input--block"
+        class="input input--block form-form"
+        :class="{ 'invalid-form': invalidPassword }"
         type="password"
-        :placeholder="passwordPlaceholder"
+        :placeholder="$t('settings.enterPassword')"
+        v-model="passwordRef"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        class="input input--block form-form"
+        :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+        type="password"
+        :placeholder="$t('settings.enterPasswordAgain')"
         v-model="user.password"
         id="password"
-        @input="emitUpdate"
       />
-    </p>
+      <button
+        v-if="!isNew"
+        type="button"
+        class="button form-button"
+        @click="submitUpdatePassword"
+      >
+        {{ $t("buttons.update") }}
+      </button>
+    </div>
+    </div>
 
-    <div class="settings-items">
-      <ToggleSwitch
-        class="item"
-        v-if="user.loginMethod === 'password'"
-        :modelValue="updatePassword"
-        @update:modelValue="$emit('update:updatePassword', $event)"
-        :name="$t('settings.changePassword')"
-      />
+    <div
+      v-if="user.loginMethod == 'password' && passwordAvailable"
+      class="settings-items"
+    >
       <ToggleSwitch
         v-if="user.loginMethod === 'password' && stateUser.permissions?.admin"
         class="item"
@@ -53,7 +93,7 @@
       />
     </div>
 
-    <div v-if="stateUser.permissions.admin">
+    <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">
       <label for="scopes">{{ $t("settings.scopes") }}</label>
       <div
         class="scope-list"
@@ -110,7 +150,14 @@
         @input="emitUpdate"
       ></languages>
     </p>
-
+    <div v-if="stateUser.permissions.admin">
+      <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
+      <select v-model="user.loginMethod" class="input input--block" id="loginMethod">
+        <option value="password">Password</option>
+        <option value="oidc">OIDC</option>
+        <option value="proxy">Proxy</option>
+      </select>
+    </div>
     <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
   </div>
 </template>
@@ -119,8 +166,10 @@
 import Languages from "./Languages.vue";
 import Permissions from "./Permissions.vue";
 import { state } from "@/store";
-import { settingsApi } from "@/api";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { notify } from "@/notify";
+import { usersApi, settingsApi } from "@/api";
+import { passwordAvailable } from "@/utils/constants";
 
 export default {
   name: "UserForm",
@@ -131,7 +180,6 @@ export default {
   },
   props: {
     user: Object,
-    updatePassword: Boolean,
     isNew: Boolean,
   },
   data() {
@@ -141,6 +189,7 @@ export default {
       sourceList: [],
       availableSources: [],
       selectedSources: [],
+      passwordRef: "",
     };
   },
   async mounted() {
@@ -150,6 +199,7 @@ export default {
       this.sourceList = await settingsApi.get("sources");
     }
 
+    this.user.password = this.user.password || "";
     this.selectedSources = this.user.scopes || [];
     this.availableSources = this.sourceList.filter(
       (s) => !this.selectedSources.some((sel) => sel.name === s.name)
@@ -170,6 +220,11 @@ export default {
     },
   },
   computed: {
+    invalidPassword() {
+      const matching = this.user.password != this.passwordRef && this.user.password.length > 0 ;
+      return matching;
+    },
+    passwordAvailable: () => passwordAvailable,
     duplicateSources() {
       const names = this.selectedSources.map((s) => s.name);
       return names.filter((name, idx) => names.indexOf(name) !== idx);
@@ -188,6 +243,19 @@ export default {
     },
   },
   methods: {
+    async submitUpdatePassword() {
+      event.preventDefault();
+      if (this.invalidPassword) {
+        notify.showError(this.$t("settings.passwordsDoNotMatch"));
+        return;
+      }
+      try {
+        await usersApi.update(this.user, ["password"]);
+        notify.showSuccess(this.$t("settings.userUpdated"));
+      } catch (e) {
+        notify.showError(e);
+      }
+    },
     emitUserUpdate() {
       this.$emit("update:user", { ...this.user, scopes: this.selectedSources });
     },
@@ -239,14 +307,7 @@ export default {
 .scope-list {
   display: flex;
 }
-.flat-right {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-.flat-left {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
+
 .scope-input {
   width: 100%;
 }

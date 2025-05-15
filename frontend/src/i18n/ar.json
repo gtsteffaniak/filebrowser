@@ -31,17 +31,24 @@
     "switchView": "تغيير العرض",
     "toggleSidebar": "تبديل الشريط الجانبي",
     "update": "تحديث",
-    "upload": "رفع"
+    "upload": "رفع",
+    "copyDownloadLinkToClipboard": "نسخ رابط التحميل إلى الحافظة",
+    "file": "ملف",
+    "folder": "المجلد",
+    "submit": "إرسال",
+    "openFile": "فتح الملف",
+    "continue": "تابع"
   },
   "download": {
     "downloadFile": "Download File",
     "downloadFolder": "Download Folder",
-    "downloadSelected": ""
+    "downloadSelected": "تنزيل محدد"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
     "internal": "لقد حدث خطأ ما.",
-    "notFound": "لا يمكن الوصول لهذا المحتوى."
+    "notFound": "لا يمكن الوصول لهذا المحتوى.",
+    "connection": "لا يمكن الوصول إلى الخادم"
   },
   "files": {
     "body": "الصفحة",
@@ -59,7 +66,8 @@
     "size": "الحجم",
     "sortByLastModified": "الترتيب بآخر تعديل",
     "sortByName": "الترتيب بالإسم",
-    "sortBySize": "الترتيب بالحجم"
+    "sortBySize": "الترتيب بالحجم",
+    "noPreview": "المعاينة غير متوفرة لهذا الملف."
   },
   "help": {
     "click": "حدد الملف أو المجلد",
@@ -95,7 +103,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -110,7 +118,8 @@
     "submit": "تسجيل دخول",
     "username": "إسم المستخدم",
     "usernameTaken": "Username already taken",
-    "wrongCredentials": "بيانات دخول خاطئة"
+    "wrongCredentials": "بيانات دخول خاطئة",
+    "or": "أو"
   },
   "permanent": "دائم",
   "prompts": {
@@ -125,7 +134,6 @@
     "downloadMessage": "حدد إمتداد الملف المراد تحميله.",
     "error": "لقد حدث خطأ ما",
     "fileInfo": "معلومات الملف",
-    "filesSelected": "تم تحديد {count} ملفات.",
     "lastModified": "آخر تعديل",
     "move": "نقل",
     "moveMessage": "إختر مكان جديد للملفات أو المجلدات المراد نقلها:",
@@ -144,8 +152,15 @@
     "scheduleMessage": "أختر الوقت والتاريخ لجدولة نشر هذا المقال.",
     "show": "عرض",
     "size": "الحجم",
-    "upload": "",
-    "uploadMessage": ""
+    "upload": "التحميل",
+    "uploadMessage": "حدد خياراً للتحميل.",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
+    "deleteUserMessage": "هل أنت متأكد من رغبتك في حذف هذا المستخدم؟",
+    "filesSelected": "الملفات المحددة",
+    "uploadFiles": "Uploading {files} files...",
+    "optionalPassword": "كلمة مرور اختيارية",
+    "typeName": "النوع:",
+    "selected": "مختارة"
   },
   "search": {
     "images": "الصور",
@@ -155,7 +170,12 @@
     "search": "البحث...",
     "typeToSearch": "Type to search...",
     "types": "الأنواع",
-    "video": "فيديوهات"
+    "video": "فيديوهات",
+    "path": "المسار:",
+    "smallerThan": "أصغر من:",
+    "largerThan": "أكبر من:",
+    "helpText1": "يحدث البحث على كل حرف تكتبه (3 أحرف كحد أدنى لمصطلحات البحث).",
+    "helpText2": "الفهرس: يستخدم البحث الفهرس الذي يتم تحديثه تلقائيًا على الفاصل الزمني الذي تم تكوينه (افتراضيًا: 5 دقائق). قد يؤدي البحث عندما يكون البرنامج قد بدأ للتو إلى نتائج غير مكتملة."
   },
   "settings": {
     "admin": "Admin",
@@ -194,7 +214,7 @@
     "newUser": "مستخدم جديد",
     "password": "كلمة المرور",
     "passwordUpdated": "تم تغيير كلمة المرور",
-    "path": "",
+    "path": "المسار",
     "permissions": {
       "create": "Create files and directories",
       "delete": "Delete files and directories",
@@ -202,7 +222,10 @@
       "execute": "Execute commands",
       "modify": "Edit files",
       "rename": "Rename or move files and directories",
-      "share": "Share files"
+      "share": "Share files",
+      "admin": "المدير",
+      "api": "إنشاء مفاتيح API طويلة الأمد وإدارتها",
+      "realtime": "تمكين الاتصالات والتحديثات في الوقت الفعلي"
     },
     "permissions-name": "الصلاحيات",
     "permissionsHelp": "يمكنك تعيين المستخدم كـ \"مدير\" أو تحديد الصلاحيات بشكل منفرد.\n    إذا قمت بتحديد المستخدم كـ \"مدير\"، باقي الخيارات سيتم تحديدها تلقائياً.\n    إدارة المستخدمين تبقى صلاحية فريدة للـ \"مدير\" فقط.\n",
@@ -213,13 +236,13 @@
     "rulesHelp": "يمكنك هنا تحديد مجموعة من شروط السماح والمنع لهذا المستخدم. الملفات الممنوعة لن تظهر ضمن القائمة لهذا المستخدم ولن يستطيع الوصول لها. هنا ندعم الـ regex والـ relative path لنطاق المستخدمين.\n",
     "scope": "نطاق",
     "settingsUpdated": "تم تعديل الإعدادات",
-    "shareDuration": "",
-    "shareManagement": "",
-    "singleClick": "",
+    "shareDuration": "مدة المشاركة",
+    "shareManagement": "إدارة المشاركة",
+    "singleClick": "استخدام نقرات واحدة لفتح الملفات والدلائل",
     "themes": {
-      "dark": "",
-      "light": "",
-      "title": ""
+      "dark": "داكن",
+      "light": "خفيف",
+      "title": "الموضوع"
     },
     "user": "المستخدم",
     "userCommands": "الأوامر",
@@ -230,7 +253,33 @@
     "userManagement": "إدارة المستخدمين",
     "userUpdated": "تم تعديل المستخدم",
     "username": "إسم المستخدم",
-    "users": "المستخدمين"
+    "users": "المستخدمين",
+    "loginMethod": "طريقة تسجيل الدخول",
+    "modifyOtherUser": "تعديل المستخدم:",
+    "modifyCurrentUser": "تعديل المستخدم الحالي",
+    "themeColor": "لون السمة",
+    "disableOfficePreviewDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل عارض OnlyOffice لها. (على سبيل المثال، \".txt .html\").",
+    "disableOfficePreview": "تعطيل عارض Onlyoffice لامتدادات ملفات معينة",
+    "filePreviewOptions": "خيارات معاينة الملف",
+    "listingOptions": "خيارات الإدراج",
+    "emptyGlobal": "لا توجد خيارات تهيئة عامة حاليًا، يمكنك تحرير yaml التكوين لضبط إعدادات النظام.",
+    "scopes": "تحديد المصادر المسموح بها ونطاق المستخدم داخلها",
+    "UserManagement": "إدارة المستخدمين",
+    "tusUploads": "التحميلات المقطوعة",
+    "tusUploadsHelp": "يدعم متصفح الملفات عمليات تحميل الملفات المقطعة، مما يسمح بإنشاء عمليات تحميل ملفات فعالة وموثوقة وقابلة للاستئناف ومقطعة حتى على الشبكات غير الموثوقة.",
+    "tusUploadsChunkSize": "يشير إلى الحد الأقصى لحجم الطلب (سيتم استخدام التحميل المباشر للتحميلات الأصغر حجماً). يمكنك إدخال عدد صحيح عادي يشير إلى إدخال بايت أو سلسلة مثل 10 ميغابايت، 1 غيغابايت، إلخ.",
+    "tusUploadsRetryCount": "عدد مرات إعادة المحاولة التي يجب إجراؤها في حالة فشل تحميل قطعة ما.",
+    "userHomeBasePath": "المسار الأساسي للدلائل الرئيسية للمستخدم",
+    "userScopeGenerationPlaceholder": "سيتم إنشاء النطاق تلقائيًا",
+    "createUserHomeDirectory": "إنشاء الدليل الرئيسي للمستخدم",
+    "api": "مفاتيح واجهة برمجة التطبيقات",
+    "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
+    "shareDeleted": "تم حذف المشاركة",
+    "loginMethodDescription": "طريقة تسجيل الدخول المسموح بها للمستخدم.",
+    "userNotAdmin": "المستخدم ليس مسؤولاً",
+    "enterPassword": "أدخل كلمة المرور",
+    "enterPasswordAgain": "أدخل كلمة المرور مرة أخرى",
+    "passwordsDoNotMatch": "كلمات المرور غير متطابقة"
   },
   "sidebar": {
     "help": "مساعدة",
@@ -243,7 +292,8 @@
     "preview": "معاينة",
     "settings": "الإعدادات",
     "signup": "Signup",
-    "siteSettings": "إعدادات الموقع"
+    "siteSettings": "إعدادات الموقع",
+    "sources": "المصادر"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -254,5 +304,51 @@
     "minutes": "دقائق",
     "seconds": "ثواني",
     "unit": "وحدة الوقت"
+  },
+  "upload": {
+    "abortUpload": "هل أنت متأكدة من أنك تريدين الإجهاض؟"
+  },
+  "share": {
+    "notice": "ملاحظة: يمكن لأي شخص لديه حق الوصول إلى الرابط (وكلمة مرور اختيارية) الوصول إلى الملفات المشتركة. لا يوجد شرط لتسجيل الدخول."
+  },
+  "api": {
+    "title": "مفاتيح واجهة برمجة التطبيقات (API):",
+    "keyName": "اسم مفتاح API:",
+    "createdAt": "تم الإنشاء في:",
+    "expiresAt": "تنتهي في:",
+    "permissions": "الأذونات:",
+    "createTitle": "إنشاء مفتاح API",
+    "keyNamePlaceholder": "أدخل اسم مفتاح API فريد من نوعه:",
+    "tokenDuration": "مدة الرمز المميز:",
+    "durationNumberPlaceholder": "العدد",
+    "days": "الأيام",
+    "months": "الشهور",
+    "permissionNote": "اختر إذنًا واحدًا على الأقل للمفتاح. يجب أن يكون لدى المستخدم أيضًا الإذن.",
+    "createKeyFailed": "فشل في إنشاء مفتاح API.",
+    "createKeySuccess": "تم إنشاء مفتاح API بنجاح.",
+    "description": "تعتمد مفاتيح API على المستخدم الذي أنشأها. انظر",
+    "swaggerLinkText": "صفحة التبختر",
+    "name": "الاسم",
+    "created": "تم إنشاؤها",
+    "expires": "تنتهي صلاحيتها",
+    "actions": "الإجراءات",
+    "enabled": "ممكّنة",
+    "disabled": "معاق"
+  },
+  "index": {
+    "status": "الحالة",
+    "assessment": "التقييم",
+    "files": "الملفات",
+    "folders": "المجلدات",
+    "lastScanned": "آخر مسح ضوئي",
+    "quickScan": "ثواني المسح السريع",
+    "fullScan": "كامل ثواني المسح الضوئي",
+    "settingsHover": "إعدادات المستخدم",
+    "logout": "تسجيل الخروج",
+    "toggleClick": "تبديل نقرة واحدة",
+    "toggleDark": "تبديل الوضع الداكن",
+    "toggleSticky": "تبديل الوضع اللاصق",
+    "of": "من",
+    "used": "مستعمل"
   }
 }

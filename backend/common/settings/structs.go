@@ -110,20 +110,21 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	PreviewOptions       users.PreviewOptions `json:"preview"`
-	StickySidebar        bool                 `json:"stickySidebar"`
-	DarkMode             bool                 `json:"darkMode"`
-	LockPassword         bool                 `json:"lockPassword"`
-	DisableSettings      bool                 `json:"disableSettings,omitempty"`
-	Locale               string               `json:"locale"`
-	ViewMode             string               `json:"viewMode"`
-	GallerySize          int                  `json:"gallerySize"`
-	SingleClick          bool                 `json:"singleClick"`
-	Permissions          users.Permissions    `json:"permissions"`
-	ShowHidden           bool                 `json:"showHidden"`
-	DateFormat           bool                 `json:"dateFormat"`
-	ThemeColor           string               `json:"themeColor"`
-	QuickDownload        bool                 `json:"quickDownload"`
-	DisableOnlyOfficeExt string               `json:"disableOnlyOfficeExt"`
-	DefaultScopes        []users.SourceScope  `json:"-"`
+	StickySidebar        bool                `json:"stickySidebar"`             // keep sidebar open when navigating
+	DarkMode             bool                `json:"darkMode"`                  // should dark mode be enabled
+	Locale               string              `json:"locale"`                    // language to use: eg. de, en, or fr
+	ViewMode             string              `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
+	SingleClick          bool                `json:"singleClick"`               // open directory on single click, also enables middle click to open in new tab
+	ShowHidden           bool                `json:"showHidden"`                // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+	DateFormat           bool                `json:"dateFormat"`                // when false, the date is relative, when true, the date is an exact timestamp
+	GallerySize          int                 `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
+	ThemeColor           string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	QuickDownload        bool                `json:"quickDownload"`             // show icon to download in one click
+	DisableOnlyOfficeExt string              `json:"disableOnlyOfficeExt"`      // comma separated list of file extensions to disable onlyoffice preview for
+	LockPassword         bool                `json:"lockPassword"`              // disable the user from changing their password
+	DisableSettings      bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
+	Preview              users.Preview       `json:"preview"`
+	DefaultScopes        []users.SourceScope `json:"-"`
+	Permissions          users.Permissions   `json:"permissions"`
+	LoginMethod          string              `json:"loginMethod,omitempty"` // login method to use: eg. password, proxy, oidc
 }

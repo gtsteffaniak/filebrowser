@@ -1,13 +1,14 @@
 <template>
-  <header :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
+  <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
     <action
       v-if="!isShare"
       icon="close_back"
       :label="$t('buttons.close')"
+      :disabled="isSearchActive"
       @action="multiAction"
     />
     <search v-if="showSearch" />
-    <title v-else-if="isSettings" class="topTitle">Settings</title>
+    <title v-else-if="isSettings" class="topTitle">{{ $t('sidebar.settings') }}</title>
     <title v-else class="topTitle">{{ req.name }}</title>
     <action
       v-if="isListingView"
@@ -45,6 +46,9 @@ export default {
     };
   },
   computed: {
+    isOnlyOffice() {
+      return getters.currentView() === "onlyOfficeEditor";
+    },
     isListingView() {
       return getters.currentView() == "listingView";
     },
@@ -123,13 +127,6 @@ export default {
           router.push({path: "/files" });
           return;
         }
-        if (listingView === "onlyOfficeEditor") {
-          const current = window.location.pathname;
-          const newpath = removeLastDir(current);
-          window.location = newpath + "#" + state.req.name;
-          return;
-        }
-
         mutations.replaceRequest({});
         router.go(-1);
       }

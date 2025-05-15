@@ -8,7 +8,8 @@
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
 import { filesApi } from "@/api";
-import ace from "ace-builds/src-min-noconflict/ace.js";
+import ace, { version as ace_version } from "ace-builds";
+import modelist from "ace-builds/src-noconflict/ext-modelist";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";
 
@@ -30,10 +31,15 @@ export default {
     this.editor.destroy();
   },
   mounted: function () {
+    ace.config.set(
+      "basePath",
+      `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
+    );
     // this is empty content string "empty-file-x6OlSil" which is used to represent empty text file
     const fileContent =
       state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
-    this.editor = ace.edit("editor", {
+      this.editor = ace.edit("editor", {
+      mode: modelist.getModeForPath(state.req.name).mode,
       value: fileContent,
       showPrintMargin: false,
       theme: "ace/theme/chrome",
@@ -41,7 +47,6 @@ export default {
       wrap: false,
     });
     // Set the basePath for Ace Editor
-    ace.config.set("basePath", "/node_modules/ace-builds/src-min-noconflict");
     if (this.isDarkMode) {
       this.editor.setTheme("ace/theme/twilight");
     }
@@ -50,9 +55,6 @@ export default {
   methods: {
     handleEditorValueRequest() {
       filesApi.put(state.req.path, state.req.source, this.editor.getValue());
-    },
-    back() {
-      this.$router.push(-1);
     },
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
@@ -65,7 +67,7 @@ export default {
       switch (key.toLowerCase()) {
         case "s":
           event.preventDefault();
-          this.save();
+          this.handleEditorValueRequest();
           break;
 
         default:

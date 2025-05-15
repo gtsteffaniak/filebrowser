@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"log"
+	"os"
 	"slices"
 	"time"
 )
@@ -21,7 +22,7 @@ const (
 	RED    = "\033[31m"
 	GREEN  = "\033[32m"
 	YELLOW = "\033[33m"
-	GRAY   = "\033[37m"
+	GRAY   = "\033[2;37m"
 )
 
 var (
@@ -72,9 +73,6 @@ func Log(level string, msg string, prefix, api bool, color string) {
 				continue
 			}
 		}
-		if logger.stdout && level == "FATAL" {
-			continue
-		}
 		writeOut := msg
 		formattedTime := time.Now().Format("2006/01/02 15:04:05")
 		if logger.colors && color != "" {
@@ -92,12 +90,16 @@ func Log(level string, msg string, prefix, api bool, color string) {
 		if err != nil {
 			log.Printf("failed to log message '%v' with error `%v`", msg, err)
 		}
+		if level == levels.FATAL {
+			os.Exit(1)
+		}
 	}
 }
 
 func Api(msg string, statusCode int) {
 	// redirects are not warnings anymore
-	if statusCode > 302 && statusCode < 500 {
+	// content not modified is not a warning anymore
+	if statusCode > 304 && statusCode < 500 {
 		Log(levels.WARNING, msg, false, true, YELLOW)
 	} else if statusCode >= 500 {
 		Log(levels.ERROR, msg, false, true, RED)
@@ -142,6 +144,7 @@ func Error(msg string) {
 func Fatal(msg string) {
 	if len(loggers) > 0 {
 		Log(levels.FATAL, msg, true, false, RED)
+	} else {
+		log.Fatal("[FATAL] ", msg)
 	}
-	log.Fatal("[FATAL] ", msg)
 }

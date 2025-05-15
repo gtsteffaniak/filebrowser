@@ -186,10 +186,6 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  showError: () => {
-    state.prompts.push("error");
-    emitStateChanged();
-  },
   setLoading: (loadType, status) => {
     if (status === false) {
       delete state.loading[loadType];
@@ -235,8 +231,6 @@ export const mutations = {
     state.multiple = value;
     if (value == true) {
       notify.showMultipleSelection()
-    } else {
-      notify.closePopUp()
     }
     emitStateChanged();
   },

@@ -73,20 +73,21 @@ func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
 	return nil
 }
 
-func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
+func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
 	if !AvailablePreview(file) {
 		return nil, ErrUnsupportedMedia
 	}
-	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
+	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
 	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
 		return nil, fmt.Errorf("failed to load from cache: %w", err)
 	} else if found {
 		return data, nil
 	}
-	return GeneratePreview(file, previewSize, rawUrl)
+
+	return GeneratePreview(file, previewSize, url, seekPercentage)
 }
 
-func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string) ([]byte, error) {
+func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {
 	ext := strings.ToLower(filepath.Ext(file.Name))
 	var (
 		err        error
@@ -95,7 +96,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string)
 
 	// Generate an image from office document
 	if file.OnlyOfficeId != "" {
-		imageBytes, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, rawUrl)
+		imageBytes, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
 		}
@@ -106,10 +107,13 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string)
 			return nil, fmt.Errorf("failed to read image file: %w", err)
 		}
 	} else if strings.HasPrefix(file.Type, "video") {
+		if seekPercentage == 0 {
+			seekPercentage = 10
+		}
 		// Generate thumbnail image from video
-		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)+".jpg")
+		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)+".jpg")
 		defer os.Remove(outPathPattern) // cleanup
-		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern); err != nil {
+		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern, seekPercentage); err != nil {
 			return nil, fmt.Errorf("failed to generate video preview: %w", err)
 		}
 		imageBytes, err = os.ReadFile(outPathPattern)
@@ -124,7 +128,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, rawUrl string)
 		return nil, fmt.Errorf("failed to resize preview image: %w", err)
 	}
 	// Cache and return
-	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime)
+	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
 	if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
 		logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
 	}
@@ -159,14 +163,14 @@ func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error)
 	return output.Bytes(), nil
 }
 
-func CacheKey(realPath, previewSize string, modTime time.Time) string {
-	return fmt.Sprintf("%x%x%x", realPath, modTime.Unix(), previewSize)
+func CacheKey(realPath, previewSize string, modTime time.Time, percentage int) string {
+	return fmt.Sprintf("%x%x%x%x", realPath, modTime.Unix(), previewSize, percentage)
 }
 
 func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
-	errSmall := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "small", file.ItemInfo.ModTime))
+	errSmall := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "small", file.ItemInfo.ModTime, 0))
 	if errSmall != nil {
-		errLarge := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "large", file.ItemInfo.ModTime))
+		errLarge := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "large", file.ItemInfo.ModTime, 0))
 		if errLarge != nil {
 			logger.Debug(fmt.Sprintf("Could not delete thumbnail: %v", file.Name))
 		}

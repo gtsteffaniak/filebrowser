@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.3-beta
+
+Note: OIDC changes require config update.
+
+ **New Features**
+ - Added code highlights to text editor and enabled text editor for all asci files under 25MB
+ - Motion previews for videos -- cycles screenshots of vidoes. https://github.com/gtsteffaniak/filebrowser/issues/588
+ - Optionally reset default admin username/password on startup, to guarentee a username/password on startup if needed. Use by setting `auth.resetAdminOnStart` true https://github.com/gtsteffaniak/filebrowser/issues/625
+
+ **Notes**:
+ - Updated translations everywhere. https://github.com/gtsteffaniak/filebrowser/issues/627
+ - Office viewer is now full-screen with floating close button. https://github.com/gtsteffaniak/filebrowser/issues/542
+ - OIDC config additions
+   - `issuerUrl` required now to get relevant oidc configurations.
+   - `disableVerifyTLS` optionally, disable verifying HTTPS provider endpoints.
+   - `logoutRedirectUrl` optionally, redirect the user to this URL on logout.
+   - other URL config parameters are no longer accepted -- replace with issuerUrl.
+ - Aadmins allowed to change user login methods in user settings when creating or updating users.
+   - https://github.com/gtsteffaniak/filebrowser/issues/618
+   - https://github.com/gtsteffaniak/filebrowser/issues/617
+ - Hide header when showing only office https://github.com/gtsteffaniak/filebrowser/issues/542
+
+ **BugFixes**:
+ - Editor save shows notification
+ - Preview settings resetting on startup
+ - Not all languages show correctly https://github.com/gtsteffaniak/filebrowser/issues/623
+ - scopes sometimes reset on startup https://github.com/gtsteffaniak/filebrowser/issues/636
+ - Update save password option
+   - https://github.com/gtsteffaniak/filebrowser/issues/587
+   - https://github.com/gtsteffaniak/filebrowser/issues/619
+   - https://github.com/gtsteffaniak/filebrowser/issues/615
+
 ## v0.7.2-beta
 
 The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.
