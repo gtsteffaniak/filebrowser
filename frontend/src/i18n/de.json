@@ -40,8 +40,8 @@
     "copyDownloadLinkToClipboard": "Download-Link in die Zwischenablage kopieren"
   },
   "download": {
-    "downloadFile": "Download Datei",
-    "downloadFolder": "Download Ordner",
+    "downloadFile": "Datei herunterladen",
+    "downloadFolder": "Ordner herunterladen",
     "downloadSelected": "Auswahl herunterladen"
   },
   "errors": {
@@ -138,7 +138,7 @@
     "lastModified": "Zuletzt geändert",
     "move": "Verschieben",
     "moveMessage": "Wählen Sie einen neuen Ort für ihre Datei(en)/Ordner:",
-    "newArchetype": "Erstelle neuen Beitrag auf dem Archetyp. Ihre Datei wird im Inhalteordner erstellt.",
+    "newArchetype": "Erstelle neuen Beitrag auf Basis eines Archetyps. Ihre Datei wird im Inhalteordner erstellt.",
     "newDir": "Neuer Ordner",
     "newDirMessage": "Geben Sie den Namen des neuen Ordners an.",
     "newFile": "Neue Datei",
@@ -149,7 +149,7 @@
     "renameMessage": "Geben Sie einen Namen ein für",
     "replace": "Ersetzen",
     "replaceMessage": "Eine der Datei mit dem gleichen Namen, wie die Sie hochladen wollen, existiert bereits. Soll die vorhandene Datei übersprungen oder ersetzt werden?\n",
-    "schedule": "Plan",
+    "schedule": "Zeitplan",
     "scheduleMessage": "Wählen Sie ein Datum und eine Zeit für die Veröffentlichung dieses Beitrags.",
     "show": "Anzeigen",
     "size": "Größe",
@@ -175,7 +175,7 @@
     "smallerThan": "Kleiner als:",
     "largerThan": "Größer als:",
     "helpText1": "Die Suche erfolgt bei jedem Zeichen, das Sie eingeben (mindestens 3 Zeichen für Suchbegriffe).",
-    "helpText2": "Der Index: Die Suche verwendet den Index, der automatisch in dem konfigurierten Intervall aktualisiert wird (Standard: 5 Minuten). Eine Suche, wenn das Programm gerade gestartet wurde, kann zu unvollständigen Ergebnissen führen."
+    "helpText2": "Der Index: Die Suche verwendet den Index, der automatisch in dem konfigurierten Intervall aktualisiert wird (Standard: 5 Minuten). Eine Suche direkt nach dem Start des Programms kann zu unvollständigen Ergebnissen führen."
   },
   "settings": {
     "admin": "Admin",
@@ -186,18 +186,18 @@
     "allowPublish": "Veröffentlichen von neuen Beiträgen und Seiten",
     "allowSignup": "Benutzern erlauben, sich zu registrieren",
     "avoidChanges": "(leer lassen, um Änderungen zu vermeiden)",
-    "branding": "Design",
-    "brandingDirectoryPath": "Designverzeichnispfad",
-    "brandingHelp": "Sie können das Erscheinungsbild Ihres File Browser anpassen, in dem Sie den Namen ändern, das Logo austauchsen oder eigene Stile definieren und sogar externe Links zu GitHub deaktivieren.\nUm mehr Informationen zum Anpassen des Designs zu bekommen, gehen Sie bitte zu {0}.",
+    "branding": "Branding",
+    "brandingDirectoryPath": "Branding-Verzeichnispfad",
+    "brandingHelp": "Sie können das Erscheinungsbild Ihres FileBrowser anpassen, indem Sie den Namen ändern, das Logo austauschen oder eigene Branding definieren bzw. sogar externe Links zu GitHub deaktivieren.\nUm mehr Informationen zum Anpassen des Designs zu bekommen, gehen Sie bitte zu {0}.",
     "changePassword": "Kennwort ändern",
     "commandRunner": "Befehlseingabe",
-    "commandRunnerHelp": "Hier könne Sie Befehle eintragen, welche bei den benannten Aktionen ausgeführt werden. Sie müssen pro Zeile jeweils einen Befehl eingeben. Die Umgebungsvariable {0} und {1} sind verfügbar, wobei {0} relative zu {1} ist. Für mehr Informationen über diese Funktion und die verfügbaren Umgebungsvariablen, lesen Sie bitte die {2}.",
+    "commandRunnerHelp": "Hier könne Sie Befehle eintragen, welche bei den benannten Aktionen ausgeführt werden. Sie müssen pro Zeile jeweils einen Befehl eingeben. Die Umgebungsvariablen {0} und {1} sind verfügbar, wobei {0} relativ zu {1} ist. Für mehr Informationen über diese Funktion und die verfügbaren Umgebungsvariablen lesen Sie bitte die {2}.",
     "commandsUpdated": "Befehle aktualisiert!",
     "createUserDir": "Automatisches Erstellen des Home-Verzeichnisses beim Anlegen neuer Benutzer",
     "tusUploads": "Gestückelter Upload",
     "tusUploadsHelp": "File Browser unterstützt das Hochladen von gestückelten Dateien und ermöglicht so einen effizienten, zuverlässigen und fortsetzbaren Datei-Upload auch in unzuverlässigen Netzwerken.",
-    "tusUploadsChunkSize": "Gibt die maximale Größe pro Anfrage an (direkte Uploads werden für kleinere Uploads verwendet). Bitte geben Sie eine Byte-Angabe oder eine Zeichenfolge wie 10 MB, 1 GB usw. an",
-    "tusUploadsRetryCount": "Anzahl der Wiederholungsversuche, wenn das Hochladen eines Stückes fehlschlägt.",
+    "tusUploadsChunkSize": "Gibt die maximale Größe pro Anfrage an (direkte Uploads werden für kleinere Dateien verwendet). Bitte geben Sie eine Byte-Angabe oder eine Zeichenfolge wie 10 MB, 1 GB usw. an",
+    "tusUploadsRetryCount": "Anzahl der Wiederholungsversuche, falls das Hochladen eines Stückes fehlschlägt.",
     "customStylesheet": "Individuelles Stylesheet",
     "defaultUserDescription": "Das sind die Standardeinstellung für Benutzer",
     "disableExternalLinks": "Externe Links deaktivieren (außer Dokumentation)",
@@ -205,7 +205,7 @@
     "documentation": "Dokumentation",
     "examples": "Beispiele",
     "executeOnShell": "In Kommandozeile ausführen",
-    "executeOnShellDescription": "Es ist voreingestellt das der File Brower Befehle ausführt in dem er die Befehlsdateien direkt aufruft. Wenn Sie wollen, dass sie über einer Kommandozeile (wie Bash oder PowerShell) laufen, könne Sie diese hier definieren mit allen bennötigten Argumenten und Optionen. Wenn gesetzt, wird das Kommando das ausgeführt werden soll als Parameter angehängt. Das gilt für Benuzerkommandos sowie auch für Ereignisse.",
+    "executeOnShellDescription": "Es ist voreingestellt, dass FileBrowser Befehle ausführt, indem er die Befehlsdateien direkt aufruft. Wenn Sie wollen, dass sie über eine Kommandozeile (wie Bash oder PowerShell) laufen, könne Sie diese hier mit allen benötigten Argumenten und Optionen definieren. Wenn gesetzt, wird der auszuführende Befehl als Parameter angehängt. Das gilt sowohl für Benuzerbefehle als auch für Ereignisse.",
     "globalRules": "Das ist ein globales Set von Regeln die erlauben oder nicht erlauben. Die sind für alle Benutzer zutreffend. Es können spezielle Regeln in den Einstellungen der Benutzer definiert werden, die diese überschreiben.",
     "globalSettings": "Globale Einstellungen",
     "insertPath": "Pfad einfügen",
@@ -237,7 +237,7 @@
     "ruleExample1": "Verhindert den Zugang zu versteckten Dateien (dot-Files, wie .git, .gitignore) in allen Ordnern\n",
     "ruleExample2": "Blockiert den Zugang auf Dateien mit dem Namen Caddyfile in der Wurzel/Basis des Scopes.",
     "rules": "Regeln",
-    "rulesHelp": "Hier können Sie erlaubte und verbotene Aktionen für einen einzelnen Benutzer festlegen. Blockierte Dateien werden nicht im Listing angezeigt und sind nicht erreichbar für den Nutzer. Wir unterstützen reguläre Ausdrücke (Regex) und Pfade die relativ zum Benutzerordner sind. \n",
+    "rulesHelp": "Hier können Sie erlaubte und verbotene Aktionen für einen einzelnen Benutzer festlegen. Blockierte Dateien werden nicht gelistet und sind für den Nutzer nicht erreichbar. Reguläre Ausdrücke (Regex) und Pfade relativ zum Benutzerordner werden unterstützt. \n",
     "scope": "Scope",
     "setDateFormat": "Exaktes Datumsformat setzen",
     "settingsUpdated": "Einstellungen aktualisiert!",
@@ -252,9 +252,9 @@
     },
     "user": "Benutzer",
     "userCommands": "Befehle",
-    "userCommandsHelp": "Eine Liste, mit einem Leerzeichen als Trennung, mit den für diesen Nutzer verfügbaren Befehlen. Beispiel:\n",
+    "userCommandsHelp": "Eine durch Leerzeichen getrennte Liste mit den für diesen Nutzer verfügbaren Befehlen. Beispiel:\n",
     "userCreated": "Benutzer angelegt!",
-    "userDefaults": "Benutzer Standard Einstellungen",
+    "userDefaults": "Benutzer-Standardeinstellungen",
     "userDeleted": "Benutzer gelöscht!",
     "userManagement": "Benutzerverwaltung",
     "userUpdated": "Benutzer aktualisiert!",
@@ -263,7 +263,7 @@
     "loginMethod": "Login-Methode",
     "modifyOtherUser": "Benutzer ändern:",
     "modifyCurrentUser": "Aktuellen Benutzer ändern",
-    "themeColor": "Thema Farbe",
+    "themeColor": "Designfarbe",
     "disableOfficePreviewDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der OnlyOffice-Viewer deaktiviert werden soll. (z. B. '.txt .html').",
     "disableOfficePreview": "Onlyoffice-Viewer für bestimmte Dateierweiterungen deaktivieren",
     "filePreviewOptions": "Optionen für die Dateivorschau",
@@ -296,7 +296,7 @@
     "sources": "Quellen"
   },
   "success": {
-    "linkCopied": "Verweis wurde kopiert!"
+    "linkCopied": "Link wurde kopiert!"
   },
   "time": {
     "days": "Tage",
@@ -306,21 +306,21 @@
     "unit": "Zeiteinheit"
   },
   "upload": {
-    "abortUpload": "Sind Sie sicher, dass Sie abtreiben wollen?"
+    "abortUpload": "Sind Sie sicher, dass Sie abbrechen wollen?"
   },
   "share": {
-    "notice": "Hinweis: Jeder, der Zugang zum Link (und optional zum Passwort) hat, kann auf die gemeinsamen Dateien zugreifen. Es ist nicht erforderlich, dass Sie eingeloggt sind."
+    "notice": "Hinweis: Jeder, der Zugang zum Link (und optional zum Passwort) hat, kann auf die gemeinsamen Dateien zugreifen. Es ist kein Login erforderlich."
   },
   "api": {
     "title": "API-Schlüssel:",
-    "keyName": "API-Schlüssel Name:",
+    "keyName": "API-Schlüsselname:",
     "createdAt": "Erstellt am:",
-    "expiresAt": "Läuft ab bei:",
-    "permissions": "Erlaubt:",
+    "expiresAt": "Läuft ab am:",
+    "permissions": "Berechtigungen:",
     "createTitle": "API-Schlüssel erstellen",
     "keyNamePlaceholder": "Geben Sie einen eindeutigen API-Schlüsselnamen ein:",
     "tokenDuration": "Token Dauer:",
-    "durationNumberPlaceholder": "Nummer",
+    "durationNumberPlaceholder": "Anzahl",
     "days": "Tage",
     "months": "Monate",
     "permissionNote": "Wählen Sie mindestens eine Berechtigung für den Schlüssel. Ihr Benutzer muss ebenfalls über diese Berechtigung verfügen.",
@@ -330,10 +330,10 @@
     "swaggerLinkText": "Angeberseite",
     "name": "Name",
     "created": "Erstellt",
-    "expires": "Abgelaufen",
+    "expires": "Läuft ab",
     "actions": "Aktionen",
     "enabled": "Aktiviert",
-    "disabled": "Behinderte"
+    "disabled": "Deaktiviert"
   },
   "index": {
     "status": "Status",
@@ -341,12 +341,12 @@
     "files": "Dateien",
     "folders": "Ordner",
     "lastScanned": "Zuletzt gescannt",
-    "quickScan": "Schnell-Scan-Sekunden",
-    "fullScan": "Vollständiger Scan in Sekunden",
+    "quickScan": "Schnell-Scan (Sekunden)",
+    "fullScan": "Vollständiger Scan (Sekunden)",
     "settingsHover": "Einstellungen für Benutzer",
-    "logout": "Abmeldung",
+    "logout": "Abmelden",
     "toggleClick": "Einzelklick umschalten",
-    "toggleDark": "Dunkler Modus umschalten",
+    "toggleDark": "Dunkelmodus umschalten",
     "toggleSticky": "Sticky-Modus umschalten",
     "of": "von",
     "used": "gebraucht"
