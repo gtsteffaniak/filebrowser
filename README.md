@@ -55,7 +55,7 @@ This repo will always be free and open-source.
 
 For more, see the [Q&A Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A)
 
-## Look
+## The UI
 
 The UI has a simple three-component navigation system:
 
@@ -74,7 +74,9 @@ a pop-up menu.
 
 ## Install and Configuration
 
-See the [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration)
+Check out the [Getting Started Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Getting-Started)
+
+For help configuring your filebrowser see [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration-And-Examples)
 
 ## Command Line Usage
 
@@ -84,13 +86,9 @@ See the [CLI Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/CLI)
 
 See the [API Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/API)
 
-## Configuration
-
-Configuration is done via the `config.yaml`, see the [Configuration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration) for available configuration options and other help.
-
 ## Office File Support
 
-See [Office Support Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#adding-open-office-integration-for-docker) on how to enable office file editing and office related features.
+See [Office Support Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Office-Support#adding-open-office-integration-for-docker) on how to enable office file editing and office-related features.
 
 ## Migration from the original filebrowser
 
