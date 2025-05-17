@@ -12,6 +12,7 @@
       <input
         class="input input--block form-form"
         :class="{ 'invalid-form': invalidPassword }"
+        aria-label="Password1"
         type="password"
         :placeholder="$t('settings.enterPassword')"
         v-model="passwordRef"
@@ -21,6 +22,7 @@
       <input
         class="input input--block form-form"
         :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+        aria-label="Password2"
         type="password"
         :placeholder="$t('settings.enterPasswordAgain')"
         v-model="user.password"
@@ -50,34 +52,36 @@
     </p>
 
     <div v-if="user.loginMethod == 'password' && passwordAvailable && isNew">
-    <label for="password">{{ $t("settings.password") }}</label>
-    <div class="form-group">
-      <input
-        class="input input--block form-form"
-        :class="{ 'invalid-form': invalidPassword }"
-        type="password"
-        :placeholder="$t('settings.enterPassword')"
-        v-model="passwordRef"
-      />
-    </div>
-    <div class="form-group">
-      <input
-        class="input input--block form-form"
-        :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
-        type="password"
-        :placeholder="$t('settings.enterPasswordAgain')"
-        v-model="user.password"
-        id="password"
-      />
-      <button
-        v-if="!isNew"
-        type="button"
-        class="button form-button"
-        @click="submitUpdatePassword"
-      >
-        {{ $t("buttons.update") }}
-      </button>
-    </div>
+      <label for="password">{{ $t("settings.password") }}</label>
+      <div class="form-group">
+        <input
+          class="input input--block form-form"
+          :class="{ 'invalid-form': invalidPassword }"
+          aria-label="Password1"
+          type="password"
+          :placeholder="$t('settings.enterPassword')"
+          v-model="passwordRef"
+        />
+      </div>
+      <div class="form-group">
+        <input
+          class="input input--block form-form"
+          :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+          type="password"
+          :placeholder="$t('settings.enterPasswordAgain')"
+          aria-label="Password2"
+          v-model="user.password"
+          id="password"
+        />
+        <button
+          v-if="!isNew"
+          type="button"
+          class="button form-button"
+          @click="submitUpdatePassword"
+        >
+          {{ $t("buttons.update") }}
+        </button>
+      </div>
     </div>
 
     <div
@@ -153,9 +157,9 @@
     <div v-if="stateUser.permissions.admin">
       <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
       <select v-model="user.loginMethod" class="input input--block" id="loginMethod">
-        <option value="password">Password</option>
-        <option value="oidc">OIDC</option>
-        <option value="proxy">Proxy</option>
+        <option value="password">Password</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <option value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <option value="proxy">Proxy</option>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </select>
     </div>
     <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
@@ -221,7 +225,8 @@ export default {
   },
   computed: {
     invalidPassword() {
-      const matching = this.user.password != this.passwordRef && this.user.password.length > 0 ;
+      const matching =
+        this.user.password != this.passwordRef && this.user.password.length > 0;
       return matching;
     },
     passwordAvailable: () => passwordAvailable,

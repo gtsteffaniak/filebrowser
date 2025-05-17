@@ -8,7 +8,7 @@
       @action="multiAction"
     />
     <search v-if="showSearch" />
-    <title v-else-if="isSettings" class="topTitle">{{ $t('sidebar.settings') }}</title>
+    <title v-else-if="isSettings" class="topTitle">{{ $t("sidebar.settings") }}</title>
     <title v-else class="topTitle">{{ req.name }}</title>
     <action
       v-if="isListingView"
@@ -30,7 +30,6 @@
 <script>
 import router from "@/router";
 import { getters, state, mutations } from "@/store";
-import { removeLastDir } from "@/utils/url";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
 
@@ -124,7 +123,7 @@ export default {
       } else {
         mutations.closeHovers();
         if (listingView === "settings") {
-          router.push({path: "/files" });
+          router.push({ path: "/files" });
           return;
         }
         mutations.replaceRequest({});
