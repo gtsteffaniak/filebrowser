@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.4-beta
 
+ **Notes**:
+ - Updated German translation. https://github.com/gtsteffaniak/filebrowser/pull/644
+
  **BugFixes**:
  - windows control click https://github.com/gtsteffaniak/filebrowser/issues/642
  - create user issue https://github.com/gtsteffaniak/filebrowser/issues/647
