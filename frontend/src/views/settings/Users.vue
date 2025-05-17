@@ -4,20 +4,21 @@
     <div class="card-title">
       <h2>{{ $t("settings.users") }}</h2>
       <router-link v-if="isAdmin" to="/settings/users/new">
-        <button class="button">
+        <button class="button" aria-label="Add New User">
           {{ $t("buttons.new") }}
         </button>
       </router-link>
     </div>
 
     <div class="card-content full">
-      <table>
+      <table aria-label="Users">
         <thead>
           <tr>
             <th>{{ $t("settings.username") }}</th>
-            <th> {{ $t("settings.loginMethod") }} </th>
+            <th>{{ $t("settings.loginMethod") }}</th>
             <th>{{ $t("settings.admin") }}</th>
-            <th>Scopes</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <th>Scopes</th>
+            <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             <th></th>
           </tr>
         </thead>
@@ -30,7 +31,7 @@
               <i v-else class="material-icons">close</i>
             </td>
             <td>{{ user.scopes }}</td>
-            <td class="small">
+            <td class="small" aria-label="Edit User">
               <router-link :to="'/settings/users/' + user.id">
                 <i class="material-icons">mode_edit</i>
               </router-link>

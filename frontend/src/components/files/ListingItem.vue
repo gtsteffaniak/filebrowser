@@ -29,7 +29,7 @@
     @mouseup="cancelContext($event)"
   >
     <div @click="toggleClick" :class="{ 'gallery-div': galleryView }">
-      <Icon :mimetype="type" :active="isSelected" :thumbnailUrl />
+      <Icon :mimetype="type" :active="isSelected" :thumbnailUrl="thumbnailUrl" />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
@@ -364,7 +364,6 @@ export default {
         mutations.removeSelected(this.index);
         return;
       }
-
       if (event.shiftKey && this.selected.length > 0) {
         let fi = 0;
         let la = 0;

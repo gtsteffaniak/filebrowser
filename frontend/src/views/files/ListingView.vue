@@ -254,9 +254,7 @@ export default {
       if (!elem) {
         return 1;
       }
-      let columns = Math.floor(
-        elem.offsetWidth / this.columnWidth
-      );
+      let columns = Math.floor(elem.offsetWidth / this.columnWidth);
       if (columns === 0) columns = 1;
       return columns;
     },
@@ -596,7 +594,7 @@ export default {
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
       if (modifierKeys) {
-        if (!ctrlKey) {
+        if (ctrlKey) {
           this.ctrKeyPressed = true;
         }
         return;

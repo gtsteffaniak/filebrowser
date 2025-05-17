@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.4-beta
+
+ **BugFixes**:
+ - windows control click https://github.com/gtsteffaniak/filebrowser/issues/642
+ - create user issue https://github.com/gtsteffaniak/filebrowser/issues/647
+
 ## v0.7.3-beta
 
 Note: OIDC changes require config update.
