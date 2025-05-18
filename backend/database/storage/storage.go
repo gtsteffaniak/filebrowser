@@ -8,7 +8,6 @@ import (
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -110,8 +109,8 @@ func quickSetup(store *Storage) {
 func CreateUser(userInfo users.User, asAdmin bool) error {
 	newUser := &userInfo
 	if userInfo.LoginMethod == "password" {
-		if userInfo.Password != "" {
-			return errors.ErrInvalidRequestParams
+		if userInfo.Password == "" {
+			return fmt.Errorf("password is required to create a password login user")
 		}
 	} else {
 		hashpass, err := users.HashPwd(userInfo.Username)
@@ -122,7 +121,7 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	}
 	// must have username or password to create
 	if userInfo.Username == "" {
-		return errors.ErrInvalidRequestParams
+		return fmt.Errorf("username is required to create a user")
 	}
 	logger.Debug(fmt.Sprintf("Creating user: %v %v", userInfo.Username, userInfo.Scopes))
 	settings.ApplyUserDefaults(newUser)

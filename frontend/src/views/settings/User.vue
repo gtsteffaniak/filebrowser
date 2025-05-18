@@ -3,8 +3,10 @@
   <form @submit="save" class="card active" v-if="loaded">
     <div class="card-title">
       <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
-      <h2 v-else-if="actor.id == user.id"> {{ $t('settings.modifyCurrentUser') }} ({{ user.username }})</h2> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      <h2 v-else> {{ $t('settings.modifyOtherUser') }} {{ user.username }}</h2>
+      <h2 v-else-if="actor.id == user.id">
+        {{ $t("settings.modifyCurrentUser") }} {{ user.username }}
+      </h2>
+      <h2 v-else>{{ $t("settings.modifyOtherUser") }} {{ user.username }}</h2>
     </div>
 
     <div class="card-content minimal-card">
@@ -18,16 +20,21 @@
 
     <div v-if="actor.permissions.admin" class="card-action">
       <button
-        v-if="!isNew && actor.permissions.admin"
+        v-if="!isNew"
         @click.prevent="deletePrompt"
         type="button"
         class="button button--flat button--red"
-        :aria-label="$t('buttons.delete')"
+        aria-label="Delete User"
         :title="$t('buttons.delete')"
       >
         {{ $t("buttons.delete") }}
       </button>
-      <input class="button button--flat" type="submit" :value="$t('buttons.save')" />
+      <input
+        aria-label="Save User"
+        class="button button--flat"
+        type="submit"
+        :value="$t('buttons.save')"
+      />
     </div>
   </form>
 </template>
@@ -107,7 +114,7 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
-        let fields = ["all"]
+        let fields = ["all"];
         if (!state.user.permissions.admin) {
           notify.showError(this.$t("settings.userNotAdmin"));
           return;
