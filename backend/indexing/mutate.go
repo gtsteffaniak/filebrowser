@@ -3,14 +3,17 @@ package indexing
 import (
 	"fmt"
 	"path/filepath"
+	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-cache/cache"
+	"github.com/gtsteffaniak/go-logger/logger"
 
 	"github.com/shirou/gopsutil/v3/disk"
 )
+
+var DiskUsageCache = cache.NewCache(30 * time.Second)
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
@@ -87,11 +90,11 @@ func GetIndex(name string) *Index {
 		// todo: update everywhere else so this isn't needed.
 		source, ok := settings.Config.Server.SourceMap[name]
 		if !ok {
-			logger.Error(fmt.Sprintf("index %s not found", name))
+			logger.Errorf("index %s not found", name)
 		}
 		index, ok = indexes[source.Name]
 		if !ok {
-			logger.Error(fmt.Sprintf("index %s not found", name))
+			logger.Errorf("index %s not found", name)
 		}
 
 	}
@@ -105,11 +108,11 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	}
 	sourcePath := idx.Path
 	cacheKey := "usageCache-" + sourceName
-	_, ok = cache.DiskUsage.Get(cacheKey).(bool)
+	_, ok = DiskUsageCache.Get(cacheKey).(bool)
 	if !ok {
 		usage, err := disk.Usage(sourcePath)
 		if err != nil {
-			logger.Error(fmt.Sprintf("error getting disk usage for %s: %v", sourcePath, err))
+			logger.Errorf("error getting disk usage for %s: %v", sourcePath, err)
 			idx.SetStatus(UNAVAILABLE)
 			return ReducedIndex{}, fmt.Errorf("error getting disk usage for %s: %v", sourcePath, err)
 		}
@@ -118,7 +121,7 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 			Used:  usage.Used,
 		}
 		idx.SetUsage(latestUsage)
-		cache.DiskUsage.Set(cacheKey, true)
+		DiskUsageCache.Set(cacheKey, true)
 	}
 	return idx.ReducedIndex, nil
 }

@@ -18,14 +18,16 @@ import (
 	"unicode/utf8"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-cache/cache"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+var OnlyOfficeCache = cache.NewCache(48 * time.Hour)
 
 func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error) {
 	response := iteminfo.ExtendedFileInfo{}
@@ -76,7 +78,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 			}
 			response.Content = content
 		} else {
-			logger.Debug(fmt.Sprintf("skipping large text file contents (20MB limit): "+info.Path, info.Name))
+			logger.Debug("skipping large text file contents (20MB limit): "+info.Path, info.Name)
 		}
 	}
 	response.FileInfo = *info
@@ -95,11 +97,11 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 }
 
 func generateOfficeId(realPath string) string {
-	key, ok := cache.OnlyOffice.Get(realPath).(string)
+	key, ok := OnlyOfficeCache.Get(realPath).(string)
 	if !ok {
 		timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
 		documentKey := utils.HashSHA256(realPath + timestamp)
-		cache.OnlyOffice.Set(realPath, documentKey)
+		OnlyOfficeCache.Set(realPath, documentKey)
 		return documentKey
 	}
 	return key

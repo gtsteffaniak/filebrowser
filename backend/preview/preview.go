@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 var (
@@ -41,7 +41,7 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 			if cacheDir == "tmp" {
 				logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. filebrowser is trying to use the default `server.cacheDir: tmp` , but you can change this location if you need to. Please see configuration wiki for more information about this error. https://github.com/gtsteffaniak/filebrowser/wiki/Configuration")
 			}
-			logger.Fatal(fmt.Sprintf("failed to create file cache path, which is now require to run the server: %v", err))
+			logger.Fatalf("failed to create file cache path, which is now require to run the server: %v", err)
 		}
 	} else {
 		// No-op cache if no cacheDir is specified
@@ -53,11 +53,11 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 	if ffmpegPath != "" {
 		ffmpegMainPath, err = CheckValidFFmpeg(ffmpegPath)
 		if err != nil {
-			logger.Fatal(fmt.Sprintf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err))
+			logger.Fatalf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err)
 		}
 		ffprobePath, err = CheckValidFFprobe(ffmpegPath)
 		if err != nil {
-			logger.Fatal(fmt.Sprintf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err))
+			logger.Fatalf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err)
 		}
 	}
 	return &Service{
@@ -130,7 +130,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	// Cache and return
 	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
 	if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
-		logger.Error(fmt.Sprintf("failed to cache resized image: %v", err))
+		logger.Errorf("failed to cache resized image: %v", err)
 	}
 	return resizedBytes, nil
 }
@@ -172,7 +172,7 @@ func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 	if errSmall != nil {
 		errLarge := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "large", file.ItemInfo.ModTime, 0))
 		if errLarge != nil {
-			logger.Debug(fmt.Sprintf("Could not delete thumbnail: %v", file.Name))
+			logger.Debugf("Could not delete thumbnail: %v", file.Name)
 		}
 	}
 }

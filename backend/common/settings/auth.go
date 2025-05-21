@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type Auth struct {

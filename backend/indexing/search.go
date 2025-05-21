@@ -5,11 +5,14 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-cache/cache"
 )
+
+var SearchResultsCache = cache.NewCache(15 * time.Second)
 
 var (
 	sessionInProgress sync.Map
@@ -34,12 +37,12 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 	results := make(map[string]SearchResult, 0)
 	count := 0
 	var directories []string
-	cachedDirs, ok := cache.SearchResults.Get(idx.Source.Path + scope).([]string)
+	cachedDirs, ok := SearchResultsCache.Get(idx.Source.Path + scope).([]string)
 	if ok {
 		directories = cachedDirs
 	} else {
 		directories = idx.getDirsInScope(scope)
-		cache.SearchResults.Set(idx.Source.Path+scope, directories)
+		SearchResultsCache.Set(idx.Source.Path+scope, directories)
 	}
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {

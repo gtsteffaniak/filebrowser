@@ -2,11 +2,10 @@ package indexing
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // schedule in minutes
@@ -36,7 +35,7 @@ func (idx *Index) newScanner(origin string) {
 			sleepTime = time.Duration(idx.Source.Config.IndexingInterval) * time.Minute
 		}
 		// Log and sleep before indexing
-		logger.Debug(fmt.Sprintf("Next scan in %v", sleepTime))
+		logger.Debugf("Next scan in %v", sleepTime)
 		time.Sleep(sleepTime)
 		if fullScanCounter == 5 {
 			idx.RunIndexing(origin, false) // Full scan
@@ -64,7 +63,7 @@ func (idx *Index) PostScan() {
 func (idx *Index) UpdateSchedule() {
 	// Adjust schedule based on file changes
 	if idx.FilesChangedDuringIndexing {
-		logger.Debug(fmt.Sprintf("Files changed during indexing [%v], adjusting schedule.", idx.Name))
+		logger.Debugf("Files changed during indexing [%v], adjusting schedule.", idx.Name)
 		// Move to at least the full-scan anchor or reduce interval
 		if idx.CurrentSchedule > fullScanAnchor {
 			idx.CurrentSchedule = fullScanAnchor
@@ -95,7 +94,7 @@ func (idx *Index) SendSourceUpdateEvent() {
 	}
 	reducedIndex, err := GetIndexInfo(idx.Name)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error getting index info: %v", err))
+		logger.Errorf("Error getting index info: %v", err)
 		return
 	}
 	sourceAsMap := map[string]ReducedIndex{
@@ -103,7 +102,7 @@ func (idx *Index) SendSourceUpdateEvent() {
 	}
 	message, err := json.Marshal(sourceAsMap)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error marshalling source update message: %v", err))
+		logger.Errorf("Error marshalling source update message: %v", err)
 		return
 	}
 	events.SendSourceUpdate(idx.Name, string(message))
@@ -114,9 +113,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
-		logger.Debug(fmt.Sprintf("Starting quick scan for [%v]", idx.Source.Name))
+		logger.Debugf("Starting quick scan for [%v]", idx.Source.Name)
 	} else {
-		logger.Debug(fmt.Sprintf("Starting full scan for [%v]", idx.Source.Name))
+		logger.Debugf("Starting full scan for [%v]", idx.Source.Name)
 		idx.NumDirs = 0
 		idx.NumFiles = 0
 	}
@@ -125,7 +124,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	// Perform the indexing operation
 	err := idx.indexDirectory("/", quick, true)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Error during indexing: %v", err))
+		logger.Errorf("Error during indexing: %v", err)
 	}
 	firstRun := idx.LastIndexed == time.Time{}
 	// Update the LastIndexed time
@@ -133,7 +132,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	idx.LastIndexedUnix = idx.LastIndexed.Unix()
 	if quick {
 		idx.QuickScanTime = int(time.Since(startTime).Seconds())
-		logger.Debug(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.QuickScanTime))
+		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.QuickScanTime)
 	} else {
 		idx.FullScanTime = int(time.Since(startTime).Seconds())
 		// update smart indexing
@@ -148,14 +147,14 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 			idx.Assessment = "normal"
 		}
 		if firstRun {
-			logger.Info(fmt.Sprintf("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Source.Name, idx.Assessment, idx.NumDirs, idx.NumFiles))
+			logger.Infof("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Source.Name, idx.Assessment, idx.NumDirs, idx.NumFiles)
 		} else {
-			logger.Debug(fmt.Sprintf("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Source.Name, idx.Assessment, idx.NumDirs, idx.NumFiles))
+			logger.Debugf("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Source.Name, idx.Assessment, idx.NumDirs, idx.NumFiles)
 		}
 		if idx.NumDirs != prevNumDirs || idx.NumFiles != prevNumFiles {
 			idx.FilesChangedDuringIndexing = true
 		}
-		logger.Debug(fmt.Sprintf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.FullScanTime))
+		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.FullScanTime)
 	}
 
 	idx.PostScan()

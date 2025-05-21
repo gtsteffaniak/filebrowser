@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // detects subtitles for video files.

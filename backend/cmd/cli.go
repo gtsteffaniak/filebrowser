@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 var (
@@ -93,13 +93,13 @@ func runCLI() bool {
 
 				// Create the user logic
 				if asAdmin {
-					logger.Info(fmt.Sprintf("Creating user as admin: %s\n", username))
+					logger.Infof("Creating user as admin: %s\n", username)
 				} else {
-					logger.Info(fmt.Sprintf("Creating non-admin user: %s\n", username))
+					logger.Infof("Creating non-admin user: %s\n", username)
 				}
 				err = storage.CreateUser(newUser, asAdmin)
 				if err != nil {
-					logger.Error(fmt.Sprintf("could not create user: %v", err))
+					logger.Errorf("could not create user: %v", err)
 				}
 				return false
 			}
@@ -109,7 +109,7 @@ func runCLI() bool {
 			}
 			err = store.Users.Save(user, true, false)
 			if err != nil {
-				logger.Error(fmt.Sprintf("could not update user: %v", err))
+				logger.Errorf("could not update user: %v", err)
 			}
 			fmt.Printf("successfully updated user: %s\n", username)
 			return false

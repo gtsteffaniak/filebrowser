@@ -11,10 +11,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type usersBackend struct {
@@ -141,7 +141,7 @@ func (st usersBackend) Save(user *users.User, changePass, disableScopeChange boo
 	if user.LoginMethod == "" {
 		user.LoginMethod = users.LoginMethodPassword
 	}
-	logger.Debug(fmt.Sprintf("Saving user [%s] changepass: %v", user.Username, changePass))
+	logger.Debugf("Saving user [%s] changepass: %v", user.Username, changePass)
 	if user.LoginMethod == users.LoginMethodPassword && changePass {
 		err := checkPassword(user.Password)
 		if err != nil {
