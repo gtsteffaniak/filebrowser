@@ -5,9 +5,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/events"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type messenger struct {
@@ -40,7 +40,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 
 	f, ok := w.(http.Flusher)
 	if !ok {
-		logger.Debug(fmt.Sprintf("error: ResponseWriter does not support Flusher. User: %s, SessionId: %s", username, sessionId))
+		logger.Debug("error: ResponseWriter does not support Flusher. User: %s, SessionId: %s", username, sessionId)
 		return http.StatusInternalServerError, fmt.Errorf("streaming not supported")
 	}
 
@@ -63,7 +63,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int,
 			return http.StatusOK, nil
 
 		case <-clientGone:
-			logger.Debug(fmt.Sprintf("client disconnected. user: %s, SessionId: %s", username, sessionId))
+			logger.Debug("client disconnected. user: %s, SessionId: %s", username, sessionId)
 			return http.StatusOK, nil
 
 		case msg := <-events.BroadcastChan:

@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 func CheckErr(source string, err error) {
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("%s: %v", source, err))
+		logger.Fatal("%s: %v", source, err)
 	}
 }
 
@@ -73,7 +73,7 @@ func PrintStructFields(v interface{}) {
 			fieldValue = fieldValue[:100] + "..."
 		}
 
-		logger.Debug(fmt.Sprintf("Field: %s, %s\n", fieldType.Name, fieldValue))
+		logger.Debug("Field: %s, %s\n", fieldType.Name, fieldValue)
 	}
 }
 

@@ -17,12 +17,12 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // first checks for cookie
@@ -95,7 +95,7 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 		}
 	}
 	if data.user.LoginMethod != users.LoginMethodProxy {
-		logger.Warning(fmt.Sprintf("user %s is not allowed to login with proxy authentication, bypassing and updating login method", data.user.Username))
+		logger.Warning("user %s is not allowed to login with proxy authentication, bypassing and updating login method", data.user.Username)
 		data.user.LoginMethod = users.LoginMethodProxy
 		// Perform the user update
 		err := store.Users.Update(data.user, true, "LoginMethod")
@@ -150,7 +150,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.LoginMethod != users.LoginMethodPassword {
-		logger.Warning(fmt.Sprintf("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username))
+		logger.Warning("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username)
 		user.LoginMethod = users.LoginMethodPassword
 		// Perform the user update
 		err = store.Users.Update(user, true, "LoginMethod")
@@ -392,7 +392,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	// Exchange the authorization code for tokens
 	token, err := oauth2Config.Exchange(ctx, code)
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to exchange token: %v", err))
+		logger.Error("failed to exchange token: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to exchange token: %v", err)
 	}
 
@@ -411,18 +411,18 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// This uses the verifier initialized with the provider's JWKS endpoint and client ID
 		idToken, err := oidcCfg.Verifier.Verify(ctx, rawIDToken)
 		if err != nil {
-			logger.Warning(fmt.Sprintf("failed to verify ID token: %v. Falling back to UserInfo endpoint.", err))
+			logger.Warning("failed to verify ID token: %v. Falling back to UserInfo endpoint.", err)
 			// Verification failed, claimsFromIDToken remains false
 		} else {
 			var claims map[string]interface{}
 			// Decode the ID token claims into a map to handle arbitrary structure
 			// This is where the JWE unmarshalling error occurs if the token is encrypted
 			if err := idToken.Claims(&claims); err != nil {
-				logger.Warning(fmt.Sprintf("failed to decode ID token claims: %v. Falling back to UserInfo endpoint.", err))
+				logger.Warning("failed to decode ID token claims: %v. Falling back to UserInfo endpoint.", err)
 				// Claims decoding failed, claimsFromIDToken remains false
 			} else {
 				// Successfully verified and decoded ID token claims
-				logger.Debug(fmt.Sprintf("ID Token verified and claims decoded: %+v", claims))
+				logger.Debug("ID Token verified and claims decoded: %+v", claims)
 
 				// Populate userdata from ID token claims
 				if name, ok := claims["name"].(string); ok {
@@ -472,13 +472,13 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// oauth2Config.TokenSource creates a token source that uses the provided token.
 		userInfoResp, err := oidcCfg.Provider.UserInfo(ctx, oauth2Config.TokenSource(ctx, token))
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to fetch user info from endpoint: %v", err))
+			logger.Error("failed to fetch user info from endpoint: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info from endpoint: %v", err)
 		}
 		// Decode the UserInfo response directly into the userdata struct
 		// The UserInfo endpoint is expected to return standard JSON
 		if err := userInfoResp.Claims(&userdata); err != nil {
-			logger.Error(fmt.Sprintf("failed to decode user info from endpoint: %v", err))
+			logger.Error("failed to decode user info from endpoint: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info from endpoint: %v", err)
 		}
 		// Decide if we rely on ID token claims or still need UserInfo
@@ -536,7 +536,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
 func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string) (int, error) {
-	logger.Debug(fmt.Sprintf("Successfully authenticated OIDC username: %s", username))
+	logger.Debug("Successfully authenticated OIDC username: %s", username)
 	// Retrieve the user from the store and store it in the context
 	user, err := store.Users.Get(username)
 	if err != nil {
@@ -557,7 +557,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string) 
 		}
 	}
 	if user.LoginMethod != users.LoginMethodOidc {
-		logger.Warning(fmt.Sprintf("user %s is not allowed to login with oidc authentication, bypassing and updating login method", user.Username))
+		logger.Warning("user %s is not allowed to login with oidc authentication, bypassing and updating login method", user.Username)
 		user.LoginMethod = users.LoginMethodOidc
 		err = store.Users.Update(user, true, "LoginMethod")
 		if err != nil {

@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 
 	"github.com/shirou/gopsutil/v3/disk"
 )
@@ -87,11 +87,11 @@ func GetIndex(name string) *Index {
 		// todo: update everywhere else so this isn't needed.
 		source, ok := settings.Config.Server.SourceMap[name]
 		if !ok {
-			logger.Error(fmt.Sprintf("index %s not found", name))
+			logger.Error("index %s not found", name)
 		}
 		index, ok = indexes[source.Name]
 		if !ok {
-			logger.Error(fmt.Sprintf("index %s not found", name))
+			logger.Error("index %s not found", name)
 		}
 
 	}
@@ -109,7 +109,7 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	if !ok {
 		usage, err := disk.Usage(sourcePath)
 		if err != nil {
-			logger.Error(fmt.Sprintf("error getting disk usage for %s: %v", sourcePath, err))
+			logger.Error("error getting disk usage for %s: %v", sourcePath, err)
 			idx.SetStatus(UNAVAILABLE)
 			return ReducedIndex{}, fmt.Errorf("error getting disk usage for %s: %v", sourcePath, err)
 		}

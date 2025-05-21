@@ -12,10 +12,10 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type requestContext struct {
@@ -78,7 +78,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		})
 		file.Token = link.Token
 		if err != nil {
-			logger.Error(fmt.Sprintf("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err))
+			logger.Error("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
 		// Set the file info in the `data` object
@@ -107,7 +107,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			// Retrieve the user from the store and store it in the context
 			data.user, err = store.Users.Get(uint(1))
 			if err != nil {
-				logger.Error(fmt.Sprintf("no auth: %v", err))
+				logger.Error("no auth: %v", err)
 				return http.StatusInternalServerError, err
 			}
 			return fn(w, r, data)
@@ -192,14 +192,14 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			// Marshal the error response to JSON
 			errorBytes, marshalErr := json.Marshal(response)
 			if marshalErr != nil {
-				logger.Error(fmt.Sprintf("Error marshalling error response: %v", marshalErr))
+				logger.Error("Error marshalling error response: %v", marshalErr)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 
 			// Write the JSON error response
 			if _, writeErr := w.Write(errorBytes); writeErr != nil {
-				logger.Debug(fmt.Sprintf("Error writing error response: %v", writeErr))
+				logger.Debug("Error writing error response: %v", writeErr)
 			}
 			return
 		}

@@ -3,8 +3,8 @@ package cmd
 import (
 	"net/http"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // healthcheck attempt to save test file against configured url

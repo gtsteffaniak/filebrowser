@@ -10,9 +10,9 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-yaml"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 var Config Settings
@@ -55,11 +55,11 @@ func setupFrontend() {
 func getRealPath(path string) string {
 	realPath, err := filepath.Abs(path)
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("could not find configured source path: %v", err))
+		logger.Fatal("could not find configured source path: %v", err)
 	}
 	// check path exists
 	if _, err = os.Stat(realPath); os.IsNotExist(err) {
-		logger.Fatal(fmt.Sprintf("configured source path does not exist: %v", realPath))
+		logger.Fatal("configured source path does not exist: %v", realPath)
 	}
 	return realPath
 }
@@ -119,7 +119,7 @@ func setupSources() {
 			}
 			allSourceNames = append(allSourceNames, source.Name)
 		} else {
-			logger.Warning(fmt.Sprintf("source %v is not configured correctly, skipping", sourcePathOnly.Path))
+			logger.Warning("source %v is not configured correctly, skipping", sourcePathOnly.Path)
 		}
 	}
 	if Config.Server.DefaultSource.Path == "" {
@@ -159,7 +159,7 @@ func setupAuth() {
 	if Config.Auth.Methods.OidcAuth.Enabled {
 		err := validateOidcAuth()
 		if err != nil {
-			logger.Fatal(fmt.Sprintf("Error validating OIDC auth: %v", err))
+			logger.Fatal("Error validating OIDC auth: %v", err)
 		}
 		logger.Info("OIDC Auth configured successfully")
 	}
@@ -212,7 +212,7 @@ func loadConfigWithDefaults(configFile string) error {
 		return fmt.Errorf("could not load specified config file: %v", err.Error())
 	}
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
+		logger.Warning("Could not load config file '%v', using default settings: %v", configFile, err)
 	}
 	err = yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
 	if err != nil {
@@ -375,7 +375,7 @@ func HasSourceByPath(scopes []users.SourceScope, sourcePath string) bool {
 func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (string, error) {
 	source, ok := Config.Server.NameToSource[sourceName]
 	if !ok {
-		logger.Debug(fmt.Sprint("Could not get scope from source name: ", sourceName))
+		logger.Debug("Could not get scope from source name: ", sourceName)
 		return "", fmt.Errorf("source with name not found %v", sourceName)
 	}
 	for _, scope := range scopes {
@@ -383,7 +383,7 @@ func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (stri
 			return scope.Scope, nil
 		}
 	}
-	logger.Debug(fmt.Sprintf("scope not found for source %v", sourceName))
+	logger.Debug("scope not found for source %v", sourceName)
 	return "", fmt.Errorf("scope not found for source %v", sourceName)
 }
 

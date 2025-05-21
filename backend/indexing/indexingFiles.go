@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // reduced index is json exposed to the client
@@ -77,7 +77,7 @@ func Initialize(source settings.Source, mock bool) {
 	indexesMutex.Unlock()
 	if !newIndex.Source.Config.Disabled {
 		time.Sleep(time.Second)
-		logger.Info(fmt.Sprintf("initializing index: [%v]", newIndex.Source.Name))
+		logger.Info("initializing index: [%v]", newIndex.Source.Name)
 		newIndex.RunIndexing("/", false)
 		go newIndex.setupIndexingScanners()
 	} else {
@@ -121,7 +121,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 		for _, item := range cacheDirItems {
 			err = idx.indexDirectory(combinedPath+item.Name, quick, true)
 			if err != nil {
-				logger.Error(fmt.Sprintf("error indexing directory %v : %v", combinedPath+item.Name, err))
+				logger.Error("error indexing directory %v : %v", combinedPath+item.Name, err)
 			}
 		}
 		return nil
@@ -169,7 +169,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 				// Recursively index the subdirectory
 				err = idx.indexDirectory(dirPath, quick, recursive)
 				if err != nil {
-					logger.Error(fmt.Sprintf("Failed to index directory %s: %v", dirPath, err))
+					logger.Error("Failed to index directory %s: %v", dirPath, err)
 					continue
 				}
 			}

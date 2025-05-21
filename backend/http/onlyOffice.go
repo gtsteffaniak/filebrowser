@@ -13,11 +13,11 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 const (
@@ -206,7 +206,7 @@ func getOnlyOfficeId(source, path string) (string, error) {
 func deleteOfficeId(source, path string) {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
-		logger.Error(fmt.Sprintf("deleteOfficeId: failed to find source index for user home dir creation: %s", source))
+		logger.Error("deleteOfficeId: failed to find source index for user home dir creation: %s", source)
 		return
 	}
 	realpath, _, _ := idx.GetRealPath(path)

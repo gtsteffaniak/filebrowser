@@ -13,10 +13,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -232,7 +232,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		sizeInMB := estimatedSize / 1024 / 1024
 		// if larger than 500 MB, log it
 		if sizeInMB > 500 {
-			logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
+			logger.Debug("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
 		}
 		// serve content allows for range requests.
 		// video scrubbing, etc.
@@ -295,7 +295,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	sizeInMB := fileInfo.Size() / 1024 / 1024
 	if sizeInMB > 500 {
-		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
+		logger.Debug("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
 	}
 
 	// Set headers AFTER computing actual archive size
@@ -307,7 +307,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	_, err = io.Copy(w, fd)
 	os.Remove(archiveData) // Remove the file after streaming
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to copy archive data to response: %v", err))
+		logger.Error("Failed to copy archive data to response: %v", err)
 		return http.StatusInternalServerError, err
 	}
 
@@ -362,7 +362,7 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
-			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
+			logger.Error("Failed to add %s to ZIP: %v", fname, err)
 			return err
 		}
 	}
@@ -385,7 +385,7 @@ func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) erro
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
-			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
+			logger.Error("Failed to add %s to TAR.GZ: %v", fname, err)
 			return err
 		}
 	}

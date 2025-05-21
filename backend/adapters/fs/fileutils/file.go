@@ -1,14 +1,13 @@
 package fileutils
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path"
 	"path/filepath"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // MoveFile moves a file from src to dst.
@@ -23,14 +22,14 @@ func MoveFile(src, dst string) error {
 	// fallback
 	err = CopyFile(src, dst)
 	if err != nil {
-		logger.Error(fmt.Sprintf("CopyFile failed %v %v %v ", src, dst, err))
+		logger.Error("CopyFile failed %v %v %v ", src, dst, err)
 		return err
 	}
 
 	go func() {
 		err = os.RemoveAll(src)
 		if err != nil {
-			logger.Error(fmt.Sprintf("os.Remove failed %v %v ", src, err))
+			logger.Error("os.Remove failed %v %v ", src, err)
 		}
 	}()
 
@@ -181,14 +180,14 @@ func ClearCacheDir() {
 	cacheDir := settings.Config.Server.CacheDir
 	entries, err := os.ReadDir(cacheDir)
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed clear cache dir: %v", err))
+		logger.Error("failed clear cache dir: %v", err)
 	}
 
 	for _, entry := range entries {
 		path := filepath.Join(cacheDir, entry.Name())
 		err = os.RemoveAll(path)
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed clear cache dir: %v", err))
+			logger.Error("failed clear cache dir: %v", err)
 		}
 	}
 
