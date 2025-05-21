@@ -93,13 +93,13 @@ func runCLI() bool {
 
 				// Create the user logic
 				if asAdmin {
-					logger.Info("Creating user as admin: %s\n", username)
+					logger.Infof("Creating user as admin: %s\n", username)
 				} else {
-					logger.Info("Creating non-admin user: %s\n", username)
+					logger.Infof("Creating non-admin user: %s\n", username)
 				}
 				err = storage.CreateUser(newUser, asAdmin)
 				if err != nil {
-					logger.Error("could not create user: %v", err)
+					logger.Errorf("could not create user: %v", err)
 				}
 				return false
 			}
@@ -109,7 +109,7 @@ func runCLI() bool {
 			}
 			err = store.Users.Save(user, true, false)
 			if err != nil {
-				logger.Error("could not update user: %v", err)
+				logger.Errorf("could not update user: %v", err)
 			}
 			fmt.Printf("successfully updated user: %s\n", username)
 			return false

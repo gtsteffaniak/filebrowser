@@ -51,7 +51,7 @@ func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug("hook auth %v", action)
+	logger.Debugf("hook auth %v", action)
 
 	switch action {
 	case "auth":

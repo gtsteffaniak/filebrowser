@@ -78,7 +78,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		})
 		file.Token = link.Token
 		if err != nil {
-			logger.Error("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err)
+			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
 		// Set the file info in the `data` object
@@ -107,7 +107,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			// Retrieve the user from the store and store it in the context
 			data.user, err = store.Users.Get(uint(1))
 			if err != nil {
-				logger.Error("no auth: %v", err)
+				logger.Errorf("no auth: %v", err)
 				return http.StatusInternalServerError, err
 			}
 			return fn(w, r, data)
@@ -192,14 +192,14 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			// Marshal the error response to JSON
 			errorBytes, marshalErr := json.Marshal(response)
 			if marshalErr != nil {
-				logger.Error("Error marshalling error response: %v", marshalErr)
+				logger.Errorf("Error marshalling error response: %v", marshalErr)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 
 			// Write the JSON error response
 			if _, writeErr := w.Write(errorBytes); writeErr != nil {
-				logger.Debug("Error writing error response: %v", writeErr)
+				logger.Debugf("Error writing error response: %v", writeErr)
 			}
 			return
 		}
@@ -307,14 +307,14 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			truncUser = truncUser[:10] + ".."
 		}
 		duration := time.Since(start)
-		logger.Api(
+		logger.Api(wrappedWriter.StatusCode,
 			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
 				r.Method,
 				wrappedWriter.StatusCode, // Captured status code
 				r.RemoteAddr,
 				truncUser,
 				fmt.Sprintf("%vms", duration.Milliseconds()),
-				fullURL), wrappedWriter.StatusCode)
+				fullURL))
 	})
 }
 

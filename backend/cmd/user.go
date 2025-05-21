@@ -16,7 +16,7 @@ func validateUserInfo() {
 	// update source info for users if names/sources/paths might have changed
 	usersList, err := store.Users.Gets()
 	if err != nil {
-		logger.Fatal("could not load users: %v", err)
+		logger.Fatalf("could not load users: %v", err)
 	}
 	for _, user := range usersList {
 		updateUser := false
@@ -41,12 +41,12 @@ func validateUserInfo() {
 				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
 				err = fileutils.CopyFile(settings.Config.Server.Database, fmt.Sprintf("%s.bak", settings.Config.Server.Database))
 				if err != nil {
-					logger.Fatal("Unable to create automatic backup of database due to error: %v", err)
+					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
 			err := store.Users.Save(user, false, true)
 			if err != nil {
-				logger.Error("could not update user: %v", err)
+				logger.Errorf("could not update user: %v", err)
 			}
 		}
 	}
@@ -54,14 +54,14 @@ func validateUserInfo() {
 		logger.Info("Resetting admin user to default username and password.")
 		adminUser, err := store.Users.Get(1)
 		if err != nil {
-			logger.Fatal("could not load admin user: %v", err)
+			logger.Fatalf("could not load admin user: %v", err)
 		}
 		adminUser.Username = settings.Config.Auth.AdminUsername
 		adminUser.Password = settings.Config.Auth.AdminPassword
 		adminUser.Permissions.Admin = true
 		err = store.Users.Save(adminUser, true, true)
 		if err != nil {
-			logger.Error("could not Save admin user: %v", err)
+			logger.Errorf("could not Save admin user: %v", err)
 		}
 	}
 }

@@ -52,7 +52,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
 	if err != nil {
-		logger.Error("public share handler: error processing filelist: %v", err)
+		logger.Errorf("public share handler: error processing filelist: %v", err)
 		return status, fmt.Errorf("error processing filelist: %v", f)
 	}
 	return status, nil
@@ -129,7 +129,7 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		Expand: true,
 	})
 	if err != nil {
-		logger.Debug("public preview handler: error getting file info: %v", err)
+		logger.Debugf("public preview handler: error getting file info: %v", err)
 		return 400, fmt.Errorf("file not found")
 	}
 	if fileInfo.Type == "directory" {

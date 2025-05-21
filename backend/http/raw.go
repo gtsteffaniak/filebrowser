@@ -232,7 +232,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		sizeInMB := estimatedSize / 1024 / 1024
 		// if larger than 500 MB, log it
 		if sizeInMB > 500 {
-			logger.Debug("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
+			logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
 		}
 		// serve content allows for range requests.
 		// video scrubbing, etc.
@@ -295,7 +295,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	sizeInMB := fileInfo.Size() / 1024 / 1024
 	if sizeInMB > 500 {
-		logger.Debug("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
+		logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
 	}
 
 	// Set headers AFTER computing actual archive size
@@ -307,7 +307,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	_, err = io.Copy(w, fd)
 	os.Remove(archiveData) // Remove the file after streaming
 	if err != nil {
-		logger.Error("Failed to copy archive data to response: %v", err)
+		logger.Errorf("Failed to copy archive data to response: %v", err)
 		return http.StatusInternalServerError, err
 	}
 
@@ -362,7 +362,7 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
-			logger.Error("Failed to add %s to ZIP: %v", fname, err)
+			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
 			return err
 		}
 	}
@@ -385,7 +385,7 @@ func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) erro
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
-			logger.Error("Failed to add %s to TAR.GZ: %v", fname, err)
+			logger.Errorf("Failed to add %s to TAR.GZ: %v", fname, err)
 			return err
 		}
 	}

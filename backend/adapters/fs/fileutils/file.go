@@ -22,14 +22,14 @@ func MoveFile(src, dst string) error {
 	// fallback
 	err = CopyFile(src, dst)
 	if err != nil {
-		logger.Error("CopyFile failed %v %v %v ", src, dst, err)
+		logger.Errorf("CopyFile failed %v %v %v ", src, dst, err)
 		return err
 	}
 
 	go func() {
 		err = os.RemoveAll(src)
 		if err != nil {
-			logger.Error("os.Remove failed %v %v ", src, err)
+			logger.Errorf("os.Remove failed %v %v ", src, err)
 		}
 	}()
 
@@ -180,14 +180,14 @@ func ClearCacheDir() {
 	cacheDir := settings.Config.Server.CacheDir
 	entries, err := os.ReadDir(cacheDir)
 	if err != nil {
-		logger.Error("failed clear cache dir: %v", err)
+		logger.Errorf("failed clear cache dir: %v", err)
 	}
 
 	for _, entry := range entries {
 		path := filepath.Join(cacheDir, entry.Name())
 		err = os.RemoveAll(path)
 		if err != nil {
-			logger.Error("failed clear cache dir: %v", err)
+			logger.Errorf("failed clear cache dir: %v", err)
 		}
 	}
 

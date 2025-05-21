@@ -151,7 +151,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 			// Load the TLS certificate and key
 			cer, err := tls.LoadX509KeyPair(config.Server.TLSCert, config.Server.TLSKey)
 			if err != nil {
-				logger.Fatal("Could not load certificate: %v", err)
+				logger.Fatalf("Could not load certificate: %v", err)
 			}
 
 			// Create a custom TLS configuration
@@ -168,15 +168,15 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 
 			// Build the full URL with host and port
 			fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
-			logger.Info("Running at               : %s", fullURL)
+			logger.Infof("Running at               : %s", fullURL)
 
 			// Create a TLS listener and serve
 			listener, err := tls.Listen("tcp", srv.Addr, tlsConfig)
 			if err != nil {
-				logger.Fatal("Could not start TLS server: %v", err)
+				logger.Fatalf("Could not start TLS server: %v", err)
 			}
 			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
-				logger.Fatal("Server error: %v", err)
+				logger.Fatalf("Server error: %v", err)
 			}
 		} else {
 			// Set HTTP scheme and the default port for HTTP
@@ -187,11 +187,11 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 
 			// Build the full URL with host and port
 			fullURL := fmt.Sprintf("%s://localhost%s%s", scheme, port, config.Server.BaseURL)
-			logger.Info("Running at               : %s", fullURL)
+			logger.Infof("Running at               : %s", fullURL)
 
 			// Start HTTP server
 			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				logger.Fatal("Server error: %v", err)
+				logger.Fatalf("Server error: %v", err)
 			}
 		}
 	}()
@@ -204,7 +204,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		logger.Error("HTTP server forced to shut down: %v", err)
+		logger.Errorf("HTTP server forced to shut down: %v", err)
 	} else {
 		logger.Info("HTTP server shut down gracefully.")
 	}

@@ -19,7 +19,7 @@ import (
 
 func CheckErr(source string, err error) {
 	if err != nil {
-		logger.Fatal("%s: %v", source, err)
+		logger.Fatalf("%s: %v", source, err)
 	}
 }
 
@@ -73,7 +73,7 @@ func PrintStructFields(v interface{}) {
 			fieldValue = fieldValue[:100] + "..."
 		}
 
-		logger.Debug("Field: %s, %s\n", fieldType.Name, fieldValue)
+		logger.Debugf("Field: %s, %s\n", fieldType.Name, fieldValue)
 	}
 }
 

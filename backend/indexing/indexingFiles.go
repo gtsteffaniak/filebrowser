@@ -10,12 +10,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/cache"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
+
+var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
 
 // reduced index is json exposed to the client
 type ReducedIndex struct {
@@ -77,7 +79,7 @@ func Initialize(source settings.Source, mock bool) {
 	indexesMutex.Unlock()
 	if !newIndex.Source.Config.Disabled {
 		time.Sleep(time.Second)
-		logger.Info("initializing index: [%v]", newIndex.Source.Name)
+		logger.Infof("initializing index: [%v]", newIndex.Source.Name)
 		newIndex.RunIndexing("/", false)
 		go newIndex.setupIndexingScanners()
 	} else {
@@ -121,7 +123,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 		for _, item := range cacheDirItems {
 			err = idx.indexDirectory(combinedPath+item.Name, quick, true)
 			if err != nil {
-				logger.Error("error indexing directory %v : %v", combinedPath+item.Name, err)
+				logger.Errorf("error indexing directory %v : %v", combinedPath+item.Name, err)
 			}
 		}
 		return nil
@@ -169,7 +171,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 				// Recursively index the subdirectory
 				err = idx.indexDirectory(dirPath, quick, recursive)
 				if err != nil {
-					logger.Error("Failed to index directory %s: %v", dirPath, err)
+					logger.Errorf("Failed to index directory %s: %v", dirPath, err)
 					continue
 				}
 			}
@@ -247,8 +249,8 @@ func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previous
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	combined := append([]string{idx.Source.Path}, relativePath...)
 	joinedPath := filepath.Join(combined...)
-	isDir, _ := cache.RealPath.Get(joinedPath + ":isdir").(bool)
-	cached, ok := cache.RealPath.Get(joinedPath).(string)
+	isDir, _ := RealPathCache.Get(joinedPath + ":isdir").(bool)
+	cached, ok := RealPathCache.Get(joinedPath).(string)
 	if ok && cached != "" {
 		return cached, isDir, nil
 	}
@@ -260,8 +262,8 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	// Resolve symlinks and get the real path
 	realPath, isDir, err := utils.ResolveSymlinks(absolutePath)
 	if err == nil {
-		cache.RealPath.Set(joinedPath, realPath)
-		cache.RealPath.Set(joinedPath+":isdir", isDir)
+		RealPathCache.Set(joinedPath, realPath)
+		RealPathCache.Set(joinedPath+":isdir", isDir)
 	}
 	return realPath, isDir, err
 }

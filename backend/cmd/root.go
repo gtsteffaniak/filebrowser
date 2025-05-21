@@ -27,7 +27,7 @@ func getStore(configFile string) bool {
 	settings.Initialize(configFile)
 	s, hasDB, err := storage.InitializeDb(settings.Config.Server.Database)
 	if err != nil {
-		logger.Fatal("could not load db info: %v", err)
+		logger.Fatalf("could not load db info: %v", err)
 	}
 	store = s
 	return hasDB
@@ -69,11 +69,11 @@ func StartFilebrowser() {
 	for path, source := range settings.Config.Server.SourceMap {
 		sourceList = append(sourceList, fmt.Sprintf("%v: %v", source.Name, path))
 	}
-	logger.Info("Initializing FileBrowser Quantum (%v)", version.Version)
-	logger.Info("Using Config file        : %v", configPath)
-	logger.Info("Auth Methods             : %v", settings.Config.Auth.AuthMethods)
+	logger.Infof("Initializing FileBrowser Quantum (%v)", version.Version)
+	logger.Infof("Using Config file        : %v", configPath)
+	logger.Infof("Auth Methods             : %v", settings.Config.Auth.AuthMethods)
 	logger.Info(database)
-	logger.Info("Sources                  : %v", sourceList)
+	logger.Infof("Sources                  : %v", sourceList)
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
@@ -90,7 +90,7 @@ func StartFilebrowser() {
 	// Start the rootCMD in a goroutine
 	go func() {
 		if err := rootCMD(ctx, store, &serverConfig, shutdownComplete); err != nil {
-			logger.Fatal("Error starting filebrowser: %v", err)
+			logger.Fatalf("Error starting filebrowser: %v", err)
 		}
 		close(done) // Signal that the server has stopped
 	}()
@@ -119,7 +119,7 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 	// setup disk cache
 	err := preview.Start(numWorkers, ffpmpegPath, cacheDir)
 	if err != nil {
-		logger.Fatal("Error starting preview service: %v", err)
+		logger.Fatalf("Error starting preview service: %v", err)
 	}
 	fbhttp.StartHttp(ctx, store, shutdownComplete)
 	return nil

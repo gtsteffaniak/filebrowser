@@ -62,7 +62,7 @@ func (s shareBackend) Gets(path, sourcePath string, id uint) ([]*share.Link, err
 		if v[i].Expire < time.Now().Unix() && v[i].Expire != 0 {
 			err = s.Delete(v[i].PasswordHash)
 			if err != nil {
-				logger.Error("expired share could not be deleted: %v", err.Error())
+				logger.Errorf("expired share could not be deleted: %v", err.Error())
 			}
 		} else {
 			filteredList = append(filteredList, v[i])

@@ -141,7 +141,7 @@ func (st usersBackend) Save(user *users.User, changePass, disableScopeChange boo
 	if user.LoginMethod == "" {
 		user.LoginMethod = users.LoginMethodPassword
 	}
-	logger.Debug("Saving user [%s] changepass: %v", user.Username, changePass)
+	logger.Debugf("Saving user [%s] changepass: %v", user.Username, changePass)
 	if user.LoginMethod == users.LoginMethodPassword && changePass {
 		err := checkPassword(user.Password)
 		if err != nil {

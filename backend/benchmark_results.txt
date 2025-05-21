@@ -10,7 +10,7 @@ PASS
 ok  	github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils	0.003s
 ?   	github.com/gtsteffaniak/filebrowser/backend/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/backend/cmd	[no test files]
-?   	github.com/gtsteffaniak/filebrowser/backend/common/cache	[no test files]
+?   	github.com/gtsteffaniak/go-cache/cache	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/backend/common/errors	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/backend/common/logger	[no test files]
 2025/05/11 20:42:56 Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable
