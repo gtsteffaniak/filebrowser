@@ -12,7 +12,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/gtsteffaniak/go-cache v0.0.0-20250521141754-436cad8e8350
-	github.com/gtsteffaniak/go-logger v0.1.1
+	github.com/gtsteffaniak/go-logger v0.1.2
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/spf13/afero v1.14.0
 	github.com/stretchr/testify v1.10.0

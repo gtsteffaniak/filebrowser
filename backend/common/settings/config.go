@@ -17,6 +17,10 @@ import (
 
 var Config Settings
 
+const (
+	generatorPath = "/relative/or/absolute/path"
+)
+
 func Initialize(configFile string) {
 	err := loadConfigWithDefaults(configFile)
 	if err != nil {
@@ -33,7 +37,7 @@ func Initialize(configFile string) {
 	}
 	setupLogging()
 	setupAuth()
-	setupSources()
+	setupSources(false)
 	setupUrls()
 	setupFrontend()
 }
@@ -64,7 +68,7 @@ func getRealPath(path string) string {
 	return realPath
 }
 
-func setupSources() {
+func setupSources(generate bool) {
 	if len(Config.Server.Sources) == 0 {
 		logger.Fatal("There are no `server.sources` configured. If you have `server.root` configured, please update the config and add at least one `server.sources` with a `path` configured.")
 	} else {
@@ -74,7 +78,11 @@ func setupSources() {
 			if name == "\\" {
 				name = strings.Split(realPath, ":")[0]
 			}
-			source.Path = realPath // use absolute path
+			if generate {
+				source.Path = generatorPath // use placeholder path
+			} else {
+				source.Path = realPath // use absolute path
+			}
 			if source.Name == "" {
 				_, ok := Config.Server.SourceMap[source.Path]
 				if ok {
@@ -101,6 +109,9 @@ func setupSources() {
 	potentialDefaultSource := Config.Server.DefaultSource
 	for _, sourcePathOnly := range Config.Server.Sources {
 		realPath := getRealPath(sourcePathOnly.Path)
+		if generate {
+			realPath = generatorPath // use placeholder path
+		}
 		source, ok := Config.Server.SourceMap[realPath]
 		if ok && !slices.Contains(allSourceNames, source.Name) {
 			if first {
@@ -182,12 +193,15 @@ func setupLogging() {
 		}
 	}
 	for _, logConfig := range Config.Server.Logging {
-		err := logger.SetupLogger(
-			logConfig.Output,
-			logConfig.Levels,
-			logConfig.ApiLevels,
-			logConfig.NoColors,
-		)
+		logConfig := logger.JsonConfig{
+			Levels:    logConfig.Levels,
+			ApiLevels: logConfig.ApiLevels,
+			Output:    logConfig.Output,
+			Utc:       logConfig.Utc,
+			NoColors:  logConfig.NoColors,
+			Json:      logConfig.Json,
+		}
+		err := logger.SetupLogger(logConfig)
 		if err != nil {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
@@ -199,7 +213,7 @@ func loadConfigWithDefaults(configFile string) error {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		return err
+		logger.Warningf("could not open config file '%v', using default settings", configFile)
 	}
 	defer yamlFile.Close()
 	stat, err := yamlFile.Stat()

@@ -1,9 +1,7 @@
-// cmd/yamlgen/main.go
-package main
+package settings
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -13,7 +11,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"gopkg.in/yaml.v3"
 )
 
@@ -117,7 +114,7 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 			// attach validate and comments inline
 			var parts []string
 			if cm := comm[typeName][sf.Name]; cm != "" {
-				parts = append(parts, fmt.Sprintf("\"%s\"", cm))
+				parts = append(parts, cm)
 			}
 			if vt := sf.Tag.Get("validate"); vt != "" {
 				parts = append(parts, fmt.Sprintf(" validate:%s", vt))
@@ -169,19 +166,29 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 	}
 }
 
-func main() {
-	input := flag.String("input", "settings/settings.go", "path to Go source file or directory containing structs")
-	output := flag.String("output", "settings/config.generated.yaml", "path to write generated YAML")
-	flag.Parse()
+func GenerateYaml() {
+	loadConfigWithDefaults("")
+	Config.Server.Sources = []Source{
+		{
+			Path: ".",
+		},
+	}
 
-	comm, err := collectComments(*input)
+	setupLogging()
+	setupAuth()
+	setupSources(true)
+	setupUrls()
+	setupFrontend()
+	input := "common/settings/settings.go" // "path to Go source file or directory containing structs"
+	output := "generated.yaml"             // "output YAML file"
+
+	comm, err := collectComments(input)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error parsing comments: %v\n", err)
 		os.Exit(1)
 	}
 
-	cfg := &settings.Settings{}
-	node, err := buildNode(reflect.ValueOf(cfg), comm)
+	node, err := buildNode(reflect.ValueOf(Config), comm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error building YAML node: %v\n", err)
 		os.Exit(1)
@@ -200,11 +207,11 @@ func main() {
 
 	aligned := alignComments(rawBuf.String())
 
-	if err := os.WriteFile(*output, []byte(aligned), 0644); err != nil {
+	if err := os.WriteFile(output, []byte(aligned), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "error writing YAML: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Generated YAML with comments: %s\n", *output)
+	fmt.Printf("Generated YAML with comments: %s\n", output)
 }
 
 // alignComments scans YAML text and aligns all inline '#' within each indentation block

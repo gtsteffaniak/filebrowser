@@ -66,6 +66,7 @@ type LogConfig struct {
 	Output    string `json:"output"`    // output location. (eg. "stdout" or "path/to/file.log")
 	NoColors  bool   `json:"noColors"`  // disable colors in the output
 	Json      bool   `json:"json"`      // output in json format, currently not supported
+	Utc       bool   `json:"utc"`       // use UTC time in the output instead of local time
 }
 
 type Source struct {
