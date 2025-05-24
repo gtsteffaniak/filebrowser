@@ -3,6 +3,7 @@ package preview
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -25,8 +26,9 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string, percentageS
 
 	var probeOut bytes.Buffer
 	probeCmd.Stdout = &probeOut
-	//probeCmd.Stderr = os.Stderr
-
+	if s.debug {
+		probeCmd.Stderr = os.Stderr
+	}
 	if err := probeCmd.Run(); err != nil {
 		return fmt.Errorf("ffprobe failed: %w", err)
 	}
@@ -56,8 +58,10 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string, percentageS
 		outputPath,
 	)
 
-	//cmd.Stdout = os.Stdout
-	//cmd.Stderr = os.Stderr
+	if s.debug {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 
 	return cmd.Run()
 }

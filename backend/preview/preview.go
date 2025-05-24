@@ -3,6 +3,8 @@ package preview
 import (
 	"bytes"
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
@@ -29,9 +31,10 @@ type Service struct {
 	ffmpegPath  string
 	ffprobePath string
 	fileCache   diskcache.Interface
+	debug       bool
 }
 
-func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
+func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 	var fileCache diskcache.Interface
 	// Use file cache if cacheDir is specified
 	if cacheDir != "" {
@@ -47,29 +50,31 @@ func New(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
-	ffprobePath := ""
-	ffmpegMainPath := ""
-	var err error
-	if ffmpegPath != "" {
-		ffmpegMainPath, err = CheckValidFFmpeg(ffmpegPath)
-		if err != nil {
-			logger.Fatalf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err)
-		}
-		ffprobePath, err = CheckValidFFprobe(ffmpegPath)
-		if err != nil {
-			logger.Fatalf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err)
-		}
+
+	ffmpegMainPath, err := CheckValidFFmpeg(ffmpegPath)
+	if err != nil && ffmpegPath != "" {
+		logger.Fatalf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err)
 	}
+	ffprobePath, errprobe := CheckValidFFprobe(ffmpegPath)
+	if errprobe != nil && ffmpegPath != "" {
+		logger.Fatalf("the configured ffmpeg path is not a valid ffprobe binary %s, err: %v", ffmpegPath, err)
+	}
+	if errprobe == nil && err == nil {
+		logger.Infof("Media Enabled            : %v", errprobe == nil)
+		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
+	}
+
 	return &Service{
 		sem:         make(chan struct{}, concurrencyLimit),
 		ffmpegPath:  ffmpegMainPath,
 		ffprobePath: ffprobePath,
 		fileCache:   fileCache,
+		debug:       settings.Config.Server.DebugMedia,
 	}
 }
 
-func Start(concurrencyLimit int, ffmpegPath, cacheDir string) error {
-	service = New(concurrencyLimit, ffmpegPath, cacheDir)
+func StartPreviewGenerator(concurrencyLimit int, ffmpegPath, cacheDir string) error {
+	service = NewPreviewGenerator(concurrencyLimit, ffmpegPath, cacheDir)
 	return nil
 }
 
@@ -111,7 +116,10 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 			seekPercentage = 10
 		}
 		// Generate thumbnail image from video
-		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)+".jpg")
+		hasher := sha1.New() //nolint:gosec
+		_, _ = hasher.Write([]byte(CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)))
+		hash := hex.EncodeToString(hasher.Sum(nil))
+		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", hash) + ".jpg"
 		defer os.Remove(outPathPattern) // cleanup
 		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern, seekPercentage); err != nil {
 			return nil, fmt.Errorf("failed to generate video preview: %w", err)
@@ -201,24 +209,44 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	return false
 }
 
+// CheckValidFFmpeg checks for a valid ffmpeg executable.
+// If a path is provided, it looks there. Otherwise, it searches the system's PATH.
 func CheckValidFFmpeg(path string) (string, error) {
-	var exeExt string
-	if runtime.GOOS == "windows" {
-		exeExt = ".exe"
-	}
-
-	ffmpegPath := filepath.Join(path, "ffmpeg"+exeExt)
-	cmd := exec.Command(ffmpegPath, "-version")
-	return ffmpegPath, cmd.Run()
+	return checkExecutable(path, "ffmpeg")
 }
 
+// CheckValidFFprobe checks for a valid ffprobe executable.
+// If a path is provided, it looks there. Otherwise, it searches the system's PATH.
 func CheckValidFFprobe(path string) (string, error) {
-	var exeExt string
+	return checkExecutable(path, "ffprobe")
+}
+
+// checkExecutable is an internal helper function to find and validate an executable.
+// It checks a specific path if provided, otherwise falls back to searching the system PATH.
+func checkExecutable(providedPath, execName string) (string, error) {
+	// Add .exe extension for Windows systems
 	if runtime.GOOS == "windows" {
-		exeExt = ".exe"
+		execName += ".exe"
 	}
 
-	ffprobePath := filepath.Join(path, "ffprobe"+exeExt)
-	cmd := exec.Command(ffprobePath, "-version")
-	return ffprobePath, cmd.Run()
+	var finalPath string
+	var err error
+
+	if providedPath != "" {
+		// A path was provided, so we'll use it.
+		finalPath = filepath.Join(providedPath, execName)
+	} else {
+		// No path was provided, so search the system's PATH for the executable.
+		finalPath, err = exec.LookPath(execName)
+		if err != nil {
+			// The executable was not found in the system's PATH.
+			return "", err
+		}
+	}
+
+	// Verify the executable is valid by running the "-version" command.
+	cmd := exec.Command(finalPath, "-version")
+	err = cmd.Run()
+
+	return finalPath, err
 }
