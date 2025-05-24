@@ -167,7 +167,7 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 }
 
 func GenerateYaml() {
-	loadConfigWithDefaults("")
+	_ = loadConfigWithDefaults("")
 	Config.Server.Sources = []Source{
 		{
 			Path: ".",
@@ -252,12 +252,4 @@ func alignComments(input string) string {
 	}
 
 	return strings.Join(outputLines, "\n")
-}
-
-// padLine is no longer used by alignComments but is kept in case it's used elsewhere.
-func padLine(line string, maxPos int) string {
-	if idx := strings.Index(line, "#"); idx >= 0 && idx < maxPos {
-		return line[:idx] + strings.Repeat(" ", maxPos-idx) + line[idx:]
-	}
-	return line
 }
