@@ -362,14 +362,8 @@ github.com/gostaticanalysis/nilerr v0.1.1/go.mod h1:wZYb6YI5YAxxq0i1+VJbY0s2YONW
 github.com/gostaticanalysis/testutil v0.3.1-0.20210208050101-bfb5c8eec0e4/go.mod h1:D+FIZ+7OahH3ePw/izIEeH5I06eKs1IKI4Xr64/Am3M=
 github.com/gostaticanalysis/testutil v0.5.0 h1:Dq4wT1DdTwTGCQQv3rl3IvD5Ld0E6HiY+3Zh0sUGqw8=
 github.com/gostaticanalysis/testutil v0.5.0/go.mod h1:OLQSbuM6zw2EvCcXTz1lVq5unyoNft372msDY0nY5Hs=
-github.com/gtsteffaniak/go-cache v0.0.0-20250521141754-436cad8e8350 h1:SdDzYzZaEbIfF5VQntf3Wd9Fl4xXWhHlqiycAfUtaxE=
-github.com/gtsteffaniak/go-cache v0.0.0-20250521141754-436cad8e8350/go.mod h1:rHUZvf4huhMX/bnNK4/oQ3sNAE2fYC2jFpAWZiBPWac=
-github.com/gtsteffaniak/go-logger v0.0.0-20250521135324-470b61215300 h1:uTHqdxC9twmoH2vSvabRL070UmV1GjpKzRC09DLi2gw=
-github.com/gtsteffaniak/go-logger v0.0.0-20250521135324-470b61215300/go.mod h1:sNJt7Iidtq7HNf2AWSfkKCjgvvTQUyzg5KULU7AF1Xw=
-github.com/gtsteffaniak/go-logger v0.1.0 h1:OUh4B5Dx0nq3rrTosQb9eQcPF2dkCFSzT/ceujgCAss=
-github.com/gtsteffaniak/go-logger v0.1.0/go.mod h1:U3ZkdAclcxXNMvoQLq+zDkqcTmdqhX3hTf+6AuTo6v0=
-github.com/gtsteffaniak/go-logger v0.1.1 h1:QW7NJjLufGNilN/ZI3JnQDASnUn+KeiyQwwZSZQ+UVA=
-github.com/gtsteffaniak/go-logger v0.1.1/go.mod h1:U3ZkdAclcxXNMvoQLq+zDkqcTmdqhX3hTf+6AuTo6v0=
+github.com/gtsteffaniak/go-cache v0.0.0-20250521142451-edc77dfcb063 h1:CoLbeqTmM7348kulYBXYN82Bowx7Iu9PHe0shqQ2QR8=
+github.com/gtsteffaniak/go-cache v0.0.0-20250521142451-edc77dfcb063/go.mod h1:rHUZvf4huhMX/bnNK4/oQ3sNAE2fYC2jFpAWZiBPWac=
 github.com/gtsteffaniak/go-logger v0.1.2 h1:0g6UxxNwU+Q+7IVRw+Yn7AuYsIK0ukiTgbzjTLm+Uy4=
 github.com/gtsteffaniak/go-logger v0.1.2/go.mod h1:U3ZkdAclcxXNMvoQLq+zDkqcTmdqhX3hTf+6AuTo6v0=
 github.com/hashicorp/go-immutable-radix/v2 v2.1.0 h1:CUW5RYIcysz+D3B+l1mDeXrQ7fUvGGCwJfdASSzbrfo=

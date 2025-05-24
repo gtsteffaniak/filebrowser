@@ -70,10 +70,11 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	if !exists {
 		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
-	if opts.Content {
+	if opts.Content && strings.HasPrefix(info.Type, "text") {
 		if info.Size < 20*1024*1024 { // 20 megabytes in bytes
 			content, err := getContent(realPath)
 			if err != nil {
+				logger.Debugf("could not get content for file: "+info.Path, info.Name, err)
 				return response, err
 			}
 			response.Content = content
@@ -270,52 +271,28 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	return idx.RefreshFileInfo(opts)
 }
 
-// getContent reads and returns the file content only if it's ASCII-readable.
+// getContent reads and returns the file content if it's UTF-8 readable.
 func getContent(realPath string) (string, error) {
-	const headerSize = 4096
-
-	// Open file
-	f, err := os.Open(realPath)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	// Read header
-	buf := make([]byte, headerSize)
-	n, err := f.Read(buf)
-	if err != nil && err != io.EOF {
-		return "", err
-	}
-
-	// Check if header is ASCII
-	if !isASCII(buf[:n]) {
-		return "", nil
-	}
-
-	// Now read full file
+	// Read the entire file in one go. This is more efficient.
 	content, err := os.ReadFile(realPath)
 	if err != nil {
 		return "", err
 	}
 
-	stringContent := string(content)
-	if !utf8.ValidString(stringContent) {
+	// Check if the file content is valid UTF-8.
+	// This allows for all characters, including ASCII and emojis.
+	if !utf8.Valid(content) {
+		// File is not valid text (e.g., a binary image), so we reject it.
 		return "", nil
 	}
-	if stringContent == "" {
+
+	// Handle the special case for an empty file, as in your original code.
+	if len(content) == 0 {
 		return "empty-file-x6OlSil", nil
 	}
-	return stringContent, nil
-}
 
-func isASCII(data []byte) bool {
-	for _, b := range data {
-		if b < 0x09 || (b > 0x0D && b < 0x20) || b > 0x7E {
-			return false
-		}
-	}
-	return true
+	// The file is valid, so return its string content.
+	return string(content), nil
 }
 
 func IsNamedPipe(mode os.FileMode) bool {
