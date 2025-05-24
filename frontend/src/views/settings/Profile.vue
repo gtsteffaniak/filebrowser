@@ -11,53 +11,53 @@
             <ToggleSwitch
               class="item"
               v-model="localuser.dateFormat"
-              :name="$t('settings.setDateFormat')"
+              :name="$t('profileSettings.setDateFormat')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.showHidden"
-              :name="`Show hidden files`"
+              :name="$t('profileSettings.showHiddenFiles')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.quickDownload"
-              :name="`Always show download icon for quick access`"
+              :name="$t('profileSettings.showQuickDownload')"
             />
           </div>
-          <h3> {{ $t('settings.filePreviewOptions') }}</h3>
+          <h3> {{ $t('profileSettings.filePreviewOptions') }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.image"
-              name="Preview images"
+              :name="$t('profileSettings.previewImages')"
             />
             <ToggleSwitch
               v-if="mediaEnabled"
               class="item"
               v-model="localuser.preview.video"
-              name="Preview videos"
+              :name="$t('profileSettings.previewVideos')"
             />
             <ToggleSwitch
               v-if="mediaEnabled"
               class="item"
               v-model="localuser.preview.motionVideoPreview"
-              name="Motion previews for videos"
+              :name="$t('profileSettings.previewMotionVideos')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.highQuality"
-              name="Enable higher quality previews"
+              :name="$t('profileSettings.highQualityPreview')"
             />
             <ToggleSwitch
               v-if="hasOnlyOfficeEnabled"
               class="item"
               v-model="localuser.preview.office"
-              name="Preview office files"
+              :name="$t('profileSettings.previewOffice')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.popup"
-              name="Enable popup previewer"
+              :name="$t('profileSettings.popupPreview')"
             />
           </div>
           <div v-if="hasOnlyOfficeEnabled">

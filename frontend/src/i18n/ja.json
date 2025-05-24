@@ -254,7 +254,6 @@
     "userUpdated": "ユーザーは更新されました！",
     "username": "ユーザー名",
     "users": "ユーザー",
-    "loginMethod": "ログイン方法",
     "modifyOtherUser": "ユーザーを変更する：",
     "modifyCurrentUser": "現在のユーザーを変更する",
     "themeColor": "テーマカラー",
@@ -279,7 +278,9 @@
     "userNotAdmin": "ユーザーが管理者でない",
     "enterPassword": "パスワードを入力",
     "enterPasswordAgain": "もう一度パスワードを入力する",
-    "passwordsDoNotMatch": "パスワードが一致しない"
+    "passwordsDoNotMatch": "パスワードが一致しない",
+    "loginMethod": "ログイン方法",
+    "shareSettings": "共有設定"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -350,5 +351,17 @@
     "toggleSticky": "スティッキーモードの切り替え",
     "of": "の",
     "used": "中古"
+  },
+  "profileSettings": {
+    "setDateFormat": "正確な日付書式を設定する",
+    "showHiddenFiles": "隠しファイルを表示する",
+    "showQuickDownload": "クイックアクセスのためにダウンロードアイコンを表示する",
+    "previewImages": "プレビュー画像",
+    "previewVideos": "プレビュー映像",
+    "previewMotionVideos": "ビデオのモーション・プレビュー",
+    "highQualityPreview": "高画質プレビュー",
+    "previewOffice": "オフィスファイルのプレビュー",
+    "popupPreview": "ポップアップ・プレビューを有効にする",
+    "filePreviewOptions": "ファイルプレビューオプション"
   }
 }

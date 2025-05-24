@@ -267,7 +267,6 @@
     "userUpdated": "Ο χρήστης ενημερώθηκε!",
     "username": "Όνομα χρήστη",
     "users": "Χρήστες",
-    "loginMethod": "Μέθοδος σύνδεσης",
     "modifyOtherUser": "Τροποποίηση χρήστη:",
     "modifyCurrentUser": "Τροποποίηση τρέχοντος χρήστη",
     "themeColor": "Χρώμα θέματος",
@@ -283,7 +282,9 @@
     "userNotAdmin": "Ο χρήστης δεν είναι διαχειριστής",
     "enterPassword": "Εισάγετε τον κωδικό πρόσβασης",
     "enterPasswordAgain": "Πληκτρολογήστε ξανά τον κωδικό πρόσβασης",
-    "passwordsDoNotMatch": "Οι κωδικοί πρόσβασης δεν ταιριάζουν"
+    "passwordsDoNotMatch": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
+    "loginMethod": "Μέθοδος σύνδεσης",
+    "shareSettings": "Ρυθμίσεις κοινής χρήσης"
   },
   "sidebar": {
     "help": "Βοήθεια",
@@ -351,5 +352,17 @@
     "toggleSticky": "Εναλλαγή της λειτουργίας Sticky",
     "of": "του",
     "used": "χρησιμοποιημένο"
+  },
+  "profileSettings": {
+    "setDateFormat": "Ορισμός ακριβούς μορφής ημερομηνίας",
+    "showHiddenFiles": "Εμφάνιση κρυφών αρχείων",
+    "showQuickDownload": "Εμφάνιση εικονιδίου λήψης για γρήγορη πρόσβαση",
+    "previewImages": "Προεπισκόπηση εικόνων",
+    "previewVideos": "Προεπισκόπηση βίντεο",
+    "previewMotionVideos": "Προεπισκόπηση κίνησης για βίντεο",
+    "highQualityPreview": "Προεπισκόπηση υψηλής ποιότητας",
+    "previewOffice": "Προεπισκόπηση αρχείων γραφείου",
+    "popupPreview": "Ενεργοποίηση αναδυόμενης προεπισκόπησης",
+    "filePreviewOptions": "Επιλογές προεπισκόπησης αρχείων"
   }
 }

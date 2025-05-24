@@ -184,6 +184,18 @@
     "helpText1": "Search occurs on each character you type (3 character minimum for search terms).",
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },
+  "profileSettings": {
+    "setDateFormat": "Set exact date format",
+    "showHiddenFiles": "Show hidden files",
+    "showQuickDownload": "Show download icon for quick access",
+    "previewImages": "Preview images",
+    "previewVideos": "Preview videos",
+    "previewMotionVideos": "Motion preview for videos",
+    "highQualityPreview": "High quality preview",
+    "previewOffice": "Preview office files",
+    "popupPreview": "Enable pop-up preview",
+    "filePreviewOptions": "File preview options"
+  },
   "settings": {
     "enterPassword": "Enter password",
     "enterPasswordAgain": "Enter the password again",
@@ -195,7 +207,6 @@
     "themeColor": "Theme Color",
     "disableOfficePreviewDescription": "A space-separated list of file extensions to disable the OnlyOffice viewer for. (e.g., '.txt .html').",
     "disableOfficePreview": "Disable onlyoffice viewer for certain file extensions",
-    "filePreviewOptions": "File preview options",
     "listingOptions": "Listing options",
     "emptyGlobal": "Currently there are no global config options, You can edit the configuration yaml to adjust system settings.",
     "scopes": "Define allowed sources and the user scope within them",
@@ -234,6 +245,7 @@
     "executeOnShellDescription": "By default, File Browser executes the commands by calling their binaries directly. If you want to run them on a shell instead (such as Bash or PowerShell), you can define it here with the required arguments and flags. If set, the command you execute will be appended as an argument. This apply to both user commands and event hooks.",
     "globalRules": "This is a global set of allow and disallow rules. They apply to every user. You can define specific rules on each user's settings to override these ones.",
     "globalSettings": "Global Settings",
+    "shareSettings": "Share Settings",
     "api": "API Keys",
     "insertPath": "Insert the path",
     "insertRegex": "Insert regex expression",
@@ -261,7 +273,6 @@
     "rules": "Rules",
     "rulesHelp": "Here you can define a set of allow and disallow rules for this specific user. The blocked files won't show up in the listings and they wont be accessible to the user. We support regex and paths relative to the users scope.\n",
     "scope": "Scope",
-    "setDateFormat": "Set exact date format",
     "settingsUpdated": "Settings updated!",
     "shareDuration": "Share Duration",
     "shareManagement": "Share Management",
@@ -308,7 +319,7 @@
     "unit": "Time Unit"
   },
   "api": {
-    "title": "API Keys:",
+    "title": "API Keys",
     "keyName": "API Key Name:",
     "createdAt": "Created At:",
     "expiresAt": "Expires At:",
