@@ -77,7 +77,7 @@ func updateUserScopes(user *users.User) bool {
 	}
 
 	// Preserve order by using Config.Server.Sources
-	for _, src := range settings.Config.Server.SourceMap {
+	for _, src := range settings.Config.Server.Sources {
 		realsource, ok := settings.Config.Server.NameToSource[src.Name]
 		if !ok {
 			continue

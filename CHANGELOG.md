@@ -20,7 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
  - rename button doesn't close prompt https://github.com/gtsteffaniak/filebrowser/issues/664
  - webm video preview issue https://github.com/gtsteffaniak/filebrowser/issues/673
  - fix signup issue https://github.com/gtsteffaniak/filebrowser/issues/648
- #- fix default source bug (tests needed)
+ #- fix default source bug (needs tests)
 
 ## v0.7.4-beta
 

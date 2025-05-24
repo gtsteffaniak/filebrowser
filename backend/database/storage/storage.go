@@ -92,7 +92,7 @@ func quickSetup(store *Storage) {
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Permissions.Admin = true
 	user.Scopes = []users.SourceScope{}
-	for _, val := range settings.Config.Server.SourceMap {
+	for _, val := range settings.Config.Server.Sources {
 		user.Scopes = append(user.Scopes, users.SourceScope{
 			Name:  val.Path, // backend name is path
 			Scope: "",
