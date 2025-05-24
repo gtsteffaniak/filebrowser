@@ -42,8 +42,9 @@
         </p>
       </div>
       <div v-if="oidcAvailable" class="password-entry">
-        <div v-if="passwordAvailable" class="or">{{ $t('login.or') }}</div>
-        <a href="/api/auth/oidc/login" class="button button--block direct-login"> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <div v-if="passwordAvailable" class="or">{{ $t("login.or") }}</div>
+        <a href="/api/auth/oidc/login" class="button button--block direct-login">
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           OpenID Connect
         </a>
       </div>
@@ -134,8 +135,11 @@ export default {
         if (this.createMode) {
           await signupLogin(this.username, this.password);
         }
+        console.log("Logging in...");
         await login(this.username, this.password, captcha);
+        console.log("Logged in");
         await initAuth();
+
         router.push({ path: redirect });
       } catch (e) {
         console.error(e);

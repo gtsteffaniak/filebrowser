@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file. For commit 
  - https://github.com/gtsteffaniak/filebrowser/issues/668
  - allow edit markdown files
  - rename button doesn't close prompt https://github.com/gtsteffaniak/filebrowser/issues/664
+ - webm video preview issue https://github.com/gtsteffaniak/filebrowser/issues/673
+ - fix signup issue https://github.com/gtsteffaniak/filebrowser/issues/648
+ #- fix default source bug (tests needed)
 
 ## v0.7.4-beta
 

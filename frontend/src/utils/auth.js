@@ -90,7 +90,7 @@ export async function signupLogin(username, password) {
     body: JSON.stringify(data),
   });
 
-  if (res.status !== 200) {
+  if (res.status !== 201) {
     throw new Error(res.status);
   }
 }

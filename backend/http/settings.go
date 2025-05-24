@@ -27,7 +27,7 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 		case "server":
 			return renderJSON(w, r, config.Server)
 		case "sources":
-			return renderJSON(w, r, config.Server.Sources)
+			return renderJSON(w, r, config.Server.SourceMap)
 		default:
 			return http.StatusNotFound, nil
 		}

@@ -75,7 +75,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	api.HandleFunc("POST /auth/login", loginHandler)
 	api.HandleFunc("GET /auth/logout", logoutHandler)
 
-	api.HandleFunc("GET /auth/signup", signupHandler)
+	api.HandleFunc("POST /auth/signup", signupHandler)
 	api.HandleFunc("POST /auth/renew", withUser(renewHandler))
 	api.HandleFunc("PUT /auth/token", withUser(createApiKeyHandler))
 	api.HandleFunc("GET /auth/token", withUser(createApiKeyHandler))
