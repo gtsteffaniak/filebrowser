@@ -121,6 +121,7 @@ export default {
       let index = 0;
 
       const updateThumbnailUrl = () => {
+        const img = new Image();
         if (state.popupPreviewSource === "") {
           this.previewTimeouts.forEach(clearTimeout);
           this.previewTimeouts = [];
@@ -129,8 +130,12 @@ export default {
 
         const currentUrl = sequence[index];
 
-        const img = new Image();
         img.onload = () => {
+          if (state.popupPreviewSource === "") {
+            this.previewTimeouts.forEach(clearTimeout);
+            this.previewTimeouts = [];
+            return;
+          }
           // Set the thumbnail or popup preview
           if (state.user.preview.popup) {
             mutations.setPreviewSource(currentUrl);

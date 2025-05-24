@@ -37,7 +37,8 @@
     "folder": "المجلد",
     "submit": "إرسال",
     "openFile": "فتح الملف",
-    "continue": "تابع"
+    "continue": "تابع",
+    "edit": "تحرير"
   },
   "download": {
     "downloadFile": "Download File",

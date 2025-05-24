@@ -37,7 +37,8 @@
     "folder": "Dosar",
     "submit": "Trimite",
     "openFile": "Deschideți fișierul",
-    "continue": "Continuați"
+    "continue": "Continuați",
+    "edit": "Editare"
   },
   "download": {
     "downloadFile": "Descarcă fișier",

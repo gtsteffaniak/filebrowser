@@ -37,7 +37,8 @@
     "upload": "Upload",
     "openFile": "Datei öffnen",
     "continue": "Fortfahren",
-    "copyDownloadLinkToClipboard": "Download-Link in die Zwischenablage kopieren"
+    "copyDownloadLinkToClipboard": "Download-Link in die Zwischenablage kopieren",
+    "edit": "bearbeiten"
   },
   "download": {
     "downloadFile": "Datei herunterladen",

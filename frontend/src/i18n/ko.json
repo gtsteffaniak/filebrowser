@@ -37,7 +37,8 @@
     "folder": "폴더",
     "submit": "제출하기",
     "openFile": "파일 열기",
-    "continue": "계속하기"
+    "continue": "계속하기",
+    "edit": "편집"
   },
   "download": {
     "downloadFile": "파일 다운로드",

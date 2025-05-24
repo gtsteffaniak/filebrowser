@@ -37,7 +37,8 @@
     "copyDownloadLinkToClipboard": "İndirme bağlantısını panoya kopyala",
     "file": "Dosya",
     "folder": "Klasör",
-    "continue": "Devam et"
+    "continue": "Devam et",
+    "edit": "Düzenle"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
