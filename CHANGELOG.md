@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - logging uses localtime, optional UTC config added https://github.com/gtsteffaniak/filebrowser/issues/665
  - generated config example now includes defaults https://github.com/gtsteffaniak/filebrowser/issues/590
  - `server.debugMedia` config option added to help debug ffmpeg issues in the future (don't enable unless debugging an issue)
+ - more translations additions from english settings
 
  **BugFixes**:
  - long video names ffmpeg issue fixed https://github.com/gtsteffaniak/filebrowser/issues/669
