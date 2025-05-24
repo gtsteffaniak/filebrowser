@@ -214,41 +214,47 @@ func GenerateYaml() {
 	fmt.Printf("Generated YAML with comments: %s\n", output)
 }
 
-// alignComments scans YAML text and aligns all inline '#' within each indentation block
-func alignComments(input string) string {
-	lines := strings.Split(input, "\n")
-	var out []string
-	blockStart := 0
-	maxPos := 0
-	for i, line := range lines {
-		trim := strings.TrimLeft(line, " ")
-		// new block when indentation decreases
-		if i > 0 {
-			prevIndent := len(lines[i-1]) - len(strings.TrimLeft(lines[i-1], " "))
-			curIndent := len(line) - len(trim)
-			if curIndent < prevIndent {
-				for j := blockStart; j < i; j++ {
-					out = append(out, padLine(lines[j], maxPos))
-				}
-				blockStart = i
-				maxPos = 0
-			}
-		}
-		if idx := strings.Index(line, "#"); idx >= 0 {
-			if idx > maxPos {
-				maxPos = idx
-			}
-		}
-		if i == len(lines)-1 {
-			for j := blockStart; j <= i; j++ {
-				out = append(out, padLine(lines[j], maxPos))
-			}
-		}
+// formatLine applies padding to a single line so its comment starts at a target column.
+func formatLine(line string) string {
+	const targetCol = 42
+	const defaultPadding = 1
+
+	idx := strings.Index(line, "#")
+	// If there's no comment, do nothing.
+	if idx == -1 {
+		return line
 	}
-	return strings.Join(out, "\n")
+
+	// Separate the content (before #) from the comment (from # onwards).
+	contentPart := line[:idx]
+	commentPart := line[idx:]
+
+	// The YAML encoder adds a space; trim it so we measure only the content length.
+	trimmedContent := strings.TrimRight(contentPart, " ")
+
+	// If the content already extends past our target column, just add a single space.
+	if len(trimmedContent) >= targetCol {
+		return trimmedContent + strings.Repeat(" ", defaultPadding) + commentPart
+	}
+
+	// Otherwise, calculate the needed padding to reach the target column and add it.
+	paddingNeeded := targetCol - len(trimmedContent)
+	return trimmedContent + strings.Repeat(" ", paddingNeeded) + commentPart
 }
 
-// padLine inserts spaces before '#' so it lands at column maxPos
+// alignComments formats each line of the YAML string independently.
+func alignComments(input string) string {
+	lines := strings.Split(input, "\n")
+	outputLines := make([]string, len(lines))
+
+	for i, line := range lines {
+		outputLines[i] = formatLine(line)
+	}
+
+	return strings.Join(outputLines, "\n")
+}
+
+// padLine is no longer used by alignComments but is kept in case it's used elsewhere.
 func padLine(line string, maxPos int) string {
 	if idx := strings.Index(line, "#"); idx >= 0 && idx < maxPos {
 		return line[:idx] + strings.Repeat(" ", maxPos-idx) + line[idx:]

@@ -74,6 +74,7 @@ func StartFilebrowser() {
 	logger.Infof("Auth Methods             : %v", settings.Config.Auth.AuthMethods)
 	logger.Info(database)
 	logger.Infof("Sources                  : %v", sourceList)
+
 	serverConfig := settings.Config.Server
 	swagInfo := docs.SwaggerInfo
 	swagInfo.BasePath = serverConfig.BaseURL
@@ -117,7 +118,7 @@ func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings
 	numWorkers := settings.Config.Server.NumImageProcessors
 	ffpmpegPath := settings.Config.Integrations.Media.FfmpegPath
 	// setup disk cache
-	err := preview.Start(numWorkers, ffpmpegPath, cacheDir)
+	err := preview.StartPreviewGenerator(numWorkers, ffpmpegPath, cacheDir)
 	if err != nil {
 		logger.Fatalf("Error starting preview service: %v", err)
 	}

@@ -131,7 +131,7 @@ func runCLI() bool {
 
 func generateYaml() {
 	if os.Getenv("FILEBROWSER_GENERATE_CONFIG") != "" {
-		fmt.Println("Generating config.yaml")
+		logger.Info("Generating config.yaml")
 		settings.GenerateYaml()
 		os.Exit(0)
 	}
