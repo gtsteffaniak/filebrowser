@@ -70,7 +70,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	if !exists {
 		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
-	if opts.Content {
+	if opts.Content && strings.HasPrefix(info.Type, "text") {
 		if info.Size < 20*1024*1024 { // 20 megabytes in bytes
 			content, err := getContent(realPath)
 			if err != nil {
