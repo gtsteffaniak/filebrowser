@@ -37,7 +37,8 @@
     "folder": "Folder",
     "submit": "Prześlij",
     "openFile": "Otwórz plik",
-    "continue": "Kontynuuj"
+    "continue": "Kontynuuj",
+    "edit": "Edytuj"
   },
   "download": {
     "downloadFile": "Pobierz plik",

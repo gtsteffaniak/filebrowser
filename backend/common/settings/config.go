@@ -138,6 +138,16 @@ func setupSources(generate bool) {
 	if Config.Server.DefaultSource.Path == "" {
 		Config.Server.DefaultSource = potentialDefaultSource
 	}
+	sourceList2 := []Source{}
+	for _, s := range sourceList {
+		if s.Path == Config.Server.DefaultSource.Path {
+			s.Config.DefaultEnabled = true
+			Config.Server.SourceMap[s.Path] = s
+			Config.Server.NameToSource[s.Name] = s
+		}
+		sourceList2 = append(sourceList2, s)
+	}
+	sourceList = sourceList2
 	Config.UserDefaults.DefaultScopes = defaultScopes
 	Config.Server.Sources = sourceList
 }

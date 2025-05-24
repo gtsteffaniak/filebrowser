@@ -37,7 +37,8 @@
     "upload": "Importer",
     "openFile": "Ouvrir le fichier",
     "copyDownloadLinkToClipboard": "Copier le lien de téléchargement dans le presse-papiers",
-    "continue": "Continuer"
+    "continue": "Continuer",
+    "edit": "Editer"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",

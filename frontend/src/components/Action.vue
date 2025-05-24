@@ -63,23 +63,28 @@ export default {
   },
   watch: {
     $route() {
-      this.reEvalAction()
+      this.reEvalAction();
     },
     req() {
-      this.reEvalAction()
+      this.reEvalAction();
     },
     currentView() {
-      this.reEvalAction()
+      this.reEvalAction();
     },
   },
   methods: {
     reEvalAction() {
-      const currentView = getters.currentView()
-      if (currentView == "settings" ) {
+      const currentView = getters.currentView();
+      if (currentView == "settings") {
         mutations.setActiveSettingsView(getters.currentHash());
-        mutations.setMultiButtonState("close")
-      } else if (currentView == "editor" || currentView == "preview" || currentView == "onlyOfficeEditor" || currentView == "markdownViewer") {
-        mutations.setMultiButtonState("close")
+        mutations.setMultiButtonState("close");
+      } else if (
+        currentView == "editor" ||
+        currentView == "preview" ||
+        currentView == "onlyOfficeEditor" ||
+        currentView == "markdownViewer"
+      ) {
+        mutations.setMultiButtonState("close");
       } else {
         mutations.setMultiButtonState("menu");
       }
@@ -121,7 +126,8 @@ export default {
   stroke: var(--textPrimary);
   stroke-width: 5.5;
   stroke-linecap: round;
-  transition: stroke 400ms ease, transform 400ms ease, opacity 400ms ease, stroke-dasharray 400ms ease, stroke-dashoffset 400ms ease;
+  transition: stroke 400ms ease, transform 400ms ease, opacity 400ms ease,
+    stroke-dasharray 400ms ease, stroke-dashoffset 400ms ease;
   transform-origin: 50% 50%;
 }
 
@@ -150,7 +156,7 @@ export default {
 
 /* Back (Arrow) */
 .ham5.back .top {
-  transform: translate(0,0.2em) rotate(45deg) scaleX(0.5);
+  transform: translate(0, 0.2em) rotate(45deg) scaleX(0.5);
 }
 
 .ham5.back .bottom {

@@ -37,7 +37,8 @@
     "upload": "Enviar",
     "openFile": "Abrir",
     "copyDownloadLinkToClipboard": "Copiar o link de download para a área de transferência",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "edit": "Editar"
   },
   "download": {
     "downloadFile": "Baixar arquivo",

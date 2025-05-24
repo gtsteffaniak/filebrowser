@@ -72,7 +72,7 @@ export default {
       return !this.showEdit && !this.showSave && !this.showDelete;
     },
     showEdit() {
-      return window.location.hash == "#edit" && state.user.permissions.modify;
+      return window.location.hash != "#edit" && state.user.permissions.modify;
     },
     showDelete() {
       return state.user.permissions.modify && getters.currentView() == "preview";

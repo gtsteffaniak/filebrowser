@@ -37,7 +37,8 @@
     "upload": "Загрузить",
     "openFile": "Открыть файл",
     "copyDownloadLinkToClipboard": "Скопируйте ссылку на скачивание в буфер обмена",
-    "continue": "Продолжить"
+    "continue": "Продолжить",
+    "edit": "Редактировать"
   },
   "download": {
     "downloadFile": "Скачать файл",

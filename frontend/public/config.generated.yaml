@@ -36,7 +36,7 @@ server:
           folders: []
           fileEndsWith: []
         defaultUserScope: /               # default "/" should match folders under path
-        defaultEnabled: false             # should be added as a default source for new users?
+        defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user
   externalUrl: ""                         # used by share links if set
   internalUrl: ""                         # used by integrations if set, this is the url that an integration service will use to communicate with filebrowser

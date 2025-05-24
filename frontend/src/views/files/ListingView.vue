@@ -187,7 +187,6 @@ export default {
       this.colunmsResize();
     },
     scrolling() {
-      mutations.setPreviewSource("");
       const scrollContainer = this.$refs.listingView;
       if (!scrollContainer) return;
 
@@ -350,6 +349,8 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
+    this.$el.addEventListener("touchmove", this.handleTouchMove);
+
     this.$el.addEventListener("contextmenu", this.openContext);
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
@@ -358,7 +359,6 @@ export default {
         passive: true,
       });
       this.$el.addEventListener("mousedown", this.openContextForSafari);
-      this.$el.addEventListener("touchmove", this.handleTouchMove);
 
       // Also clear the timeout if the user clicks or taps quickly
       this.$el.addEventListener("touchend", this.cancelContext);
@@ -376,6 +376,7 @@ export default {
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("resize", this.windowsResize);
     this.$el.removeEventListener("contextmenu", this.openContext);
+    this.$el.addEventListener("touchmove", this.handleTouchMove);
 
     // If Safari, remove touchstart listener
     if (state.isSafari) {
@@ -383,7 +384,6 @@ export default {
       this.$el.removeEventListener("mousedown", this.openContextForSafari);
       this.$el.removeEventListener("touchend", this.cancelContext);
       this.$el.removeEventListener("mouseup", this.cancelContext);
-      this.$el.removeEventListener("touchmove", this.handleTouchMove);
     }
   },
   methods: {

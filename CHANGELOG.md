@@ -10,12 +10,17 @@ All notable changes to this project will be documented in this file. For commit 
  - `server.debugMedia` config option added to help debug ffmpeg issues in the future (don't enable unless debugging an issue)
  - more translations additions from english settings https://github.com/gtsteffaniak/filebrowser/issues/653
  - visual tweaks https://github.com/gtsteffaniak/filebrowser/issues/652
- #- enhanced markdown viewer with code view spec
+ - enhanced markdown viewer with code view spec
 
  **BugFixes**:
  - long video names ffmpeg issue fixed https://github.com/gtsteffaniak/filebrowser/issues/669
  - certain files not passing content https://github.com/gtsteffaniak/filebrowser/issues/657
- #- allow edit markdown files
+ - https://github.com/gtsteffaniak/filebrowser/issues/668
+ - allow edit markdown files
+ - rename button doesn't close prompt https://github.com/gtsteffaniak/filebrowser/issues/664
+ - webm video preview issue https://github.com/gtsteffaniak/filebrowser/issues/673
+ - fix signup issue https://github.com/gtsteffaniak/filebrowser/issues/648
+ #- fix default source bug (needs tests)
 
 ## v0.7.4-beta
 

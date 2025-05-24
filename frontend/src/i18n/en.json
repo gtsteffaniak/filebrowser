@@ -37,7 +37,8 @@
     "update": "Update",
     "upload": "Upload",
     "openFile": "Open file",
-    "continue": "Continue"
+    "continue": "Continue",
+    "edit": "Edit"
   },
   "download": {
     "downloadFile": "Download File",

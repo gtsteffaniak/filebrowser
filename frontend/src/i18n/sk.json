@@ -37,7 +37,8 @@
     "upload": "Nahrať",
     "openFile": "Otvoriť súbor",
     "copyDownloadLinkToClipboard": "Skopírujte odkaz na stiahnutie do schránky",
-    "continue": "Pokračovať"
+    "continue": "Pokračovať",
+    "edit": "Upraviť"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",

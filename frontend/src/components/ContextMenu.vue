@@ -11,7 +11,7 @@
     :class="{ 'dark-mode': isDarkMode, centered: centered }"
   >
     <div v-if="selectedCount > 0" class="button selected-count-header">
-      <span>{{ selectedCount }} {{ $t('prompts.selected') }} </span>
+      <span>{{ selectedCount }} {{ $t("prompts.selected") }} </span>
     </div>
 
     <action
@@ -103,14 +103,9 @@
     class="button no-select"
     :class="{ 'dark-mode': isDarkMode }"
   >
-    <action
-      v-if="showDelete"
-      icon="delete"
-      :label="$t('buttons.delete')"
-      show="delete"
-    />
+    <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
     <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
-    <action v-if="showEdit" icon="edit" @action="edit()" />
+    <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
   </div>
 </template>
 
@@ -137,13 +132,13 @@ export default {
   },
   computed: {
     noItems() {
-      return !this.showEdit && !this.showSave && !this.showDelete
+      return !this.showEdit && !this.showSave && !this.showDelete;
     },
     showEdit() {
-      return window.location.hash == "#edit" && state.user.permissions.modify;
+      return window.location.hash != "#edit" && state.user.permissions.modify;
     },
     showDelete() {
-      return state.user.permissions.modify && getters.currentView() == "preview"
+      return state.user.permissions.modify && getters.currentView() == "preview";
     },
     showSave() {
       return getters.currentView() == "editor" && state.user.permissions.modify;
@@ -266,7 +261,7 @@ export default {
         notify.showError("Error saving file: ", e);
       }
 
-     mutations.closeHovers();
+      mutations.closeHovers();
     },
   },
 };

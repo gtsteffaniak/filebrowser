@@ -19,9 +19,7 @@
           <hr />
         </div>
         <div v-else class="thumb-letters no-select">
-          <i class="material-icons" :class="{ 'primary-icons': isFolder }">
-            {{ isFolder ? "folder" : "description" }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          </i>
+          <i class="material-icons" :class="{ 'primary-icons': isFolder }"> {{ isFolder ? "folder" : "description" }} </i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
       </div>
       <div
@@ -130,6 +128,7 @@ export default {
       const content = this.$refs.wrapper;
       this.isVisible = true;
       this.scheduleHide();
+      mutations.setPreviewSource("");
       this.updateThumbPosition(content.scrollTop);
       mutations.updateListing({
         ...state.listing,

@@ -62,7 +62,7 @@ export default {
         this.popupStyle = {
           "max-width": "90%",
           "max-height": "75%",
-          "margin": "1em",
+          margin: "1em",
           transform: "translate(0, 4em)",
         };
         return;

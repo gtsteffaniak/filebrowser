@@ -37,7 +37,8 @@
     "upload": "Feltöltés",
     "openFile": "Fájl megnyitása",
     "copyDownloadLinkToClipboard": "Letöltési link másolása a vágólapra",
-    "continue": "Folytatás"
+    "continue": "Folytatás",
+    "edit": "Szerkesztés"
   },
   "download": {
     "downloadFile": "Fájl letöltése",

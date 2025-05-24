@@ -16,7 +16,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
@@ -213,36 +212,31 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
-
 	if r.Body == nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-
 	info := &signupBody{}
 	err := json.NewDecoder(r.Body).Decode(info)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-
-	if info.Password == "" || info.Username == "" {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+	user := users.User{
+		Username: info.Username,
+		NonAdminEditable: users.NonAdminEditable{
+			Password: info.Password,
+		},
+		LoginMethod: users.LoginMethodPassword,
 	}
-	user := &users.User{}
-	settings.ApplyUserDefaults(user)
-	user.Username = info.Username
-	user.Password = info.Password
-
-	err = store.Users.Save(user, true, false)
-	if err == errors.ErrExist {
+	err = storage.CreateUser(user, false)
+	if err != nil {
+		logger.Debug(err.Error())
+		w.WriteHeader(http.StatusConflict)
 		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
 		return
-	} else if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
 	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 // renewHandler refreshes the authentication token for a logged-in user.

@@ -37,7 +37,8 @@
     "folder": "フォルダ",
     "submit": "投稿する",
     "openFile": "ファイルを開く",
-    "continue": "続ける"
+    "continue": "続ける",
+    "edit": "編集"
   },
   "download": {
     "downloadFile": "Download File",

@@ -37,7 +37,8 @@
     "folder": "Cartella",
     "submit": "Invia",
     "openFile": "Aprire il file",
-    "continue": "Continua"
+    "continue": "Continua",
+    "edit": "Modifica"
   },
   "download": {
     "downloadFile": "Scarica file",
