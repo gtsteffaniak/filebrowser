@@ -1951,6 +1951,10 @@ const docTemplate = `{
                     "description": "path to the database file",
                     "type": "string"
                 },
+                "debugMedia": {
+                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "type": "boolean"
+                },
                 "disablePreviewResize": {
                     "description": "disable resizing of previews for faster loading over slow connections",
                     "type": "boolean"

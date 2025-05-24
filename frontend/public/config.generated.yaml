@@ -15,6 +15,7 @@ server:
       noColors: false                     # disable colors in the output
       json: false                         # output in json format, currently not supported
       utc: false                          # use UTC time in the output instead of local time
+  debugMedia: false                       # output ffmpeg stdout for media integration -- careful can produces lots of output!
   database: database.db                   # path to the database file
   sources:                                #  validate:required,dive
     - path: /relative/or/absolute/path    # file system path. (Can be relative)  validate:required

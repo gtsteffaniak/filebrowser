@@ -19,7 +19,7 @@
       </li>
     </ul>
     <div v-if="isCardView" class="gallery-size">
-      {{ $t('files.size') }}<span class="sr-only">:</span>
+      {{ $t('files.size') }}<span class="sr-only">:</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <input
         v-model="gallerySize"
         type="range"
