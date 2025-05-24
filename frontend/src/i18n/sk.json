@@ -255,7 +255,6 @@
     "userUpdated": "Používateľ upravený!",
     "username": "Meno používateľa",
     "users": "Používatelia",
-    "loginMethod": "Spôsob prihlásenia",
     "modifyOtherUser": "Upravte používateľa:",
     "modifyCurrentUser": "Úprava aktuálneho používateľa",
     "themeColor": "Farba témy",
@@ -279,7 +278,9 @@
     "userNotAdmin": "Používateľ nie je správca",
     "enterPassword": "Zadajte heslo",
     "enterPasswordAgain": "Znovu zadajte heslo",
-    "passwordsDoNotMatch": "Heslá sa nezhodujú"
+    "passwordsDoNotMatch": "Heslá sa nezhodujú",
+    "loginMethod": "Spôsob prihlásenia",
+    "shareSettings": "Zdieľať nastavenia"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -350,5 +351,17 @@
     "toggleSticky": "Prepnutie režimu Sticky",
     "of": "z",
     "used": "použité"
+  },
+  "profileSettings": {
+    "setDateFormat": "Nastavenie presného formátu dátumu",
+    "showHiddenFiles": "Zobrazenie skrytých súborov",
+    "showQuickDownload": "Zobrazenie ikony na stiahnutie pre rýchly prístup",
+    "previewImages": "Náhľad obrázkov",
+    "previewVideos": "Náhľad videí",
+    "previewMotionVideos": "Náhľad pohybu pre videá",
+    "highQualityPreview": "Vysokokvalitný náhľad",
+    "previewOffice": "Náhľad kancelárskych súborov",
+    "popupPreview": "Povolenie pop-up náhľadu",
+    "filePreviewOptions": "Možnosti náhľadu súborov"
   }
 }

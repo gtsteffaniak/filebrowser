@@ -254,7 +254,6 @@
     "userUpdated": "사용자 수정됨!",
     "username": "사용자 이름",
     "users": "사용자",
-    "loginMethod": "로그인 방법",
     "modifyOtherUser": "사용자를 수정합니다:",
     "modifyCurrentUser": "현재 사용자 수정",
     "themeColor": "테마 색상",
@@ -279,7 +278,9 @@
     "userNotAdmin": "사용자가 관리자가 아닙니다.",
     "enterPassword": "비밀번호 입력",
     "enterPasswordAgain": "비밀번호를 다시 입력합니다.",
-    "passwordsDoNotMatch": "비밀번호가 일치하지 않습니다."
+    "passwordsDoNotMatch": "비밀번호가 일치하지 않습니다.",
+    "loginMethod": "로그인 방법",
+    "shareSettings": "공유 설정"
   },
   "sidebar": {
     "help": "도움말",
@@ -350,5 +351,17 @@
     "toggleSticky": "고정 모드 토글",
     "of": "의",
     "used": "사용됨"
+  },
+  "profileSettings": {
+    "setDateFormat": "정확한 날짜 형식 설정",
+    "showHiddenFiles": "숨겨진 파일 표시",
+    "showQuickDownload": "빠른 액세스를 위한 다운로드 아이콘 표시",
+    "previewImages": "이미지 미리보기",
+    "previewVideos": "동영상 미리보기",
+    "previewMotionVideos": "동영상 모션 미리보기",
+    "highQualityPreview": "고품질 미리보기",
+    "previewOffice": "오피스 파일 미리 보기",
+    "popupPreview": "팝업 미리 보기 사용",
+    "filePreviewOptions": "파일 미리 보기 옵션"
   }
 }

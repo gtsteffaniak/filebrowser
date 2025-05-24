@@ -260,7 +260,6 @@
     "userUpdated": "¡Usuario actualizado!",
     "username": "Usuario",
     "users": "Usuarios",
-    "loginMethod": "Método de inicio de sesión",
     "modifyOtherUser": "Modificar usuario:",
     "modifyCurrentUser": "Modificar el usuario actual",
     "themeColor": "Tema Color",
@@ -279,7 +278,9 @@
     "userNotAdmin": "El usuario no es administrador",
     "enterPassword": "Introduzca la contraseña",
     "enterPasswordAgain": "Vuelva a introducir la contraseña",
-    "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "loginMethod": "Método de inicio de sesión",
+    "shareSettings": "Compartir configuración"
   },
   "sidebar": {
     "help": "Ayuda",
@@ -350,5 +351,17 @@
     "toggleSticky": "Conmutar el modo adhesivo",
     "of": "de",
     "used": "usado"
+  },
+  "profileSettings": {
+    "setDateFormat": "Establecer el formato exacto de la fecha",
+    "showHiddenFiles": "Mostrar archivos ocultos",
+    "showQuickDownload": "Mostrar icono de descarga para acceso rápido",
+    "previewImages": "Vista previa de las imágenes",
+    "previewVideos": "Previsualizar vídeos",
+    "previewMotionVideos": "Previsualización de vídeos en movimiento",
+    "highQualityPreview": "Vista previa de alta calidad",
+    "previewOffice": "Vista previa de archivos ofimáticos",
+    "popupPreview": "Activar la vista previa emergente",
+    "filePreviewOptions": "Opciones de previsualización de archivos"
   }
 }

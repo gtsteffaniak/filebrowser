@@ -260,7 +260,6 @@
     "userUpdated": "Benutzer aktualisiert!",
     "username": "Benutzername",
     "users": "Benutzer",
-    "loginMethod": "Login-Methode",
     "modifyOtherUser": "Benutzer ändern:",
     "modifyCurrentUser": "Aktuellen Benutzer ändern",
     "themeColor": "Designfarbe",
@@ -279,7 +278,9 @@
     "userNotAdmin": "Benutzer ist kein Administrator",
     "enterPassword": "Passwort eingeben",
     "enterPasswordAgain": "Geben Sie das Passwort erneut ein",
-    "passwordsDoNotMatch": "Passwörter stimmen nicht überein"
+    "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
+    "loginMethod": "Login-Methode",
+    "shareSettings": "Einstellungen teilen"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -350,5 +351,17 @@
     "toggleSticky": "Sticky-Modus umschalten",
     "of": "von",
     "used": "belegt"
+  },
+  "profileSettings": {
+    "setDateFormat": "Genaues Datumsformat einstellen",
+    "showHiddenFiles": "Versteckte Dateien anzeigen",
+    "showQuickDownload": "Download-Symbol für schnellen Zugriff anzeigen",
+    "previewImages": "Vorschaubilder",
+    "previewVideos": "Vorschau Videos",
+    "previewMotionVideos": "Bewegungsvorschau für Videos",
+    "highQualityPreview": "Hochwertige Vorschau",
+    "previewOffice": "Vorschau von Office-Dateien",
+    "popupPreview": "Pop-up-Vorschau einschalten",
+    "filePreviewOptions": "Optionen für die Dateivorschau"
   }
 }

@@ -258,7 +258,6 @@
     "userUpdated": "Felhasználó frissítve!",
     "username": "Felhasználói név",
     "users": "Felhasználók",
-    "loginMethod": "Bejelentkezési módszer",
     "modifyOtherUser": "Felhasználó módosítása:",
     "modifyCurrentUser": "Jelenlegi felhasználó módosítása",
     "themeColor": "Téma színe",
@@ -279,7 +278,9 @@
     "userNotAdmin": "A felhasználó nem rendszergazda",
     "enterPassword": "Jelszó megadása",
     "enterPasswordAgain": "Adja meg újra a jelszót",
-    "passwordsDoNotMatch": "A jelszavak nem egyeznek"
+    "passwordsDoNotMatch": "A jelszavak nem egyeznek",
+    "loginMethod": "Bejelentkezési módszer",
+    "shareSettings": "Beállítások megosztása"
   },
   "sidebar": {
     "help": "Súgó",
@@ -350,5 +351,17 @@
     "toggleSticky": "Ragadós mód átkapcsolása",
     "of": "a",
     "used": "használt"
+  },
+  "profileSettings": {
+    "setDateFormat": "Pontos dátumformátum beállítása",
+    "showHiddenFiles": "Rejtett fájlok megjelenítése",
+    "showQuickDownload": "Letöltés ikon megjelenítése a gyors hozzáférés érdekében",
+    "previewImages": "Képek előnézete",
+    "previewVideos": "Videók előnézete",
+    "previewMotionVideos": "Videók mozgásnézetének előnézete",
+    "highQualityPreview": "Kiváló minőségű előnézet",
+    "previewOffice": "Office fájlok előnézete",
+    "popupPreview": "Pop-up előnézet engedélyezése",
+    "filePreviewOptions": "Fájl előnézeti beállítások"
   }
 }

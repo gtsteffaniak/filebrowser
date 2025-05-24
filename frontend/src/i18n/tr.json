@@ -255,7 +255,6 @@
     "userUpdated": "Kullanıcı güncellendi!",
     "username": "Kullanıcı adı",
     "users": "Kullanıcılar",
-    "loginMethod": "Giriş yöntemi",
     "modifyOtherUser": "Kullanıcıyı değiştir:",
     "modifyCurrentUser": "Geçerli kullanıcıyı değiştir",
     "themeColor": "Tema Rengi",
@@ -279,7 +278,9 @@
     "userNotAdmin": "Kullanıcı yönetici değil",
     "enterPassword": "Şifre girin",
     "enterPasswordAgain": "Şifreyi tekrar girin",
-    "passwordsDoNotMatch": "Parolalar eşleşmiyor"
+    "passwordsDoNotMatch": "Parolalar eşleşmiyor",
+    "loginMethod": "Giriş yöntemi",
+    "shareSettings": "Paylaşım Ayarları"
   },
   "sidebar": {
     "help": "Yardım",
@@ -350,5 +351,17 @@
     "toggleSticky": "Yapışkan Modunu Değiştir",
     "of": ".",
     "used": "kullanılmış"
+  },
+  "profileSettings": {
+    "setDateFormat": "Tam tarih biçimini ayarlama",
+    "showHiddenFiles": "Gizli dosyaları göster",
+    "showQuickDownload": "Hızlı erişim için indirme simgesini göster",
+    "previewImages": "Önizleme görüntüleri",
+    "previewVideos": "Önizleme videoları",
+    "previewMotionVideos": "Videolar için hareket önizlemesi",
+    "highQualityPreview": "Yüksek kaliteli önizleme",
+    "previewOffice": "Ofis dosyalarını önizleme",
+    "popupPreview": "Açılır pencere önizlemesini etkinleştir",
+    "filePreviewOptions": "Dosya önizleme seçenekleri"
   }
 }

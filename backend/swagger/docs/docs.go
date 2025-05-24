@@ -1783,6 +1783,10 @@ const docTemplate = `{
                 "output": {
                     "description": "output location. (eg. \"stdout\" or \"path/to/file.log\")",
                     "type": "string"
+                },
+                "utc": {
+                    "description": "use UTC time in the output instead of local time",
+                    "type": "boolean"
                 }
             }
         },

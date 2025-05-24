@@ -254,7 +254,6 @@
     "userUpdated": "Użytkownik zapisany!",
     "username": "Nazwa użytkownika",
     "users": "Użytkownicy",
-    "loginMethod": "Metoda logowania",
     "modifyOtherUser": "Modyfikacja użytkownika:",
     "modifyCurrentUser": "Modyfikacja bieżącego użytkownika",
     "themeColor": "Kolor motywu",
@@ -279,7 +278,9 @@
     "userNotAdmin": "Użytkownik nie jest administratorem",
     "enterPassword": "Wprowadź hasło",
     "enterPasswordAgain": "Wprowadź hasło ponownie",
-    "passwordsDoNotMatch": "Hasła nie są zgodne"
+    "passwordsDoNotMatch": "Hasła nie są zgodne",
+    "loginMethod": "Metoda logowania",
+    "shareSettings": "Ustawienia udostępniania"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -350,5 +351,17 @@
     "toggleSticky": "Przełączanie trybu samoprzylepnego",
     "of": "z",
     "used": "używany"
+  },
+  "profileSettings": {
+    "setDateFormat": "Ustaw dokładny format daty",
+    "showHiddenFiles": "Pokaż ukryte pliki",
+    "showQuickDownload": "Pokaż ikonę pobierania dla szybkiego dostępu",
+    "previewImages": "Podgląd obrazów",
+    "previewVideos": "Podgląd wideo",
+    "previewMotionVideos": "Podgląd ruchu dla filmów",
+    "highQualityPreview": "Podgląd wysokiej jakości",
+    "previewOffice": "Podgląd plików biurowych",
+    "popupPreview": "Włącz wyskakujący podgląd",
+    "filePreviewOptions": "Opcje podglądu plików"
   }
 }

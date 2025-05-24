@@ -19,6 +19,9 @@ var (
 
 // return bool to indicate if the program should continue running
 func runCLI() bool {
+
+	generateYaml()
+
 	// Global flags
 	var help bool
 	// Override the default usage output to use generalUsage()
@@ -124,4 +127,12 @@ func runCLI() bool {
 		}
 	}
 	return true
+}
+
+func generateYaml() {
+	if os.Getenv("FILEBROWSER_GENERATE_CONFIG") != "" {
+		logger.Info("Generating config.yaml")
+		settings.GenerateYaml()
+		os.Exit(0)
+	}
 }

@@ -33,7 +33,7 @@ run: build-frontend
 
 build-frontend:
 	cd backend && rm -rf http/dist http/embed/* && \
-	go run ./tools/yaml.go -input ./common/settings/settings.go -output=../frontend/public/config.generated.yaml
+	FILEBROWSER_GENERATE_CONFIG=true go run . && cp generated.yaml ../frontend/public/config.generated.yaml
 	cd backend/http/ && ln -s ../../frontend/dist
 	if [ "$(OS)" = "Windows_NT" ]; then \
 		cd frontend && npm run build-windows; \
