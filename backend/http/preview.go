@@ -40,11 +40,9 @@ type FileCache interface {
 // @Failure 501 {object} map[string]string "Preview generation not implemented"
 // @Router /api/preview [get]
 func previewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-
 	if config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
-
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
 	if source == "" {
@@ -90,7 +88,6 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 }
 
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-
 	previewSize := r.URL.Query().Get("size")
 	if previewSize != "small" {
 		previewSize = "large"
