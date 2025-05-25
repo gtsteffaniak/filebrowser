@@ -9,13 +9,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-logger/logger"
-	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -127,28 +127,14 @@ func runCLI() bool {
 
 		case "version":
 			fmt.Printf(`FileBrowser Quantum - A modern web-based file manager
-	Version        : %v
-	Commit         : %v
-	Release Info   : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
+	Version 	 : %v
+	Commit 		 : %v
+	Release Info 	 : https://github.com/gtsteffaniak/filebrowser/releases/tag/%v
 	`, version.Version, version.CommitSHA, version.Version)
 			return false
 		}
 	}
 	return true
-}
-
-// Config holds the configuration values gathered from the user.
-type Config struct {
-	SourcePath          string
-	SourceName          string
-	BrandName           string
-	Port                int
-	AdminUser           string
-	AdminPass           string
-	CanDefaultShare     bool
-	CanUserModify       bool
-	CanUserCreateShares bool
-	DatabasePath        string
 }
 
 // UserDefaults defines default settings for new users.
@@ -159,7 +145,6 @@ type UserDefaults struct {
 // Frontend defines settings related to the web interface.
 type Frontend struct {
 	Name string `yaml:"name,omitempty"`
-	// Other fields for Frontend, e.g., Theme string `yaml:"theme,omitempty"`
 }
 
 // Source defines a directory to be served.
@@ -170,9 +155,18 @@ type Source struct {
 
 // Server defines server-specific configurations.
 type Server struct {
-	Port     int      `yaml:"port"`
-	Database string   `yaml:"database"`
-	Sources  []Source `yaml:"sources"`
+	Port     int         `yaml:"port"`
+	Database string      `yaml:"database"`
+	Sources  []Source    `yaml:"sources"`
+	Logging  []LogConfig `json:"logging"`
+}
+
+type LogConfig struct {
+	Levels    string `json:"levels"`    // separated list of log levels to enable. (eg. "info|warning|error|debug")
+	ApiLevels string `json:"apiLevels"` // separated list of log levels to enable for the API. (eg. "info|warning|error")
+	Output    string `json:"output"`    // output location. (eg. "stdout" or "path/to/file.log")
+	NoColors  bool   `json:"noColors"`  // disable colors in the output
+	Utc       bool   `json:"utc"`       // use UTC time in the output instead of local time
 }
 
 type Auth struct {
@@ -225,15 +219,32 @@ func createConfig(configpath string) {
 		return
 	}
 	reader := bufio.NewReader(os.Stdin)
-	var config Config
+	config := Settings{
+		Server: Server{
+			Logging: []LogConfig{
+				{
+					Levels:    "info|warning|error",
+					ApiLevels: "info|warning|error",
+					Output:    "stdout",
+					NoColors:  false,
+					Utc:       false,
+				},
+			},
+			Sources: []Source{
+				{
+					Path: "",
+				},
+			},
+		},
+	}
 
 	fmt.Println("--- Starting Configuration Setup ---")
 	realPath := ""
 	// 1. Ask for the source filesystem path (with validation)
 	for {
-		config.SourcePath = askQuestion(reader, "What is the source filesystem path?", "./")
+		config.Server.Sources[0].Path = askQuestion(reader, "What is the source filesystem path?", "./")
 		// Convert relative path to absolute path
-		absolutePath, err := filepath.Abs(config.SourcePath)
+		absolutePath, err := filepath.Abs(config.Server.Sources[0].Path)
 		if err == nil {
 			var isDir bool
 			// Resolve symlinks and get the real path
@@ -242,13 +253,13 @@ func createConfig(configpath string) {
 				break // Valid path found, exit loop
 			}
 		}
-		fmt.Printf("Error: The path '%s' does not exist or isn't valid. Please try again.\n", config.SourcePath)
+		fmt.Printf("Error: The path '%s' does not exist or isn't valid. Please try again.\n", config.Server.Sources[0].Path)
 	}
 	// 2. Ask for the source name
 	defaultSourceName := filepath.Base(realPath)
-	config.SourceName = askQuestion(reader, "What should the first source name be?", defaultSourceName)
-	if config.SourceName == defaultSourceName {
-		config.SourceName = ""
+	sourceName := askQuestion(reader, "What should the first source name be?", defaultSourceName)
+	if sourceName != defaultSourceName {
+		config.Server.Sources[0].Name = sourceName
 	}
 
 	// 3. Ask for server port (with validation)
@@ -256,56 +267,50 @@ func createConfig(configpath string) {
 		portStr := askQuestion(reader, "What port should the server listen on?", "80")
 		port, err := strconv.Atoi(portStr)
 		if err == nil && (port >= 1 && port <= 65535) {
-			config.Port = port
+			config.Server.Port = port
 			break // Port is valid, exit loop
 		}
 		fmt.Printf("Error: '%s' is not a valid port. Please enter a number between 1 and 65535.\n", portStr)
 	}
 
 	for {
-		config.DatabasePath = askQuestion(reader, "What should the file name and path be for the database?", "./database.db")
-		if strings.HasSuffix(config.DatabasePath, ".db") {
+		levels := askQuestion(reader, "What should the log levels be?", "info|warning|error")
+		checkLevels := SplitByMultiple(levels)
+		invalidOptions := []string{}
+		for _, level := range checkLevels {
+			if !(level == "info" || level == "warning" || level == "error" || level == "debug") {
+				invalidOptions = append(invalidOptions, level)
+			}
+		}
+		if len(invalidOptions) == 0 {
+			break
+		}
+		fmt.Printf("Error: invalid options given '%s'. valid options: 'info|warning|error|debug'.\n", invalidOptions)
+	}
+
+	for {
+		config.Server.Database = askQuestion(reader, "What should the file name and path be for the database?", "./database.db")
+		if strings.HasSuffix(config.Server.Database, ".db") {
 			break // Valid path found, exit loop
 		}
-		fmt.Printf("Error: '%s' is not a valid path. Please enter a path to a file ending in .db", config.DatabasePath)
+		fmt.Printf("Error: '%s' is not a valid path. Please enter a path to a file ending in .db", config.Server.Database)
 	}
 	// 4. Ask for the application brand name
-	config.BrandName = askQuestion(reader, "What should the application brand name be?", "FileBrowser Quantum")
+	config.Frontend.Name = askQuestion(reader, "What should the application brand name be?", "FileBrowser Quantum")
 
 	// 5. Ask for admin username and password
-	config.AdminUser = askQuestion(reader, "What should the default admin username be?", "admin")
-	config.AdminPass = askQuestion(reader, "What should the default admin password be?", "admin")
+	config.Auth.AdminUsername = askQuestion(reader, "What should the default admin username be?", "admin")
+	config.Auth.AdminPassword = askQuestion(reader, "What should the default admin password be?", "admin")
 
 	// 6. Ask boolean (Yes/No) questions using the helper
-	config.CanUserModify = askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
-	config.CanUserCreateShares = askYesNoQuestion(reader, "Should a new user be able to create shares by default?", "no")
+	config.UserDefaults.Permissions.Modify = askYesNoQuestion(reader, "Should a new user be able to modify content by default?", "no")
+	config.UserDefaults.Permissions.Share = askYesNoQuestion(reader, "Should a new user be able to create shares by default?", "no")
 
-	fmt.Println("---    Configuration Complete    ---")
-	// save config file yaml from settings.Settings struct
-	writeConfig := Settings{
-		Server: Server{
-			Port:     config.Port,
-			Database: config.DatabasePath,
-			Sources: []Source{
-				{
-					Name: config.SourceName,
-					Path: config.SourcePath,
-				},
-			},
-		},
-		Frontend: Frontend{
-			Name: config.BrandName,
-		},
-		UserDefaults: UserDefaults{
-			Permissions: users.Permissions{
-				Share:  config.CanDefaultShare,
-				Modify: config.CanUserModify,
-			},
-		},
-	}
+	fmt.Println("--- 	Configuration Complete 	---")
+
 	// marshall yaml and write to file
 	// Marshal the struct to YAML bytes
-	yamlData, err := yaml.Marshal(&writeConfig)
+	yamlData, err := yaml.Marshal(&config)
 	if err != nil {
 		return
 	}
@@ -324,4 +329,16 @@ func generateYaml() {
 		settings.GenerateYaml()
 		os.Exit(0)
 	}
+}
+
+func SplitByMultiple(str string) []string {
+	delimiters := []rune{'|', ',', ' '}
+	return strings.FieldsFunc(str, func(r rune) bool {
+		for _, d := range delimiters {
+			if r == d {
+				return true
+			}
+		}
+		return false
+	})
 }
