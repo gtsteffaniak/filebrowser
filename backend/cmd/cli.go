@@ -320,6 +320,21 @@ func createConfig(configpath string) {
 	if err != nil {
 		return
 	}
+	// cleanup database if it exists
+	if _, err := os.Stat(config.Server.Database); err == nil {
+		response := askYesNoQuestion(reader, "Database specified already exists. Move databse file to backup to start fresh?", "no")
+		if !response {
+			return
+		}
+		// move database file to backup
+		backupPath := config.Server.Database + ".bak"
+		err = os.Rename(config.Server.Database, backupPath)
+		if err != nil {
+			fmt.Printf("Error moving database file to backup: %v\n", err)
+		} else {
+			fmt.Printf("Database file moved to backup: %s\n", backupPath)
+		}
+	}
 
 }
 
