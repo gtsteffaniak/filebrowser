@@ -88,7 +88,8 @@ func runCLI() bool {
 			user, err := store.Users.Get(username)
 			if err != nil {
 				newUser := users.User{
-					Username: username,
+					Username:    username,
+					LoginMethod: users.LoginMethodPassword,
 					NonAdminEditable: users.NonAdminEditable{
 						Password: password,
 					},
@@ -114,7 +115,13 @@ func runCLI() bool {
 				}
 				return false
 			}
+			if user.LoginMethod != users.LoginMethodPassword {
+				logger.Warningf("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username)
+			}
 			user.Password = password
+			user.TOTPSecret = "" // reset TOTP secret if it exists
+			user.TOTPNonce = ""  // reset TOTP nonce if it exists
+			user.LoginMethod = users.LoginMethodPassword
 			if asAdmin {
 				user.Permissions.Admin = true
 			}

@@ -107,6 +107,9 @@ definitions:
       tokenExpirationHours:
         description: the number of hours until the token expires. Default is 2 hours.
         type: integer
+      totpSecret:
+        description: secret used to encrypt TOTP secrets
+        type: string
     type: object
   settings.ExternalLink:
     properties:
@@ -256,6 +259,7 @@ definitions:
       enabled:
         type: boolean
       minLength:
+        description: minimum pasword length required.
         minimum: 5
         type: integer
       recaptcha:
@@ -263,7 +267,11 @@ definitions:
         - $ref: '#/definitions/settings.Recaptcha'
         description: recaptcha config, only used if signup is enabled
       signup:
-        description: currently not used by filebrowser
+        description: allow signups on login page if enabled -- not secure.
+        type: boolean
+      totpEnforced:
+        description: if set to true, TOTP is enforced for all password users users.
+          Otherwise, users can choose to enable TOTP.
         type: boolean
     type: object
   settings.ProxyAuthConfig:
@@ -609,6 +617,9 @@ definitions:
         type: boolean
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
+      otpEnabled:
+        description: true if TOTP is enabled, false otherwise
+        type: boolean
       password:
         type: string
       perm:
@@ -644,6 +655,10 @@ definitions:
       themeColor:
         description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
           etc'
+        type: string
+      totpNonce:
+        type: string
+      totpSecret:
         type: string
       username:
         type: string

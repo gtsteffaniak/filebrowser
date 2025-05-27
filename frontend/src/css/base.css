@@ -227,3 +227,9 @@ input.sizeInput:disabled {
   border-top-left-radius: 0;
   background-color: var(--surfaceSecondary);
 }
+
+.qrcode {
+  border: 0.25em;
+  border-style: solid;
+  border-color: white;
+}

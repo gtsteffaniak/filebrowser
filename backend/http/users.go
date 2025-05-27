@@ -88,6 +88,9 @@ func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 func prepForFrontend(u *users.User) {
 	u.Password = ""
 	u.ApiKeys = nil
+	u.OtpEnabled = u.TOTPSecret != ""
+	u.TOTPSecret = ""
+	u.TOTPNonce = ""
 	u.Scopes = settings.ConvertToFrontendScopes(u.Scopes)
 }
 
@@ -206,6 +209,10 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, err
 	}
 
+	if !req.Data.OtpEnabled {
+		req.Data.TOTPSecret = ""
+		req.Data.TOTPNonce = ""
+	}
 	// Perform the user update
 	err = store.Users.Update(req.Data, d.user.Permissions.Admin, req.Which...)
 	if err != nil {

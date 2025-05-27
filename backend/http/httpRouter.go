@@ -46,7 +46,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	store = storage
 	config = &settings.Config
 	var err error
-
+	// --- START: ADD THIS DECRYPTION LOGIC ---
 	if embeddedFS {
 		// Embedded mode: Serve files from the embedded assets
 		assetFs, err = fs.Sub(assets, "embed")
@@ -72,10 +72,11 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	api.HandleFunc("DELETE /users", withSelfOrAdmin(userDeleteHandler))
 
 	// Auth routes
-	api.HandleFunc("POST /auth/login", loginHandler)
-	api.HandleFunc("GET /auth/logout", logoutHandler)
-
-	api.HandleFunc("POST /auth/signup", signupHandler)
+	api.HandleFunc("POST /auth/login", multiAuthCheck(loginHandler))
+	api.HandleFunc("GET /auth/logout", withoutUser(logoutHandler))
+	api.HandleFunc("POST /auth/signup", withoutUser(signupHandler))
+	api.HandleFunc("POST /auth/otp/generate", multiAuthCheck(generateOTPHandler))
+	api.HandleFunc("POST /auth/otp/verify", multiAuthCheck(verifyOTPHandler))
 	api.HandleFunc("POST /auth/renew", withUser(renewHandler))
 	api.HandleFunc("PUT /auth/token", withUser(createApiKeyHandler))
 	api.HandleFunc("GET /auth/token", withUser(createApiKeyHandler))

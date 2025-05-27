@@ -21,7 +21,7 @@
 FileBrowser Quantum is a massive fork of the file browser open-source project with the following changes:
 
   1. ✅ Multiple sources support
-  2. ✅ Login support for OIDC, password, and proxy.
+  2. ✅ Login support for OIDC, password + 2FA, and proxy.
   3. ✅ Revamped UI
   4. ✅ Simplified configuration via `config.yaml` config file.
   5. ✅ Ultra-efficient [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) and real-time updates

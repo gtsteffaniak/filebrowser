@@ -18,4 +18,6 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request params")
 	ErrSourceIsParent       = errors.New("source is parent")
 	ErrRootUserDeletion     = errors.New("user with id 1 can't be deleted")
+	ErrNoTotpProvided       = errors.New("OTP code is required for user")
+	ErrUnauthorized         = errors.New("user unauthorized")
 )

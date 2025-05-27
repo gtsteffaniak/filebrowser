@@ -52,12 +52,13 @@ auth:
     noauth: false                         # if set to true, overrides all other auth methods and disables authentication
     password:                             #  validate:omitempty
       enabled: true
-      minLength: 5                        #  validate:omitempty,min=5
-      signup: false                       # currently not used by filebrowser  validate:omitempty
+      minLength: 5                        # minimum pasword length required.  validate:omitempty,min=5
+      signup: false                       # allow signups on login page if enabled -- not secure.  validate:omitempty
       recaptcha:                          # recaptcha config, only used if signup is enabled  validate:omitempty
         host: ""                          #  validate:required
         key: ""                           #  validate:required
         secret: ""                        #  validate:required
+      totpEnforced: false                 # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
       enabled: false                      # whether to enable OIDC authentication
       clientId: ""                        # client id of the OIDC application
@@ -71,6 +72,7 @@ auth:
   adminUsername: admin                    # the username of the admin user. If not set, the default is "admin".
   adminPassword: admin                    # the password of the admin user. If not set, the default is "admin".
   resetAdminOnStart: false                # if set to true, the admin user will be reset to the default username and password on startup.
+  totpSecret: ""                          # secret used to encrypt TOTP secrets
 frontend:
   name: FileBrowser Quantum               # display name
   disableDefaultLinks: false              # disable default links in the sidebar

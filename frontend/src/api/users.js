@@ -1,118 +1,182 @@
-import { fetchURL, fetchJSON } from "@/api/utils";
-import { getApiPath } from "@/utils/url.js";
-import { notify } from "@/notify";  // Import notify for error handling
+import { fetchURL, fetchJSON } from '@/api/utils'
+import { getApiPath } from '@/utils/url.js'
+import { notify } from '@/notify' // Import notify for error handling
+import { setNewToken } from '@/utils/auth.js' // Import setNewToken for token management
 
-export async function getAllUsers() {
+export async function getAllUsers () {
   try {
-    const apiPath = getApiPath("api/users");
-    return await fetchJSON(apiPath);
+    const apiPath = getApiPath('api/users')
+    return await fetchJSON(apiPath)
   } catch (err) {
-    notify.showError(err.message || "Failed to fetch users");
-    throw err; // Re-throw to handle further if needed
+    notify.showError(err.message || 'Failed to fetch users')
+    throw err // Re-throw to handle further if needed
   }
 }
 
-
-export async function get(id) {
+export async function generateOTP (username, password) {
+  const params = { username, password }
   try {
-    const apiPath = getApiPath("api/users", { id: id });
-    return await fetchJSON(apiPath);
-  } catch (err) {
-    notify.showError(err.message || `Failed to fetch user with ID: ${id}`);
-    throw err;
+    let apiPath = getApiPath('api/auth/otp/generate', params)
+    const res = await fetch(apiPath, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    return await res.json()
+  } catch (error) {
+    notify.showError(error || 'Failed to generate OTP')
+    throw error
   }
 }
 
-export async function getApiKeys() {
+export async function verifyOtp (username, password, otp) {
+  const params = { username, password, code: otp }
   try {
-    const apiPath = getApiPath("api/auth/tokens");
-    return await fetchJSON(apiPath);
-  } catch (err) {
-    notify.showError(err.message || `Failed to get api keys`);
-    throw err;
+    let apiPath = getApiPath('api/auth/otp/verify', params)
+    const res = await fetch(apiPath, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (res.status != 200) {
+      throw new Error('Failed to verify OTP')
+    }
+  } catch (error) {
+    notify.showError(error || 'Failed to generate OTP')
+    throw error
   }
 }
 
+export async function login (username, password, recaptcha, otp) {
+  const params = { username, password, recaptcha, code: otp }
+  let apiPath = getApiPath('api/auth/login', params)
+  const res = await fetch(apiPath, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  const body = await res.text()
+  if (res.status === 200) {
+    await setNewToken(body)
+  } else if (res.status === 403) {
+    throw new Error(403)
+  } else {
+    throw new Error(body || 'Failed to login')
+  }
+}
 
-export async function createApiKey(params) {
+export async function get (id) {
   try {
-    const apiPath = getApiPath("api/auth/token", params);
+    const apiPath = getApiPath('api/users', { id: id })
+    return await fetchJSON(apiPath)
+  } catch (err) {
+    notify.showError(err.message || `Failed to fetch user with ID: ${id}`)
+    throw err
+  }
+}
+
+export async function getApiKeys () {
+  try {
+    const apiPath = getApiPath('api/auth/tokens')
+    return await fetchJSON(apiPath)
+  } catch (err) {
+    notify.showError(err.message || `Failed to get api keys`)
+    throw err
+  }
+}
+
+export async function signupLogin (username, password, otp) {
+  const params = { username, password, otp }
+  let apiPath = getApiPath('api/auth/signup', params)
+  const res = await fetch(apiPath, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  if (res.status !== 201) {
+    throw new Error(res.status)
+  }
+}
+
+export async function createApiKey (params) {
+  try {
+    const apiPath = getApiPath('api/auth/token', params)
     await fetchURL(apiPath, {
-      method: "PUT",
-    });
+      method: 'PUT'
+    })
   } catch (err) {
-    notify.showError(err.message || `Failed to create API key`);
-    throw err;
+    notify.showError(err.message || `Failed to create API key`)
+    throw err
   }
 }
 
-export function deleteApiKey(params) {
+export function deleteApiKey (params) {
   try {
-    const apiPath = getApiPath("api/auth/token", params);
+    const apiPath = getApiPath('api/auth/token', params)
     fetchURL(apiPath, {
-      method: "DELETE",
-    });
+      method: 'DELETE'
+    })
   } catch (err) {
-    notify.showError(err.message || `Failed to delete API key`);
-    throw err;
+    notify.showError(err.message || `Failed to delete API key`)
+    throw err
   }
 }
 
-export async function create(user) {
+export async function create (user) {
   try {
-    const apiPath = getApiPath("api/users");
+    const apiPath = getApiPath('api/users')
     const res = await fetchURL(apiPath, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({
-        what: "user",
+        what: 'user',
         which: [],
-        data: user,
-      }),
-    });
+        data: user
+      })
+    })
 
     if (res.status === 201) {
-      return res.headers.get("Location");
+      return res.headers.get('Location')
     } else {
-      throw new Error("Failed to create user");
+      throw new Error('Failed to create user')
     }
   } catch (err) {
-    notify.showError(err.message || "Error creating user");
-    throw err;
+    notify.showError(err.message || 'Error creating user')
+    throw err
   }
 }
 
-export async function update(user, which = ["all"]) {
-  try {
-    // List of keys to exclude from the "which" array
-    const excludeKeys = ["id", "name"];
-    // Filter out the keys from "which"
-    which = which.filter(item => !excludeKeys.includes(item));
-    if (user.username === "publicUser") {
-      return;
-    }
-    const apiPath = getApiPath("api/users", { id: user.id });
-    await fetchURL(apiPath, {
-      method: "PUT",
-      body: JSON.stringify({
-        what: "user",
-        which: which,
-        data: user,
-      }),
-    });
-  } catch (err) {
-    notify.showError(err.message || `Failed to update user with ID: ${user.id}`);
-    throw err;
+export async function update (user, which = ['all']) {
+  // List of keys to exclude from the "which" array
+  const excludeKeys = ['id', 'name']
+  // Filter out the keys from "which"
+  which = which.filter(item => !excludeKeys.includes(item))
+  if (user.username === 'publicUser') {
+    return
   }
+  const apiPath = getApiPath('api/users', { id: user.id })
+  await fetchURL(apiPath, {
+    method: 'PUT',
+    body: JSON.stringify({
+      what: 'user',
+      which: which,
+      data: user
+    })
+  })
 }
 
-export async function remove(id) {
+export async function remove (id) {
   try {
-    const apiPath = getApiPath("api/users", { id: id });
+    const apiPath = getApiPath('api/users', { id: id })
     await fetchURL(apiPath, {
-      method: "DELETE",
-    });
+      method: 'DELETE'
+    })
   } catch (err) {
-    notify.showError(err.message || `Failed to delete user with ID: ${id}`);
-    throw err;
+    notify.showError(err.message || `Failed to delete user with ID: ${id}`)
+    throw err
   }
 }
