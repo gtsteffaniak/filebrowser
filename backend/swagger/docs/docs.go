@@ -32,6 +32,92 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/auth/otp/generate": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Generates a new TOTP secret and QR code for the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Generate OTP",
+                "responses": {
+                    "200": {
+                        "description": "OTP secret generated successfully.",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Verifies the provided TOTP code for the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Verify OTP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "TOTP code to verify",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP token is valid.",
+                        "schema": {
+                            "$ref": "#/definitions/http.HttpResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid TOTP token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/createApiKey": {
             "post": {
                 "description": "Create an API key with specified name, duration, and permissions.",
@@ -1884,6 +1970,10 @@ const docTemplate = `{
                 "enabled": {
                     "type": "boolean"
                 },
+                "enforcedOtp": {
+                    "description": "if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.",
+                    "type": "boolean"
+                },
                 "minLength": {
                     "description": "minimum pasword length required.",
                     "type": "integer",
@@ -1899,10 +1989,6 @@ const docTemplate = `{
                 },
                 "signup": {
                     "description": "allow signups on login page if enabled -- not secure.",
-                    "type": "boolean"
-                },
-                "totpEnforced": {
-                    "description": "if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.",
                     "type": "boolean"
                 }
             }

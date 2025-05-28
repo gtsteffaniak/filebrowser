@@ -49,26 +49,35 @@ export async function verifyOtp (username, password, otp) {
   }
 }
 
-export async function login (username, password, recaptcha, otp) {
-  const params = { username, password, recaptcha, code: otp }
-  let apiPath = getApiPath('api/auth/login', params)
+export async function login(username, password, recaptcha, otp) {
+  const params = { username, password, recaptcha, code: otp };
+  let apiPath = getApiPath('api/auth/login', params);
   const res = await fetch(apiPath, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     }
-  })
-  const body = await res.text()
+  });
+
+  const bodyText = await res.text();
+  let body;
+
+  try {
+    body = JSON.parse(bodyText);
+  } catch {
+    body = { message: bodyText };
+  }
+
   if (res.status === 200) {
-    await setNewToken(body)
+    await setNewToken(bodyText);
   } else if (res.status === 403) {
-    throw new Error(403)
+    const msg = body.message || 'Forbidden';
+    throw new Error(msg);
   } else {
-    throw new Error(body || 'Failed to login')
+    throw new Error(body.message || bodyText || 'Failed to login');
   }
 }
-
-export async function get (id) {
+export async function get(id) {
   try {
     const apiPath = getApiPath('api/users', { id: id })
     return await fetchJSON(apiPath)

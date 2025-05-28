@@ -208,11 +208,11 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
-
 	if !req.Data.OtpEnabled {
 		req.Data.TOTPSecret = ""
 		req.Data.TOTPNonce = ""
 	}
+
 	// Perform the user update
 	err = store.Users.Update(req.Data, d.user.Permissions.Admin, req.Which...)
 	if err != nil {

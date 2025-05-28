@@ -44,7 +44,7 @@
       <div class="settings-items">
         <ToggleSwitch class="item" v-model="user.otpEnabled" :name="$t('otp.name')" />
       </div>
-      <button class="button" v-if="user.otpEnabled" :onclick="newOTP">
+      <button class="button" type="button" v-if="user.otpEnabled" :onclick="newOTP">
         {{ $t("buttons.generateNewOtp") }}
       </button>
     </div>
@@ -168,9 +168,12 @@
     <div v-if="stateUser.permissions.admin">
       <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
       <select v-model="user.loginMethod" class="input input--block" id="loginMethod">
-        <option value="password">Password</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <option value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <option value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <option value="password">Password</option>
+        <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <option value="oidc">OIDC</option>
+        <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <option value="proxy">Proxy</option>
+        <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </select>
     </div>
     <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />

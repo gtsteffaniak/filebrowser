@@ -258,6 +258,10 @@ definitions:
     properties:
       enabled:
         type: boolean
+      enforcedOtp:
+        description: if set to true, TOTP is enforced for all password users users.
+          Otherwise, users can choose to enable TOTP.
+        type: boolean
       minLength:
         description: minimum pasword length required.
         minimum: 5
@@ -268,10 +272,6 @@ definitions:
         description: recaptcha config, only used if signup is enabled
       signup:
         description: allow signups on login page if enabled -- not secure.
-        type: boolean
-      totpEnforced:
-        description: if set to true, TOTP is enforced for all password users users.
-          Otherwise, users can choose to enable TOTP.
         type: boolean
     type: object
   settings.ProxyAuthConfig:
@@ -680,6 +680,60 @@ paths:
       summary: User Logout
       tags:
       - Auth
+  /api/auth/otp/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generates a new TOTP secret and QR code for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP secret generated successfully.
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Generate OTP
+      tags:
+      - OTP
+  /api/auth/otp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the provided TOTP code for the authenticated user.
+      parameters:
+      - description: TOTP code to verify
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP token is valid.
+          schema:
+            $ref: '#/definitions/http.HttpResponse'
+        "401":
+          description: Unauthorized - invalid TOTP token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Verify OTP
+      tags:
+      - OTP
   /api/createApiKey:
     post:
       consumes:

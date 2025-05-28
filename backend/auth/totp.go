@@ -48,7 +48,7 @@ var (
 	// (2*2 + 1) * 30s = 150s (2.5 minutes). This is the closest we can get.
 	TOTPSkew      uint = uint(TokenValidTime.Seconds()) / (2 * uint(TOTPPeriod))
 	encryptionKey []byte
-	TotpCache     = cache.NewCache(10 * time.Minute)
+	TotpCache     = cache.NewCache(5 * time.Minute)
 )
 
 func GenerateOtpForUser(user *users.User, userStore *users.Storage) (string, error) {
@@ -186,15 +186,14 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 	if !valid {
 		return fmt.Errorf("invalid OTP token")
 	}
-
-	user.TOTPSecret = totpSecret // The encrypted or plaintext secret
-	user.TOTPNonce = totpNonce   // The nonce if encrypted, or empty if plaintext
-	logger.Debug("TOTP token verified successfully for user:", user.Username, totpSecret, totpNonce)
+	if totpSecret != "" {
+		user.TOTPSecret = totpSecret // The encrypted or plaintext secret
+		user.TOTPNonce = totpNonce   // The nonce if encrypted, or empty if plaintext
+		user.OtpEnabled = true       // Enable OTP for the user
+	}
 	// save user
 	if err := userStore.Update(user, user.Permissions.Admin, "TOTPSecret", "TOTPNonce"); err != nil {
 		logger.Debug("error updating user with OTP token:", err)
-		user.TOTPSecret = "" // The encrypted or plaintext secret
-		user.TOTPNonce = ""  // The nonce if encrypted, or empty if plaintext
 		return fmt.Errorf("error updating user with OTP token: %w", err)
 	}
 	return nil

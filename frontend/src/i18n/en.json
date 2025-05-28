@@ -368,7 +368,7 @@
     "codeInputPlaceholder": "6-digit code",
     "invalidCodeType": "Verification code should be 6 english digits",
     "enabledSuccessfully": "OTP enabled successfully",
-    "verificationFailed": "Verfication Failed",
+    "verificationFailed": "Verification Failed",
     "verificationSucceed": "Verification Succeed",
     "generationFailed": "Generation Failed"
   }

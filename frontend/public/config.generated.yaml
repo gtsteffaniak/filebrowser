@@ -58,7 +58,7 @@ auth:
         host: ""                          #  validate:required
         key: ""                           #  validate:required
         secret: ""                        #  validate:required
-      totpEnforced: false                 # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
+      enforcedOtp: false                  # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
       enabled: false                      # whether to enable OIDC authentication
       clientId: ""                        # client id of the OIDC application

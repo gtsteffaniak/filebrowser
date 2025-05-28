@@ -143,8 +143,7 @@ export default {
         await initAuth();
         router.push({ path: redirect });
       } catch (e) {
-        if (e.message == 403) {
-          console.log("showing TOTP prompt");
+        if (e.message.includes("OTP authentication is enforced")) {
           mutations.showHover({
             name: "totp",
             props: {
@@ -155,7 +154,29 @@ export default {
             },
           });
         }
-        if (e.message == 409) {
+        if (e.message.includes("OTP is enforced, but user is not yet configured")) {
+          mutations.showHover({
+            name: "totp",
+            props: {
+              username: this.username,
+              password: this.password,
+              recaptcha: captcha,
+              redirect: redirect,
+              generate: true,
+            },
+          });
+        } else if (e.message.includes("OTP code is required for user")) {
+          mutations.showHover({
+            name: "totp",
+            props: {
+              username: this.username,
+              password: this.password,
+              recaptcha: captcha,
+              redirect: redirect,
+              generate: false,
+            },
+          });
+        } else if (e.message == 409) {
           this.error = this.$t("login.usernameTaken");
         } else {
           this.error = this.$t("login.wrongCredentials");

@@ -26,6 +26,8 @@ All notable changes to this project will be documented in this file. For commit 
  - fix signup issue https://github.com/gtsteffaniak/filebrowser/issues/648
  - fix default source bug
 
+![image](https://github.com/user-attachments/assets/28e4e67e-31a1-4107-9294-0e715e87b558)
+
 ## v0.7.4-beta
 
  **Notes**:

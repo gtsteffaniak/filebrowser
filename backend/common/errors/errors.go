@@ -19,5 +19,6 @@ var (
 	ErrSourceIsParent       = errors.New("source is parent")
 	ErrRootUserDeletion     = errors.New("user with id 1 can't be deleted")
 	ErrNoTotpProvided       = errors.New("OTP code is required for user")
+	ErrNoTotpConfigured     = errors.New("OTP is enforced, but user is not yet configured")
 	ErrUnauthorized         = errors.New("user unauthorized")
 )

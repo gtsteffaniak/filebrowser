@@ -52,7 +52,6 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 		if totpCode == "" {
 			return nil, errors.ErrNoTotpProvided
 		}
-
 		err = VerifyTotpCode(user, totpCode, userStore)
 		if err != nil {
 			logger.Error("OTP verification failed")

@@ -108,7 +108,8 @@ func withoutUserHelper(fn handleFunc) handleFunc {
 	}
 }
 
-func multiAuthCheckHelper(fn handleFunc) handleFunc {
+// allow user without OTP to pass
+func userWithoutOTPhelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 		// This middleware is used when no user authentication is required
 		// Call the actual handler function with the updated context
@@ -134,10 +135,10 @@ func multiAuthCheckHelper(fn handleFunc) handleFunc {
 			}
 			// Authenticate the user based on the request
 			user, err := auther.Auth(r, store.Users)
-			if err != nil && err == errors.ErrNoTotpProvided {
-				return 403, err
-			}
 			if err != nil {
+				if err == errors.ErrNoTotpProvided {
+					return 403, err
+				}
 				return 401, errors.ErrUnauthorized
 			}
 			d.user = user
@@ -288,8 +289,8 @@ func withoutUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withoutUserHelper(fn))
 }
 
-func multiAuthCheck(fn handleFunc) http.HandlerFunc {
-	return wrapHandler(multiAuthCheckHelper(fn))
+func userWithoutOTP(fn handleFunc) http.HandlerFunc {
+	return wrapHandler(userWithoutOTPhelper(fn))
 }
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {

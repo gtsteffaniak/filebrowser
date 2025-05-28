@@ -5,11 +5,21 @@ import (
 	"net/http"
 
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // generateOTPHandler handles the generation of a new TOTP secret and QR code.
+// @Summary Generate OTP
+// @Description Generates a new TOTP secret and QR code for the authenticated user.
+// @Tags OTP
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} map[string]string "OTP secret generated successfully."
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/auth/otp/generate [post]
 func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	fmt.Println("Generating OTP for user:", d.user.Username)
+	logger.Debug("Generating OTP for user:", d.user.Username)
 	url, err := auth.GenerateOtpForUser(d.user, store.Users)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error generating OTP secret: %w", err)
@@ -21,7 +31,17 @@ func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return renderJSON(w, r, response)
 }
 
-// verifyOTPAHandler handles the verification of a TOTP code.
+// verifyOTPHandler handles the verification of a TOTP code.
+// @Summary Verify OTP
+// @Description Verifies the provided TOTP code for the authenticated user.
+// @Tags OTP
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param code query string true "TOTP code to verify"
+// @Success 200 {object} HttpResponse "OTP token is valid."
+// @Failure 401 {object} map[string]string "Unauthorized - invalid TOTP token"
+// @Router /api/auth/otp/verify [post]
 func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	code := r.URL.Query().Get("code")
 	if code == "" {

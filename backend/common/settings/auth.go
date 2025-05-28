@@ -30,11 +30,11 @@ type LoginMethods struct {
 }
 
 type PasswordAuthConfig struct {
-	Enabled      bool      `json:"enabled"`
-	MinLength    int       `json:"minLength" validate:"omitempty,min=5"` // minimum pasword length required.
-	Signup       bool      `json:"signup" validate:"omitempty"`          // allow signups on login page if enabled -- not secure.
-	Recaptcha    Recaptcha `json:"recaptcha" validate:"omitempty"`       // recaptcha config, only used if signup is enabled
-	TotpEnforced bool      `json:"totpEnforced"`                         // if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
+	Enabled     bool      `json:"enabled"`
+	MinLength   int       `json:"minLength" validate:"omitempty,min=5"` // minimum pasword length required.
+	Signup      bool      `json:"signup" validate:"omitempty"`          // allow signups on login page if enabled -- not secure.
+	Recaptcha   Recaptcha `json:"recaptcha" validate:"omitempty"`       // recaptcha config, only used if signup is enabled
+	EnforcedOtp bool      `json:"enforcedOtp"`                          // if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
 }
 
 type ProxyAuthConfig struct {

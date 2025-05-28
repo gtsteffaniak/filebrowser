@@ -3,19 +3,14 @@
     <div class="card-title">
       <h2>{{ $t("otp.name") }}</h2>
     </div>
+    <div v-if="error !== ''" class="wrong-login">{{ error }}</div>
 
-    <div v-if="generate" class="card-content">
-      <div v-if="error !== ''" class="wrong-login">{{ error }}</div>
-
-      <p>{{ $t("otp.generate") }}</p>
-      <div class="share__box__element share__box__center">
+    <div class="card-content">
+      <p v-if="generate">{{ $t("otp.generate") }}</p>
+      <div v-if="generate" class="share__box__element share__box__center">
         <p>{{ this.url }}</p>
         <qrcode-vue class="qrcode" :value="this.url" size="200" level="M"></qrcode-vue>
       </div>
-    </div>
-    <div class="card-content">
-      <div v-if="error !== ''" class="wrong-login">{{ error }}</div>
-
       <p>{{ $t("otp.verifyInstructions") }}</p>
       <input
         class="input input--block"
@@ -100,10 +95,12 @@ export default {
     async verifyCode(event) {
       event.preventDefault();
       if (!this.code) {
-        notify.error(this.$t("otp.invalidCodeType"));
+        this.error = this.$t("otp.invalidCodeType");
+        notify.showError(this.$t("otp.invalidCodeType"));
         return;
       }
       try {
+        console.log("Verifying OTP code:", this.code);
         await usersApi.verifyOtp(this.username, this.password, this.code);
         if (this.redirect != "") {
           await usersApi.login(this.username, this.password, this.redirect, this.code);
