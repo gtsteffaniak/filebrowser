@@ -81,25 +81,23 @@
               <!-- Inputs for filtering by file size -->
               <div class="sizeConstraints">
                 <div class="sizeInputWrapper">
-                  <p> {{ $t('search.smallerThan') }} </p>
+                  <p>{{ $t("search.smallerThan") }}</p>
                   <input
                     class="sizeInput"
                     v-model="smallerThan"
                     type="number"
                     min="0"
                     placeholder="number"
-                  />
-                  <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                  /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 </div>
                 <div class="sizeInputWrapper">
-                  <p> {{ $t('search.largerThan') }} </p>
+                  <p>{{ $t("search.largerThan") }}</p>
                   <input
                     class="sizeInput"
                     v-model="largerThan"
                     type="number"
                     placeholder="number"
-                  />
-                  <p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                  /><p>MB</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
                 </div>
               </div>
             </div>
@@ -112,12 +110,12 @@
         <!-- Message when no results are found -->
         <div class="searchPrompt" v-show="isEmpty && !isRunning">
           <p>{{ noneMessage }}</p>
-          <div class="helpButton" @click="toggleHelp()"> {{ $t('sidebar.help') }} </div>
+          <div class="helpButton" @click="toggleHelp()">{{ $t("sidebar.help") }}</div>
         </div>
         <!-- Help text section -->
         <div class="helpText" v-if="showHelp">
-          <p>{{ $t('search.helpText1') }}</p>
-          <p>{{ $t('search.helpText2') }}</p>
+          <p>{{ $t("search.helpText1") }}</p>
+          <p>{{ $t("search.helpText2") }}</p>
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
@@ -131,7 +129,7 @@
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
               <Icon :mimetype="s.type" />
               <span class="text-container">
-                {{ basePath(s.path, s.type == "directory") }}/{{ baseName(s.path) }}/ <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                {{ basePath(s.path, s.type == "directory") }}/{{ baseName(s.path) }}/<!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
             </a>
@@ -394,11 +392,12 @@ export default {
       if (path.startsWith("/")) {
         path = path.slice(1); // remove leading slash
       }
+      const encodedPath = encodeURIComponent(path).replace("/%20/g", "/");
       let fullpath = path;
       if (serverHasMultipleSources) {
-        fullpath = "/files/" + this.selectedSource + "/" + encodeURIComponent(path);
+        fullpath = "/files/" + this.selectedSource + "/" + encodedPath;
       } else {
-        fullpath = "/files/" + encodeURIComponent(path);
+        fullpath = "/files/" + encodedPath;
       }
       return fullpath;
     },
