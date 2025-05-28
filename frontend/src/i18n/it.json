@@ -38,7 +38,9 @@
     "submit": "Invia",
     "openFile": "Aprire il file",
     "continue": "Continua",
-    "edit": "Modifica"
+    "edit": "Modifica",
+    "generateNewOtp": "Reimpostare e generare un nuovo codice a due fattori",
+    "verify": "Verifica"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -364,5 +366,16 @@
     "previewOffice": "Anteprima dei file office",
     "popupPreview": "Abilita l'anteprima a comparsa",
     "filePreviewOptions": "Opzioni di anteprima dei file"
+  },
+  "otp": {
+    "name": "Autenticazione a due fattori",
+    "verifyInstructions": "Immettere il codice dall'app Autenticatore",
+    "generate": "Eseguire la scansione del codice QR con l'app Authenticator",
+    "codeInputPlaceholder": "Codice a 6 cifre",
+    "invalidCodeType": "Il codice di verifica deve essere di 6 cifre inglesi",
+    "enabledSuccessfully": "OTP abilitato con successo",
+    "verificationFailed": "Verifica fallita",
+    "verificationSucceed": "Verifica riuscita",
+    "generationFailed": "Generazione fallita"
   }
 }

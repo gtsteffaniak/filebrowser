@@ -38,7 +38,9 @@
     "file": "Dosya",
     "folder": "Klasör",
     "continue": "Devam et",
-    "edit": "Düzenle"
+    "edit": "Düzenle",
+    "generateNewOtp": "Sıfırlama ve yeni iki faktörlü kod oluşturma",
+    "verify": "Doğrulama"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -364,5 +366,16 @@
     "previewOffice": "Ofis dosyalarını önizleme",
     "popupPreview": "Açılır pencere önizlemesini etkinleştir",
     "filePreviewOptions": "Dosya önizleme seçenekleri"
+  },
+  "otp": {
+    "name": "İki Faktörlü Kimlik Doğrulama",
+    "verifyInstructions": "Kimlik doğrulayıcı uygulamanızdan kodu girin",
+    "generate": "QR kodunu kimlik doğrulayıcı uygulamanızla tarayın",
+    "codeInputPlaceholder": "6 haneli kod",
+    "invalidCodeType": "Doğrulama kodu 6 İngilizce hane olmalıdır",
+    "enabledSuccessfully": "OTP başarıyla etkinleştirildi",
+    "verificationFailed": "Doğrulama Başarısız",
+    "verificationSucceed": "Doğrulama Başarılı",
+    "generationFailed": "Nesil Başarısız"
   }
 }

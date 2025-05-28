@@ -38,7 +38,9 @@
     "openFile": "Ouvrir le fichier",
     "copyDownloadLinkToClipboard": "Copier le lien de téléchargement dans le presse-papiers",
     "continue": "Continuer",
-    "edit": "Editer"
+    "edit": "Editer",
+    "generateNewOtp": "Réinitialiser et générer un nouveau code à deux facteurs",
+    "verify": "Vérifier"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -364,5 +366,16 @@
     "previewOffice": "Prévisualisation des fichiers bureautiques",
     "popupPreview": "Activer la prévisualisation des fenêtres contextuelles",
     "filePreviewOptions": "Options de prévisualisation des fichiers"
+  },
+  "otp": {
+    "name": "Authentification à deux facteurs",
+    "verifyInstructions": "Saisissez le code de votre application d'authentification",
+    "generate": "Scannez le code QR avec votre application d'authentification",
+    "codeInputPlaceholder": "Code à 6 chiffres",
+    "invalidCodeType": "Le code de vérification doit être composé de 6 chiffres anglais",
+    "enabledSuccessfully": "OTP activé avec succès",
+    "verificationFailed": "Échec de la vérification",
+    "verificationSucceed": "Réussir la vérification",
+    "generationFailed": "Génération échouée"
   }
 }

@@ -38,7 +38,9 @@
     "openFile": "Otvoriť súbor",
     "copyDownloadLinkToClipboard": "Skopírujte odkaz na stiahnutie do schránky",
     "continue": "Pokračovať",
-    "edit": "Upraviť"
+    "edit": "Upraviť",
+    "generateNewOtp": "Obnovenie a generovanie nového dvojfaktorového kódu",
+    "verify": "Overiť"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -364,5 +366,16 @@
     "previewOffice": "Náhľad kancelárskych súborov",
     "popupPreview": "Povolenie pop-up náhľadu",
     "filePreviewOptions": "Možnosti náhľadu súborov"
+  },
+  "otp": {
+    "name": "Dvojfaktorové overovanie",
+    "verifyInstructions": "Zadajte kód z aplikácie autentifikátora",
+    "generate": "Naskenujte kód QR pomocou aplikácie autentifikátora",
+    "codeInputPlaceholder": "6-miestny kód",
+    "invalidCodeType": "Overovací kód by mal mať 6 anglických číslic",
+    "enabledSuccessfully": "OTP úspešne povolený",
+    "verificationFailed": "Overenie sa nepodarilo",
+    "verificationSucceed": "Overovanie Úspech",
+    "generationFailed": "Generácia zlyhala"
   }
 }
