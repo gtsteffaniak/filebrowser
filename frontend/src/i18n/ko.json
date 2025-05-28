@@ -38,7 +38,9 @@
     "submit": "제출하기",
     "openFile": "파일 열기",
     "continue": "계속하기",
-    "edit": "편집"
+    "edit": "편집",
+    "generateNewOtp": "새로운 2단계 인증 코드 재설정 및 생성",
+    "verify": "확인"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -364,5 +366,16 @@
     "previewOffice": "오피스 파일 미리 보기",
     "popupPreview": "팝업 미리 보기 사용",
     "filePreviewOptions": "파일 미리 보기 옵션"
+  },
+  "otp": {
+    "name": "2단계 인증",
+    "verifyInstructions": "인증 앱에서 코드를 입력합니다.",
+    "generate": "인증 앱으로 QR 코드를 스캔합니다.",
+    "codeInputPlaceholder": "6자리 코드",
+    "invalidCodeType": "인증 코드는 영문 6자리여야 합니다.",
+    "enabledSuccessfully": "OTP 활성화 성공",
+    "verificationFailed": "인증 실패",
+    "verificationSucceed": "인증 성공",
+    "generationFailed": "세대 실패"
   }
 }

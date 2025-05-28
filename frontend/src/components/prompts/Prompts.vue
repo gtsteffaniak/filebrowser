@@ -29,6 +29,7 @@ import CreateApi from "./CreateApi.vue";
 import ActionApi from "./ActionApi.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
 import buttons from "@/utils/buttons";
+import Totp from "./Totp.vue";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 
 export default {
@@ -46,6 +47,7 @@ export default {
     Help,
     Replace,
     ReplaceRename,
+    Totp,
     Upload,
     ShareDelete,
     Sidebar,

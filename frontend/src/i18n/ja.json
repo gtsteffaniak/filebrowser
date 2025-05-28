@@ -38,7 +38,9 @@
     "submit": "投稿する",
     "openFile": "ファイルを開く",
     "continue": "続ける",
-    "edit": "編集"
+    "edit": "編集",
+    "generateNewOtp": "リセットして新しい2ファクタコードを生成する",
+    "verify": "ベリファイ"
   },
   "download": {
     "downloadFile": "Download File",
@@ -364,5 +366,16 @@
     "previewOffice": "オフィスファイルのプレビュー",
     "popupPreview": "ポップアップ・プレビューを有効にする",
     "filePreviewOptions": "ファイルプレビューオプション"
+  },
+  "otp": {
+    "name": "二要素認証",
+    "verifyInstructions": "認証アプリからコードを入力",
+    "generate": "認証アプリでQRコードをスキャンする",
+    "codeInputPlaceholder": "6桁コード",
+    "invalidCodeType": "認証コードは英数字6桁で入力してください。",
+    "enabledSuccessfully": "OTPの有効化に成功",
+    "verificationFailed": "検証失敗",
+    "verificationSucceed": "検証の成功",
+    "generationFailed": "世代が失敗"
   }
 }

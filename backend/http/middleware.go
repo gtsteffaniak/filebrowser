@@ -12,6 +12,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -97,6 +98,53 @@ func withAdminHelper(fn handleFunc) handleFunc {
 		}
 		return fn(w, r, data)
 	})
+}
+
+func withoutUserHelper(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		// This middleware is used when no user authentication is required
+		// Call the actual handler function with the updated context
+		return fn(w, r, data)
+	}
+}
+
+// allow user without OTP to pass
+func userWithoutOTPhelper(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+		// This middleware is used when no user authentication is required
+		// Call the actual handler function with the updated context
+		username := r.URL.Query().Get("username")
+		password := r.URL.Query().Get("password")
+		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
+			user, err := setupProxyUser(r, &requestContext{}, proxyUser)
+			if err != nil {
+				return 401, errors.ErrUnauthorized
+			}
+			d.user = user
+		} else if username == "" || password == "" {
+			return withUserHelper(fn)(w, r, d)
+		} else {
+			if !config.Auth.Methods.PasswordAuth.Enabled {
+				return 401, errors.ErrUnauthorized
+			}
+			// Get the authentication method from the settings
+			auther, err := store.Auth.Get("password")
+			if err != nil {
+				return 401, errors.ErrUnauthorized
+			}
+			// Authenticate the user based on the request
+			user, err := auther.Auth(r, store.Users)
+			if err != nil {
+				if err == errors.ErrNoTotpProvided {
+					return 403, err
+				}
+				return 401, errors.ErrUnauthorized
+			}
+			d.user = user
+		}
+		return fn(w, r, d)
+	}
 }
 
 // Middleware to retrieve and authenticate user
@@ -235,6 +283,14 @@ func withAdmin(fn handleFunc) http.HandlerFunc {
 
 func withUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withUserHelper(fn))
+}
+
+func withoutUser(fn handleFunc) http.HandlerFunc {
+	return wrapHandler(withoutUserHelper(fn))
+}
+
+func userWithoutOTP(fn handleFunc) http.HandlerFunc {
+	return wrapHandler(userWithoutOTPhelper(fn))
 }
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {

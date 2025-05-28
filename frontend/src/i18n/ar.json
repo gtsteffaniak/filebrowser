@@ -38,7 +38,9 @@
     "submit": "إرسال",
     "openFile": "فتح الملف",
     "continue": "تابع",
-    "edit": "تحرير"
+    "edit": "تحرير",
+    "generateNewOtp": "إعادة تعيين وإنشاء رمز ثنائي العامل الجديد",
+    "verify": "تحقق"
   },
   "download": {
     "downloadFile": "Download File",
@@ -364,5 +366,16 @@
     "previewOffice": "معاينة الملفات المكتبية",
     "popupPreview": "تمكين المعاينة المنبثقة",
     "filePreviewOptions": "خيارات معاينة الملف"
+  },
+  "otp": {
+    "name": "المصادقة الثنائية",
+    "verifyInstructions": "أدخل الرمز من تطبيق المصادقة الخاص بك",
+    "generate": "امسح رمز الاستجابة السريعة ضوئياً باستخدام تطبيق المصادقة الخاص بك",
+    "codeInputPlaceholder": "رمز مكون من 6 أرقام",
+    "invalidCodeType": "يجب أن يتكون رمز التحقق من 6 أرقام باللغة الإنجليزية",
+    "enabledSuccessfully": "تم تمكين OTP بنجاح",
+    "verificationFailed": "فشل التحقق",
+    "verificationSucceed": "نجاح التحقق",
+    "generationFailed": "فشل التوليد"
   }
 }

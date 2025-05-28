@@ -38,7 +38,9 @@
     "submit": "Prześlij",
     "openFile": "Otwórz plik",
     "continue": "Kontynuuj",
-    "edit": "Edytuj"
+    "edit": "Edytuj",
+    "generateNewOtp": "Resetowanie i generowanie nowego kodu dwuskładnikowego",
+    "verify": "Weryfikacja"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -364,5 +366,16 @@
     "previewOffice": "Podgląd plików biurowych",
     "popupPreview": "Włącz wyskakujący podgląd",
     "filePreviewOptions": "Opcje podglądu plików"
+  },
+  "otp": {
+    "name": "Uwierzytelnianie dwuskładnikowe",
+    "verifyInstructions": "Wprowadź kod z aplikacji uwierzytelniającej",
+    "generate": "Zeskanuj kod QR za pomocą aplikacji uwierzytelniającej",
+    "codeInputPlaceholder": "6-cyfrowy kod",
+    "invalidCodeType": "Kod weryfikacyjny powinien składać się z 6 angielskich cyfr",
+    "enabledSuccessfully": "OTP został pomyślnie włączony",
+    "verificationFailed": "Weryfikacja nie powiodła się",
+    "verificationSucceed": "Sukces weryfikacji",
+    "generationFailed": "Generacja nieudana"
   }
 }

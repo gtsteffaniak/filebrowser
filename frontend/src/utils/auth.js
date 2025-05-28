@@ -28,29 +28,6 @@ export async function validateLogin() {
   return
 }
 
-export async function login(username, password, recaptcha) {
-  const data = { username, password, recaptcha };
-  try {
-    let apiPath = getApiPath("api/auth/login")
-    const res = await fetch(apiPath, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    const body = await res.text();
-
-    if (res.status === 200) {
-      await setNewToken(body);
-    } else {
-      throw new Error(body);
-    }
-  } catch (error) {
-    throw new Error("Login failed");
-  }
-}
-
 export async function renew(jwt) {
   let apiPath = getApiPath("api/auth/renew")
   const res = await fetch(apiPath, {
@@ -77,22 +54,6 @@ export function generateRandomCode(length) {
   }
 
   return code;
-}
-
-export async function signupLogin(username, password) {
-  const data = { username, password };
-  let apiPath = getApiPath("api/auth/signup")
-  const res = await fetch(apiPath, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (res.status !== 201) {
-    throw new Error(res.status);
-  }
 }
 
 export function logout() {

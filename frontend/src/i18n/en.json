@@ -1,6 +1,8 @@
 {
   "buttons": {
+    "generateNewOtp": "Reset and generate new two-factor code",
     "cancel": "Cancel",
+    "verify": "Verify",
     "close": "Close",
     "copy": "Copy",
     "copyFile": "Copy file",
@@ -358,5 +360,16 @@
     "toggleSticky": "Toggle Sticky Mode",
     "of": "of",
     "used": "used"
+  },
+  "otp": {
+    "name": "Two-Factor Authentication",
+    "verifyInstructions": "Enter the code from your authenticator app",
+    "generate": "Scan the QR code with your authenticator app",
+    "codeInputPlaceholder": "6-digit code",
+    "invalidCodeType": "Verification code should be 6 english digits",
+    "enabledSuccessfully": "OTP enabled successfully",
+    "verificationFailed": "Verification Failed",
+    "verificationSucceed": "Verification Succeed",
+    "generationFailed": "Generation Failed"
   }
 }

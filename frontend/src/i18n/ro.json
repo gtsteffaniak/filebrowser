@@ -38,7 +38,9 @@
     "submit": "Trimite",
     "openFile": "Deschideți fișierul",
     "continue": "Continuați",
-    "edit": "Editare"
+    "edit": "Editare",
+    "generateNewOtp": "Resetați și generați un nou cod cu doi factori",
+    "verify": "Verificare"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -364,5 +366,16 @@
     "previewOffice": "Previzualizare fișiere office",
     "popupPreview": "Activați previzualizarea pop-up",
     "filePreviewOptions": "Opțiuni de previzualizare a fișierelor"
+  },
+  "otp": {
+    "name": "Autentificare cu doi factori",
+    "verifyInstructions": "Introduceți codul din aplicația dvs. de autentificare",
+    "generate": "Scanați codul QR cu aplicația dvs. de autentificare",
+    "codeInputPlaceholder": "Cod de 6 cifre",
+    "invalidCodeType": "Codul de verificare trebuie să fie format din 6 cifre în limba engleză",
+    "enabledSuccessfully": "OTP activat cu succes",
+    "verificationFailed": "Verificarea a eșuat",
+    "verificationSucceed": "Verificarea reușită",
+    "generationFailed": "Generație eșuată"
   }
 }

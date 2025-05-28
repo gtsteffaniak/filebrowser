@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**
  - new `./filebrowser.exe setup` command for creating a config.yaml on first run. https://github.com/gtsteffaniak/filebrowser/issues/675
+ - new 2FA/OTP support for password-based users.
+ - `auth.password.enforcedOtp` option to enforce 2FA usage for password users.
 
  **Notes**:
  - logging uses localtime, optional UTC config added https://github.com/gtsteffaniak/filebrowser/issues/665
@@ -23,7 +25,9 @@ All notable changes to this project will be documented in this file. For commit 
  - rename button doesn't close prompt https://github.com/gtsteffaniak/filebrowser/issues/664
  - webm video preview issue https://github.com/gtsteffaniak/filebrowser/issues/673
  - fix signup issue https://github.com/gtsteffaniak/filebrowser/issues/648
- #- fix default source bug (needs tests)
+ - fix default source bug
+
+![image](https://github.com/user-attachments/assets/28e4e67e-31a1-4107-9294-0e715e87b558)
 
 ## v0.7.4-beta
 

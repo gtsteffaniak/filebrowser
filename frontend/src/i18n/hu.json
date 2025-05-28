@@ -38,7 +38,9 @@
     "openFile": "Fájl megnyitása",
     "copyDownloadLinkToClipboard": "Letöltési link másolása a vágólapra",
     "continue": "Folytatás",
-    "edit": "Szerkesztés"
+    "edit": "Szerkesztés",
+    "generateNewOtp": "Új kétfaktoros kód visszaállítása és generálása",
+    "verify": "Ellenőrizze a  címet."
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -364,5 +366,16 @@
     "previewOffice": "Office fájlok előnézete",
     "popupPreview": "Pop-up előnézet engedélyezése",
     "filePreviewOptions": "Fájl előnézeti beállítások"
+  },
+  "otp": {
+    "name": "Kétfaktoros hitelesítés",
+    "verifyInstructions": "Írja be a kódot a hitelesítők alkalmazásából",
+    "generate": "Szkennelje be a QR-kódot a hitelesítő alkalmazással",
+    "codeInputPlaceholder": "6 számjegyű kód",
+    "invalidCodeType": "Az ellenőrző kódnak 6 angol számjegyűnek kell lennie",
+    "enabledSuccessfully": "OTP sikeresen engedélyezve",
+    "verificationFailed": "Ellenőrzés sikertelen",
+    "verificationSucceed": "Ellenőrzés Succeed",
+    "generationFailed": "Nemzedék sikertelen"
   }
 }
