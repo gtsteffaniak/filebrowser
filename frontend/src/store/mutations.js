@@ -23,6 +23,9 @@ export const mutations = {
     state.req.hasUpdate = true;
   },
   setPreviewSource: (value) => {
+    if (value === state.popupPreviewSource) {
+      return;
+    }
     state.popupPreviewSource = value;
     emitStateChanged();
   },

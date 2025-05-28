@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 )
@@ -52,7 +52,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
 	if err != nil {
-		logger.Error(fmt.Sprintf("public share handler: error processing filelist: %v", err))
+		logger.Errorf("public share handler: error processing filelist: %v", err)
 		return status, fmt.Errorf("error processing filelist: %v", f)
 	}
 	return status, nil
@@ -118,6 +118,13 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = settings.Config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
@@ -129,7 +136,7 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		Expand: true,
 	})
 	if err != nil {
-		logger.Debug(fmt.Sprintf("public preview handler: error getting file info: %v", err))
+		logger.Debugf("public preview handler: error getting file info: %v", err)
 		return 400, fmt.Errorf("file not found")
 	}
 	if fileInfo.Type == "directory" {

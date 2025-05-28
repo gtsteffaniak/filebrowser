@@ -8,7 +8,7 @@
         <h3>{{ loginName }}</h3>
       </div>
       <div v-if="passwordAvailable" class="password-entry">
-        <div v-if="error !== ''" class="wrong">{{ error }}</div>
+        <div v-if="error !== ''" class="wrong-login">{{ error }}</div>
         <input
           autofocus
           class="input input--block"
@@ -42,20 +42,24 @@
         </p>
       </div>
       <div v-if="oidcAvailable" class="password-entry">
-        <div v-if="passwordAvailable" class="or">{{ $t('login.or') }}</div>
-        <a href="/api/auth/oidc/login" class="button button--block direct-login"> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <div v-if="passwordAvailable" class="or">{{ $t("login.or") }}</div>
+        <a href="/api/auth/oidc/login" class="button button--block direct-login">
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           OpenID Connect
         </a>
       </div>
     </form>
   </div>
+  <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
 </template>
 
 <script>
 import router from "@/router";
-import { state } from "@/store";
+import { mutations, state } from "@/store";
+import Prompts from "@/components/prompts/Prompts.vue";
 import Icon from "@/components/files/Icon.vue";
-import { signupLogin, login, initAuth } from "@/utils/auth";
+import { usersApi } from "@/api";
+import { initAuth } from "@/utils/auth";
 import {
   name,
   logoURL,
@@ -71,6 +75,7 @@ export default {
   name: "login",
   components: {
     Icon,
+    Prompts,
   },
   computed: {
     signup: () => signup,
@@ -132,14 +137,46 @@ export default {
       }
       try {
         if (this.createMode) {
-          await signupLogin(this.username, this.password);
+          await usersApi.signupLogin(this.username, this.password);
         }
-        await login(this.username, this.password, captcha);
+        await usersApi.login(this.username, this.password, captcha);
         await initAuth();
         router.push({ path: redirect });
       } catch (e) {
-        console.error(e);
-        if (e.message == 409) {
+        if (e.message.includes("OTP authentication is enforced")) {
+          mutations.showHover({
+            name: "totp",
+            props: {
+              username: this.username,
+              password: this.password,
+              recaptcha: captcha,
+              redirect: redirect,
+            },
+          });
+        }
+        if (e.message.includes("OTP is enforced, but user is not yet configured")) {
+          mutations.showHover({
+            name: "totp",
+            props: {
+              username: this.username,
+              password: this.password,
+              recaptcha: captcha,
+              redirect: redirect,
+              generate: true,
+            },
+          });
+        } else if (e.message.includes("OTP code is required for user")) {
+          mutations.showHover({
+            name: "totp",
+            props: {
+              username: this.username,
+              password: this.password,
+              recaptcha: captcha,
+              redirect: redirect,
+              generate: false,
+            },
+          });
+        } else if (e.message == 409) {
           this.error = this.$t("login.usernameTaken");
         } else {
           this.error = this.$t("login.wrongCredentials");

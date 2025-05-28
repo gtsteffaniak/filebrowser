@@ -173,6 +173,8 @@ table tr>*:last-child {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   z-index: 99999;
   max-width: 40em;
   width: 90%;

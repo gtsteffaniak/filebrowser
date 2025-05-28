@@ -13,12 +13,12 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // resourceGetHandler retrieves information about a resource.
@@ -41,6 +41,13 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -109,6 +116,13 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -163,6 +177,13 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
@@ -188,7 +209,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {
-			logger.Debug(fmt.Sprintf("Resource already exists: %v", fileInfo.RealPath))
+			logger.Debugf("Resource already exists: %v", fileInfo.RealPath)
 			return http.StatusConflict, nil
 		}
 
@@ -226,6 +247,13 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
@@ -324,7 +352,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	// check target dir exists
 	parentDir, _, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
 	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err))
+		logger.Debugf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err)
 		return http.StatusNotFound, err
 	}
 	realDest := parentDir + "/" + filepath.Base(dst)
@@ -349,7 +377,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	err = patchAction(r.Context(), action, realSrc, realDest, d, isSrcDir, srcIndex, dstIndex)
 	if err != nil {
-		logger.Debug(fmt.Sprintf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err))
+		logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
 	}
 	return errToStatus(err), err
 }
@@ -404,6 +432,9 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		// decode url encoded source name
+		source, _ = url.QueryUnescape(source)
 	}
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)

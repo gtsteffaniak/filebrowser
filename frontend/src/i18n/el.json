@@ -37,7 +37,10 @@
     "upload": "Μεταφόρτωση",
     "openFile": "Άνοιγμα αρχείου",
     "continue": "Συνέχεια",
-    "shell": "Εναλλαγή κελύφους"
+    "shell": "Εναλλαγή κελύφους",
+    "edit": "Επεξεργασία",
+    "generateNewOtp": "Επαναφορά και δημιουργία νέου κωδικού δύο παραγόντων",
+    "verify": "Επαλήθευση"
   },
   "download": {
     "downloadFile": "Λήψη αρχείου",
@@ -267,7 +270,6 @@
     "userUpdated": "Ο χρήστης ενημερώθηκε!",
     "username": "Όνομα χρήστη",
     "users": "Χρήστες",
-    "loginMethod": "Μέθοδος σύνδεσης",
     "modifyOtherUser": "Τροποποίηση χρήστη:",
     "modifyCurrentUser": "Τροποποίηση τρέχοντος χρήστη",
     "themeColor": "Χρώμα θέματος",
@@ -283,7 +285,9 @@
     "userNotAdmin": "Ο χρήστης δεν είναι διαχειριστής",
     "enterPassword": "Εισάγετε τον κωδικό πρόσβασης",
     "enterPasswordAgain": "Πληκτρολογήστε ξανά τον κωδικό πρόσβασης",
-    "passwordsDoNotMatch": "Οι κωδικοί πρόσβασης δεν ταιριάζουν"
+    "passwordsDoNotMatch": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
+    "loginMethod": "Μέθοδος σύνδεσης",
+    "shareSettings": "Ρυθμίσεις κοινής χρήσης"
   },
   "sidebar": {
     "help": "Βοήθεια",
@@ -351,5 +355,28 @@
     "toggleSticky": "Εναλλαγή της λειτουργίας Sticky",
     "of": "του",
     "used": "χρησιμοποιημένο"
+  },
+  "profileSettings": {
+    "setDateFormat": "Ορισμός ακριβούς μορφής ημερομηνίας",
+    "showHiddenFiles": "Εμφάνιση κρυφών αρχείων",
+    "showQuickDownload": "Εμφάνιση εικονιδίου λήψης για γρήγορη πρόσβαση",
+    "previewImages": "Προεπισκόπηση εικόνων",
+    "previewVideos": "Προεπισκόπηση βίντεο",
+    "previewMotionVideos": "Προεπισκόπηση κίνησης για βίντεο",
+    "highQualityPreview": "Προεπισκόπηση υψηλής ποιότητας",
+    "previewOffice": "Προεπισκόπηση αρχείων γραφείου",
+    "popupPreview": "Ενεργοποίηση αναδυόμενης προεπισκόπησης",
+    "filePreviewOptions": "Επιλογές προεπισκόπησης αρχείων"
+  },
+  "otp": {
+    "name": "Αυθεντικοποίηση δύο παραγόντων",
+    "verifyInstructions": "Εισάγετε τον κωδικό από την εφαρμογή ελέγχου ταυτότητας",
+    "generate": "Σαρώστε τον κωδικό QR με την εφαρμογή ελέγχου ταυτότητας",
+    "codeInputPlaceholder": "6ψήφιος κωδικός",
+    "invalidCodeType": "Ο κωδικός επαλήθευσης πρέπει να είναι 6 αγγλικά ψηφία",
+    "enabledSuccessfully": "Το OTP ενεργοποιήθηκε με επιτυχία",
+    "verificationFailed": "Η επαλήθευση απέτυχε",
+    "verificationSucceed": "Επαλήθευση Succeed",
+    "generationFailed": "Γενιά που απέτυχε"
   }
 }

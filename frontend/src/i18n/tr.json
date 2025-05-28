@@ -37,7 +37,10 @@
     "copyDownloadLinkToClipboard": "İndirme bağlantısını panoya kopyala",
     "file": "Dosya",
     "folder": "Klasör",
-    "continue": "Devam et"
+    "continue": "Devam et",
+    "edit": "Düzenle",
+    "generateNewOtp": "Sıfırlama ve yeni iki faktörlü kod oluşturma",
+    "verify": "Doğrulama"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -255,7 +258,6 @@
     "userUpdated": "Kullanıcı güncellendi!",
     "username": "Kullanıcı adı",
     "users": "Kullanıcılar",
-    "loginMethod": "Giriş yöntemi",
     "modifyOtherUser": "Kullanıcıyı değiştir:",
     "modifyCurrentUser": "Geçerli kullanıcıyı değiştir",
     "themeColor": "Tema Rengi",
@@ -279,7 +281,9 @@
     "userNotAdmin": "Kullanıcı yönetici değil",
     "enterPassword": "Şifre girin",
     "enterPasswordAgain": "Şifreyi tekrar girin",
-    "passwordsDoNotMatch": "Parolalar eşleşmiyor"
+    "passwordsDoNotMatch": "Parolalar eşleşmiyor",
+    "loginMethod": "Giriş yöntemi",
+    "shareSettings": "Paylaşım Ayarları"
   },
   "sidebar": {
     "help": "Yardım",
@@ -350,5 +354,28 @@
     "toggleSticky": "Yapışkan Modunu Değiştir",
     "of": ".",
     "used": "kullanılmış"
+  },
+  "profileSettings": {
+    "setDateFormat": "Tam tarih biçimini ayarlama",
+    "showHiddenFiles": "Gizli dosyaları göster",
+    "showQuickDownload": "Hızlı erişim için indirme simgesini göster",
+    "previewImages": "Önizleme görüntüleri",
+    "previewVideos": "Önizleme videoları",
+    "previewMotionVideos": "Videolar için hareket önizlemesi",
+    "highQualityPreview": "Yüksek kaliteli önizleme",
+    "previewOffice": "Ofis dosyalarını önizleme",
+    "popupPreview": "Açılır pencere önizlemesini etkinleştir",
+    "filePreviewOptions": "Dosya önizleme seçenekleri"
+  },
+  "otp": {
+    "name": "İki Faktörlü Kimlik Doğrulama",
+    "verifyInstructions": "Kimlik doğrulayıcı uygulamanızdan kodu girin",
+    "generate": "QR kodunu kimlik doğrulayıcı uygulamanızla tarayın",
+    "codeInputPlaceholder": "6 haneli kod",
+    "invalidCodeType": "Doğrulama kodu 6 İngilizce hane olmalıdır",
+    "enabledSuccessfully": "OTP başarıyla etkinleştirildi",
+    "verificationFailed": "Doğrulama Başarısız",
+    "verificationSucceed": "Doğrulama Başarılı",
+    "generationFailed": "Nesil Başarısız"
   }
 }

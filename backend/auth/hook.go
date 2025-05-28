@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type hookCred struct {
@@ -51,7 +51,7 @@ func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(fmt.Sprintf("hook auth %v", action))
+	logger.Debugf("hook auth %v", action)
 
 	switch action {
 	case "auth":

@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.5-beta
+
+ **New Features**
+ - new `./filebrowser.exe setup` command for creating a config.yaml on first run. https://github.com/gtsteffaniak/filebrowser/issues/675
+ - new 2FA/OTP support for password-based users.
+ - `auth.password.enforcedOtp` option to enforce 2FA usage for password users.
+
+ **Notes**:
+ - logging uses localtime, optional UTC config added https://github.com/gtsteffaniak/filebrowser/issues/665
+ - generated config example now includes defaults https://github.com/gtsteffaniak/filebrowser/issues/590
+ - `server.debugMedia` config option added to help debug ffmpeg issues in the future (don't enable unless debugging an issue)
+ - more translations additions from english settings https://github.com/gtsteffaniak/filebrowser/issues/653
+ - visual tweaks https://github.com/gtsteffaniak/filebrowser/issues/652
+ - enhanced markdown viewer with code view spec
+
+ **BugFixes**:
+ - long video names ffmpeg issue fixed https://github.com/gtsteffaniak/filebrowser/issues/669
+ - certain files not passing content https://github.com/gtsteffaniak/filebrowser/issues/657
+ - https://github.com/gtsteffaniak/filebrowser/issues/668
+ - allow edit markdown files
+ - rename button doesn't close prompt https://github.com/gtsteffaniak/filebrowser/issues/664
+ - webm video preview issue https://github.com/gtsteffaniak/filebrowser/issues/673
+ - fix signup issue https://github.com/gtsteffaniak/filebrowser/issues/648
+ - fix default source bug
+ - https://github.com/gtsteffaniak/filebrowser/issues/666
+ - fix 500 error for subtitle videos https://github.com/gtsteffaniak/filebrowser/issues/678
+ - spaces and special characters in source name issue https://github.com/gtsteffaniak/filebrowser/issues/679
+
+![image](https://github.com/user-attachments/assets/28e4e67e-31a1-4107-9294-0e715e87b558)
+
 ## v0.7.4-beta
 
  **Notes**:

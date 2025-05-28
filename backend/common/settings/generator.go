@@ -1,9 +1,7 @@
-// cmd/yamlgen/main.go
-package main
+package settings
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -13,7 +11,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"gopkg.in/yaml.v3"
 )
 
@@ -117,7 +114,7 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 			// attach validate and comments inline
 			var parts []string
 			if cm := comm[typeName][sf.Name]; cm != "" {
-				parts = append(parts, fmt.Sprintf("\"%s\"", cm))
+				parts = append(parts, cm)
 			}
 			if vt := sf.Tag.Get("validate"); vt != "" {
 				parts = append(parts, fmt.Sprintf(" validate:%s", vt))
@@ -169,19 +166,29 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 	}
 }
 
-func main() {
-	input := flag.String("input", "settings/settings.go", "path to Go source file or directory containing structs")
-	output := flag.String("output", "settings/config.generated.yaml", "path to write generated YAML")
-	flag.Parse()
+func GenerateYaml() {
+	_ = loadConfigWithDefaults("")
+	Config.Server.Sources = []Source{
+		{
+			Path: ".",
+		},
+	}
 
-	comm, err := collectComments(*input)
+	setupLogging()
+	setupAuth()
+	setupSources(true)
+	setupUrls()
+	setupFrontend()
+	input := "common/settings/settings.go" // "path to Go source file or directory containing structs"
+	output := "generated.yaml"             // "output YAML file"
+
+	comm, err := collectComments(input)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error parsing comments: %v\n", err)
 		os.Exit(1)
 	}
 
-	cfg := &settings.Settings{}
-	node, err := buildNode(reflect.ValueOf(cfg), comm)
+	node, err := buildNode(reflect.ValueOf(Config), comm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error building YAML node: %v\n", err)
 		os.Exit(1)
@@ -200,51 +207,49 @@ func main() {
 
 	aligned := alignComments(rawBuf.String())
 
-	if err := os.WriteFile(*output, []byte(aligned), 0644); err != nil {
+	if err := os.WriteFile(output, []byte(aligned), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "error writing YAML: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Generated YAML with comments: %s\n", *output)
+	fmt.Printf("Generated YAML with comments: %s\n", output)
 }
 
-// alignComments scans YAML text and aligns all inline '#' within each indentation block
+// formatLine applies padding to a single line so its comment starts at a target column.
+func formatLine(line string) string {
+	const targetCol = 42
+	const defaultPadding = 1
+
+	idx := strings.Index(line, "#")
+	// If there's no comment, do nothing.
+	if idx == -1 {
+		return line
+	}
+
+	// Separate the content (before #) from the comment (from # onwards).
+	contentPart := line[:idx]
+	commentPart := line[idx:]
+
+	// The YAML encoder adds a space; trim it so we measure only the content length.
+	trimmedContent := strings.TrimRight(contentPart, " ")
+
+	// If the content already extends past our target column, just add a single space.
+	if len(trimmedContent) >= targetCol {
+		return trimmedContent + strings.Repeat(" ", defaultPadding) + commentPart
+	}
+
+	// Otherwise, calculate the needed padding to reach the target column and add it.
+	paddingNeeded := targetCol - len(trimmedContent)
+	return trimmedContent + strings.Repeat(" ", paddingNeeded) + commentPart
+}
+
+// alignComments formats each line of the YAML string independently.
 func alignComments(input string) string {
 	lines := strings.Split(input, "\n")
-	var out []string
-	blockStart := 0
-	maxPos := 0
-	for i, line := range lines {
-		trim := strings.TrimLeft(line, " ")
-		// new block when indentation decreases
-		if i > 0 {
-			prevIndent := len(lines[i-1]) - len(strings.TrimLeft(lines[i-1], " "))
-			curIndent := len(line) - len(trim)
-			if curIndent < prevIndent {
-				for j := blockStart; j < i; j++ {
-					out = append(out, padLine(lines[j], maxPos))
-				}
-				blockStart = i
-				maxPos = 0
-			}
-		}
-		if idx := strings.Index(line, "#"); idx >= 0 {
-			if idx > maxPos {
-				maxPos = idx
-			}
-		}
-		if i == len(lines)-1 {
-			for j := blockStart; j <= i; j++ {
-				out = append(out, padLine(lines[j], maxPos))
-			}
-		}
-	}
-	return strings.Join(out, "\n")
-}
+	outputLines := make([]string, len(lines))
 
-// padLine inserts spaces before '#' so it lands at column maxPos
-func padLine(line string, maxPos int) string {
-	if idx := strings.Index(line, "#"); idx >= 0 && idx < maxPos {
-		return line[:idx] + strings.Repeat(" ", maxPos-idx) + line[idx:]
+	for i, line := range lines {
+		outputLines[i] = formatLine(line)
 	}
-	return line
+
+	return strings.Join(outputLines, "\n")
 }

@@ -32,6 +32,92 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/auth/otp/generate": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Generates a new TOTP secret and QR code for the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Generate OTP",
+                "responses": {
+                    "200": {
+                        "description": "OTP secret generated successfully.",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Verifies the provided TOTP code for the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Verify OTP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "TOTP code to verify",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP token is valid.",
+                        "schema": {
+                            "$ref": "#/definitions/http.HttpResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid TOTP token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/createApiKey": {
             "post": {
                 "description": "Create an API key with specified name, duration, and permissions.",
@@ -1677,6 +1763,10 @@ const docTemplate = `{
                 "tokenExpirationHours": {
                     "description": "the number of hours until the token expires. Default is 2 hours.",
                     "type": "integer"
+                },
+                "totpSecret": {
+                    "description": "secret used to encrypt TOTP secrets",
+                    "type": "string"
                 }
             }
         },
@@ -1783,6 +1873,10 @@ const docTemplate = `{
                 "output": {
                     "description": "output location. (eg. \"stdout\" or \"path/to/file.log\")",
                     "type": "string"
+                },
+                "utc": {
+                    "description": "use UTC time in the output instead of local time",
+                    "type": "boolean"
                 }
             }
         },
@@ -1876,7 +1970,12 @@ const docTemplate = `{
                 "enabled": {
                     "type": "boolean"
                 },
+                "enforcedOtp": {
+                    "description": "if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.",
+                    "type": "boolean"
+                },
                 "minLength": {
+                    "description": "minimum pasword length required.",
                     "type": "integer",
                     "minimum": 5
                 },
@@ -1889,7 +1988,7 @@ const docTemplate = `{
                     ]
                 },
                 "signup": {
-                    "description": "currently not used by filebrowser",
+                    "description": "allow signups on login page if enabled -- not secure.",
                     "type": "boolean"
                 }
             }
@@ -1946,6 +2045,10 @@ const docTemplate = `{
                 "database": {
                     "description": "path to the database file",
                     "type": "string"
+                },
+                "debugMedia": {
+                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "type": "boolean"
                 },
                 "disablePreviewResize": {
                     "description": "disable resizing of previews for faster loading over slow connections",
@@ -2360,6 +2463,10 @@ const docTemplate = `{
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
                 },
+                "otpEnabled": {
+                    "description": "true if TOTP is enabled, false otherwise",
+                    "type": "boolean"
+                },
                 "password": {
                     "type": "string"
                 },
@@ -2407,6 +2514,12 @@ const docTemplate = `{
                 },
                 "themeColor": {
                     "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
+                    "type": "string"
+                },
+                "totpNonce": {
+                    "type": "string"
+                },
+                "totpSecret": {
                     "type": "string"
                 },
                 "username": {

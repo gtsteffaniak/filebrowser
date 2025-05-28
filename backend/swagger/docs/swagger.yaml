@@ -107,6 +107,9 @@ definitions:
       tokenExpirationHours:
         description: the number of hours until the token expires. Default is 2 hours.
         type: integer
+      totpSecret:
+        description: secret used to encrypt TOTP secrets
+        type: string
     type: object
   settings.ExternalLink:
     properties:
@@ -181,6 +184,9 @@ definitions:
       output:
         description: output location. (eg. "stdout" or "path/to/file.log")
         type: string
+      utc:
+        description: use UTC time in the output instead of local time
+        type: boolean
     type: object
   settings.LoginMethods:
     properties:
@@ -252,7 +258,12 @@ definitions:
     properties:
       enabled:
         type: boolean
+      enforcedOtp:
+        description: if set to true, TOTP is enforced for all password users users.
+          Otherwise, users can choose to enable TOTP.
+        type: boolean
       minLength:
+        description: minimum pasword length required.
         minimum: 5
         type: integer
       recaptcha:
@@ -260,7 +271,7 @@ definitions:
         - $ref: '#/definitions/settings.Recaptcha'
         description: recaptcha config, only used if signup is enabled
       signup:
-        description: currently not used by filebrowser
+        description: allow signups on login page if enabled -- not secure.
         type: boolean
     type: object
   settings.ProxyAuthConfig:
@@ -301,6 +312,10 @@ definitions:
       database:
         description: path to the database file
         type: string
+      debugMedia:
+        description: output ffmpeg stdout for media integration -- careful can produces
+          lots of output!
+        type: boolean
       disablePreviewResize:
         description: disable resizing of previews for faster loading over slow connections
         type: boolean
@@ -602,6 +617,9 @@ definitions:
         type: boolean
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
+      otpEnabled:
+        description: true if TOTP is enabled, false otherwise
+        type: boolean
       password:
         type: string
       perm:
@@ -638,6 +656,10 @@ definitions:
         description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
           etc'
         type: string
+      totpNonce:
+        type: string
+      totpSecret:
+        type: string
       username:
         type: string
       viewMode:
@@ -658,6 +680,60 @@ paths:
       summary: User Logout
       tags:
       - Auth
+  /api/auth/otp/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generates a new TOTP secret and QR code for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP secret generated successfully.
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Generate OTP
+      tags:
+      - OTP
+  /api/auth/otp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the provided TOTP code for the authenticated user.
+      parameters:
+      - description: TOTP code to verify
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP token is valid.
+          schema:
+            $ref: '#/definitions/http.HttpResponse'
+        "401":
+          description: Unauthorized - invalid TOTP token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Verify OTP
+      tags:
+      - OTP
   /api/createApiKey:
     post:
       consumes:

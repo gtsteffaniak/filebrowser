@@ -54,7 +54,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"ExternalLinks":     config.Frontend.ExternalLinks,
 		"ExternalUrl":       strings.TrimSuffix(config.Server.ExternalUrl, "/"),
 		"OnlyOfficeUrl":     settings.Config.Integrations.OnlyOffice.Url,
-		"SourceCount":       len(config.Server.Sources),
+		"SourceCount":       len(config.Server.SourceMap),
 		"OidcAvailable":     config.Auth.Methods.OidcAuth.Enabled,
 		"PasswordAvailable": config.Auth.Methods.PasswordAuth.Enabled,
 		"MediaAvailable":    config.Integrations.Media.FfmpegPath != "",

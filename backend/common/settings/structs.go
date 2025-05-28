@@ -31,7 +31,8 @@ type Server struct {
 	Port                         int         `json:"port"`                         // port to listen on
 	BaseURL                      string      `json:"baseURL"`                      // base URL for the server, the subpath that the server is running on.
 	Logging                      []LogConfig `json:"logging"`
-	Database                     string      `json:"database"` // path to the database file
+	DebugMedia                   bool        `json:"debugMedia"` // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	Database                     string      `json:"database"`   // path to the database file
 	Sources                      []Source    `json:"sources" validate:"required,dive"`
 	ExternalUrl                  string      `json:"externalUrl"`    // used by share links if set
 	InternalUrl                  string      `json:"internalUrl"`    // used by integrations if set, this is the url that an integration service will use to communicate with filebrowser
@@ -66,6 +67,7 @@ type LogConfig struct {
 	Output    string `json:"output"`    // output location. (eg. "stdout" or "path/to/file.log")
 	NoColors  bool   `json:"noColors"`  // disable colors in the output
 	Json      bool   `json:"json"`      // output in json format, currently not supported
+	Utc       bool   `json:"utc"`       // use UTC time in the output instead of local time
 }
 
 type Source struct {

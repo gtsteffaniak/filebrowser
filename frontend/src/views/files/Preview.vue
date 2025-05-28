@@ -174,9 +174,14 @@ export default {
         return [];
       }
       let subs = [];
-      for (const element of state.req.subtitles) {
-        const ext = getFileExtension(element);
-        const resp = await filesApi.fetchFiles(element, true); // Fetch .srt file
+      for (let subtitleFile of state.req.subtitles) {
+        if (state.serverHasMultipleSources) {
+          subtitleFile = "/files/" + state.req.source + subtitleFile;
+        } else {
+          subtitleFile = "/files" + subtitleFile;
+        }
+        const ext = getFileExtension(subtitleFile);
+        const resp = await filesApi.fetchFiles(subtitleFile, true); // Fetch .srt file
         let vttContent = resp.content;
         // Convert SRT to VTT (assuming srt2vtt() does this)
         vttContent = convertToVTT(ext, resp.content);

@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type Auth struct {
@@ -18,6 +18,7 @@ type Auth struct {
 	AdminUsername        string       `json:"adminUsername"`     // the username of the admin user. If not set, the default is "admin".
 	AdminPassword        string       `json:"adminPassword"`     // the password of the admin user. If not set, the default is "admin".
 	ResetAdminOnStart    bool         `json:"resetAdminOnStart"` // if set to true, the admin user will be reset to the default username and password on startup.
+	TotpSecret           string       `json:"totpSecret"`        // secret used to encrypt TOTP secrets
 	AuthMethods          []string     `json:"-"`
 }
 
@@ -29,10 +30,11 @@ type LoginMethods struct {
 }
 
 type PasswordAuthConfig struct {
-	Enabled   bool      `json:"enabled"`
-	MinLength int       `json:"minLength" validate:"omitempty,min=5"`
-	Signup    bool      `json:"signup" validate:"omitempty"`    // currently not used by filebrowser
-	Recaptcha Recaptcha `json:"recaptcha" validate:"omitempty"` // recaptcha config, only used if signup is enabled
+	Enabled     bool      `json:"enabled"`
+	MinLength   int       `json:"minLength" validate:"omitempty,min=5"` // minimum pasword length required.
+	Signup      bool      `json:"signup" validate:"omitempty"`          // allow signups on login page if enabled -- not secure.
+	Recaptcha   Recaptcha `json:"recaptcha" validate:"omitempty"`       // recaptcha config, only used if signup is enabled
+	EnforcedOtp bool      `json:"enforcedOtp"`                          // if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
 }
 
 type ProxyAuthConfig struct {

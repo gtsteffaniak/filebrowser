@@ -37,7 +37,10 @@
     "upload": "Feltöltés",
     "openFile": "Fájl megnyitása",
     "copyDownloadLinkToClipboard": "Letöltési link másolása a vágólapra",
-    "continue": "Folytatás"
+    "continue": "Folytatás",
+    "edit": "Szerkesztés",
+    "generateNewOtp": "Új kétfaktoros kód visszaállítása és generálása",
+    "verify": "Ellenőrizze a  címet."
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -258,7 +261,6 @@
     "userUpdated": "Felhasználó frissítve!",
     "username": "Felhasználói név",
     "users": "Felhasználók",
-    "loginMethod": "Bejelentkezési módszer",
     "modifyOtherUser": "Felhasználó módosítása:",
     "modifyCurrentUser": "Jelenlegi felhasználó módosítása",
     "themeColor": "Téma színe",
@@ -279,7 +281,9 @@
     "userNotAdmin": "A felhasználó nem rendszergazda",
     "enterPassword": "Jelszó megadása",
     "enterPasswordAgain": "Adja meg újra a jelszót",
-    "passwordsDoNotMatch": "A jelszavak nem egyeznek"
+    "passwordsDoNotMatch": "A jelszavak nem egyeznek",
+    "loginMethod": "Bejelentkezési módszer",
+    "shareSettings": "Beállítások megosztása"
   },
   "sidebar": {
     "help": "Súgó",
@@ -350,5 +354,28 @@
     "toggleSticky": "Ragadós mód átkapcsolása",
     "of": "a",
     "used": "használt"
+  },
+  "profileSettings": {
+    "setDateFormat": "Pontos dátumformátum beállítása",
+    "showHiddenFiles": "Rejtett fájlok megjelenítése",
+    "showQuickDownload": "Letöltés ikon megjelenítése a gyors hozzáférés érdekében",
+    "previewImages": "Képek előnézete",
+    "previewVideos": "Videók előnézete",
+    "previewMotionVideos": "Videók mozgásnézetének előnézete",
+    "highQualityPreview": "Kiváló minőségű előnézet",
+    "previewOffice": "Office fájlok előnézete",
+    "popupPreview": "Pop-up előnézet engedélyezése",
+    "filePreviewOptions": "Fájl előnézeti beállítások"
+  },
+  "otp": {
+    "name": "Kétfaktoros hitelesítés",
+    "verifyInstructions": "Írja be a kódot a hitelesítők alkalmazásából",
+    "generate": "Szkennelje be a QR-kódot a hitelesítő alkalmazással",
+    "codeInputPlaceholder": "6 számjegyű kód",
+    "invalidCodeType": "Az ellenőrző kódnak 6 angol számjegyűnek kell lennie",
+    "enabledSuccessfully": "OTP sikeresen engedélyezve",
+    "verificationFailed": "Ellenőrzés sikertelen",
+    "verificationSucceed": "Ellenőrzés Succeed",
+    "generationFailed": "Nemzedék sikertelen"
   }
 }

@@ -8,12 +8,12 @@ import (
 
 	storm "github.com/asdine/storm/v3"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // Storage is a storage powered by a Backend which makes the necessary
@@ -37,7 +37,7 @@ func InitializeDb(path string) (*Storage, bool, error) {
 		if strings.Contains(err.Error(), "timeout") {
 			logger.Fatal("the database is locked, please close all other instances of filebrowser before starting.")
 		}
-		logger.Fatal(fmt.Sprintf("could not open database: %v", err))
+		logger.Fatalf("could not open database: %v", err)
 	}
 	authStore, userStore, shareStore, settingsStore, err := bolt.NewStorage(db)
 	if err != nil {
@@ -100,7 +100,7 @@ func quickSetup(store *Storage) {
 	}
 	user.LockPassword = false
 	user.Permissions = settings.AdminPerms()
-	logger.Debug(fmt.Sprintf("Creating user as admin: %v %v", user.Username, user.Password))
+	logger.Debugf("Creating user as admin: %v %v", user.Username, user.Password)
 	err = store.Users.Save(user, true, true)
 	utils.CheckErr("store.Users.Save", err)
 }
@@ -123,7 +123,7 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 	if userInfo.Username == "" {
 		return fmt.Errorf("username is required to create a user")
 	}
-	logger.Debug(fmt.Sprintf("Creating user: %v %v", userInfo.Username, userInfo.Scopes))
+	logger.Debugf("Creating user: %v %v", userInfo.Username, userInfo.Scopes)
 	settings.ApplyUserDefaults(newUser)
 	if asAdmin {
 		userInfo.Permissions = settings.AdminPerms()

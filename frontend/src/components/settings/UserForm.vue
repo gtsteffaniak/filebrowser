@@ -37,6 +37,17 @@
         {{ $t("buttons.update") }}
       </button>
     </div>
+    <div
+      style="display: flex; flex-direction: column"
+      v-if="stateUser.username == user.username"
+    >
+      <div class="settings-items">
+        <ToggleSwitch class="item" v-model="user.otpEnabled" :name="$t('otp.name')" />
+      </div>
+      <button class="button" type="button" v-if="user.otpEnabled" :onclick="newOTP">
+        {{ $t("buttons.generateNewOtp") }}
+      </button>
+    </div>
     <hr />
   </div>
   <div v-if="stateUser.permissions.admin">
@@ -159,7 +170,7 @@
       <select v-model="user.loginMethod" class="input input--block" id="loginMethod">
         <option value="password">Password</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <option value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <option value="proxy">Proxy</option>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <option value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       </select>
     </div>
     <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
@@ -169,7 +180,7 @@
 <script>
 import Languages from "./Languages.vue";
 import Permissions from "./Permissions.vue";
-import { state } from "@/store";
+import { mutations, state } from "@/store";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { notify } from "@/notify";
 import { usersApi, settingsApi } from "@/api";
@@ -248,6 +259,14 @@ export default {
     },
   },
   methods: {
+    newOTP() {
+      mutations.showHover({
+        name: "totp",
+        props: {
+          generate: true,
+        },
+      });
+    },
     async submitUpdatePassword() {
       event.preventDefault();
       if (this.invalidPassword) {

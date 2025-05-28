@@ -37,7 +37,10 @@
     "folder": "Folder",
     "submit": "Prześlij",
     "openFile": "Otwórz plik",
-    "continue": "Kontynuuj"
+    "continue": "Kontynuuj",
+    "edit": "Edytuj",
+    "generateNewOtp": "Resetowanie i generowanie nowego kodu dwuskładnikowego",
+    "verify": "Weryfikacja"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -254,7 +257,6 @@
     "userUpdated": "Użytkownik zapisany!",
     "username": "Nazwa użytkownika",
     "users": "Użytkownicy",
-    "loginMethod": "Metoda logowania",
     "modifyOtherUser": "Modyfikacja użytkownika:",
     "modifyCurrentUser": "Modyfikacja bieżącego użytkownika",
     "themeColor": "Kolor motywu",
@@ -279,7 +281,9 @@
     "userNotAdmin": "Użytkownik nie jest administratorem",
     "enterPassword": "Wprowadź hasło",
     "enterPasswordAgain": "Wprowadź hasło ponownie",
-    "passwordsDoNotMatch": "Hasła nie są zgodne"
+    "passwordsDoNotMatch": "Hasła nie są zgodne",
+    "loginMethod": "Metoda logowania",
+    "shareSettings": "Ustawienia udostępniania"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -350,5 +354,28 @@
     "toggleSticky": "Przełączanie trybu samoprzylepnego",
     "of": "z",
     "used": "używany"
+  },
+  "profileSettings": {
+    "setDateFormat": "Ustaw dokładny format daty",
+    "showHiddenFiles": "Pokaż ukryte pliki",
+    "showQuickDownload": "Pokaż ikonę pobierania dla szybkiego dostępu",
+    "previewImages": "Podgląd obrazów",
+    "previewVideos": "Podgląd wideo",
+    "previewMotionVideos": "Podgląd ruchu dla filmów",
+    "highQualityPreview": "Podgląd wysokiej jakości",
+    "previewOffice": "Podgląd plików biurowych",
+    "popupPreview": "Włącz wyskakujący podgląd",
+    "filePreviewOptions": "Opcje podglądu plików"
+  },
+  "otp": {
+    "name": "Uwierzytelnianie dwuskładnikowe",
+    "verifyInstructions": "Wprowadź kod z aplikacji uwierzytelniającej",
+    "generate": "Zeskanuj kod QR za pomocą aplikacji uwierzytelniającej",
+    "codeInputPlaceholder": "6-cyfrowy kod",
+    "invalidCodeType": "Kod weryfikacyjny powinien składać się z 6 angielskich cyfr",
+    "enabledSuccessfully": "OTP został pomyślnie włączony",
+    "verificationFailed": "Weryfikacja nie powiodła się",
+    "verificationSucceed": "Sukces weryfikacji",
+    "generationFailed": "Generacja nieudana"
   }
 }

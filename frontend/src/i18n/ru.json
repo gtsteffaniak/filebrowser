@@ -37,7 +37,10 @@
     "upload": "Загрузить",
     "openFile": "Открыть файл",
     "copyDownloadLinkToClipboard": "Скопируйте ссылку на скачивание в буфер обмена",
-    "continue": "Продолжить"
+    "continue": "Продолжить",
+    "edit": "Редактировать",
+    "generateNewOtp": "Сброс и генерация нового двухфакторного кода",
+    "verify": "Проверьте"
   },
   "download": {
     "downloadFile": "Скачать файл",
@@ -256,7 +259,6 @@
     "userUpdated": "Пользователь изменен!",
     "username": "Имя пользователя",
     "users": "Пользователи",
-    "loginMethod": "Метод входа в систему",
     "modifyOtherUser": "Измените пользователя:",
     "modifyCurrentUser": "Изменить текущего пользователя",
     "themeColor": "Цвет темы",
@@ -279,7 +281,9 @@
     "userNotAdmin": "Пользователь не является администратором",
     "enterPassword": "Введите пароль",
     "enterPasswordAgain": "Введите пароль еще раз",
-    "passwordsDoNotMatch": "Пароли не совпадают"
+    "passwordsDoNotMatch": "Пароли не совпадают",
+    "loginMethod": "Метод входа в систему",
+    "shareSettings": "Поделиться настройками"
   },
   "sidebar": {
     "help": "Помощь",
@@ -350,5 +354,28 @@
     "toggleSticky": "Переключение режима липкости",
     "of": "из",
     "used": "используется"
+  },
+  "profileSettings": {
+    "setDateFormat": "Установите точный формат даты",
+    "showHiddenFiles": "Показать скрытые файлы",
+    "showQuickDownload": "Показывайте значок загрузки для быстрого доступа",
+    "previewImages": "Предварительные изображения",
+    "previewVideos": "Предварительный просмотр видео",
+    "previewMotionVideos": "Предварительный просмотр движения для видео",
+    "highQualityPreview": "Высококачественный предварительный просмотр",
+    "previewOffice": "Предварительный просмотр офисных файлов",
+    "popupPreview": "Включить предварительный просмотр всплывающих окон",
+    "filePreviewOptions": "Параметры предварительного просмотра файлов"
+  },
+  "otp": {
+    "name": "Двухфакторная аутентификация",
+    "verifyInstructions": "Введите код из приложения аутентификатора.",
+    "generate": "Отсканируйте QR-код с помощью приложения-аутентификатора.",
+    "codeInputPlaceholder": "6-значный код",
+    "invalidCodeType": "Код проверки должен состоять из 6 английских цифр",
+    "enabledSuccessfully": "OTP успешно активирован",
+    "verificationFailed": "Верификация не удалась",
+    "verificationSucceed": "Проверка Успех",
+    "generationFailed": "Поколение не удалось"
   }
 }

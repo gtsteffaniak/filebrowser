@@ -7,15 +7,20 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-yaml"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 var Config Settings
+
+const (
+	generatorPath = "/relative/or/absolute/path"
+)
 
 func Initialize(configFile string) {
 	err := loadConfigWithDefaults(configFile)
@@ -29,11 +34,12 @@ func Initialize(configFile string) {
 		errmsg += "please review your config for typos and invalid keys which are no longer supported. "
 		errmsg += "visit https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example for more information."
 		logger.Error(errmsg)
+		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
 	setupLogging()
 	setupAuth()
-	setupSources()
+	setupSources(false)
 	setupUrls()
 	setupFrontend()
 }
@@ -55,16 +61,16 @@ func setupFrontend() {
 func getRealPath(path string) string {
 	realPath, err := filepath.Abs(path)
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("could not find configured source path: %v", err))
+		logger.Fatalf("could not find configured source path: %v", err)
 	}
 	// check path exists
 	if _, err = os.Stat(realPath); os.IsNotExist(err) {
-		logger.Fatal(fmt.Sprintf("configured source path does not exist: %v", realPath))
+		logger.Fatalf("configured source path does not exist: %v", realPath)
 	}
 	return realPath
 }
 
-func setupSources() {
+func setupSources(generate bool) {
 	if len(Config.Server.Sources) == 0 {
 		logger.Fatal("There are no `server.sources` configured. If you have `server.root` configured, please update the config and add at least one `server.sources` with a `path` configured.")
 	} else {
@@ -74,7 +80,11 @@ func setupSources() {
 			if name == "\\" {
 				name = strings.Split(realPath, ":")[0]
 			}
-			source.Path = realPath // use absolute path
+			if generate {
+				source.Path = generatorPath // use placeholder path
+			} else {
+				source.Path = realPath // use absolute path
+			}
 			if source.Name == "" {
 				_, ok := Config.Server.SourceMap[source.Path]
 				if ok {
@@ -101,6 +111,9 @@ func setupSources() {
 	potentialDefaultSource := Config.Server.DefaultSource
 	for _, sourcePathOnly := range Config.Server.Sources {
 		realPath := getRealPath(sourcePathOnly.Path)
+		if generate {
+			realPath = generatorPath // use placeholder path
+		}
 		source, ok := Config.Server.SourceMap[realPath]
 		if ok && !slices.Contains(allSourceNames, source.Name) {
 			if first {
@@ -119,12 +132,22 @@ func setupSources() {
 			}
 			allSourceNames = append(allSourceNames, source.Name)
 		} else {
-			logger.Warning(fmt.Sprintf("source %v is not configured correctly, skipping", sourcePathOnly.Path))
+			logger.Warningf("source %v is not configured correctly, skipping", sourcePathOnly.Path)
 		}
 	}
 	if Config.Server.DefaultSource.Path == "" {
 		Config.Server.DefaultSource = potentialDefaultSource
 	}
+	sourceList2 := []Source{}
+	for _, s := range sourceList {
+		if s.Path == Config.Server.DefaultSource.Path {
+			s.Config.DefaultEnabled = true
+			Config.Server.SourceMap[s.Path] = s
+			Config.Server.NameToSource[s.Name] = s
+		}
+		sourceList2 = append(sourceList2, s)
+	}
+	sourceList = sourceList2
 	Config.UserDefaults.DefaultScopes = defaultScopes
 	Config.Server.Sources = sourceList
 }
@@ -159,7 +182,7 @@ func setupAuth() {
 	if Config.Auth.Methods.OidcAuth.Enabled {
 		err := validateOidcAuth()
 		if err != nil {
-			logger.Fatal(fmt.Sprintf("Error validating OIDC auth: %v", err))
+			logger.Fatalf("Error validating OIDC auth: %v", err)
 		}
 		logger.Info("OIDC Auth configured successfully")
 	}
@@ -182,12 +205,15 @@ func setupLogging() {
 		}
 	}
 	for _, logConfig := range Config.Server.Logging {
-		err := logger.SetupLogger(
-			logConfig.Output,
-			logConfig.Levels,
-			logConfig.ApiLevels,
-			logConfig.NoColors,
-		)
+		logConfig := logger.JsonConfig{
+			Levels:    logConfig.Levels,
+			ApiLevels: logConfig.ApiLevels,
+			Output:    logConfig.Output,
+			Utc:       logConfig.Utc,
+			NoColors:  logConfig.NoColors,
+			Json:      logConfig.Json,
+		}
+		err := logger.SetupLogger(logConfig)
 		if err != nil {
 			log.Println("[ERROR] Failed to set up logger:", err)
 		}
@@ -199,7 +225,7 @@ func loadConfigWithDefaults(configFile string) error {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		return err
+		logger.Warningf("could not open config file '%v', using default settings", configFile)
 	}
 	defer yamlFile.Close()
 	stat, err := yamlFile.Stat()
@@ -212,7 +238,7 @@ func loadConfigWithDefaults(configFile string) error {
 		return fmt.Errorf("could not load specified config file: %v", err.Error())
 	}
 	if err != nil {
-		logger.Warning(fmt.Sprintf("Could not load config file '%v', using default settings: %v", configFile, err))
+		logger.Warningf("Could not load config file '%v', using default settings: %v", configFile, err)
 	}
 	err = yaml.NewDecoder(strings.NewReader(string(yamlData)), yaml.DisallowUnknownField()).Decode(&Config)
 	if err != nil {
@@ -375,7 +401,7 @@ func HasSourceByPath(scopes []users.SourceScope, sourcePath string) bool {
 func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (string, error) {
 	source, ok := Config.Server.NameToSource[sourceName]
 	if !ok {
-		logger.Debug(fmt.Sprint("Could not get scope from source name: ", sourceName))
+		logger.Debug("Could not get scope from source name: ", sourceName)
 		return "", fmt.Errorf("source with name not found %v", sourceName)
 	}
 	for _, scope := range scopes {
@@ -383,7 +409,7 @@ func GetScopeFromSourceName(scopes []users.SourceScope, sourceName string) (stri
 			return scope.Scope, nil
 		}
 	}
-	logger.Debug(fmt.Sprintf("scope not found for source %v", sourceName))
+	logger.Debugf("scope not found for source %v", sourceName)
 	return "", fmt.Errorf("scope not found for source %v", sourceName)
 }
 

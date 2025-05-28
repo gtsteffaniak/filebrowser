@@ -37,7 +37,10 @@
     "folder": "フォルダ",
     "submit": "投稿する",
     "openFile": "ファイルを開く",
-    "continue": "続ける"
+    "continue": "続ける",
+    "edit": "編集",
+    "generateNewOtp": "リセットして新しい2ファクタコードを生成する",
+    "verify": "ベリファイ"
   },
   "download": {
     "downloadFile": "Download File",
@@ -254,7 +257,6 @@
     "userUpdated": "ユーザーは更新されました！",
     "username": "ユーザー名",
     "users": "ユーザー",
-    "loginMethod": "ログイン方法",
     "modifyOtherUser": "ユーザーを変更する：",
     "modifyCurrentUser": "現在のユーザーを変更する",
     "themeColor": "テーマカラー",
@@ -279,7 +281,9 @@
     "userNotAdmin": "ユーザーが管理者でない",
     "enterPassword": "パスワードを入力",
     "enterPasswordAgain": "もう一度パスワードを入力する",
-    "passwordsDoNotMatch": "パスワードが一致しない"
+    "passwordsDoNotMatch": "パスワードが一致しない",
+    "loginMethod": "ログイン方法",
+    "shareSettings": "共有設定"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -350,5 +354,28 @@
     "toggleSticky": "スティッキーモードの切り替え",
     "of": "の",
     "used": "中古"
+  },
+  "profileSettings": {
+    "setDateFormat": "正確な日付書式を設定する",
+    "showHiddenFiles": "隠しファイルを表示する",
+    "showQuickDownload": "クイックアクセスのためにダウンロードアイコンを表示する",
+    "previewImages": "プレビュー画像",
+    "previewVideos": "プレビュー映像",
+    "previewMotionVideos": "ビデオのモーション・プレビュー",
+    "highQualityPreview": "高画質プレビュー",
+    "previewOffice": "オフィスファイルのプレビュー",
+    "popupPreview": "ポップアップ・プレビューを有効にする",
+    "filePreviewOptions": "ファイルプレビューオプション"
+  },
+  "otp": {
+    "name": "二要素認証",
+    "verifyInstructions": "認証アプリからコードを入力",
+    "generate": "認証アプリでQRコードをスキャンする",
+    "codeInputPlaceholder": "6桁コード",
+    "invalidCodeType": "認証コードは英数字6桁で入力してください。",
+    "enabledSuccessfully": "OTPの有効化に成功",
+    "verificationFailed": "検証失敗",
+    "verificationSucceed": "検証の成功",
+    "generationFailed": "世代が失敗"
   }
 }

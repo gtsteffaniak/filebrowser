@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>{{ $t('api.title') }}</h2>
+      <h2>{{ $t('api.title') }}:</h2> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
 
     <div class="card-content">

@@ -2,7 +2,7 @@
 import fs from 'fs-extra';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import glob from 'glob';
+import * as glob from 'glob';
 import * as deepl from 'deepl-node';
 
 // --- Configuration ---

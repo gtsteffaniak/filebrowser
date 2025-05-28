@@ -37,7 +37,10 @@
     "upload": "Upload",
     "openFile": "Datei öffnen",
     "continue": "Fortfahren",
-    "copyDownloadLinkToClipboard": "Download-Link in die Zwischenablage kopieren"
+    "copyDownloadLinkToClipboard": "Download-Link in die Zwischenablage kopieren",
+    "edit": "bearbeiten",
+    "generateNewOtp": "Zurücksetzen und Generieren eines neuen Zwei-Faktor-Codes",
+    "verify": "Überprüfen Sie"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -260,7 +263,6 @@
     "userUpdated": "Benutzer aktualisiert!",
     "username": "Benutzername",
     "users": "Benutzer",
-    "loginMethod": "Login-Methode",
     "modifyOtherUser": "Benutzer ändern:",
     "modifyCurrentUser": "Aktuellen Benutzer ändern",
     "themeColor": "Designfarbe",
@@ -279,7 +281,9 @@
     "userNotAdmin": "Benutzer ist kein Administrator",
     "enterPassword": "Passwort eingeben",
     "enterPasswordAgain": "Geben Sie das Passwort erneut ein",
-    "passwordsDoNotMatch": "Passwörter stimmen nicht überein"
+    "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
+    "loginMethod": "Login-Methode",
+    "shareSettings": "Einstellungen teilen"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -350,5 +354,28 @@
     "toggleSticky": "Sticky-Modus umschalten",
     "of": "von",
     "used": "belegt"
+  },
+  "profileSettings": {
+    "setDateFormat": "Genaues Datumsformat einstellen",
+    "showHiddenFiles": "Versteckte Dateien anzeigen",
+    "showQuickDownload": "Download-Symbol für schnellen Zugriff anzeigen",
+    "previewImages": "Vorschaubilder",
+    "previewVideos": "Vorschau Videos",
+    "previewMotionVideos": "Bewegungsvorschau für Videos",
+    "highQualityPreview": "Hochwertige Vorschau",
+    "previewOffice": "Vorschau von Office-Dateien",
+    "popupPreview": "Pop-up-Vorschau einschalten",
+    "filePreviewOptions": "Optionen für die Dateivorschau"
+  },
+  "otp": {
+    "name": "Zwei-Faktoren-Authentifizierung",
+    "verifyInstructions": "Geben Sie den Code aus Ihrer Authenticator-App ein",
+    "generate": "Scannen Sie den QR-Code mit Ihrer Authenticator-App",
+    "codeInputPlaceholder": "6-stelliger Code",
+    "invalidCodeType": "Der Verifizierungscode sollte aus 6 englischen Ziffern bestehen.",
+    "enabledSuccessfully": "OTP erfolgreich aktiviert",
+    "verificationFailed": "Verifizierung fehlgeschlagen",
+    "verificationSucceed": "Überprüfung Erfolgreich",
+    "generationFailed": "Generation gescheitert"
   }
 }

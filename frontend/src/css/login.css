@@ -37,7 +37,7 @@
   margin: .5em 0 0;
 }
 
-#login .wrong {
+.wrong-login {
   background: var(--red);
   color: #fff;
   padding: .5em;

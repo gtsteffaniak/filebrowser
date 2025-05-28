@@ -1,7 +1,11 @@
 package auth
 
 import (
+	"encoding/base64"
+
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // StorageBackend is a storage backend for auth storage.
@@ -34,6 +38,10 @@ func NewStorage(back StorageBackend, userStore *users.Storage) (*Storage, error)
 	err = store.Save(&NoAuth{})
 	if err != nil {
 		return nil, err
+	}
+	encryptionKey, err = base64.StdEncoding.DecodeString(settings.Config.Auth.TotpSecret)
+	if err != nil {
+		logger.Warning("failed to decode TOTP secret, using default key. This is insecure and should be fixed.")
 	}
 	return store, nil
 }

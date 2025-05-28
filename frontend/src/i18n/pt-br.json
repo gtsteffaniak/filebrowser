@@ -37,7 +37,10 @@
     "upload": "Enviar",
     "openFile": "Abrir",
     "copyDownloadLinkToClipboard": "Copiar o link de download para a área de transferência",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "edit": "Editar",
+    "generateNewOtp": "Redefinir e gerar um novo código de dois fatores",
+    "verify": "Verificar"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -259,7 +262,6 @@
     "userUpdated": "Usuário atualizado!",
     "username": "Nome do usuário",
     "users": "Usuários",
-    "loginMethod": "Método de login",
     "modifyOtherUser": "Modificar usuário:",
     "modifyCurrentUser": "Modificar o usuário atual",
     "themeColor": "Cor do tema",
@@ -279,7 +281,9 @@
     "userNotAdmin": "O usuário não é um administrador",
     "enterPassword": "Digite a senha",
     "enterPasswordAgain": "Digite a senha novamente",
-    "passwordsDoNotMatch": "As senhas não correspondem"
+    "passwordsDoNotMatch": "As senhas não correspondem",
+    "loginMethod": "Método de login",
+    "shareSettings": "Compartilhar configurações"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -350,5 +354,28 @@
     "toggleSticky": "Alternar o modo de aderência",
     "of": "de",
     "used": "usado"
+  },
+  "profileSettings": {
+    "setDateFormat": "Definir o formato exato da data",
+    "showHiddenFiles": "Mostrar arquivos ocultos",
+    "showQuickDownload": "Mostrar o ícone de download para acesso rápido",
+    "previewImages": "Visualizar imagens",
+    "previewVideos": "Visualizar vídeos",
+    "previewMotionVideos": "Visualização de movimento para vídeos",
+    "highQualityPreview": "Visualização de alta qualidade",
+    "previewOffice": "Visualizar arquivos do Office",
+    "popupPreview": "Ativar visualização pop-up",
+    "filePreviewOptions": "Opções de visualização de arquivos"
+  },
+  "otp": {
+    "name": "Autenticação de dois fatores",
+    "verifyInstructions": "Digite o código do seu aplicativo autenticador",
+    "generate": "Digitalize o código QR com seu aplicativo autenticador",
+    "codeInputPlaceholder": "Código de 6 dígitos",
+    "invalidCodeType": "O código de verificação deve ter 6 dígitos em inglês",
+    "enabledSuccessfully": "OTP ativado com sucesso",
+    "verificationFailed": "Falha na verificação",
+    "verificationSucceed": "Verificação de sucesso",
+    "generationFailed": "Falha na geração"
   }
 }

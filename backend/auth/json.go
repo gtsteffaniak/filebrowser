@@ -8,15 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
-
-type jsonCred struct {
-	Password  string `json:"password"`
-	Username  string `json:"username"`
-	ReCaptcha string `json:"recaptcha"`
-}
 
 // JSONAuth is a json implementation of an Auther.
 type JSONAuth struct {
@@ -24,22 +19,15 @@ type JSONAuth struct {
 }
 
 // Auth authenticates the user via a json in content body.
-func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, error) {
-	var cred jsonCred
-
-	if r.Body == nil {
-		logger.Error("nil body error")
-		return nil, os.ErrPermission
-	}
-	err := json.NewDecoder(r.Body).Decode(&cred)
-	if err != nil {
-		logger.Error("decode body error")
-		return nil, os.ErrPermission
-	}
+func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, error) {
+	password := r.URL.Query().Get("password")
+	username := r.URL.Query().Get("username")
+	recaptcha := r.URL.Query().Get("recaptcha")
+	totpCode := r.URL.Query().Get("code")
 
 	// If ReCaptcha is enabled, check the code.
-	if a.ReCaptcha != nil && len(a.ReCaptcha.Secret) > 0 {
-		ok, err := a.ReCaptcha.Ok(cred.ReCaptcha) //nolint:govet
+	if auther.ReCaptcha != nil && len(auther.ReCaptcha.Secret) > 0 {
+		ok, err := auther.ReCaptcha.Ok(recaptcha) //nolint:govet
 
 		if err != nil {
 			return nil, err
@@ -49,16 +37,42 @@ func (a JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, 
 			return nil, os.ErrPermission
 		}
 	}
-	u, err := userStore.Get(cred.Username)
+
+	user, err := userStore.Get(username)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get user from store: %v", err)
 	}
-	err = users.CheckPwd(cred.Password, u.Password)
+	err = users.CheckPwd(password, user.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	return u, nil
+	// check for OTP for password
+	if user.TOTPSecret != "" {
+		if totpCode == "" {
+			return nil, errors.ErrNoTotpProvided
+		}
+		err = VerifyTotpCode(user, totpCode, userStore)
+		if err != nil {
+			logger.Error("OTP verification failed")
+			return nil, err
+		}
+	}
+
+	if user.LoginMethod != users.LoginMethodPassword {
+		logger.Warningf("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username)
+		user.LoginMethod = users.LoginMethodPassword
+		// Perform the user update
+		err = userStore.Update(user, true, "LoginMethod")
+		if err != nil {
+			logger.Debug(err.Error())
+		}
+		//http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		//return
+	}
+
+	return user, nil
+
 }
 
 // LoginPage tells that json auth doesn't require a login page.

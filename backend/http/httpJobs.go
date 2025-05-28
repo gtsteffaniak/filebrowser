@@ -1,12 +1,11 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 func getJobsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -15,7 +14,7 @@ func getJobsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	for _, source := range sources {
 		reducedIndex, err := indexing.GetIndexInfo(source)
 		if err != nil {
-			logger.Debug(fmt.Sprintf("error getting index info: %v", err))
+			logger.Debugf("error getting index info: %v", err)
 			continue
 		}
 		reducedIndexes[source] = reducedIndex

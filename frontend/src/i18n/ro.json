@@ -37,7 +37,10 @@
     "folder": "Dosar",
     "submit": "Trimite",
     "openFile": "Deschideți fișierul",
-    "continue": "Continuați"
+    "continue": "Continuați",
+    "edit": "Editare",
+    "generateNewOtp": "Resetați și generați un nou cod cu doi factori",
+    "verify": "Verificare"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -254,7 +257,6 @@
     "userUpdated": "Utilizator actualizat!",
     "username": "Utilizator",
     "users": "Utilizatori",
-    "loginMethod": "Metoda de conectare",
     "modifyOtherUser": "Modificați utilizatorul:",
     "modifyCurrentUser": "Modificarea utilizatorului curent",
     "themeColor": "Culoare temă",
@@ -279,7 +281,9 @@
     "userNotAdmin": "Utilizatorul nu este administrator",
     "enterPassword": "Introduceți parola",
     "enterPasswordAgain": "Introduceți din nou parola",
-    "passwordsDoNotMatch": "Parolele nu se potrivesc"
+    "passwordsDoNotMatch": "Parolele nu se potrivesc",
+    "loginMethod": "Metoda de conectare",
+    "shareSettings": "Setări de partajare"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -350,5 +354,28 @@
     "toggleSticky": "Schimbarea modului lipicios",
     "of": "de",
     "used": "utilizate"
+  },
+  "profileSettings": {
+    "setDateFormat": "Setați formatul exact al datei",
+    "showHiddenFiles": "Afișează fișierele ascunse",
+    "showQuickDownload": "Afișați pictograma de descărcare pentru acces rapid",
+    "previewImages": "Previzualizare imagini",
+    "previewVideos": "Previzualizare videoclipuri",
+    "previewMotionVideos": "Previzualizare mișcare pentru videoclipuri",
+    "highQualityPreview": "Previzualizare de înaltă calitate",
+    "previewOffice": "Previzualizare fișiere office",
+    "popupPreview": "Activați previzualizarea pop-up",
+    "filePreviewOptions": "Opțiuni de previzualizare a fișierelor"
+  },
+  "otp": {
+    "name": "Autentificare cu doi factori",
+    "verifyInstructions": "Introduceți codul din aplicația dvs. de autentificare",
+    "generate": "Scanați codul QR cu aplicația dvs. de autentificare",
+    "codeInputPlaceholder": "Cod de 6 cifre",
+    "invalidCodeType": "Codul de verificare trebuie să fie format din 6 cifre în limba engleză",
+    "enabledSuccessfully": "OTP activat cu succes",
+    "verificationFailed": "Verificarea a eșuat",
+    "verificationSucceed": "Verificarea reușită",
+    "generationFailed": "Generație eșuată"
   }
 }

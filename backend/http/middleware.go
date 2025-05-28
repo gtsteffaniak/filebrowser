@@ -12,10 +12,11 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
-	"github.com/gtsteffaniak/filebrowser/backend/common/logger"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type requestContext struct {
@@ -78,7 +79,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		})
 		file.Token = link.Token
 		if err != nil {
-			logger.Error(fmt.Sprintf("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err))
+			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
 		// Set the file info in the `data` object
@@ -99,6 +100,53 @@ func withAdminHelper(fn handleFunc) handleFunc {
 	})
 }
 
+func withoutUserHelper(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		// This middleware is used when no user authentication is required
+		// Call the actual handler function with the updated context
+		return fn(w, r, data)
+	}
+}
+
+// allow user without OTP to pass
+func userWithoutOTPhelper(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+		// This middleware is used when no user authentication is required
+		// Call the actual handler function with the updated context
+		username := r.URL.Query().Get("username")
+		password := r.URL.Query().Get("password")
+		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
+			user, err := setupProxyUser(r, &requestContext{}, proxyUser)
+			if err != nil {
+				return 401, errors.ErrUnauthorized
+			}
+			d.user = user
+		} else if username == "" || password == "" {
+			return withUserHelper(fn)(w, r, d)
+		} else {
+			if !config.Auth.Methods.PasswordAuth.Enabled {
+				return 401, errors.ErrUnauthorized
+			}
+			// Get the authentication method from the settings
+			auther, err := store.Auth.Get("password")
+			if err != nil {
+				return 401, errors.ErrUnauthorized
+			}
+			// Authenticate the user based on the request
+			user, err := auther.Auth(r, store.Users)
+			if err != nil {
+				if err == errors.ErrNoTotpProvided {
+					return 403, err
+				}
+				return 401, errors.ErrUnauthorized
+			}
+			d.user = user
+		}
+		return fn(w, r, d)
+	}
+}
+
 // Middleware to retrieve and authenticate user
 func withUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
@@ -107,7 +155,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 			// Retrieve the user from the store and store it in the context
 			data.user, err = store.Users.Get(uint(1))
 			if err != nil {
-				logger.Error(fmt.Sprintf("no auth: %v", err))
+				logger.Errorf("no auth: %v", err)
 				return http.StatusInternalServerError, err
 			}
 			return fn(w, r, data)
@@ -192,14 +240,14 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 			// Marshal the error response to JSON
 			errorBytes, marshalErr := json.Marshal(response)
 			if marshalErr != nil {
-				logger.Error(fmt.Sprintf("Error marshalling error response: %v", marshalErr))
+				logger.Errorf("Error marshalling error response: %v", marshalErr)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 
 			// Write the JSON error response
 			if _, writeErr := w.Write(errorBytes); writeErr != nil {
-				logger.Debug(fmt.Sprintf("Error writing error response: %v", writeErr))
+				logger.Debugf("Error writing error response: %v", writeErr)
 			}
 			return
 		}
@@ -235,6 +283,14 @@ func withAdmin(fn handleFunc) http.HandlerFunc {
 
 func withUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withUserHelper(fn))
+}
+
+func withoutUser(fn handleFunc) http.HandlerFunc {
+	return wrapHandler(withoutUserHelper(fn))
+}
+
+func userWithoutOTP(fn handleFunc) http.HandlerFunc {
+	return wrapHandler(userWithoutOTPhelper(fn))
 }
 
 func withSelfOrAdmin(fn handleFunc) http.HandlerFunc {
@@ -307,14 +363,14 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			truncUser = truncUser[:10] + ".."
 		}
 		duration := time.Since(start)
-		logger.Api(
+		logger.Api(wrappedWriter.StatusCode,
 			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
 				r.Method,
 				wrappedWriter.StatusCode, // Captured status code
 				r.RemoteAddr,
 				truncUser,
 				fmt.Sprintf("%vms", duration.Milliseconds()),
-				fullURL), wrappedWriter.StatusCode)
+				fullURL))
 	})
 }
 
