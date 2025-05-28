@@ -100,7 +100,6 @@ export default {
         return;
       }
       try {
-        console.log("Verifying OTP code:", this.code);
         await usersApi.verifyOtp(this.username, this.password, this.code);
         if (this.redirect != "") {
           await usersApi.login(this.username, this.password, this.redirect, this.code);

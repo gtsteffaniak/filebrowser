@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file. For commit 
  - webm video preview issue https://github.com/gtsteffaniak/filebrowser/issues/673
  - fix signup issue https://github.com/gtsteffaniak/filebrowser/issues/648
  - fix default source bug
+ - https://github.com/gtsteffaniak/filebrowser/issues/666
+ - fix 500 error for subtitle videos https://github.com/gtsteffaniak/filebrowser/issues/678
+ - spaces and special characters in source name issue https://github.com/gtsteffaniak/filebrowser/issues/679
 
 ![image](https://github.com/user-attachments/assets/28e4e67e-31a1-4107-9294-0e715e87b558)
 

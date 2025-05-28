@@ -41,6 +41,13 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -109,6 +116,13 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -163,6 +177,13 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
@@ -226,6 +247,13 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
@@ -404,6 +432,9 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		// decode url encoded source name
+		source, _ = url.QueryUnescape(source)
 	}
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)
