@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For commit 
  - image loading placeholders added and remain if image can't be loaded.
 
  **BugFixes**:
- - 
+ - onlyoffice and other cache issues https://github.com/gtsteffaniak/filebrowser/issues/686
 
 ## v0.7.5-beta
 

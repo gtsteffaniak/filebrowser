@@ -23,11 +23,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
-
-var OnlyOfficeCache = cache.NewCache(48 * time.Hour)
 
 func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error) {
 	response := iteminfo.ExtendedFileInfo{}
@@ -98,11 +95,11 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 }
 
 func generateOfficeId(realPath string) string {
-	key, ok := OnlyOfficeCache.Get(realPath).(string)
+	key, ok := utils.OnlyOfficeCache.Get(realPath).(string)
 	if !ok {
 		timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
 		documentKey := utils.HashSHA256(realPath + timestamp)
-		OnlyOfficeCache.Set(realPath, documentKey)
+		utils.OnlyOfficeCache.Set(realPath, documentKey)
 		return documentKey
 	}
 	return key
