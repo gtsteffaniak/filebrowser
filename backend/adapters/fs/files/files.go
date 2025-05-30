@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"unicode/utf8"
 
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
@@ -70,7 +70,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	if !exists {
 		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
 	}
-	if opts.Content && strings.HasPrefix(info.Type, "text") {
+	if opts.Content {
 		if info.Size < 20*1024*1024 { // 20 megabytes in bytes
 			content, err := getContent(realPath)
 			if err != nil {
@@ -273,26 +273,51 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 
 // getContent reads and returns the file content if it's UTF-8 readable.
 func getContent(realPath string) (string, error) {
-	// Read the entire file in one go. This is more efficient.
+	const headerSize = 4096
+
+	// Open file
+	f, err := os.Open(realPath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	// Read header
+	buf := make([]byte, headerSize)
+	n, err := f.Read(buf)
+	if err != nil && err != io.EOF {
+		return "", err
+	}
+
+	// Check if header is ASCII
+	if !isASCII(buf[:n]) {
+		return "", nil
+	}
+	// Now read full file
 	content, err := os.ReadFile(realPath)
 	if err != nil {
 		return "", err
 	}
 
-	// Check if the file content is valid UTF-8.
-	// This allows for all characters, including ASCII and emojis.
-	if !utf8.Valid(content) {
-		// File is not valid text (e.g., a binary image), so we reject it.
+	stringContent := string(content)
+	if !utf8.ValidString(stringContent) {
 		return "", nil
 	}
-
-	// Handle the special case for an empty file, as in your original code.
-	if len(content) == 0 {
+	if stringContent == "" {
 		return "empty-file-x6OlSil", nil
 	}
-
 	// The file is valid, so return its string content.
-	return string(content), nil
+	return stringContent, nil
+}
+
+// ascii plus emojis
+func isASCII(data []byte) bool {
+	for _, b := range data {
+		if b > 0x7F && !utf8.ValidRune(rune(b)) {
+			return false
+		}
+	}
+	return true
 }
 
 func IsNamedPipe(mode os.FileMode) bool {
