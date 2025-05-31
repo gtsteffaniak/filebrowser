@@ -1,5 +1,5 @@
 <template>
-  <span v-if="isPreviewImg">
+  <span v-if="isPreviewImg && imageState !== 'error'">
     <i
       v-if="hasMotion"
       class="material-icons"

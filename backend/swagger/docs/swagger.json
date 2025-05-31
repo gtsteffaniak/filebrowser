@@ -1995,6 +1995,10 @@
                 "header": {
                     "description": "required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.",
                     "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
                 }
             }
         },
