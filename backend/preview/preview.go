@@ -99,7 +99,12 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	)
 
 	// Generate an image from office document
-	if file.OnlyOfficeId != "" {
+	if file.Type == "application/pdf" {
+		imageBytes, err = service.GenerateImageFromPDF(file.RealPath, 0) // 0 for the first page
+		if err != nil {
+			return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
+		}
+	} else if file.OnlyOfficeId != "" {
 		imageBytes, err = service.GenerateOfficePreview(filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for office file: %w", err)
@@ -188,9 +193,6 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	if strings.HasPrefix(file.Type, "video") && service.ffmpegPath != "" {
 		return true
 	}
-	if file.OnlyOfficeId != "" {
-		return true
-	}
 	if file.Type == "application/pdf" {
 		return true
 	}
@@ -199,13 +201,7 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	case ".jpg", ".jpeg", ".png", ".bmp", ".tiff":
 		return true
 	}
-	if file.OnlyOfficeId != "" {
-		return true
-	}
-	if file.Type == "application/pdf" {
-		return true
-	}
-	return false
+	return file.OnlyOfficeId != ""
 }
 
 // CheckValidFFmpeg checks for a valid ffmpeg executable.

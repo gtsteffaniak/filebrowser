@@ -21,13 +21,13 @@
 </template>
 
 <script>
-import { onlyOfficeUrl, mediaAvailable } from "@/utils/constants";
+import { onlyOfficeUrl, mediaAvailable, baseURL } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
 
 // NEW: Define placeholder and error image URLs for easy configuration
-const PLACEHOLDER_URL = "/static/img/placeholder.png"; // A generic loading placeholder
-const ERROR_URL = "/static/img/placeholder.png";
+const PLACEHOLDER_URL = baseURL + "static/img/placeholder.png"; // A generic loading placeholder
+const ERROR_URL = baseURL + "static/img/placeholder.png";
 
 export default {
   name: "Icon",
@@ -87,6 +87,9 @@ export default {
       }
       if (this.mimetype == "text/csv") {
         return false;
+      }
+      if (this.mimetype == "application/pdf") {
+        return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
         return true;
