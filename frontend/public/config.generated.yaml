@@ -49,6 +49,7 @@ auth:
       enabled: false
       createUser: false                   # create user if not exists
       header: ""                          # required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.
+      logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
     noauth: false                         # if set to true, overrides all other auth methods and disables authentication
     password:                             #  validate:omitempty
       enabled: true

@@ -3,17 +3,14 @@ package indexing
 import (
 	"fmt"
 	"path/filepath"
-	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 
 	"github.com/shirou/gopsutil/v3/disk"
 )
-
-var DiskUsageCache = cache.NewCache(30 * time.Second)
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
 func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
@@ -108,7 +105,7 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	}
 	sourcePath := idx.Path
 	cacheKey := "usageCache-" + sourceName
-	_, ok = DiskUsageCache.Get(cacheKey).(bool)
+	_, ok = utils.DiskUsageCache.Get(cacheKey).(bool)
 	if !ok {
 		usage, err := disk.Usage(sourcePath)
 		if err != nil {
@@ -121,7 +118,7 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 			Used:  usage.Used,
 		}
 		idx.SetUsage(latestUsage)
-		DiskUsageCache.Set(cacheKey, true)
+		utils.DiskUsageCache.Set(cacheKey, true)
 	}
 	return idx.ReducedIndex, nil
 }
