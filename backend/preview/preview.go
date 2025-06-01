@@ -63,6 +63,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		logger.Infof("Media Enabled            : %v", errprobe == nil)
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
+	settings.Config.Server.PdfAvailable = pdfEnabled()
 	return &Service{
 		sem:         make(chan struct{}, concurrencyLimit),
 		ffmpegPath:  ffmpegMainPath,
@@ -99,7 +100,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	)
 
 	// Generate an image from office document
-	if file.Type == "application/pdf" {
+	if file.Type == "application/pdf" && settings.Config.Server.PdfAvailable {
 		imageBytes, err = service.GenerateImageFromPDF(file.RealPath, 0) // 0 for the first page
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
@@ -123,14 +124,11 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 		hasher := sha1.New() //nolint:gosec
 		_, _ = hasher.Write([]byte(CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)))
 		hash := hex.EncodeToString(hasher.Sum(nil))
-		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", hash) + ".jpg"
+		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", hash)
 		defer os.Remove(outPathPattern) // cleanup
-		if err = service.GenerateVideoPreview(file.RealPath, outPathPattern, seekPercentage); err != nil {
-			return nil, fmt.Errorf("failed to generate video preview: %w", err)
-		}
-		imageBytes, err = os.ReadFile(outPathPattern)
+		imageBytes, err = service.GenerateVideoPreview(file.RealPath, outPathPattern, seekPercentage)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read video thumbnail: %w", err)
+			return nil, fmt.Errorf("failed to create image for video file: %w", err)
 		}
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
@@ -168,7 +166,7 @@ func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error)
 	input := bytes.NewReader(data)
 	output := &bytes.Buffer{}
 
-	if err := s.Resize(context.Background(), input, width, height, output, options...); err != nil {
+	if err := s.Resize(input, width, height, output, options...); err != nil {
 		return nil, err
 	}
 

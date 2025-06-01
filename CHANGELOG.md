@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.7.6-beta
 
  **New Features**:
- - pdf previews enabled by default even without office integration
+ - pdf previews always enabled for docker images (no office integration needed)
  - proxy logout redirectUrl support via `auth.methods.proxy.logoutRedirectUrl` https://github.com/gtsteffaniak/filebrowser/issues/684
 
  **Notes**:

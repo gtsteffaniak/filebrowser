@@ -1,14 +1,28 @@
+//go:build pdf
+// +build pdf
+
 package preview
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image/jpeg"
 
 	"github.com/gen2brain/go-fitz"
 )
 
+func pdfEnabled() bool {
+	// This function checks if the PDF support is enabled.
+	// In a real implementation, this might check a build tag or configuration.
+	return true
+}
+
 func (s *Service) GenerateImageFromPDF(pdfPath string, pageNumber int) ([]byte, error) {
+	if err := s.acquire(context.Background()); err != nil {
+		return nil, err
+	}
+	defer s.release()
 	doc, err := fitz.New(pdfPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open PDF: %w", err)

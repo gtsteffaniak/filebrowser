@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"time"
@@ -279,10 +280,15 @@ func loadEnvConfig() {
 }
 
 func setDefaults() Settings {
+	// get number of CPUs available
+	numCpus := 4 // default to 4 CPUs if runtime.NumCPU() fails or is not available
+	if cpus := runtime.NumCPU(); cpus > 0 {
+		numCpus = cpus
+	}
 	return Settings{
 		Server: Server{
 			Port:               80,
-			NumImageProcessors: 4,
+			NumImageProcessors: numCpus,
 			BaseURL:            "",
 			Database:           "database.db",
 			SourceMap:          map[string]Source{},

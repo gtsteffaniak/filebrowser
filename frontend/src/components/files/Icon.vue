@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { onlyOfficeUrl, mediaAvailable, baseURL } from "@/utils/constants";
+import { onlyOfficeUrl, mediaAvailable, pdfAvailable, baseURL } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
 
@@ -89,7 +89,9 @@ export default {
         return false;
       }
       if (this.mimetype == "application/pdf") {
-        return true;
+        if (pdfAvailable) return true;
+        if (state.user.preview?.office && onlyOfficeUrl != "") return true;
+        return false;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
         return true;
@@ -103,13 +105,6 @@ export default {
       }
       if (
         this.getIconForType().simpleType === "document" &&
-        state.user.preview?.office &&
-        onlyOfficeUrl != ""
-      ) {
-        return true;
-      }
-      if (
-        this.getIconForType().simpleType === "pdf" &&
         state.user.preview?.office &&
         onlyOfficeUrl != ""
       ) {

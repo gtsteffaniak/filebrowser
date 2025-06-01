@@ -2,6 +2,7 @@ package preview
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,7 +16,11 @@ import (
 // videoPath: path to the input video file.
 // outputPath: path where the generated preview image will be saved (e.g., "/tmp/preview.jpg").
 // seekTime: how many seconds into the video to seek before capturing the frame.
-func (s *Service) GenerateVideoPreview(videoPath, outputPath string, percentageSeek int) error {
+func (s *Service) GenerateVideoPreview(videoPath, outputPath string, percentageSeek int) ([]byte, error) {
+	if err := s.acquire(context.Background()); err != nil {
+		return nil, err
+	}
+	defer s.release()
 	// Step 1: Get video duration from the container format
 	probeCmd := exec.Command(
 		s.ffprobePath,
@@ -33,23 +38,23 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string, percentageS
 	}
 	if err := probeCmd.Run(); err != nil {
 		logger.Errorf("ffprobe command failed on file '%v' : %v", videoPath, err)
-		return fmt.Errorf("ffprobe failed: %w", err)
+		return nil, fmt.Errorf("ffprobe failed: %w", err)
 	}
 
 	durationStr := strings.TrimSpace(probeOut.String())
 	if durationStr == "" || durationStr == "N/A" {
 		logger.Errorf("could not determine video duration for file '%v' using duration info '%v'", videoPath, durationStr)
-		return fmt.Errorf("could not determine video duration")
+		return nil, fmt.Errorf("could not determine video duration")
 	}
 
 	durationFloat, err := strconv.ParseFloat(durationStr, 64)
 	if err != nil {
 		// The original error you saw would be caught here if "N/A" was still the output
-		return fmt.Errorf("invalid duration: %v", err)
+		return nil, fmt.Errorf("invalid duration: %v", err)
 	}
 
 	if durationFloat <= 0 {
-		return fmt.Errorf("video duration must be positive")
+		return nil, fmt.Errorf("video duration must be positive")
 	}
 
 	// The rest of your function remains the same...
@@ -76,6 +81,9 @@ func (s *Service) GenerateVideoPreview(videoPath, outputPath string, percentageS
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
-
-	return cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return nil, fmt.Errorf("ffmpeg command failed on file '%v' : %w", videoPath, err)
+	}
+	return os.ReadFile(outputPath)
 }
