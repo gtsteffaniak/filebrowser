@@ -141,9 +141,11 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 
 	if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
-		logoutUrl = proxyRedirectUrl
+		if proxyRedirectUrl != "" {
+			logoutUrl = proxyRedirectUrl
+		}
 	} else {
-		if d.user.LoginMethod == users.LoginMethodOidc && oidcRedirectUrl != "" {
+		if oidcRedirectUrl != "" {
 			logoutUrl = oidcRedirectUrl
 		}
 	}

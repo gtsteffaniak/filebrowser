@@ -114,7 +114,6 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      console.log(this.filename, this.pdfConvertable, pdfAvailable);
       if (this.pdfConvertable && pdfAvailable) {
         return true;
       }
