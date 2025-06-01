@@ -19,7 +19,7 @@ COPY  ./frontend/ ./
 RUN npm run build-docker
 
 FROM alpine:latest
-COPY --from=ffmpeg [ "/usr/local/bin/ffmpeg", "/usr/local/bin/ffprobe", "/usr/local/bin/" ]
+COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 # requirements to enable pdf support
 RUN apk add --no-cache libffi mupdf && \
     find / -name "libmupdf.so*" -exec sh -c 'mv "$0" "$(dirname "$0")/libmupdf.so"' {} \;
