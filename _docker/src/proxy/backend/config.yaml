@@ -23,6 +23,7 @@ auth:
       enabled: true
       header: "X-Username"
       createUser: true
+      logoutRedirectUrl: "https://localhost/api/auth/logout2"
 
 userDefaults:
   darkMode: true

@@ -138,15 +138,22 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	logoutUrl := fmt.Sprintf("%s/login", origin)
 	proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
 	oidcRedirectUrl := settings.Config.Auth.Methods.OidcAuth.LogoutRedirectUrl
-	userLoginMethod := d.user.LoginMethod
+	proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 
-	if d.user.LoginMethod == users.LoginMethodProxy && proxyRedirectUrl != "" {
+	if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
 		logoutUrl = proxyRedirectUrl
+	} else {
+		if d.user.LoginMethod == users.LoginMethodOidc && oidcRedirectUrl != "" {
+			logoutUrl = oidcRedirectUrl
+		}
 	}
-	if userLoginMethod == users.LoginMethodOidc && oidcRedirectUrl != "" {
-		logoutUrl = oidcRedirectUrl
-	}
-
+	// clear cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:   "auth",
+		Value:  "",
+		MaxAge: -1,
+		Path:   "/",
+	})
 	http.Redirect(w, r, logoutUrl, http.StatusFound)
 	return 302, nil
 }
