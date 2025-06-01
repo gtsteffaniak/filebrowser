@@ -75,6 +75,7 @@ export default {
         ".docx": true,
         ".ppt": true,
         ".pptx": true,
+        ".xls": true,
         ".xlsx": true,
         ".hwp": true,
         ".hwpx": true, // fix duplication and add this one

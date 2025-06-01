@@ -5,7 +5,24 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.7.6-beta
 
  **New Features**:
- - pdf previews always enabled for docker images (no office integration needed)
+ - native document preview generation enabled for certain document types on the docker image (no office integration needed)
+   - supported native document preview types:
+     - ".pdf",  // PDF
+     - ".xps",  // XPS
+     - ".epub", // EPUB
+     - ".mobi", // MOBI
+     - ".fb2",  // FB2
+     - ".cbz",  // CBZ
+     - ".svg",  // SVG
+     - ".txt",  // TXT
+     - ".doc",  // DOC
+     - ".docx", // DOCX
+     - ".ppt",  // PPT
+     - ".pptx", // PPTX
+     - ".xls",  // excel xls
+     - ".xlsx", // exel XLSX
+     - ".hwp",  // HWP
+     - ".hwp",  // HWPX
  - proxy logout redirectUrl support via `auth.methods.proxy.logoutRedirectUrl` https://github.com/gtsteffaniak/filebrowser/issues/684
 
  **Notes**:

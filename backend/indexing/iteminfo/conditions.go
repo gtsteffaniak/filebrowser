@@ -33,6 +33,7 @@ var PdfConvertable = []string{
 	".docx", // DOCX
 	".ppt",  // PPT
 	".pptx", // PPTX
+	".xls",  // XLS
 	".xlsx", // XLSX
 	".hwp",  // HWP
 	".hwp",  // HWPX
