@@ -10,7 +10,7 @@ RUN go build -tags pdf -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
-FROM node:slim AS nbuild
+FROM node:lts-slim AS nbuild
 WORKDIR /app
 COPY ./frontend/package.json ./
 RUN npm i --maxsockets 1
@@ -38,7 +38,7 @@ RUN apk add --no-cache curl xz && \
 
 # requirements to enable pdf support
 RUN apk add --no-cache libffi mupdf && \
-    mv /usr/lib/libmupdf.so.25.6 /usr/lib/libmupdf.so
+    find / -name "libmupdf.so*" -exec sh -c 'mv "$0" "$(dirname "$0")/libmupdf.so"' {} \;
 
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_NO_EMBEDED="true"
