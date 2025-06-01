@@ -12,24 +12,24 @@ import (
 	"github.com/gen2brain/go-fitz"
 )
 
-func pdfEnabled() bool {
+func docEnabled() bool {
 	// This function checks if the PDF support is enabled.
 	// In a real implementation, this might check a build tag or configuration.
 	return true
 }
 
-func (s *Service) GenerateImageFromPDF(pdfPath string, pageNumber int) ([]byte, error) {
+func (s *Service) GenerateImageFromDoc(docPath string, pageNumber int) ([]byte, error) {
 	if err := s.acquire(context.Background()); err != nil {
 		return nil, err
 	}
 	defer s.release()
-	doc, err := fitz.New(pdfPath)
+	doc, err := fitz.New(docPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open PDF: %w", err)
 	}
 	defer doc.Close()
 
-	// Get the image from the PDF page
+	// Get the image from the doc page
 	img, err := doc.Image(pageNumber) // Assuming page numbers are 0-indexed as per go-fitz common usage
 	if err != nil {
 		return nil, fmt.Errorf("failed to get image from page %d: %w", pageNumber, err)

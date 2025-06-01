@@ -63,7 +63,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		logger.Infof("Media Enabled            : %v", errprobe == nil)
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
-	settings.Config.Server.PdfAvailable = pdfEnabled()
+	settings.Config.Server.PdfAvailable = docEnabled()
 	return &Service{
 		sem:         make(chan struct{}, concurrencyLimit),
 		ffmpegPath:  ffmpegMainPath,
@@ -100,8 +100,8 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	)
 
 	// Generate an image from office document
-	if file.Type == "application/pdf" && settings.Config.Server.PdfAvailable {
-		imageBytes, err = service.GenerateImageFromPDF(file.RealPath, 0) // 0 for the first page
+	if iteminfo.HasDocConvertableExtension(file.Name) {
+		imageBytes, err = service.GenerateImageFromDoc(file.RealPath, 0) // 0 for the first page
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
 		}

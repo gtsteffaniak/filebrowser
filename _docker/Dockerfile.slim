@@ -36,10 +36,6 @@ RUN apk add --no-cache curl xz && \
     apk del curl xz && \
     rm -rf /var/cache/apk/*
 
-# requirements to enable pdf support
-RUN apk add --no-cache libffi mupdf && \
-    find / -name "libmupdf.so*" -exec sh -c 'mv "$0" "$(dirname "$0")/libmupdf.so"' {} \;
-
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_NO_EMBEDED="true"
 ENV PATH="$PATH:/home/filebrowser"
