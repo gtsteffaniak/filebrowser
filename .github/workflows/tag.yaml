@@ -125,12 +125,14 @@ jobs:
           images: |
             gtstef/filebrowser
             ghcr.io/gtsteffaniak/filebrowser
-      - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
+      - name: Modify tags (strip 'v', remove 'latest', add '-slim', include beta/stable logic)
         id: modify-json-slim
         run: |
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
-            .tags |= map(sub(":v"; ":")) |
+            .tags |= map(sub(":v"; ":")) |                                    # Remove "v" prefix
+            .tags |= map(select(test("latest") | not)) |                      # Remove any tag containing "latest"
+            .tags |= map(sub(":(.+)"; ":\1-slim")) |                           # Append "-slim" to tag name
             if any(.tags[]; test("beta")) then
               .tags += [
                 "gtstef/filebrowser:beta-slim",
