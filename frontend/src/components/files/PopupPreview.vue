@@ -113,6 +113,7 @@ export default {
   overflow: hidden;
   z-index: 1000;
   transition: all 0.3s ease-in-out;
+  background: gray;
 }
 
 .popup-preview img {

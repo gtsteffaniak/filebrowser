@@ -2006,6 +2006,10 @@ const docTemplate = `{
                 "header": {
                     "description": "required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.",
                     "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
                 }
             }
         },
@@ -2081,7 +2085,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "numImageProcessors": {
-                    "description": "number of concurrent image processing jobs",
+                    "description": "number of concurrent image processing jobs used to create previews, default is 4,",
                     "type": "integer"
                 },
                 "port": {

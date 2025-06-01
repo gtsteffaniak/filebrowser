@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
@@ -17,11 +16,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
-	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
-
-var OnlyOfficeCache = cache.NewCache(48 * time.Hour)
 
 const (
 	onlyOfficeStatusDocumentClosedWithChanges       = 2
@@ -199,7 +195,7 @@ func getOnlyOfficeId(source, path string) (string, error) {
 	realpath, _, _ := idx.GetRealPath(path)
 	// error is intentionally ignored in order treat errors
 	// the same as a cache-miss
-	cachedDocumentKey, ok := OnlyOfficeCache.Get(realpath).(string)
+	cachedDocumentKey, ok := utils.OnlyOfficeCache.Get(realpath).(string)
 	if ok {
 		return cachedDocumentKey, nil
 	}
@@ -213,7 +209,7 @@ func deleteOfficeId(source, path string) {
 		return
 	}
 	realpath, _, _ := idx.GetRealPath(path)
-	OnlyOfficeCache.Delete(realpath)
+	utils.OnlyOfficeCache.Delete(realpath)
 }
 
 func onlyofficeGetTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {

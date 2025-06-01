@@ -5,7 +5,7 @@ WORKDIR /app
 COPY ./backend ./
 #RUN swag init --output swagger/docs
 RUN ln -s swagger /usr/local/go/src/
-RUN go build -ldflags="-w -s \
+RUN go build -tags pdf -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
@@ -35,6 +35,10 @@ RUN apk add --no-cache curl xz && \
     rm -rf /tmp/ffmpeg && \
     apk del curl xz && \
     rm -rf /var/cache/apk/*
+
+# requirements to enable pdf support
+RUN apk add --no-cache libffi mupdf && \
+    mv /usr/lib/libmupdf.so.25.6 /usr/lib/libmupdf.so
 
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_NO_EMBEDED="true"

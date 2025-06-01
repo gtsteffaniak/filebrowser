@@ -57,7 +57,7 @@ export function generateRandomCode(length) {
 }
 
 export function logout() {
-  if (state.user.loginMethod == "oidc") {
+  if (state.user.loginMethod == "oidc" || state.user.loginMethod == "proxy") {
     document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
     mutations.setCurrentUser(null);
     let apiPath = getApiPath("api/auth/logout")

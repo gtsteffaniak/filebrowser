@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.6-beta
+
+ **New Features**:
+ - pdf previews always enabled for docker images (no office integration needed)
+ - proxy logout redirectUrl support via `auth.methods.proxy.logoutRedirectUrl` https://github.com/gtsteffaniak/filebrowser/issues/684
+
+ **Notes**:
+ - image loading placeholders added and remain if image can't be loaded.
+
+ **BugFixes**:
+ - onlyoffice and other cache issues https://github.com/gtsteffaniak/filebrowser/issues/686
+ - gallery size indicator centering https://github.com/gtsteffaniak/filebrowser/issues/652
+
 ## v0.7.5-beta
 
  **New Features**
