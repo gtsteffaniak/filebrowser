@@ -22,7 +22,7 @@ FROM alpine:latest
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 # requirements to enable pdf support
 RUN apk add --no-cache libffi mupdf && \
-    find / -name "libmupdf.so*" -exec sh -c 'mv "$0" "$(dirname "$0")/libmupdf.so"' {} \;
+    find / -name "libmupdf.so*" -type f -exec mv {} /usr/lib/libmupdf.so \;
 
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_NO_EMBEDED="true"

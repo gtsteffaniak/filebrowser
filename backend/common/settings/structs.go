@@ -21,7 +21,7 @@ type Settings struct {
 }
 
 type Server struct {
-	NumImageProcessors           int         `json:"numImageProcessors"`           // number of concurrent image processing jobs used to create previews, default is 4,
+	NumImageProcessors           int         `json:"numImageProcessors"`           // number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
 	Socket                       string      `json:"socket"`                       // socket to listen on
 	TLSKey                       string      `json:"tlsKey"`                       // path to TLS key
 	TLSCert                      string      `json:"tlsCert"`                      // path to TLS cert

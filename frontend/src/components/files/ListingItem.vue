@@ -29,7 +29,7 @@
     @mouseup="cancelContext($event)"
   >
     <div @click="toggleClick" :class="{ 'gallery-div': galleryView }">
-      <Icon :mimetype="type" :active="isSelected" :thumbnailUrl="thumbnailUrl" />
+      <Icon :mimetype="type" :active="isSelected" :thumbnailUrl="thumbnailUrl" :filename="name" />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
@@ -48,6 +48,7 @@
     <Icon
       @click="downloadFile"
       v-if="quickDownloadEnabled"
+      :filename="name"
       mimetype="file_download"
       style="padding-right: 0.5em"
     />

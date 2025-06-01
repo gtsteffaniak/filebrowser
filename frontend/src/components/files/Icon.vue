@@ -32,6 +32,10 @@ const ERROR_URL = baseURL + "static/img/placeholder.png";
 export default {
   name: "Icon",
   props: {
+    filename: {
+      type: String,
+      required: true,
+    },
     mimetype: {
       type: String,
       required: true,
@@ -56,6 +60,28 @@ export default {
     };
   },
   computed: {
+    pdfConvertable() {
+      const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
+      const pdfConvertCompatibleFileExtensions = {
+        ".pdf": true,
+        ".xps": true,
+        ".epub": true,
+        ".mobi": true,
+        ".fb2": true,
+        ".cbz": true,
+        ".svg": true,
+        ".txt": true,
+        ".doc": true,
+        ".docx": true,
+        ".ppt": true,
+        ".pptx": true,
+        ".xls": true,
+        ".xlsx": true,
+        ".hwp": true,
+        ".hwpx": true, // fix duplication and add this one
+      };
+      return !!pdfConvertCompatibleFileExtensions[ext];
+    },
     // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
       if (this.imageState === "error") {
@@ -88,10 +114,9 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      if (this.mimetype == "application/pdf") {
-        if (pdfAvailable) return true;
-        if (state.user.preview?.office && onlyOfficeUrl != "") return true;
-        return false;
+      console.log(this.filename, this.pdfConvertable, pdfAvailable);
+      if (this.pdfConvertable && pdfAvailable) {
+        return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
         return true;

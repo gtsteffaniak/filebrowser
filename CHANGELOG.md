@@ -4,12 +4,32 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.6-beta
 
+NOTE: if using docker arm32 image, you will need to switch to the slim images. The regular docker images are much larger now and support generating office previews out of the box without any only office running. However, they don't support arm32. Also, be aware the docker images are much larger now (600MB I believe) because of the office document preview support -- if thats not something you care about you can switch to the slim images.
+
  **New Features**:
- - pdf previews always enabled for docker images (no office integration needed)
+ - native document preview generation enabled for certain document types on the regular docker image (no office integration needed)
+   - supported native document preview types:
+     - ".pdf",  // PDF
+     - ".xps",  // XPS
+     - ".epub", // EPUB
+     - ".mobi", // MOBI
+     - ".fb2",  // FB2
+     - ".cbz",  // CBZ
+     - ".svg",  // SVG
+     - ".txt",  // TXT
+     - ".doc",  // DOC
+     - ".docx", // DOCX
+     - ".ppt",  // PPT
+     - ".pptx", // PPTX
+     - ".xls",  // excel xls
+     - ".xlsx", // exel XLSX
+     - ".hwp",  // HWP
+     - ".hwp",  // HWPX
  - proxy logout redirectUrl support via `auth.methods.proxy.logoutRedirectUrl` https://github.com/gtsteffaniak/filebrowser/issues/684
 
  **Notes**:
  - image loading placeholders added and remain if image can't be loaded.
+ - no more arm32 support on main image -- use a `slim` tagged image.
 
  **BugFixes**:
  - onlyoffice and other cache issues https://github.com/gtsteffaniak/filebrowser/issues/686
