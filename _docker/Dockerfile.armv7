@@ -1,4 +1,3 @@
-FROM gtstef/ffmpeg:7.1.1 AS ffmpeg
 FROM golang:1.24-alpine AS base
 ARG VERSION
 ARG REVISION
@@ -19,7 +18,24 @@ COPY  ./frontend/ ./
 RUN npm run build-docker
 
 FROM alpine:latest
-COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
+
+RUN apk add --no-cache curl xz && \
+    ARCH=$(uname -m) && \
+    case "$ARCH" in \
+      x86_64)   URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" ;; \
+      aarch64)  URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz" ;; \
+      armv7l)   URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-armhf-static.tar.xz" ;; \
+      *)        echo "Unsupported architecture: $ARCH" && exit 1 ;; \
+    esac && \
+    mkdir -p /tmp/ffmpeg && \
+    curl -L "$URL" | tar -xJ -C /tmp/ffmpeg && \
+    mv /tmp/ffmpeg/ffmpeg-*/ffmpeg /usr/local/bin/ && \
+    mv /tmp/ffmpeg/ffmpeg-*/ffprobe /usr/local/bin/ && \
+    chmod +x /usr/local/bin/ffmpeg /usr/local/bin/ffprobe && \
+    rm -rf /tmp/ffmpeg && \
+    apk del curl xz && \
+    rm -rf /var/cache/apk/*
+
 # requirements to enable pdf support
 RUN apk add --no-cache libffi mupdf && \
     find / -name "libmupdf.so*" -exec sh -c 'mv "$0" "$(dirname "$0")/libmupdf.so"' {} \;
