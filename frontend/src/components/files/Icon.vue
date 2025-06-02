@@ -1,5 +1,5 @@
 <template>
-  <span v-if="isPreviewImg">
+  <span v-if="isPreviewImg && imageState !== 'error'">
     <i
       v-if="hasMotion"
       class="material-icons"
@@ -7,27 +7,35 @@
       >animation</i
     >
     <img
+      :key="thumbnailUrl"
+      :src="imageDisplaySrc"
       @mouseenter="handleMouseEnter($event)"
       @mouseleave="handleMouseLeave($event)"
-      v-lazy="thumbnailUrl"
-      :src="currentThumbnail"
       class="icon"
       ref="thumbnail"
     />
   </span>
   <span v-else>
-    <!-- Material Icon -->
     <i :class="[classes, { active: active }]" class="icon"> {{ materialIcon }} </i>
   </span>
 </template>
 
 <script>
-import { onlyOfficeUrl, mediaAvailable } from "@/utils/constants";
+import { onlyOfficeUrl, mediaAvailable, pdfAvailable, baseURL } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
+
+// NEW: Define placeholder and error image URLs for easy configuration
+const PLACEHOLDER_URL = baseURL + "static/img/placeholder.png"; // A generic loading placeholder
+const ERROR_URL = baseURL + "static/img/placeholder.png";
+
 export default {
   name: "Icon",
   props: {
+    filename: {
+      type: String,
+      required: true,
+    },
     mimetype: {
       type: String,
       required: true,
@@ -45,11 +53,46 @@ export default {
       materialIcon: "",
       classes: "",
       svgPath: "",
-      previewTimeouts: [], // Store timeout IDs
-      currentThumbnail: this.thumbnailUrl,
+      previewTimeouts: [],
+      // UPDATED: Manage image state directly
+      imageState: "loading", // Can be 'loading', 'loaded', or 'error'
+      imageTargetSrc: this.thumbnailUrl, // The URL we currently want to display
     };
   },
   computed: {
+    pdfConvertable() {
+      const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
+      const pdfConvertCompatibleFileExtensions = {
+        ".pdf": true,
+        ".xps": true,
+        ".epub": true,
+        ".mobi": true,
+        ".fb2": true,
+        ".cbz": true,
+        ".svg": true,
+        ".txt": true,
+        ".doc": true,
+        ".docx": true,
+        ".ppt": true,
+        ".pptx": true,
+        ".xls": true,
+        ".xlsx": true,
+        ".hwp": true,
+        ".hwpx": true, // fix duplication and add this one
+      };
+      return !!pdfConvertCompatibleFileExtensions[ext];
+    },
+    // NEW: A single computed property to determine the final image src
+    imageDisplaySrc() {
+      if (this.imageState === "error") {
+        return ERROR_URL;
+      }
+      // Show placeholder only for the initial load, not during hover animations
+      if (this.imageState === "loading" && this.imageTargetSrc === this.thumbnailUrl) {
+        return PLACEHOLDER_URL;
+      }
+      return this.imageTargetSrc;
+    },
     showLarger() {
       return state.user.viewMode === "gallery" || state.user.viewMode === "normal";
     },
@@ -68,9 +111,11 @@ export default {
       if (this.thumbnailUrl == "") {
         return false;
       }
-      // todo support webp previews
       if (this.mimetype == "text/csv") {
         return false;
+      }
+      if (this.pdfConvertable && pdfAvailable) {
+        return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
         return true;
@@ -89,25 +134,41 @@ export default {
       ) {
         return true;
       }
-      if (
-        this.getIconForType().simpleType === "pdf" &&
-        state.user.preview?.office &&
-        onlyOfficeUrl != ""
-      ) {
-        return true;
-      }
       return false;
     },
   },
   methods: {
-    handleMouseEnter() {
-      if (state.user.viewMode === "gallery" && !state.user.preview.highQuality) {
+    // NEW: Centralized method to load any image and handle its state
+    loadImage(url) {
+      if (!url) {
+        this.imageState = "error";
         return;
       }
 
-      mutations.setPreviewSource(this.thumbnailUrl);
+      this.imageState = "loading";
+      const targetImage = new Image();
 
-      if (!state.user.preview.motionVideoPreview) {
+      targetImage.onload = () => {
+        // Prevent race conditions: only update if this is the image we still want.
+        if (this.imageTargetSrc === url) {
+          this.imageState = "loaded";
+        }
+      };
+
+      targetImage.onerror = () => {
+        // Prevent race conditions: only show an error if this is the image that failed.
+        if (this.imageTargetSrc === url) {
+          this.imageState = "error";
+        }
+      };
+
+      targetImage.src = url;
+    },
+    handleMouseEnter() {
+      if (this.imageState == "loaded") {
+        mutations.setPreviewSource(this.thumbnailUrl);
+      }
+      if (!state.user.preview.motionVideoPreview || !this.hasMotion) {
         return;
       }
 
@@ -117,64 +178,62 @@ export default {
         this.thumbnailUrl + "&atPercentage=50",
         this.thumbnailUrl + "&atPercentage=75",
       ];
-
       let index = 0;
 
-      const updateThumbnailUrl = () => {
-        const img = new Image();
+      const updateThumbnail = () => {
         if (state.popupPreviewSource === "") {
           this.previewTimeouts.forEach(clearTimeout);
           this.previewTimeouts = [];
           return;
         }
+        // Set the thumbnail or popup preview
+        if (state.user.preview.popup) {
+          mutations.setPreviewSource(sequence[index]);
+        } else {
+          this.currentThumbnail = sequence[index];
+        }
 
-        const currentUrl = sequence[index];
+        // Preload the next image
+        const nextIndex = (index + 1) % sequence.length;
+        const preloadImg = new Image();
+        preloadImg.src = sequence[nextIndex];
 
-        img.onload = () => {
-          if (state.popupPreviewSource === "") {
-            this.previewTimeouts.forEach(clearTimeout);
-            this.previewTimeouts = [];
-            return;
-          }
-          // Set the thumbnail or popup preview
-          if (state.user.preview.popup) {
-            mutations.setPreviewSource(currentUrl);
-          } else {
-            this.currentThumbnail = currentUrl;
-          }
-
-          // Preload the next image if it exists
-          const nextIndex = (index + 1) % sequence.length;
-          const nextUrl = sequence[nextIndex];
-          const preloadImg = new Image();
-          preloadImg.src = nextUrl;
-
-          // Schedule next update
-          index = nextIndex;
-          const timeoutId = setTimeout(updateThumbnailUrl, 750);
-          this.previewTimeouts.push(timeoutId);
-        };
-
-        img.src = currentUrl;
+        // Schedule next update
+        index = nextIndex;
+        const timeoutId = setTimeout(updateThumbnail, 750);
+        this.previewTimeouts.push(timeoutId);
       };
-      updateThumbnailUrl();
+      updateThumbnail();
     },
     handleMouseLeave() {
       this.previewTimeouts.forEach(clearTimeout);
       this.previewTimeouts = [];
       mutations.setPreviewSource("");
-      this.currentThumbnail = this.thumbnailUrl;
+      // UPDATED: Reset to the base thumbnail URL. The watcher will handle reloading it.
+      this.imageTargetSrc = this.thumbnailUrl;
     },
     getIconForType() {
       return getTypeInfo(this.mimetype);
     },
   },
+  watch: {
+    // UPDATED: Added a check for isPreviewImg
+    imageTargetSrc: {
+      handler(newSrc) {
+        // ONLY trigger the image loader if the component is meant to show a preview.
+        if (this.isPreviewImg) {
+          this.loadImage(newSrc);
+        }
+      },
+      immediate: true, // Run this watcher on component mount
+    },
+  },
   mounted() {
     const result = this.getIconForType();
-    this.classes = result.classes || "material-icons"; // Default class
-    this.color = result.color || "lightgray"; // Default color
+    this.classes = result.classes || "material-icons";
+    this.color = result.color || "lightgray";
     this.materialIcon = result.materialIcon || "";
-    this.svgPath = result.svgPath || ""; // For SVG file paths
+    this.svgPath = result.svgPath || "";
   },
 };
 </script>

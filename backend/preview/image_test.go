@@ -2,7 +2,6 @@ package preview
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"image"
 	"image/gif"
@@ -282,7 +281,7 @@ func TestService_Resize(t *testing.T) {
 			defer source.Close()
 
 			buf := &bytes.Buffer{}
-			err := svc.Resize(context.Background(), source, test.width, test.height, buf, test.options...)
+			err := svc.Resize(source, test.width, test.height, buf, test.options...)
 			if (err != nil) != test.wantErr {
 				t.Fatalf("GetMarketSpecs() error = %v, wantErr %v", err, test.wantErr)
 			}

@@ -2,6 +2,7 @@ package preview
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,6 +22,10 @@ type officePreviewResponse struct {
 
 // GenerateOfficePreview generates a preview for an office document using OnlyOffice.
 func (s *Service) GenerateOfficePreview(filetype, key, title, url string) ([]byte, error) {
+	if err := s.acquire(context.Background()); err != nil {
+		return nil, err
+	}
+	defer s.release()
 	data := []byte{}
 	// Create the request payload
 	requestPayload := map[string]interface{}{

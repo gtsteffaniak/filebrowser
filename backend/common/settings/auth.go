@@ -38,9 +38,10 @@ type PasswordAuthConfig struct {
 }
 
 type ProxyAuthConfig struct {
-	Enabled    bool   `json:"enabled"`
-	CreateUser bool   `json:"createUser"` // create user if not exists
-	Header     string `json:"header"`     // required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.
+	Enabled           bool   `json:"enabled"`
+	CreateUser        bool   `json:"createUser"`        // create user if not exists
+	Header            string `json:"header"`            // required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.
+	LogoutRedirectUrl string `json:"logoutRedirectUrl"` // if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
 }
 
 type Recaptcha struct {

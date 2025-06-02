@@ -127,7 +127,7 @@
             :aria-label="baseName(s.path)"
           >
             <a :href="getRelative(s.path)" @contextmenu="addSelected(event, s)">
-              <Icon :mimetype="s.type" />
+              <Icon :mimetype="s.type" :filename="s.name" />
               <span class="text-container">
                 {{ basePath(s.path, s.type == "directory") }}/{{ baseName(s.path) }}/<!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </span>

@@ -124,7 +124,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 	return printToken(w, r, d.user) // Pass the data object
 }
 
-// logoutHandler handles user logout, specifically used for OIDC.
+// logoutHandler handles user logout, specifically used for OIDC or proxy users.
 // @Summary User Logout
 // @Description logs a user out of the application.
 // @Tags Auth
@@ -136,14 +136,26 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
 	}
 	logoutUrl := fmt.Sprintf("%s/login", origin)
+	proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
+	oidcRedirectUrl := settings.Config.Auth.Methods.OidcAuth.LogoutRedirectUrl
+	proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 
-	oidcCfg := settings.Config.Auth.Methods.OidcAuth
-	if oidcCfg.Enabled && oidcCfg.LogoutRedirectUrl != "" {
-		logoutUrl = oidcCfg.LogoutRedirectUrl
-		http.Redirect(w, r, logoutUrl, http.StatusFound)
-		return 302, nil
+	if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
+		if proxyRedirectUrl != "" {
+			logoutUrl = proxyRedirectUrl
+		}
+	} else {
+		if oidcRedirectUrl != "" {
+			logoutUrl = oidcRedirectUrl
+		}
 	}
-
+	// clear cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:   "auth",
+		Value:  "",
+		MaxAge: -1,
+		Path:   "/",
+	})
 	http.Redirect(w, r, logoutUrl, http.StatusFound)
 	return 302, nil
 }

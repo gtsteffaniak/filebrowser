@@ -119,8 +119,8 @@ func WithQuality(quality Quality) Option {
 	}
 }
 
-func (s *Service) Resize(ctx context.Context, in io.Reader, width, height int, out io.Writer, options ...Option) error {
-	if err := s.acquire(ctx); err != nil {
+func (s *Service) Resize(in io.Reader, width, height int, out io.Writer, options ...Option) error {
+	if err := s.acquire(context.Background()); err != nil {
 		return err
 	}
 	defer s.release()

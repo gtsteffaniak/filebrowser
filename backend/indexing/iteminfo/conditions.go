@@ -20,6 +20,25 @@ var AllFiletypeOptions = []string{
 	"text",
 }
 
+var PdfConvertable = []string{
+	".pdf",  // PDF
+	".xps",  // XPS
+	".epub", // EPUB
+	".mobi", // MOBI
+	".fb2",  // FB2
+	".cbz",  // CBZ
+	".svg",  // SVG
+	".txt",  // TXT
+	".doc",  // DOC
+	".docx", // DOCX
+	".ppt",  // PPT
+	".pptx", // PPTX
+	".xls",  // XLS
+	".xlsx", // XLSX
+	".hwp",  // HWP
+	".hwp",  // HWPX
+}
+
 // Known bundle-style extensions that are technically directories but treated as files
 var BundleExtensions = []string{
 	".app",       // macOS application bundle
@@ -350,6 +369,19 @@ func hasBundleExtension(name string) bool {
 	ext := strings.ToLower(filepath.Ext(name))
 	for _, bundleExt := range BundleExtensions {
 		if ext == bundleExt {
+			return true
+		}
+	}
+	return false
+}
+
+func HasDocConvertableExtension(name string) bool {
+	if !settings.Config.Server.PdfAvailable {
+		return false
+	}
+	ext := strings.ToLower(filepath.Ext(name))
+	for _, e := range PdfConvertable {
+		if ext == e {
 			return true
 		}
 	}
