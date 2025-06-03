@@ -37,6 +37,7 @@ var PdfConvertable = []string{
 	".xlsx", // XLSX
 	".hwp",  // HWP
 	".hwp",  // HWPX
+	".md",   // Markdown
 }
 
 // Known bundle-style extensions that are technically directories but treated as files
@@ -375,9 +376,12 @@ func hasBundleExtension(name string) bool {
 	return false
 }
 
-func HasDocConvertableExtension(name string) bool {
+func HasDocConvertableExtension(name, mimetype string) bool {
 	if !settings.Config.Server.PdfAvailable {
 		return false
+	}
+	if strings.HasPrefix(mimetype, "text") {
+		return true
 	}
 	ext := strings.ToLower(filepath.Ext(name))
 	for _, e := range PdfConvertable {

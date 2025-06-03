@@ -2222,6 +2222,10 @@ const docTemplate = `{
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
+                "disableOfficePreviewExt": {
+                    "description": "comma separated list of file extensions to disable office preview for",
+                    "type": "string"
+                },
                 "disableOnlyOfficeExt": {
                     "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
@@ -2442,6 +2446,10 @@ const docTemplate = `{
                 "dateFormat": {
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
+                },
+                "disableOfficePreviewExt": {
+                    "description": "comma separated list of file extensions to disable office preview for",
+                    "type": "string"
                 },
                 "disableOnlyOfficeExt": {
                     "description": "comma separated list of file extensions to disable onlyoffice preview for",

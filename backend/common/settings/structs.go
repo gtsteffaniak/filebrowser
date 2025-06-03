@@ -113,21 +113,22 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	StickySidebar        bool                `json:"stickySidebar"`             // keep sidebar open when navigating
-	DarkMode             bool                `json:"darkMode"`                  // should dark mode be enabled
-	Locale               string              `json:"locale"`                    // language to use: eg. de, en, or fr
-	ViewMode             string              `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
-	SingleClick          bool                `json:"singleClick"`               // open directory on single click, also enables middle click to open in new tab
-	ShowHidden           bool                `json:"showHidden"`                // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
-	DateFormat           bool                `json:"dateFormat"`                // when false, the date is relative, when true, the date is an exact timestamp
-	GallerySize          int                 `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
-	ThemeColor           string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-	QuickDownload        bool                `json:"quickDownload"`             // show icon to download in one click
-	DisableOnlyOfficeExt string              `json:"disableOnlyOfficeExt"`      // comma separated list of file extensions to disable onlyoffice preview for
-	LockPassword         bool                `json:"lockPassword"`              // disable the user from changing their password
-	DisableSettings      bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
-	Preview              users.Preview       `json:"preview"`
-	DefaultScopes        []users.SourceScope `json:"-"`
-	Permissions          users.Permissions   `json:"permissions"`
-	LoginMethod          string              `json:"loginMethod,omitempty"` // login method to use: eg. password, proxy, oidc
+	StickySidebar           bool                `json:"stickySidebar"`             // keep sidebar open when navigating
+	DarkMode                bool                `json:"darkMode"`                  // should dark mode be enabled
+	Locale                  string              `json:"locale"`                    // language to use: eg. de, en, or fr
+	ViewMode                string              `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
+	SingleClick             bool                `json:"singleClick"`               // open directory on single click, also enables middle click to open in new tab
+	ShowHidden              bool                `json:"showHidden"`                // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+	DateFormat              bool                `json:"dateFormat"`                // when false, the date is relative, when true, the date is an exact timestamp
+	GallerySize             int                 `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
+	ThemeColor              string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	QuickDownload           bool                `json:"quickDownload"`             // show icon to download in one click
+	DisableOnlyOfficeExt    string              `json:"disableOnlyOfficeExt"`      // comma separated list of file extensions to disable onlyoffice preview for
+	DisableOfficePreviewExt string              `json:"disableOfficePreviewExt"`   // comma separated list of file extensions to disable office preview for
+	LockPassword            bool                `json:"lockPassword"`              // disable the user from changing their password
+	DisableSettings         bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
+	Preview                 users.Preview       `json:"preview"`
+	DefaultScopes           []users.SourceScope `json:"-"`
+	Permissions             users.Permissions   `json:"permissions"`
+	LoginMethod             string              `json:"loginMethod,omitempty"` // login method to use: eg. password, proxy, oidc
 }

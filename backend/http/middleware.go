@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"runtime"
 	"strings"
 	"time"
 
@@ -345,28 +346,84 @@ func setUserInResponseWriter(w http.ResponseWriter, user *users.User) {
 // LoggingMiddleware logs each request and its status code.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		// DEFER RECOVERY FUNCTION
+		defer func() {
+			if rcv := recover(); rcv != nil {
+				// Log detailed information about the panic
+				// Extract as much context as possible for logging
+				method := r.Method
+				url := r.URL.String()
+				remoteAddr := r.RemoteAddr
+				username := "unknown" // Default username
 
-		// Wrap the ResponseWriter to capture the status code.
+				// Attempt to get username from ResponseWriterWrapper if it's set
+				if ww, ok := w.(*ResponseWriterWrapper); ok && ww.User != "" {
+					username = ww.User
+				}
+				// Or try to get it from request context if your other middleware populates it
+				// This depends on your context setup; example:
+				// if dataCtx, ok := r.Context().Value("requestData").(*requestContext); ok && dataCtx.user != nil {
+				// 	username = dataCtx.user.Username
+				// }
+
+				// Get Go-level stack trace
+				buf := make([]byte, 16384)     // Increased buffer size for potentially long CGo traces
+				n := runtime.Stack(buf, false) // false for current goroutine only
+				stackTrace := string(buf[:n])
+
+				logger.Errorf("PANIC RECOVERED: %v\nUser: %s\nMethod: %s\nURL: %s\nRemoteAddr: %s\nGo Stack Trace:\n%s",
+					rcv, username, method, url, remoteAddr, stackTrace)
+
+				// Attempt to send a 500 error response to the client
+				// This is a best-effort; the connection might be broken or process too unstable.
+				if ww, ok := w.(*ResponseWriterWrapper); ok { // Check if it's our wrapper
+					if !ww.wroteHeader { // Only write if headers haven't been sent
+						ww.Header().Set("Content-Type", "application/json; charset=utf-8")
+						ww.WriteHeader(http.StatusInternalServerError)
+						json.NewEncoder(ww).Encode(map[string]string{
+							"status":  "500",
+							"message": "A critical internal error occurred. Please try again later.",
+						})
+					}
+				} else {
+					// Fallback if not our ResponseWriterWrapper. This might cause a "superfluous WriteHeader" log
+					// if headers were already written, but it's a last-ditch effort.
+					// Consider if you even want to try writing if not your wrapper.
+					// http.Error(w, `{"status": 500, "message": "A critical internal error occurred."}`, http.StatusInternalServerError)
+				}
+
+				// IMPORTANT: After a SIGSEGV from C code, the process might be unstable.
+				// Even if Go recovers, continuing to run the process is risky.
+				// Consider a strategy to gracefully shut down or signal an external supervisor
+				// to restart the process after logging. For now, this will allow other requests
+				// to proceed if the process doesn't die, but be wary.
+			}
+		}() // End of deferred recovery function
+
+		start := time.Now()
 		wrappedWriter := &ResponseWriterWrapper{ResponseWriter: w, StatusCode: http.StatusOK}
 
-		// Call the next handler.
+		// Call the next handler in the chain
 		next.ServeHTTP(wrappedWriter, r)
 
-		// Capture the full URL path including the query parameters.
+		// Existing logging logic for normal requests
 		fullURL := r.URL.Path
 		if r.URL.RawQuery != "" {
 			fullURL += "?" + r.URL.RawQuery
 		}
 		truncUser := wrappedWriter.User
-		if len(truncUser) > 12 {
+		if truncUser == "" {
+			truncUser = "N/A" // Handle case where user might not be set (e.g., if panic occurred before user auth)
+		} else if len(truncUser) > 12 {
 			truncUser = truncUser[:10] + ".."
 		}
 		duration := time.Since(start)
+
+		// Use the StatusCode from wrappedWriter, which might have been set to 500 by the recover logic
 		logger.Api(wrappedWriter.StatusCode,
 			fmt.Sprintf("%-7s | %3d | %-15s | %-12s | %-12s | \"%s\"",
 				r.Method,
-				wrappedWriter.StatusCode, // Captured status code
+				wrappedWriter.StatusCode,
 				r.RemoteAddr,
 				truncUser,
 				fmt.Sprintf("%vms", duration.Milliseconds()),
