@@ -21,7 +21,7 @@ jobs:
         run: npm i && npm run build
         working-directory: frontend
       - name: Install UPX
-        run: sudo apt-get install -y upx gcc-multilib g++-multilib
+        run: sudo apt-get install -y upx gcc-multilib g++-multilib gcc-mingw-w64 aarch64-linux-gnu-gcc
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -130,8 +130,9 @@ jobs:
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(
-              sub(":v"; ":") |
-              select(test(":latest") | not)
+              sub(":v"; ":")      # Strip the 'v'
+              | select(test(":latest") | not)
+              | sub(":(.+)"; ":\(.captures[0])-slim")
             ) |
             if any(.tags[]; test("beta")) then
               .tags += [
