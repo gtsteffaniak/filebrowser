@@ -161,5 +161,5 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: ./_docker/Dockerfile.slim
           push: true
-          tags: ${{ steps.modify-json.outputs.cleaned_tag }}
+          tags: ${{ steps.modify-json-slim.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
