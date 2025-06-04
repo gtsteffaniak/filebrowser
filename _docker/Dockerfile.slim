@@ -46,12 +46,10 @@ WORKDIR /home/filebrowser
 COPY --from=base --chown=filebrowser:1000 /app/filebrowser* ./
 COPY --from=base --chown=filebrowser:1000 /app/config.media.yaml ./config.yaml
 COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/
-
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]
 RUN [ "ffprobe", "-version" ]
-
 USER root
 # exposing default port for auto discovery.
 EXPOSE 80

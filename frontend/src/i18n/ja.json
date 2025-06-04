@@ -283,7 +283,11 @@
     "enterPasswordAgain": "もう一度パスワードを入力する",
     "passwordsDoNotMatch": "パスワードが一致しない",
     "loginMethod": "ログイン方法",
-    "shareSettings": "共有設定"
+    "shareSettings": "共有設定",
+    "disableOfficeEditorDescription": "OnlyOffice ビューアを無効にするファイル拡張子をスペース区切りで指定します。(例: '.txt .html')。",
+    "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
+    "disableOfficePreviews": "特定のファイル拡張子でオフィスのプレビューを無効にする",
+    "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -365,7 +369,8 @@
     "highQualityPreview": "高画質プレビュー",
     "previewOffice": "オフィスファイルのプレビュー",
     "popupPreview": "ポップアップ・プレビューを有効にする",
-    "filePreviewOptions": "ファイルプレビューオプション"
+    "filePreviewOptions": "ファイルプレビューオプション",
+    "editOffice": "オフィスファイルの編集/閲覧"
   },
   "otp": {
     "name": "二要素認証",

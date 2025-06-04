@@ -283,7 +283,11 @@
     "enterPasswordAgain": "Znovu zadajte heslo",
     "passwordsDoNotMatch": "Heslá sa nezhodujú",
     "loginMethod": "Spôsob prihlásenia",
-    "shareSettings": "Zdieľať nastavenia"
+    "shareSettings": "Zdieľať nastavenia",
+    "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má prehliadač OnlyOffice vypnúť. (napr. \".txt .html\").",
+    "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
+    "disableOfficePreviews": "Zakázanie náhľadov kancelárskych súborov pre určité prípony súborov",
+    "disableOfficePreviewsDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré chcete vypnúť náhľady kancelárskych súborov. (napr. \".txt .html\")."
   },
   "sidebar": {
     "help": "Pomoc",
@@ -365,7 +369,8 @@
     "highQualityPreview": "Vysokokvalitný náhľad",
     "previewOffice": "Náhľad kancelárskych súborov",
     "popupPreview": "Povolenie pop-up náhľadu",
-    "filePreviewOptions": "Možnosti náhľadu súborov"
+    "filePreviewOptions": "Možnosti náhľadu súborov",
+    "editOffice": "Úprava/zobrazenie kancelárskych súborov"
   },
   "otp": {
     "name": "Dvojfaktorové overovanie",

@@ -97,6 +97,7 @@ userDefaults:
   themeColor: var(--blue)                 # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
   quickDownload: false                    # show icon to download in one click
   disableOnlyOfficeExt: .txt .csv .html .pdf # comma separated list of file extensions to disable onlyoffice preview for
+  disableOfficePreviewExt: ""             # comma separated list of file extensions to disable office preview for
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
