@@ -20,8 +20,8 @@ jobs:
       - name: Install dependencies and build frontend
         run: npm i && npm run build
         working-directory: frontend
-      - name: Install UPX
-        run: sudo apt-get install -y upx gcc-multilib g++-multilib gcc-mingw-w64 aarch64-linux-gnu-gcc
+      - name: Install OS Requirements
+        run: sudo apt-get install -y upx gcc-multilib g++-multilib gcc-mingw-w64 gcc-aarch64-linux-gnu
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
