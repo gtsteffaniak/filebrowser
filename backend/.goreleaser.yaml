@@ -58,10 +58,6 @@ builds:
 
   # Build configuration for freebsd without arm & upx
   - id: freeBSD
-    env:
-      - CGO_ENABLED=1
-    tags:
-      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
@@ -75,10 +71,6 @@ builds:
 
   # Build configuration for macos without upx
   - id: macos
-    env:
-      - CGO_ENABLED=1
-    tags:
-      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
@@ -87,6 +79,9 @@ builds:
     goarch:
       - amd64
       - arm64
+    hooks:
+      post:
+        - upx {{ .Path }}  # Compress the binary with UPX
 
 archives:
   - name_template: >
