@@ -125,7 +125,7 @@ jobs:
             gtstef/filebrowser
             ghcr.io/gtsteffaniak/filebrowser
       - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
-        id: modify-json
+        id: modify-json-slim
         run: |
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
