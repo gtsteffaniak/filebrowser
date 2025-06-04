@@ -39,10 +39,10 @@ type Server struct {
 	CacheDir                     string      `json:"cacheDir"`       // path to the cache directory, used for thumbnails and other cached files
 	MaxArchiveSizeGB             int64       `json:"maxArchiveSize"` // max pre-archive combined size of files/folder that are allowed to be archived (in GB)
 	// not exposed to config
-	SourceMap     map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
-	NameToSource  map[string]Source `json:"-" validate:"omitempty"` // uses name as key
-	DefaultSource Source            `json:"-" validate:"omitempty"`
-	PdfAvailable  bool              `json:"-"` // used internally if compiled with pdf support
+	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
+	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
+	DefaultSource  Source            `json:"-" validate:"omitempty"`
+	MuPdfAvailable bool              `json:"-"` // used internally if compiled with mupdf support
 }
 
 type Integrations struct {

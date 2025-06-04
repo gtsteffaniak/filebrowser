@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { onlyOfficeUrl, mediaAvailable, pdfAvailable, baseURL } from "@/utils/constants";
+import { onlyOfficeUrl, mediaAvailable, muPdfAvailable, baseURL } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
 
@@ -117,7 +117,7 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      if (this.pdfConvertable && pdfAvailable) {
+      if (this.pdfConvertable && muPdfAvailable) {
         return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {

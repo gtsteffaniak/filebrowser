@@ -7,6 +7,8 @@ builds:
   - id: default
     env:
       - CGO_ENABLED=1
+    tags:
+      - mupdf
     ldflags: &ldflags
       - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
     main: main.go

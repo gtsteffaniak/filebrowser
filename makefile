@@ -28,7 +28,7 @@ run: build-frontend
 	else \
 		sed -i '/func init/,+3d' ./swagger/docs/docs.go; \
 	fi && \
-	FILEBROWSER_NO_EMBEDED=true CGO_ENABLED=1 go run -tags pdf \
+	FILEBROWSER_NO_EMBEDED=true CGO_ENABLED=1 go run -tags mupdf \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/version.Version=testing'" . -c test_config.yaml
 
 build-frontend:

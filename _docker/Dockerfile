@@ -9,7 +9,7 @@ RUN apt update && apt install -y --no-install-recommends \
     gcc-multilib \
     g++-multilib \
  && rm -rf /var/lib/apt/lists
-RUN CGO_ENABLED=1 go build -tags pdf -ldflags="-w -s \
+RUN CGO_ENABLED=1 go build -tags mupdf -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
