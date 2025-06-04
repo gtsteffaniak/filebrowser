@@ -380,16 +380,12 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 					if !ww.wroteHeader { // Only write if headers haven't been sent
 						ww.Header().Set("Content-Type", "application/json; charset=utf-8")
 						ww.WriteHeader(http.StatusInternalServerError)
-						json.NewEncoder(ww).Encode(map[string]string{
-							"status":  "500",
-							"message": "A critical internal error occurred. Please try again later.",
-						})
 					}
 				} else {
-					// Fallback if not our ResponseWriterWrapper. This might cause a "superfluous WriteHeader" log
-					// if headers were already written, but it's a last-ditch effort.
-					// Consider if you even want to try writing if not your wrapper.
-					// http.Error(w, `{"status": 500, "message": "A critical internal error occurred."}`, http.StatusInternalServerError)
+					_, _ = renderJSON(w, r, &HttpResponse{
+						Status:  500,
+						Message: "A critical internal error occurred. Please try again later.",
+					})
 				}
 
 				// IMPORTANT: After a SIGSEGV from C code, the process might be unstable.

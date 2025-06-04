@@ -283,7 +283,11 @@
     "enterPasswordAgain": "Wprowadź hasło ponownie",
     "passwordsDoNotMatch": "Hasła nie są zgodne",
     "loginMethod": "Metoda logowania",
-    "shareSettings": "Ustawienia udostępniania"
+    "shareSettings": "Ustawienia udostępniania",
+    "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których przeglądarka OnlyOffice ma zostać wyłączona. (np. \".txt .html\").",
+    "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
+    "disableOfficePreviews": "Wyłącz podglądy Office dla niektórych rozszerzeń plików",
+    "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\")."
   },
   "sidebar": {
     "help": "Pomoc",
@@ -365,7 +369,8 @@
     "highQualityPreview": "Podgląd wysokiej jakości",
     "previewOffice": "Podgląd plików biurowych",
     "popupPreview": "Włącz wyskakujący podgląd",
-    "filePreviewOptions": "Opcje podglądu plików"
+    "filePreviewOptions": "Opcje podglądu plików",
+    "editOffice": "Edycja/przeglądanie plików biurowych"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",
