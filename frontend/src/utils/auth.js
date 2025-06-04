@@ -1,58 +1,31 @@
-import { mutations, getters, state } from "@/store";
+import { mutations, getters,state } from "@/store";
 import router from "@/router";
-import { usersApi,filesApi } from "@/api";
+import { usersApi } from "@/api";
 import { getApiPath } from "@/utils/url.js";
-import { recaptcha, loginPage, disableUsedPercentage } from "@/utils/constants";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { recaptcha, loginPage } from "@/utils/constants";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
   mutations.setJWT(token);
-  mutations.setSession(generateRandomCode(8));
 }
 
 export async function validateLogin() {
-  try {
-    let userInfo = await usersApi.get("self");
-    mutations.setCurrentUser(userInfo);
-  } catch (error) {
-    console.log("Error validating login");
-  }
-  if (!disableUsedPercentage) {
-    for (const source of Object.keys(state.sources.info)) {
-      let usage = await filesApi.usage(source);
-      let sourceInfo = state.sources.info[source];
-      sourceInfo.used = getHumanReadableFilesize(usage.used);
-      sourceInfo.total = getHumanReadableFilesize(usage.total);
-      sourceInfo.usedPercentage = Math.round((usage.used / usage.total) * 100);
-      mutations.updateSource(source, sourceInfo);
-    }
-  }
-
-  return getters.isLoggedIn()
-}
-
-export async function login(username, password, recaptcha) {
-  const data = { username, password, recaptcha };
-  try {
+  let userInfo = await usersApi.get("self");
+  mutations.setCurrentUser(userInfo);
+  getters.isLoggedIn()
+  if (state.user.loginMethod == "proxy") {
     let apiPath = getApiPath("api/auth/login")
     const res = await fetch(apiPath, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
     });
     const body = await res.text();
-
     if (res.status === 200) {
       await setNewToken(body);
     } else {
       throw new Error(body);
     }
-  } catch (error) {
-    throw new Error("Login failed");
   }
+  return
 }
 
 export async function renew(jwt) {
@@ -72,7 +45,7 @@ export async function renew(jwt) {
   }
 }
 
-function generateRandomCode(length) {
+export function generateRandomCode(length) {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let code = '';
   for (let i = 0; i < length; i++) {
@@ -83,23 +56,12 @@ function generateRandomCode(length) {
   return code;
 }
 
-export async function signupLogin(username, password) {
-  const data = { username, password };
-  let apiPath = getApiPath("api/auth/signup")
-  const res = await fetch(apiPath, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (res.status !== 200) {
-    throw new Error(res.status);
-  }
-}
-
 export function logout() {
+  if (state.user.loginMethod == "oidc" || state.user.loginMethod == "proxy") {
+    let apiPath = getApiPath("api/auth/logout")
+    window.location.href = apiPath;
+    return
+  }
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
   mutations.setCurrentUser(null);
   router.push({ path: "/login" });

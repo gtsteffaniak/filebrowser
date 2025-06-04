@@ -2,6 +2,193 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.6-beta
+
+NOTE: if using docker arm32 image, you will need to switch to the slim images. The regular docker images are much larger now and support generating office previews out of the box without any only office running. However, they don't support arm32. Also, be aware the docker images are much larger now (600MB I believe) because of the office document preview support -- if thats not something you care about you can switch to the slim images.
+
+ **New Features**:
+ - native document preview generation enabled for certain document types on the regular docker image (no office integration needed)
+   - supported native document preview types:
+     - ".pdf",  // PDF
+     - ".xps",  // XPS
+     - ".epub", // EPUB
+     - ".mobi", // MOBI
+     - ".fb2",  // FB2
+     - ".cbz",  // CBZ
+     - ".svg",  // SVG
+     - ".txt",  // TXT
+     - ".doc",  // DOC
+     - ".docx", // DOCX
+     - ".ppt",  // PPT
+     - ".pptx", // PPTX
+     - ".xls",  // excel xls
+     - ".xlsx", // exel XLSX
+     - ".hwp",  // HWP
+     - ".hwp",  // HWPX
+ - proxy logout redirectUrl support via `auth.methods.proxy.logoutRedirectUrl` https://github.com/gtsteffaniak/filebrowser/issues/684
+
+ **Notes**:
+ - image loading placeholders added and remain if image can't be loaded.
+ - no more arm32 support on main image -- use a `slim` tagged image.
+
+ **BugFixes**:
+ - onlyoffice and other cache issues https://github.com/gtsteffaniak/filebrowser/issues/686
+ - gallery size indicator centering https://github.com/gtsteffaniak/filebrowser/issues/652
+
+## v0.7.5-beta
+
+ **New Features**
+ - new `./filebrowser.exe setup` command for creating a config.yaml on first run. https://github.com/gtsteffaniak/filebrowser/issues/675
+ - new 2FA/OTP support for password-based users.
+ - `auth.password.enforcedOtp` option to enforce 2FA usage for password users.
+
+ **Notes**:
+ - logging uses localtime, optional UTC config added https://github.com/gtsteffaniak/filebrowser/issues/665
+ - generated config example now includes defaults https://github.com/gtsteffaniak/filebrowser/issues/590
+ - `server.debugMedia` config option added to help debug ffmpeg issues in the future (don't enable unless debugging an issue)
+ - more translations additions from english settings https://github.com/gtsteffaniak/filebrowser/issues/653
+ - visual tweaks https://github.com/gtsteffaniak/filebrowser/issues/652
+ - enhanced markdown viewer with code view spec
+
+ **BugFixes**:
+ - long video names ffmpeg issue fixed https://github.com/gtsteffaniak/filebrowser/issues/669
+ - certain files not passing content https://github.com/gtsteffaniak/filebrowser/issues/657
+ - https://github.com/gtsteffaniak/filebrowser/issues/668
+ - allow edit markdown files
+ - rename button doesn't close prompt https://github.com/gtsteffaniak/filebrowser/issues/664
+ - webm video preview issue https://github.com/gtsteffaniak/filebrowser/issues/673
+ - fix signup issue https://github.com/gtsteffaniak/filebrowser/issues/648
+ - fix default source bug
+ - https://github.com/gtsteffaniak/filebrowser/issues/666
+ - fix 500 error for subtitle videos https://github.com/gtsteffaniak/filebrowser/issues/678
+ - spaces and special characters in source name issue https://github.com/gtsteffaniak/filebrowser/issues/679
+
+![image](https://github.com/user-attachments/assets/28e4e67e-31a1-4107-9294-0e715e87b558)
+
+## v0.7.4-beta
+
+ **Notes**:
+ - Updated German translation. https://github.com/gtsteffaniak/filebrowser/pull/644
+
+ **BugFixes**:
+ - windows control click https://github.com/gtsteffaniak/filebrowser/issues/642
+ - create user issue https://github.com/gtsteffaniak/filebrowser/issues/647
+
+## v0.7.3-beta
+
+Note: OIDC changes require config update.
+
+ **New Features**
+ - Added code highlights to text editor and enabled text editor for all asci files under 25MB
+ - Motion previews for videos -- cycles screenshots of vidoes. https://github.com/gtsteffaniak/filebrowser/issues/588
+ - Optionally reset default admin username/password on startup, to guarentee a username/password on startup if needed. Use by setting `auth.resetAdminOnStart` true https://github.com/gtsteffaniak/filebrowser/issues/625
+
+ **Notes**:
+ - Updated translations everywhere. https://github.com/gtsteffaniak/filebrowser/issues/627
+ - Office viewer is now full-screen with floating close button. https://github.com/gtsteffaniak/filebrowser/issues/542
+ - OIDC config additions
+   - `issuerUrl` required now to get relevant oidc configurations.
+   - `disableVerifyTLS` optionally, disable verifying HTTPS provider endpoints.
+   - `logoutRedirectUrl` optionally, redirect the user to this URL on logout.
+   - other URL config parameters are no longer accepted -- replace with issuerUrl.
+ - Aadmins allowed to change user login methods in user settings when creating or updating users.
+   - https://github.com/gtsteffaniak/filebrowser/issues/618
+   - https://github.com/gtsteffaniak/filebrowser/issues/617
+ - Hide header when showing only office https://github.com/gtsteffaniak/filebrowser/issues/542
+
+ **BugFixes**:
+ - Editor save shows notification
+ - Preview settings resetting on startup
+ - Not all languages show correctly https://github.com/gtsteffaniak/filebrowser/issues/623
+ - scopes sometimes reset on startup https://github.com/gtsteffaniak/filebrowser/issues/636
+ - Update save password option
+   - https://github.com/gtsteffaniak/filebrowser/issues/587
+   - https://github.com/gtsteffaniak/filebrowser/issues/619
+   - https://github.com/gtsteffaniak/filebrowser/issues/615
+
+## v0.7.2-beta
+
+The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.
+
+  **Notes**:
+  - Reverts enforced user login methods types -- until suitable methods to alter are available.
+  - When updating a user, updating scope always sets to the exact scope specified on updated.
+  - Redirect api messages are INFO instead of WARN
+  - Settings has close button instead of back https://github.com/gtsteffaniak/filebrowser/issues/583
+
+  **Bug Fixes**:
+  - Hover bug when exact timestamp setting enabled https://github.com/gtsteffaniak/filebrowser/issues/585
+
+## v0.7.1-beta
+
+The `media` tags introduced in 0.7.0 have been removed -- all docker images have media enabled now.
+
+  **Notes**:
+  - changes to support jwks url needed for authelia - still needs testing to ensure it works https://github.com/gtsteffaniak/filebrowser/issues/575, added debug logs to help identify any further issues.
+  - added apache license file back https://github.com/gtsteffaniak/filebrowser/discussions/599
+  - updated toggle view icons to better match.
+  - adjusted popup preview position on mobile.
+  - updated createUserDir logic, https://github.com/gtsteffaniak/filebrowser/issues/541
+    - it always creats user dir (even for admins)
+    - scope path must exist if it doesn't end in username, and if it does, the parent dir must exist
+    - enforced user login methods types -- can't be changed. a password user cannot login as oidc, etc.
+
+  **Bug Fixes**:
+  - right click context menu issue https://github.com/gtsteffaniak/filebrowser/issues/598
+  - upload file issue https://github.com/gtsteffaniak/filebrowser/issues/597
+  - defaultUserScope is not respected https://github.com/gtsteffaniak/filebrowser/issues/589
+  - defaultEnabled is not respected https://github.com/gtsteffaniak/filebrowser/issues/603
+  - user has weird navigation barhttps://github.com/gtsteffaniak/filebrowser/issues/593
+  - fix multibutton state issue for close overlay https://github.com/gtsteffaniak/filebrowser/issues/596
+
+## v0.7.0-beta
+
+ **New Features**:
+ - New authentication method: OIDC (OpenID Connect)
+ - UI refresh
+   - Refreshed icons and styles to provide more contrast https://github.com/gtsteffaniak/filebrowser/issues/493
+   - New scrollbar which includes information about the listing https://github.com/gtsteffaniak/filebrowser/issues/304
+   - User-configurable popup previewer and user can control preview size of images.
+   - Enhanced user settings page with more toggle options.
+   - Replaced checkboxes with toggles switches https://github.com/gtsteffaniak/filebrowser/issues/461
+   - Refreshed Breadcrumbs style.
+   - Main navbar icon is multipurpose menu, close, back and animates
+   - Enhanced source info on the UI
+     - User must have permission `realtime: true` property to get realtime events.
+     - Sources shows status of the directory `ready`, `indexing`, and `unavailable`
+   - Top-right overflow menu for deleting / editing files in peview https://github.com/gtsteffaniak/filebrowser/issues/456
+   - Helpful UI animation for drag and drop files, to get feedback where the drop target is.
+   - More consistent theme color https://github.com/gtsteffaniak/filebrowser/issues/538
+ - New file preview types:
+   - Video thumbnails available via new media integration (see configuration wiki for help) https://github.com/gtsteffaniak/filebrowser/issues/351
+   - Office file previews if you have office integration enabled. https://github.com/gtsteffaniak/filebrowser/issues/460
+
+  **Notes**:
+  - sesssionId is now unique per window. Previously it was shared accross browser tabs.
+  - DisableUsedPercentage is a backend property now, so users can't "hack" the information to be shown.
+  - Updated documentation for resources api https://github.com/gtsteffaniak/filebrowser/issues/560
+  - Updated placeholder for scopes https://github.com/gtsteffaniak/filebrowser/issues/475
+  - When user's API permissions are removed, any api keys the user had will be revoked.
+  - `server.enableThumbnails` moved to `server.disablePreviews` defaulting to false.
+  - `server.resizePreview` moved to `server.resizePreviews` (with an "s" at the end)
+
+  **Bug Fixes**:
+  - Nil pointer error when source media is disconnected while running.
+  - Source selection buggy https://github.com/gtsteffaniak/filebrowser/issues/537
+  - Upload folder structure https://github.com/gtsteffaniak/filebrowser/issues/539
+  - Editing files on multiple sources https://github.com/gtsteffaniak/filebrowser/issues/535
+  - Prevent the user from changing the password https://github.com/gtsteffaniak/filebrowser/issues/550
+  - Links in setting page does not navigate to correct location https://github.com/gtsteffaniak/filebrowser/issues/474
+  - Url encoding issue https://github.com/gtsteffaniak/filebrowser/issues/530
+  - Certain file types being treated as folders https://github.com/gtsteffaniak/filebrowser/issues/555
+  - Source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/557
+  - Onlyoffice support on proxy auth https://github.com/gtsteffaniak/filebrowser/issues/559
+  - Downloading with user scope https://github.com/gtsteffaniak/filebrowser/issues/564
+  - User disableSettings property to be respected.
+  - Non admin users updating admin settings.
+  - Right click context issue on safari desktop.
+  - office save file issue.
+
 ## v0.6.8-beta
 
  **New Features**

@@ -10,8 +10,8 @@
 
     <div class="card-action full">
       <div
-        @click="uploadFile"
-        @keypress.enter="uploadFile"
+        @click="triggerFilePicker"
+        @keypress.enter="triggerFilePicker"
         class="action"
         id="focus-prompt"
         tabindex="1"
@@ -20,21 +20,28 @@
         <div class="title">{{ $t("buttons.file") }}</div>
       </div>
       <div
-        @click="uploadFolder"
-        @keypress.enter="uploadFolder"
+        @click="triggerFolderPicker"
+        @keypress.enter="triggerFolderPicker"
         class="action"
         tabindex="2"
       >
         <i class="material-icons">folder</i>
         <div class="title">{{ $t("buttons.folder") }}</div>
       </div>
-      <input ref="fileInput" @change="onFilePicked" type="file" style="display: none" />
+      <input
+        ref="fileInput"
+        @change="onFilePicked"
+        type="file"
+        multiple
+        style="display: none"
+      />
       <input
         ref="folderInput"
         @change="onFolderPicked"
         type="file"
         webkitdirectory
         directory
+        multiple
         style="display: none"
       />
     </div>
@@ -53,83 +60,71 @@ export default {
     const folderInput = ref(null);
 
     const triggerFilePicker = () => {
-      fileInput.value.click();
+      if (fileInput.value) fileInput.value.click();
     };
 
     const triggerFolderPicker = () => {
-      folderInput.value.click();
+      if (folderInput.value) folderInput.value.click();
     };
 
     const onFilePicked = (event) => {
-      handleFiles(event);
+      handleFiles(event, false);
     };
 
     const onFolderPicked = (event) => {
-      handleFiles(event);
+      handleFiles(event, true);
     };
 
     const handleFiles = async (event) => {
       mutations.closeHovers();
-      const files = event.target.files;
-      if (!files) return;
+      const rawFiles = event.target.files;
+      if (!rawFiles || rawFiles.length === 0) return;
 
-      const folderUpload = Boolean(files[0].webkitRelativePath);
       const uploadFiles = [];
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fullPath = folderUpload ? file.webkitRelativePath : undefined;
+      for (let i = 0; i < rawFiles.length; i++) {
+        const file = rawFiles[i];
+        const fullPath = file.webkitRelativePath || file.name;
+
         uploadFiles.push({
-          file, // File object directly
+          file,
           name: file.name,
+          path: fullPath,
+          fullPath: fullPath,
+          source: state.req.source,
           size: file.size,
-          isDir: false,
-          fullPath,
         });
       }
 
       const path = getters.routePath();
       const conflict = upload.checkConflict(uploadFiles, state.req.items);
 
+      const doUpload = async () => {
+        mutations.closeHovers();
+        await upload.handleFiles(uploadFiles, path, true);
+        mutations.setReload(true);
+      };
+
       if (conflict) {
         mutations.showHover({
           name: "replace",
-          confirm: async (event) => {
-            event.preventDefault();
-            mutations.closeHovers();
-            await upload.handleFiles(uploadFiles, path, true);
+          confirm: async (e) => {
+            e.preventDefault();
+            await doUpload();
           },
         });
       } else {
-        await upload.handleFiles(uploadFiles, path, true);
+        await doUpload();
       }
-      mutations.setReload(true);
-    };
-
-    const openUpload = (isFolder) => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.multiple = true;
-      input.webkitdirectory = isFolder;
-      input.addEventListener("change", handleFiles);
-      input.click();
-    };
-
-    const uploadFile = () => {
-      openUpload(false);
-    };
-
-    const uploadFolder = () => {
-      openUpload(true);
     };
 
     return {
       triggerFilePicker,
       triggerFolderPicker,
-      uploadFile,
-      uploadFolder,
       onFilePicked,
       onFolderPicked,
+      fileInput,
+      folderInput,
     };
   },
 };

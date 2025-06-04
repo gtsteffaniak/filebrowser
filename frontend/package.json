@@ -16,6 +16,7 @@
     "typecheck": "vue-tsc -p ./tsconfig.json --noEmit",
     "lint": "eslint --ext .js,.vue,ts src",
     "lint:fix": "eslint --fix src/",
+    "i18n:sync": "node ./scripts/sync-translations.js",
     "format": "prettier --write .",
     "test": "vitest run "
   },
@@ -27,6 +28,8 @@
     "css-vars-ponyfill": "^2.4.3",
     "dompurify": "^3.2.4",
     "file-loader": "^6.2.0",
+    "glob": "^9.3.5",
+    "highlight.js": "^11.11.1",
     "marked": "^15.0.6",
     "normalize.css": "^8.0.1",
     "qrcode.vue": "^3.4.1",
@@ -37,13 +40,16 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@intlify/eslint-plugin-vue-i18n": "^3.2.0",
     "@intlify/unplugin-vue-i18n": "^4.0.0",
     "@playwright/test": "^1.49.1",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-typescript": "^13.0.0",
+    "deepl-node": "^1.18.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-vue": "^9.24.0",
+    "fs-extra": "^11.3.0",
     "jsdom": "^25.0.1",
     "vite": "^6.2.0",
     "vite-plugin-compression2": "^1.0.0",

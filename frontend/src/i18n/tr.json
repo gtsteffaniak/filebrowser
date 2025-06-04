@@ -33,7 +33,14 @@
     "toggleSidebar": "Menüyü aç/kapat",
     "update": "Güncelle",
     "upload": "Yükle",
-    "openFile": "Dosyayı aç"
+    "openFile": "Dosyayı aç",
+    "copyDownloadLinkToClipboard": "İndirme bağlantısını panoya kopyala",
+    "file": "Dosya",
+    "folder": "Klasör",
+    "continue": "Devam et",
+    "edit": "Düzenle",
+    "generateNewOtp": "Sıfırlama ve yeni iki faktörlü kod oluşturma",
+    "verify": "Doğrulama"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -99,7 +106,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "Swedish (Sweden)",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -114,7 +121,8 @@
     "submit": "Giriş",
     "username": "Kullanıcı adı",
     "usernameTaken": "Kullanıcı adı mevcut",
-    "wrongCredentials": "Yanlış hesap bilgileri"
+    "wrongCredentials": "Yanlış hesap bilgileri",
+    "or": "VEYA"
   },
   "permanent": "Kalıcı",
   "prompts": {
@@ -130,7 +138,6 @@
     "downloadMessage": "İndirmek istediğiniz formatı seçin.",
     "error": "Bir şeyler yanlış gitti",
     "fileInfo": "Dosya bilgisi",
-    "filesSelected": "{count} dosya seçildi.",
     "lastModified": "Son güncellenme",
     "move": "Taşı",
     "moveMessage": "Dosya(lar)ınız/klasör(ler)iniz için yeni ana dizin seçin:",
@@ -151,7 +158,12 @@
     "size": "Boyut",
     "upload": "Gönder",
     "uploadMessage": "Yüklemek için bir seçenek belirleyin.",
-    "optionalPassword": "İsteğe bağlı şifre"
+    "optionalPassword": "İsteğe bağlı şifre",
+    "deleteUserMessage": "Bu kullanıcıyı silmek istediğinizden emin misiniz?",
+    "filesSelected": "seçilen dosyalar",
+    "uploadFiles": "Uploading {files} files...",
+    "typeName": "Tip:",
+    "selected": "seçilmiş"
   },
   "search": {
     "images": "Görseller",
@@ -161,7 +173,12 @@
     "search": "Ara...",
     "typeToSearch": "Aramak için yazın...",
     "types": "Türler",
-    "video": "Video"
+    "video": "Video",
+    "path": "Yol:",
+    "smallerThan": "Daha küçük:",
+    "largerThan": "Daha büyük:",
+    "helpText1": "Arama, yazdığınız her karakterde gerçekleşir (arama terimleri için minimum 3 karakter).",
+    "helpText2": "Dizin: Arama, yapılandırılan aralıkta (varsayılan: 5 dakika) otomatik olarak güncellenen dizini kullanır. Program yeni başladığında arama yapmak eksik sonuçlara neden olabilir."
   },
   "settings": {
     "admin": "Yönetim",
@@ -201,16 +218,19 @@
     "password": "Şifre",
     "passwordUpdated": "Şifre güncellendi",
     "path": "Yol",
-    "perm": {
+    "permissions": {
       "create": "Dosyalar ve dizinler oluşturun",
       "delete": "Dosyalar ve dizinleri silin",
       "download": "İndir",
       "execute": "Komutları çalıştır",
       "modify": "Dosyaları değiştir",
       "rename": "Dosyaları ve dizinleri yeniden adlandırın veya taşıyın",
-      "share": "Dosyaları paylaş"
+      "share": "Dosyaları paylaş",
+      "admin": "Yönetici",
+      "api": "Uzun ömürlü API anahtarları oluşturma ve yönetme",
+      "realtime": "Gerçek zamanlı bağlantıları ve güncellemeleri etkinleştirin"
     },
-    "permissions": "İzinler",
+    "permissions-name": "İzinler",
     "permissionsHelp": "Kullanıcıyı yönetici olarak ayarlayabilir veya izinleri ayrı ayrı seçebilirsiniz. \"Yönetici\"yi seçerseniz, diğer tüm seçenekler otomatik olarak kontrol edilecektir. Kullanıcıların yönetimi, bir yöneticinin yetkisi olarak kalır.\n",
     "profileSettings": "Profil ayarları",
     "ruleExample1": "her klasördeki herhangi bir noktalı dosyaya (.git, .gitignore gibi) erişimi engeller.\n",
@@ -237,7 +257,33 @@
     "userManagement": "Kullanıcı yönetimi",
     "userUpdated": "Kullanıcı güncellendi!",
     "username": "Kullanıcı adı",
-    "users": "Kullanıcılar"
+    "users": "Kullanıcılar",
+    "modifyOtherUser": "Kullanıcıyı değiştir:",
+    "modifyCurrentUser": "Geçerli kullanıcıyı değiştir",
+    "themeColor": "Tema Rengi",
+    "disableOfficePreviewDescription": "OnlyOffice görüntüleyicisinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
+    "disableOfficePreview": "Belirli dosya uzantıları için onlyoffice görüntüleyiciyi devre dışı bırakma",
+    "filePreviewOptions": "Dosya önizleme seçenekleri",
+    "listingOptions": "Listeleme seçenekleri",
+    "emptyGlobal": "Şu anda global yapılandırma seçenekleri yoktur, sistem ayarlarını yapmak için yapılandırma yaml'ını düzenleyebilirsiniz.",
+    "scopes": "İzin verilen kaynakları ve bunlar içindeki kullanıcı kapsamını tanımlama",
+    "UserManagement": "Kullanıcı Yönetimi",
+    "tusUploads": "Yığınlanmış Yüklemeler",
+    "tusUploadsHelp": "File Browser, parçalı dosya yüklemelerini destekleyerek güvenilir olmayan ağlarda bile verimli, güvenilir, yeniden başlatılabilir ve parçalı dosya yüklemelerinin oluşturulmasına olanak tanır.",
+    "tusUploadsChunkSize": "Bir isteğin maksimum boyutunu belirtir (daha küçük yüklemeler için doğrudan yüklemeler kullanılacaktır). Bayt girişini belirten düz bir tamsayı veya 10MB, 1GB vb. gibi bir dize girebilirsiniz.",
+    "tusUploadsRetryCount": "Bir yığının yüklenememesi durumunda gerçekleştirilecek yeniden deneme sayısı.",
+    "userHomeBasePath": "Kullanıcı ev dizinleri için temel yol",
+    "userScopeGenerationPlaceholder": "Kapsam otomatik olarak oluşturulacaktır",
+    "createUserHomeDirectory": "Kullanıcı ev dizini oluşturma",
+    "api": "API Anahtarları",
+    "setDateFormat": "Tam tarih biçimini ayarlama",
+    "loginMethodDescription": "kullanıcı için izin verilen oturum açma yöntemi.",
+    "userNotAdmin": "Kullanıcı yönetici değil",
+    "enterPassword": "Şifre girin",
+    "enterPasswordAgain": "Şifreyi tekrar girin",
+    "passwordsDoNotMatch": "Parolalar eşleşmiyor",
+    "loginMethod": "Giriş yöntemi",
+    "shareSettings": "Paylaşım Ayarları"
   },
   "sidebar": {
     "help": "Yardım",
@@ -250,7 +296,8 @@
     "preview": "Önizleme",
     "settings": "Ayarlar",
     "signup": "Kayıt",
-    "siteSettings": "Site ayarları!"
+    "siteSettings": "Site ayarları!",
+    "sources": "Kaynaklar"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -261,5 +308,74 @@
     "minutes": "Dakika",
     "seconds": "Saniye",
     "unit": "Zaman birimi"
+  },
+  "upload": {
+    "abortUpload": "Aldırmak istediğine emin misin?"
+  },
+  "share": {
+    "notice": "Not: Bağlantıya (ve isteğe bağlı şifreye) erişimi olan herkes paylaşılan dosyalara erişebilir. Oturum açma zorunluluğu yoktur."
+  },
+  "api": {
+    "title": "API Anahtarları:",
+    "keyName": "API Anahtar Adı:",
+    "createdAt": "Oluşturuldu:",
+    "expiresAt": "Son kullanma tarihi:",
+    "permissions": "İzinler:",
+    "createTitle": "API Anahtarı Oluşturma",
+    "keyNamePlaceholder": "Benzersiz bir API anahtar adı girin:",
+    "tokenDuration": "Token Süresi:",
+    "durationNumberPlaceholder": "Sayı",
+    "days": "Günler",
+    "months": "Aylar",
+    "permissionNote": "Anahtar için en az bir izin seçin. Kullanıcınız da bu izne sahip olmalıdır.",
+    "createKeyFailed": "API anahtarı oluşturulamadı.",
+    "createKeySuccess": "API anahtarı başarıyla oluşturuldu.",
+    "description": "API anahtarları, onları oluşturan kullanıcıyı temel alır. Bkz.",
+    "swaggerLinkText": "swagger sayfası",
+    "name": "İsim",
+    "created": "Oluşturuldu",
+    "expires": "Sona erdi",
+    "actions": "Eylemler",
+    "enabled": "Etkin",
+    "disabled": "Engelli"
+  },
+  "index": {
+    "status": "Durum",
+    "assessment": "Değerlendirme",
+    "files": "Dosyalar",
+    "folders": "Klasörler",
+    "lastScanned": "Son Taranan",
+    "quickScan": "Hızlı Tarama Saniyeleri",
+    "fullScan": "Tam Tarama Saniyeleri",
+    "settingsHover": "Kullanıcı Ayarları",
+    "logout": "Oturum Kapatma",
+    "toggleClick": "Tek Tıklamayı Değiştir",
+    "toggleDark": "Karanlık Modu Aç / Kapat",
+    "toggleSticky": "Yapışkan Modunu Değiştir",
+    "of": ".",
+    "used": "kullanılmış"
+  },
+  "profileSettings": {
+    "setDateFormat": "Tam tarih biçimini ayarlama",
+    "showHiddenFiles": "Gizli dosyaları göster",
+    "showQuickDownload": "Hızlı erişim için indirme simgesini göster",
+    "previewImages": "Önizleme görüntüleri",
+    "previewVideos": "Önizleme videoları",
+    "previewMotionVideos": "Videolar için hareket önizlemesi",
+    "highQualityPreview": "Yüksek kaliteli önizleme",
+    "previewOffice": "Ofis dosyalarını önizleme",
+    "popupPreview": "Açılır pencere önizlemesini etkinleştir",
+    "filePreviewOptions": "Dosya önizleme seçenekleri"
+  },
+  "otp": {
+    "name": "İki Faktörlü Kimlik Doğrulama",
+    "verifyInstructions": "Kimlik doğrulayıcı uygulamanızdan kodu girin",
+    "generate": "QR kodunu kimlik doğrulayıcı uygulamanızla tarayın",
+    "codeInputPlaceholder": "6 haneli kod",
+    "invalidCodeType": "Doğrulama kodu 6 İngilizce hane olmalıdır",
+    "enabledSuccessfully": "OTP başarıyla etkinleştirildi",
+    "verificationFailed": "Doğrulama Başarısız",
+    "verificationSucceed": "Doğrulama Başarılı",
+    "generationFailed": "Nesil Başarısız"
   }
 }

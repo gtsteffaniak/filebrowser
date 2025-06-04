@@ -5,10 +5,7 @@
       <h2>{{ $t("settings.globalSettings") }}</h2>
     </div>
 
-    <div class="card-content">
-      Currently there are no global config options, You can edit the configuration yaml to
-      adjust system settings.
-    </div>
+    <div class="card-content"> {{ $t('settings.emptyGlobal') }} </div>
 
     <div class="card-action">
       <input class="button button--flat" type="submit" :value="$t('buttons.update')" />

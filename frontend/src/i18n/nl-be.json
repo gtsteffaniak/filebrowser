@@ -95,7 +95,7 @@
     "ru": "Russisch",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "Chinees (vereenvoudigd)",
     "zhTW": "Chinees (traditioneel)"
@@ -125,7 +125,6 @@
     "downloadMessage": "Kies het vermat dat u wilt downloaden. ",
     "error": "Er ging iets fout",
     "fileInfo": "Bestandinformatie",
-    "filesSelected": "{count} geselecteerde bestanden",
     "lastModified": "Laatst Bewerkt",
     "move": "Verplaatsen",
     "moveMessage": "Kies een nieuwe locatie voor je bestand(en)/map(pen)",
@@ -145,7 +144,8 @@
     "show": "Tonen",
     "size": "Grootte",
     "upload": "",
-    "uploadMessage": ""
+    "uploadMessage": "",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -195,7 +195,7 @@
     "password": "Wachtwoord",
     "passwordUpdated": "Wachtwoord bijgewerkt!",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Bestanden en mappen aanmaken",
       "delete": "Bestanden en mappen verwijderen",
       "download": "Downloaden",
@@ -204,7 +204,7 @@
       "rename": "Bestanden of mappen hernoemen of verplaatsen",
       "share": "Bestanden delen"
     },
-    "permissions": "Permissies",
+    "permissions-name": "Permissies",
     "permissionsHelp": "U kunt de gebruiker instellen als beheerder of de machtigingen afzonderlijk kiezen. Als u \"Beheerder\" selecteert, worden alle andere opties automatisch gecontroleerd. Het beheer van gebruikers blijft een privilege van een beheerder.\n",
     "profileSettings": "Profielinstellingen",
     "ruleExample1": "voorkomt de toegang tot elk puntbestand (zoals .git, .gitignore) in elke map.\n",
@@ -254,5 +254,9 @@
     "minutes": "Minuten",
     "seconds": "Seconden",
     "unit": "Tijdseenheid"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

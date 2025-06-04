@@ -13,10 +13,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
@@ -70,7 +70,7 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 		}
 	}
 
-	idx := files.GetIndex(source)
+	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("source %s is not available", source)
 	}
@@ -197,7 +197,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 			return http.StatusForbidden, err
 		}
 	}
-	idx := files.GetIndex(firstFileSource)
+	idx := indexing.GetIndex(firstFileSource)
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
 	}
@@ -230,15 +230,13 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 		sizeInMB := estimatedSize / 1024 / 1024
-		// if larger than 500 megabytes, log it
+		// if larger than 500 MB, log it
 		if sizeInMB > 500 {
-			logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
+			logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
 		}
-		// Stream file to response
-		_, err2 = io.Copy(w, fd)
-		if err2 != nil {
-			return http.StatusInternalServerError, err2
-		}
+		// serve content allows for range requests.
+		// video scrubbing, etc.
+		http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)
 		return 200, nil
 	}
 
@@ -296,8 +294,8 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	}
 
 	sizeInMB := fileInfo.Size() / 1024 / 1024
-	if sizeInMB > 100 {
-		logger.Debug(fmt.Sprintf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName))
+	if sizeInMB > 500 {
+		logger.Debugf("User %v is downloading large (%d MB) file: %v", d.user.Username, sizeInMB, fileName)
 	}
 
 	// Set headers AFTER computing actual archive size
@@ -309,7 +307,7 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	_, err = io.Copy(w, fd)
 	os.Remove(archiveData) // Remove the file after streaming
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to copy archive data to response: %v", err))
+		logger.Errorf("Failed to copy archive data to response: %v", err)
 		return http.StatusInternalServerError, err
 	}
 
@@ -325,7 +323,7 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		}
 		source := splitFile[0]
 		path := splitFile[1]
-		idx := files.GetIndex(source)
+		idx := indexing.GetIndex(source)
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
@@ -337,11 +335,12 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 			}
 		}
-		_, isDir, err := idx.GetRealPath(userScope, path)
+		realPath, isDir, err := idx.GetRealPath(userScope, path)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		info, ok := idx.GetReducedMetadata(path, isDir)
+		indexPath := idx.MakeIndexPath(realPath)
+		info, ok := idx.GetReducedMetadata(indexPath, isDir)
 		if !ok {
 			return 0, fmt.Errorf("failed to get metadata info for %s", path)
 		}
@@ -363,7 +362,7 @@ func createZip(d *requestContext, tmpDirPath string, filenames ...string) error 
 	for _, fname := range filenames {
 		err := addFile(fname, d, nil, zipWriter, false)
 		if err != nil {
-			logger.Error(fmt.Sprintf("Failed to add %s to ZIP: %v", fname, err))
+			logger.Errorf("Failed to add %s to ZIP: %v", fname, err)
 			return err
 		}
 	}
@@ -386,7 +385,7 @@ func createTarGz(d *requestContext, tmpDirPath string, filenames ...string) erro
 	for _, fname := range filenames {
 		err := addFile(fname, d, tarWriter, nil, false)
 		if err != nil {
-			logger.Error(fmt.Sprintf("Failed to add %s to TAR.GZ: %v", fname, err))
+			logger.Errorf("Failed to add %s to TAR.GZ: %v", fname, err)
 			return err
 		}
 	}

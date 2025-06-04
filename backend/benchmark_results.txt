@@ -2,65 +2,82 @@
  == Running benchmark == 
 /usr/local/go/bin/go
 ?   	github.com/gtsteffaniak/filebrowser/backend	[no test files]
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache	0.004s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files	0.006s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils	0.003s
 ?   	github.com/gtsteffaniak/filebrowser/backend/auth	[no test files]
 ?   	github.com/gtsteffaniak/filebrowser/backend/cmd	[no test files]
+?   	github.com/gtsteffaniak/go-cache/cache	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/backend/common/errors	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/backend/common/logger	[no test files]
+2025/05/11 20:42:56 Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable
+2025/05/11 20:42:56 Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/diskcache	0.005s
-?   	github.com/gtsteffaniak/filebrowser/backend/errors	[no test files]
-/home/graham/git/filebrowser /home/graham/git/filebrowser
-/home/graham/git/filebrowser/files/file.go /home/graham/git/filebrowser
-/home/graham/git/filebrowser/mnt/doesnt/exist /home/graham/git/filebrowser
-2025/01/04 14:04:55 Initializing index and assessing file system complexity
-2025/01/04 14:04:55 Starting full scan
-2025/01/04 14:04:55 Index assessment         : complexity=simple directories=0 files=0 
-2025/01/04 14:04:55 Time Spent Indexing      : 0 seconds
-2025/01/04 14:04:55 Next scan in 1m0s
-2025/01/04 14:04:56 Initializing index and assessing file system complexity
-2025/01/04 14:04:56 Starting full scan
-2025/01/04 14:04:56 Index assessment         : complexity=simple directories=0 files=0 
-2025/01/04 14:04:56 Time Spent Indexing      : 0 seconds
-2025/01/04 14:04:56 Next scan in 1m0s
+ok  	github.com/gtsteffaniak/filebrowser/backend/common/settings	0.006s
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/backend/common/utils	0.003s
+?   	github.com/gtsteffaniak/filebrowser/backend/common/version	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/backend/database/share	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/backend/database/storage	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt	[no test files]
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/backend/database/users	0.002s
+?   	github.com/gtsteffaniak/filebrowser/backend/events	[no test files]
+2025/05/11 20:42:56 [DEBUG]  Saving user [admin] changepass: true
+2025/05/11 20:42:56 [DEBUG]  Saving user [non-admin] changepass: true
+PASS
+ok  	github.com/gtsteffaniak/filebrowser/backend/http	0.197s
+2025/05/11 20:42:57 initializing index: [test]
+2025/05/11 20:42:57 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:42:57 [DEBUG]  Starting full scan for [test]
+2025/05/11 20:42:57 Index assessment         : [test] complexity=simple directories=0 files=0
+2025/05/11 20:42:57 [DEBUG]  Time spent indexing [test]: 0 seconds
+2025/05/11 20:42:57 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:42:57 [DEBUG]  Next scan in 1m0s
+2025/05/11 20:42:58 initializing index: [test]
+2025/05/11 20:42:58 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:42:58 [DEBUG]  Starting full scan for [test]
+2025/05/11 20:42:58 Index assessment         : [test] complexity=simple directories=0 files=0
+2025/05/11 20:42:58 [DEBUG]  Time spent indexing [test]: 0 seconds
+2025/05/11 20:42:58 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:42:58 [DEBUG]  Next scan in 1m0s
 goos: linux
 goarch: amd64
-pkg: github.com/gtsteffaniak/filebrowser/backend/files
+pkg: github.com/gtsteffaniak/filebrowser/backend/indexing
 cpu: 11th Gen Intel(R) Core(TM) i5-11320H @ 3.20GHz
-BenchmarkFillIndex-8                     	2025/01/04 14:04:57 Initializing index and assessing file system complexity
-2025/01/04 14:04:57 Starting full scan
-2025/01/04 14:04:57 Index assessment         : complexity=simple directories=0 files=0 
-2025/01/04 14:04:57 Time Spent Indexing      : 0 seconds
-2025/01/04 14:04:57 Next scan in 1m0s
-      10	   3515090 ns/op	   34273 B/op	     451 allocs/op
-BenchmarkCheckIndexExclude-8             	      10	       156.2 ns/op	       0 B/op	       0 allocs/op
-BenchmarkCheckIndexConditionsInclude-8   	      10	        98.00 ns/op	       0 B/op	       0 allocs/op
-2025/01/04 14:04:58 Initializing index and assessing file system complexity
-2025/01/04 14:04:58 Starting full scan
-2025/01/04 14:04:58 Index assessment         : complexity=simple directories=0 files=0 
-2025/01/04 14:04:58 Time Spent Indexing      : 0 seconds
-2025/01/04 14:04:58 Next scan in 1m0s
-BenchmarkSearchAllIndexes-8              	2025/01/04 14:04:59 Initializing index and assessing file system complexity
-2025/01/04 14:04:59 Starting full scan
-2025/01/04 14:04:59 Index assessment         : complexity=simple directories=0 files=0 
-2025/01/04 14:04:59 Time Spent Indexing      : 0 seconds
-2025/01/04 14:04:59 Next scan in 1m0s
-      10	    766822 ns/op	   34230 B/op	     900 allocs/op
+BenchmarkFillIndex-8                     	2025/05/11 20:42:59 initializing index: [test]
+2025/05/11 20:42:59 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:42:59 [DEBUG]  Starting full scan for [test]
+2025/05/11 20:42:59 Index assessment         : [test] complexity=simple directories=0 files=0
+2025/05/11 20:42:59 [DEBUG]  Time spent indexing [test]: 0 seconds
+2025/05/11 20:42:59 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:42:59 [DEBUG]  Next scan in 1m0s
+      10	   3548759 ns/op	   38032 B/op	     452 allocs/op
+BenchmarkCheckIndexExclude-8             	      10	       172.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCheckIndexConditionsInclude-8   	      10	       118.2 ns/op	       0 B/op	       0 allocs/op
+2025/05/11 20:43:01 initializing index: [test]
+2025/05/11 20:43:01 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:43:01 [DEBUG]  Starting full scan for [test]
+2025/05/11 20:43:01 Index assessment         : [test] complexity=simple directories=0 files=0
+2025/05/11 20:43:01 [DEBUG]  Time spent indexing [test]: 0 seconds
+2025/05/11 20:43:01 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:43:01 [DEBUG]  Next scan in 1m0s
+BenchmarkSearchAllIndexes-8              	2025/05/11 20:43:02 initializing index: [test]
+2025/05/11 20:43:02 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:43:02 [DEBUG]  Starting full scan for [test]
+2025/05/11 20:43:02 Index assessment         : [test] complexity=simple directories=0 files=0
+2025/05/11 20:43:02 [DEBUG]  Time spent indexing [test]: 0 seconds
+2025/05/11 20:43:02 [DEBUG]  Skipping source update event for mock index.
+2025/05/11 20:43:02 [DEBUG]  Next scan in 1m0s
+      10	    781119 ns/op	   38515 B/op	     900 allocs/op
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/files	5.094s
+ok  	github.com/gtsteffaniak/filebrowser/backend/indexing	5.097s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/fileutils	0.002s
+ok  	github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo	0.005s
 PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/http	0.184s
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/img	0.123s
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/runner	0.004s
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/settings	0.005s
-?   	github.com/gtsteffaniak/filebrowser/backend/share	[no test files]
-?   	github.com/gtsteffaniak/filebrowser/backend/storage	[no test files]
-?   	github.com/gtsteffaniak/filebrowser/backend/storage/bolt	[no test files]
+ok  	github.com/gtsteffaniak/filebrowser/backend/preview	0.128s
 ?   	github.com/gtsteffaniak/filebrowser/backend/swagger/docs	[no test files]
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/users	0.003s
-PASS
-ok  	github.com/gtsteffaniak/filebrowser/backend/utils	0.002s
-?   	github.com/gtsteffaniak/filebrowser/backend/version	[no test files]
+?   	github.com/gtsteffaniak/filebrowser/backend/tools	[no test files]

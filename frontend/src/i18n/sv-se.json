@@ -95,7 +95,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -125,7 +125,6 @@
     "downloadMessage": "Välj format på det du vill lada ner.",
     "error": "Något gick fel",
     "fileInfo": "Fil information",
-    "filesSelected": "{count} filer valda.",
     "lastModified": "Senast ändrad",
     "move": "Flytta",
     "moveMessage": "Välj ny plats för din fil (er)/mapp (ar):",
@@ -145,7 +144,8 @@
     "show": "Visa",
     "size": "Storlek",
     "upload": "",
-    "uploadMessage": ""
+    "uploadMessage": "",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
   },
   "search": {
     "images": "Bilder",
@@ -195,7 +195,7 @@
     "password": "Lösenord",
     "passwordUpdated": "Lösenord uppdaterat",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Skapa filer och mappar",
       "delete": "Ta bort filer och mappar",
       "download": "Ladda ner",
@@ -204,7 +204,7 @@
       "rename": "Byta namn på eller flytta filer och kataloger",
       "share": "Dela filer"
     },
-    "permissions": "Rättigheter",
+    "permissions-name": "Rättigheter",
     "permissionsHelp": "Du kan ange att användaren ska vara administratör eller välja behörigheterna individuellt. Om du väljer \"administratör \" kommer alla andra alternativ att kontrolleras automatiskt. Hanteringen av användare är fortfarande ett privilegium för en administratör.\n",
     "profileSettings": "Profil inställningar",
     "ruleExample1": "förhindrar åtkomst till en dot-fil (till exempel. git,. gitignore) i varje mapp.\n",
@@ -254,5 +254,9 @@
     "minutes": "Minuter",
     "seconds": "Sekunder",
     "unit": "Tidsenhet"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

@@ -1,45 +1,45 @@
 <template>
   <div class="card floating create-api__prompt__card" id="create-api">
     <div class="card-title">
-      <h2>Create API Key</h2>
+      <h2>{{ $t('api.createTitle') }}</h2>
     </div>
 
     <div class="card-content">
       <!-- API Key Name Input -->
-      <p>API Key Name</p>
+      <p>{{ $t('api.keyName') }}</p>
       <input
         class="input input--block"
         type="text"
         v-model.trim="apiName"
-        placeholder="enter a uinque api key name"
+        :placeholder="$t('api.keyNamePlaceholder')"
       />
 
       <!-- Duration Input -->
-      <p>Token Duration</p>
+      <p>{{ $t('api.tokenDuration') }}</p>
       <div class="inputWrapper">
         <input
           class="sizeInput roundedInputLeft input"
           v-model.number="duration"
           type="number"
           min="1"
-          placeholder="number"
+          :placeholder="$t('api.durationNumberPlaceholder')"
         />
         <select v-model="unit" class="roundedInputRight input">
-          <option value="days">days</option>
-          <option value="months">months</option>
+          <option value="days">{{ $t('api.days') }}</option>
+          <option value="months">{{ $t('api.months') }}</option>
         </select>
       </div>
 
       <!-- Permissions Input -->
-      <p>
-        Choose at least one permission for the key. Your User must also have the
-        permission.
-      </p>
-      <div>
-        <p v-for="(isEnabled, perm) in availablePermissions" :key="perm">
-          <input type="checkbox" v-model="permissions[perm]" />
-          {{ perm }}
-        </p>
+      <p>{{ $t('api.permissionNote') }}</p>
+      <div class="settings-items">
+        <ToggleSwitch
+          v-for="(isEnabled, permission) in permissions"
+          :key="permission"
+          class="item"
+          v-model="permissions[permission]"
+          :name="permission"
+        />
       </div>
     </div>
 
@@ -64,9 +64,10 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { usersApi } from "@/api";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "CreateAPI",
@@ -75,23 +76,22 @@ export default {
       apiName: "",
       duration: 1,
       unit: "days",
-      permissions: {},
     };
   },
-  computed: {
-    availablePermissions() {
-      return state.user.perm;
+  components: {
+    ToggleSwitch,
+  },
+  props: {
+    permissions: {
+      type: Object,
+      required: true,
     },
+  },
+  computed: {
     durationInDays() {
       // Calculate duration based on unit
       return this.unit === "days" ? this.duration : this.duration * 30; // assuming 30 days per month
     },
-  },
-  created() {
-    // Initialize permissions with the same structure as availablePermissions
-    this.permissions = Object.fromEntries(
-      Object.keys(this.availablePermissions).map((perm) => [perm, false])
-    );
   },
   methods: {
     closeHovers() {
@@ -111,10 +111,10 @@ export default {
         };
 
         await usersApi.createApiKey(params);
-        notify.showSuccess("successfully created!");
+        notify.showSuccess($t("api.createKeySuccess"));
         window.location.reload();
       } catch (error) {
-        notify.showError(this.$t("errors.createKeyFailed"));
+        notify.showError($t("api.createKeyFailed"));
       }
     },
   },

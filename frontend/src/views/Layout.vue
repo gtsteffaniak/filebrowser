@@ -9,40 +9,37 @@
     <div v-if="progress" class="progress">
       <div v-bind:style="{ width: this.progress + '%' }"></div>
     </div>
-    <listingBar
-      :class="{ 'dark-mode-header': isDarkMode }"
-      v-if="currentView == 'listingView'"
-    ></listingBar>
-    <editorBar
-      :class="{ 'dark-mode-header': isDarkMode }"
-      v-else-if="currentView == 'editor'"
-    ></editorBar>
-    <defaultBar v-else :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
+    <defaultBar :class="{ 'dark-mode-header': isDarkMode }"></defaultBar>
     <sidebar></sidebar>
-    <main
+    <Scrollbar
+      id="main"
       :class="{
         'dark-mode': isDarkMode,
         moveWithSidebar: moveWithSidebar,
+        'remove-padding-top': isOnlyOffice,
         'main-padding': showPadding,
+        scrollable: scrollable,
       }"
     >
-      <router-view></router-view>
-    </main>
+      <router-view />
+    </Scrollbar>
     <prompts :class="{ 'dark-mode': isDarkMode }"></prompts>
   </div>
   <Notifications />
   <ContextMenu></ContextMenu>
 </template>
+
 <script>
-import editorBar from "./bars/EditorBar.vue";
 import defaultBar from "./bars/Default.vue";
-import listingBar from "./bars/ListingBar.vue";
 import Prompts from "@/components/prompts/Prompts.vue";
 import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import Notifications from "@/components/Notifications.vue";
-
+import Scrollbar from "@/components/files/Scrollbar.vue";
+import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
+import { events } from "@/notify";
+import { generateRandomCode } from "@/utils/auth";
 
 export default {
   name: "layout",
@@ -50,10 +47,9 @@ export default {
     ContextMenu,
     Notifications,
     defaultBar,
-    editorBar,
-    listingBar,
     Sidebar,
     Prompts,
+    Scrollbar,
   },
   data() {
     return {
@@ -69,10 +65,18 @@ export default {
       document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
     }
     if (!state.sessionId) {
-      mutations.setSession(localStorage.getItem("sessionId"));
+      mutations.setSession(generateRandomCode(8));
     }
+    this.reEval()
+    this.updateSourceInfo();
   },
   computed: {
+    isOnlyOffice() {
+      return getters.currentView() === "onlyOfficeEditor";
+    },
+    scrollable() {
+      return getters.isScrollable();
+    },
     showPadding() {
       return getters.showBreadCrumbs() || getters.currentView() === "settings";
     },
@@ -84,9 +88,6 @@ export default {
     },
     progress() {
       return getters.progress(); // Access getter directly from the store
-    },
-    isListing() {
-      return getters.isListing(); // Access getter directly from the store
     },
     currentPrompt() {
       return getters.currentPrompt(); // Access getter directly from the store
@@ -112,16 +113,36 @@ export default {
   },
   watch: {
     $route() {
+      this.reEval()
+    },
+  },
+  methods: {
+    reEval() {
+      mutations.setPreviewSource("");
       if (!getters.isLoggedIn()) {
         return;
       }
+      const currentView = getters.currentView()
       mutations.setMultiple(false);
       if (getters.currentPromptName() !== "success") {
         mutations.closeHovers();
       }
+      if (window.location.hash == "" && currentView == "listingView") {
+        const element = document.getElementById("main");
+        if (element) {
+          element.scrollTop = 0;
+        }
+      }
     },
-  },
-  methods: {
+    async updateSourceInfo() {
+      if (getters.isLoggedIn()) {
+        const sourceinfo = await filesApi.sources();
+        mutations.updateSourceInfo(sourceinfo);
+        if (state.user.permissions.realtime) {
+          events.startSSE();
+        }
+      }
+    },
     updateIsMobile() {
       mutations.setMobile();
     },
@@ -135,11 +156,18 @@ export default {
 </script>
 
 <style>
-#layout-container {
-  padding-bottom: 30% !important;
+.scrollable {
+  overflow: scroll !important;
+  -webkit-overflow-scrolling: touch;
+  /* Enable momentum scrolling in iOS */
 }
 
-main {
+.remove-padding-top {
+  padding-top: 0 !important;
+}
+
+#main {
+  overflow: unset;
   -ms-overflow-style: none;
   /* Internet Explorer 10+ */
   scrollbar-width: none;
@@ -147,12 +175,16 @@ main {
   transition: 0.5s ease;
 }
 
-main.moveWithSidebar {
+#main.moveWithSidebar {
   padding-left: 20em;
 }
 
-main::-webkit-scrollbar {
+#main::-webkit-scrollbar {
   display: none;
   /* Safari and Chrome */
+}
+
+#main > div {
+  height: 100%;
 }
 </style>

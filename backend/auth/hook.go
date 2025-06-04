@@ -8,10 +8,10 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type hookCred struct {
@@ -32,7 +32,6 @@ type HookAuth struct {
 // Auth authenticates the user via a json in content body.
 func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error) {
 	var cred hookCred
-
 	if r.Body == nil {
 		return nil, os.ErrPermission
 	}
@@ -52,6 +51,8 @@ func (a *HookAuth) Auth(r *http.Request, usr *users.Storage) (*users.User, error
 	if err != nil {
 		return nil, err
 	}
+	logger.Debugf("hook auth %v", action)
+
 	switch action {
 	case "auth":
 		u, err := a.SaveUser()
@@ -162,12 +163,12 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 				SingleClick: a.Settings.UserDefaults.SingleClick,
 				ShowHidden:  a.Settings.UserDefaults.ShowHidden,
 			},
-			Username: a.Cred.Username,
-			Perm:     a.Settings.UserDefaults.Permissions,
+			Username:    a.Cred.Username,
+			Permissions: a.Settings.UserDefaults.Permissions,
 		}
 		u = a.GetUser(d)
 
-		err = a.Users.Save(u, false)
+		err = a.Users.Save(u, false, false)
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +182,7 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 	if len(a.Fields.Values) > 1 {
 		u = a.GetUser(u)
 		// update user with provided fields
-		err := a.Users.Update(u, true)
+		err := a.Users.Update(u, u.Permissions.Admin)
 		if err != nil {
 			return nil, err
 		}
@@ -193,11 +194,11 @@ func (a *HookAuth) SaveUser() (*users.User, error) {
 // GetUser returns a User filled with hook values or provided defaults
 func (a *HookAuth) GetUser(d *users.User) *users.User {
 	// adds all permissions when user is admin
-	isAdmin := d.Perm.Admin
+	isAdmin := d.Permissions.Admin
 	perms := users.Permissions{
 		Admin:  isAdmin,
-		Modify: isAdmin || d.Perm.Modify,
-		Share:  isAdmin || d.Perm.Share,
+		Modify: isAdmin || d.Permissions.Modify,
+		Share:  isAdmin || d.Permissions.Share,
 	}
 	user := users.User{
 		NonAdminEditable: users.NonAdminEditable{
@@ -210,7 +211,7 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		ID:           d.ID,
 		Username:     d.Username,
 		Scopes:       d.Scopes,
-		Perm:         perms,
+		Permissions:  perms,
 		LockPassword: true,
 	}
 

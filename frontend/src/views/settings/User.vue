@@ -3,32 +3,38 @@
   <form @submit="save" class="card active" v-if="loaded">
     <div class="card-title">
       <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
-      <h2 v-else-if="actor.id == user.id">modify current user ({{ user.username }})</h2>
-      <h2 v-else>modify user: {{ user.username }}</h2>
+      <h2 v-else-if="actor.id == user.id">
+        {{ $t("settings.modifyCurrentUser") }} {{ user.username }}
+      </h2>
+      <h2 v-else>{{ $t("settings.modifyOtherUser") }} {{ user.username }}</h2>
     </div>
 
-    <div class="card-content">
+    <div class="card-content minimal-card">
       <user-form
         v-model:user="user"
-        v-model:updatePassword="updatePassword"
         :createUserDir="createUserDir"
         :isNew="isNew"
         @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
       />
     </div>
 
-    <div class="card-action">
+    <div v-if="actor.permissions.admin" class="card-action">
       <button
-        v-if="!isNew && actor.perm.admin"
+        v-if="!isNew"
         @click.prevent="deletePrompt"
         type="button"
         class="button button--flat button--red"
-        :aria-label="$t('buttons.delete')"
+        aria-label="Delete User"
         :title="$t('buttons.delete')"
       >
         {{ $t("buttons.delete") }}
       </button>
-      <input class="button button--flat" type="submit" :value="$t('buttons.save')" />
+      <input
+        aria-label="Save User"
+        class="button button--flat"
+        type="submit"
+        :value="$t('buttons.save')"
+      />
     </div>
   </form>
 </template>
@@ -53,15 +59,16 @@ export default {
       user: {
         scopes: [],
         username: "",
-        perm: { admin: false },
+        password: "",
+        permissions: { admin: false },
       },
       showDelete: false,
       createUserDir: false,
       loaded: false,
-      updatePassword: false,
     };
   },
   created() {
+    mutations.setActiveSettingsView("");
     this.fetchData();
   },
   computed: {
@@ -82,6 +89,7 @@ export default {
         if (this.isNew) {
           let defaults = await settingsApi.get("userDefaults");
           this.user = defaults;
+          this.user.password = "";
         } else {
           const id = Array.isArray(state.route.params.id)
             ? state.route.params.id.join("")
@@ -90,6 +98,7 @@ export default {
             return;
           }
           this.user = { ...(await usersApi.get(id)) };
+          this.user.password = "";
         }
       } catch (e) {
         notify.showError(e);
@@ -105,15 +114,16 @@ export default {
     async save(event) {
       event.preventDefault();
       try {
+        let fields = ["all"];
+        if (!state.user.permissions.admin) {
+          notify.showError(this.$t("settings.userNotAdmin"));
+          return;
+        }
         if (this.isNew) {
           await usersApi.create(this.user); // Use the computed property
           this.$router.push({ path: "/settings", hash: "#users-main" });
         } else {
-          let which = ["all"];
-          await usersApi.update(this.user, which);
-          if (this.updatePassword) {
-            await usersApi.update(this.user, ["password"]);
-          }
+          await usersApi.update(this.user, fields);
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
       } catch (e) {
@@ -123,3 +133,11 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.minimal-card {
+  /* margin-bottom: 16px; */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+</style>

@@ -95,7 +95,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -125,7 +125,6 @@
     "downloadMessage": "Veldu skrárgerð sem þú vilt sækja.",
     "error": "Eitthvað fór úrskeiðis",
     "fileInfo": "Upplýsingar um gögn",
-    "filesSelected": "{count} skjöl valin.",
     "lastModified": "Seinast breytt",
     "move": "Færa",
     "moveMessage": "Velja nýtt hús fyrir skjöl/möppur:",
@@ -145,7 +144,8 @@
     "show": "Sýna",
     "size": "Stærð",
     "upload": "",
-    "uploadMessage": ""
+    "uploadMessage": "",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
   },
   "search": {
     "images": "Myndir",
@@ -195,7 +195,7 @@
     "password": "Lykilorð",
     "passwordUpdated": "Lykilorð vistað!",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Búa til sköl og möppur",
       "delete": "Eyða skjölum og möppum",
       "download": "Sækja",
@@ -204,7 +204,7 @@
       "rename": "Endurnefna eða færa skjöl og möppur",
       "share": "Deila skjölum"
     },
-    "permissions": "Heimildir",
+    "permissions-name": "Heimildir",
     "permissionsHelp": "Þú getur stillt notenda sem stjórnanda eða valið einstaklingsbundnar heimildir. Ef þú velur \"Stjórnandi\", þá verða allir aðrir valmöguleikar valdir sjálfrafa. Aðgangstýring notenda er á hendi stjórnenda. \n",
     "profileSettings": "Stilla prófíl",
     "ruleExample1": "kemur í veg fyrir aðgang að dot-skjali (t.d. .git, .gitignore) í öllum möppum. \n",
@@ -254,5 +254,9 @@
     "minutes": "Mínútur",
     "seconds": "Sekúndur",
     "unit": "Tímastilling"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

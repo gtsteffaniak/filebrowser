@@ -74,12 +74,11 @@ export default {
   mounted() {
     mutations.closeHovers();
     mutations.setSearch(false);
-    mutations.setActiveSettingsView(getters.currentHash());
   },
   methods: {
     shouldShow(setting) {
-      const perm = setting?.perm || {};
-      return Object.keys(perm).every((key) => state.user.perm[key]);
+      const perm = setting?.permissions || {};
+      return Object.keys(perm).every((key) => state.user.permissions[key]);
     },
     setView(view) {
       if (state.activeSettingsView === view) return;
@@ -96,20 +95,56 @@ export default {
 </script>
 
 <style>
+
+.form-group {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.form-button {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  height: auto !important
+}
+
+.invalid-form {
+  border-color: red !important;
+}
+
+.flat-right {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.flat-left {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
 .dashboard {
   display: flex;
   flex-direction: column;
   height: 100%;
   align-items: center;
 }
+
 .settings-views {
   max-width: 1000px;
-  padding-bottom: 35vh;
   width: 100%;
 }
+
 
 .settings-views .card {
   border-style: solid;
   opacity: 1;
+}
+
+.settings-items > .item {
+  padding: 1em;
+  border-radius: 1em;
+}
+
+.settings-items > .item:hover {
+  background-color: var(--surfaceSecondary);
 }
 </style>

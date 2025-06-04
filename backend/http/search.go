@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 )
 
 // searchHandler handles search requests for files based on the provided query.
@@ -52,7 +52,7 @@ import (
 // @Param query query string true "Search query"
 // @Param scope query string false "path within user scope to search, for example '/first/second' to search within the second directory only"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
-// @Success 200 {array} files.SearchResult "List of search results"
+// @Success 200 {array} indexing.SearchResult "List of search results"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Router /api/search [get]
 func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
@@ -60,6 +60,13 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 	}
 	scope := r.URL.Query().Get("scope")
 	unencodedScope, err := url.QueryUnescape(scope)
@@ -69,7 +76,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	searchScope := strings.TrimPrefix(unencodedScope, ".")
 	// Retrieve the User-Agent and X-Auth headers from the request
 	sessionId := r.Header.Get("SessionId")
-	index := files.GetIndex(source)
+	index := indexing.GetIndex(source)
 	if index == nil {
 		return http.StatusBadRequest, fmt.Errorf("index not found for source %s", source)
 	}
@@ -80,6 +87,14 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope))
 	// Perform the search using the provided query and user scope
 	response := index.Search(query, combinedPath, sessionId)
+	for i := range response {
+		// Remove the user scope from the path
+		response[i].Path = strings.TrimPrefix(response[i].Path, userscope)
+		if response[i].Path == "" {
+			response[i].Path = "/"
+		}
+	}
+	// trim user scope from each result path
 	// Set the Content-Type header to application/json
 	w.Header().Set("Content-Type", "application/json")
 	return renderJSON(w, r, response)

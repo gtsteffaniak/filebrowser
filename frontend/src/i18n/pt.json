@@ -95,7 +95,7 @@
     "ru": "Russo",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "Chinês simplificado",
     "zhTW": "Chinês tradicional"
@@ -125,7 +125,6 @@
     "downloadMessage": "Escolha o formato do ficheiro que quer descarregar.",
     "error": "Algo correu mal",
     "fileInfo": "Informação do ficheiro",
-    "filesSelected": "{count} ficheiros selecionados.",
     "lastModified": "Última alteração",
     "move": "Mover",
     "moveMessage": "Escolha uma nova casa para os seus ficheiros/pastas:",
@@ -145,7 +144,8 @@
     "show": "Mostrar",
     "size": "Tamanho",
     "upload": "",
-    "uploadMessage": ""
+    "uploadMessage": "",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
   },
   "search": {
     "images": "Imagens",
@@ -195,7 +195,7 @@
     "password": "Palavra-passe",
     "passwordUpdated": "Palavra-passe atualizada!",
     "path": "",
-    "perm": {
+    "permissions": {
       "create": "Criar ficheiros e pastas",
       "delete": "Eliminar ficheiros e pastas",
       "download": "Descarregar",
@@ -204,7 +204,7 @@
       "rename": "Alterar o nome ou mover ficheiros e pastas",
       "share": "Partilhar ficheiros"
     },
-    "permissions": "Permissões",
+    "permissions-name": "Permissões",
     "permissionsHelp": "Pode definir o utilizador como administrador ou escolher as permissões manualmente. Se selecionar a opção \"Administrador\", todas as outras opções serão automaticamente selecionadas. A gestão dos utilizadores é um privilégio restringido aos administradores.\n",
     "profileSettings": "Configurações do utilizador",
     "ruleExample1": "previne o acesso a qualquer \"dotfile\" (como .git, .gitignore) em qualquer pasta\n",
@@ -254,5 +254,9 @@
     "minutes": "Minutos",
     "seconds": "Segundos",
     "unit": "Unidades de tempo"
-  }
+  },
+  "upload": {},
+  "share": {},
+  "api": {},
+  "index": {}
 }

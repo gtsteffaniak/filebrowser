@@ -13,11 +13,13 @@ rice-box.go
 /frontend/dist
 /frontend/pkg
 /frontend/test-results
+/frontend/tests/playwright-files/demo*
 /frontend/loginAuth.json
 /frontend/package-lock.json
 /backend/vendor
 /backend/*.cov
 /backend/test_config.yaml
+/backend/generated.yaml
 /backend/srv
 /backend/http/dist
 /backend/http/embed/*
@@ -44,3 +46,4 @@ yarn-error.log*
 *.sw*
 bin/
 build/
+*__debug*

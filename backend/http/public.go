@@ -7,9 +7,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 )
@@ -37,7 +40,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 
-	fileInfo, ok := d.raw.(files.ExtendedFileInfo)
+	fileInfo, ok := d.raw.(iteminfo.ExtendedFileInfo)
 	if !ok {
 		logger.Error("public share handler: failed to assert type files.FileInfo")
 		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
@@ -49,18 +52,18 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
 	if err != nil {
-		logger.Error(fmt.Sprintf("public share handler: error processing filelist: %v", err))
+		logger.Errorf("public share handler: error processing filelist: %v", err)
 		return status, fmt.Errorf("error processing filelist: %v", f)
 	}
 	return status, nil
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(files.ExtendedFileInfo)
+	file, ok := d.raw.(iteminfo.ExtendedFileInfo)
 	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
+		return http.StatusInternalServerError, fmt.Errorf("failed to assert type iteminfo.FileInfo")
 	}
-	file.Path = strings.TrimPrefix(file.Path, file.Source)
+	file.Path = strings.TrimPrefix(file.Path, d.share.Path)
 	return renderJSON(w, r, file)
 }
 
@@ -89,4 +92,56 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
+}
+
+// publicPreviewHandler handles the preview request for images from shares.
+// @Summary Get image preview
+// @Description Returns a preview image based on the requested path and size.
+// @Tags Resources
+// @Accept json
+// @Produce json
+// @Param hash query string true "source hash"
+// @Param path query string true "File path of the image to preview"
+// @Param size query string false "Preview size ('small' or 'large'). Default is based on server config."
+// @Success 200 {file} file "Preview image content"
+// @Failure 202 {object} map[string]string "Download permissions required"
+// @Failure 400 {object} map[string]string "Invalid request path"
+// @Failure 404 {object} map[string]string "File not found"
+// @Failure 415 {object} map[string]string "Unsupported file type for preview"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/preview [get]
+func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if config.Server.DisablePreviews {
+		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
+	}
+	path := r.URL.Query().Get("path")
+	source := r.URL.Query().Get("source")
+	if source == "" {
+		source = settings.Config.Server.DefaultSource.Name
+	} else {
+		var err error
+		// decode url encoded source name
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
+	}
+	if path == "" {
+		return http.StatusBadRequest, fmt.Errorf("invalid request path")
+	}
+	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
+		Path:   utils.JoinPathAsUnix(d.share.Path, path),
+		Modify: d.user.Permissions.Modify,
+		Source: source,
+		Expand: true,
+	})
+	if err != nil {
+		logger.Debugf("public preview handler: error getting file info: %v", err)
+		return 400, fmt.Errorf("file not found")
+	}
+	if fileInfo.Type == "directory" {
+		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
+	}
+	d.fileInfo = fileInfo
+	return previewHelperFunc(w, r, d)
 }

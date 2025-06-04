@@ -7,23 +7,19 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/gtsteffaniak/filebrowser/backend/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/share"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
-)
-
-var (
-	revokedApiKeyList map[string]bool
-	revokeMu          sync.Mutex
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // first checks for cookie
@@ -71,6 +67,43 @@ func extractToken(r *http.Request) (string, error) {
 	return "", request.ErrNoTokenInRequest
 }
 
+func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*users.User, error) {
+	var err error
+	// Retrieve the user from the store and store it in the context
+	data.user, err = store.Users.Get(proxyUser)
+	if err != nil {
+		if err.Error() != "the resource does not exist" {
+			return nil, err
+		}
+		if config.Auth.Methods.ProxyAuth.CreateUser {
+			err = storage.CreateUser(users.User{
+				LoginMethod: users.LoginMethodProxy,
+				Username:    proxyUser,
+			}, false)
+			if err != nil {
+				return nil, err
+			}
+			data.user, err = store.Users.Get(proxyUser)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, fmt.Errorf("proxy authentication failed - no user found")
+		}
+	}
+	if data.user.LoginMethod != users.LoginMethodProxy {
+		logger.Warningf("user %s is not allowed to login with proxy authentication, bypassing and updating login method", data.user.Username)
+		data.user.LoginMethod = users.LoginMethodProxy
+		// Perform the user update
+		err := store.Users.Update(data.user, true, "LoginMethod")
+		if err != nil {
+			logger.Debug(err.Error())
+		}
+		//return nil, fmt.Errorf("user %s is not allowed to login with proxy authentication", proxyUser)
+	}
+	return data.user, nil
+}
+
 // loginHandler handles user authentication via password.
 // @Summary User login
 // @Description Authenticate a user with a username and password.
@@ -81,28 +114,50 @@ func extractToken(r *http.Request) (string, error) {
 // @Failure 403 {object} map[string]string "Forbidden - authentication failed"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/login [post]
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	if !config.Auth.Methods.PasswordAuth.Enabled {
-		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		return
+func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	passwordUser := d.user.LoginMethod == users.LoginMethodPassword
+	enforcedOtp := config.Auth.Methods.PasswordAuth.EnforcedOtp
+	missingOtp := d.user.TOTPSecret == ""
+	if passwordUser && enforcedOtp && missingOtp {
+		return http.StatusForbidden, errors.ErrNoTotpConfigured
 	}
-	// currently only supports user/pass
-	// Get the authentication method from the settings
-	auther, err := store.Auth.Get("password")
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+	return printToken(w, r, d.user) // Pass the data object
+}
+
+// logoutHandler handles user logout, specifically used for OIDC or proxy users.
+// @Summary User Logout
+// @Description logs a user out of the application.
+// @Tags Auth
+// @Success 302 {string} string "Redirect to redirect URL if configured in oidc config."
+// @Router /api/auth/logout [get]
+func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
 	}
-	// Authenticate the user based on the request
-	user, err := auther.Auth(r, store.Users)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		return
+	logoutUrl := fmt.Sprintf("%s/login", origin)
+	proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
+	oidcRedirectUrl := settings.Config.Auth.Methods.OidcAuth.LogoutRedirectUrl
+	proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+
+	if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
+		if proxyRedirectUrl != "" {
+			logoutUrl = proxyRedirectUrl
+		}
+	} else {
+		if oidcRedirectUrl != "" {
+			logoutUrl = oidcRedirectUrl
+		}
 	}
-	status, err := printToken(w, r, user) // Pass the data object
-	if err != nil {
-		http.Error(w, http.StatusText(status), status)
-	}
+	// clear cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:   "auth",
+		Value:  "",
+		MaxAge: -1,
+		Path:   "/",
+	})
+	http.Redirect(w, r, logoutUrl, http.StatusFound)
+	return 302, nil
 }
 
 type signupBody struct {
@@ -123,41 +178,32 @@ type signupBody struct {
 // @Failure 409 {object} map[string]string "Conflict - user already exists"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/signup [post]
-func signupHandler(w http.ResponseWriter, r *http.Request) {
+func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if !settings.Config.Auth.Methods.PasswordAuth.Signup {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return http.StatusMethodNotAllowed, fmt.Errorf("signup is disabled")
 	}
-
 	if r.Body == nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+		return http.StatusBadRequest, fmt.Errorf("no post body provided")
 	}
-
 	info := &signupBody{}
 	err := json.NewDecoder(r.Body).Decode(info)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+		return http.StatusBadRequest, fmt.Errorf("invalid request body: %v", err)
 	}
-
-	if info.Password == "" || info.Username == "" {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+	user := users.User{
+		Username: info.Username,
+		NonAdminEditable: users.NonAdminEditable{
+			Password: info.Password,
+		},
+		LoginMethod: users.LoginMethodPassword,
 	}
-	user := &users.User{}
-	settings.ApplyUserDefaults(user)
-	user.Username = info.Username
-	user.Password = info.Password
-
-	err = store.Users.Save(user, true)
-	if err == errors.ErrExist {
-		http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
-		return
-	} else if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+	err = storage.CreateUser(user, false)
+	if err != nil {
+		logger.Debug(err.Error())
+		w.WriteHeader(http.StatusConflict)
+		return http.StatusConflict, fmt.Errorf("user already exists")
 	}
+	return 201, nil
 }
 
 // renewHandler refreshes the authentication token for a logged-in user.
@@ -176,30 +222,18 @@ func renewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 }
 
 func printToken(w http.ResponseWriter, _ *http.Request, user *users.User) (int, error) {
-
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Perm)
+	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
 	if err != nil {
 		if strings.Contains(err.Error(), "key already exists with same name") {
 			return http.StatusConflict, err
 		}
-		return http.StatusInternalServerError, err
+		return 401, errors.ErrUnauthorized
 	}
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte(signed.Key)); err != nil {
-		return http.StatusInternalServerError, err
+		return 401, errors.ErrUnauthorized
 	}
 	return 0, nil
-}
-
-func isRevokedApiKey(key string) bool {
-	_, exists := revokedApiKeyList[key]
-	return exists
-}
-
-func revokeAPIKey(key string) {
-	revokeMu.Lock()
-	delete(revokedApiKeyList, key)
-	revokeMu.Unlock()
 }
 
 func makeSignedTokenAPI(user *users.User, name string, duration time.Duration, perms users.Permissions) (users.AuthToken, error) {

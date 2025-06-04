@@ -148,19 +148,6 @@ body.rtl .action {
   flex-grow: 1;
 }
 
-.card-wrapper {
-  display: flex !important;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 1em !important;
-  min-height: 4em;
-  box-shadow: 0 2px 2px #00000024, 0 1px 5px #0000001f, 0 3px 1px -2px #0003;
-  /* overflow: auto; */
-  border-radius: 1em;
-  height: 100%;
-}
-
 .clickable {
   cursor: pointer;
 }

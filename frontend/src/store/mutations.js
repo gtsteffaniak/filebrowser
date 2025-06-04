@@ -1,5 +1,6 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
+import { getters } from "./getters.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
@@ -7,6 +8,31 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setMultiButtonState: (value) => {
+    if (state.multiButtonLastState != value) {
+      state.multiButtonLastState = state.multiButtonState;
+    }
+    state.multiButtonState = value;
+    emitStateChanged();
+  },
+  toggleOverflowMenu: () => {
+    state.showOverflowMenu = !state.showOverflowMenu;
+    emitStateChanged();
+  },
+  setWatchDirChangeAvailable() {
+    state.req.hasUpdate = true;
+  },
+  setPreviewSource: (value) => {
+    if (value === state.popupPreviewSource) {
+      return;
+    }
+    state.popupPreviewSource = value;
+    emitStateChanged();
+  },
+  updateListing: (value) => {
+    state.listing = value;
+    emitStateChanged();
+  },
   setCurrentSource: (value) => {
     state.sources.current = value;
     emitStateChanged();
@@ -16,6 +42,45 @@ export const mutations = {
       state.sources.info[sourcename] = value;
     }
     emitStateChanged();
+  },
+  updateSourceInfo: (value) => {
+    if (value == "error") {
+      state.realtimeActive = false;
+      for (const k of Object.keys(state.sources.info)) {
+        state.sources.info[k].status = "error";
+      }
+    } else {
+      for (const k of Object.keys(value)) {
+        const source = value[k];
+        if (state.sources.info[k]) {
+          if (source.total == 0) {
+            state.sources.hasSourceInfo = false
+          } else {
+            state.sources.hasSourceInfo = true
+          }
+          state.sources.info[k].used = source.used;
+          state.sources.info[k].total = source.total;
+          state.sources.info[k].usedPercentage = Math.round((source.used / source.total) * 100);
+          state.sources.info[k].status = source.status;
+          state.sources.info[k].name = source.name;
+          state.sources.info[k].files = source.numFiles;
+          state.sources.info[k].folders = source.numDirs;
+          state.sources.info[k].lastIndex = source.lastIndexedUnixTime;
+          state.sources.info[k].quickScanDurationSeconds = source.quickScanDurationSeconds;
+          state.sources.info[k].fullScanDurationSeconds = source.fullScanDurationSeconds;
+          state.sources.info[k].assessment = source.assessment;
+        }
+      }
+    }
+    emitStateChanged();
+  },
+  setRealtimeActive: (value) => {
+    if ( value == false ) {
+      state.realtimeDownCount = state.realtimeDownCount + 1;
+    } else {
+      state.realtimeDownCount = 0;
+    }
+    state.realtimeActive = value;
   },
   setSources: (user) => {
     state.serverHasMultipleSources = serverHasMultipleSources;
@@ -41,12 +106,16 @@ export const mutations = {
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
     window.history.replaceState(null, "", "#" + value);
+    const container = document.getElementById("main");
     const element = document.getElementById(value);
-    if (element) {
-      element.scrollIntoView({
+    if (container && element) {
+      const offset = 4 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
+      const containerTop = container.getBoundingClientRect().top;
+      const elementTop = element.getBoundingClientRect().top;
+      const scrollOffset = elementTop - containerTop - offset;
+      container.scrollTo({
+        top: container.scrollTop + scrollOffset,
         behavior: "smooth",
-        block: "center",
-        inline: "nearest",
       });
     }
     emitStateChanged();
@@ -71,6 +140,11 @@ export const mutations = {
     } else {
       state.showSidebar = !state.showSidebar;
     }
+    if (state.showSidebar) {
+      state.multiButtonState = "back";
+    } else {
+      state.multiButtonState = "menu";
+    }
     emitStateChanged();
   },
   closeSidebar() {
@@ -88,6 +162,9 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
+    const previousState = state.multiButtonLastState;
+    state.multiButtonLastState = mutations.multiButtonState;
+    state.multiButtonState = previousState;
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
@@ -110,10 +187,6 @@ export const mutations = {
         props: value?.props,
       });
     }
-    emitStateChanged();
-  },
-  showError: () => {
-    state.prompts.push("error");
     emitStateChanged();
   },
   setLoading: (loadType, status) => {
@@ -155,15 +228,12 @@ export const mutations = {
   },
   setSession: (value) => {
     state.sessionId = value;
-    localStorage.setItem("sessionId", value);
     emitStateChanged();
   },
   setMultiple: (value) => {
     state.multiple = value;
     if (value == true) {
       notify.showMultipleSelection()
-    } else {
-      notify.closePopUp()
     }
     emitStateChanged();
   },
@@ -206,15 +276,35 @@ export const mutations = {
       //state.user.locale = i18n.detectLocale();
       i18n.setLocale(state.user.locale);
       i18n.default.locale = state.user.locale;
+      localStorage.setItem("userLocale", state.user.locale);
     }
 
     // Update localStorage if stickySidebar exists
     if ('stickySidebar' in state.user) {
       localStorage.setItem("stickySidebar", state.user.stickySidebar);
+      if (state.user.stickySidebar && getters.currentView() == "listingView") {
+        state.multiButtonState = "menu";
+      } else if (state.showSidebar) {
+        state.multiButtonState = "back";
+      }
     }
+
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      usersApi.update(state.user, Object.keys(value));
+      usersApi.update(state.user, [
+        "locale",
+        "dateFormat",
+        "themeColor",
+        "quickDownload",
+        "disableOnlyOfficeExt",
+        "preview",
+        "stickySidebar",
+        "darkMode",
+        "showHidden",
+        "sorting",
+        "gallerySize",
+        "viewMode",
+      ]);
     }
 
     // Emit state change event

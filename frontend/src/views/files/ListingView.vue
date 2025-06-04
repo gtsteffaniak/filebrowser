@@ -42,7 +42,11 @@
         v-else
         id="listingView"
         ref="listingView"
-        :class="{ 'add-padding': isStickySidebar, [listingViewMode]: true }"
+        :class="{
+          'add-padding': isStickySidebar,
+          [listingViewMode]: true,
+          dropping: isDragging,
+        }"
         class="file-icons"
       >
         <div>
@@ -107,7 +111,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-            v-bind:hidden="item.hidden"
+            v-bind:reducedOpacity="item.hidden || isDragging"
           />
         </div>
         <div v-if="numFiles > 0">
@@ -127,7 +131,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-            v-bind:hidden="item.hidden"
+            v-bind:reducedOpacity="item.hidden || isDragging"
           />
         </div>
 
@@ -182,8 +186,49 @@ export default {
       this.columnWidth = 250 + state.user.gallerySize * 50;
       this.colunmsResize();
     },
+    scrolling() {
+      const scrollContainer = this.$refs.listingView;
+      if (!scrollContainer) return;
+
+      // Select all visible listing items
+      const itemNodes = scrollContainer.querySelectorAll(".listing-item");
+
+      // Find the first item near the top of the viewport
+      let topItem = null;
+      let minTop = Infinity;
+      itemNodes.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top < minTop) {
+          minTop = rect.top;
+          topItem = el;
+        }
+      });
+
+      if (!topItem) return;
+
+      const letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+      let category = "folders"; // Default category
+      if (this.numFiles > 0) {
+        // Decide category by checking which section is above
+        const fileSection = this.$el.querySelector(".file-items");
+        const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
+        category = fileTop <= 0 ? "files" : "folders";
+      }
+
+      mutations.updateListing({
+        ...state.listing,
+        category,
+        letter,
+      });
+    },
   },
   computed: {
+    isDragging() {
+      return this.dragCounter > 0;
+    },
+    scrolling() {
+      return state.listing.scrollRatio;
+    },
     isStickySidebar() {
       return getters.isStickySidebar();
     },
@@ -204,9 +249,11 @@ export default {
       if (!getters.isCardView()) {
         return 1;
       }
-      let columns = Math.floor(
-        document.querySelector("main").offsetWidth / this.columnWidth
-      );
+      const elem = document.querySelector("#main");
+      if (!elem) {
+        return 1;
+      }
+      let columns = Math.floor(elem.offsetWidth / this.columnWidth);
       if (columns === 0) columns = 1;
       return columns;
     },
@@ -302,7 +349,9 @@ export default {
     window.addEventListener("click", this.clickClear);
     window.addEventListener("keyup", this.clearCtrKey);
     window.addEventListener("dragover", this.preventDefault);
+    this.$el.addEventListener("touchmove", this.handleTouchMove);
 
+    this.$el.addEventListener("contextmenu", this.openContext);
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu
@@ -310,17 +359,14 @@ export default {
         passive: true,
       });
       this.$el.addEventListener("mousedown", this.openContextForSafari);
-      this.$el.addEventListener("touchmove", this.handleTouchMove);
 
       // Also clear the timeout if the user clicks or taps quickly
       this.$el.addEventListener("touchend", this.cancelContext);
       this.$el.addEventListener("mouseup", this.cancelContext);
-    } else {
-      // For other browsers, use regular contextmenu
-      this.$el.addEventListener("contextmenu", this.openContext);
     }
+
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (!state.user.perm?.modify) return;
+    if (!state.user.permissions?.modify) return;
     this.$el.addEventListener("dragenter", this.dragEnter);
     this.$el.addEventListener("dragleave", this.dragLeave);
     this.$el.addEventListener("drop", this.drop);
@@ -329,15 +375,15 @@ export default {
     // Remove event listeners before destroying this page.
     window.removeEventListener("keydown", this.keyEvent);
     window.removeEventListener("resize", this.windowsResize);
+    this.$el.removeEventListener("contextmenu", this.openContext);
+    this.$el.addEventListener("touchmove", this.handleTouchMove);
+
     // If Safari, remove touchstart listener
     if (state.isSafari) {
       this.$el.removeEventListener("touchstart", this.openContextForSafari);
       this.$el.removeEventListener("mousedown", this.openContextForSafari);
       this.$el.removeEventListener("touchend", this.cancelContext);
       this.$el.removeEventListener("mouseup", this.cancelContext);
-      this.$el.removeEventListener("touchmove", this.handleTouchMove);
-    } else {
-      this.$el.removeEventListener("contextmenu", this.openContext);
     }
   },
   methods: {
@@ -548,7 +594,7 @@ export default {
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
       if (modifierKeys) {
-        if (!ctrlKey) {
+        if (ctrlKey) {
           this.ctrKeyPressed = true;
         }
         return;
@@ -572,12 +618,12 @@ export default {
           break;
 
         case "Delete":
-          if (!state.user.perm.modify || state.selected.length === 0) return;
+          if (!state.user.permissions.modify || state.selected.length === 0) return;
           mutations.showHover("delete");
           break;
 
         case "F2":
-          if (!state.user.perm.modify || state.selected.length !== 1) return;
+          if (!state.user.permissions.modify || state.selected.length !== 1) return;
           mutations.showHover("rename");
           break;
 
@@ -761,29 +807,18 @@ export default {
     },
     dragEnter() {
       this.dragCounter++;
-      let items = document.getElementsByClassName("item");
-
-      Array.from(items).forEach((file) => {
-        file.style.opacity = 0.5;
-      });
     },
     dragLeave() {
       this.dragCounter--;
-      if (this.dragCounter === 0) {
-        this.resetOpacity();
-      }
     },
     async drop(event) {
       event.preventDefault();
       this.dragCounter = 0;
-      this.resetOpacity();
 
       let dt = event.dataTransfer;
       let el = event.target;
 
-      if (dt.files.length <= 0) {
-        return;
-      }
+      if (dt.files.length <= 0) return;
 
       for (let i = 0; i < 5; i++) {
         if (el !== null && !el.classList.contains("item")) {
@@ -791,27 +826,25 @@ export default {
         }
       }
 
-      let files = await upload.scanFiles(dt);
-
+      let rawFiles = await upload.scanFiles(dt);
       let items = state.req.items;
       let path = getters.routePath();
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
-        let response = await filesApi.fetchFiles(decodeURIComponent(el.__vue__.url));
+        const response = await filesApi.fetchFiles(decodeURIComponent(el.__vue__.url));
         path = el.__vue__.url;
         items = response.items;
       }
 
-      const uploadFiles = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        uploadFiles.push({
-          file,
-          name: file.name,
-          source: state.req.source,
-          size: file.size,
-        });
-      }
+      const uploadFiles = rawFiles.map((file) => ({
+        file,
+        name: file.name,
+        size: file.size,
+        path: file.fullPath || file.webkitRelativePath || file.name,
+        fullPath: file.fullPath || file.webkitRelativePath || file.name,
+        source: state.req.source,
+      }));
+
       const conflict = upload.checkConflict(uploadFiles, items);
       try {
         if (conflict) {
@@ -831,20 +864,29 @@ export default {
         console.log("failed to upload files");
       }
     },
+
     async uploadInput(event) {
       mutations.closeHovers();
-      let files = event.currentTarget.files;
-      let folder_upload =
-        files[0].webkitRelativePath !== undefined && files[0].webkitRelativePath !== "";
+      const rawFiles = event.currentTarget.files;
+      if (!rawFiles || rawFiles.length === 0) return;
 
-      if (folder_upload) {
-        for (let i = 0; i < files.length; i++) {
-          files[i].fullPath = files[i].webkitRelativePath;
-        }
+      const uploadFiles = [];
+
+      for (let i = 0; i < rawFiles.length; i++) {
+        const file = rawFiles[i];
+        const fullPath = file.webkitRelativePath || file.name;
+        uploadFiles.push({
+          file,
+          name: file.name,
+          size: file.size,
+          path: fullPath,
+          fullPath: fullPath,
+          source: state.req.source,
+        });
       }
 
-      let path = getters.routePath();
-      const conflict = upload.checkConflict(files, state.req.items);
+      const path = getters.routePath();
+      const conflict = upload.checkConflict(uploadFiles, state.req.items);
 
       if (conflict) {
         mutations.showHover({
@@ -852,20 +894,13 @@ export default {
           confirm: async (event) => {
             event.preventDefault();
             mutations.closeHovers();
-            await upload.handleFiles(files, path, true);
+            await upload.handleFiles(uploadFiles, path, true);
           },
         });
-        return;
+      } else {
+        await upload.handleFiles(uploadFiles, path);
       }
-
-      await upload.handleFiles(files, path);
       mutations.setReload(true);
-    },
-    resetOpacity() {
-      let items = document.getElementsByClassName("item");
-      Array.from(items).forEach((file) => {
-        file.style.opacity = 1;
-      });
     },
     sort(field) {
       let asc = false;
@@ -946,5 +981,11 @@ export default {
 }
 .font-size-large h2 {
   font-size: 2em !important;
+}
+
+#listingView.dropping {
+  transform: scale(0.97);
+  border-radius: 1em;
+  box-shadow: var(--primaryColor) 0 0 1em;
 }
 </style>

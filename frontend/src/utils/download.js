@@ -26,6 +26,11 @@ export default function download() {
     return;
   }
 
+  if (state.isSearchActive) {
+    startDownload(null, [state.selected[0].url]);
+    return;
+  }
+
   if (getters.isSingleFileSelected()) {
     startDownload(null, [getters.selectedDownloadUrl()]);
     return;

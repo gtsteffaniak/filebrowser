@@ -11,11 +11,12 @@ import (
 	"strings"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/gtsteffaniak/filebrowser/backend/cache"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/logger"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 const (
@@ -45,6 +46,8 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 	// get path from url
 	pathParts := strings.Split(url, "/api/raw?files=")
+	origPathParts := strings.Split(encodedUrl, "/api/raw?files=")
+	encodedPath := origPathParts[len(origPathParts)-1]
 	sourceFile := pathParts[len(pathParts)-1]
 	sourceSplit := strings.Split(sourceFile, "::")
 	if len(sourceSplit) != 2 {
@@ -54,7 +57,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	path := sourceSplit[1]
 	urlFirst := pathParts[0]
 	if settings.Config.Server.InternalUrl != "" {
-		urlFirst = strings.TrimSuffix(settings.Config.Server.InternalUrl, "/")
+		urlFirst = settings.Config.Server.InternalUrl
 		replacement := strings.Split(url, "/api/raw")[0]
 		url = strings.Replace(url, replacement, settings.Config.Server.InternalUrl, 1)
 	}
@@ -62,29 +65,26 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	fileInfo, err := files.FileInfoFaster(files.FileOptions{
+	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
-		Modify: d.user.Perm.Modify,
+		Modify: d.user.Permissions.Modify,
 		Source: source,
 		Expand: false,
 	})
-
 	if err != nil {
 		return errToStatus(err), err
 	}
-
 	id, err := getOnlyOfficeId(source, fileInfo.Path)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
 	split := strings.Split(fileInfo.Name, ".")
 	fileType := split[len(split)-1]
-
 	theme := "light"
 	if d.user.DarkMode {
 		theme = "dark"
 	}
-	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, path, d.token)
+	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, encodedPath, d.token)
 	clientConfig := map[string]interface{}{
 		"document": map[string]interface{}{
 			"fileType": fileType,
@@ -92,7 +92,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"title":    fileInfo.Name,
 			"url":      url + "&auth=" + d.token,
 			"permissions": map[string]interface{}{
-				"edit":     d.user.Perm.Modify,
+				"edit":     d.user.Permissions.Modify,
 				"download": true,
 				"print":    true,
 			},
@@ -128,7 +128,6 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
 	var data OnlyOfficeCallback
 	err = json.Unmarshal(body, &data)
 	if err != nil {
@@ -136,12 +135,16 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 	}
 
 	encodedPath := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
+	pathParts := strings.Split(encodedPath, "::")
+	if len(pathParts) < 2 {
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+	}
+	source := pathParts[0]
 	if source == "" {
 		source = settings.Config.Server.DefaultSource.Name
 	}
 	// Decode the URL-encoded path
-	path, err := url.QueryUnescape(encodedPath)
+	path, err := url.QueryUnescape(pathParts[1])
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
@@ -158,7 +161,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 
 	if data.Status == onlyOfficeStatusDocumentClosedWithChanges ||
 		data.Status == onlyOfficeStatusForceSaveWhileDocumentStillOpen {
-		if !d.user.Perm.Modify {
+		if !d.user.Permissions.Modify {
 			return http.StatusForbidden, nil
 		}
 
@@ -168,7 +171,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		}
 		defer doc.Body.Close()
 
-		fileOpts := files.FileOptions{
+		fileOpts := iteminfo.FileOptions{
 			Path:   path,
 			Source: source,
 		}
@@ -185,14 +188,14 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 }
 
 func getOnlyOfficeId(source, path string) (string, error) {
-	idx := files.GetIndex(source)
+	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return "", fmt.Errorf("source not found")
 	}
 	realpath, _, _ := idx.GetRealPath(path)
 	// error is intentionally ignored in order treat errors
 	// the same as a cache-miss
-	cachedDocumentKey, ok := cache.OnlyOffice.Get(realpath).(string)
+	cachedDocumentKey, ok := utils.OnlyOfficeCache.Get(realpath).(string)
 	if ok {
 		return cachedDocumentKey, nil
 	}
@@ -200,11 +203,37 @@ func getOnlyOfficeId(source, path string) (string, error) {
 }
 
 func deleteOfficeId(source, path string) {
-	idx := files.GetIndex(source)
+	idx := indexing.GetIndex(source)
 	if idx == nil {
-		logger.Error(fmt.Sprintf("deleteOfficeId: failed to find source index for user home dir creation: %s", source))
+		logger.Errorf("deleteOfficeId: failed to find source index for user home dir creation: %s", source)
 		return
 	}
 	realpath, _, _ := idx.GetRealPath(path)
-	cache.OnlyOffice.Delete(realpath)
+	utils.OnlyOfficeCache.Delete(realpath)
+}
+
+func onlyofficeGetTokenHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// get config from body
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer r.Body.Close()
+
+	var payload map[string]interface{}
+	// marshall to struct
+	err = json.Unmarshal(body, &payload)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	if settings.Config.Integrations.OnlyOffice.Secret != "" {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(payload))
+		ss, err := token.SignedString([]byte(settings.Config.Integrations.OnlyOffice.Secret))
+		if err != nil {
+			return 500, errors.New("could not generate a new jwt")
+		}
+		return renderJSON(w, r, map[string]string{"token": ss})
+	}
+	return 400, fmt.Errorf("bad request")
 }

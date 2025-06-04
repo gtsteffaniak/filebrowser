@@ -6,49 +6,88 @@
     <div class="card-content">
       <form>
         <div class="card-content">
-          <p>
-            <input type="checkbox" v-model="dateFormat" />
-            {{ $t("settings.setDateFormat") }}
-          </p>
-          <p>
-            <input type="checkbox" v-model="showHidden" />
-            Show hidden files
-          </p>
-          <p>
-            <input type="checkbox" v-model="quickDownload" />
-            Always show download icon for quick access
-          </p>
+          <h3>{{ $t('settings.listingOptions') }}</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.dateFormat"
+              :name="$t('profileSettings.setDateFormat')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.showHidden"
+              :name="$t('profileSettings.showHiddenFiles')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.quickDownload"
+              :name="$t('profileSettings.showQuickDownload')"
+            />
+          </div>
+          <h3> {{ $t('profileSettings.filePreviewOptions') }}</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.image"
+              :name="$t('profileSettings.previewImages')"
+            />
+            <ToggleSwitch
+              v-if="mediaEnabled"
+              class="item"
+              v-model="localuser.preview.video"
+              :name="$t('profileSettings.previewVideos')"
+            />
+            <ToggleSwitch
+              v-if="mediaEnabled"
+              class="item"
+              v-model="localuser.preview.motionVideoPreview"
+              :name="$t('profileSettings.previewMotionVideos')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.highQuality"
+              :name="$t('profileSettings.highQualityPreview')"
+            />
+            <ToggleSwitch
+              v-if="hasOnlyOfficeEnabled"
+              class="item"
+              v-model="localuser.preview.office"
+              :name="$t('profileSettings.previewOffice')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.popup"
+              :name="$t('profileSettings.popupPreview')"
+            />
+          </div>
           <div v-if="hasOnlyOfficeEnabled">
-            <h3>Disable onlyoffice viewer for certain file extentions</h3>
+            <h3> {{ $t('settings.disableOfficePreview')}} </h3>
             <p>
-              A space separated list of file extensions to disable the only office viewer
-              for. (eg <code>.txt .html</code>)
+              {{ $t('settings.disableOfficePreviewDescription') }}
             </p>
-            <div class="onlyoffice-group">
+            <div class="form-group">
               <input
-                class="input input--block onlyoffice-form"
+                class="input input--block form-form flat-right"
                 :class="{ 'invalid-form': !formValidation() }"
                 type="text"
-                placeholder="enter file extentions"
+                placeholder="enter file extensions"
                 id="onlyofficeExt"
-                v-model="disableOnlyOfficeExt"
+                v-model="formOnlyOfficeExt"
               />
-              <button class="button onlyoffice-button" @click="submitOnlyOfficeChange">
-                save
-              </button>
+              <button type="button" class="button form-button" @click="submitOnlyOfficeChange"> {{ $t('buttons.save') }} </button>
             </div>
           </div>
 
-          <h3>Theme Color</h3>
+          <h3> {{ $t('settings.themeColor') }} </h3>
           <ButtonGroup
             :buttons="colorChoices"
             @button-clicked="setColor"
-            :initialActive="color"
+            :initialActive="localuser.themeColor"
           />
           <h3>{{ $t("settings.language") }}</h3>
           <Languages
             class="input input--block"
-            :locale="locale"
+            :locale="localuser.locale"
             @update:locale="updateLocale"
           ></Languages>
         </div>
@@ -59,28 +98,25 @@
 
 <script>
 import { notify } from "@/notify";
-import { onlyOfficeUrl } from "@/utils/constants.js";
+import { onlyOfficeUrl, mediaAvailable } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
-import i18n, { rtlLanguages } from "@/i18n";
 import ButtonGroup from "@/components/ButtonGroup.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "settings",
   components: {
     Languages,
     ButtonGroup,
+    ToggleSwitch,
   },
   data() {
     return {
-      dateFormat: false,
+      localuser: { preview: {} },
       initialized: false,
-      locale: "",
-      color: "",
-      showHidden: false,
-      quickDownload: false,
-      disableOnlyOfficeExt: "",
+      formOnlyOfficeExt: "", // holds temporary input before saving
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
         { label: "red", value: "var(--red)" },
@@ -92,25 +128,22 @@ export default {
     };
   },
   watch: {
-    showHidden: function () {
-      if (this.initialized) {
-        this.updateSettings(); // Only run if initialized
-      }
-    },
-    quickDownload: function () {
-      if (this.initialized) {
-        this.updateSettings(); // Only run if initialized
-      }
-    },
-    dateFormat: function () {
-      if (this.initialized) {
-        this.updateSettings(); // Only run if initialized
-      }
+    localuser: {
+      handler: function () {
+        if (this.initialized) {
+          this.updateSettings(); // Ensure updateSettings() is called when localuser changes
+        }
+        this.initialized = true;
+      },
+      deep: true, // Watch nested properties of localuser
     },
   },
   computed: {
     hasOnlyOfficeEnabled() {
       return onlyOfficeUrl != "";
+    },
+    mediaEnabled() {
+      return mediaAvailable;
     },
     settings() {
       return state.settings;
@@ -118,59 +151,42 @@ export default {
     active() {
       return state.activeSettingsView === "profile-main";
     },
-    user() {
-      return state.user;
-    },
-  },
-  created() {
-    this.locale = state.user.locale;
-    this.showHidden = state.user.showHidden;
-    this.dateFormat = state.user.dateFormat;
-    this.color = state.user.themeColor;
-    this.quickDownload = state.user?.quickDownload;
-    this.disableOnlyOfficeExt = state.user.disableOnlyOfficeExt;
   },
   mounted() {
-    this.initialized = true;
+    this.localuser = { ...state.user };
+    this.formOnlyOfficeExt = this.localuser.disableOnlyOfficeExt;
   },
   methods: {
     formValidation() {
-      if (this.disableOnlyOfficeExt == "") {
+      if (this.formOnlyOfficeExt == "") {
         return true;
       }
       let regex = /^\.\w+(?: \.\w+)*$/;
-      return regex.test(this.disableOnlyOfficeExt);
+      return regex.test(this.formOnlyOfficeExt);
     },
-    submitOnlyOfficeChange(event) {
+    submitOnlyOfficeChange() {
       if (!this.formValidation()) {
         notify.showError("Invalid input, does not match requirement.");
         return;
       }
-      this.updateSettings(event);
+      this.localuser.disableOnlyOfficeExt = this.formOnlyOfficeExt;
     },
     setColor(string) {
-      this.color = string;
-      this.updateSettings();
+      this.localuser.themeColor = string;
     },
     async updateSettings(event) {
       if (event !== undefined) {
         event.preventDefault();
       }
-      if (this.color != "") {
-        document.documentElement.style.setProperty("--primaryColor", this.color);
+      if (this.localuser.themeColor != "") {
+        document.documentElement.style.setProperty(
+          "--primaryColor",
+          this.localuser.themeColor
+        );
       }
       try {
-        const data = {
-          id: state.user.id,
-          locale: this.locale,
-          showHidden: this.showHidden,
-          dateFormat: this.dateFormat,
-          themeColor: this.color,
-          quickDownload: this.quickDownload,
-          disableOnlyOfficeExt: this.disableOnlyOfficeExt,
-        };
-        const shouldReload =
-          rtlLanguages.includes(data.locale) !== rtlLanguages.includes(i18n.locale);
+        const data = this.localuser;
+        mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "locale",
           "showHidden",
@@ -178,37 +194,24 @@ export default {
           "themeColor",
           "quickDownload",
           "disableOnlyOfficeExt",
+          "preview",
         ]);
-        mutations.updateCurrentUser(data);
-        if (shouldReload) {
-          location.reload();
-        }
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
         notify.showError(e);
       }
     },
     updateLocale(updatedLocale) {
-      this.locale = updatedLocale;
-      this.updateSettings();
+      this.localuser.locale = updatedLocale;
     },
   },
 };
 </script>
 
-<style>
-.onlyoffice-group {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+<style scoped>
+.card-content h3 {
+  text-align: center;
 }
-.onlyoffice-button {
-  margin-left: 1em;
-}
-.onlyoffice-form {
-  height: 3em;
-}
-.invalid-form {
-  border-color: red !important;
-}
+
+
 </style>

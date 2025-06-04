@@ -5,12 +5,11 @@
 </template>
 
 <script>
-import { router } from "@/router";
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
 import { filesApi } from "@/api";
-import url from "@/utils/url.js";
-import ace from "ace-builds/src-min-noconflict/ace.js";
+import ace, { version as ace_version } from "ace-builds";
+import modelist from "ace-builds/src-noconflict/ext-modelist";
 import "ace-builds/src-min-noconflict/theme-chrome";
 import "ace-builds/src-min-noconflict/theme-twilight";
 
@@ -23,35 +22,6 @@ export default {
     isDarkMode() {
       return getters.isDarkMode();
     },
-    breadcrumbs() {
-      let parts = state.route.path.split("/");
-
-      if (parts[0] === "") {
-        parts.shift();
-      }
-
-      if (parts[parts.length - 1] === "") {
-        parts.pop();
-      }
-
-      let breadcrumbs = [];
-
-      for (let i = 0; i < parts.length; i++) {
-        breadcrumbs.push({ name: decodeURIComponent(parts[i]) });
-      }
-
-      breadcrumbs.shift();
-
-      if (breadcrumbs.length > 3) {
-        while (breadcrumbs.length !== 4) {
-          breadcrumbs.shift();
-        }
-
-        breadcrumbs[0].name = "...";
-      }
-
-      return breadcrumbs;
-    },
   },
   created() {
     window.addEventListener("keydown", this.keyEvent);
@@ -61,10 +31,15 @@ export default {
     this.editor.destroy();
   },
   mounted: function () {
+    ace.config.set(
+      "basePath",
+      `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
+    );
     // this is empty content string "empty-file-x6OlSil" which is used to represent empty text file
     const fileContent =
       state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
-    this.editor = ace.edit("editor", {
+      this.editor = ace.edit("editor", {
+      mode: modelist.getModeForPath(state.req.name).mode,
       value: fileContent,
       showPrintMargin: false,
       theme: "ace/theme/chrome",
@@ -72,7 +47,6 @@ export default {
       wrap: false,
     });
     // Set the basePath for Ace Editor
-    ace.config.set("basePath", "/node_modules/ace-builds/src-min-noconflict");
     if (this.isDarkMode) {
       this.editor.setTheme("ace/theme/twilight");
     }
@@ -80,22 +54,12 @@ export default {
   },
   methods: {
     handleEditorValueRequest() {
-      filesApi.put(state.req.path, this.editor.getValue());
-    },
-    back() {
-      let uri = url.removeLastDir(state.route.path) + "/";
-      this.$router.push({ path: uri });
+      filesApi.put(state.req.path, state.req.source, this.editor.getValue());
     },
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName() != null) {
         return;
-      }
-      if (key == "Backspace") {
-        // go back
-        let currentPath = state.route.path.replace(/\/+$/, "");
-        let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-        router.push({ path: newPath });
       }
       if (!ctrlKey && !metaKey) {
         return;
@@ -103,7 +67,7 @@ export default {
       switch (key.toLowerCase()) {
         case "s":
           event.preventDefault();
-          this.save();
+          this.handleEditorValueRequest();
           break;
 
         default:

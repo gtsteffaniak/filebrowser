@@ -104,7 +104,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile
+          file: ./_docker/Dockerfile.slim
           push: false # Do not push the image for now
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

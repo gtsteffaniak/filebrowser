@@ -8,15 +8,13 @@ import (
 	"time"
 
 	storm "github.com/asdine/storm/v3"
-	"github.com/gtsteffaniak/filebrowser/backend/diskcache"
-	"github.com/gtsteffaniak/filebrowser/backend/files"
-	"github.com/gtsteffaniak/filebrowser/backend/img"
-	"github.com/gtsteffaniak/filebrowser/backend/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/share"
-	"github.com/gtsteffaniak/filebrowser/backend/storage"
-	"github.com/gtsteffaniak/filebrowser/backend/storage/bolt"
-	"github.com/gtsteffaniak/filebrowser/backend/users"
-	"github.com/gtsteffaniak/filebrowser/backend/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
+	"github.com/gtsteffaniak/filebrowser/backend/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 )
 
 func setupTestEnv(t *testing.T) {
@@ -35,10 +33,14 @@ func setupTestEnv(t *testing.T) {
 		Share:    shareStore,
 		Settings: settingsStore,
 	}
-	fileCache = diskcache.NewNoOp() // mocked
-	imgSvc = img.New(1)             // mocked
-	config = &settings.Config       // mocked
-	mockFileInfoFaster(t)           // Mock FileInfoFasterFunc for this test
+	config = &settings.Config // mocked
+	config.Server.SourceMap = map[string]settings.Source{
+		"/srv": settings.Source{
+			Path: "/srv",
+			Name: "srv",
+		},
+	}
+	mockFileInfoFaster(t) // Mock FileInfoFasterFunc for this test
 }
 
 func mockFileInfoFaster(t *testing.T) {
@@ -48,11 +50,11 @@ func mockFileInfoFaster(t *testing.T) {
 	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
 
 	// Mock the function to skip execution
-	FileInfoFasterFunc = func(opts files.FileOptions) (files.ExtendedFileInfo, error) {
-		return files.ExtendedFileInfo{
-			FileInfo: files.FileInfo{
+	FileInfoFasterFunc = func(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error) {
+		return iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{
 				Path: opts.Path,
-				ItemInfo: files.ItemInfo{
+				ItemInfo: iteminfo.ItemInfo{
 					Name: "mocked_file",
 					Size: 12345,
 				},
@@ -65,20 +67,20 @@ func TestWithAdminHelper(t *testing.T) {
 	setupTestEnv(t)
 	// Mock a user who has admin permissions
 	adminUser := &users.User{
-		ID:       1,
-		Username: "admin",
-		Perm:     users.Permissions{Admin: true}, // Ensure the user is an admin
+		ID:          1,
+		Username:    "admin",
+		Permissions: users.Permissions{Admin: true}, // Ensure the user is an admin
 	}
 	nonAdminUser := &users.User{
-		ID:       2,
-		Username: "non-admin",
-		Perm:     users.Permissions{Admin: false}, // Non-admin user
+		ID:          2,
+		Username:    "non-admin",
+		Permissions: users.Permissions{Admin: false}, // Non-admin user
 	}
 	// Save the users to the mock database
-	if err := store.Users.Save(adminUser, true); err != nil {
+	if err := store.Users.Save(adminUser, true, true); err != nil {
 		t.Fatal("failed to save admin user:", err)
 	}
-	if err := store.Users.Save(nonAdminUser, true); err != nil {
+	if err := store.Users.Save(nonAdminUser, true, true); err != nil {
 		t.Fatal("failed to save non-admin user:", err)
 	}
 	// Test cases for different scenarios
@@ -155,7 +157,8 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 		{
 			name: "Public share, no auth required",
 			share: &share.Link{
-				Hash: "public_hash",
+				Hash:   "public_hash",
+				Source: "/srv",
 			},
 			expectedStatusCode: 0, // zero means 200 on helpers
 		},
@@ -176,6 +179,7 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 				UserID:       1,
 				PasswordHash: passwordBcrypt,
 				Token:        "123",
+				Source:       "/srv",
 			},
 			token:              "123",
 			expectedStatusCode: 0, // zero means 200 on helpers

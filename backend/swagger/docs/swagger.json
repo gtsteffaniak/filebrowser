@@ -4,6 +4,109 @@
         "contact": {}
     },
     "paths": {
+        "/api/auth/logout": {
+            "get": {
+                "description": "logs a user out of the application.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User Logout",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to redirect URL if configured in oidc config.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/otp/generate": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Generates a new TOTP secret and QR code for the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Generate OTP",
+                "responses": {
+                    "200": {
+                        "description": "OTP secret generated successfully.",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Verifies the provided TOTP code for the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Verify OTP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "TOTP code to verify",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP token is valid.",
+                        "schema": {
+                            "$ref": "#/definitions/http.HttpResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid TOTP token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/createApiKey": {
             "post": {
                 "description": "Create an API key with specified name, duration, and permissions.",
@@ -240,6 +343,13 @@
                 ],
                 "summary": "Get image preview",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "source hash",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "File path of the image to preview",
@@ -480,7 +590,7 @@
                     "200": {
                         "description": "Resource metadata",
                         "schema": {
-                            "$ref": "#/definitions/files.FileInfo"
+                            "$ref": "#/definitions/iteminfo.FileInfo"
                         }
                     },
                     "404": {
@@ -518,7 +628,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the resource",
+                        "description": "Destination path where to place the files inside the destination source",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -593,20 +703,14 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path to the resource",
+                        "description": "Destination path where to place the files inside the destination source, a directory must end in / to create a directory",
                         "name": "path",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
+                        "description": "Name for the desired filebrowser destination source name, default is used if not provided",
                         "name": "source",
                         "in": "query"
                     },
@@ -740,16 +844,10 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Path from resource",
+                        "description": "Path from resource in \u003csource_name\u003e::\u003cindex_path\u003e format",
                         "name": "from",
                         "in": "query",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -861,7 +959,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/files.SearchResult"
+                                "$ref": "#/definitions/indexing.SearchResult"
                             }
                         }
                     },
@@ -1156,55 +1254,6 @@
                     },
                     "409": {
                         "description": "Conflict - user already exists",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/usage": {
-            "get": {
-                "description": "Returns the total and used disk space for a specified directory.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Resources"
-                ],
-                "summary": "Get disk usage",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Disk usage details",
-                        "schema": {
-                            "$ref": "#/definitions/http.DiskUsageResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Directory not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1551,88 +1600,6 @@
         }
     },
     "definitions": {
-        "files.FileInfo": {
-            "type": "object",
-            "properties": {
-                "files": {
-                    "description": "files in the directory",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/files.ItemInfo"
-                    }
-                },
-                "folders": {
-                    "description": "folders in the directory",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/files.ItemInfo"
-                    }
-                },
-                "hidden": {
-                    "description": "whether the file is hidden",
-                    "type": "boolean"
-                },
-                "modified": {
-                    "description": "modification time",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "name of the file",
-                    "type": "string"
-                },
-                "path": {
-                    "description": "path scoped to the associated index",
-                    "type": "string"
-                },
-                "size": {
-                    "description": "length in bytes for regular files",
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "type of the file, either \"directory\" or a file mimetype",
-                    "type": "string"
-                }
-            }
-        },
-        "files.ItemInfo": {
-            "type": "object",
-            "properties": {
-                "hidden": {
-                    "description": "whether the file is hidden",
-                    "type": "boolean"
-                },
-                "modified": {
-                    "description": "modification time",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "name of the file",
-                    "type": "string"
-                },
-                "size": {
-                    "description": "length in bytes for regular files",
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "type of the file, either \"directory\" or a file mimetype",
-                    "type": "string"
-                }
-            }
-        },
-        "files.SearchResult": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
         "http.AuthTokenMin": {
             "type": "object",
             "properties": {
@@ -1650,17 +1617,6 @@
                 },
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "http.DiskUsageResponse": {
-            "type": "object",
-            "properties": {
-                "total": {
-                    "type": "integer"
-                },
-                "used": {
-                    "type": "integer"
                 }
             }
         },
@@ -1689,29 +1645,117 @@
                 }
             }
         },
+        "indexing.SearchResult": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "iteminfo.FileInfo": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "description": "files in the directory",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.ItemInfo"
+                    }
+                },
+                "folders": {
+                    "description": "folders in the directory",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iteminfo.ItemInfo"
+                    }
+                },
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "modified": {
+                    "description": "modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "name of the file",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "path scoped to the associated index",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "length in bytes for regular files",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
+                    "type": "string"
+                }
+            }
+        },
+        "iteminfo.ItemInfo": {
+            "type": "object",
+            "properties": {
+                "hidden": {
+                    "description": "whether the file is hidden",
+                    "type": "boolean"
+                },
+                "modified": {
+                    "description": "modification time",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "name of the file",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "length in bytes for regular files",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "type of the file, either \"directory\" or a file mimetype",
+                    "type": "string"
+                }
+            }
+        },
         "settings.Auth": {
             "type": "object",
             "properties": {
                 "adminPassword": {
+                    "description": "the password of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "adminUsername": {
+                    "description": "the username of the admin user. If not set, the default is \"admin\".",
                     "type": "string"
                 },
                 "key": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
+                    "description": "the key used to sign the JWT tokens. If not set, a random key will be generated.",
+                    "type": "string"
                 },
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
                 },
-                "signup": {
+                "resetAdminOnStart": {
+                    "description": "if set to true, the admin user will be reset to the default username and password on startup.",
                     "type": "boolean"
                 },
                 "tokenExpirationHours": {
+                    "description": "the number of hours until the token expires. Default is 2 hours.",
                     "type": "integer"
+                },
+                "totpSecret": {
+                    "description": "secret used to encrypt TOTP secrets",
+                    "type": "string"
                 }
             }
         },
@@ -1723,12 +1767,15 @@
             ],
             "properties": {
                 "text": {
+                    "description": "the text to display on the link",
                     "type": "string"
                 },
                 "title": {
+                    "description": "the title to display on hover",
                     "type": "string"
                 },
                 "url": {
+                    "description": "the url to link to",
                     "type": "string"
                 }
             }
@@ -1737,9 +1784,11 @@
             "type": "object",
             "properties": {
                 "disableDefaultLinks": {
+                    "description": "disable default links in the sidebar",
                     "type": "boolean"
                 },
                 "disableUsedPercentage": {
+                    "description": "disable used percentage for the sources in the sidebar",
                     "type": "boolean"
                 },
                 "externalLinks": {
@@ -1749,6 +1798,7 @@
                     }
                 },
                 "name": {
+                    "description": "display name",
                     "type": "string"
                 }
             }
@@ -1757,18 +1807,21 @@
             "type": "object",
             "properties": {
                 "fileEndsWith": {
+                    "description": "array of file names to include/exclude (eg \"a.jpg\")",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "files": {
+                    "description": "array of file names to include/exclude",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "folders": {
+                    "description": "array of folder names to include/exclude",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1779,6 +1832,9 @@
         "settings.Integrations": {
             "type": "object",
             "properties": {
+                "media": {
+                    "$ref": "#/definitions/settings.Media"
+                },
                 "office": {
                     "$ref": "#/definitions/settings.OnlyOffice"
                 }
@@ -1788,19 +1844,28 @@
             "type": "object",
             "properties": {
                 "apiLevels": {
+                    "description": "separated list of log levels to enable for the API. (eg. \"info|warning|error\")",
                     "type": "string"
                 },
                 "json": {
+                    "description": "output in json format, currently not supported",
                     "type": "boolean"
                 },
                 "levels": {
+                    "description": "separated list of log levels to enable. (eg. \"info|warning|error|debug\")",
                     "type": "string"
                 },
                 "noColors": {
+                    "description": "disable colors in the output",
                     "type": "boolean"
                 },
                 "output": {
+                    "description": "output location. (eg. \"stdout\" or \"path/to/file.log\")",
                     "type": "string"
+                },
+                "utc": {
+                    "description": "use UTC time in the output instead of local time",
+                    "type": "boolean"
                 }
             }
         },
@@ -1808,13 +1873,63 @@
             "type": "object",
             "properties": {
                 "noauth": {
+                    "description": "if set to true, overrides all other auth methods and disables authentication",
                     "type": "boolean"
+                },
+                "oidc": {
+                    "$ref": "#/definitions/settings.OidcConfig"
                 },
                 "password": {
                     "$ref": "#/definitions/settings.PasswordAuthConfig"
                 },
                 "proxy": {
                     "$ref": "#/definitions/settings.ProxyAuthConfig"
+                }
+            }
+        },
+        "settings.Media": {
+            "type": "object",
+            "properties": {
+                "ffmpegPath": {
+                    "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.OidcConfig": {
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "description": "client id of the OIDC application",
+                    "type": "string"
+                },
+                "clientSecret": {
+                    "description": "client secret of the OIDC application",
+                    "type": "string"
+                },
+                "disableVerifyTLS": {
+                    "description": "disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.",
+                    "type": "boolean"
+                },
+                "enabled": {
+                    "description": "whether to enable OIDC authentication",
+                    "type": "boolean"
+                },
+                "issuerUrl": {
+                    "description": "authorization URL of the OIDC provider",
+                    "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "scopes to request from the OIDC provider",
+                    "type": "string"
+                },
+                "userIdentifier": {
+                    "description": "the user identifier to use for authentication. Default is \"username\", can be \"email\" or \"username\", or \"phone\"",
+                    "type": "string"
                 }
             }
         },
@@ -1825,41 +1940,83 @@
                 "url"
             ],
             "properties": {
+                "internalUrl": {
+                    "description": "An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.",
+                    "type": "string"
+                },
                 "secret": {
                     "type": "string"
                 },
                 "url": {
+                    "description": "The URL to the OnlyOffice Document Server, needs to be accessible to the user.",
                     "type": "string"
                 }
             }
         },
         "settings.PasswordAuthConfig": {
             "type": "object",
-            "required": [
-                "enabled"
-            ],
             "properties": {
                 "enabled": {
                     "type": "boolean"
                 },
+                "enforcedOtp": {
+                    "description": "if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.",
+                    "type": "boolean"
+                },
                 "minLength": {
-                    "type": "integer"
+                    "description": "minimum pasword length required.",
+                    "type": "integer",
+                    "minimum": 5
+                },
+                "recaptcha": {
+                    "description": "recaptcha config, only used if signup is enabled",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.Recaptcha"
+                        }
+                    ]
+                },
+                "signup": {
+                    "description": "allow signups on login page if enabled -- not secure.",
+                    "type": "boolean"
                 }
             }
         },
         "settings.ProxyAuthConfig": {
             "type": "object",
-            "required": [
-                "enabled"
-            ],
             "properties": {
                 "createUser": {
+                    "description": "create user if not exists",
                     "type": "boolean"
                 },
                 "enabled": {
                     "type": "boolean"
                 },
                 "header": {
+                    "description": "required header to use for authentication. Security Warning: FileBrowser blindly accepts the header value as username.",
+                    "type": "string"
+                },
+                "logoutRedirectUrl": {
+                    "description": "if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.",
+                    "type": "string"
+                }
+            }
+        },
+        "settings.Recaptcha": {
+            "type": "object",
+            "required": [
+                "host",
+                "key",
+                "secret"
+            ],
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "secret": {
                     "type": "string"
                 }
             }
@@ -1871,22 +2028,39 @@
             ],
             "properties": {
                 "baseURL": {
+                    "description": "base URL for the server, the subpath that the server is running on.",
                     "type": "string"
                 },
                 "cacheDir": {
+                    "description": "path to the cache directory, used for thumbnails and other cached files",
                     "type": "string"
                 },
                 "database": {
+                    "description": "path to the database file",
                     "type": "string"
                 },
-                "enableThumbnails": {
+                "debugMedia": {
+                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "type": "boolean"
+                },
+                "disablePreviewResize": {
+                    "description": "disable resizing of previews for faster loading over slow connections",
+                    "type": "boolean"
+                },
+                "disablePreviews": {
+                    "description": "disable all previews thumbnails, simple icons will be used",
+                    "type": "boolean"
+                },
+                "disableTypeDetectionByHeader": {
+                    "description": "disable type detection by header, useful if filesystem is slow.",
                     "type": "boolean"
                 },
                 "externalUrl": {
+                    "description": "used by share links if set",
                     "type": "string"
                 },
                 "internalUrl": {
-                    "description": "used by integrations",
+                    "description": "used by integrations if set, this is the url that an integration service will use to communicate with filebrowser",
                     "type": "string"
                 },
                 "logging": {
@@ -1896,18 +2070,19 @@
                     }
                 },
                 "maxArchiveSize": {
+                    "description": "max pre-archive combined size of files/folder that are allowed to be archived (in GB)",
                     "type": "integer"
                 },
                 "numImageProcessors": {
+                    "description": "number of concurrent image processing jobs used to create previews, default is number of cpu cores available.",
                     "type": "integer"
                 },
                 "port": {
+                    "description": "port to listen on",
                     "type": "integer"
                 },
-                "resizePreview": {
-                    "type": "boolean"
-                },
                 "socket": {
+                    "description": "socket to listen on",
                     "type": "string"
                 },
                 "sources": {
@@ -1917,9 +2092,11 @@
                     }
                 },
                 "tlsCert": {
+                    "description": "path to TLS cert",
                     "type": "string"
                 },
                 "tlsKey": {
+                    "description": "path to TLS key",
                     "type": "string"
                 }
             }
@@ -1941,12 +2118,6 @@
                 },
                 "userDefaults": {
                     "$ref": "#/definitions/settings.UserDefaults"
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/settings.UserDefaults"
-                    }
                 }
             }
         },
@@ -1973,37 +2144,55 @@
             "type": "object",
             "properties": {
                 "createUserDir": {
+                    "description": "create a user directory for each user",
                     "type": "boolean"
                 },
                 "defaultEnabled": {
+                    "description": "should be added as a default source for new users?",
                     "type": "boolean"
                 },
                 "defaultUserScope": {
-                    "description": "default \"\" should match folders under path",
+                    "description": "default \"/\" should match folders under path",
                     "type": "string"
                 },
                 "disabled": {
+                    "description": "disable the indexing of this source",
                     "type": "boolean"
                 },
                 "exclude": {
-                    "$ref": "#/definitions/settings.IndexFilter"
+                    "description": "exclude files and folders from indexing, if include is not set",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.IndexFilter"
+                        }
+                    ]
                 },
                 "ignoreHidden": {
+                    "description": "ignore hidden files and folders.",
                     "type": "boolean"
                 },
                 "ignoreZeroSizeFolders": {
+                    "description": "ignore folders with 0 size",
                     "type": "boolean"
                 },
                 "include": {
-                    "$ref": "#/definitions/settings.IndexFilter"
+                    "description": "include files and folders from indexing, if exclude is not set",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.IndexFilter"
+                        }
+                    ]
                 },
                 "indexingInterval": {
+                    "description": "optional manual overide interval in seconds to re-index the source",
                     "type": "integer"
                 },
                 "maxWatchers": {
+                    "description": "number of concurrent watchers to use for this source, currently not supported",
                     "type": "integer"
                 },
                 "neverWatchPaths": {
+                    "description": "paths to never watch, relative to the source path (eg. \"/folder/file.txt\")",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -2015,45 +2204,65 @@
             "type": "object",
             "properties": {
                 "darkMode": {
+                    "description": "should dark mode be enabled",
                     "type": "boolean"
                 },
                 "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
                 "disableOnlyOfficeExt": {
+                    "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
                 },
                 "disableSettings": {
+                    "description": "disable the user from viewing the settings page",
                     "type": "boolean"
                 },
                 "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
                 "locale": {
+                    "description": "language to use: eg. de, en, or fr",
                     "type": "string"
                 },
                 "lockPassword": {
+                    "description": "disable the user from changing their password",
                     "type": "boolean"
+                },
+                "loginMethod": {
+                    "description": "login method to use: eg. password, proxy, oidc",
+                    "type": "string"
                 },
                 "permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
+                "preview": {
+                    "$ref": "#/definitions/users.Preview"
+                },
                 "quickDownload": {
+                    "description": "show icon to download in one click",
                     "type": "boolean"
                 },
                 "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
                 "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
                 },
                 "stickySidebar": {
+                    "description": "keep sidebar open when navigating",
                     "type": "boolean"
                 },
                 "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
                 }
             }
@@ -2122,6 +2331,19 @@
                 }
             }
         },
+        "users.LoginMethod": {
+            "type": "string",
+            "enum": [
+                "password",
+                "proxy",
+                "oidc"
+            ],
+            "x-enum-varnames": [
+                "LoginMethodPassword",
+                "LoginMethodProxy",
+                "LoginMethodOidc"
+            ]
+        },
         "users.Permissions": {
             "type": "object",
             "properties": {
@@ -2134,7 +2356,39 @@
                 "modify": {
                     "type": "boolean"
                 },
+                "realtime": {
+                    "type": "boolean"
+                },
                 "share": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "users.Preview": {
+            "type": "object",
+            "properties": {
+                "highQuality": {
+                    "description": "generate high quality preview images",
+                    "type": "boolean"
+                },
+                "image": {
+                    "description": "show real image as icon instead of generic photo icon",
+                    "type": "boolean"
+                },
+                "motionVideoPreview": {
+                    "description": "show multiple frames for videos in preview when hovering",
+                    "type": "boolean"
+                },
+                "office": {
+                    "description": "show preview image for office files",
+                    "type": "boolean"
+                },
+                "popup": {
+                    "description": "show larger popup preview when hovering",
+                    "type": "boolean"
+                },
+                "video": {
+                    "description": "show preview image for video files",
                     "type": "boolean"
                 }
             }
@@ -2171,36 +2425,60 @@
                     }
                 },
                 "darkMode": {
+                    "description": "should dark mode be enabled",
                     "type": "boolean"
                 },
                 "dateFormat": {
+                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
                 "disableOnlyOfficeExt": {
+                    "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
                 },
                 "disableSettings": {
                     "type": "boolean"
                 },
                 "gallerySize": {
+                    "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "locale": {
+                    "description": "language to use: eg. de, en, or fr",
                     "type": "string"
                 },
                 "lockPassword": {
+                    "type": "boolean"
+                },
+                "loginMethod": {
+                    "$ref": "#/definitions/users.LoginMethod"
+                },
+                "otpEnabled": {
+                    "description": "true if TOTP is enabled, false otherwise",
                     "type": "boolean"
                 },
                 "password": {
                     "type": "string"
                 },
                 "perm": {
+                    "description": "legacy for migration purposes... og filebrowser has perm attribute",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.Permissions"
+                        }
+                    ]
+                },
+                "permissions": {
                     "$ref": "#/definitions/users.Permissions"
                 },
+                "preview": {
+                    "$ref": "#/definitions/users.Preview"
+                },
                 "quickDownload": {
+                    "description": "show icon to download in one click",
                     "type": "boolean"
                 },
                 "scope": {
@@ -2213,24 +2491,35 @@
                     }
                 },
                 "showHidden": {
+                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
                 "singleClick": {
+                    "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
                 },
                 "sorting": {
                     "$ref": "#/definitions/users.Sorting"
                 },
                 "stickySidebar": {
+                    "description": "keep sidebar open when navigating",
                     "type": "boolean"
                 },
                 "themeColor": {
+                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
+                    "type": "string"
+                },
+                "totpNonce": {
+                    "type": "string"
+                },
+                "totpSecret": {
                     "type": "string"
                 },
                 "username": {
                     "type": "string"
                 },
                 "viewMode": {
+                    "description": "view mode to use: eg. normal, list, grid, or compact",
                     "type": "string"
                 }
             }

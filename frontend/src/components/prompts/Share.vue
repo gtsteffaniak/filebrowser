@@ -3,17 +3,14 @@
     <div class="card-title">
       <h2>{{ $t("buttons.share") }}</h2>
     </div>
-    <div aria-label="share-path" class="searchContext">Path: {{ subpath }}</div>
-    <p>
-      Note: anyone who has access to the link (and optional password) can access the
-      shared files. There is no requirement to be logged in.
-    </p>
+    <div aria-label="share-path" class="searchContext"> {{$t('search.path')}} {{ subpath }}</div>
+    <p> {{ $t('share.notice') }} </p>
     <template v-if="listing">
       <div class="card-content">
         <table>
           <tbody>
             <tr>
-              <th>#</th>
+              <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               <th>{{ $t("settings.shareDuration") }}</th>
               <th></th>
               <th></th>
@@ -128,7 +125,6 @@
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi, publicApi } from "@/api";
-import { fromNow } from "@/utils/moment";
 import Clipboard from "clipboard";
 
 export default {
@@ -187,7 +183,10 @@ export default {
       this.source = selected.source;
       this.source = state.req.items[state.selected[0]].source;
     }
-    this.subpath = decodeURIComponent(path);
+    // double encode # to fix issue with # in path
+    // replace all # with %23
+    this.subpath = path.replace(/#/g, "%23");
+
     try {
       // get last element of the path
       const links = await shareApi.get(this.subpath, this.source);
@@ -245,7 +244,7 @@ export default {
       }
     },
     humanTime(time) {
-      return fromNow(time, state.user.locale);
+      return getters.getTime(time);
     },
     buildLink(share) {
       return shareApi.getShareURL(share);

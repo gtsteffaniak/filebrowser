@@ -1,0 +1,11 @@
+server:
+  logging:
+    - levels: "info|warning|error"
+  sources:
+    - path: "/srv"
+userDefaults:
+  preview:
+    image: true
+    popup: true
+    video: true
+    highQuality: true

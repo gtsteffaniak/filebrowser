@@ -1,17 +1,57 @@
 <template>
-  <div v-if="!stateUser.perm.admin && !isNew">
+  <h2
+    class="message"
+    v-if="user.loginMethod != 'password' && !stateUser.permissions.admin"
+  >
+    <i class="material-icons">sentiment_dissatisfied</i>
+    <span>{{ $t("files.lonely") }}</span>
+  </h2>
+  <div v-if="user.loginMethod == 'password' && passwordAvailable && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
-    <input
-      class="input input--block"
-      type="password"
-      placeholder="enter new password"
-      v-model="user.password"
-      id="password"
-      @input="setUpdatePassword"
-    />
+    <div class="form-group">
+      <input
+        class="input input--block form-form"
+        :class="{ 'invalid-form': invalidPassword }"
+        aria-label="Password1"
+        type="password"
+        :placeholder="$t('settings.enterPassword')"
+        v-model="passwordRef"
+      />
+    </div>
+    <div class="form-group">
+      <input
+        class="input input--block form-form"
+        :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+        aria-label="Password2"
+        type="password"
+        :placeholder="$t('settings.enterPasswordAgain')"
+        v-model="user.password"
+        id="password"
+      />
+      <button
+        v-if="!isNew"
+        type="button"
+        class="button form-button"
+        @click="submitUpdatePassword"
+      >
+        {{ $t("buttons.update") }}
+      </button>
+    </div>
+    <div
+      style="display: flex; flex-direction: column"
+      v-if="stateUser.username == user.username"
+    >
+      <div class="settings-items">
+        <ToggleSwitch class="item" v-model="user.otpEnabled" :name="$t('otp.name')" />
+      </div>
+      <button class="button" type="button" v-if="user.otpEnabled" :onclick="newOTP">
+        {{ $t("buttons.generateNewOtp") }}
+      </button>
+    </div>
+    <hr />
   </div>
-  <div v-else>
-    <p>
+  <div v-if="stateUser.permissions.admin">
+    <p v-if="isNew">
       <label for="username">{{ $t("settings.username") }}</label>
       <input
         class="input input--block"
@@ -22,75 +62,101 @@
       />
     </p>
 
-    <p>
+    <div v-if="user.loginMethod == 'password' && passwordAvailable && isNew">
       <label for="password">{{ $t("settings.password") }}</label>
-      <input
-        class="input input--block"
-        type="password"
-        :placeholder="passwordPlaceholder"
-        v-model="user.password"
-        id="password"
-        @input="emitUpdate"
-      />
-    </p>
-
-    <p v-if="!isNew">
-      <input
-        type="checkbox"
-        :checked="updatePassword"
-        @change="(event) => $emit('update:updatePassword', event.target.checked)"
-      />
-      Change password on save
-    </p>
-
-    <p>
-      <input
-        type="checkbox"
-        :disabled="!stateUser.perm?.admin"
-        v-model="user.lockPassword"
-        @input="emitUpdate"
-      />
-      {{ $t("settings.lockPassword") }}
-    </p>
-
-    <label for="scopes">{{ $t("settings.scopes") }}</label>
-    <div class="scope-list" v-for="(source, index) in selectedSources" :key="index">
-      <!-- Select dropdown -->
-      <select class="input flat-right" v-model="source.name">
-        <option v-for="s in sourceList" :key="s" :value="s.name">
-          {{ s.name }}
-        </option>
-      </select>
-
-      <!-- Input field for scope, bound to the selectedSources array -->
-      <input
-        class="input flat-left scope-input"
-        placeholder="scope eg. 'subfolder', leave blank for root"
-        @input="updateParent({ source: source, input: $event })"
-        :value="source.scope"
-        :class="{ 'flat-right': index != 0 }"
-      />
-      <!-- Remove button -->
-      <button
-        v-if="index != 0"
-        class="button flat-left no-height"
-        @click="removeScope(index)"
-      >
-        <i class="material-icons material-size">delete</i>
-      </button>
+      <div class="form-group">
+        <input
+          class="input input--block form-form"
+          :class="{ 'invalid-form': invalidPassword }"
+          aria-label="Password1"
+          type="password"
+          :placeholder="$t('settings.enterPassword')"
+          v-model="passwordRef"
+        />
+      </div>
+      <div class="form-group">
+        <input
+          class="input input--block form-form"
+          :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+          type="password"
+          :placeholder="$t('settings.enterPasswordAgain')"
+          aria-label="Password2"
+          v-model="user.password"
+          id="password"
+        />
+        <button
+          v-if="!isNew"
+          type="button"
+          class="button form-button"
+          @click="submitUpdatePassword"
+        >
+          {{ $t("buttons.update") }}
+        </button>
+      </div>
     </div>
 
-    <!-- Button to add more sources -->
+    <div
+      v-if="user.loginMethod == 'password' && passwordAvailable"
+      class="settings-items"
+    >
+      <ToggleSwitch
+        v-if="user.loginMethod === 'password' && stateUser.permissions?.admin"
+        class="item"
+        :modelValue="user.lockPassword"
+        @update:modelValue="(val) => updateUserField('lockPassword', val)"
+        :name="$t('settings.lockPassword')"
+      />
+    </div>
+
+    <div style="padding-bottom: 1em" v-if="stateUser.permissions.admin">
+      <label for="scopes">{{ $t("settings.scopes") }}</label>
+      <div
+        class="scope-list"
+        :class="{ 'invalid-form': duplicateSources.includes(source.name) }"
+        v-for="(source, index) in selectedSources"
+        :key="index"
+      >
+        <select
+          @change="handleSourceChange(source, $event, source.name)"
+          class="input flat-right"
+          v-model="source.name"
+        >
+          <option v-for="s in sourceList" :key="s.name" :value="s.name">
+            {{ s.name }}
+          </option>
+        </select>
+
+        <input
+          class="input flat-left scope-input"
+          placeholder="scope eg. '/subfolder', leave blank for default path"
+          @input="updateParent({ source: source, input: $event })"
+          :value="source.scope"
+          :class="{ 'flat-right': selectedSources.length > 1 }"
+        />
+        <button
+          v-if="selectedSources.length > 1"
+          class="button flat-left no-height"
+          @click="removeScope(index)"
+        >
+          <i class="material-icons material-size">delete</i>
+        </button>
+      </div>
+    </div>
+
     <button v-if="hasMoreSources" @click="addNewScopeSource" class="button no-height">
       <i class="material-icons material-size">add</i>
     </button>
 
-    <p class="small" v-if="displayHomeDirectoryCheckbox">
-      <input type="checkbox" v-model="createUserDir" />
-      {{ $t("settings.createUserHomeDirectory") }}
-    </p>
+    <div class="settings-items">
+      <ToggleSwitch
+        v-if="displayHomeDirectoryCheckbox"
+        class="item"
+        v-model="createUserDir"
+        :name="$t('settings.createUserHomeDirectory')"
+      />
+    </div>
 
-    <p>
+    <p v-if="stateUser.username !== user.username">
       <label for="locale">{{ $t("settings.language") }}</label>
       <languages
         class="input input--block"
@@ -99,81 +165,88 @@
         @input="emitUpdate"
       ></languages>
     </p>
-
-    <permissions :perm="localUser.perm" />
+    <div v-if="stateUser.permissions.admin">
+      <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
+      <select v-model="user.loginMethod" class="input input--block" id="loginMethod">
+        <option value="password">Password</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <option value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <option value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      </select>
+    </div>
+    <permissions v-if="stateUser.permissions.admin" :permissions="user.permissions" />
   </div>
 </template>
 
 <script>
 import Languages from "./Languages.vue";
 import Permissions from "./Permissions.vue";
-import { state } from "@/store";
-import { settingsApi } from "@/api";
+import { mutations, state } from "@/store";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { notify } from "@/notify";
+import { usersApi, settingsApi } from "@/api";
+import { passwordAvailable } from "@/utils/constants";
 
 export default {
   name: "UserForm",
   components: {
     Permissions,
     Languages,
+    ToggleSwitch,
+  },
+  props: {
+    user: Object,
+    isNew: Boolean,
   },
   data() {
     return {
       createUserDir: false,
       originalUserScope: ".",
-      localUser: { ...this.user },
       sourceList: [],
       availableSources: [],
       selectedSources: [],
+      passwordRef: "",
     };
   },
-  props: {
-    user: Object, // Define user as a prop
-    updatePassword: Boolean,
-    isNew: Boolean,
-  },
   async mounted() {
-    if (!this.stateUser.perm.admin) {
-      this.sourceList = this.user.scopes;
+    if (!this.stateUser.permissions.admin) {
+      this.sourceList = this.user.scopes || [];
     } else {
       this.sourceList = await settingsApi.get("sources");
     }
-    this.localUser = { ...this.user };
-    this.selectedSources = [];
-    this.availableSources = [...this.sourceList];
-    if (this.isNew) {
-      const newSource = this.availableSources.shift(); // Take the first item instead of last
+
+    this.user.password = this.user.password || "";
+    this.selectedSources = this.user.scopes || [];
+    this.availableSources = this.sourceList.filter(
+      (s) => !this.selectedSources.some((sel) => sel.name === s.name)
+    );
+
+    if (this.isNew && this.availableSources.length) {
+      const newSource = this.availableSources.shift();
       if (newSource) {
         this.selectedSources.push(newSource);
-      }
-    } else {
-      // Populate selectedSources with existing user scopes
-      if (this.user.scopes) {
-        this.selectedSources = this.user.scopes;
-        // remove items with same name from availableSources
-        for (const source of this.selectedSources) {
-          this.availableSources = this.availableSources.filter(
-            (s) => source.name != s.name
-          );
-        }
+        this.emitUserUpdate();
       }
     }
   },
   watch: {
-    "user.perm.admin": function (newValue) {
-      if (newValue) {
-        this.user.lockPassword = false;
-      }
-    },
     createUserDir(newVal) {
       this.user.scopes = newVal ? { default: "" } : this.originalUserScope;
+      this.emitUserUpdate();
     },
   },
   computed: {
-    hasMoreSources() {
-      return this.availableSources.length > 0;
+    invalidPassword() {
+      const matching =
+        this.user.password != this.passwordRef && this.user.password.length > 0;
+      return matching;
     },
-    sourceInfo() {
-      return state.sources.info;
+    passwordAvailable: () => passwordAvailable,
+    duplicateSources() {
+      const names = this.selectedSources.map((s) => s.name);
+      return names.filter((name, idx) => names.indexOf(name) !== idx);
+    },
+    hasMoreSources() {
+      return this.selectedSources.length < this.sourceList.length;
     },
     stateUser() {
       return state.user;
@@ -181,77 +254,87 @@ export default {
     passwordPlaceholder() {
       return this.isNew ? "" : this.$t("settings.avoidChanges");
     },
-    scopePlaceholder() {
-      return this.createUserDir
-        ? this.$t("settings.userScopeGenerationPlaceholder")
-        : "./";
-    },
     displayHomeDirectoryCheckbox() {
       return this.isNew && this.createUserDir;
     },
   },
   methods: {
+    newOTP() {
+      mutations.showHover({
+        name: "totp",
+        props: {
+          generate: true,
+        },
+      });
+    },
+    async submitUpdatePassword() {
+      event.preventDefault();
+      if (this.invalidPassword) {
+        notify.showError(this.$t("settings.passwordsDoNotMatch"));
+        return;
+      }
+      try {
+        await usersApi.update(this.user, ["password"]);
+        notify.showSuccess(this.$t("settings.userUpdated"));
+      } catch (e) {
+        notify.showError(e);
+      }
+    },
+    emitUserUpdate() {
+      this.$emit("update:user", { ...this.user, scopes: this.selectedSources });
+    },
+    emitUpdate() {
+      this.$emit("update:user", { ...this.user });
+    },
     setUpdatePassword() {
       this.$emit("update:updatePassword", true);
     },
     updateParent(input) {
-      let updatedScopes = {};
-      // Update the selectedSources array directly
-      this.selectedSources.forEach((source) => {
-        if (source.name === input.source.name) {
-          updatedScopes[source.name] = input.input.target.value;
-        } else {
-          updatedScopes[source.name] = source.scope;
-        }
-      });
-      let intermediate = [];
-      Object.entries(updatedScopes).forEach(([key, value]) => {
-        intermediate.push({ name: key, scope: value });
-      });
-      let final = [];
-      for (const source of intermediate) {
-        final.push(source);
-      }
-      this.selectedSources = final;
-      this.$emit("update:user", { ...this.user, scopes: this.selectedSources });
+      const updatedScopes = this.selectedSources.map((source) =>
+        source.name === input.source.name
+          ? { ...source, scope: input.input.target.value }
+          : source
+      );
+      this.selectedSources = updatedScopes;
+      this.emitUserUpdate();
     },
     addNewScopeSource(event) {
       event.preventDefault();
-      if (this.availableSources.length > 0) {
-        const newSource = this.availableSources.pop();
-        if (newSource) {
-          const scope = { name: newSource.name, scope: "" };
-          this.selectedSources.push(scope);
-          this.updateParent({ source: scope, input: { target: { value: "" } } });
-        }
+      if (this.hasMoreSources) {
+        this.selectedSources.push({ name: "", scope: "" });
+        this.emitUserUpdate();
       }
     },
     removeScope(index) {
-      const removedSource = this.selectedSources.splice(index, 1)[0];
-      this.availableSources.push({ name: removedSource.name }); // Make source available again
+      const removed = this.selectedSources.splice(index, 1)[0];
+      this.availableSources.push({ name: removed.name });
+      this.emitUserUpdate();
+    },
+    handleSourceChange(source, event, oldName) {
+      const newName = event.target.value;
+      this.availableSources = this.availableSources.filter((s) => s.name !== newName);
+      if (oldName && !this.availableSources.find((s) => s.name === oldName)) {
+        this.availableSources.push({ name: oldName });
+      }
+      source.name = newName;
+      this.emitUserUpdate();
+    },
+    updateUserField(field, value) {
+      this.user[field] = value;
+      this.emitUserUpdate();
     },
   },
 };
 </script>
+
 <style>
 .scope-list {
   display: flex;
 }
 
-.flat-right {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-.flat-left {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
 .scope-input {
   width: 100%;
 }
-
 .no-height {
   height: unset;
 }

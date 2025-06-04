@@ -5,10 +5,7 @@
     </div>
 
     <div class="card-content">
-      <p>
-        {{ $t("prompts.renameMessage") }} <code>{{ oldName() }}</code
-        >:
-      </p>
+      <p>{{ $t("prompts.renameMessage") }} <code>{{ oldName() }}</code>:</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <input
         class="input input--block"
         v-focus
@@ -29,7 +26,7 @@
       </button>
       <button
         @click="submit"
-        class="button button--flat"
+        class="button busubmittton--flat"
         type="submit"
         :aria-label="$t('buttons.rename')"
         :title="$t('buttons.rename')"
@@ -101,6 +98,7 @@ export default {
         newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
 
         await filesApi.moveCopy([{ from: oldLink, to: newLink }], "move");
+        mutations.closeHovers();
         if (!this.isListing) {
           this.$router.push({ path: newLink });
           return;

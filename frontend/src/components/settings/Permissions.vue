@@ -1,45 +1,36 @@
 <template>
-  <div>
-    <h3>{{ $t("settings.permissions") }}</h3>
+  <div class="settings-items">
+    <h3>{{ $t("settings.permissions-name") }}</h3>
     <p class="small">{{ $t("settings.permissionsHelp") }}</p>
-    <p>
-      <input type="checkbox" v-model="admin" />
-      {{ $t("settings.administrator") }}
-    </p>
-    <p>
-      <input type="checkbox" :disabled="admin" v-model="perm.modify" />
-      {{ $t("settings.perm.modify") }}
-    </p>
-    <p>
-      <input type="checkbox" :disabled="admin" v-model="perm.share" />
-      {{ $t("settings.perm.share") }}
-    </p>
-    <p>
-      <input type="checkbox" v-model="perm.api" />
-      {{ $t("settings.perm.api") }}
-    </p>
+    <ToggleSwitch class="item" v-model="permissions.admin" :name="$t('settings.permissions.admin')" />
+    <ToggleSwitch
+      class="item"
+      v-model="permissions.modify"
+      :name="$t('settings.permissions.modify')"
+    />
+    <ToggleSwitch class="item" v-model="permissions.share" :name="$t('settings.permissions.share')" />
+    <ToggleSwitch class="item" v-model="permissions.api" :name="$t('settings.permissions.api')" />
+    <ToggleSwitch
+      class="item"
+      v-model="permissions.realtime"
+      :name="$t('settings.permissions.realtime')"
+    />
   </div>
 </template>
 
 <script>
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+
 export default {
   name: "permissions",
-  props: ["perm"],
-  computed: {
-    admin: {
-      get() {
-        return this.perm.admin;
-      },
-      set(value) {
-        if (value) {
-          for (const key in this.perm) {
-            this.perm[key] = true;
-          }
-        }
-
-        this.perm.admin = value;
-      },
+  props: {
+    permissions: {
+      type: Object,
+      required: true,
     },
+  },
+  components: {
+    ToggleSwitch,
   },
 };
 </script>

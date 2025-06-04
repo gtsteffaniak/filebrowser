@@ -1,7 +1,7 @@
 <template>
   <div class="card floating">
     <div class="card-title">
-      <h2>API Key Details</h2>
+      <h2>{{ $t('api.title') }}:</h2> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
 
     <div class="card-content">
@@ -11,20 +11,20 @@
         :aria-label="$t('buttons.copyToClipboard')"
         :title="$t('buttons.copyToClipboard')"
       >
-        API Key Name : {{ name }}
+        {{ $t('api.keyName') }}{{ name }}
         <i class="material-icons">content_paste</i>
       </button>
 
-      <h3>Created At :</h3>
+      <h3>{{ $t('api.createdAt') }}</h3>
       {{ formatTime(info.created) }}
-      <h3>Expires At :</h3>
+      <h3>{{ $t('api.expiresAt') }}</h3>
       {{ formatTime(info.expires) }}
-      <h3>Permissions:</h3>
+      <h3>{{ $t('api.permissions') }}</h3>
       <table>
         <tbody>
-          <tr v-for="(isEnabled, perm) in info.Permissions" :key="perm">
-            <td>{{ perm }}</td>
-            <td>{{ isEnabled ? "✓" : "✗" }}</td>
+          <tr v-for="(isEnabled, permission) in info.Permissions" :key="permission">
+            <td>{{ permission }}</td>
+            <td>{{ isEnabled ? '✓' : '✗' }}</td> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           </tr>
         </tbody>
       </table>
@@ -37,14 +37,14 @@
         :aria-label="$t('buttons.close')"
         :title="$t('buttons.close')"
       >
-        {{ $t("buttons.close") }}
+        {{ $t('buttons.close') }}
       </button>
       <button
         class="button button--flat button--red"
         @click="deleteApi"
         :title="$t('buttons.delete')"
       >
-        {{ $t("buttons.delete") }}
+        {{ $t('buttons.delete') }}
       </button>
     </div>
   </div>

@@ -31,17 +31,27 @@
     "switchView": "Schimba vizualizarea",
     "toggleSidebar": "Comută bara laterală",
     "update": "Actualizează",
-    "upload": "Încarcă"
+    "upload": "Încarcă",
+    "copyDownloadLinkToClipboard": "Copiați link-ul de descărcare în clipboard",
+    "file": "Fișier",
+    "folder": "Dosar",
+    "submit": "Trimite",
+    "openFile": "Deschideți fișierul",
+    "continue": "Continuați",
+    "edit": "Editare",
+    "generateNewOtp": "Resetați și generați un nou cod cu doi factori",
+    "verify": "Verificare"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
     "downloadFolder": "Descarcă director",
-    "downloadSelected": ""
+    "downloadSelected": "Descărcare selectată"
   },
   "errors": {
     "forbidden": "Nu ai permisiuni sa accesezi asta.",
     "internal": "Ceva nu a funcționat corect.",
-    "notFound": "Aceasta locație nu poate fi accesată."
+    "notFound": "Aceasta locație nu poate fi accesată.",
+    "connection": "Serverul nu poate fi accesat."
   },
   "files": {
     "body": "Corp",
@@ -59,7 +69,8 @@
     "size": "Dimensiune",
     "sortByLastModified": "Ordonează dup ultima modificare",
     "sortByName": "Ordonează după nume",
-    "sortBySize": "Ordonează după dimensiune"
+    "sortBySize": "Ordonează după dimensiune",
+    "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier."
   },
   "help": {
     "click": "alege fișier sau director",
@@ -95,7 +106,7 @@
     "ru": "Русский",
     "sk": "Slovenčina",
     "svSE": "",
-    "tr" : "Türkçe",
+    "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
     "zhTW": "中文 (繁體)"
@@ -110,7 +121,8 @@
     "submit": "Autentificare",
     "username": "Utilizator",
     "usernameTaken": "Utilizatorul există",
-    "wrongCredentials": "Informații greșite"
+    "wrongCredentials": "Informații greșite",
+    "or": "SAU"
   },
   "permanent": "Permanent",
   "prompts": {
@@ -125,7 +137,6 @@
     "downloadMessage": "Alege formatul în care vrei să descarci.",
     "error": "Ceva n-a funcționat cum trebuie",
     "fileInfo": "Informații fișier",
-    "filesSelected": "{count} fișiere selectate.",
     "lastModified": "Ultima modificare",
     "move": "Mută",
     "moveMessage": "Alege destinația:",
@@ -144,8 +155,15 @@
     "scheduleMessage": "Alege data si ora pentru a programa publicarea acestei postări.",
     "show": "Arată",
     "size": "Dimensiune",
-    "upload": "",
-    "uploadMessage": ""
+    "upload": "Încărcare",
+    "uploadMessage": "Selectați o opțiune pentru încărcare.",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
+    "deleteUserMessage": "Sunteți sigur că doriți să ștergeți acest utilizator?",
+    "filesSelected": "fișiere selectate",
+    "uploadFiles": "Uploading {files} files...",
+    "optionalPassword": "Parolă opțională",
+    "typeName": "Tip:",
+    "selected": "selectat"
   },
   "search": {
     "images": "Imagini",
@@ -155,7 +173,12 @@
     "search": "Caută...",
     "typeToSearch": "Scrie pentru a căuta...",
     "types": "Tipuri",
-    "video": "Video"
+    "video": "Video",
+    "path": "Calea:",
+    "smallerThan": "Mai mic decât:",
+    "largerThan": "Mai mare decât:",
+    "helpText1": "Căutarea are loc pe fiecare caracter tastat (minim 3 caractere pentru termenii de căutare).",
+    "helpText2": "Indexul: Căutarea utilizează indexul care se actualizează automat la intervalul configurat (implicit: 5 minute). Căutarea atunci când programul tocmai a început poate duce la rezultate incomplete."
   },
   "settings": {
     "admin": "Admin",
@@ -194,17 +217,20 @@
     "newUser": "Utilizator nou",
     "password": "Parola",
     "passwordUpdated": "Parola actualizată!",
-    "path": "",
-    "perm": {
+    "path": "Calea",
+    "permissions": {
       "create": "Crează fișiere și directoare",
       "delete": "Șterge fișiere și directoare",
       "download": "Descarcă",
       "execute": "Execută comenzi",
       "modify": "Modifică fișiere",
       "rename": "Redenumește sau mută fișiere și directoare",
-      "share": "Distribuie fișiere"
+      "share": "Distribuie fișiere",
+      "admin": "Administrator",
+      "api": "Crearea și gestionarea cheilor API cu durată lungă de viață",
+      "realtime": "Permite conexiuni și actualizări în timp real"
     },
-    "permissions": "Permisiuni",
+    "permissions-name": "Permisiuni",
     "permissionsHelp": "Poți alege ca un utilizator să fie administrator sau să-i alegi permisiunile individual. Dacă alegi \"Administrator\", toate celelalte opțiuni vor fi bifate automat. Gestionarea utilizatorilor rămâne un privilegiu exclusiv al administratorilor.\n",
     "profileSettings": "Setări profil",
     "ruleExample1": "împiedică accesul la fisiere cu punct in față (.), cum ar fi .git, .gitignore în orice director.\n",
@@ -213,13 +239,13 @@
     "rulesHelp": "Aici poți defini un set de reguli pentru acest utilizator. Fișierele blocate nu vor apărea in lista și nici nu vor putea fi accesate de utilizator. Expresiile regulate si căile relative la domeniul utilizatorului sunt permise.\n",
     "scope": "Domeniu",
     "settingsUpdated": "Setări actualizate!",
-    "shareDuration": "",
-    "shareManagement": "",
-    "singleClick": "",
+    "shareDuration": "Acțiune Durată",
+    "shareManagement": "Gestionarea acțiunilor",
+    "singleClick": "Utilizați un singur clic pentru a deschide fișiere și directoare",
     "themes": {
-      "dark": "",
-      "light": "",
-      "title": ""
+      "dark": "Întuneric",
+      "light": "Lumină",
+      "title": "Tema"
     },
     "user": "Utilizator",
     "userCommands": "Comenzi",
@@ -230,7 +256,34 @@
     "userManagement": "Gestionare utilizatori",
     "userUpdated": "Utilizator actualizat!",
     "username": "Utilizator",
-    "users": "Utilizatori"
+    "users": "Utilizatori",
+    "modifyOtherUser": "Modificați utilizatorul:",
+    "modifyCurrentUser": "Modificarea utilizatorului curent",
+    "themeColor": "Culoare temă",
+    "disableOfficePreviewDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează vizualizatorul OnlyOffice. (de exemplu, \".txt .html\").",
+    "disableOfficePreview": "Dezactivați vizualizatorul onlyoffice pentru anumite extensii de fișiere",
+    "filePreviewOptions": "Opțiuni de previzualizare a fișierelor",
+    "listingOptions": "Opțiuni de listare",
+    "emptyGlobal": "În prezent nu există opțiuni de configurare globală, Puteți edita yaml-ul de configurare pentru a ajusta setările sistemului.",
+    "scopes": "Definirea surselor permise și a domeniului de aplicare al utilizatorului în cadrul acestora",
+    "UserManagement": "Gestionarea utilizatorilor",
+    "tusUploads": "Chunked încărcări",
+    "tusUploadsHelp": "File Browser suportă încărcări de fișiere fragmentate, permițând crearea de încărcări de fișiere eficiente, fiabile, reluabile și fragmentate, chiar și în rețele nesigure.",
+    "tusUploadsChunkSize": "Indică dimensiunea maximă a unei cereri (încărcările directe vor fi utilizate pentru încărcări mai mici). Puteți introduce un număr întreg simplu care denotă o intrare de octeți sau un șir de caractere precum 10MB, 1GB etc.",
+    "tusUploadsRetryCount": "Numărul de încercări care trebuie efectuate dacă o bucată nu reușește să fie încărcată.",
+    "userHomeBasePath": "Calea de bază pentru directoarele home ale utilizatorilor",
+    "userScopeGenerationPlaceholder": "Domeniul de aplicare va fi generat automat",
+    "createUserHomeDirectory": "Crearea directorului home al utilizatorului",
+    "api": "Chei API",
+    "setDateFormat": "Setați formatul exact al datei",
+    "shareDeleted": "Share șters!",
+    "loginMethodDescription": "metoda de conectare permisă pentru utilizator.",
+    "userNotAdmin": "Utilizatorul nu este administrator",
+    "enterPassword": "Introduceți parola",
+    "enterPasswordAgain": "Introduceți din nou parola",
+    "passwordsDoNotMatch": "Parolele nu se potrivesc",
+    "loginMethod": "Metoda de conectare",
+    "shareSettings": "Setări de partajare"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -243,7 +296,8 @@
     "preview": "Previzualizare",
     "settings": "Setări",
     "signup": "Înregistrare",
-    "siteSettings": "Setări site"
+    "siteSettings": "Setări site",
+    "sources": "Surse"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -254,5 +308,74 @@
     "minutes": "Minute",
     "seconds": "Secunde",
     "unit": "Unitate de timp"
+  },
+  "upload": {
+    "abortUpload": "Ești sigură că vrei să avortezi?"
+  },
+  "share": {
+    "notice": "Notă: orice persoană care are acces la link (și parola opțională) poate accesa fișierele partajate. Nu este necesar să fiți autentificat."
+  },
+  "api": {
+    "title": "Chei API:",
+    "keyName": "Nume cheie API:",
+    "createdAt": "Creat la:",
+    "expiresAt": "Expiră la:",
+    "permissions": "Permisiuni:",
+    "createTitle": "Crearea cheii API",
+    "keyNamePlaceholder": "Introduceți un nume unic al cheii API:",
+    "tokenDuration": "Token Durata:",
+    "durationNumberPlaceholder": "Număr",
+    "days": "Zile",
+    "months": "Luni",
+    "permissionNote": "Alegeți cel puțin o permisiune pentru cheie. Utilizatorul dvs. trebuie să aibă și permisiunea respectivă.",
+    "createKeyFailed": "A eșuat crearea cheii API.",
+    "createKeySuccess": "Cheie API creată cu succes.",
+    "description": "Cheile API sunt bazate pe utilizatorul care le creează. A se vedea",
+    "swaggerLinkText": "pagina swagger",
+    "name": "Nume și prenume",
+    "created": "Creat",
+    "expires": "Expiră",
+    "actions": "Acțiuni",
+    "enabled": "Activat",
+    "disabled": "Dezactivat"
+  },
+  "index": {
+    "status": "Statut",
+    "assessment": "Evaluare",
+    "files": "Fișiere",
+    "folders": "Dosare",
+    "lastScanned": "Ultima scanare",
+    "quickScan": "Scanare rapidă secunde",
+    "fullScan": "Scanare completă secunde",
+    "settingsHover": "Setări pentru utilizator",
+    "logout": "Ieșire",
+    "toggleClick": "Comutare clic unic",
+    "toggleDark": "Comutarea modului întunecat",
+    "toggleSticky": "Schimbarea modului lipicios",
+    "of": "de",
+    "used": "utilizate"
+  },
+  "profileSettings": {
+    "setDateFormat": "Setați formatul exact al datei",
+    "showHiddenFiles": "Afișează fișierele ascunse",
+    "showQuickDownload": "Afișați pictograma de descărcare pentru acces rapid",
+    "previewImages": "Previzualizare imagini",
+    "previewVideos": "Previzualizare videoclipuri",
+    "previewMotionVideos": "Previzualizare mișcare pentru videoclipuri",
+    "highQualityPreview": "Previzualizare de înaltă calitate",
+    "previewOffice": "Previzualizare fișiere office",
+    "popupPreview": "Activați previzualizarea pop-up",
+    "filePreviewOptions": "Opțiuni de previzualizare a fișierelor"
+  },
+  "otp": {
+    "name": "Autentificare cu doi factori",
+    "verifyInstructions": "Introduceți codul din aplicația dvs. de autentificare",
+    "generate": "Scanați codul QR cu aplicația dvs. de autentificare",
+    "codeInputPlaceholder": "Cod de 6 cifre",
+    "invalidCodeType": "Codul de verificare trebuie să fie format din 6 cifre în limba engleză",
+    "enabledSuccessfully": "OTP activat cu succes",
+    "verificationFailed": "Verificarea a eșuat",
+    "verificationSucceed": "Verificarea reușită",
+    "generationFailed": "Generație eșuată"
   }
 }

@@ -1,7 +1,8 @@
+import i18n from '@/i18n'; // Import the default export (your i18n instance)
+
 const name = window.FileBrowser.Name;
 const disableExternal = window.FileBrowser.DisableExternal;
 const externalLinks = window.FileBrowser.ExternalLinks;
-const disableUsedPercentage = window.FileBrowser.DisableUsedPercentage;
 const baseURL = window.FileBrowser.BaseURL;
 const staticURL = window.FileBrowser.StaticURL;
 const darkMode = window.FileBrowser.darkMode;
@@ -14,27 +15,33 @@ const logoURL = `${staticURL}/img/logo.png`;
 const noAuth = window.FileBrowser.NoAuth;
 const loginPage = window.FileBrowser.LoginPage;
 const enableThumbs = window.FileBrowser.EnableThumbs;
-const resizePreview = window.FileBrowser.ResizePreview;
 const externalUrl = window.FileBrowser.ExternalUrl
 const onlyOfficeUrl = window.FileBrowser.OnlyOfficeUrl
 const serverHasMultipleSources = window.FileBrowser.SourceCount > 1;
+const oidcAvailable = window.FileBrowser.OidcAvailable;
+const passwordAvailable = window.FileBrowser.PasswordAvailable;
+const mediaAvailable = window.FileBrowser.MediaAvailable;
+const pdfAvailable = window.FileBrowser.PdfAvailable;
 const origin = window.location.origin;
 
 const settings = [
-  { id: 'profile', label: 'Profile Management', component: 'ProfileSettings' },
-  { id: 'shares', label: 'Share Management', component: 'SharesSettings', perm: { share: true } },
-  { id: 'api', label: 'API Keys', component: 'ApiKeys', perm: { api: true }  },
-  //{ id: 'global', label: 'Global', component: 'GlobalSettings', perm: { admin: true } },
-  { id: 'users', label: 'User Management', component: 'UserManagement' },
-]
+  { id: 'profile', label: i18n.global.t('settings.profileSettings'), component: 'ProfileSettings' },
+  { id: 'shares', label: i18n.global.t('settings.shareSettings'), component: 'SharesSettings', permissions: { share: true } },
+  { id: 'api', label: i18n.global.t('api.title'), component: 'ApiKeys', permissions: { api: true }  },
+  //{ id: 'global', label: 'Global', component: 'GlobalSettings', permissions: { admin: true } },
+  { id: 'users', label: i18n.global.t('settings.userManagement'), component: 'UserManagement' },
+];
 
 export {
+  pdfAvailable,
+  mediaAvailable,
+  oidcAvailable,
+  passwordAvailable,
   serverHasMultipleSources,
   name,
   externalUrl,
   disableExternal,
   externalLinks,
-  disableUsedPercentage,
   baseURL,
   logoURL,
   recaptcha,
@@ -45,7 +52,6 @@ export {
   noAuth,
   loginPage,
   enableThumbs,
-  resizePreview,
   origin,
   darkMode,
   settings,
