@@ -96,7 +96,6 @@ jobs:
           push: true
           tags: ${{ steps.modify-json.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
-
   push_slim_release_to_registry:
     name: Push slim release
     runs-on: ubuntu-latest
@@ -125,30 +124,29 @@ jobs:
           images: |
             gtstef/filebrowser
             ghcr.io/gtsteffaniak/filebrowser
-      - name: Modify tags for slim image
-        id: modify-tags-slim
+      - name: Modify tags (strip 'v' and add 'beta'/'stable' if needed)
+        id: modify-json-slim
         run: |
-          TAG_OR_BRANCH="${{ github.ref_name }}"
-          CLEAN_TAG=$(echo "$TAG_OR_BRANCH" | sed 's/^v//')
-          BASE_TAG="gtstef/filebrowser:${CLEAN_TAG}-slim"
-          TAGS=("$BASE_TAG")
-          if echo "$CLEAN_TAG" | grep -qi "beta"; then
-            TAGS+=(
-              "gtstef/filebrowser:beta-slim"
-              "ghcr.io/gtsteffaniak/filebrowser:beta-slim"
-              "gtstef/filebrowser:slim"
-              "ghcr.io/gtsteffaniak/filebrowser:slim"
-            )
-          elif echo "$CLEAN_TAG" | grep -qi "stable"; then
-            TAGS+=(
-              "gtstef/filebrowser:stable-slim"
-              "ghcr.io/gtsteffaniak/filebrowser:stable-slim"
-              "gtstef/filebrowser:slim"
-              "ghcr.io/gtsteffaniak/filebrowser:slim"
-            )
-          fi
-          TAGS_CSV=$(IFS=, ; echo "${TAGS[*]}")
-          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
+          JSON='${{ steps.meta.outputs.json }}'
+          MODIFIED_JSON=$(echo "$JSON" | jq '
+            .tags |= map(
+              sub(":v"; ":") |
+              select(test(":latest") | not)
+            ) |
+            if any(.tags[]; test("beta")) then
+              .tags += [
+                "gtstef/filebrowser:beta",
+                "ghcr.io/gtsteffaniak/filebrowser:beta"
+              ]
+            else . end |
+            if any(.tags[]; test("stable")) then
+              .tags += [
+                "gtstef/filebrowser:stable",
+                "ghcr.io/gtsteffaniak/filebrowser:stable"
+              ]
+            else . end
+          ')
+          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push slim image
         uses: docker/build-push-action@v6
