@@ -3,8 +3,8 @@ project_name: filebrowser
 version: 2
 
 builds:
-  # Build configuration for linux amd64/arm64
-  - id: linux
+  # Build configuration for linux amd64
+  - id: linux-amd64
     env:
       - CGO_ENABLED=1
     tags:
@@ -16,7 +16,25 @@ builds:
     goos:
       - linux
     goarch:
-      - amd64
+      - arm64
+    hooks:
+      post:
+        - upx {{ .Path }}  # Compress the binary with UPX
+
+  # Build configuration for linux amd64
+  - id: linux-arm64
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+    tags:
+      - mupdf
+    ldflags: &ldflags
+      - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
+    main: main.go
+    binary: filebrowser
+    goos:
+      - linux
+    goarch:
       - arm64
     hooks:
       post:
@@ -43,6 +61,7 @@ builds:
   - id: windows
     env:
       - CGO_ENABLED=1
+      - CC=gcc-mingw-w64
     tags:
       - mupdf
     ldflags: *ldflags
