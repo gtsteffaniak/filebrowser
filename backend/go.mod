@@ -5,7 +5,6 @@ go 1.24.2
 require (
 	github.com/asdine/storm/v3 v3.2.1
 	github.com/coreos/go-oidc/v3 v3.14.1
-	github.com/disintegration/imaging v1.6.2
 	github.com/dsoprea/go-exif/v3 v3.0.1
 	github.com/gen2brain/go-fitz v1.24.14
 	github.com/go-playground/validator/v10 v10.26.0
@@ -14,6 +13,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/gtsteffaniak/go-cache v0.0.0-20250521142451-edc77dfcb063
 	github.com/gtsteffaniak/go-logger v0.1.2
+	github.com/kovidgoyal/imaging v1.6.4
 	github.com/pquerna/otp v1.5.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/spf13/afero v1.14.0
@@ -101,7 +101,7 @@ require (
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
-	github.com/golang/geo v0.0.0-20250516193853-92f93c4cb289 // indirect
+	github.com/golang/geo v0.0.0-20250602202553-92e1c6cfbc31 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golangci/dupl v0.0.0-20250308024227-f665c8d69b32 // indirect
 	github.com/golangci/go-printf-func-name v0.1.0 // indirect
