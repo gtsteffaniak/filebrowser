@@ -26,10 +26,10 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
     tags:
       - mupdf
-    ldflags: &ldflags
-      - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
+    ldflags: *ldflags
     main: main.go
     binary: filebrowser
     goos:
@@ -42,8 +42,7 @@ builds:
 
   # Build configuration for linux
   - id: linux-arm32
-    ldflags: &ldflags
-      - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
+    ldflags: *ldflags
     main: main.go
     binary: filebrowser
     goos:
@@ -61,7 +60,8 @@ builds:
   - id: windows
     env:
       - CGO_ENABLED=1
-      - CC=gcc-mingw-w64
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
     tags:
       - mupdf
     ldflags: *ldflags
