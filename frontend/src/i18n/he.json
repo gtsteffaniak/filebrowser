@@ -35,7 +35,12 @@
     "toggleSidebar": "פתיחת / סגירת סרגל צד",
     "update": "עדכון",
     "upload": "העלאה",
-    "openFile": "פתח קובץ"
+    "openFile": "פתח קובץ",
+    "generateNewOtp": "אפס וצור קוד דו-גורמי חדש",
+    "verify": "אמת",
+    "copyDownloadLinkToClipboard": "העתק את קישור ההורדה ללוח",
+    "continue": "המשך",
+    "edit": "ערוך"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -116,7 +121,8 @@
     "submit": "התחברות",
     "username": "שם משתמש",
     "usernameTaken": "שם משתמש כבר קיים",
-    "wrongCredentials": "פרטי התחברות שגויים"
+    "wrongCredentials": "פרטי התחברות שגויים",
+    "or": "או"
   },
   "permanent": "קבוע",
   "prompts": {
@@ -153,7 +159,11 @@
     "upload": "העלאה",
     "uploadFiles": "מעלה {files} קבצים...",
     "uploadMessage": "בחר אפשרות העלאה.",
-    "optionalPassword": "סיסמא אופציונלית"
+    "optionalPassword": "סיסמא אופציונלית",
+    "deleteUserMessage": "האם אתה בטוח שברצונך למחוק משתמש זה?",
+    "selected": "נבחר",
+    "filesSelected": "קבצים שנבחרו",
+    "typeName": "סוג:"
   },
   "search": {
     "images": "תמונות",
@@ -163,7 +173,12 @@
     "search": "חפש...",
     "typeToSearch": "הקלד לחיפוש...",
     "types": "סוג",
-    "video": "וידאו"
+    "video": "וידאו",
+    "path": "נתיב:",
+    "smallerThan": "קטן מ:",
+    "largerThan": "גדול מ:",
+    "helpText1": "החיפוש מתבצע על כל תו שאתה מקליד (מינימום 3 תווים עבור מונחי חיפוש).",
+    "helpText2": "האינדקס: החיפוש משתמש באינדקס שמתעדכן אוטומטית במרווח הזמן שהוגדר (ברירת מחדל: 5 דקות). חיפוש בעת הפעלת התוכנית עלול להניב תוצאות חלקיות."
   },
   "settings": {
     "admin": "מנהל",
@@ -212,7 +227,10 @@
       "execute": "ביצוע פקודות",
       "modify": "עריכת קבצים קבצים",
       "rename": "שינוי שם או העברת קבצים ותקיות",
-      "share": "שיתוף קבצים"
+      "share": "שיתוף קבצים",
+      "admin": "מנהל",
+      "api": "יצירת מפתחות API ארוכי טווח וניהולם",
+      "realtime": "אפשר חיבורים ועדכונים בזמן אמת"
     },
     "permissions-name": "הרשאות",
     "permissionsHelp": "אתה יכול להגדיר את המשתמש להיות מנהל מערכת או לבחור את ההרשאות בנפרד. אם תבחר \"מנהל מערכת\", כל ההרשאות ייבחרו אוטומטית. ניהול המשתמשים נשאר הרשאה של מנהל מערכת.\n",
@@ -242,7 +260,31 @@
     "userManagement": "ניהול משתמש",
     "userUpdated": "המשתמש עודכן!",
     "username": "שם משתמש",
-    "users": "משתמשים"
+    "users": "משתמשים",
+    "enterPassword": "הזן סיסמה",
+    "enterPasswordAgain": "הזן את הסיסמה שוב",
+    "passwordsDoNotMatch": "הסיסמאות אינן תואמות",
+    "loginMethod": "שיטת כניסה",
+    "loginMethodDescription": "שיטת כניסה מותרת למשתמש.",
+    "modifyOtherUser": "שינוי משתמש:",
+    "modifyCurrentUser": "שינוי המשתמש הנוכחי",
+    "themeColor": "צבע נושא",
+    "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים שיש להשבית את הצופה OnlyOffice עבורן. (לדוגמה, '.txt .html').",
+    "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות",
+    "disableOfficePreviews": "השבת תצוגה מקדימה של Office עבור סיומות קבצים מסוימות",
+    "disableOfficePreviewsDescription": "רשימה מופרדת ברווחים של סיומות קבצים שצפייה מקדימה שלהם במשרד תושבת. (לדוגמה, '.txt .html').",
+    "listingOptions": "אפשרויות רישום",
+    "emptyGlobal": "כרגע אין אפשרויות תצורה גלובליות. ניתן לערוך את קובץ ה-yaml כדי לשנות את הגדרות המערכת.",
+    "scopes": "הגדר מקורות מותרים והיקף המשתמשים בתוכם",
+    "UserManagement": "ניהול משתמשים",
+    "userNotAdmin": "המשתמש אינו מנהל",
+    "tusUploads": "העלאות מקובצות",
+    "tusUploadsHelp": "דפדפן הקבצים תומך בהעלאת קבצים מקוטעים, מה שמאפשר יצירת העלאות קבצים יעילות, אמינות, ניתנות לחידוש ולקטעים, אפילו ברשתות לא אמינות.",
+    "tusUploadsChunkSize": "ציון הגודל המרבי של בקשה (העלאות קטנות יותר ייעשה באמצעות העלאה ישירה). ניתן להזין מספר שלם המציין את גודל הקובץ בבytes או מחרוזת כגון 10MB, 1GB וכו'.",
+    "tusUploadsRetryCount": "מספר הניסיונות שיש לבצע אם העלאת קטע נכשלה.",
+    "disableUsedDiskPercentage": "השבת גרף אחוזי השימוש בדיסק",
+    "shareSettings": "הגדרות שיתוף",
+    "api": "מפתחות API"
   },
   "sidebar": {
     "help": "עזרה",
@@ -255,7 +297,8 @@
     "preview": "תצוגה מקדימה",
     "settings": "הגדרות",
     "signup": "הרשמה",
-    "siteSettings": "הגדרות"
+    "siteSettings": "הגדרות",
+    "sources": "מקורות"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -267,8 +310,73 @@
     "seconds": "שניות",
     "unit": "יחידת זמן"
   },
-  "upload": {},
-  "share": {},
-  "api": {},
-  "index": {}
+  "upload": {
+    "abortUpload": "האם אתה בטוח שברצונך לבטל?"
+  },
+  "share": {
+    "notice": "הערה: כל מי שיש לו גישה לקישור (ולסיסמה האופציונלית) יכול לגשת לקבצים המשותפים. אין צורך להיות מחובר."
+  },
+  "api": {
+    "title": "מפתחות API",
+    "keyName": "שם מפתח API:",
+    "createdAt": "נוצר ב:",
+    "expiresAt": "תוקף ב:",
+    "permissions": "הרשאות:",
+    "createTitle": "צור מפתח API",
+    "keyNamePlaceholder": "הזן שם מפתח API ייחודי:",
+    "tokenDuration": "משך תוקף האסימון:",
+    "durationNumberPlaceholder": "מספר",
+    "days": "ימים",
+    "months": "חודשים",
+    "permissionNote": "בחר לפחות הרשאה אחת עבור המפתח. גם למשתמש שלך חייבת להיות הרשאה זו.",
+    "createKeyFailed": "לא ניתן ליצור מפתח API.",
+    "createKeySuccess": "מפתח API נוצר בהצלחה.",
+    "description": "מפתחות API מבוססים על המשתמש שיצר אותם. ראה",
+    "swaggerLinkText": "דף סוואגר",
+    "name": "שם",
+    "created": "נוצר",
+    "expires": "תוקף",
+    "actions": "פעולות",
+    "enabled": "מופעל",
+    "disabled": "נכה"
+  },
+  "index": {
+    "status": "סטטוס",
+    "assessment": "הערכה",
+    "files": "קבצים",
+    "folders": "תיקיות",
+    "lastScanned": "נסרק לאחרונה",
+    "quickScan": "סריקה מהירה בשניות",
+    "fullScan": "שניות סריקה מלאה",
+    "settingsHover": "הגדרות למשתמש",
+    "logout": "התנתק",
+    "toggleClick": "החלף לחיצה אחת",
+    "toggleDark": "הפעל מצב כהה",
+    "toggleSticky": "הפעל/כבה מצב דביק",
+    "of": "של",
+    "used": "משומש"
+  },
+  "profileSettings": {
+    "setDateFormat": "הגדר פורמט תאריך מדויק",
+    "showHiddenFiles": "הצג קבצים מוסתרים",
+    "showQuickDownload": "הצג סמל הורדה לגישה מהירה",
+    "previewImages": "תצוגה מקדימה של תמונות",
+    "previewVideos": "הצגת סרטונים",
+    "previewMotionVideos": "תצוגה מקדימה של סרטונים",
+    "highQualityPreview": "תצוגה מקדימה באיכות גבוהה",
+    "editOffice": "ערוך/הצג קבצי Office",
+    "popupPreview": "הפעל תצוגה מקדימה מוקפצת",
+    "filePreviewOptions": "אפשרויות תצוגה מקדימה של קבצים"
+  },
+  "otp": {
+    "name": "אימות דו-גורמי",
+    "verifyInstructions": "הזן את הקוד מהאפליקציה המאמתת שלך",
+    "generate": "סרוק את קוד ה-QR באמצעות אפליקציית האימות שלך",
+    "codeInputPlaceholder": "קוד בן 6 ספרות",
+    "invalidCodeType": "קוד האימות צריך להיות בן 6 ספרות באותיות לטיניות",
+    "enabledSuccessfully": "OTP הופעל בהצלחה",
+    "verificationFailed": "האימות נכשל",
+    "verificationSucceed": "האימות הצליח",
+    "generationFailed": "דור שנכשל"
+  }
 }

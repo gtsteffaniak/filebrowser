@@ -21,7 +21,7 @@ const serverHasMultipleSources = window.FileBrowser.SourceCount > 1;
 const oidcAvailable = window.FileBrowser.OidcAvailable;
 const passwordAvailable = window.FileBrowser.PasswordAvailable;
 const mediaAvailable = window.FileBrowser.MediaAvailable;
-const pdfAvailable = window.FileBrowser.PdfAvailable;
+const muPdfAvailable = window.FileBrowser.MuPdfAvailable;
 const origin = window.location.origin;
 
 const settings = [
@@ -33,7 +33,7 @@ const settings = [
 ];
 
 export {
-  pdfAvailable,
+  muPdfAvailable,
   mediaAvailable,
   oidcAvailable,
   passwordAvailable,

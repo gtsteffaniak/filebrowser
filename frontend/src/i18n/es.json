@@ -283,7 +283,11 @@
     "enterPasswordAgain": "Vuelva a introducir la contraseña",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "loginMethod": "Método de inicio de sesión",
-    "shareSettings": "Compartir configuración"
+    "shareSettings": "Compartir configuración",
+    "disableOfficeEditorDescription": "Una lista separada por espacios de las extensiones de archivo para las que desea desactivar el visor de OnlyOffice. (por ejemplo, '.txt .html').",
+    "disableOfficeEditor": "Desactivar el visor de office para determinadas extensiones de archivo",
+    "disableOfficePreviews": "Desactivar la vista previa de office para determinadas extensiones de archivo",
+    "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html')."
   },
   "sidebar": {
     "help": "Ayuda",
@@ -365,7 +369,8 @@
     "highQualityPreview": "Vista previa de alta calidad",
     "previewOffice": "Vista previa de archivos ofimáticos",
     "popupPreview": "Activar la vista previa emergente",
-    "filePreviewOptions": "Opciones de previsualización de archivos"
+    "filePreviewOptions": "Opciones de previsualización de archivos",
+    "editOffice": "Editar/ver archivos ofimáticos"
   },
   "otp": {
     "name": "Autenticación de dos factores",

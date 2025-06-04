@@ -78,6 +78,24 @@
             </div>
           </div>
 
+          <div v-if="muPdfAvailable">
+            <h3> {{ $t('settings.disableOfficePreviews')}} </h3>
+            <p>
+              {{ $t('settings.disableOfficePreviewsDescription') }}
+            </p>
+            <div class="form-group">
+              <input
+                class="input input--block form-form flat-right"
+                :class="{ 'invalid-form': !formValidationOfficePreviews() }"
+                type="text"
+                placeholder="enter file extensions"
+                id="officePreviewExt"
+                v-model="formOfficePreviewExt"
+              />
+              <button type="button" class="button form-button" @click="submitOfficePreviewsChange"> {{ $t('buttons.save') }} </button>
+            </div>
+          </div>
+
           <h3> {{ $t('settings.themeColor') }} </h3>
           <ButtonGroup
             :buttons="colorChoices"
@@ -98,7 +116,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { onlyOfficeUrl, mediaAvailable } from "@/utils/constants.js";
+import { onlyOfficeUrl, mediaAvailable, muPdfAvailable } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -117,6 +135,7 @@ export default {
       localuser: { preview: {} },
       initialized: false,
       formOnlyOfficeExt: "", // holds temporary input before saving
+      formOfficePreviewExt: "", // holds temporary input before saving
       colorChoices: [
         { label: "blue", value: "var(--blue)" },
         { label: "red", value: "var(--red)" },
@@ -139,6 +158,9 @@ export default {
     },
   },
   computed: {
+    muPdfAvailable() {
+      return muPdfAvailable;
+    },
     hasOnlyOfficeEnabled() {
       return onlyOfficeUrl != "";
     },
@@ -155,6 +177,7 @@ export default {
   mounted() {
     this.localuser = { ...state.user };
     this.formOnlyOfficeExt = this.localuser.disableOnlyOfficeExt;
+    this.formOfficePreviewExt = this.localuser.disableOfficePreviewExt;
   },
   methods: {
     formValidation() {
@@ -170,6 +193,20 @@ export default {
         return;
       }
       this.localuser.disableOnlyOfficeExt = this.formOnlyOfficeExt;
+    },
+    formValidationOfficePreviews() {
+      if (this.formOfficePreviewExt == "") {
+        return true;
+      }
+      let regex = /^\.\w+(?: \.\w+)*$/;
+      return regex.test(this.formOfficePreviewExt);
+    },
+    submitOfficePreviewsChange() {
+      if (!this.formValidationOfficePreviews()) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
+      this.localuser.disableOfficePreviewExt = this.formOfficePreviewExt;
     },
     setColor(string) {
       this.localuser.themeColor = string;
@@ -194,6 +231,7 @@ export default {
           "themeColor",
           "quickDownload",
           "disableOnlyOfficeExt",
+          "disableOfficePreviewExt",
           "preview",
         ]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));

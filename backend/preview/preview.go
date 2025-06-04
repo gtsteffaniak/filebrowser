@@ -3,7 +3,7 @@ package preview
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
+	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/diskcache"
@@ -32,6 +33,7 @@ type Service struct {
 	ffprobePath string
 	fileCache   diskcache.Interface
 	debug       bool
+	docGenMutex sync.Mutex // Mutex to serialize access to doc generation
 }
 
 func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir string) *Service {
@@ -50,7 +52,15 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		// No-op cache if no cacheDir is specified
 		fileCache = diskcache.NewNoOp()
 	}
-
+	// Create directories recursively with 0755 permissions
+	err := os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs"), 0755)
+	if err != nil {
+		logger.Error(err)
+	}
+	err = os.MkdirAll(filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos"), 0755)
+	if err != nil {
+		logger.Error(err)
+	}
 	ffmpegMainPath, err := CheckValidFFmpeg(ffmpegPath)
 	if err != nil && ffmpegPath != "" {
 		logger.Fatalf("the configured ffmpeg path does not contain a valid ffmpeg binary %s, err: %v", ffmpegPath, err)
@@ -63,7 +73,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		logger.Infof("Media Enabled            : %v", errprobe == nil)
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
-	settings.Config.Server.PdfAvailable = docEnabled()
+	settings.Config.Server.MuPdfAvailable = docEnabled()
 	return &Service{
 		sem:         make(chan struct{}, concurrencyLimit),
 		ffmpegPath:  ffmpegMainPath,
@@ -98,10 +108,14 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 		err        error
 		imageBytes []byte
 	)
-
+	// Generate thumbnail image from video
+	hasher := md5.New() //nolint:gosec
+	_, _ = hasher.Write([]byte(CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)))
+	hash := hex.EncodeToString(hasher.Sum(nil))
 	// Generate an image from office document
-	if iteminfo.HasDocConvertableExtension(file.Name) {
-		imageBytes, err = service.GenerateImageFromDoc(file.RealPath, 0) // 0 for the first page
+	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
+		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "docs", hash) + ".txt"
+		imageBytes, err = service.GenerateImageFromDoc(file, tempFilePath, 0) // 0 for the first page
 		if err != nil {
 			return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
 		}
@@ -120,10 +134,6 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 		if seekPercentage == 0 {
 			seekPercentage = 10
 		}
-		// Generate thumbnail image from video
-		hasher := sha1.New() //nolint:gosec
-		_, _ = hasher.Write([]byte(CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)))
-		hash := hex.EncodeToString(hasher.Sum(nil))
 		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", hash)
 		defer os.Remove(outPathPattern) // cleanup
 		imageBytes, err = service.GenerateVideoPreview(file.RealPath, outPathPattern, seekPercentage)
@@ -154,7 +164,7 @@ func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error)
 
 	switch previewSize {
 	case "large":
-		width, height = 512, 512
+		width, height = 640, 640
 		options = []Option{WithMode(ResizeModeFit), WithQuality(QualityHigh), WithFormat(FormatJpeg)}
 	case "small":
 		width, height = 256, 256
@@ -191,7 +201,7 @@ func AvailablePreview(file iteminfo.ExtendedFileInfo) bool {
 	if strings.HasPrefix(file.Type, "video") && service.ffmpegPath != "" {
 		return true
 	}
-	if file.Type == "application/pdf" {
+	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
 		return true
 	}
 	ext := strings.ToLower(filepath.Ext(file.Name))

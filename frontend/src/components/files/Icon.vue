@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { onlyOfficeUrl, mediaAvailable, pdfAvailable, baseURL } from "@/utils/constants";
+import { onlyOfficeUrl, mediaAvailable, muPdfAvailable, baseURL } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
 
@@ -79,8 +79,11 @@ export default {
         ".xlsx": true,
         ".hwp": true,
         ".hwpx": true, // fix duplication and add this one
+        ".md": true,
       };
-      return !!pdfConvertCompatibleFileExtensions[ext];
+      const textType = this.mimetype.startsWith("text/");
+      const disabled = state.user.disableOfficePreviewExt?.includes(ext);
+      return (!!pdfConvertCompatibleFileExtensions[ext] || textType) && !disabled;
     },
     // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
@@ -114,7 +117,7 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      if (this.pdfConvertable && pdfAvailable) {
+      if (this.pdfConvertable && muPdfAvailable) {
         return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {

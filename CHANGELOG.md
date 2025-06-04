@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.7-beta
+
+ **New Features**:
+ - since theres a wider kind of document preview types, a new disableOfficePreviewExt option has been added.
+ **Notes**:
+ - all text mimetype files have preview support.
+ - high-quality preview image sizes bumped from 512x512 to 640x640 to help make text previews readable.
+
+ **BugFixes**:
+ - 
+
 ## v0.7.6-beta
 
 NOTE: if using docker arm32 image, you will need to switch to the slim images. The regular docker images are much larger now and support generating office previews out of the box without any only office running. However, they don't support arm32. Also, be aware the docker images are much larger now (600MB I believe) because of the office document preview support -- if thats not something you care about you can switch to the slim images.
