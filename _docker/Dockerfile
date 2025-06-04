@@ -5,10 +5,7 @@ ARG REVISION
 WORKDIR /app
 COPY ./backend ./
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt update && apt install -y --no-install-recommends \
-    gcc-multilib \
-    g++-multilib \
- && rm -rf /var/lib/apt/lists
+RUN apt-get update && apt-get install -y build-essential
 RUN CGO_ENABLED=1 go build -tags mupdf -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
