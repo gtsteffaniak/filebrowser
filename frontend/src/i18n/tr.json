@@ -283,7 +283,11 @@
     "enterPasswordAgain": "Şifreyi tekrar girin",
     "passwordsDoNotMatch": "Parolalar eşleşmiyor",
     "loginMethod": "Giriş yöntemi",
-    "shareSettings": "Paylaşım Ayarları"
+    "shareSettings": "Paylaşım Ayarları",
+    "disableOfficeEditorDescription": "OnlyOffice görüntüleyicisinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
+    "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
+    "disableOfficePreviews": "Belirli dosya uzantıları için ofis önizlemelerini devre dışı bırakma",
+    "disableOfficePreviewsDescription": "Ofis önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html')."
   },
   "sidebar": {
     "help": "Yardım",
@@ -365,7 +369,8 @@
     "highQualityPreview": "Yüksek kaliteli önizleme",
     "previewOffice": "Ofis dosyalarını önizleme",
     "popupPreview": "Açılır pencere önizlemesini etkinleştir",
-    "filePreviewOptions": "Dosya önizleme seçenekleri"
+    "filePreviewOptions": "Dosya önizleme seçenekleri",
+    "editOffice": "Ofis dosyalarını düzenleme/görüntüleme"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",

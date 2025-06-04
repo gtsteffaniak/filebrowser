@@ -283,7 +283,11 @@
     "enterPasswordAgain": "Digite a senha novamente",
     "passwordsDoNotMatch": "As senhas não correspondem",
     "loginMethod": "Método de login",
-    "shareSettings": "Compartilhar configurações"
+    "shareSettings": "Compartilhar configurações",
+    "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o visualizador do OnlyOffice. (por exemplo, '.txt .html').",
+    "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
+    "disableOfficePreviews": "Desativar as visualizações do Office para determinadas extensões de arquivo",
+    "disableOfficePreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações do Office. (por exemplo, '.txt .html')."
   },
   "sidebar": {
     "help": "Ajuda",
@@ -365,7 +369,8 @@
     "highQualityPreview": "Visualização de alta qualidade",
     "previewOffice": "Visualizar arquivos do Office",
     "popupPreview": "Ativar visualização pop-up",
-    "filePreviewOptions": "Opções de visualização de arquivos"
+    "filePreviewOptions": "Opções de visualização de arquivos",
+    "editOffice": "Editar/visualizar arquivos de escritório"
   },
   "otp": {
     "name": "Autenticação de dois fatores",
