@@ -78,7 +78,7 @@
             </div>
           </div>
 
-          <div v-if="pdfAvailable">
+          <div v-if="muPdfAvailable">
             <h3> {{ $t('settings.disableOfficePreviews')}} </h3>
             <p>
               {{ $t('settings.disableOfficePreviewsDescription') }}
@@ -116,7 +116,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { onlyOfficeUrl, mediaAvailable, pdfAvailable } from "@/utils/constants.js";
+import { onlyOfficeUrl, mediaAvailable, muPdfAvailable } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -158,8 +158,8 @@ export default {
     },
   },
   computed: {
-    pdfAvailable() {
-      return pdfAvailable;
+    muPdfAvailable() {
+      return muPdfAvailable;
     },
     hasOnlyOfficeEnabled() {
       return onlyOfficeUrl != "";

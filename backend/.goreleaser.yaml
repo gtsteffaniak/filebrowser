@@ -3,8 +3,12 @@ project_name: filebrowser
 version: 2
 
 builds:
-  # Build configuration for darwin and linux
-  - id: default
+  # Build configuration for linux amd64
+  - id: linux-amd64
+    env:
+      - CGO_ENABLED=1
+    tags:
+      - mupdf
     ldflags: &ldflags
       - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
     main: main.go
@@ -13,8 +17,38 @@ builds:
       - linux
     goarch:
       - amd64
-      - arm
+    hooks:
+      post:
+        - upx {{ .Path }}
+
+  # Build configuration for linux arm64
+  - id: linux-arm64
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+    tags:
+      - mupdf
+    ldflags: *ldflags
+    main: main.go
+    binary: filebrowser
+    goos:
+      - linux
+    goarch:
       - arm64
+    hooks:
+      post:
+        - upx {{ .Path }}
+
+  # Build configuration for linux
+  - id: linux-arm32
+    ldflags: *ldflags
+    main: main.go
+    binary: filebrowser
+    goos:
+      - linux
+    goarch:
+      - arm
     goarm:
       - "6"
       - "7"
@@ -24,6 +58,12 @@ builds:
 
   # Build configuration for windows without arm
   - id: windows
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+    tags:
+      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
@@ -35,6 +75,16 @@ builds:
       post:
         - upx {{ .Path }}  # Compress the binary with UPX
 
+  # Build configuration for freebsd without arm & upx
+  - id: freeBSD and freebsd-arm
+    ldflags: *ldflags
+    main: main.go
+    binary: filebrowser
+    goos:
+      - freebsd
+    goarch:
+      - amd64
+  
   # Build configuration for macos without upx
   - id: macos
     ldflags: *ldflags
@@ -45,16 +95,6 @@ builds:
     goarch:
       - amd64
       - arm64
-
-  # Build configuration for freebsd without arm & upx
-  - id: freeBSD
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    goos:
-      - freebsd
-    goarch:
-      - amd64
 
 archives:
   - name_template: >
@@ -67,4 +107,3 @@ archives:
 
 checksum:
   disable: true
-

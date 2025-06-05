@@ -1,12 +1,13 @@
 FROM gtstef/ffmpeg:7.1.1-decode AS ffmpeg
-FROM golang:1.24-alpine AS base
+FROM golang AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app
 COPY ./backend ./
-#RUN swag init --output swagger/docs
-RUN ln -s swagger /usr/local/go/src/
-RUN CGO_ENABLED=1 go build -tags pdf -ldflags="-w -s \
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y build-essential
+RUN CGO_ENABLED=1 go build -tags mupdf -ldflags="-w -s \
+
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
@@ -24,19 +25,17 @@ COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_NO_EMBEDED="true"
 ENV PATH="$PATH:/home/filebrowser"
-RUN apk --no-cache add ca-certificates mailcap tzdata
+RUN apk --no-cache add ca-certificates mailcap tzdata gcompat
 RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
 COPY --from=base --chown=filebrowser:1000 /app/filebrowser* ./
 COPY --from=base --chown=filebrowser:1000 /app/config.media.yaml ./config.yaml
 COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/
-
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]
 RUN [ "ffprobe", "-version" ]
-
 USER root
 # exposing default port for auto discovery.
 EXPOSE 80
