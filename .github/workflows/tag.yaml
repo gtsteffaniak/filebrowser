@@ -21,9 +21,10 @@ jobs:
         run: npm i && npm run build
         working-directory: frontend
       - name: Install OS Requirements
-        run: sudo apt update && sudo apt install -y upx gcc-multilib g++-multilib
+        run: sudo apt update && sudo apt install -y upx build-essential #gcc-multilib g++-multilib
       #- name: Install Cross Compilers
       #  run: sudo apt update && sudo apt install -y gcc-mingw-w64 gcc-aarch64-linux-gnu
+      - uses: goto-bus-stop/setup-zig@v2
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:

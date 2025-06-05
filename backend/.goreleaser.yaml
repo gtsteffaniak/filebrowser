@@ -23,12 +23,11 @@ builds:
 
   # Build configuration for linux arm64
   - id: linux-arm64
-    #env:
-    #  - CGO_ENABLED=1
-    #  - CC=aarch64-linux-gnu-gcc
-    #  - CXX=aarch64-linux-gnu-g++
-    #tags:
-    #  - mupdf
+    env:
+      - CGO_ENABLED=1
+      - CC="zig cc -target aarch64-linux"
+    tags:
+      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
@@ -56,14 +55,13 @@ builds:
       post:
         - upx {{ .Path }}  # Compress the binary with UPX
 
-  # Build configuration for windows without arm
+  # Build configuration for windows
   - id: windows
-    #env:
-    #  - CGO_ENABLED=1
-    #  - CC=x86_64-w64-mingw32-gcc
-    #  - CXX=x86_64-w64-mingw32-g++
-    #tags:
-    #  - mupdf
+    env:
+      - CGO_ENABLED=1
+      - CC="zig cc -target x86_64-windows"
+    tags:
+      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
