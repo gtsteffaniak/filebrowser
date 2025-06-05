@@ -23,11 +23,6 @@ builds:
 
   # Build configuration for linux arm64
   - id: linux-arm64
-    env:
-      - CGO_ENABLED=1
-      - CC=zig cc -target aarch64-linux
-    tags:
-      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
