@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - all text mimetype files have preview support.
  - high-quality preview image sizes bumped from 512x512 to 640x640 to help make text previews readable.
+ - no config is allowed and defaults to on source at current directory.
 
  **BugFixes**:
  - 
