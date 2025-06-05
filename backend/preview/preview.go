@@ -143,16 +143,26 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
-	resizedBytes, err := service.CreatePreview(imageBytes, previewSize)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resize preview image: %w", err)
+	if previewSize != "original" {
+		// resize image
+		resizedBytes, err := service.CreatePreview(imageBytes, previewSize)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resize preview image: %w", err)
+		}
+		// Cache and return
+		cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
+		if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
+			logger.Errorf("failed to cache resized image: %v", err)
+		}
+		return resizedBytes, nil
+	} else {
+		cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
+		if err := service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
+			logger.Errorf("failed to cache resized image: %v", err)
+		}
+		return imageBytes, nil
 	}
-	// Cache and return
-	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
-	if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
-		logger.Errorf("failed to cache resized image: %v", err)
-	}
-	return resizedBytes, nil
+
 }
 
 func (s *Service) CreatePreview(data []byte, previewSize string) ([]byte, error) {
