@@ -4,7 +4,7 @@ ARG REVISION
 WORKDIR /app
 COPY ./backend ./
 RUN apk update && apk add upx
-RUN go build -tags -ldflags="-w -s \
+RUN go build -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
