@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - since theres a wider kind of document preview types, a new disableOfficePreviewExt option has been added.
+
  **Notes**:
  - all text mimetype files have preview support.
  - high-quality preview image sizes bumped from 512x512 to 640x640 to help make text previews readable.

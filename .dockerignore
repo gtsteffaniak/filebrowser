@@ -1,6 +1,5 @@
 backend/**.db
 backend/tmp
-backend/filebrowser
 backend/backend*
 backend/vendor/**
 frontend/dist/**
