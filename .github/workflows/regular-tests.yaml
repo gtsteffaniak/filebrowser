@@ -15,17 +15,18 @@ jobs:
           go-version: 'stable'
       - working-directory: backend
         run: go test -race -v ./...
-  lint-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-            go-version: 'stable'
-      - uses: golangci/golangci-lint-action@v5
-        with:
-          version: 'v1.64'
-          working-directory: backend
+# golanci-lint is currently disabled due to slowness
+#  lint-backend:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-go@v5
+#        with:
+#            go-version: 'stable'
+#      - uses: golangci/golangci-lint-action@v5
+#        with:
+#          version: 'v1.64'
+#          working-directory: backend
   format-backend:
     runs-on: ubuntu-latest
     steps:
