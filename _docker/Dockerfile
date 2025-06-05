@@ -1,16 +1,16 @@
 FROM gtstef/ffmpeg:7.1.1-decode AS ffmpeg
-FROM golang AS base
+FROM golang:alpine AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app
 COPY ./backend ./
-ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y build-essential
-RUN CGO_ENABLED=1 go build -tags mupdf -ldflags="-w -s \
-
+RUN apk update && apk add --no-cache gcc musl-dev upx
+ENV CGO_ENABLED=1
+RUN go build -tags mupdf,musl -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
+RUN upx filebrowser
 
 FROM node:lts-slim AS nbuild
 WORKDIR /app
@@ -25,11 +25,11 @@ COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_NO_EMBEDED="true"
 ENV PATH="$PATH:/home/filebrowser"
-RUN apk --no-cache add ca-certificates mailcap tzdata gcompat
+RUN apk --no-cache add ca-certificates mailcap tzdata
 RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
-COPY --from=base --chown=filebrowser:1000 /app/filebrowser* ./
+COPY --from=base --chown=filebrowser:1000 /app/filebrowser ./
 COPY --from=base --chown=filebrowser:1000 /app/config.media.yaml ./config.yaml
 COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/
 ## sanity checks

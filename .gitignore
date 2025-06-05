@@ -10,6 +10,7 @@ rice-box.go
 /backend/filebrowser.exe
 /backend/backend.exe
 /backend/tmp
+/backend/dist
 /frontend/dist
 /frontend/pkg
 /frontend/test-results

@@ -21,9 +21,8 @@ jobs:
         run: npm i && npm run build
         working-directory: frontend
       - name: Install OS Requirements
-        run: sudo apt update && sudo apt install -y upx gcc-multilib g++-multilib
-      #- name: Install Cross Compilers
-      #  run: sudo apt update && sudo apt install -y gcc-mingw-w64 gcc-aarch64-linux-gnu
+        run: sudo apt update && sudo apt install -y upx build-essential musl-tools
+      - uses: goto-bus-stop/setup-zig@v2
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -142,14 +141,14 @@ jobs:
             ) |
             if any(.tags[]; test("beta")) then
               .tags += [
-                "gtstef/filebrowser:beta",
-                "ghcr.io/gtsteffaniak/filebrowser:beta"
+                "gtstef/filebrowser:beta-slim",
+                "ghcr.io/gtsteffaniak/filebrowser:beta-slim"
               ]
             else . end |
             if any(.tags[]; test("stable")) then
               .tags += [
-                "gtstef/filebrowser:stable",
-                "ghcr.io/gtsteffaniak/filebrowser:stable"
+                "gtstef/filebrowser:stable-slim",
+                "ghcr.io/gtsteffaniak/filebrowser:stable-slim"
               ]
             else . end
           ')

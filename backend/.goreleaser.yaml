@@ -23,15 +23,15 @@ builds:
 
   # Build configuration for linux arm64
   - id: linux-arm64
-    #env:
-    #  - CGO_ENABLED=1
-    #  - CC=aarch64-linux-gnu-gcc
-    #  - CXX=aarch64-linux-gnu-g++
-    #tags:
-    #  - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    env:
+      - CGO_ENABLED=1
+      - CC=zig cc -target aarch64-linux-musl
+    tags:
+      - mupdf
+      - musl
     goos:
       - linux
     goarch:
@@ -58,12 +58,11 @@ builds:
 
   # Build configuration for windows without arm
   - id: windows
-    #env:
-    #  - CGO_ENABLED=1
-    #  - CC=x86_64-w64-mingw32-gcc
-    #  - CXX=x86_64-w64-mingw32-g++
-    #tags:
-    #  - mupdf
+    env:
+      - CGO_ENABLED=1
+      - CC=zig cc -target x86_64-windows
+    tags:
+      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
@@ -93,8 +92,8 @@ builds:
     goos:
       - darwin
     goarch:
-      - amd64
       - arm64
+      - amd64
 
 archives:
   - name_template: >
