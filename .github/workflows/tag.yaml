@@ -65,7 +65,11 @@ jobs:
         run: |
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
-            .tags |= map(sub(":v"; ":")) |
+            .tags |= map(
+              sub(":v"; ":")      # Strip the 'v'
+              | select(test(":latest") | not)
+              | sub(":(.+)"; ":\(.captures[0])-slim")
+            ) |
             if any(.tags[]; test("beta")) then
               .tags += [
                 "gtstef/filebrowser:beta",
