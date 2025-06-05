@@ -55,7 +55,7 @@
       @action="toggleMultipleSelection"
     />
     <action
-      v-if="!showCreate && selectedCount > 0"
+      v-if="(!showCreate && selectedCount > 0)"
       icon="file_download"
       :label="$t('buttons.download')"
       @action="startDownload"
@@ -103,9 +103,10 @@
     class="button no-select"
     :class="{ 'dark-mode': isDarkMode }"
   >
-    <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
-    <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
+    <action v-if="isPreview" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
     <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
+    <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
+    <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
   </div>
 </template>
 
@@ -139,6 +140,10 @@ export default {
     },
     showDelete() {
       return state.user.permissions.modify && getters.currentView() == "preview";
+    },
+    isPreview() {
+      console.log("isPreview", getters.currentView());
+      return getters.currentView() == "preview";
     },
     showSave() {
       return getters.currentView() == "editor" && state.user.permissions.modify;

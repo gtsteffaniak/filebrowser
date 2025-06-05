@@ -78,7 +78,7 @@ export default {
         ".xls": true,
         ".xlsx": true,
         ".hwp": true,
-        ".hwpx": true, // fix duplication and add this one
+        ".hwpx": true,
         ".md": true,
       };
       const textType = this.mimetype.startsWith("text/");
