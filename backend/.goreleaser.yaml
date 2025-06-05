@@ -26,6 +26,12 @@ builds:
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    env:
+      - CGO_ENABLED=1
+      - CC=zig cc -target aarch64-linux-musl
+    tags:
+      - mupdf
+      - musl
     goos:
       - linux
     goarch:
@@ -86,8 +92,8 @@ builds:
     goos:
       - darwin
     goarch:
-      - amd64
       - arm64
+      - amd64
 
 archives:
   - name_template: >
