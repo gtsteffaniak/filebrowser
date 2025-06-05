@@ -25,7 +25,7 @@ builds:
   - id: linux-arm64
     env:
       - CGO_ENABLED=1
-      - CC="zig cc -target aarch64-linux"
+      - CC=zig cc -target aarch64-linux
     tags:
       - mupdf
     ldflags: *ldflags
@@ -55,11 +55,11 @@ builds:
       post:
         - upx {{ .Path }}  # Compress the binary with UPX
 
-  # Build configuration for windows
+  # Build configuration for windows without arm
   - id: windows
     env:
       - CGO_ENABLED=1
-      - CC="zig cc -target x86_64-windows"
+      - CC=zig cc -target x86_64-windows
     tags:
       - mupdf
     ldflags: *ldflags

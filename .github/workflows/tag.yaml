@@ -143,14 +143,14 @@ jobs:
             ) |
             if any(.tags[]; test("beta")) then
               .tags += [
-                "gtstef/filebrowser:beta",
-                "ghcr.io/gtsteffaniak/filebrowser:beta"
+                "gtstef/filebrowser:beta-slim",
+                "ghcr.io/gtsteffaniak/filebrowser:beta-slim"
               ]
             else . end |
             if any(.tags[]; test("stable")) then
               .tags += [
-                "gtstef/filebrowser:stable",
-                "ghcr.io/gtsteffaniak/filebrowser:stable"
+                "gtstef/filebrowser:stable-slim",
+                "ghcr.io/gtsteffaniak/filebrowser:stable-slim"
               ]
             else . end
           ')
