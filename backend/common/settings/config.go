@@ -230,7 +230,6 @@ func loadConfigWithDefaults(configFile string) error {
 		Config.Server.Sources = []Source{
 			{
 				Path: ".",
-				Name: "Default Source",
 			},
 		}
 		loadEnvConfig()
