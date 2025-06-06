@@ -20,10 +20,10 @@ type JSONAuth struct {
 
 // Auth authenticates the user via a json in content body.
 func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.User, error) {
-	password := r.URL.Query().Get("password")
 	username := r.URL.Query().Get("username")
 	recaptcha := r.URL.Query().Get("recaptcha")
-	totpCode := r.URL.Query().Get("code")
+	password := r.Header.Get("X-Password")
+	totpCode := r.Header.Get("X-Secret")
 
 	// If ReCaptcha is enabled, check the code.
 	if auther.ReCaptcha != nil && len(auther.ReCaptcha.Secret) > 0 {
