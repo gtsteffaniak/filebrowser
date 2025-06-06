@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div aria-label="filelist-path" class="searchContext">{{$t('search.path')}} {{ nav }}</div>
+    <div>Source: {{ sourcePath.source }} </div>
+    <div aria-label="filelist-path" class="searchContext">{{$t('search.path')}} {{ sourcePath.path }}</div>
     <ul class="file-list">
       <li
         @click="itemClick"
@@ -40,9 +41,8 @@ export default {
     };
   },
   computed: {
-    nav() {
-      const result = extractSourceFromPath(decodeURIComponent(this.current), "files");
-      return result.path
+    sourcePath() {
+      return extractSourceFromPath(decodeURIComponent(this.current), "files");
     },
   },
   mounted() {
