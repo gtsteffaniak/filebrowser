@@ -54,7 +54,7 @@ export function getPreviewURL(hash, path) {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: state.user.preview.highQuality ? 'large' : 'small',
+      size: 'small',
       hash: hash,
       inline: 'true'
     }

@@ -97,8 +97,8 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.Extend
 
 func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	previewSize := r.URL.Query().Get("size")
-	if !(previewSize == "small" || previewSize == "original") {
-		previewSize = "large"
+	if !(previewSize == "large" || previewSize == "original") {
+		previewSize = "small"
 	}
 	if d.fileInfo.Type == "directory" {
 		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
