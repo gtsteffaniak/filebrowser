@@ -136,14 +136,20 @@ export default {
       return !this.showEdit && !this.showSave && !this.showDelete;
     },
     showEdit() {
-      return window.location.hash != "#edit" && state.user.permissions.modify;
+      return getters.currentView() == "markdownViewer" && state.user.permissions.modify;
     },
     showDelete() {
-      return state.user.permissions.modify && getters.currentView() == "preview";
+      return state.user.permissions.modify && this.isPreview;
     },
     isPreview() {
-      console.log("isPreview", getters.currentView());
-      return getters.currentView() == "preview";
+      const cv = getters.currentView();
+      return (
+        cv == "preview" ||
+        cv == "onlyOfficeEditor" ||
+        cv == "markdownViewer" ||
+        cv == "epubViewer" ||
+        cv == "docViewer"
+      );
     },
     showSave() {
       return getters.currentView() == "editor" && state.user.permissions.modify;

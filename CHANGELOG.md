@@ -28,8 +28,6 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.6-beta
 
-NOTE: if using docker arm32 image, you will need to switch to the slim images. The regular docker images are much larger now and support generating office previews out of the box without any only office running. However, they don't support arm32. Also, be aware the docker images are much larger now (600MB I believe) because of the office document preview support -- if thats not something you care about you can switch to the slim images.
-
  **New Features**:
  - native document preview generation enabled for certain document types on the regular docker image (no office integration needed)
    - supported native document preview types:

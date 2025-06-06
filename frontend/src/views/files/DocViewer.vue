@@ -7,53 +7,71 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
-import * as mammoth from 'mammoth';
-import { filesApi } from '@/api';
-import { state } from '@/store';
+import { defineComponent } from "vue";
+import * as mammoth from "mammoth";
+import { filesApi } from "@/api";
+import { state,mutations } from "@/store";
 
 export default defineComponent({
-  name: 'DocxViewer',
+  name: "DocxViewer",
   data() {
     return {
-      docxHtml: '',
+      docxHtml: "",
       loading: false,
-      error: '',
+      error: "",
     };
   },
   watch: {
-    'state.req.path': {
+    "state.req.path": {
       handler(newPath, oldPath) {
         // Added a console log to the watcher to see when it runs
-        console.log(`[DEBUG] Watcher triggered: Path changed from "${oldPath}" to "${newPath}"`);
+        console.log(
+          `[DEBUG] Watcher triggered: Path changed from "${oldPath}" to "${newPath}"`
+        );
         this.loadFile();
       },
       immediate: true,
     },
   },
+  mounted() {
+    mutations.resetSelected();
+    mutations.addSelected({
+      name: state.req.name,
+      path: state.req.path,
+      size: state.req.size,
+      type: state.req.type,
+      source: state.req.source,
+      url: state.req.url,
+    });
+  },
   methods: {
     async loadFile() {
       console.log("%c[1] loadFile triggered.", "font-weight: bold; color: blue;");
-      
+
       try {
         // Using JSON.stringify to snapshot the state object at this exact moment
-        console.log("[2] Current state.req object:", JSON.parse(JSON.stringify(state.req)));
-        
+        console.log(
+          "[2] Current state.req object:",
+          JSON.parse(JSON.stringify(state.req))
+        );
+
         const filename = state.req.name;
         console.log(`[3] Checking filename: "${filename}"`);
 
         // Check if the filename is valid and ends with .docx
-        if (!filename || !filename.toLowerCase().endsWith('.docx')) {
-          this.error = `This viewer only supports .docx files. Current file: "${filename || 'Not available'}"`;
+        if (!filename || !filename.toLowerCase().endsWith(".docx")) {
+          this.error = `This viewer only supports .docx files. Current file: "${
+            filename || "Not available"
+          }"`;
           console.error(`[3a] Filename check FAILED. Stopping execution.`);
-          this.docxHtml = ''; // Ensure view is cleared
+          this.docxHtml = ""; // Ensure view is cleared
           return;
         }
         console.log("[3a] Filename check PASSED.");
 
         this.loading = true;
-        this.error = '';
-        this.docxHtml = '';
+        this.error = "";
+        this.docxHtml = "";
 
         console.log("[4] Getting download URL from filesApi...");
         const downloadUrl = filesApi.getDownloadURL(
@@ -75,23 +93,25 @@ export default defineComponent({
         if (!response.ok) {
           throw new Error(`Failed to download file (Status: ${response.status})`);
         }
-        
+
         console.log("[8] Getting ArrayBuffer from response...");
         const arrayBuffer = await response.arrayBuffer();
         console.log(`[8a] Got ArrayBuffer. Size: ${arrayBuffer.byteLength} bytes.`);
-        
+
         if (arrayBuffer.byteLength === 0) {
-            throw new Error("Downloaded file is empty (0 bytes).");
+          throw new Error("Downloaded file is empty (0 bytes).");
         }
 
         console.log("[9] Passing ArrayBuffer to mammoth.js for conversion...");
         const result = await mammoth.convertToHtml({ arrayBuffer });
         this.docxHtml = result.value;
-        console.log("%c[10] SUCCESS: Document rendered.", "font-weight: bold; color: green;");
-
+        console.log(
+          "%c[10] SUCCESS: Document rendered.",
+          "font-weight: bold; color: green;"
+        );
       } catch (e) {
         console.error("%c[X] CATCH BLOCK ERROR:", "font-weight: bold; color: red;", e);
-        this.error = e.message || 'An unknown error occurred.';
+        this.error = e.message || "An unknown error occurred.";
       } finally {
         this.loading = false;
         console.log("[F] FINALLY block executed.");
@@ -100,7 +120,6 @@ export default defineComponent({
   },
 });
 </script>
-
 
 <style scoped>
 /* Styles remain the same */
@@ -132,7 +151,9 @@ export default defineComponent({
   color: #d9534f;
 }
 @media (max-width: 8.5in) {
-  .viewer-background { padding: 0; }
+  .viewer-background {
+    padding: 0;
+  }
   .docx-page {
     width: 100%;
     min-height: 100%;
