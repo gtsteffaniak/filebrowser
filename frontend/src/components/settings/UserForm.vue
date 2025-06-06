@@ -239,7 +239,11 @@ export default {
     },
   },
   computed: {
-
+    invalidPassword() {
+      const matching =
+        this.user.password != this.passwordRef && this.user.password.length > 0;
+      return matching;
+    },
     passwordAvailable: () => passwordAvailable,
     duplicateSources() {
       const names = this.selectedSources.map((s) => s.name);
