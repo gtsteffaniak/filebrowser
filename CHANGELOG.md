@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.7-beta
 
+  This release cleans up some of the native preview (image preview) feature logic. And adds simple docx and epub viewers as well. Going through all of this, I think I know how I can add full-fledge google doc and microsoft office viewer support (no edit). But, for now "onlyOffice" remains the most comprehensive solution with most compatibility and ability to fully edit. One day, I think I will be able to integrate a minimal license-free server into the docker image. But that's something for another time.
+
+  Native preview (image preview) support is also available for linux arm64 and amd64 binaries, and windows exe.
+
  **New Features**:
  - since theres a wider kind of document preview types, a new disableOfficePreviewExt option has been added.
  - native (and simple) docx and epub viewers.
@@ -24,8 +28,6 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.6-beta
 
-NOTE: if using docker arm32 image, you will need to switch to the slim images. The regular docker images are much larger now and support generating office previews out of the box without any only office running. However, they don't support arm32. Also, be aware the docker images are much larger now (600MB I believe) because of the office document preview support -- if thats not something you care about you can switch to the slim images.
-
  **New Features**:
  - native document preview generation enabled for certain document types on the regular docker image (no office integration needed)
    - supported native document preview types:
@@ -37,11 +39,9 @@ NOTE: if using docker arm32 image, you will need to switch to the slim images. T
      - ".cbz",  // CBZ
      - ".svg",  // SVG
      - ".txt",  // TXT
-     - ".doc",  // DOC
      - ".docx", // DOCX
      - ".ppt",  // PPT
      - ".pptx", // PPTX
-     - ".xls",  // excel xls
      - ".xlsx", // exel XLSX
      - ".hwp",  // HWP
      - ".hwp",  // HWPX

@@ -6,7 +6,7 @@
 
 <script>
 import { eventBus } from "@/store/eventBus";
-import { state, getters } from "@/store";
+import { state, getters, mutations } from "@/store";
 import { filesApi } from "@/api";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
@@ -47,6 +47,15 @@ export default {
     }
   },
   mounted: function () {
+    mutations.resetSelected();
+    mutations.addSelected({
+      name: state.req.name,
+      path: state.req.path,
+      size: state.req.size,
+      type: state.req.type,
+      source: state.req.source,
+      url: state.req.url,
+    });
     // Wait for the initial DOM render to complete
     this.$nextTick(() => {
       this.setupEditor();

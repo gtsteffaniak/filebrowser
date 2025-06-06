@@ -10,14 +10,13 @@
       <button @click="prevPage" class="nav-button">&lt;</button>
       <button @click="nextPage" class="nav-button">&gt;</button>
     </div>
-
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import ePub, { type Book, type Rendition } from "epubjs";
-import { state } from "@/store"; // Assuming your store setup
+import { state,mutations } from "@/store"; // Assuming your store setup
 import { filesApi } from "@/api"; // Assuming your api setup
 import { removeLastDir } from "@/utils/url"; // Assuming your utils setup
 
@@ -32,7 +31,15 @@ export default defineComponent({
     };
   },
   async mounted() {
-    console.log("EpubViewer mounted with state:", state.req);
+    mutations.resetSelected();
+    mutations.addSelected({
+      name: state.req.name,
+      path: state.req.path,
+      size: state.req.size,
+      type: state.req.type,
+      source: state.req.source,
+      url: state.req.url,
+    });
     try {
       // 1. Fetch the download URL for the EPUB file
       const epubUrl = await filesApi.getDownloadURL(
@@ -153,7 +160,7 @@ export default defineComponent({
   transform: translate(-50%, -5em); /* Start offscreen */
   transition: transform 0.4s ease;
   background: var(--surfaceSecondary);
-  font-size: .5em;
+  font-size: 0.5em;
   top: 0;
   z-index: 1002;
 }
