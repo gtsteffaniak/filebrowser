@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
  - no config is allowed and defaults to on source at current directory.
 
  **BugFixes**:
- - 
+ - fix otp clearing on user save https://github.com/gtsteffaniak/filebrowser/issues/699
 
 ## v0.7.6-beta
 
