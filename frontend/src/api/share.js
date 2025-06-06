@@ -1,5 +1,4 @@
 import { fetchURL, fetchJSON, adjustedData } from "./utils";
-import { state } from '@/store'
 import { notify } from "@/notify";
 import { getApiPath,removePrefix } from "@/utils/url.js";
 import { externalUrl,baseURL } from "@/utils/constants";

@@ -225,7 +225,7 @@ export function getDownloadURL(source, path, inline, useExternal) {
   }
 }
 
-export function getPreviewURL(source, path, modified, selectedSize) {
+export function getPreviewURL(source, path, modified) {
   try {
     const params = {
       path: encodeURIComponent(path),
