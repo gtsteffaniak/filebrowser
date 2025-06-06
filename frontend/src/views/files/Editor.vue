@@ -45,7 +45,6 @@ export default {
     if (this.editor) {
       this.editor.destroy();
     }
-    eventBus.off("handleEditorValueRequest", this.handleEditorValueRequest);
   },
   mounted: function () {
     // Wait for the initial DOM render to complete
