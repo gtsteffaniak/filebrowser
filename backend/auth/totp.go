@@ -190,11 +190,14 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 		user.TOTPSecret = totpSecret // The encrypted or plaintext secret
 		user.TOTPNonce = totpNonce   // The nonce if encrypted, or empty if plaintext
 		user.OtpEnabled = true       // Enable OTP for the user
+		// save user
+		if err := userStore.Update(user, user.Permissions.Admin, "TOTPSecret", "TOTPNonce"); err != nil {
+			logger.Error("error updating user with OTP token:", err)
+			return fmt.Errorf("error updating user with OTP token: %w", err)
+		}
+	} else {
+		return fmt.Errorf("opt secret is empty, cannot enable TOTP")
 	}
-	// save user
-	if err := userStore.Update(user, user.Permissions.Admin, "TOTPSecret", "TOTPNonce"); err != nil {
-		logger.Debug("error updating user with OTP token:", err)
-		return fmt.Errorf("error updating user with OTP token: %w", err)
-	}
+
 	return nil
 }
