@@ -40,7 +40,7 @@ export default {
   created() {
     window.addEventListener("keydown", this.keyEvent);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
     if (this.editor) {
       this.editor.destroy();

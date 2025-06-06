@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div>Source: {{ sourcePath.source }} </div>
+    <div>Source: {{ sourcePath.source }} </div> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     <div aria-label="filelist-path" class="searchContext">{{$t('search.path')}} {{ sourcePath.path }}</div>
     <ul class="file-list">
       <li
