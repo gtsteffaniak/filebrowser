@@ -143,6 +143,10 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	} else {
 		return nil, fmt.Errorf("unsupported media type: %s", ext)
 	}
+	if len(imageBytes) < 100 {
+		return nil, fmt.Errorf("generated image is too small, likely an error occurred: %d bytes", len(imageBytes))
+	}
+
 	if previewSize != "original" {
 		// resize image
 		resizedBytes, err := service.CreatePreview(imageBytes, previewSize)
