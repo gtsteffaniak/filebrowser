@@ -67,7 +67,6 @@ jobs:
             .tags |= map(
               sub(":v"; ":")      # Strip the 'v'
               | select(test(":latest") | not)
-              | sub(":(.+)"; ":\(.captures[0])-slim")
             ) |
             if any(.tags[]; test("beta")) then
               .tags += [
