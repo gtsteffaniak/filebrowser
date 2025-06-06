@@ -225,15 +225,10 @@ export function getDownloadURL(source, path, inline, useExternal) {
   }
 }
 
-export function getPreviewURL(source, path, modified, selectedSize) {
-  let size = state.user.preview.highQuality ? 'large' : 'small'
-  if (selectedSize) {
-    size = selectedSize
-  }
+export function getPreviewURL(source, path, modified) {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: size,
       key: Date.parse(modified), // Use modified date as cache key
       source: source,
       inline: 'true'
