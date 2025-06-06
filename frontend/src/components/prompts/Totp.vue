@@ -105,7 +105,7 @@ export default {
       try {
         await usersApi.verifyOtp(this.username, this.password, this.code);
         if (this.redirect != "") {
-          const result = await usersApi.login(this.username, this.password, this.redirect, this.code);
+          await usersApi.login(this.username, this.password, this.redirect, this.code);
           await initAuth();
           this.$router.push(this.redirect);
         }

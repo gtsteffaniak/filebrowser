@@ -34,6 +34,7 @@
           {{ $t("buttons.cancel") }}
         </button>
         <button
+          :disabled="destContainsSrc"
           class="button button--flat"
           @click="copy"
           :aria-label="$t('buttons.copy')"
@@ -52,6 +53,7 @@ import FileList from "./FileList.vue";
 import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
+import { removeLastDir } from "@/utils/url";
 import { notify } from "@/notify";
 
 export default {
@@ -65,6 +67,14 @@ export default {
     };
   },
   computed: {
+    destContainsSrc() {
+      if (!this.dest) {
+        return false; // If dest is not set, we can't check containment
+      }
+      const itemPath = this.items[0]?.from
+      const parentDir = removeLastDir(itemPath) + "/"
+      return this.dest == parentDir || this.dest.startsWith(itemPath);
+    },
     user() {
       return state.user;
     },

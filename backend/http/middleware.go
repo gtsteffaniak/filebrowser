@@ -115,7 +115,7 @@ func userWithoutOTPhelper(fn handleFunc) handleFunc {
 		// This middleware is used when no user authentication is required
 		// Call the actual handler function with the updated context
 		username := r.URL.Query().Get("username")
-		password := r.URL.Query().Get("password")
+		password := r.Header.Get("X-Password")
 		proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
 		if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
 			user, err := setupProxyUser(r, &requestContext{}, proxyUser)

@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div aria-label="filelist-path" class="searchContext">{{$t('search.path')}} {{ nav }}</div>
+    <div>Source: {{ sourcePath.source }} </div> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+    <div aria-label="filelist-path" class="searchContext">{{$t('search.path')}} {{ sourcePath.path }}</div>
     <ul class="file-list">
       <li
         @click="itemClick"
@@ -23,7 +24,7 @@
 <script>
 import { state, mutations } from "@/store";
 import url from "@/utils/url.js";
-import { removePrefix } from "@/utils/url.js";
+import { extractSourceFromPath } from "@/utils/url.js";
 import { filesApi } from "@/api";
 
 export default {
@@ -40,8 +41,8 @@ export default {
     };
   },
   computed: {
-    nav() {
-      return removePrefix(decodeURIComponent(this.current), "files");
+    sourcePath() {
+      return extractSourceFromPath(decodeURIComponent(this.current), "files");
     },
   },
   mounted() {

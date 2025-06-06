@@ -33,6 +33,7 @@
           {{ $t("buttons.cancel") }}
         </button>
         <button
+          :disabled="destContainsSrc"
           class="button button--flat"
           @click="move"
           :aria-label="$t('buttons.move')"
@@ -52,6 +53,7 @@ import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import * as upload from "@/utils/upload";
 import { notify } from "@/notify";
+import { removeLastDir } from "@/utils/url";
 
 export default {
   name: "move",
@@ -64,6 +66,14 @@ export default {
     };
   },
   computed: {
+    destContainsSrc() {
+      if (!this.dest) {
+        return false; // If dest is not set, we can't check containment
+      }
+      const itemPath = this.items[0]?.from
+      const parentDir = removeLastDir(itemPath) + "/"
+      return this.dest == parentDir || this.dest.startsWith(itemPath);
+    },
     user() {
       return state.user;
     },
