@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - fix otp clearing on user save https://github.com/gtsteffaniak/filebrowser/issues/699
+ - admin special characters and general login improvements https://github.com/gtsteffaniak/filebrowser/issues/594
+ - updated editor caching behavior https://github.com/gtsteffaniak/filebrowser/issues/701
 
 ## v0.7.6-beta
 
