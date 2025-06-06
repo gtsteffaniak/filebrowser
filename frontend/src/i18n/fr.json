@@ -367,16 +367,10 @@
     "previewVideos": "Prévisualisation des vidéos",
     "previewMotionVideos": "Prévisualisation des mouvements pour les vidéos",
     "highQualityPreview": "Aperçu de haute qualité",
-<<<<<<< HEAD
-    "previewOffice": "Prévisualisation des fichiers bureautiques",
-    "popupPreview": "Activer la prévisualisation des fenêtres contextuelles",
-    "filePreviewOptions": "Options de prévisualisation des fichiers",
-    "editOffice": "Editer/visualiser des fichiers bureautiques"
-=======
     "previewOffice": "Prévisualisation des fichiers bureautique",
     "popupPreview": "Activer la prévisualisation dans les fenêtres contextuelles",
+    "editOffice": "Editer/visualiser des fichiers bureautiques",
     "filePreviewOptions": "Options de prévisualisation des fichiers"
->>>>>>> main
   },
   "otp": {
     "name": "Authentification à deux facteurs",

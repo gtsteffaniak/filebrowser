@@ -142,7 +142,7 @@ export default {
     },
     raw() {
       if (this.pdfConvertable) {
-        return filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified, "original")
+        return filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) + "&size=original";
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },

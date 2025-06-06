@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file. For commit 
  - admin special characters and general login improvements https://github.com/gtsteffaniak/filebrowser/issues/594
  - updated editor caching behavior https://github.com/gtsteffaniak/filebrowser/issues/701
  - move/copy file path issue and overwrite https://github.com/gtsteffaniak/filebrowser/issues/687
+ - fix popup preview loading on safari
+ - `preview.highQuality` only affects gallery view mode. popop preview is always high quality, and icons are always low quality.
 
 ## v0.7.6-beta
 
