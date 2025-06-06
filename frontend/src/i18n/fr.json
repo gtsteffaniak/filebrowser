@@ -283,12 +283,12 @@
     "enterPasswordAgain": "Saisir à nouveau le mot de passe",
     "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
     "loginMethod": "Méthode de connexion",
-    "shareSettings": "PAramètres des partages"
+    "shareSettings": "Paramètres des partages"
   },
   "sidebar": {
     "help": "Aide",
-    "hugoNew": "Nouveau Hugo",
-    "login": "Login",
+    "hugoNew": "Nouvel Hugo",
+    "login": "Identifiant",
     "logout": "Se déconnecter",
     "myFiles": "Mes fichiers",
     "newFile": "Nouveau fichier",
@@ -300,7 +300,7 @@
     "sources": "Sources d'information"
   },
   "success": {
-    "linkCopied": "Lien copié!"
+    "linkCopied": "Lien copié !"
   },
   "time": {
     "days": "Jours",
@@ -310,7 +310,7 @@
     "unit": "Unité de temps"
   },
   "upload": {
-    "abortUpload": "Êtes-vous sûre de vouloir avorter ?"
+    "abortUpload": "Êtes-vous sûre de vouloir annuler ?"
   },
   "share": {
     "notice": "Remarque : toute personne ayant accès au lien (et au mot de passe facultatif) peut accéder aux fichiers partagés. Il n'est pas nécessaire d'être connecté."
@@ -318,7 +318,7 @@
   "api": {
     "title": "Clés API :",
     "keyName": "Nom de la clé API :",
-    "createdAt": "Créé à :",
+    "createdAt": "Créée le :",
     "expiresAt": "Expire le :",
     "permissions": "Permissions :",
     "createTitle": "Créer une clé API",
@@ -330,28 +330,28 @@
     "permissionNote": "Choisissez au moins une autorisation pour la clé. Votre utilisateur doit également disposer de cette autorisation.",
     "createKeyFailed": "Échec de la création de la clé API.",
     "createKeySuccess": "Clé API créée avec succès.",
-    "description": "Les clés d'API sont basées sur l'utilisateur qui les a créées. Voir les",
+    "description": "Les clés API sont basées sur l'utilisateur qui les a créées. Voir les",
     "swaggerLinkText": "page swagger",
     "name": "Nom",
     "created": "Créée",
     "expires": "Expiration",
     "actions": "Actions",
-    "enabled": "Activé",
-    "disabled": "Desactivé"
+    "enabled": "Activée",
+    "disabled": "Désactivée"
   },
   "index": {
     "status": "Statut",
-    "assessment": "L'évaluation",
-    "files": "Dossiers",
+    "assessment": "Évaluation",
+    "files": "Fichiers",
     "folders": "Dossiers",
-    "lastScanned": "Dernière numérisation",
-    "quickScan": "Balayage rapide Secondes",
-    "fullScan": "Balayage complet en secondes",
+    "lastScanned": "Dernier balayage",
+    "quickScan": "secondes pour un balayage rapide",
+    "fullScan": "secondes pour un balayage complet",
     "settingsHover": "Paramètres pour l'utilisateur",
     "logout": "Déconnexion",
-    "toggleClick": "activation simle clic",
-    "toggleDark": "Basculer en mode sombre",
-    "toggleSticky": "Basculer le mode collant",
+    "toggleClick": "Activation du mode simple clic",
+    "toggleDark": "Mode sombre/clair",
+    "toggleSticky": "Activer/Désactiver le mode persistent",
     "of": "de",
     "used": "utilisé"
   },
@@ -359,23 +359,23 @@
     "setDateFormat": "Définir le format exact de la date",
     "showHiddenFiles": "Afficher les fichiers cachés",
     "showQuickDownload": "Afficher l'icône de téléchargement pour un accès rapide",
-    "previewImages": "Images de prévisualisation",
+    "previewImages": "Prévisualisation des images",
     "previewVideos": "Prévisualisation des vidéos",
     "previewMotionVideos": "Prévisualisation des mouvements pour les vidéos",
     "highQualityPreview": "Aperçu de haute qualité",
-    "previewOffice": "Prévisualisation des fichiers bureautiques",
-    "popupPreview": "Activer la prévisualisation des fenêtres contextuelles",
+    "previewOffice": "Prévisualisation des fichiers bureautique",
+    "popupPreview": "Activer la prévisualisation dans les fenêtres contextuelles",
     "filePreviewOptions": "Options de prévisualisation des fichiers"
   },
   "otp": {
     "name": "Authentification à deux facteurs",
     "verifyInstructions": "Saisissez le code de votre application d'authentification",
-    "generate": "Scannez le code QR avec votre application d'authentification",
+    "generate": "Scannez le QR code avec votre application d'authentification",
     "codeInputPlaceholder": "Code à 6 chiffres",
-    "invalidCodeType": "Le code de vérification doit être composé de 6 chiffres anglais",
+    "invalidCodeType": "Le code de vérification doit être composé de 6 chiffres",
     "enabledSuccessfully": "OTP activé avec succès",
     "verificationFailed": "Échec de la vérification",
-    "verificationSucceed": "Réussir la vérification",
+    "verificationSucceed": "Vérification réussie",
     "generationFailed": "Génération échouée"
   }
 }
