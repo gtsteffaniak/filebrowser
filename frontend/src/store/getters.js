@@ -200,8 +200,10 @@ export const getters = {
           listingView = "markdownViewer";
         } else if ("content" in state.req) {
           listingView = "editor";
-        } else {
-          listingView = "preview";
+        } else if (state.req.type.startsWith("application/epub")){
+          listingView = "epubViewer";
+        } else if (state.req.type.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
+          listingView = "docViewer"
         }
       } else {
         listingView = "listingView"

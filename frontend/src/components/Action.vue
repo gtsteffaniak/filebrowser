@@ -82,7 +82,9 @@ export default {
         currentView == "editor" ||
         currentView == "preview" ||
         currentView == "onlyOfficeEditor" ||
-        currentView == "markdownViewer"
+        currentView == "markdownViewer" ||
+        currentView == "epubViewer" ||
+        currentView == "docViewer"
       ) {
         mutations.setMultiButtonState("close");
       } else {

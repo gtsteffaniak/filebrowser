@@ -29,11 +29,9 @@ var MuPdfConvertable = []string{
 	".cbz",  // CBZ
 	".svg",  // SVG
 	".txt",  // TXT
-	".doc",  // DOC
 	".docx", // DOCX
 	".ppt",  // PPT
 	".pptx", // PPTX
-	".xls",  // XLS
 	".xlsx", // XLSX
 	".hwp",  // HWP
 	".hwp",  // HWPX

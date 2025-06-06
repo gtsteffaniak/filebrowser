@@ -25,6 +25,8 @@ import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import Editor from "@/views/files/Editor.vue";
 import OnlyOfficeEditor from "./files/OnlyOfficeEditor.vue";
+import EpubViewer from "./files/EpubViewer.vue";
+import DocViewer from "./files/DocViewer.vue";
 import MarkdownViewer from "./files/MarkdownViewer.vue";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
@@ -41,6 +43,8 @@ export default {
     Preview,
     ListingView,
     Editor,
+    EpubViewer,
+    DocViewer,
     OnlyOfficeEditor,
     MarkdownViewer,
     PopupPreview,

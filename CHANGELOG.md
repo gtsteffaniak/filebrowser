@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - since theres a wider kind of document preview types, a new disableOfficePreviewExt option has been added.
- - documents get full size image preview when opened and no onlyoffice support.
+ - native (and simple) docx and epub viewers.
+ - Other documents like xlsx get full size image preview when opened and no onlyoffice support.
 
  **Notes**:
  - all text mimetype files have preview support.
