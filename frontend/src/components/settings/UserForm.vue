@@ -233,6 +233,10 @@ export default {
       this.user.scopes = newVal ? { default: "" } : this.originalUserScope;
       this.emitUserUpdate();
     },
+    stateUser() {
+      this.user.otpEnabled = state.user.otpEnabled;
+      this.emitUserUpdate();
+    },
   },
   computed: {
     invalidPassword() {

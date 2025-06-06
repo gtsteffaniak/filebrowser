@@ -81,7 +81,7 @@ jobs:
           file: ./_docker/Dockerfile.playwright-noauth
           push: false
   push_pr_to_registry:
-    name: Push PR
+    name: Build docker image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
