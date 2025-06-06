@@ -134,7 +134,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 		if seekPercentage == 0 {
 			seekPercentage = 10
 		}
-		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "video", hash)
+		outPathPattern := filepath.Join(settings.Config.Server.CacheDir, "thumbnails", "videos", hash) + ".jpg"
 		defer os.Remove(outPathPattern) // cleanup
 		imageBytes, err = service.GenerateVideoPreview(file.RealPath, outPathPattern, seekPercentage)
 		if err != nil {

@@ -23,7 +23,7 @@
 <script>
 import { state, mutations } from "@/store";
 import url from "@/utils/url.js";
-import { removePrefix } from "@/utils/url.js";
+import { extractSourceFromPath } from "@/utils/url.js";
 import { filesApi } from "@/api";
 
 export default {
@@ -41,7 +41,8 @@ export default {
   },
   computed: {
     nav() {
-      return removePrefix(decodeURIComponent(this.current), "files");
+      const result = extractSourceFromPath(decodeURIComponent(this.current), "files");
+      return result.path
     },
   },
   mounted() {
