@@ -134,10 +134,9 @@ jobs:
           JSON='${{ steps.meta.outputs.json }}'
           MODIFIED_JSON=$(echo "$JSON" | jq '
             .tags |= map(
-              sub(":v"; ":")      # Strip the 'v'
-              | select(test(":latest") | not)
-              # Add guard to only modify tags with a version
-              | if test(":(.+)") then sub(":(.+)"; ":\(.captures[0])-slim") else . end
+              sub(":v"; ":")                 # Strip the 'v'
+              | select(test(":latest") | not) # Remove the "latest" tag
+              | . + "-slim"                   # Append "-slim" to the versioned tag
             ) |
             if any(.tags[]; test("beta")) then
               .tags += [
