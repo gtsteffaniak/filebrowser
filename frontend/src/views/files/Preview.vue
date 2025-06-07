@@ -1,7 +1,8 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview">
-      <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw"> </ExtendedImage>
+      <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw">
+      </ExtendedImage>
       <audio
         v-else-if="previewType == 'audio'"
         ref="player"
@@ -114,23 +115,19 @@ export default {
     pdfConvertable() {
       const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
-        ".pdf": true,
         ".xps": true,
-        ".epub": true,
         ".mobi": true,
         ".fb2": true,
         ".cbz": true,
         ".svg": true,
-        ".txt": true,
         ".docx": true,
         ".ppt": true,
         ".pptx": true,
         ".xlsx": true,
         ".hwp": true,
         ".hwpx": true,
-        ".md": true,
       };
-      return (!!pdfConvertCompatibleFileExtensions[ext]);
+      return !!pdfConvertCompatibleFileExtensions[ext];
     },
     sidebarShowing() {
       return getters.isSidebarVisible();
@@ -140,7 +137,10 @@ export default {
     },
     raw() {
       if (this.pdfConvertable) {
-        return filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) + "&size=original";
+        return (
+          filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) +
+          "&size=original"
+        );
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
