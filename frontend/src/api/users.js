@@ -14,11 +14,14 @@ export async function getAllUsers () {
 }
 
 export async function generateOTP (username, password) {
-  const params = { username, password }
+  const params = { username }
   try {
     let apiPath = getApiPath('api/auth/otp/generate', params)
     const res = await fetch(apiPath, {
       method: 'POST',
+      headers: {
+        'X-Password': password,
+      }
     })
     return await res.json()
   } catch (error) {
