@@ -4,8 +4,8 @@
       <h2>{{ $t("otp.name") }}</h2>
     </div>
     <div v-if="error !== ''" class="wrong-login">{{ error }}</div>
-
-    <div class="card-content">
+    <div v-if="succeeded" >{{ $t("otp.verificationSucceed") }}</div>
+    <div v-if="!succeeded" class="card-content">
       <p v-if="generate">{{ $t("otp.generate") }}</p>
       <div v-if="generate" class="share__box__element share__box__center">
         <p>{{ this.url }}</p>
@@ -20,16 +20,18 @@
         :placeholder="$t('otp.codeInputPlaceholder')"
       />
     </div>
+
     <div class="card-action">
       <button
         @click="closeHovers"
         class="button button--flat button--grey"
-        :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')"
+        :aria-label="succeeded ? $t('buttons.close') : $t('buttons.cancel')"
+        :title="succeeded ? $t('buttons.close') : $t('buttons.cancel')"
       >
-        {{ $t("buttons.cancel") }}
+        {{ succeeded ? $t('buttons.close') : $t('buttons.cancel') }}
       </button>
       <button
+        v-if="!succeeded"
         class="button button--flat button--blue"
         @click="verifyCode"
         :title="$t('buttons.verify')"
@@ -57,6 +59,7 @@ export default {
       error: "",
       code: "",
       url: "",
+      succeeded: false,
     };
   },
   props: {
@@ -104,18 +107,21 @@ export default {
         if (this.redirect != "") {
           await usersApi.login(this.username, this.password, this.redirect, this.code);
           await initAuth();
-          if (this.redirect) {
-            this.$router.push(this.redirect);
-          }
-        } else {
-          mutations.closeHovers();
+          this.$router.push(this.redirect);
         }
+        mutations.updateCurrentUser({ otpEnabled: true });
+        this.succeeded = true
+        this.error = "";
+        notify.showSuccess(this.$t("otp.verificationSucceed"));
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
         return;
       }
     },
     closeHovers() {
+      if (!this.succeeded) {
+        mutations.updateCurrentUser({ otpEnabled: false });
+      }
       mutations.closeHovers();
     },
   },

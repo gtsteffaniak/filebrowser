@@ -75,20 +75,21 @@ type SourceScope struct {
 
 // json tags must match variable name with smaller case first letter
 type NonAdminEditable struct {
-	Preview              Preview `json:"preview"`
-	StickySidebar        bool    `json:"stickySidebar"` // keep sidebar open when navigating
-	DarkMode             bool    `json:"darkMode"`      // should dark mode be enabled
-	Password             string  `json:"password,omitempty"`
-	Locale               string  `json:"locale"`      // language to use: eg. de, en, or fr
-	ViewMode             string  `json:"viewMode"`    // view mode to use: eg. normal, list, grid, or compact
-	SingleClick          bool    `json:"singleClick"` // open directory on single click, also enables middle click to open in new tab
-	Sorting              Sorting `json:"sorting"`
-	ShowHidden           bool    `json:"showHidden"`           // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
-	DateFormat           bool    `json:"dateFormat"`           // when false, the date is relative, when true, the date is an exact timestamp
-	GallerySize          int     `json:"gallerySize"`          // 0-9 - the size of the gallery thumbnails
-	ThemeColor           string  `json:"themeColor"`           // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-	QuickDownload        bool    `json:"quickDownload"`        // show icon to download in one click
-	DisableOnlyOfficeExt string  `json:"disableOnlyOfficeExt"` // comma separated list of file extensions to disable onlyoffice preview for
+	Preview                 Preview `json:"preview"`
+	StickySidebar           bool    `json:"stickySidebar"` // keep sidebar open when navigating
+	DarkMode                bool    `json:"darkMode"`      // should dark mode be enabled
+	Password                string  `json:"password,omitempty"`
+	Locale                  string  `json:"locale"`      // language to use: eg. de, en, or fr
+	ViewMode                string  `json:"viewMode"`    // view mode to use: eg. normal, list, grid, or compact
+	SingleClick             bool    `json:"singleClick"` // open directory on single click, also enables middle click to open in new tab
+	Sorting                 Sorting `json:"sorting"`
+	ShowHidden              bool    `json:"showHidden"`              // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+	DateFormat              bool    `json:"dateFormat"`              // when false, the date is relative, when true, the date is an exact timestamp
+	GallerySize             int     `json:"gallerySize"`             // 0-9 - the size of the gallery thumbnails
+	ThemeColor              string  `json:"themeColor"`              // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	QuickDownload           bool    `json:"quickDownload"`           // show icon to download in one click
+	DisableOnlyOfficeExt    string  `json:"disableOnlyOfficeExt"`    // comma separated list of file extensions to disable onlyoffice preview for
+	DisableOfficePreviewExt string  `json:"disableOfficePreviewExt"` // comma separated list of file extensions to disable office preview for
 }
 
 var PublicUser = User{

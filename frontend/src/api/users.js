@@ -19,9 +19,6 @@ export async function generateOTP (username, password) {
     let apiPath = getApiPath('api/auth/otp/generate', params)
     const res = await fetch(apiPath, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
     })
     return await res.json()
   } catch (error) {
@@ -31,13 +28,14 @@ export async function generateOTP (username, password) {
 }
 
 export async function verifyOtp (username, password, otp) {
-  const params = { username, password, code: otp }
+  const params = { username }
   try {
     let apiPath = getApiPath('api/auth/otp/verify', params)
     const res = await fetch(apiPath, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'X-Password': password,
+        'X-Secret': otp,
       }
     })
     if (res.status != 200) {
@@ -50,12 +48,23 @@ export async function verifyOtp (username, password, otp) {
 }
 
 export async function login(username, password, recaptcha, otp) {
-  const params = { username, password, recaptcha, code: otp };
+  if (!otp) {
+    otp = ''
+  }
+  if (!recaptcha) {
+    recaptcha = ''
+  }
+  if (!password) {
+    password = ''
+  }
+
+  const params = { username, recaptcha };
   let apiPath = getApiPath('api/auth/login', params);
   const res = await fetch(apiPath, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'X-Password': password,
+      'X-Secret': otp,
     }
   });
 

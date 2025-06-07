@@ -1,15 +1,16 @@
-FROM gtstef/ffmpeg:7.1.1 AS ffmpeg
-FROM golang:1.24-alpine AS base
+FROM gtstef/ffmpeg:7.1.1-decode AS ffmpeg
+FROM golang:alpine AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app
 COPY ./backend ./
-#RUN swag init --output swagger/docs
-RUN ln -s swagger /usr/local/go/src/
-RUN go build -tags pdf -ldflags="-w -s \
+RUN apk update && apk add --no-cache gcc musl-dev upx
+ENV CGO_ENABLED=1
+RUN go build -tags mupdf,musl -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
+RUN upx filebrowser
 
 FROM node:lts-slim AS nbuild
 WORKDIR /app
@@ -20,9 +21,6 @@ RUN npm run build-docker
 
 FROM alpine:latest
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
-# requirements to enable pdf support
-RUN apk add --no-cache libffi mupdf && \
-    find / -name "libmupdf.so*" -type f -exec mv {} /usr/lib/libmupdf.so \;
 
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_NO_EMBEDED="true"
@@ -31,15 +29,13 @@ RUN apk --no-cache add ca-certificates mailcap tzdata
 RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
-COPY --from=base --chown=filebrowser:1000 /app/filebrowser* ./
+COPY --from=base --chown=filebrowser:1000 /app/filebrowser ./
 COPY --from=base --chown=filebrowser:1000 /app/config.media.yaml ./config.yaml
 COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/
-
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]
 RUN [ "ffprobe", "-version" ]
-
 USER root
 # exposing default port for auto discovery.
 EXPOSE 80

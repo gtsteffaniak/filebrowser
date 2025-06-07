@@ -283,7 +283,11 @@
     "enterPasswordAgain": "أدخل كلمة المرور مرة أخرى",
     "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
     "loginMethod": "طريقة تسجيل الدخول",
-    "shareSettings": "مشاركة الإعدادات"
+    "shareSettings": "مشاركة الإعدادات",
+    "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل عارض OnlyOffice لها. (على سبيل المثال، \".txt .html\").",
+    "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
+    "disableOfficePreviews": "تعطيل معاينات المكتب لامتدادات ملفات معينة",
+    "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\")."
   },
   "sidebar": {
     "help": "مساعدة",
@@ -365,7 +369,8 @@
     "highQualityPreview": "معاينة عالية الجودة",
     "previewOffice": "معاينة الملفات المكتبية",
     "popupPreview": "تمكين المعاينة المنبثقة",
-    "filePreviewOptions": "خيارات معاينة الملف"
+    "filePreviewOptions": "خيارات معاينة الملف",
+    "editOffice": "تحرير/عرض ملفات المكتب"
   },
   "otp": {
     "name": "المصادقة الثنائية",

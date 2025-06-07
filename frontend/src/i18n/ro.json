@@ -283,7 +283,11 @@
     "enterPasswordAgain": "Introduceți din nou parola",
     "passwordsDoNotMatch": "Parolele nu se potrivesc",
     "loginMethod": "Metoda de conectare",
-    "shareSettings": "Setări de partajare"
+    "shareSettings": "Setări de partajare",
+    "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează vizualizatorul OnlyOffice. (de exemplu, \".txt .html\").",
+    "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
+    "disableOfficePreviews": "Dezactivați previzualizările office pentru anumite extensii de fișiere",
+    "disableOfficePreviewsDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările office. (de exemplu, \".txt .html\")."
   },
   "sidebar": {
     "help": "Ajutor",
@@ -365,7 +369,8 @@
     "highQualityPreview": "Previzualizare de înaltă calitate",
     "previewOffice": "Previzualizare fișiere office",
     "popupPreview": "Activați previzualizarea pop-up",
-    "filePreviewOptions": "Opțiuni de previzualizare a fișierelor"
+    "filePreviewOptions": "Opțiuni de previzualizare a fișierelor",
+    "editOffice": "Editarea/vizualizarea fișierelor office"
   },
   "otp": {
     "name": "Autentificare cu doi factori",

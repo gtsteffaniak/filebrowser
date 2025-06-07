@@ -227,6 +227,13 @@ func loadConfigWithDefaults(configFile string) error {
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
 		logger.Warningf("could not open config file '%v', using default settings", configFile)
+		Config.Server.Sources = []Source{
+			{
+				Path: ".",
+			},
+		}
+		loadEnvConfig()
+		return nil
 	}
 	defer yamlFile.Close()
 	stat, err := yamlFile.Stat()

@@ -30,7 +30,6 @@ type userInfo struct {
 // If ID token verification or essential claims extraction fails, it falls back to the UserInfo endpoint.
 func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	ctx := r.Context()
-
 	oidcCfg := settings.Config.Auth.Methods.OidcAuth
 	if oidcCfg.Provider == nil || oidcCfg.Verifier == nil {
 		// Ensure Provider and Verifier are initialized on application startup
@@ -50,7 +49,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 		ctx = oidc.ClientContext(ctx, customClient)
 	}
-	code := r.URL.Query().Get("code")
+	code := r.Header.Get("X-Secret")
 	// state := r.URL.Query().Get("state") // You might want to validate the state parameter for CSRF protection
 
 	// The redirect URI MUST match the one registered with the OIDC provider

@@ -126,6 +126,14 @@ func (st usersBackend) Update(user *users.User, actorIsAdmin bool, fields ...str
 
 		// Get the value to be stored
 		val := fieldValue.Interface()
+		if field == "OtpEnabled" {
+			otpEnabled, _ := val.(bool)
+			if otpEnabled {
+				continue
+			}
+			field = "TOTPSecret" // if otp is disabled, we also want to clear the TOTPSecret
+			val = ""             // clear the TOTPSecret
+		}
 		// Update the database
 		if err := st.db.UpdateField(existingUser, field, val); err != nil {
 			return fmt.Errorf("failed to update user field: %s, error: %v", field, err)
@@ -226,7 +234,7 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 			field := t.Field(i)
 			// which=all can't update password
 			switch strings.ToLower(field.Name) {
-			case "id", "username", "loginmethod", "password":
+			case "id", "username", "loginmethod", "password", "apikeys", "totpenabled", "totpsecret", "totpnonce":
 				// Skip these fields
 				continue
 			}

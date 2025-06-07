@@ -229,7 +229,6 @@ export function getPreviewURL(source, path, modified) {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: state.user.preview.highQuality ? 'large' : 'small',
       key: Date.parse(modified), // Use modified date as cache key
       source: source,
       inline: 'true'

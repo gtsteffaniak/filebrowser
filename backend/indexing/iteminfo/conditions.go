@@ -20,7 +20,7 @@ var AllFiletypeOptions = []string{
 	"text",
 }
 
-var PdfConvertable = []string{
+var MuPdfConvertable = []string{
 	".pdf",  // PDF
 	".xps",  // XPS
 	".epub", // EPUB
@@ -29,14 +29,13 @@ var PdfConvertable = []string{
 	".cbz",  // CBZ
 	".svg",  // SVG
 	".txt",  // TXT
-	".doc",  // DOC
 	".docx", // DOCX
 	".ppt",  // PPT
 	".pptx", // PPTX
-	".xls",  // XLS
 	".xlsx", // XLSX
 	".hwp",  // HWP
 	".hwp",  // HWPX
+	".md",   // Markdown
 }
 
 // Known bundle-style extensions that are technically directories but treated as files
@@ -375,12 +374,15 @@ func hasBundleExtension(name string) bool {
 	return false
 }
 
-func HasDocConvertableExtension(name string) bool {
-	if !settings.Config.Server.PdfAvailable {
+func HasDocConvertableExtension(name, mimetype string) bool {
+	if !settings.Config.Server.MuPdfAvailable {
 		return false
 	}
+	if strings.HasPrefix(mimetype, "text") {
+		return true
+	}
 	ext := strings.ToLower(filepath.Ext(name))
-	for _, e := range PdfConvertable {
+	for _, e := range MuPdfConvertable {
 		if ext == e {
 			return true
 		}

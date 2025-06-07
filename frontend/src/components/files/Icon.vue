@@ -1,5 +1,9 @@
 <template>
-  <span v-if="isPreviewImg && imageState !== 'error'">
+  <span
+    @mouseenter="handleMouseEnter($event)"
+    @mouseleave="handleMouseLeave($event)"
+    v-if="isPreviewImg && imageState !== 'error'"
+  >
     <i
       v-if="hasMotion"
       class="material-icons"
@@ -7,10 +11,8 @@
       >animation</i
     >
     <img
-      :key="thumbnailUrl"
+      :key="imageTargetSrc"
       :src="imageDisplaySrc"
-      @mouseenter="handleMouseEnter($event)"
-      @mouseleave="handleMouseLeave($event)"
       class="icon"
       ref="thumbnail"
     />
@@ -21,7 +23,12 @@
 </template>
 
 <script>
-import { onlyOfficeUrl, mediaAvailable, pdfAvailable, baseURL } from "@/utils/constants";
+import {
+  onlyOfficeUrl,
+  mediaAvailable,
+  muPdfAvailable,
+  baseURL,
+} from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { mutations, state } from "@/store";
 
@@ -56,10 +63,16 @@ export default {
       previewTimeouts: [],
       // UPDATED: Manage image state directly
       imageState: "loading", // Can be 'loading', 'loaded', or 'error'
-      imageTargetSrc: this.thumbnailUrl, // The URL we currently want to display
     };
   },
   computed: {
+    imageTargetSrc() {
+      if (this.showLargeIcon) {
+        // Use the large version of the thumbnail if available
+        return this.thumbnailUrl + "&size=large" || PLACEHOLDER_URL;
+      }
+      return this.thumbnailUrl || PLACEHOLDER_URL;
+    },
     pdfConvertable() {
       const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
@@ -71,16 +84,17 @@ export default {
         ".cbz": true,
         ".svg": true,
         ".txt": true,
-        ".doc": true,
         ".docx": true,
         ".ppt": true,
         ".pptx": true,
-        ".xls": true,
         ".xlsx": true,
         ".hwp": true,
-        ".hwpx": true, // fix duplication and add this one
+        ".hwpx": true,
+        ".md": true,
       };
-      return !!pdfConvertCompatibleFileExtensions[ext];
+      const textType = this.mimetype.startsWith("text/");
+      const disabled = state.user.disableOfficePreviewExt?.includes(ext);
+      return (!!pdfConvertCompatibleFileExtensions[ext] || textType) && !disabled;
     },
     // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
@@ -92,6 +106,9 @@ export default {
         return PLACEHOLDER_URL;
       }
       return this.imageTargetSrc;
+    },
+    showLargeIcon() {
+      return state.user.viewMode === "gallery" && state.user.preview.highQuality;
     },
     showLarger() {
       return state.user.viewMode === "gallery" || state.user.viewMode === "normal";
@@ -114,7 +131,7 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      if (this.pdfConvertable && pdfAvailable) {
+      if (this.pdfConvertable && muPdfAvailable) {
         return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {
@@ -165,18 +182,19 @@ export default {
       targetImage.src = url;
     },
     handleMouseEnter() {
+      const imageUrl = this.thumbnailUrl + "&size=large";
       if (this.imageState == "loaded") {
-        mutations.setPreviewSource(this.thumbnailUrl);
+        mutations.setPreviewSource(imageUrl);
       }
       if (!state.user.preview.motionVideoPreview || !this.hasMotion) {
         return;
       }
 
       const sequence = [
-        this.thumbnailUrl,
-        this.thumbnailUrl + "&atPercentage=25",
-        this.thumbnailUrl + "&atPercentage=50",
-        this.thumbnailUrl + "&atPercentage=75",
+        imageUrl,
+        imageUrl + "&atPercentage=25",
+        imageUrl + "&atPercentage=50",
+        imageUrl + "&atPercentage=75",
       ];
       let index = 0;
 

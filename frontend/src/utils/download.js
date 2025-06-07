@@ -5,7 +5,13 @@ import { removePrefix } from "@/utils/url.js";
 import { publicApi } from "@/api";
 
 export default function download() {
-  if (getters.currentView() === "share") {
+  const currentView = getters.currentView();
+  if (currentView === "preview") {
+    startDownload(null, [state.req.url]);
+    return;
+  }
+
+  if (currentView === "share") {
     let urlPath = getters.routePath("share");
     let parts = urlPath.split("/");
     const hash = parts[1];

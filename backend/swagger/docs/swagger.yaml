@@ -443,6 +443,10 @@ definitions:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
         type: boolean
+      disableOfficePreviewExt:
+        description: comma separated list of file extensions to disable office preview
+          for
+        type: string
       disableOnlyOfficeExt:
         description: comma separated list of file extensions to disable onlyoffice
           preview for
@@ -604,6 +608,10 @@ definitions:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
         type: boolean
+      disableOfficePreviewExt:
+        description: comma separated list of file extensions to disable office preview
+          for
+        type: string
       disableOnlyOfficeExt:
         description: comma separated list of file extensions to disable onlyoffice
           preview for

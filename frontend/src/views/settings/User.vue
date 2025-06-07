@@ -61,6 +61,7 @@ export default {
         username: "",
         password: "",
         permissions: { admin: false },
+        otpEnabled: false,
       },
       showDelete: false,
       createUserDir: false,

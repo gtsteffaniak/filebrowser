@@ -55,7 +55,7 @@
       @action="toggleMultipleSelection"
     />
     <action
-      v-if="!showCreate && selectedCount > 0"
+      v-if="(!showCreate && selectedCount > 0)"
       icon="file_download"
       :label="$t('buttons.download')"
       @action="startDownload"
@@ -103,9 +103,10 @@
     class="button no-select"
     :class="{ 'dark-mode': isDarkMode }"
   >
-    <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
-    <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
+    <action v-if="isPreview" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
     <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
+    <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
+    <action v-if="showDelete" icon="delete" :label="$t('buttons.delete')" show="delete" />
   </div>
 </template>
 
@@ -135,10 +136,20 @@ export default {
       return !this.showEdit && !this.showSave && !this.showDelete;
     },
     showEdit() {
-      return window.location.hash != "#edit" && state.user.permissions.modify;
+      return getters.currentView() == "markdownViewer" && state.user.permissions.modify;
     },
     showDelete() {
-      return state.user.permissions.modify && getters.currentView() == "preview";
+      return state.user.permissions.modify && this.isPreview;
+    },
+    isPreview() {
+      const cv = getters.currentView();
+      return (
+        cv == "preview" ||
+        cv == "onlyOfficeEditor" ||
+        cv == "markdownViewer" ||
+        cv == "epubViewer" ||
+        cv == "docViewer"
+      );
     },
     showSave() {
       return getters.currentView() == "editor" && state.user.permissions.modify;

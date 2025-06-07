@@ -41,13 +41,18 @@
 </template>
 
 <script>
-import { getters } from "@/store"; // Import your custom store
+import { getters, mutations } from "@/store"; // Import your custom store
 
 export default {
   name: "replace-rename",
   computed: {
     currentPrompt() {
       return getters.currentPrompt(); // Access the getter directly from the store
+    },
+  },
+  methods: {
+    closeHovers() {
+      mutations.closeHovers();
     },
   },
 };

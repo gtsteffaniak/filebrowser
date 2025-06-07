@@ -1,5 +1,6 @@
 backend/**.db
 backend/tmp
+backend/backend*
 backend/vendor/**
 frontend/dist/**
 frontend/node_modules/**

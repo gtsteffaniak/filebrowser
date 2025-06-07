@@ -16,29 +16,29 @@ builds:
     goos:
       - linux
     goarch:
-      - arm64
+      - amd64
     hooks:
       post:
-        - upx {{ .Path }}  # Compress the binary with UPX
+        - upx {{ .Path }}
 
-  # Build configuration for linux amd64
+  # Build configuration for linux arm64
   - id: linux-arm64
-    env:
-      - CGO_ENABLED=1
-      - CC=aarch64-linux-gnu-gcc
-      - CXX=aarch64-linux-gnu-g++
-    tags:
-      - mupdf
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    env:
+      - CGO_ENABLED=1
+      - CC=zig cc -target aarch64-linux-musl
+    tags:
+      - mupdf
+      - musl
     goos:
       - linux
     goarch:
       - arm64
     hooks:
       post:
-        - upx {{ .Path }}  # Compress the binary with UPX
+        - upx {{ .Path }}
 
   # Build configuration for linux
   - id: linux-arm32
@@ -60,8 +60,7 @@ builds:
   - id: windows
     env:
       - CGO_ENABLED=1
-      - CC=x86_64-w64-mingw32-gcc
-      - CXX=x86_64-w64-mingw32-g++
+      - CC=zig cc -target x86_64-windows
     tags:
       - mupdf
     ldflags: *ldflags
@@ -76,7 +75,7 @@ builds:
         - upx {{ .Path }}  # Compress the binary with UPX
 
   # Build configuration for freebsd without arm & upx
-  - id: freeBSD
+  - id: freeBSD and freebsd-arm
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
@@ -84,9 +83,6 @@ builds:
       - freebsd
     goarch:
       - amd64
-    hooks:
-      post:
-        - upx {{ .Path }}  # Compress the binary with UPX
 
   # Build configuration for macos without upx
   - id: macos
@@ -96,11 +92,8 @@ builds:
     goos:
       - darwin
     goarch:
-      - amd64
       - arm64
-    hooks:
-      post:
-        - upx {{ .Path }}  # Compress the binary with UPX
+      - amd64
 
 archives:
   - name_template: >
@@ -113,4 +106,3 @@ archives:
 
 checksum:
   disable: true
-

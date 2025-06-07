@@ -283,7 +283,11 @@
     "enterPasswordAgain": "Adja meg újra a jelszót",
     "passwordsDoNotMatch": "A jelszavak nem egyeznek",
     "loginMethod": "Bejelentkezési módszer",
-    "shareSettings": "Beállítások megosztása"
+    "shareSettings": "Beállítások megosztása",
+    "disableOfficeEditorDescription": "Azon fájlkiterjesztések szóközzel elválasztott listája, amelyek esetében az OnlyOffice megjelenítőjét le kell tiltani. (pl. '.txt .html').",
+    "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
+    "disableOfficePreviews": "Office előnézet letiltása bizonyos fájlkiterjesztésekhez",
+    "disableOfficePreviewsDescription": "Az irodai előnézetek letiltásának szóközzel elválasztott fájlkiterjesztések listája. (pl. '.txt .html')."
   },
   "sidebar": {
     "help": "Súgó",
@@ -365,7 +369,8 @@
     "highQualityPreview": "Kiváló minőségű előnézet",
     "previewOffice": "Office fájlok előnézete",
     "popupPreview": "Pop-up előnézet engedélyezése",
-    "filePreviewOptions": "Fájl előnézeti beállítások"
+    "filePreviewOptions": "Fájl előnézeti beállítások",
+    "editOffice": "Office fájlok szerkesztése/megjelenítése"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",

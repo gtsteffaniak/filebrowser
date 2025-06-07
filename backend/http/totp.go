@@ -43,7 +43,7 @@ func generateOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Failure 401 {object} map[string]string "Unauthorized - invalid TOTP token"
 // @Router /api/auth/otp/verify [post]
 func verifyOTPHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	code := r.URL.Query().Get("code")
+	code := r.Header.Get("X-Secret")
 	if code == "" {
 		return http.StatusUnauthorized, fmt.Errorf("code is required")
 	}

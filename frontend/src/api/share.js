@@ -1,5 +1,4 @@
 import { fetchURL, fetchJSON, adjustedData } from "./utils";
-import { state } from '@/store'
 import { notify } from "@/notify";
 import { getApiPath,removePrefix } from "@/utils/url.js";
 import { externalUrl,baseURL } from "@/utils/constants";
@@ -54,7 +53,7 @@ export function getPreviewURL(hash, path) {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: state.user.preview.highQuality ? 'large' : 'small',
+      size: 'small',
       hash: hash,
       inline: 'true'
     }

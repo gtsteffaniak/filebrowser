@@ -58,7 +58,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"OidcAvailable":     config.Auth.Methods.OidcAuth.Enabled,
 		"PasswordAvailable": config.Auth.Methods.PasswordAuth.Enabled,
 		"MediaAvailable":    config.Integrations.Media.FfmpegPath != "",
-		"PdfAvailable":      config.Server.PdfAvailable,
+		"MuPdfAvailable":    config.Server.MuPdfAvailable,
 	}
 
 	b, err := json.Marshal(data)
