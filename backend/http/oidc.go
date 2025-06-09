@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -18,11 +19,12 @@ import (
 
 // userInfo struct to hold user claims from either UserInfo or ID token
 type userInfo struct {
-	Name              string `json:"name"`
-	PreferredUsername string `json:"preferred_username"`
-	Email             string `json:"email"`
-	Sub               string `json:"sub"`
-	Phone             string `json:"phone_number"`
+	Name              string   `json:"name"`
+	PreferredUsername string   `json:"preferred_username"`
+	Email             string   `json:"email"`
+	Sub               string   `json:"sub"`
+	Phone             string   `json:"phone_number"`
+	Groups            []string `json:"groups"`
 }
 
 // oidcCallbackHandler handles the OIDC callback after the user authenticates with the provider.
@@ -174,9 +176,16 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Error("No valid username found in ID token or UserInfo response.")
 		return http.StatusInternalServerError, fmt.Errorf("no valid username found in ID token or UserInfo response from claims")
 	}
+	isAdmin := false // Default to non-admin user
+	if config.Auth.Methods.OidcAuth.AdminGroup != "" {
+		if slices.Contains(userdata.Groups, config.Auth.Methods.OidcAuth.AdminGroup) {
+			isAdmin = true // User is in the admin group, grant admin privileges
+			logger.Debugf("User %s is in admin group %s, granting admin privileges.", loginUsername, config.Auth.Methods.OidcAuth.AdminGroup)
+		}
+	}
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
-	return loginWithOidcUser(w, r, loginUsername)
+	return loginWithOidcUser(w, r, loginUsername, isAdmin)
 }
 
 // oidcLoginHandler redirects the user to the OIDC provider's authorization endpoint.
@@ -213,25 +222,28 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // loginWithOidcUser extracts the username from the user claims (userInfo)
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
-func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string) (int, error) {
-	logger.Debugf("Successfully authenticated OIDC username: %s", username)
+func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, isAdmin bool) (int, error) {
+	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
 	// Retrieve the user from the store and store it in the context
 	user, err := store.Users.Get(username)
 	if err != nil {
 		if err.Error() != "the resource does not exist" {
 			return http.StatusInternalServerError, err
 		}
-
-		err = storage.CreateUser(users.User{
-			LoginMethod: users.LoginMethodOidc,
-			Username:    username,
-		}, false)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		user, err = store.Users.Get(username)
-		if err != nil {
-			return http.StatusInternalServerError, err
+		if config.Auth.Methods.OidcAuth.CreateUser {
+			err = storage.CreateUser(users.User{
+				LoginMethod: users.LoginMethodOidc,
+				Username:    username,
+			}, isAdmin)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			user, err = store.Users.Get(username)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		} else {
+			return http.StatusForbidden, fmt.Errorf("user %s does not exist and createUser is disabled. Your admin needs to create your user before you can access this application", username)
 		}
 	}
 	if user.LoginMethod != users.LoginMethodOidc {

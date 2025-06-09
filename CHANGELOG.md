@@ -4,12 +4,12 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.8-beta
 
+Note: if using oidc, please update from 0.7.7 to resolve invalid_grant issue. Also - oidc no longer creates users automatically by default -- must be enabled.
 
  **New Features**:
- -
-
- **Notes**:
- -
+ - More oidc user creation options https://github.com/gtsteffaniak/filebrowser/issues/685
+   - `auth.methods.oidc.createUser` must be true to automatically create user, defaults to false.
+   - `auth.methods.oidc.adminGroup` allows using oidc provider group name to enable admin user creation.
 
  **BugFixes**:
  - fix save editor info sometimes saves wrong file. https://github.com/gtsteffaniak/filebrowser/issues/701

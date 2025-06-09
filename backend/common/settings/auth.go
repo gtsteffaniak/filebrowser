@@ -60,6 +60,8 @@ type OidcConfig struct {
 	UserIdentifier    string                `json:"userIdentifier"`    // the user identifier to use for authentication. Default is "username", can be "email" or "username", or "phone"
 	DisableVerifyTLS  bool                  `json:"disableVerifyTLS"`  // disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.
 	LogoutRedirectUrl string                `json:"logoutRedirectUrl"` // if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
+	CreateUser        bool                  `json:"createUser"`        // create user if not exists
+	AdminGroup        string                `json:"adminGroup"`        // if set, users in this group will be granted admin privileges.
 	Provider          *oidc.Provider        `json:"-"`                 // OIDC provider
 	Verifier          *oidc.IDTokenVerifier `json:"-"`                 // OIDC verifier
 }
