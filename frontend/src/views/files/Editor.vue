@@ -31,7 +31,6 @@ export default {
   },
   // Use beforeRouteUpdate to react to file changes
   beforeRouteUpdate(to, from, next) {
-
     // Destroy the old editor instance to ensure a clean state
     if (this.editor) {
       this.editor.destroy();
@@ -62,7 +61,7 @@ export default {
   },
   methods: {
     setupEditor(attempt = 1) {
-      this.filename = decodeURIComponent(this.$route.path.split("/").pop())
+      this.filename = decodeURIComponent(this.$route.path.split("/").pop());
       // Safety Check 1: Use the component's 'filename' data property for comparison
       if (state.req.name !== this.filename) {
         if (attempt < 5) {
@@ -101,27 +100,37 @@ export default {
         readOnly: state.req.type === "textImmutable",
         wrap: false,
       });
-      this.filename = decodeURIComponent(this.$route.path.split("/").pop())
+      this.filename = decodeURIComponent(this.$route.path.split("/").pop());
     },
     handleEditorValueRequest() {
       // Safety Check 2: Final verification before saving
       if (state.req.name !== this.filename) {
         // Corrected the error message to be more accurate
-        const errorMsg = `CRITICAL: Save operation aborted. The application's active file ("${state.req.name}") does not match the file you are trying to save ("${this.filename}").`;
+        const errorMsg = `Save operation aborted. The application's active file ("${state.req.name}") does not match the file you are trying to save ("${this.filename}").`;
         notify.showError(errorMsg);
         return;
       }
-
-      if (this.editor) {
-        filesApi.put(state.req.path, state.req.source, this.editor.getValue());
+      try {
+        // Attempt to save the editor content
+        if (this.editor) {
+          filesApi.put(state.req.path, state.req.source, this.editor.getValue());
+        } else {
+          notify.showError("Editor instance is not initialized.");
+          return;
+        }
+        notify.showSuccess("File saved successfully.");
+      } catch (error) {
+        notify.showError("Failed to save file. Please try again.");
       }
     },
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName() != null) return;
-      if (!ctrlKey && !metaKey) return;
-      if (key.toLowerCase() === "s") {
+      // Check if either Ctrl or Cmd is pressed along with the 'S' key.
+      if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
+        // This is the save shortcut, so prevent the browser's default save action.
         event.preventDefault();
+        // Call your save handler.
         this.handleEditorValueRequest();
       }
     },
