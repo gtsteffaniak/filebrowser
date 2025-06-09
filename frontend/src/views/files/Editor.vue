@@ -8,7 +8,6 @@
 import { eventBus } from "@/store/eventBus";
 import { state, getters, mutations } from "@/store";
 import { filesApi } from "@/api";
-// Assuming 'notify' is a utility you have for showing notifications
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
@@ -20,7 +19,6 @@ export default {
   data: function () {
     return {
       editor: null, // The editor instance
-      // Initialize filename from the route it's created with
       filename: "",
     };
   },
@@ -29,7 +27,6 @@ export default {
       return getters.isDarkMode();
     },
   },
-  // Use beforeRouteUpdate to react to file changes
   beforeRouteUpdate(to, from, next) {
     // Destroy the old editor instance to ensure a clean state
     if (this.editor) {
@@ -56,7 +53,6 @@ export default {
     }
   },
   mounted: function () {
-    // This will run only when the component is first added to the page
     this.setupEditor();
   },
   methods: {
@@ -111,7 +107,6 @@ export default {
         return;
       }
       try {
-        // Attempt to save the editor content
         if (this.editor) {
           filesApi.put(state.req.path, state.req.source, this.editor.getValue());
         } else {
@@ -126,11 +121,8 @@ export default {
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
       if (getters.currentPromptName() != null) return;
-      // Check if either Ctrl or Cmd is pressed along with the 'S' key.
       if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
-        // This is the save shortcut, so prevent the browser's default save action.
         event.preventDefault();
-        // Call your save handler.
         this.handleEditorValueRequest();
       }
     },
