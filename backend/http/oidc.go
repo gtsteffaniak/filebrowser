@@ -49,7 +49,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 		ctx = oidc.ClientContext(ctx, customClient)
 	}
-	code := r.Header.Get("X-Secret")
+	code := r.URL.Query().Get("code")
 	// state := r.URL.Query().Get("state") // You might want to validate the state parameter for CSRF protection
 
 	// The redirect URI MUST match the one registered with the OIDC provider
@@ -88,7 +88,8 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// This uses the verifier initialized with the provider's JWKS endpoint and client ID
 		idToken, err := oidcCfg.Verifier.Verify(ctx, rawIDToken)
 		if err != nil {
-			logger.Warningf("failed to verify ID token: %v. Falling back to UserInfo endpoint.", err)
+			// this might not be necessary for certain providers like authentik
+			logger.Debugf("failed to verify ID token: %v. This might be expected, falling back to UserInfo endpoint.", err)
 			// Verification failed, claimsFromIDToken remains false
 		} else {
 			var claims map[string]interface{}
