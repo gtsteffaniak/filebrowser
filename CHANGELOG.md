@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.8-beta
+
+
+ **New Features**:
+ -
+
+ **Notes**:
+ -
+
+ **BugFixes**:
+ - fix save editor info sometimes saves wrong file. https://github.com/gtsteffaniak/filebrowser/issues/701
+ - make ctrl select work on mac or windows. https://github.com/gtsteffaniak/filebrowser/issues/739
+
 ## v0.7.7-beta
 
   This release cleans up some of the native preview (image preview) feature logic. And adds simple docx and epub viewers as well. Going through all of this, I think I know how I can add full-fledge google doc and microsoft office viewer support (no edit). But, for now "onlyOffice" remains the most comprehensive solution with most compatibility and ability to fully edit. One day, I think I will be able to integrate a minimal license-free server into the docker image. But that's something for another time.
