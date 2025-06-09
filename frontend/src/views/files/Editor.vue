@@ -57,6 +57,7 @@ export default {
   },
   methods: {
     setupEditor(attempt = 1) {
+      try {
       this.filename = decodeURIComponent(this.$route.path.split("/").pop());
       // Safety Check 1: Use the component's 'filename' data property for comparison
       if (state.req.name !== this.filename) {
@@ -97,6 +98,9 @@ export default {
         wrap: false,
       });
       this.filename = decodeURIComponent(this.$route.path.split("/").pop());
+      } catch (error) {
+        notify.showError("Failed to initialize the editor. Please reload.");
+      }
     },
     handleEditorValueRequest() {
       // Safety Check 2: Final verification before saving
@@ -113,7 +117,7 @@ export default {
           notify.showError("Editor instance is not initialized.");
           return;
         }
-        notify.showSuccess("File saved successfully.");
+        notify.showSuccess(`${this.filename} saved successfully.`);
       } catch (error) {
         notify.showError("Failed to save file. Please try again.");
       }

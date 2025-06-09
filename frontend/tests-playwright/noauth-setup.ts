@@ -6,7 +6,8 @@ async function globalSetup() {
   const context = await browser.newContext();
   const page: Page = await context.newPage();
 
-  await page.goto("http://127.0.0.1/files", { timeout: 500 });
+  await page.goto("http://127.0.0.1/files");
+  await page.waitForURL("**/files/", { timeout: 1000 });
 
   // Create a share of folder
   await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
