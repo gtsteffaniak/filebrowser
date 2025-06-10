@@ -104,7 +104,13 @@ export default {
     };
   },
   mounted() {
-    let redirect = baseURL + removeLeadingSlash(state.route.query.redirect)
+    let redirect = state.route.query.redirect;
+    if (redirect === "" || redirect === undefined || redirect === null) {
+      redirect = baseURL + "files/";
+    } else {
+      redirect = removeLeadingSlash(redirect);
+      redirect = baseURL + redirect;
+    }
     this.loginURL += `?redirect=${encodeURIComponent(redirect)}`;
 
     if (!recaptcha) return;
@@ -121,7 +127,10 @@ export default {
     async submit(event) {
       event.preventDefault();
       event.stopPropagation();
-      let redirect = state.route.query.redirect
+      let redirect = state.route.query.redirect;
+      if (redirect === "" || redirect === undefined || redirect === null) {
+        redirect = "/files/";
+      }
 
       let captcha = "";
       if (recaptcha) {
