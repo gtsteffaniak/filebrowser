@@ -69,6 +69,8 @@ auth:
       userIdentifier: ""                  # the user identifier to use for authentication. Default is "username", can be "email" or "username", or "phone"
       disableVerifyTLS: false             # disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.
       logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
+      createUser: false                   # create user if not exists
+      adminGroup: ""                      # if set, users in this group will be granted admin privileges.
   key: ""                                 # the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: admin                    # the username of the admin user. If not set, the default is "admin".
   adminPassword: admin                    # the password of the admin user. If not set, the default is "admin".

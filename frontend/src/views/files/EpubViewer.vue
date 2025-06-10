@@ -7,8 +7,8 @@
     <div id="viewer" :class="{ ready: isReady }"></div>
 
     <div v-if="isReady" class="navigation">
-      <button @click="prevPage" class="nav-button">&lt;</button>
-      <button @click="nextPage" class="nav-button">&gt;</button>
+      <button @click="prevPage" class="nav-button">&lt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <button @click="nextPage" class="nav-button">&gt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     </div>
   </div>
 </template>
