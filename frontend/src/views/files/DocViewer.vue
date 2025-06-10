@@ -1,6 +1,6 @@
 <template>
   <div class="viewer-background">
-    <div v-if="loading" class="status-text">Loading document...</div>
+    <div v-if="loading" class="status-text">{{ $t('files.loading') }}</div>
     <div v-else-if="error" class="status-text error">{{ error }}</div>
     <div v-else class="docx-page" v-html="docxHtml"></div>
   </div>

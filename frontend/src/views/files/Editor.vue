@@ -6,7 +6,7 @@
 
 <script>
 import { eventBus } from "@/store/eventBus";
-import { state, getters, mutations } from "@/store";
+import { state, getters } from "@/store";
 import { filesApi } from "@/api";
 import { notify } from "@/notify";
 import ace, { version as ace_version } from "ace-builds";

@@ -43,7 +43,7 @@
       </div>
       <div v-if="oidcAvailable" class="password-entry">
         <div v-if="passwordAvailable" class="or">{{ $t("login.or") }}</div>
-        <a href="/api/auth/oidc/login" class="button button--block direct-login">
+        <a :href="loginURL" class="button button--block direct-login">
           <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           OpenID Connect
         </a>
@@ -60,6 +60,7 @@ import Prompts from "@/components/prompts/Prompts.vue";
 import Icon from "@/components/files/Icon.vue";
 import { usersApi } from "@/api";
 import { initAuth } from "@/utils/auth";
+import { removeLeadingSlash } from "@/utils/url";
 import {
   name,
   logoURL,
@@ -69,6 +70,7 @@ import {
   darkMode,
   oidcAvailable,
   passwordAvailable,
+  baseURL,
 } from "@/utils/constants";
 
 export default {
@@ -98,9 +100,13 @@ export default {
       password: "",
       recaptcha: recaptcha,
       passwordConfirm: "",
+      loginURL: baseURL + "api/auth/oidc/login",
     };
   },
   mounted() {
+    let redirect = baseURL + removeLeadingSlash(state.route.query.redirect)
+    this.loginURL += `?redirect=${encodeURIComponent(redirect)}`;
+
     if (!recaptcha) return;
     window.grecaptcha.ready(function () {
       window.grecaptcha.render("recaptcha", {
@@ -115,10 +121,7 @@ export default {
     async submit(event) {
       event.preventDefault();
       event.stopPropagation();
-      let redirect = state.route.query.redirect;
-      if (redirect === "" || redirect === undefined || redirect === null) {
-        redirect = "/files/";
-      }
+      let redirect = state.route.query.redirect
 
       let captcha = "";
       if (recaptcha) {

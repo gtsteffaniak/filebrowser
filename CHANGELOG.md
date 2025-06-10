@@ -14,6 +14,8 @@ Note: if using oidc, please update from 0.7.7 to resolve invalid_grant issue. Al
  **BugFixes**:
  - fix save editor info sometimes saves wrong file. https://github.com/gtsteffaniak/filebrowser/issues/701
  - make ctrl select work on mac or windows. https://github.com/gtsteffaniak/filebrowser/issues/739
+ - oidc login failures introduced in 0.7.6 https://github.com/gtsteffaniak/filebrowser/issues/731
+ - oidc respects non-default baseURL
 
 ## v0.7.7-beta
 
