@@ -1910,6 +1910,10 @@ const docTemplate = `{
         "settings.OidcConfig": {
             "type": "object",
             "properties": {
+                "adminGroup": {
+                    "description": "if set, users in this group will be granted admin privileges.",
+                    "type": "string"
+                },
                 "clientId": {
                     "description": "client id of the OIDC application",
                     "type": "string"
@@ -1917,6 +1921,10 @@ const docTemplate = `{
                 "clientSecret": {
                     "description": "client secret of the OIDC application",
                     "type": "string"
+                },
+                "createUser": {
+                    "description": "create user if not exists",
+                    "type": "boolean"
                 },
                 "disableVerifyTLS": {
                     "description": "disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.",

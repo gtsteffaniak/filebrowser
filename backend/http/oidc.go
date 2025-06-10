@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -18,11 +20,42 @@ import (
 
 // userInfo struct to hold user claims from either UserInfo or ID token
 type userInfo struct {
-	Name              string `json:"name"`
-	PreferredUsername string `json:"preferred_username"`
-	Email             string `json:"email"`
-	Sub               string `json:"sub"`
-	Phone             string `json:"phone_number"`
+	Name              string   `json:"name"`
+	PreferredUsername string   `json:"preferred_username"`
+	Email             string   `json:"email"`
+	Sub               string   `json:"sub"`
+	Phone             string   `json:"phone_number"`
+	Groups            []string `json:"groups"`
+}
+
+// oidcLoginHandler redirects the user to the OIDC provider's authorization endpoint.
+// This function remains largely the same, but includes the 'fb_redirect' parameter
+// to redirect the user back to the original page after successful login.
+func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	oidcCfg := settings.Config.Auth.Methods.OidcAuth
+	if !oidcCfg.Enabled {
+		return http.StatusForbidden, fmt.Errorf("oidc authentication is not enabled")
+	}
+
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+	}
+	oauth2Config := &oauth2.Config{
+		ClientID:     oidcCfg.ClientID,
+		ClientSecret: oidcCfg.ClientSecret,
+		Endpoint:     oidcCfg.Provider.Endpoint(),
+		RedirectURL:  fmt.Sprintf("%s%sapi/auth/oidc/callback", origin, config.Server.BaseURL),
+		Scopes:       strings.Split(oidcCfg.Scopes, " "),
+	}
+
+	nonce := utils.InsecureRandomIdentifier(16)
+	fbRedirect := r.URL.Query().Get("redirect")
+	state := fmt.Sprintf("%s:%s", nonce, fbRedirect)
+
+	authURL := oauth2Config.AuthCodeURL(state)
+	http.Redirect(w, r, authURL, http.StatusFound)
+	return 0, nil
 }
 
 // oidcCallbackHandler handles the OIDC callback after the user authenticates with the provider.
@@ -49,14 +82,14 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 		ctx = oidc.ClientContext(ctx, customClient)
 	}
-	code := r.Header.Get("X-Secret")
+	code := r.URL.Query().Get("code")
 	// state := r.URL.Query().Get("state") // You might want to validate the state parameter for CSRF protection
 
 	// The redirect URI MUST match the one registered with the OIDC provider
 	// and used in the initial /api/auth/oidc/login handler.
 	// Using r.Host here might be tricky if running behind a proxy.
 	// Consider using a fixed redirect URL from settings if possible.
-	redirectURL := fmt.Sprintf("%s://%s/api/auth/oidc/callback", getScheme(r), r.Host)
+	redirectURL := fmt.Sprintf("%s://%s%sapi/auth/oidc/callback", getScheme(r), r.Host, config.Server.BaseURL)
 
 	oauth2Config := &oauth2.Config{
 		ClientID:     oidcCfg.ClientID,
@@ -88,7 +121,8 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// This uses the verifier initialized with the provider's JWKS endpoint and client ID
 		idToken, err := oidcCfg.Verifier.Verify(ctx, rawIDToken)
 		if err != nil {
-			logger.Warningf("failed to verify ID token: %v. Falling back to UserInfo endpoint.", err)
+			// this might not be necessary for certain providers like authentik
+			logger.Debugf("failed to verify ID token: %v. This might be expected, falling back to UserInfo endpoint.", err)
 			// Verification failed, claimsFromIDToken remains false
 		} else {
 			var claims map[string]interface{}
@@ -173,64 +207,43 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Error("No valid username found in ID token or UserInfo response.")
 		return http.StatusInternalServerError, fmt.Errorf("no valid username found in ID token or UserInfo response from claims")
 	}
+	isAdmin := false // Default to non-admin user
+	if config.Auth.Methods.OidcAuth.AdminGroup != "" {
+		if slices.Contains(userdata.Groups, config.Auth.Methods.OidcAuth.AdminGroup) {
+			isAdmin = true // User is in the admin group, grant admin privileges
+			logger.Debugf("User %s is in admin group %s, granting admin privileges.", loginUsername, config.Auth.Methods.OidcAuth.AdminGroup)
+		}
+	}
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
-	return loginWithOidcUser(w, r, loginUsername)
-}
-
-// oidcLoginHandler redirects the user to the OIDC provider's authorization endpoint.
-// This function remains largely the same, but includes the 'fb_redirect' parameter
-// to redirect the user back to the original page after successful login.
-func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	oidcCfg := settings.Config.Auth.Methods.OidcAuth
-	if !oidcCfg.Enabled {
-		return http.StatusForbidden, fmt.Errorf("oidc authentication is not enabled")
-	}
-
-	origin := r.Header.Get("Origin")
-	if origin == "" {
-		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
-	}
-
-	oauth2Config := &oauth2.Config{
-		ClientID:     oidcCfg.ClientID,
-		ClientSecret: oidcCfg.ClientSecret,
-		Endpoint:     oidcCfg.Provider.Endpoint(),
-		RedirectURL:  fmt.Sprintf("%s/api/auth/oidc/callback", origin),
-		Scopes:       strings.Split(oidcCfg.Scopes, " "),
-	}
-
-	nonce := utils.InsecureRandomIdentifier(16)
-	fbRedirect := r.URL.Query().Get("fb_redirect")
-	state := fmt.Sprintf("%s:%s", nonce, fbRedirect)
-
-	authURL := oauth2Config.AuthCodeURL(state)
-	http.Redirect(w, r, authURL, http.StatusFound)
-	return 0, nil
+	return loginWithOidcUser(w, r, loginUsername, isAdmin)
 }
 
 // loginWithOidcUser extracts the username from the user claims (userInfo)
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
-func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string) (int, error) {
-	logger.Debugf("Successfully authenticated OIDC username: %s", username)
+func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, isAdmin bool) (int, error) {
+	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
 	// Retrieve the user from the store and store it in the context
 	user, err := store.Users.Get(username)
 	if err != nil {
 		if err.Error() != "the resource does not exist" {
 			return http.StatusInternalServerError, err
 		}
-
-		err = storage.CreateUser(users.User{
-			LoginMethod: users.LoginMethodOidc,
-			Username:    username,
-		}, false)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		user, err = store.Users.Get(username)
-		if err != nil {
-			return http.StatusInternalServerError, err
+		if config.Auth.Methods.OidcAuth.CreateUser {
+			err = storage.CreateUser(users.User{
+				LoginMethod: users.LoginMethodOidc,
+				Username:    username,
+			}, isAdmin)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			user, err = store.Users.Get(username)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		} else {
+			return http.StatusForbidden, fmt.Errorf("user %s does not exist and createUser is disabled. Your admin needs to create your user before you can access this application", username)
 		}
 	}
 	if user.LoginMethod != users.LoginMethodOidc {
@@ -271,20 +284,31 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string) 
 	// or to the root ("/") if no specific redirect was requested.
 	// The 'fb_redirect' parameter is extracted from the 'state' parameter for security.
 	state := r.URL.Query().Get("state")
-	fbRedirect := "/" // Default redirect path
+
+	fbRedirect := config.Server.BaseURL // Default redirect to the base URL
 	if state != "" {
-		// Assuming state is in the format "nonce:fb_redirect"
 		parts := strings.SplitN(state, ":", 2)
-		if len(parts) == 2 {
-			// TODO: Validate the nonce part against the stored nonce for CSRF protection
-			// For this example, we'll just extract the redirect part
-			extractedRedirect := parts[1]
-			if extractedRedirect != "" {
-				fbRedirect = extractedRedirect
+
+		// 2. Validate the nonce
+		// receivedNonce := parts[0]
+		// if receivedNonce != nonceCookie.Value {
+		//    // Handle error: nonce mismatch (possible CSRF attack)
+		//    return http.StatusBadRequest, fmt.Errorf("invalid state nonce")
+		// }
+
+		if len(parts) == 2 && parts[1] != "" {
+			// 3. Prevent Open Redirect vulnerability
+			// Ensure the redirect is to a local path.
+			potentialRedirect, err := url.QueryUnescape(parts[1])
+			if err == nil && strings.HasPrefix(potentialRedirect, "/") {
+				fbRedirect = potentialRedirect
+			} else {
+				logger.Warningf("Blocked potentially malicious redirect to: %s", parts[1])
 			}
 		}
 	}
 
+	// Clean up
 	http.Redirect(w, r, fbRedirect, http.StatusFound)
 
 	// Return 0 to indicate that the response has been handled by the redirect

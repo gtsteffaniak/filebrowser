@@ -30,7 +30,7 @@
     "@intlify/vue-i18n/no-missing-keys": "error",
     // Optional: Warn about unused keys in your 'en.json'
     // This requires configuring the `localeDir` setting below.
-    "@intlify/vue-i18n/no-unused-keys": ["warn", {
+    "@intlify/vue-i18n/no-unused-keys": ["error", {
       "src": "./src", // Path to your source files
       "extensions": [".js", ".vue"]
       // Important: This tells the rule to check unused keys specifically in en.json
@@ -40,7 +40,7 @@
     }],
 
     "@intlify/vue-i18n/no-raw-text": [
-      "warn",
+      "error",
       {
         "ignoreNodes": ["i", "v-icon"]
       }

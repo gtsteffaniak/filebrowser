@@ -557,8 +557,9 @@ export default {
       }
     },
     clearCtrKey(event) {
-      const { ctrlKey } = event;
-      if (!ctrlKey) {
+      const { ctrlKey, metaKey } = event;
+      const modifierKeys = ctrlKey || metaKey;
+      if (!modifierKeys) {
         this.ctrKeyPressed = false;
       }
     },
@@ -594,9 +595,7 @@ export default {
       let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
 
       if (modifierKeys) {
-        if (ctrlKey) {
-          this.ctrKeyPressed = true;
-        }
+        this.ctrKeyPressed = true;
         return;
       }
 
