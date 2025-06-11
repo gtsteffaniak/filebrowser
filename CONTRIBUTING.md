@@ -4,7 +4,7 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
 
 ## Prerequisites
 
-- **Go 1.24.2+** (see `backend/go.mod`)
+- **Go 1.24+** (see `backend/go.mod`)
 - **Node.js 18.0.0+** with npm 7.0.0+ (see `frontend/package.json`)
 - **Docker** (optional, for containerized development)
 - **Git**
@@ -36,7 +36,7 @@ make run
 ```
 
 `make setup` installs all dependencies and creates a test configuration file.
-`make run` starts the development server with hot reload.
+`make run` starts the development server. Note: changes require ctrl+c and re-run.
 
 ## Project Architecture
 
@@ -88,6 +88,8 @@ make test-frontend     # Frontend unit tests
 make test-playwright   # E2E tests in Docker
 ```
 
+E2E tests run with three authentication modes: standard auth, no auth, and proxy auth.
+
 ### Coverage & Performance
 ```bash
 cd backend
@@ -99,8 +101,6 @@ cd backend
 - View report: Open `backend/coverage.html` after running coverage script
 - CI enforces coverage for critical packages
 - Use `go test -cover` for quick package coverage
-
-E2E tests run with three authentication modes: standard auth, no auth, and proxy auth.
 
 ## Code Standards
 
@@ -133,32 +133,7 @@ make run-proxy   # Docker Compose with nginx proxy
 ```
 
 ### Configuration
-- **Config**: `backend/config.yaml` (YAML format)
-- **Test Config**: Auto-generated `backend/test_config.yaml`
-- **Sections**: server, sources, userDefaults, auth
-
-### Environment Variables
-
-Development environment variables:
-
-```bash
-# Backend
-FILEBROWSER_NO_EMBEDDED=true    # Disable embedded frontend for development
-FILEBROWSER_BASE_URL=/custom    # Custom base URL path
-FILEBROWSER_LOG_LEVEL=debug     # Log levels: debug, info, warn, error
-
-# Authentication
-FILEBROWSER_AUTH_METHOD=json    # Auth types: none, json, proxy, oidc
-FILEBROWSER_AUTH_HEADER=X-Auth  # Proxy auth header name
-
-# Database
-FILEBROWSER_DATABASE_PATH=./filebrowser.db  # BoltDB location
-
-# Server
-FILEBROWSER_PORT=8080           # Server port
-FILEBROWSER_ADDRESS=0.0.0.0    # Listen address
-```
-
+- **Test Config**: `backend/test_config.yaml` Auto-generated after running `make setup` 
 
 ## Contributing
 
@@ -166,8 +141,9 @@ FILEBROWSER_ADDRESS=0.0.0.0    # Listen address
 
 1. Fork and create a feature branch
 2. Make your changes following the code standards
-3. Run `make check-all` to verify tests and linting
-4. Submit PR with clear description
+3. Run `make run` to build and run with your changes
+4. When ready, run `make check-all` to verify tests and linting
+5. Submit PR with a clear description
 
 ### PR Requirements
 - Clear description of changes
@@ -197,9 +173,6 @@ cd frontend && rm -rf node_modules && npm install
 
 # Backend
 cd backend && go mod tidy && go clean -modcache
-
-# Docker
-docker system prune -a
 ```
 
 **Debugging:**
@@ -213,6 +186,8 @@ FILEBROWSER_NO_EMBEDDED=true go run -tags mupdf . -c test_config.yaml --log-leve
 ```
 
 **Authentication Issues:**
+
+Always first enable debug logging in your config file if you have issues.
 
 1. **OIDC Login Fails:**
    - Check redirect URLs match your config
@@ -234,7 +209,6 @@ FILEBROWSER_NO_EMBEDDED=true go run -tags mupdf . -c test_config.yaml --log-leve
 
 4. **Session/Cookie Problems:**
    - Clear browser cookies and localStorage
-   - Check `FILEBROWSER_BASE_URL` if using subpath
    - Verify cookie domain settings
    - Try incognito/private browsing mode
 
@@ -243,5 +217,3 @@ FILEBROWSER_NO_EMBEDDED=true go run -tags mupdf . -c test_config.yaml --log-leve
 - **Wiki**: [Project Wiki](https://github.com/gtsteffaniak/filebrowser/wiki)
 - **Issues**: [GitHub Issues](https://github.com/gtsteffaniak/filebrowser/issues)
 - **PR Template**: See `.github/PULL_REQUEST_TEMPLATE.md`
-
-For detailed architecture information, see [CLAUDE.md](CLAUDE.md).
