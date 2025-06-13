@@ -22,7 +22,7 @@ server:
       name: backend                       # display name
       config:
         indexingInterval: 0               # optional manual overide interval in seconds to re-index the source
-        disabled: false                   # disable the indexing of this source
+        disableIndexing: false            # disable the indexing of this source
         maxWatchers: 0                    # number of concurrent watchers to use for this source, currently not supported
         neverWatchPaths: []
         ignoreHidden: false               # ignore hidden files and folders.

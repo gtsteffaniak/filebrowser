@@ -2174,7 +2174,7 @@ const docTemplate = `{
                     "description": "default \"/\" should match folders under path",
                     "type": "string"
                 },
-                "disabled": {
+                "disableIndexing": {
                     "description": "disable the indexing of this source",
                     "type": "boolean"
                 },

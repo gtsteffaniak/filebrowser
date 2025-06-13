@@ -1,6 +1,7 @@
 package iteminfo
 
 import (
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,18 +15,17 @@ func (i *ExtendedFileInfo) DetectSubtitles(parentInfo *FileInfo) {
 		logger.Debug("subtitles are not supported for this file : " + i.Name)
 		return
 	}
-
-	base := strings.Split(i.Name, ".")[0]
+	ext := filepath.Ext(i.Name)
+	baseWithoutExt := strings.TrimSuffix(i.Name, ext)
 	for _, f := range parentInfo.Files {
-		baseName := strings.Split(f.Name, ".")[0]
-		if baseName != base {
+		baseName := strings.TrimSuffix(i.Name, ext)
+		if baseName != baseWithoutExt {
 			continue
 		}
 
-		for _, subtitleExt := range []string{".vtt", ".srt", ".lrc", ".sbv", ".ass", ".ssa", ".sub", ".smi"} {
+		for _, subtitleExt := range SubtitleExts {
 			if strings.HasSuffix(f.Name, subtitleExt) {
-				fullPathBase := strings.Split(i.Path, ".")[0]
-				i.Subtitles = append(i.Subtitles, fullPathBase+subtitleExt)
+				i.Subtitles = append(i.Subtitles, parentInfo.Path+f.Name)
 			}
 		}
 	}

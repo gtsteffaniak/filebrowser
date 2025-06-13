@@ -36,6 +36,16 @@ func runCLI() bool {
 
 	if configPath == "" {
 		configPath = os.Getenv("FILEBROWSER_CONFIG")
+		compatibility := os.Getenv("FILEBROWSER_CONFIG_DOCKER_COMPAT") == "true"
+		// backwards compatibility in docker, prefer config.yaml if it exists
+		if configPath != "" && compatibility {
+			_, err := os.Stat("config.yaml")
+			if err == nil {
+				logger.Warning("config.yaml exists, using that instead of FILEBROWSER_CONFIG due to compatibility mode, if you want to use FILEBROWSER_CONFIG, don't mount /home/filebrowser/config.yaml")
+				configPath = "config.yaml"
+			}
+		}
+
 	}
 
 	if configPath == "" {

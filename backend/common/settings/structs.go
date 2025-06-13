@@ -79,7 +79,7 @@ type Source struct {
 
 type SourceConfig struct {
 	IndexingInterval      uint32      `json:"indexingInterval"`      // optional manual overide interval in seconds to re-index the source
-	Disabled              bool        `json:"disabled"`              // disable the indexing of this source
+	DisableIndexing       bool        `json:"disableIndexing"`       // disable the indexing of this source
 	MaxWatchers           int         `json:"maxWatchers"`           // number of concurrent watchers to use for this source, currently not supported
 	NeverWatch            []string    `json:"neverWatchPaths"`       // paths to never watch, relative to the source path (eg. "/folder/file.txt")
 	IgnoreHidden          bool        `json:"ignoreHidden"`          // ignore hidden files and folders.

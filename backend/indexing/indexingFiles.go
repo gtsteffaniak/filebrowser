@@ -77,12 +77,13 @@ func Initialize(source settings.Source, mock bool) {
 	}
 	indexes[newIndex.Source.Name] = &newIndex
 	indexesMutex.Unlock()
-	if !newIndex.Source.Config.Disabled {
+	if !newIndex.Source.Config.DisableIndexing {
 		time.Sleep(time.Second)
 		logger.Infof("initializing index: [%v]", newIndex.Source.Name)
 		newIndex.RunIndexing("/", false)
 		go newIndex.setupIndexingScanners()
 	} else {
+		newIndex.ReducedIndex.Status = "disabled"
 		logger.Debug("indexing disabled for source: " + newIndex.Source.Name)
 	}
 }
