@@ -11,6 +11,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
@@ -52,6 +53,15 @@ func StartFilebrowser() {
 	if !keepGoing {
 		return
 	}
+	info, err := utils.CheckForUpdates()
+	if err != nil {
+		logger.Errorf("Error checking for updates: %v", err)
+	} else if info.LatestVersion != "" {
+		logger.Infof("A new version is available: %s (current: %s)", info.LatestVersion, info.CurrentVersion)
+		logger.Infof("Release notes: %s", info.ReleaseNotes)
+	}
+	go utils.StartCheckForUpdates()
+
 	// Create context and channels for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

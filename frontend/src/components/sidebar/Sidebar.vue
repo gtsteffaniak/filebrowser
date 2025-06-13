@@ -14,12 +14,15 @@
       <span v-if="name != ''">
         <h4 style="margin: 0">{{ name }}</h4>
       </span>
+      <div v-if="shouldShow" class="release-banner">
+        <a :href="releaseUrl" >A new version is available!</a>
+      </div>
     </div>
   </nav>
 </template>
 
 <script>
-import { externalLinks, name } from "@/utils/constants";
+import { externalLinks, name, updateAvailable } from "@/utils/constants";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
@@ -37,11 +40,15 @@ export default {
     };
   },
   computed: {
+    releaseUrl: () => updateAvailable,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
     active: () => getters.isSidebarVisible(),
     behindOverlay: () => state.isSearchActive,
+    shouldShow() {
+      return updateAvailable != "" && state.user.permissions.admin;
+    },
   },
   methods: {
     // Show the help overlay

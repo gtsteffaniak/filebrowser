@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 )
 
@@ -59,6 +60,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"PasswordAvailable": config.Auth.Methods.PasswordAuth.Enabled,
 		"MediaAvailable":    config.Integrations.Media.FfmpegPath != "",
 		"MuPdfAvailable":    config.Server.MuPdfAvailable,
+		"UpdateAvailable":   utils.GetUpdateAvailableUrl(),
 	}
 
 	b, err := json.Marshal(data)
