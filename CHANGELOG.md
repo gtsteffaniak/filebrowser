@@ -14,8 +14,9 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - subtitles filename issue https://github.com/gtsteffaniak/filebrowser/issues/678
- - search result links not working with custom basePath https://github.com/gtsteffaniak/filebrowser/issues/746
+ - search result links not working with custom baseUrl https://github.com/gtsteffaniak/filebrowser/issues/746
  - preview error for office native preview https://github.com/gtsteffaniak/filebrowser/issues/744
+ - more source name safety for special characters.
 
 ## v0.7.8-beta
 

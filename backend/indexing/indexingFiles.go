@@ -212,7 +212,6 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		}
 
 		if isDir {
-
 			// skip non-indexable dirs.
 			if file.Name() == "$RECYCLE.BIN" || file.Name() == "System Volume Information" {
 				continue

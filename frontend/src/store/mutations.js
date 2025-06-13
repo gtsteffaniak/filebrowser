@@ -88,7 +88,7 @@ export const mutations = {
     let sources = {info: {}, current: currentSource, count: user.scopes.length};
     for (const source of user.scopes) {
       sources.info[source.name] = {
-        pathPrefix: sources.count == 1 ? "" : source.name,
+        pathPrefix: sources.count == 1 ? "" : encodeURIComponent(source.name),
         used: 0,
         total: 0,
         usedPercentage: 0,
