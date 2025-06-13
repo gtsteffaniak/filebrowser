@@ -78,17 +78,17 @@ type Source struct {
 }
 
 type SourceConfig struct {
-	IndexingInterval      uint32      `json:"indexingInterval"`      // optional manual overide interval in seconds to re-index the source
-	DisableIndexing       bool        `json:"disableIndexing"`       // disable the indexing of this source
-	MaxWatchers           int         `json:"maxWatchers"`           // number of concurrent watchers to use for this source, currently not supported
-	NeverWatch            []string    `json:"neverWatchPaths"`       // paths to never watch, relative to the source path (eg. "/folder/file.txt")
-	IgnoreHidden          bool        `json:"ignoreHidden"`          // ignore hidden files and folders.
-	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
-	Exclude               IndexFilter `json:"exclude"`               // exclude files and folders from indexing, if include is not set
-	Include               IndexFilter `json:"include"`               // include files and folders from indexing, if exclude is not set
-	DefaultUserScope      string      `json:"defaultUserScope"`      // default "/" should match folders under path
-	DefaultEnabled        bool        `json:"defaultEnabled"`        // should be added as a default source for new users?
-	CreateUserDir         bool        `json:"createUserDir"`         // create a user directory for each user
+	IndexingInterval      uint32      `json:"indexingIntervalMinutes"` // optional manual overide interval in seconds to re-index the source
+	DisableIndexing       bool        `json:"disableIndexing"`         // disable the indexing of this source
+	MaxWatchers           int         `json:"maxWatchers"`             // number of concurrent watchers to use for this source, currently not supported
+	NeverWatch            []string    `json:"neverWatchPaths"`         // paths to never watch, relative to the source path (eg. "/folder/file.txt")
+	IgnoreHidden          bool        `json:"ignoreHidden"`            // ignore hidden files and folders.
+	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"`   // ignore folders with 0 size
+	Exclude               IndexFilter `json:"exclude"`                 // exclude files and folders from indexing, if include is not set
+	Include               IndexFilter `json:"include"`                 // include files and folders from indexing, if exclude is not set
+	DefaultUserScope      string      `json:"defaultUserScope"`        // default "/" should match folders under path
+	DefaultEnabled        bool        `json:"defaultEnabled"`          // should be added as a default source for new users?
+	CreateUserDir         bool        `json:"createUserDir"`           // create a user directory for each user
 }
 
 type IndexFilter struct {

@@ -69,6 +69,7 @@ func (idx *Index) garbageCollection() {
 		if !ok {
 			idx.Directories[path] = nil
 			delete(idx.Directories, path)
+			idx.NumDeleted++
 		}
 	}
 	// Reset the ledger for the next scan.

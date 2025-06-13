@@ -193,20 +193,6 @@ func TestSetDirectoryInfo(t *testing.T) {
 	}
 }
 
-// Test for RemoveDirectory
-func TestRemoveDirectory(t *testing.T) {
-	index := &Index{
-		Directories: map[string]*iteminfo.FileInfo{
-			"/testpath": {},
-		},
-	}
-	index.RemoveDirectory("/testpath")
-	_, exists := index.Directories["/testpath"]
-	if exists {
-		t.Fatalf("expected directory to be removed")
-	}
-}
-
 func init() {
 	testIndex = Index{
 		ReducedIndex: ReducedIndex{

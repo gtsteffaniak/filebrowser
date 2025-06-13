@@ -427,7 +427,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.IndexFilter'
         description: include files and folders from indexing, if exclude is not set
-      indexingInterval:
+      indexingIntervalMinutes:
         description: optional manual overide interval in seconds to re-index the source
         type: integer
       maxWatchers:

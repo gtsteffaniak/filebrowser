@@ -2202,7 +2202,7 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "indexingInterval": {
+                "indexingIntervalMinutes": {
                     "description": "optional manual overide interval in seconds to re-index the source",
                     "type": "integer"
                 },
