@@ -20,6 +20,17 @@ var AllFiletypeOptions = []string{
 	"text",
 }
 
+var SubtitleExts = []string{
+	".vtt",
+	".srt",
+	".lrc",
+	".sbv",
+	".ass",
+	".ssa",
+	".sub",
+	".smi",
+}
+
 var MuPdfConvertable = []string{
 	".pdf",  // PDF
 	".xps",  // XPS

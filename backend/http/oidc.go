@@ -245,6 +245,15 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		} else {
 			return http.StatusForbidden, fmt.Errorf("user %s does not exist and createUser is disabled. Your admin needs to create your user before you can access this application", username)
 		}
+	} else {
+		// update user admin perms
+		if isAdmin != user.Permissions.Admin {
+			user.Permissions.Admin = isAdmin
+			err = store.Users.Update(user, true, "Permissions")
+			if err != nil {
+				logger.Warningf("failed to update oidc user %s admin permissions: %v", username, err)
+			}
+		}
 	}
 	if user.LoginMethod != users.LoginMethodOidc {
 		logger.Warningf("user %s is not allowed to login with oidc authentication, bypassing and updating login method", user.Username)
