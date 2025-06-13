@@ -165,7 +165,7 @@ export default {
       event.preventDefault();
       let link;
       if (state.isSearchActive) {
-        const hash = await filesApi.checksum(state.selected[0].path, algo);
+        const hash = await filesApi.checksum(state.selected[0].source, state.selected[0].path, algo);
         event.target.innerHTML = hash;
         return;
       }
@@ -175,7 +175,7 @@ export default {
         link = state.route.path;
       }
 
-      const hash = await filesApi.checksum(link, algo);
+      const hash = await filesApi.checksum(state.sources.current, link, algo);
       event.target.innerHTML = hash;
     },
   },

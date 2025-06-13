@@ -121,9 +121,8 @@ export function extractSourceFromPath(url) {
   if (state.serverHasMultipleSources) {
     source = path.split('/')[2];
     path = removePrefix(path, `/files/${source}`);
-    source = encodeURIComponent(source)
   } else {
-    source = encodeURIComponent(state.sources.current);
+    source = state.sources.current;
     path = removePrefix(path, '/files');
   }
 

@@ -498,9 +498,9 @@ export default {
       this.ongoing = true;
       let source = this.selectedSource;
       if (source == "") {
-        source = state.sources.current;
+        this.selectedSource = state.sources.current;
       }
-      this.results = await search(this.getContext, source, searchTypesFull + this.value);
+      this.results = await search(this.getContext, this.selectedSource, searchTypesFull + this.value);
 
       this.ongoing = false;
       if (this.results.length == 0) {
@@ -519,13 +519,17 @@ export default {
       if (this.getContext === "/") {
         path = s.path;
       }
+      let urlPath = "/files/" + state.sources.current + path;
+      if (!state.serverHasMultipleSources) {
+        urlPath = "/files" + path;
+      }
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
         size: s.size,
         type: s.type,
-        source: "",
-        url: path,
+        source: this.selectedSource,
+        url: urlPath,
         fullPath: path,
       };
       mutations.resetSelected();

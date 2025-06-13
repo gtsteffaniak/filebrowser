@@ -608,6 +608,9 @@ export default {
           break;
 
         case "Backspace":
+          if (getters.CurrentPromptName !== null) {
+            return;
+          }
           // go back
           router.push({ path: newPath });
           break;

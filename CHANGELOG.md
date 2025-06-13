@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
  - oidc groups header updates admin permission of existing user (either add/remove if role exists)'
  - builds amd64 binary with musl for compatibility (glic error) https://github.com/gtsteffaniak/filebrowser/issues/755
  - renamed `server.sources.config.disabled` to `server.sources.config.disableIndexing`
+ - better support for running with disabled index.
  - small indexing behavior tweaks.
  - markdown viewer hides sidebar https://github.com/gtsteffaniak/filebrowser/issues/744
 
@@ -17,6 +18,8 @@ All notable changes to this project will be documented in this file. For commit 
  - search result links not working with custom baseUrl https://github.com/gtsteffaniak/filebrowser/issues/746
  - preview error for office native preview https://github.com/gtsteffaniak/filebrowser/issues/744
  - more source name safety for special characters.
+ - shares with special character errors https://github.com/gtsteffaniak/filebrowser/issues/753
+ - backspace navigates back a page when typing https://github.com/gtsteffaniak/filebrowser/issues/663
 
 ## v0.7.8-beta
 
