@@ -21,4 +21,5 @@ var (
 	ErrNoTotpProvided       = errors.New("OTP code is required for user")
 	ErrNoTotpConfigured     = errors.New("OTP is enforced, but user is not yet configured")
 	ErrUnauthorized         = errors.New("user unauthorized")
+	ErrNotIndexed           = errors.New("directory or item excluded from indexing")
 )

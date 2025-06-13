@@ -7,8 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "net/http/pprof"
+
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -16,8 +19,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/swaggo/swag"
-
-	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 )
 
 var store *storage.Storage

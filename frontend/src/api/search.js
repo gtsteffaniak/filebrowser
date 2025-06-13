@@ -8,7 +8,7 @@ export default async function search(base, source, query) {
     if (!base.endsWith("/")) {
       base += "/";
     }
-    const apiPath = getApiPath("api/search", { scope: encodeURIComponent(base), query: query, source: source });
+    const apiPath = getApiPath("api/search", { scope: encodeURIComponent(base), query: query, source: encodeURIComponent(source) });
     const res = await fetchURL(apiPath);
     let data = await res.json();
 

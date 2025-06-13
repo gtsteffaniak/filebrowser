@@ -153,16 +153,8 @@ export const getters = {
     ) {
       visible = false
     }
-    if (currentView == 'preview') {
-      const contentType = getters.previewType()
-      if (
-        contentType == 'audio' ||
-        contentType == 'video' ||
-        contentType == 'image' ||
-        contentType == 'pdf'
-      ) {
-        visible = false
-      }
+    if (currentView == 'preview' || currentView  == 'markdownViewer') {
+      visible = false
     }
     if (currentView == 'editor' || currentView == 'onlyOfficeEditor') {
       visible = false

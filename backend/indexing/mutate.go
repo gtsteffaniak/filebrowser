@@ -22,8 +22,8 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo) bool {
 
 // GetMetadataInfo retrieves the FileInfo from the specified file or directory in the index.
 func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileInfo, bool) {
-	idx.mu.Lock()
-	defer idx.mu.Unlock()
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
 	checkDir := idx.MakeIndexPath(target)
 	if !isDir {
 		checkDir = idx.MakeIndexPath(filepath.Dir(target))
@@ -69,13 +69,6 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool) (*iteminfo.FileInfo
 	}
 	dir, exists := idx.Directories[checkDir]
 	return dir, exists
-}
-
-func (idx *Index) RemoveDirectory(path string) {
-	idx.mu.Lock()
-	defer idx.mu.Unlock()
-	idx.NumDeleted++
-	delete(idx.Directories, path)
 }
 
 func GetIndex(name string) *Index {

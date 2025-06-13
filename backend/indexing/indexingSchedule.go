@@ -9,15 +9,17 @@ import (
 )
 
 // schedule in minutes
-var scanSchedule = []time.Duration{
-	5 * time.Minute, // 5 minute quick scan & 25 minutes for a full scan
-	10 * time.Minute,
-	20 * time.Minute,
-	40 * time.Minute, // [3] element is 40 minutes, reset anchor for full scan
-	1 * time.Hour,
-	2 * time.Hour,
-	3 * time.Hour,
-	4 * time.Hour, // 4 hours for quick scan & 20 hours for a full scan
+var scanSchedule = map[int]time.Duration{
+	0: 5 * time.Minute, // 5 minute quick scan & 25 minutes for a full scan
+	1: 10 * time.Minute,
+	2: 20 * time.Minute,
+	3: 40 * time.Minute, // reset anchor for full scan
+	4: 1 * time.Hour,
+	5: 2 * time.Hour,
+	6: 3 * time.Hour, // [6]
+	7: 4 * time.Hour, // [7] 4 hours for quick scan & 20 hours for a full scan
+	8: 8 * time.Hour,
+	9: 12 * time.Hour,
 }
 
 var fullScanAnchor = 3 // index of the schedule for a full scan
@@ -53,11 +55,25 @@ func (idx *Index) PreScan() {
 
 func (idx *Index) PostScan() {
 	idx.mu.Lock()
+	idx.garbageCollection()
 	idx.runningScannerCount--
 	idx.mu.Unlock()
 	if idx.runningScannerCount == 0 {
 		idx.SetStatus(READY)
 	}
+}
+
+func (idx *Index) garbageCollection() {
+	for path := range idx.Directories {
+		_, ok := idx.DirectoriesLedger[path]
+		if !ok {
+			idx.Directories[path] = nil
+			delete(idx.Directories, path)
+			idx.NumDeleted++
+		}
+	}
+	// Reset the ledger for the next scan.
+	idx.DirectoriesLedger = make(map[string]bool)
 }
 
 func (idx *Index) UpdateSchedule() {
@@ -109,6 +125,10 @@ func (idx *Index) SendSourceUpdateEvent() {
 }
 
 func (idx *Index) RunIndexing(origin string, quick bool) {
+	if idx.runningScannerCount > 0 {
+		logger.Debugf("Indexing already in progress for [%v]", idx.Name)
+		return
+	}
 	idx.PreScan()
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles

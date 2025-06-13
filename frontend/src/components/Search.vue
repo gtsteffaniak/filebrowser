@@ -148,7 +148,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { url } from "@/utils/";
 
 import Icon from "@/components/files/Icon.vue";
-import { serverHasMultipleSources } from "@/utils/constants";
+import { serverHasMultipleSources, baseURL } from "@/utils/constants";
 
 var boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -395,9 +395,9 @@ export default {
       const encodedPath = encodeURIComponent(path).replace("/%20/g", "/");
       let fullpath = path;
       if (serverHasMultipleSources) {
-        fullpath = "/files/" + this.selectedSource + "/" + encodedPath;
+        fullpath = baseURL+"files/" + this.selectedSource + "/" + encodedPath;
       } else {
-        fullpath = "/files/" + encodedPath;
+        fullpath = baseURL+"files/" + encodedPath;
       }
       return fullpath;
     },
