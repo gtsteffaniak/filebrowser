@@ -179,7 +179,6 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(dir.Name())
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {
 		combinedPath = "/"

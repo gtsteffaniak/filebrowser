@@ -57,7 +57,6 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	source := splitFile[0]
 	path = splitFile[1]
 	var err error
-	fmt.Println("source", source)
 	userScope := "/"
 	if d.user.Username != "publicUser" {
 		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
@@ -186,7 +185,6 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFilePath := splitFile[1]
 	// decode url encoded source name
 	var err error
-	fmt.Println("firstFileSource", firstFileSource)
 	fileName := filepath.Base(firstFilePath)
 	userscope := "/"
 	if d.user.Username != "publicUser" {
