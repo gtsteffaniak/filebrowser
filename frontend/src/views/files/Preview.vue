@@ -127,7 +127,10 @@ export default {
         ".hwp": true,
         ".hwpx": true,
       };
-      return !!pdfConvertCompatibleFileExtensions[ext];
+      if (state.user.disableOfficePreviewExt.includes(ext)) {
+        return false;
+      }
+      return !!pdfConvertCompatibleFileExtensions[ext] ;
     },
     sidebarShowing() {
       return getters.isSidebarVisible();

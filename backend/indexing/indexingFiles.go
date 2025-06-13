@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -85,14 +86,13 @@ func Initialize(source settings.Source, mock bool) {
 		newIndex.RunIndexing("/", false)
 		go newIndex.setupIndexingScanners()
 	} else {
-		newIndex.Status = "disabled"
+		newIndex.Status = "ready"
 		logger.Debug("indexing disabled for source: " + newIndex.Name)
 	}
 }
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) error {
-
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
 	// Open the directory
 	dir, err := os.Open(realPath)
@@ -110,7 +110,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	// check if excluded from indexing
 	hidden := isHidden(dirInfo, idx.Path+adjustedPath)
 	if !recursive && idx.shouldSkip(true, hidden, adjustedPath) {
-		return nil
+		return errors.ErrNotIndexed
 	}
 
 	// if indexing, mark the directory as valid and indexed.
@@ -145,20 +145,54 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 		} else if quick {
 			for _, item := range cacheDirItems {
 				err = idx.indexDirectory(combinedPath+item.Name, quick, true)
-				if err != nil {
+				if err != nil && err != errors.ErrNotIndexed {
 					logger.Errorf("error indexing directory %v : %v", combinedPath+item.Name, err)
 				}
 			}
 			return nil
 		}
 	}
-
-	// Read directory contents
-	files, err := dir.Readdir(-1)
-	if err != nil {
-		return err
+	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, quick, recursive)
+	if err2 != nil {
+		return err2
 	}
+	// Update the current directory metadata in the index
+	idx.UpdateMetadata(dirFileInfo)
+	return nil
+}
 
+func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
+	realPath, isDir, err := idx.GetRealPath(adjustedPath)
+	if err != nil {
+		return nil, err
+	}
+	if !isDir {
+		return nil, fmt.Errorf("path is not a directory: %s", adjustedPath)
+	}
+	dir, err := os.Open(realPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+
+	dirInfo, err := dir.Stat()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(dir.Name())
+	combinedPath := adjustedPath + "/"
+	if adjustedPath == "/" {
+		combinedPath = "/"
+	}
+	return idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false)
+}
+
+func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, quick, recursive bool) (*iteminfo.FileInfo, error) {
+	// Read directory contents
+	files, err := dirInfo.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
 	var totalSize int64
 	fileInfos := []iteminfo.ItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
@@ -212,14 +246,8 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 		}
 	}
 
-	// After the loop, the 'files' slice is no longer needed.
-	// By setting it to nil, we allow the garbage collector to reclaim
-	// the potentially large amount of memory it was using, even before
-	// this function returns. This helps reduce peak memory during deep recursion.
-	files = nil
-
 	if totalSize == 0 && idx.Config.IgnoreZeroSizeFolders {
-		return nil
+		return nil, errors.ErrNotIndexed
 	}
 
 	// Create FileInfo for the current directory
@@ -229,16 +257,13 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 		Folders: dirInfos,
 	}
 	dirFileInfo.ItemInfo = iteminfo.ItemInfo{
-		Name:    dirInfo.Name(),
+		Name:    filepath.Base(dirInfo.Name()),
 		Type:    "directory",
 		Size:    totalSize,
-		ModTime: dirInfo.ModTime(),
+		ModTime: stat.ModTime(),
 	}
-
 	dirFileInfo.SortItems()
-	// Update the current directory metadata in the index
-	idx.UpdateMetadata(dirFileInfo)
-	return nil
+	return dirFileInfo, nil
 }
 
 // input should be non-index path.
@@ -307,7 +332,7 @@ func (idx *Index) RefreshFileInfo(opts iteminfo.FileOptions) error {
 	}
 	err := idx.indexDirectory(refreshOptions.Path, false, false)
 	if err != nil {
-		return fmt.Errorf("file/folder does not exist to refresh data: %s", refreshOptions.Path)
+		return err
 	}
 	file, exists := idx.GetMetadataInfo(refreshOptions.Path, true)
 	if !exists {

@@ -10,9 +10,12 @@ All notable changes to this project will be documented in this file. For commit 
  - builds amd64 binary with musl for compatibility (glic error) https://github.com/gtsteffaniak/filebrowser/issues/755
  - renamed `server.sources.config.disabled` to `server.sources.config.disableIndexing`
  - small indexing behavior tweaks.
+ - markdown viewer hides sidebar https://github.com/gtsteffaniak/filebrowser/issues/744
 
  **BugFixes**:
  - subtitles filename issue https://github.com/gtsteffaniak/filebrowser/issues/678
+ - search result links not working with custom basePath https://github.com/gtsteffaniak/filebrowser/issues/746
+ - preview error for office native preview https://github.com/gtsteffaniak/filebrowser/issues/744
 
 ## v0.7.8-beta
 

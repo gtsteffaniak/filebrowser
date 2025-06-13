@@ -41,32 +41,21 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 		return response, err
 	}
 	opts.IsDir = isDir
-	// TODO: whats the best way to save trips to disk here?
-	// disabled using cache because its not clear if this is helping or hurting
-	// check if the file exists in the index
-	//info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
-	//if exists {
-	//	err := RefreshFileInfo(opts)
-	//	if err != nil {
-	//		return info, err
-	//	}
-	//	if opts.Content {
-	//		content := ""
-	//		content, err = getContent(opts.Path)
-	//		if err != nil {
-	//			return info, err
-	//		}
-	//		info.Content = content
-	//	}
-	//	return info, nil
-	//}
+	var info *iteminfo.FileInfo
+	var exists bool
 	err = index.RefreshFileInfo(opts)
 	if err != nil {
-		return response, err
-	}
-	info, exists := index.GetReducedMetadata(opts.Path, opts.IsDir)
-	if !exists {
-		return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
+		if err == errors.ErrNotIndexed {
+			info, err = index.GetFsDirInfo(opts.Path)
+			if err != nil {
+				return response, err
+			}
+		}
+	} else {
+		info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)
+		if !exists {
+			return response, fmt.Errorf("could not get metadata for path: %v", opts.Path)
+		}
 	}
 	if opts.Content {
 		if info.Size < 20*1024*1024 { // 20 megabytes in bytes
