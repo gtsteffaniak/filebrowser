@@ -249,7 +249,10 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		// update user admin perms
 		if isAdmin != user.Permissions.Admin {
 			user.Permissions.Admin = isAdmin
-			store.Users.Update(user, true, "Permissions")
+			err = store.Users.Update(user, true, "Permissions")
+			if err != nil {
+				logger.Warningf("failed to update oidc user %s admin permissions: %v", username, err)
+			}
 		}
 	}
 	if user.LoginMethod != users.LoginMethodOidc {
