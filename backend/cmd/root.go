@@ -6,9 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"net/http"
 	_ "net/http/pprof"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
@@ -57,14 +55,6 @@ func StartFilebrowser() {
 	// Create context and channels for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	if os.Getenv("DEBUG_MEMORY") != "" {
-		go func() {
-			http.ListenAndServe("localhost:7777", nil)
-		}()
-		logger.Infof("Memory profiling started on localhost:7777")
-		time.Sleep(10 * time.Second)
-	}
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
