@@ -22,10 +22,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
             go-version: 'stable'
-      - uses: golangci/golangci-lint-action@v5
+      - uses: golangci/golangci-lint-action@v7
         with:
           version: 'v2.1.6'
           working-directory: backend
+          install-mode: goinstall
   format-backend:
     runs-on: ubuntu-latest
     steps:

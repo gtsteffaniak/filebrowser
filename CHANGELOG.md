@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - docker now defaults to ./data/databse.db as the database path allowing a simplified initial docker-compose.yaml. Existing configurations do not need updating.
  - oidc groups header updates admin permission of existing user (either add/remove if role exists)'
  - builds amd64 binary with musl for compatibility (glic error) https://github.com/gtsteffaniak/filebrowser/issues/755
+ - renamed `server.sources.config.disabled` to `server.sources.config.disableIndexing`
 
  **BugFixes**:
  - subtitles filename issue https://github.com/gtsteffaniak/filebrowser/issues/678
