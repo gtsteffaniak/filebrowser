@@ -5,19 +5,22 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/events"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // schedule in minutes
-var scanSchedule = []time.Duration{
-	5 * time.Minute, // 5 minute quick scan & 25 minutes for a full scan
-	10 * time.Minute,
-	20 * time.Minute,
-	40 * time.Minute, // [3] element is 40 minutes, reset anchor for full scan
-	1 * time.Hour,
-	2 * time.Hour,
-	3 * time.Hour,
-	4 * time.Hour, // 4 hours for quick scan & 20 hours for a full scan
+var scanSchedule = map[int]time.Duration{
+	0: 5 * time.Minute, // 5 minute quick scan & 25 minutes for a full scan
+	1: 10 * time.Minute,
+	2: 20 * time.Minute,
+	3: 40 * time.Minute, // reset anchor for full scan
+	4: 1 * time.Hour,
+	5: 2 * time.Hour,
+	6: 3 * time.Hour, // [6]
+	7: 4 * time.Hour, // [7] 4 hours for quick scan & 20 hours for a full scan
+	8: 8 * time.Hour,
+	9: 12 * time.Hour,
 }
 
 var fullScanAnchor = 3 // index of the schedule for a full scan
@@ -53,11 +56,37 @@ func (idx *Index) PreScan() {
 
 func (idx *Index) PostScan() {
 	idx.mu.Lock()
+	idx.garbageCollection()
 	idx.runningScannerCount--
 	idx.mu.Unlock()
 	if idx.runningScannerCount == 0 {
 		idx.SetStatus(READY)
 	}
+}
+
+// garbageCollection cleans up stale entries from the index.
+// It creates a new map with only the directories seen in the last scan,
+// allowing the garbage collector to free the memory from the old, larger map.
+func (idx *Index) garbageCollection() {
+	// Create a new map with a capacity based on the items seen in the last scan.
+	newDirectories := make(map[string]*iteminfo.FileInfo, len(idx.DirectoriesLedger))
+
+	// Only copy over the directories that were actually found in the last scan.
+	for path, fileInfo := range idx.Directories {
+		if _, seen := idx.DirectoriesLedger[path]; seen {
+			newDirectories[path] = fileInfo
+		} else {
+			// Optional: log which directory is being removed.
+			// logger.Debugf("GC: removing stale directory [%v] from index [%v]", path, idx.Name)
+		}
+	}
+
+	// Replace the old map with the new, correctly sized map.
+	// The old map will be garbage collected, releasing its memory.
+	idx.Directories = newDirectories
+
+	// Reset the ledger for the next scan.
+	idx.DirectoriesLedger = make(map[string]bool)
 }
 
 func (idx *Index) UpdateSchedule() {
@@ -109,6 +138,10 @@ func (idx *Index) SendSourceUpdateEvent() {
 }
 
 func (idx *Index) RunIndexing(origin string, quick bool) {
+	if idx.runningScannerCount > 0 {
+		logger.Debugf("Indexing already in progress for [%v]", idx.Name)
+		return
+	}
 	idx.PreScan()
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles

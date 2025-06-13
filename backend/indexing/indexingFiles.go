@@ -39,6 +39,7 @@ type Index struct {
 	CurrentSchedule            int `json:"-"`
 	settings.Source            `json:"-"`
 	Directories                map[string]*iteminfo.FileInfo `json:"-"`
+	DirectoriesLedger          map[string]bool               `json:"-"`
 	runningScannerCount        int                           `json:"-"`
 	SmartModifier              time.Duration                 `json:"-"`
 	FilesChangedDuringIndexing bool                          `json:"-"`
@@ -66,9 +67,10 @@ func init() {
 func Initialize(source settings.Source, mock bool) {
 	indexesMutex.Lock()
 	newIndex := Index{
-		mock:        mock,
-		Source:      source,
-		Directories: make(map[string]*iteminfo.FileInfo),
+		mock:              mock,
+		Source:            source,
+		Directories:       make(map[string]*iteminfo.FileInfo),
+		DirectoriesLedger: make(map[string]bool),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:     "indexing",
@@ -90,11 +92,12 @@ func Initialize(source settings.Source, mock bool) {
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) error {
+
 	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
 	// Open the directory
 	dir, err := os.Open(realPath)
 	if err != nil {
-		idx.RemoveDirectory(adjustedPath) // Remove, must have been deleted
+		// must have been deleted
 		return err
 	}
 	defer dir.Close()
@@ -102,6 +105,20 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	dirInfo, err := dir.Stat()
 	if err != nil {
 		return err
+	}
+
+	// check if excluded from indexing
+	hidden := isHidden(dirInfo, idx.Path+adjustedPath)
+	if !recursive && idx.shouldSkip(true, hidden, adjustedPath) {
+		return nil
+	}
+
+	// if indexing, mark the directory as valid and indexed.
+	if recursive {
+		// Prevent race conditions if scanning becomes concurrent in the future.
+		idx.mu.Lock()
+		idx.DirectoriesLedger[adjustedPath] = true
+		idx.mu.Unlock()
 	}
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {
@@ -148,16 +165,16 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-		isHidden := isHidden(file, idx.Path+combinedPath)
+		hidden := isHidden(file, idx.Path+combinedPath)
 		isDir := iteminfo.IsDirectory(file)
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(isDir, isHidden, fullCombined) {
+		if idx.shouldSkip(isDir, hidden, fullCombined) {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
 			Name:    file.Name(),
 			ModTime: file.ModTime(),
-			Hidden:  isHidden,
+			//Hidden:  hidden,
 		}
 
 		if isDir {

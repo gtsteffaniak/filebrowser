@@ -6,9 +6,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -16,8 +21,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/swaggo/swag"
-
-	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 )
 
 var store *storage.Storage
@@ -54,6 +57,14 @@ func StartFilebrowser() {
 	// Create context and channels for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	if os.Getenv("DEBUG_MEMORY") != "" {
+		go func() {
+			http.ListenAndServe("localhost:7777", nil)
+		}()
+		logger.Infof("Memory profiling started on localhost:7777")
+		time.Sleep(10 * time.Second)
+	}
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
