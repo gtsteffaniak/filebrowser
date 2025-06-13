@@ -62,6 +62,11 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	source := splitFile[0]
 	path = splitFile[1]
 	var err error
+	source, err = url.QueryUnescape(source)
+	if err != nil {
+		return fmt.Errorf("invalid source encoding: %v", err)
+	}
+	fmt.Println("source", source)
 	userScope := "/"
 	if d.user.Username != "publicUser" {
 		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
@@ -188,8 +193,13 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
-	fileName := filepath.Base(firstFilePath)
+	// decode url encoded source name
 	var err error
+	firstFileSource, err = url.QueryUnescape(firstFileSource)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+	}
+	fileName := filepath.Base(firstFilePath)
 	userscope := "/"
 	if d.user.Username != "publicUser" {
 		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
@@ -323,11 +333,15 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		}
 		source := splitFile[0]
 		path := splitFile[1]
+		var err error
+		source, err = url.QueryUnescape(source)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+		}
 		idx := indexing.GetIndex(source)
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
-		var err error
 		userScope := "/"
 		if d.user.Username != "publicUser" {
 			userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
@@ -342,7 +356,10 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		indexPath := idx.MakeIndexPath(realPath)
 		info, ok := idx.GetReducedMetadata(indexPath, isDir)
 		if !ok {
-			return 0, fmt.Errorf("failed to get metadata info for %s", path)
+			info, err = idx.GetFsDirInfo(indexPath)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)
+			}
 		}
 		estimatedSize += info.Size
 	}

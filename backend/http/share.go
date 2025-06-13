@@ -69,13 +69,6 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = settings.Config.Server.DefaultSource.Name
-	} else {
-		var err error
-		// decode url encoded source name
-		source, err = url.QueryUnescape(source)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-		}
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -199,13 +192,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	sourceName := r.URL.Query().Get("source")
 	if sourceName == "" {
 		sourceName = config.Server.DefaultSource.Name
-	} else {
-		var err error
-		// decode url encoded source name
-		sourceName, err = url.QueryUnescape(sourceName)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-		}
 	}
 	source := config.Server.NameToSource[sourceName]
 
