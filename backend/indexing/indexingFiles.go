@@ -127,9 +127,9 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	// get whats currently in cache
 	idx.mu.RLock()
 	cacheDirItems := []iteminfo.ItemInfo{}
-	modChange := true // default to true
+	modChange := false
 	cachedDir, exists := idx.Directories[adjustedPath]
-	if exists && quick {
+	if exists {
 		modChange = dirInfo.ModTime() != cachedDir.ModTime
 		cacheDirItems = cachedDir.Folders
 	}
@@ -137,20 +137,20 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// If the directory has not been modified since the last index, skip expensive readdir
 	// recursively check cached dirs for mod time changes as well
-	if !modChange && recursive {
-		for _, item := range cacheDirItems {
-			err = idx.indexDirectory(combinedPath+item.Name, quick, true)
-			if err != nil {
-				logger.Errorf("error indexing directory %v : %v", combinedPath+item.Name, err)
+	if recursive {
+		if modChange {
+			idx.mu.Lock()
+			idx.FilesChangedDuringIndexing = true
+			idx.mu.Unlock()
+		} else if quick {
+			for _, item := range cacheDirItems {
+				err = idx.indexDirectory(combinedPath+item.Name, quick, true)
+				if err != nil {
+					logger.Errorf("error indexing directory %v : %v", combinedPath+item.Name, err)
+				}
 			}
+			return nil
 		}
-		return nil
-	}
-
-	if quick {
-		idx.mu.Lock()
-		idx.FilesChangedDuringIndexing = true
-		idx.mu.Unlock()
 	}
 
 	// Read directory contents
@@ -174,7 +174,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 		itemInfo := &iteminfo.ItemInfo{
 			Name:    file.Name(),
 			ModTime: file.ModTime(),
-			//Hidden:  hidden,
+			Hidden:  hidden,
 		}
 
 		if isDir {
@@ -186,6 +186,8 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 			dirPath := combinedPath + file.Name()
 			if recursive {
+				// clear for garbage collection
+				file = nil
 				// Recursively index the subdirectory
 				err = idx.indexDirectory(dirPath, quick, recursive)
 				if err != nil {
@@ -209,9 +211,17 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			idx.NumFiles++
 		}
 	}
+
+	// After the loop, the 'files' slice is no longer needed.
+	// By setting it to nil, we allow the garbage collector to reclaim
+	// the potentially large amount of memory it was using, even before
+	// this function returns. This helps reduce peak memory during deep recursion.
+	files = nil
+
 	if totalSize == 0 && idx.Config.IgnoreZeroSizeFolders {
 		return nil
 	}
+
 	// Create FileInfo for the current directory
 	dirFileInfo := &iteminfo.FileInfo{
 		Path:    adjustedPath,

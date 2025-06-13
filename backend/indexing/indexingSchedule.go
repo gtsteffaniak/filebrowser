@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/events"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -64,27 +63,14 @@ func (idx *Index) PostScan() {
 	}
 }
 
-// garbageCollection cleans up stale entries from the index.
-// It creates a new map with only the directories seen in the last scan,
-// allowing the garbage collector to free the memory from the old, larger map.
 func (idx *Index) garbageCollection() {
-	// Create a new map with a capacity based on the items seen in the last scan.
-	newDirectories := make(map[string]*iteminfo.FileInfo, len(idx.DirectoriesLedger))
-
-	// Only copy over the directories that were actually found in the last scan.
-	for path, fileInfo := range idx.Directories {
-		if _, seen := idx.DirectoriesLedger[path]; seen {
-			newDirectories[path] = fileInfo
-		} else {
-			// Optional: log which directory is being removed.
-			// logger.Debugf("GC: removing stale directory [%v] from index [%v]", path, idx.Name)
+	for path := range idx.Directories {
+		_, ok := idx.DirectoriesLedger[path]
+		if !ok {
+			idx.Directories[path] = nil
+			delete(idx.Directories, path)
 		}
 	}
-
-	// Replace the old map with the new, correctly sized map.
-	// The old map will be garbage collected, releasing its memory.
-	idx.Directories = newDirectories
-
 	// Reset the ledger for the next scan.
 	idx.DirectoriesLedger = make(map[string]bool)
 }
