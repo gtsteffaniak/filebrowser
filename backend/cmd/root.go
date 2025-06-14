@@ -7,8 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "net/http/pprof"
+
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
@@ -16,8 +20,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/swaggo/swag"
-
-	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 )
 
 var store *storage.Storage
@@ -51,6 +53,13 @@ func StartFilebrowser() {
 	if !keepGoing {
 		return
 	}
+	info, _ := utils.CheckForUpdates()
+	if info.LatestVersion != "" {
+		logger.Infof("A new version is available: %s (current: %s)", info.LatestVersion, info.CurrentVersion)
+		logger.Infof("Release notes: %s", info.ReleaseNotes)
+	}
+	go utils.StartCheckForUpdates()
+
 	// Create context and channels for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

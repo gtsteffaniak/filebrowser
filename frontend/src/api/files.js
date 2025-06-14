@@ -26,7 +26,7 @@ export async function fetchFiles(url, content = false) {
 async function resourceAction(url, method, content) {
   try {
     const result = extractSourceFromPath(url)
-    let source = result.source
+    let source = encodeURIComponent(result.source)
     let path = result.path
     let opts = { method }
     if (content) {
@@ -69,14 +69,13 @@ export function download(format, files) {
   if (format !== 'zip') {
     format = 'tar.gz'
   }
-
   let fileargs = ''
   if (files.length === 1) {
-    const result = extractSourceFromPath(decodeURI(files[0]))
+    const result = extractSourceFromPath(decodeURIComponent(files[0]))
     fileargs = result.source + '::' + result.path + '||'
   } else {
     for (let file of files) {
-      const result = extractSourceFromPath(decodeURI(file))
+      const result = extractSourceFromPath(decodeURIComponent(file))
       fileargs += result.source + '::' + result.path + '||'
     }
   }
@@ -110,7 +109,7 @@ export async function post(url, content = '', overwrite = false, onupload) {
 
     const apiPath = getApiPath('api/resources', {
       path: result.path,
-      source: result.source,
+      source: encodeURIComponent(result.source),
       override: overwrite
     })
     return new Promise((resolve, reject) => {
@@ -164,7 +163,7 @@ export async function moveCopy(
       const toResult = extractSourceFromPath(item.to)
       let localParams = {
         ...params,
-        destination: toResult.source + '::' + toResult.path,
+        destination: encodeURIComponent(toResult.source) + '::' + toResult.path,
         from: fromResult.source + '::' + fromResult.path
       }
       const apiPath = getApiPath('api/resources', localParams)
@@ -189,12 +188,11 @@ export async function moveCopy(
   }
 }
 
-export async function checksum(url, algo) {
+export async function checksum(source, path, algo) {
   try {
-    const result = extractSourceFromPath(url)
     const params = {
-      path: encodeURIComponent(result.path),
-      source: result.source,
+      path: encodeURIComponent(path),
+      source: encodeURIComponent(source),
       checksum: algo
     }
     const apiPath = getApiPath('api/resources', params)
@@ -210,7 +208,7 @@ export async function checksum(url, algo) {
 export function getDownloadURL(source, path, inline, useExternal) {
   try {
     const params = {
-      files: source + '::' + encodeURIComponent(path),
+      files: encodeURIComponent(source) + '::' + encodeURIComponent(path),
       ...(inline && { inline: 'true' })
     }
     const apiPath = getApiPath('api/raw', params)
@@ -230,7 +228,7 @@ export function getPreviewURL(source, path, modified) {
     const params = {
       path: encodeURIComponent(path),
       key: Date.parse(modified), // Use modified date as cache key
-      source: source,
+      source: encodeURIComponent(source),
       inline: 'true'
     }
     const apiPath = getApiPath('api/preview', params)

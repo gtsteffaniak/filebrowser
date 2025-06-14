@@ -37,12 +37,12 @@ func (idx *Index) Search(search string, scope string, sourceSession string) []Se
 	results := make(map[string]SearchResult, 0)
 	count := 0
 	var directories []string
-	cachedDirs, ok := SearchResultsCache.Get(idx.Source.Path + scope).([]string)
+	cachedDirs, ok := SearchResultsCache.Get(idx.Path + scope).([]string)
 	if ok {
 		directories = cachedDirs
 	} else {
 		directories = idx.getDirsInScope(scope)
-		SearchResultsCache.Set(idx.Source.Path+scope, directories)
+		SearchResultsCache.Set(idx.Path+scope, directories)
 	}
 	for _, searchTerm := range searchOptions.Terms {
 		if searchTerm == "" {

@@ -92,7 +92,7 @@ func GetPreviewForFile(file iteminfo.ExtendedFileInfo, previewSize, url string, 
 	if !AvailablePreview(file) {
 		return nil, ErrUnsupportedMedia
 	}
-	cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
+	cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
 	if data, found, err := service.fileCache.Load(context.Background(), cacheKey); err != nil {
 		return nil, fmt.Errorf("failed to load from cache: %w", err)
 	} else if found {
@@ -110,7 +110,7 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 	)
 	// Generate thumbnail image from video
 	hasher := md5.New() //nolint:gosec
-	_, _ = hasher.Write([]byte(CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)))
+	_, _ = hasher.Write([]byte(CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 	// Generate an image from office document
 	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
@@ -154,13 +154,13 @@ func GeneratePreview(file iteminfo.ExtendedFileInfo, previewSize, officeUrl stri
 			return nil, fmt.Errorf("failed to resize preview image: %w", err)
 		}
 		// Cache and return
-		cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
+		cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
 		if err := service.fileCache.Store(context.Background(), cacheKey, resizedBytes); err != nil {
 			logger.Errorf("failed to cache resized image: %v", err)
 		}
 		return resizedBytes, nil
 	} else {
-		cacheKey := CacheKey(file.RealPath, previewSize, file.ItemInfo.ModTime, seekPercentage)
+		cacheKey := CacheKey(file.RealPath, previewSize, file.ModTime, seekPercentage)
 		if err := service.fileCache.Store(context.Background(), cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache resized image: %v", err)
 		}
@@ -202,9 +202,9 @@ func CacheKey(realPath, previewSize string, modTime time.Time, percentage int) s
 }
 
 func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
-	errSmall := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "small", file.ItemInfo.ModTime, 0))
+	errSmall := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "small", file.ModTime, 0))
 	if errSmall != nil {
-		errLarge := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "large", file.ItemInfo.ModTime, 0))
+		errLarge := service.fileCache.Delete(ctx, CacheKey(file.RealPath, "large", file.ModTime, 0))
 		if errLarge != nil {
 			logger.Debugf("Could not delete thumbnail: %v", file.Name)
 		}

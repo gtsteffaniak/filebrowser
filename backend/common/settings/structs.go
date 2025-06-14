@@ -78,17 +78,17 @@ type Source struct {
 }
 
 type SourceConfig struct {
-	IndexingInterval      uint32      `json:"indexingInterval"`      // optional manual overide interval in seconds to re-index the source
-	Disabled              bool        `json:"disabled"`              // disable the indexing of this source
-	MaxWatchers           int         `json:"maxWatchers"`           // number of concurrent watchers to use for this source, currently not supported
-	NeverWatch            []string    `json:"neverWatchPaths"`       // paths to never watch, relative to the source path (eg. "/folder/file.txt")
-	IgnoreHidden          bool        `json:"ignoreHidden"`          // ignore hidden files and folders.
-	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
-	Exclude               IndexFilter `json:"exclude"`               // exclude files and folders from indexing, if include is not set
-	Include               IndexFilter `json:"include"`               // include files and folders from indexing, if exclude is not set
-	DefaultUserScope      string      `json:"defaultUserScope"`      // default "/" should match folders under path
-	DefaultEnabled        bool        `json:"defaultEnabled"`        // should be added as a default source for new users?
-	CreateUserDir         bool        `json:"createUserDir"`         // create a user directory for each user
+	IndexingInterval      uint32      `json:"indexingIntervalMinutes"` // optional manual overide interval in seconds to re-index the source
+	DisableIndexing       bool        `json:"disableIndexing"`         // disable the indexing of this source
+	MaxWatchers           int         `json:"maxWatchers"`             // number of concurrent watchers to use for this source, currently not supported
+	NeverWatch            []string    `json:"neverWatchPaths"`         // paths to never watch, relative to the source path (eg. "/folder/file.txt")
+	IgnoreHidden          bool        `json:"ignoreHidden"`            // ignore hidden files and folders.
+	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"`   // ignore folders with 0 size
+	Exclude               IndexFilter `json:"exclude"`                 // exclude files and folders from indexing, if include is not set
+	Include               IndexFilter `json:"include"`                 // include files and folders from indexing, if exclude is not set
+	DefaultUserScope      string      `json:"defaultUserScope"`        // default "/" should match folders under path
+	DefaultEnabled        bool        `json:"defaultEnabled"`          // should be added as a default source for new users?
+	CreateUserDir         bool        `json:"createUserDir"`           // create a user directory for each user
 }
 
 type IndexFilter struct {
@@ -113,22 +113,23 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
-	StickySidebar           bool                `json:"stickySidebar"`             // keep sidebar open when navigating
-	DarkMode                bool                `json:"darkMode"`                  // should dark mode be enabled
-	Locale                  string              `json:"locale"`                    // language to use: eg. de, en, or fr
-	ViewMode                string              `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
-	SingleClick             bool                `json:"singleClick"`               // open directory on single click, also enables middle click to open in new tab
-	ShowHidden              bool                `json:"showHidden"`                // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
-	DateFormat              bool                `json:"dateFormat"`                // when false, the date is relative, when true, the date is an exact timestamp
-	GallerySize             int                 `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
-	ThemeColor              string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-	QuickDownload           bool                `json:"quickDownload"`             // show icon to download in one click
-	DisableOnlyOfficeExt    string              `json:"disableOnlyOfficeExt"`      // comma separated list of file extensions to disable onlyoffice preview for
-	DisableOfficePreviewExt string              `json:"disableOfficePreviewExt"`   // comma separated list of file extensions to disable office preview for
-	LockPassword            bool                `json:"lockPassword"`              // disable the user from changing their password
-	DisableSettings         bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
-	Preview                 users.Preview       `json:"preview"`
-	DefaultScopes           []users.SourceScope `json:"-"`
-	Permissions             users.Permissions   `json:"permissions"`
-	LoginMethod             string              `json:"loginMethod,omitempty"` // login method to use: eg. password, proxy, oidc
+	StickySidebar              bool                `json:"stickySidebar"`             // keep sidebar open when navigating
+	DarkMode                   bool                `json:"darkMode"`                  // should dark mode be enabled
+	Locale                     string              `json:"locale"`                    // language to use: eg. de, en, or fr
+	ViewMode                   string              `json:"viewMode"`                  // view mode to use: eg. normal, list, grid, or compact
+	SingleClick                bool                `json:"singleClick"`               // open directory on single click, also enables middle click to open in new tab
+	ShowHidden                 bool                `json:"showHidden"`                // show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files
+	DateFormat                 bool                `json:"dateFormat"`                // when false, the date is relative, when true, the date is an exact timestamp
+	GallerySize                int                 `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
+	ThemeColor                 string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	QuickDownload              bool                `json:"quickDownload"`             // show icon to download in one click
+	DisableOnlyOfficeExt       string              `json:"disableOnlyOfficeExt"`      // comma separated list of file extensions to disable onlyoffice preview for
+	DisableOfficePreviewExt    string              `json:"disableOfficePreviewExt"`   // comma separated list of file extensions to disable office preview for
+	LockPassword               bool                `json:"lockPassword"`              // disable the user from changing their password
+	DisableSettings            bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
+	Preview                    users.Preview       `json:"preview"`
+	DefaultScopes              []users.SourceScope `json:"-"`
+	Permissions                users.Permissions   `json:"permissions"`
+	LoginMethod                string              `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
+	DisableUpdateNotifications bool                `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 }

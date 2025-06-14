@@ -123,7 +123,8 @@ export default {
         routePath == "/";
       // lets redirect if multiple sources and user went to /files/
       if (state.serverHasMultipleSources && rootRoute) {
-        router.push(`${routePath}/${state.sources.current}`);
+        const urlEncodedSource = encodeURIComponent(state.sources.current)
+        router.push(`${routePath}/${urlEncodedSource}`);
         return;
       }
       this.lastHash = "";

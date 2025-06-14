@@ -9,15 +9,17 @@ import (
 )
 
 // schedule in minutes
-var scanSchedule = []time.Duration{
-	5 * time.Minute, // 5 minute quick scan & 25 minutes for a full scan
-	10 * time.Minute,
-	20 * time.Minute,
-	40 * time.Minute, // [3] element is 40 minutes, reset anchor for full scan
-	1 * time.Hour,
-	2 * time.Hour,
-	3 * time.Hour,
-	4 * time.Hour, // 4 hours for quick scan & 20 hours for a full scan
+var scanSchedule = map[int]time.Duration{
+	0: 5 * time.Minute, // 5 minute quick scan & 25 minutes for a full scan
+	1: 10 * time.Minute,
+	2: 20 * time.Minute,
+	3: 40 * time.Minute, // reset anchor for full scan
+	4: 1 * time.Hour,
+	5: 2 * time.Hour,
+	6: 3 * time.Hour, // [6]
+	7: 4 * time.Hour, // [7] 4 hours for quick scan & 20 hours for a full scan
+	8: 8 * time.Hour,
+	9: 12 * time.Hour,
 }
 
 var fullScanAnchor = 3 // index of the schedule for a full scan
@@ -31,8 +33,8 @@ func (idx *Index) newScanner(origin string) {
 		if idx.Assessment == "simple" {
 			sleepTime = scanSchedule[idx.CurrentSchedule] - idx.SmartModifier
 		}
-		if idx.Source.Config.IndexingInterval > 0 {
-			sleepTime = time.Duration(idx.Source.Config.IndexingInterval) * time.Minute
+		if idx.Config.IndexingInterval > 0 {
+			sleepTime = time.Duration(idx.Config.IndexingInterval) * time.Minute
 		}
 		// Log and sleep before indexing
 		logger.Debugf("Next scan in %v", sleepTime)
@@ -53,11 +55,25 @@ func (idx *Index) PreScan() {
 
 func (idx *Index) PostScan() {
 	idx.mu.Lock()
+	idx.garbageCollection()
 	idx.runningScannerCount--
 	idx.mu.Unlock()
 	if idx.runningScannerCount == 0 {
 		idx.SetStatus(READY)
 	}
+}
+
+func (idx *Index) garbageCollection() {
+	for path := range idx.Directories {
+		_, ok := idx.DirectoriesLedger[path]
+		if !ok {
+			idx.Directories[path] = nil
+			delete(idx.Directories, path)
+			idx.NumDeleted++
+		}
+	}
+	// Reset the ledger for the next scan.
+	idx.DirectoriesLedger = make(map[string]bool)
 }
 
 func (idx *Index) UpdateSchedule() {
@@ -109,13 +125,17 @@ func (idx *Index) SendSourceUpdateEvent() {
 }
 
 func (idx *Index) RunIndexing(origin string, quick bool) {
+	if idx.runningScannerCount > 0 {
+		logger.Debugf("Indexing already in progress for [%v]", idx.Name)
+		return
+	}
 	idx.PreScan()
 	prevNumDirs := idx.NumDirs
 	prevNumFiles := idx.NumFiles
 	if quick {
-		logger.Debugf("Starting quick scan for [%v]", idx.Source.Name)
+		logger.Debugf("Starting quick scan for [%v]", idx.Name)
 	} else {
-		logger.Debugf("Starting full scan for [%v]", idx.Source.Name)
+		logger.Debugf("Starting full scan for [%v]", idx.Name)
 		idx.NumDirs = 0
 		idx.NumFiles = 0
 	}
@@ -126,13 +146,13 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 	if err != nil {
 		logger.Errorf("Error during indexing: %v", err)
 	}
-	firstRun := idx.LastIndexed == time.Time{}
+	firstRun := time.Time.Equal(idx.LastIndexed, time.Time{})
 	// Update the LastIndexed time
 	idx.LastIndexed = time.Now()
 	idx.LastIndexedUnix = idx.LastIndexed.Unix()
 	if quick {
 		idx.QuickScanTime = int(time.Since(startTime).Seconds())
-		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.QuickScanTime)
+		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, idx.QuickScanTime)
 	} else {
 		idx.FullScanTime = int(time.Since(startTime).Seconds())
 		// update smart indexing
@@ -147,14 +167,14 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 			idx.Assessment = "normal"
 		}
 		if firstRun {
-			logger.Infof("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Source.Name, idx.Assessment, idx.NumDirs, idx.NumFiles)
+			logger.Infof("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Name, idx.Assessment, idx.NumDirs, idx.NumFiles)
 		} else {
-			logger.Debugf("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Source.Name, idx.Assessment, idx.NumDirs, idx.NumFiles)
+			logger.Debugf("Index assessment         : [%v] complexity=%v directories=%v files=%v", idx.Name, idx.Assessment, idx.NumDirs, idx.NumFiles)
 		}
 		if idx.NumDirs != prevNumDirs || idx.NumFiles != prevNumFiles {
 			idx.FilesChangedDuringIndexing = true
 		}
-		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Source.Name, idx.FullScanTime)
+		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, idx.FullScanTime)
 	}
 
 	idx.PostScan()

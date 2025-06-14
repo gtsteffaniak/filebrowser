@@ -60,13 +60,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
-	} else {
-		var err error
-		// decode url encoded source name
-		source, err = url.QueryUnescape(source)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-		}
 	}
 	scope := r.URL.Query().Get("scope")
 	unencodedScope, err := url.QueryUnescape(scope)
@@ -85,11 +78,12 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		return http.StatusForbidden, err
 	}
 	combinedPath := index.MakeIndexPath(filepath.Join(userscope, searchScope))
+	combinedPath = strings.TrimSuffix(combinedPath, "/") + "/" // Ensure trailing slash
 	// Perform the search using the provided query and user scope
 	response := index.Search(query, combinedPath, sessionId)
 	for i := range response {
 		// Remove the user scope from the path
-		response[i].Path = strings.TrimPrefix(response[i].Path, userscope)
+		response[i].Path = strings.TrimPrefix(response[i].Path, combinedPath)
 		if response[i].Path == "" {
 			response[i].Path = "/"
 		}

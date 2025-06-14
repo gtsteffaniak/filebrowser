@@ -226,7 +226,7 @@ func loadConfigWithDefaults(configFile string) error {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		logger.Warningf("could not open config file '%v', using default settings", configFile)
+		logger.Errorf("could not open config file '%v', using default settings.", configFile)
 		Config.Server.Sources = []Source{
 			{
 				Path: ".",
@@ -292,12 +292,16 @@ func setDefaults() Settings {
 	if cpus := runtime.NumCPU(); cpus > 0 {
 		numCpus = cpus
 	}
+	database := os.Getenv("FILEBROWSER_DATABASE")
+	if database == "" {
+		database = "database.db"
+	}
 	return Settings{
 		Server: Server{
 			Port:               80,
 			NumImageProcessors: numCpus,
 			BaseURL:            "",
-			Database:           "database.db",
+			Database:           database,
 			SourceMap:          map[string]Source{},
 			NameToSource:       map[string]Source{},
 			MaxArchiveSizeGB:   50,

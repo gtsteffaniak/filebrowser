@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -39,6 +40,7 @@ type Index struct {
 	CurrentSchedule            int `json:"-"`
 	settings.Source            `json:"-"`
 	Directories                map[string]*iteminfo.FileInfo `json:"-"`
+	DirectoriesLedger          map[string]bool               `json:"-"`
 	runningScannerCount        int                           `json:"-"`
 	SmartModifier              time.Duration                 `json:"-"`
 	FilesChangedDuringIndexing bool                          `json:"-"`
@@ -66,34 +68,36 @@ func init() {
 func Initialize(source settings.Source, mock bool) {
 	indexesMutex.Lock()
 	newIndex := Index{
-		mock:        mock,
-		Source:      source,
-		Directories: make(map[string]*iteminfo.FileInfo),
+		mock:              mock,
+		Source:            source,
+		Directories:       make(map[string]*iteminfo.FileInfo),
+		DirectoriesLedger: make(map[string]bool),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:     "indexing",
 		IdxName:    source.Name,
 		Assessment: "unknown",
 	}
-	indexes[newIndex.Source.Name] = &newIndex
+	indexes[newIndex.Name] = &newIndex
 	indexesMutex.Unlock()
-	if !newIndex.Source.Config.Disabled {
+	if !newIndex.Config.DisableIndexing {
 		time.Sleep(time.Second)
-		logger.Infof("initializing index: [%v]", newIndex.Source.Name)
+		logger.Infof("initializing index: [%v]", newIndex.Name)
 		newIndex.RunIndexing("/", false)
 		go newIndex.setupIndexingScanners()
 	} else {
-		logger.Debug("indexing disabled for source: " + newIndex.Source.Name)
+		newIndex.Status = "ready"
+		logger.Debug("indexing disabled for source: " + newIndex.Name)
 	}
 }
 
 // Define a function to recursively index files and directories
 func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) error {
-	realPath := strings.TrimRight(idx.Source.Path, "/") + adjustedPath
+	realPath := strings.TrimRight(idx.Path, "/") + adjustedPath
 	// Open the directory
 	dir, err := os.Open(realPath)
 	if err != nil {
-		idx.RemoveDirectory(adjustedPath) // Remove, must have been deleted
+		// must have been deleted
 		return err
 	}
 	defer dir.Close()
@@ -102,6 +106,21 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	if err != nil {
 		return err
 	}
+
+	// check if excluded from indexing
+	hidden := isHidden(dirInfo, idx.Path+adjustedPath)
+	if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath) {
+		logger.Debugf("skipping directory %s due to exclusion rules", adjustedPath)
+		return errors.ErrNotIndexed
+	}
+
+	// if indexing, mark the directory as valid and indexed.
+	if recursive {
+		// Prevent race conditions if scanning becomes concurrent in the future.
+		idx.mu.Lock()
+		idx.DirectoriesLedger[adjustedPath] = true
+		idx.mu.Unlock()
+	}
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {
 		combinedPath = "/"
@@ -109,9 +128,9 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	// get whats currently in cache
 	idx.mu.RLock()
 	cacheDirItems := []iteminfo.ItemInfo{}
-	modChange := true // default to true
+	modChange := false
 	cachedDir, exists := idx.Directories[adjustedPath]
-	if exists && quick {
+	if exists {
 		modChange = dirInfo.ModTime() != cachedDir.ModTime
 		cacheDirItems = cachedDir.Folders
 	}
@@ -119,48 +138,80 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// If the directory has not been modified since the last index, skip expensive readdir
 	// recursively check cached dirs for mod time changes as well
-	if !modChange && recursive {
-		for _, item := range cacheDirItems {
-			err = idx.indexDirectory(combinedPath+item.Name, quick, true)
-			if err != nil {
-				logger.Errorf("error indexing directory %v : %v", combinedPath+item.Name, err)
+	if recursive {
+		if modChange {
+			idx.mu.Lock()
+			idx.FilesChangedDuringIndexing = true
+			idx.mu.Unlock()
+		} else if quick {
+			for _, item := range cacheDirItems {
+				err = idx.indexDirectory(combinedPath+item.Name, quick, true)
+				if err != nil && err != errors.ErrNotIndexed {
+					logger.Errorf("error indexing directory %v : %v", combinedPath+item.Name, err)
+				}
 			}
+			return nil
 		}
-		return nil
 	}
-
-	if quick {
-		idx.mu.Lock()
-		idx.FilesChangedDuringIndexing = true
-		idx.mu.Unlock()
+	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, quick, recursive)
+	if err2 != nil {
+		return err2
 	}
+	// Update the current directory metadata in the index
+	idx.UpdateMetadata(dirFileInfo)
+	return nil
+}
 
-	// Read directory contents
-	files, err := dir.Readdir(-1)
+func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
+	realPath, isDir, err := idx.GetRealPath(adjustedPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	if !isDir {
+		return nil, fmt.Errorf("path is not a directory: %s", adjustedPath)
+	}
+	dir, err := os.Open(realPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
 
+	dirInfo, err := dir.Stat()
+	if err != nil {
+		return nil, err
+	}
+	combinedPath := adjustedPath + "/"
+	if adjustedPath == "/" {
+		combinedPath = "/"
+	}
+	return idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false)
+}
+
+func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, quick, recursive bool) (*iteminfo.FileInfo, error) {
+	// Read directory contents
+	files, err := dirInfo.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
 	var totalSize int64
 	fileInfos := []iteminfo.ItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
 
 	// Process each file and directory in the current directory
 	for _, file := range files {
-		isHidden := isHidden(file, idx.Source.Path+combinedPath)
+		hidden := isHidden(file, idx.Path+combinedPath)
 		isDir := iteminfo.IsDirectory(file)
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(isDir, isHidden, fullCombined) {
+		if idx.shouldSkip(isDir, hidden, fullCombined) {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
 			Name:    file.Name(),
 			ModTime: file.ModTime(),
-			Hidden:  isHidden,
+			Hidden:  hidden,
 		}
 
 		if isDir {
-
 			// skip non-indexable dirs.
 			if file.Name() == "$RECYCLE.BIN" || file.Name() == "System Volume Information" {
 				continue
@@ -168,6 +219,8 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 			dirPath := combinedPath + file.Name()
 			if recursive {
+				// clear for garbage collection
+				file = nil
 				// Recursively index the subdirectory
 				err = idx.indexDirectory(dirPath, quick, recursive)
 				if err != nil {
@@ -191,9 +244,11 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			idx.NumFiles++
 		}
 	}
-	if totalSize == 0 && idx.Source.Config.IgnoreZeroSizeFolders {
-		return nil
+
+	if totalSize == 0 && idx.Config.IgnoreZeroSizeFolders {
+		return nil, errors.ErrNotIndexed
 	}
+
 	// Create FileInfo for the current directory
 	dirFileInfo := &iteminfo.FileInfo{
 		Path:    adjustedPath,
@@ -201,16 +256,13 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 		Folders: dirInfos,
 	}
 	dirFileInfo.ItemInfo = iteminfo.ItemInfo{
-		Name:    dirInfo.Name(),
+		Name:    filepath.Base(dirInfo.Name()),
 		Type:    "directory",
 		Size:    totalSize,
-		ModTime: dirInfo.ModTime(),
+		ModTime: stat.ModTime(),
 	}
-
 	dirFileInfo.SortItems()
-	// Update the current directory metadata in the index
-	idx.UpdateMetadata(dirFileInfo)
-	return nil
+	return dirFileInfo, nil
 }
 
 // input should be non-index path.
@@ -218,12 +270,12 @@ func (idx *Index) MakeIndexPath(subPath string) string {
 	if strings.HasPrefix(subPath, "./") {
 		subPath = strings.TrimPrefix(subPath, ".")
 	}
-	if idx.Source.Path == subPath || subPath == "." {
+	if idx.Path == subPath || subPath == "." {
 		return "/"
 	}
 	// clean path
 	subPath = strings.TrimSuffix(subPath, "/")
-	adjustedPath := strings.TrimPrefix(subPath, idx.Source.Path)
+	adjustedPath := strings.TrimPrefix(subPath, idx.Path)
 	// remove index prefix
 	adjustedPath = strings.ReplaceAll(adjustedPath, "\\", "/")
 	// remove trailing slash
@@ -247,7 +299,7 @@ func (idx *Index) recursiveUpdateDirSizes(childInfo *iteminfo.FileInfo, previous
 }
 
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
-	combined := append([]string{idx.Source.Path}, relativePath...)
+	combined := append([]string{idx.Path}, relativePath...)
 	joinedPath := filepath.Join(combined...)
 	isDir, _ := RealPathCache.Get(joinedPath + ":isdir").(bool)
 	cached, ok := RealPathCache.Get(joinedPath).(string)
@@ -279,7 +331,7 @@ func (idx *Index) RefreshFileInfo(opts iteminfo.FileOptions) error {
 	}
 	err := idx.indexDirectory(refreshOptions.Path, false, false)
 	if err != nil {
-		return fmt.Errorf("file/folder does not exist to refresh data: %s", refreshOptions.Path)
+		return err
 	}
 	file, exists := idx.GetMetadataInfo(refreshOptions.Path, true)
 	if !exists {
@@ -317,21 +369,24 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 }
 
 func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) bool {
+	if idx.Config.DisableIndexing {
+		return true
+	}
 	// check inclusions first
-	if isDir && len(idx.Source.Config.Include.Folders) > 0 {
-		if !slices.Contains(idx.Source.Config.Include.Folders, fullCombined) {
+	if isDir && len(idx.Config.Include.Folders) > 0 {
+		if !slices.Contains(idx.Config.Include.Folders, fullCombined) {
 			return true
 		}
 	}
-	if !isDir && len(idx.Source.Config.Include.Files) > 0 {
-		if !slices.Contains(idx.Source.Config.Include.Files, fullCombined) {
+	if !isDir && len(idx.Config.Include.Files) > 0 {
+		if !slices.Contains(idx.Config.Include.Files, fullCombined) {
 			return true
 		}
 	}
 
-	if !isDir && len(idx.Source.Config.Include.FileEndsWith) > 0 {
+	if !isDir && len(idx.Config.Include.FileEndsWith) > 0 {
 		shouldSkip := true
-		for _, end := range idx.Source.Config.Include.FileEndsWith {
+		for _, end := range idx.Config.Include.FileEndsWith {
 			if strings.HasSuffix(fullCombined, end) {
 				shouldSkip = false
 				break
@@ -343,19 +398,19 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) boo
 	}
 
 	// check exclusions
-	if isDir && slices.Contains(idx.Source.Config.Exclude.Folders, fullCombined) {
+	if isDir && slices.Contains(idx.Config.Exclude.Folders, fullCombined) {
 		return true
 	}
-	if !isDir && slices.Contains(idx.Source.Config.Exclude.Files, fullCombined) {
+	if !isDir && slices.Contains(idx.Config.Exclude.Files, fullCombined) {
 		return true
 	}
-	if idx.Source.Config.IgnoreHidden && isHidden {
+	if idx.Config.IgnoreHidden && isHidden {
 		return true
 	}
 
-	if !isDir && len(idx.Source.Config.Exclude.FileEndsWith) > 0 {
+	if !isDir && len(idx.Config.Exclude.FileEndsWith) > 0 {
 		shouldSkip := false
-		for _, end := range idx.Source.Config.Exclude.FileEndsWith {
+		for _, end := range idx.Config.Exclude.FileEndsWith {
 			if strings.HasSuffix(fullCombined, end) {
 				shouldSkip = true
 				break
@@ -378,13 +433,13 @@ func (idx *Index) SetUsage(usage DiskUsage) {
 	}
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
-	idx.ReducedIndex.DiskUsed = int64(usage.Used)
-	idx.ReducedIndex.DiskTotal = int64(usage.Total)
+	idx.DiskUsed = int64(usage.Used)
+	idx.DiskTotal = int64(usage.Total)
 }
 
 func (idx *Index) SetStatus(status IndexStatus) {
 	idx.mu.Lock()
-	idx.ReducedIndex.Status = status
+	idx.Status = status
 	switch status {
 	case INDEXING:
 		idx.runningScannerCount++

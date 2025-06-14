@@ -44,12 +44,7 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName stri
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/raw [get]
 func rawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	encodedFiles := r.URL.Query().Get("files")
-	// Decode the URL-encoded path
-	files, err := url.QueryUnescape(encodedFiles)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
-	}
+	files := r.URL.Query().Get("files")
 	fileList := strings.Split(files, "||")
 	return rawFilesHandler(w, r, d, fileList)
 }
@@ -188,8 +183,9 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 
 	firstFileSource := splitFile[0]
 	firstFilePath := splitFile[1]
-	fileName := filepath.Base(firstFilePath)
+	// decode url encoded source name
 	var err error
+	fileName := filepath.Base(firstFilePath)
 	userscope := "/"
 	if d.user.Username != "publicUser" {
 		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
@@ -323,11 +319,11 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		}
 		source := splitFile[0]
 		path := splitFile[1]
+		var err error
 		idx := indexing.GetIndex(source)
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
-		var err error
 		userScope := "/"
 		if d.user.Username != "publicUser" {
 			userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
@@ -342,7 +338,10 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		indexPath := idx.MakeIndexPath(realPath)
 		info, ok := idx.GetReducedMetadata(indexPath, isDir)
 		if !ok {
-			return 0, fmt.Errorf("failed to get metadata info for %s", path)
+			info, err = idx.GetFsDirInfo(indexPath)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get file info for %s : %v", path, err)
+			}
 		}
 		estimatedSize += info.Size
 	}

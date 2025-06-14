@@ -36,10 +36,15 @@ func runCLI() bool {
 
 	if configPath == "" {
 		configPath = os.Getenv("FILEBROWSER_CONFIG")
-	}
-
-	if configPath == "" {
-		configPath = "config.yaml"
+		// backwards compatibility in docker, prefer config.yaml if it exists
+		if configPath != "" {
+			_, err := os.Stat(configPath)
+			if err != nil {
+				logger.Fatalf("config file %v does not exist, please create it or set the FILEBROWSER_CONFIG environment variable to a valid config file path", configPath)
+			}
+		} else {
+			configPath = "config.yaml"
+		}
 	}
 
 	// Parse global flags (before subcommands)

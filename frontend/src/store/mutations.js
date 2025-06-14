@@ -8,6 +8,11 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setSeenUpdate: (value) => {
+    state.seenUpdate = value
+    localStorage.setItem("seenUpdate", value);
+    emitStateChanged();
+  },
   setMultiButtonState: (value) => {
     if (state.multiButtonLastState != value) {
       state.multiButtonLastState = state.multiButtonState;
@@ -88,7 +93,7 @@ export const mutations = {
     let sources = {info: {}, current: currentSource, count: user.scopes.length};
     for (const source of user.scopes) {
       sources.info[source.name] = {
-        pathPrefix: sources.count == 1 ? "" : source.name,
+        pathPrefix: sources.count == 1 ? "" : encodeURIComponent(source.name),
         used: 0,
         total: 0,
         usedPercentage: 0,
@@ -212,9 +217,12 @@ export const mutations = {
       if (value.username != "publicUser") {
         mutations.setSources(value);
       }
+      console.log("Setting current user:", value);
       // Ensure locale exists and is valid
       if (!value.locale) {
         value.locale = i18n.detectLocale();  // Default to detected locale if missing
+      } else {
+        i18n.setLocale(value.locale);
       }
       state.user = value;
     } catch (error) {
@@ -270,7 +278,6 @@ export const mutations = {
 
     // Merge the new values into the current user state
     state.user = { ...state.user, ...value };
-
     // Handle locale change
     if (state.user.locale !== previousUser.locale) {
       //state.user.locale = i18n.detectLocale();

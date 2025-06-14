@@ -3,6 +3,10 @@
     id="sidebar"
     :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay }"
   >
+    <div v-if="shouldShow" class="button release-banner">
+      <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
+      <i @click="setSeenUpdate" aria-label="close-banner" class="material-icons">close</i>
+    </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-else-if="isLoggedIn"></SidebarGeneral>
 
@@ -19,7 +23,7 @@
 </template>
 
 <script>
-import { externalLinks, name } from "@/utils/constants";
+import { externalLinks, name, updateAvailable } from "@/utils/constants";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
@@ -36,17 +40,33 @@ export default {
       name,
     };
   },
+  mounted() {
+    // Ensure the sidebar is initialized correctly
+    mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
+  },
   computed: {
+    releaseUrl: () => updateAvailable,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),
     isSettings: () => getters.isSettings(),
     active: () => getters.isSidebarVisible(),
     behindOverlay: () => state.isSearchActive,
+    shouldShow() {
+      return (
+        updateAvailable != "" &&
+        state.user.permissions.admin &&
+        state.seenUpdate != updateAvailable &&
+        !state.user.disableUpdateNotifications
+      );
+    },
   },
   methods: {
     // Show the help overlay
     help() {
       mutations.showHover("help");
+    },
+    setSeenUpdate() {
+      mutations.setSeenUpdate(updateAvailable);
     },
   },
 };
@@ -154,5 +174,13 @@ body.rtl .action {
 
 .clickable:hover {
   box-shadow: 0 2px 2px #00000024, 0 1px 5px #0000001f, 0 3px 1px -2px #0003;
+}
+
+.release-banner {
+  background-color: var(--primarColor);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1em;
 }
 </style>

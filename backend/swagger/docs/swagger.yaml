@@ -410,7 +410,7 @@ definitions:
       defaultUserScope:
         description: default "/" should match folders under path
         type: string
-      disabled:
+      disableIndexing:
         description: disable the indexing of this source
         type: boolean
       exclude:
@@ -427,7 +427,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.IndexFilter'
         description: include files and folders from indexing, if exclude is not set
-      indexingInterval:
+      indexingIntervalMinutes:
         description: optional manual overide interval in seconds to re-index the source
         type: integer
       maxWatchers:
@@ -459,6 +459,9 @@ definitions:
         type: string
       disableSettings:
         description: disable the user from viewing the settings page
+        type: boolean
+      disableUpdateNotifications:
+        description: disable update notifications banner for admin users
         type: boolean
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
@@ -623,6 +626,9 @@ definitions:
           preview for
         type: string
       disableSettings:
+        type: boolean
+      disableUpdateNotifications:
+        description: disable update notifications
         type: boolean
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails

@@ -10,7 +10,7 @@ export async function list() {
 
 export async function get(path, source) {
   try {
-    const params = { path, source };
+    const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
     const apiPath = getApiPath("api/share",params);
     let data = fetchJSON(apiPath);
     return adjustedData(data, path);
@@ -29,7 +29,7 @@ export async function remove(hash) {
 }
 
 export async function create(path, source, password = "", expires = "", unit = "hours") {
-  const params = { path: encodeURIComponent(path), source: source };
+  const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
   const apiPath = getApiPath("api/share",params);
   let body = "{}";
   if (password != "" || expires !== "" || unit !== "hours") {

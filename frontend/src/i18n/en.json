@@ -197,7 +197,8 @@
     "highQualityPreview": "High quality preview for gallery images",
     "editOffice": "Edit/view office files",
     "popupPreview": "Enable pop-up preview",
-    "filePreviewOptions": "File preview options"
+    "filePreviewOptions": "File preview options",
+    "disableUpdateNotifications": "Disable showing notification update banner in sidebar."
   },
   "settings": {
     "enterPassword": "Enter password",
@@ -311,7 +312,8 @@
     "settings": "Settings",
     "sources": "Sources",
     "signup": "Signup",
-    "siteSettings": "Site Settings"
+    "siteSettings": "Site Settings",
+    "updateIsAvailable": "An update is available!"
   },
   "success": {
     "linkCopied": "Link copied!"

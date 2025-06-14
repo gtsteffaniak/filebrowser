@@ -21,8 +21,8 @@ RUN npm run build-docker
 
 FROM alpine:latest
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
-
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
+ENV FILEBROWSER_DATABASE="/home/filebrowser/data/database.db"
 ENV FILEBROWSER_NO_EMBEDED="true"
 ENV PATH="$PATH:/home/filebrowser"
 RUN apk --no-cache add ca-certificates mailcap tzdata
@@ -30,7 +30,7 @@ RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
 COPY --from=base --chown=filebrowser:1000 /app/filebrowser ./
-COPY --from=base --chown=filebrowser:1000 /app/config.media.yaml ./config.yaml
+COPY --from=base --chown=filebrowser:1000 /app/config.yaml ./data/config.yaml
 COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/
 ## sanity checks
 RUN [ "filebrowser", "version" ]

@@ -2174,7 +2174,7 @@ const docTemplate = `{
                     "description": "default \"/\" should match folders under path",
                     "type": "string"
                 },
-                "disabled": {
+                "disableIndexing": {
                     "description": "disable the indexing of this source",
                     "type": "boolean"
                 },
@@ -2202,7 +2202,7 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "indexingInterval": {
+                "indexingIntervalMinutes": {
                     "description": "optional manual overide interval in seconds to re-index the source",
                     "type": "integer"
                 },
@@ -2240,6 +2240,10 @@ const docTemplate = `{
                 },
                 "disableSettings": {
                     "description": "disable the user from viewing the settings page",
+                    "type": "boolean"
+                },
+                "disableUpdateNotifications": {
+                    "description": "disable update notifications banner for admin users",
                     "type": "boolean"
                 },
                 "gallerySize": {
@@ -2464,6 +2468,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disableSettings": {
+                    "type": "boolean"
+                },
+                "disableUpdateNotifications": {
+                    "description": "disable update notifications",
                     "type": "boolean"
                 },
                 "gallerySize": {
