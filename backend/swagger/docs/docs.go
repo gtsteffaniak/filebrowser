@@ -2242,6 +2242,10 @@ const docTemplate = `{
                     "description": "disable the user from viewing the settings page",
                     "type": "boolean"
                 },
+                "disableUpdateNotifications": {
+                    "description": "disable update notifications banner for admin users",
+                    "type": "boolean"
+                },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
@@ -2464,6 +2468,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "disableSettings": {
+                    "type": "boolean"
+                },
+                "disableUpdateNotifications": {
+                    "description": "disable update notifications",
                     "type": "boolean"
                 },
                 "gallerySize": {

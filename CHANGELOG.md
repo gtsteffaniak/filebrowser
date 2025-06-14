@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.9-beta
 
+ **New Features**:
+ - Admin users will get a small notification banner for available update in sidebar with link to new release.
+
  **Notes**:
  - docker now defaults to ./data/databse.db as the database path allowing a simplified initial docker-compose.yaml. Existing configurations do not need updating.
  - oidc groups header updates admin permission of existing user (either add/remove if role exists)'

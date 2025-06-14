@@ -22,6 +22,7 @@ const oidcAvailable = window.FileBrowser.OidcAvailable;
 const passwordAvailable = window.FileBrowser.PasswordAvailable;
 const mediaAvailable = window.FileBrowser.MediaAvailable;
 const muPdfAvailable = window.FileBrowser.MuPdfAvailable;
+const updateAvailable = window.FileBrowser.UpdateAvailable;
 const origin = window.location.origin;
 
 const settings = [
@@ -33,6 +34,7 @@ const settings = [
 ];
 
 export {
+  updateAvailable,
   muPdfAvailable,
   mediaAvailable,
   oidcAvailable,

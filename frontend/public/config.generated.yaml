@@ -116,6 +116,7 @@ userDefaults:
     share: false
     realtime: false
   loginMethod: password                   # login method to use: eg. password, proxy, oidc
+  disableUpdateNotifications: false       # disable update notifications banner for admin users
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
