@@ -101,7 +101,7 @@ export default {
       return state.user.viewMode === "gallery";
     },
     quickDownloadEnabled() {
-      return state.user?.quickDownload;
+      return state.user?.quickDownload && !this.galleryView && !this.isDir;
     },
     isHiddenNotSelected() {
       return !this.isSelected && this.reducedOpacity;

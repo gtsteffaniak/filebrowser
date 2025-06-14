@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - better support for running with disabled index.
  - small indexing behavior tweaks.
  - markdown viewer hides sidebar https://github.com/gtsteffaniak/filebrowser/issues/744
+ - quick download only applies to files
 
  **BugFixes**:
  - subtitles filename issue https://github.com/gtsteffaniak/filebrowser/issues/678

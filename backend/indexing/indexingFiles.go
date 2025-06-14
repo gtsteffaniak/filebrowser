@@ -109,7 +109,8 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// check if excluded from indexing
 	hidden := isHidden(dirInfo, idx.Path+adjustedPath)
-	if !recursive && idx.shouldSkip(true, hidden, adjustedPath) {
+	if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath) {
+		logger.Debugf("skipping directory %s due to exclusion rules", adjustedPath)
 		return errors.ErrNotIndexed
 	}
 
@@ -368,6 +369,9 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 }
 
 func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) bool {
+	if idx.Config.DisableIndexing {
+		return true
+	}
 	// check inclusions first
 	if isDir && len(idx.Config.Include.Folders) > 0 {
 		if !slices.Contains(idx.Config.Include.Folders, fullCombined) {
