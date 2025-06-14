@@ -30,7 +30,6 @@ func CheckForUpdates() (updateInfo, error) {
 	repoOwner := "gtsteffaniak"
 	repoName := "filebrowser"
 	currentVersion := version.Version
-	currentVersion = "v0.7.7-beta"
 	splitVersion := strings.Split(currentVersion, "-")
 	versionCategory := "stable"
 	if len(splitVersion) > 1 {
