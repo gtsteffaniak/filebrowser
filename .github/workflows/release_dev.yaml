@@ -53,8 +53,8 @@ jobs:
         with:
           context: .
           build-args: |
-            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            VERSION=${{ steps.modify-json.outputs.cleaned_tag }}
+            REVISION=${{ fromJSON(steps.modify-json.outputs.json).labels['org.opencontainers.image.revision'] }}
           platforms: linux/amd64,linux/arm64
           file: ./_docker/Dockerfile
           push: true

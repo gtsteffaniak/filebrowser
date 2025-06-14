@@ -45,11 +45,13 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	var exists bool
 	err = index.RefreshFileInfo(opts)
 	if err != nil {
-		if err == errors.ErrNotIndexed {
+		if err == errors.ErrNotIndexed && index.Config.DisableIndexing {
 			info, err = index.GetFsDirInfo(opts.Path)
 			if err != nil {
 				return response, err
 			}
+		} else {
+			return response, fmt.Errorf("could not refresh file info: %v", err)
 		}
 	} else {
 		info, exists = index.GetReducedMetadata(opts.Path, opts.IsDir)

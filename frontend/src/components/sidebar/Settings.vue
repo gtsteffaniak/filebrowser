@@ -10,7 +10,7 @@
       'active-settings': active(setting.id + '-main'),
     }"
   >
-    <div v-if="shouldShow(setting)" class="settings-card">{{ setting.label }}</div>
+    <div v-if="shouldShow(setting)" class="settings-card">{{ $t(setting.label) }}</div>
   </div>
 </template>
 
