@@ -130,10 +130,10 @@ Content-aware search?         | ❌ | ❌ | ❌ | configurable | ✅ | ✅ |
 Custom job support            | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
 Multiple users                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 Single sign-on support        | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+LDAP sign-on support          | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 Long-live API key support     | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 API documentation page        | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Mobile App                    | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+Mobile App                    | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
 open source?                  | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 tags support                  | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 shareable web links?          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
