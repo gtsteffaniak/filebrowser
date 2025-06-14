@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file. For commit 
  - backspace navigates back a page when typing https://github.com/gtsteffaniak/filebrowser/issues/663
  - markdown viewer scrolling https://github.com/gtsteffaniak/filebrowser/issues/767
  - fix user permissions updated when modifying api key permissions
+ - fix language change issue https://github.com/gtsteffaniak/filebrowser/issues/768 https://github.com/gtsteffaniak/filebrowser/issues/487
 
 ## v0.7.8-beta
 

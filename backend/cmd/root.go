@@ -53,10 +53,8 @@ func StartFilebrowser() {
 	if !keepGoing {
 		return
 	}
-	info, err := utils.CheckForUpdates()
-	if err != nil {
-		logger.Errorf("Error checking for updates: %v", err)
-	} else if info.LatestVersion != "" {
+	info, _ := utils.CheckForUpdates()
+	if info.LatestVersion != "" {
 		logger.Infof("A new version is available: %s (current: %s)", info.LatestVersion, info.CurrentVersion)
 		logger.Infof("Release notes: %s", info.ReleaseNotes)
 	}
