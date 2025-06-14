@@ -24,7 +24,6 @@ export const getters = {
     if (
       cv == 'preview' ||
       cv == 'onlyOfficeEditor' ||
-      cv == 'markdownViewer' ||
       cv == 'epubViewer' ||
       cv == 'docViewer' ||
       cv == 'editor'

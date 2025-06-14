@@ -86,6 +86,9 @@ export default {
       error: null,
       links: {},
       clip: null,
+      user: {
+        permissions: { ...state.user.permissions}
+      },
     };
   },
   async created() {
@@ -114,9 +117,6 @@ export default {
     },
     active() {
       return state.activeSettingsView === "shares-main";
-    },
-    user() {
-      return state.user;
     },
     loading() {
       return getters.isLoading();
