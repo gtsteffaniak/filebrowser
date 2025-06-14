@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file. For commit 
  - more source name safety for special characters.
  - shares with special character errors https://github.com/gtsteffaniak/filebrowser/issues/753
  - backspace navigates back a page when typing https://github.com/gtsteffaniak/filebrowser/issues/663
+ - markdown viewer scrolling https://github.com/gtsteffaniak/filebrowser/issues/767
+ - fix user permissions updated when modifying api key permissions
 
 ## v0.7.8-beta
 

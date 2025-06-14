@@ -20,13 +20,13 @@
 
 ## About
 
-FileBrowser Quantum provide a simple and easy way to access and manage your files from a web-based app. It allows you to create secure shared links, users with their own specific permissions and settings, and a great viewing experience for many file types.
+FileBrowser Quantum provides an easy way to access and manage your files from the web. It has has a web page interface that allows you to create secure shared links, users with their own specific permissions and settings, and offers a great viewing experience for many file types.
 
 This version is called "Quantum" because it packs tons of advanced features into a tiny easy to run file. Unlike the majority of alternative options, FileBrowser Quantum is simple to install and easy to configure.
 
 The goal for this repo is to become the best open-source self-hosted file browsing application that exists -- **all for free**. This repo will always be free and open-source.
 
-For more, see the [Q&A Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A)
+Ready to try it out? See [Getting Started Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Getting-Started).
 
 ## How its different
 
@@ -98,6 +98,10 @@ See [Office Support Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Offic
 ## Migration from the original filebrowser
 
 See the [Migration Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Migration)
+
+## Other Questions
+
+For more, see the [Q&A Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A)
 
 ## Comparison Chart
 
