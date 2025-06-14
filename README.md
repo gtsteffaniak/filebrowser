@@ -16,7 +16,7 @@
 </div>
 
 > [!WARNING]
-> There is no stable version -- planned for 2025. ([Read more](https://github.com/gtsteffaniak/filebrowser/discussions/628))
+> There is no stable version -- :construction: planned for 2025. ([Read more](https://github.com/gtsteffaniak/filebrowser/discussions/628))
 
 ## About
 
@@ -51,8 +51,8 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
 
 Notable features that this fork *does not* have (removed):
 
- - ❌ jobs are not supported yet (planned).
- - ❌ rules are not supported yet (planned).
+ - :construction: jobs are not supported yet.
+ - :construction: rules are not supported yet.
  - ❌ shell commands are completely removed and will not be returned.
 
 > [!WARNING]
