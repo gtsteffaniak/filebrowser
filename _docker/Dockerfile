@@ -22,7 +22,6 @@ RUN npm run build-docker
 FROM alpine:latest
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
-ENV FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"
 ENV FILEBROWSER_DATABASE="/home/filebrowser/data/database.db"
 ENV FILEBROWSER_NO_EMBEDED="true"
 ENV PATH="$PATH:/home/filebrowser"
