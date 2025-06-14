@@ -18,6 +18,18 @@
 > [!WARNING]
 > There is no stable version -- planned for 2025. ([Read more](https://github.com/gtsteffaniak/filebrowser/discussions/628))
 
+## About
+
+FileBrowser Quantum provide a simple and easy way to access and manage your files from a web-based app. It allows you to create secure shared links, users with their own specific permissions and settings, and a great viewing experience for many file types.
+
+This version is called "Quantum" because it packs tons of advanced features into a tiny easy to run file. Unlike the majority of alternative options, FileBrowser Quantum is simple to install and easy to configure.
+
+The goal for this repo is to become the best open-source self-hosted file browsing application that exists -- **all for free**. This repo will always be free and open-source.
+
+For more, see the [Q&A Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A)
+
+## How its different
+
 FileBrowser Quantum is a massive fork of the file browser open-source project with the following changes:
 
   1. ✅ Multiple sources support
@@ -43,17 +55,10 @@ Notable features that this fork *does not* have (removed):
  - ❌ rules are not supported yet (planned).
  - ❌ shell commands are completely removed and will not be returned.
 
-## About
+> [!WARNING]
+> Every file and directory in the source gets indexed (by default). This enables powerful features such as instant search, but large source filesystems can increase your system requirements. [See indexing wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) for more info.
 
 FileBrowser Quantum differs significantly from the original version. Many of these changes required a significant overhaul. Creating a fork was a necessary process to make the program better. There have been many growing pains, but a stable release is planned and coming soon.
-
-This version is called "Quantum" because it packs tons of advanced features in a tiny executable file. Unlike the majority of alternative options, FileBrowser Quantum is simple to install and easy to configure.
-
-The goal for this repo is to become the best open-source self-hosted file browsing application that exists -- **all for free**.
-
-This repo will always be free and open-source.
-
-For more, see the [Q&A Wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A)
 
 ## The UI
 

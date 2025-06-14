@@ -8,6 +8,11 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setSeenUpdate: (value) => {
+    state.seenUpdate = value
+    localStorage.setItem("seenUpdate", value);
+    emitStateChanged();
+  },
   setMultiButtonState: (value) => {
     if (state.multiButtonLastState != value) {
       state.multiButtonLastState = state.multiButtonState;

@@ -6,7 +6,7 @@
     <div class="card-content">
       <form>
         <div class="card-content">
-          <h3>{{ $t('settings.listingOptions') }}</h3>
+          <h3>{{ $t("settings.listingOptions") }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
@@ -24,7 +24,7 @@
               :name="$t('profileSettings.showQuickDownload')"
             />
           </div>
-          <h3> {{ $t('profileSettings.filePreviewOptions') }}</h3>
+          <h3>{{ $t("profileSettings.filePreviewOptions") }}</h3>
           <div class="settings-items">
             <ToggleSwitch
               class="item"
@@ -61,9 +61,9 @@
             />
           </div>
           <div v-if="hasOnlyOfficeEnabled">
-            <h3> {{ $t('settings.disableOfficePreview')}} </h3>
+            <h3>{{ $t("settings.disableOfficePreview") }}</h3>
             <p>
-              {{ $t('settings.disableOfficePreviewDescription') }}
+              {{ $t("settings.disableOfficePreviewDescription") }}
             </p>
             <div class="form-group">
               <input
@@ -74,14 +74,20 @@
                 id="onlyofficeExt"
                 v-model="formOnlyOfficeExt"
               />
-              <button type="button" class="button form-button" @click="submitOnlyOfficeChange"> {{ $t('buttons.save') }} </button>
+              <button
+                type="button"
+                class="button form-button"
+                @click="submitOnlyOfficeChange"
+              >
+                {{ $t("buttons.save") }}
+              </button>
             </div>
           </div>
 
           <div v-if="muPdfAvailable">
-            <h3> {{ $t('settings.disableOfficePreviews')}} </h3>
+            <h3>{{ $t("settings.disableOfficePreviews") }}</h3>
             <p>
-              {{ $t('settings.disableOfficePreviewsDescription') }}
+              {{ $t("settings.disableOfficePreviewsDescription") }}
             </p>
             <div class="form-group">
               <input
@@ -92,11 +98,22 @@
                 id="officePreviewExt"
                 v-model="formOfficePreviewExt"
               />
-              <button type="button" class="button form-button" @click="submitOfficePreviewsChange"> {{ $t('buttons.save') }} </button>
+              <button
+                type="button"
+                class="button form-button"
+                @click="submitOfficePreviewsChange"
+              >
+                {{ $t("buttons.save") }}
+              </button>
             </div>
           </div>
-
-          <h3> {{ $t('settings.themeColor') }} </h3>
+          <ToggleSwitch
+            v-if="localuser.permissions.admin"
+            class="item"
+            v-model="localuser.disableUpdateNotifications"
+            :name="$t('profileSettings.disableUpdateNotifications')"
+          />
+          <h3>{{ $t("settings.themeColor") }}</h3>
           <ButtonGroup
             :buttons="colorChoices"
             @button-clicked="setColor"
@@ -250,6 +267,4 @@ export default {
 .card-content h3 {
   text-align: center;
 }
-
-
 </style>
