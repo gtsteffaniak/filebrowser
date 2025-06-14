@@ -108,7 +108,7 @@
             </div>
           </div>
           <ToggleSwitch
-            v-if="localuser.permissions.admin"
+            v-if="localuser.permissions?.admin"
             class="item"
             v-model="localuser.disableUpdateNotifications"
             :name="$t('profileSettings.disableUpdateNotifications')"
@@ -149,7 +149,7 @@ export default {
   },
   data() {
     return {
-      localuser: { preview: {} },
+      localuser: { preview: {}, permissions: {} }, // Initialize localuser with empty objects to avoid undefined errors
       initialized: false,
       formOnlyOfficeExt: "", // holds temporary input before saving
       formOfficePreviewExt: "", // holds temporary input before saving
