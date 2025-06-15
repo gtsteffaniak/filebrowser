@@ -22,6 +22,7 @@ import (
 type userInfo struct {
 	Name              string   `json:"name"`
 	PreferredUsername string   `json:"preferred_username"`
+	Username          string   `json:"username"`
 	Email             string   `json:"email"`
 	Sub               string   `json:"sub"`
 	Phone             string   `json:"phone_number"`
@@ -139,6 +140,9 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 				if name, ok := claims["name"].(string); ok {
 					userdata.Name = name
 				}
+				if username, ok := claims["username"].(string); ok {
+					userdata.Username = username
+				}
 				if preferredUsername, ok := claims["preferred_username"].(string); ok {
 					userdata.PreferredUsername = preferredUsername
 				}
@@ -160,6 +164,11 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 						loginUsername = userdata.Email
 					}
 				case "username":
+					if userdata.Username != "" {
+						claimsFromIDToken = true
+						loginUsername = userdata.Username
+					}
+				case "preferred_username":
 					if userdata.PreferredUsername != "" {
 						claimsFromIDToken = true
 						loginUsername = userdata.PreferredUsername
@@ -198,6 +207,8 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		case "email":
 			loginUsername = userdata.Email
 		case "username":
+			loginUsername = userdata.Username
+		case "preferred_username":
 			loginUsername = userdata.PreferredUsername
 		case "phone":
 			loginUsername = userdata.Phone
