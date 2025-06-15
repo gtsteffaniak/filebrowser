@@ -167,8 +167,10 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	if err != nil {
 		return nil, err
 	}
+	originalPath := realPath
 	if !isDir {
-		return nil, fmt.Errorf("path is not a directory: %s", adjustedPath)
+		// get parent directory info
+		realPath = filepath.Dir(realPath)
 	}
 	dir, err := os.Open(realPath)
 	if err != nil {
@@ -184,7 +186,32 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	if adjustedPath == "/" {
 		combinedPath = "/"
 	}
-	return idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false)
+	var response *iteminfo.FileInfo
+	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false)
+	if err != nil {
+		return nil, err
+	}
+	if !isDir {
+		baseName := filepath.Base(originalPath)
+		idx.MakeIndexPath(realPath)
+		found := false
+		for _, item := range response.Files {
+			if item.Name == baseName {
+				response = &iteminfo.FileInfo{
+					Path:     adjustedPath + "/" + item.Name,
+					ItemInfo: item,
+				}
+				found = true
+				continue
+			}
+		}
+		if !found {
+			return nil, fmt.Errorf("file not found in directory: %s", adjustedPath)
+		}
+
+	}
+	return response, nil
+
 }
 
 func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, quick, recursive bool) (*iteminfo.FileInfo, error) {
@@ -202,7 +229,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		hidden := isHidden(file, idx.Path+combinedPath)
 		isDir := iteminfo.IsDirectory(file)
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(isDir, hidden, fullCombined) {
+		if idx.shouldSkip(isDir, hidden, fullCombined) && recursive {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
