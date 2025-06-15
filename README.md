@@ -18,6 +18,8 @@
 > [!WARNING]
 > There is no stable version -- :construction: planned for 2025. ([Read more](https://github.com/gtsteffaniak/filebrowser/discussions/628))
 
+Poll: [how much RAM does your install use?](https://github.com/gtsteffaniak/filebrowser/discussions/787)
+
 ## About
 
 FileBrowser Quantum provides an easy way to access and manage your files from the web. It has has a web page interface that allows you to create secure shared links, users with their own specific permissions and settings, and offers a great viewing experience for many file types.
