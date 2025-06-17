@@ -125,32 +125,15 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			logger.Debugf("failed to verify ID token: %v. This might be expected, falling back to UserInfo endpoint.", err)
 			// Verification failed, claimsFromIDToken remains false
 		} else {
-			var claims map[string]interface{}
 			// Decode the ID token claims into a map to handle arbitrary structure
 			// This is where the JWE unmarshalling error occurs if the token is encrypted
-			if err := idToken.Claims(&claims); err != nil {
+			if err := idToken.Claims(&userdata); err != nil {
 				logger.Warningf("failed to decode ID token claims: %v. Falling back to UserInfo endpoint.", err)
 				// Claims decoding failed, claimsFromIDToken remains false
 			} else {
 				// Successfully verified and decoded ID token claims
-				logger.Debugf("ID Token verified and claims decoded: %+v", claims)
+				logger.Debugf("ID Token verified and claims decoded: %+v", userdata)
 
-				// Populate userdata from ID token claims
-				if name, ok := claims["name"].(string); ok {
-					userdata.Name = name
-				}
-				if preferredUsername, ok := claims["preferred_username"].(string); ok {
-					userdata.PreferredUsername = preferredUsername
-				}
-				if email, ok := claims["email"].(string); ok {
-					userdata.Email = email
-				}
-				if sub, ok := claims["sub"].(string); ok {
-					userdata.Sub = sub
-				}
-				if phone, ok := claims["phone_number"].(string); ok {
-					userdata.Phone = phone
-				}
 				// Decide if we rely on ID token claims or still need UserInfo
 				// Even if parsing succeeded, if essential claims are missing, use UserInfo
 				switch oidcCfg.UserIdentifier {
