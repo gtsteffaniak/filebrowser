@@ -33,7 +33,7 @@ func InitializeDb(path string) (*bolt.BoltStore, bool, error) {
 		return nil, exists, err
 	}
 	// Load access rules from DB on startup
-	if err := store.Access.LoadFromDB(); err != nil {
+	if err = store.Access.LoadFromDB(); err != nil {
 		return nil, exists, err
 	}
 	err = bolt.Save(db, "version", 2)
