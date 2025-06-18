@@ -36,6 +36,9 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
 	}
+	if opts.Access != nil && !opts.Access.Permitted(index.Path, opts.Path, opts.Username) {
+		return response, errors.ErrPermissionDenied
+	}
 	realPath, isDir, err := index.GetRealPath(opts.Path)
 	if err != nil {
 		return response, err

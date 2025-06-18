@@ -14,6 +14,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	fbhttp "github.com/gtsteffaniak/filebrowser/backend/http"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/preview"
@@ -22,7 +23,7 @@ import (
 	"github.com/swaggo/swag"
 )
 
-var store *storage.Storage
+var store *bolt.BoltStore
 
 func getStore(configFile string) bool {
 	// Use the config file (global flag)
@@ -119,7 +120,7 @@ func StartFilebrowser() {
 	logger.Info("Shutdown complete.")
 }
 
-func rootCMD(ctx context.Context, store *storage.Storage, serverConfig *settings.Server, shutdownComplete chan struct{}) error {
+func rootCMD(ctx context.Context, store *bolt.BoltStore, serverConfig *settings.Server, shutdownComplete chan struct{}) error {
 	if serverConfig.NumImageProcessors < 1 {
 		logger.Fatal("Image resize workers count could not be < 1")
 	}

@@ -1,4 +1,26 @@
 definitions:
+  access.AccessRule:
+    properties:
+      blacklisted:
+        $ref: '#/definitions/access.RuleSet'
+      index_path:
+        type: string
+      source_path:
+        type: string
+      whitelisted:
+        $ref: '#/definitions/access.RuleSet'
+    type: object
+  access.RuleSet:
+    properties:
+      groups:
+        additionalProperties:
+          type: object
+        type: object
+      users:
+        additionalProperties:
+          type: object
+        type: object
+    type: object
   http.AuthTokenMin:
     properties:
       Permissions:
@@ -759,6 +781,157 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/access:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user or group from a whitelist or blacklist for a sourcePath
+        and indexPath.
+      parameters:
+      - description: Source path prefix (e.g. mnt/storage)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: Index path (e.g. /secret)
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Rule type (whitelist or blacklist)
+        in: query
+        name: ruleType
+        required: true
+        type: string
+      - description: Rule category (user or group)
+        in: query
+        name: ruleCategory
+        required: true
+        type: string
+      - description: Username or groupname to remove
+        in: query
+        name: value
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rule entry deleted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete access rule entry
+      tags:
+      - Access
+    get:
+      consumes:
+      - application/json
+      description: List all access rules or retrieve a specific rule by sourcePath
+        and indexPath.
+      parameters:
+      - description: Source path prefix (e.g. mnt/storage)
+        in: query
+        name: sourcePath
+        type: string
+      - description: Index path (e.g. /secret)
+        in: query
+        name: indexPath
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of access rules or specific rule details
+          schema:
+            $ref: '#/definitions/access.AccessRule'
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List access rules
+      tags:
+      - Access
+    post:
+      consumes:
+      - application/json
+      description: Add or update an access rule for a sourcePath and indexPath.
+      parameters:
+      - description: Source path prefix (e.g. mnt/storage)
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: Index path (e.g. /secret)
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: 'Rule details: whitelist (true/false), ruleCategory (user/group),
+          value (username or groupname)'
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            ruleCategory:
+              type: string
+            value:
+              type: string
+            whitelist:
+              type: boolean
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rule added or updated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add or update access rule
+      tags:
+      - Access
   /api/auth/logout:
     post:
       description: Returns a logout URL for the frontend to redirect to.
