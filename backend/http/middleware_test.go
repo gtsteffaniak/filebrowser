@@ -11,7 +11,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -23,15 +22,9 @@ func setupTestEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	authStore, userStore, shareStore, settingsStore, err := bolt.NewStorage(db)
+	store, err = bolt.NewStorage(db)
 	if err != nil {
 		t.Fatal(err)
-	}
-	store = &storage.Storage{
-		Auth:     authStore,
-		Users:    userStore,
-		Share:    shareStore,
-		Settings: settingsStore,
 	}
 	config = &settings.Config // mocked
 	config.Server.SourceMap = map[string]settings.Source{

@@ -148,12 +148,18 @@ export default {
           mutations.setCurrentSource(data.source);
         }
         document.title = `${document.title} - ${res.name}`;
+        mutations.replaceRequest(data);
       } catch (e) {
-        notify.showError(e);
         this.error = e;
         mutations.replaceRequest({});
+        if (e.status === 404) {
+          router.push({ name: "notFound" });
+        } else if (e.status === 403) {
+          router.push({ name: "forbidden" });
+        } else {
+          router.push({ name: "error" });
+        }
       } finally {
-        mutations.replaceRequest(data);
         mutations.setLoading("files", false);
       }
       setTimeout(() => {

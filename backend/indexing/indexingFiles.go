@@ -338,7 +338,7 @@ func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", joinedPath, err)
 	}
 	// Resolve symlinks and get the real path
-	realPath, isDir, err := utils.ResolveSymlinks(absolutePath)
+	realPath, isDir, err := iteminfo.ResolveSymlinks(absolutePath)
 	if err == nil {
 		RealPathCache.Set(joinedPath, realPath)
 		RealPathCache.Set(joinedPath+":isdir", isDir)
