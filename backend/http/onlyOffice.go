@@ -66,10 +66,12 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		return http.StatusForbidden, err
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Path:   utils.JoinPathAsUnix(userscope, path),
-		Modify: d.user.Permissions.Modify,
-		Source: source,
-		Expand: false,
+		Access:   store.Access,
+		Username: d.user.Username,
+		Path:     utils.JoinPathAsUnix(userscope, path),
+		Modify:   d.user.Permissions.Modify,
+		Source:   source,
+		Expand:   false,
 	})
 	if err != nil {
 		return errToStatus(err), err

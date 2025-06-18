@@ -13,7 +13,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/version"
-	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
+	"github.com/gtsteffaniak/filebrowser/backend/database/storage/bolt"
 	"github.com/gtsteffaniak/go-logger/logger"
 	// http-swagger middleware
 )
@@ -37,12 +37,12 @@ func (d dirFS) Open(name string) (fs.File, error) {
 }
 
 var (
-	store   *storage.Storage
+	store   *bolt.BoltStore
 	config  *settings.Settings
 	assetFs fs.FS
 )
 
-func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete chan struct{}) {
+func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete chan struct{}) {
 	store = storage
 	config = &settings.Config
 	var err error
@@ -97,6 +97,11 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 		api.HandleFunc("GET /inspectIndex", inspectIndex)
 		api.HandleFunc("GET /mockData", mockData)
 	}
+
+	// Access routes
+	api.HandleFunc("GET /access", withAdmin(accessGetHandler))
+	api.HandleFunc("POST /access", withAdmin(accessPostHandler))
+	api.HandleFunc("DELETE /access", withAdmin(accessDeleteHandler))
 
 	// Share routes
 	api.HandleFunc("GET /shares", withPermShare(shareListHandler))

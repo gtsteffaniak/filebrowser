@@ -13,9 +13,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -73,6 +75,17 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	realPath, _, err := idx.GetRealPath(userScope, path)
 	if err != nil {
 		return fmt.Errorf("failed to get real path for %s: %v", path, err)
+	}
+
+	_, err = files.FileInfoFaster(iteminfo.FileOptions{
+		Access:   store.Access,
+		Username: d.user.Username,
+		Path:     realPath,
+		Source:   source,
+		Expand:   false,
+	})
+	if err != nil {
+		return err
 	}
 	info, err := os.Stat(realPath)
 	if err != nil {
