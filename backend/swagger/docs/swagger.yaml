@@ -695,7 +695,7 @@ info:
   contact: {}
 paths:
   /api/auth/logout:
-    get:
+    post:
       description: logs a user out of the application.
       responses:
         "302":

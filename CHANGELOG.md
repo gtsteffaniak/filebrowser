@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - fix share scope creation issue https://github.com/gtsteffaniak/filebrowser/issues/809
- - 
+ - fix oidc token logout issue https://github.com/gtsteffaniak/filebrowser/issues/791
 
 ## v0.7.9-beta
 

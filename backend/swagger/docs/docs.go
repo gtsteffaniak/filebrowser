@@ -16,7 +16,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/auth/logout": {
-            "get": {
+            "post": {
                 "description": "logs a user out of the application.",
                 "tags": [
                     "Auth"
