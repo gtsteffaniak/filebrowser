@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.10-beta
+
+ **Notes**:
+ -
+
+ **BugFixes**:
+ - fix share scope creation issue https://github.com/gtsteffaniak/filebrowser/issues/809
+ - 
+
 ## v0.7.9-beta
 
  **New Features**:
