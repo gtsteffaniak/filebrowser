@@ -217,7 +217,6 @@ export const mutations = {
       if (value.username != "publicUser") {
         mutations.setSources(value);
       }
-      console.log("Setting current user:", value);
       // Ensure locale exists and is valid
       if (!value.locale) {
         value.locale = i18n.detectLocale();  // Default to detected locale if missing

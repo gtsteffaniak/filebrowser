@@ -57,6 +57,7 @@ export function generateRandomCode(length) {
 }
 
 export async function logout() {
+
   if (state.user.loginMethod === "oidc" || state.user.loginMethod === "proxy") {
     try {
       const res = await fetch(getApiPath("api/auth/logout"), {
@@ -67,6 +68,8 @@ export async function logout() {
       });
 
       if (res.redirected) {
+        document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+        mutations.setCurrentUser(null);
         window.location.href = res.url;
         return;
       }
@@ -74,7 +77,6 @@ export async function logout() {
       console.error(e);
     }
   }
-
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
   mutations.setCurrentUser(null);
   router.push({ path: "/login" });
