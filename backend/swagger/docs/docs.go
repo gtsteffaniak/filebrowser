@@ -16,7 +16,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/auth/logout": {
-            "get": {
+            "post": {
                 "description": "logs a user out of the application.",
                 "tags": [
                     "Auth"
@@ -1947,7 +1947,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userIdentifier": {
-                    "description": "the user identifier to use for authentication. Default is \"username\", can be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
