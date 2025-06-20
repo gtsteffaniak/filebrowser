@@ -4,12 +4,24 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.10-beta
 
+ **OIDC change**: if you specify `oidc.userIdentifier: "username"`, originally this would map to `preferred_username` but now it maps to `username` explicitly. To maintain the same behavior update your config to `userIdentifier: "preferred_username"`. This was updated to allow for `username` to work as [some might need](https://github.com/gtsteffaniak/filebrowser/pull/789).
+
+ **New Features**:
+ - Added settings option to keep sidebar from automatically hiding on editor and previews. https://github.com/gtsteffaniak/filebrowser/issues/744
+ - Added more secrets loadable from environment variables. https://github.com/gtsteffaniak/filebrowser/issues/790
+ - include/exclude files are checked for existence to assist with configuration, will show as warning if something is configured but doesn't exist.
+
  **Notes**:
- -
+ - Allowed to delete default admin user https://github.com/gtsteffaniak/filebrowser/issues/811 https://github.com/gtsteffaniak/filebrowser/issues/762
+ - better try/catch error handling for user feedback for shares https://github.com/gtsteffaniak/filebrowser/issues/732
 
  **BugFixes**:
  - fix share scope creation issue https://github.com/gtsteffaniak/filebrowser/issues/809
  - fix oidc token logout issue https://github.com/gtsteffaniak/filebrowser/issues/791
+ - non admin users OTP issue https://github.com/gtsteffaniak/filebrowser/issues/815
+ - linewrap issue for a few cases https://github.com/gtsteffaniak/filebrowser/issues/810
+ - baseUrl redirect issue with proxies https://github.com/gtsteffaniak/filebrowser/issues/796
+ - fix exclude still shows up in ui issue https://github.com/gtsteffaniak/filebrowser/issues/797
 
 ## v0.7.9-beta
 

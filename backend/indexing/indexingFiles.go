@@ -229,7 +229,8 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		hidden := isHidden(file, idx.Path+combinedPath)
 		isDir := iteminfo.IsDirectory(file)
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(isDir, hidden, fullCombined) && recursive {
+		if idx.shouldSkip(isDir, hidden, fullCombined) {
+			logger.Debugf("skipping file %s due to exclusion rules", fullCombined)
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
@@ -423,7 +424,6 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) boo
 			return true
 		}
 	}
-
 	// check exclusions
 	if isDir && slices.Contains(idx.Config.Exclude.Folders, fullCombined) {
 		return true
@@ -443,7 +443,9 @@ func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) boo
 				break
 			}
 		}
-		return shouldSkip
+		if shouldSkip {
+			return true
+		}
 	}
 
 	return false

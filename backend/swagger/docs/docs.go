@@ -2394,6 +2394,10 @@ const docTemplate = `{
         "users.Preview": {
             "type": "object",
             "properties": {
+                "disableHideSidebar": {
+                    "description": "disable the hide sidebar preview for previews and editors",
+                    "type": "boolean"
+                },
                 "highQuality": {
                     "description": "generate high quality preview images",
                     "type": "boolean"

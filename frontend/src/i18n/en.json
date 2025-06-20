@@ -198,7 +198,8 @@
     "editOffice": "Edit/view office files",
     "popupPreview": "Enable pop-up preview",
     "filePreviewOptions": "File preview options",
-    "disableUpdateNotifications": "Disable showing notification update banner in sidebar."
+    "disableUpdateNotifications": "Disable showing notification update banner in sidebar.",
+    "disableHideSidebar": "Disable automatically hiding sidebar when previewing or editing files."
   },
   "settings": {
     "enterPassword": "Enter password",

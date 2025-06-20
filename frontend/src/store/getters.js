@@ -137,6 +137,14 @@ export const getters = {
   },
   isSidebarVisible: () => {
     const currentView = getters.currentView()
+    const previewViews = [
+      'preview',
+      'markdownViewer',
+      'epubViewer',
+      'docViewer',
+      'onlyOfficeEditor',
+      'editor'
+    ]
     let visible =
       (state.showSidebar || getters.isStickySidebar()) &&
       state.user.username != 'publicUser'
@@ -152,10 +160,7 @@ export const getters = {
     ) {
       visible = false
     }
-    if (currentView == 'preview' || currentView  == 'markdownViewer') {
-      visible = false
-    }
-    if (currentView == 'editor' || currentView == 'onlyOfficeEditor') {
+    if (previewViews.includes(currentView) && !state.user.preview?.disableHideSidebar) {
       visible = false
     }
     return visible

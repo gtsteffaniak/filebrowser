@@ -212,35 +212,43 @@ export default {
   },
   methods: {
     async submit() {
-      let isPermanent = !this.time || this.time === 0;
-      let res = null;
-      if (isPermanent) {
-        res = await shareApi.create(this.subpath, this.source, this.password);
-      } else {
-        res = await shareApi.create(
-          this.subpath,
-          this.source,
-          this.password,
-          this.time.toString(),
-          this.unit
-        );
+      try {
+        let isPermanent = !this.time || this.time == 0;
+        let res = null;
+        if (isPermanent) {
+          res = await shareApi.create(this.subpath, this.source, this.password);
+        } else {
+          res = await shareApi.create(
+            this.subpath,
+            this.source,
+            this.password,
+            this.time.toString(),
+            this.unit
+          );
+        }
+
+        this.links.push(res);
+        this.sort();
+
+        this.time = "";
+        this.unit = "hours";
+        this.password = "";
+
+        this.listing = true;
+      } catch (err) {
+        notify.showError(err);
       }
-
-      this.links.push(res);
-      this.sort();
-
-      this.time = "";
-      this.unit = "hours";
-      this.password = "";
-
-      this.listing = true;
     },
     async deleteLink(event, link) {
       event.preventDefault();
-      await shareApi.remove(link.hash);
-      this.links = this.links.filter((item) => item.hash !== link.hash);
-      if (this.links.length === 0) {
-        this.listing = false;
+      try {
+        await shareApi.remove(link.hash);
+        this.links = this.links.filter((item) => item.hash !== link.hash);
+        if (this.links.length === 0) {
+          this.listing = false;
+        }
+      } catch (err) {
+        notify.showError(err);
       }
     },
     humanTime(time) {

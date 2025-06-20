@@ -301,7 +301,8 @@
     "settings": "Nastavenia",
     "signup": "Registrovať",
     "siteSettings": "Nastavenia stránky",
-    "sources": "Zdroje"
+    "sources": "Zdroje",
+    "updateIsAvailable": "K dispozícii je aktualizácia!"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -370,7 +371,9 @@
     "previewOffice": "Náhľad kancelárskych súborov",
     "popupPreview": "Povolenie pop-up náhľadu",
     "filePreviewOptions": "Možnosti náhľadu súborov",
-    "editOffice": "Úprava/zobrazenie kancelárskych súborov"
+    "editOffice": "Úprava/zobrazenie kancelárskych súborov",
+    "disableUpdateNotifications": "Zakázanie zobrazovania bannera s oznámením o aktualizácii v bočnom paneli.",
+    "disableHideSidebar": "Zakázanie automatického skrývania bočného panela pri náhľade alebo úprave súborov."
   },
   "otp": {
     "name": "Dvojfaktorové overovanie",

@@ -301,7 +301,8 @@
     "settings": "Paramètres",
     "signup": "S'inscrire",
     "siteSettings": "Paramètres du site",
-    "sources": "Sources d'information"
+    "sources": "Sources d'information",
+    "updateIsAvailable": "Une mise à jour est disponible !"
   },
   "success": {
     "linkCopied": "Lien copié !"
@@ -370,7 +371,9 @@
     "previewOffice": "Prévisualisation des fichiers bureautique",
     "popupPreview": "Activer la prévisualisation dans les fenêtres contextuelles",
     "editOffice": "Editer/visualiser des fichiers bureautiques",
-    "filePreviewOptions": "Options de prévisualisation des fichiers"
+    "filePreviewOptions": "Options de prévisualisation des fichiers",
+    "disableUpdateNotifications": "Désactiver l'affichage de la bannière de mise à jour des notifications dans la barre latérale.",
+    "disableHideSidebar": "Désactiver le masquage automatique de la barre latérale lors de la prévisualisation ou de l'édition de fichiers."
   },
   "otp": {
     "name": "Authentification à deux facteurs",

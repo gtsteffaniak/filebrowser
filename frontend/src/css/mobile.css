@@ -1,4 +1,10 @@
 @media (max-width: 800px) {
+  #listingView .header .name,
+  #listingView.list .item .name,
+  #listingView.compact .item .name {
+    width: 25%;
+  }
+
   #listingView.list .item div:last-of-type{
     display:block;
     width:100%;

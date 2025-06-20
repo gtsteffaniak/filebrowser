@@ -301,7 +301,8 @@
     "settings": "設定",
     "signup": "Signup",
     "siteSettings": "サイト設定",
-    "sources": "情報源"
+    "sources": "情報源",
+    "updateIsAvailable": "アップデートがある！"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -370,7 +371,9 @@
     "previewOffice": "オフィスファイルのプレビュー",
     "popupPreview": "ポップアップ・プレビューを有効にする",
     "filePreviewOptions": "ファイルプレビューオプション",
-    "editOffice": "オフィスファイルの編集/閲覧"
+    "editOffice": "オフィスファイルの編集/閲覧",
+    "disableUpdateNotifications": "サイドバーに通知更新バナーを表示しないようにしました。",
+    "disableHideSidebar": "ファイルのプレビューや編集時にサイドバーを自動的に非表示にします。"
   },
   "otp": {
     "name": "二要素認証",

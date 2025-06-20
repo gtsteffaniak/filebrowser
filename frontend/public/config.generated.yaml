@@ -103,6 +103,7 @@ userDefaults:
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
+    disableHideSidebar: false
     highQuality: false
     image: false
     video: false

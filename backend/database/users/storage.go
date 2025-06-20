@@ -124,18 +124,8 @@ func (s *Storage) Save(user *User, changePass, disableScopeChange bool) error {
 func (s *Storage) Delete(id interface{}) error {
 	switch id := id.(type) {
 	case string:
-		user, err := s.back.GetBy(id)
-		if err != nil {
-			return err
-		}
-		if user.ID == 1 {
-			return errors.ErrRootUserDeletion
-		}
 		return s.back.DeleteByUsername(id)
 	case uint:
-		if id == 1 {
-			return errors.ErrRootUserDeletion
-		}
 		return s.back.DeleteByID(id)
 	default:
 		return errors.ErrInvalidDataType

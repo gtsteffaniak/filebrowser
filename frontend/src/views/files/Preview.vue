@@ -121,7 +121,6 @@ export default {
         ".cbz": true,
         ".svg": true,
         ".docx": true,
-        ".ppt": true,
         ".pptx": true,
         ".xlsx": true,
         ".hwp": true,
