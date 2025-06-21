@@ -145,17 +145,20 @@ definitions:
   settings.IndexFilter:
     properties:
       fileEndsWith:
-        description: array of file names to include/exclude (eg "a.jpg")
+        description: list of file names to include/exclude. Eg. "a.jpg"
         items:
           type: string
         type: array
       files:
-        description: array of file names to include/exclude
+        description: list of file names to include/exclude  Eg. "folder1" or "file1.txt"
+          or "folder1/file1.txt" (do not include source path, just the subpaths from
+          the source path)
         items:
           type: string
         type: array
       folders:
-        description: array of folder names to include/exclude
+        description: list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder"
+          (do not include source path, just the subpaths from the source path)
         items:
           type: string
         type: array

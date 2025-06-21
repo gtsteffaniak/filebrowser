@@ -92,9 +92,9 @@ type SourceConfig struct {
 }
 
 type IndexFilter struct {
-	Files        []string `json:"files"`        // array of file names to include/exclude
-	Folders      []string `json:"folders"`      // array of folder names to include/exclude
-	FileEndsWith []string `json:"fileEndsWith"` // array of file names to include/exclude (eg "a.jpg")
+	Files        []string `json:"files"`        // list of file names to include/exclude  Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (do not include source path, just the subpaths from the source path)
+	Folders      []string `json:"folders"`      // list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
+	FileEndsWith []string `json:"fileEndsWith"` // list of file names to include/exclude. Eg. "a.jpg"
 }
 
 type Frontend struct {
