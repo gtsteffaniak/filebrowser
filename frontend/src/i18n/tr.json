@@ -373,7 +373,8 @@
     "filePreviewOptions": "Dosya önizleme seçenekleri",
     "editOffice": "Ofis dosyalarını düzenleme/görüntüleme",
     "disableUpdateNotifications": "Kenar çubuğunda bildirim güncelleme banner'ını göstermeyi devre dışı bırakın.",
-    "disableHideSidebar": "Dosyaları önizlerken veya düzenlerken kenar çubuğunu otomatik olarak gizlemeyi devre dışı bırakın."
+    "disableHideSidebar": "Dosyaları önizlerken veya düzenlerken kenar çubuğunu otomatik olarak gizlemeyi devre dışı bırakın.",
+    "autoplayMedia": "Medya dosyalarını önizlemede otomatik oynatma"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",

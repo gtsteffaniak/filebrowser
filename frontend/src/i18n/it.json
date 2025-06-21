@@ -373,7 +373,8 @@
     "filePreviewOptions": "Opzioni di anteprima dei file",
     "editOffice": "Modificare/visualizzare i file dell'ufficio",
     "disableUpdateNotifications": "Disattivare la visualizzazione del banner di aggiornamento delle notifiche nella barra laterale.",
-    "disableHideSidebar": "Disabilita la possibilità di nascondere automaticamente la barra laterale durante l'anteprima o la modifica dei file."
+    "disableHideSidebar": "Disabilita la possibilità di nascondere automaticamente la barra laterale durante l'anteprima o la modifica dei file.",
+    "autoplayMedia": "Riproduzione automatica dei file multimediali nell'anteprima"
   },
   "otp": {
     "name": "Autenticazione a due fattori",

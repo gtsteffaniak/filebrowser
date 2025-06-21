@@ -373,7 +373,8 @@
     "filePreviewOptions": "ファイルプレビューオプション",
     "editOffice": "オフィスファイルの編集/閲覧",
     "disableUpdateNotifications": "サイドバーに通知更新バナーを表示しないようにしました。",
-    "disableHideSidebar": "ファイルのプレビューや編集時にサイドバーを自動的に非表示にします。"
+    "disableHideSidebar": "ファイルのプレビューや編集時にサイドバーを自動的に非表示にします。",
+    "autoplayMedia": "プレビューでメディアファイルを自動再生"
   },
   "otp": {
     "name": "二要素認証",

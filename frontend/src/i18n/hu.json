@@ -373,7 +373,8 @@
     "filePreviewOptions": "Fájl előnézeti beállítások",
     "editOffice": "Office fájlok szerkesztése/megjelenítése",
     "disableUpdateNotifications": "Értesítési frissítés banner megjelenítésének kikapcsolása az oldalsávban.",
-    "disableHideSidebar": "Az oldalsáv automatikus elrejtésének kikapcsolása fájlok előnézeténél vagy szerkesztésénél."
+    "disableHideSidebar": "Az oldalsáv automatikus elrejtésének kikapcsolása fájlok előnézeténél vagy szerkesztésénél.",
+    "autoplayMedia": "Médiafájlok automatikus lejátszása előnézetben"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",

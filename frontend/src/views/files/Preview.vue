@@ -117,7 +117,6 @@ export default {
       showNav: true,
       navTimeout: null,
       hoverNav: false,
-      autoPlay: false,
       previousRaw: "",
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
@@ -125,6 +124,10 @@ export default {
     };
   },
   computed: {
+    autoPlay() {
+      console.log("autoplay", state.user.preview.autoplayMedia);
+      return state.user.preview.autoplayMedia;
+    },
     isMobileSafari() {
       const userAgent = window.navigator.userAgent;
       const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
@@ -219,14 +222,10 @@ export default {
         return [];
       }
       let subs = [];
-      for (let subtitleFile of state.req.subtitles) {
-        if (state.serverHasMultipleSources) {
-          subtitleFile = "/files/" + state.req.source + subtitleFile;
-        } else {
-          subtitleFile = "/files" + subtitleFile;
-        }
+      for (const subtitleFile of state.req.subtitles) {
         const ext = getFileExtension(subtitleFile);
-        const resp = await filesApi.fetchFiles(subtitleFile, true); // Fetch .srt file
+        const subUrl = url.removeLastDir(state.req.url) + "/" + subtitleFile;
+        const resp = await filesApi.fetchFiles(subUrl, true); // Fetch .srt file
         let vttContent = resp.content;
         // Convert SRT to VTT (assuming srt2vtt() does this)
         vttContent = convertToVTT(ext, resp.content);
@@ -263,7 +262,7 @@ export default {
       this.hoverNav = false;
       this.$router.replace({ path: this.nextLink });
     },
-    key(event) {
+    async key(event) {
       if (getters.currentPromptName() != null) {
         return;
       }
@@ -287,8 +286,22 @@ export default {
       }
     },
     async updatePreview() {
-      if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
-        this.autoPlay = false;
+      // Try to autoplay media, handle browser restrictions
+      if (this.autoPlay && (this.previewType === "video" || this.previewType === "audio")) {
+        this.$nextTick(() => {
+          if (this.$refs.player) {
+            const playPromise = this.$refs.player.play();
+            if (playPromise !== undefined) {
+              playPromise.catch((error) => {
+                console.log("Autoplay with sound was prevented. Retrying muted.", error);
+                if (this.$refs.player) {
+                  this.$refs.player.muted = true;
+                  this.$refs.player.play();
+                }
+              });
+            }
+          }
+        });
       }
 
       if (!this.listing) {
