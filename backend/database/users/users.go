@@ -41,12 +41,14 @@ type Sorting struct {
 }
 
 type Preview struct {
+	DisableHideSidebar bool `json:"disableHideSidebar"` // disable the hide sidebar preview for previews and editors
 	HighQuality        bool `json:"highQuality"`        // generate high quality preview images
 	Image              bool `json:"image"`              // show real image as icon instead of generic photo icon
 	Video              bool `json:"video"`              // show preview image for video files
 	MotionVideoPreview bool `json:"motionVideoPreview"` // show multiple frames for videos in preview when hovering
 	Office             bool `json:"office"`             // show preview image for office files
 	PopUp              bool `json:"popup"`              // show larger popup preview when hovering
+	AutoplayMedia      bool `json:"autoplayMedia"`      // autoplay media files in preview
 }
 
 // User describes a user.
@@ -91,6 +93,7 @@ type NonAdminEditable struct {
 	DisableOnlyOfficeExt       string  `json:"disableOnlyOfficeExt"`       // comma separated list of file extensions to disable onlyoffice preview for
 	DisableOfficePreviewExt    string  `json:"disableOfficePreviewExt"`    // comma separated list of file extensions to disable office preview for
 	DisableUpdateNotifications bool    `json:"disableUpdateNotifications"` // disable update notifications
+
 }
 
 var PublicUser = User{

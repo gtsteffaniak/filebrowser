@@ -1,5 +1,5 @@
 server:
-  numImageProcessors: 14                  # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
+  numImageProcessors: 16                  # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
   socket: ""                              # socket to listen on
   tlsKey: ""                              # path to TLS key
   tlsCert: ""                             # path to TLS cert
@@ -66,7 +66,7 @@ auth:
       clientSecret: ""                    # client secret of the OIDC application
       issuerUrl: ""                       # authorization URL of the OIDC provider
       scopes: ""                          # scopes to request from the OIDC provider
-      userIdentifier: ""                  # the user identifier to use for authentication. Default is "username", can be "email" or "username", or "phone"
+      userIdentifier: ""                  # the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
       disableVerifyTLS: false             # disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.
       logoutRedirectUrl: ""               # if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
       createUser: false                   # create user if not exists
@@ -103,12 +103,14 @@ userDefaults:
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
+    disableHideSidebar: false
     highQuality: false
     image: false
     video: false
     motionVideoPreview: false
     office: false
     popup: false
+    autoplayMedia: false
   permissions:
     api: false
     admin: false

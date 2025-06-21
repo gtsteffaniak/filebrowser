@@ -16,7 +16,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/auth/logout": {
-            "get": {
+            "post": {
                 "description": "logs a user out of the application.",
                 "tags": [
                     "Auth"
@@ -1818,21 +1818,21 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "fileEndsWith": {
-                    "description": "array of file names to include/exclude (eg \"a.jpg\")",
+                    "description": "list of file names to include/exclude. Eg. \"a.jpg\"",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "files": {
-                    "description": "array of file names to include/exclude",
+                    "description": "list of file names to include/exclude  Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (do not include source path, just the subpaths from the source path)",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "folders": {
-                    "description": "array of folder names to include/exclude",
+                    "description": "list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1947,7 +1947,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userIdentifier": {
-                    "description": "the user identifier to use for authentication. Default is \"username\", can be \"email\" or \"username\", or \"phone\"",
+                    "description": "the field value to use as the username. Default is \"preferred_username\", can also be \"email\" or \"username\", or \"phone\"",
                     "type": "string"
                 }
             }
@@ -2394,6 +2394,14 @@ const docTemplate = `{
         "users.Preview": {
             "type": "object",
             "properties": {
+                "autoplayMedia": {
+                    "description": "autoplay media files in preview",
+                    "type": "boolean"
+                },
+                "disableHideSidebar": {
+                    "description": "disable the hide sidebar preview for previews and editors",
+                    "type": "boolean"
+                },
                 "highQuality": {
                     "description": "generate high quality preview images",
                     "type": "boolean"

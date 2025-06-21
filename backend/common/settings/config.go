@@ -97,6 +97,8 @@ func setupSources(generate bool) {
 					Config.Server.DefaultSource = source
 				}
 			}
+			modifyExcludeInclude(&source)
+
 			if source.Config.DefaultUserScope == "" {
 				source.Config.DefaultUserScope = "/"
 			}
@@ -226,7 +228,9 @@ func loadConfigWithDefaults(configFile string) error {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		logger.Errorf("could not open config file '%v', using default settings.", configFile)
+		if configFile != "" {
+			logger.Errorf("could not open config file '%v', using default settings.", configFile)
+		}
 		Config.Server.Sources = []Source{
 			{
 				Path: ".",
@@ -267,7 +271,6 @@ func ValidateConfig(config Settings) error {
 }
 
 func loadEnvConfig() {
-
 	adminPassword, ok := os.LookupEnv("FILEBROWSER_ADMIN_PASSWORD")
 	if ok {
 		logger.Info("Using admin password from FILEBROWSER_ADMIN_PASSWORD environment variable")
@@ -282,6 +285,36 @@ func loadEnvConfig() {
 	ffmpegPath, ok := os.LookupEnv("FILEBROWSER_FFMPEG_PATH")
 	if ok {
 		Config.Integrations.Media.FfmpegPath = ffmpegPath
+	}
+
+	oidcClientId := os.Getenv("FILEBROWSER_OIDC_CLIENT_ID")
+	if oidcClientId != "" {
+		Config.Auth.Methods.OidcAuth.ClientID = oidcClientId
+		logger.Info("Using OIDC Client ID from FILEBROWSER_OIDC_CLIENT_ID environment variable")
+	}
+
+	oidcClientSecret := os.Getenv("FILEBROWSER_OIDC_CLIENT_SECRET")
+	if oidcClientSecret != "" {
+		Config.Auth.Methods.OidcAuth.ClientSecret = oidcClientSecret
+		logger.Info("Using OIDC Client Secret from FILEBROWSER_OIDC_CLIENT_SECRET environment variable")
+	}
+
+	jwtTokenSecret := os.Getenv("FILEBROWSER_JWT_TOKEN_SECRET")
+	if jwtTokenSecret != "" {
+		Config.Auth.Key = jwtTokenSecret
+		logger.Info("Using JWT Token Secret from FILEBROWSER_JWT_TOKEN_SECRET environment variable")
+	}
+
+	totpSecret := os.Getenv("FILEBROWSER_TOTP_SECRET")
+	if totpSecret != "" {
+		Config.Auth.TotpSecret = totpSecret
+		logger.Info("Using TOTP Secret from FILEBROWSER_TOTP_SECRET environment variable")
+	}
+
+	recaptchaSecret := os.Getenv("FILEBROWSER_RECAPTCHA_SECRET")
+	if recaptchaSecret != "" {
+		Config.Auth.Methods.PasswordAuth.Recaptcha.Secret = recaptchaSecret
+		logger.Info("Using ReCaptcha Secret from FILEBROWSER_RECAPTCHA_SECRET environment variable")
 	}
 
 }
@@ -449,4 +482,29 @@ func GetSources(u *users.User) []string {
 		}
 	}
 	return sources
+}
+
+func modifyExcludeInclude(config *Source) {
+	normalize := func(s []string, checkExists bool) {
+		for i, v := range s {
+			s[i] = "/" + strings.Trim(v, "/")
+			// check if file/folder exists
+			if checkExists {
+				realPath, err := filepath.Abs(config.Path + s[i])
+				if err != nil {
+					logger.Warningf("could not get absolute path for %v: %v", s[i], err)
+					continue
+				}
+				if _, err := os.Stat(realPath); os.IsNotExist(err) {
+					logger.Warningf("configured exclude/include path %v does not exist", realPath)
+				}
+			}
+		}
+	}
+
+	normalize(config.Config.Exclude.Files, true)
+	normalize(config.Config.Exclude.Folders, true)
+	normalize(config.Config.Include.Files, true)
+	normalize(config.Config.Include.Folders, true)
+
 }

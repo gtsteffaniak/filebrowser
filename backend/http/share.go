@@ -15,6 +15,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 )
 
@@ -75,12 +76,16 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
-
 	sourcePath, ok := config.Server.NameToSource[source]
 	if !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid source name: %s", source)
 	}
-	s, err := store.Share.Gets(path, sourcePath.Path, d.user.ID)
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	scopePath := utils.JoinPathAsUnix(userscope, path)
+	s, err := store.Share.Gets(scopePath, sourcePath.Path, d.user.ID)
 	if err == errors.ErrNotExist {
 		return renderJSON(w, r, []*share.Link{})
 	}
@@ -194,9 +199,13 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		sourceName = config.Server.DefaultSource.Name
 	}
 	source := config.Server.NameToSource[sourceName]
-
+	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	scopePath := utils.JoinPathAsUnix(userscope, path)
 	s = &share.Link{
-		Path:         path,
+		Path:         scopePath,
 		Hash:         secure_hash,
 		Source:       source.Path, // path instead to persist accoss name change
 		Expire:       expire,

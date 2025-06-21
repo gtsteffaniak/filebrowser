@@ -62,7 +62,7 @@ func runCLI() bool {
 	var asAdmin bool
 
 	setCmd.StringVar(&user, "u", "", "Comma-separated username and password: \"set -u <username>,<password>\"")
-	setCmd.BoolVar(&asAdmin, "a", false, "Create user as admin user, used in combination with -u")
+	setCmd.BoolVar(&asAdmin, "a", false, "Create a user as admin user, used in combination with -u")
 	setCmd.StringVar(&scope, "s", "", "Specify a user scope, otherwise default user config scope is used")
 	setCmd.StringVar(&dbConfig, "c", "config.yaml", "Path to the config file, default: config.yaml")
 

@@ -73,7 +73,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 
 	// Auth routes
 	api.HandleFunc("POST /auth/login", userWithoutOTP(loginHandler))
-	api.HandleFunc("GET /auth/logout", withoutUser(logoutHandler))
+	api.HandleFunc("POST /auth/logout", withUser(logoutHandler))
 	api.HandleFunc("POST /auth/signup", withoutUser(signupHandler))
 	api.HandleFunc("POST /auth/otp/generate", userWithoutOTP(generateOTPHandler))
 	api.HandleFunc("POST /auth/otp/verify", userWithoutOTP(verifyOTPHandler))

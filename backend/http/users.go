@@ -118,10 +118,6 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusForbidden, fmt.Errorf("cannot delete users without admin permissions")
 	}
 
-	if givenUserId == 1 {
-		return http.StatusForbidden, fmt.Errorf("cannot delete the default admin user")
-	}
-
 	// Delete the user
 	err := store.Users.Delete(givenUserId)
 	if err != nil {

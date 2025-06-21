@@ -50,7 +50,6 @@ func extractToken(r *http.Request) (string, error) {
 	// Check for Authorization header
 	authHeader := r.Header.Get("Authorization")
 	if authHeader != "" {
-
 		hasToken = true
 		// Split the header to get "Bearer {token}"
 		parts := strings.Split(authHeader, " ")
@@ -129,33 +128,26 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 // @Description logs a user out of the application.
 // @Tags Auth
 // @Success 302 {string} string "Redirect to redirect URL if configured in oidc config."
-// @Router /api/auth/logout [get]
+// @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	origin := r.Header.Get("Origin")
 	if origin == "" {
 		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
 	}
-	logoutUrl := fmt.Sprintf("%s/login", origin)
-	proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
-	oidcRedirectUrl := settings.Config.Auth.Methods.OidcAuth.LogoutRedirectUrl
-	proxyUser := r.Header.Get(config.Auth.Methods.ProxyAuth.Header)
+	logoutUrl := fmt.Sprintf("%s%v/login", config.Server.BaseURL, origin)
 
-	if config.Auth.Methods.ProxyAuth.Enabled && proxyUser != "" {
+	if d.user.LoginMethod == "proxy" {
+		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
 		if proxyRedirectUrl != "" {
 			logoutUrl = proxyRedirectUrl
 		}
-	} else {
+	} else if d.user.LoginMethod == "oidc" {
+		oidcRedirectUrl := config.Auth.Methods.OidcAuth.LogoutRedirectUrl
 		if oidcRedirectUrl != "" {
 			logoutUrl = oidcRedirectUrl
 		}
 	}
-	// clear cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:   "auth",
-		Value:  "",
-		MaxAge: -1,
-		Path:   "/",
-	})
+
 	http.Redirect(w, r, logoutUrl, http.StatusFound)
 	return 302, nil
 }

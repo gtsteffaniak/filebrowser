@@ -29,7 +29,20 @@
         />
       </video>
 
-      <object v-else-if="previewType == 'pdf'" class="pdf" :data="raw"></object>
+      <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
+        <iframe class="pdf" :src="raw"></iframe>
+        <a
+          v-if="isMobileSafari"
+          :href="raw"
+          target="_blank"
+          class="button button--flat floating-btn"
+        >
+          <div>
+            <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
+          </div>
+        </a>
+      </div>
+
       <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
@@ -104,7 +117,6 @@ export default {
       showNav: true,
       navTimeout: null,
       hoverNav: false,
-      autoPlay: false,
       previousRaw: "",
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
@@ -112,6 +124,15 @@ export default {
     };
   },
   computed: {
+    autoPlay() {
+      return state.user.preview.autoplayMedia;
+    },
+    isMobileSafari() {
+      const userAgent = window.navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+      return isIOS && isSafari;
+    },
     pdfConvertable() {
       const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
@@ -121,7 +142,6 @@ export default {
         ".cbz": true,
         ".svg": true,
         ".docx": true,
-        ".ppt": true,
         ".pptx": true,
         ".xlsx": true,
         ".hwp": true,
@@ -201,14 +221,10 @@ export default {
         return [];
       }
       let subs = [];
-      for (let subtitleFile of state.req.subtitles) {
-        if (state.serverHasMultipleSources) {
-          subtitleFile = "/files/" + state.req.source + subtitleFile;
-        } else {
-          subtitleFile = "/files" + subtitleFile;
-        }
+      for (const subtitleFile of state.req.subtitles) {
         const ext = getFileExtension(subtitleFile);
-        const resp = await filesApi.fetchFiles(subtitleFile, true); // Fetch .srt file
+        const subUrl = url.removeLastDir(state.req.url) + "/" + subtitleFile;
+        const resp = await filesApi.fetchFiles(subUrl, true); // Fetch .srt file
         let vttContent = resp.content;
         // Convert SRT to VTT (assuming srt2vtt() does this)
         vttContent = convertToVTT(ext, resp.content);
@@ -245,7 +261,7 @@ export default {
       this.hoverNav = false;
       this.$router.replace({ path: this.nextLink });
     },
-    key(event) {
+    async key(event) {
       if (getters.currentPromptName() != null) {
         return;
       }
@@ -269,9 +285,23 @@ export default {
       }
     },
     async updatePreview() {
-      if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
-        this.autoPlay = false;
+      // Try to autoplay media, handle browser restrictions
+      if (this.autoPlay && (this.previewType === "video" || this.previewType === "audio")) {
+        this.$nextTick(() => {
+          if (this.$refs.player) {
+            const playPromise = this.$refs.player.play();
+            if (playPromise !== undefined) {
+              playPromise.catch((error) => {
+                if (this.$refs.player) {
+                  this.$refs.player.muted = true;
+                  this.$refs.player.play();
+                }
+              });
+            }
+          }
+        });
       }
+
       if (!this.listing) {
         const path = url.removeLastDir(getters.routePath());
         const res = await filesApi.fetchFiles(path);
@@ -348,3 +378,25 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.pdf-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.pdf-wrapper .pdf {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.pdf-wrapper .floating-btn {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+.pdf-wrapper .floating-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+</style>

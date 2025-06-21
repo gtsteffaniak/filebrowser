@@ -298,7 +298,8 @@
     "settings": "הגדרות",
     "signup": "הרשמה",
     "siteSettings": "הגדרות",
-    "sources": "מקורות"
+    "sources": "מקורות",
+    "updateIsAvailable": "עדכון זמין!"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -366,7 +367,10 @@
     "highQualityPreview": "תצוגה מקדימה באיכות גבוהה",
     "editOffice": "ערוך/הצג קבצי Office",
     "popupPreview": "הפעל תצוגה מקדימה מוקפצת",
-    "filePreviewOptions": "אפשרויות תצוגה מקדימה של קבצים"
+    "filePreviewOptions": "אפשרויות תצוגה מקדימה של קבצים",
+    "disableUpdateNotifications": "השבת הצגת כרטיסיית עדכון הודעות בסרגל הצד.",
+    "disableHideSidebar": "השבת הסתרה אוטומטית של סרגל הצד בעת תצוגה מקדימה או עריכת קבצים.",
+    "autoplayMedia": "הפעל קבצי מדיה באופן אוטומטי בתצוגה מקדימה"
   },
   "otp": {
     "name": "אימות דו-גורמי",

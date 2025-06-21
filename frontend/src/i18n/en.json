@@ -198,7 +198,9 @@
     "editOffice": "Edit/view office files",
     "popupPreview": "Enable pop-up preview",
     "filePreviewOptions": "File preview options",
-    "disableUpdateNotifications": "Disable showing notification update banner in sidebar."
+    "disableUpdateNotifications": "Disable showing notification update banner in sidebar.",
+    "disableHideSidebar": "Disable automatically hiding sidebar when previewing or editing files.",
+    "autoplayMedia": "Autoplay media files in preview"
   },
   "settings": {
     "enterPassword": "Enter password",
@@ -298,7 +300,8 @@
     "userManagement": "User Management",
     "userUpdated": "User updated!",
     "username": "Username",
-    "users": "Users"
+    "users": "Users",
+    "adminOptions": "Admin user options"
   },
   "sidebar": {
     "help": "Help",

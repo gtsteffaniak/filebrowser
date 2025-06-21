@@ -301,7 +301,8 @@
     "settings": "Ayarlar",
     "signup": "Kayıt",
     "siteSettings": "Site ayarları!",
-    "sources": "Kaynaklar"
+    "sources": "Kaynaklar",
+    "updateIsAvailable": "Bir güncelleme mevcut!"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -370,7 +371,10 @@
     "previewOffice": "Ofis dosyalarını önizleme",
     "popupPreview": "Açılır pencere önizlemesini etkinleştir",
     "filePreviewOptions": "Dosya önizleme seçenekleri",
-    "editOffice": "Ofis dosyalarını düzenleme/görüntüleme"
+    "editOffice": "Ofis dosyalarını düzenleme/görüntüleme",
+    "disableUpdateNotifications": "Kenar çubuğunda bildirim güncelleme banner'ını göstermeyi devre dışı bırakın.",
+    "disableHideSidebar": "Dosyaları önizlerken veya düzenlerken kenar çubuğunu otomatik olarak gizlemeyi devre dışı bırakın.",
+    "autoplayMedia": "Medya dosyalarını önizlemede otomatik oynatma"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",

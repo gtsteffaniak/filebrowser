@@ -41,7 +41,6 @@ var MuPdfConvertable = []string{
 	".svg",  // SVG
 	".txt",  // TXT
 	".docx", // DOCX
-	".ppt",  // PPT
 	".pptx", // PPTX
 	".xlsx", // XLSX
 	".hwp",  // HWP

@@ -5,6 +5,11 @@ server:
     - levels: "info|error|debug"
   sources:
     - path: "../frontend/tests/playwright-files"
+      config:
+        exclude:
+          folders:
+            - "excluded"
+
 auth:
   methods:
     noauth: true

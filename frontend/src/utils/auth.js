@@ -56,11 +56,26 @@ export function generateRandomCode(length) {
   return code;
 }
 
-export function logout() {
-  if (state.user.loginMethod == "oidc" || state.user.loginMethod == "proxy") {
-    let apiPath = getApiPath("api/auth/logout")
-    window.location.href = apiPath;
-    return
+export async function logout() {
+
+  if (state.user.loginMethod === "oidc" || state.user.loginMethod === "proxy") {
+    try {
+      const res = await fetch(getApiPath("api/auth/logout"), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${state.jwt}`,
+        },
+      });
+
+      if (res.redirected) {
+        document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+        mutations.setCurrentUser(null);
+        window.location.href = res.url;
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
   mutations.setCurrentUser(null);

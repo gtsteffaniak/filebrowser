@@ -301,7 +301,8 @@
     "settings": "Configurações",
     "signup": "Cadastrar",
     "siteSettings": "Configurações do site",
-    "sources": "Fontes"
+    "sources": "Fontes",
+    "updateIsAvailable": "Uma atualização está disponível!"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -370,7 +371,10 @@
     "previewOffice": "Visualizar arquivos do Office",
     "popupPreview": "Ativar visualização pop-up",
     "filePreviewOptions": "Opções de visualização de arquivos",
-    "editOffice": "Editar/visualizar arquivos de escritório"
+    "editOffice": "Editar/visualizar arquivos de escritório",
+    "disableUpdateNotifications": "Desativar a exibição do banner de atualização de notificação na barra lateral.",
+    "disableHideSidebar": "Desative a ocultação automática da barra lateral ao visualizar ou editar arquivos.",
+    "autoplayMedia": "Reprodução automática de arquivos de mídia na visualização"
   },
   "otp": {
     "name": "Autenticação de dois fatores",

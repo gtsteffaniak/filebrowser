@@ -195,7 +195,7 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 	}
 	if loginUsername == "" {
-		logger.Error("No valid username found in ID token or UserInfo response.")
+		logger.Errorf("No valid username found for identifier '%v' in ID token or UserInfo response.", oidcCfg.UserIdentifier)
 		return http.StatusInternalServerError, fmt.Errorf("no valid username found in ID token or UserInfo response from claims")
 	}
 	isAdmin := false // Default to non-admin user

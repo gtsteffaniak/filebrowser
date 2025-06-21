@@ -57,7 +57,7 @@ type OidcConfig struct {
 	ClientSecret      string                `json:"clientSecret"`      // client secret of the OIDC application
 	IssuerUrl         string                `json:"issuerUrl"`         // authorization URL of the OIDC provider
 	Scopes            string                `json:"scopes"`            // scopes to request from the OIDC provider
-	UserIdentifier    string                `json:"userIdentifier"`    // the user identifier to use for authentication. Default is "username", can be "email" or "username", or "phone"
+	UserIdentifier    string                `json:"userIdentifier"`    // the field value to use as the username. Default is "preferred_username", can also be "email" or "username", or "phone"
 	DisableVerifyTLS  bool                  `json:"disableVerifyTLS"`  // disable TLS verification for the OIDC provider. This is insecure and should only be used for testing.
 	LogoutRedirectUrl string                `json:"logoutRedirectUrl"` // if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
 	CreateUser        bool                  `json:"createUser"`        // create user if not exists
@@ -73,7 +73,7 @@ func validateOidcAuth() error {
 		return errors.New("OIDC is not enabled")
 	}
 	if oidcCfg.UserIdentifier == "" {
-		oidcCfg.UserIdentifier = "username"
+		oidcCfg.UserIdentifier = "preferred_username"
 	}
 
 	ctx := context.Background()

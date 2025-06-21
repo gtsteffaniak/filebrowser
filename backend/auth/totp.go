@@ -76,7 +76,7 @@ func GenerateOtpForUser(user *users.User, userStore *users.Storage) (string, err
 	}
 	// set cache so verify can attempt to use it but not require it for user yet.
 	TotpCache.Set(user.Username, secretText+"||"+nonce)
-	url := "otpauth://totp/FileBrowser%20Quantum?secret=" + secretText
+	url := fmt.Sprintf("otpauth://totp/%v?secret=%v", "FileBrowser Quantum: "+user.Username, secretText)
 	return url, nil
 }
 
@@ -191,7 +191,7 @@ func VerifyTotpCode(user *users.User, code string, userStore *users.Storage) err
 		user.TOTPNonce = totpNonce   // The nonce if encrypted, or empty if plaintext
 		user.OtpEnabled = true       // Enable OTP for the user
 		// save user
-		if err := userStore.Update(user, user.Permissions.Admin, "TOTPSecret", "TOTPNonce"); err != nil {
+		if err := userStore.Update(user, true, "TOTPSecret", "TOTPNonce"); err != nil {
 			logger.Error("error updating user with OTP token:", err)
 			return fmt.Errorf("error updating user with OTP token: %w", err)
 		}

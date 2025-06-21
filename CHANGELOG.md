@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.10-beta
+
+ **OIDC change**: if you specify `oidc.userIdentifier: "username"`, originally this would map to `preferred_username` but now it maps to `username` explicitly. To maintain the same behavior update your config to `userIdentifier: "preferred_username"`. This was updated to allow for `username` to work as [some might need](https://github.com/gtsteffaniak/filebrowser/pull/789).
+
+ **New Features**:
+ - Added settings option to stop sidebar from automatically hiding on editor and previews. https://github.com/gtsteffaniak/filebrowser/issues/744
+ - Added more secrets loadable from environment variables. https://github.com/gtsteffaniak/filebrowser/issues/790
+ - Include/exclude files are checked for existence to assist with configuration, will show as warning if something is configured but doesn't exist.
+ - Added open in new tab link for preview items to view the raw picture, pdf, etc. Especially helpful for safari viewing PDF documents. https://github.com/gtsteffaniak/filebrowser/issues/734
+ - Added autoplay media toggle in user profile, to automatically play videos and audio.
+
+ **Notes**:
+ - Allowed to delete default admin user https://github.com/gtsteffaniak/filebrowser/issues/811 https://github.com/gtsteffaniak/filebrowser/issues/762
+ - Better try/catch error handling for user feedback for shares https://github.com/gtsteffaniak/filebrowser/issues/732
+
+ **BugFixes**:
+ - Fix share scope creation issue https://github.com/gtsteffaniak/filebrowser/issues/809
+ - Fix oidc token logout issue https://github.com/gtsteffaniak/filebrowser/issues/791
+ - Non-admin users OTP issue https://github.com/gtsteffaniak/filebrowser/issues/815
+ - Linewrap issue for a few cases https://github.com/gtsteffaniak/filebrowser/issues/810
+ - BaseUrl redirect issue with proxies https://github.com/gtsteffaniak/filebrowser/issues/796
+ - Fix exclude still shows up in ui issue https://github.com/gtsteffaniak/filebrowser/issues/797
+ - Copy/move functions are async https://github.com/gtsteffaniak/filebrowser/issues/812
+ - fix subtitle fetch issue https://github.com/gtsteffaniak/filebrowser/issues/766
+ - fix location memory issue for url encoded file names
+
 ## v0.7.9-beta
 
  **New Features**:
