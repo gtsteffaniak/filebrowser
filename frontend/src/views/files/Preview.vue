@@ -29,7 +29,20 @@
         />
       </video>
 
-      <div v-else-if="previewType == 'pdf'" id="pdf-container" class="pdf"></div>
+      <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
+        <iframe class="pdf" :src="raw"></iframe>
+        <a
+          v-if="isMobileSafari"
+          :href="raw"
+          target="_blank"
+          class="button button--flat floating-btn"
+        >
+          <div>
+            <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
+          </div>
+        </a>
+      </div>
+
       <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
@@ -88,8 +101,6 @@ import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
-import { isMobileSafari } from "@/utils/device.js";
-import PDFObject from "pdfobject";
 
 export default {
   name: "preview",
@@ -114,6 +125,12 @@ export default {
     };
   },
   computed: {
+    isMobileSafari() {
+      const userAgent = window.navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+      return isIOS && isSafari;
+    },
     pdfConvertable() {
       const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
@@ -274,19 +291,6 @@ export default {
         this.autoPlay = false;
       }
 
-      if (this.previewType === 'pdf') {
-        this.$nextTick(() => {
-          const container = document.getElementById('pdf-container');
-          if (container) {
-            if (isMobileSafari()) {
-              PDFObject.embed(this.raw, "#pdf-container");
-            } else {
-              container.innerHTML = `<iframe class="pdf" src="${this.raw}"></iframe>`;
-            }
-          }
-        });
-      }
-
       if (!this.listing) {
         const path = url.removeLastDir(getters.routePath());
         const res = await filesApi.fetchFiles(path);
@@ -363,3 +367,29 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.pdf-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.pdf-wrapper .pdf {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.pdf-wrapper .floating-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+.pdf-wrapper .floating-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+</style>
