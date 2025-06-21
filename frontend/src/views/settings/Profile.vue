@@ -61,6 +61,11 @@
             />
             <ToggleSwitch
               class="item"
+              v-model="localuser.preview.autoplayMedia"
+              :name="$t('profileSettings.autoplayMedia')"
+            />
+            <ToggleSwitch
+              class="item"
               v-model="localuser.preview.disableHideSidebar"
               :name="$t('profileSettings.disableHideSidebar')"
             />

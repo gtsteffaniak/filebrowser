@@ -48,6 +48,7 @@ type Preview struct {
 	MotionVideoPreview bool `json:"motionVideoPreview"` // show multiple frames for videos in preview when hovering
 	Office             bool `json:"office"`             // show preview image for office files
 	PopUp              bool `json:"popup"`              // show larger popup preview when hovering
+	AutoplayMedia      bool `json:"autoplayMedia"`      // autoplay media files in preview
 }
 
 // User describes a user.

@@ -373,7 +373,8 @@
     "filePreviewOptions": "Opções de visualização de arquivos",
     "editOffice": "Editar/visualizar arquivos de escritório",
     "disableUpdateNotifications": "Desativar a exibição do banner de atualização de notificação na barra lateral.",
-    "disableHideSidebar": "Desative a ocultação automática da barra lateral ao visualizar ou editar arquivos."
+    "disableHideSidebar": "Desative a ocultação automática da barra lateral ao visualizar ou editar arquivos.",
+    "autoplayMedia": "Reprodução automática de arquivos de mídia na visualização"
   },
   "otp": {
     "name": "Autenticação de dois fatores",

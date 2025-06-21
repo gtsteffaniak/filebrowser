@@ -25,7 +25,7 @@ func (i *ExtendedFileInfo) DetectSubtitles(parentInfo *FileInfo) {
 
 		for _, subtitleExt := range SubtitleExts {
 			if strings.HasSuffix(f.Name, subtitleExt) {
-				i.Subtitles = append(i.Subtitles, parentInfo.Path+f.Name)
+				i.Subtitles = append(i.Subtitles, f.Name)
 			}
 		}
 	}

@@ -373,7 +373,8 @@
     "editOffice": "Editer/visualiser des fichiers bureautiques",
     "filePreviewOptions": "Options de prévisualisation des fichiers",
     "disableUpdateNotifications": "Désactiver l'affichage de la bannière de mise à jour des notifications dans la barre latérale.",
-    "disableHideSidebar": "Désactiver le masquage automatique de la barre latérale lors de la prévisualisation ou de l'édition de fichiers."
+    "disableHideSidebar": "Désactiver le masquage automatique de la barre latérale lors de la prévisualisation ou de l'édition de fichiers.",
+    "autoplayMedia": "Lecture automatique des fichiers multimédias dans l'aperçu"
   },
   "otp": {
     "name": "Authentification à deux facteurs",

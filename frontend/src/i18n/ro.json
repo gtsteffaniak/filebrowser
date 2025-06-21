@@ -373,7 +373,8 @@
     "filePreviewOptions": "Opțiuni de previzualizare a fișierelor",
     "editOffice": "Editarea/vizualizarea fișierelor office",
     "disableUpdateNotifications": "Dezactivați afișarea bannerului de actualizare a notificărilor în bara laterală.",
-    "disableHideSidebar": "Dezactivați ascunderea automată a barei laterale la previzualizarea sau editarea fișierelor."
+    "disableHideSidebar": "Dezactivați ascunderea automată a barei laterale la previzualizarea sau editarea fișierelor.",
+    "autoplayMedia": "Redarea automată a fișierelor media în previzualizare"
   },
   "otp": {
     "name": "Autentificare cu doi factori",

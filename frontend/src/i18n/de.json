@@ -373,7 +373,8 @@
     "filePreviewOptions": "Optionen für die Dateivorschau",
     "editOffice": "Office-Dateien bearbeiten/anzeigen",
     "disableUpdateNotifications": "Deaktivieren Sie die Anzeige des Banners für Benachrichtigungsaktualisierungen in der Seitenleiste.",
-    "disableHideSidebar": "Deaktivieren Sie das automatische Ausblenden der Seitenleiste bei der Vorschau oder Bearbeitung von Dateien."
+    "disableHideSidebar": "Deaktivieren Sie das automatische Ausblenden der Seitenleiste bei der Vorschau oder Bearbeitung von Dateien.",
+    "autoplayMedia": "Autoplay von Mediendateien in der Vorschau"
   },
   "otp": {
     "name": "Zwei-Faktoren-Authentifizierung",
