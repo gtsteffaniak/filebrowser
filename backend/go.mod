@@ -6,7 +6,7 @@ require (
 	github.com/asdine/storm/v3 v3.2.1
 	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/dsoprea/go-exif/v3 v3.0.1
-	github.com/gen2brain/go-fitz v1.24.14
+	github.com/gen2brain/go-fitz v1.24.15
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/goccy/go-yaml v1.18.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
@@ -22,6 +22,7 @@ require (
 	github.com/swaggo/swag v1.16.4
 	golang.org/x/crypto v0.39.0
 	golang.org/x/image v0.28.0
+	golang.org/x/mod v0.25.0
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/sys v0.33.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -238,7 +239,6 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20250210185358-939b2ce775ac // indirect
-	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
