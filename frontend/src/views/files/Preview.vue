@@ -29,7 +29,7 @@
         />
       </video>
 
-      <iframe v-else-if="previewType == 'pdf'" class="pdf" :src="raw" ></iframe>
+      <div v-else-if="previewType == 'pdf'" id="pdf-container" class="pdf"></div>
       <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
@@ -88,6 +88,8 @@ import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
+import { isMobileSafari } from "@/utils/device.js";
+import PDFObject from "pdfobject";
 
 export default {
   name: "preview",
@@ -271,6 +273,20 @@ export default {
       if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
         this.autoPlay = false;
       }
+
+      if (this.previewType === 'pdf') {
+        this.$nextTick(() => {
+          const container = document.getElementById('pdf-container');
+          if (container) {
+            if (isMobileSafari()) {
+              PDFObject.embed(this.raw, "#pdf-container");
+            } else {
+              container.innerHTML = `<iframe class="pdf" src="${this.raw}"></iframe>`;
+            }
+          }
+        });
+      }
+
       if (!this.listing) {
         const path = url.removeLastDir(getters.routePath());
         const res = await filesApi.fetchFiles(path);
