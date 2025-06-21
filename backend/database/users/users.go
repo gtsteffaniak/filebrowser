@@ -41,6 +41,7 @@ type Sorting struct {
 }
 
 type Preview struct {
+	DisableHideSidebar bool `json:"disableHideSidebar"` // disable the hide sidebar preview for previews and editors
 	HighQuality        bool `json:"highQuality"`        // generate high quality preview images
 	Image              bool `json:"image"`              // show real image as icon instead of generic photo icon
 	Video              bool `json:"video"`              // show preview image for video files
@@ -91,6 +92,7 @@ type NonAdminEditable struct {
 	DisableOnlyOfficeExt       string  `json:"disableOnlyOfficeExt"`       // comma separated list of file extensions to disable onlyoffice preview for
 	DisableOfficePreviewExt    string  `json:"disableOfficePreviewExt"`    // comma separated list of file extensions to disable office preview for
 	DisableUpdateNotifications bool    `json:"disableUpdateNotifications"` // disable update notifications
+
 }
 
 var PublicUser = User{

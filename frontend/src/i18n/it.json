@@ -301,7 +301,8 @@
     "settings": "Impostazioni",
     "signup": "Registrati",
     "siteSettings": "Impostazioni del sito",
-    "sources": "Fonti"
+    "sources": "Fonti",
+    "updateIsAvailable": "È disponibile un aggiornamento!"
   },
   "success": {
     "linkCopied": "Link copiato!"
@@ -370,7 +371,9 @@
     "previewOffice": "Anteprima dei file office",
     "popupPreview": "Abilita l'anteprima a comparsa",
     "filePreviewOptions": "Opzioni di anteprima dei file",
-    "editOffice": "Modificare/visualizzare i file dell'ufficio"
+    "editOffice": "Modificare/visualizzare i file dell'ufficio",
+    "disableUpdateNotifications": "Disattivare la visualizzazione del banner di aggiornamento delle notifiche nella barra laterale.",
+    "disableHideSidebar": "Disabilita la possibilità di nascondere automaticamente la barra laterale durante l'anteprima o la modifica dei file."
   },
   "otp": {
     "name": "Autenticazione a due fattori",

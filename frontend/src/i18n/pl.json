@@ -301,7 +301,8 @@
     "settings": "Ustawienia",
     "signup": "Rejestracja",
     "siteSettings": "Ustawienia Strony",
-    "sources": "Źródła"
+    "sources": "Źródła",
+    "updateIsAvailable": "Aktualizacja jest już dostępna!"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -370,7 +371,9 @@
     "previewOffice": "Podgląd plików biurowych",
     "popupPreview": "Włącz wyskakujący podgląd",
     "filePreviewOptions": "Opcje podglądu plików",
-    "editOffice": "Edycja/przeglądanie plików biurowych"
+    "editOffice": "Edycja/przeglądanie plików biurowych",
+    "disableUpdateNotifications": "Wyłącz wyświetlanie banera aktualizacji powiadomień na pasku bocznym.",
+    "disableHideSidebar": "Wyłącz automatyczne ukrywanie paska bocznego podczas podglądu lub edycji plików."
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",

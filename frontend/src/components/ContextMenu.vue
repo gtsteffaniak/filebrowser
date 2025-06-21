@@ -103,6 +103,7 @@
     class="button no-select"
     :class="{ 'dark-mode': isDarkMode }"
   >
+    <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
     <action v-if="isPreview" icon="file_download" :label="$t('buttons.download')" @action="startDownload" />
     <action v-if="showEdit" icon="edit" :label="$t('buttons.edit')" @action="edit()" />
     <action v-if="showSave" icon="save" :label="$t('buttons.save')" @action="save()" />
@@ -118,7 +119,7 @@ import { onlyOfficeUrl } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
-
+import { filesApi } from "@/api";
 export default {
   name: "ContextMenu",
   components: {
@@ -134,6 +135,10 @@ export default {
   computed: {
     noItems() {
       return !this.showEdit && !this.showSave && !this.showDelete;
+    },
+    showGoToRaw() {
+      return getters.currentView() == "preview" || 
+        getters.currentView() == "markdownViewer"
     },
     showEdit() {
       return getters.currentView() == "markdownViewer" && state.user.permissions.modify;
@@ -256,6 +261,16 @@ export default {
     },
     startDownload() {
       downloadFiles();
+    },
+    goToRaw() {
+      const downloadUrl = filesApi.getDownloadURL(
+          state.req.source,
+          state.req.path,
+          true,
+          false
+        );
+        window.open(downloadUrl, "_blank");
+        mutations.closeHovers();
     },
     async edit() {
       window.location.hash = "#edit";

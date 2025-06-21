@@ -59,6 +59,11 @@
               v-model="localuser.preview.popup"
               :name="$t('profileSettings.popupPreview')"
             />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.disableHideSidebar"
+              :name="$t('profileSettings.disableHideSidebar')"
+            />
           </div>
           <div v-if="hasOnlyOfficeEnabled">
             <h3>{{ $t("settings.disableOfficePreview") }}</h3>
@@ -266,5 +271,8 @@ export default {
 <style scoped>
 .card-content h3 {
   text-align: center;
+}
+#officePreviewExt {
+  width: 80%;
 }
 </style>

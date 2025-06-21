@@ -85,7 +85,6 @@ export default {
         ".svg": true,
         ".txt": true,
         ".docx": true,
-        ".ppt": true,
         ".pptx": true,
         ".xlsx": true,
         ".hwp": true,

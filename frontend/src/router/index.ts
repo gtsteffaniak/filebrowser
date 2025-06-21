@@ -150,7 +150,7 @@ router.beforeResolve(async (to, from, next) => {
       }
 
       if (oidcAvailable) {
-        window.location.href = `/api/auth/oidc/login?redirect=${encodeURIComponent(to.fullPath)}`;
+        next({ path: "/api/auth/oidc/login", query: { redirect: to.fullPath } });
         return;
       }
     }

@@ -29,7 +29,20 @@
         />
       </video>
 
-      <object v-else-if="previewType == 'pdf'" class="pdf" :data="raw"></object>
+      <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
+        <iframe class="pdf" :src="raw"></iframe>
+        <a
+          v-if="isMobileSafari"
+          :href="raw"
+          target="_blank"
+          class="button button--flat floating-btn"
+        >
+          <div>
+            <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
+          </div>
+        </a>
+      </div>
+
       <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
@@ -112,6 +125,12 @@ export default {
     };
   },
   computed: {
+    isMobileSafari() {
+      const userAgent = window.navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+      return isIOS && isSafari;
+    },
     pdfConvertable() {
       const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
@@ -121,7 +140,6 @@ export default {
         ".cbz": true,
         ".svg": true,
         ".docx": true,
-        ".ppt": true,
         ".pptx": true,
         ".xlsx": true,
         ".hwp": true,
@@ -272,6 +290,7 @@ export default {
       if (this.$refs.player && this.$refs.player.paused && !this.$refs.player.ended) {
         this.autoPlay = false;
       }
+
       if (!this.listing) {
         const path = url.removeLastDir(getters.routePath());
         const res = await filesApi.fetchFiles(path);
@@ -348,3 +367,25 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.pdf-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.pdf-wrapper .pdf {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.pdf-wrapper .floating-btn {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+.pdf-wrapper .floating-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+</style>

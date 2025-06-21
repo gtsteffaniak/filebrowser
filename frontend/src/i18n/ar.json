@@ -301,7 +301,8 @@
     "settings": "الإعدادات",
     "signup": "Signup",
     "siteSettings": "إعدادات الموقع",
-    "sources": "المصادر"
+    "sources": "المصادر",
+    "updateIsAvailable": "يتوفر تحديث!"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -370,7 +371,9 @@
     "previewOffice": "معاينة الملفات المكتبية",
     "popupPreview": "تمكين المعاينة المنبثقة",
     "filePreviewOptions": "خيارات معاينة الملف",
-    "editOffice": "تحرير/عرض ملفات المكتب"
+    "editOffice": "تحرير/عرض ملفات المكتب",
+    "disableUpdateNotifications": "تعطيل إظهار شعار تحديث الإشعارات في الشريط الجانبي.",
+    "disableHideSidebar": "تعطيل إخفاء الشريط الجانبي تلقائيًا عند معاينة الملفات أو تحريرها."
   },
   "otp": {
     "name": "المصادقة الثنائية",

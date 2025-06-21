@@ -425,9 +425,6 @@ func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	source := r.URL.Query().Get("source")
 	if source == "" {
 		source = config.Server.DefaultSource.Name
-	} else {
-		// decode url encoded source name
-		source, _ = url.QueryUnescape(source)
 	}
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)

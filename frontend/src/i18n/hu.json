@@ -301,7 +301,8 @@
     "settings": "Beállítások",
     "signup": "Regisztráció",
     "siteSettings": "Oldalbeállítások",
-    "sources": "Források"
+    "sources": "Források",
+    "updateIsAvailable": "Elérhető a frissítés!"
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -370,7 +371,9 @@
     "previewOffice": "Office fájlok előnézete",
     "popupPreview": "Pop-up előnézet engedélyezése",
     "filePreviewOptions": "Fájl előnézeti beállítások",
-    "editOffice": "Office fájlok szerkesztése/megjelenítése"
+    "editOffice": "Office fájlok szerkesztése/megjelenítése",
+    "disableUpdateNotifications": "Értesítési frissítés banner megjelenítésének kikapcsolása az oldalsávban.",
+    "disableHideSidebar": "Az oldalsáv automatikus elrejtésének kikapcsolása fájlok előnézeténél vagy szerkesztésénél."
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",
