@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For commit 
  **OIDC change**: if you specify `oidc.userIdentifier: "username"`, originally this would map to `preferred_username` but now it maps to `username` explicitly. To maintain the same behavior update your config to `userIdentifier: "preferred_username"`. This was updated to allow for `username` to work as [some might need](https://github.com/gtsteffaniak/filebrowser/pull/789).
 
  **New Features**:
- - Added settings option to keep sidebar from automatically hiding on editor and previews. https://github.com/gtsteffaniak/filebrowser/issues/744
+ - Added settings option to stop sidebar from automatically hiding on editor and previews. https://github.com/gtsteffaniak/filebrowser/issues/744
  - Added more secrets loadable from environment variables. https://github.com/gtsteffaniak/filebrowser/issues/790
  - Include/exclude files are checked for existence to assist with configuration, will show as warning if something is configured but doesn't exist.
  - Added open in new tab link for preview items to view the raw picture, pdf, etc. Especially helpful for safari viewing PDF documents. https://github.com/gtsteffaniak/filebrowser/issues/734
