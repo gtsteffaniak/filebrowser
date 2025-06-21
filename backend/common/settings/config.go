@@ -228,7 +228,9 @@ func loadConfigWithDefaults(configFile string) error {
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
-		logger.Errorf("could not open config file '%v', using default settings.", configFile)
+		if configFile != "" {
+			logger.Errorf("could not open config file '%v', using default settings.", configFile)
+		}
 		Config.Server.Sources = []Source{
 			{
 				Path: ".",

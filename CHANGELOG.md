@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Fix exclude still shows up in ui issue https://github.com/gtsteffaniak/filebrowser/issues/797
  - Copy/move functions are async https://github.com/gtsteffaniak/filebrowser/issues/812
  - fix subtitle fetch issue https://github.com/gtsteffaniak/filebrowser/issues/766
+ - fix location memory issue for url encoded file names
 
 ## v0.7.9-beta
 

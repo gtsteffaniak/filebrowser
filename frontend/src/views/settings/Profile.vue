@@ -23,10 +23,7 @@
               v-model="localuser.quickDownload"
               :name="$t('profileSettings.showQuickDownload')"
             />
-          </div>
-          <h3>{{ $t("profileSettings.filePreviewOptions") }}</h3>
-          <div class="settings-items">
-            <ToggleSwitch
+                        <ToggleSwitch
               class="item"
               v-model="localuser.preview.image"
               :name="$t('profileSettings.previewImages')"
@@ -59,6 +56,9 @@
               v-model="localuser.preview.popup"
               :name="$t('profileSettings.popupPreview')"
             />
+          </div>
+          <h3>{{ $t("profileSettings.filePreviewOptions") }}</h3>
+          <div class="settings-items">
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.autoplayMedia"
@@ -117,12 +117,7 @@
               </button>
             </div>
           </div>
-          <ToggleSwitch
-            v-if="localuser.permissions?.admin"
-            class="item"
-            v-model="localuser.disableUpdateNotifications"
-            :name="$t('profileSettings.disableUpdateNotifications')"
-          />
+  
           <h3>{{ $t("settings.themeColor") }}</h3>
           <ButtonGroup
             :buttons="colorChoices"
@@ -135,6 +130,15 @@
             :locale="localuser.locale"
             @update:locale="updateLocale"
           ></Languages>
+          <h3 v-if="user.permissions.admin">{{ $t("settings.adminOptions") }}</h3>
+          <div v-if="user.permissions.admin" class="settings-items">
+            <ToggleSwitch
+                v-if="localuser.permissions?.admin"
+                class="item"
+                v-model="localuser.disableUpdateNotifications"
+                :name="$t('profileSettings.disableUpdateNotifications')"
+              />
+          </div>
         </div>
       </form>
     </div>
@@ -185,6 +189,9 @@ export default {
     },
   },
   computed: {
+    user() {
+      return state.user;
+    },
     muPdfAvailable() {
       return muPdfAvailable;
     },

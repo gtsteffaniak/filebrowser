@@ -300,7 +300,8 @@
     "userManagement": "User Management",
     "userUpdated": "User updated!",
     "username": "Username",
-    "users": "Users"
+    "users": "Users",
+    "adminOptions": "Admin user options"
   },
   "sidebar": {
     "help": "Help",
