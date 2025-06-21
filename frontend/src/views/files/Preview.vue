@@ -382,10 +382,6 @@ export default {
 }
 
 .pdf-wrapper .floating-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1;
   background: rgba(0, 0, 0, 0.5);
   color: white;
 }
