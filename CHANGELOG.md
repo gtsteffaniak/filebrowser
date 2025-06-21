@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. For commit 
  - linewrap issue for a few cases https://github.com/gtsteffaniak/filebrowser/issues/810
  - baseUrl redirect issue with proxies https://github.com/gtsteffaniak/filebrowser/issues/796
  - fix exclude still shows up in ui issue https://github.com/gtsteffaniak/filebrowser/issues/797
+ - copy/move functions are async https://github.com/gtsteffaniak/filebrowser/issues/812
 
 ## v0.7.9-beta
 

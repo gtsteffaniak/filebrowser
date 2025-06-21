@@ -137,14 +137,11 @@ export default {
           });
         } else {
           // Await the action call for non-conflicting cases
-          await action(overwrite, rename);
+          action(overwrite, rename);
         }
         mutations.closeHovers();
         mutations.setSearch(false);
-        notify.showSuccess("Successfully copied file/folder, redirecting...");
-        setTimeout(() => {
-          this.$router.push(this.dest);
-        }, 1000);
+        notify.showSuccess("Server is copying files...");
       } catch (error) {
         notify.showError(error);
       }
