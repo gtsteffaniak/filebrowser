@@ -125,7 +125,6 @@ export default {
   },
   computed: {
     autoPlay() {
-      console.log("autoplay", state.user.preview.autoplayMedia);
       return state.user.preview.autoplayMedia;
     },
     isMobileSafari() {
@@ -293,7 +292,6 @@ export default {
             const playPromise = this.$refs.player.play();
             if (playPromise !== undefined) {
               playPromise.catch((error) => {
-                console.log("Autoplay with sound was prevented. Retrying muted.", error);
                 if (this.$refs.player) {
                   this.$refs.player.muted = true;
                   this.$refs.player.play();
