@@ -373,7 +373,8 @@
     "filePreviewOptions": "Opcje podglądu plików",
     "editOffice": "Edycja/przeglądanie plików biurowych",
     "disableUpdateNotifications": "Wyłącz wyświetlanie banera aktualizacji powiadomień na pasku bocznym.",
-    "disableHideSidebar": "Wyłącz automatyczne ukrywanie paska bocznego podczas podglądu lub edycji plików."
+    "disableHideSidebar": "Wyłącz automatyczne ukrywanie paska bocznego podczas podglądu lub edycji plików.",
+    "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych w podglądzie"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",

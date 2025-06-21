@@ -199,7 +199,8 @@
     "popupPreview": "Enable pop-up preview",
     "filePreviewOptions": "File preview options",
     "disableUpdateNotifications": "Disable showing notification update banner in sidebar.",
-    "disableHideSidebar": "Disable automatically hiding sidebar when previewing or editing files."
+    "disableHideSidebar": "Disable automatically hiding sidebar when previewing or editing files.",
+    "autoplayMedia": "Autoplay media files in preview"
   },
   "settings": {
     "enterPassword": "Enter password",

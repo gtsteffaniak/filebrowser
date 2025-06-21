@@ -373,7 +373,8 @@
     "filePreviewOptions": "Možnosti náhľadu súborov",
     "editOffice": "Úprava/zobrazenie kancelárskych súborov",
     "disableUpdateNotifications": "Zakázanie zobrazovania bannera s oznámením o aktualizácii v bočnom paneli.",
-    "disableHideSidebar": "Zakázanie automatického skrývania bočného panela pri náhľade alebo úprave súborov."
+    "disableHideSidebar": "Zakázanie automatického skrývania bočného panela pri náhľade alebo úprave súborov.",
+    "autoplayMedia": "Automatické prehrávanie mediálnych súborov v náhľade"
   },
   "otp": {
     "name": "Dvojfaktorové overovanie",

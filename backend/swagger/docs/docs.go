@@ -2394,6 +2394,10 @@ const docTemplate = `{
         "users.Preview": {
             "type": "object",
             "properties": {
+                "autoplayMedia": {
+                    "description": "autoplay media files in preview",
+                    "type": "boolean"
+                },
                 "disableHideSidebar": {
                     "description": "disable the hide sidebar preview for previews and editors",
                     "type": "boolean"
