@@ -110,7 +110,6 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	// check if excluded from indexing
 	hidden := isHidden(dirInfo, idx.Path+adjustedPath)
 	if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath) {
-		logger.Debugf("skipping directory %s due to exclusion rules", adjustedPath)
 		return errors.ErrNotIndexed
 	}
 
@@ -153,7 +152,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			return nil
 		}
 	}
-	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, quick, recursive)
+	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, quick, recursive,true)
 	if err2 != nil {
 		return err2
 	}
@@ -187,7 +186,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		combinedPath = "/"
 	}
 	var response *iteminfo.FileInfo
-	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false)
+	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false,false)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +213,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 
 }
 
-func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, quick, recursive bool) (*iteminfo.FileInfo, error) {
+func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjustedPath, combinedPath string, quick, recursive, checkSkip bool) (*iteminfo.FileInfo, error) {
 	// Read directory contents
 	files, err := dirInfo.Readdir(-1)
 	if err != nil {
@@ -229,8 +228,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		hidden := isHidden(file, idx.Path+combinedPath)
 		isDir := iteminfo.IsDirectory(file)
 		fullCombined := combinedPath + file.Name()
-		if idx.shouldSkip(isDir, hidden, fullCombined) {
-			logger.Debugf("skipping file %s due to exclusion rules", fullCombined)
+		if checkSkip && idx.shouldSkip(isDir, hidden, fullCombined) {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{

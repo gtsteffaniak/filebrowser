@@ -29,7 +29,7 @@
         />
       </video>
 
-      <object v-else-if="previewType == 'pdf'" class="pdf" :data="raw"></object>
+      <iframe v-else-if="previewType == 'pdf'" class="pdf" :src="raw" ></iframe>
       <div v-else class="info">
         <div class="title">
           <i class="material-icons">feedback</i>
