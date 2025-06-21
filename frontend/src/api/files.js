@@ -182,6 +182,9 @@ export async function moveCopy(
 
     // Await all promises and ensure errors propagate
     await Promise.all(promises)
+    notify.showSuccess(
+      action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
+    )
   } catch (err) {
     notify.showError(err.message || 'Error moving/copying resources')
     throw err // Re-throw the error to propagate it back to the caller
