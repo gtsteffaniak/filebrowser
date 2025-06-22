@@ -1,5 +1,5 @@
 server:
-  numImageProcessors: 16                  # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
+  numImageProcessors: 14                  # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
   socket: ""                              # socket to listen on
   tlsKey: ""                              # path to TLS key
   tlsCert: ""                             # path to TLS cert
