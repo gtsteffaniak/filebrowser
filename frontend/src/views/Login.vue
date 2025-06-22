@@ -112,7 +112,6 @@ export default {
       redirect = baseURL + redirect;
     }
     this.loginURL += `?redirect=${encodeURIComponent(redirect)}`;
-
     if (!recaptcha) return;
     window.grecaptcha.ready(function () {
       window.grecaptcha.render("recaptcha", {
