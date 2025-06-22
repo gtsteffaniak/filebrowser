@@ -39,7 +39,6 @@
     </div>
     <div
       style="display: flex; flex-direction: column"
-      v-if="stateUser.username == user.username"
     >
       <div class="settings-items">
         <ToggleSwitch class="item" v-model="user.otpEnabled" :name="$t('otp.name')" />
