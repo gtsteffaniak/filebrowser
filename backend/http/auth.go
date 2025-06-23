@@ -130,12 +130,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 // @Success 302 {string} string "Redirect to redirect URL if configured in oidc config."
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	origin := r.Header.Get("Origin")
-	if origin == "" {
-		origin = fmt.Sprintf("%s://%s", getScheme(r), r.Host)
-	}
-	logoutUrl := fmt.Sprintf("%s%v/login", config.Server.BaseURL, origin)
-
+	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL)
 	if d.user.LoginMethod == "proxy" {
 		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
 		if proxyRedirectUrl != "" {
@@ -147,7 +142,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			logoutUrl = oidcRedirectUrl
 		}
 	}
-
 	http.Redirect(w, r, logoutUrl, http.StatusFound)
 	return 302, nil
 }
