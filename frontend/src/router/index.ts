@@ -9,6 +9,7 @@ import { baseURL, name, oidcAvailable, passwordAvailable } from "@/utils/constan
 import { getters, state } from "@/store";
 import { mutations } from "@/store";
 import { validateLogin } from "@/utils/auth";
+import { removeLeadingSlash } from "@/utils/url";
 import i18n from "@/i18n";
 
 const titles = {
@@ -150,7 +151,8 @@ router.beforeResolve(async (to, from, next) => {
       }
 
       if (oidcAvailable) {
-        next({ path: "/api/auth/oidc/login", query: { redirect: to.fullPath } });
+        const modifiedPath = encodeURIComponent(baseURL+removeLeadingSlash(to.fullPath))
+        window.location.href = baseURL+`api/auth/oidc/login?redirect=${modifiedPath}`;
         return;
       }
     }

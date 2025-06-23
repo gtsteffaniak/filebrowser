@@ -53,7 +53,6 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	nonce := utils.InsecureRandomIdentifier(16)
 	fbRedirect := r.URL.Query().Get("redirect")
 	state := fmt.Sprintf("%s:%s", nonce, fbRedirect)
-
 	authURL := oauth2Config.AuthCodeURL(state)
 	http.Redirect(w, r, authURL, http.StatusFound)
 	return 0, nil
