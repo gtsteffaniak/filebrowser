@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/database/crud"
 )
 
 // StorageBackend is the interface to implement for a users storage.
@@ -30,53 +29,8 @@ type Store interface {
 	DeleteApiKey(username uint, name string) error
 }
 
-// crudBackend implements crud.CrudBackend[User] for users storage.
-type crudBackend struct {
-	back StorageBackend
-}
-
-func (c *crudBackend) GetByID(id any) (*User, error) {
-	switch v := id.(type) {
-	case string, uint:
-		return c.back.GetBy(v)
-	default:
-		return nil, errors.ErrInvalidDataType
-	}
-}
-
-func (c *crudBackend) GetAll() ([]*User, error) {
-	return c.back.Gets()
-}
-
-func (c *crudBackend) Save(obj *User) error {
-	// Use default values for changePass and disableScopeChange
-	return c.back.Save(obj, false, false)
-}
-
-func (c *crudBackend) DeleteByID(id any) error {
-	switch v := id.(type) {
-	case string:
-		user, err := c.back.GetBy(v)
-		if err != nil {
-			return err
-		}
-		if user.ID == 1 {
-			return errors.ErrRootUserDeletion
-		}
-		return c.back.DeleteByUsername(v)
-	case uint:
-		if v == 1 {
-			return errors.ErrRootUserDeletion
-		}
-		return c.back.DeleteByID(v)
-	default:
-		return errors.ErrInvalidDataType
-	}
-}
-
-// Storage is a users storage using generics.
+// Storage is a users storage.
 type Storage struct {
-	Generic *crud.Storage[User]
 	back    StorageBackend
 	updated map[uint]int64
 	mux     sync.RWMutex
@@ -85,7 +39,6 @@ type Storage struct {
 // NewStorage creates a users storage from a backend.
 func NewStorage(back StorageBackend) *Storage {
 	return &Storage{
-		Generic: crud.NewStorage[User](&crudBackend{back: back}),
 		back:    back,
 		updated: map[uint]int64{},
 	}
