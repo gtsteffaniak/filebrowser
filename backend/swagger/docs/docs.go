@@ -32,6 +32,78 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/auth/oidc/callback": {
+            "get": {
+                "description": "Handles OIDC login callback.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OIDC"
+                ],
+                "summary": "OIDC callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OIDC code",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "OIDC state",
+                        "name": "state",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OIDC callback result",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/oidc/login": {
+            "get": {
+                "description": "Initiates OIDC login flow.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OIDC"
+                ],
+                "summary": "OIDC login",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to OIDC provider",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/otp/generate": {
             "post": {
                 "security": [
@@ -118,8 +190,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/createApiKey": {
-            "post": {
+        "/api/auth/token": {
+            "put": {
                 "description": "Create an API key with specified name, duration, and permissions.",
                 "consumes": [
                     "application/json"
@@ -156,7 +228,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Token created successfully, resoponse contains json object with token key",
+                        "description": "Token created successfully, response contains json object with token key",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
                         }
@@ -198,9 +270,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/deleteApiKey": {
+            },
             "delete": {
                 "description": "Delete an API key with specified name.",
                 "consumes": [
@@ -250,7 +320,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/listApiKeys": {
+        "/api/auth/tokens": {
             "get": {
                 "description": "List all API keys or retrieve details for a specific key.",
                 "consumes": [
@@ -284,6 +354,57 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/jobs/{action}/{target}": {
+            "get": {
+                "description": "Returns job info for the user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get jobs info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job action",
+                        "name": "action",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Job target",
+                        "name": "target",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Job info",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/indexing.ReducedIndex"
                             }
                         }
                     },
@@ -580,12 +701,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "description": "Include file content if true",
                         "name": "content",
                         "in": "query"
@@ -647,12 +762,6 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
                     }
@@ -797,12 +906,6 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
                     }
@@ -1116,26 +1219,17 @@ const docTemplate = `{
                 "summary": "Create a share link",
                 "parameters": [
                     {
-                        "description": "Share link creation parameters",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/share.CreateBody"
-                        }
-                    },
-                    {
                         "type": "string",
                         "description": "Source Path of the files to share",
                         "name": "path",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Source name of the files to share",
                         "name": "source",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -1165,9 +1259,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/shares/{hash}": {
+            },
             "delete": {
                 "description": "Deletes a share link specified by its hash.",
                 "consumes": [
@@ -1185,7 +1277,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Hash of the share link to delete",
                         "name": "hash",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -1285,6 +1377,128 @@ const docTemplate = `{
             }
         },
         "/api/users": {
+            "get": {
+                "description": "Returns a user's details based on their ID, or all users if no id is provided.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Retrieve a user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID or 'self'",
+                        "name": "id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details or list of users",
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates the details of a user identified by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user's details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "User data to update",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated user details",
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Adds a new user to the system.",
                 "consumes": [
@@ -1334,131 +1548,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/users/{id}": {
-            "get": {
-                "description": "Returns a user's details based on their ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Retrieve a user by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User details",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates the details of a user identified by ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update a user's details",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "User data to update",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Updated user details",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
             },
             "delete": {
                 "description": "Deletes a user identified by their ID.",
@@ -1474,10 +1563,10 @@ const docTemplate = `{
                 "summary": "Delete a user by ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -1653,6 +1742,57 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "indexing.IndexStatus": {
+            "type": "string",
+            "enum": [
+                "ready",
+                "indexing",
+                "unavailable"
+            ],
+            "x-enum-varnames": [
+                "READY",
+                "INDEXING",
+                "UNAVAILABLE"
+            ]
+        },
+        "indexing.ReducedIndex": {
+            "type": "object",
+            "properties": {
+                "assessment": {
+                    "type": "string"
+                },
+                "fullScanDurationSeconds": {
+                    "type": "integer"
+                },
+                "lastIndexedUnixTime": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "numDeleted": {
+                    "type": "integer"
+                },
+                "numDirs": {
+                    "type": "integer"
+                },
+                "numFiles": {
+                    "type": "integer"
+                },
+                "quickScanDurationSeconds": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/indexing.IndexStatus"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "used": {
+                    "type": "integer"
                 }
             }
         },
@@ -2290,20 +2430,6 @@ const docTemplate = `{
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
-                    "type": "string"
-                }
-            }
-        },
-        "share.CreateBody": {
-            "type": "object",
-            "properties": {
-                "expires": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "unit": {
                     "type": "string"
                 }
             }
