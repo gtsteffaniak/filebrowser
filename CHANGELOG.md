@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fix version update notification for binary https://github.com/gtsteffaniak/filebrowser/issues/836
  - ctrl-click cache issue https://github.com/gtsteffaniak/filebrowser/issues/735
  - fix admin user reset OIDC user https://github.com/gtsteffaniak/filebrowser/issues/811
+ - fix windows and binary muPdf issue https://github.com/gtsteffaniak/filebrowser/issues/744
 
 ## v0.7.10-beta
 
