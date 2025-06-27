@@ -102,11 +102,11 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 // @Tags Shares
 // @Accept json
 // @Produce json
-// @Param hash path string true "Hash of the share link to delete"
+// @Param hash query string true "Hash of the share link to delete"
 // @Success 200 "Share link deleted successfully"
 // @Failure 400 {object} map[string]string "Bad request - missing or invalid hash"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/shares/{hash} [delete]
+// @Router /api/shares [delete]
 func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	hash := r.URL.Query().Get("hash")
 
@@ -128,9 +128,8 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Tags Shares
 // @Accept json
 // @Produce json
-// @Param body body share.CreateBody true "Share link creation parameters"
-// @Param path path string true "Source Path of the files to share"
-// @Param source path string true "Source name of the files to share"
+// @Param path query string true "Source Path of the files to share"
+// @Param source query string true "Source name of the files to share"
 // @Success 200 {object} share.Link "Created share link"
 // @Failure 400 {object} map[string]string "Bad request - failed to decode body"
 // @Failure 500 {object} map[string]string "Internal server error"

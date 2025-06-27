@@ -8,6 +8,17 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+// getJobsHandler returns job info for the user.
+// @Summary Get jobs info
+// @Description Returns job info for the user.
+// @Tags Jobs
+// @Accept json
+// @Produce json
+// @Param action path string true "Job action"
+// @Param target path string true "Job target"
+// @Success 200 {object} map[string]indexing.ReducedIndex "Job info"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/jobs/{action}/{target} [get]
 func getJobsHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	sources := settings.GetSources(d.user)
 	reducedIndexes := map[string]indexing.ReducedIndex{}

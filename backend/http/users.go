@@ -22,16 +22,16 @@ type UserRequest struct {
 
 // userGetHandler retrieves a user by ID.
 // @Summary Retrieve a user by ID
-// @Description Returns a user's details based on their ID.
+// @Description Returns a user's details based on their ID, or all users if no id is provided.
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param id path int true "User ID" or "self"
-// @Success 200 {object} users.User "User details"
+// @Param id query string false "User ID or 'self'"
+// @Success 200 {object} users.User "User details or list of users"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Not Found"
 // @Failure 500 {object} map[string]string "Internal Server Error"
-// @Router /api/users/{id} [get]
+// @Router /api/users [get]
 func userGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	givenUserIdString := r.URL.Query().Get("id")
 
@@ -100,11 +100,11 @@ func prepForFrontend(u *users.User) {
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param id path int true "User ID"
+// @Param id query string true "User ID"
 // @Success 200 "User deleted successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
-// @Router /api/users/{id} [delete]
+// @Router /api/users [delete]
 func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	givenUserIdString := r.URL.Query().Get("id")
 	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
@@ -176,13 +176,13 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param id path int true "User ID"
+// @Param id query string true "User ID"
 // @Param data body users.User true "User data to update"
 // @Success 200 {object} users.User "Updated user details"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 500 {object} map[string]string "Internal Server Error"
-// @Router /api/users/{id} [put]
+// @Router /api/users [put]
 func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	givenUserIdString := r.URL.Query().Get("id")
 	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
