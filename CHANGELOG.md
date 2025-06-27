@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file. For commit 
  - more comprehensive exclude/include rules (see example wiki above).
    - include/exclude parts of folder names as well https://github.com/gtsteffaniak/filebrowser/issues/854
    - include/exclude file or folder names globally.
- - `source.config.neverWatchPaths` is now functional -- a list of paths that get indexed initially, but skips re-indexing.
+ - `source.config.neverWatchPaths` is now functional -- a list of paths that get indexed initially, but skips re-indexing. Useful for directories you don't expect to change ever, still show up in search but get don't contribute to indexing time after initial indexing.
 
  **Notes**:
  - updated swagger docs https://github.com/gtsteffaniak/filebrowser/issues/849
