@@ -4,8 +4,6 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.11-beta
 
- **OIDC change**: if you specify `oidc.userIdentifier: "username"`, originally this would map to `preferred_username` but now it maps to `username` explicitly. To maintain the same behavior update your config to `userIdentifier: "preferred_username"`. This was updated to allow for `username` to work as [some might need](https://github.com/gtsteffaniak/filebrowser/pull/789).
-
  **New Features**:
  - 
 
