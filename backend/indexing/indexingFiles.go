@@ -46,6 +46,7 @@ type Index struct {
 	FilesChangedDuringIndexing bool                          `json:"-"`
 	mock                       bool
 	mu                         sync.RWMutex
+	hasIndex                   bool
 }
 
 var (
@@ -244,12 +245,21 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		}
 
 		if isDir {
+			dirPath := combinedPath + file.Name()
+			if idx.hasIndex && recursive && len(idx.Config.NeverWatchPaths) > 0 {
+				if slices.Contains(idx.Config.NeverWatchPaths, fullCombined) {
+					realDirInfo, exists := idx.GetMetadataInfo(dirPath, true)
+					if exists {
+						itemInfo.Size = realDirInfo.Size
+					}
+					continue
+				}
+			}
 			// skip non-indexable dirs.
 			if file.Name() == "$RECYCLE.BIN" || file.Name() == "System Volume Information" {
 				continue
 			}
 
-			dirPath := combinedPath + file.Name()
 			if recursive {
 				// clear for garbage collection
 				file = nil

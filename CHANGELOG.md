@@ -6,13 +6,13 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Breaking Changes**:
   - `auth.resetAdminOnStart` has been removed. Instead, if you have `auth.adminPassword` set it will always be reset on startup. If you want to change your default admin password afterwards, make sure to unset `auth.adminPassword` so it doesn't get reset on startup.
-  - source `exclude` and `include` rules have been renamed! now use `config.filterRules`, see updated wiki examples.
+  - renamed include/exclude rules see updated example wiki!
 
  **New Features**:
  - more comprehensive exclude/include rules.
    - include/exclude parts of folder names as well https://github.com/gtsteffaniak/filebrowser/issues/854
    - include/exclude file or folder names globally.
-   - include behavior only applies if `filterRules.inclusive: true` and are mutually exclusive to exclude rules. Meaning, if filtering in inclusive mode, only files/folders matching will be indexed (note: parent folders must be included to work)
+ - `source.config.neverWatchPaths` is now functional -- a list of paths that get indexed initially, but skipps re-indexing.
 
  **Notes**:
  - updated swagger docs https://github.com/gtsteffaniak/filebrowser/issues/849
