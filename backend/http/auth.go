@@ -150,7 +150,10 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
 	return http.StatusOK, nil
 }

@@ -296,6 +296,7 @@ export default {
             if (playPromise !== undefined) {
               playPromise.catch((error) => {
                 if (this.$refs.player) {
+                  console.log("autoplay failed", error);
                   this.$refs.player.muted = true;
                   this.$refs.player.play();
                 }
