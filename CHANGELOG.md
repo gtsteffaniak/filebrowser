@@ -6,10 +6,10 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Breaking Changes**:
   - `auth.resetAdminOnStart` has been removed. Instead, if you have `auth.adminPassword` set it will always be reset on startup. If you want to change your default admin password afterwards, make sure to unset `auth.adminPassword` so it doesn't get reset on startup.
-  - renamed include/exclude rules see updated example wiki!
+  - renamed include/exclude rules see [updated example wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration-And-Examples#example-advanced-source-config)!
 
  **New Features**:
- - more comprehensive exclude/include rules.
+ - more comprehensive exclude/include rules (see example wiki above).
    - include/exclude parts of folder names as well https://github.com/gtsteffaniak/filebrowser/issues/854
    - include/exclude file or folder names globally.
  - `source.config.neverWatchPaths` is now functional -- a list of paths that get indexed initially, but skipps re-indexing.
