@@ -26,6 +26,8 @@ const (
 func Initialize(configFile string) {
 	err := loadConfigWithDefaults(configFile)
 	if err != nil {
+		logger.Error("unable to load config, waiting 5 seconds before exiting...")
+		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
 	err = ValidateConfig(Config)
