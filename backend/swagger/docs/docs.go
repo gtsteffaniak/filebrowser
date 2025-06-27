@@ -1912,6 +1912,61 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.ExcludeIndexFilter": {
+            "type": "object",
+            "properties": {
+                "fileNames": {
+                    "description": "(global) list of file names to include/exclude. Eg. \"a.jpg\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fileStartsWith": {
+                    "description": "(global) files with matching suffix",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "filesPaths": {
+                    "description": "list of filepaths Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (without source path prefix)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folderNames": {
+                    "description": "(global) list of folder names to include/exclude. Eg. \"@eadir\" or \".thumbnails\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folderPaths": {
+                    "description": "(filepath) list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folderStartsWith": {
+                    "description": "(global) list of folder names to include/exclude. Eg. \"@eadir\" or \".thumbnails\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hidden": {
+                    "description": "exclude hidden files and folders.",
+                    "type": "boolean"
+                },
+                "ignoreZeroSizeFolders": {
+                    "description": "ignore folders with 0 size",
+                    "type": "boolean"
+                }
+            }
+        },
         "settings.ExternalLink": {
             "type": "object",
             "required": [
@@ -1956,25 +2011,18 @@ const docTemplate = `{
                 }
             }
         },
-        "settings.IndexFilter": {
+        "settings.IncludeIndexFilter": {
             "type": "object",
             "properties": {
-                "fileEndsWith": {
-                    "description": "list of file names to include/exclude. Eg. \"a.jpg\"",
+                "rootFiles": {
+                    "description": "list of root files to include, relative to the source path (eg. \"file1.txt\")",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "files": {
-                    "description": "list of file names to include/exclude  Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (do not include source path, just the subpaths from the source path)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folders": {
-                    "description": "list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
+                "rootFolders": {
+                    "description": "list of root folders to include, relative to the source path (eg. \"folder1\")",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -2324,23 +2372,15 @@ const docTemplate = `{
                     "description": "exclude files and folders from indexing, if include is not set",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.IndexFilter"
+                            "$ref": "#/definitions/settings.ExcludeIndexFilter"
                         }
                     ]
-                },
-                "ignoreHidden": {
-                    "description": "ignore hidden files and folders.",
-                    "type": "boolean"
-                },
-                "ignoreZeroSizeFolders": {
-                    "description": "ignore folders with 0 size",
-                    "type": "boolean"
                 },
                 "include": {
                     "description": "include files and folders from indexing, if exclude is not set",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.IndexFilter"
+                            "$ref": "#/definitions/settings.IncludeIndexFilter"
                         }
                     ]
                 },
@@ -2353,7 +2393,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "neverWatchPaths": {
-                    "description": "paths to never watch, relative to the source path (eg. \"/folder/file.txt\")",
+                    "description": "paths that get initially once. Useful for folders that rarely change contents (without source path prefix)",
                     "type": "array",
                     "items": {
                         "type": "string"

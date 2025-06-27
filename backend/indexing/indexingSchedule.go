@@ -56,6 +56,7 @@ func (idx *Index) PreScan() {
 func (idx *Index) PostScan() {
 	idx.mu.Lock()
 	idx.garbageCollection()
+	idx.hasIndex = true
 	idx.runningScannerCount--
 	idx.mu.Unlock()
 	if idx.runningScannerCount == 0 {

@@ -7,7 +7,7 @@ server:
     - path: "../frontend/tests/playwright-files"
       config:
         exclude:
-          folders:
+          folderPaths:
             - "excluded"
 
 auth:

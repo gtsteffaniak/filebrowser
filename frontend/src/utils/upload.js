@@ -134,7 +134,6 @@ export async function handleFiles (files, base, overwrite = false) {
       `(${c} of ${count}) Uploading ${relativePath}`,
       false
     )
-    console.log('Uploading', relativePath, item)
 
     await filesApi
       .post(item.path, item.file, item.overwrite, percentComplete => {

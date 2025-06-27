@@ -142,6 +142,50 @@ definitions:
         description: secret used to encrypt TOTP secrets
         type: string
     type: object
+  settings.ExcludeIndexFilter:
+    properties:
+      fileNames:
+        description: (global) list of file names to include/exclude. Eg. "a.jpg"
+        items:
+          type: string
+        type: array
+      fileStartsWith:
+        description: (global) files with matching suffix
+        items:
+          type: string
+        type: array
+      filesPaths:
+        description: list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt"
+          (without source path prefix)
+        items:
+          type: string
+        type: array
+      folderNames:
+        description: (global) list of folder names to include/exclude. Eg. "@eadir"
+          or ".thumbnails"
+        items:
+          type: string
+        type: array
+      folderPaths:
+        description: (filepath) list of folder names to include/exclude. Eg. "folder1"
+          or "folder1/subfolder" (do not include source path, just the subpaths from
+          the source path)
+        items:
+          type: string
+        type: array
+      folderStartsWith:
+        description: (global) list of folder names to include/exclude. Eg. "@eadir"
+          or ".thumbnails"
+        items:
+          type: string
+        type: array
+      hidden:
+        description: exclude hidden files and folders.
+        type: boolean
+      ignoreZeroSizeFolders:
+        description: ignore folders with 0 size
+        type: boolean
+    type: object
   settings.ExternalLink:
     properties:
       text:
@@ -173,23 +217,17 @@ definitions:
         description: display name
         type: string
     type: object
-  settings.IndexFilter:
+  settings.IncludeIndexFilter:
     properties:
-      fileEndsWith:
-        description: list of file names to include/exclude. Eg. "a.jpg"
+      rootFiles:
+        description: list of root files to include, relative to the source path (eg.
+          "file1.txt")
         items:
           type: string
         type: array
-      files:
-        description: list of file names to include/exclude  Eg. "folder1" or "file1.txt"
-          or "folder1/file1.txt" (do not include source path, just the subpaths from
-          the source path)
-        items:
-          type: string
-        type: array
-      folders:
-        description: list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder"
-          (do not include source path, just the subpaths from the source path)
+      rootFolders:
+        description: list of root folders to include, relative to the source path
+          (eg. "folder1")
         items:
           type: string
         type: array
@@ -449,17 +487,11 @@ definitions:
         type: boolean
       exclude:
         allOf:
-        - $ref: '#/definitions/settings.IndexFilter'
+        - $ref: '#/definitions/settings.ExcludeIndexFilter'
         description: exclude files and folders from indexing, if include is not set
-      ignoreHidden:
-        description: ignore hidden files and folders.
-        type: boolean
-      ignoreZeroSizeFolders:
-        description: ignore folders with 0 size
-        type: boolean
       include:
         allOf:
-        - $ref: '#/definitions/settings.IndexFilter'
+        - $ref: '#/definitions/settings.IncludeIndexFilter'
         description: include files and folders from indexing, if exclude is not set
       indexingIntervalMinutes:
         description: optional manual overide interval in seconds to re-index the source
@@ -469,7 +501,8 @@ definitions:
           not supported
         type: integer
       neverWatchPaths:
-        description: paths to never watch, relative to the source path (eg. "/folder/file.txt")
+        description: paths that get initially once. Useful for folders that rarely
+          change contents (without source path prefix)
         items:
           type: string
         type: array

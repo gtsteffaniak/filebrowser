@@ -108,7 +108,7 @@ export async function post(url, content = '', overwrite = false, onupload) {
     }
 
     const apiPath = getApiPath('api/resources', {
-      path: result.path,
+      path: encodeURIComponent(result.path),
       source: encodeURIComponent(result.source),
       override: overwrite
     })
