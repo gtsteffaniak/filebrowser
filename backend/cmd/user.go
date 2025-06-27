@@ -19,6 +19,7 @@ func validateUserInfo() {
 		logger.Fatalf("could not load users: %v", err)
 	}
 	for _, user := range usersList {
+		changePass := false
 		updateUser := false
 		if user.Username == "publicUser" {
 			settings.ApplyUserDefaults(user)
@@ -36,6 +37,13 @@ func validateUserInfo() {
 		if updateLoginType(user) {
 			updateUser = true
 		}
+		if user.Username == settings.Config.Auth.AdminUsername && settings.Config.Auth.AdminPassword != "" {
+			logger.Info("Resetting admin user to default username and password.")
+			user.Permissions.Admin = true
+			user.Password = settings.Config.Auth.AdminPassword
+			updateUser = true
+			changePass = true
+		}
 		if updateUser {
 			if len(createBackup) == 1 {
 				logger.Warning("Incompatible user settings detected, creating backup of database before converting.")
@@ -44,24 +52,10 @@ func validateUserInfo() {
 					logger.Fatalf("Unable to create automatic backup of database due to error: %v", err)
 				}
 			}
-			err := store.Users.Save(user, false, true)
+			err := store.Users.Save(user, changePass, true)
 			if err != nil {
 				logger.Errorf("could not update user: %v", err)
 			}
-		}
-	}
-	if settings.Config.Auth.ResetAdminOnStart {
-		logger.Info("Resetting admin user to default username and password.")
-		adminUser, err := store.Users.Get(1)
-		if err != nil {
-			logger.Fatalf("could not load admin user: %v", err)
-		}
-		adminUser.Username = settings.Config.Auth.AdminUsername
-		adminUser.Password = settings.Config.Auth.AdminPassword
-		adminUser.Permissions.Admin = true
-		err = store.Users.Save(adminUser, true, true)
-		if err != nil {
-			logger.Errorf("could not Save admin user: %v", err)
 		}
 	}
 }

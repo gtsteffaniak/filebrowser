@@ -74,6 +74,9 @@ export default {
       return this.thumbnailUrl || PLACEHOLDER_URL;
     },
     pdfConvertable() {
+      if (!muPdfAvailable) {
+        return false; // If muPDF is not available
+      }
       const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
         ".pdf": true,
@@ -130,7 +133,7 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      if (this.pdfConvertable && muPdfAvailable) {
+      if (this.pdfConvertable) {
         return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {

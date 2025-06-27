@@ -101,7 +101,7 @@ import { state, getters, mutations } from "@/store";
 import { getFileExtension } from "@/utils/files";
 import { convertToVTT } from "@/utils/subtitles";
 import { getTypeInfo } from "@/utils/mimetype";
-
+import { muPdfAvailable } from "@/utils/constants";
 export default {
   name: "preview",
   components: {
@@ -134,6 +134,9 @@ export default {
       return isIOS && isSafari;
     },
     pdfConvertable() {
+      if (!muPdfAvailable) {
+        return false;
+      }
       const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
         ".xps": true,
