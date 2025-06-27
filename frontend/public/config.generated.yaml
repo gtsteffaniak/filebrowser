@@ -74,7 +74,6 @@ auth:
   key: ""                                 # the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: admin                    # the username of the admin user. If not set, the default is "admin".
   adminPassword: admin                    # the password of the admin user. If not set, the default is "admin".
-  resetAdminOnStart: false                # if set to true, the admin user will be reset to the default username and password on startup.
   totpSecret: ""                          # secret used to encrypt TOTP secrets
 frontend:
   name: FileBrowser Quantum               # display name
