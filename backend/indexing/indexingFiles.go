@@ -109,7 +109,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 
 	// check if excluded from indexing
 	hidden := isHidden(dirInfo, idx.Path+adjustedPath)
-	if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath) {
+	if idx.shouldSkip(dirInfo.IsDir(), hidden, adjustedPath, dirInfo.Name()) {
 		return errors.ErrNotIndexed
 	}
 
@@ -152,7 +152,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 			return nil
 		}
 	}
-	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, quick, recursive,true)
+	dirFileInfo, err2 := idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, quick, recursive, true)
 	if err2 != nil {
 		return err2
 	}
@@ -186,7 +186,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		combinedPath = "/"
 	}
 	var response *iteminfo.FileInfo
-	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false,false)
+	response, err = idx.GetDirInfo(dir, dirInfo, realPath, adjustedPath, combinedPath, false, false, false)
 	if err != nil {
 		return nil, err
 	}
@@ -227,8 +227,14 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 	for _, file := range files {
 		hidden := isHidden(file, idx.Path+combinedPath)
 		isDir := iteminfo.IsDirectory(file)
-		fullCombined := combinedPath + file.Name()
-		if checkSkip && idx.shouldSkip(isDir, hidden, fullCombined) {
+		baseName := file.Name()
+		fullCombined := combinedPath + baseName
+		if adjustedPath == "/" {
+			if !idx.shouldInclude(isDir, combinedPath, file.Name()) {
+				continue
+			}
+		}
+		if checkSkip && idx.shouldSkip(isDir, hidden, fullCombined, baseName) {
 			continue
 		}
 		itemInfo := &iteminfo.ItemInfo{
@@ -271,7 +277,7 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 		}
 	}
 
-	if totalSize == 0 && idx.Config.IgnoreZeroSizeFolders {
+	if totalSize == 0 && idx.Config.Exclude.ZeroSizeFolders {
 		return nil, errors.ErrNotIndexed
 	}
 
@@ -394,58 +400,88 @@ func isHidden(file os.FileInfo, srcPath string) bool {
 	return false
 }
 
-func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined string) bool {
+func (idx *Index) shouldInclude(isDir bool, fullCombined, baseName string) bool {
+	rules := idx.Config.Include
+	hasRules := false
+	if len(rules.RootFolders) > 0 {
+		hasRules = true
+		for _, p := range rules.RootFolders {
+			if strings.HasPrefix(fullCombined, p) {
+				return true
+			}
+		}
+	}
+	if len(rules.RootFiles) > 0 {
+		hasRules = true
+		for _, p := range rules.RootFiles {
+			if strings.HasPrefix(fullCombined, p) {
+				return true
+			}
+		}
+	}
+	if !hasRules {
+		return true
+	}
+	return false
+}
+
+func (idx *Index) shouldSkip(isDir bool, isHidden bool, fullCombined, baseName string) bool {
 	if idx.Config.DisableIndexing {
 		return true
 	}
-	// check inclusions first
-	if isDir && len(idx.Config.Include.Folders) > 0 {
-		if !slices.Contains(idx.Config.Include.Folders, fullCombined) {
-			return true
-		}
-	}
-	if !isDir && len(idx.Config.Include.Files) > 0 {
-		if !slices.Contains(idx.Config.Include.Files, fullCombined) {
-			return true
-		}
-	}
 
-	if !isDir && len(idx.Config.Include.FileEndsWith) > 0 {
-		shouldSkip := true
-		for _, end := range idx.Config.Include.FileEndsWith {
-			if strings.HasSuffix(fullCombined, end) {
-				shouldSkip = false
-				break
+	rules := idx.Config.Exclude
+
+	if isDir {
+		if len(rules.FolderPaths) > 0 {
+			for _, p := range rules.FolderPaths {
+				if strings.HasPrefix(fullCombined, p) {
+					return true
+				}
 			}
 		}
-		if shouldSkip {
+		if len(rules.FolderNames) > 0 && slices.Contains(rules.FolderNames, baseName) {
 			return true
 		}
-	}
-	// check exclusions
-	if isDir && slices.Contains(idx.Config.Exclude.Folders, fullCombined) {
-		return true
-	}
-	if !isDir && slices.Contains(idx.Config.Exclude.Files, fullCombined) {
-		return true
-	}
-	if idx.Config.IgnoreHidden && isHidden {
-		return true
-	}
-
-	if !isDir && len(idx.Config.Exclude.FileEndsWith) > 0 {
-		shouldSkip := false
-		for _, end := range idx.Config.Exclude.FileEndsWith {
-			if strings.HasSuffix(fullCombined, end) {
-				shouldSkip = true
-				break
+		if len(rules.FolderEndsWith) > 0 {
+			for _, end := range rules.FolderEndsWith {
+				if strings.HasSuffix(baseName, end) {
+					return true
+				}
 			}
 		}
-		if shouldSkip {
+	} else {
+		if len(rules.FilePaths) > 0 {
+			for _, p := range rules.FilePaths {
+				if strings.HasPrefix(fullCombined, p) {
+					return true
+				}
+			}
+		}
+		if len(rules.FileNames) > 0 && slices.Contains(rules.FileNames, baseName) {
 			return true
+		}
+		if len(rules.FileEndsWith) > 0 {
+			for _, end := range rules.FileEndsWith {
+				if strings.HasSuffix(baseName, end) {
+					return true
+				}
+			}
+		}
+		// Exclude if parent directory matches FolderPaths
+		if len(rules.FolderPaths) > 0 {
+			parent := filepath.Dir(fullCombined)
+			for _, p := range rules.FolderPaths {
+				if strings.HasPrefix(parent, p) {
+					return true
+				}
+			}
 		}
 	}
 
+	if rules.Hidden && isHidden {
+		return true
+	}
 	return false
 }
 

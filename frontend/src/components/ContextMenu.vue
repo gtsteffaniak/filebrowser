@@ -230,30 +230,48 @@ export default {
       return mutations.showHover(value);
     },
     setPositions() {
+      const BUFFER = 8; // px
+      const contextProps = getters.currentPrompt().props;
+      let tempX = contextProps.posX;
+      let tempY = contextProps.posY;
+      // Set initial position
+      this.posX = tempX;
+      this.posY = tempY;
+      // Wait for DOM update, then adjust
+      this.$nextTick(() => {
+        const menu = this.$refs.contextMenu;
+        if (!menu) return;
+        const menuWidth = menu.clientWidth || 320; // fallback to 20em
+        const menuHeight = menu.clientHeight || 200; // fallback to min height
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        let newX = tempX;
+        let newY = tempY;
+        // Adjust X if overflowing right
+        if (newX + menuWidth + BUFFER > screenWidth) {
+          newX = screenWidth - menuWidth - BUFFER;
+        }
+        // Adjust X if too close to left
+        if (newX < BUFFER) {
+          newX = BUFFER;
+        }
+        // Adjust Y if overflowing bottom
+        if (newY + menuHeight + BUFFER > screenHeight) {
+          newY = screenHeight - menuHeight - BUFFER;
+        }
+        // Adjust Y if too close to top
+        if (newY < BUFFER) {
+          newY = BUFFER;
+        }
+        this.posX = newX;
+        this.posY = newY;
+      });
+      // Show/hide create as before
       if (state.selected.length > 0) {
         this.showCreate = false;
       } else {
         this.showCreate = true;
       }
-      const contextProps = getters.currentPrompt().props;
-      let tempX = contextProps.posX;
-      let tempY = contextProps.posY;
-      // Assuming the screen width and height (adjust values based on your context)
-      const screenWidth = window.innerWidth; // or any fixed width depending on your app's layout
-      const screenHeight = window.innerHeight; // or any fixed height depending on your app's layout
-
-      // if x is too close to the right edge, move it to the left by 400px
-      if (tempX > screenWidth - 200) {
-        tempX -= 200;
-      }
-
-      // if y is too close to the bottom edge, move it up by 400px
-      if (tempY > screenHeight - 400) {
-        tempY -= 200;
-      }
-
-      this.posX = tempX;
-      this.posY = tempY;
     },
     toggleMultipleSelection() {
       mutations.setMultiple(!state.multiple);

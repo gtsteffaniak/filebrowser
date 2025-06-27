@@ -197,6 +197,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		}
 		return http.StatusOK, nil
 	}
+	fmt.Println("fileOpts", fileOpts)
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
 		if r.URL.Query().Get("override") != "true" {

@@ -502,9 +502,8 @@ func modifyExcludeInclude(config *Source) {
 		}
 	}
 
-	normalize(config.Config.Exclude.Files, true)
-	normalize(config.Config.Exclude.Folders, true)
-	normalize(config.Config.Include.Files, true)
-	normalize(config.Config.Include.Folders, true)
-
+	normalize(config.Config.Exclude.FolderPaths, true)
+	normalize(config.Config.Exclude.FilePaths, true)
+	normalize(config.Config.Include.RootFolders, true)
+	normalize(config.Config.Include.RootFiles, true)
 }

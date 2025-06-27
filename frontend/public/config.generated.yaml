@@ -25,16 +25,18 @@ server:
         disableIndexing: false            # disable the indexing of this source
         maxWatchers: 0                    # number of concurrent watchers to use for this source, currently not supported
         neverWatchPaths: []
-        ignoreHidden: false               # ignore hidden files and folders.
-        ignoreZeroSizeFolders: false      # ignore folders with 0 size
         exclude:                          # exclude files and folders from indexing, if include is not set
-          files: []
-          folders: []
-          fileEndsWith: []
+          hidden: false                   # exclude hidden files and folders.
+          ignoreZeroSizeFolders: false    # ignore folders with 0 size
+          filesPaths: []
+          folderPaths: []
+          fileNames: []
+          folderNames: []
+          fileStartsWith: []
+          folderStartsWith: []
         include:                          # include files and folders from indexing, if exclude is not set
-          files: []
-          folders: []
-          fileEndsWith: []
+          rootFolders: []
+          rootFiles: []
         defaultUserScope: /               # default "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user
