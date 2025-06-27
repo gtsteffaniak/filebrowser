@@ -6,16 +6,22 @@
     "paths": {
         "/api/auth/logout": {
             "post": {
-                "description": "logs a user out of the application.",
+                "description": "Returns a logout URL for the frontend to redirect to.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Auth"
                 ],
                 "summary": "User Logout",
                 "responses": {
-                    "302": {
-                        "description": "Redirect to redirect URL if configured in oidc config.",
+                    "200": {
+                        "description": "{\"logoutUrl\": \"http://...\"}",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -1884,10 +1890,6 @@
                 },
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
-                },
-                "resetAdminOnStart": {
-                    "description": "if set to true, the admin user will be reset to the default username and password on startup.",
-                    "type": "boolean"
                 },
                 "tokenExpirationHours": {
                     "description": "the number of hours until the token expires. Default is 2 hours.",

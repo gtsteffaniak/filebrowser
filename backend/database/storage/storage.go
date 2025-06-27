@@ -119,7 +119,8 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 		}
 		userInfo.Password = hashpass
 	}
-	// must have username or password to create
+	userInfo.Permissions = settings.Config.UserDefaults.Permissions
+	// must have username
 	if userInfo.Username == "" {
 		return fmt.Errorf("username is required to create a user")
 	}

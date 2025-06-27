@@ -234,6 +234,9 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 			return http.StatusInternalServerError, err
 		}
 		if config.Auth.Methods.OidcAuth.CreateUser {
+			if config.Auth.Methods.OidcAuth.AdminGroup == "" {
+				isAdmin = config.UserDefaults.Permissions.Admin
+			}
 			err = storage.CreateUser(users.User{
 				LoginMethod: users.LoginMethodOidc,
 				Username:    username,

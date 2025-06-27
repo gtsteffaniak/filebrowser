@@ -31,10 +31,6 @@ func NewStorage(back StorageBackend, userStore *users.Storage) (*Storage, error)
 	if err != nil {
 		return nil, err
 	}
-	err = store.Save(&HookAuth{})
-	if err != nil {
-		return nil, err
-	}
 	err = store.Save(&NoAuth{})
 	if err != nil {
 		return nil, err
