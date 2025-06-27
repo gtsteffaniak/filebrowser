@@ -91,6 +91,11 @@
       :label="$t('buttons.delete')"
       show="delete"
     />
+    <action
+      icon="lock"
+      :label="$t('buttons.access')"
+      @action="showAccess"
+    />
   </div>
   <div
     id="context-menu"
@@ -220,6 +225,15 @@ export default {
     },
   },
   methods: {
+    showAccess() {
+      mutations.showHover({
+        name: "access",
+        props: {
+          sourceName: state.sources.current,
+          path: state.req.path
+        }
+      });
+    },
     startShowCreate() {
       this.showCreate = true;
     },

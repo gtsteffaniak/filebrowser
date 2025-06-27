@@ -114,3 +114,10 @@ func JoinPathAsUnix(parts ...string) string {
 	}
 	return joinedPath
 }
+
+func NonNilSlice[T any](in []T) []T {
+	if in == nil {
+		return []T{}
+	}
+	return in
+}
