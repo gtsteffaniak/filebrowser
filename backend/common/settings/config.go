@@ -31,15 +31,15 @@ func Initialize(configFile string) {
 	err = ValidateConfig(Config)
 	if err != nil {
 		errmsg := "The provided config file failed validation. "
-		errmsg += "If you are seeing this on a config that worked previeously, "
-		errmsg += "please review your config for typos and invalid keys which are no longer supported. "
+		errmsg += "If you are seeing this on a config that worked before, "
+		errmsg += "then check the latest releases for breaking changes. "
 		errmsg += "visit https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example for more information."
 		logger.Error(errmsg)
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
 	setupLogging()
-	setupAuth()
+	setupAuth(false)
 	setupSources(false)
 	setupUrls()
 	setupFrontend()
@@ -168,7 +168,10 @@ func setupUrls() {
 	Config.Integrations.OnlyOffice.InternalUrl = strings.Trim(Config.Integrations.OnlyOffice.InternalUrl, "/")
 }
 
-func setupAuth() {
+func setupAuth(generate bool) {
+	if generate {
+		Config.Auth.AdminPassword = "admin"
+	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
@@ -342,7 +345,6 @@ func setDefaults() Settings {
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",
-			AdminPassword:        "admin",
 			TokenExpirationHours: 2,
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{

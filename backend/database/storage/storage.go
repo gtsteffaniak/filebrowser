@@ -89,6 +89,9 @@ func quickSetup(store *Storage) {
 	user := &users.User{}
 	settings.ApplyUserDefaults(user)
 	user.Username = settings.Config.Auth.AdminUsername
+	if settings.Config.Auth.AdminPassword == "" {
+		settings.Config.Auth.AdminPassword = "admin"
+	}
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Permissions.Admin = true
 	user.Scopes = []users.SourceScope{}
