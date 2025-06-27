@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.11-beta
+
+ **New Features**:
+ - 
+
+ **Notes**:
+ - updated swagger docs https://github.com/gtsteffaniak/filebrowser/issues/849
+
+ **BugFixes**:
+ - 
+
 ## v0.7.10-beta
 
  **OIDC change**: if you specify `oidc.userIdentifier: "username"`, originally this would map to `preferred_username` but now it maps to `username` explicitly. To maintain the same behavior update your config to `userIdentifier: "preferred_username"`. This was updated to allow for `username` to work as [some might need](https://github.com/gtsteffaniak/filebrowser/pull/789).
