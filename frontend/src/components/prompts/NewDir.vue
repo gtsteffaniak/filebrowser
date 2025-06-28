@@ -75,29 +75,12 @@ export default {
       try {
         event.preventDefault();
         if (this.name === "") return;
-
         // Build the path of the new directory.
-        let uri;
-        if (this.base) uri = this.base;
-        else if (getters.isFiles()) uri = state.route.path + "/";
-        else uri = "/";
-
-        if (!this.isListing) {
-          uri = url.removeLastDir(uri) + "/";
-        }
-
-        uri += this.name + "/";
-        uri = uri.replaceAll("//", "/");
-
-        await filesApi.post(uri, "", true);
-        if (this.redirect) {
-          this.$router.push({ path: uri });
-        } else if (!this.base) {
-          const res = await filesApi.fetchFiles(url.removeLastDir(uri) + "/");
-          mutations.replaceRequest(res);
-        }
-
+        let uri = decodeURIComponent(state.req.url);
+        uri += this.name + "/"; // Ensure the path ends with a slash
+        await filesApi.post(uri);
         mutations.closeHovers();
+        mutations.setReload(true)
       } catch (error) {
         notify.showError(error);
       }

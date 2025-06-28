@@ -67,19 +67,11 @@ export default {
         event.preventDefault();
         if (this.name === "") return;
         // Build the path of the new file.
-        let uri = getters.isFiles() ? state.route.path + "/" : "/";
-
-        if (!this.isListing) {
-          uri = url.removeLastDir(uri) + "/";
-        }
-
+        let uri = decodeURIComponent(state.req.url);
         uri += this.name
-        uri = uri.replaceAll("//", "/");
-
-        await filesApi.post(uri);
-        this.$router.push({ path: uri });
-
+        await filesApi.post(uri, "", true);
         mutations.closeHovers();
+        mutations.setReload(true)
       } catch (error) {
         notify.showError(error);
       }
