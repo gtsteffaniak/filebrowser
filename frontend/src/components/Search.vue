@@ -392,12 +392,12 @@ export default {
       if (path.startsWith("/")) {
         path = path.slice(1); // remove leading slash
       }
-      const encodedPath = encodeURIComponent(path).replace("/%20/g", "/");
-      let fullpath = path;
+      const encodedPath = encodeURIComponent(this.getContext + path).replaceAll("%2F", "/");
+      let fullpath = encodedPath;
       if (serverHasMultipleSources) {
-        fullpath = baseURL+"files/" + this.selectedSource + "/" + encodedPath;
+        fullpath = baseURL+"files/" + this.selectedSource + encodedPath;
       } else {
-        fullpath = baseURL+"files/" + encodedPath;
+        fullpath = baseURL+"files" + encodedPath;
       }
       return fullpath;
     },
