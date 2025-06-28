@@ -73,8 +73,8 @@ export default {
           uri = url.removeLastDir(uri) + "/";
         }
 
-        uri += encodeURIComponent(this.name);
-        uri = uri.replace("//", "/");
+        uri += this.name
+        uri = uri.replaceAll("//", "/");
 
         await filesApi.post(uri);
         this.$router.push({ path: uri });

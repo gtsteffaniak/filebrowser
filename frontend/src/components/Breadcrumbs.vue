@@ -72,7 +72,7 @@ export default {
       const req = state.req;
       let path = "";
       if (req.path !== undefined) {
-        path = state.req.path.replace(/#/g, "%23");
+        path = state.req.path.replaceAll('#', "%23");
       }
       let parts = path.split("/");
       if (parts[0] === "") {
