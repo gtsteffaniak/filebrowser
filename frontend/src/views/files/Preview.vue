@@ -282,7 +282,8 @@ export default {
             this.prev();
           }
           break;
-        case ("Escape", "Backspace"):
+        case "Escape":
+        case "Backspace":
           this.close();
           break;
       }

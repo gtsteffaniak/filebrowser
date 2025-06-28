@@ -388,7 +388,7 @@ export default {
     getRelative(path) {
       // double encode # to fix issue with # in path
       // replace all # with %23
-      path = path.replace(/#/g, "%23");
+      path = path.replaceAll('#', "%23");
       if (path.startsWith("/")) {
         path = path.slice(1); // remove leading slash
       }
@@ -465,7 +465,7 @@ export default {
       if (string == null || string == "") {
         return false;
       }
-      this.searchTypes = this.searchTypes.replace(string + " ", "");
+      this.searchTypes = this.searchTypes.replaceAll(string + " ", "");
       if (state.isMobile) {
         this.$refs.input.focus();
       }
