@@ -75,12 +75,12 @@ export default {
       try {
         event.preventDefault();
         if (this.name === "") return;
+
         // Build the path of the new directory.
         let uri = decodeURIComponent(state.req.url);
         uri += this.name + "/"; // Ensure the path ends with a slash
         await filesApi.post(uri);
-        mutations.closeHovers();
-        mutations.setReload(true)
+        this.$router.push({ path: state.route.path + encodeURIComponent(this.name) });
       } catch (error) {
         notify.showError(error);
       }

@@ -70,8 +70,7 @@ export default {
         let uri = decodeURIComponent(state.req.url);
         uri += this.name
         await filesApi.post(uri, "", true);
-        mutations.closeHovers();
-        mutations.setReload(true)
+        this.$router.push({ path: state.route.path + encodeURIComponent(this.name) });
       } catch (error) {
         notify.showError(error);
       }
