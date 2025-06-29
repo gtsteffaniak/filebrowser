@@ -818,7 +818,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Destination path where to place the files inside the destination source, a directory must end in / to create a directory",
+                        "description": "url encoded destination path where to place the files inside the destination source, a directory must end in / to create a directory",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -1911,15 +1911,15 @@
                         "type": "string"
                     }
                 },
-                "fileStartsWith": {
-                    "description": "(global) files with matching suffix",
+                "filePaths": {
+                    "description": "list of filepaths Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (without source path prefix)",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "filesPaths": {
-                    "description": "list of filepaths Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (without source path prefix)",
+                "fileStartsWith": {
+                    "description": "(global) files with matching suffix",
                     "type": "array",
                     "items": {
                         "type": "string"

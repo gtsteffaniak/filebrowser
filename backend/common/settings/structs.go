@@ -97,7 +97,7 @@ type IncludeIndexFilter struct {
 type ExcludeIndexFilter struct {
 	Hidden          bool     `json:"hidden"`                // exclude hidden files and folders.
 	ZeroSizeFolders bool     `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
-	FilePaths       []string `json:"filesPaths"`            // list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
+	FilePaths       []string `json:"filePaths"`             // list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
 	FolderPaths     []string `json:"folderPaths"`           // (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
 	FileNames       []string `json:"fileNames"`             // (global) list of file names to include/exclude. Eg. "a.jpg"
 	FolderNames     []string `json:"folderNames"`           // (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"

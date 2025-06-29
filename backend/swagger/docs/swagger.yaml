@@ -149,14 +149,14 @@ definitions:
         items:
           type: string
         type: array
-      fileStartsWith:
-        description: (global) files with matching suffix
+      filePaths:
+        description: list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt"
+          (without source path prefix)
         items:
           type: string
         type: array
-      filesPaths:
-        description: list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt"
-          (without source path prefix)
+      fileStartsWith:
+        description: (global) files with matching suffix
         items:
           type: string
         type: array
@@ -1352,8 +1352,8 @@ paths:
       description: Creates a new resource or uploads a file at the specified path.
         Supports file uploads and directory creation.
       parameters:
-      - description: Destination path where to place the files inside the destination
-          source, a directory must end in / to create a directory
+      - description: url encoded destination path where to place the files inside
+          the destination source, a directory must end in / to create a directory
         in: query
         name: path
         required: true
