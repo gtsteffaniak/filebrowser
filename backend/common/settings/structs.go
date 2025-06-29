@@ -101,8 +101,8 @@ type ExcludeIndexFilter struct {
 	FolderPaths     []string `json:"folderPaths"`           // (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
 	FileNames       []string `json:"fileNames"`             // (global) list of file names to include/exclude. Eg. "a.jpg"
 	FolderNames     []string `json:"folderNames"`           // (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
-	FileEndsWith    []string `json:"fileStartsWith"`        // (global) files with matching suffix
-	FolderEndsWith  []string `json:"folderStartsWith"`      // (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
+	FileEndsWith    []string `json:"fileEndsWith"`          // (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
+	FolderEndsWith  []string `json:"folderEndsWith"`        // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
 }
 
 type Frontend struct {

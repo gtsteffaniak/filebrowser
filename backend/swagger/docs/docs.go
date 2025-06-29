@@ -1915,6 +1915,13 @@ const docTemplate = `{
         "settings.ExcludeIndexFilter": {
             "type": "object",
             "properties": {
+                "fileEndsWith": {
+                    "description": "(global) exclude files that end with these suffixes. Eg. \".jpg\" or \".txt\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "fileNames": {
                     "description": "(global) list of file names to include/exclude. Eg. \"a.jpg\"",
                     "type": "array",
@@ -1929,8 +1936,8 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "fileStartsWith": {
-                    "description": "(global) files with matching suffix",
+                "folderEndsWith": {
+                    "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1945,13 +1952,6 @@ const docTemplate = `{
                 },
                 "folderPaths": {
                     "description": "(filepath) list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folderStartsWith": {
-                    "description": "(global) list of folder names to include/exclude. Eg. \"@eadir\" or \".thumbnails\"",
                     "type": "array",
                     "items": {
                         "type": "string"

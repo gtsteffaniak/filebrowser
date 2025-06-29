@@ -32,8 +32,8 @@ server:
           folderPaths: []
           fileNames: []
           folderNames: []
-          fileStartsWith: []
-          folderStartsWith: []
+          fileEndsWith: []
+          folderEndsWith: []
         include:                          # include files and folders from indexing, if exclude is not set
           rootFolders: []
           rootFiles: []
