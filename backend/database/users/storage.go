@@ -56,18 +56,8 @@ func (c *crudBackend) Save(obj *User) error {
 func (c *crudBackend) DeleteByID(id any) error {
 	switch v := id.(type) {
 	case string:
-		user, err := c.back.GetBy(v)
-		if err != nil {
-			return err
-		}
-		if user.ID == 1 {
-			return errors.ErrRootUserDeletion
-		}
 		return c.back.DeleteByUsername(v)
 	case uint:
-		if v == 1 {
-			return errors.ErrRootUserDeletion
-		}
 		return c.back.DeleteByID(v)
 	default:
 		return errors.ErrInvalidDataType
