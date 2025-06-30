@@ -140,6 +140,7 @@ export default {
       source: "",
       password: "",
       listing: true,
+      links: [],
     };
   },
   computed: {

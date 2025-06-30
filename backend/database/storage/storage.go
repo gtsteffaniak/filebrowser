@@ -33,9 +33,9 @@ func InitializeDb(path string) (*bolt.BoltStore, bool, error) {
 		return nil, exists, err
 	}
 	// Load access rules from DB on startup
-	if err = store.Access.LoadFromDB(); err != nil {
-		return nil, exists, err
-	}
+	// ignoring errors because
+	_ = store.Access.LoadFromDB()
+	userStore = store.Users
 	err = bolt.Save(db, "version", 2)
 	if err != nil {
 		return nil, exists, err
@@ -90,7 +90,7 @@ func quickSetup(store *bolt.BoltStore) {
 	}
 	user.LockPassword = false
 	user.Permissions = settings.AdminPerms()
-	logger.Debugf("Creating user as admin: %v %v", user.Username, user.Password)
+	logger.Debugf("Creating user as admin: username=%v password=%v", user.Username, user.Password)
 	err = store.Users.Save(user, true, true)
 	utils.CheckErr("store.Users.Save", err)
 }

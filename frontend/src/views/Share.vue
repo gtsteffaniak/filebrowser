@@ -18,14 +18,14 @@
             {{ $t("login.wrongCredentials") }}
           </div>
           <div class="card-title">
-            <h2>{{ $t("login.password") }}</h2>
+            <h2>{{ $t("general.password") }}</h2>
           </div>
 
           <div class="card-content">
             <input
               v-focus
               type="password"
-              :placeholder="$t('login.password')"
+              :placeholder="$t('general.password')"
               v-model="password"
               @keyup.enter="fetchData"
             />
@@ -107,7 +107,7 @@
           class="share__box share__box__items"
         >
           <div class="share__box__header" v-if="req.type == 'directory'">
-            {{ $t("files.files") }}
+            {{ $t("general.files") }}
           </div>
           <div id="listingView" class="list file-icons">
             <item

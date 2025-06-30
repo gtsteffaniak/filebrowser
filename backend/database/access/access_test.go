@@ -10,7 +10,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 )
 
-func createTestStorage(t *testing.T) *access.Storage {
+func createTestStorage(t *testing.T) (*access.Storage, *users.Storage) {
 	dir := t.TempDir()
 	dbPath := filepath.Join(dir, "test.db")
 	db, err := storm.Open(dbPath)
@@ -18,11 +18,21 @@ func createTestStorage(t *testing.T) *access.Storage {
 		t.Fatalf("failed to open storm db: %v", err)
 	}
 	userStore := users.NewStorage(boltusers.NewUsersBackend(db))
-	return access.NewStorage(db, userStore)
+	return access.NewStorage(db, userStore), userStore
+}
+
+func createTestUser(t *testing.T, userStore *users.Storage, username string) {
+	u := &users.User{NonAdminEditable: users.NonAdminEditable{Password: "test"}, Username: username}
+	err := userStore.Save(u, false, false)
+	if err != nil {
+		t.Fatalf("failed to create user %s: %v", username, err)
+	}
 }
 
 func TestPermitted_UserBlacklist(t *testing.T) {
-	s := createTestStorage(t)
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	createTestUser(t, userStore, "bob")
 	err := s.LoadFromDB()
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)
@@ -39,7 +49,9 @@ func TestPermitted_UserBlacklist(t *testing.T) {
 }
 
 func TestPermitted_UserWhitelist(t *testing.T) {
-	s := createTestStorage(t)
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	createTestUser(t, userStore, "bob")
 	err := s.LoadFromDB()
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)
@@ -56,7 +68,9 @@ func TestPermitted_UserWhitelist(t *testing.T) {
 }
 
 func TestPermitted_GroupBlacklist(t *testing.T) {
-	s := createTestStorage(t)
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	createTestUser(t, userStore, "bob")
 	err := s.LoadFromDB()
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)
@@ -74,7 +88,9 @@ func TestPermitted_GroupBlacklist(t *testing.T) {
 }
 
 func TestPermitted_GroupWhitelist(t *testing.T) {
-	s := createTestStorage(t)
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	createTestUser(t, userStore, "bob")
 	err := s.LoadFromDB()
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)
@@ -92,7 +108,7 @@ func TestPermitted_GroupWhitelist(t *testing.T) {
 }
 
 func TestPermitted_NoRule(t *testing.T) {
-	s := createTestStorage(t)
+	s, _ := createTestStorage(t)
 	err := s.LoadFromDB()
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)
@@ -103,7 +119,11 @@ func TestPermitted_NoRule(t *testing.T) {
 }
 
 func TestPermitted_CombinedRules(t *testing.T) {
-	s := createTestStorage(t)
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	createTestUser(t, userStore, "bob")
+	createTestUser(t, userStore, "carol")
+	createTestUser(t, userStore, "eve")
 	err := s.LoadFromDB()
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)

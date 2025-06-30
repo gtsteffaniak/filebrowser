@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import { getters, mutations, state } from "@/store";
+import { mutations, state } from "@/store";
 import { usersApi, settingsApi } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";

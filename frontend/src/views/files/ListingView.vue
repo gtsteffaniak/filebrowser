@@ -92,7 +92,7 @@
         </div>
         <div v-if="numDirs > 0">
           <div class="header-items">
-            <h2>{{ $t("files.folders") }}</h2>
+            <h2>{{ $t("general.folders") }}</h2>
           </div>
         </div>
         <div
@@ -116,7 +116,7 @@
         </div>
         <div v-if="numFiles > 0">
           <div class="header-items">
-            <h2>{{ $t("files.files") }}</h2>
+            <h2>{{ $t("general.files") }}</h2>
           </div>
         </div>
         <div v-if="numFiles > 0" class="file-items" :class="{ lastGroup: numFiles > 0 }">

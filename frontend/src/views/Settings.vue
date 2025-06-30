@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" style="padding-bottom: 30vh">
+  <div class="dashboard">
     <div v-if="isRootSettings && !userPage" class="settings-views">
       <component
         v-if="activeSetting"
@@ -12,7 +12,6 @@
         <UserSettings />
       </div>
     </div>
-
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">

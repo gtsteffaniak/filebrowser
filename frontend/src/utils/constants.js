@@ -29,7 +29,7 @@ const settings = [
   { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }  },
   //{ id: 'global', label: 'Global', component: 'GlobalSettings', permissions: { admin: true } },
   { id: 'users', label: 'settings.userManagement', component: 'UserManagement' },
-  { id: 'access', label: 'access.accessSettings', component: 'AccessSettings', permissions: { admin: true } },
+  { id: 'access', label: 'access.accessManagement', component: 'AccessSettings', permissions: { admin: true } },
 ];
 
 export {

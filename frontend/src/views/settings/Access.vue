@@ -1,6 +1,5 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-
   <div class="card-title">
     <h2>{{ $t("access.accessManagement") }}</h2>
   </div>
@@ -8,12 +7,12 @@
     <table aria-label="Access Rules">
       <thead>
         <tr>
-          <th>path</th>
-          <th>denied users</th>
-          <th>denied groups</th>
-          <th>allowed users</th>
-          <th>allowed groups</th>
-          <th>actions</th>
+          <th>{{$t('settings.path')}}</th>
+          <th>{{$t('access.deniedUsers')}}</th>
+          <th>{{$t('access.deniedGroups')}}</th>
+          <th>{{$t('access.allowedUsers')}}</th>
+          <th>{{$t('access.allowedGroups')}}</th>
+          <th>{{$t('buttons.edit') }}</th>
         </tr>
       </thead>
       <tbody class="settings-items">
@@ -41,10 +40,8 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
 import { accessApi } from "@/api";
-import { state, mutations, getters } from "@/store";
-import Clipboard from "clipboard";
+import { state, mutations } from "@/store";
 import Errors from "@/views/Errors.vue";
 
 export default {

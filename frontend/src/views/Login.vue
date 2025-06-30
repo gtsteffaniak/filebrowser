@@ -21,21 +21,21 @@
           class="input input--block"
           type="password"
           v-model="password"
-          :placeholder="$t('login.password')"
+          :placeholder="$t('general.password')"
         />
         <input
           class="input input--block"
           v-if="createMode"
           type="password"
           v-model="passwordConfirm"
-          :placeholder="$t('login.passwordConfirm')"
+          :placeholder="$t('general.passwordConfirm')"
         />
 
         <div v-if="recaptcha" id="recaptcha"></div>
         <input
           class="button button--block"
           type="submit"
-          :value="createMode ? $t('login.signup') : $t('login.submit')"
+          :value="createMode ? $t('general.signup') : $t('login.submit')"
         />
         <p @click="toggleMode" v-if="signup">
           {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
@@ -142,7 +142,7 @@ export default {
 
       if (this.createMode) {
         if (this.password !== this.passwordConfirm) {
-          this.error = this.$t("login.passwordsDontMatch");
+          this.error = this.$t("general.passwordsDontMatch");
           return;
         }
       }

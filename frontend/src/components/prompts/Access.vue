@@ -1,7 +1,7 @@
 <template>
   <div class="card floating share__promt__card" id="access">
     <div class="card-title">
-      <h2>{{ $t("buttons.access") }}</h2>
+      <h2>{{ $t("access.accessManagement") }}</h2>
     </div>
     <div aria-label="access-path" class="searchContext">
       {{ $t("search.path") }} {{ path }}
@@ -10,8 +10,8 @@
       <!-- Add Form -->
       <div class="add-form" style="margin-bottom: 1em;">
         <select v-model="addType">
-          <option value="user">{{ $t("access.user") }}</option>
-          <option value="group">{{ $t("access.group") }}</option>
+          <option value="user">{{ $t("general.user") }}</option>
+          <option value="group">{{ $t("general.group") }}</option>
         </select>
         <select v-model="addListType">
           <option value="deny">{{ $t("access.deny") }}</option>
@@ -27,12 +27,12 @@
           <tr>
             <th>{{ $t("access.allowDeny") }}</th>
             <th>{{ $t("access.userGroup") }}</th>
-            <th>{{ $t("access.name") }}</th>
+            <th>{{ $t("general.name") }}</th>
             <th>{{ $t("buttons.edit") }}</th>
           </tr>
           <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
             <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
-            <td>{{ entry.type == "user" ? $t("access.user") : $t("access.group") }}</td>
+            <td>{{ entry.type == "user" ? $t("general.user") : $t("general.group") }}</td>
             <td>{{ entry.name }}</td>
             <td>
               <button @click="deleteAccess(entry)" class="action" :aria-label="$t('buttons.delete')" :title="$t('buttons.delete')">
@@ -114,7 +114,7 @@ export default {
           value: entry.name
         };
         await accessApi.del(this.sourceName, this.path, body);
-        notify.showSuccess(this.$t("success.deleted"));
+        notify.showSuccess(this.$t("access.deleted"));
         await this.fetchRule();
         this.$emit('updated');
       } catch (e) {
@@ -137,7 +137,7 @@ export default {
           this.path,
           body
         );
-        notify.showSuccess(this.$t("success.added"));
+        notify.showSuccess(this.$t("access.added"));
         this.addName = "";
         await this.fetchRule();
         this.$emit('updated');

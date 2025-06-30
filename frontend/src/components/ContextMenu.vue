@@ -93,7 +93,7 @@
     />
     <action
       icon="lock"
-      :label="$t('buttons.access')"
+      :label="$t('access.rules')"
       @action="showAccess"
     />
   </div>

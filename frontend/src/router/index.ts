@@ -15,7 +15,7 @@ import i18n from "@/i18n";
 const titles = {
   Login: "sidebar.login",
   Share: "buttons.share",
-  Files: "files.files",
+  Files: "general.files",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",
   Shares: "settings.shareManagement",
