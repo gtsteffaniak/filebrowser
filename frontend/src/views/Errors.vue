@@ -38,19 +38,5 @@ export default {
       return errors[this.errorCode] ? errors[this.errorCode] : errors[500];
     },
   },
-  mounted() {
-    window.addEventListener("keydown", this.keyEvent);
-  },
-  methods: {
-    keyEvent(event) {
-      const { key } = event;
-      if (key == "Backspace") {
-        // go back
-        let currentPath = state.route.path.replace(/\/+$/, "");
-        let newPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-        router.push({ path: newPath });
-      }
-    },
-  },
 };
 </script>

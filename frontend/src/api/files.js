@@ -106,9 +106,8 @@ export async function post(url, content = '', overwrite = false, onupload) {
     ) {
       bufferContent = await new Response(content).arrayBuffer()
     }
-
     const apiPath = getApiPath('api/resources', {
-      path: result.path,
+      path: encodeURIComponent(result.path),
       source: encodeURIComponent(result.source),
       override: overwrite
     })

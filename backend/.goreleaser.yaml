@@ -12,7 +12,7 @@ builds:
       - mupdf
       - musl
     ldflags: &ldflags
-      - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version={{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
+      - -s -w -X github.com/gtsteffaniak/filebrowser/backend/common/version.Version=v{{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/common/version.CommitSHA={{ .ShortCommit }}
     main: main.go
     binary: filebrowser
     goos:

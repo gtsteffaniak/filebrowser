@@ -175,7 +175,7 @@ func GenerateYaml() {
 	}
 
 	setupLogging()
-	setupAuth()
+	setupAuth(true)
 	setupSources(true)
 	setupUrls()
 	setupFrontend()

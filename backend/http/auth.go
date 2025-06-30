@@ -125,25 +125,37 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 
 // logoutHandler handles user logout, specifically used for OIDC or proxy users.
 // @Summary User Logout
-// @Description logs a user out of the application.
+// @Description Returns a logout URL for the frontend to redirect to.
 // @Tags Auth
-// @Success 302 {string} string "Redirect to redirect URL if configured in oidc config."
+// @Produce json
+// @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL)
-	if d.user.LoginMethod == "proxy" {
+	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL) // Default fallback
+	if d.user.LoginMethod == users.LoginMethodProxy {
 		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
 		if proxyRedirectUrl != "" {
 			logoutUrl = proxyRedirectUrl
 		}
-	} else if d.user.LoginMethod == "oidc" {
+	} else if d.user.LoginMethod == users.LoginMethodOidc {
 		oidcRedirectUrl := config.Auth.Methods.OidcAuth.LogoutRedirectUrl
 		if oidcRedirectUrl != "" {
 			logoutUrl = oidcRedirectUrl
 		}
 	}
-	http.Redirect(w, r, logoutUrl, http.StatusFound)
-	return 302, nil
+
+	response := map[string]string{
+		"logoutUrl": logoutUrl,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return http.StatusOK, nil
 }
 
 type signupBody struct {

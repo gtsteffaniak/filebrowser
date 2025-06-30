@@ -29,9 +29,14 @@ type userInfo struct {
 	Groups            []string `json:"groups"`
 }
 
-// oidcLoginHandler redirects the user to the OIDC provider's authorization endpoint.
-// This function remains largely the same, but includes the 'fb_redirect' parameter
-// to redirect the user back to the original page after successful login.
+// oidcLoginHandler initiates OIDC login.
+// @Summary OIDC login
+// @Description Initiates OIDC login flow.
+// @Tags OIDC
+// @Accept json
+// @Produce json
+// @Success 302 {string} string "Redirect to OIDC provider"
+// @Router /api/auth/oidc/login [get]
 func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	oidcCfg := settings.Config.Auth.Methods.OidcAuth
 	if !oidcCfg.Enabled {
@@ -58,9 +63,17 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	return 0, nil
 }
 
-// oidcCallbackHandler handles the OIDC callback after the user authenticates with the provider.
-// It exchanges the authorization code for tokens, attempts to verify the ID token.
-// If ID token verification or essential claims extraction fails, it falls back to the UserInfo endpoint.
+// oidcCallbackHandler handles OIDC callback.
+// @Summary OIDC callback
+// @Description Handles OIDC login callback.
+// @Tags OIDC
+// @Accept json
+// @Produce json
+// @Param code query string false "OIDC code"
+// @Param state query string false "OIDC state"
+// @Success 200 {object} map[string]string "OIDC callback result"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Router /api/auth/oidc/callback [get]
 func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	ctx := r.Context()
 	oidcCfg := settings.Config.Auth.Methods.OidcAuth
@@ -221,6 +234,9 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 			return http.StatusInternalServerError, err
 		}
 		if config.Auth.Methods.OidcAuth.CreateUser {
+			if config.Auth.Methods.OidcAuth.AdminGroup == "" {
+				isAdmin = config.UserDefaults.Permissions.Admin
+			}
 			err = storage.CreateUser(users.User{
 				LoginMethod: users.LoginMethodOidc,
 				Username:    username,

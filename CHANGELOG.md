@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.11-beta
+
+ **Breaking Changes**:
+  - `auth.resetAdminOnStart` has been removed. Instead, if you have `auth.adminPassword` set it will always be reset on startup. If you want to change your default admin password afterwards, make sure to unset `auth.adminPassword` so it doesn't get reset on startup.
+  - renamed include/exclude rules see [updated example wiki](https://github.com/gtsteffaniak/filebrowser/wiki/Configuration-And-Examples#example-advanced-source-config)!
+
+ **New Features**:
+ - more comprehensive exclude/include rules (see example wiki above).
+   - include/exclude parts of folder names as well https://github.com/gtsteffaniak/filebrowser/issues/854
+   - include/exclude file or folder names globally.
+ - `source.config.neverWatchPaths` is now functional -- a list of paths that get indexed initially, but skips re-indexing. Useful for directories you don't expect to change ever, still show up in search but get don't contribute to indexing time after initial indexing.
+
+ **Notes**:
+ - updated swagger docs https://github.com/gtsteffaniak/filebrowser/issues/849
+
+ **BugFixes**:
+ - fix version update notification for binary https://github.com/gtsteffaniak/filebrowser/issues/836
+ - ctrl-click cache issue https://github.com/gtsteffaniak/filebrowser/issues/735
+ - fix admin user reset OIDC user https://github.com/gtsteffaniak/filebrowser/issues/811 https://github.com/gtsteffaniak/filebrowser/issues/851
+ - fix windows and binary muPdf issue https://github.com/gtsteffaniak/filebrowser/issues/744
+ - fix logout oidc issue https://github.com/gtsteffaniak/filebrowser/issues/829 https://github.com/gtsteffaniak/filebrowser/issues/662
+ - file name upload bug https://github.com/gtsteffaniak/filebrowser/issues/662
+ - could not create share with absolute timestamps enabled https://github.com/gtsteffaniak/filebrowser/issues/764
+ - context menu off screen issue https://github.com/gtsteffaniak/filebrowser/issues/828
+
 ## v0.7.10-beta
 
  **OIDC change**: if you specify `oidc.userIdentifier: "username"`, originally this would map to `preferred_username` but now it maps to `username` explicitly. To maintain the same behavior update your config to `userIdentifier: "preferred_username"`. This was updated to allow for `username` to work as [some might need](https://github.com/gtsteffaniak/filebrowser/pull/789).

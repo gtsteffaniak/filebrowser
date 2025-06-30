@@ -1,5 +1,5 @@
 server:
-  numImageProcessors: 16                  # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
+  numImageProcessors: 8                   # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
   socket: ""                              # socket to listen on
   tlsKey: ""                              # path to TLS key
   tlsCert: ""                             # path to TLS cert
@@ -25,16 +25,18 @@ server:
         disableIndexing: false            # disable the indexing of this source
         maxWatchers: 0                    # number of concurrent watchers to use for this source, currently not supported
         neverWatchPaths: []
-        ignoreHidden: false               # ignore hidden files and folders.
-        ignoreZeroSizeFolders: false      # ignore folders with 0 size
         exclude:                          # exclude files and folders from indexing, if include is not set
-          files: []
-          folders: []
+          hidden: false                   # exclude hidden files and folders.
+          ignoreZeroSizeFolders: false    # ignore folders with 0 size
+          filePaths: []
+          folderPaths: []
+          fileNames: []
+          folderNames: []
           fileEndsWith: []
+          folderEndsWith: []
         include:                          # include files and folders from indexing, if exclude is not set
-          files: []
-          folders: []
-          fileEndsWith: []
+          rootFolders: []
+          rootFiles: []
         defaultUserScope: /               # default "/" should match folders under path
         defaultEnabled: true              # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user
@@ -74,7 +76,6 @@ auth:
   key: ""                                 # the key used to sign the JWT tokens. If not set, a random key will be generated.
   adminUsername: admin                    # the username of the admin user. If not set, the default is "admin".
   adminPassword: admin                    # the password of the admin user. If not set, the default is "admin".
-  resetAdminOnStart: false                # if set to true, the admin user will be reset to the default username and password on startup.
   totpSecret: ""                          # secret used to encrypt TOTP secrets
 frontend:
   name: FileBrowser Quantum               # display name

@@ -67,7 +67,7 @@ export default {
           );
           setTimeout(() => this.setupEditor(attempt + 1), 500);
         } else {
-          const errorMsg = `[FATAL] Failed to sync state with the route for "${this.filename}" after 5 attempts. Aborting editor setup to prevent data corruption.`;
+          const errorMsg = `failed to sync state with the route for "${this.filename}" after 5 attempts. Aborting editor setup to prevent data corruption.`;
           console.error(errorMsg);
           notify.showError(errorMsg); // Using the custom notifier
         }

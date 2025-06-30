@@ -74,6 +74,7 @@ func NewPreviewGenerator(concurrencyLimit int, ffmpegPath string, cacheDir strin
 		settings.Config.Integrations.Media.FfmpegPath = filepath.Base(ffmpegMainPath)
 	}
 	settings.Config.Server.MuPdfAvailable = docEnabled()
+	logger.Infof("MuPDF Enabled            : %v", settings.Config.Server.MuPdfAvailable)
 	return &Service{
 		sem:         make(chan struct{}, concurrencyLimit),
 		ffmpegPath:  ffmpegMainPath,

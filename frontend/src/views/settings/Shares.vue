@@ -63,6 +63,7 @@ import { shareApi, usersApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
+import { fromNow } from '@/utils/moment'
 
 export default {
   name: "shares",
@@ -137,7 +138,7 @@ export default {
       });
     },
     humanTime(time) {
-      return getters.getTime(time);
+      return fromNow(time);
     },
     buildLink(share) {
       return shareApi.getShareURL(share);

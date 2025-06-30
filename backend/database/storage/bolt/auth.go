@@ -17,8 +17,6 @@ func (s authBackend) Get(t string) (auth.Auther, error) {
 		auther = &auth.JSONAuth{}
 	case "proxy":
 		auther = &auth.ProxyAuth{}
-	case "hook":
-		auther = &auth.HookAuth{}
 	case "noauth":
 		auther = &auth.NoAuth{}
 	default:

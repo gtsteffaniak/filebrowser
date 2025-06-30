@@ -17,14 +17,92 @@ const docTemplate = `{
     "paths": {
         "/api/auth/logout": {
             "post": {
-                "description": "logs a user out of the application.",
+                "description": "Returns a logout URL for the frontend to redirect to.",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Auth"
                 ],
                 "summary": "User Logout",
                 "responses": {
+                    "200": {
+                        "description": "{\"logoutUrl\": \"http://...\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/oidc/callback": {
+            "get": {
+                "description": "Handles OIDC login callback.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OIDC"
+                ],
+                "summary": "OIDC callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "OIDC code",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "OIDC state",
+                        "name": "state",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OIDC callback result",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/oidc/login": {
+            "get": {
+                "description": "Initiates OIDC login flow.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OIDC"
+                ],
+                "summary": "OIDC login",
+                "responses": {
                     "302": {
-                        "description": "Redirect to redirect URL if configured in oidc config.",
+                        "description": "Redirect to OIDC provider",
                         "schema": {
                             "type": "string"
                         }
@@ -118,8 +196,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/createApiKey": {
-            "post": {
+        "/api/auth/token": {
+            "put": {
                 "description": "Create an API key with specified name, duration, and permissions.",
                 "consumes": [
                     "application/json"
@@ -156,7 +234,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Token created successfully, resoponse contains json object with token key",
+                        "description": "Token created successfully, response contains json object with token key",
                         "schema": {
                             "$ref": "#/definitions/http.HttpResponse"
                         }
@@ -198,9 +276,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/deleteApiKey": {
+            },
             "delete": {
                 "description": "Delete an API key with specified name.",
                 "consumes": [
@@ -250,7 +326,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/listApiKeys": {
+        "/api/auth/tokens": {
             "get": {
                 "description": "List all API keys or retrieve details for a specific key.",
                 "consumes": [
@@ -284,6 +360,57 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/jobs/{action}/{target}": {
+            "get": {
+                "description": "Returns job info for the user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get jobs info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job action",
+                        "name": "action",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Job target",
+                        "name": "target",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Job info",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/indexing.ReducedIndex"
                             }
                         }
                     },
@@ -580,12 +707,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "description": "Include file content if true",
                         "name": "content",
                         "in": "query"
@@ -649,12 +770,6 @@ const docTemplate = `{
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -714,7 +829,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Destination path where to place the files inside the destination source, a directory must end in / to create a directory",
+                        "description": "url encoded destination path where to place the files inside the destination source, a directory must end in / to create a directory",
                         "name": "path",
                         "in": "query",
                         "required": true
@@ -797,12 +912,6 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name for the desired source, default is used if not provided",
                         "name": "source",
                         "in": "query"
                     }
@@ -1116,26 +1225,17 @@ const docTemplate = `{
                 "summary": "Create a share link",
                 "parameters": [
                     {
-                        "description": "Share link creation parameters",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/share.CreateBody"
-                        }
-                    },
-                    {
                         "type": "string",
                         "description": "Source Path of the files to share",
                         "name": "path",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Source name of the files to share",
                         "name": "source",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -1165,9 +1265,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/shares/{hash}": {
+            },
             "delete": {
                 "description": "Deletes a share link specified by its hash.",
                 "consumes": [
@@ -1185,7 +1283,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Hash of the share link to delete",
                         "name": "hash",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -1285,6 +1383,128 @@ const docTemplate = `{
             }
         },
         "/api/users": {
+            "get": {
+                "description": "Returns a user's details based on their ID, or all users if no id is provided.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Retrieve a user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID or 'self'",
+                        "name": "id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details or list of users",
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates the details of a user identified by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user's details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "User data to update",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated user details",
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Adds a new user to the system.",
                 "consumes": [
@@ -1334,131 +1554,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/users/{id}": {
-            "get": {
-                "description": "Returns a user's details based on their ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Retrieve a user by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User details",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates the details of a user identified by ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update a user's details",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "User data to update",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Updated user details",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
             },
             "delete": {
                 "description": "Deletes a user identified by their ID.",
@@ -1474,10 +1569,10 @@ const docTemplate = `{
                 "summary": "Delete a user by ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -1656,6 +1751,57 @@ const docTemplate = `{
                 }
             }
         },
+        "indexing.IndexStatus": {
+            "type": "string",
+            "enum": [
+                "ready",
+                "indexing",
+                "unavailable"
+            ],
+            "x-enum-varnames": [
+                "READY",
+                "INDEXING",
+                "UNAVAILABLE"
+            ]
+        },
+        "indexing.ReducedIndex": {
+            "type": "object",
+            "properties": {
+                "assessment": {
+                    "type": "string"
+                },
+                "fullScanDurationSeconds": {
+                    "type": "integer"
+                },
+                "lastIndexedUnixTime": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "numDeleted": {
+                    "type": "integer"
+                },
+                "numDirs": {
+                    "type": "integer"
+                },
+                "numFiles": {
+                    "type": "integer"
+                },
+                "quickScanDurationSeconds": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/indexing.IndexStatus"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "used": {
+                    "type": "integer"
+                }
+            }
+        },
         "indexing.SearchResult": {
             "type": "object",
             "properties": {
@@ -1756,10 +1902,6 @@ const docTemplate = `{
                 "methods": {
                     "$ref": "#/definitions/settings.LoginMethods"
                 },
-                "resetAdminOnStart": {
-                    "description": "if set to true, the admin user will be reset to the default username and password on startup.",
-                    "type": "boolean"
-                },
                 "tokenExpirationHours": {
                     "description": "the number of hours until the token expires. Default is 2 hours.",
                     "type": "integer"
@@ -1767,6 +1909,61 @@ const docTemplate = `{
                 "totpSecret": {
                     "description": "secret used to encrypt TOTP secrets",
                     "type": "string"
+                }
+            }
+        },
+        "settings.ExcludeIndexFilter": {
+            "type": "object",
+            "properties": {
+                "fileEndsWith": {
+                    "description": "(global) exclude files that end with these suffixes. Eg. \".jpg\" or \".txt\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fileNames": {
+                    "description": "(global) list of file names to include/exclude. Eg. \"a.jpg\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "filePaths": {
+                    "description": "list of filepaths Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (without source path prefix)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folderEndsWith": {
+                    "description": "(global) exclude folders that end with these suffixes. Eg. \".thumbnails\" or \".git\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folderNames": {
+                    "description": "(global) list of folder names to include/exclude. Eg. \"@eadir\" or \".thumbnails\"",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "folderPaths": {
+                    "description": "(filepath) list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hidden": {
+                    "description": "exclude hidden files and folders.",
+                    "type": "boolean"
+                },
+                "ignoreZeroSizeFolders": {
+                    "description": "ignore folders with 0 size",
+                    "type": "boolean"
                 }
             }
         },
@@ -1814,25 +2011,18 @@ const docTemplate = `{
                 }
             }
         },
-        "settings.IndexFilter": {
+        "settings.IncludeIndexFilter": {
             "type": "object",
             "properties": {
-                "fileEndsWith": {
-                    "description": "list of file names to include/exclude. Eg. \"a.jpg\"",
+                "rootFiles": {
+                    "description": "list of root files to include, relative to the source path (eg. \"file1.txt\")",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "files": {
-                    "description": "list of file names to include/exclude  Eg. \"folder1\" or \"file1.txt\" or \"folder1/file1.txt\" (do not include source path, just the subpaths from the source path)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "folders": {
-                    "description": "list of folder names to include/exclude. Eg. \"folder1\" or \"folder1/subfolder\" (do not include source path, just the subpaths from the source path)",
+                "rootFolders": {
+                    "description": "list of root folders to include, relative to the source path (eg. \"folder1\")",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -2182,23 +2372,15 @@ const docTemplate = `{
                     "description": "exclude files and folders from indexing, if include is not set",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.IndexFilter"
+                            "$ref": "#/definitions/settings.ExcludeIndexFilter"
                         }
                     ]
-                },
-                "ignoreHidden": {
-                    "description": "ignore hidden files and folders.",
-                    "type": "boolean"
-                },
-                "ignoreZeroSizeFolders": {
-                    "description": "ignore folders with 0 size",
-                    "type": "boolean"
                 },
                 "include": {
                     "description": "include files and folders from indexing, if exclude is not set",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.IndexFilter"
+                            "$ref": "#/definitions/settings.IncludeIndexFilter"
                         }
                     ]
                 },
@@ -2211,7 +2393,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "neverWatchPaths": {
-                    "description": "paths to never watch, relative to the source path (eg. \"/folder/file.txt\")",
+                    "description": "paths that get initially once. Useful for folders that rarely change contents (without source path prefix)",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -2290,20 +2472,6 @@ const docTemplate = `{
                 },
                 "viewMode": {
                     "description": "view mode to use: eg. normal, list, grid, or compact",
-                    "type": "string"
-                }
-            }
-        },
-        "share.CreateBody": {
-            "type": "object",
-            "properties": {
-                "expires": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "unit": {
                     "type": "string"
                 }
             }

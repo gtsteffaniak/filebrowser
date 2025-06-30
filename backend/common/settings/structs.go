@@ -78,23 +78,31 @@ type Source struct {
 }
 
 type SourceConfig struct {
-	IndexingInterval      uint32      `json:"indexingIntervalMinutes"` // optional manual overide interval in seconds to re-index the source
-	DisableIndexing       bool        `json:"disableIndexing"`         // disable the indexing of this source
-	MaxWatchers           int         `json:"maxWatchers"`             // number of concurrent watchers to use for this source, currently not supported
-	NeverWatch            []string    `json:"neverWatchPaths"`         // paths to never watch, relative to the source path (eg. "/folder/file.txt")
-	IgnoreHidden          bool        `json:"ignoreHidden"`            // ignore hidden files and folders.
-	IgnoreZeroSizeFolders bool        `json:"ignoreZeroSizeFolders"`   // ignore folders with 0 size
-	Exclude               IndexFilter `json:"exclude"`                 // exclude files and folders from indexing, if include is not set
-	Include               IndexFilter `json:"include"`                 // include files and folders from indexing, if exclude is not set
-	DefaultUserScope      string      `json:"defaultUserScope"`        // default "/" should match folders under path
-	DefaultEnabled        bool        `json:"defaultEnabled"`          // should be added as a default source for new users?
-	CreateUserDir         bool        `json:"createUserDir"`           // create a user directory for each user
+	IndexingInterval uint32             `json:"indexingIntervalMinutes"` // optional manual overide interval in seconds to re-index the source
+	DisableIndexing  bool               `json:"disableIndexing"`         // disable the indexing of this source
+	MaxWatchers      int                `json:"maxWatchers"`             // number of concurrent watchers to use for this source, currently not supported
+	NeverWatchPaths  []string           `json:"neverWatchPaths"`         // paths that get initially once. Useful for folders that rarely change contents (without source path prefix)
+	Exclude          ExcludeIndexFilter `json:"exclude"`                 // exclude files and folders from indexing, if include is not set
+	Include          IncludeIndexFilter `json:"include"`                 // include files and folders from indexing, if exclude is not set
+	DefaultUserScope string             `json:"defaultUserScope"`        // default "/" should match folders under path
+	DefaultEnabled   bool               `json:"defaultEnabled"`          // should be added as a default source for new users?
+	CreateUserDir    bool               `json:"createUserDir"`           // create a user directory for each user
 }
 
-type IndexFilter struct {
-	Files        []string `json:"files"`        // list of file names to include/exclude  Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (do not include source path, just the subpaths from the source path)
-	Folders      []string `json:"folders"`      // list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
-	FileEndsWith []string `json:"fileEndsWith"` // list of file names to include/exclude. Eg. "a.jpg"
+type IncludeIndexFilter struct {
+	RootFolders []string `json:"rootFolders"` // list of root folders to include, relative to the source path (eg. "folder1")
+	RootFiles   []string `json:"rootFiles"`   // list of root files to include, relative to the source path (eg. "file1.txt")
+}
+
+type ExcludeIndexFilter struct {
+	Hidden          bool     `json:"hidden"`                // exclude hidden files and folders.
+	ZeroSizeFolders bool     `json:"ignoreZeroSizeFolders"` // ignore folders with 0 size
+	FilePaths       []string `json:"filePaths"`             // list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt" (without source path prefix)
+	FolderPaths     []string `json:"folderPaths"`           // (filepath) list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder" (do not include source path, just the subpaths from the source path)
+	FileNames       []string `json:"fileNames"`             // (global) list of file names to include/exclude. Eg. "a.jpg"
+	FolderNames     []string `json:"folderNames"`           // (global) list of folder names to include/exclude. Eg. "@eadir" or ".thumbnails"
+	FileEndsWith    []string `json:"fileEndsWith"`          // (global) exclude files that end with these suffixes. Eg. ".jpg" or ".txt"
+	FolderEndsWith  []string `json:"folderEndsWith"`        // (global) exclude folders that end with these suffixes. Eg. ".thumbnails" or ".git"
 }
 
 type Frontend struct {

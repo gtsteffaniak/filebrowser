@@ -20,12 +20,12 @@ import (
 // @Param name query string true "Name of the API key"
 // @Param days query string true "Duration of the API key in days"
 // @Param permissions query string true "Permissions for the API key (comma-separated)"
-// @Success 200 {object} HttpResponse "Token created successfully, resoponse contains json object with token key"
+// @Success 200 {object} HttpResponse "Token created successfully, response contains json object with token key"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 404 {object} map[string]string "Not found"
 // @Failure 409 {object} map[string]string "Conflict"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/createApiKey [post]
+// @Router /api/auth/token [put]
 func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	name := r.URL.Query().Get("name")
 	durationStr := r.URL.Query().Get("days")
@@ -85,7 +85,7 @@ func createApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Success 200 {object} HttpResponse "API key deleted successfully"
 // @Failure 404 {object} map[string]string "Not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/deleteApiKey [delete]
+// @Router /api/auth/token [delete]
 func deleteApiKeyHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	name := r.URL.Query().Get("name")
 	if !d.user.Permissions.Api {
@@ -127,7 +127,7 @@ type AuthTokenMin struct {
 // @Success 200 {object} AuthTokenMin "List of API keys or specific key details"
 // @Failure 404 {object} map[string]string "Not found"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/listApiKeys [get]
+// @Router /api/auth/tokens [get]
 func listApiKeysHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	key := r.URL.Query().Get("name")
 	if !d.user.Permissions.Api {

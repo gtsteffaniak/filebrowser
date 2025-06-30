@@ -28,6 +28,41 @@ definitions:
       username:
         type: string
     type: object
+  indexing.IndexStatus:
+    enum:
+    - ready
+    - indexing
+    - unavailable
+    type: string
+    x-enum-varnames:
+    - READY
+    - INDEXING
+    - UNAVAILABLE
+  indexing.ReducedIndex:
+    properties:
+      assessment:
+        type: string
+      fullScanDurationSeconds:
+        type: integer
+      lastIndexedUnixTime:
+        type: integer
+      name:
+        type: string
+      numDeleted:
+        type: integer
+      numDirs:
+        type: integer
+      numFiles:
+        type: integer
+      quickScanDurationSeconds:
+        type: integer
+      status:
+        $ref: '#/definitions/indexing.IndexStatus'
+      total:
+        type: integer
+      used:
+        type: integer
+    type: object
   indexing.SearchResult:
     properties:
       path:
@@ -100,16 +135,57 @@ definitions:
         type: string
       methods:
         $ref: '#/definitions/settings.LoginMethods'
-      resetAdminOnStart:
-        description: if set to true, the admin user will be reset to the default username
-          and password on startup.
-        type: boolean
       tokenExpirationHours:
         description: the number of hours until the token expires. Default is 2 hours.
         type: integer
       totpSecret:
         description: secret used to encrypt TOTP secrets
         type: string
+    type: object
+  settings.ExcludeIndexFilter:
+    properties:
+      fileEndsWith:
+        description: (global) exclude files that end with these suffixes. Eg. ".jpg"
+          or ".txt"
+        items:
+          type: string
+        type: array
+      fileNames:
+        description: (global) list of file names to include/exclude. Eg. "a.jpg"
+        items:
+          type: string
+        type: array
+      filePaths:
+        description: list of filepaths Eg. "folder1" or "file1.txt" or "folder1/file1.txt"
+          (without source path prefix)
+        items:
+          type: string
+        type: array
+      folderEndsWith:
+        description: (global) exclude folders that end with these suffixes. Eg. ".thumbnails"
+          or ".git"
+        items:
+          type: string
+        type: array
+      folderNames:
+        description: (global) list of folder names to include/exclude. Eg. "@eadir"
+          or ".thumbnails"
+        items:
+          type: string
+        type: array
+      folderPaths:
+        description: (filepath) list of folder names to include/exclude. Eg. "folder1"
+          or "folder1/subfolder" (do not include source path, just the subpaths from
+          the source path)
+        items:
+          type: string
+        type: array
+      hidden:
+        description: exclude hidden files and folders.
+        type: boolean
+      ignoreZeroSizeFolders:
+        description: ignore folders with 0 size
+        type: boolean
     type: object
   settings.ExternalLink:
     properties:
@@ -142,23 +218,17 @@ definitions:
         description: display name
         type: string
     type: object
-  settings.IndexFilter:
+  settings.IncludeIndexFilter:
     properties:
-      fileEndsWith:
-        description: list of file names to include/exclude. Eg. "a.jpg"
+      rootFiles:
+        description: list of root files to include, relative to the source path (eg.
+          "file1.txt")
         items:
           type: string
         type: array
-      files:
-        description: list of file names to include/exclude  Eg. "folder1" or "file1.txt"
-          or "folder1/file1.txt" (do not include source path, just the subpaths from
-          the source path)
-        items:
-          type: string
-        type: array
-      folders:
-        description: list of folder names to include/exclude. Eg. "folder1" or "folder1/subfolder"
-          (do not include source path, just the subpaths from the source path)
+      rootFolders:
+        description: list of root folders to include, relative to the source path
+          (eg. "folder1")
         items:
           type: string
         type: array
@@ -418,17 +488,11 @@ definitions:
         type: boolean
       exclude:
         allOf:
-        - $ref: '#/definitions/settings.IndexFilter'
+        - $ref: '#/definitions/settings.ExcludeIndexFilter'
         description: exclude files and folders from indexing, if include is not set
-      ignoreHidden:
-        description: ignore hidden files and folders.
-        type: boolean
-      ignoreZeroSizeFolders:
-        description: ignore folders with 0 size
-        type: boolean
       include:
         allOf:
-        - $ref: '#/definitions/settings.IndexFilter'
+        - $ref: '#/definitions/settings.IncludeIndexFilter'
         description: include files and folders from indexing, if exclude is not set
       indexingIntervalMinutes:
         description: optional manual overide interval in seconds to re-index the source
@@ -438,7 +502,8 @@ definitions:
           not supported
         type: integer
       neverWatchPaths:
-        description: paths to never watch, relative to the source path (eg. "/folder/file.txt")
+        description: paths that get initially once. Useful for folders that rarely
+          change contents (without source path prefix)
         items:
           type: string
         type: array
@@ -502,15 +567,6 @@ definitions:
         type: string
       viewMode:
         description: 'view mode to use: eg. normal, list, grid, or compact'
-        type: string
-    type: object
-  share.CreateBody:
-    properties:
-      expires:
-        type: string
-      password:
-        type: string
-      unit:
         type: string
     type: object
   share.Link:
@@ -705,15 +761,66 @@ info:
 paths:
   /api/auth/logout:
     post:
-      description: logs a user out of the application.
+      description: Returns a logout URL for the frontend to redirect to.
+      produces:
+      - application/json
       responses:
-        "302":
-          description: Redirect to redirect URL if configured in oidc config.
+        "200":
+          description: '{"logoutUrl": "http://..."}'
           schema:
-            type: string
+            additionalProperties:
+              type: string
+            type: object
       summary: User Logout
       tags:
       - Auth
+  /api/auth/oidc/callback:
+    get:
+      consumes:
+      - application/json
+      description: Handles OIDC login callback.
+      parameters:
+      - description: OIDC code
+        in: query
+        name: code
+        type: string
+      - description: OIDC state
+        in: query
+        name: state
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OIDC callback result
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: OIDC callback
+      tags:
+      - OIDC
+  /api/auth/oidc/login:
+    get:
+      consumes:
+      - application/json
+      description: Initiates OIDC login flow.
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect to OIDC provider
+          schema:
+            type: string
+      summary: OIDC login
+      tags:
+      - OIDC
   /api/auth/otp/generate:
     post:
       consumes:
@@ -768,63 +875,7 @@ paths:
       summary: Verify OTP
       tags:
       - OTP
-  /api/createApiKey:
-    post:
-      consumes:
-      - application/json
-      description: Create an API key with specified name, duration, and permissions.
-      parameters:
-      - description: Name of the API key
-        in: query
-        name: name
-        required: true
-        type: string
-      - description: Duration of the API key in days
-        in: query
-        name: days
-        required: true
-        type: string
-      - description: Permissions for the API key (comma-separated)
-        in: query
-        name: permissions
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Token created successfully, resoponse contains json object
-            with token key
-          schema:
-            $ref: '#/definitions/http.HttpResponse'
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: Conflict
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create API key
-      tags:
-      - API Keys
-  /api/deleteApiKey:
+  /api/auth/token:
     delete:
       consumes:
       - application/json
@@ -857,7 +908,62 @@ paths:
       summary: Delete API key
       tags:
       - API Keys
-  /api/listApiKeys:
+    put:
+      consumes:
+      - application/json
+      description: Create an API key with specified name, duration, and permissions.
+      parameters:
+      - description: Name of the API key
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: Duration of the API key in days
+        in: query
+        name: days
+        required: true
+        type: string
+      - description: Permissions for the API key (comma-separated)
+        in: query
+        name: permissions
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token created successfully, response contains json object with
+            token key
+          schema:
+            $ref: '#/definitions/http.HttpResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create API key
+      tags:
+      - API Keys
+  /api/auth/tokens:
     get:
       consumes:
       - application/json
@@ -889,6 +995,40 @@ paths:
       summary: List API keys
       tags:
       - API Keys
+  /api/jobs/{action}/{target}:
+    get:
+      consumes:
+      - application/json
+      description: Returns job info for the user.
+      parameters:
+      - description: Job action
+        in: path
+        name: action
+        required: true
+        type: string
+      - description: Job target
+        in: path
+        name: target
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Job info
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/indexing.ReducedIndex'
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get jobs info
+      tags:
+      - Jobs
   /api/login:
     post:
       consumes:
@@ -1076,10 +1216,6 @@ paths:
         in: query
         name: source
         type: string
-      - description: Name for the desired source, default is used if not provided
-        in: query
-        name: source
-        type: string
       produces:
       - application/json
       responses:
@@ -1118,10 +1254,6 @@ paths:
         required: true
         type: string
       - description: Source name for the desired source, default is used if not provided
-        in: query
-        name: source
-        type: string
-      - description: Name for the desired source, default is used if not provided
         in: query
         name: source
         type: string
@@ -1221,8 +1353,8 @@ paths:
       description: Creates a new resource or uploads a file at the specified path.
         Supports file uploads and directory creation.
       parameters:
-      - description: Destination path where to place the files inside the destination
-          source, a directory must end in / to create a directory
+      - description: url encoded destination path where to place the files inside
+          the destination source, a directory must end in / to create a directory
         in: query
         name: path
         required: true
@@ -1280,10 +1412,6 @@ paths:
         required: true
         type: string
       - description: Source name for the desired source, default is used if not provided
-        in: query
-        name: source
-        type: string
-      - description: Name for the desired source, default is used if not provided
         in: query
         name: source
         type: string
@@ -1416,6 +1544,36 @@ paths:
       tags:
       - Shares
   /api/shares:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a share link specified by its hash.
+      parameters:
+      - description: Hash of the share link to delete
+        in: query
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Share link deleted successfully
+        "400":
+          description: Bad request - missing or invalid hash
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a share link
+      tags:
+      - Shares
     get:
       consumes:
       - application/json
@@ -1445,19 +1603,13 @@ paths:
       description: Creates a new share link with an optional expiration time and password
         protection.
       parameters:
-      - description: Share link creation parameters
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/share.CreateBody'
       - description: Source Path of the files to share
-        in: path
+        in: query
         name: path
         required: true
         type: string
       - description: Source name of the files to share
-        in: path
+        in: query
         name: source
         required: true
         type: string
@@ -1481,37 +1633,6 @@ paths:
               type: string
             type: object
       summary: Create a share link
-      tags:
-      - Shares
-  /api/shares/{hash}:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a share link specified by its hash.
-      parameters:
-      - description: Hash of the share link to delete
-        in: path
-        name: hash
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Share link deleted successfully
-        "400":
-          description: Bad request - missing or invalid hash
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete a share link
       tags:
       - Shares
   /api/signup:
@@ -1561,6 +1682,74 @@ paths:
       tags:
       - Auth
   /api/users:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a user identified by their ID.
+      parameters:
+      - description: User ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a user by ID
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Returns a user's details based on their ID, or all users if no
+        id is provided.
+      parameters:
+      - description: User ID or 'self'
+        in: query
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details or list of users
+          schema:
+            $ref: '#/definitions/users.User'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve a user by ID
+      tags:
+      - Users
     post:
       consumes:
       - application/json
@@ -1594,85 +1783,16 @@ paths:
       summary: Create a new user
       tags:
       - Users
-  /api/users/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a user identified by their ID.
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User deleted successfully
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Delete a user by ID
-      tags:
-      - Users
-    get:
-      consumes:
-      - application/json
-      description: Returns a user's details based on their ID.
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User details
-          schema:
-            $ref: '#/definitions/users.User'
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Retrieve a user by ID
-      tags:
-      - Users
     put:
       consumes:
       - application/json
       description: Updates the details of a user identified by ID.
       parameters:
       - description: User ID
-        in: path
+        in: query
         name: id
         required: true
-        type: integer
+        type: string
       - description: User data to update
         in: body
         name: data

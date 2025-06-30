@@ -89,6 +89,9 @@ func quickSetup(store *Storage) {
 	user := &users.User{}
 	settings.ApplyUserDefaults(user)
 	user.Username = settings.Config.Auth.AdminUsername
+	if settings.Config.Auth.AdminPassword == "" {
+		settings.Config.Auth.AdminPassword = "admin"
+	}
 	user.Password = settings.Config.Auth.AdminPassword
 	user.Permissions.Admin = true
 	user.Scopes = []users.SourceScope{}
@@ -119,7 +122,8 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 		}
 		userInfo.Password = hashpass
 	}
-	// must have username or password to create
+	userInfo.Permissions = settings.Config.UserDefaults.Permissions
+	// must have username
 	if userInfo.Username == "" {
 		return fmt.Errorf("username is required to create a user")
 	}

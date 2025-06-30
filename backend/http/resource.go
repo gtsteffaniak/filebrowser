@@ -29,7 +29,6 @@ import (
 // @Produce json
 // @Param path query string true "Path to the resource"
 // @Param source query string false "Source name for the desired source, default is used if not provided"
-// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
 // @Param checksum query string false "Optional checksum validation"
 // @Success 200 {object} iteminfo.FileInfo "Resource metadata"
@@ -97,7 +96,6 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Produce json
 // @Param path query string true "Path to the resource"
 // @Param source query string false "Source name for the desired source, default is used if not provided"
-// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 "Resource deleted successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
@@ -156,7 +154,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Tags Resources
 // @Accept json
 // @Produce json
-// @Param path query string true "Destination path where to place the files inside the destination source, a directory must end in / to create a directory"
+// @Param path query string true "url encoded destination path where to place the files inside the destination source, a directory must end in / to create a directory"
 // @Param source query string false "Name for the desired filebrowser destination source name, default is used if not provided"
 // @Param override query bool false "Override existing file if true"
 // @Success 200 "Resource created successfully"
@@ -178,6 +176,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 		}
 	}
+	fmt.Println("resourcePostHandler: source:", source, "path:", path)
 	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
 	}
@@ -229,7 +228,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Produce json
 // @Param path query string true "Destination path where to place the files inside the destination source"
 // @Param source query string false "Source name for the desired source, default is used if not provided"
-// @Param source query string false "Name for the desired source, default is used if not provided"
 // @Success 200 "Resource updated successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"

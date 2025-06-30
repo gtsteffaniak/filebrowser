@@ -26,20 +26,22 @@ const (
 func Initialize(configFile string) {
 	err := loadConfigWithDefaults(configFile)
 	if err != nil {
+		logger.Error("unable to load config, waiting 5 seconds before exiting...")
+		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
 	err = ValidateConfig(Config)
 	if err != nil {
 		errmsg := "The provided config file failed validation. "
-		errmsg += "If you are seeing this on a config that worked previeously, "
-		errmsg += "please review your config for typos and invalid keys which are no longer supported. "
+		errmsg += "If you are seeing this on a config that worked before, "
+		errmsg += "then check the latest releases for breaking changes. "
 		errmsg += "visit https://github.com/gtsteffaniak/filebrowser/wiki/Full-Config-Example for more information."
 		logger.Error(errmsg)
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
 		logger.Fatal(err.Error())
 	}
 	setupLogging()
-	setupAuth()
+	setupAuth(false)
 	setupSources(false)
 	setupUrls()
 	setupFrontend()
@@ -168,7 +170,10 @@ func setupUrls() {
 	Config.Integrations.OnlyOffice.InternalUrl = strings.Trim(Config.Integrations.OnlyOffice.InternalUrl, "/")
 }
 
-func setupAuth() {
+func setupAuth(generate bool) {
+	if generate {
+		Config.Auth.AdminPassword = "admin"
+	}
 	if Config.Auth.Methods.PasswordAuth.Enabled {
 		Config.Auth.AuthMethods = append(Config.Auth.AuthMethods, "password")
 	}
@@ -342,7 +347,6 @@ func setDefaults() Settings {
 		},
 		Auth: Auth{
 			AdminUsername:        "admin",
-			AdminPassword:        "admin",
 			TokenExpirationHours: 2,
 			Methods: LoginMethods{
 				PasswordAuth: PasswordAuthConfig{
@@ -502,9 +506,9 @@ func modifyExcludeInclude(config *Source) {
 		}
 	}
 
-	normalize(config.Config.Exclude.Files, true)
-	normalize(config.Config.Exclude.Folders, true)
-	normalize(config.Config.Include.Files, true)
-	normalize(config.Config.Include.Folders, true)
-
+	normalize(config.Config.Exclude.FolderPaths, true)
+	normalize(config.Config.Exclude.FilePaths, true)
+	normalize(config.Config.Include.RootFolders, true)
+	normalize(config.Config.Include.RootFiles, true)
+	normalize(config.Config.NeverWatchPaths, true)
 }

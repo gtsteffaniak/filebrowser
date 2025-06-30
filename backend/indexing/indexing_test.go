@@ -124,77 +124,93 @@ func TestMakeIndexPathRoot(t *testing.T) {
 	}
 }
 
-func BenchmarkCheckIndexExclude(b *testing.B) {
+func TestCheckIndexExclude(t *testing.T) {
 	tests := []struct {
+		name     string
 		isDir    bool
 		isHidden bool
 		fullPath string
+		baseName string
+		exclude  settings.ExcludeIndexFilter
+		expect   bool
 	}{
-		{false, false, "/test/.test"},
-		{true, false, "/test/.test"},
-		{true, true, "/test/.test"},
-		{false, false, "/test/filepath"},
-		{false, true, "/test/filepath"},
-		{true, true, "/test/filepath"},
+		// FilePaths exclusion (prefix match)
+		{"FilePaths exclusion (file)", false, false, "/test/filepath/child.txt", "child.txt", settings.ExcludeIndexFilter{FilePaths: []string{"/test/filepath"}}, true},
+		{"FilePaths exclusion (folder)", true, false, "/test/folderpath/sub", "sub", settings.ExcludeIndexFilter{FolderPaths: []string{"/test/folderpath"}}, true},
+
+		// FileNames exclusion (exact match)
+		{"FileNames exclusion (file)", false, false, "/test/abc.txt", "abc.txt", settings.ExcludeIndexFilter{FileNames: []string{"abc.txt"}}, true},
+		{"FolderNames exclusion (folder)", true, false, "/test/.thumbnails", ".thumbnails", settings.ExcludeIndexFilter{FolderNames: []string{".thumbnails"}}, true},
+
+		// FileEndsWith exclusion (suffix match)
+		{"FileEndsWith exclusion (file)", false, false, "/test/archive.zip", "archive.zip", settings.ExcludeIndexFilter{FileEndsWith: []string{".zip"}}, true},
+		// FolderEndsWith exclusion (suffix match)
+		{"FolderEndsWith exclusion (folder)", true, false, "/test/special_folder", "special_folder", settings.ExcludeIndexFilter{FolderEndsWith: []string{"_folder"}}, true},
+
+		// Negative cases (should not skip)
+		{"FilePaths not excluded (file)", false, false, "/test/otherfile", "otherfile", settings.ExcludeIndexFilter{FilePaths: []string{"/test/filepath"}}, false},
+		{"FileNames not excluded (file)", false, false, "/test/other.txt", "other.txt", settings.ExcludeIndexFilter{FileNames: []string{"abc.txt"}}, false},
+		{"FolderNames not excluded (folder)", true, false, "/test/otherfolder", "otherfolder", settings.ExcludeIndexFilter{FolderNames: []string{".thumbnails"}}, false},
+		{"FileEndsWith not excluded (file)", false, false, "/test/file.tar", "file.tar", settings.ExcludeIndexFilter{FileEndsWith: []string{".zip"}}, false},
+		{"FolderEndsWith not excluded (folder)", true, false, "/test/normal", "normal", settings.ExcludeIndexFilter{FolderEndsWith: []string{"_folder"}}, false},
 	}
 
-	b.ResetTimer()
-	b.ReportAllocs()
-	idx := Index{
-		Source: settings.Source{
-			Name: "files",
-			Config: settings.SourceConfig{
-				IgnoreHidden: true,
-				Exclude: settings.IndexFilter{
-					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
-					Folders:      []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
-					FileEndsWith: []string{".zip", ".tar", ".jpeg"},
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			idx := Index{
+				Source: settings.Source{
+					Name: "files",
+					Config: settings.SourceConfig{
+						Exclude: tc.exclude,
+					},
 				},
-			},
-		},
+			}
+			result := idx.shouldSkip(tc.isDir, tc.isHidden, tc.fullPath, tc.baseName)
+			if result != tc.expect {
+				t.Errorf("shouldSkip(%v, %v, %q, %q) = %v; want %v", tc.isDir, tc.isHidden, tc.fullPath, tc.baseName, result, tc.expect)
+			}
+		})
 	}
-
-	for i := 0; i < b.N; i++ {
-		for _, v := range tests {
-			idx.shouldSkip(v.isDir, v.isHidden, v.fullPath)
-		}
-	}
-
 }
-func BenchmarkCheckIndexConditionsInclude(b *testing.B) {
+
+func TestCheckIndexInclude(t *testing.T) {
 	tests := []struct {
+		name     string
 		isDir    bool
-		isHidden bool
 		fullPath string
+		baseName string
+		include  settings.IncludeIndexFilter
+		expect   bool
 	}{
-		{false, false, "/test/.test"},
-		{true, false, "/test/.test"},
-		{true, true, "/test/.test"},
-		{false, false, "/test/filepath"},
-		{false, true, "/test/filepath"},
-		{true, true, "/test/filepath"},
+		// RootFolders inclusion (prefix match)
+		{"RootFolders include (folder)", true, "/folder1", "folder1", settings.IncludeIndexFilter{RootFolders: []string{"/folder1"}}, true},
+		{"RootFolders include (subfolder)", true, "/folder1/sub", "sub", settings.IncludeIndexFilter{RootFolders: []string{"/folder1"}}, true},
+		{"RootFolders not include (folder)", true, "/otherfolder", "otherfolder", settings.IncludeIndexFilter{RootFolders: []string{"/folder1"}}, false},
+
+		// RootFiles inclusion (prefix match)
+		{"RootFiles include (file)", false, "/file1.txt", "file1.txt", settings.IncludeIndexFilter{RootFiles: []string{"/file1.txt"}}, true},
+		{"RootFiles include (file in subfolder)", false, "/folder1/file1.txt", "file1.txt", settings.IncludeIndexFilter{RootFiles: []string{"/folder1/file1.txt"}}, true},
+		{"RootFiles not include (file)", false, "/otherfile.txt", "otherfile.txt", settings.IncludeIndexFilter{RootFiles: []string{"/file1.txt"}}, false},
+
+		// No rules: should include everything
+		{"No rules include (file)", false, "/anyfile.txt", "anyfile.txt", settings.IncludeIndexFilter{}, true},
+		{"No rules include (folder)", true, "/anyfolder", "anyfolder", settings.IncludeIndexFilter{}, true},
 	}
 
-	b.ResetTimer()
-	b.ReportAllocs()
-	idx2 := Index{
-		Source: settings.Source{
-			Name: "files",
-			Config: settings.SourceConfig{
-				IgnoreHidden: true,
-				Include: settings.IndexFilter{
-					Files:        []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
-					Folders:      []string{"test", "filepath", ".test", ".filepath", "test", "filepath", ".test", ".filepath"},
-					FileEndsWith: []string{".zip", ".tar", ".jpeg"},
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			idx := Index{
+				Source: settings.Source{
+					Name: "files",
+					Config: settings.SourceConfig{
+						Include: tc.include,
+					},
 				},
-			},
-		},
+			}
+			result := idx.shouldInclude(tc.isDir, tc.fullPath, tc.baseName)
+			if result != tc.expect {
+				t.Errorf("shouldInclude(%v, %q, %q) = %v; want %v", tc.isDir, tc.fullPath, tc.baseName, result, tc.expect)
+			}
+		})
 	}
-
-	for i := 0; i < b.N; i++ {
-		for _, v := range tests {
-			idx2.shouldSkip(v.isDir, v.isHidden, v.fullPath)
-		}
-	}
-
 }
