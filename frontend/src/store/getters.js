@@ -148,9 +148,6 @@ export const getters = {
     let visible =
       (state.showSidebar || getters.isStickySidebar()) &&
       state.user.username != 'publicUser'
-    if (currentView == 'settings') {
-      visible = !getters.isMobile()
-    }
     if (currentView == 'share') {
       visible = false
     }

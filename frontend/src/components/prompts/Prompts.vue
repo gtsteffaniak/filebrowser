@@ -28,6 +28,7 @@ import DeleteUser from "./DeleteUser.vue";
 import CreateApi from "./CreateApi.vue";
 import ActionApi from "./ActionApi.vue";
 import Sidebar from "../sidebar/Sidebar.vue";
+import UserEdit from "./UserEdit.vue";
 import buttons from "@/utils/buttons";
 import Totp from "./Totp.vue";
 import Access from "./Access.vue";
@@ -36,6 +37,7 @@ import { state, getters, mutations } from "@/store"; // Import your custom store
 export default {
   name: "prompts",
   components: {
+    UserEdit,
     Info,
     Delete,
     Rename,

@@ -139,7 +139,9 @@ export default {
   },
   computed: {
     noItems() {
-      return !this.showEdit && !this.showSave && !this.showDelete;
+      const hasItems = this.showEdit || this.showDelete || this.showSave || this.showGoToRaw;
+      mutations.setHasContextItems(!hasItems)
+      return !hasItems;
     },
     showGoToRaw() {
       return getters.currentView() == "preview" || 

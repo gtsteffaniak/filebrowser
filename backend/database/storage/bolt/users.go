@@ -21,6 +21,11 @@ type usersBackend struct {
 	db *storm.DB
 }
 
+// NewUsersBackend returns a users.StorageBackend backed by storm DB.
+func NewUsersBackend(db *storm.DB) users.StorageBackend {
+	return &usersBackend{db: db}
+}
+
 func (st usersBackend) GetBy(i interface{}) (user *users.User, err error) {
 	user = &users.User{}
 

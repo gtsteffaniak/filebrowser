@@ -191,15 +191,15 @@ table tr>*:last-child {
   margin-bottom: 0;
 }
 
-.card .card-title {
+.card-title {
   text-align: center;
 }
 
-.card .card-title>*:first-child {
+ .card-title>*:first-child {
   margin-right: auto;
 }
 
-body.rtl .card .card-title>*:first-child {
+body.rtl .card-title>*:first-child {
   margin-right: 0;
   text-align: right;
 }
@@ -216,7 +216,7 @@ body.rtl .card .card-title>*:first-child {
   padding-bottom: 1.5em;
 }
 
-.card .card-title * {
+.card-title * {
   margin: 0;
 }
 
@@ -238,11 +238,6 @@ body.rtl .card .card-title>*:first-child {
   font-size: 1em;
   font-weight: 500;
   margin: 2em 0 1em;
-}
-
-.card-content table {
-  margin: 0 -1em;
-  width: calc(100% + 2em);
 }
 
 .card code {

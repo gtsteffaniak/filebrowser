@@ -40,7 +40,8 @@
     "upload": "Upload",
     "openFile": "Open file",
     "continue": "Continue",
-    "edit": "Edit"
+    "edit": "Edit",
+    "access": "Access rules"
   },
   "download": {
     "downloadFile": "Download File",
@@ -378,5 +379,16 @@
     "verificationFailed": "Verification Failed",
     "verificationSucceed": "Verification Succeed",
     "generationFailed": "Generation Failed"
+  },
+  "access": {
+    "user": "User",
+    "group": "Group",
+    "deny": "Deny",
+    "allow": "Allow",
+    "allowDeny": "Allow/Deny",
+    "userGroup": "User/Group",
+    "enterName": "Enter user or group name",
+    "deleted": "Access rule deleted!",
+    "name": "Name"
   }
 }

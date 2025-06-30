@@ -1,45 +1,43 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <div class="card" :class="{ active: active }">
-    <div class="card-title">
-      <h2>{{ $t("access.accessManagement") }}</h2>
-    </div>
-    <div class="card-content full" v-if="Object.keys(rules).length > 0">
-      <table>
-        <tbody>
-          <tr>
-            <th>path</th>
-            <th>denied users</th>
-            <th>denied groups</th>
-            <th>allowed users</th>
-            <th>allowed groups</th>
-            <th>actions</th>
-          </tr>
-          <tr v-for="(rule, path) in rules" :key="path">
-            <td>{{ path }}</td>
-            <td>{{ rule.deny.users.length }}</td>
-            <td>{{ rule.deny.groups.length }}</td>
-            <td>{{ rule.allow.users.length }}</td>
-            <td>{{ rule.allow.groups.length }}</td>
-            <td class="small">
-              <button
-                class="action"
-                @click="editAccess(path)"
-                :aria-label="$t('buttons.edit')"
-                :title="$t('buttons.edit')"
-              >
-                <i class="material-icons">edit</i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <h2 class="message" v-else>
-      <i class="material-icons">sentiment_dissatisfied</i>
-      <span>{{ $t("files.lonely") }}</span>
-    </h2>
+
+  <div class="card-title">
+    <h2>{{ $t("access.accessManagement") }}</h2>
   </div>
+  <div class="card-content full" v-if="Object.keys(rules).length > 0">
+    <table aria-label="Access Rules">
+      <thead>
+        <tr>
+          <th>path</th>
+          <th>denied users</th>
+          <th>denied groups</th>
+          <th>allowed users</th>
+          <th>allowed groups</th>
+          <th>actions</th>
+        </tr>
+      </thead>
+      <tbody class="settings-items">
+        <tr class="item" v-for="(rule, path) in rules" :key="path">
+          <td>{{ path }}</td>
+          <td>{{ rule.deny.users.length }}</td>
+          <td>{{ rule.deny.groups.length }}</td>
+          <td>{{ rule.allow.users.length }}</td>
+          <td>{{ rule.allow.groups.length }}</td>
+          <td class="small">
+            <button class="action" @click="editAccess(path)" :aria-label="$t('buttons.edit')"
+              :title="$t('buttons.edit')">
+              <i class="material-icons">edit</i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <h2 class="message" v-else>
+    <i class="material-icons">sentiment_dissatisfied</i>
+    <span>{{ $t("files.lonely") }}</span>
+  </h2>
+
 </template>
 
 <script>

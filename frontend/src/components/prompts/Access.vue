@@ -10,30 +10,29 @@
       <!-- Add Form -->
       <div class="add-form" style="margin-bottom: 1em;">
         <select v-model="addType">
-          <option value="user">User</option>
-          <option value="group">Group</option>
+          <option value="user">{{ $t("access.user") }}</option>
+          <option value="group">{{ $t("access.group") }}</option>
         </select>
         <select v-model="addListType">
-          <option value="deny">Deny</option>
-          <option value="allow">Allow</option>
+          <option value="deny">{{ $t("access.deny") }}</option>
+          <option value="allow">{{ $t("access.allow") }}</option>
         </select>
-        <input v-model="addName" :placeholder="$t('settings.enterName')" />
+        <input v-model="addName" :placeholder="$t('access.enterName')" />
         <button class="action" @click="submitAdd">
           <i class="material-icons">add</i>
-          {{ $t("buttons.add") }}
         </button>
       </div>
       <table>
         <tbody>
           <tr>
-            <th>allow/deny</th>
-            <th>user/group</th>
-            <th>name</th>
-            <th>actions</th>
+            <th>{{ $t("access.allowDeny") }}</th>
+            <th>{{ $t("access.userGroup") }}</th>
+            <th>{{ $t("access.name") }}</th>
+            <th>{{ $t("buttons.edit") }}</th>
           </tr>
           <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
-            <td>{{ entry.allow ? 'allow' : 'deny' }}</td>
-            <td>{{ entry.type }}</td>
+            <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
+            <td>{{ entry.type == "user" ? $t("access.user") : $t("access.group") }}</td>
             <td>{{ entry.name }}</td>
             <td>
               <button @click="deleteAccess(entry)" class="action" :aria-label="$t('buttons.delete')" :title="$t('buttons.delete')">
@@ -124,7 +123,7 @@ export default {
     },
     async submitAdd() {
       if (!this.addName.trim()) {
-        notify.showError(this.$t("settings.enterName"));
+        notify.showError(this.$t("access.enterName"));
         return;
       }
       try {

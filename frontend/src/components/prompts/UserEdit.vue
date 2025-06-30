@@ -1,42 +1,38 @@
 <template>
-  <errors v-if="error" :errorCode="error.status" />
-  <form @submit="save" class="card active" v-if="loaded">
-    <div class="card-title">
-      <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
-      <h2 v-else-if="actor.id == user.id">
-        {{ $t("settings.modifyCurrentUser") }} {{ user.username }}
-      </h2>
-      <h2 v-else>{{ $t("settings.modifyOtherUser") }} {{ user.username }}</h2>
-    </div>
+  <div class="card floating">
 
-    <div class="card-content minimal-card">
-      <user-form
-        v-model:user="user"
-        :createUserDir="createUserDir"
-        :isNew="isNew"
-        @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)"
-      />
-    </div>
+    <errors v-if="error" :errorCode="error.status" />
+    <form @submit="save" v-if="loaded">
+      <div class="card-title">
+        <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
+        <h2 v-else-if="actor.id == user.id">
+          {{ $t("settings.modifyCurrentUser") }} {{ user.username }}
+        </h2>
+        <h2 v-else>{{ $t("settings.modifyOtherUser") }} {{ user.username }}</h2>
+      </div>
 
-    <div v-if="actor.permissions.admin" class="card-action">
-      <button
-        v-if="!isNew"
-        @click.prevent="deletePrompt"
-        type="button"
-        class="button button--flat button--red"
-        aria-label="Delete User"
-        :title="$t('buttons.delete')"
+      <div class="card-content minimal-card">
+        <user-form v-model:user="user" :createUserDir="createUserDir" :isNew="isNew"
+          @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)" />
+      </div>
+
+      <div v-if="actor.permissions.admin" class="card-action">
+        <button
+        class="button button--flat button--grey"
+        @click="closeHovers"
+        :aria-label="$t('buttons.cancel')"
+        :title="$t('buttons.cancel')"
       >
-        {{ $t("buttons.delete") }}
+        {{ $t("buttons.cancel") }}
       </button>
-      <input
-        aria-label="Save User"
-        class="button button--flat"
-        type="submit"
-        :value="$t('buttons.save')"
-      />
-    </div>
-  </form>
+        <button v-if="!isNew" @click.prevent="deletePrompt" type="button" class="button button--flat button--red"
+          aria-label="Delete User" :title="$t('buttons.delete')">
+          {{ $t("buttons.delete") }}
+        </button>
+        <input aria-label="Save User" class="save-button button button--flat" type="submit" :value="$t('buttons.save')" />
+      </div>
+    </form>
+  </div>
 </template>
 
 <script>
@@ -47,10 +43,16 @@ import Errors from "@/views/Errors.vue";
 import { notify } from "@/notify";
 
 export default {
-  name: "user",
+  name: "user-edit",
   components: {
     UserForm,
     Errors,
+  },
+  props: {
+    userId: {
+      type: [String, Number],
+      required: false,
+    },
   },
   data() {
     return {
@@ -69,7 +71,6 @@ export default {
     };
   },
   created() {
-    mutations.setActiveSettingsView("");
     this.fetchData();
   },
   computed: {
@@ -80,10 +81,14 @@ export default {
       return state.settings;
     },
     isNew() {
-      return getters.routePath().endsWith("settings/users/new");
+      console.log("userId", this.userId);
+      return !this.userId;
     },
   },
   methods: {
+    closeHovers() {
+      mutations.closeHovers();
+    },
     async fetchData() {
       mutations.setLoading("users", true);
       try {
@@ -92,9 +97,7 @@ export default {
           this.user = defaults;
           this.user.password = "";
         } else {
-          const id = Array.isArray(state.route.params.id)
-            ? state.route.params.id.join("")
-            : state.route.params.id;
+          const id = this.userId;
           if (id === undefined) {
             return;
           }
@@ -140,5 +143,8 @@ export default {
   /* margin-bottom: 16px; */
   padding-top: 0 !important;
   padding-bottom: 0 !important;
+}
+.save-button {
+  width: 33%;
 }
 </style>

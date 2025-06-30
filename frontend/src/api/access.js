@@ -1,7 +1,5 @@
-import { fetchURL, fetchJSON, adjustedData } from './utils'
-import { notify } from '@/notify'
-import { getApiPath, removePrefix } from '@/utils/url.js'
-import { externalUrl, baseURL } from '@/utils/constants'
+import { fetchJSON } from './utils'
+import { getApiPath } from '@/utils/url.js'
 
 export async function get(source, path) {
   const apiPath = getApiPath('api/access', { source, path })

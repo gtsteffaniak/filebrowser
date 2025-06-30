@@ -1,4 +1,12 @@
 <template>
+  <div v-if="isMobile" class="card clickable" @click="closeSettings">
+    <div class="settings-card">
+      <span class="material-symbols-outlined">
+    close
+    </span>
+    exit
+    </div>
+  </div>
   <div
     v-for="setting in settings"
     :key="setting.id + '-sidebar'"
@@ -28,8 +36,12 @@ export default {
   },
   computed: {
     currentHash: () => getters.currentHash(),
+    isMobile: () => getters.isMobile(),
   },
   methods: {
+    closeSettings() {
+      router.go(-1);
+    },
     shouldShow(setting) {
       const perm = setting?.permissions || {};
       // Check if all keys in setting.perm exist in state.user.perm and have truthy values
