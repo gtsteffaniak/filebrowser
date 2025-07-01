@@ -22,7 +22,6 @@ import (
 
 type requestContext struct {
 	user     *users.User
-	raw      interface{}
 	fileInfo iteminfo.ExtendedFileInfo
 	path     string
 	token    string
