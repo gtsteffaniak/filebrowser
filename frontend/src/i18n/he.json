@@ -163,7 +163,8 @@
     "deleteUserMessage": "האם אתה בטוח שברצונך למחוק משתמש זה?",
     "selected": "נבחר",
     "filesSelected": "קבצים שנבחרו",
-    "typeName": "סוג:"
+    "typeName": "סוג:",
+    "deleted": "נמחק בהצלחה!"
   },
   "search": {
     "images": "תמונות",
@@ -284,7 +285,8 @@
     "tusUploadsRetryCount": "מספר הניסיונות שיש לבצע אם העלאת קטע נכשלה.",
     "disableUsedDiskPercentage": "השבת גרף אחוזי השימוש בדיסק",
     "shareSettings": "הגדרות שיתוף",
-    "api": "מפתחות API"
+    "api": "מפתחות API",
+    "adminOptions": "אפשרויות משתמש מנהל"
   },
   "sidebar": {
     "help": "עזרה",
@@ -370,7 +372,8 @@
     "filePreviewOptions": "אפשרויות תצוגה מקדימה של קבצים",
     "disableUpdateNotifications": "השבת הצגת כרטיסיית עדכון הודעות בסרגל הצד.",
     "disableHideSidebar": "השבת הסתרה אוטומטית של סרגל הצד בעת תצוגה מקדימה או עריכת קבצים.",
-    "autoplayMedia": "הפעל קבצי מדיה באופן אוטומטי בתצוגה מקדימה"
+    "autoplayMedia": "הפעל קבצי מדיה באופן אוטומטי בתצוגה מקדימה",
+    "deleteWithoutConfirming": "מחיקת קבצים ללא בקשת אישור"
   },
   "otp": {
     "name": "אימות דו-גורמי",

@@ -163,7 +163,8 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "任意のパスワード",
     "typeName": "タイプ",
-    "selected": "選ばれた"
+    "selected": "選ばれた",
+    "deleted": "正常に削除されました！"
   },
   "search": {
     "images": "画像",
@@ -287,7 +288,8 @@
     "disableOfficeEditorDescription": "OnlyOffice ビューアを無効にするファイル拡張子をスペース区切りで指定します。(例: '.txt .html')。",
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
     "disableOfficePreviews": "特定のファイル拡張子でオフィスのプレビューを無効にする",
-    "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。"
+    "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。",
+    "adminOptions": "管理者ユーザーオプション"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -374,7 +376,8 @@
     "editOffice": "オフィスファイルの編集/閲覧",
     "disableUpdateNotifications": "サイドバーに通知更新バナーを表示しないようにしました。",
     "disableHideSidebar": "ファイルのプレビューや編集時にサイドバーを自動的に非表示にします。",
-    "autoplayMedia": "プレビューでメディアファイルを自動再生"
+    "autoplayMedia": "プレビューでメディアファイルを自動再生",
+    "deleteWithoutConfirming": "確認プロンプトなしでファイルを削除する"
   },
   "otp": {
     "name": "二要素認証",

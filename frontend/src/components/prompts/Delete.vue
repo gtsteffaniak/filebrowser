@@ -29,7 +29,6 @@ import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
-import router from "@/router";
 
 export default {
   name: "delete",

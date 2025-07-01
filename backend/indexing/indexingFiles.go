@@ -190,7 +190,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 				ModTime: dirInfo.ModTime(),
 			},
 		}
-		fileInfo.ItemInfo.DetectType(adjustedPath, false)
+		fileInfo.DetectType(adjustedPath, false)
 		return &fileInfo, nil
 	}
 	combinedPath := adjustedPath + "/"

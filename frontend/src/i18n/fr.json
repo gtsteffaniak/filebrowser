@@ -163,7 +163,8 @@
     "deleteUserMessage": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
     "filesSelected": "fichiers sélectionnés",
     "typeName": "Type :",
-    "selected": "sélectionné"
+    "selected": "sélectionné",
+    "deleted": "Supprimé avec succès !"
   },
   "search": {
     "images": "Images",
@@ -287,7 +288,8 @@
     "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles le visualisateur OnlyOffice doit être désactivé. (par exemple, '.txt .html').",
     "disableOfficeEditor": "Désactiver la visionneuse d'office pour certaines extensions de fichiers",
     "disableOfficePreviews": "Désactiver les aperçus Office pour certaines extensions de fichiers",
-    "disableOfficePreviewsDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus Office doivent être désactivés. (par exemple, '.txt .html')."
+    "disableOfficePreviewsDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus Office doivent être désactivés. (par exemple, '.txt .html').",
+    "adminOptions": "Options de l'utilisateur administrateur"
   },
   "sidebar": {
     "help": "Aide",
@@ -374,7 +376,8 @@
     "filePreviewOptions": "Options de prévisualisation des fichiers",
     "disableUpdateNotifications": "Désactiver l'affichage de la bannière de mise à jour des notifications dans la barre latérale.",
     "disableHideSidebar": "Désactiver le masquage automatique de la barre latérale lors de la prévisualisation ou de l'édition de fichiers.",
-    "autoplayMedia": "Lecture automatique des fichiers multimédias dans l'aperçu"
+    "autoplayMedia": "Lecture automatique des fichiers multimédias dans l'aperçu",
+    "deleteWithoutConfirming": "Supprimer des fichiers sans demande de confirmation"
   },
   "otp": {
     "name": "Authentification à deux facteurs",

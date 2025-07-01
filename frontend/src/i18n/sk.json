@@ -163,7 +163,8 @@
     "filesSelected": "vybrané súbory",
     "uploadFiles": "Uploading {files} files...",
     "typeName": "Typ:",
-    "selected": "vybrané"
+    "selected": "vybrané",
+    "deleted": "Úspešne vymazané!"
   },
   "search": {
     "images": "Obrázky",
@@ -287,7 +288,8 @@
     "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má prehliadač OnlyOffice vypnúť. (napr. \".txt .html\").",
     "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
     "disableOfficePreviews": "Zakázanie náhľadov kancelárskych súborov pre určité prípony súborov",
-    "disableOfficePreviewsDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré chcete vypnúť náhľady kancelárskych súborov. (napr. \".txt .html\")."
+    "disableOfficePreviewsDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré chcete vypnúť náhľady kancelárskych súborov. (napr. \".txt .html\").",
+    "adminOptions": "Možnosti používateľa správcu"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -374,7 +376,8 @@
     "editOffice": "Úprava/zobrazenie kancelárskych súborov",
     "disableUpdateNotifications": "Zakázanie zobrazovania bannera s oznámením o aktualizácii v bočnom paneli.",
     "disableHideSidebar": "Zakázanie automatického skrývania bočného panela pri náhľade alebo úprave súborov.",
-    "autoplayMedia": "Automatické prehrávanie mediálnych súborov v náhľade"
+    "autoplayMedia": "Automatické prehrávanie mediálnych súborov v náhľade",
+    "deleteWithoutConfirming": "Odstránenie súborov bez výzvy na potvrdenie"
   },
   "otp": {
     "name": "Dvojfaktorové overovanie",

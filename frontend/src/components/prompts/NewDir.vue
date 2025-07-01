@@ -38,7 +38,6 @@
 </template>
 <script>
 import { filesApi } from "@/api";
-import url from "@/utils/url.js";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
 
