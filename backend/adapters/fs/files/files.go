@@ -29,9 +29,6 @@ import (
 
 func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error) {
 	response := iteminfo.ExtendedFileInfo{}
-	if opts.Source == "" {
-		opts.Source = settings.Config.Server.DefaultSource.Name
-	}
 	index := indexing.GetIndex(opts.Source)
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)

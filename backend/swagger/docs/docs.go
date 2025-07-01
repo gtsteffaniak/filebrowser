@@ -703,7 +703,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -769,7 +770,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -838,7 +840,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Name for the desired filebrowser destination source name, default is used if not provided",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "boolean",
@@ -913,7 +916,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1057,6 +1061,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search query",
                         "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source",
+                        "name": "source",
                         "in": "query",
                         "required": true
                     },

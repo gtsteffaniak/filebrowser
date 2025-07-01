@@ -41,8 +41,7 @@ type Server struct {
 	// not exposed to config
 	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
-	DefaultSource  Source            `json:"-" validate:"omitempty"`
-	MuPdfAvailable bool              `json:"-"` // used internally if compiled with mupdf support
+	MuPdfAvailable bool              `json:"-"`                      // used internally if compiled with mupdf support
 }
 
 type Integrations struct {

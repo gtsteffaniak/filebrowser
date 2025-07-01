@@ -1215,6 +1215,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       produces:
       - application/json
@@ -1256,6 +1257,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       - description: Include file content if true
         in: query
@@ -1363,6 +1365,7 @@ paths:
           is used if not provided
         in: query
         name: source
+        required: true
         type: string
       - description: Override existing file if true
         in: query
@@ -1414,6 +1417,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       produces:
       - application/json
@@ -1457,6 +1461,11 @@ paths:
       - description: Search query
         in: query
         name: query
+        required: true
+        type: string
+      - description: Source name for the desired source
+        in: query
+        name: source
         required: true
         type: string
       - description: path within user scope to search, for example '/first/second'
