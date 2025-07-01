@@ -49,7 +49,7 @@
       show="info"
     />
     <action
-      v-if="!isMultiple && !isSearchActive"
+      v-if="!isMultiple && !isSearchActive && isMobileDevice"
       icon="check_circle"
       :label="$t('buttons.selectMultiple')"
       @action="toggleMultipleSelection"
@@ -133,6 +133,9 @@ export default {
     };
   },
   computed: {
+    isMobileDevice() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    },
     noItems() {
       return !this.showEdit && !this.showSave && !this.showDelete;
     },
