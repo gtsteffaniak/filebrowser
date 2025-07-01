@@ -2006,6 +2006,10 @@ const docTemplate = `{
                     "description": "disable default links in the sidebar",
                     "type": "boolean"
                 },
+                "disableNavButtons": {
+                    "description": "disable the nav buttons in the sidebar",
+                    "type": "boolean"
+                },
                 "disableUsedPercentage": {
                     "description": "disable used percentage for the sources in the sidebar",
                     "type": "boolean"
@@ -2435,6 +2439,14 @@ const docTemplate = `{
                     "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
                 },
+                "disableQuickToggles": {
+                    "description": "disable the quick toggles in the sidebar",
+                    "type": "boolean"
+                },
+                "disableSearchOptions": {
+                    "description": "disable the search options in the search bar",
+                    "type": "boolean"
+                },
                 "disableSettings": {
                     "description": "disable the user from viewing the settings page",
                     "type": "boolean"
@@ -2661,6 +2673,14 @@ const docTemplate = `{
                 "disableOnlyOfficeExt": {
                     "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
+                },
+                "disableQuickToggles": {
+                    "description": "disable the quick toggles in the sidebar",
+                    "type": "boolean"
+                },
+                "disableSearchOptions": {
+                    "description": "disable the search options in the search bar",
+                    "type": "boolean"
                 },
                 "disableSettings": {
                     "type": "boolean"

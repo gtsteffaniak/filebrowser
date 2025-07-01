@@ -88,7 +88,10 @@ frontend:
     - text: Help                          # the text to display on the link  validate:required
       title: ""                           # the title to display on hover
       url: https://github.com/gtsteffaniak/filebrowser/wiki # the url to link to  validate:required
+  disableNavButtons: false                # disable the nav buttons in the sidebar
 userDefaults:
+  disableQuickToggles: false              # disable the quick toggles in the sidebar
+  disableSearchOptions: false             # disable the search options in the search bar
   stickySidebar: true                     # keep sidebar open when navigating
   darkMode: true                          # should dark mode be enabled
   locale: en                              # language to use: eg. de, en, or fr

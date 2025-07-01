@@ -77,6 +77,8 @@ type SourceScope struct {
 
 // json tags must match variable name with smaller case first letter
 type NonAdminEditable struct {
+	DisableQuickToggles        bool    `json:"disableQuickToggles"`     // disable the quick toggles in the sidebar
+	DisableSearchOptions       bool    `json:"disableSearchOptions"`    // disable the search options in the search bar
 	DeleteWithoutConfirming    bool    `json:"deleteWithoutConfirming"` // delete files without confirmation
 	Preview                    Preview `json:"preview"`
 	StickySidebar              bool    `json:"stickySidebar"` // keep sidebar open when navigating

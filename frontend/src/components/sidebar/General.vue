@@ -87,7 +87,7 @@
       </div>
     </div>
 
-    <div class="card-wrapper" @mouseleave="resetHoverTextToDefault">
+    <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="resetHoverTextToDefault">
       <div class="quick-toggles">
         <div
           :class="{ active: user?.singleClick }"
@@ -190,6 +190,9 @@ export default {
     };
   },
   computed: {
+    disableQuickToggles() {
+      return state.user.disableQuickToggles;
+    },
     hasSourceInfo() {
       return state.sources.hasSourceInfo;
     },

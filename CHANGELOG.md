@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - setting added `deleteWithoutConfirming`, useful for quickly deleting files -- does not apply to folders.
+ - more options for minimal UI https://github.com/gtsteffaniak/filebrowser/issues/745
 
  **Notes**:
  - Filebrowser no longer requires a default source, users can be created without any sources.
