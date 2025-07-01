@@ -163,15 +163,13 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 }
 
 func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
+	fmt.Println("GetFsDirInfo", adjustedPath)
 	realPath, isDir, err := idx.GetRealPath(adjustedPath)
 	if err != nil {
 		return nil, err
 	}
 	originalPath := realPath
-	if !isDir {
-		// get parent directory info
-		realPath = filepath.Dir(realPath)
-	}
+
 	dir, err := os.Open(realPath)
 	if err != nil {
 		return nil, err
@@ -181,6 +179,19 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	dirInfo, err := dir.Stat()
 	if err != nil {
 		return nil, err
+	}
+
+	if !dirInfo.IsDir() {
+		fileInfo := iteminfo.FileInfo{
+			Path: adjustedPath,
+			ItemInfo: iteminfo.ItemInfo{
+				Name:    filepath.Base(originalPath),
+				Size:    dirInfo.Size(),
+				ModTime: dirInfo.ModTime(),
+			},
+		}
+		fileInfo.ItemInfo.DetectType(adjustedPath, false)
+		return &fileInfo, nil
 	}
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {

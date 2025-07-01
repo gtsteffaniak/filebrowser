@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
+ - getting file info issue when indexing is disabled.
 
 ## v0.7.11-beta
 
