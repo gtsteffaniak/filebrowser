@@ -130,6 +130,7 @@ export default {
           await usersApi.update(this.user, fields);
           notify.showSuccess(this.$t("settings.userUpdated"));
         }
+        window.location.reload();
       } catch (e) {
         notify.showError(e);
       }

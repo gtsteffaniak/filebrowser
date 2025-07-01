@@ -140,7 +140,6 @@ export default {
       source: "",
       password: "",
       listing: true,
-      links: [],
     };
   },
   computed: {
@@ -175,15 +174,18 @@ export default {
   },
   async beforeMount() {
     let path = state.req.path;
+    console.log("state.req", state.req);
     this.source = state.req.source;
     if (state.isSearchActive) {
       path = state.selected[0].path;
       this.source = state.selected[0].source;
     } else if (getters.selectedCount() === 1) {
       const selected = getters.getFirstSelected();
+      console.log("selected", selected);
       path = selected.path;
       this.source = selected.source;
       this.source = state.req.items[state.selected[0]].source;
+
     }
     // double encode # to fix issue with # in path
     // replace all # with %23

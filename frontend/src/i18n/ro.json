@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează vizualizatorul OnlyOffice. (de exemplu, \".txt .html\").",
     "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
     "disableOfficePreviews": "Dezactivați previzualizările office pentru anumite extensii de fișiere",
-    "disableOfficePreviewsDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările office. (de exemplu, \".txt .html\")."
+    "disableOfficePreviewsDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările office. (de exemplu, \".txt .html\").",
+    "adminOptions": "Opțiuni utilizator administrator"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -386,5 +387,34 @@
     "verificationFailed": "Verificarea a eșuat",
     "verificationSucceed": "Verificarea reușită",
     "generationFailed": "Generație eșuată"
+  },
+  "general": {
+    "name": "Nume și prenume",
+    "path": "Calea",
+    "user": "Utilizator",
+    "group": "Grup",
+    "signup": "Înscriere",
+    "password": "Parolă",
+    "username": "Nume utilizator",
+    "files": "Fișiere",
+    "folders": "Dosare",
+    "exit": "Ieșire",
+    "permanent": "Permanent"
+  },
+  "access": {
+    "rules": "Reguli de acces",
+    "deny": "Neagă",
+    "deniedUsers": "Utilizatori respinși",
+    "deniedGroups": "Grupuri refuzate",
+    "allowedUsers": "Utilizatori autorizați",
+    "allowedGroups": "Grupuri permise",
+    "allow": "Permiteți",
+    "allowDeny": "Permiteți/Negați",
+    "userGroup": "Utilizator/grup",
+    "enterName": "Introduceți numele utilizatorului sau al grupului",
+    "deleted": "Regula de acces ștearsă!",
+    "added": "Regula de acces adăugată!",
+    "name": "Nume și prenume",
+    "accessManagement": "Gestionarea accesului"
   }
 }

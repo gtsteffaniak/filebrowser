@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "Azon fájlkiterjesztések szóközzel elválasztott listája, amelyek esetében az OnlyOffice megjelenítőjét le kell tiltani. (pl. '.txt .html').",
     "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
     "disableOfficePreviews": "Office előnézet letiltása bizonyos fájlkiterjesztésekhez",
-    "disableOfficePreviewsDescription": "Az irodai előnézetek letiltásának szóközzel elválasztott fájlkiterjesztések listája. (pl. '.txt .html')."
+    "disableOfficePreviewsDescription": "Az irodai előnézetek letiltásának szóközzel elválasztott fájlkiterjesztések listája. (pl. '.txt .html').",
+    "adminOptions": "Admin felhasználói beállítások"
   },
   "sidebar": {
     "help": "Súgó",
@@ -386,5 +387,34 @@
     "verificationFailed": "Ellenőrzés sikertelen",
     "verificationSucceed": "Ellenőrzés Succeed",
     "generationFailed": "Nemzedék sikertelen"
+  },
+  "general": {
+    "name": "Név",
+    "path": "Útvonal",
+    "user": "Felhasználó",
+    "group": "Csoport",
+    "signup": "Regisztráció",
+    "password": "Jelszó",
+    "username": "Felhasználónév",
+    "files": "Fájlok",
+    "folders": "Mappák",
+    "exit": "Kilépés",
+    "permanent": "Állandó"
+  },
+  "access": {
+    "rules": "Hozzáférési szabályok",
+    "deny": "Deny",
+    "deniedUsers": "Megtagadott felhasználók",
+    "deniedGroups": "Megtagadott csoportok",
+    "allowedUsers": "Engedélyezett felhasználók",
+    "allowedGroups": "Engedélyezett csoportok",
+    "allow": "Engedélyezze a",
+    "allowDeny": "Engedélyezés/Tiltás",
+    "userGroup": "Felhasználó/csoport",
+    "enterName": "Adja meg a felhasználó vagy csoport nevét",
+    "deleted": "Hozzáférési szabály törölve!",
+    "added": "Hozzáférési szabály hozzáadva!",
+    "name": "Név",
+    "accessManagement": "Hozzáférés-kezelés"
   }
 }

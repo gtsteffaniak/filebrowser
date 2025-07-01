@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "OnlyOffice 뷰어를 비활성화할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html').",
     "disableOfficeEditor": "특정 파일 확장자에 대해 Office 뷰어 사용 안 함",
     "disableOfficePreviews": "특정 파일 확장명에 대한 Office 미리 보기 사용 안 함",
-    "disableOfficePreviewsDescription": "Office 미리 보기를 사용하지 않도록 설정할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html')."
+    "disableOfficePreviewsDescription": "Office 미리 보기를 사용하지 않도록 설정할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html').",
+    "adminOptions": "관리자 사용자 옵션"
   },
   "sidebar": {
     "help": "도움말",
@@ -386,5 +387,34 @@
     "verificationFailed": "인증 실패",
     "verificationSucceed": "인증 성공",
     "generationFailed": "세대 실패"
+  },
+  "general": {
+    "name": "이름",
+    "path": "경로",
+    "user": "사용자",
+    "group": "그룹",
+    "signup": "가입하기",
+    "password": "비밀번호",
+    "username": "사용자 이름",
+    "files": "파일",
+    "folders": "폴더",
+    "exit": "종료",
+    "permanent": "영구"
+  },
+  "access": {
+    "rules": "액세스 규칙",
+    "deny": "거부",
+    "deniedUsers": "거부된 사용자",
+    "deniedGroups": "거부된 그룹",
+    "allowedUsers": "허용된 사용자",
+    "allowedGroups": "허용된 그룹",
+    "allow": "허용",
+    "allowDeny": "허용/거부",
+    "userGroup": "사용자/그룹",
+    "enterName": "사용자 또는 그룹 이름 입력",
+    "deleted": "액세스 규칙이 삭제되었습니다!",
+    "added": "액세스 규칙이 추가되었습니다!",
+    "name": "이름",
+    "accessManagement": "액세스 관리"
   }
 }

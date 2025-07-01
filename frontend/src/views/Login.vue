@@ -28,7 +28,7 @@
           v-if="createMode"
           type="password"
           v-model="passwordConfirm"
-          :placeholder="$t('general.passwordConfirm')"
+          :placeholder="$t('login.passwordConfirm')"
         />
 
         <div v-if="recaptcha" id="recaptcha"></div>
@@ -142,7 +142,7 @@ export default {
 
       if (this.createMode) {
         if (this.password !== this.passwordConfirm) {
-          this.error = this.$t("general.passwordsDontMatch");
+          this.error = this.$t("login.passwordsDontMatch");
           return;
         }
       }

@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o visualizador do OnlyOffice. (por exemplo, '.txt .html').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
     "disableOfficePreviews": "Desativar as visualizações do Office para determinadas extensões de arquivo",
-    "disableOfficePreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações do Office. (por exemplo, '.txt .html')."
+    "disableOfficePreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações do Office. (por exemplo, '.txt .html').",
+    "adminOptions": "Opções do usuário administrador"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -386,5 +387,34 @@
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
     "generationFailed": "Falha na geração"
+  },
+  "general": {
+    "name": "Nome",
+    "path": "Caminho",
+    "user": "Usuário",
+    "group": "Grupo",
+    "signup": "Registrar-se",
+    "password": "Senha",
+    "username": "Nome de usuário",
+    "files": "Arquivos",
+    "folders": "Pastas",
+    "exit": "Sair",
+    "permanent": "Permanente"
+  },
+  "access": {
+    "rules": "Regras de acesso",
+    "deny": "Negar",
+    "deniedUsers": "Usuários negados",
+    "deniedGroups": "Grupos negados",
+    "allowedUsers": "Usuários permitidos",
+    "allowedGroups": "Grupos permitidos",
+    "allow": "Permitir",
+    "allowDeny": "Permitir/Negar",
+    "userGroup": "Usuário/Grupo",
+    "enterName": "Digite o nome do usuário ou do grupo",
+    "deleted": "Regra de acesso excluída!",
+    "added": "Regra de acesso adicionada!",
+    "name": "Nome",
+    "accessManagement": "Gerenciamento de acesso"
   }
 }

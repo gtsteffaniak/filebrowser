@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których przeglądarka OnlyOffice ma zostać wyłączona. (np. \".txt .html\").",
     "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
     "disableOfficePreviews": "Wyłącz podglądy Office dla niektórych rozszerzeń plików",
-    "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\")."
+    "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\").",
+    "adminOptions": "Opcje użytkownika administratora"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -386,5 +387,34 @@
     "verificationFailed": "Weryfikacja nie powiodła się",
     "verificationSucceed": "Sukces weryfikacji",
     "generationFailed": "Generacja nieudana"
+  },
+  "general": {
+    "name": "Nazwa",
+    "path": "Ścieżka",
+    "user": "Użytkownik",
+    "group": "Grupa",
+    "signup": "Rejestracja",
+    "password": "Hasło",
+    "username": "Nazwa użytkownika",
+    "files": "Pliki",
+    "folders": "Foldery",
+    "exit": "Wyjście",
+    "permanent": "Na stałe"
+  },
+  "access": {
+    "rules": "Zasady dostępu",
+    "deny": "Odmowa",
+    "deniedUsers": "Odrzuceni użytkownicy",
+    "deniedGroups": "Grupy odrzucone",
+    "allowedUsers": "Dozwoleni użytkownicy",
+    "allowedGroups": "Dozwolone grupy",
+    "allow": "Zezwalaj",
+    "allowDeny": "Zezwól/Odmów",
+    "userGroup": "Użytkownik/Grupa",
+    "enterName": "Wprowadź nazwę użytkownika lub grupy",
+    "deleted": "Reguła dostępu usunięta!",
+    "added": "Dodano regułę dostępu!",
+    "name": "Nazwa",
+    "accessManagement": "Zarządzanie dostępem"
   }
 }

@@ -284,7 +284,8 @@
     "tusUploadsRetryCount": "מספר הניסיונות שיש לבצע אם העלאת קטע נכשלה.",
     "disableUsedDiskPercentage": "השבת גרף אחוזי השימוש בדיסק",
     "shareSettings": "הגדרות שיתוף",
-    "api": "מפתחות API"
+    "api": "מפתחות API",
+    "adminOptions": "אפשרויות משתמש מנהל"
   },
   "sidebar": {
     "help": "עזרה",
@@ -382,5 +383,34 @@
     "verificationFailed": "האימות נכשל",
     "verificationSucceed": "האימות הצליח",
     "generationFailed": "דור שנכשל"
+  },
+  "general": {
+    "name": "שם",
+    "path": "נתיב",
+    "user": "משתמש",
+    "group": "קבוצה",
+    "signup": "הרשמה",
+    "password": "סיסמה",
+    "username": "שם משתמש",
+    "files": "קבצים",
+    "folders": "תיקיות",
+    "exit": "יציאה",
+    "permanent": "קבוע"
+  },
+  "access": {
+    "rules": "כללי גישה",
+    "deny": "לדחות",
+    "deniedUsers": "משתמשים שנדחו",
+    "deniedGroups": "קבוצות שנדחו",
+    "allowedUsers": "משתמשים מורשים",
+    "allowedGroups": "קבוצות מורשות",
+    "allow": "אפשר",
+    "allowDeny": "אפשר/דחה",
+    "userGroup": "משתמש/קבוצה",
+    "enterName": "הזן שם משתמש או שם קבוצה",
+    "deleted": "כלל הגישה נמחק!",
+    "added": "כלל גישה נוסף!",
+    "name": "שם",
+    "accessManagement": "ניהול גישה"
   }
 }

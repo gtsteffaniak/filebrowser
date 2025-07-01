@@ -86,10 +86,13 @@ func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) 
 	}
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	s, err := store.Share.Gets(scopePath, sourcePath.Path, d.user.ID)
-	if err == errors.ErrNotExist {
+	if err == errors.ErrNotExist || len(s) == 0 {
 		return renderJSON(w, r, []*share.Link{})
 	}
-
+	// Overwrite the Source field with the source name from the query for each link
+	for _, link := range s {
+		link.Source = source
+	}
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("error getting share info from server")
 	}
@@ -212,11 +215,12 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		PasswordHash: stringHash,
 		Token:        token,
 	}
-
 	if err := store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
+	// Overwrite the Source field with the source name from the query for each link
+	s.Source = sourceName
 	return renderJSON(w, r, s)
 }
 

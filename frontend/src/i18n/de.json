@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der OnlyOffice-Viewer deaktiviert werden soll. (z. B. '.txt .html').",
     "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren",
     "disableOfficePreviews": "Office-Vorschauen für bestimmte Dateierweiterungen deaktivieren",
-    "disableOfficePreviewsDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Vorschau deaktiviert werden soll. (z. B. '.txt .html')."
+    "disableOfficePreviewsDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Vorschau deaktiviert werden soll. (z. B. '.txt .html').",
+    "adminOptions": "Optionen für Verwaltungsbenutzer"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -386,5 +387,34 @@
     "verificationFailed": "Verifizierung fehlgeschlagen",
     "verificationSucceed": "Überprüfung Erfolgreich",
     "generationFailed": "Generation gescheitert"
+  },
+  "general": {
+    "name": "Name",
+    "path": "Pfad",
+    "user": "Benutzer",
+    "group": "Gruppe",
+    "signup": "Anmeldung",
+    "password": "Passwort",
+    "username": "Benutzername",
+    "files": "Dateien",
+    "folders": "Ordner",
+    "exit": "Ausfahrt",
+    "permanent": "Dauerhaft"
+  },
+  "access": {
+    "rules": "Zugangsregeln",
+    "deny": "Verweigern",
+    "deniedUsers": "Abgelehnte Benutzer",
+    "deniedGroups": "Abgelehnte Gruppen",
+    "allowedUsers": "Erlaubte Benutzer",
+    "allowedGroups": "Erlaubte Gruppen",
+    "allow": "Erlauben Sie",
+    "allowDeny": "Zulassen/Verweigern",
+    "userGroup": "Benutzer/Gruppe",
+    "enterName": "Benutzer- oder Gruppenname eingeben",
+    "deleted": "Zugriffsregel gelöscht!",
+    "added": "Zugangsregel hinzugefügt!",
+    "name": "Name",
+    "accessManagement": "Zugangsverwaltung"
   }
 }

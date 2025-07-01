@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare il visualizzatore di OnlyOffice. (ad esempio, '.txt .html').",
     "disableOfficeEditor": "Disattivare il visualizzatore di Office per alcune estensioni di file",
     "disableOfficePreviews": "Disattivare le anteprime di Office per alcune estensioni di file",
-    "disableOfficePreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime di Office. (ad esempio, '.txt .html')."
+    "disableOfficePreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime di Office. (ad esempio, '.txt .html').",
+    "adminOptions": "Opzioni dell'utente amministratore"
   },
   "sidebar": {
     "help": "Aiuto",
@@ -386,5 +387,34 @@
     "verificationFailed": "Verifica fallita",
     "verificationSucceed": "Verifica riuscita",
     "generationFailed": "Generazione fallita"
+  },
+  "general": {
+    "name": "Nome",
+    "path": "Percorso",
+    "user": "Utente",
+    "group": "Gruppo",
+    "signup": "Iscriviti",
+    "password": "Password",
+    "username": "Nome utente",
+    "files": "File",
+    "folders": "Cartelle",
+    "exit": "Uscita",
+    "permanent": "Permanente"
+  },
+  "access": {
+    "rules": "Regole di accesso",
+    "deny": "Negare",
+    "deniedUsers": "Utenti negati",
+    "deniedGroups": "Gruppi negati",
+    "allowedUsers": "Utenti ammessi",
+    "allowedGroups": "Gruppi ammessi",
+    "allow": "Consentire",
+    "allowDeny": "Consentire/Negare",
+    "userGroup": "Utente/Gruppo",
+    "enterName": "Inserire il nome dell'utente o del gruppo",
+    "deleted": "Regola di accesso cancellata!",
+    "added": "Regola di accesso aggiunta!",
+    "name": "Nome",
+    "accessManagement": "Gestione degli accessi"
   }
 }

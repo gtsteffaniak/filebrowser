@@ -5,7 +5,7 @@ test('create and delete testuser', async ({
   checkForErrors,
   context
 }) => {
-  await page.goto('/settings')
+  await page.goto('/settings#users-main')
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings")
   await page.locator('button[aria-label="Add New User"]').click()
   await page.locator('#username').fill('testuser')
@@ -18,11 +18,19 @@ test('create and delete testuser', async ({
   await page.locator('input[aria-label="Password2"]').fill('testpassword')
   await page.locator('input[aria-label="Save User"]').click()
 
-  // click the edit button for testuser
+  // Wait for the user row to appear
   const userRow = page.locator('tr.item', { hasText: 'testuser' })
-  const editLink = await userRow
-    .locator('td[aria-label="Edit User"] a')
-    .getAttribute('href')
-  await page.goto(editLink!)
+  await expect(userRow).toBeVisible()
+
+  // Wait for overlay to disappear (try a more generic selector)
+  await page.waitForSelector('[class*=overlay]', { state: 'hidden', timeout: 5000 })
+
+  // Wait for the edit button to be visible and enabled
+  const editButton = userRow.locator('td[aria-label="Edit User"] .clickable')
+  await expect(editButton).toBeVisible()
+  await expect(editButton).toBeEnabled()
+
+  // Now click
+  await editButton.click()
   checkForErrors()
 })

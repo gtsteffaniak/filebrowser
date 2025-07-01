@@ -58,35 +58,32 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	}
 	source := splitFile[0]
 	path = splitFile[1]
+
 	var err error
-	userScope := "/"
 	if d.user.Username != "publicUser" {
+		var userScope string
 		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
 		if d.share == nil && err != nil {
 			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 		}
+		path = utils.JoinPathAsUnix(userScope, path)
 	}
 
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("source %s is not available", source)
 	}
-
-	realPath, _, err := idx.GetRealPath(userScope, path)
-	if err != nil {
-		return fmt.Errorf("failed to get real path for %s: %v", path, err)
-	}
-
 	_, err = files.FileInfoFaster(iteminfo.FileOptions{
 		Access:   store.Access,
 		Username: d.user.Username,
-		Path:     realPath,
+		Path:     path,
 		Source:   source,
 		Expand:   false,
 	})
 	if err != nil {
 		return err
 	}
+	realPath, _, _ := idx.GetRealPath(path)
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return err

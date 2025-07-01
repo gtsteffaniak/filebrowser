@@ -2,11 +2,9 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("settings.users") }}</h2>
-    <router-link v-if="isAdmin" to="/settings/users/new">
-      <button class="button" aria-label="Add New User">
+      <button @click="openPrompt(null)" v-if="isAdmin" class="button" aria-label="Add New User">
         {{ $t("buttons.new") }}
       </button>
-    </router-link>
   </div>
 
   <div class="card-content full">
@@ -77,7 +75,11 @@ export default {
   },
   methods: {
     openPrompt(userId) {
-      mutations.showHover({ name: "user-edit", props: { userId } });
+      if (userId) {
+        mutations.showHover({ name: "user-edit", props: { userId } });
+      } else {
+        mutations.showHover({ name: "user-edit"});
+      }
     },
   },
 };
