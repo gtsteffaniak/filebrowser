@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  deletedItem: false,
   previousHash: "",
   multiButtonState: "menu",
   multiButtonLastState: "menu",

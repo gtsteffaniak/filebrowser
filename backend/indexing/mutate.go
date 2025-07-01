@@ -3,13 +3,12 @@ package indexing
 import (
 	"fmt"
 	"path/filepath"
+	"syscall"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
-
-	"github.com/shirou/gopsutil/v3/disk"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
@@ -91,6 +90,17 @@ func GetIndex(name string) *Index {
 	return index
 }
 
+func getPartitionSize(path string) (uint64, error) {
+	var stat syscall.Statfs_t
+	err := syscall.Statfs(path, &stat)
+	if err != nil {
+		return 0, err
+	}
+	// Total size in bytes: Blocks * Block size
+	total := stat.Blocks * uint64(stat.Bsize)
+	return total, nil
+}
+
 func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	idx, ok := indexes[sourceName]
 	if !ok {
@@ -100,17 +110,14 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	cacheKey := "usageCache-" + sourceName
 	_, ok = utils.DiskUsageCache.Get(cacheKey).(bool)
 	if !ok {
-		usage, err := disk.Usage(sourcePath)
+		totalBytes, err := getPartitionSize(sourcePath)
 		if err != nil {
 			logger.Errorf("error getting disk usage for %s: %v", sourcePath, err)
 			idx.SetStatus(UNAVAILABLE)
 			return ReducedIndex{}, fmt.Errorf("error getting disk usage for %s: %v", sourcePath, err)
 		}
-		latestUsage := DiskUsage{
-			Total: usage.Total,
-			Used:  usage.Used,
-		}
-		idx.SetUsage(latestUsage)
+
+		idx.SetUsage(totalBytes)
 		utils.DiskUsageCache.Set(cacheKey, true)
 	}
 	return idx.ReducedIndex, nil

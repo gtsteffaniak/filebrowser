@@ -139,4 +139,5 @@ type UserDefaults struct {
 	Permissions                users.Permissions   `json:"permissions"`
 	LoginMethod                string              `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
+	DeleteWithoutConfirming    bool                `json:"deleteWithoutConfirming"`    // delete files without confirmation
 }

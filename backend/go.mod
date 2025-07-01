@@ -15,7 +15,6 @@ require (
 	github.com/gtsteffaniak/go-logger v0.1.2
 	github.com/kovidgoyal/imaging v1.6.4
 	github.com/pquerna/otp v1.5.0
-	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/spf13/afero v1.14.0
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/http-swagger v1.3.4

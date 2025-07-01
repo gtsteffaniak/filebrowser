@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.12-beta
 
+ **New Features**:
+ - setting added `deleteWithoutConfirming`, useful for quickly deleting files -- does not apply to folders.
+
  **Notes**:
  - Filebrowser no longer requires a default source, users can be created without any sources.
+ - Disables changing login type fallback behavior https://github.com/gtsteffaniak/filebrowser/issues/620
+ - Uses calculated index size as "used" and total partition size as "total" https://github.com/gtsteffaniak/filebrowser/issues/875
 
  **BugFixes**:
- - 
+ - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
 
 ## v0.7.11-beta
 
