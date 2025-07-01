@@ -39,14 +39,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 
-	fileInfo, ok := d.raw.(iteminfo.ExtendedFileInfo)
-	if !ok {
-		logger.Error("public share handler: failed to assert type files.FileInfo")
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
-	}
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
-		fileList = append(fileList, fileInfo.Source+"::"+fileInfo.Path+file)
+		fileList = append(fileList, d.fileInfo.Source+"::"+d.fileInfo.Path+file)
 	}
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
@@ -62,13 +57,8 @@ func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return renderJSON(w, r, d.fileInfo)
 }
 
-func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
-	// Call the actual handler logic here (e.g., renderJSON, etc.)
-	// You may need to replace `fn` with the actual handler logic.
-	status, err := renderJSON(w, r, users.PublicUser)
-	if err != nil {
-		http.Error(w, http.StatusText(status), status)
-	}
+func publicUserGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	return renderJSON(w, r, users.PublicUser)
 }
 
 // health godoc
