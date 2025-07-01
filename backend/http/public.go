@@ -58,12 +58,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(iteminfo.ExtendedFileInfo)
-	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type iteminfo.FileInfo")
-	}
-	file.Path = strings.TrimPrefix(file.Path, d.share.Path)
-	return renderJSON(w, r, file)
+	d.fileInfo.Path = strings.TrimPrefix(d.fileInfo.Path, d.share.Path)
+	return renderJSON(w, r, d.fileInfo)
 }
 
 func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -114,20 +110,14 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	path := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
 	var err error
-	// decode url encoded source name
-	source, err = url.QueryUnescape(source)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-	}
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(d.share.Path, path),
 		Modify: d.user.Permissions.Modify,
-		Source: source,
+		Source: d.fileInfo.Source,
 		Expand: true,
 	})
 	if err != nil {

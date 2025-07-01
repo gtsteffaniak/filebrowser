@@ -84,7 +84,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
 		// Set the file info in the `data` object
-		data.raw = file
+		data.fileInfo = file
 		// Call the next handler with the data
 		return fn(w, r, data)
 	}
