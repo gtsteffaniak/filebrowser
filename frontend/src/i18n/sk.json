@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má prehliadač OnlyOffice vypnúť. (napr. \".txt .html\").",
     "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
     "disableOfficePreviews": "Zakázanie náhľadov kancelárskych súborov pre určité prípony súborov",
-    "disableOfficePreviewsDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré chcete vypnúť náhľady kancelárskych súborov. (napr. \".txt .html\")."
+    "disableOfficePreviewsDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré chcete vypnúť náhľady kancelárskych súborov. (napr. \".txt .html\").",
+    "adminOptions": "Možnosti používateľa správcu"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -386,5 +387,34 @@
     "verificationFailed": "Overenie sa nepodarilo",
     "verificationSucceed": "Overovanie Úspech",
     "generationFailed": "Generácia zlyhala"
+  },
+  "general": {
+    "name": "Názov",
+    "path": "Cesta",
+    "user": "Používateľ",
+    "group": "Skupina",
+    "signup": "Registrácia",
+    "password": "Heslo",
+    "username": "Používateľské meno",
+    "files": "Súbory",
+    "folders": "Priečinky",
+    "exit": "Exit",
+    "permanent": "Trvalé"
+  },
+  "access": {
+    "rules": "Pravidlá prístupu",
+    "deny": "Odmietnuť",
+    "deniedUsers": "Odmietnutí používatelia",
+    "deniedGroups": "Odmietnuté skupiny",
+    "allowedUsers": "Povolení používatelia",
+    "allowedGroups": "Povolené skupiny",
+    "allow": "Povoľte",
+    "allowDeny": "Povoliť/odmietnuť",
+    "userGroup": "Používateľ/skupina",
+    "enterName": "Zadajte meno používateľa alebo skupiny",
+    "deleted": "Prístupové pravidlo odstránené!",
+    "added": "Pridané pravidlo prístupu!",
+    "name": "Názov",
+    "accessManagement": "Správa prístupu"
   }
 }

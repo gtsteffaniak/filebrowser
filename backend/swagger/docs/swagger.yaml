@@ -1,13 +1,9 @@
 definitions:
   access.AccessRule:
     properties:
-      blacklisted:
+      allow:
         $ref: '#/definitions/access.RuleSet'
-      index_path:
-        type: string
-      source_path:
-        type: string
-      whitelisted:
+      deny:
         $ref: '#/definitions/access.RuleSet'
     type: object
   access.RuleSet:
@@ -785,7 +781,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete a user or group from a whitelist or blacklist for a sourcePath
+      description: Delete a user or group from an allow or deny list for a sourcePath
         and indexPath.
       parameters:
       - description: Source path prefix (e.g. mnt/storage)
@@ -798,7 +794,7 @@ paths:
         name: path
         required: true
         type: string
-      - description: Rule type (whitelist or blacklist)
+      - description: Rule type (allow or deny)
         in: query
         name: ruleType
         required: true
@@ -894,19 +890,19 @@ paths:
         name: path
         required: true
         type: string
-      - description: 'Rule details: whitelist (true/false), ruleCategory (user/group),
+      - description: 'Rule details: allow (true/false), ruleCategory (user/group),
           value (username or groupname)'
         in: body
         name: body
         required: true
         schema:
           properties:
+            allow:
+              type: boolean
             ruleCategory:
               type: string
             value:
               type: string
-            whitelist:
-              type: boolean
           type: object
       produces:
       - application/json

@@ -97,21 +97,21 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Rule details: whitelist (true/false), ruleCategory (user/group), value (username or groupname)",
+                        "description": "Rule details: allow (true/false), ruleCategory (user/group), value (username or groupname)",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "type": "object",
                             "properties": {
+                                "allow": {
+                                    "type": "boolean"
+                                },
                                 "ruleCategory": {
                                     "type": "string"
                                 },
                                 "value": {
                                     "type": "string"
-                                },
-                                "whitelist": {
-                                    "type": "boolean"
                                 }
                             }
                         }
@@ -148,7 +148,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a user or group from a whitelist or blacklist for a sourcePath and indexPath.",
+                "description": "Delete a user or group from an allow or deny list for a sourcePath and indexPath.",
                 "consumes": [
                     "application/json"
                 ],
@@ -176,7 +176,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Rule type (whitelist or blacklist)",
+                        "description": "Rule type (allow or deny)",
                         "name": "ruleType",
                         "in": "query",
                         "required": true
@@ -1930,16 +1930,10 @@ const docTemplate = `{
         "access.AccessRule": {
             "type": "object",
             "properties": {
-                "blacklisted": {
+                "allow": {
                     "$ref": "#/definitions/access.RuleSet"
                 },
-                "index_path": {
-                    "type": "string"
-                },
-                "source_path": {
-                    "type": "string"
-                },
-                "whitelisted": {
+                "deny": {
                     "$ref": "#/definitions/access.RuleSet"
                 }
             }

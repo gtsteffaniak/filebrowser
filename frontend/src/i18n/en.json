@@ -60,8 +60,6 @@
     "body": "Body",
     "clear": "Clear",
     "closePreview": "Close preview",
-    "files": "Files",
-    "folders": "Folders",
     "home": "Home",
     "lastModified": "Last modified",
     "loading": "Loading...",
@@ -118,17 +116,13 @@
   "login": {
     "createAnAccount": "Create an account",
     "loginInstead": "Already have an account",
-    "password": "Password",
     "passwordConfirm": "Password Confirmation",
     "passwordsDontMatch": "Passwords don't match",
-    "signup": "Signup",
     "submit": "Login",
-    "username": "Username",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "Wrong credentials",
     "or": "OR"
   },
-  "permanent": "Permanent",
   "share": {
     "notice": "Note: anyone who has access to the link (and optional password) can access the shared files. There is no requirement to be logged in."
   },
@@ -355,8 +349,6 @@
   "index": {
     "status": "Status",
     "assessment": "Assessment",
-    "files": "Files",
-    "folders": "Folders",
     "lastScanned": "Last Scanned",
     "quickScan": "Quick Scan Seconds",
     "fullScan": "Full Scan Seconds",
@@ -378,5 +370,34 @@
     "verificationFailed": "Verification Failed",
     "verificationSucceed": "Verification Succeed",
     "generationFailed": "Generation Failed"
+  },
+  "general": {
+    "name": "Name",
+    "path": "Path",
+    "user": "User",
+    "group": "Group",
+    "signup": "Signup",
+    "password": "Password",
+    "username": "Username",
+    "files": "Files",
+    "folders": "Folders",
+    "exit": "Exit",
+    "permanent": "Permanent"
+  },
+  "access": {
+    "rules": "Access rules",
+    "deny": "Deny",
+    "deniedUsers": "Denied Users",
+    "deniedGroups": "Denied Groups",
+    "allowedUsers": "Allowed Users",
+    "allowedGroups": "Allowed Groups",
+    "allow": "Allow",
+    "allowDeny": "Allow/Deny",
+    "userGroup": "User/Group",
+    "enterName": "Enter user or group name",
+    "deleted": "Access rule deleted!",
+    "added": "Access rule added!",
+    "name": "Name",
+    "accessManagement": "Access Management"
   }
 }

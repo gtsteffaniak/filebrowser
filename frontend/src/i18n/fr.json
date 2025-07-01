@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles le visualisateur OnlyOffice doit être désactivé. (par exemple, '.txt .html').",
     "disableOfficeEditor": "Désactiver la visionneuse d'office pour certaines extensions de fichiers",
     "disableOfficePreviews": "Désactiver les aperçus Office pour certaines extensions de fichiers",
-    "disableOfficePreviewsDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus Office doivent être désactivés. (par exemple, '.txt .html')."
+    "disableOfficePreviewsDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus Office doivent être désactivés. (par exemple, '.txt .html').",
+    "adminOptions": "Options de l'utilisateur administrateur"
   },
   "sidebar": {
     "help": "Aide",
@@ -386,5 +387,34 @@
     "verificationFailed": "Échec de la vérification",
     "verificationSucceed": "Vérification réussie",
     "generationFailed": "Génération échouée"
+  },
+  "general": {
+    "name": "Nom",
+    "path": "Trajectoire",
+    "user": "Utilisateur",
+    "group": "Groupe",
+    "signup": "S'inscrire",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur",
+    "files": "Dossiers",
+    "folders": "Dossiers",
+    "exit": "Sortie",
+    "permanent": "Permanent"
+  },
+  "access": {
+    "rules": "Règles d'accès",
+    "deny": "Refuser",
+    "deniedUsers": "Utilisateurs refusés",
+    "deniedGroups": "Groupes refusés",
+    "allowedUsers": "Utilisateurs autorisés",
+    "allowedGroups": "Groupes autorisés",
+    "allow": "Autoriser",
+    "allowDeny": "Autoriser/refuser",
+    "userGroup": "Utilisateur/Groupe",
+    "enterName": "Saisir le nom de l'utilisateur ou du groupe",
+    "deleted": "Règle d'accès supprimée !",
+    "added": "Règle d'accès ajoutée !",
+    "name": "Nom",
+    "accessManagement": "Gestion de l'accès"
   }
 }

@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "OnlyOffice görüntüleyicisinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
     "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
     "disableOfficePreviews": "Belirli dosya uzantıları için ofis önizlemelerini devre dışı bırakma",
-    "disableOfficePreviewsDescription": "Ofis önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html')."
+    "disableOfficePreviewsDescription": "Ofis önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
+    "adminOptions": "Yönetici kullanıcı seçenekleri"
   },
   "sidebar": {
     "help": "Yardım",
@@ -386,5 +387,34 @@
     "verificationFailed": "Doğrulama Başarısız",
     "verificationSucceed": "Doğrulama Başarılı",
     "generationFailed": "Nesil Başarısız"
+  },
+  "general": {
+    "name": "İsim",
+    "path": "Yol",
+    "user": "Kullanıcı",
+    "group": "Grup",
+    "signup": "Kaydolun",
+    "password": "Şifre",
+    "username": "Kullanıcı Adı",
+    "files": "Dosyalar",
+    "folders": "Klasörler",
+    "exit": "Çıkış",
+    "permanent": "Daimi"
+  },
+  "access": {
+    "rules": "Erişim kuralları",
+    "deny": "Reddet",
+    "deniedUsers": "Reddedilen Kullanıcılar",
+    "deniedGroups": "Reddedilen Gruplar",
+    "allowedUsers": "İzin Verilen Kullanıcılar",
+    "allowedGroups": "İzin Verilen Gruplar",
+    "allow": "İzin ver",
+    "allowDeny": "İzin Ver / Reddet",
+    "userGroup": "Kullanıcı/Grup",
+    "enterName": "Kullanıcı veya grup adını girin",
+    "deleted": "Erişim kuralı silindi!",
+    "added": "Erişim kuralı eklendi!",
+    "name": "İsim",
+    "accessManagement": "Erişim Yönetimi"
   }
 }

@@ -91,6 +91,11 @@
       :label="$t('buttons.delete')"
       show="delete"
     />
+    <action
+      icon="lock"
+      :label="$t('access.rules')"
+      @action="showAccess"
+    />
   </div>
   <div
     id="context-menu"
@@ -134,7 +139,9 @@ export default {
   },
   computed: {
     noItems() {
-      return !this.showEdit && !this.showSave && !this.showDelete;
+      const hasItems = this.showEdit || this.showDelete || this.showSave || this.showGoToRaw;
+      mutations.setHasContextItems(!hasItems)
+      return !hasItems;
     },
     showGoToRaw() {
       return getters.currentView() == "preview" || 
@@ -220,6 +227,15 @@ export default {
     },
   },
   methods: {
+    showAccess() {
+      mutations.showHover({
+        name: "access",
+        props: {
+          sourceName: state.sources.current,
+          path: state.req.path
+        }
+      });
+    },
     startShowCreate() {
       this.showCreate = true;
     },

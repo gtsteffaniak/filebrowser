@@ -69,7 +69,7 @@ export default {
       return getters.currentView() == "share";
     },
     noItems() {
-      return !this.showEdit && !this.showSave && !this.showDelete;
+      return !state.contextMenuItems;
     },
     showEdit() {
       return window.location.hash != "#edit" && state.user.permissions.modify;
@@ -119,6 +119,8 @@ export default {
     multiAction() {
       const listingView = getters.currentView();
       if (listingView == "listingView") {
+        mutations.toggleSidebar();
+      } else if (listingView == "settings" && state.isMobile) {
         mutations.toggleSidebar();
       } else {
         mutations.closeHovers();

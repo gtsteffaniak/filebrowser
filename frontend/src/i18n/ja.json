@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "OnlyOffice ビューアを無効にするファイル拡張子をスペース区切りで指定します。(例: '.txt .html')。",
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
     "disableOfficePreviews": "特定のファイル拡張子でオフィスのプレビューを無効にする",
-    "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。"
+    "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。",
+    "adminOptions": "管理者ユーザーオプション"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -386,5 +387,34 @@
     "verificationFailed": "検証失敗",
     "verificationSucceed": "検証の成功",
     "generationFailed": "世代が失敗"
+  },
+  "general": {
+    "name": "名称",
+    "path": "パス",
+    "user": "ユーザー",
+    "group": "グループ",
+    "signup": "会員登録",
+    "password": "パスワード",
+    "username": "ユーザー名",
+    "files": "ファイル",
+    "folders": "フォルダ",
+    "exit": "出口",
+    "permanent": "正社員"
+  },
+  "access": {
+    "rules": "アクセス規則",
+    "deny": "拒否する",
+    "deniedUsers": "拒否されたユーザー",
+    "deniedGroups": "拒否されたグループ",
+    "allowedUsers": "許可されたユーザー",
+    "allowedGroups": "許可されたグループ",
+    "allow": "許可する",
+    "allowDeny": "許可／拒否",
+    "userGroup": "ユーザー/グループ",
+    "enterName": "ユーザー名またはグループ名を入力",
+    "deleted": "アクセスルールが削除された！",
+    "added": "アクセスルールが追加された！",
+    "name": "名称",
+    "accessManagement": "アクセス管理"
   }
 }

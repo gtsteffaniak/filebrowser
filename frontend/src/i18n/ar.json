@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل عارض OnlyOffice لها. (على سبيل المثال، \".txt .html\").",
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
     "disableOfficePreviews": "تعطيل معاينات المكتب لامتدادات ملفات معينة",
-    "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\")."
+    "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\").",
+    "adminOptions": "خيارات المستخدم المسؤول"
   },
   "sidebar": {
     "help": "مساعدة",
@@ -386,5 +387,34 @@
     "verificationFailed": "فشل التحقق",
     "verificationSucceed": "نجاح التحقق",
     "generationFailed": "فشل التوليد"
+  },
+  "general": {
+    "name": "الاسم",
+    "path": "المسار",
+    "user": "المستخدم",
+    "group": "المجموعة",
+    "signup": "اشتراك",
+    "password": "كلمة المرور",
+    "username": "اسم المستخدم",
+    "files": "الملفات",
+    "folders": "المجلدات",
+    "exit": "الخروج",
+    "permanent": "دائم"
+  },
+  "access": {
+    "rules": "قواعد الوصول",
+    "deny": "الرفض",
+    "deniedUsers": "المستخدمون المرفوضون",
+    "deniedGroups": "المجموعات المرفوضة",
+    "allowedUsers": "المستخدمون المسموح لهم",
+    "allowedGroups": "المجموعات المسموح بها",
+    "allow": "السماح",
+    "allowDeny": "السماح/الرفض",
+    "userGroup": "المستخدم/المجموعة",
+    "enterName": "أدخل اسم المستخدم أو المجموعة",
+    "deleted": "تم حذف قاعدة الوصول",
+    "added": "تمت إضافة قاعدة الوصول!",
+    "name": "الاسم",
+    "accessManagement": "إدارة الوصول"
   }
 }

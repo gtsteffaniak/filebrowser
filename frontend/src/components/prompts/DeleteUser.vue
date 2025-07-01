@@ -58,9 +58,7 @@ export default {
         if (!this.isListing) {
           await usersApi.remove(this.$route.path);
           buttons.success("delete");
-
-          this.currentPrompt?.confirm();
-          this.closeHovers();
+          window.location.reload();
           return;
         }
 
@@ -77,11 +75,10 @@ export default {
 
         await Promise.all(promises);
         buttons.success("delete");
-        mutations.setReload(true); // Handle reload as needed
+        window.location.reload();
       } catch (e) {
         buttons.done("delete");
         notify.showError(e);
-        if (this.isListing) mutations.setReload(true); // Handle reload as needed
       }
     },
   },

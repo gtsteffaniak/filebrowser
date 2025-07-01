@@ -287,7 +287,8 @@
     "disableOfficeEditorDescription": "Una lista separada por espacios de las extensiones de archivo para las que desea desactivar el visor de OnlyOffice. (por ejemplo, '.txt .html').",
     "disableOfficeEditor": "Desactivar el visor de office para determinadas extensiones de archivo",
     "disableOfficePreviews": "Desactivar la vista previa de office para determinadas extensiones de archivo",
-    "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html')."
+    "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html').",
+    "adminOptions": "Opciones del usuario administrador"
   },
   "sidebar": {
     "help": "Ayuda",
@@ -386,5 +387,34 @@
     "verificationFailed": "Verificación fallida",
     "verificationSucceed": "Verificación Éxito",
     "generationFailed": "Generación fallida"
+  },
+  "general": {
+    "name": "Nombre",
+    "path": "Ruta",
+    "user": "Usuario",
+    "group": "Grupo",
+    "signup": "Regístrese en",
+    "password": "Contraseña",
+    "username": "Nombre de usuario",
+    "files": "Archivos",
+    "folders": "Carpetas",
+    "exit": "Salida",
+    "permanent": "Permanente"
+  },
+  "access": {
+    "rules": "Normas de acceso",
+    "deny": "Denegar",
+    "deniedUsers": "Usuarios rechazados",
+    "deniedGroups": "Grupos rechazados",
+    "allowedUsers": "Usuarios permitidos",
+    "allowedGroups": "Grupos permitidos",
+    "allow": "Permitir",
+    "allowDeny": "Permitir/Denegar",
+    "userGroup": "Usuario/Grupo",
+    "enterName": "Introduzca el nombre del usuario o del grupo",
+    "deleted": "Regla de acceso eliminada",
+    "added": "Regla de acceso añadida",
+    "name": "Nombre",
+    "accessManagement": "Gestión de accesos"
   }
 }

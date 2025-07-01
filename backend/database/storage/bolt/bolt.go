@@ -32,6 +32,6 @@ func NewStorage(db *storm.DB) (*BoltStore, error) {
 		Share:    share.NewStorage(shareBackend{db: db}),
 		Auth:     authStore,
 		Settings: settings.NewStorage(settingsBackend{db: db}),
-		Access:   access.NewStorage(db),
+		Access:   access.NewStorage(db, userStore),
 	}, nil
 }
