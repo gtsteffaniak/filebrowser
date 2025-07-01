@@ -140,9 +140,6 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	source := pathParts[0]
-	if source == "" {
-		source = settings.Config.Server.DefaultSource.Name
-	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(pathParts[1])
 	if err != nil {

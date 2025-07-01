@@ -28,7 +28,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
-// @Param source query string false "Source name for the desired source, default is used if not provided"
+// @Param source query string true "Source name for the desired source, default is used if not provided"
 // @Param content query string false "Include file content if true"
 // @Param checksum query string false "Optional checksum validation"
 // @Success 200 {object} iteminfo.FileInfo "Resource metadata"
@@ -38,9 +38,6 @@ import (
 func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = config.Server.DefaultSource.Name
-	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
@@ -95,7 +92,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Accept json
 // @Produce json
 // @Param path query string true "Path to the resource"
-// @Param source query string false "Source name for the desired source, default is used if not provided"
+// @Param source query string true "Source name for the desired source, default is used if not provided"
 // @Success 200 "Resource deleted successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
@@ -105,15 +102,11 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 	// TODO source := r.URL.Query().Get("source")
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = config.Server.DefaultSource.Name
-	} else {
-		var err error
-		// decode url encoded source name
-		source, err = url.QueryUnescape(source)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-		}
+	var err error
+	// decode url encoded source name
+	source, err = url.QueryUnescape(source)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -155,7 +148,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 // @Accept json
 // @Produce json
 // @Param path query string true "url encoded destination path where to place the files inside the destination source, a directory must end in / to create a directory"
-// @Param source query string false "Name for the desired filebrowser destination source name, default is used if not provided"
+// @Param source query string true "Name for the desired filebrowser destination source name, default is used if not provided"
 // @Param override query bool false "Override existing file if true"
 // @Success 200 "Resource created successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
@@ -166,15 +159,11 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestCon
 func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	path := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = config.Server.DefaultSource.Name
-	} else {
-		var err error
-		// decode url encoded source name
-		source, err = url.QueryUnescape(source)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-		}
+	var err error
+	// decode url encoded source name
+	source, err = url.QueryUnescape(source)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}
 	fmt.Println("resourcePostHandler: source:", source, "path:", path)
 	if !d.user.Permissions.Modify {
@@ -227,7 +216,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Accept json
 // @Produce json
 // @Param path query string true "Destination path where to place the files inside the destination source"
-// @Param source query string false "Source name for the desired source, default is used if not provided"
+// @Param source query string true "Source name for the desired source, default is used if not provided"
 // @Success 200 "Resource updated successfully"
 // @Failure 403 {object} map[string]string "Forbidden"
 // @Failure 404 {object} map[string]string "Resource not found"
@@ -236,15 +225,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 // @Router /api/resources [put]
 func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = config.Server.DefaultSource.Name
-	} else {
-		var err error
-		// decode url encoded source name
-		source, err = url.QueryUnescape(source)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-		}
+	var err error
+	// decode url encoded source name
+	source, err = url.QueryUnescape(source)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
 	}
 	if !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create or modify")
@@ -421,9 +406,6 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 func inspectIndex(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = config.Server.DefaultSource.Name
-	}
 	// Decode the URL-encoded path
 	path, _ := url.QueryUnescape(encodedPath)
 	isNotDir := r.URL.Query().Get("isDir") == "false" // default to isDir true
