@@ -163,7 +163,8 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Hasło opcjonalne",
     "typeName": "Typ:",
-    "selected": "wybrany"
+    "selected": "wybrany",
+    "deleted": "Usunięto pomyślnie!"
   },
   "search": {
     "images": "Zdjęcia",
@@ -287,7 +288,8 @@
     "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których przeglądarka OnlyOffice ma zostać wyłączona. (np. \".txt .html\").",
     "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
     "disableOfficePreviews": "Wyłącz podglądy Office dla niektórych rozszerzeń plików",
-    "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\")."
+    "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\").",
+    "adminOptions": "Opcje użytkownika administratora"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -374,7 +376,8 @@
     "editOffice": "Edycja/przeglądanie plików biurowych",
     "disableUpdateNotifications": "Wyłącz wyświetlanie banera aktualizacji powiadomień na pasku bocznym.",
     "disableHideSidebar": "Wyłącz automatyczne ukrywanie paska bocznego podczas podglądu lub edycji plików.",
-    "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych w podglądzie"
+    "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych w podglądzie",
+    "deleteWithoutConfirming": "Usuwanie plików bez monitu o potwierdzenie"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",

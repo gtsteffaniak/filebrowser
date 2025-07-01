@@ -163,7 +163,8 @@
     "deleteUserMessage": "¿Está seguro de que desea eliminar este usuario?",
     "filesSelected": "archivos seleccionados",
     "typeName": "Tipo:",
-    "selected": "seleccionado"
+    "selected": "seleccionado",
+    "deleted": "¡Borrado con éxito!"
   },
   "search": {
     "images": "Imágenes",
@@ -287,7 +288,8 @@
     "disableOfficeEditorDescription": "Una lista separada por espacios de las extensiones de archivo para las que desea desactivar el visor de OnlyOffice. (por ejemplo, '.txt .html').",
     "disableOfficeEditor": "Desactivar el visor de office para determinadas extensiones de archivo",
     "disableOfficePreviews": "Desactivar la vista previa de office para determinadas extensiones de archivo",
-    "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html')."
+    "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html').",
+    "adminOptions": "Opciones del usuario administrador"
   },
   "sidebar": {
     "help": "Ayuda",
@@ -374,7 +376,8 @@
     "editOffice": "Editar/ver archivos ofimáticos",
     "disableUpdateNotifications": "Desactivar la visualización del banner de actualización de notificaciones en la barra lateral.",
     "disableHideSidebar": "Desactivar la ocultación automática de la barra lateral al previsualizar o editar archivos.",
-    "autoplayMedia": "Reproducción automática de archivos multimedia en vista previa"
+    "autoplayMedia": "Reproducción automática de archivos multimedia en vista previa",
+    "deleteWithoutConfirming": "Eliminar archivos sin mensaje de confirmación"
   },
   "otp": {
     "name": "Autenticación de dos factores",

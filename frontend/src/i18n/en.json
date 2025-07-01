@@ -170,7 +170,8 @@
     "uploadFiles": "Uploading {files} files...",
     "uploadMessage": "Select an option to upload.",
     "optionalPassword": "Optional password",
-    "typeName": "Type:"
+    "typeName": "Type:",
+    "deleted": "Deleted successfully!"
   },
   "search": {
     "images": "Images",
@@ -200,7 +201,8 @@
     "filePreviewOptions": "File preview options",
     "disableUpdateNotifications": "Disable showing notification update banner in sidebar.",
     "disableHideSidebar": "Disable automatically hiding sidebar when previewing or editing files.",
-    "autoplayMedia": "Autoplay media files in preview"
+    "autoplayMedia": "Autoplay media files in preview",
+    "deleteWithoutConfirming": "Delete files without confirmation prompt"
   },
   "settings": {
     "enterPassword": "Enter password",

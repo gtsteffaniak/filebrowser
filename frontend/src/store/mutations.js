@@ -8,6 +8,10 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setDeletedItem: (value) => {
+    state.deletedItem = value;
+    emitStateChanged();
+  },
   setSeenUpdate: (value) => {
     state.seenUpdate = value
     localStorage.setItem("seenUpdate", value);

@@ -77,6 +77,7 @@ type SourceScope struct {
 
 // json tags must match variable name with smaller case first letter
 type NonAdminEditable struct {
+	DeleteWithoutConfirming    bool    `json:"deleteWithoutConfirming"` // delete files without confirmation
 	Preview                    Preview `json:"preview"`
 	StickySidebar              bool    `json:"stickySidebar"` // keep sidebar open when navigating
 	DarkMode                   bool    `json:"darkMode"`      // should dark mode be enabled

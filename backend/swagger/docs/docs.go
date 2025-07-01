@@ -2423,6 +2423,10 @@ const docTemplate = `{
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
+                "deleteWithoutConfirming": {
+                    "description": "delete files without confirmation",
+                    "type": "boolean"
+                },
                 "disableOfficePreviewExt": {
                     "description": "comma separated list of file extensions to disable office preview for",
                     "type": "string"
@@ -2644,6 +2648,10 @@ const docTemplate = `{
                 },
                 "dateFormat": {
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
+                    "type": "boolean"
+                },
+                "deleteWithoutConfirming": {
+                    "description": "delete files without confirmation",
                     "type": "boolean"
                 },
                 "disableOfficePreviewExt": {

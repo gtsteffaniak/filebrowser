@@ -163,7 +163,8 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Password opzionale",
     "typeName": "Tipo:",
-    "selected": "selezionato"
+    "selected": "selezionato",
+    "deleted": "Eliminato con successo!"
   },
   "search": {
     "images": "Immagini",
@@ -287,7 +288,8 @@
     "disableOfficeEditorDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare il visualizzatore di OnlyOffice. (ad esempio, '.txt .html').",
     "disableOfficeEditor": "Disattivare il visualizzatore di Office per alcune estensioni di file",
     "disableOfficePreviews": "Disattivare le anteprime di Office per alcune estensioni di file",
-    "disableOfficePreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime di Office. (ad esempio, '.txt .html')."
+    "disableOfficePreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime di Office. (ad esempio, '.txt .html').",
+    "adminOptions": "Opzioni dell'utente amministratore"
   },
   "sidebar": {
     "help": "Aiuto",
@@ -374,7 +376,8 @@
     "editOffice": "Modificare/visualizzare i file dell'ufficio",
     "disableUpdateNotifications": "Disattivare la visualizzazione del banner di aggiornamento delle notifiche nella barra laterale.",
     "disableHideSidebar": "Disabilita la possibilità di nascondere automaticamente la barra laterale durante l'anteprima o la modifica dei file.",
-    "autoplayMedia": "Riproduzione automatica dei file multimediali nell'anteprima"
+    "autoplayMedia": "Riproduzione automatica dei file multimediali nell'anteprima",
+    "deleteWithoutConfirming": "Eliminazione di file senza richiesta di conferma"
   },
   "otp": {
     "name": "Autenticazione a due fattori",

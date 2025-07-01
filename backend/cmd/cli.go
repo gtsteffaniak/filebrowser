@@ -121,7 +121,7 @@ func runCLI() bool {
 				return false
 			}
 			if user.LoginMethod != users.LoginMethodPassword {
-				logger.Warningf("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username)
+				logger.Fatalf("user %s is not allowed to login with password authentication, cannot set password", username)
 			}
 			user.Password = password
 			user.TOTPSecret = "" // reset TOTP secret if it exists

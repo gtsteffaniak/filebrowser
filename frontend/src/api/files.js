@@ -208,6 +208,7 @@ export async function checksum(source, path, algo) {
 }
 
 export function getDownloadURL(source, path, inline, useExternal) {
+  console.log("getDownloadURL", source, path, inline, useExternal);
   try {
     const params = {
       files: encodeURIComponent(source) + '::' + encodeURIComponent(path),
@@ -215,7 +216,6 @@ export function getDownloadURL(source, path, inline, useExternal) {
     }
     const apiPath = getApiPath('api/raw', params)
     if (externalUrl && useExternal) {
-
       return externalUrl + removePrefix(apiPath, baseURL)
     }
     return window.origin + apiPath

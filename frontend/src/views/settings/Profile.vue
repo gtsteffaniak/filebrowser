@@ -10,6 +10,11 @@
           <div class="settings-items">
             <ToggleSwitch
               class="item"
+              v-model="localuser.deleteWithoutConfirming"
+              :name="$t('profileSettings.deleteWithoutConfirming')"
+            />
+            <ToggleSwitch
+              class="item"
               v-model="localuser.dateFormat"
               :name="$t('profileSettings.setDateFormat')"
             />
@@ -117,7 +122,6 @@
               </button>
             </div>
           </div>
-  
           <h3>{{ $t("settings.themeColor") }}</h3>
           <ButtonGroup
             :buttons="colorChoices"
@@ -266,6 +270,7 @@ export default {
           "quickDownload",
           "disableOnlyOfficeExt",
           "disableOfficePreviewExt",
+          "deleteWithoutConfirming",
           "preview",
         ]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));

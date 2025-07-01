@@ -163,7 +163,8 @@
     "deleteUserMessage": "Biztos, hogy törölni szeretné ezt a felhasználót?",
     "filesSelected": "kiválasztott fájlok",
     "typeName": "Típus:",
-    "selected": "kiválasztott"
+    "selected": "kiválasztott",
+    "deleted": "Sikeresen törölve!"
   },
   "search": {
     "images": "Képek",
@@ -287,7 +288,8 @@
     "disableOfficeEditorDescription": "Azon fájlkiterjesztések szóközzel elválasztott listája, amelyek esetében az OnlyOffice megjelenítőjét le kell tiltani. (pl. '.txt .html').",
     "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
     "disableOfficePreviews": "Office előnézet letiltása bizonyos fájlkiterjesztésekhez",
-    "disableOfficePreviewsDescription": "Az irodai előnézetek letiltásának szóközzel elválasztott fájlkiterjesztések listája. (pl. '.txt .html')."
+    "disableOfficePreviewsDescription": "Az irodai előnézetek letiltásának szóközzel elválasztott fájlkiterjesztések listája. (pl. '.txt .html').",
+    "adminOptions": "Admin felhasználói beállítások"
   },
   "sidebar": {
     "help": "Súgó",
@@ -374,7 +376,8 @@
     "editOffice": "Office fájlok szerkesztése/megjelenítése",
     "disableUpdateNotifications": "Értesítési frissítés banner megjelenítésének kikapcsolása az oldalsávban.",
     "disableHideSidebar": "Az oldalsáv automatikus elrejtésének kikapcsolása fájlok előnézeténél vagy szerkesztésénél.",
-    "autoplayMedia": "Médiafájlok automatikus lejátszása előnézetben"
+    "autoplayMedia": "Médiafájlok automatikus lejátszása előnézetben",
+    "deleteWithoutConfirming": "Fájlok törlése megerősítés nélkül"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",

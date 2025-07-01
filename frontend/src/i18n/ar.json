@@ -163,7 +163,8 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "كلمة مرور اختيارية",
     "typeName": "النوع:",
-    "selected": "مختارة"
+    "selected": "مختارة",
+    "deleted": "تم الحذف بنجاح!"
   },
   "search": {
     "images": "الصور",
@@ -287,7 +288,8 @@
     "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل عارض OnlyOffice لها. (على سبيل المثال، \".txt .html\").",
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
     "disableOfficePreviews": "تعطيل معاينات المكتب لامتدادات ملفات معينة",
-    "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\")."
+    "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\").",
+    "adminOptions": "خيارات المستخدم المسؤول"
   },
   "sidebar": {
     "help": "مساعدة",
@@ -374,7 +376,8 @@
     "editOffice": "تحرير/عرض ملفات المكتب",
     "disableUpdateNotifications": "تعطيل إظهار شعار تحديث الإشعارات في الشريط الجانبي.",
     "disableHideSidebar": "تعطيل إخفاء الشريط الجانبي تلقائيًا عند معاينة الملفات أو تحريرها.",
-    "autoplayMedia": "التشغيل التلقائي لملفات الوسائط في المعاينة"
+    "autoplayMedia": "التشغيل التلقائي لملفات الوسائط في المعاينة",
+    "deleteWithoutConfirming": "حذف الملفات بدون مطالبة التأكيد"
   },
   "otp": {
     "name": "المصادقة الثنائية",
