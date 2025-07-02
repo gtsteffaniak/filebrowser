@@ -172,7 +172,6 @@ export default {
   },
   data() {
     return {
-      sortField: "name",
       columnWidth: 250 + state.user.gallerySize * 50,
       dragCounter: 0,
       width: window.innerWidth,

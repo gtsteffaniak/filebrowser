@@ -228,6 +228,8 @@ export const mutations = {
         i18n.setLocale(value.locale);
       }
       state.user = value;
+      state.user.sorting.by = "name";
+      state.user.sorting.asc = true;
     } catch (error) {
       console.log(error);
     }
@@ -321,6 +323,7 @@ export const mutations = {
     emitStateChanged();
   },
   replaceRequest: (value) => {
+    console.log("replaceRequest", value)
     state.selected = [];
     if (!value?.items) {
       state.req = value;
@@ -334,6 +337,7 @@ export const mutations = {
       item.index = index;
       return item;
     })
+    value.items = sortedItems(value.items, state.user.sorting.by)
     state.req = value;
     emitStateChanged();
   },
@@ -347,7 +351,6 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingItems: () => {
-    state.req.items = sortedItems(state.req.items, state.user.sorting.by)
     mutations.replaceRequest(state.req);
     emitStateChanged();
   },
