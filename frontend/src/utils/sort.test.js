@@ -9,13 +9,21 @@ describe('testSort', () => {
       { name: "1" },
       { name: "10" },
       { name: "Apple" },
+      { name: "bee 20" },
+      { name: "cave 10.txt" },
+      { name: "cave 1.txt" },
       { name: "2" },
+      { name: "bee 2" },
     ]
     const expected = [
       { name: "1" },
       { name: "2" },
       { name: "10" },
       { name: "Apple" },
+      { name: "bee 2" },
+      { name: "bee 20" },
+      { name: "cave 1.txt" },
+      { name: "cave 10.txt" },
       { name: "zebra" }
     ]
     expect(sortedItems(input, "name")).toEqual(expected);
@@ -72,6 +80,5 @@ describe('testSort', () => {
     ]
     expect(sortedItems(input, "date")).toEqual(expected);
   });
-
 
 });

@@ -12,10 +12,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Filebrowser no longer requires a default source, users can be created without any sources.
  - Disables changing login type fallback behavior https://github.com/gtsteffaniak/filebrowser/issues/620
  - Uses calculated index size as "used" and total partition size as "total" https://github.com/gtsteffaniak/filebrowser/issues/875
+ - Select multiple won't show up in context menu when using a desktop browser (with keyboard), opting for keyboard shortcuts
 
  **BugFixes**:
  - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
  - getting file info issue when indexing is disabled.
+ - fixed initial sort order https://github.com/gtsteffaniak/filebrowser/issues/551
 
 ## v0.7.11-beta
 
