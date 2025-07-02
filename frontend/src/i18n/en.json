@@ -202,7 +202,10 @@
     "disableUpdateNotifications": "Disable showing notification update banner in sidebar.",
     "disableHideSidebar": "Disable automatically hiding sidebar when previewing or editing files.",
     "autoplayMedia": "Autoplay media files in preview",
-    "deleteWithoutConfirming": "Delete files without confirmation prompt"
+    "deleteWithoutConfirming": "Delete files without confirmation prompt",
+    "sidebarOptions": "Sidebar options",
+    "disableQuickToggles": "Disable quick toggles",
+    "disableSearchOptions": "Disable search options"
   },
   "settings": {
     "enterPassword": "Enter password",

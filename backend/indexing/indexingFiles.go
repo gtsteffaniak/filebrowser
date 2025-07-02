@@ -163,7 +163,6 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 }
 
 func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) {
-	fmt.Println("GetFsDirInfo", adjustedPath)
 	realPath, isDir, err := idx.GetRealPath(adjustedPath)
 	if err != nil {
 		return nil, err

@@ -109,6 +109,7 @@ type Frontend struct {
 	DisableDefaultLinks   bool           `json:"disableDefaultLinks"`   // disable default links in the sidebar
 	DisableUsedPercentage bool           `json:"disableUsedPercentage"` // disable used percentage for the sources in the sidebar
 	ExternalLinks         []ExternalLink `json:"externalLinks"`
+	DisableNavButtons     bool           `json:"disableNavButtons"` // disable the nav buttons in the sidebar
 }
 
 type ExternalLink struct {
@@ -120,6 +121,8 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
+	DisableQuickToggles        bool                `json:"disableQuickToggles"`       // disable the quick toggles in the sidebar
+	DisableSearchOptions       bool                `json:"disableSearchOptions"`      // disable the search options in the search bar
 	StickySidebar              bool                `json:"stickySidebar"`             // keep sidebar open when navigating
 	DarkMode                   bool                `json:"darkMode"`                  // should dark mode be enabled
 	Locale                     string              `json:"locale"`                    // language to use: eg. de, en, or fr

@@ -1,4 +1,3 @@
-
 import { state } from "@/store";
 
 export function sortedItems(items = [], sortby="name") {
@@ -15,8 +14,8 @@ export function sortedItems(items = [], sortby="name") {
 
             if (isNumericA && isNumericB) {
                 // Compare numeric strings as numbers
-                return state.user.sorting.asc 
-                    ? parseFloat(valueA) - parseFloat(valueB) 
+                return state.user.sorting.asc
+                    ? parseFloat(valueA) - parseFloat(valueB)
                     : parseFloat(valueB) - parseFloat(valueA);
             }
             // Compare non-numeric values as strings

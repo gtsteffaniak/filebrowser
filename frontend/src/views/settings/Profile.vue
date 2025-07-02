@@ -6,6 +6,21 @@
     <div class="card-content">
       <form>
         <div class="card-content">
+          <h3>{{ $t("profileSettings.sidebarOptions") }}</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.disableSearchOptions"
+              :name="$t('profileSettings.disableSearchOptions')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.disableQuickToggles"
+              :name="$t('profileSettings.disableQuickToggles')"
+            />
+          </div>
+        </div>
+        <div class="card-content">
           <h3>{{ $t("settings.listingOptions") }}</h3>
           <div class="settings-items">
             <ToggleSwitch
@@ -272,6 +287,8 @@ export default {
           "disableOfficePreviewExt",
           "deleteWithoutConfirming",
           "preview",
+          "disableQuickToggles",
+          "disableSearchOptions",
         ]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {
