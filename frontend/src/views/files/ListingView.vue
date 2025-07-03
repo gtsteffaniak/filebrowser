@@ -1008,4 +1008,8 @@ export default {
   border-radius: 1em;
   box-shadow: var(--primaryColor) 0 0 1em;
 }
+
+#listingView {
+  min-height: 90vh;
+}
 </style>

@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Uses calculated index size as "used" and total partition size as "total" https://github.com/gtsteffaniak/filebrowser/issues/875
  - Select multiple won't show up in context menu when using a desktop browser (with keyboard), opting for keyboard shortcuts
  - Updated translations that were not complete, such as simplified chinese https://github.com/gtsteffaniak/filebrowser/issues/895
+ - larger min drop target size https://github.com/gtsteffaniak/filebrowser/issues/902
 
  **BugFixes**:
  - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
