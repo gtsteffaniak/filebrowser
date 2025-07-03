@@ -323,7 +323,6 @@ export const mutations = {
     emitStateChanged();
   },
   replaceRequest: (value) => {
-    console.log("replaceRequest", value)
     state.selected = [];
     if (!value?.items) {
       state.req = value;
@@ -333,11 +332,12 @@ export const mutations = {
     if (!state.user.showHidden) {
       value.items = value.items.filter((item) => !item.hidden);
     }
+    // map must be last to ensure the index is set correctly
+    value.items = sortedItems(value.items, state.user.sorting.by)
     value.items.map((item, index) => {
       item.index = index;
       return item;
     })
-    value.items = sortedItems(value.items, state.user.sorting.by)
     state.req = value;
     emitStateChanged();
   },

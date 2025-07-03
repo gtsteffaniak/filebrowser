@@ -301,7 +301,8 @@
     "signup": "הרשמה",
     "siteSettings": "הגדרות",
     "sources": "מקורות",
-    "updateIsAvailable": "עדכון זמין!"
+    "updateIsAvailable": "עדכון זמין!",
+    "fileActions": "פעולות קובץ"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -373,7 +374,11 @@
     "disableUpdateNotifications": "השבת הצגת כרטיסיית עדכון הודעות בסרגל הצד.",
     "disableHideSidebar": "השבת הסתרה אוטומטית של סרגל הצד בעת תצוגה מקדימה או עריכת קבצים.",
     "autoplayMedia": "הפעל קבצי מדיה באופן אוטומטי בתצוגה מקדימה",
-    "deleteWithoutConfirming": "מחיקת קבצים ללא בקשת אישור"
+    "deleteWithoutConfirming": "מחיקת קבצים ללא בקשת אישור",
+    "sidebarOptions": "אפשרויות סרגל צד",
+    "disableQuickToggles": "השבת מתגים מהירים",
+    "disableSearchOptions": "השבת אפשרויות חיפוש",
+    "hideSidebarFileActions": "הסתר פעולות קובץ בסרגל הצד"
   },
   "otp": {
     "name": "אימות דו-גורמי",

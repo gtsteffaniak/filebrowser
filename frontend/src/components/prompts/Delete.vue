@@ -99,7 +99,7 @@ export default {
         for (let index of state.selected) {
           promises.push(filesApi.remove(state.req.items[index].url));
         }
-
+        mutations.resetSelected();
         await Promise.all(promises);
         buttons.success("delete");
         notify.showSuccess(this.$t('prompts.deleted'));

@@ -304,7 +304,8 @@
     "signup": "Registrovať",
     "siteSettings": "Nastavenia stránky",
     "sources": "Zdroje",
-    "updateIsAvailable": "K dispozícii je aktualizácia!"
+    "updateIsAvailable": "K dispozícii je aktualizácia!",
+    "fileActions": "Akcie so súbormi"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -377,7 +378,11 @@
     "disableUpdateNotifications": "Zakázanie zobrazovania bannera s oznámením o aktualizácii v bočnom paneli.",
     "disableHideSidebar": "Zakázanie automatického skrývania bočného panela pri náhľade alebo úprave súborov.",
     "autoplayMedia": "Automatické prehrávanie mediálnych súborov v náhľade",
-    "deleteWithoutConfirming": "Odstránenie súborov bez výzvy na potvrdenie"
+    "deleteWithoutConfirming": "Odstránenie súborov bez výzvy na potvrdenie",
+    "sidebarOptions": "Možnosti bočného panela",
+    "disableQuickToggles": "Zakázanie rýchlych prepínačov",
+    "disableSearchOptions": "Zakázanie možností vyhľadávania",
+    "hideSidebarFileActions": "Skrytie akcií súborov v bočnom paneli"
   },
   "otp": {
     "name": "Dvojfaktorové overovanie",

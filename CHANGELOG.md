@@ -7,17 +7,20 @@ All notable changes to this project will be documented in this file. For commit 
  **New Features**:
  - setting added `deleteWithoutConfirming`, useful for quickly deleting files -- does not apply to folders.
  - more options for minimal UI https://github.com/gtsteffaniak/filebrowser/issues/745
+ - dedicated section for sidebar customization in profile settings https://github.com/gtsteffaniak/filebrowser/issues/437
 
  **Notes**:
  - Filebrowser no longer requires a default source, users can be created without any sources.
  - Disables changing login type fallback behavior https://github.com/gtsteffaniak/filebrowser/issues/620
  - Uses calculated index size as "used" and total partition size as "total" https://github.com/gtsteffaniak/filebrowser/issues/875
  - Select multiple won't show up in context menu when using a desktop browser (with keyboard), opting for keyboard shortcuts
+ - Updated translations that were not complete, such as simplified chinese https://github.com/gtsteffaniak/filebrowser/issues/895
 
  **BugFixes**:
  - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
  - getting file info issue when indexing is disabled.
  - fixed initial sort order https://github.com/gtsteffaniak/filebrowser/issues/551
+ - Drag and Drop files fixes https://github.com/gtsteffaniak/filebrowser/issues/880
 
 ## v0.7.11-beta
 

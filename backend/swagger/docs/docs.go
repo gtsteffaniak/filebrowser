@@ -2188,9 +2188,8 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "minLength": {
-                    "description": "minimum pasword length required.",
-                    "type": "integer",
-                    "minimum": 5
+                    "description": "minimum pasword length required, default is 5.",
+                    "type": "integer"
                 },
                 "recaptcha": {
                     "description": "recaptcha config, only used if signup is enabled",
@@ -2459,6 +2458,10 @@ const docTemplate = `{
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
                 },
+                "hideSidebarFileActions": {
+                    "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
+                },
                 "locale": {
                     "description": "language to use: eg. de, en, or fr",
                     "type": "string"
@@ -2692,6 +2695,10 @@ const docTemplate = `{
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideSidebarFileActions": {
+                    "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "integer"
