@@ -15,9 +15,8 @@ import (
 )
 
 type UserRequest struct {
-	What  string      `json:"what"`
-	Which []string    `json:"which"`
-	Data  *users.User `json:"data"`
+	Which []string   `json:"which"`
+	User  users.User `json:"data"`
 }
 
 // userGetHandler retrieves a user by ID.
@@ -153,20 +152,24 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	r.Body.Close()
 
+	if req.User.Username == "" {
+		return http.StatusBadRequest, errors.ErrEmptyUsername
+	}
+
 	if len(req.Which) != 0 {
 		return http.StatusBadRequest, nil
 	}
 
-	if req.Data.Password == "" && req.Data.LoginMethod == "password" {
+	if req.User.Password == "" && req.User.LoginMethod == "password" {
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
-	err = storage.CreateUser(*req.Data, req.Data.Permissions.Admin)
+	err = storage.CreateUser(req.User, req.User.Permissions.Admin)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	w.Header().Set("Location", "/settings/users/"+strconv.FormatUint(uint64(req.Data.ID), 10))
+	w.Header().Set("Location", "/settings/users/"+strconv.FormatUint(uint64(req.User.ID), 10))
 	return http.StatusCreated, nil
 }
 
@@ -176,7 +179,8 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param id query string true "User ID"
+// @Param id query string false "user ID to update"
+// @Param id query string false "usename to update"
 // @Param data body users.User true "User data to update"
 // @Success 200 {object} users.User "Updated user details"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -185,6 +189,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 // @Router /api/users [put]
 func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	givenUserIdString := r.URL.Query().Get("id")
+	username := r.URL.Query().Get("username")
 	num, _ := strconv.ParseUint(givenUserIdString, 10, 32)
 	givenUserId := uint(num)
 
@@ -204,18 +209,32 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
-	if !req.Data.OtpEnabled {
-		req.Data.TOTPSecret = ""
-		req.Data.TOTPNonce = ""
+	if givenUserId != 0 {
+		u, err := store.Users.Get(givenUserId)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("no user not found, please provide a valid id or username")
+		}
+		req.User.ID = u.ID
+		req.User.Username = u.Username
+	} else {
+		u, err := store.Users.Get(username)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("no user not found, please provide a valid id or username")
+		}
+		req.User.ID = u.ID
+		req.User.Username = u.Username
+	}
+	if !req.User.OtpEnabled {
+		req.User.TOTPSecret = ""
+		req.User.TOTPNonce = ""
 	}
 
-	// Perform the user update
-	err = store.Users.Update(req.Data, d.user.Permissions.Admin, req.Which...)
+	err = store.Users.Update(&req.User, d.user.Permissions.Admin, req.Which...)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
 	// Return the updated user (with the password hidden) as JSON response
-	req.Data.Password = ""
-	return renderJSON(w, r, req.Data)
+	req.User.Password = ""
+	return renderJSON(w, r, req.User)
 }

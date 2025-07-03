@@ -631,7 +631,7 @@ button.action {
 .file-actions {
   padding: 0 !important;
   margin-top: 0.5em !important;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
 }
