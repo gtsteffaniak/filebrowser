@@ -16,13 +16,14 @@ All notable changes to this project will be documented in this file. For commit 
  - Select multiple won't show up in context menu when using a desktop browser (with keyboard), opting for keyboard shortcuts
  - Updated translations that were not complete, such as simplified chinese https://github.com/gtsteffaniak/filebrowser/issues/895
  - larger min drop target size https://github.com/gtsteffaniak/filebrowser/issues/902
+ - refresh page after file actions https://github.com/gtsteffaniak/filebrowser/issues/894
 
  **BugFixes**:
  - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
  - getting file info issue when indexing is disabled.
  - fixed initial sort order https://github.com/gtsteffaniak/filebrowser/issues/551
  - incorrect filename Drag and Drop fixes https://github.com/gtsteffaniak/filebrowser/issues/880
- - fix share duration showing created time instead https://github.com/gtsteffaniak/filebrowser/issues/896
+ - fix share duration always showing just now https://github.com/gtsteffaniak/filebrowser/issues/896
 
 ## v0.7.11-beta
 

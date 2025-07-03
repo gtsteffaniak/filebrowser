@@ -285,7 +285,6 @@ export default {
         mutations.replaceRequest(file);
         document.title = `${document.title} - ${file.name}`;
       } catch (error) {
-        console.log("error", error);
         this.error = error;
       }
 

@@ -1,6 +1,6 @@
 import { fetchURL, adjustedData } from './utils'
 import { getApiPath, extractSourceFromPath,removePrefix } from '@/utils/url.js'
-import { state } from '@/store'
+import { state, mutations } from '@/store'
 import { notify } from '@/notify'
 import { externalUrl,baseURL,serverHasMultipleSources } from '@/utils/constants'
 
@@ -184,6 +184,7 @@ export async function moveCopy(
     notify.showSuccess(
       action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
     )
+    mutations.setReload(true);
   } catch (err) {
     notify.showError(err.message || 'Error moving/copying resources')
     throw err // Re-throw the error to propagate it back to the caller
