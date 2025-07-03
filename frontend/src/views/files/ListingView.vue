@@ -574,7 +574,7 @@ export default {
       }
     },
     keyEvent(event) {
-      if (state.isSearchActive || getters.currentView() !== "listingView") {
+      if (state.isSearchActive || getters.currentView() != "listingView" || getters.currentPromptName() != null) {
         return;
       }
       const { key, ctrlKey, metaKey, which } = event;
@@ -830,7 +830,9 @@ export default {
       let dt = event.dataTransfer;
       let el = event.target;
 
-      if (dt.files.length <= 0) return;
+      if (dt.files.length <= 0) {
+        return;
+      }
 
       for (let i = 0; i < 5; i++) {
         if (el !== null && !el.classList.contains("item")) {
@@ -840,24 +842,29 @@ export default {
 
       let rawFiles = await upload.scanFiles(dt);
       let items = state.req.items;
-      let path = getters.routePath();
+      let path = state.req.path;
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
-        const response = await filesApi.fetchFiles(decodeURIComponent(el.__vue__.url));
-        path = el.__vue__.url;
+        const response = await filesApi.fetchFiles(el.__vue__.url);
+        path = decodeURIComponent(el.__vue__.url);
         items = response.items;
       }
 
-      const uploadFiles = rawFiles.map((file) => ({
-        file,
-        name: file.name,
-        size: file.size,
-        path: file.fullPath || file.webkitRelativePath || file.name,
-        fullPath: file.fullPath || file.webkitRelativePath || file.name,
-        source: state.req.source,
-      }));
+      const uploadFiles = rawFiles.map((file) => {
+        // Here we construct a path that handleFiles will use
+        const filePath = file.fullPath || file.webkitRelativePath || file.name;
+        return {
+          file,
+          name: file.name,
+          size: file.size,
+          path: filePath,
+          fullPath: filePath,
+          source: state.req.source,
+        };
+      });
 
       const conflict = upload.checkConflict(uploadFiles, items);
+
       try {
         if (conflict) {
           mutations.showHover({
@@ -872,8 +879,8 @@ export default {
           await upload.handleFiles(uploadFiles, path);
         }
         mutations.setReload(true);
-      } catch {
-        console.log("failed to upload files");
+      } catch (e) {
+        console.error("failed to upload files", e);
       }
     },
 
@@ -897,7 +904,7 @@ export default {
         });
       }
 
-      const path = getters.routePath();
+      const path = state.req.path;
       const conflict = upload.checkConflict(uploadFiles, state.req.items);
 
       if (conflict) {
@@ -957,6 +964,7 @@ export default {
       mutations.showHover({
         name: "ContextMenu",
         props: {
+          showCentered: getters.isMobile(),
           posX: event.clientX,
           posY: event.clientY,
         },

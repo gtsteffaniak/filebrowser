@@ -132,9 +132,15 @@ export default {
       showCreate: false,
     };
   },
+  props: {
+    showCentered: {
+      type: Boolean,
+      default: false,
+    },
+  },
   computed: {
     isMobileDevice() {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || getters.isMobile();
     },
     noItems() {
       return !this.showEdit && !this.showSave && !this.showDelete;
@@ -193,7 +199,7 @@ export default {
       return state.user;
     },
     centered() {
-      return getters.isMobile() || !this.posX || !this.posY;
+      return this.showCentered || !this.posX || !this.posY;
     },
     top() {
       // Ensure the context menu stays within the viewport

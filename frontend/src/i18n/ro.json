@@ -304,7 +304,8 @@
     "signup": "Înregistrare",
     "siteSettings": "Setări site",
     "sources": "Surse",
-    "updateIsAvailable": "O actualizare este disponibilă!"
+    "updateIsAvailable": "O actualizare este disponibilă!",
+    "fileActions": "Acțiuni de fișier"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -377,7 +378,11 @@
     "disableUpdateNotifications": "Dezactivați afișarea bannerului de actualizare a notificărilor în bara laterală.",
     "disableHideSidebar": "Dezactivați ascunderea automată a barei laterale la previzualizarea sau editarea fișierelor.",
     "autoplayMedia": "Redarea automată a fișierelor media în previzualizare",
-    "deleteWithoutConfirming": "Ștergeți fișiere fără solicitare de confirmare"
+    "deleteWithoutConfirming": "Ștergeți fișiere fără solicitare de confirmare",
+    "sidebarOptions": "Opțiuni pentru bara laterală",
+    "disableQuickToggles": "Dezactivați comutatoarele rapide",
+    "disableSearchOptions": "Dezactivați opțiunile de căutare",
+    "hideSidebarFileActions": "Ascundeți acțiunile fișierelor în bara laterală"
   },
   "otp": {
     "name": "Autentificare cu doi factori",

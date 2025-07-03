@@ -18,6 +18,17 @@
               v-model="localuser.disableQuickToggles"
               :name="$t('profileSettings.disableQuickToggles')"
             />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.disableHideSidebar"
+              :name="$t('profileSettings.disableHideSidebar')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.hideSidebarFileActions"
+              :name="$t('profileSettings.hideSidebarFileActions')"
+            />
+
           </div>
         </div>
         <div class="card-content">
@@ -76,18 +87,10 @@
               v-model="localuser.preview.popup"
               :name="$t('profileSettings.popupPreview')"
             />
-          </div>
-          <h3>{{ $t("profileSettings.filePreviewOptions") }}</h3>
-          <div class="settings-items">
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.autoplayMedia"
               :name="$t('profileSettings.autoplayMedia')"
-            />
-            <ToggleSwitch
-              class="item"
-              v-model="localuser.preview.disableHideSidebar"
-              :name="$t('profileSettings.disableHideSidebar')"
             />
           </div>
           <div v-if="hasOnlyOfficeEnabled">
@@ -289,6 +292,7 @@ export default {
           "preview",
           "disableQuickToggles",
           "disableSearchOptions",
+          "hideSidebarFileActions",
         ]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {

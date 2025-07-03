@@ -205,7 +205,8 @@
     "deleteWithoutConfirming": "Delete files without confirmation prompt",
     "sidebarOptions": "Sidebar options",
     "disableQuickToggles": "Disable quick toggles",
-    "disableSearchOptions": "Disable search options"
+    "disableSearchOptions": "Disable search options",
+    "hideSidebarFileActions": "Hide file actions in sidebar"
   },
   "settings": {
     "enterPassword": "Enter password",
@@ -321,7 +322,8 @@
     "sources": "Sources",
     "signup": "Signup",
     "siteSettings": "Site Settings",
-    "updateIsAvailable": "An update is available!"
+    "updateIsAvailable": "An update is available!",
+    "fileActions": "File actions"
   },
   "success": {
     "linkCopied": "Link copied!"

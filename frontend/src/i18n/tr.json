@@ -304,7 +304,8 @@
     "signup": "Kayıt",
     "siteSettings": "Site ayarları!",
     "sources": "Kaynaklar",
-    "updateIsAvailable": "Bir güncelleme mevcut!"
+    "updateIsAvailable": "Bir güncelleme mevcut!",
+    "fileActions": "Dosya işlemleri"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -377,7 +378,11 @@
     "disableUpdateNotifications": "Kenar çubuğunda bildirim güncelleme banner'ını göstermeyi devre dışı bırakın.",
     "disableHideSidebar": "Dosyaları önizlerken veya düzenlerken kenar çubuğunu otomatik olarak gizlemeyi devre dışı bırakın.",
     "autoplayMedia": "Medya dosyalarını önizlemede otomatik oynatma",
-    "deleteWithoutConfirming": "Dosyaları onay istemi olmadan silme"
+    "deleteWithoutConfirming": "Dosyaları onay istemi olmadan silme",
+    "sidebarOptions": "Kenar çubuğu seçenekleri",
+    "disableQuickToggles": "Hızlı geçişleri devre dışı bırakma",
+    "disableSearchOptions": "Arama seçeneklerini devre dışı bırak",
+    "hideSidebarFileActions": "Kenar çubuğundaki dosya eylemlerini gizle"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",

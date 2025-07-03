@@ -304,7 +304,8 @@
     "signup": "Rejestracja",
     "siteSettings": "Ustawienia Strony",
     "sources": "Źródła",
-    "updateIsAvailable": "Aktualizacja jest już dostępna!"
+    "updateIsAvailable": "Aktualizacja jest już dostępna!",
+    "fileActions": "Działania na plikach"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -377,7 +378,11 @@
     "disableUpdateNotifications": "Wyłącz wyświetlanie banera aktualizacji powiadomień na pasku bocznym.",
     "disableHideSidebar": "Wyłącz automatyczne ukrywanie paska bocznego podczas podglądu lub edycji plików.",
     "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych w podglądzie",
-    "deleteWithoutConfirming": "Usuwanie plików bez monitu o potwierdzenie"
+    "deleteWithoutConfirming": "Usuwanie plików bez monitu o potwierdzenie",
+    "sidebarOptions": "Opcje paska bocznego",
+    "disableQuickToggles": "Wyłączanie szybkich przełączników",
+    "disableSearchOptions": "Wyłącz opcje wyszukiwania",
+    "hideSidebarFileActions": "Ukryj akcje związane z plikami na pasku bocznym"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",
