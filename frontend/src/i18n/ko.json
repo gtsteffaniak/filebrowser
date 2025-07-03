@@ -240,7 +240,6 @@
     "rulesHelp": "사용자별로 규칙을 허용/방지를 지정할 수 있습니다. 방지된 파일은 보이지 않고 사용자들은 접근할 수 없습니다. 사용자의 접근 허용 범위와 관련해 정규표현식(regex)과 경로를 지원합니다.\n",
     "scope": "범위",
     "settingsUpdated": "설정 수정됨!",
-    "shareDuration": "공유 기간",
     "shareManagement": "공유 관리",
     "singleClick": "클릭 한 번으로 파일과 디렉터리 열기",
     "themes": {
@@ -289,7 +288,8 @@
     "disableOfficeEditor": "특정 파일 확장자에 대해 Office 뷰어 사용 안 함",
     "disableOfficePreviews": "특정 파일 확장명에 대한 Office 미리 보기 사용 안 함",
     "disableOfficePreviewsDescription": "Office 미리 보기를 사용하지 않도록 설정할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html').",
-    "adminOptions": "관리자 사용자 옵션"
+    "adminOptions": "관리자 사용자 옵션",
+    "shareDuration": "만료"
   },
   "sidebar": {
     "help": "도움말",

@@ -243,7 +243,6 @@
     "scope": "תחום",
     "setDateFormat": "הגדר פורמט תאריך",
     "settingsUpdated": "ההגדרות עודכנו!",
-    "shareDuration": "משך השיתוף",
     "shareManagement": "ניהול שיתוף",
     "shareDeleted": "שיתוף נמחק!",
     "singleClick": "השתמש בלחיצות בודדות כדי לפתוח קבצים ותקיות",
@@ -286,7 +285,8 @@
     "disableUsedDiskPercentage": "השבת גרף אחוזי השימוש בדיסק",
     "shareSettings": "הגדרות שיתוף",
     "api": "מפתחות API",
-    "adminOptions": "אפשרויות משתמש מנהל"
+    "adminOptions": "אפשרויות משתמש מנהל",
+    "shareDuration": "תוקף"
   },
   "sidebar": {
     "help": "עזרה",

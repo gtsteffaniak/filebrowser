@@ -21,7 +21,8 @@ All notable changes to this project will be documented in this file. For commit 
  - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
  - getting file info issue when indexing is disabled.
  - fixed initial sort order https://github.com/gtsteffaniak/filebrowser/issues/551
- - Drag and Drop files fixes https://github.com/gtsteffaniak/filebrowser/issues/880
+ - incorrect filename Drag and Drop fixes https://github.com/gtsteffaniak/filebrowser/issues/880
+ - fix share duration showing created time instead https://github.com/gtsteffaniak/filebrowser/issues/896
 
 ## v0.7.11-beta
 

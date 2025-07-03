@@ -240,7 +240,6 @@
     "rulesHelp": "Tu możesz zdefiniować zestawienie reguł zezwalających i zabraniających dla tego konkretnego użytkownika. Zablokowane pliki nie będą widoczne na listach i nie będą dostępne dla użytkownika. Wspierane są wyrażenia regularne i ścieżki względne wobec zakresu użytkownika.\n",
     "scope": "Zakres",
     "settingsUpdated": "Uprawnienia Zapisane!",
-    "shareDuration": "Okres udostępniania",
     "shareManagement": "Zarządzanie udostępnianiem",
     "singleClick": "Pojedyncze kliknięcie",
     "themes": {
@@ -289,7 +288,8 @@
     "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
     "disableOfficePreviews": "Wyłącz podglądy Office dla niektórych rozszerzeń plików",
     "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\").",
-    "adminOptions": "Opcje użytkownika administratora"
+    "adminOptions": "Opcje użytkownika administratora",
+    "shareDuration": "Wygasa"
   },
   "sidebar": {
     "help": "Pomoc",

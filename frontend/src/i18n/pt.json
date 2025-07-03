@@ -240,7 +240,6 @@
     "rulesHelp": "Aqui pode definir um conjunto de regras para permitir ou bloquear o acesso do utilizador a determinados ficheiros ou pastas. Os ficheiros bloqueados não irão aparecer durante a navegação. Suportamos expressões regulares e os caminhos dos ficheiros devem ser relativos à base do utilizador.\n",
     "scope": "Base",
     "settingsUpdated": "Configurações atualizadas!",
-    "shareDuration": "Partilhar Duração",
     "shareManagement": "Gestão de acções",
     "singleClick": "Utilizar cliques únicos para abrir ficheiros e diretórios",
     "themes": {
@@ -285,7 +284,8 @@
     "shareSettings": "Partilhar definições",
     "api": "Chaves da API",
     "shareDeleted": "Partilhar eliminado!",
-    "adminOptions": "Opções do utilizador administrador"
+    "adminOptions": "Opções do utilizador administrador",
+    "shareDuration": "Expirações"
   },
   "sidebar": {
     "help": "Ajuda",

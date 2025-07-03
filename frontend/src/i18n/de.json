@@ -245,7 +245,6 @@
     "scope": "Scope",
     "setDateFormat": "Exaktes Datumsformat setzen",
     "settingsUpdated": "Einstellungen aktualisiert!",
-    "shareDuration": "Dauer",
     "shareManagement": "Freigaben verwalten",
     "shareDeleted": "Freigabe gelöscht!",
     "singleClick": "Einfacher Klick zum Öffnen von Dateien und Ordnern",
@@ -289,7 +288,8 @@
     "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren",
     "disableOfficePreviews": "Office-Vorschauen für bestimmte Dateierweiterungen deaktivieren",
     "disableOfficePreviewsDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Vorschau deaktiviert werden soll. (z. B. '.txt .html').",
-    "adminOptions": "Optionen für Verwaltungsbenutzer"
+    "adminOptions": "Optionen für Verwaltungsbenutzer",
+    "shareDuration": "Abgelaufen"
   },
   "sidebar": {
     "help": "Hilfe",

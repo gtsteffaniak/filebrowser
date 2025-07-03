@@ -245,7 +245,6 @@
     "scope": "Raíz",
     "setDateFormat": "Establecer el formato exacto de la fecha",
     "settingsUpdated": "¡Ajustes actualizados!",
-    "shareDuration": "Compartir Duración",
     "shareManagement": "Gestión Compartida",
     "shareDeleted": "¡Recurso compartido eliminado!",
     "singleClick": "Utilice un solo clic para abrir archivos y directorios",
@@ -289,7 +288,8 @@
     "disableOfficeEditor": "Desactivar el visor de office para determinadas extensiones de archivo",
     "disableOfficePreviews": "Desactivar la vista previa de office para determinadas extensiones de archivo",
     "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html').",
-    "adminOptions": "Opciones del usuario administrador"
+    "adminOptions": "Opciones del usuario administrador",
+    "shareDuration": "Expira en"
   },
   "sidebar": {
     "help": "Ayuda",
