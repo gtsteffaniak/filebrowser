@@ -172,7 +172,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	scopePath := utils.JoinPathAsUnix(userscope, path)
 	fileOpts := iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,

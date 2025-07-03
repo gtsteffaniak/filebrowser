@@ -1,4 +1,4 @@
-import { state } from '@/store'
+import { state, mutations } from '@/store'
 import { filesApi } from '@/api'
 import { notify } from '@/notify'
 
@@ -154,7 +154,7 @@ export async function handleFiles (files, base, overwrite = false) {
         const spinner = document.querySelector('.notification-spinner')
         if (spinner) spinner.classList.add('hidden')
         console.log('Upload successful!', response)
-        window.location.reload()
+        mutations.setReload(true);
       })
       .catch(error => {
         const spinner = document.querySelector('.notification-spinner')
