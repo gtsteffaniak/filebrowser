@@ -145,14 +145,15 @@ func DeleteFiles(source, absPath string, absDirPath string) error {
 }
 
 func RefreshIndex(source string, path string, isDir bool) error {
-	index := indexing.GetIndex(source)
-	if index == nil {
+	idx := indexing.GetIndex(source)
+	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	if index.Config.DisableIndexing {
+	if idx.Config.DisableIndexing {
 		return nil
 	}
-	return index.RefreshFileInfo(iteminfo.FileOptions{Path: path, IsDir: isDir})
+	path = idx.MakeIndexPath(path)
+	return idx.RefreshFileInfo(iteminfo.FileOptions{Path: path, IsDir: isDir})
 }
 
 func MoveResource(sourceIndex, destIndex, realsrc, realdst string) error {
@@ -172,7 +173,7 @@ func CopyResource(sourceIndex, destIndex, realsrc, realdst string) error {
 	if err != nil {
 		return err
 	}
-	return RefreshIndex(sourceIndex, filepath.Dir(realsrc), true)
+	err = RefreshIndex(sourceIndex, filepath.Dir(realsrc), true)
 	if err != nil {
 		return err
 	}
