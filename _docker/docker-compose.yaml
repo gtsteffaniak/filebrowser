@@ -13,4 +13,4 @@ services:
       - "./src/proxy/backend/config.yaml:/home/filebrowser/config.yaml"
     build:
       context: ../
-      dockerfile: ./_docker/Dockerfile
+      dockerfile: ./_docker/Dockerfile.slim

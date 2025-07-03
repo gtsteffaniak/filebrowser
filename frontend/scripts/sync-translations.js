@@ -22,8 +22,22 @@ if (!DEEPL_API_KEY) {
 
 const translator = new deepl.Translator(DEEPL_API_KEY);
 
+const deeplLangMap = {
+  'zh-cn': 'ZH',
+  'pt': 'PT-PT',      // or 'PT-BR' if you want Brazilian Portuguese
+  'pt-br': 'PT-BR',
+  'en': 'EN',
+  'en-us': 'EN-US',
+  'en-gb': 'EN-GB',
+  'sv-se': 'SV',
+  'ua': 'UK',
+  'nl-be': 'NL',
+  // Add more as needed
+};
+
 // --- Translation Function using DeepL ---
 async function translateText(text, targetLanguage, keyPath = '') {
+
   if (!text || typeof text !== 'string' || text.trim() === '') {
     console.warn(`Skipping translation for empty or non-string text: "${text}"`);
     return text;
@@ -41,7 +55,9 @@ async function translateText(text, targetLanguage, keyPath = '') {
   try {
     console.log(`Translating "${text}" from '${masterLanguageCode}' to '${targetLanguage}'...`);
 
-    const result = await translator.translateText(text, masterLanguageCode, targetLanguage.toUpperCase());
+    let deeplTargetLang = deeplLangMap[targetLanguage.toLowerCase()] || targetLanguage.toUpperCase();
+
+    const result = await translator.translateText(text, masterLanguageCode, deeplTargetLang);
 
     // Delay to avoid rate-limiting
     await new Promise(resolve => setTimeout(resolve, 100));

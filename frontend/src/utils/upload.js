@@ -113,6 +113,12 @@ export async function handleFiles (files, base, overwrite = false) {
     let basePath = base
     let relativePath = file.fullPath || file.webkitRelativePath || file.name
 
+    // Do not allow paths to go backwards
+    if (relativePath.includes('../')) {
+        console.error('Path traversal detected, upload blocked for file:', relativePath);
+        return; // or throw an error
+    }
+
     if (basePath.endsWith('/')) basePath = basePath.slice(0, -1)
     if (relativePath.startsWith('/')) relativePath = relativePath.slice(1)
 
@@ -134,7 +140,6 @@ export async function handleFiles (files, base, overwrite = false) {
       `(${c} of ${count}) Uploading ${relativePath}`,
       false
     )
-
     await filesApi
       .post(item.path, item.file, item.overwrite, percentComplete => {
         if (blockUpdates) return
@@ -149,7 +154,7 @@ export async function handleFiles (files, base, overwrite = false) {
         const spinner = document.querySelector('.notification-spinner')
         if (spinner) spinner.classList.add('hidden')
         console.log('Upload successful!', response)
-        notify.showSuccess('Upload successful!')
+        window.location.reload()
       })
       .catch(error => {
         const spinner = document.querySelector('.notification-spinner')

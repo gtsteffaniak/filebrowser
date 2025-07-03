@@ -304,7 +304,8 @@
     "signup": "Regisztráció",
     "siteSettings": "Oldalbeállítások",
     "sources": "Források",
-    "updateIsAvailable": "Elérhető a frissítés!"
+    "updateIsAvailable": "Elérhető a frissítés!",
+    "fileActions": "Fájl műveletek"
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -377,7 +378,11 @@
     "disableUpdateNotifications": "Értesítési frissítés banner megjelenítésének kikapcsolása az oldalsávban.",
     "disableHideSidebar": "Az oldalsáv automatikus elrejtésének kikapcsolása fájlok előnézeténél vagy szerkesztésénél.",
     "autoplayMedia": "Médiafájlok automatikus lejátszása előnézetben",
-    "deleteWithoutConfirming": "Fájlok törlése megerősítés nélkül"
+    "deleteWithoutConfirming": "Fájlok törlése megerősítés nélkül",
+    "sidebarOptions": "Oldalsáv beállítások",
+    "disableQuickToggles": "Gyorskapcsolók letiltása",
+    "disableSearchOptions": "Keresési lehetőségek letiltása",
+    "hideSidebarFileActions": "Fájlműveletek elrejtése az oldalsávban"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",

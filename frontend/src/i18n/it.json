@@ -304,7 +304,8 @@
     "signup": "Registrati",
     "siteSettings": "Impostazioni del sito",
     "sources": "Fonti",
-    "updateIsAvailable": "È disponibile un aggiornamento!"
+    "updateIsAvailable": "È disponibile un aggiornamento!",
+    "fileActions": "Azioni sui file"
   },
   "success": {
     "linkCopied": "Link copiato!"
@@ -377,7 +378,11 @@
     "disableUpdateNotifications": "Disattivare la visualizzazione del banner di aggiornamento delle notifiche nella barra laterale.",
     "disableHideSidebar": "Disabilita la possibilità di nascondere automaticamente la barra laterale durante l'anteprima o la modifica dei file.",
     "autoplayMedia": "Riproduzione automatica dei file multimediali nell'anteprima",
-    "deleteWithoutConfirming": "Eliminazione di file senza richiesta di conferma"
+    "deleteWithoutConfirming": "Eliminazione di file senza richiesta di conferma",
+    "sidebarOptions": "Opzioni della barra laterale",
+    "disableQuickToggles": "Disattivare i toggle rapidi",
+    "disableSearchOptions": "Disattivare le opzioni di ricerca",
+    "hideSidebarFileActions": "Nascondere le azioni dei file nella barra laterale"
   },
   "otp": {
     "name": "Autenticazione a due fattori",

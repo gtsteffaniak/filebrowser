@@ -304,7 +304,8 @@
     "signup": "가입하기",
     "siteSettings": "사이트 설정",
     "sources": "출처",
-    "updateIsAvailable": "업데이트를 사용할 수 있습니다!"
+    "updateIsAvailable": "업데이트를 사용할 수 있습니다!",
+    "fileActions": "파일 작업"
   },
   "success": {
     "linkCopied": "링크가 복사되었습니다!"
@@ -377,7 +378,11 @@
     "disableUpdateNotifications": "사이드바에 알림 업데이트 배너 표시를 비활성화합니다.",
     "disableHideSidebar": "파일을 미리 보거나 편집할 때 사이드바 자동 숨기기를 비활성화합니다.",
     "autoplayMedia": "미리보기에서 미디어 파일 자동 재생",
-    "deleteWithoutConfirming": "확인 메시지 없이 파일 삭제"
+    "deleteWithoutConfirming": "확인 메시지 없이 파일 삭제",
+    "sidebarOptions": "사이드바 옵션",
+    "disableQuickToggles": "빠른 토글 비활성화",
+    "disableSearchOptions": "검색 옵션 비활성화",
+    "hideSidebarFileActions": "사이드바에서 파일 작업 숨기기"
   },
   "otp": {
     "name": "2단계 인증",

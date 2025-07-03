@@ -345,8 +345,7 @@ definitions:
           Otherwise, users can choose to enable TOTP.
         type: boolean
       minLength:
-        description: minimum pasword length required.
-        minimum: 5
+        description: minimum pasword length required, default is 5.
         type: integer
       recaptcha:
         allOf:
@@ -546,6 +545,9 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideSidebarFileActions:
+        description: hide the file actions in the sidebar
+        type: boolean
       locale:
         description: 'language to use: eg. de, en, or fr'
         type: string
@@ -719,6 +721,9 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideSidebarFileActions:
+        description: hide the file actions in the sidebar
+        type: boolean
       id:
         type: integer
       locale:

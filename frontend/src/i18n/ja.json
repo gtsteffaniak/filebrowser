@@ -304,7 +304,8 @@
     "signup": "Signup",
     "siteSettings": "サイト設定",
     "sources": "情報源",
-    "updateIsAvailable": "アップデートがある！"
+    "updateIsAvailable": "アップデートがある！",
+    "fileActions": "ファイル操作"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -377,7 +378,11 @@
     "disableUpdateNotifications": "サイドバーに通知更新バナーを表示しないようにしました。",
     "disableHideSidebar": "ファイルのプレビューや編集時にサイドバーを自動的に非表示にします。",
     "autoplayMedia": "プレビューでメディアファイルを自動再生",
-    "deleteWithoutConfirming": "確認プロンプトなしでファイルを削除する"
+    "deleteWithoutConfirming": "確認プロンプトなしでファイルを削除する",
+    "sidebarOptions": "サイドバーオプション",
+    "disableQuickToggles": "クイックトグルを無効にする",
+    "disableSearchOptions": "検索オプションを無効にする",
+    "hideSidebarFileActions": "サイドバーにファイルアクションを隠す"
   },
   "otp": {
     "name": "二要素認証",

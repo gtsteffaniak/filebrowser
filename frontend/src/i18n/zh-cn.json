@@ -35,7 +35,12 @@
     "toggleSidebar": "切换侧边栏",
     "update": "更新",
     "upload": "上传",
-    "openFile": "打开文件"
+    "openFile": "打开文件",
+    "generateNewOtp": "重置并生成新的双因素代码",
+    "verify": "验证",
+    "copyDownloadLinkToClipboard": "将下载链接复制到剪贴板",
+    "continue": "继续",
+    "edit": "编辑"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -116,7 +121,8 @@
     "submit": "登录",
     "username": "用户名",
     "usernameTaken": "用户名已经被使用",
-    "wrongCredentials": "用户名或密码错误"
+    "wrongCredentials": "用户名或密码错误",
+    "or": "或"
   },
   "permanent": "永久",
   "prompts": {
@@ -152,7 +158,13 @@
     "size": "大小",
     "upload": "上传",
     "uploadMessage": "选择上传选项。",
-    "optionalPassword": "密码（选填，不填即无密码）"
+    "optionalPassword": "密码（选填，不填即无密码）",
+    "deleteUserMessage": "您确定要删除该用户吗？",
+    "selected": "选定的",
+    "filesSelected": "所选文件",
+    "uploadFiles": "Uploading {files} files...",
+    "typeName": "类型",
+    "deleted": "已成功删除！"
   },
   "search": {
     "images": "图像",
@@ -162,7 +174,12 @@
     "search": "搜索...",
     "typeToSearch": "输入以搜索...",
     "types": "类型",
-    "video": "视频"
+    "video": "视频",
+    "path": "路径",
+    "smallerThan": "小于",
+    "largerThan": "大于：",
+    "helpText1": "您键入的每个字符都会进行搜索（搜索词最少 3 个字符）。",
+    "helpText2": "索引：利用索引进行搜索，索引会根据配置的时间间隔（默认为 5 分钟）自动更新。程序刚启动时进行搜索可能会导致搜索结果不完整。"
   },
   "settings": {
     "scopes": "定义允许的来源及其中的用户范围",
@@ -210,7 +227,10 @@
       "execute": "执行命令",
       "modify": "编辑",
       "rename": "重命名或移动文件和文件夹",
-      "share": "分享文件"
+      "share": "分享文件",
+      "admin": "管理员",
+      "api": "创建和管理长效 API 密钥",
+      "realtime": "实现实时连接和更新"
     },
     "permissions-name": "权限",
     "permissionsHelp": "您可以将该用户设置为管理员或单独选择各项权限。如果您选择了“管理员”，则其他的选项会被自动选中，同时该用户可以管理其他用户。\n",
@@ -240,7 +260,33 @@
     "userManagement": "用户管理",
     "userUpdated": "用户已更新！",
     "username": "用户名",
-    "users": "用户"
+    "users": "用户",
+    "enterPassword": "输入密码",
+    "enterPasswordAgain": "再次输入密码",
+    "passwordsDoNotMatch": "密码不匹配",
+    "loginMethod": "登录方法",
+    "loginMethodDescription": "用户允许的登录方式。",
+    "modifyOtherUser": "修改用户：",
+    "modifyCurrentUser": "修改当前用户",
+    "themeColor": "主题颜色",
+    "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 浏览器。(例如，\".txt .html\"）。",
+    "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器",
+    "disableOfficePreviews": "禁用某些文件扩展名的 Office 预览功能",
+    "disableOfficePreviewsDescription": "用空格分隔的文件扩展名列表，用于禁用办公预览。(例如，\".txt .html\"）。",
+    "listingOptions": "列表选项",
+    "emptyGlobal": "目前没有全局配置选项，您可以编辑配置 yaml 来调整系统设置。",
+    "UserManagement": "用户管理",
+    "userNotAdmin": "用户不是管理员",
+    "tusUploads": "分块上传",
+    "tusUploadsHelp": "文件浏览器支持分块文件上传，即使在不可靠的网络上也能创建高效、可靠、可恢复和分块的文件上传。",
+    "tusUploadsChunkSize": "表示请求的最大大小（直接上传将用于较小的上传）。您可以输入表示字节输入的纯整数或字符串，如 10MB、1GB 等。",
+    "tusUploadsRetryCount": "块上传失败时的重试次数。",
+    "userHomeBasePath": "用户主目录的基本路径",
+    "userScopeGenerationPlaceholder": "范围将自动生成",
+    "createUserHomeDirectory": "创建用户主目录",
+    "shareSettings": "共享设置",
+    "api": "API 密钥",
+    "adminOptions": "管理员用户选项"
   },
   "sidebar": {
     "help": "帮助",
@@ -253,7 +299,10 @@
     "preview": "预览",
     "settings": "设置",
     "signup": "注册",
-    "siteSettings": "网站设置"
+    "siteSettings": "网站设置",
+    "sources": "资料来源",
+    "updateIsAvailable": "有了最新进展！",
+    "fileActions": "文件操作"
   },
   "success": {
     "linkCopied": "链接已复制！"
@@ -265,8 +314,81 @@
     "seconds": "秒",
     "unit": "时间单位"
   },
-  "upload": {},
-  "share": {},
-  "api": {},
-  "index": {}
+  "upload": {
+    "abortUpload": "你确定要流产吗？"
+  },
+  "share": {
+    "notice": "注意：任何可以访问链接（和可选密码）的人都可以访问共享文件。无需登录。"
+  },
+  "api": {
+    "title": "应用程序接口密钥",
+    "keyName": "API 密钥名称：",
+    "createdAt": "创建于",
+    "expiresAt": "有效期至",
+    "permissions": "权限",
+    "createTitle": "创建 API 密钥",
+    "keyNamePlaceholder": "输入唯一的 API 密钥名称：",
+    "tokenDuration": "令牌持续时间：",
+    "durationNumberPlaceholder": "数量",
+    "days": "天数",
+    "months": "月数",
+    "permissionNote": "为密钥选择至少一个权限。您的用户也必须拥有该权限。",
+    "createKeyFailed": "创建 API 密钥失败。",
+    "createKeySuccess": "API 密钥创建成功。",
+    "description": "API 密钥基于创建密钥的用户。请参见",
+    "swaggerLinkText": "跩頁",
+    "name": "名称",
+    "created": "创建",
+    "expires": "到期",
+    "actions": "行动",
+    "enabled": "已启用",
+    "disabled": "残疾"
+  },
+  "index": {
+    "status": "现状",
+    "assessment": "评估",
+    "files": "文件",
+    "folders": "文件夹",
+    "lastScanned": "上次扫描",
+    "quickScan": "快速扫描秒数",
+    "fullScan": "完整扫描秒数",
+    "settingsHover": "用户设置",
+    "logout": "注销",
+    "toggleClick": "单击切换",
+    "toggleDark": "切换黑暗模式",
+    "toggleSticky": "切换粘贴模式",
+    "of": "的",
+    "used": "中古"
+  },
+  "profileSettings": {
+    "setDateFormat": "设置准确的日期格式",
+    "showHiddenFiles": "显示隐藏文件",
+    "showQuickDownload": "显示下载图标以便快速访问",
+    "previewImages": "预览图片",
+    "previewVideos": "预览视频",
+    "previewMotionVideos": "视频动态预览",
+    "highQualityPreview": "高质量预览图库图像",
+    "editOffice": "编辑/查看办公文件",
+    "popupPreview": "启用弹出式预览",
+    "filePreviewOptions": "文件预览选项",
+    "disableUpdateNotifications": "禁止在侧边栏显示通知更新横幅。",
+    "disableHideSidebar": "预览或编辑文件时禁用自动隐藏侧边栏。",
+    "autoplayMedia": "在预览中自动播放媒体文件",
+    "deleteWithoutConfirming": "无需确认提示即可删除文件",
+    "sidebarOptions": "侧边栏选项",
+    "disableQuickToggles": "禁用快速切换",
+    "disableSearchOptions": "禁用搜索选项",
+    "hideSidebarFileActions": "隐藏侧边栏中的文件操作"
+  },
+  "otp": {
+    "name": "双因素验证",
+    "verifyInstructions": "输入验证程序中的代码",
+    "generate": "使用认证程序扫描 QR 码",
+    "codeInputPlaceholder": "6 位数代码",
+    "invalidCodeType": "验证码应为 6 个英文数字",
+    "enabledSuccessfully": "成功启用 OTP",
+    "verificationFailed": "验证失败",
+    "verificationSucceed": "验证成功",
+    "generationFailed": "一代失败"
+  }
 }
