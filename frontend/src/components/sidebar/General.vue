@@ -631,7 +631,9 @@ button.action {
 .file-actions {
   padding: 0 !important;
   margin-top: 0.5em !important;
-  text-align: center !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .expand-enter-active,

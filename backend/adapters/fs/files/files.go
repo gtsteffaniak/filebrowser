@@ -191,7 +191,7 @@ func WriteDirectory(opts iteminfo.FileOptions) error {
 	if err != nil {
 		return err
 	}
-	return RefreshIndex(idx.Name, opts.Path, opts.IsDir)
+	return RefreshIndex(idx.Name, opts.Path, true)
 }
 
 func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
@@ -213,7 +213,7 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
-	return RefreshIndex(opts.Source, opts.Path, true)
+	return RefreshIndex(opts.Source, opts.Path, false)
 }
 
 // getContent reads and returns the file content if it's considered an editable text file.
