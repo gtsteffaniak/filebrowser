@@ -10,12 +10,8 @@ export const test = base.extend<{
   },
   openContextMenu: async ({ page }, use) => {
     await use(async () => {
-      const listingView = await page.locator('#listingView');
-      const box = await listingView.boundingBox();
-      if (!box) throw new Error("Could not find listingView bounding box");
-      const x = box.x + box.width / 2;
-      const y = box.y + box.height - 1;
-      await page.mouse.click(x, y, { button: "right" });
+      await page.locator('button[aria-label="File-Actions"]').waitFor({ state: 'visible' });
+      await page.locator('button[aria-label="File-Actions"]').click();
     });
   }
 });

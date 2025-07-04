@@ -213,6 +213,9 @@ export default {
         const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
         category = fileTop <= 0 ? "files" : "folders";
       }
+      if (this.numDirs == 0) {
+        category = "files"; // If no directories, only files
+      }
 
       mutations.updateListing({
         ...state.listing,
@@ -857,8 +860,8 @@ export default {
           file,
           name: file.name,
           size: file.size,
-          path: filePath,
-          fullPath: filePath,
+          path: filePath.replace("//", "/"), // Ensure no double slashes
+          fullPath: filePath.replace("//", "/"), // Ensure no double slashes
           source: state.req.source,
         };
       });
@@ -930,7 +933,6 @@ export default {
       ) {
         asc = true;
       }
-
       // Commit the updateSort mutation
       mutations.updateListingSortConfig({ field, asc });
       mutations.updateListingItems();
@@ -1010,6 +1012,6 @@ export default {
 }
 
 #listingView {
-  min-height: 90vh;
+  min-height: 90vh !important;
 }
 </style>

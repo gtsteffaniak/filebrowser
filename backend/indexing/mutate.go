@@ -3,7 +3,6 @@ package indexing
 import (
 	"fmt"
 	"path/filepath"
-	"syscall"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -88,17 +87,6 @@ func GetIndex(name string) *Index {
 
 	}
 	return index
-}
-
-func getPartitionSize(path string) (uint64, error) {
-	var stat syscall.Statfs_t
-	err := syscall.Statfs(path, &stat)
-	if err != nil {
-		return 0, err
-	}
-	// Total size in bytes: Blocks * Block size
-	total := stat.Blocks * uint64(stat.Bsize)
-	return total, nil
 }
 
 func GetIndexInfo(sourceName string) (ReducedIndex, error) {

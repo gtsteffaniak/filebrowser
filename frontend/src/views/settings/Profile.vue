@@ -89,7 +89,7 @@
             />
           </div>
           <h3>{{ $t("settings.searchOptions") }}</h3>
-          <div>
+          <div class="settings-items">
             <ToggleSwitch
               class="item"
               v-model="localuser.disableSearchOptions"
