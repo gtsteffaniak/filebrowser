@@ -46,6 +46,8 @@ test("share file works", async ({ page, checkForErrors, context }) => {
 });
 
 test("share download single file", async ({ page, checkForErrors, context }) => {
+  await page.goto("/files/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
 
   const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
   if (!shareHash) {
