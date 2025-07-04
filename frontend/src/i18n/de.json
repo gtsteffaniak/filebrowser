@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Office-Vorschauen für bestimmte Dateierweiterungen deaktivieren",
     "disableOfficePreviewsDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Vorschau deaktiviert werden soll. (z. B. '.txt .html').",
     "adminOptions": "Optionen für Verwaltungsbenutzer",
-    "shareDuration": "Abgelaufen"
+    "shareDuration": "Abgelaufen",
+    "searchOptions": "Suchoptionen"
   },
   "sidebar": {
     "help": "Hilfe",

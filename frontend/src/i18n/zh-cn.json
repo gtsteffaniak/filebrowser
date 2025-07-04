@@ -286,7 +286,8 @@
     "shareSettings": "共享设置",
     "api": "API 密钥",
     "adminOptions": "管理员用户选项",
-    "shareDuration": "到期"
+    "shareDuration": "到期",
+    "searchOptions": "搜索选项"
   },
   "sidebar": {
     "help": "帮助",

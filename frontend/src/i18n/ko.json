@@ -289,7 +289,8 @@
     "disableOfficePreviews": "특정 파일 확장명에 대한 Office 미리 보기 사용 안 함",
     "disableOfficePreviewsDescription": "Office 미리 보기를 사용하지 않도록 설정할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html').",
     "adminOptions": "관리자 사용자 옵션",
-    "shareDuration": "만료"
+    "shareDuration": "만료",
+    "searchOptions": "검색 옵션"
   },
   "sidebar": {
     "help": "도움말",

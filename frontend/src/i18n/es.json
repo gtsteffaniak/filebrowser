@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Desactivar la vista previa de office para determinadas extensiones de archivo",
     "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html').",
     "adminOptions": "Opciones del usuario administrador",
-    "shareDuration": "Expira en"
+    "shareDuration": "Expira en",
+    "searchOptions": "Opciones de búsqueda"
   },
   "sidebar": {
     "help": "Ayuda",

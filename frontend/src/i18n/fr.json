@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Désactiver les aperçus Office pour certaines extensions de fichiers",
     "disableOfficePreviewsDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus Office doivent être désactivés. (par exemple, '.txt .html').",
     "adminOptions": "Options de l'utilisateur administrateur",
-    "shareDuration": "Expiration"
+    "shareDuration": "Expiration",
+    "searchOptions": "Options de recherche"
   },
   "sidebar": {
     "help": "Aide",

@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Zakázanie náhľadov kancelárskych súborov pre určité prípony súborov",
     "disableOfficePreviewsDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré chcete vypnúť náhľady kancelárskych súborov. (napr. \".txt .html\").",
     "adminOptions": "Možnosti používateľa správcu",
-    "shareDuration": "Platnosť končí na"
+    "shareDuration": "Platnosť končí na",
+    "searchOptions": "Možnosti vyhľadávania"
   },
   "sidebar": {
     "help": "Pomoc",

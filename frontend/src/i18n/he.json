@@ -286,7 +286,8 @@
     "shareSettings": "הגדרות שיתוף",
     "api": "מפתחות API",
     "adminOptions": "אפשרויות משתמש מנהל",
-    "shareDuration": "תוקף"
+    "shareDuration": "תוקף",
+    "searchOptions": "אפשרויות חיפוש"
   },
   "sidebar": {
     "help": "עזרה",

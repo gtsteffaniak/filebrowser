@@ -285,7 +285,8 @@
     "api": "API-nycklar",
     "shareDeleted": "Dela borttaget!",
     "adminOptions": "Alternativ för administratörsanvändare",
-    "shareDuration": "Upphör att gälla"
+    "shareDuration": "Upphör att gälla",
+    "searchOptions": "Sökalternativ"
   },
   "sidebar": {
     "help": "Hjälp",

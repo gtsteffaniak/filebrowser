@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Desativar as visualizações do Office para determinadas extensões de arquivo",
     "disableOfficePreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações do Office. (por exemplo, '.txt .html').",
     "adminOptions": "Opções do usuário administrador",
-    "shareDuration": "Expirações"
+    "shareDuration": "Expirações",
+    "searchOptions": "Opções de pesquisa"
   },
   "sidebar": {
     "help": "Ajuda",

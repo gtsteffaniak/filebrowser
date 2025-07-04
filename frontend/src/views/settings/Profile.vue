@@ -10,11 +10,6 @@
           <div class="settings-items">
             <ToggleSwitch
               class="item"
-              v-model="localuser.disableSearchOptions"
-              :name="$t('profileSettings.disableSearchOptions')"
-            />
-            <ToggleSwitch
-              class="item"
               v-model="localuser.disableQuickToggles"
               :name="$t('profileSettings.disableQuickToggles')"
             />
@@ -93,6 +88,23 @@
               :name="$t('profileSettings.autoplayMedia')"
             />
           </div>
+          <h3>{{ $t("settings.searchOptions") }}</h3>
+          <div>
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.disableSearchOptions"
+              :name="$t('profileSettings.disableSearchOptions')"
+            />
+           </div>
+           <h3 v-if="user.permissions.admin">{{ $t("settings.adminOptions") }}</h3>
+          <div v-if="user.permissions.admin" class="settings-items">
+            <ToggleSwitch
+                v-if="localuser.permissions?.admin"
+                class="item"
+                v-model="localuser.disableUpdateNotifications"
+                :name="$t('profileSettings.disableUpdateNotifications')"
+              />
+          </div>
           <div v-if="hasOnlyOfficeEnabled">
             <h3>{{ $t("settings.disableOfficePreview") }}</h3>
             <p>
@@ -152,15 +164,6 @@
             :locale="localuser.locale"
             @update:locale="updateLocale"
           ></Languages>
-          <h3 v-if="user.permissions.admin">{{ $t("settings.adminOptions") }}</h3>
-          <div v-if="user.permissions.admin" class="settings-items">
-            <ToggleSwitch
-                v-if="localuser.permissions?.admin"
-                class="item"
-                v-model="localuser.disableUpdateNotifications"
-                :name="$t('profileSettings.disableUpdateNotifications')"
-              />
-          </div>
         </div>
       </form>
     </div>

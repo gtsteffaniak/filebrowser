@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Belirli dosya uzantıları için ofis önizlemelerini devre dışı bırakma",
     "disableOfficePreviewsDescription": "Ofis önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
     "adminOptions": "Yönetici kullanıcı seçenekleri",
-    "shareDuration": "Sona erdi"
+    "shareDuration": "Sona erdi",
+    "searchOptions": "Arama seçenekleri"
   },
   "sidebar": {
     "help": "Yardım",

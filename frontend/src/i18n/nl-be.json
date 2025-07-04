@@ -285,7 +285,8 @@
     "api": "API-sleutels",
     "shareDeleted": "Deel verwijderd!",
     "adminOptions": "Opties voor beheerders",
-    "shareDuration": "Verloopt op"
+    "shareDuration": "Verloopt op",
+    "searchOptions": "Zoekopties"
   },
   "sidebar": {
     "help": "Help",

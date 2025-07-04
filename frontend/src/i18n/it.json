@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Disattivare le anteprime di Office per alcune estensioni di file",
     "disableOfficePreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime di Office. (ad esempio, '.txt .html').",
     "adminOptions": "Opzioni dell'utente amministratore",
-    "shareDuration": "Scadenza"
+    "shareDuration": "Scadenza",
+    "searchOptions": "Opzioni di ricerca"
   },
   "sidebar": {
     "help": "Aiuto",

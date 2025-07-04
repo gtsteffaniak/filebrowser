@@ -285,7 +285,8 @@
     "api": "Chaves da API",
     "shareDeleted": "Partilhar eliminado!",
     "adminOptions": "Opções do utilizador administrador",
-    "shareDuration": "Expirações"
+    "shareDuration": "Expirações",
+    "searchOptions": "Opções de pesquisa"
   },
   "sidebar": {
     "help": "Ajuda",

@@ -77,6 +77,7 @@ export async function logout() {
           // Clean up local state *before* navigating away
           document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
           mutations.setCurrentUser(null);
+          mutations.setJWT("");
           // Redirect the browser window
           window.location.href = logoutUrl;
           return; // Stop execution
@@ -94,6 +95,7 @@ export async function logout() {
   // Fallback for non-oidc/proxy users or if the above logic fails
   document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
   mutations.setCurrentUser(null);
+  mutations.setJWT("");
   router.push({ path: "/login" });
 }
 

@@ -293,7 +293,8 @@
     "disableOfficePreviews": "Απενεργοποίηση προεπισκοπήσεων γραφείου για ορισμένες επεκτάσεις αρχείων",
     "disableOfficePreviewsDescription": "Μια λίστα επεκτάσεων αρχείων με διαχωρισμό διαστήματος για την απενεργοποίηση των προεπισκοπήσεων του Office. (π.χ., '.txt .html').",
     "adminOptions": "Επιλογές χρήστη διαχειριστή",
-    "shareDuration": "Λήγει"
+    "shareDuration": "Λήγει",
+    "searchOptions": "Επιλογές αναζήτησης"
   },
   "sidebar": {
     "help": "Βοήθεια",

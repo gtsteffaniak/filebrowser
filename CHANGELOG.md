@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
  - larger min drop target size https://github.com/gtsteffaniak/filebrowser/issues/902
  - refresh page after file actions https://github.com/gtsteffaniak/filebrowser/issues/894
  - improved user PUT handler for easier user modification via API https://github.com/gtsteffaniak/filebrowser/issues/897
+ - optional sidebar actions for upload/create https://github.com/gtsteffaniak/filebrowser/issues/885
 
  **BugFixes**:
  - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456

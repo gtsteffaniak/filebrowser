@@ -289,7 +289,8 @@
     "disableOfficePreviews": "تعطيل معاينات المكتب لامتدادات ملفات معينة",
     "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\").",
     "adminOptions": "خيارات المستخدم المسؤول",
-    "shareDuration": "تنتهي صلاحيتها"
+    "shareDuration": "تنتهي صلاحيتها",
+    "searchOptions": "خيارات البحث"
   },
   "sidebar": {
     "help": "مساعدة",

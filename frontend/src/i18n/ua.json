@@ -286,7 +286,8 @@
     "shareSettings": "Налаштування спільного доступу",
     "api": "Ключі API",
     "adminOptions": "Параметри користувача адміністрування",
-    "shareDuration": "Закінчується"
+    "shareDuration": "Закінчується",
+    "searchOptions": "Параметри пошуку"
   },
   "sidebar": {
     "help": "Допомога",

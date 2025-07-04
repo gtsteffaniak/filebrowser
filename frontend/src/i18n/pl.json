@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Wyłącz podglądy Office dla niektórych rozszerzeń plików",
     "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\").",
     "adminOptions": "Opcje użytkownika administratora",
-    "shareDuration": "Wygasa"
+    "shareDuration": "Wygasa",
+    "searchOptions": "Opcje wyszukiwania"
   },
   "sidebar": {
     "help": "Pomoc",

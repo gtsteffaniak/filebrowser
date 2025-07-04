@@ -289,7 +289,8 @@
     "disableOfficePreviews": "Office előnézet letiltása bizonyos fájlkiterjesztésekhez",
     "disableOfficePreviewsDescription": "Az irodai előnézetek letiltásának szóközzel elválasztott fájlkiterjesztések listája. (pl. '.txt .html').",
     "adminOptions": "Admin felhasználói beállítások",
-    "shareDuration": "Lejárat:"
+    "shareDuration": "Lejárat:",
+    "searchOptions": "Keresési lehetőségek"
   },
   "sidebar": {
     "help": "Súgó",

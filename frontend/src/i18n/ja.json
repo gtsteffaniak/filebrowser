@@ -289,7 +289,8 @@
     "disableOfficePreviews": "特定のファイル拡張子でオフィスのプレビューを無効にする",
     "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。",
     "adminOptions": "管理者ユーザーオプション",
-    "shareDuration": "期限切れ"
+    "shareDuration": "期限切れ",
+    "searchOptions": "検索オプション"
   },
   "sidebar": {
     "help": "ヘルプ",
