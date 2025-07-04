@@ -125,7 +125,7 @@
       @leave="leave"
     >
       <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
-        <button @click="openContextMenu" class="action file-actions">
+        <button @click="openContextMenu" aria-label="File-Actions" class="action file-actions">
           <i class="material-icons">add</i>
           {{ $t("sidebar.fileActions") }}
         </button>

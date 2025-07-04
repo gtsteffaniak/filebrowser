@@ -213,6 +213,9 @@ export default {
         const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
         category = fileTop <= 0 ? "files" : "folders";
       }
+      if (this.numDirs == 0) {
+        category = "files"; // If no directories, only files
+      }
 
       mutations.updateListing({
         ...state.listing,

@@ -333,10 +333,9 @@ export const mutations = {
     if (!state.user.showHidden) {
       value.items = value.items.filter((item) => !item.hidden);
     }
-
     let sortby = "name"
     let asc = true
-    if (state.user.username != "publicUser") {
+    if (state.user.username && state.user?.username != "publicUser") {
       sortby = state.user.sorting.by;
       asc = state.user.sorting.asc;
     }

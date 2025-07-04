@@ -27,7 +27,6 @@ test("root share path is valid", async ({ page, checkForErrors, openContextMenu,
   await page.goto("/files/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
   await openContextMenu();
-
   await page.locator('button[aria-label="Share"]').click();
   await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /');
   checkForErrors();
@@ -43,5 +42,23 @@ test("share file works", async ({ page, checkForErrors, context }) => {
 
   await page.goto("/files/share/" + shareHashFile);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - 1file1.txt");
+  checkForErrors();
+});
+
+test("share download single file", async ({ page, checkForErrors, context }) => {
+
+  const shareHash = await page.evaluate(() => localStorage.getItem('shareHash'));
+  if (!shareHash) {
+    throw new Error("Share hash not found in localStorage");
+  }
+
+  await page.goto("/files/share/" + shareHash + "/testdata/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
+  await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
+  await page.locator('button[aria-label="Download"]').waitFor({ state: 'visible' });
+  await page.locator('button[aria-label="Download"]').click();
+  const popup = page.locator('#popup-notification-content');
+  await popup.waitFor({ state: 'visible' });
+  await expect(popup).toHaveText("Downloading...");
   checkForErrors();
 });
