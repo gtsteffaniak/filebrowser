@@ -333,9 +333,13 @@ export const mutations = {
     if (!state.user.showHidden) {
       value.items = value.items.filter((item) => !item.hidden);
     }
-    const sortby = state.user.sorting.by;
-    const asc = state.user.sorting.asc;
-    console.log("Sorting items by:", sortby, "Ascending:", asc);
+
+    let sortby = "name"
+    let asc = true
+    if (state.user.username != "publicUser") {
+      sortby = state.user.sorting.by;
+      asc = state.user.sorting.asc;
+    }
     // map must be last to ensure the index is set correctly
     value.items = sortedItems(value.items, sortby, asc)
     value.items.map((item, index) => {
