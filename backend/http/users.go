@@ -210,15 +210,15 @@ func userPutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (
 		return http.StatusBadRequest, err
 	}
 	if givenUserId != 0 {
-		u, err := store.Users.Get(givenUserId)
-		if err != nil {
+		u, err2 := store.Users.Get(givenUserId)
+		if err2 != nil {
 			return http.StatusBadRequest, fmt.Errorf("no user not found, please provide a valid id or username")
 		}
 		req.User.ID = u.ID
 		req.User.Username = u.Username
 	} else {
-		u, err := store.Users.Get(username)
-		if err != nil {
+		u, err2 := store.Users.Get(username)
+		if err2 != nil {
 			return http.StatusBadRequest, fmt.Errorf("no user not found, please provide a valid id or username")
 		}
 		req.User.ID = u.ID

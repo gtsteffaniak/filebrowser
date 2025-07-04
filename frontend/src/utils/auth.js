@@ -71,7 +71,7 @@ export async function logout() {
       // Check if the request was successful and handle the JSON response
       if (res.ok) {
         const data = await res.json(); // Parse the JSON body
-        const logoutUrl = data.logoutUrl;
+        let logoutUrl = data.logoutUrl;
         // Clean up local state *before* navigating away
         document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
         mutations.setCurrentUser(null);

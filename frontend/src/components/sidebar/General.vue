@@ -149,8 +149,6 @@
             class="action source-button"
             :class="{ active: activeSource == name }"
             @click="navigateTo('/files/' + info.pathPrefix)"
-            @mouseenter="updateSourceTooltip($event, info)"
-            @mouseleave="resetSourceTooltip"
             :aria-label="$t('sidebar.myFiles')"
           >
             <div class="source-container">
@@ -167,6 +165,11 @@
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
               </svg>
               <span>{{ name }}</span>
+              <i class="material-symbols-outlined source-info-icon"
+                @mouseenter="updateSourceTooltip($event, info)"
+                @mouseleave="resetSourceTooltip">
+                info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+              </i>
             </div>
             <div v-if="hasSourceInfo" class="usage-info">
               <ProgressBar
@@ -629,11 +632,15 @@ button.action {
 }
 
 .file-actions {
-  padding: 0 !important;
+  padding: 0.25em !important;
   margin-top: 0.5em !important;
   display: flex !important;
   align-items: center;
   justify-content: center;
+}
+
+.file-actions i {
+  padding: 0em !important;
 }
 
 .expand-enter-active,
@@ -645,5 +652,11 @@ button.action {
 .expand-leave-to {
   height: 0 !important;
   opacity: 0;
+}
+
+.source-info-icon {
+  font-size: 1em !important;
+  padding: 0.1em !important;
+  padding-left: 0.5em !important;
 }
 </style>
