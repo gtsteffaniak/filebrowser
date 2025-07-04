@@ -181,8 +181,6 @@ func CopyResource(sourceIndex, destIndex, realsrc, realdst string) error {
 }
 
 func WriteDirectory(opts iteminfo.FileOptions) error {
-	fmt.Printf("Creating directory at: %s\n", opts.Path)
-
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
