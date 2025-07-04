@@ -165,7 +165,7 @@
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
               </svg>
               <span>{{ name }}</span>
-              <i class="material-symbols-outlined source-info-icon"
+              <i class="no-select material-symbols-outlined source-info-icon"
                 @mouseenter="updateSourceTooltip($event, info)"
                 @mouseleave="resetSourceTooltip">
                 info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -268,7 +268,6 @@ export default {
   },
   methods: {
     openContextMenu() {
-      console.log("openContextMenu");
       mutations.resetSelected();
       mutations.showHover({
         name: "ContextMenu",

@@ -228,6 +228,9 @@ export const mutations = {
         i18n.setLocale(value.locale);
       }
       state.user = value;
+      state.user.sorting.by = "name";
+      state.user.sorting.asc = true;
+      
     } catch (error) {
       console.log(error);
     }
@@ -330,8 +333,9 @@ export const mutations = {
     if (!state.user.showHidden) {
       value.items = value.items.filter((item) => !item.hidden);
     }
-    const sortby = state.user.sorting?.by || "name";
-    const asc = state.user.sorting?.asc || true;
+    const sortby = state.user.sorting.by;
+    const asc = state.user.sorting.asc;
+    console.log("Sorting items by:", sortby, "Ascending:", asc);
     // map must be last to ensure the index is set correctly
     value.items = sortedItems(value.items, sortby, asc)
     value.items.map((item, index) => {

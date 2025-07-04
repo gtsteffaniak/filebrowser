@@ -1,6 +1,7 @@
 import { state, mutations } from '@/store'
 import { filesApi } from '@/api'
 import { notify } from '@/notify'
+import { serverHasMultipleSources } from './constants'
 
 export function checkConflict (files, items) {
   if (typeof items === 'undefined' || items === null) {
@@ -100,7 +101,9 @@ export function scanFiles (dt) {
   })
 }
 
-export async function handleFiles (files, base, overwrite = false) {
+export async function handleFiles(files, base, overwrite = false) {
+  console.log('handleFiles called with base:', base, 'and overwrite:', overwrite)
+  console.log('Files to upload:', files)
   let blockUpdates = false
   let c = 0
   const count = files.length
@@ -140,6 +143,11 @@ export async function handleFiles (files, base, overwrite = false) {
       `(${c} of ${count}) Uploading ${relativePath}`,
       false
     )
+    if (serverHasMultipleSources) {
+      item.path = `/files/${file.source}${item.path}`
+    }
+    console.log(`(${c} of ${count}) Uploading ${relativePath} to ${item.path}`)
+
     await filesApi
       .post(item.path, item.file, item.overwrite, percentComplete => {
         if (blockUpdates) return

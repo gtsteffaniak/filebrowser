@@ -857,8 +857,8 @@ export default {
           file,
           name: file.name,
           size: file.size,
-          path: filePath,
-          fullPath: filePath,
+          path: filePath.replace("//", "/"), // Ensure no double slashes
+          fullPath: filePath.replace("//", "/"), // Ensure no double slashes
           source: state.req.source,
         };
       });
@@ -930,7 +930,6 @@ export default {
       ) {
         asc = true;
       }
-
       // Commit the updateSort mutation
       mutations.updateListingSortConfig({ field, asc });
       mutations.updateListingItems();
@@ -1010,6 +1009,6 @@ export default {
 }
 
 #listingView {
-  min-height: 90vh;
+  min-height: 90vh !important;
 }
 </style>
