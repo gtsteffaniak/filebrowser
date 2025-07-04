@@ -240,7 +240,6 @@
     "rulesHelp": "Burada, bu belirli kullanıcı için bir dizi izin verme ve izin vermeme kuralı tanımlayabilirsiniz. Engellenen dosyalar listelerde görünmeyecek ve kullanıcı bunlara erişemeyecek. Kullanıcı erişimine göre regex ifadeleri destekliyoruz.\n",
     "scope": "Kapsam",
     "settingsUpdated": "Ayarlar güncellendi!",
-    "shareDuration": "Paylaşım süresi",
     "shareManagement": "Paylaşım yönetimi",
     "shareDeleted": "Paylaşım silindi!",
     "singleClick": "Dosyaları ve dizinleri açmak için tek tıklamayı kullanın",
@@ -289,7 +288,9 @@
     "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
     "disableOfficePreviews": "Belirli dosya uzantıları için ofis önizlemelerini devre dışı bırakma",
     "disableOfficePreviewsDescription": "Ofis önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
-    "adminOptions": "Yönetici kullanıcı seçenekleri"
+    "adminOptions": "Yönetici kullanıcı seçenekleri",
+    "shareDuration": "Sona erdi",
+    "searchOptions": "Arama seçenekleri"
   },
   "sidebar": {
     "help": "Yardım",

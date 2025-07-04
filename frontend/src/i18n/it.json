@@ -240,7 +240,6 @@
     "rulesHelp": "Qui è possibile definire una serie di regole e permessi per questo specifico utente. I file bloccati non appariranno negli elenchi e non saranno accessibili dagli utenti. all'utente. Sia regex che i percorsi relativi all'ambito di applicazione degli utenti sono supportati.\n",
     "scope": "Scope",
     "settingsUpdated": "Impostazioni aggiornate!",
-    "shareDuration": "Durata della condivisione",
     "shareManagement": "Gestione delle condivisioni",
     "singleClick": "Usa un singolo click per aprire file e cartelle",
     "themes": {
@@ -289,7 +288,9 @@
     "disableOfficeEditor": "Disattivare il visualizzatore di Office per alcune estensioni di file",
     "disableOfficePreviews": "Disattivare le anteprime di Office per alcune estensioni di file",
     "disableOfficePreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime di Office. (ad esempio, '.txt .html').",
-    "adminOptions": "Opzioni dell'utente amministratore"
+    "adminOptions": "Opzioni dell'utente amministratore",
+    "shareDuration": "Scadenza",
+    "searchOptions": "Opzioni di ricerca"
   },
   "sidebar": {
     "help": "Aiuto",

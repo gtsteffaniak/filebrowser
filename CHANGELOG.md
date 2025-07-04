@@ -15,12 +15,17 @@ All notable changes to this project will be documented in this file. For commit 
  - Uses calculated index size as "used" and total partition size as "total" https://github.com/gtsteffaniak/filebrowser/issues/875
  - Select multiple won't show up in context menu when using a desktop browser (with keyboard), opting for keyboard shortcuts
  - Updated translations that were not complete, such as simplified chinese https://github.com/gtsteffaniak/filebrowser/issues/895
+ - larger min drop target size https://github.com/gtsteffaniak/filebrowser/issues/902
+ - refresh page after file actions https://github.com/gtsteffaniak/filebrowser/issues/894
+ - improved user PUT handler for easier user modification via API https://github.com/gtsteffaniak/filebrowser/issues/897
+ - optional sidebar actions for upload/create https://github.com/gtsteffaniak/filebrowser/issues/885
 
  **BugFixes**:
  - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
  - getting file info issue when indexing is disabled.
  - fixed initial sort order https://github.com/gtsteffaniak/filebrowser/issues/551
- - Drag and Drop files fixes https://github.com/gtsteffaniak/filebrowser/issues/880
+ - incorrect filename Drag and Drop fixes https://github.com/gtsteffaniak/filebrowser/issues/880
+ - fix share duration always showing just now https://github.com/gtsteffaniak/filebrowser/issues/896
 
 ## v0.7.11-beta
 

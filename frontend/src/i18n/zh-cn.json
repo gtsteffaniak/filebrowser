@@ -242,7 +242,6 @@
     "scope": "目录范围",
     "setDateFormat": "显示精确的日期格式",
     "settingsUpdated": "设置已更新！",
-    "shareDuration": "分享期限",
     "shareManagement": "分享管理",
     "shareDeleted": "分享已删除！",
     "singleClick": "使用单击来打开文件和目录",
@@ -286,7 +285,9 @@
     "createUserHomeDirectory": "创建用户主目录",
     "shareSettings": "共享设置",
     "api": "API 密钥",
-    "adminOptions": "管理员用户选项"
+    "adminOptions": "管理员用户选项",
+    "shareDuration": "到期",
+    "searchOptions": "搜索选项"
   },
   "sidebar": {
     "help": "帮助",

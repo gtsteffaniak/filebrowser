@@ -240,7 +240,6 @@
     "rulesHelp": "ここに、あなたはこのユーザーの許可または拒否規則を設定できます。ブロックされたファイルはリストに表示されません、それではアクセスも制限されます。正規表現(regex)のサポートと範囲に相対のパスが提供されています。",
     "scope": "範囲",
     "settingsUpdated": "設定は更新されました！",
-    "shareDuration": "シェア期間",
     "shareManagement": "シェア・マネジメント",
     "singleClick": "シングルクリックでファイルやディレクトリを開く",
     "themes": {
@@ -289,7 +288,9 @@
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
     "disableOfficePreviews": "特定のファイル拡張子でオフィスのプレビューを無効にする",
     "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。",
-    "adminOptions": "管理者ユーザーオプション"
+    "adminOptions": "管理者ユーザーオプション",
+    "shareDuration": "期限切れ",
+    "searchOptions": "検索オプション"
   },
   "sidebar": {
     "help": "ヘルプ",

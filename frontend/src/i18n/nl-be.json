@@ -240,7 +240,6 @@
     "rulesHelp": "Hier kunt u een reeks regels voor toestaan en niet toestaan voor deze specifieke gebruiker definiëren. De geblokkeerde bestanden verschijnen niet in de lijsten en zijn niet toegankelijk voor de gebruiker. We ondersteunen regex en paden relatief ten opzichte van het bereik van gebruikers. \n",
     "scope": "Scope",
     "settingsUpdated": "Instellingen bijgewerkt!",
-    "shareDuration": "Duur delen",
     "shareManagement": "Beheer van aandelen",
     "singleClick": "Gebruik één klik om bestanden en mappen te openen",
     "themes": {
@@ -285,7 +284,9 @@
     "shareSettings": "Instellingen delen",
     "api": "API-sleutels",
     "shareDeleted": "Deel verwijderd!",
-    "adminOptions": "Opties voor beheerders"
+    "adminOptions": "Opties voor beheerders",
+    "shareDuration": "Verloopt op",
+    "searchOptions": "Zoekopties"
   },
   "sidebar": {
     "help": "Help",

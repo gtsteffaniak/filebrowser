@@ -136,7 +136,10 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			logoutUrl = oidcRedirectUrl
 		}
 	}
-
+	if logoutUrl == "" {
+		logger.Debug("no logout url found, using default")
+		logoutUrl = fmt.Sprintf("%vlogin", config.Server.BaseURL)
+	}
 	response := map[string]string{
 		"logoutUrl": logoutUrl,
 	}

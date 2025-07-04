@@ -240,7 +240,6 @@
     "rulesHelp": "Aici poți defini un set de reguli pentru acest utilizator. Fișierele blocate nu vor apărea in lista și nici nu vor putea fi accesate de utilizator. Expresiile regulate si căile relative la domeniul utilizatorului sunt permise.\n",
     "scope": "Domeniu",
     "settingsUpdated": "Setări actualizate!",
-    "shareDuration": "Acțiune Durată",
     "shareManagement": "Gestionarea acțiunilor",
     "singleClick": "Utilizați un singur clic pentru a deschide fișiere și directoare",
     "themes": {
@@ -289,7 +288,9 @@
     "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
     "disableOfficePreviews": "Dezactivați previzualizările office pentru anumite extensii de fișiere",
     "disableOfficePreviewsDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările office. (de exemplu, \".txt .html\").",
-    "adminOptions": "Opțiuni utilizator administrator"
+    "adminOptions": "Opțiuni utilizator administrator",
+    "shareDuration": "Expiră",
+    "searchOptions": "Opțiuni de căutare"
   },
   "sidebar": {
     "help": "Ajutor",

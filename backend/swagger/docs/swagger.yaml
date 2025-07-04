@@ -1823,10 +1823,13 @@ paths:
       - application/json
       description: Updates the details of a user identified by ID.
       parameters:
-      - description: User ID
+      - description: user ID to update
         in: query
         name: id
-        required: true
+        type: string
+      - description: usename to update
+        in: query
+        name: id
         type: string
       - description: User data to update
         in: body

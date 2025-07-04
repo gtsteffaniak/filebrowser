@@ -172,14 +172,12 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	scopePath := utils.JoinPathAsUnix(userscope, path)
 	fileOpts := iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(userscope, path),
 		Source: source,
 		Modify: d.user.Permissions.Modify,
 		Expand: false,
 	}
-	fmt.Println("resourcePostHandler: scopePath:", scopePath)
 	// Directories creation on POST.
 	if strings.HasSuffix(path, "/") {
 		err = files.WriteDirectory(fileOpts)
@@ -202,7 +200,6 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 
 		preview.DelThumbs(r.Context(), fileInfo)
 	}
-	fmt.Println("resourcePostHandler: fileOpts:", fileOpts)
 	err = files.WriteFile(fileOpts, r.Body)
 	if err != nil {
 		return errToStatus(err), err

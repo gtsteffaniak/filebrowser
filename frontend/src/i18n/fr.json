@@ -242,7 +242,6 @@
     "scope": "Portée du dossier utilisateur",
     "setDateFormat": "Définir le format de la date",
     "settingsUpdated": "Les paramètres ont été mis à jour !",
-    "shareDuration": "Durée du partage",
     "shareManagement": "Gestion des partages",
     "shareDeleted": "Partage supprimé !",
     "singleClick": "Utiliser un simple clic pour ouvrir les fichiers et les dossiers",
@@ -289,7 +288,9 @@
     "disableOfficeEditor": "Désactiver la visionneuse d'office pour certaines extensions de fichiers",
     "disableOfficePreviews": "Désactiver les aperçus Office pour certaines extensions de fichiers",
     "disableOfficePreviewsDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus Office doivent être désactivés. (par exemple, '.txt .html').",
-    "adminOptions": "Options de l'utilisateur administrateur"
+    "adminOptions": "Options de l'utilisateur administrateur",
+    "shareDuration": "Expiration",
+    "searchOptions": "Options de recherche"
   },
   "sidebar": {
     "help": "Aide",

@@ -243,7 +243,6 @@
     "scope": "Hatókör",
     "setDateFormat": "Pontos dátumformátum beállítása",
     "settingsUpdated": "Beállítások frissítve!",
-    "shareDuration": "Megosztás időtartama",
     "shareManagement": "Megosztáskezelés",
     "shareDeleted": "Megosztás törölve!",
     "singleClick": "Fájlok és könyvtárak megnyitása egyetlen kattintással",
@@ -289,7 +288,9 @@
     "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
     "disableOfficePreviews": "Office előnézet letiltása bizonyos fájlkiterjesztésekhez",
     "disableOfficePreviewsDescription": "Az irodai előnézetek letiltásának szóközzel elválasztott fájlkiterjesztések listája. (pl. '.txt .html').",
-    "adminOptions": "Admin felhasználói beállítások"
+    "adminOptions": "Admin felhasználói beállítások",
+    "shareDuration": "Lejárat:",
+    "searchOptions": "Keresési lehetőségek"
   },
   "sidebar": {
     "help": "Súgó",

@@ -240,7 +240,6 @@
     "rulesHelp": "Här kan du definiera en uppsättning regler för godkänna och neka för den här specifika användaren. Den blockerade filen kommer inte upp i listningarna och kommer inte att vara tillgänglig till användaren. Vi stöder regex och sökvägar i förhållande till användarnas omfång.\n",
     "scope": "Omfattning",
     "settingsUpdated": "Inställning uppdaterad!",
-    "shareDuration": "Aktiens löptid",
     "shareManagement": "Aktieförvaltning",
     "singleClick": "Öppna filer och kataloger med ett enda klick",
     "themes": {
@@ -285,7 +284,9 @@
     "shareSettings": "Dela inställningar",
     "api": "API-nycklar",
     "shareDeleted": "Dela borttaget!",
-    "adminOptions": "Alternativ för administratörsanvändare"
+    "adminOptions": "Alternativ för administratörsanvändare",
+    "shareDuration": "Upphör att gälla",
+    "searchOptions": "Sökalternativ"
   },
   "sidebar": {
     "help": "Hjälp",
