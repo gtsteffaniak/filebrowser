@@ -3,40 +3,17 @@
     <div class="preview">
       <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw">
       </ExtendedImage>
-      <audio
-        v-else-if="previewType == 'audio'"
-        ref="player"
-        :src="raw"
-        controls
-        :autoplay="autoPlay"
-        @play="autoPlay = true"
-      ></audio>
-      <video
-        v-else-if="previewType == 'video'"
-        ref="player"
-        :src="raw"
-        controls
-        :autoplay="autoPlay"
-        @play="autoPlay = true"
-      >
-        <track
-          kind="captions"
-          v-for="(sub, index) in subtitlesList"
-          :key="index"
-          :src="sub.src"
-          :label="'Subtitle ' + sub.name"
-          :default="index === 0"
-        />
+      <audio v-else-if="previewType == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
+        @play="autoPlay = true"></audio>
+      <video v-else-if="previewType == 'video'" ref="player" :src="raw" controls :autoplay="autoPlay"
+        @play="autoPlay = true">
+        <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
+          :label="'Subtitle ' + sub.name" :default="index === 0" />
       </video>
 
       <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
-        <a
-          v-if="isMobileSafari"
-          :href="raw"
-          target="_blank"
-          class="button button--flat floating-btn"
-        >
+        <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
           <div>
             <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
           </div>
@@ -54,12 +31,7 @@
               <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
             </div>
           </a>
-          <a
-            target="_blank"
-            :href="raw"
-            class="button button--flat"
-            v-if="req.type != 'directory'"
-          >
+          <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
             <div>
               <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
             </div>
@@ -68,24 +40,13 @@
       </div>
     </div>
 
-    <button
-      @click="prev"
-      @mouseover="hoverNav = true"
-      @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasPrevious || !showNav }"
-      :aria-label="$t('buttons.previous')"
-      :title="$t('buttons.previous')"
-    >
+    <button @click="prev" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasPrevious || !showNav }" :aria-label="$t('buttons.previous')"
+      :title="$t('buttons.previous')">
       <i class="material-icons">chevron_left</i>
     </button>
-    <button
-      @click="next"
-      @mouseover="hoverNav = true"
-      @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasNext || !showNav }"
-      :aria-label="$t('buttons.next')"
-      :title="$t('buttons.next')"
-    >
+    <button @click="next" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasNext || !showNav }" :aria-label="$t('buttons.next')" :title="$t('buttons.next')">
       <i class="material-icons">chevron_right</i>
     </button>
     <link rel="prefetch" :href="previousRaw" />
@@ -191,18 +152,44 @@ export default {
     req() {
       return state.req;
     },
+    deletedItem() {
+      return state.deletedItem;
+    },
   },
   watch: {
+    deletedItem() {
+      if (!state.deletedItem) {
+        return;
+      }
+      if (this.hasNext) {
+        this.next();
+      } else if (!this.hasPrevious && !this.hasNext) {
+        this.close();
+      } else {
+        this.prev();
+      }
+      mutations.setDeletedItem(false);
+    },
     req() {
       if (!getters.isLoggedIn()) {
         return;
       }
       this.updatePreview();
       this.toggleNavigation();
+      mutations.resetSelected();
+      mutations.addSelected({
+        name: state.req.name,
+        path: state.req.path,
+        size: state.req.size,
+        type: state.req.type,
+        source: state.req.source,
+        url: state.req.url,
+      });
     },
   },
   async mounted() {
-    window.addEventListener("keydown", this.key);
+    mutations.setDeletedItem(false);
+    window.addEventListener("keydown", this.keyEvent);
     this.subtitlesList = await this.subtitles();
     this.updatePreview();
     mutations.resetSelected();
@@ -216,7 +203,7 @@ export default {
     });
   },
   beforeUnmount() {
-    window.removeEventListener("keydown", this.key);
+    window.removeEventListener("keydown", this.keyEvent);
   },
   methods: {
     async subtitles() {
@@ -241,21 +228,6 @@ export default {
       }
       return subs;
     },
-    deleteFile() {
-      this.currentPrompt = {
-        name: "delete",
-        confirm: () => {
-          this.listing = this.listing.filter((item) => item.name !== this.name);
-          if (this.hasNext) {
-            this.next();
-          } else if (!this.hasPrevious && !this.hasNext) {
-            this.close();
-          } else {
-            this.prev();
-          }
-        },
-      };
-    },
     prev() {
       this.hoverNav = false;
       this.$router.replace({ path: this.previousLink });
@@ -264,7 +236,7 @@ export default {
       this.hoverNav = false;
       this.$router.replace({ path: this.nextLink });
     },
-    async key(event) {
+    async keyEvent(event) {
       if (getters.currentPromptName() != null) {
         return;
       }
@@ -281,6 +253,9 @@ export default {
           if (this.hasPrevious) {
             this.prev();
           }
+          break;
+        case "Delete":
+          mutations.showHover("delete")
           break;
         case "Escape":
         case "Backspace":
@@ -401,6 +376,7 @@ export default {
   background: rgba(0, 0, 0, 0.5);
   color: white;
 }
+
 .pdf-wrapper .floating-btn:hover {
   background: rgba(0, 0, 0, 0.7);
 }

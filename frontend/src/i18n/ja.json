@@ -163,7 +163,8 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "任意のパスワード",
     "typeName": "タイプ",
-    "selected": "選ばれた"
+    "selected": "選ばれた",
+    "deleted": "正常に削除されました！"
   },
   "search": {
     "images": "画像",
@@ -239,7 +240,6 @@
     "rulesHelp": "ここに、あなたはこのユーザーの許可または拒否規則を設定できます。ブロックされたファイルはリストに表示されません、それではアクセスも制限されます。正規表現(regex)のサポートと範囲に相対のパスが提供されています。",
     "scope": "範囲",
     "settingsUpdated": "設定は更新されました！",
-    "shareDuration": "シェア期間",
     "shareManagement": "シェア・マネジメント",
     "singleClick": "シングルクリックでファイルやディレクトリを開く",
     "themes": {
@@ -287,7 +287,10 @@
     "disableOfficeEditorDescription": "OnlyOffice ビューアを無効にするファイル拡張子をスペース区切りで指定します。(例: '.txt .html')。",
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
     "disableOfficePreviews": "特定のファイル拡張子でオフィスのプレビューを無効にする",
-    "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。"
+    "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。",
+    "adminOptions": "管理者ユーザーオプション",
+    "shareDuration": "期限切れ",
+    "searchOptions": "検索オプション"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -302,7 +305,8 @@
     "signup": "Signup",
     "siteSettings": "サイト設定",
     "sources": "情報源",
-    "updateIsAvailable": "アップデートがある！"
+    "updateIsAvailable": "アップデートがある！",
+    "fileActions": "ファイル操作"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -374,7 +378,12 @@
     "editOffice": "オフィスファイルの編集/閲覧",
     "disableUpdateNotifications": "サイドバーに通知更新バナーを表示しないようにしました。",
     "disableHideSidebar": "ファイルのプレビューや編集時にサイドバーを自動的に非表示にします。",
-    "autoplayMedia": "プレビューでメディアファイルを自動再生"
+    "autoplayMedia": "プレビューでメディアファイルを自動再生",
+    "deleteWithoutConfirming": "確認プロンプトなしでファイルを削除する",
+    "sidebarOptions": "サイドバーオプション",
+    "disableQuickToggles": "クイックトグルを無効にする",
+    "disableSearchOptions": "検索オプションを無効にする",
+    "hideSidebarFileActions": "サイドバーにファイルアクションを隠す"
   },
   "otp": {
     "name": "二要素認証",

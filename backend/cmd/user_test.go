@@ -17,7 +17,6 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 	}}
 	sourceB := settings.Source{Path: "/pathB", Name: "sourceB", Config: settings.SourceConfig{DefaultEnabled: true, DefaultUserScope: "/defaultB"}}
 	settings.Config.Server.Sources = []settings.Source{sourceA, sourceB}
-	settings.Config.Server.DefaultSource = sourceB
 	settings.Config.Server.SourceMap = map[string]settings.Source{
 		"/pathA": sourceA,
 		"/pathB": sourceB,
@@ -161,7 +160,6 @@ func TestUpdateUserScopes_Phases(t *testing.T) {
 	}}
 	sourceB = settings.Source{Path: "/pathB", Name: "sourceB", Config: settings.SourceConfig{DefaultEnabled: true, DefaultUserScope: "/defaultB"}}
 	settings.Config.Server.Sources = []settings.Source{sourceA, sourceB}
-	settings.Config.Server.DefaultSource = sourceB
 	settings.Config.Server.SourceMap = map[string]settings.Source{
 		"/pathA": sourceA,
 		"/pathB": sourceB,

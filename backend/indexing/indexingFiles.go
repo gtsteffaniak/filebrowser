@@ -23,8 +23,8 @@ var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
 // reduced index is json exposed to the client
 type ReducedIndex struct {
 	IdxName         string      `json:"name"`
-	DiskUsed        int64       `json:"used"`
-	DiskTotal       int64       `json:"total"`
+	DiskUsed        uint64      `json:"used"`
+	DiskTotal       uint64      `json:"total"`
 	Status          IndexStatus `json:"status"`
 	NumDirs         uint64      `json:"numDirs"`
 	NumFiles        uint64      `json:"numFiles"`
@@ -168,10 +168,7 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 		return nil, err
 	}
 	originalPath := realPath
-	if !isDir {
-		// get parent directory info
-		realPath = filepath.Dir(realPath)
-	}
+
 	dir, err := os.Open(realPath)
 	if err != nil {
 		return nil, err
@@ -181,6 +178,19 @@ func (idx *Index) GetFsDirInfo(adjustedPath string) (*iteminfo.FileInfo, error) 
 	dirInfo, err := dir.Stat()
 	if err != nil {
 		return nil, err
+	}
+
+	if !dirInfo.IsDir() {
+		fileInfo := iteminfo.FileInfo{
+			Path: adjustedPath,
+			ItemInfo: iteminfo.ItemInfo{
+				Name:    filepath.Base(originalPath),
+				Size:    dirInfo.Size(),
+				ModTime: dirInfo.ModTime(),
+			},
+		}
+		fileInfo.DetectType(adjustedPath, false)
+		return &fileInfo, nil
 	}
 	combinedPath := adjustedPath + "/"
 	if adjustedPath == "/" {
@@ -289,6 +299,12 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 
 	if totalSize == 0 && idx.Config.Exclude.ZeroSizeFolders {
 		return nil, errors.ErrNotIndexed
+	}
+
+	if adjustedPath == "/" {
+		idx.mu.Lock()
+		idx.DiskUsed = uint64(totalSize)
+		idx.mu.Unlock()
 	}
 
 	// Create FileInfo for the current directory
@@ -500,14 +516,13 @@ type DiskUsage struct {
 	Used  uint64 `json:"used"`
 }
 
-func (idx *Index) SetUsage(usage DiskUsage) {
+func (idx *Index) SetUsage(totalBytes uint64) {
 	if settings.Config.Frontend.DisableUsedPercentage {
 		return
 	}
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
-	idx.DiskUsed = int64(usage.Used)
-	idx.DiskTotal = int64(usage.Total)
+	idx.DiskTotal = totalBytes
 }
 
 func (idx *Index) SetStatus(status IndexStatus) {

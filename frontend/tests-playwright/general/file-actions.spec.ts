@@ -121,7 +121,7 @@ test("delete file", async({ page, checkForErrors, context }) => {
   await page.locator('button[aria-label="Confirm-Delete"]').click();
   const popup = page.locator('#popup-notification-content');
   await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("Deleted item successfully! reloading...");
+  await expect(popup).toHaveText("Deleted successfully!");
   checkForErrors();
 })
 

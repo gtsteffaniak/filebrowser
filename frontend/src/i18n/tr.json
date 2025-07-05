@@ -163,7 +163,8 @@
     "filesSelected": "seçilen dosyalar",
     "uploadFiles": "Uploading {files} files...",
     "typeName": "Tip:",
-    "selected": "seçilmiş"
+    "selected": "seçilmiş",
+    "deleted": "Başarıyla silindi!"
   },
   "search": {
     "images": "Görseller",
@@ -239,7 +240,6 @@
     "rulesHelp": "Burada, bu belirli kullanıcı için bir dizi izin verme ve izin vermeme kuralı tanımlayabilirsiniz. Engellenen dosyalar listelerde görünmeyecek ve kullanıcı bunlara erişemeyecek. Kullanıcı erişimine göre regex ifadeleri destekliyoruz.\n",
     "scope": "Kapsam",
     "settingsUpdated": "Ayarlar güncellendi!",
-    "shareDuration": "Paylaşım süresi",
     "shareManagement": "Paylaşım yönetimi",
     "shareDeleted": "Paylaşım silindi!",
     "singleClick": "Dosyaları ve dizinleri açmak için tek tıklamayı kullanın",
@@ -287,7 +287,10 @@
     "disableOfficeEditorDescription": "OnlyOffice görüntüleyicisinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
     "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
     "disableOfficePreviews": "Belirli dosya uzantıları için ofis önizlemelerini devre dışı bırakma",
-    "disableOfficePreviewsDescription": "Ofis önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html')."
+    "disableOfficePreviewsDescription": "Ofis önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
+    "adminOptions": "Yönetici kullanıcı seçenekleri",
+    "shareDuration": "Sona erdi",
+    "searchOptions": "Arama seçenekleri"
   },
   "sidebar": {
     "help": "Yardım",
@@ -302,7 +305,8 @@
     "signup": "Kayıt",
     "siteSettings": "Site ayarları!",
     "sources": "Kaynaklar",
-    "updateIsAvailable": "Bir güncelleme mevcut!"
+    "updateIsAvailable": "Bir güncelleme mevcut!",
+    "fileActions": "Dosya işlemleri"
   },
   "success": {
     "linkCopied": "Link kopyalandı!"
@@ -374,7 +378,12 @@
     "editOffice": "Ofis dosyalarını düzenleme/görüntüleme",
     "disableUpdateNotifications": "Kenar çubuğunda bildirim güncelleme banner'ını göstermeyi devre dışı bırakın.",
     "disableHideSidebar": "Dosyaları önizlerken veya düzenlerken kenar çubuğunu otomatik olarak gizlemeyi devre dışı bırakın.",
-    "autoplayMedia": "Medya dosyalarını önizlemede otomatik oynatma"
+    "autoplayMedia": "Medya dosyalarını önizlemede otomatik oynatma",
+    "deleteWithoutConfirming": "Dosyaları onay istemi olmadan silme",
+    "sidebarOptions": "Kenar çubuğu seçenekleri",
+    "disableQuickToggles": "Hızlı geçişleri devre dışı bırakma",
+    "disableSearchOptions": "Arama seçeneklerini devre dışı bırak",
+    "hideSidebarFileActions": "Kenar çubuğundaki dosya eylemlerini gizle"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",

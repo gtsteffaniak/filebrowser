@@ -105,7 +105,7 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	api.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 
 	// Public routes
-	api.HandleFunc("GET /public/publicUser", publicUserGetHandler)
+	api.HandleFunc("GET /public/publicUser", withoutUser(publicUserGetHandler))
 	api.HandleFunc("GET /public/dl", withHashFile(publicRawHandler))
 	api.HandleFunc("GET /public/share", withHashFile(publicShareHandler))
 	api.HandleFunc("GET /public/preview", withHashFile(publicPreviewHandler))

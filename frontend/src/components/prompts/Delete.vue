@@ -12,20 +12,12 @@
       </div>
     </div>
     <div class="card-action">
-      <button
-        @click="closeHovers"
-        class="button button--flat button--grey"
-        :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')"
-      >
+      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
+        :title="$t('buttons.cancel')">
         {{ $t("buttons.cancel") }}
       </button>
-      <button
-        @click="submit"
-        class="button button--flat button--red"
-        aria-label="Confirm-Delete"
-        :title="$t('buttons.delete')"
-      >
+      <button @click="submit" class="button button--flat button--red" aria-label="Confirm-Delete"
+        :title="$t('buttons.delete')">
         {{ $t("buttons.delete") }}
       </button>
     </div>
@@ -37,10 +29,18 @@ import { filesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
-import router from "@/router";
 
 export default {
   name: "delete",
+  mounted() {
+    const selectedCount = getters.selectedCount();
+    if (selectedCount > 0) {
+      if (state.user.deleteWithoutConfirming && getters.isSingleFileSelected()) {
+        this.submit();
+      }
+    }
+
+  },
   computed: {
     isListing() {
       return getters.isListing();
@@ -62,22 +62,21 @@ export default {
       return paths;
     },
   },
+
   methods: {
     closeHovers() {
       mutations.closeHovers();
     },
     async submit() {
       buttons.loading("delete");
-
       try {
-        if (state.isSearchActive || getters.currentView() == "preview") {
+        const currentView = getters.currentView()
+        if (state.isSearchActive || currentView == "preview") {
           await filesApi.remove(state.selected[0].url);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
           mutations.closeHovers();
-          if (getters.currentView() == "preview") {
-            router.go(-1);
-          }
+          mutations.setDeletedItem(true);
           return;
         }
         if (!this.isListing) {
@@ -100,10 +99,10 @@ export default {
         for (let index of state.selected) {
           promises.push(filesApi.remove(state.req.items[index].url));
         }
-
+        mutations.resetSelected();
         await Promise.all(promises);
         buttons.success("delete");
-        notify.showSuccess("Deleted item successfully! reloading...");
+        notify.showSuccess(this.$t('prompts.deleted'));
         mutations.setReload(true); // Handle reload as neededs
       } catch (e) {
         buttons.done("delete");

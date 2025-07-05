@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -40,14 +39,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 
-	fileInfo, ok := d.raw.(iteminfo.ExtendedFileInfo)
-	if !ok {
-		logger.Error("public share handler: failed to assert type files.FileInfo")
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type files.FileInfo")
-	}
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
-		fileList = append(fileList, fileInfo.Source+"::"+fileInfo.Path+file)
+		fileList = append(fileList, d.fileInfo.Source+"::"+d.fileInfo.Path+file)
 	}
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
@@ -59,21 +53,12 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	file, ok := d.raw.(iteminfo.ExtendedFileInfo)
-	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("failed to assert type iteminfo.FileInfo")
-	}
-	file.Path = strings.TrimPrefix(file.Path, d.share.Path)
-	return renderJSON(w, r, file)
+	d.fileInfo.Path = strings.TrimPrefix(d.fileInfo.Path, d.share.Path)
+	return renderJSON(w, r, d.fileInfo)
 }
 
-func publicUserGetHandler(w http.ResponseWriter, r *http.Request) {
-	// Call the actual handler logic here (e.g., renderJSON, etc.)
-	// You may need to replace `fn` with the actual handler logic.
-	status, err := renderJSON(w, r, users.PublicUser)
-	if err != nil {
-		http.Error(w, http.StatusText(status), status)
-	}
+func publicUserGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	return renderJSON(w, r, users.PublicUser)
 }
 
 // health godoc
@@ -115,24 +100,14 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	path := r.URL.Query().Get("path")
-	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = settings.Config.Server.DefaultSource.Name
-	} else {
-		var err error
-		// decode url encoded source name
-		source, err = url.QueryUnescape(source)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
-		}
-	}
+	var err error
 	if path == "" {
 		return http.StatusBadRequest, fmt.Errorf("invalid request path")
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(d.share.Path, path),
 		Modify: d.user.Permissions.Modify,
-		Source: source,
+		Source: d.fileInfo.Source,
 		Expand: true,
 	})
 	if err != nil {

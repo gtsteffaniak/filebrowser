@@ -170,7 +170,8 @@
     "uploadFiles": "Uploading {files} files...",
     "uploadMessage": "Select an option to upload.",
     "optionalPassword": "Optional password",
-    "typeName": "Type:"
+    "typeName": "Type:",
+    "deleted": "Deleted successfully!"
   },
   "search": {
     "images": "Images",
@@ -200,7 +201,12 @@
     "filePreviewOptions": "File preview options",
     "disableUpdateNotifications": "Disable showing notification update banner in sidebar.",
     "disableHideSidebar": "Disable automatically hiding sidebar when previewing or editing files.",
-    "autoplayMedia": "Autoplay media files in preview"
+    "autoplayMedia": "Autoplay media files in preview",
+    "deleteWithoutConfirming": "Delete files without confirmation prompt",
+    "sidebarOptions": "Sidebar options",
+    "disableQuickToggles": "Disable quick toggles",
+    "disableSearchOptions": "Disable search options",
+    "hideSidebarFileActions": "Hide file actions in sidebar"
   },
   "settings": {
     "enterPassword": "Enter password",
@@ -216,6 +222,7 @@
     "disableOfficePreviews": "Disable office previews for certain file extensions",
     "disableOfficePreviewsDescription": "A space-separated list of file extensions to disable office previews for. (e.g., '.txt .html').",
     "listingOptions": "Listing options",
+    "searchOptions": "Search options",
     "emptyGlobal": "Currently there are no global config options, You can edit the configuration yaml to adjust system settings.",
     "scopes": "Define allowed sources and the user scope within them",
     "UserManagement": "User Management",
@@ -282,7 +289,7 @@
     "rulesHelp": "Here you can define a set of allow and disallow rules for this specific user. The blocked files won't show up in the listings and they wont be accessible to the user. We support regex and paths relative to the users scope.\n",
     "scope": "Scope",
     "settingsUpdated": "Settings updated!",
-    "shareDuration": "Share Duration",
+    "shareDuration": "Expires",
     "shareManagement": "Share Management",
     "shareDeleted": "Share deleted!",
     "singleClick": "Use single clicks to open files and directories",
@@ -316,7 +323,8 @@
     "sources": "Sources",
     "signup": "Signup",
     "siteSettings": "Site Settings",
-    "updateIsAvailable": "An update is available!"
+    "updateIsAvailable": "An update is available!",
+    "fileActions": "File actions"
   },
   "success": {
     "linkCopied": "Link copied!"
@@ -366,7 +374,8 @@
     "toggleDark": "Toggle Dark Mode",
     "toggleSticky": "Toggle Sticky Mode",
     "of": "of",
-    "used": "used"
+    "used": "used",
+    "noSources": "No sources available for this user. Either add a source for this user or configure a source with defaultEnabled: true"
   },
   "otp": {
     "name": "Two-Factor Authentication",

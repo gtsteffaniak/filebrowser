@@ -163,7 +163,8 @@
     "deleteUserMessage": "האם אתה בטוח שברצונך למחוק משתמש זה?",
     "selected": "נבחר",
     "filesSelected": "קבצים שנבחרו",
-    "typeName": "סוג:"
+    "typeName": "סוג:",
+    "deleted": "נמחק בהצלחה!"
   },
   "search": {
     "images": "תמונות",
@@ -242,7 +243,6 @@
     "scope": "תחום",
     "setDateFormat": "הגדר פורמט תאריך",
     "settingsUpdated": "ההגדרות עודכנו!",
-    "shareDuration": "משך השיתוף",
     "shareManagement": "ניהול שיתוף",
     "shareDeleted": "שיתוף נמחק!",
     "singleClick": "השתמש בלחיצות בודדות כדי לפתוח קבצים ותקיות",
@@ -284,7 +284,10 @@
     "tusUploadsRetryCount": "מספר הניסיונות שיש לבצע אם העלאת קטע נכשלה.",
     "disableUsedDiskPercentage": "השבת גרף אחוזי השימוש בדיסק",
     "shareSettings": "הגדרות שיתוף",
-    "api": "מפתחות API"
+    "api": "מפתחות API",
+    "adminOptions": "אפשרויות משתמש מנהל",
+    "shareDuration": "תוקף",
+    "searchOptions": "אפשרויות חיפוש"
   },
   "sidebar": {
     "help": "עזרה",
@@ -299,7 +302,8 @@
     "signup": "הרשמה",
     "siteSettings": "הגדרות",
     "sources": "מקורות",
-    "updateIsAvailable": "עדכון זמין!"
+    "updateIsAvailable": "עדכון זמין!",
+    "fileActions": "פעולות קובץ"
   },
   "success": {
     "linkCopied": "הקישור הועתק!"
@@ -370,7 +374,12 @@
     "filePreviewOptions": "אפשרויות תצוגה מקדימה של קבצים",
     "disableUpdateNotifications": "השבת הצגת כרטיסיית עדכון הודעות בסרגל הצד.",
     "disableHideSidebar": "השבת הסתרה אוטומטית של סרגל הצד בעת תצוגה מקדימה או עריכת קבצים.",
-    "autoplayMedia": "הפעל קבצי מדיה באופן אוטומטי בתצוגה מקדימה"
+    "autoplayMedia": "הפעל קבצי מדיה באופן אוטומטי בתצוגה מקדימה",
+    "deleteWithoutConfirming": "מחיקת קבצים ללא בקשת אישור",
+    "sidebarOptions": "אפשרויות סרגל צד",
+    "disableQuickToggles": "השבת מתגים מהירים",
+    "disableSearchOptions": "השבת אפשרויות חיפוש",
+    "hideSidebarFileActions": "הסתר פעולות קובץ בסרגל הצד"
   },
   "otp": {
     "name": "אימות דו-גורמי",

@@ -103,8 +103,6 @@ export default {
           this.$router.push({ path: newLink });
           return;
         }
-
-        mutations.setReload(true);
       } catch (error) {
         notify.showError(error);
       }

@@ -163,7 +163,8 @@
     "filesSelected": "vybrané súbory",
     "uploadFiles": "Uploading {files} files...",
     "typeName": "Typ:",
-    "selected": "vybrané"
+    "selected": "vybrané",
+    "deleted": "Úspešne vymazané!"
   },
   "search": {
     "images": "Obrázky",
@@ -239,7 +240,6 @@
     "rulesHelp": "Tu môžete definovať pravidlá pre konkrétneho používateľa. Blokované súbory používateľ nebude vidieť a ani nebude k nim mať prístup. Podporujeme regex a cesty relatívne k používateľovi.\n",
     "scope": "Scope",
     "settingsUpdated": "Nastavenia upravené!",
-    "shareDuration": "Trvanie zdieľania",
     "shareManagement": "Správa zdieľania",
     "shareDeleted": "Zdieľanie odstránené!",
     "singleClick": "Používať jeden klik na otváranie súborov a priečinkov",
@@ -287,7 +287,10 @@
     "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má prehliadač OnlyOffice vypnúť. (napr. \".txt .html\").",
     "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
     "disableOfficePreviews": "Zakázanie náhľadov kancelárskych súborov pre určité prípony súborov",
-    "disableOfficePreviewsDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré chcete vypnúť náhľady kancelárskych súborov. (napr. \".txt .html\")."
+    "disableOfficePreviewsDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré chcete vypnúť náhľady kancelárskych súborov. (napr. \".txt .html\").",
+    "adminOptions": "Možnosti používateľa správcu",
+    "shareDuration": "Platnosť končí na",
+    "searchOptions": "Možnosti vyhľadávania"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -302,7 +305,8 @@
     "signup": "Registrovať",
     "siteSettings": "Nastavenia stránky",
     "sources": "Zdroje",
-    "updateIsAvailable": "K dispozícii je aktualizácia!"
+    "updateIsAvailable": "K dispozícii je aktualizácia!",
+    "fileActions": "Akcie so súbormi"
   },
   "success": {
     "linkCopied": "Odkaz skopírovaný!"
@@ -374,7 +378,12 @@
     "editOffice": "Úprava/zobrazenie kancelárskych súborov",
     "disableUpdateNotifications": "Zakázanie zobrazovania bannera s oznámením o aktualizácii v bočnom paneli.",
     "disableHideSidebar": "Zakázanie automatického skrývania bočného panela pri náhľade alebo úprave súborov.",
-    "autoplayMedia": "Automatické prehrávanie mediálnych súborov v náhľade"
+    "autoplayMedia": "Automatické prehrávanie mediálnych súborov v náhľade",
+    "deleteWithoutConfirming": "Odstránenie súborov bez výzvy na potvrdenie",
+    "sidebarOptions": "Možnosti bočného panela",
+    "disableQuickToggles": "Zakázanie rýchlych prepínačov",
+    "disableSearchOptions": "Zakázanie možností vyhľadávania",
+    "hideSidebarFileActions": "Skrytie akcií súborov v bočnom paneli"
   },
   "otp": {
     "name": "Dvojfaktorové overovanie",

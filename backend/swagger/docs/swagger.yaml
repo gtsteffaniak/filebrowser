@@ -207,6 +207,9 @@ definitions:
       disableDefaultLinks:
         description: disable default links in the sidebar
         type: boolean
+      disableNavButtons:
+        description: disable the nav buttons in the sidebar
+        type: boolean
       disableUsedPercentage:
         description: disable used percentage for the sources in the sidebar
         type: boolean
@@ -342,8 +345,7 @@ definitions:
           Otherwise, users can choose to enable TOTP.
         type: boolean
       minLength:
-        description: minimum pasword length required.
-        minimum: 5
+        description: minimum pasword length required, default is 5.
         type: integer
       recaptcha:
         allOf:
@@ -517,6 +519,9 @@ definitions:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
         type: boolean
+      deleteWithoutConfirming:
+        description: delete files without confirmation
+        type: boolean
       disableOfficePreviewExt:
         description: comma separated list of file extensions to disable office preview
           for
@@ -525,6 +530,12 @@ definitions:
         description: comma separated list of file extensions to disable onlyoffice
           preview for
         type: string
+      disableQuickToggles:
+        description: disable the quick toggles in the sidebar
+        type: boolean
+      disableSearchOptions:
+        description: disable the search options in the search bar
+        type: boolean
       disableSettings:
         description: disable the user from viewing the settings page
         type: boolean
@@ -534,6 +545,9 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideSidebarFileActions:
+        description: hide the file actions in the sidebar
+        type: boolean
       locale:
         description: 'language to use: eg. de, en, or fr'
         type: string
@@ -682,6 +696,9 @@ definitions:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
         type: boolean
+      deleteWithoutConfirming:
+        description: delete files without confirmation
+        type: boolean
       disableOfficePreviewExt:
         description: comma separated list of file extensions to disable office preview
           for
@@ -690,6 +707,12 @@ definitions:
         description: comma separated list of file extensions to disable onlyoffice
           preview for
         type: string
+      disableQuickToggles:
+        description: disable the quick toggles in the sidebar
+        type: boolean
+      disableSearchOptions:
+        description: disable the search options in the search bar
+        type: boolean
       disableSettings:
         type: boolean
       disableUpdateNotifications:
@@ -698,6 +721,9 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideSidebarFileActions:
+        description: hide the file actions in the sidebar
+        type: boolean
       id:
         type: integer
       locale:
@@ -1215,6 +1241,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       produces:
       - application/json
@@ -1256,6 +1283,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       - description: Include file content if true
         in: query
@@ -1363,6 +1391,7 @@ paths:
           is used if not provided
         in: query
         name: source
+        required: true
         type: string
       - description: Override existing file if true
         in: query
@@ -1414,6 +1443,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       produces:
       - application/json
@@ -1457,6 +1487,11 @@ paths:
       - description: Search query
         in: query
         name: query
+        required: true
+        type: string
+      - description: Source name for the desired source
+        in: query
+        name: source
         required: true
         type: string
       - description: path within user scope to search, for example '/first/second'
@@ -1788,10 +1823,13 @@ paths:
       - application/json
       description: Updates the details of a user identified by ID.
       parameters:
-      - description: User ID
+      - description: user ID to update
         in: query
         name: id
-        required: true
+        type: string
+      - description: usename to update
+        in: query
+        name: id
         type: string
       - description: User data to update
         in: body
