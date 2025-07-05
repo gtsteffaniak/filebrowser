@@ -54,7 +54,7 @@
       </div>
 
       <div id="result-list">
-        <div>
+        <div v-if="!disableSearchOptions">
           <div v-if="active">
             <div v-if="isMobile">
               <ButtonGroup
@@ -264,6 +264,9 @@ export default {
     }
   },
   computed: {
+    disableSearchOptions() {
+      return state.user.disableSearchOptions;
+    },
     showOptions() {
       return !this.hiddenOptions || !this.isMobile;
     },

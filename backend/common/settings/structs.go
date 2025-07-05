@@ -41,8 +41,7 @@ type Server struct {
 	// not exposed to config
 	SourceMap      map[string]Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource   map[string]Source `json:"-" validate:"omitempty"` // uses name as key
-	DefaultSource  Source            `json:"-" validate:"omitempty"`
-	MuPdfAvailable bool              `json:"-"` // used internally if compiled with mupdf support
+	MuPdfAvailable bool              `json:"-"`                      // used internally if compiled with mupdf support
 }
 
 type Integrations struct {
@@ -110,6 +109,7 @@ type Frontend struct {
 	DisableDefaultLinks   bool           `json:"disableDefaultLinks"`   // disable default links in the sidebar
 	DisableUsedPercentage bool           `json:"disableUsedPercentage"` // disable used percentage for the sources in the sidebar
 	ExternalLinks         []ExternalLink `json:"externalLinks"`
+	DisableNavButtons     bool           `json:"disableNavButtons"` // disable the nav buttons in the sidebar
 }
 
 type ExternalLink struct {
@@ -121,6 +121,9 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
+	HideSidebarFileActions     bool                `json:"hideSidebarFileActions"`    // hide the file actions in the sidebar
+	DisableQuickToggles        bool                `json:"disableQuickToggles"`       // disable the quick toggles in the sidebar
+	DisableSearchOptions       bool                `json:"disableSearchOptions"`      // disable the search options in the search bar
 	StickySidebar              bool                `json:"stickySidebar"`             // keep sidebar open when navigating
 	DarkMode                   bool                `json:"darkMode"`                  // should dark mode be enabled
 	Locale                     string              `json:"locale"`                    // language to use: eg. de, en, or fr
@@ -140,4 +143,6 @@ type UserDefaults struct {
 	Permissions                users.Permissions   `json:"permissions"`
 	LoginMethod                string              `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
+	DeleteWithoutConfirming    bool                `json:"deleteWithoutConfirming"`    // delete files without confirmation
+
 }

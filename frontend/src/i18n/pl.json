@@ -163,7 +163,8 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Hasło opcjonalne",
     "typeName": "Typ:",
-    "selected": "wybrany"
+    "selected": "wybrany",
+    "deleted": "Usunięto pomyślnie!"
   },
   "search": {
     "images": "Zdjęcia",
@@ -239,7 +240,6 @@
     "rulesHelp": "Tu możesz zdefiniować zestawienie reguł zezwalających i zabraniających dla tego konkretnego użytkownika. Zablokowane pliki nie będą widoczne na listach i nie będą dostępne dla użytkownika. Wspierane są wyrażenia regularne i ścieżki względne wobec zakresu użytkownika.\n",
     "scope": "Zakres",
     "settingsUpdated": "Uprawnienia Zapisane!",
-    "shareDuration": "Okres udostępniania",
     "shareManagement": "Zarządzanie udostępnianiem",
     "singleClick": "Pojedyncze kliknięcie",
     "themes": {
@@ -287,7 +287,10 @@
     "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których przeglądarka OnlyOffice ma zostać wyłączona. (np. \".txt .html\").",
     "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
     "disableOfficePreviews": "Wyłącz podglądy Office dla niektórych rozszerzeń plików",
-    "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\")."
+    "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\").",
+    "adminOptions": "Opcje użytkownika administratora",
+    "shareDuration": "Wygasa",
+    "searchOptions": "Opcje wyszukiwania"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -302,7 +305,8 @@
     "signup": "Rejestracja",
     "siteSettings": "Ustawienia Strony",
     "sources": "Źródła",
-    "updateIsAvailable": "Aktualizacja jest już dostępna!"
+    "updateIsAvailable": "Aktualizacja jest już dostępna!",
+    "fileActions": "Działania na plikach"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -374,7 +378,12 @@
     "editOffice": "Edycja/przeglądanie plików biurowych",
     "disableUpdateNotifications": "Wyłącz wyświetlanie banera aktualizacji powiadomień na pasku bocznym.",
     "disableHideSidebar": "Wyłącz automatyczne ukrywanie paska bocznego podczas podglądu lub edycji plików.",
-    "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych w podglądzie"
+    "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych w podglądzie",
+    "deleteWithoutConfirming": "Usuwanie plików bez monitu o potwierdzenie",
+    "sidebarOptions": "Opcje paska bocznego",
+    "disableQuickToggles": "Wyłączanie szybkich przełączników",
+    "disableSearchOptions": "Wyłącz opcje wyszukiwania",
+    "hideSidebarFileActions": "Ukryj akcje związane z plikami na pasku bocznym"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",

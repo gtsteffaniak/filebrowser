@@ -75,7 +75,7 @@ export const getters = {
   isListing: () => getters.isFiles() && state.req.type === 'directory',
   selectedCount: () =>
     Array.isArray(state.selected) ? state.selected.length : 0,
-  getFirstSelected: () => state.req.items[state.selected[0]],
+  getFirstSelected: () => typeof(state.selected[0]) == 'number' ? state.req.items[state.selected[0]] : state.selected[0],
   isSingleFileSelected: () =>
     getters.selectedCount() === 1 &&
     getters.getFirstSelected()?.type != 'directory',

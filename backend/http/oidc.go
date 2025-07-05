@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/storage"
@@ -262,13 +263,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		}
 	}
 	if user.LoginMethod != users.LoginMethodOidc {
-		logger.Warningf("user %s is not allowed to login with oidc authentication, bypassing and updating login method", user.Username)
-		user.LoginMethod = users.LoginMethodOidc
-		err = store.Users.Update(user, true, "LoginMethod")
-		if err != nil {
-			logger.Debug(err.Error())
-		}
-		//return http.StatusForbidden, fmt.Errorf("user %s is not allowed to login with OIDC", username)
+		return http.StatusForbidden, errors.ErrWrongLoginMethod
 	}
 	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
 	if err != nil {

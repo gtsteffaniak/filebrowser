@@ -213,7 +213,6 @@
     "rulesHelp": "您可以為該使用者製定一組黑名單或白名單式的規則，被屏蔽的檔案將不會顯示在清單中，使用者也無權限存取,支持相對於目錄範圍的路徑。",
     "scope": "目錄範圍",
     "settingsUpdated": "設定已更新！",
-    "shareDuration": "",
     "shareManagement": "",
     "singleClick": "",
     "themes": {

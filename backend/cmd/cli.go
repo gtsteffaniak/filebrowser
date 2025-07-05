@@ -58,12 +58,11 @@ func runCLI() bool {
 
 	// Create a new FlagSet for the 'set' subcommand
 	setCmd := flag.NewFlagSet("set", flag.ExitOnError)
-	var user, scope, dbConfig string
+	var user, dbConfig string
 	var asAdmin bool
 
 	setCmd.StringVar(&user, "u", "", "Comma-separated username and password: \"set -u <username>,<password>\"")
 	setCmd.BoolVar(&asAdmin, "a", false, "Create a user as admin user, used in combination with -u")
-	setCmd.StringVar(&scope, "s", "", "Specify a user scope, otherwise default user config scope is used")
 	setCmd.StringVar(&dbConfig, "c", "config.yaml", "Path to the config file, default: config.yaml")
 
 	// Parse subcommand flags only if a subcommand is specified
@@ -121,7 +120,7 @@ func runCLI() bool {
 				return false
 			}
 			if user.LoginMethod != users.LoginMethodPassword {
-				logger.Warningf("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username)
+				logger.Fatalf("user %s is not allowed to login with password authentication, cannot set password", username)
 			}
 			user.Password = password
 			user.TOTPSecret = "" // reset TOTP secret if it exists

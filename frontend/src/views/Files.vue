@@ -127,6 +127,10 @@ export default {
         router.push(`${routePath}/${urlEncodedSource}`);
         return;
       }
+      if (state.sources.current === "") {
+        notify.showError($t("index.noSources"));
+        return;
+      }
       this.lastHash = "";
       // Set loading to true and reset the error.
       mutations.setLoading("files", true);

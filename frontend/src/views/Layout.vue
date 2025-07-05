@@ -136,6 +136,7 @@ export default {
     },
     async updateSourceInfo() {
       if (getters.isLoggedIn()) {
+        console.log("Updating source info");
         const sourceinfo = await filesApi.sources();
         mutations.updateSourceInfo(sourceinfo);
         if (state.user.permissions.realtime) {

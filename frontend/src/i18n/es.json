@@ -163,7 +163,8 @@
     "deleteUserMessage": "¿Está seguro de que desea eliminar este usuario?",
     "filesSelected": "archivos seleccionados",
     "typeName": "Tipo:",
-    "selected": "seleccionado"
+    "selected": "seleccionado",
+    "deleted": "¡Borrado con éxito!"
   },
   "search": {
     "images": "Imágenes",
@@ -244,7 +245,6 @@
     "scope": "Raíz",
     "setDateFormat": "Establecer el formato exacto de la fecha",
     "settingsUpdated": "¡Ajustes actualizados!",
-    "shareDuration": "Compartir Duración",
     "shareManagement": "Gestión Compartida",
     "shareDeleted": "¡Recurso compartido eliminado!",
     "singleClick": "Utilice un solo clic para abrir archivos y directorios",
@@ -287,7 +287,10 @@
     "disableOfficeEditorDescription": "Una lista separada por espacios de las extensiones de archivo para las que desea desactivar el visor de OnlyOffice. (por ejemplo, '.txt .html').",
     "disableOfficeEditor": "Desactivar el visor de office para determinadas extensiones de archivo",
     "disableOfficePreviews": "Desactivar la vista previa de office para determinadas extensiones de archivo",
-    "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html')."
+    "disableOfficePreviewsDescription": "Una lista separada por espacios de extensiones de archivo para las que deshabilitar las vistas previas de office. (por ejemplo, '.txt .html').",
+    "adminOptions": "Opciones del usuario administrador",
+    "shareDuration": "Expira en",
+    "searchOptions": "Opciones de búsqueda"
   },
   "sidebar": {
     "help": "Ayuda",
@@ -302,7 +305,8 @@
     "signup": "Registrate",
     "siteSettings": "Ajustes del sitio",
     "sources": "Fuentes",
-    "updateIsAvailable": "Ya está disponible la actualización."
+    "updateIsAvailable": "Ya está disponible la actualización.",
+    "fileActions": "Acciones de archivo"
   },
   "success": {
     "linkCopied": "¡Link copiado!"
@@ -374,7 +378,12 @@
     "editOffice": "Editar/ver archivos ofimáticos",
     "disableUpdateNotifications": "Desactivar la visualización del banner de actualización de notificaciones en la barra lateral.",
     "disableHideSidebar": "Desactivar la ocultación automática de la barra lateral al previsualizar o editar archivos.",
-    "autoplayMedia": "Reproducción automática de archivos multimedia en vista previa"
+    "autoplayMedia": "Reproducción automática de archivos multimedia en vista previa",
+    "deleteWithoutConfirming": "Eliminar archivos sin mensaje de confirmación",
+    "sidebarOptions": "Opciones de la barra lateral",
+    "disableQuickToggles": "Desactivar alternancias rápidas",
+    "disableSearchOptions": "Desactivar las opciones de búsqueda",
+    "hideSidebarFileActions": "Ocultar las acciones de archivo en la barra lateral"
   },
   "otp": {
     "name": "Autenticación de dos factores",

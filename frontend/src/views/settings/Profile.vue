@@ -6,8 +6,34 @@
     <div class="card-content">
       <form>
         <div class="card-content">
+          <h3>{{ $t("profileSettings.sidebarOptions") }}</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.disableQuickToggles"
+              :name="$t('profileSettings.disableQuickToggles')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.disableHideSidebar"
+              :name="$t('profileSettings.disableHideSidebar')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.hideSidebarFileActions"
+              :name="$t('profileSettings.hideSidebarFileActions')"
+            />
+
+          </div>
+        </div>
+        <div class="card-content">
           <h3>{{ $t("settings.listingOptions") }}</h3>
           <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.deleteWithoutConfirming"
+              :name="$t('profileSettings.deleteWithoutConfirming')"
+            />
             <ToggleSwitch
               class="item"
               v-model="localuser.dateFormat"
@@ -56,19 +82,28 @@
               v-model="localuser.preview.popup"
               :name="$t('profileSettings.popupPreview')"
             />
-          </div>
-          <h3>{{ $t("profileSettings.filePreviewOptions") }}</h3>
-          <div class="settings-items">
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.autoplayMedia"
               :name="$t('profileSettings.autoplayMedia')"
             />
+          </div>
+          <h3>{{ $t("settings.searchOptions") }}</h3>
+          <div class="settings-items">
             <ToggleSwitch
               class="item"
-              v-model="localuser.preview.disableHideSidebar"
-              :name="$t('profileSettings.disableHideSidebar')"
+              v-model="localuser.disableSearchOptions"
+              :name="$t('profileSettings.disableSearchOptions')"
             />
+           </div>
+           <h3 v-if="user.permissions.admin">{{ $t("settings.adminOptions") }}</h3>
+          <div v-if="user.permissions.admin" class="settings-items">
+            <ToggleSwitch
+                v-if="localuser.permissions?.admin"
+                class="item"
+                v-model="localuser.disableUpdateNotifications"
+                :name="$t('profileSettings.disableUpdateNotifications')"
+              />
           </div>
           <div v-if="hasOnlyOfficeEnabled">
             <h3>{{ $t("settings.disableOfficePreview") }}</h3>
@@ -117,7 +152,6 @@
               </button>
             </div>
           </div>
-  
           <h3>{{ $t("settings.themeColor") }}</h3>
           <ButtonGroup
             :buttons="colorChoices"
@@ -130,15 +164,6 @@
             :locale="localuser.locale"
             @update:locale="updateLocale"
           ></Languages>
-          <h3 v-if="user.permissions.admin">{{ $t("settings.adminOptions") }}</h3>
-          <div v-if="user.permissions.admin" class="settings-items">
-            <ToggleSwitch
-                v-if="localuser.permissions?.admin"
-                class="item"
-                v-model="localuser.disableUpdateNotifications"
-                :name="$t('profileSettings.disableUpdateNotifications')"
-              />
-          </div>
         </div>
       </form>
     </div>
@@ -266,7 +291,11 @@ export default {
           "quickDownload",
           "disableOnlyOfficeExt",
           "disableOfficePreviewExt",
+          "deleteWithoutConfirming",
           "preview",
+          "disableQuickToggles",
+          "disableSearchOptions",
+          "hideSidebarFileActions",
         ]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {

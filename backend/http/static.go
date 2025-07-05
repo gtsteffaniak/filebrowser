@@ -61,6 +61,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"MediaAvailable":    config.Integrations.Media.FfmpegPath != "",
 		"MuPdfAvailable":    config.Server.MuPdfAvailable,
 		"UpdateAvailable":   utils.GetUpdateAvailableUrl(),
+		"DisableNavButtons": settings.Config.Frontend.DisableNavButtons,
 	}
 
 	b, err := json.Marshal(data)

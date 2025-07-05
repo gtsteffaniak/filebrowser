@@ -1,5 +1,5 @@
 server:
-  numImageProcessors: 8                   # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
+  numImageProcessors: 16                  # number of concurrent image processing jobs used to create previews, default is number of cpu cores available.
   socket: ""                              # socket to listen on
   tlsKey: ""                              # path to TLS key
   tlsCert: ""                             # path to TLS cert
@@ -38,7 +38,7 @@ server:
           rootFolders: []
           rootFiles: []
         defaultUserScope: /               # default "/" should match folders under path
-        defaultEnabled: true              # should be added as a default source for new users?
+        defaultEnabled: false             # should be added as a default source for new users?
         createUserDir: false              # create a user directory for each user
   externalUrl: ""                         # used by share links if set
   internalUrl: ""                         # used by integrations if set, this is the url that an integration service will use to communicate with filebrowser
@@ -55,7 +55,7 @@ auth:
     noauth: false                         # if set to true, overrides all other auth methods and disables authentication
     password:                             #  validate:omitempty
       enabled: true
-      minLength: 5                        # minimum pasword length required.  validate:omitempty,min=5
+      minLength: 5                        # minimum pasword length required, default is 5.  validate:omitempty
       signup: false                       # allow signups on login page if enabled -- not secure.  validate:omitempty
       recaptcha:                          # recaptcha config, only used if signup is enabled  validate:omitempty
         host: ""                          #  validate:required
@@ -88,7 +88,11 @@ frontend:
     - text: Help                          # the text to display on the link  validate:required
       title: ""                           # the title to display on hover
       url: https://github.com/gtsteffaniak/filebrowser/wiki # the url to link to  validate:required
+  disableNavButtons: false                # disable the nav buttons in the sidebar
 userDefaults:
+  hideSidebarFileActions: false           # hide the file actions in the sidebar
+  disableQuickToggles: false              # disable the quick toggles in the sidebar
+  disableSearchOptions: false             # disable the search options in the search bar
   stickySidebar: true                     # keep sidebar open when navigating
   darkMode: true                          # should dark mode be enabled
   locale: en                              # language to use: eg. de, en, or fr
@@ -120,6 +124,7 @@ userDefaults:
     realtime: false
   loginMethod: password                   # login method to use: eg. password, proxy, oidc
   disableUpdateNotifications: false       # disable update notifications banner for admin users
+  deleteWithoutConfirming: false          # delete files without confirmation
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

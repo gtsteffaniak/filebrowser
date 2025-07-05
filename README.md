@@ -6,7 +6,7 @@
   [![DockerHub Pulls](https://img.shields.io/docker/pulls/gtstef/filebrowser?label=latest%20Docker%20pulls)](https://hub.docker.com/r/gtstef/filebrowser)
   [![Apache-2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate/?business=W5XKNXHJM2WPE&no_recurring=0&currency_code=USD)
+  [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://github.com/gtsteffaniak/filebrowser/wiki/Q&A#is-there-a-way-to-donate-or-support-this-project)
 
   <img width="150" src="https://github.com/user-attachments/assets/59986a2a-f960-4536-aa35-4a9a7c98ad48" title="Logo">
   <h3>FileBrowser Quantum</h3>
@@ -18,7 +18,7 @@
 > [!WARNING]
 > There is no stable version -- :construction: planned for 2025. ([Read more](https://github.com/gtsteffaniak/filebrowser/discussions/628))
 
-Poll: [how much RAM does your install use?](https://github.com/gtsteffaniak/filebrowser/discussions/787)
+[FYI: how much RAM does it require?](https://github.com/gtsteffaniak/filebrowser/discussions/787)
 
 ## About
 
@@ -120,7 +120,7 @@ webdav support                | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 FTP support                   | ❌ | ❌ | ✅ | ✅ | ❌ | ✅ |
 Dedicated docs site?          | :construction: | ✅ | ✅ | ✅ | ❌ | ✅ |
 Multiple sources at once      | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
-Docker image size             | 200 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
+Docker image size             | 180 MB (with ffmpeg) | 31 MB  | 240 MB (main image) | 250 MB | ❌ | > 2 GB |
 Min. Memory Requirements      | 256 MB | 128 MB | 128 MB (main image) | 512 MB | ❌ | 512 MB   |
 has standalone binary         | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 price                         | free | free | free | free tier | free tier | $99+ |

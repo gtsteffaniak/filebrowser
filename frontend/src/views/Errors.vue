@@ -8,8 +8,6 @@
 </template>
 
 <script>
-import { state } from "@/store";
-import { router } from "@/router";
 const errors = {
   0: {
     icon: "cloud_off",

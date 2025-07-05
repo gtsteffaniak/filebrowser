@@ -1,7 +1,7 @@
 <template>
   <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
     <action
-      v-if="!isShare"
+      v-if="!isShare && !(disableNavButtons && isListingView)"
       icon="close_back"
       :label="$t('buttons.close')"
       :disabled="isSearchActive"
@@ -11,7 +11,7 @@
     <title v-else-if="isSettings" class="topTitle">{{ $t("sidebar.settings") }}</title>
     <title v-else class="topTitle">{{ req.name }}</title>
     <action
-      v-if="isListingView"
+      v-if="isListingView && !disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
       :label="$t('buttons.switchView')"
@@ -19,7 +19,7 @@
       :disabled="isSearchActive"
     />
     <action
-      v-else-if="!isShare"
+      v-else-if="!isShare && !isListingView"
       :icon="iconName"
       :disabled="noItems"
       @click="toggleOverflow"
@@ -32,6 +32,7 @@ import router from "@/router";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
+import { disableNavButtons } from "@/utils/constants";
 
 export default {
   name: "UnifiedHeader",
@@ -45,6 +46,9 @@ export default {
     };
   },
   computed: {
+    disableNavButtons() {
+      return disableNavButtons && !state.user.permissions.admin;
+    },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
     },

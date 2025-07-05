@@ -171,7 +171,7 @@ export async function create (user) {
   }
 }
 
-export async function update (user, which = ['all']) {
+export async function update(user, which = ['all']) {
   // List of keys to exclude from the "which" array
   const excludeKeys = ['id', 'name']
   // Filter out the keys from "which"

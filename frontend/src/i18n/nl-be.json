@@ -31,17 +31,27 @@
     "switchView": "Beeld wisselen",
     "toggleSidebar": "Zijbalk tonen",
     "update": "Updaten",
-    "upload": "Uploaden"
+    "upload": "Uploaden",
+    "generateNewOtp": "Reset en genereer nieuwe twee-factorcode",
+    "verify": "Controleer",
+    "copyDownloadLinkToClipboard": "Downloadlink naar klembord kopiëren",
+    "file": "Bestand",
+    "folder": "Map",
+    "submit": "Stuur  in",
+    "openFile": "Bestand openen",
+    "continue": "Ga verder",
+    "edit": "Bewerk"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
     "downloadFolder": "Map downloaden",
-    "downloadSelected": ""
+    "downloadSelected": "Geselecteerd downloaden"
   },
   "errors": {
     "forbidden": "U hebt geen rechten om hier toegang toe te krijgen.",
     "internal": "Er ging iets mis.",
-    "notFound": "Deze locatie kan niet worden bereikt."
+    "notFound": "Deze locatie kan niet worden bereikt.",
+    "connection": "De server kan niet worden bereikt."
   },
   "files": {
     "body": "Body",
@@ -59,7 +69,8 @@
     "size": "Grootte",
     "sortByLastModified": "Sorteren op laatst bewerkt",
     "sortByName": "Sorteren op naam",
-    "sortBySize": "Sorteren op grootte"
+    "sortBySize": "Sorteren op grootte",
+    "noPreview": "Preview is niet beschikbaar voor dit bestand."
   },
   "help": {
     "click": "selecteer bestand of map",
@@ -110,7 +121,8 @@
     "submit": "Log in",
     "username": "Gebruikersnaam",
     "usernameTaken": "Gebruikersnaam reeds in gebruik",
-    "wrongCredentials": "Verkeerde inloggegevens"
+    "wrongCredentials": "Verkeerde inloggegevens",
+    "or": "OF"
   },
   "permanent": "Permanent",
   "prompts": {
@@ -143,9 +155,16 @@
     "scheduleMessage": "Kies een datum en tijd om de publicatie van dit bericht in te plannen.",
     "show": "Tonen",
     "size": "Grootte",
-    "upload": "",
-    "uploadMessage": "",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
+    "upload": "Uploaden",
+    "uploadMessage": "Selecteer een optie om te uploaden.",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
+    "deleteUserMessage": "Weet je zeker dat je deze gebruiker wilt verwijderen?",
+    "selected": "geselecteerd",
+    "filesSelected": "geselecteerde bestanden",
+    "uploadFiles": "Uploading {files} files...",
+    "optionalPassword": "Optioneel wachtwoord",
+    "typeName": "Type:",
+    "deleted": "Met succes verwijderd!"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -155,7 +174,12 @@
     "search": "Zoeken...",
     "typeToSearch": "Typ om te zoeken...",
     "types": "Types",
-    "video": "Video"
+    "video": "Video",
+    "path": "Pad:",
+    "smallerThan": "Kleiner dan:",
+    "largerThan": "Groter dan:",
+    "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal 3 tekens voor zoektermen).",
+    "helpText2": "De index: Zoeken maakt gebruik van de index die automatisch wordt bijgewerkt op het ingestelde interval (standaard: 5 minuten). Zoeken als het programma net is gestart, kan onvolledige resultaten opleveren."
   },
   "settings": {
     "admin": "Admin",
@@ -194,7 +218,7 @@
     "newUser": "Nieuwe gebruiker",
     "password": "Wachtwoord",
     "passwordUpdated": "Wachtwoord bijgewerkt!",
-    "path": "",
+    "path": "Pad",
     "permissions": {
       "create": "Bestanden en mappen aanmaken",
       "delete": "Bestanden en mappen verwijderen",
@@ -202,7 +226,10 @@
       "execute": "Commando's uitvoeren",
       "modify": "Bestanden aanpassen",
       "rename": "Bestanden of mappen hernoemen of verplaatsen",
-      "share": "Bestanden delen"
+      "share": "Bestanden delen",
+      "admin": "Beheerder",
+      "api": "Langlevende API-sleutels maken en beheren",
+      "realtime": "Real-time verbindingen en updates mogelijk maken"
     },
     "permissions-name": "Permissies",
     "permissionsHelp": "U kunt de gebruiker instellen als beheerder of de machtigingen afzonderlijk kiezen. Als u \"Beheerder\" selecteert, worden alle andere opties automatisch gecontroleerd. Het beheer van gebruikers blijft een privilege van een beheerder.\n",
@@ -213,13 +240,12 @@
     "rulesHelp": "Hier kunt u een reeks regels voor toestaan en niet toestaan voor deze specifieke gebruiker definiëren. De geblokkeerde bestanden verschijnen niet in de lijsten en zijn niet toegankelijk voor de gebruiker. We ondersteunen regex en paden relatief ten opzichte van het bereik van gebruikers. \n",
     "scope": "Scope",
     "settingsUpdated": "Instellingen bijgewerkt!",
-    "shareDuration": "",
-    "shareManagement": "",
-    "singleClick": "",
+    "shareManagement": "Beheer van aandelen",
+    "singleClick": "Gebruik één klik om bestanden en mappen te openen",
     "themes": {
-      "dark": "",
-      "light": "",
-      "title": ""
+      "dark": "Donker",
+      "light": "Licht",
+      "title": "Thema"
     },
     "user": "Gebruiker",
     "userCommands": "Commando's",
@@ -230,7 +256,37 @@
     "userManagement": "Gebruikersbeheer",
     "userUpdated": "Gebruiker bijgewerkt!",
     "username": "Gebruikersnaam",
-    "users": "Gebruikers"
+    "users": "Gebruikers",
+    "enterPassword": "Wachtwoord invoeren",
+    "enterPasswordAgain": "Voer het wachtwoord opnieuw in",
+    "passwordsDoNotMatch": "Wachtwoorden komen niet overeen",
+    "loginMethod": "Aanmeldingsmethode",
+    "loginMethodDescription": "toegestane aanmeldingsmethode voor de gebruiker.",
+    "modifyOtherUser": "Gebruiker wijzigen:",
+    "modifyCurrentUser": "Huidige gebruiker wijzigen",
+    "themeColor": "Thema Kleur",
+    "disableOfficeEditorDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor de OnlyOffice viewer uitgeschakeld moet worden. (bijv. '.txt .html').",
+    "disableOfficeEditor": "Office Viewer uitschakelen voor bepaalde bestandsextensies",
+    "disableOfficePreviews": "Office-previews uitschakelen voor bepaalde bestandsextensies",
+    "disableOfficePreviewsDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor Office-previews moeten worden uitgeschakeld. (bijv. '.txt .html').",
+    "listingOptions": "Advertentie-opties",
+    "emptyGlobal": "Op dit moment zijn er geen globale configuratieopties. U kunt de configuratie yaml bewerken om systeeminstellingen aan te passen.",
+    "scopes": "Toegestane bronnen en het gebruikersbereik daarbinnen definiëren",
+    "UserManagement": "Gebruikersbeheer",
+    "userNotAdmin": "Gebruiker is geen beheerder",
+    "tusUploads": "Verzamelde uploads",
+    "tusUploadsHelp": "File Browser ondersteunt chunked bestandsuploads, waardoor efficiënte, betrouwbare, hervattbare en chunked bestandsuploads mogelijk zijn, zelfs op onbetrouwbare netwerken.",
+    "tusUploadsChunkSize": "Geeft de maximale grootte van een verzoek aan (directe uploads worden gebruikt voor kleinere uploads). Je kunt een gewoon geheel getal invoeren dat staat voor een bytes-invoer of een tekenreeks zoals 10MB, 1GB enz.",
+    "tusUploadsRetryCount": "Aantal pogingen dat moet worden uitgevoerd als het uploaden van een chunk mislukt.",
+    "userHomeBasePath": "Basispad voor homedirectory's van gebruikers",
+    "userScopeGenerationPlaceholder": "De scope wordt automatisch gegenereerd",
+    "createUserHomeDirectory": "Thuismap gebruiker aanmaken",
+    "shareSettings": "Instellingen delen",
+    "api": "API-sleutels",
+    "shareDeleted": "Deel verwijderd!",
+    "adminOptions": "Opties voor beheerders",
+    "shareDuration": "Verloopt op",
+    "searchOptions": "Zoekopties"
   },
   "sidebar": {
     "help": "Help",
@@ -243,7 +299,10 @@
     "preview": "Voorbeeld",
     "settings": "Instellingen",
     "signup": "Registeren",
-    "siteSettings": "Site-instellingen"
+    "siteSettings": "Site-instellingen",
+    "sources": "Bronnen",
+    "updateIsAvailable": "Er is een update beschikbaar!",
+    "fileActions": "Bestandsacties"
   },
   "success": {
     "linkCopied": "Link gekopieerd!"
@@ -255,8 +314,81 @@
     "seconds": "Seconden",
     "unit": "Tijdseenheid"
   },
-  "upload": {},
-  "share": {},
-  "api": {},
-  "index": {}
+  "upload": {
+    "abortUpload": "Weet je zeker dat je wilt aborteren?"
+  },
+  "share": {
+    "notice": "Opmerking: iedereen die toegang heeft tot de link (en optioneel wachtwoord) kan de gedeelde bestanden openen. Je hoeft niet ingelogd te zijn."
+  },
+  "api": {
+    "title": "API-sleutels",
+    "keyName": "API-sleutelnaam:",
+    "createdAt": "Gemaakt op:",
+    "expiresAt": "Verloopt op:",
+    "permissions": "Toestemmingen:",
+    "createTitle": "API-sleutel aanmaken",
+    "keyNamePlaceholder": "Voer een unieke naam voor de API-sleutel in:",
+    "tokenDuration": "Duur token:",
+    "durationNumberPlaceholder": "Aantal",
+    "days": "Dagen",
+    "months": "Maanden",
+    "permissionNote": "Kies minstens één permissie voor de sleutel. Je gebruiker moet deze rechten ook hebben.",
+    "createKeyFailed": "API-sleutel is niet aangemaakt.",
+    "createKeySuccess": "API-sleutel succesvol aangemaakt.",
+    "description": "API-sleutels zijn gebaseerd op de gebruiker die ze aanmaakt. Zie",
+    "swaggerLinkText": "swagger pagina",
+    "name": "Naam",
+    "created": "Gemaakt",
+    "expires": "Verloopt op",
+    "actions": "Acties",
+    "enabled": "Ingeschakeld",
+    "disabled": "Uitgeschakeld"
+  },
+  "index": {
+    "status": "Status",
+    "assessment": "Beoordeling",
+    "files": "Bestanden",
+    "folders": "Mappen",
+    "lastScanned": "Laatst gescand",
+    "quickScan": "Snelle scan Seconden",
+    "fullScan": "Seconden voor volledig scannen",
+    "settingsHover": "Instellingen voor gebruiker",
+    "logout": "Afmelden",
+    "toggleClick": "Schakelen Enkele klik",
+    "toggleDark": "Donkere modus inschakelen",
+    "toggleSticky": "Kleefmodus schakelen",
+    "of": "van",
+    "used": "tweedehands"
+  },
+  "profileSettings": {
+    "setDateFormat": "Exact datumformaat instellen",
+    "showHiddenFiles": "Verborgen bestanden weergeven",
+    "showQuickDownload": "Downloadpictogram weergeven voor snelle toegang",
+    "previewImages": "Voorbeeldafbeeldingen",
+    "previewVideos": "Video's bekijken",
+    "previewMotionVideos": "Bewegingsvoorbeeld voor video's",
+    "highQualityPreview": "Hoge kwaliteit preview voor galerijafbeeldingen",
+    "editOffice": "Office-bestanden bewerken/bekijken",
+    "popupPreview": "Pop-up voorbeeld inschakelen",
+    "filePreviewOptions": "Opties voor bestandsvoorbeeld",
+    "disableUpdateNotifications": "Schakel het tonen van de melding update banner in de zijbalk uit.",
+    "disableHideSidebar": "Het automatisch verbergen van de zijbalk bij het bekijken of bewerken van bestanden uitschakelen.",
+    "autoplayMedia": "Mediabestanden automatisch afspelen in voorvertoning",
+    "deleteWithoutConfirming": "Bestanden verwijderen zonder bevestigingsprompt",
+    "sidebarOptions": "Zijbalk opties",
+    "disableQuickToggles": "Snel wisselen uitschakelen",
+    "disableSearchOptions": "Zoekopties uitschakelen",
+    "hideSidebarFileActions": "Verberg bestandsacties in de zijbalk"
+  },
+  "otp": {
+    "name": "Authenticatie met twee factoren",
+    "verifyInstructions": "Voer de code van uw authenticator-app in",
+    "generate": "Scan de QR-code met uw authenticator-app",
+    "codeInputPlaceholder": "6-cijferige code",
+    "invalidCodeType": "De verificatiecode moet uit 6 engelse cijfers bestaan",
+    "enabledSuccessfully": "OTP succesvol ingeschakeld",
+    "verificationFailed": "Verificatie mislukt",
+    "verificationSucceed": "Verificatie slagen",
+    "generationFailed": "Generatie mislukt"
+  }
 }

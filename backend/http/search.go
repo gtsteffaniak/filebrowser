@@ -50,6 +50,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param query query string true "Search query"
+// @Param source query string true "Source name for the desired source"
 // @Param scope query string false "path within user scope to search, for example '/first/second' to search within the second directory only"
 // @Param SessionId header string false "User session ID, add unique value to prevent collisions"
 // @Success 200 {array} indexing.SearchResult "List of search results"
@@ -58,9 +59,6 @@ import (
 func searchHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	query := r.URL.Query().Get("query")
 	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = config.Server.DefaultSource.Name
-	}
 	scope := r.URL.Query().Get("scope")
 	unencodedScope, err := url.QueryUnescape(scope)
 	if err != nil {

@@ -163,7 +163,8 @@
     "deleteUserMessage": "Tem certeza de que deseja excluir esse usuário?",
     "filesSelected": "arquivos selecionados",
     "typeName": "Tipo:",
-    "selected": "selecionado"
+    "selected": "selecionado",
+    "deleted": "Excluído com sucesso!"
   },
   "search": {
     "images": "Imagens",
@@ -243,7 +244,6 @@
     "scope": "Escopo",
     "setDateFormat": "Definir formato exato de data",
     "settingsUpdated": "Configurações atualizadas!",
-    "shareDuration": "Duração do compartilhamento",
     "shareManagement": "Gerenciamento do compartilhamento",
     "shareDeleted": "Compartilhamento apagado!",
     "singleClick": "Usar clique único para abrir arquivos e diretórios",
@@ -287,7 +287,10 @@
     "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o visualizador do OnlyOffice. (por exemplo, '.txt .html').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
     "disableOfficePreviews": "Desativar as visualizações do Office para determinadas extensões de arquivo",
-    "disableOfficePreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações do Office. (por exemplo, '.txt .html')."
+    "disableOfficePreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações do Office. (por exemplo, '.txt .html').",
+    "adminOptions": "Opções do usuário administrador",
+    "shareDuration": "Expirações",
+    "searchOptions": "Opções de pesquisa"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -302,7 +305,8 @@
     "signup": "Cadastrar",
     "siteSettings": "Configurações do site",
     "sources": "Fontes",
-    "updateIsAvailable": "Uma atualização está disponível!"
+    "updateIsAvailable": "Uma atualização está disponível!",
+    "fileActions": "Ações de arquivo"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -374,7 +378,12 @@
     "editOffice": "Editar/visualizar arquivos de escritório",
     "disableUpdateNotifications": "Desativar a exibição do banner de atualização de notificação na barra lateral.",
     "disableHideSidebar": "Desative a ocultação automática da barra lateral ao visualizar ou editar arquivos.",
-    "autoplayMedia": "Reprodução automática de arquivos de mídia na visualização"
+    "autoplayMedia": "Reprodução automática de arquivos de mídia na visualização",
+    "deleteWithoutConfirming": "Excluir arquivos sem prompt de confirmação",
+    "sidebarOptions": "Opções da barra lateral",
+    "disableQuickToggles": "Desativar as alternâncias rápidas",
+    "disableSearchOptions": "Desativar opções de pesquisa",
+    "hideSidebarFileActions": "Ocultar ações de arquivo na barra lateral"
   },
   "otp": {
     "name": "Autenticação de dois fatores",

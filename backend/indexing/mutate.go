@@ -8,8 +8,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
-
-	"github.com/shirou/gopsutil/v3/disk"
 )
 
 // UpdateFileMetadata updates the FileInfo for the specified directory in the index.
@@ -100,17 +98,14 @@ func GetIndexInfo(sourceName string) (ReducedIndex, error) {
 	cacheKey := "usageCache-" + sourceName
 	_, ok = utils.DiskUsageCache.Get(cacheKey).(bool)
 	if !ok {
-		usage, err := disk.Usage(sourcePath)
+		totalBytes, err := getPartitionSize(sourcePath)
 		if err != nil {
 			logger.Errorf("error getting disk usage for %s: %v", sourcePath, err)
 			idx.SetStatus(UNAVAILABLE)
 			return ReducedIndex{}, fmt.Errorf("error getting disk usage for %s: %v", sourcePath, err)
 		}
-		latestUsage := DiskUsage{
-			Total: usage.Total,
-			Used:  usage.Used,
-		}
-		idx.SetUsage(latestUsage)
+
+		idx.SetUsage(totalBytes)
 		utils.DiskUsageCache.Set(cacheKey, true)
 	}
 	return idx.ReducedIndex, nil

@@ -163,7 +163,8 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "كلمة مرور اختيارية",
     "typeName": "النوع:",
-    "selected": "مختارة"
+    "selected": "مختارة",
+    "deleted": "تم الحذف بنجاح!"
   },
   "search": {
     "images": "الصور",
@@ -239,7 +240,6 @@
     "rulesHelp": "يمكنك هنا تحديد مجموعة من شروط السماح والمنع لهذا المستخدم. الملفات الممنوعة لن تظهر ضمن القائمة لهذا المستخدم ولن يستطيع الوصول لها. هنا ندعم الـ regex والـ relative path لنطاق المستخدمين.\n",
     "scope": "نطاق",
     "settingsUpdated": "تم تعديل الإعدادات",
-    "shareDuration": "مدة المشاركة",
     "shareManagement": "إدارة المشاركة",
     "singleClick": "استخدام نقرات واحدة لفتح الملفات والدلائل",
     "themes": {
@@ -287,7 +287,10 @@
     "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل عارض OnlyOffice لها. (على سبيل المثال، \".txt .html\").",
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
     "disableOfficePreviews": "تعطيل معاينات المكتب لامتدادات ملفات معينة",
-    "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\")."
+    "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\").",
+    "adminOptions": "خيارات المستخدم المسؤول",
+    "shareDuration": "تنتهي صلاحيتها",
+    "searchOptions": "خيارات البحث"
   },
   "sidebar": {
     "help": "مساعدة",
@@ -302,7 +305,8 @@
     "signup": "Signup",
     "siteSettings": "إعدادات الموقع",
     "sources": "المصادر",
-    "updateIsAvailable": "يتوفر تحديث!"
+    "updateIsAvailable": "يتوفر تحديث!",
+    "fileActions": "إجراءات الملف"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -374,7 +378,12 @@
     "editOffice": "تحرير/عرض ملفات المكتب",
     "disableUpdateNotifications": "تعطيل إظهار شعار تحديث الإشعارات في الشريط الجانبي.",
     "disableHideSidebar": "تعطيل إخفاء الشريط الجانبي تلقائيًا عند معاينة الملفات أو تحريرها.",
-    "autoplayMedia": "التشغيل التلقائي لملفات الوسائط في المعاينة"
+    "autoplayMedia": "التشغيل التلقائي لملفات الوسائط في المعاينة",
+    "deleteWithoutConfirming": "حذف الملفات بدون مطالبة التأكيد",
+    "sidebarOptions": "خيارات الشريط الجانبي",
+    "disableQuickToggles": "تعطيل التبديل السريع",
+    "disableSearchOptions": "تعطيل خيارات البحث",
+    "hideSidebarFileActions": "إخفاء إجراءات الملف في الشريط الجانبي"
   },
   "otp": {
     "name": "المصادقة الثنائية",

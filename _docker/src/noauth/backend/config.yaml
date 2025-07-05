@@ -6,6 +6,7 @@ server:
   sources:
     - path: "../frontend/tests/playwright-files"
       config:
+        defaultEnabled: true
         exclude:
           folderPaths:
             - "excluded"

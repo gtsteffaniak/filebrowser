@@ -21,6 +21,7 @@ const passwordAvailable = window.FileBrowser.PasswordAvailable;
 const mediaAvailable = window.FileBrowser.MediaAvailable;
 const muPdfAvailable = window.FileBrowser.MuPdfAvailable;
 const updateAvailable = window.FileBrowser.UpdateAvailable;
+const disableNavButtons = window.FileBrowser.DisableNavButtons;
 const origin = window.location.origin;
 
 const settings = [
@@ -32,6 +33,7 @@ const settings = [
 ];
 
 export {
+  disableNavButtons,
   updateAvailable,
   muPdfAvailable,
   mediaAvailable,

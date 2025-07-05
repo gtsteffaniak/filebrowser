@@ -295,9 +295,6 @@ export default {
 
       let action = async (overwrite, rename) => {
         await filesApi.moveCopy(items, "move", overwrite, rename);
-        setTimeout(() => {
-          mutations.setReload(true);
-        }, 50);
       };
       let conflict = upload.checkConflict(items, response.items);
 

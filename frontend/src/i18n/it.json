@@ -163,7 +163,8 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Password opzionale",
     "typeName": "Tipo:",
-    "selected": "selezionato"
+    "selected": "selezionato",
+    "deleted": "Eliminato con successo!"
   },
   "search": {
     "images": "Immagini",
@@ -239,7 +240,6 @@
     "rulesHelp": "Qui è possibile definire una serie di regole e permessi per questo specifico utente. I file bloccati non appariranno negli elenchi e non saranno accessibili dagli utenti. all'utente. Sia regex che i percorsi relativi all'ambito di applicazione degli utenti sono supportati.\n",
     "scope": "Scope",
     "settingsUpdated": "Impostazioni aggiornate!",
-    "shareDuration": "Durata della condivisione",
     "shareManagement": "Gestione delle condivisioni",
     "singleClick": "Usa un singolo click per aprire file e cartelle",
     "themes": {
@@ -287,7 +287,10 @@
     "disableOfficeEditorDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare il visualizzatore di OnlyOffice. (ad esempio, '.txt .html').",
     "disableOfficeEditor": "Disattivare il visualizzatore di Office per alcune estensioni di file",
     "disableOfficePreviews": "Disattivare le anteprime di Office per alcune estensioni di file",
-    "disableOfficePreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime di Office. (ad esempio, '.txt .html')."
+    "disableOfficePreviewsDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime di Office. (ad esempio, '.txt .html').",
+    "adminOptions": "Opzioni dell'utente amministratore",
+    "shareDuration": "Scadenza",
+    "searchOptions": "Opzioni di ricerca"
   },
   "sidebar": {
     "help": "Aiuto",
@@ -302,7 +305,8 @@
     "signup": "Registrati",
     "siteSettings": "Impostazioni del sito",
     "sources": "Fonti",
-    "updateIsAvailable": "È disponibile un aggiornamento!"
+    "updateIsAvailable": "È disponibile un aggiornamento!",
+    "fileActions": "Azioni sui file"
   },
   "success": {
     "linkCopied": "Link copiato!"
@@ -374,7 +378,12 @@
     "editOffice": "Modificare/visualizzare i file dell'ufficio",
     "disableUpdateNotifications": "Disattivare la visualizzazione del banner di aggiornamento delle notifiche nella barra laterale.",
     "disableHideSidebar": "Disabilita la possibilità di nascondere automaticamente la barra laterale durante l'anteprima o la modifica dei file.",
-    "autoplayMedia": "Riproduzione automatica dei file multimediali nell'anteprima"
+    "autoplayMedia": "Riproduzione automatica dei file multimediali nell'anteprima",
+    "deleteWithoutConfirming": "Eliminazione di file senza richiesta di conferma",
+    "sidebarOptions": "Opzioni della barra laterale",
+    "disableQuickToggles": "Disattivare i toggle rapidi",
+    "disableSearchOptions": "Disattivare le opzioni di ricerca",
+    "hideSidebarFileActions": "Nascondere le azioni dei file nella barra laterale"
   },
   "otp": {
     "name": "Autenticazione a due fattori",

@@ -84,6 +84,7 @@ export default {
         usersApi.deleteApiKey({ name: this.name });
         notify.showSuccess("API key deleted!");
         window.location.reload();
+        mutations.closeHovers();
       } catch (error) {
         notify.showError(error);
       }

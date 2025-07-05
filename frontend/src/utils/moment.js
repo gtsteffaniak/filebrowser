@@ -12,11 +12,15 @@ export function fromNow(date, locale) {
         { label: 'second', seconds: 1 },
     ];
     const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-
+    // Use absolute value for calculations
+    const absDiffInSeconds = Math.abs(diffInSeconds);
     for (let interval of intervals) {
-        const count = Math.floor(diffInSeconds / interval.seconds);
+        const count = Math.floor(absDiffInSeconds / interval.seconds);
         if (count > 0) {
-            return formatter.format(-count, interval.label);
+            // For past dates (diffInSeconds > 0), we want negative values
+            // For future dates (diffInSeconds < 0), we want positive values
+            const formattedCount = diffInSeconds > 0 ? -count : count;
+            return formatter.format(formattedCount, interval.label);
         }
     }
     return 'just now';

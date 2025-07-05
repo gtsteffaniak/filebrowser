@@ -8,6 +8,10 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
+  setDeletedItem: (value) => {
+    state.deletedItem = value;
+    emitStateChanged();
+  },
   setSeenUpdate: (value) => {
     state.seenUpdate = value
     localStorage.setItem("seenUpdate", value);
@@ -224,6 +228,9 @@ export const mutations = {
         i18n.setLocale(value.locale);
       }
       state.user = value;
+      state.user.sorting.by = "name";
+      state.user.sorting.asc = true;
+      
     } catch (error) {
       console.log(error);
     }
@@ -326,6 +333,14 @@ export const mutations = {
     if (!state.user.showHidden) {
       value.items = value.items.filter((item) => !item.hidden);
     }
+    let sortby = "name"
+    let asc = true
+    if (state.user.username && state.user?.username != "publicUser") {
+      sortby = state.user.sorting.by;
+      asc = state.user.sorting.asc;
+    }
+    // map must be last to ensure the index is set correctly
+    value.items = sortedItems(value.items, sortby, asc)
     value.items.map((item, index) => {
       item.index = index;
       return item;
@@ -343,7 +358,6 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingItems: () => {
-    state.req.items = sortedItems(state.req.items, state.user.sorting.by)
     mutations.replaceRequest(state.req);
     emitStateChanged();
   },
