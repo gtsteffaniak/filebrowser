@@ -147,7 +147,6 @@ export async function handleFiles(files, base, overwrite = false) {
       item.path = `/files/${file.source}${item.path}`
     }
     console.log(`(${c} of ${count}) Uploading ${relativePath} to ${item.path}`)
-
     await filesApi
       .post(item.path, item.file, item.overwrite, percentComplete => {
         if (blockUpdates) return
@@ -162,7 +161,6 @@ export async function handleFiles(files, base, overwrite = false) {
         const spinner = document.querySelector('.notification-spinner')
         if (spinner) spinner.classList.add('hidden')
         console.log('Upload successful!', response)
-        mutations.setReload(true);
       })
       .catch(error => {
         const spinner = document.querySelector('.notification-spinner')
@@ -171,4 +169,5 @@ export async function handleFiles(files, base, overwrite = false) {
         throw error
       })
   }
+  mutations.setReload(true);
 }

@@ -200,7 +200,11 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	dst, _, _ := idx.GetRealPath(opts.Path)
-
+	// Ensure the parent directories exist
+	err := os.MkdirAll(filepath.Dir(dst), 0775)
+	if err != nil {
+		return err
+	}
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
 	file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0775)
 	if err != nil {
