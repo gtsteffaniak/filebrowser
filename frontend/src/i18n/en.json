@@ -374,7 +374,8 @@
     "toggleDark": "Toggle Dark Mode",
     "toggleSticky": "Toggle Sticky Mode",
     "of": "of",
-    "used": "used"
+    "used": "used",
+    "noSources": "No sources available for this user. Either add a source for this user or configure a source with defaultEnabled: true"
   },
   "otp": {
     "name": "Two-Factor Authentication",

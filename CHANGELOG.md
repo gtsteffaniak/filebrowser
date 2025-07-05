@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.12-beta
 
+Happy 4th of July!
+
+The most noteworthy change is that no sources will be automatically enabled for any user. In order for a user to use a source, it needs to be added for that user. Or to keep a source available for all users, you can specify `defaultEnabled` in the source config to maintain the same behavior. See the wiki
+
  **New Features**:
  - setting added `deleteWithoutConfirming`, useful for quickly deleting files -- does not apply to folders.
  - more options for minimal UI https://github.com/gtsteffaniak/filebrowser/issues/745
