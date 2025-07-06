@@ -51,6 +51,7 @@ export function detectLocale(): string {
     'ru': 'ru',
     'pl': 'pl',
     'ko': 'ko',
+    'cz': 'cz',
     'sk': 'sk',
     'tr': 'tr',
     'uk': 'uk',

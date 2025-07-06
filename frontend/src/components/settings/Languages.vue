@@ -43,6 +43,7 @@ export default defineComponent({
         ua: "ua",
         "zh-cn": "zhCN",
         "zh-tw": "zhTW",
+        "cz": "cz",
       },
     };
   },
