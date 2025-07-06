@@ -181,4 +181,17 @@ router.beforeResolve(async (to, from, next) => {
   next();
 });
 
+router.afterEach((to) => {
+  // Only postMessage if running in an iframe
+  if (window.self !== window.top) {
+    window.parent.postMessage(
+      {
+        type: "filebrowser:navigation",
+        url: to.fullPath,
+      },
+      "*"
+    );
+  }
+});
+
 export { router, router as default };
