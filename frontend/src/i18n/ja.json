@@ -362,7 +362,8 @@
     "toggleDark": "ダークモードの切り替え",
     "toggleSticky": "スティッキーモードの切り替え",
     "of": "の",
-    "used": "中古"
+    "used": "中古",
+    "noSources": "このユーザが使用できるソースはありません。このユーザのソースを追加するか、defaultEnabled: true でソースを構成します。"
   },
   "profileSettings": {
     "setDateFormat": "正確な日付書式を設定する",

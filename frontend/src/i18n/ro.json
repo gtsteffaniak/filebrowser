@@ -362,7 +362,8 @@
     "toggleDark": "Comutarea modului întunecat",
     "toggleSticky": "Schimbarea modului lipicios",
     "of": "de",
-    "used": "utilizate"
+    "used": "utilizate",
+    "noSources": "Nu există surse disponibile pentru acest utilizator. Adăugați o sursă pentru acest utilizator sau configurați o sursă cu defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Setați formatul exact al datei",

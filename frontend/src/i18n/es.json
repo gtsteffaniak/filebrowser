@@ -362,7 +362,8 @@
     "toggleDark": "Activar el modo oscuro",
     "toggleSticky": "Conmutar el modo adhesivo",
     "of": "de",
-    "used": "usado"
+    "used": "usado",
+    "noSources": "No hay fuentes disponibles para este usuario. Añada una fuente para este usuario o configure una fuente con defaultEnabled: true."
   },
   "profileSettings": {
     "setDateFormat": "Establecer el formato exacto de la fecha",

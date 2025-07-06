@@ -358,7 +358,8 @@
     "toggleDark": "Donkere modus inschakelen",
     "toggleSticky": "Kleefmodus schakelen",
     "of": "van",
-    "used": "tweedehands"
+    "used": "tweedehands",
+    "noSources": "Geen bronnen beschikbaar voor deze gebruiker. Voeg een bron toe voor deze gebruiker of configureer een bron met defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Exact datumformaat instellen",

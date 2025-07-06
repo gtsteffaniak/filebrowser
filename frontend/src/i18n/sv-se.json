@@ -358,7 +358,8 @@
     "toggleDark": "Växla till mörkt läge",
     "toggleSticky": "Växla klisterläge",
     "of": "av",
-    "used": "används"
+    "used": "används",
+    "noSources": "Inga källor tillgängliga för den här användaren. Lägg antingen till en källa för den här användaren eller konfigurera en källa med defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Ange exakt datumformat",

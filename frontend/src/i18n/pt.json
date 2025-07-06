@@ -358,7 +358,8 @@
     "toggleDark": "Alternar o modo escuro",
     "toggleSticky": "Alternar o modo de aderência",
     "of": "de",
-    "used": "utilizado"
+    "used": "utilizado",
+    "noSources": "Não existem fontes disponíveis para este utilizador. Adicione uma fonte para este utilizador ou configure uma fonte com defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Definir o formato exato da data",

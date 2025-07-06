@@ -359,7 +359,8 @@
     "toggleDark": "הפעל מצב כהה",
     "toggleSticky": "הפעל/כבה מצב דביק",
     "of": "של",
-    "used": "משומש"
+    "used": "משומש",
+    "noSources": "אין מקורות זמינים עבור משתמש זה. הוסף מקור עבור משתמש זה או הגדר מקור עם defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "הגדר פורמט תאריך מדויק",

@@ -362,7 +362,8 @@
     "toggleDark": "Sötét üzemmód átkapcsolása",
     "toggleSticky": "Ragadós mód átkapcsolása",
     "of": "a",
-    "used": "használt"
+    "used": "használt",
+    "noSources": "Ehhez a felhasználóhoz nem állnak rendelkezésre források. Vagy adjon hozzá egy forrást ehhez a felhasználóhoz, vagy konfiguráljon egy forrást a defaultEnabled: true beállítással."
   },
   "profileSettings": {
     "setDateFormat": "Pontos dátumformátum beállítása",

@@ -362,7 +362,8 @@
     "toggleDark": "Alterna la modalità scura",
     "toggleSticky": "Alterna la modalità appiccicosa",
     "of": "di",
-    "used": "usato"
+    "used": "usato",
+    "noSources": "Non ci sono fonti disponibili per questo utente. Aggiungere una fonte per questo utente o configurare una fonte con defaultEnabled: true."
   },
   "profileSettings": {
     "setDateFormat": "Impostare il formato esatto della data",

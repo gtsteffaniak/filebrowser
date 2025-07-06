@@ -362,7 +362,8 @@
     "toggleDark": "Mode sombre/clair",
     "toggleSticky": "Activer/Désactiver le mode persistent",
     "of": "de",
-    "used": "utilisé"
+    "used": "utilisé",
+    "noSources": "Aucune source n'est disponible pour cet utilisateur. Ajoutez une source pour cet utilisateur ou configurez une source avec defaultEnabled : true"
   },
   "profileSettings": {
     "setDateFormat": "Définir le format exact de la date",

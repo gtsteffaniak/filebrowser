@@ -25,6 +25,7 @@ import ua from './ua.json';
 import svSE from './sv-se.json';
 import zhCN from './zh-cn.json';
 import zhTW from './zh-tw.json';
+import cz from './cz.json';
 
 type LocaleMap = { [key: string]: string };
 
@@ -40,12 +41,12 @@ export function detectLocale(): string {
     'is': 'is',
     'it': 'it',
     'fr': 'fr',
-    'pt-br': 'pt-br',
+    'pt-br': 'ptBR',
     'pt': 'pt',
     'ja': 'ja',
-    'zh-tw': 'zh-tw',
-    'zh-cn': 'zh-cn',
-    'zh': 'zh-cn',
+    'zh-tw': 'zhTW',
+    'zh-cn': 'zhCN',
+    'zh': 'zhCN',
     'de': 'de',
     'ro': 'ro',
     'ru': 'ru',
@@ -55,9 +56,9 @@ export function detectLocale(): string {
     'sk': 'sk',
     'tr': 'tr',
     'uk': 'uk',
-    'sv-se': 'sv',
-    'sv': 'sv',
-    'nl-be': 'nl-be',
+    'sv-se': 'svSE',
+    'sv': 'svSE',
+    'nl-be': 'nlBE',
   };
 
   for (const key in localeMap) {
@@ -104,17 +105,18 @@ const i18n = createI18n({
     it,
     ja,
     ko,
-    'nl-be': nlBE,
+    nlBE,
     pl,
-    'pt-br': ptBR,
+    ptBR,
     pt,
     ru,
     ro,
     sk,
-    'sv-se': svSE,
+    svSE,
     ua,
-    'zh-cn': zhCN,
-    'zh-tw': zhTW,
+    zhCN,
+    zhTW,
+    cz,
   },
 });
 
