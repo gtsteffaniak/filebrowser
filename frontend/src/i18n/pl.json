@@ -362,7 +362,8 @@
     "toggleDark": "Przełączanie trybu ciemnego",
     "toggleSticky": "Przełączanie trybu samoprzylepnego",
     "of": "z",
-    "used": "używany"
+    "used": "używany",
+    "noSources": "Brak dostępnych źródeł dla tego użytkownika. Dodaj źródło dla tego użytkownika lub skonfiguruj źródło z defaultEnabled: true."
   },
   "profileSettings": {
     "setDateFormat": "Ustaw dokładny format daty",

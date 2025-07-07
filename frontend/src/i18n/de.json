@@ -362,7 +362,8 @@
     "toggleDark": "Dunkelmodus umschalten",
     "toggleSticky": "Sticky-Modus umschalten",
     "of": "von",
-    "used": "belegt"
+    "used": "belegt",
+    "noSources": "Für diesen Benutzer sind keine Quellen verfügbar. Entweder eine Quelle für diesen Benutzer hinzufügen oder eine Quelle mit defaultEnabled: true konfigurieren"
   },
   "profileSettings": {
     "setDateFormat": "Genaues Datumsformat einstellen",

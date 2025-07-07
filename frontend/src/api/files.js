@@ -181,9 +181,11 @@ export async function moveCopy(
 
     // Await all promises and ensure errors propagate
     await Promise.all(promises)
-    notify.showSuccess(
-      action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
-    )
+    setTimeout(() => {
+      notify.showSuccess(
+        action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
+      )
+    }, 250);
     mutations.setReload(true);
   } catch (err) {
     notify.showError(err.message || 'Error moving/copying resources')

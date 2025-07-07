@@ -362,7 +362,8 @@
     "toggleDark": "Karanlık Modu Aç / Kapat",
     "toggleSticky": "Yapışkan Modunu Değiştir",
     "of": ".",
-    "used": "kullanılmış"
+    "used": "kullanılmış",
+    "noSources": "Bu kullanıcı için kullanılabilir kaynak yok. Ya bu kullanıcı için bir kaynak ekleyin ya da defaultEnabled: true ile bir kaynak yapılandırın"
   },
   "profileSettings": {
     "setDateFormat": "Tam tarih biçimini ayarlama",

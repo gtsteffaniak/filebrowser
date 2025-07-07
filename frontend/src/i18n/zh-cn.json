@@ -359,7 +359,8 @@
     "toggleDark": "切换黑暗模式",
     "toggleSticky": "切换粘贴模式",
     "of": "的",
-    "used": "中古"
+    "used": "中古",
+    "noSources": "该用户没有可用的信息源。要么为该用户添加一个信息源，要么配置一个默认为 true 的信息源。"
   },
   "profileSettings": {
     "setDateFormat": "设置准确的日期格式",
