@@ -230,7 +230,6 @@ export const mutations = {
       state.user = value;
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
-      
     } catch (error) {
       console.log(error);
     }
@@ -304,20 +303,29 @@ export const mutations = {
 
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      usersApi.update(state.user, [
-        "locale",
-        "dateFormat",
-        "themeColor",
-        "quickDownload",
-        "disableOnlyOfficeExt",
-        "preview",
-        "stickySidebar",
-        "darkMode",
-        "showHidden",
-        "sorting",
-        "gallerySize",
-        "viewMode",
-      ]);
+      // Only update the properties that were actually provided in the input
+      const updatedProperties = Object.keys(value).filter(key =>
+        [
+          "locale",
+          "dateFormat",
+          "themeColor",
+          "quickDownload",
+          "disableOnlyOfficeExt",
+          "preview",
+          "stickySidebar",
+          "singleClick",
+          "darkMode",
+          "showHidden",
+          "sorting",
+          "gallerySize",
+          "viewMode",
+        ].includes(key)
+      );
+      value.id = state.user.id;
+      value.username = state.user.username;
+      if (updatedProperties.length > 0) {
+        usersApi.update(value, updatedProperties);
+      }
     }
 
     // Emit state change event

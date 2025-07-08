@@ -91,6 +91,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -109,7 +110,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Створити обліковий запис",
@@ -164,7 +166,8 @@
     "filesSelected": "вибрані файли",
     "uploadFiles": "Uploading {files} files...",
     "typeName": "Друкуй:",
-    "deleted": "Видалено успішно!"
+    "deleted": "Видалено успішно!",
+    "destinationSource": "Місце призначення Джерело:"
   },
   "search": {
     "images": "Зображення",

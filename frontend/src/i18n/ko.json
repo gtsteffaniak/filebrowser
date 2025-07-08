@@ -91,25 +91,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "계정 생성",
@@ -164,7 +166,8 @@
     "optionalPassword": "선택적 비밀번호",
     "typeName": "유형:",
     "selected": "선택",
-    "deleted": "성공적으로 삭제되었습니다!"
+    "deleted": "성공적으로 삭제되었습니다!",
+    "destinationSource": "대상 소스:"
   },
   "search": {
     "images": "이미지",

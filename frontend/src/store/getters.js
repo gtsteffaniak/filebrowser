@@ -1,4 +1,4 @@
-import { removePrefix } from '@/utils/url.js'
+import { removePrefix, buildItemUrl } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
 import { noAuth } from '@/utils/constants.js'
@@ -81,10 +81,9 @@ export const getters = {
     getters.getFirstSelected()?.type != 'directory',
   selectedDownloadUrl () {
     if (state.isSearchActive) {
-      return state.selected[0].url
+      return buildItemUrl(state.selected[0].source, state.selected[0].path)
     }
-    let selectedItem = state.selected[0]
-    return state.req.items[selectedItem].url
+    return buildItemUrl(state.req.items[state.selected[0]].source, state.req.items[state.selected[0]].path)
   },
   reqNumDirs: () => {
     let dirCount = 0

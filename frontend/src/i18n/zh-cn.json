@@ -91,6 +91,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -98,18 +99,19 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch（Belgium）",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
-    "ptBR": "Português（Brasil）",
+    "ptBR": "Português (Brasil)",
     "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "Swedish（Sweden）",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
-    "zhCN": "中文（简体）",
-    "zhTW": "中文（繁體）"
+    "zhCN": "中文 (简体)",
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "创建用户",
@@ -164,7 +166,8 @@
     "filesSelected": "所选文件",
     "uploadFiles": "Uploading {files} files...",
     "typeName": "类型",
-    "deleted": "已成功删除！"
+    "deleted": "已成功删除！",
+    "destinationSource": "目的地来源："
   },
   "search": {
     "images": "图像",

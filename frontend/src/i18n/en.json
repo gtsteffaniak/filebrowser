@@ -134,6 +134,7 @@
     "notice": "Note: anyone who has access to the link (and optional password) can access the shared files. There is no requirement to be logged in."
   },
   "prompts": {
+    "destinationSource": "Destination Source:",
     "copy": "Copy",
     "copyMessage": "Choose the place to copy your files:",
     "currentlyNavigating": "Currently navigating on:",

@@ -77,9 +77,16 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
     if (Object.prototype.hasOwnProperty.call(masterObj, key)) {
       const currentPathPartsNext = [...currentPathParts, key];
       const currentKeyPath = currentPathPartsNext.join('.');
-      if (currentPathParts[0] === 'languages') continue;
 
       const masterValue = masterObj[key];
+
+      // Special handling for "languages" key - always copy the entire object from master
+      if (key === 'languages' && currentPathParts.length === 0) {
+        console.log(`Copying entire "languages" object from master to ${targetLangCode}.json`);
+        targetObj[key] = JSON.parse(JSON.stringify(masterValue)); // Deep copy
+        changesMade = true;
+        continue;
+      }
 
       if (typeof masterValue === 'object' && masterValue !== null && !Array.isArray(masterValue)) {
         if (!targetObj[key] || typeof targetObj[key] !== 'object') {

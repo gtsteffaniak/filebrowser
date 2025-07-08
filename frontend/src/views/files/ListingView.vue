@@ -106,7 +106,7 @@
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type == 'directory'"
-            v-bind:url="item.url"
+            v-bind:source="req.source"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
             v-bind:size="item.size"
@@ -126,8 +126,8 @@
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type == 'directory'"
-            v-bind:url="item.url"
             v-bind:modified="item.modified"
+            v-bind:source="req.source"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -156,7 +156,7 @@
 </template>
 
 <script>
-import download from "@/utils/download";
+import downloadFiles from "@/utils/download";
 import { filesApi } from "@/api";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
@@ -616,7 +616,9 @@ export default {
       switch (key) {
         case "Enter":
           if (this.selectedCount === 1) {
-            router.push({ path: getters.getFirstSelected().url });
+            const selected = getters.getFirstSelected();
+            const selectedUrl = url.buildItemUrl(selected.source, selected.path)
+            router.push({ path: selectedUrl });
           }
           break;
 
@@ -667,7 +669,7 @@ export default {
           break;
         case "s":
           event.preventDefault();
-          download();
+          downloadFiles(state.selected);
           break;
       }
     },
@@ -738,7 +740,8 @@ export default {
       }
 
       let items = state.selected.map((i) => ({
-        from: state.req.items[i].url,
+        from: state.req.items[i].path,
+        fromSource: state.req.items[i].source,
         name: state.req.items[i].name,
       }));
 
@@ -759,8 +762,9 @@ export default {
 
       let items = this.clipboard.items.map((item) => ({
         from: item.from,
-        to: state.route.path + encodeURIComponent(item.name),
-        name: item.name,
+        fromSource: item.fromSource,
+        to: state.route.path + item.name,
+        toSource: item.toSource
       }));
 
       if (items.length === 0) {
@@ -848,11 +852,13 @@ export default {
       let path = state.req.path;
 
       if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
-        const response = await filesApi.fetchFiles(el.__vue__.url);
-        path = decodeURIComponent(el.__vue__.url);
+        const response = await filesApi.fetchFiles(el.__vue__.source,el.__vue__.path);
+        path = el.__vue__.path;
+        source = el.__vue__.source;
         items = response.items;
       }
 
+      console.log("rawFiles", rawFiles);
       const uploadFiles = rawFiles.map((file) => {
         // Here we construct a path that handleFiles will use
         const filePath = file.fullPath || file.webkitRelativePath || file.name;
@@ -860,8 +866,7 @@ export default {
           file,
           name: file.name,
           size: file.size,
-          path: filePath.replace("//", "/"), // Ensure no double slashes
-          fullPath: filePath.replace("//", "/"), // Ensure no double slashes
+          path: filePath.path,
           source: state.req.source,
         };
       });
@@ -1013,5 +1018,10 @@ export default {
 
 #listingView {
   min-height: 90vh !important;
+}
+
+.folder-items a {
+  border-color: #d1d1d1;
+  border-style: solid;
 }
 </style>

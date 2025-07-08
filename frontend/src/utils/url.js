@@ -1,5 +1,6 @@
 import { baseURL } from "@/utils/constants.js";
 import { state } from "@/store";
+import { router } from "@/router";
 
 export function removeLastDir(url) {
   var arr = url.split("/");
@@ -127,4 +128,49 @@ export function extractSourceFromPath(url) {
   }
 
   return { source, path };
+}
+
+export function buildItemUrl(source, path) {
+  if (state.serverHasMultipleSources) {
+    return `/files/${source}${path}`;
+  } else {
+    return `/files${path}`;
+  }
+}
+
+export function encodedPath(path) {
+  if (path === undefined) {
+    return "";
+  }
+  path = path.replace(/#/g, "%23"); // preseve # in path
+  // break apart path into parts and url encode each part
+  const parts = path.split("/");
+  const encodedParts = parts.map(part => encodeURIComponent(part));
+  return encodedParts.join("/").replace("//", "/");
+}
+
+
+export function goToItem(source, path, previousHash, shareHash) {
+  if (previousHash) {
+    location.hash = previousHash;
+  }
+  let newPath = encodedPath(path);
+  let fullPath;
+  if (shareHash) {
+    fullPath = `/share/${shareHash}${newPath}`;
+    console.log("fullPath", fullPath);
+    router.push({ path: fullPath });
+    return;
+  }
+  if (state.serverHasMultipleSources) {
+    fullPath = `/${encodeURIComponent(source)}${newPath}`;
+  } else {
+    fullPath = `${newPath}`;
+  }
+
+  router.push({ path: fullPath });
+  return
+}
+export function doubleEncode(str) {
+  return encodeURIComponent(encodeURIComponent(str));
 }

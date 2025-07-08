@@ -38,7 +38,6 @@ export default defineComponent({
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
-      url: state.req.url,
     });
     try {
       // 1. Fetch the download URL for the EPUB file

@@ -4,7 +4,7 @@
       v-if="!isShare && !(disableNavButtons && isListingView)"
       icon="close_back"
       :label="$t('buttons.close')"
-      :disabled="isSearchActive"
+      :disabled="isDisabled"
       @action="multiAction"
     />
     <search v-if="showSearch" />
@@ -16,7 +16,7 @@
       :icon="viewIcon"
       :label="$t('buttons.switchView')"
       @action="switchView"
-      :disabled="isSearchActive"
+      :disabled="isDisabled"
     />
     <action
       v-else-if="!isShare && !isListingView"
@@ -87,8 +87,8 @@ export default {
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() === "listingView";
     },
-    isSearchActive() {
-      return state.isSearchActive;
+    isDisabled() {
+      return state.isSearchActive || getters.currentPromptName() != null;
     },
     showSwitchView() {
       return getters.currentView() === "listingView";

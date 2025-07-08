@@ -91,6 +91,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -109,7 +110,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Создать аккаунт",
@@ -164,7 +166,8 @@
     "uploadFiles": "Uploading {files} files...",
     "typeName": "Тип:",
     "selected": "выбранные",
-    "deleted": "Удалено успешно!"
+    "deleted": "Удалено успешно!",
+    "destinationSource": "Источник назначения:"
   },
   "search": {
     "images": "Изображения",
