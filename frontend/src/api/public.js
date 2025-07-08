@@ -22,32 +22,6 @@ export async function fetchPub(path, hash, password = "") {
   return adjusted
 }
 
-// Download files with given parameters
-export function download(format, files) {
-  let fileargs = ''
-  if (files.length === 1) {
-    fileargs = decodeURI(files[0]) + '||'
-  } else {
-    for (let file of files) {
-      fileargs += decodeURI(file) + '||'
-    }
-  }
-  fileargs = fileargs.slice(0, -2) // remove trailing "||"
-  const apiPath = getApiPath('api/public/dl', {
-    files: encodeURIComponent(fileargs),
-    hash: format.hash,
-  })
-  const url = window.origin + apiPath
-  // Create a temporary <a> element to trigger the download
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', '') // Ensures it triggers a download
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link) // Clean up
-
-}
-
 // Get the public user data
 export async function getPublicUser() {
   try {

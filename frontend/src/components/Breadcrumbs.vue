@@ -36,7 +36,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { extractSourceFromPath } from "@/utils/url.js";
+import { extractSourceFromPath, encodedPath } from "@/utils/url.js";
 
 export default {
   name: "breadcrumbs",
@@ -67,29 +67,33 @@ export default {
       return getters.isCardView();
     },
     items() {
-      // double encode # to fix issue with # in path
-      // replace all # with %23
       const req = state.req;
-      let path = "";
-      if (req.path !== undefined) {
-        path = state.req.path.replaceAll('#', "%23");
+      if (!req.items || req.items.length == 0) {
+        return [];
       }
-      let parts = path.split("/");
-      if (parts[0] === "") {
-        parts.shift();
+      let encodedPathString = encodedPath(state.req.path);
+      let originalParts = state.req.path.split("/");
+      let encodedParts = encodedPathString.split("/");
+      // Remove empty strings from both arrays consistently
+      if (originalParts[0] === "") {
+        originalParts.shift();
+        encodedParts.shift();
       }
-      if (parts[parts.length - 1] === "") {
-        parts.pop();
+      if (originalParts[originalParts.length - 1] === "") {
+        originalParts.pop();
+        encodedParts.pop();
       }
       let breadcrumbs = [];
       let buildRef = this.base;
-      parts.forEach((element) => {
-        buildRef = buildRef + encodeURIComponent(element) + "/";
+      for (let i = 0; i < originalParts.length; i++) {
+        const origPart = originalParts[i];
+        const encodedElement = encodedParts[i];
+        buildRef = buildRef + encodedElement + "/";
         breadcrumbs.push({
-          name: element,
+          name: origPart,
           url: buildRef,
         });
-      });
+      }
       if (breadcrumbs.length > 3) {
         while (breadcrumbs.length !== 4) {
           breadcrumbs.shift();

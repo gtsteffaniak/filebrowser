@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.13-beta
+
+ **New Features**:
+ - Copy and Move files between sources
+ #- Chunked uploading
+ #- New Upload prompt with overall status and per-file performance.
+
+ **Notes**:
+ - Reworked a lot of the frontend path/source logic to be more consistent.
+
+ **BugFixes**:
+ - 
+
 ## v0.7.12-beta
 
 Happy 4th of July!

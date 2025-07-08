@@ -63,9 +63,9 @@ import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { filesApi, shareApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
-import { router } from "@/router";
 import { url } from "@/utils";
 import Icon from "@/components/files/Icon.vue";
+import { baseURL, serverHasMultipleSources } from "@/utils/constants";
 
 export default {
   name: "item",
@@ -87,7 +87,7 @@ export default {
   props: [
     "name",
     "isDir",
-    "url",
+    "source",
     "type",
     "size",
     "modified",
@@ -95,6 +95,7 @@ export default {
     "readOnly",
     "path",
     "reducedOpacity",
+    "hash",
   ],
   computed: {
     galleryView() {
@@ -133,7 +134,7 @@ export default {
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
       for (let i of this.selected) {
-        if (state.req.items[i].url === this.url) {
+        if (state.req.items[i].path === this.path && state.req.source === this.source) {
           return false;
         }
       }
@@ -179,7 +180,7 @@ export default {
       event.stopPropagation();
       mutations.resetSelected();
       mutations.addSelected(this.index);
-      downloadFiles();
+      downloadFiles(state.selected);
     },
     handleTouchMove(event) {
       if (!state.isSafari) return;
@@ -213,7 +214,13 @@ export default {
       window.location.href = this.getRelative(path);
     },
     getUrl() {
-      return this.url;
+      if (this.hash) {
+        return baseURL + "share/" + this.hash + this.path;
+      }
+      if (serverHasMultipleSources) {
+        return baseURL + "files/" + this.source + this.path;
+      }
+      return baseURL + "files/" + this.path;
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
@@ -286,12 +293,13 @@ export default {
 
       for (let i of this.selected) {
         items.push({
-          from: state.req.items[i].url,
-          to: this.url + encodeURIComponent(state.req.items[i].name),
-          name: state.req.items[i].name,
+          from: state.req.path + "/" + state.req.items[i].name,
+          fromSource: state.req.source,
+          to: this.path + "/" + state.req.items[i].name,
+          toSource: this.source,
         });
       }
-      let response = await filesApi.fetchFiles(decodeURIComponent(el.__vue__.url));
+      let response = await filesApi.fetchFiles(el.__vue__.source, el.__vue__.path);
 
       let action = async (overwrite, rename) => {
         await filesApi.moveCopy(items, "move", overwrite, rename);
@@ -393,8 +401,13 @@ export default {
       mutations.addSelected(this.index);
     },
     open() {
-      location.hash = state.req.items[this.index].name;
-      router.push({ path: this.url });
+      if (this.hash) {
+        const shareHash = this.hash;
+        url.goToItem(this.source, this.path, "", shareHash);
+        return;
+      }
+      const previousHash = state.req.items[this.index].name;
+      url.goToItem(this.source, this.path, previousHash);
     },
   },
 };

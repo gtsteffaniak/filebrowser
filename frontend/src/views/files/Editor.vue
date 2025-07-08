@@ -112,7 +112,7 @@ export default {
       }
       try {
         if (this.editor) {
-          filesApi.put(state.req.path, state.req.source, this.editor.getValue());
+          filesApi.put(state.req.source, state.req.path, this.editor.getValue());
         } else {
           notify.showError("Editor instance is not initialized.");
           return;

@@ -37,7 +37,6 @@
   </div>
 </template>
 <script>
-import url from "@/utils/url.js";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { notify } from "@/notify";
@@ -86,18 +85,14 @@ export default {
     },
     async submit() {
       try {
-        let oldLink = "";
-        let newLink = "";
+        const items = [{
+          from: state.req.path + "/" + state.req.items[this.selected[0]].name,
+          fromSource: state.req.source,
+          to: state.req.path + "/" + this.name,
+          toSource: state.req.source,
+        }];
 
-        if (!this.isListing) {
-          oldLink = state.req.url;
-        } else {
-          oldLink = state.req.items[this.selected[0]].url;
-        }
-
-        newLink = url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
-
-        await filesApi.moveCopy([{ from: oldLink, to: newLink }], "move");
+        await filesApi.moveCopy(items, "move");
         mutations.closeHovers();
         if (!this.isListing) {
           this.$router.push({ path: newLink });

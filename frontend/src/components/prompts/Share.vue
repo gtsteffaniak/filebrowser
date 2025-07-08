@@ -127,6 +127,7 @@ import { state, getters, mutations } from "@/store";
 import { shareApi, publicApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
+import { buildItemUrl } from "@/utils/url";
 
 export default {
   name: "share",
@@ -160,7 +161,7 @@ export default {
     },
     url() {
       if (state.isSearchActive) {
-        return state.selected[0].url;
+        return buildItemUrl(state.selected[0].source,state.selected[0].path)
       }
       if (!this.isListing) {
         return state.route.path;
@@ -169,7 +170,7 @@ export default {
         // selecting current view image
         return state.route.path;
       }
-      return state.req.items[this.selected[0]].url;
+      return buildItemUrl(state.req.items[this.selected[0]].source,state.req.items[this.selected[0]].path)
     },
   },
   async beforeMount() {

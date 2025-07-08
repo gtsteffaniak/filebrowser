@@ -94,9 +94,9 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
-    "el": "Ελληνικά",
     "fr": "Français",
     "is": "Icelandic",
     "it": "Italiano",
@@ -113,7 +113,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Δημιουργία λογαριασμού",
@@ -168,7 +169,8 @@
     "filesSelected": "επιλεγμένα αρχεία",
     "typeName": "Τύπος:",
     "selected": "επιλεγμένο",
-    "deleted": "Διαγράφηκε με επιτυχία!"
+    "deleted": "Διαγράφηκε με επιτυχία!",
+    "destinationSource": "Πηγή προορισμού:"
   },
   "search": {
     "images": "Εικόνες",

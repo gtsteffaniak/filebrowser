@@ -1,21 +1,21 @@
 import { fetchURL, adjustedData } from './utils'
-import { getApiPath, extractSourceFromPath,removePrefix } from '@/utils/url.js'
+import { getApiPath, removePrefix, doubleEncode } from '@/utils/url.js'
 import { state, mutations } from '@/store'
 import { notify } from '@/notify'
-import { externalUrl,baseURL,serverHasMultipleSources } from '@/utils/constants'
+import { externalUrl,baseURL } from '@/utils/constants'
 
 // Notify if errors occur
-export async function fetchFiles(url, content = false) {
+export async function fetchFiles(source, path, content = false) {
   try {
-    const result = extractSourceFromPath(url)
+    console.log("fetchFiles", source, path, content);
     const apiPath = getApiPath('api/resources', {
-      path: encodeURIComponent(result.path),
-      source: result.source,
+      path: doubleEncode(path),
+      source: doubleEncode(source),
       ...(content && { content: 'true' })
     })
     const res = await fetchURL(apiPath)
     const data = await res.json()
-    const adjusted = adjustedData(data, url)
+    const adjusted = adjustedData(data)
     return adjusted
   } catch (err) {
     notify.showError(err.message || 'Error fetching data')
@@ -23,17 +23,15 @@ export async function fetchFiles(url, content = false) {
   }
 }
 
-async function resourceAction(url, method, content) {
+async function resourceAction(source, path, method, content) {
   try {
-    const result = extractSourceFromPath(url)
-    let source = encodeURIComponent(result.source)
-    let path = result.path
+    source = doubleEncode(source)
+    path = doubleEncode(path)
+    const apiPath = getApiPath('api/resources', { path, source })
     let opts = { method }
     if (content) {
       opts.body = content
     }
-    path = encodeURIComponent(path)
-    const apiPath = getApiPath('api/resources', { path: path, source: source })
     const res = await fetchURL(apiPath, opts)
     return res
   } catch (err) {
@@ -42,47 +40,42 @@ async function resourceAction(url, method, content) {
   }
 }
 
-export async function remove(url) {
+export async function remove(source, path) {
   try {
-    return await resourceAction(url, 'DELETE')
+    return await resourceAction( source, path, 'DELETE')
   } catch (err) {
     notify.showError(err.message || 'Error deleting resource')
     throw err
   }
 }
 
-export async function put(path,source, content = '') {
+export async function put(source, path, content = '') {
   try {
-    if (serverHasMultipleSources) {
-      path = `/files/${source}${path}`
-    } else {
-      path = `/files${path}`
-    }
-    return await resourceAction(path, 'PUT', content)
+    return await resourceAction(source, path, 'PUT', content)
   } catch (err) {
     notify.showError(err.message || 'Error putting resource')
     throw err
   }
 }
 
-export function download(format, files) {
+export function download(format, files, shareHash = "") {
   if (format !== 'zip') {
     format = 'tar.gz'
   }
   let fileargs = ''
-  if (files.length === 1) {
-    const result = extractSourceFromPath(decodeURIComponent(files[0]))
-    fileargs = result.source + '::' + result.path + '||'
-  } else {
-    for (let file of files) {
-      const result = extractSourceFromPath(decodeURIComponent(file))
-      fileargs += result.source + '::' + result.path + '||'
+  for (let file of files) {
+    if (shareHash) {
+      fileargs += encodeURIComponent(file.path) + '||'
+    } else {
+      fileargs += encodeURIComponent(file.source) + '::' + encodeURIComponent(file.path) + '||'
     }
   }
+  console.log("fileargs", fileargs);
   fileargs = fileargs.slice(0, -2) // remove trailing "||"
-  const apiPath = getApiPath('api/raw', {
-    files: encodeURIComponent(fileargs),
-    algo: format
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'api/public/dl', {
+    files: fileargs,
+    algo: format,
+    hash: shareHash
   })
   const url = window.origin + apiPath
 
@@ -93,12 +86,10 @@ export function download(format, files) {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link) // Clean up
-
 }
 
-export async function post(url, content = '', overwrite = false, onupload) {
+export async function post(source, path, content = '', overwrite = false, onupload) {
   try {
-    const result = extractSourceFromPath(url)
     let bufferContent
     if (
       content instanceof Blob &&
@@ -107,8 +98,8 @@ export async function post(url, content = '', overwrite = false, onupload) {
       bufferContent = await new Response(content).arrayBuffer()
     }
     const apiPath = getApiPath('api/resources', {
-      path: encodeURIComponent(result.path),
-      source: encodeURIComponent(result.source),
+      path: encodeURIComponent(path),
+      source: encodeURIComponent(source),
       override: overwrite
     })
     return new Promise((resolve, reject) => {
@@ -155,15 +146,14 @@ export async function moveCopy(
     action: action,
     rename: rename
   }
+  console.log("moveCopy", items, action, overwrite, rename);
   try {
     // Create an array of fetch calls
     let promises = items.map(item => {
-      const fromResult = extractSourceFromPath(item.from)
-      const toResult = extractSourceFromPath(item.to)
       let localParams = {
         ...params,
-        destination: encodeURIComponent(toResult.source) + '::' + toResult.path,
-        from: fromResult.source + '::' + fromResult.path
+        destination: doubleEncode(item.toSource) + '::' + doubleEncode(item.to),
+        from: doubleEncode(item.fromSource) + '::' + doubleEncode(item.from)
       }
       const apiPath = getApiPath('api/resources', localParams)
 
@@ -196,8 +186,8 @@ export async function moveCopy(
 export async function checksum(source, path, algo) {
   try {
     const params = {
-      path: encodeURIComponent(path),
-      source: encodeURIComponent(source),
+      path: doubleEncode(path),
+      source: doubleEncode(source),
       checksum: algo
     }
     const apiPath = getApiPath('api/resources', params)

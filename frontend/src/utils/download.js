@@ -1,72 +1,47 @@
 import { state, mutations, getters } from "@/store";
 import { filesApi } from "@/api";
 import { notify } from "@/notify";
-import { removePrefix } from "@/utils/url.js";
-import { publicApi } from "@/api";
 
-export default function download() {
-  const currentView = getters.currentView();
-  if (currentView === "preview") {
-    startDownload(null, [state.req.url]);
+export default function downloadFiles(items) {
+  console.log(items);
+  if (items.length == 0) {
+    notify.showError("No files selected");
     return;
   }
+  if (typeof items[0] === "number") {
+    // map the index to state.req.items
+    items = items.map(i => state.req.items[i]);
+  }
+  console.log("mapped items", items);
+  const currentView = getters.currentView();
 
   if (currentView === "share") {
     let urlPath = getters.routePath("share");
     let parts = urlPath.split("/");
     const hash = parts[1];
-    const subPath = "/" + parts.slice(2).join("/");
-    let files = [];
-    for (let i of state.selected) {
-      const dlfile = removePrefix(state.req.items[i].url, "share/" + hash);
-      files.push(dlfile);
-    }
-    const share = {
-      path: subPath,
-      hash: hash,
-      token: "",
-      format: files.length ? "zip" : null,
-    };
     // Perform download without opening a new window
-    startDownload(share, files, true);
-    return;
-  }
-
-  if (state.isSearchActive) {
-    startDownload(null, [state.selected[0].url]);
+    startDownload(null, items, hash);
     return;
   }
 
   if (getters.isSingleFileSelected()) {
-    startDownload(null, [getters.selectedDownloadUrl()]);
+    startDownload(null, items);
     return;
+  } else {
+      // Multiple files download with user confirmation
+    mutations.showHover({
+      name: "download",
+      confirm: (format) => {
+        mutations.closeHovers();
+        startDownload(format, items);
+      },
+    });
   }
-
-  // Multiple files download with user confirmation
-  mutations.showHover({
-    name: "download",
-    confirm: (format) => {
-      mutations.closeHovers();
-      let files = [];
-      if (state.selected.length > 0) {
-        for (let i of state.selected) {
-          files.push(state.req.items[i].url);
-        }
-      } else {
-        files.push(state.route.path);
-      }
-      startDownload(format, files);
-    },
-  });
 }
 
-async function startDownload(config, files, isPublic) {
+async function startDownload(config, files, hash = "") {
   try {
-    if (isPublic) {
-      publicApi.download(config, files);
-    } else {
-      filesApi.download(config, files);
-    }
+    filesApi.download(config, files, hash);
     notify.showSuccess("Downloading...");
   } catch (e) {
     notify.showError(`Error downloading: ${e}`);
