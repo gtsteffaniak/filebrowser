@@ -40,7 +40,13 @@
     "upload": "Upload",
     "openFile": "Open file",
     "continue": "Continue",
-    "edit": "Edit"
+    "edit": "Edit",
+    "pause": "Pause",
+    "resume": "Resume",
+    "retry": "Retry",
+    "pauseAll": "Pause all",
+    "resumeAll": "Resume all",
+    "clearCompleted": "Clear completed"
   },
   "download": {
     "downloadFile": "Download File",
@@ -146,7 +152,9 @@
     "displayName": "Display Name:",
     "download": "Download files",
     "downloadMessage": "Choose the format you want to download.",
+    "dragAndDrop": "Drag and drop files here",
     "error": "Something went wrong",
+    "completed": "Completed",
     "fileInfo": "File information",
     "selected": "selected",
     "filesSelected": "files selected",
@@ -173,7 +181,8 @@
     "uploadMessage": "Select an option to upload.",
     "optionalPassword": "Optional password",
     "typeName": "Type:",
-    "deleted": "Deleted successfully!"
+    "deleted": "Deleted successfully!",
+    "conflictsDetected": "Conflicts detected"
   },
   "search": {
     "images": "Images",

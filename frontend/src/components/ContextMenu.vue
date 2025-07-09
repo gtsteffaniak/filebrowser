@@ -15,6 +15,7 @@
       }"
       class="button no-select"
       :class="{ 'dark-mode': isDarkMode, centered: centered }"
+      :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
       <div v-if="selectedCount > 0" class="button selected-count-header">
         <span>{{ selectedCount }} {{ $t("prompts.selected") }} </span>
@@ -93,6 +94,12 @@
       />
       <action
         v-if="!showCreate && selectedCount > 0 && userPerms.modify"
+        icon="file_upload"
+        :label="$t('buttons.replace')"
+        @action="showUpload"
+      />
+      <action
+        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
         icon="delete"
         :label="$t('buttons.delete')"
         show="delete"
@@ -145,6 +152,7 @@ export default {
       posY: 0,
       showCreate: false,
       isAnimating: false,
+      createStateInitialized: false,
     };
   },
   props: {
@@ -195,14 +203,7 @@ export default {
       );
     },
     showContext() {
-      if (getters.currentPromptName() == "ContextMenu") {
-        // Always set positions when not animating, unless we're centering
-        if (!this.isAnimating && !this.centered) {
-          this.setPositions();
-        }
-        return true;
-      }
-      return false;
+      return getters.currentPromptName() == "ContextMenu";
     },
     onlyofficeEnabled() {
       return onlyOfficeUrl !== "";
@@ -245,6 +246,27 @@ export default {
         modify: state.user.permissions.modify,
       };
     },
+  },
+  watch: {
+    showContext: {
+      handler(newVal) {
+        if (newVal) {
+          // Always set positions when not animating, unless we're centering
+          if (!this.isAnimating && !this.centered) {
+            this.setPositions();
+          }
+          // Initialize create state only once per menu session
+          if (!this.createStateInitialized) {
+            this.initializeCreateState();
+            this.createStateInitialized = true;
+          }
+        } else {
+          // Reset the flag when menu is hidden so it reinitializes next time
+          this.createStateInitialized = false;
+        }
+      },
+      immediate: true
+    }
   },
   methods: {
     // Animation methods
@@ -343,11 +365,13 @@ export default {
         this.posX = newX;
         this.posY = newY;
       });
-      // Show/hide create as before
+    },
+    initializeCreateState() {
+      // Only set initial showCreate state, don't override user choices
       if (state.selected.length > 0) {
         this.showCreate = false;
       } else {
-        this.showCreate = true;
+        this.showCreate = false; // Start with false, user can click "New" to show create options
       }
     },
     toggleMultipleSelection() {
@@ -383,6 +407,14 @@ export default {
       }
 
       mutations.closeHovers();
+    },
+    showUpload() {
+      mutations.showHover({
+        name: "upload",
+        props: {
+          filesToReplace: state.selected.map((item) => item.name),
+        },
+      });
     },
   },
 };

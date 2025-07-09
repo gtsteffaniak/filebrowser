@@ -1,6 +1,6 @@
 import { fetchURL, adjustedData } from './utils'
 import { getApiPath, removePrefix, doubleEncode } from '@/utils/url.js'
-import { state, mutations } from '@/store'
+import { mutations } from '@/store'
 import { notify } from '@/notify'
 import { externalUrl,baseURL } from '@/utils/constants'
 
@@ -88,50 +88,73 @@ export function download(format, files, shareHash = "") {
   document.body.removeChild(link) // Clean up
 }
 
-export async function post(source, path, content = '', overwrite = false, onupload) {
+export async function post(
+  source,
+  path,
+  content = "",
+  overwrite = false,
+  onupload,
+  headers = {}
+) {
   try {
-    let bufferContent
-    if (
-      content instanceof Blob &&
-      !['http:', 'https:'].includes(window.location.protocol)
-    ) {
-      bufferContent = await new Response(content).arrayBuffer()
-    }
-    const apiPath = getApiPath('api/resources', {
+    const apiPath = getApiPath("api/resources", {
       path: encodeURIComponent(path),
       source: encodeURIComponent(source),
-      override: overwrite
-    })
-    return new Promise((resolve, reject) => {
-      let request = new XMLHttpRequest()
-      request.open('POST', apiPath, true)
-      request.setRequestHeader('X-Auth', state.jwt)
+      override: overwrite,
+    });
 
-      if (typeof onupload === 'function') {
-        request.upload.onprogress = event => {
-          if (event.lengthComputable) {
-            const percentComplete = Math.round(
-              (event.loaded / event.total) * 100
-            )
-            onupload(percentComplete) // Pass the percentage to the callback
-          }
+    const request = new XMLHttpRequest();
+    request.open("POST", apiPath, true);
+
+    for (const header in headers) {
+      request.setRequestHeader(header, headers[header]);
+    }
+
+    if (typeof onupload === "function") {
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          onupload(percentComplete); // Pass the percentage to the callback
         }
-      }
+      };
+    }
 
+    // Handle async content processing before creating the Promise
+    let bufferContent;
+    if (
+      content instanceof Blob &&
+      !["http:", "https:"].includes(window.location.protocol)
+    ) {
+      bufferContent = await new Response(content).arrayBuffer();
+    }
+
+    const promise = new Promise((resolve, reject) => {
       request.onload = () => {
-        if (request.status === 200) {
-          resolve(request.responseText)
+        if (request.status >= 200 && request.status < 300) {
+          resolve(request.responseText);
         } else if (request.status === 409) {
-          reject(request.status)
+          reject(new Error("conflict"));
         } else {
-          reject(request.responseText)
+          reject(new Error(request.responseText || "Upload failed"));
         }
-      }
-      request.send(bufferContent || content)
-    })
+      };
+
+      request.onerror = () => reject(new Error("Network error"));
+      request.onabort = () => reject(new Error("Upload aborted"));
+
+      request.send(bufferContent || content);
+    });
+
+    return { xhr: request, promise };
   } catch (err) {
-    notify.showError(err.message || 'Error posting resource')
-    throw err
+    notify.showError(err.message || "Error posting resource");
+    // We are returning a promise, so we should return a rejected promise on error.
+    return {
+      xhr: null,
+      promise: Promise.reject(err),
+    };
   }
 }
 
