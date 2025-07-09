@@ -9,10 +9,7 @@
       id="context-menu"
       ref="contextMenu"
       v-if="showContext"
-      :style="{
-        top: `${top}px`,
-        left: `${left}px`,
-      }"
+      :style="contextStyle"
       class="button no-select"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
@@ -162,8 +159,7 @@ export default {
     },
   },
   mounted() {
-    console.log("ContextMenu mounted");
-    console.log("showCentered", this.showCentered);
+    console.log("ContextMenu mounted", this.selectedCount);
   },
   computed: {
     isMobileDevice() {
@@ -203,7 +199,8 @@ export default {
         state.user?.permissions &&
         state.user?.permissions.share &&
         state.user.username != "publicUser" &&
-        getters.currentView() != "share"
+        getters.currentView() != "share" &&
+        !this.isSearchActive
       );
     },
     showContext() {
@@ -222,20 +219,24 @@ export default {
       return state.user;
     },
     centered() {
-      return this.showCentered || this.isMobileDevice;
+      return this.showCentered || this.isMobileDevice || !this.posX || !this.posY;
     },
-    top() {
-      // Ensure the context menu stays within the viewport
-      return Math.min(
+    contextStyle() {
+      if (this.centered) {
+        return {};
+      }
+      const top = Math.min(
         this.posY,
         window.innerHeight - (this.$refs.contextMenu?.clientHeight ?? 0)
       );
-    },
-    left() {
-      return Math.min(
+      const left = Math.min(
         this.posX,
         window.innerWidth - (this.$refs.contextMenu?.clientWidth ?? 0)
       );
+      return {
+        top: `${top}px`,
+        left: `${left}px`,
+      };
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -261,8 +262,8 @@ export default {
     showContext: {
       handler(newVal) {
         if (newVal) {
-          // Always set positions when not animating, unless we're centering
-          if (!this.isAnimating && !this.centered) {
+          // Always set positions when not animating to check for position props.
+          if (!this.isAnimating) {
             this.setPositions();
           }
           // Initialize create state only once per menu session
@@ -376,7 +377,7 @@ export default {
       if (state.selected.length > 0) {
         this.showCreate = false;
       } else {
-        this.showCreate = false; // Start with false, user can click "New" to show create options
+        this.showCreate = true;
       }
     },
     toggleMultipleSelection() {
