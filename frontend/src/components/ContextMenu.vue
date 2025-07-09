@@ -9,12 +9,10 @@
       id="context-menu"
       ref="contextMenu"
       v-if="showContext"
-      :style="{
-        top: `${top}px`,
-        left: `${left}px`,
-      }"
+      :style="contextStyle"
       class="button no-select"
-      :class="{ 'dark-mode': isDarkMode, centered: centered }"
+      :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
+      :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
       <div v-if="selectedCount > 0" class="button selected-count-header">
         <span>{{ selectedCount }} {{ $t("prompts.selected") }} </span>
@@ -93,6 +91,12 @@
       />
       <action
         v-if="!showCreate && selectedCount > 0 && userPerms.modify"
+        icon="file_upload"
+        :label="$t('buttons.replace')"
+        @action="showUpload"
+      />
+      <action
+        v-if="!showCreate && selectedCount > 0 && userPerms.modify"
         icon="delete"
         :label="$t('buttons.delete')"
         show="delete"
@@ -145,6 +149,7 @@ export default {
       posY: 0,
       showCreate: false,
       isAnimating: false,
+      createStateInitialized: false,
     };
   },
   props: {
@@ -152,6 +157,9 @@ export default {
       type: Boolean,
       default: false,
     },
+  },
+  mounted() {
+    console.log("ContextMenu mounted", this.selectedCount);
   },
   computed: {
     isMobileDevice() {
@@ -191,18 +199,12 @@ export default {
         state.user?.permissions &&
         state.user?.permissions.share &&
         state.user.username != "publicUser" &&
-        getters.currentView() != "share"
+        getters.currentView() != "share" &&
+        !this.isSearchActive
       );
     },
     showContext() {
-      if (getters.currentPromptName() == "ContextMenu") {
-        // Always set positions when not animating, unless we're centering
-        if (!this.isAnimating && !this.centered) {
-          this.setPositions();
-        }
-        return true;
-      }
-      return false;
+      return getters.currentPromptName() == "ContextMenu";
     },
     onlyofficeEnabled() {
       return onlyOfficeUrl !== "";
@@ -217,20 +219,24 @@ export default {
       return state.user;
     },
     centered() {
-      return this.showCentered || this.isMobileDevice;
+      return this.showCentered || this.isMobileDevice || !this.posX || !this.posY;
     },
-    top() {
-      // Ensure the context menu stays within the viewport
-      return Math.min(
+    contextStyle() {
+      if (this.centered) {
+        return {};
+      }
+      const top = Math.min(
         this.posY,
         window.innerHeight - (this.$refs.contextMenu?.clientHeight ?? 0)
       );
-    },
-    left() {
-      return Math.min(
+      const left = Math.min(
         this.posX,
         window.innerWidth - (this.$refs.contextMenu?.clientWidth ?? 0)
       );
+      return {
+        top: `${top}px`,
+        left: `${left}px`,
+      };
     },
     isDarkMode() {
       return getters.isDarkMode();
@@ -246,6 +252,33 @@ export default {
       };
     },
   },
+  watch: {
+    showCentered: {
+      handler(newVal) {
+        console.log("showCentered changed", newVal);
+      },
+      immediate: true
+    },
+    showContext: {
+      handler(newVal) {
+        if (newVal) {
+          // Always set positions when not animating to check for position props.
+          if (!this.isAnimating) {
+            this.setPositions();
+          }
+          // Initialize create state only once per menu session
+          if (!this.createStateInitialized) {
+            this.initializeCreateState();
+            this.createStateInitialized = true;
+          }
+        } else {
+          // Reset the flag when menu is hidden so it reinitializes next time
+          this.createStateInitialized = false;
+        }
+      },
+      immediate: true
+    }
+  },
   methods: {
     // Animation methods
     beforeEnter(el) {
@@ -259,26 +292,21 @@ export default {
       el.style.opacity = '0';
       // Force reflow
       void el.offsetHeight;
-      
       // Calculate the height after ensuring all content is rendered
       this.$nextTick(() => {
         // Temporarily set to auto to get true height, then measure
         el.style.height = 'auto';
         el.style.visibility = 'hidden';
         void el.offsetHeight; // Force reflow
-        
         const fullHeight = el.scrollHeight;
-        
         // Reset to 0 for animation
         el.style.height = '0';
         el.style.visibility = 'visible';
         el.style.transition = 'height 0.3s, opacity 0.3s';
         void el.offsetHeight; // Force reflow
-        
         // Animate to full height
         el.style.height = fullHeight + 'px';
         el.style.opacity = '1';
-        
         setTimeout(() => {
           this.isAnimating = false;
           done();
@@ -343,7 +371,9 @@ export default {
         this.posX = newX;
         this.posY = newY;
       });
-      // Show/hide create as before
+    },
+    initializeCreateState() {
+      // Only set initial showCreate state, don't override user choices
       if (state.selected.length > 0) {
         this.showCreate = false;
       } else {
@@ -383,6 +413,14 @@ export default {
       }
 
       mutations.closeHovers();
+    },
+    showUpload() {
+      mutations.showHover({
+        name: "upload",
+        props: {
+          filesToReplace: state.selected.map((item) => item.name),
+        },
+      });
     },
   },
 };

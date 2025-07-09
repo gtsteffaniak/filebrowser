@@ -172,11 +172,23 @@ export const mutations = {
   },
   closeHovers: () => {
     const previousState = state.multiButtonLastState;
-    state.multiButtonLastState = mutations.multiButtonState;
+    state.multiButtonLastState = state.multiButtonState;
     state.multiButtonState = previousState;
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
+    }
+    emitStateChanged();
+  },
+  closeTopHover: () => {
+    state.prompts.pop();
+    if (state.prompts.length === 0) {
+      const previousState = state.multiButtonLastState;
+      state.multiButtonLastState = state.multiButtonState;
+      state.multiButtonState = previousState;
+      if (!state.stickySidebar) {
+        state.showSidebar = false;
+      }
     }
     emitStateChanged();
   },

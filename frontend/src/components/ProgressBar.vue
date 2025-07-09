@@ -45,7 +45,7 @@ export default {
     },
     "bar-color": {
       type: String,
-      default: "#2196f3", // match .blue color to Material Design's 'Blue 500' color
+      default: "var(--primaryColor)", // match .blue color to Material Design's 'Blue 500' color
     },
     "bar-transition": {
       type: String,
@@ -53,7 +53,7 @@ export default {
     },
     "bar-border-radius": {
       type: Number,
-      default: 0,
+      default: 4,
     },
     spacing: {
       type: Number,
@@ -77,7 +77,11 @@ export default {
     },
     "text-fg-color": {
       type: String,
-      default: "#222",
+      default: "#fff",
+    },
+    status: {
+      type: String,
+      default: 'default',
     },
   },
   computed: {
@@ -150,9 +154,17 @@ export default {
       return style;
     },
     bar_style() {
+      let barColor = this.barColor;
+      if (this.status === 'error') {
+        barColor = '#f44336';
+      } else if (this.status === 'conflict') {
+        barColor = '#ff9800';
+      }
+
       var style = {
         width: this.pct + "%",
         height: this.size_px + "px",
+        background: barColor,
         transition: this.barTransition,
       };
 
@@ -203,6 +215,9 @@ export default {
 .vue-simple-progress,
 .vue-simple-progress-bar {
   border-radius: 0.5em;
+}
+
+.vue-simple-progress {
   background: var(--primaryColor);
 }
 </style>

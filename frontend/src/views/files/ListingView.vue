@@ -828,106 +828,18 @@ export default {
       this.dragCounter++;
     },
     dragLeave() {
+      if (this.dragCounter == 0) {
+        return;
+      }
       this.dragCounter--;
     },
     async drop(event) {
-      event.preventDefault();
-      this.dragCounter = 0;
-
-      let dt = event.dataTransfer;
-      let el = event.target;
-
-      if (dt.files.length <= 0) {
-        return;
-      }
-
-      for (let i = 0; i < 5; i++) {
-        if (el !== null && !el.classList.contains("item")) {
-          el = el.parentElement;
-        }
-      }
-
-      let rawFiles = await upload.scanFiles(dt);
-      let items = state.req.items;
-      let path = state.req.path;
-
-      if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
-        const response = await filesApi.fetchFiles(el.__vue__.source,el.__vue__.path);
-        path = el.__vue__.path;
-        source = el.__vue__.source;
-        items = response.items;
-      }
-
-      console.log("rawFiles", rawFiles);
-      const uploadFiles = rawFiles.map((file) => {
-        // Here we construct a path that handleFiles will use
-        const filePath = file.fullPath || file.webkitRelativePath || file.name;
-        return {
-          file,
-          name: file.name,
-          size: file.size,
-          path: filePath.path,
-          source: state.req.source,
-        };
-      });
-
-      const conflict = upload.checkConflict(uploadFiles, items);
-
-      try {
-        if (conflict) {
-          mutations.showHover({
-            name: "replace",
-            confirm: async (event) => {
-              event.preventDefault();
-              mutations.closeHovers();
-              await upload.handleFiles(uploadFiles, path, true);
-            },
-          });
-        } else {
-          await upload.handleFiles(uploadFiles, path);
-        }
-        mutations.setReload(true);
-      } catch (e) {
-        console.error("failed to upload files", e);
-      }
+      console.log("ListingView: drop event triggered");
+      this.handleDrop(event);
     },
-
     async uploadInput(event) {
-      mutations.closeHovers();
-      const rawFiles = event.currentTarget.files;
-      if (!rawFiles || rawFiles.length === 0) return;
-
-      const uploadFiles = [];
-
-      for (let i = 0; i < rawFiles.length; i++) {
-        const file = rawFiles[i];
-        const fullPath = file.webkitRelativePath || file.name;
-        uploadFiles.push({
-          file,
-          name: file.name,
-          size: file.size,
-          path: fullPath,
-          fullPath: fullPath,
-          source: state.req.source,
-        });
-      }
-
-      const path = state.req.path;
-      const conflict = upload.checkConflict(uploadFiles, state.req.items);
-
-      if (conflict) {
-        mutations.showHover({
-          name: "replace",
-          confirm: async (event) => {
-            event.preventDefault();
-            mutations.closeHovers();
-            await upload.handleFiles(uploadFiles, path, true);
-          },
-        });
-      } else {
-        await upload.handleFiles(uploadFiles, path);
-      }
-      mutations.setReload(true);
+      console.log("ListingView: uploadInput event triggered");
+      this.handleDrop(event);
     },
     sort(field) {
       let asc = false;
@@ -941,6 +853,7 @@ export default {
       // Commit the updateSort mutation
       mutations.updateListingSortConfig({ field, asc });
       mutations.updateListingItems();
+      this.lastSelected = state.selected;
     },
     setMultiple(val) {
       mutations.setMultiple(val == true);
@@ -955,16 +868,6 @@ export default {
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
     }, 100),
-    upload() {
-      if (
-        typeof window.DataTransferItem !== "undefined" &&
-        typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
-      ) {
-        mutations.closeHovers();
-      } else {
-        document.getElementById("upload-input").click();
-      }
-    },
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
@@ -985,6 +888,38 @@ export default {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;
+    },
+    async handleDrop(event) {
+      event.preventDefault();
+      console.log("ListingView: handleDrop started");
+      this.dragCounter = 0;
+
+      if (event.type === "drop") {
+        this.isDragging = false;
+        console.log("ListingView: Showing upload prompt with dropped items.");
+        mutations.showHover({
+          name: "upload",
+          props: {
+            initialItems: event.dataTransfer.items,
+          },
+        });
+      } else {
+        // This is for the <input type="file"> fallback
+        const files = event.target.files;
+        console.log("ListingView: Showing upload prompt with picked files.");
+        if (!files || files.length === 0) {
+          console.log("ListingView: No files to upload.");
+          return;
+        }
+
+        mutations.showHover({
+          name: "upload",
+          props: {
+            // we send it as an array-like object so that it can be processed like a FileList by the Upload component
+            initialItems: Array.from(files),
+          },
+        });
+      }
     },
   },
 };

@@ -37,8 +37,9 @@ func (d dirFS) Open(name string) (fs.File, error) {
 }
 
 var (
-	store   *storage.Storage
-	config  *settings.Settings
+	store  *storage.Storage
+	config *settings.Settings
+	//fileCache diskcache.Interface
 	assetFs fs.FS
 )
 

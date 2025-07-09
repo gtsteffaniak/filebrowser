@@ -6,8 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **New Features**:
  - Copy and Move files between sources
- #- Chunked uploading
- #- New Upload prompt with overall status and per-file performance.
+ - Chunked uploading
+ - New Upload prompt with overall status and per-file performance.
 
  **Notes**:
  - Reworked a lot of the frontend path/source logic to be more consistent.
