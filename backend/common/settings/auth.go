@@ -61,6 +61,7 @@ type OidcConfig struct {
 	LogoutRedirectUrl string                `json:"logoutRedirectUrl"` // if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
 	CreateUser        bool                  `json:"createUser"`        // create user if not exists
 	AdminGroup        string                `json:"adminGroup"`        // if set, users in this group will be granted admin privileges.
+	GroupsClaim       string                `json:"groupsClaim"`       // the JSON field name to read groups from. Default is "groups"
 	Provider          *oidc.Provider        `json:"-"`                 // OIDC provider
 	Verifier          *oidc.IDTokenVerifier `json:"-"`                 // OIDC verifier
 }
@@ -73,6 +74,9 @@ func validateOidcAuth() error {
 	}
 	if oidcCfg.UserIdentifier == "" {
 		oidcCfg.UserIdentifier = "preferred_username"
+	}
+	if oidcCfg.GroupsClaim == "" {
+		oidcCfg.GroupsClaim = "groups"
 	}
 
 	ctx := context.Background()
