@@ -14,6 +14,14 @@
                     "Auth"
                 ],
                 "summary": "User Logout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT token",
+                        "name": "auth",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{\"logoutUrl\": \"http://...\"}",
@@ -2113,10 +2121,6 @@
                     "description": "if set, users in this group will be granted admin privileges.",
                     "type": "string"
                 },
-                "groupsClaim": {
-                    "description": "the JSON field name to read groups from. Default is \"groups\"",
-                    "type": "string"
-                },
                 "clientId": {
                     "description": "client id of the OIDC application",
                     "type": "string"
@@ -2136,6 +2140,10 @@
                 "enabled": {
                     "description": "whether to enable OIDC authentication",
                     "type": "boolean"
+                },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
                 },
                 "issuerUrl": {
                     "description": "authorization URL of the OIDC provider",

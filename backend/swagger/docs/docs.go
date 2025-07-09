@@ -25,6 +25,14 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "User Logout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT token",
+                        "name": "auth",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{\"logoutUrl\": \"http://...\"}",
@@ -2143,6 +2151,10 @@ const docTemplate = `{
                 "enabled": {
                     "description": "whether to enable OIDC authentication",
                     "type": "boolean"
+                },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
                 },
                 "issuerUrl": {
                     "description": "authorization URL of the OIDC provider",

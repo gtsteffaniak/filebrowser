@@ -288,9 +288,6 @@ definitions:
       adminGroup:
         description: if set, users in this group will be granted admin privileges.
         type: string
-      groupsClaim:
-        description: the JSON field name to read groups from. Default is "groups"
-        type: string
       clientId:
         description: client id of the OIDC application
         type: string
@@ -307,6 +304,9 @@ definitions:
       enabled:
         description: whether to enable OIDC authentication
         type: boolean
+      groupsClaim:
+        description: the JSON field name to read groups from. Default is "groups"
+        type: string
       issuerUrl:
         description: authorization URL of the OIDC provider
         type: string
@@ -791,6 +791,11 @@ paths:
   /api/auth/logout:
     post:
       description: Returns a logout URL for the frontend to redirect to.
+      parameters:
+      - description: JWT token
+        in: query
+        name: auth
+        type: string
       produces:
       - application/json
       responses:

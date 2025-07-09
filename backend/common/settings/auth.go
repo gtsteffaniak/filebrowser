@@ -69,14 +69,18 @@ type OidcConfig struct {
 // ValidateOidcAuth processes the OIDC callback and retrieves user identity
 func validateOidcAuth() error {
 	oidcCfg := &Config.Auth.Methods.OidcAuth // Use a pointer to modify the original config
-	if !oidcCfg.Enabled {
-		return errors.New("OIDC is not enabled")
+	if oidcCfg.GroupsClaim == "" {
+		oidcCfg.GroupsClaim = "groups"
 	}
 	if oidcCfg.UserIdentifier == "" {
 		oidcCfg.UserIdentifier = "preferred_username"
 	}
-	if oidcCfg.GroupsClaim == "" {
-		oidcCfg.GroupsClaim = "groups"
+	if oidcCfg.Scopes == "" {
+		oidcCfg.Scopes = "openid email profile"
+	}
+
+	if !oidcCfg.Enabled {
+		return errors.New("OIDC is not enabled")
 	}
 
 	ctx := context.Background()
@@ -103,9 +107,6 @@ func validateOidcAuth() error {
 	}
 	oidcCfg.Provider = provider
 	oidcCfg.Verifier = provider.Verifier(&oidc.Config{ClientID: oidcCfg.ClientID})
-	if oidcCfg.Scopes == "" {
-		oidcCfg.Scopes = "openid email profile"
-	}
 
 	return nil
 }

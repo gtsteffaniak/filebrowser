@@ -79,6 +79,13 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 	}
 
 	switch v.Kind() {
+	case reflect.String:
+		return &yaml.Node{
+			Kind:  yaml.ScalarNode,
+			Tag:   "!!str",
+			Value: v.String(),
+			Style: yaml.DoubleQuotedStyle,
+		}, nil
 	case reflect.Struct:
 		rt := v.Type()
 		typeName := rt.Name()
@@ -167,7 +174,7 @@ func buildNode(v reflect.Value, comm commentsMap) (*yaml.Node, error) {
 }
 
 func GenerateYaml() {
-	_ = loadConfigWithDefaults("")
+	_ = loadConfigWithDefaults("", true)
 	Config.Server.Sources = []Source{
 		{
 			Path: ".",

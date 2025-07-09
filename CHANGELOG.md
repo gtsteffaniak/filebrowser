@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Reworked a lot of the frontend path/source logic to be more consistent.
 
  **BugFixes**:
- - 
+ - fix api key revoking mechanism
 
 ## v0.7.12-beta
 
