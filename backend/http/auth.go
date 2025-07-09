@@ -13,6 +13,7 @@ import (
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -116,14 +117,16 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 	return printToken(w, r, d.user) // Pass the data object
 }
 
-// logoutHandler handles user logout, specifically used for OIDC or proxy users.
+// logoutHandler handles user logout
 // @Summary User Logout
 // @Description Returns a logout URL for the frontend to redirect to.
 // @Tags Auth
 // @Produce json
+// @Param auth query string false "JWT token"
 // @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	defer auth.RevokeAPIKey(d.token)
 	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL) // Default fallback
 	if d.user.LoginMethod == users.LoginMethodProxy {
 		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
