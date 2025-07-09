@@ -58,7 +58,7 @@ export function generateRandomCode(length) {
 
 export async function logout() {
   try {
-    const res = await fetch(getApiPath("api/auth/logout", {auth: state.jwt}), { method: "POST" });
+    const res = await fetch(getApiPath("api/auth/logout"), { method: "POST" });
     if (res.ok) {
       const data = await res.json();
       let logoutUrl = data.logoutUrl;
