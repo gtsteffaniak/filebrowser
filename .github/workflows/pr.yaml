@@ -3,15 +3,9 @@ name: PR Request
 on:
   pull_request:
     branches:
-      - "dev/v[0-9]+.[0-9]+.[0-9]+"
-      - "beta/v[0-9]+.[0-9]+.[0-9]+"
-      - "stable/v[0-9]+.[0-9]+.[0-9]+"
-  pull_request_target:
-    branches:
-      - "dev/v[0-9]+.[0-9]+.[0-9]+"
-      - "beta/v[0-9]+.[0-9]+.[0-9]+"
-      - "stable/v[0-9]+.[0-9]+.[0-9]+"
-
+      - "dev/v*.*.*"
+      - "beta/v*.*.*"
+      - "stable/v*.*.*"
 jobs:
   test_playwright:
     name: Test Playwright - general
