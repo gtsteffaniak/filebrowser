@@ -2,6 +2,7 @@ package http
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -27,7 +28,53 @@ type userInfo struct {
 	Email             string   `json:"email"`
 	Sub               string   `json:"sub"`
 	Phone             string   `json:"phone_number"`
-	Groups            []string `json:"groups"`
+	Groups            []string `json:"-"` // Handled manually by userInfoUnmarshaller
+}
+
+// userInfoUnmarshaller is a custom unmarshaller that handles configurable groups claim
+type userInfoUnmarshaller struct {
+	userInfo    *userInfo
+	groupsClaim string
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface
+func (u *userInfoUnmarshaller) UnmarshalJSON(data []byte) error {
+	// First, unmarshal the basic userInfo fields
+	if err := json.Unmarshal(data, u.userInfo); err != nil {
+		return err
+	}
+
+	// Parse the JSON to access the groups claim field
+	var rawData map[string]interface{}
+	if err := json.Unmarshal(data, &rawData); err != nil {
+		return err
+	}
+
+	// Look for the groups claim using the configured field name
+	if groupsValue, exists := rawData[u.groupsClaim]; exists {
+		switch v := groupsValue.(type) {
+		case []interface{}:
+			// It's already an array, convert to []string
+			groups := make([]string, len(v))
+			for i, group := range v {
+				if str, ok := group.(string); ok {
+					groups[i] = str
+				}
+			}
+			u.userInfo.Groups = groups
+		case string:
+			// It's a string, split by commas
+			if v != "" {
+				u.userInfo.Groups = strings.Split(v, ",")
+				// Trim whitespace from each group
+				for i, group := range u.userInfo.Groups {
+					u.userInfo.Groups[i] = strings.TrimSpace(group)
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // oidcLoginHandler initiates OIDC login.
@@ -127,6 +174,12 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	claimsFromIDToken := false // Flag to track if we successfully got claims from ID token
 	loginUsername := ""        // Variable to hold the login username
 
+	// Create custom unmarshaller for userInfo
+	userInfoUnmarshaller := &userInfoUnmarshaller{
+		userInfo:    &userdata,
+		groupsClaim: oidcCfg.GroupsClaim,
+	}
+
 	// --- Attempt to process ID Token ---
 	if ok && rawIDToken != "" {
 		logger.Debug("ID token found in token response, attempting verification.")
@@ -139,9 +192,9 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			logger.Debugf("failed to verify ID token: %v. This might be expected, falling back to UserInfo endpoint.", err)
 			// Verification failed, claimsFromIDToken remains false
 		} else {
-			// Decode the ID token claims into a map to handle arbitrary structure
+			// Decode the ID token claims using custom unmarshaller
 			// This is where the JWE unmarshalling error occurs if the token is encrypted
-			if err := idToken.Claims(&userdata); err != nil {
+			if err := idToken.Claims(userInfoUnmarshaller); err != nil {
 				logger.Warningf("failed to decode ID token claims: %v. Falling back to UserInfo endpoint.", err)
 				// Claims decoding failed, claimsFromIDToken remains false
 			} else {
@@ -188,9 +241,9 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			logger.Errorf("failed to fetch user info from endpoint: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to fetch user info from endpoint: %v", err)
 		}
-		// Decode the UserInfo response directly into the userdata struct
+		// Decode the UserInfo response using custom unmarshaller
 		// The UserInfo endpoint is expected to return standard JSON
-		if err := userInfoResp.Claims(&userdata); err != nil {
+		if err := userInfoResp.Claims(userInfoUnmarshaller); err != nil {
 			logger.Errorf("failed to decode user info from endpoint: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("failed to decode user info from endpoint: %v", err)
 		}

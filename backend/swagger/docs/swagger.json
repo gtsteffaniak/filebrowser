@@ -2113,6 +2113,10 @@
                     "description": "if set, users in this group will be granted admin privileges.",
                     "type": "string"
                 },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
+                },
                 "clientId": {
                     "description": "client id of the OIDC application",
                     "type": "string"
