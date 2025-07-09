@@ -868,16 +868,6 @@ export default {
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
     }, 100),
-    upload() {
-      if (
-        typeof window.DataTransferItem !== "undefined" &&
-        typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
-      ) {
-        mutations.showHover("upload");
-      } else {
-        document.getElementById("upload-input").click();
-      }
-    },
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();

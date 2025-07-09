@@ -14,7 +14,7 @@
         left: `${left}px`,
       }"
       class="button no-select"
-      :class="{ 'dark-mode': isDarkMode, centered: centered }"
+      :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
       <div v-if="selectedCount > 0" class="button selected-count-header">
@@ -161,6 +161,10 @@ export default {
       default: false,
     },
   },
+  mounted() {
+    console.log("ContextMenu mounted");
+    console.log("showCentered", this.showCentered);
+  },
   computed: {
     isMobileDevice() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || getters.isMobile();
@@ -248,6 +252,12 @@ export default {
     },
   },
   watch: {
+    showCentered: {
+      handler(newVal) {
+        console.log("showCentered changed", newVal);
+      },
+      immediate: true
+    },
     showContext: {
       handler(newVal) {
         if (newVal) {
@@ -281,26 +291,21 @@ export default {
       el.style.opacity = '0';
       // Force reflow
       void el.offsetHeight;
-      
       // Calculate the height after ensuring all content is rendered
       this.$nextTick(() => {
         // Temporarily set to auto to get true height, then measure
         el.style.height = 'auto';
         el.style.visibility = 'hidden';
         void el.offsetHeight; // Force reflow
-        
         const fullHeight = el.scrollHeight;
-        
         // Reset to 0 for animation
         el.style.height = '0';
         el.style.visibility = 'visible';
         el.style.transition = 'height 0.3s, opacity 0.3s';
         void el.offsetHeight; // Force reflow
-        
         // Animate to full height
         el.style.height = fullHeight + 'px';
         el.style.opacity = '1';
-        
         setTimeout(() => {
           this.isAnimating = false;
           done();

@@ -11,7 +11,7 @@
     <div class="card-action">
       <button
         class="button button--flat button--grey"
-        @click="mutations.closeHovers"
+        @click="closeHovers"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
       >

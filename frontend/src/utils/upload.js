@@ -345,3 +345,35 @@ class UploadManager {
 }
 
 export const uploadManager = new UploadManager();
+
+export function checkConflict(files, items) {
+  if (typeof items === 'undefined' || items === null) {
+    items = [];
+  }
+
+  let folder_upload = files[0].path !== undefined;
+
+  let conflict = false;
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    let name = file.name;
+
+    if (folder_upload) {
+      let dirs = file.path.split('/');
+      if (dirs.length > 1) {
+        name = dirs[0];
+      }
+    }
+
+    let res = items.findIndex(function hasConflict(element) {
+      return element.name === this;
+    }, name);
+
+    if (res >= 0) {
+      conflict = true;
+      break;
+    }
+  }
+
+  return conflict;
+}
