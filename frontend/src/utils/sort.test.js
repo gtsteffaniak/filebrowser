@@ -6,23 +6,27 @@ describe('testSort', () => {
   it('sort items by name correctly', () => {
     const input = [
       { name: "zebra" },
-      { name: "1" },
-      { name: "10" },
+      { name: "10 something.txt" },
+      { name: "1 something.txt" },
+      { name: "2 something.txt" },
       { name: "Apple" },
       { name: "bee 20" },
       { name: "cave 10.txt" },
       { name: "cave 1.txt" },
+      { name: "cave 2.txt" },
       { name: "2" },
       { name: "bee 2" },
     ]
     const expected = [
-      { name: "1" },
+      { name: "1 something.txt" },
       { name: "2" },
-      { name: "10" },
+      { name: "2 something.txt" },
+      { name: "10 something.txt" },
       { name: "Apple" },
       { name: "bee 2" },
       { name: "bee 20" },
       { name: "cave 1.txt" },
+      { name: "cave 2.txt" },
       { name: "cave 10.txt" },
       { name: "zebra" }
     ]

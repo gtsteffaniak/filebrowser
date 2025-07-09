@@ -1096,6 +1096,68 @@ paths:
       - application/json
       description: Returns a preview image based on the requested path and size.
       parameters:
+      - description: File path of the image to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Preview size ('small' or 'large'). Default is based on server
+          config.
+        in: query
+        name: size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Preview image content
+          schema:
+            type: file
+        "202":
+          description: Download permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: Unsupported file type for preview
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Preview generation not implemented
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image preview
+      tags:
+      - Resources
+  /api/public/preview:
+    get:
+      consumes:
+      - application/json
+      description: Returns a preview image based on the requested path and size.
+      parameters:
       - description: source hash
         in: query
         name: hash

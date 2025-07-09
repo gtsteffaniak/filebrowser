@@ -277,6 +277,10 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
+  setLastSelectedIndex: (index) => {
+    state.lastSelectedIndex = index;
+    emitStateChanged();
+  },
   setRaw: (value) => {
     state.previewRaw = value;
     emitStateChanged();
@@ -359,8 +363,17 @@ export const mutations = {
       sortby = state.user.sorting.by;
       asc = state.user.sorting.asc;
     }
-    // map must be last to ensure the index is set correctly
-    value.items = sortedItems(value.items, sortby, asc)
+
+    // Separate directories and files
+    const dirs = value.items.filter((item) => item.type === 'directory');
+    const files = value.items.filter((item) => item.type !== 'directory');
+
+    // Sort them separately
+    const sortedDirs = sortedItems(dirs, sortby, asc);
+    const sortedFiles = sortedItems(files, sortby, asc);
+
+    // Combine them and assign indices
+    value.items = [...sortedDirs, ...sortedFiles];
     value.items.map((item, index) => {
       item.index = index;
       return item;

@@ -198,8 +198,10 @@ export async function moveCopy(
       notify.showSuccess(
         action === 'copy' ? 'Resources copied successfully' : 'Resources moved successfully'
       )
-    }, 250);
-    mutations.setReload(true);
+    }, 125);
+    setTimeout(() => {
+      mutations.setReload(true);
+    }, 125);
   } catch (err) {
     notify.showError(err.message || 'Error moving/copying resources')
     throw err // Re-throw the error to propagate it back to the caller

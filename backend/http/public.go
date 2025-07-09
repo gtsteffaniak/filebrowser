@@ -94,7 +94,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} map[string]string "File not found"
 // @Failure 415 {object} map[string]string "Unsupported file type for preview"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /api/preview [get]
+// @Router /api/public/preview [get]
 func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")

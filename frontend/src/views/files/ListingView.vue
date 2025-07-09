@@ -778,7 +778,7 @@ export default {
 
       if (this.clipboard.key === "x") {
         action = async (overwrite, rename) => {
-          await filesApi.moveCopy(items, "copy", overwrite, rename);
+          await filesApi.moveCopy(items, "move", overwrite, rename);
 
           this.clipboard = {};
           mutations.setLoading("listing", false);
@@ -824,17 +824,35 @@ export default {
         document.documentElement.style.setProperty("--item-height", `auto`);
       }
     },
-    dragEnter() {
+    dragEnter(event) {
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+      if (isInternal) {
+        return;
+      }
       this.dragCounter++;
     },
-    dragLeave() {
+    dragLeave(event) {
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+      if (isInternal) {
+        return;
+      }
       if (this.dragCounter == 0) {
         return;
       }
       this.dragCounter--;
     },
     async drop(event) {
-      console.log("ListingView: drop event triggered");
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+
+      if (isInternal) {
+        return;
+      }
       this.handleDrop(event);
     },
     async uploadInput(event) {
@@ -895,7 +913,6 @@ export default {
       this.dragCounter = 0;
 
       if (event.type === "drop") {
-        this.isDragging = false;
         console.log("ListingView: Showing upload prompt with dropped items.");
         mutations.showHover({
           name: "upload",
@@ -959,4 +976,5 @@ export default {
   border-color: #d1d1d1;
   border-style: solid;
 }
+
 </style>
