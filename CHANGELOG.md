@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For commit 
    - keeps screen on https://github.com/gtsteffaniak/filebrowser/issues/900
 
  **Notes**:
+ - Lots of UI improvements
  - Reworked a lot of the frontend path/source logic to be more consistent.
  - updated sort behavior to be natural sort https://github.com/gtsteffaniak/filebrowser/issues/551
  # - optional quick save icon https://github.com/gtsteffaniak/filebrowser/issues/918
