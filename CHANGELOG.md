@@ -5,9 +5,13 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.7.13-beta
 
  **New Features**:
- - Copy and Move files between sources
- - Chunked uploading
- - New Upload prompt with overall status and per-file performance.
+ - Copy and Move files between sources https://github.com/gtsteffaniak/filebrowser/issues/689
+ - New enhanced upload prompt
+   - Uses chunked uploads https://github.com/gtsteffaniak/filebrowser/issues/770
+   - All or individual uploads can be paused/resumed
+   - Individual uploads can be retried
+   - Individual file upload progress https://github.com/gtsteffaniak/filebrowser/issues/871
+   - keeps screen on https://github.com/gtsteffaniak/filebrowser/issues/900
 
  **Notes**:
  - Reworked a lot of the frontend path/source logic to be more consistent.
