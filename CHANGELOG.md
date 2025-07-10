@@ -16,10 +16,12 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - Reworked a lot of the frontend path/source logic to be more consistent.
  - updated sort behavior to be natural sort https://github.com/gtsteffaniak/filebrowser/issues/551
+ # - optional quick save icon https://github.com/gtsteffaniak/filebrowser/issues/918
 
  **BugFixes**:
  - fix api key revoking mechanism
  - fixed shift-select https://github.com/gtsteffaniak/filebrowser/issues/929
+ # - sticky mode isn't sticky https://github.com/gtsteffaniak/filebrowser/issues/916
 
 ## v0.7.12-beta
 
