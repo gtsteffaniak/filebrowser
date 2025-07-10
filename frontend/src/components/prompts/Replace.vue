@@ -11,7 +11,7 @@
     <div class="card-action">
       <button
         class="button button--flat button--grey"
-        @click="closeHovers"
+        @click="closeTopHover"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
       >
@@ -39,8 +39,8 @@ export default {
     },
   },
   methods: {
-    closeHovers() {
-      mutations.closeHovers();
+    closeTopHover() {
+      mutations.closeTopHover();
     },
   },
 };

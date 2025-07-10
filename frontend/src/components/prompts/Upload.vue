@@ -61,17 +61,18 @@
             <p class="file-name">{{ file.name }}</p>
             <progress-bar
               v-if="file.type !== 'directory'"
-              :val="file.status === 'completed' || file.status === 'error' ? 100 : file.progress"
-              :status="file.status"
-              :text="
+              :val="
                 file.status === 'completed'
                   ? $t('prompts.completed')
                   : file.status === 'error'
                   ? $t('prompts.error')
                   : file.status === 'conflict'
                   ? $t('prompts.conflictsDetected')
-                  : `${file.progress}%`
+                  : (file.progress / 100) * file.size
               "
+              :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'"
+              :max="file.size"
+              :status="file.status"
               text-position="inside"
               size="20"
             >
@@ -100,13 +101,22 @@
               <i class="material-icons">play_arrow</i>
             </button>
             <button
-              v-if="file.status === 'error' || file.status === 'conflict'"
+              v-if="file.status === 'error'"
               @click="uploadManager.retry(file.id)"
               class="action"
               :aria-label="$t('buttons.retry')"
               :title="$t('buttons.retry')"
             >
               <i class="material-icons">replay</i>
+            </button>
+            <button
+              v-if="file.status === 'conflict'"
+              @click="handleConflictAction(file)"
+              class="action"
+              :aria-label="$t('buttons.replace')"
+              :title="$t('buttons.replace')"
+            >
+              <i class="material-icons">sync_problem</i>
             </button>
             <button
               @click="cancelUpload(file.id)"
@@ -184,6 +194,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { uploadManager } from "@/utils/upload";
 import { mutations, state } from "@/store";
 import ProgressBar from "@/components/ProgressBar.vue";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export default {
   name: "UploadFiles",
@@ -210,6 +221,21 @@ export default {
     let conflictResolver = null;
 
     let wakeLock = null;
+
+    const getProgressDetails = (file) => {
+      if (
+        file.size === 0 ||
+        typeof file.progress !== "number" ||
+        file.progress === 0
+      ) {
+        return `${file.progress || 0}%`;
+      }
+
+      const totalSizeFormatted = getHumanReadableFilesize(file.size);
+      const [size, unit] = totalSizeFormatted.split(" ");
+      const uploadedSize = size * (file.progress / 100);
+      return `${uploadedSize} ${unit} / ${totalSizeFormatted} ${unit} (${file.progress.toFixed(1)}%)`;
+    };
 
     const handleConflict = (resolver) => {
       showConflictPrompt.value = true;
@@ -414,6 +440,16 @@ export default {
       }
     };
 
+    const handleConflictAction = (file) => {
+      mutations.showHover({
+        name: "replace",
+        confirm: () => {
+          uploadManager.retry(file.id, true);
+          mutations.closeTopHover();
+        },
+      });
+    };
+
     const cancelUpload = (id) => {
       uploadManager.cancel(id);
     };
@@ -440,6 +476,7 @@ export default {
       resolveConflict,
       canPauseAll,
       canResumeAll,
+      handleConflictAction,
     };
   },
 };

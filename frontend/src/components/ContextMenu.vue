@@ -9,7 +9,7 @@
       id="context-menu"
       ref="contextMenu"
       v-if="showContext"
-      :style="contextStyle"
+      :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
       class="button no-select"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
@@ -221,23 +221,6 @@ export default {
     centered() {
       return this.showCentered || this.isMobileDevice || !this.posX || !this.posY;
     },
-    contextStyle() {
-      if (this.centered) {
-        return {};
-      }
-      const top = Math.min(
-        this.posY,
-        window.innerHeight - (this.$refs.contextMenu?.clientHeight ?? 0)
-      );
-      const left = Math.min(
-        this.posX,
-        window.innerWidth - (this.$refs.contextMenu?.clientWidth ?? 0)
-      );
-      return {
-        top: `${top}px`,
-        left: `${left}px`,
-      };
-    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -299,6 +282,23 @@ export default {
         el.style.visibility = 'hidden';
         void el.offsetHeight; // Force reflow
         const fullHeight = el.scrollHeight;
+        const fullWidth = el.scrollWidth;
+
+        // Adjust position now that we have dimensions
+        const BUFFER = 8;
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        let newX = this.posX;
+        let newY = this.posY;
+
+        if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
+        if (newX < BUFFER) newX = BUFFER;
+        if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
+        if (newY < BUFFER) newY = BUFFER;
+
+        this.posX = newX;
+        this.posY = newY;
+
         // Reset to 0 for animation
         el.style.height = '0';
         el.style.visibility = 'visible';
@@ -335,42 +335,9 @@ export default {
       return mutations.showHover(value);
     },
     setPositions() {
-      const BUFFER = 8; // px
       const contextProps = getters.currentPrompt().props;
-      let tempX = contextProps.posX;
-      let tempY = contextProps.posY;
-      // Set initial position
-      this.posX = tempX;
-      this.posY = tempY;
-      // Wait for DOM update, then adjust
-      this.$nextTick(() => {
-        const menu = this.$refs.contextMenu;
-        if (!menu) return;
-        const menuWidth = menu.clientWidth || 320; // fallback to 20em
-        const menuHeight = menu.clientHeight || 200; // fallback to min height
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        let newX = tempX;
-        let newY = tempY;
-        // Adjust X if overflowing right
-        if (newX + menuWidth + BUFFER > screenWidth) {
-          newX = screenWidth - menuWidth - BUFFER;
-        }
-        // Adjust X if too close to left
-        if (newX < BUFFER) {
-          newX = BUFFER;
-        }
-        // Adjust Y if overflowing bottom
-        if (newY + menuHeight + BUFFER > screenHeight) {
-          newY = screenHeight - menuHeight - BUFFER;
-        }
-        // Adjust Y if too close to top
-        if (newY < BUFFER) {
-          newY = BUFFER;
-        }
-        this.posX = newX;
-        this.posY = newY;
-      });
+      this.posX = contextProps.posX;
+      this.posY = contextProps.posY;
     },
     initializeCreateState() {
       // Only set initial showCreate state, don't override user choices

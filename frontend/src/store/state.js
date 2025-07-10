@@ -77,6 +77,7 @@ export const state = reactive({
   loading: [],
   reload: false,
   selected: [],
+  lastSelectedIndex: null,
   multiple: false,
   upload: {
     uploads: {},

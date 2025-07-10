@@ -68,7 +68,7 @@ export default {
     },
     items() {
       const req = state.req;
-      if (!req.items || req.items.length == 0) {
+      if (!req.items || !req.path) {
         return [];
       }
       let encodedPathString = encodedPath(state.req.path);

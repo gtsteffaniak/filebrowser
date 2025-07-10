@@ -7,6 +7,8 @@
       'listing-item': true,
       activebutton: isMaximized && isSelected,
       hiddenFile: isHiddenNotSelected && !this.isDraggedOver,
+      'half-selected': isDraggedOver,
+      'drag-hover': isDraggedOver,
     }"
     :id="getID"
     role="button"
@@ -260,16 +262,15 @@ export default {
     dragLeave() {
       this.isDraggedOver = false;
     },
-    dragStart() {
-      if (getters.selectedCount() === 0) {
-        mutations.addSelected(this.index);
-        return;
-      }
-
-      if (!this.isSelected) {
+    dragStart(event) {
+      if (this.selected.indexOf(this.index) === -1) {
         mutations.resetSelected();
         mutations.addSelected(this.index);
       }
+      event.dataTransfer.setData(
+        "application/x-filebrowser-internal-drag",
+        "true"
+      );
     },
     dragOver(event) {
       if (!this.canDrop) return;
@@ -277,44 +278,39 @@ export default {
       this.isDraggedOver = true;
     },
     async drop(event) {
-      if (!this.canDrop) return;
       event.preventDefault();
+      event.stopPropagation();
+      this.isDraggedOver = false;
 
-      if (getters.selectedCount() === 0) return;
-
-      let el = event.target;
-      for (let i = 0; i < 5; i++) {
-        if (el !== null && !el.classList.contains("item")) {
-          el = el.parentElement;
-        }
+      if (!this.canDrop) {
+        return;
       }
 
       let items = [];
-
-      for (let i of this.selected) {
+      for (let i of state.selected) {
         items.push({
-          from: state.req.path + "/" + state.req.items[i].name,
-          fromSource: state.req.source,
+          from: state.req.items[i].path,
+          fromSource: state.req.items[i].source,
           to: this.path + "/" + state.req.items[i].name,
           toSource: this.source,
         });
       }
-      let response = await filesApi.fetchFiles(el.__vue__.source, el.__vue__.path);
+
+      const conflict = upload.checkConflict(
+        items,
+        (await filesApi.fetchFiles(this.source, this.path)).items
+      );
 
       let action = async (overwrite, rename) => {
         await filesApi.moveCopy(items, "move", overwrite, rename);
       };
-      let conflict = upload.checkConflict(items, response.items);
-
-      let overwrite = false;
-      let rename = false;
 
       if (conflict) {
         mutations.showHover({
           name: "replace-rename",
           confirm: (event, option) => {
-            overwrite = option == "overwrite";
-            rename = option == "rename";
+            const overwrite = option === "overwrite";
+            const rename = option === "rename";
 
             event.preventDefault();
             mutations.closeHovers();
@@ -324,22 +320,25 @@ export default {
         return;
       }
 
-      action(overwrite, rename);
+      action(false, false);
     },
     addSelected(event) {
-      if (!state.isSafari) return;
-      const touch = event.touches[0];
-      this.touchStartX = touch.clientX;
-      this.touchStartY = touch.clientY;
-      this.isLongPress = false; // Reset state
-      this.isSwipe = false; // Reset swipe detection
-      if (!state.multiple) {
-        this.contextTimeout = setTimeout(() => {
-          if (!this.isSwipe) {
-            mutations.resetSelected();
-            mutations.addSelected(this.index);
+      if (state.isSafari) {
+        if (event.type === "touchstart") {
+          const touch = event.touches[0];
+          this.touchStartX = touch.clientX;
+          this.touchStartY = touch.clientY;
+          this.isLongPress = false; // Reset state
+          this.isSwipe = false; // Reset swipe detection
+          if (!state.multiple) {
+            this.contextTimeout = setTimeout(() => {
+              if (!this.isSwipe) {
+                mutations.resetSelected();
+                mutations.addSelected(this.index);
+              }
+            }, 500);
           }
-        }, 500);
+        }
       }
     },
     click(event) {
@@ -366,30 +365,43 @@ export default {
         this.open();
       }
 
-      if (state.selected.indexOf(this.index) !== -1) {
-        mutations.removeSelected(this.index);
-        return;
-      }
-      if (event.shiftKey && this.selected.length > 0) {
+      if (event.shiftKey && state.selected.length > 0) {
         let fi = 0;
         let la = 0;
 
-        if (this.index > this.selected[0]) {
-          fi = this.selected[0] + 1;
+        if (this.index > state.lastSelectedIndex) {
+          fi = state.lastSelectedIndex;
           la = this.index;
         } else {
           fi = this.index;
-          la = this.selected[0] - 1;
+          la = state.lastSelectedIndex;
         }
 
+        mutations.resetSelected();
+
         for (; fi <= la; fi++) {
-          if (state.selected.indexOf(fi) == -1) {
+          if (state.selected.indexOf(fi) === -1) {
             mutations.addSelected(fi);
           }
         }
-
         return;
       }
+
+      if (state.selected.indexOf(this.index) !== -1) {
+        if (event.ctrlKey || event.metaKey) {
+          mutations.removeSelected(this.index);
+          mutations.setLastSelectedIndex(this.index);
+          return;
+        }
+
+        if (state.selected.length > 1) {
+          mutations.resetSelected();
+          mutations.addSelected(this.index);
+          mutations.setLastSelectedIndex(this.index);
+        }
+        return;
+      }
+
       if (
         !state.user.singleClick &&
         !event.ctrlKey &&
@@ -399,6 +411,7 @@ export default {
         mutations.resetSelected();
       }
       mutations.addSelected(this.index);
+      mutations.setLastSelectedIndex(this.index);
     },
     open() {
       if (this.hash) {
@@ -446,5 +459,10 @@ export default {
 .activetitle {
   width: 9em !important;
   margin-right: 1em !important;
+}
+
+.half-selected {
+  border-color: var(--primaryColor) !important;
+  border-style: solid !important;
 }
 </style>

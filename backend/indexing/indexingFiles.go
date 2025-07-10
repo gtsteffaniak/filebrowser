@@ -47,6 +47,7 @@ type Index struct {
 	mock                       bool
 	mu                         sync.RWMutex
 	hasIndex                   bool
+	DiscoveredHardLinks        map[string]uint64 `json:"-"` // hardlink path -> size
 }
 
 var (

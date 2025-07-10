@@ -11,6 +11,7 @@ class UploadManager {
     this.nextId = 0;
     this.overwriteAll = null; // null: ask, true: overwrite, false: skip
     this.isPausedForConflict = false;
+    this.isOverallPaused = false;
     this.onConflict = () => {}; // Callback for UI
   }
 
@@ -105,6 +106,11 @@ class UploadManager {
 
     if (this.isPausedForConflict) {
       console.log("upload.js: Queue is paused, waiting for conflict resolution.");
+      return;
+    }
+
+    if (this.isOverallPaused) {
+      console.log("upload.js: Queue is paused by user.");
       return;
     }
 
@@ -221,6 +227,7 @@ class UploadManager {
 
   pauseAll() {
     console.log(`upload.js: pauseAll called`);
+    this.isOverallPaused = true;
     this.queue.forEach((upload) => {
       if (upload.status === "uploading") {
         this.pause(upload.id);
@@ -230,6 +237,7 @@ class UploadManager {
 
   resumeAll() {
     console.log(`upload.js: resumeAll called`);
+    this.isOverallPaused = false;
     this.queue.forEach((upload) => {
       if (upload.status === "paused") {
         this.resume(upload.id);
@@ -250,6 +258,7 @@ class UploadManager {
     console.log(`upload.js: resume called for id ${id}`);
     const upload = this.findById(id);
     if (upload && upload.status === "paused") {
+      this.isOverallPaused = false;
       upload.status = "pending";
       const progress =
         upload.size > 0 ? (upload.chunkOffset / upload.size) * 100 : 0;
@@ -267,12 +276,15 @@ class UploadManager {
     }
   }
 
-  retry(id) {
-    console.log(`upload.js: retry called for id ${id}`);
+  retry(id, overwrite = false) {
+    console.log(`upload.js: retry called for id ${id} with overwrite: ${overwrite}`);
     const upload = this.findById(id);
     if (upload && ["error", "conflict"].includes(upload.status)) {
+      upload.overwrite = overwrite;
       upload.status = "pending";
-      upload.chunkOffset = 0; // Reset chunk offset for retries
+      if (upload.type !== 'directory') {
+          upload.chunkOffset = 0; // Reset chunk offset for retries
+      }
       upload.progress = 0;
       this.processQueue();
     }
@@ -300,15 +312,6 @@ class UploadManager {
     if (err?.response?.status === 409) {
       console.log(`upload.js: Conflict detected by backend for id ${upload.id}`);
       upload.status = "conflict";
-
-      // Pause the queue if this is the first conflict of the batch
-      if (this.overwriteAll === null) {
-        this.isPausedForConflict = true;
-        this.overwriteAll = "pending"; // Mark that we are waiting for user input
-        this.onConflict((resolution) => {
-          this.resolveConflict(resolution);
-        });
-      }
     } else if (err.message !== "Upload aborted") {
       upload.status = "error";
       console.error(`upload.js: Upload error for id ${upload.id}:`, err, upload);
