@@ -88,7 +88,7 @@ export function download(format, files, shareHash = "") {
   document.body.removeChild(link) // Clean up
 }
 
-export async function post(
+export function post(
   source,
   path,
   content = "",
@@ -121,21 +121,14 @@ export async function post(
       };
     }
 
-    // Handle async content processing before creating the Promise
-    let bufferContent;
-    if (
-      content instanceof Blob &&
-      !["http:", "https:"].includes(window.location.protocol)
-    ) {
-      bufferContent = await new Response(content).arrayBuffer();
-    }
-
     const promise = new Promise((resolve, reject) => {
       request.onload = () => {
         if (request.status >= 200 && request.status < 300) {
           resolve(request.responseText);
         } else if (request.status === 409) {
-          reject(new Error("conflict"));
+          const error = new Error("conflict");
+          error.response = { status: request.status, responseText: request.responseText };
+          reject(error);
         } else {
           reject(new Error(request.responseText || "Upload failed"));
         }
@@ -144,7 +137,16 @@ export async function post(
       request.onerror = () => reject(new Error("Network error"));
       request.onabort = () => reject(new Error("Upload aborted"));
 
-      request.send(bufferContent || content);
+      if (
+        content instanceof Blob &&
+        !["http:", "https:"].includes(window.location.protocol)
+      ) {
+        new Response(content).arrayBuffer()
+          .then(buffer => request.send(buffer))
+          .catch(err => reject(err));
+      } else {
+        request.send(content);
+      }
     });
 
     return { xhr: request, promise };

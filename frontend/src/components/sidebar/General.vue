@@ -172,19 +172,7 @@
               </i>
             </div>
             <div v-if="hasSourceInfo" class="usage-info">
-              <ProgressBar
-                :val="info.usedPercentage"
-                text-position="inside"
-                :text="info.usedPercentage + '%'"
-                size="large"
-                text-fg-color="white"
-              ></ProgressBar>
-              <div class="usage-info">
-                <span>
-                  {{ getHumanReadableFilesize(info.used) }} {{ $t("index.of") }}
-                  {{ getHumanReadableFilesize(info.total) }} {{ $t("index.used") }}
-                </span>
-              </div>
+              <ProgressBar :val="info.used" :max="info.total" unit="bytes"></ProgressBar>
             </div>
           </button>
         </transition-group>
