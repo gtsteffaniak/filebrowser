@@ -3,7 +3,6 @@ import { filesApi } from "@/api";
 import { notify } from "@/notify";
 
 export default function downloadFiles(items) {
-  console.log(items);
   if (items.length == 0) {
     notify.showError("No files selected");
     return;
@@ -12,7 +11,6 @@ export default function downloadFiles(items) {
     // map the index to state.req.items
     items = items.map(i => state.req.items[i]);
   }
-  console.log("mapped items", items);
   const currentView = getters.currentView();
 
   if (currentView === "share") {

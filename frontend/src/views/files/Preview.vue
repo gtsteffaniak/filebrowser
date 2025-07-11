@@ -214,9 +214,8 @@ export default {
       let subs = [];
       for (const subtitleFile of state.req.subtitles) {
         const ext = getFileExtension(subtitleFile);
-        const itemUrl = url.buildItemUrl(state.req.source,state.req.path)
-        const subUrl = url.removeLastDir(itemUrl) + "/" + subtitleFile;
-        const resp = await filesApi.fetchFiles(state.req.source, subUrl, true); // Fetch .srt file
+        const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
+        const resp = await filesApi.fetchFiles(state.req.source, path, true); // Fetch .srt file
         let vttContent = resp.content;
         // Convert SRT to VTT (assuming srt2vtt() does this)
         vttContent = convertToVTT(ext, resp.content);
@@ -295,9 +294,6 @@ export default {
       const path = state.req.path;
 
       let directoryPath = path.substring(0, path.lastIndexOf("/"));
-      if (directoryPath == "") {
-        directoryPath = "/";
-      }
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
           continue;

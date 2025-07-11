@@ -142,13 +142,7 @@ export const mutations = {
     emitStateChanged();
   },
   toggleSidebar() {
-    if (state.user.stickySidebar) {
-      localStorage.setItem("stickySidebar", "false");
-      mutations.updateCurrentUser({ "stickySidebar": false }); // turn off sticky when closed
-      state.showSidebar = false;
-    } else {
-      state.showSidebar = !state.showSidebar;
-    }
+    state.showSidebar = !state.showSidebar;
     if (state.showSidebar) {
       state.multiButtonState = "back";
     } else {
@@ -308,13 +302,10 @@ export const mutations = {
     }
 
     // Update localStorage if stickySidebar exists
-    if ('stickySidebar' in state.user) {
-      localStorage.setItem("stickySidebar", state.user.stickySidebar);
-      if (state.user.stickySidebar && getters.currentView() == "listingView") {
-        state.multiButtonState = "menu";
-      } else if (state.showSidebar) {
-        state.multiButtonState = "back";
-      }
+    if (state.user.stickySidebar && getters.currentView() == "listingView") {
+      state.multiButtonState = "menu";
+    } else if (state.showSidebar) {
+      state.multiButtonState = "back";
     }
 
     // Update users if there's any change in state.user

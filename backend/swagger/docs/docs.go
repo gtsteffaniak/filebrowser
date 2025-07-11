@@ -2563,6 +2563,10 @@ const docTemplate = `{
                     "description": "disable update notifications banner for admin users",
                     "type": "boolean"
                 },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
+                    "type": "boolean"
+                },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
@@ -2799,6 +2803,10 @@ const docTemplate = `{
                 },
                 "disableUpdateNotifications": {
                     "description": "disable update notifications",
+                    "type": "boolean"
+                },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
                     "type": "boolean"
                 },
                 "gallerySize": {

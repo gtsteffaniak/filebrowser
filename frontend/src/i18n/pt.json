@@ -40,7 +40,13 @@
     "submit": "Enviar",
     "openFile": "Abrir ficheiro",
     "continue": "Continuar",
-    "edit": "Editar"
+    "edit": "Editar",
+    "pause": "Pausa",
+    "resume": "Currículo",
+    "retry": "Repetir",
+    "pauseAll": "Pausa tudo",
+    "resumeAll": "Retomar tudo",
+    "clearCompleted": "Limpar concluído"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -167,7 +173,10 @@
     "optionalPassword": "Palavra-passe opcional",
     "typeName": "Tipo:",
     "deleted": "Eliminado com êxito!",
-    "destinationSource": "Fonte de destino:"
+    "destinationSource": "Fonte de destino:",
+    "dragAndDrop": "Arrastar e largar ficheiros aqui",
+    "completed": "Concluído",
+    "conflictsDetected": "Conflitos detectados"
   },
   "search": {
     "images": "Imagens",
@@ -382,7 +391,9 @@
     "sidebarOptions": "Opções da barra lateral",
     "disableQuickToggles": "Desativar as alternâncias rápidas",
     "disableSearchOptions": "Desativar opções de pesquisa",
-    "hideSidebarFileActions": "Ocultar acções de ficheiros na barra lateral"
+    "hideSidebarFileActions": "Ocultar acções de ficheiros na barra lateral",
+    "editorViewerOptions": "Opções do editor e do visualizador",
+    "editorQuickSave": "Mostrar botão de gravação rápida no editor"
   },
   "otp": {
     "name": "Autenticação de dois factores",

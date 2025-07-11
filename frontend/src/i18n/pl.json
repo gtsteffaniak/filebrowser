@@ -40,7 +40,13 @@
     "continue": "Kontynuuj",
     "edit": "Edytuj",
     "generateNewOtp": "Resetowanie i generowanie nowego kodu dwuskładnikowego",
-    "verify": "Weryfikacja"
+    "verify": "Weryfikacja",
+    "pause": "Pauza",
+    "resume": "Wznowienie",
+    "retry": "Ponów próbę",
+    "pauseAll": "Wstrzymaj wszystko",
+    "resumeAll": "Resume all",
+    "clearCompleted": "Czyszczenie zakończone"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -167,7 +173,10 @@
     "typeName": "Typ:",
     "selected": "wybrany",
     "deleted": "Usunięto pomyślnie!",
-    "destinationSource": "Źródło docelowe:"
+    "destinationSource": "Źródło docelowe:",
+    "dragAndDrop": "Przeciągnij i upuść pliki tutaj",
+    "completed": "Zakończono",
+    "conflictsDetected": "Wykryte konflikty"
   },
   "search": {
     "images": "Zdjęcia",
@@ -387,7 +396,9 @@
     "sidebarOptions": "Opcje paska bocznego",
     "disableQuickToggles": "Wyłączanie szybkich przełączników",
     "disableSearchOptions": "Wyłącz opcje wyszukiwania",
-    "hideSidebarFileActions": "Ukryj akcje związane z plikami na pasku bocznym"
+    "hideSidebarFileActions": "Ukryj akcje związane z plikami na pasku bocznym",
+    "editorViewerOptions": "Opcje edytora i przeglądarki",
+    "editorQuickSave": "Pokaż przycisk szybkiego zapisu w edytorze"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",

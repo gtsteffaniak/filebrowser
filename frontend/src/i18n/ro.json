@@ -40,7 +40,13 @@
     "continue": "Continuați",
     "edit": "Editare",
     "generateNewOtp": "Resetați și generați un nou cod cu doi factori",
-    "verify": "Verificare"
+    "verify": "Verificare",
+    "pause": "Pauză",
+    "resume": "CV",
+    "retry": "Reîncercare",
+    "pauseAll": "Pauză toate",
+    "resumeAll": "CV toate",
+    "clearCompleted": "Golire finalizată"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -167,7 +173,10 @@
     "typeName": "Tip:",
     "selected": "selectat",
     "deleted": "Șterse cu succes!",
-    "destinationSource": "Sursa de destinație:"
+    "destinationSource": "Sursa de destinație:",
+    "dragAndDrop": "Drag and drop fișiere aici",
+    "completed": "Completat",
+    "conflictsDetected": "Conflicte detectate"
   },
   "search": {
     "images": "Imagini",
@@ -387,7 +396,9 @@
     "sidebarOptions": "Opțiuni pentru bara laterală",
     "disableQuickToggles": "Dezactivați comutatoarele rapide",
     "disableSearchOptions": "Dezactivați opțiunile de căutare",
-    "hideSidebarFileActions": "Ascundeți acțiunile fișierelor în bara laterală"
+    "hideSidebarFileActions": "Ascundeți acțiunile fișierelor în bara laterală",
+    "editorViewerOptions": "Opțiuni pentru editor și vizualizator",
+    "editorQuickSave": "Afișați butonul de salvare rapidă în editor"
   },
   "otp": {
     "name": "Autentificare cu doi factori",

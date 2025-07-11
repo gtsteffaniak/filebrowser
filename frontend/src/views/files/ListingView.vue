@@ -856,7 +856,6 @@ export default {
       this.handleDrop(event);
     },
     async uploadInput(event) {
-      console.log("ListingView: uploadInput event triggered");
       this.handleDrop(event);
     },
     sort(field) {
@@ -909,11 +908,9 @@ export default {
     },
     async handleDrop(event) {
       event.preventDefault();
-      console.log("ListingView: handleDrop started");
       this.dragCounter = 0;
 
       if (event.type === "drop") {
-        console.log("ListingView: Showing upload prompt with dropped items.");
         mutations.showHover({
           name: "upload",
           props: {
@@ -923,9 +920,7 @@ export default {
       } else {
         // This is for the <input type="file"> fallback
         const files = event.target.files;
-        console.log("ListingView: Showing upload prompt with picked files.");
         if (!files || files.length === 0) {
-          console.log("ListingView: No files to upload.");
           return;
         }
 

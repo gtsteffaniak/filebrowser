@@ -139,7 +139,6 @@ export default {
             item.toSource = this.destSource;
           }
           buttons.loading(this.operation);
-          console.log("items", this.items);
           await filesApi.moveCopy(this.items, this.operation, overwrite, rename);
         };
         // Fetch destination files

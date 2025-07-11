@@ -40,7 +40,13 @@
     "copyDownloadLinkToClipboard": "Download-Link in die Zwischenablage kopieren",
     "edit": "bearbeiten",
     "generateNewOtp": "Zurücksetzen und Generieren eines neuen Zwei-Faktor-Codes",
-    "verify": "Überprüfen Sie"
+    "verify": "Überprüfen Sie",
+    "pause": "Pause",
+    "resume": "Lebenslauf",
+    "retry": "Wiederholung",
+    "pauseAll": "Pause alle",
+    "resumeAll": "Alle zusammenfassen",
+    "clearCompleted": "Löschen abgeschlossen"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -167,7 +173,10 @@
     "typeName": "Art:",
     "selected": "ausgewählt",
     "deleted": "Erfolgreich gelöscht!",
-    "destinationSource": "Ziel Quelle:"
+    "destinationSource": "Ziel Quelle:",
+    "dragAndDrop": "Dateien hierher ziehen und ablegen",
+    "completed": "Abgeschlossen",
+    "conflictsDetected": "Erkannte Widersprüche"
   },
   "search": {
     "images": "Bilder",
@@ -387,7 +396,9 @@
     "sidebarOptions": "Optionen für die Seitenleiste",
     "disableQuickToggles": "Quick Toggles deaktivieren",
     "disableSearchOptions": "Suchoptionen deaktivieren",
-    "hideSidebarFileActions": "Datei-Aktionen in der Seitenleiste ausblenden"
+    "hideSidebarFileActions": "Datei-Aktionen in der Seitenleiste ausblenden",
+    "editorViewerOptions": "Editor- und Viewer-Optionen",
+    "editorQuickSave": "Schaltfläche zum schnellen Speichern im Editor anzeigen"
   },
   "otp": {
     "name": "Zwei-Faktoren-Authentifizierung",

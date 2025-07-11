@@ -40,7 +40,13 @@
     "submit": "Skicka in",
     "openFile": "Öppna fil",
     "continue": "Fortsätt",
-    "edit": "Redigera"
+    "edit": "Redigera",
+    "pause": "Paus",
+    "resume": "Meritförteckning",
+    "retry": "Försök igen",
+    "pauseAll": "Pausa alla",
+    "resumeAll": "Återuppta alla",
+    "clearCompleted": "Klart avslutat"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -167,7 +173,10 @@
     "optionalPassword": "Valfritt lösenord",
     "typeName": "Typ:",
     "deleted": "Raderad framgångsrikt!",
-    "destinationSource": "Destination Källa:"
+    "destinationSource": "Destination Källa:",
+    "dragAndDrop": "Dra och släpp filer här",
+    "completed": "Färdigställd",
+    "conflictsDetected": "Konflikter upptäckta"
   },
   "search": {
     "images": "Bilder",
@@ -382,7 +391,9 @@
     "sidebarOptions": "Alternativ för sidofält",
     "disableQuickToggles": "Inaktivera snabba växlingar",
     "disableSearchOptions": "Inaktivera sökalternativ",
-    "hideSidebarFileActions": "Dölj filåtgärder i sidofältet"
+    "hideSidebarFileActions": "Dölj filåtgärder i sidofältet",
+    "editorViewerOptions": "Redigerings- och visningsalternativ",
+    "editorQuickSave": "Visa knappen för snabbsparande i redigeraren"
   },
   "otp": {
     "name": "Tvåfaktorsautentisering",

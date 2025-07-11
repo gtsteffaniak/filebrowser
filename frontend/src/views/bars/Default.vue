@@ -4,7 +4,7 @@
       v-if="!isShare && !(disableNavButtons && isListingView)"
       icon="close_back"
       :label="$t('buttons.close')"
-      :disabled="isDisabled"
+      :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
     <search v-if="showSearch" />
@@ -19,16 +19,26 @@
       :disabled="isDisabled"
     />
     <action
-      v-else-if="!isShare && !isListingView"
+      v-else-if="!isShare && !isListingView && !showQuickSave"
       :icon="iconName"
       :disabled="noItems"
       @click="toggleOverflow"
+    />
+    <action
+      v-else-if="showQuickSave"
+      id="save-button"
+      icon="save"
+      :label="$t('buttons.save')"
+      @action="save()"
     />
   </header>
 </template>
 
 <script>
 import router from "@/router";
+import buttons from "@/utils/buttons";
+import { notify } from "@/notify";
+import { eventBus } from "@/store/eventBus";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
@@ -46,6 +56,13 @@ export default {
     };
   },
   computed: {
+    showQuickSave() {
+      console.log("showQuickSave", getters.currentView());
+      if (getters.currentView() != "editor" || !state.user.permissions.modify) {
+        return false;
+      }
+      return state.user.editorQuickSave;
+    },
     disableNavButtons() {
       return disableNavButtons && !state.user.permissions.admin;
     },
@@ -90,6 +107,9 @@ export default {
     isDisabled() {
       return state.isSearchActive || getters.currentPromptName() != null;
     },
+    isDisabledMultiAction() {
+      return this.isDisabled || (getters.isStickySidebar() && state.multiButtonState === "menu");
+    },
     showSwitchView() {
       return getters.currentView() === "listingView";
     },
@@ -107,6 +127,18 @@ export default {
     },
   },
   methods: {
+    async save() {
+      const button = "save";
+      buttons.loading("save");
+      try {
+        eventBus.emit("handleEditorValueRequest", "data");
+        buttons.success(button);
+        notify.showSuccess("File Saved!");
+      } catch (e) {
+        buttons.done(button);
+        notify.showError("Error saving file: ", e);
+      }
+    },
     toggleOverflow() {
       if (getters.currentPromptName() === "OverflowMenu") {
         mutations.closeHovers();

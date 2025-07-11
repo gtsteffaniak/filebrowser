@@ -40,7 +40,13 @@
     "continue": "Folytatás",
     "edit": "Szerkesztés",
     "generateNewOtp": "Új kétfaktoros kód visszaállítása és generálása",
-    "verify": "Ellenőrizze a  címet."
+    "verify": "Ellenőrizze a  címet.",
+    "pause": "Szünet",
+    "resume": "Önéletrajz",
+    "retry": "Retry",
+    "pauseAll": "Szünet minden",
+    "resumeAll": "Folytassa az összes",
+    "clearCompleted": "Tiszta befejezve"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -167,7 +173,10 @@
     "typeName": "Típus:",
     "selected": "kiválasztott",
     "deleted": "Sikeresen törölve!",
-    "destinationSource": "Célforrás:"
+    "destinationSource": "Célforrás:",
+    "dragAndDrop": "Húzza ide a fájlokat",
+    "completed": "Befejezett",
+    "conflictsDetected": "Feltárt konfliktusok"
   },
   "search": {
     "images": "Képek",
@@ -387,7 +396,9 @@
     "sidebarOptions": "Oldalsáv beállítások",
     "disableQuickToggles": "Gyorskapcsolók letiltása",
     "disableSearchOptions": "Keresési lehetőségek letiltása",
-    "hideSidebarFileActions": "Fájlműveletek elrejtése az oldalsávban"
+    "hideSidebarFileActions": "Fájlműveletek elrejtése az oldalsávban",
+    "editorViewerOptions": "Szerkesztési és megjelenítési lehetőségek",
+    "editorQuickSave": "Gyors mentés gomb megjelenítése a szerkesztőben"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",

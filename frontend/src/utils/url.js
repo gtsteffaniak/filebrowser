@@ -158,7 +158,6 @@ export function goToItem(source, path, previousHash, shareHash) {
   let fullPath;
   if (shareHash) {
     fullPath = `/share/${shareHash}${newPath}`;
-    console.log("fullPath", fullPath);
     router.push({ path: fullPath });
     return;
   }
