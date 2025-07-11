@@ -20,3 +20,12 @@ func getPartitionSize(path string) (uint64, error) {
 	total := stat.Blocks * uint64(stat.Bsize)
 	return total, nil
 }
+
+func getFileDetails(sys any) (uint64, uint64, uint64, bool) {
+	if stat, ok := sys.(*syscall.Stat_t); ok {
+		// Use allocated size for `du`-like behavior
+		realSize := uint64(stat.Blocks * 512)
+		return realSize, uint64(stat.Nlink), stat.Ino, true
+	}
+	return 0, 1, 0, false
+}

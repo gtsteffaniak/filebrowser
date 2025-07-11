@@ -44,3 +44,10 @@ func getPartitionSize(path string) (uint64, error) {
 	}
 	return totalBytes, nil
 }
+
+func getFileDetails(sys any) (uint64, uint64, uint64, bool) {
+	// On Windows, os.FileInfo.Sys() returns *syscall.Win32FileAttributeData,
+	// which does not contain inode or link count information.
+	// We return false to indicate that we should use the fallback mechanism.
+	return 0, 1, 0, false
+}

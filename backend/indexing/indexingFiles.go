@@ -8,7 +8,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
@@ -554,13 +553,7 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string) (size uint64
 	canUseSyscall := false
 
 	if sys := file.Sys(); sys != nil {
-		if stat, ok := sys.(*syscall.Stat_t); ok {
-			// Use allocated size for `du`-like behavior
-			realSize = uint64(stat.Blocks * 512)
-			nlink = uint64(stat.Nlink)
-			ino = stat.Ino
-			canUseSyscall = true
-		}
+		realSize, nlink, ino, canUseSyscall = getFileDetails(sys)
 	}
 
 	if !canUseSyscall {
