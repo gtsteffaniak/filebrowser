@@ -42,6 +42,10 @@ definitions:
     properties:
       assessment:
         type: string
+      foundHardLinks:
+        additionalProperties:
+          type: integer
+        type: object
       fullScanDurationSeconds:
         type: integer
       lastIndexedUnixTime:

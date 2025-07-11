@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
@@ -22,18 +23,19 @@ var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
 
 // reduced index is json exposed to the client
 type ReducedIndex struct {
-	IdxName         string      `json:"name"`
-	DiskUsed        uint64      `json:"used"`
-	DiskTotal       uint64      `json:"total"`
-	Status          IndexStatus `json:"status"`
-	NumDirs         uint64      `json:"numDirs"`
-	NumFiles        uint64      `json:"numFiles"`
-	NumDeleted      uint64      `json:"numDeleted"`
-	LastIndexed     time.Time   `json:"-"`
-	LastIndexedUnix int64       `json:"lastIndexedUnixTime"`
-	QuickScanTime   int         `json:"quickScanDurationSeconds"`
-	FullScanTime    int         `json:"fullScanDurationSeconds"`
-	Assessment      string      `json:"assessment"`
+	IdxName         string            `json:"name"`
+	DiskUsed        uint64            `json:"used"`
+	DiskTotal       uint64            `json:"total"`
+	Status          IndexStatus       `json:"status"`
+	NumDirs         uint64            `json:"numDirs"`
+	NumFiles        uint64            `json:"numFiles"`
+	NumDeleted      uint64            `json:"numDeleted"`
+	LastIndexed     time.Time         `json:"-"`
+	LastIndexedUnix int64             `json:"lastIndexedUnixTime"`
+	QuickScanTime   int               `json:"quickScanDurationSeconds"`
+	FullScanTime    int               `json:"fullScanDurationSeconds"`
+	Assessment      string            `json:"assessment"`
+	FoundHardLinks  map[string]uint64 `json:"foundHardLinks"`
 }
 type Index struct {
 	ReducedIndex
@@ -48,6 +50,8 @@ type Index struct {
 	mu                         sync.RWMutex
 	hasIndex                   bool
 	DiscoveredHardLinks        map[string]uint64 `json:"-"` // hardlink path -> size
+	processedInodes            map[uint64]bool   `json:"-"`
+	totalSize                  uint64            `json:"-"`
 }
 
 var (
@@ -70,15 +74,18 @@ func init() {
 func Initialize(source settings.Source, mock bool) {
 	indexesMutex.Lock()
 	newIndex := Index{
-		mock:              mock,
-		Source:            source,
-		Directories:       make(map[string]*iteminfo.FileInfo),
-		DirectoriesLedger: make(map[string]bool),
+		mock:                mock,
+		Source:              source,
+		Directories:         make(map[string]*iteminfo.FileInfo),
+		DirectoriesLedger:   make(map[string]bool),
+		processedInodes:     make(map[uint64]bool),
+		DiscoveredHardLinks: make(map[string]uint64),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
-		Status:     "indexing",
-		IdxName:    source.Name,
-		Assessment: "unknown",
+		Status:         "indexing",
+		IdxName:        source.Name,
+		Assessment:     "unknown",
+		FoundHardLinks: make(map[string]uint64),
 	}
 	indexes[newIndex.Name] = &newIndex
 	indexesMutex.Unlock()
@@ -290,10 +297,13 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			dirInfos = append(dirInfos, *itemInfo)
 			idx.NumDirs++
 		} else {
+			size, shouldCountSize := idx.handleFile(file, fullCombined)
 			itemInfo.DetectType(fullCombined, false)
-			itemInfo.Size = file.Size()
+			itemInfo.Size = int64(size)
 			fileInfos = append(fileInfos, *itemInfo)
-			totalSize += itemInfo.Size
+			if shouldCountSize {
+				totalSize += itemInfo.Size
+			}
 			idx.NumFiles++
 		}
 	}
@@ -537,4 +547,47 @@ func (idx *Index) SetStatus(status IndexStatus) {
 	}
 	idx.mu.Unlock()
 	idx.SendSourceUpdateEvent()
+}
+
+func (idx *Index) handleFile(file os.FileInfo, fullCombined string) (size uint64, shouldCountSize bool) {
+	var realSize uint64
+	var nlink uint64 = 1
+	var ino uint64 = 0
+	canUseSyscall := false
+
+	if sys := file.Sys(); sys != nil {
+		if stat, ok := sys.(*syscall.Stat_t); ok {
+			// Use allocated size for `du`-like behavior
+			realSize = uint64(stat.Blocks * 512)
+			nlink = uint64(stat.Nlink)
+			ino = stat.Ino
+			canUseSyscall = true
+		}
+	}
+
+	if !canUseSyscall {
+		// Fallback for non-unix systems or if syscall info is unavailable
+		realSize = uint64(file.Size())
+	}
+
+	if nlink > 1 {
+		// It's a hard link
+		idx.mu.Lock()
+		defer idx.mu.Unlock()
+		if _, exists := idx.processedInodes[ino]; exists {
+			// Already seen, don't count towards global total, or directory total.
+			return realSize, false
+		}
+		// First time seeing this inode.
+		idx.processedInodes[ino] = true
+		idx.FoundHardLinks[fullCombined] = realSize
+		idx.totalSize += realSize
+		return realSize, true // Count size for directory total.
+	}
+
+	// It's a regular file.
+	idx.mu.Lock()
+	idx.totalSize += realSize
+	idx.mu.Unlock()
+	return realSize, true // Count size.
 }
