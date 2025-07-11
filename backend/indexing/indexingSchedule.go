@@ -140,7 +140,6 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		idx.mu.Lock()
 		idx.NumDirs = 0
 		idx.NumFiles = 0
-		idx.totalSize = 0
 		idx.processedInodes = make(map[uint64]bool)
 		idx.FoundHardLinks = make(map[string]uint64)
 		idx.mu.Unlock()
