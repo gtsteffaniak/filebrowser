@@ -77,6 +77,7 @@ type SourceScope struct {
 
 // json tags must match variable name with smaller case first letter
 type NonAdminEditable struct {
+	EditorQuickSave            bool    `json:"editorQuickSave"`         // show quick save button in editor
 	HideSidebarFileActions     bool    `json:"hideSidebarFileActions"`  // hide the file actions in the sidebar
 	DisableQuickToggles        bool    `json:"disableQuickToggles"`     // disable the quick toggles in the sidebar
 	DisableSearchOptions       bool    `json:"disableSearchOptions"`    // disable the search options in the search bar

@@ -40,7 +40,13 @@
     "continue": "続ける",
     "edit": "編集",
     "generateNewOtp": "リセットして新しい2ファクタコードを生成する",
-    "verify": "ベリファイ"
+    "verify": "ベリファイ",
+    "pause": "ポーズ",
+    "resume": "履歴書",
+    "retry": "リトライ",
+    "pauseAll": "一時停止",
+    "resumeAll": "すべての履歴書",
+    "clearCompleted": "クリア完了"
   },
   "download": {
     "downloadFile": "Download File",
@@ -167,7 +173,10 @@
     "typeName": "タイプ",
     "selected": "選ばれた",
     "deleted": "正常に削除されました！",
-    "destinationSource": "デスティネーション・ソース"
+    "destinationSource": "デスティネーション・ソース",
+    "dragAndDrop": "ここにファイルをドラッグ＆ドロップする",
+    "completed": "完成",
+    "conflictsDetected": "コンフリクト検出"
   },
   "search": {
     "images": "画像",
@@ -387,7 +396,9 @@
     "sidebarOptions": "サイドバーオプション",
     "disableQuickToggles": "クイックトグルを無効にする",
     "disableSearchOptions": "検索オプションを無効にする",
-    "hideSidebarFileActions": "サイドバーにファイルアクションを隠す"
+    "hideSidebarFileActions": "サイドバーにファイルアクションを隠す",
+    "editorViewerOptions": "エディターとビューアーのオプション",
+    "editorQuickSave": "エディタにクイック保存ボタンを表示"
   },
   "otp": {
     "name": "二要素認証",

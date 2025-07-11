@@ -217,7 +217,9 @@
     "sidebarOptions": "Sidebar options",
     "disableQuickToggles": "Disable quick toggles",
     "disableSearchOptions": "Disable search options",
-    "hideSidebarFileActions": "Hide file actions in sidebar"
+    "hideSidebarFileActions": "Hide file actions in sidebar",
+    "editorViewerOptions": "Editor and viewer options",
+    "editorQuickSave": "Show quick save button in editor"
   },
   "settings": {
     "enterPassword": "Enter password",

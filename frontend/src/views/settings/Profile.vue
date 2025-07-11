@@ -49,7 +49,7 @@
               v-model="localuser.quickDownload"
               :name="$t('profileSettings.showQuickDownload')"
             />
-                        <ToggleSwitch
+            <ToggleSwitch
               class="item"
               v-model="localuser.preview.image"
               :name="$t('profileSettings.previewImages')"
@@ -82,11 +82,19 @@
               v-model="localuser.preview.popup"
               :name="$t('profileSettings.popupPreview')"
             />
+          </div>
+          <h3>{{ $t("profileSettings.editorViewerOptions") }}</h3>
+          <div class="settings-items">
             <ToggleSwitch
-              class="item"
-              v-model="localuser.preview.autoplayMedia"
-              :name="$t('profileSettings.autoplayMedia')"
-            />
+                class="item"
+                v-model="localuser.preview.autoplayMedia"
+                :name="$t('profileSettings.autoplayMedia')"
+              />
+              <ToggleSwitch
+                class="item"
+                v-model="localuser.editorQuickSave"
+                :name="$t('profileSettings.editorQuickSave')"
+              />
           </div>
           <h3>{{ $t("settings.searchOptions") }}</h3>
           <div class="settings-items">
@@ -296,6 +304,7 @@ export default {
           "disableQuickToggles",
           "disableSearchOptions",
           "hideSidebarFileActions",
+          "editorQuickSave",
         ]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {

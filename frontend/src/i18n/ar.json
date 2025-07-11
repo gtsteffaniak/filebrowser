@@ -40,7 +40,13 @@
     "continue": "تابع",
     "edit": "تحرير",
     "generateNewOtp": "إعادة تعيين وإنشاء رمز ثنائي العامل الجديد",
-    "verify": "تحقق"
+    "verify": "تحقق",
+    "pause": "وقفة",
+    "resume": "السيرة الذاتية",
+    "retry": "إعادة المحاولة",
+    "pauseAll": "إيقاف الكل مؤقتاً",
+    "resumeAll": "استئناف الكل",
+    "clearCompleted": "اكتمل المسح"
   },
   "download": {
     "downloadFile": "Download File",
@@ -167,7 +173,10 @@
     "typeName": "النوع:",
     "selected": "مختارة",
     "deleted": "تم الحذف بنجاح!",
-    "destinationSource": "مصدر الوجهة:"
+    "destinationSource": "مصدر الوجهة:",
+    "dragAndDrop": "سحب الملفات وإفلاتها هنا",
+    "completed": "مكتمل",
+    "conflictsDetected": "التعارضات المكتشفة"
   },
   "search": {
     "images": "الصور",
@@ -387,7 +396,9 @@
     "sidebarOptions": "خيارات الشريط الجانبي",
     "disableQuickToggles": "تعطيل التبديل السريع",
     "disableSearchOptions": "تعطيل خيارات البحث",
-    "hideSidebarFileActions": "إخفاء إجراءات الملف في الشريط الجانبي"
+    "hideSidebarFileActions": "إخفاء إجراءات الملف في الشريط الجانبي",
+    "editorViewerOptions": "خيارات المحرر والعارض",
+    "editorQuickSave": "إظهار زر الحفظ السريع في المحرر"
   },
   "otp": {
     "name": "المصادقة الثنائية",

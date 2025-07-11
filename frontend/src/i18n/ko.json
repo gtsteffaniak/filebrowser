@@ -40,7 +40,13 @@
     "continue": "계속하기",
     "edit": "편집",
     "generateNewOtp": "새로운 2단계 인증 코드 재설정 및 생성",
-    "verify": "확인"
+    "verify": "확인",
+    "pause": "일시 중지",
+    "resume": "이력서",
+    "retry": "다시 시도",
+    "pauseAll": "모두 일시 중지",
+    "resumeAll": "모두 다시 시작",
+    "clearCompleted": "완료 지우기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -167,7 +173,10 @@
     "typeName": "유형:",
     "selected": "선택",
     "deleted": "성공적으로 삭제되었습니다!",
-    "destinationSource": "대상 소스:"
+    "destinationSource": "대상 소스:",
+    "dragAndDrop": "파일을 여기로 끌어다 놓기",
+    "completed": "완료",
+    "conflictsDetected": "충돌 감지"
   },
   "search": {
     "images": "이미지",
@@ -387,7 +396,9 @@
     "sidebarOptions": "사이드바 옵션",
     "disableQuickToggles": "빠른 토글 비활성화",
     "disableSearchOptions": "검색 옵션 비활성화",
-    "hideSidebarFileActions": "사이드바에서 파일 작업 숨기기"
+    "hideSidebarFileActions": "사이드바에서 파일 작업 숨기기",
+    "editorViewerOptions": "편집기 및 뷰어 옵션",
+    "editorQuickSave": "편집기에 빠른 저장 버튼 표시"
   },
   "otp": {
     "name": "2단계 인증",

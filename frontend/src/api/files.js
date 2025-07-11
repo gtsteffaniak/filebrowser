@@ -7,7 +7,6 @@ import { externalUrl,baseURL } from '@/utils/constants'
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false) {
   try {
-    console.log("fetchFiles", source, path, content);
     const apiPath = getApiPath('api/resources', {
       path: doubleEncode(path),
       source: doubleEncode(source),
@@ -70,7 +69,6 @@ export function download(format, files, shareHash = "") {
       fileargs += encodeURIComponent(file.source) + '::' + encodeURIComponent(file.path) + '||'
     }
   }
-  console.log("fileargs", fileargs);
   fileargs = fileargs.slice(0, -2) // remove trailing "||"
   const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'api/public/dl', {
     files: fileargs,
@@ -171,7 +169,6 @@ export async function moveCopy(
     action: action,
     rename: rename
   }
-  console.log("moveCopy", items, action, overwrite, rename);
   try {
     // Create an array of fetch calls
     let promises = items.map(item => {

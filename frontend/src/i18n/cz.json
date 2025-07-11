@@ -40,7 +40,13 @@
     "upload": "Nahrát",
     "openFile": "Otevřít soubor",
     "continue": "Pokračovat",
-    "edit": "Upravit"
+    "edit": "Upravit",
+    "pause": "Pauza",
+    "resume": "Životopis",
+    "retry": "Opakování",
+    "pauseAll": "Pozastavení všech",
+    "resumeAll": "Obnovit vše",
+    "clearCompleted": "Vymazání dokončeno"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -172,7 +178,11 @@
     "uploadMessage": "Vyberte možnost pro nahrání.",
     "optionalPassword": "Volitelné heslo",
     "typeName": "Typ:",
-    "deleted": "Úspěšně smazáno!"
+    "deleted": "Úspěšně smazáno!",
+    "destinationSource": "Zdroj určení:",
+    "dragAndDrop": "Přetáhněte sem soubory",
+    "completed": "Dokončeno",
+    "conflictsDetected": "Zjištěné konflikty"
   },
   "search": {
     "images": "Obrázky",
@@ -207,7 +217,9 @@
     "sidebarOptions": "Možnosti postranního panelu",
     "disableQuickToggles": "Zakázat rychlé přepínače",
     "disableSearchOptions": "Zakázat možnosti vyhledávání",
-    "hideSidebarFileActions": "Skrýt akce se soubory v postranním panelu"
+    "hideSidebarFileActions": "Skrýt akce se soubory v postranním panelu",
+    "editorViewerOptions": "Možnosti editoru a prohlížeče",
+    "editorQuickSave": "Zobrazení tlačítka rychlého uložení v editoru"
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

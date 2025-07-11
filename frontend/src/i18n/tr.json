@@ -40,7 +40,13 @@
     "continue": "Devam et",
     "edit": "Düzenle",
     "generateNewOtp": "Sıfırlama ve yeni iki faktörlü kod oluşturma",
-    "verify": "Doğrulama"
+    "verify": "Doğrulama",
+    "pause": "Duraklat",
+    "resume": "Özgeçmiş",
+    "retry": "Yeniden Dene",
+    "pauseAll": "Tümünü duraklat",
+    "resumeAll": "Tümünü devam ettir",
+    "clearCompleted": "Temizleme tamamlandı"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -167,7 +173,10 @@
     "typeName": "Tip:",
     "selected": "seçilmiş",
     "deleted": "Başarıyla silindi!",
-    "destinationSource": "Hedef Kaynak:"
+    "destinationSource": "Hedef Kaynak:",
+    "dragAndDrop": "Dosyaları buraya sürükleyip bırakın",
+    "completed": "Tamamlandı",
+    "conflictsDetected": "Tespit edilen çatışmalar"
   },
   "search": {
     "images": "Görseller",
@@ -387,7 +396,9 @@
     "sidebarOptions": "Kenar çubuğu seçenekleri",
     "disableQuickToggles": "Hızlı geçişleri devre dışı bırakma",
     "disableSearchOptions": "Arama seçeneklerini devre dışı bırak",
-    "hideSidebarFileActions": "Kenar çubuğundaki dosya eylemlerini gizle"
+    "hideSidebarFileActions": "Kenar çubuğundaki dosya eylemlerini gizle",
+    "editorViewerOptions": "Editör ve görüntüleyici seçenekleri",
+    "editorQuickSave": "Düzenleyicide hızlı kaydet düğmesini göster"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",

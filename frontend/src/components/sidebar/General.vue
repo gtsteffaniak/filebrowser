@@ -293,6 +293,10 @@ export default {
       mutations.toggleDarkMode();
     },
     toggleSticky() {
+      // keep sidebar open if disabling sticky sidebar
+      if (!state.showSidebar && state.user.stickySidebar) {
+        mutations.toggleSidebar();
+      }
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     navigateTo(path) {

@@ -194,7 +194,6 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { uploadManager } from "@/utils/upload";
 import { mutations, state } from "@/store";
 import ProgressBar from "@/components/ProgressBar.vue";
-import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export default {
   name: "UploadFiles",
@@ -222,21 +221,6 @@ export default {
 
     let wakeLock = null;
 
-    const getProgressDetails = (file) => {
-      if (
-        file.size === 0 ||
-        typeof file.progress !== "number" ||
-        file.progress === 0
-      ) {
-        return `${file.progress || 0}%`;
-      }
-
-      const totalSizeFormatted = getHumanReadableFilesize(file.size);
-      const [size, unit] = totalSizeFormatted.split(" ");
-      const uploadedSize = size * (file.progress / 100);
-      return `${uploadedSize} ${unit} / ${totalSizeFormatted} ${unit} (${file.progress.toFixed(1)}%)`;
-    };
-
     const handleConflict = (resolver) => {
       showConflictPrompt.value = true;
       conflictResolver = resolver;
@@ -252,15 +236,12 @@ export default {
 
     const acquireWakeLock = async () => {
       if (!("wakeLock" in navigator)) {
-        console.log("Wake Lock API not supported.");
         return;
       }
       try {
         if (wakeLock !== null) return; // Already locked
         wakeLock = await navigator.wakeLock.request("screen");
-        console.log("Wake Lock acquired.");
         wakeLock.addEventListener("release", () => {
-          console.log("Wake Lock released by the system.");
           wakeLock = null;
         });
       } catch (err) {
@@ -272,7 +253,6 @@ export default {
       if (wakeLock !== null) {
         wakeLock.release();
         wakeLock = null;
-        console.log("Wake Lock released.");
       }
     };
 
@@ -321,12 +301,7 @@ export default {
     onMounted(async () => {
       document.addEventListener("visibilitychange", handleVisibilityChange);
       uploadManager.setOnConflict(handleConflict);
-      console.log("Upload.vue: onMounted hook called.");
       if (props.initialItems) {
-        console.log(
-          "Upload.vue: initialItems prop found, processing items:",
-          props.initialItems
-        );
         await processItems(props.initialItems);
       }
     });
@@ -338,12 +313,10 @@ export default {
     });
 
     const triggerFilePicker = () => {
-      console.log("Upload.vue: triggerFilePicker called.");
       if (fileInput.value) fileInput.value.click();
     };
 
     const triggerFolderPicker = () => {
-      console.log("Upload.vue: triggerFolderPicker called.");
       if (folderInput.value) folderInput.value.click();
     };
 
@@ -365,7 +338,6 @@ export default {
 
     const onDrop = async (event) => {
       isDragging.value = false;
-      console.log("Upload.vue: onDrop event triggered.");
       if (event.dataTransfer.items) {
         const items = Array.from(event.dataTransfer.items);
         console.log("Upload.vue: Processing dropped items:", items);
@@ -424,13 +396,11 @@ export default {
       }
 
       if (filesToUpload.length > 0) {
-        console.log("Upload.vue: Final processed file list from drop:", filesToUpload);
         uploadManager.add(state.req.path, filesToUpload);
       }
     };
 
     const processFileList = (fileList) => {
-      console.log("Upload.vue: processing file list from picker:", fileList);
       const filesToAdd = Array.from(fileList).map((file) => ({
         file,
         relativePath: file.webkitRelativePath || file.name,

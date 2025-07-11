@@ -158,9 +158,6 @@ export default {
       default: false,
     },
   },
-  mounted() {
-    console.log("ContextMenu mounted", this.selectedCount);
-  },
   computed: {
     isMobileDevice() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || getters.isMobile();
@@ -236,12 +233,6 @@ export default {
     },
   },
   watch: {
-    showCentered: {
-      handler(newVal) {
-        console.log("showCentered changed", newVal);
-      },
-      immediate: true
-    },
     showContext: {
       handler(newVal) {
         if (newVal) {

@@ -23,7 +23,8 @@ if (!DEEPL_API_KEY) {
 const translator = new deepl.Translator(DEEPL_API_KEY);
 
 const deeplLangMap = {
-  'zh-cn': 'ZH',
+  'zh-cn': 'ZH-HANS',
+  'zh-tw': 'ZH-HANT',
   'pt': 'PT-PT',      // or 'PT-BR' if you want Brazilian Portuguese
   'pt-br': 'PT-BR',
   'en': 'EN',
@@ -32,6 +33,8 @@ const deeplLangMap = {
   'sv-se': 'SV',
   'ua': 'UK',
   'nl-be': 'NL',
+  'is': 'IS',
+  'cz': 'CS',
   // Add more as needed
 };
 

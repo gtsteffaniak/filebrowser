@@ -40,7 +40,13 @@
     "submit": "Stuur  in",
     "openFile": "Bestand openen",
     "continue": "Ga verder",
-    "edit": "Bewerk"
+    "edit": "Bewerk",
+    "pause": "Pauze",
+    "resume": "CV",
+    "retry": "Opnieuw proberen",
+    "pauseAll": "Alles onderbreken",
+    "resumeAll": "Alles hervatten",
+    "clearCompleted": "Gereed"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -167,7 +173,10 @@
     "optionalPassword": "Optioneel wachtwoord",
     "typeName": "Type:",
     "deleted": "Met succes verwijderd!",
-    "destinationSource": "Bestemming Bron:"
+    "destinationSource": "Bestemming Bron:",
+    "dragAndDrop": "Sleep bestanden hier naartoe",
+    "completed": "Voltooid",
+    "conflictsDetected": "Gedetecteerde conflicten"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -382,7 +391,9 @@
     "sidebarOptions": "Zijbalk opties",
     "disableQuickToggles": "Snel wisselen uitschakelen",
     "disableSearchOptions": "Zoekopties uitschakelen",
-    "hideSidebarFileActions": "Verberg bestandsacties in de zijbalk"
+    "hideSidebarFileActions": "Verberg bestandsacties in de zijbalk",
+    "editorViewerOptions": "Opties voor editor en viewer",
+    "editorQuickSave": "Snel opslaan knop tonen in editor"
   },
   "otp": {
     "name": "Authenticatie met twee factoren",

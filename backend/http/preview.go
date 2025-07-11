@@ -143,6 +143,7 @@ func previewHelperFunc(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Cache-Control", "private")
-	http.ServeContent(w, r, d.fileInfo.RealPath, d.fileInfo.ModTime, bytes.NewReader(previewImg))
+	w.Header().Set("Content-Type", "image/jpeg")
+	http.ServeContent(w, r, d.fileInfo.Name+"-preview.jpg", d.fileInfo.ModTime, bytes.NewReader(previewImg))
 	return 0, nil
 }

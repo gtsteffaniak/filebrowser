@@ -40,7 +40,13 @@
     "continue": "Continuar",
     "edit": "Editar",
     "generateNewOtp": "Redefinir e gerar um novo código de dois fatores",
-    "verify": "Verificar"
+    "verify": "Verificar",
+    "pause": "Pausa",
+    "resume": "Currículo",
+    "retry": "Repetir",
+    "pauseAll": "Pausar tudo",
+    "resumeAll": "Retomar tudo",
+    "clearCompleted": "Limpar concluído"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -167,7 +173,10 @@
     "typeName": "Tipo:",
     "selected": "selecionado",
     "deleted": "Excluído com sucesso!",
-    "destinationSource": "Origem do destino:"
+    "destinationSource": "Origem do destino:",
+    "dragAndDrop": "Arraste e solte os arquivos aqui",
+    "completed": "Concluído",
+    "conflictsDetected": "Conflitos detectados"
   },
   "search": {
     "images": "Imagens",
@@ -387,7 +396,9 @@
     "sidebarOptions": "Opções da barra lateral",
     "disableQuickToggles": "Desativar as alternâncias rápidas",
     "disableSearchOptions": "Desativar opções de pesquisa",
-    "hideSidebarFileActions": "Ocultar ações de arquivo na barra lateral"
+    "hideSidebarFileActions": "Ocultar ações de arquivo na barra lateral",
+    "editorViewerOptions": "Opções de editor e visualizador",
+    "editorQuickSave": "Mostrar o botão de salvamento rápido no editor"
   },
   "otp": {
     "name": "Autenticação de dois fatores",

@@ -40,7 +40,13 @@
     "continue": "Pokračovať",
     "edit": "Upraviť",
     "generateNewOtp": "Obnovenie a generovanie nového dvojfaktorového kódu",
-    "verify": "Overiť"
+    "verify": "Overiť",
+    "pause": "Pauza",
+    "resume": "Životopis",
+    "retry": "Opakovanie",
+    "pauseAll": "Pozastavenie všetkých",
+    "resumeAll": "Obnoviť všetko",
+    "clearCompleted": "Vyčistiť dokončené"
   },
   "download": {
     "downloadFile": "Stiahnuť súbor",
@@ -167,7 +173,10 @@
     "typeName": "Typ:",
     "selected": "vybrané",
     "deleted": "Úspešne vymazané!",
-    "destinationSource": "Cieľový zdroj:"
+    "destinationSource": "Cieľový zdroj:",
+    "dragAndDrop": "Presuňte sem súbory",
+    "completed": "Dokončené",
+    "conflictsDetected": "Zistené konflikty"
   },
   "search": {
     "images": "Obrázky",
@@ -387,7 +396,9 @@
     "sidebarOptions": "Možnosti bočného panela",
     "disableQuickToggles": "Zakázanie rýchlych prepínačov",
     "disableSearchOptions": "Zakázanie možností vyhľadávania",
-    "hideSidebarFileActions": "Skrytie akcií súborov v bočnom paneli"
+    "hideSidebarFileActions": "Skrytie akcií súborov v bočnom paneli",
+    "editorViewerOptions": "Možnosti editora a prehliadača",
+    "editorQuickSave": "Zobrazenie tlačidla rýchleho uloženia v editore"
   },
   "otp": {
     "name": "Dvojfaktorové overovanie",

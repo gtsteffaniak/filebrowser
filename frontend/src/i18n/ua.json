@@ -40,7 +40,13 @@
     "verify": "Підтвердити",
     "copyDownloadLinkToClipboard": "Скопіюйте посилання для завантаження в буфер обміну",
     "continue": "Продовжуйте",
-    "edit": "Редагувати"
+    "edit": "Редагувати",
+    "pause": "Пауза.",
+    "resume": "Резюме",
+    "retry": "Спробуйте ще раз.",
+    "pauseAll": "Призупинити все",
+    "resumeAll": "Відновити все",
+    "clearCompleted": "Очищення завершено"
   },
   "download": {
     "downloadFile": "Завантажити файл",
@@ -167,7 +173,10 @@
     "uploadFiles": "Uploading {files} files...",
     "typeName": "Друкуй:",
     "deleted": "Видалено успішно!",
-    "destinationSource": "Місце призначення Джерело:"
+    "destinationSource": "Місце призначення Джерело:",
+    "dragAndDrop": "Перетягніть файли сюди",
+    "completed": "Завершено",
+    "conflictsDetected": "Виявлені конфлікти"
   },
   "search": {
     "images": "Зображення",
@@ -383,7 +392,9 @@
     "sidebarOptions": "Параметри бічної панелі",
     "disableQuickToggles": "Вимкнути швидкі перемикання",
     "disableSearchOptions": "Вимкнути параметри пошуку",
-    "hideSidebarFileActions": "Приховати дії з файлами на бічній панелі"
+    "hideSidebarFileActions": "Приховати дії з файлами на бічній панелі",
+    "editorViewerOptions": "Параметри редактора та перегляду",
+    "editorQuickSave": "Показати кнопку швидкого збереження в редакторі"
   },
   "otp": {
     "name": "Двофакторна автентифікація",

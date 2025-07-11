@@ -40,7 +40,13 @@
     "verify": "אמת",
     "copyDownloadLinkToClipboard": "העתק את קישור ההורדה ללוח",
     "continue": "המשך",
-    "edit": "ערוך"
+    "edit": "ערוך",
+    "pause": "השהה",
+    "resume": "קורות חיים",
+    "retry": "נסה שוב",
+    "pauseAll": "השהה הכל",
+    "resumeAll": "המשך הכל",
+    "clearCompleted": "השלם"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -167,7 +173,10 @@
     "filesSelected": "קבצים שנבחרו",
     "typeName": "סוג:",
     "deleted": "נמחק בהצלחה!",
-    "destinationSource": "מקור היעד:"
+    "destinationSource": "מקור היעד:",
+    "dragAndDrop": "גרור ושחרר קבצים לכאן",
+    "completed": "הושלם",
+    "conflictsDetected": "סכסוכים שזוהו"
   },
   "search": {
     "images": "תמונות",
@@ -383,7 +392,9 @@
     "sidebarOptions": "אפשרויות סרגל צד",
     "disableQuickToggles": "השבת מתגים מהירים",
     "disableSearchOptions": "השבת אפשרויות חיפוש",
-    "hideSidebarFileActions": "הסתר פעולות קובץ בסרגל הצד"
+    "hideSidebarFileActions": "הסתר פעולות קובץ בסרגל הצד",
+    "editorViewerOptions": "אפשרויות עורך וצופה",
+    "editorQuickSave": "הצג כפתור שמירה מהירה בעורך"
   },
   "otp": {
     "name": "אימות דו-גורמי",

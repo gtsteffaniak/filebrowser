@@ -40,7 +40,13 @@
     "continue": "Продолжить",
     "edit": "Редактировать",
     "generateNewOtp": "Сброс и генерация нового двухфакторного кода",
-    "verify": "Проверьте"
+    "verify": "Проверьте",
+    "pause": "Пауза",
+    "resume": "Резюме",
+    "retry": "Повторная попытка",
+    "pauseAll": "Приостановить все",
+    "resumeAll": "Резюме все",
+    "clearCompleted": "Очистка завершена"
   },
   "download": {
     "downloadFile": "Скачать файл",
@@ -167,7 +173,10 @@
     "typeName": "Тип:",
     "selected": "выбранные",
     "deleted": "Удалено успешно!",
-    "destinationSource": "Источник назначения:"
+    "destinationSource": "Источник назначения:",
+    "dragAndDrop": "Перетащите файлы сюда",
+    "completed": "Завершено",
+    "conflictsDetected": "Обнаруженные конфликты"
   },
   "search": {
     "images": "Изображения",
@@ -387,7 +396,9 @@
     "sidebarOptions": "Параметры боковой панели",
     "disableQuickToggles": "Отключение быстрых переключений",
     "disableSearchOptions": "Отключить параметры поиска",
-    "hideSidebarFileActions": "Скрыть действия с файлами в боковой панели"
+    "hideSidebarFileActions": "Скрыть действия с файлами в боковой панели",
+    "editorViewerOptions": "Параметры редактора и программы просмотра",
+    "editorQuickSave": "Показать кнопку быстрого сохранения в редакторе"
   },
   "otp": {
     "name": "Двухфакторная аутентификация",

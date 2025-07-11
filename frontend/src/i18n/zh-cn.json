@@ -40,7 +40,13 @@
     "verify": "验证",
     "copyDownloadLinkToClipboard": "将下载链接复制到剪贴板",
     "continue": "继续",
-    "edit": "编辑"
+    "edit": "编辑",
+    "pause": "暂停",
+    "resume": "简历",
+    "retry": "重试",
+    "pauseAll": "全部暂停",
+    "resumeAll": "全部简历",
+    "clearCompleted": "清除完毕"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -167,7 +173,10 @@
     "uploadFiles": "Uploading {files} files...",
     "typeName": "类型",
     "deleted": "已成功删除！",
-    "destinationSource": "目的地来源："
+    "destinationSource": "目的地来源：",
+    "dragAndDrop": "在此处拖放文件",
+    "completed": "已完成",
+    "conflictsDetected": "检测到冲突"
   },
   "search": {
     "images": "图像",
@@ -383,7 +392,9 @@
     "sidebarOptions": "侧边栏选项",
     "disableQuickToggles": "禁用快速切换",
     "disableSearchOptions": "禁用搜索选项",
-    "hideSidebarFileActions": "隐藏侧边栏中的文件操作"
+    "hideSidebarFileActions": "隐藏侧边栏中的文件操作",
+    "editorViewerOptions": "编辑器和查看器选项",
+    "editorQuickSave": "在编辑器中显示快速保存按钮"
   },
   "otp": {
     "name": "双因素验证",

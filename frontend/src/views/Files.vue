@@ -146,14 +146,12 @@ export default {
 
       let data = {};
       try {
-        console.log("fetching files", result.source, result.path);
         const fetchSource = decodeURIComponent(result.source);
         const fetchPath = decodeURIComponent(result.path);
         // Fetch initial data
         let res = await filesApi.fetchFiles(fetchSource,fetchPath );
         // If not a directory, fetch content
         if (res.type != "directory") {
-          console.log("fetching content", res);
           const content = !getters.onlyOfficeEnabled();
           res = await filesApi.fetchFiles(res.source, res.path, content);
         }

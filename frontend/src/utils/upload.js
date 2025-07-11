@@ -20,10 +20,7 @@ class UploadManager {
   }
 
   async add(basePath, items, overwrite = false) {
-    console.log(`upload.js: uploadManager.add called.`);
-    console.log(` - basePath: ${basePath}`);
-    console.log(` - items:`, items);
-    console.log(` - overwrite: ${overwrite}`);
+
     if (basePath.slice(-1) !== "/") {
       basePath += "/";
     }
@@ -40,14 +37,12 @@ class UploadManager {
         }
       }
     }
-    console.log("upload.js: Directories to create:", dirs);
 
     const newUploads = [];
 
     if (dirs.size > 0) {
       // Sort paths to ensure parent directories are created before children.
       const sortedDirs = [...dirs].sort();
-      console.log("upload.js: Sorted directories:", sortedDirs);
 
       for (const dir of sortedDirs) {
         const pathParts = dir.slice(0, -1).split("/");
@@ -62,11 +57,10 @@ class UploadManager {
           type: "directory",
           path: `${basePath}${dir}`,
           source: storeState.req.source,
-          overwrite: false, // Initially false, will be updated by conflict handler
+          overwrite: overwrite,
         };
 
         newUploads.push(upload);
-        console.log("upload.js: Created directory upload object:", upload);
       }
     }
 
@@ -86,9 +80,8 @@ class UploadManager {
         xhr: null,
         path: destinationPath, // Full destination path
         source: storeState.req.source,
-        overwrite: false, // Initially false, will be updated by conflict handler
+        overwrite: overwrite,
       };
-      console.log("upload.js: Created upload object:", upload);
       return upload;
     });
 
@@ -99,18 +92,11 @@ class UploadManager {
   }
 
   async processQueue() {
-    console.log("upload.js: processQueue called.");
-    console.log(` - activeUploads: ${this.activeUploads}`);
-    console.log(` - hasPending: ${this.hasPending()}`);
-    console.log(` - isPausedForConflict: ${this.isPausedForConflict}`);
-
     if (this.isPausedForConflict) {
-      console.log("upload.js: Queue is paused, waiting for conflict resolution.");
       return;
     }
 
     if (this.isOverallPaused) {
-      console.log("upload.js: Queue is paused by user.");
       return;
     }
 
@@ -120,7 +106,6 @@ class UploadManager {
     ) {
       const upload = this.queue.find((item) => item.status === "pending");
       if (upload) {
-        console.log("upload.js: Found pending upload to start:", upload);
         if (this.overwriteAll) {
           upload.overwrite = true;
         }
@@ -138,7 +123,6 @@ class UploadManager {
       );
       return;
     }
-    console.log(`upload.js: Starting upload for id ${id}`, upload);
 
     if (upload.type === "directory") {
       this.startDirectoryUpload(upload);
@@ -160,13 +144,11 @@ class UploadManager {
       );
       await promise;
 
-      console.log(`upload.js: Directory upload completed for id ${upload.id}`, upload);
       upload.status = "completed";
       upload.progress = 100;
     } catch (err) {
       await this.handleUploadError(upload, err);
     } finally {
-      console.log(`upload.js: Directory upload finished (finally block) for id ${upload.id}`, upload);
       this.activeUploads--;
       this.processQueue();
     }
@@ -226,7 +208,6 @@ class UploadManager {
   }
 
   pauseAll() {
-    console.log(`upload.js: pauseAll called`);
     this.isOverallPaused = true;
     this.queue.forEach((upload) => {
       if (upload.status === "uploading") {
@@ -236,7 +217,6 @@ class UploadManager {
   }
 
   resumeAll() {
-    console.log(`upload.js: resumeAll called`);
     this.isOverallPaused = false;
     this.queue.forEach((upload) => {
       if (upload.status === "paused") {
@@ -246,7 +226,6 @@ class UploadManager {
   }
 
   pause(id) {
-    console.log(`upload.js: pause called for id ${id}`);
     const upload = this.findById(id);
     if (upload && upload.status === "uploading" && upload.xhr) {
       upload.xhr.abort();
@@ -255,7 +234,6 @@ class UploadManager {
   }
 
   resume(id) {
-    console.log(`upload.js: resume called for id ${id}`);
     const upload = this.findById(id);
     if (upload && upload.status === "paused") {
       this.isOverallPaused = false;
@@ -268,7 +246,6 @@ class UploadManager {
   }
 
   cancel(id) {
-    console.log(`upload.js: cancel called for id ${id}`);
     this.pause(id); // Abort if in progress
     const index = this.queue.findIndex((item) => item.id === id);
     if (index !== -1) {
@@ -277,7 +254,6 @@ class UploadManager {
   }
 
   retry(id, overwrite = false) {
-    console.log(`upload.js: retry called for id ${id} with overwrite: ${overwrite}`);
     const upload = this.findById(id);
     if (upload && ["error", "conflict"].includes(upload.status)) {
       upload.overwrite = overwrite;
@@ -291,7 +267,6 @@ class UploadManager {
   }
 
   clearCompleted() {
-    console.log("upload.js: clearCompleted called");
     for (let i = this.queue.length - 1; i >= 0; i--) {
       if (this.queue[i].status === "completed") {
         this.queue.splice(i, 1);
@@ -310,18 +285,15 @@ class UploadManager {
   async handleUploadError(upload, err) {
     // Check if the error is a 409 Conflict
     if (err?.response?.status === 409) {
-      console.log(`upload.js: Conflict detected by backend for id ${upload.id}`);
       upload.status = "conflict";
     } else if (err.message !== "Upload aborted") {
       upload.status = "error";
-      console.error(`upload.js: Upload error for id ${upload.id}:`, err, upload);
     } else {
       console.log(`upload.js: Upload aborted for id ${upload.id}`, upload);
     }
   }
 
   resolveConflict(overwrite) {
-    console.log(`upload.js: Resolving conflict with strategy: ${overwrite ? 'OVERWRITE' : 'CANCEL'}`);
     this.overwriteAll = overwrite;
     this.isPausedForConflict = false;
 
