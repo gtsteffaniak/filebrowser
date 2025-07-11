@@ -41,6 +41,7 @@ import { state } from "@/store";
 import { filesApi } from "@/api";
 import { getters, mutations } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
+import { goToItem } from "@/utils/url";
 
 export default {
   name: "new-file",
@@ -65,11 +66,8 @@ export default {
       try {
         event.preventDefault();
         if (this.name === "") return;
-        // Build the path of the new file.
-        let uri = decodeURIComponent(state.req.url);
-        uri += this.name
-        await filesApi.post(uri, "", true);
-        this.$router.push({ path: state.route.path + encodeURIComponent(this.name) });
+        await filesApi.post(state.req.source, state.req.path + "/" + this.name, true);
+        goToItem(state.req.source,state.req.path + "/" + encodeURIComponent(this.name));
       } catch (error) {
         notify.showError(error);
       }

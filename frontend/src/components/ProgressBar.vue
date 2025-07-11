@@ -6,20 +6,25 @@ https://raw.githubusercontent.com/dzwillia/vue-simple-progress/master/src/compon
     <div
       class="vue-simple-progress-text"
       :style="text_style"
-      v-if="text.length > 0 && textPosition == 'middle'"
+      v-if="textPosition == 'middle'"
     >
-      {{ text }}
+      {{ displayed_text }}
     </div>
 
-    <div class="vue-simple-progress-bar" :style="bar_style">
-      <div :style="text_style" v-if="text.length > 0 && textPosition == 'inside'">
-        {{ text }}
-      </div>
+    <div class="vue-simple-progress-bar" :style="bar_style"></div>
+    <div
+      class="vue-simple-progress-text"
+      :style="text_style"
+      v-if="textPosition == 'inside'"
+    >
+      {{ displayed_text }}
     </div>
   </div>
 </template>
 
 <script>
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+
 // We're leaving this untouched as you can read in the beginning
 var isNumber = function (n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
@@ -34,10 +39,14 @@ export default {
     max: {
       default: 100,
     },
+    unit: {
+      type: String,
+      default: "",
+    },
     size: {
       // either a number (pixel width/height) or 'tiny', 'small',
       // 'medium', 'large', 'huge', 'massive' for common sizes
-      default: 3,
+      default: "big",
     },
     "bg-color": {
       type: String,
@@ -45,7 +54,7 @@ export default {
     },
     "bar-color": {
       type: String,
-      default: "#2196f3", // match .blue color to Material Design's 'Blue 500' color
+      default: "var(--primaryColor)", // match .blue color to Material Design's 'Blue 500' color
     },
     "bar-transition": {
       type: String,
@@ -53,7 +62,7 @@ export default {
     },
     "bar-border-radius": {
       type: Number,
-      default: 0,
+      default: 4,
     },
     spacing: {
       type: Number,
@@ -69,7 +78,7 @@ export default {
     },
     "text-position": {
       type: String,
-      default: "bottom", // 'bottom', 'top', 'middle', 'inside'
+      default: "inside", // 'bottom', 'top', 'middle', 'inside'
     },
     "font-size": {
       type: Number,
@@ -77,14 +86,37 @@ export default {
     },
     "text-fg-color": {
       type: String,
-      default: "#222",
+      default: "#000",
+    },
+    status: {
+      type: String,
+      default: 'default',
     },
   },
   computed: {
+    isValNumeric() {
+      return isNumber(this.val);
+    },
     pct() {
+      if (!this.isValNumeric) return 100;
+      if (this.max <= 0) return 0;
       var pct = (this.val / this.max) * 100;
-      pct = pct.toFixed(2);
-      return Math.min(pct, this.max);
+      return Math.max(0, Math.min(pct.toFixed(2), 100));
+    },
+    displayed_text() {
+      if (!this.isValNumeric) return this.val;
+
+      const percentage =
+        this.max > 0 ? Math.round((this.val / this.max) * 100) : 0;
+
+      if (this.unit === "bytes" && this.isValNumeric) {
+        const valFormatted = getHumanReadableFilesize(this.val);
+        const maxFormatted = getHumanReadableFilesize(this.max);
+        return `${valFormatted} / ${maxFormatted} (${percentage}%)`;
+      }
+
+      const unit_string = this.unit ? ` ${this.unit}` : "";
+      return `${this.val}${unit_string} / ${this.max}${unit_string} (${percentage}%)`;
     },
     size_px() {
       switch (this.size) {
@@ -129,7 +161,7 @@ export default {
         case "big":
         case "huge":
         case "massive":
-          return Math.min(Math.max(Math.ceil(this.size_px * 1.4), 11), 32);
+          return Math.min(Math.max(Math.ceil(this.size_px * 0.8), 11), 32);
       }
 
       return isNumber(this.fontSize) ? this.fontSize : 13;
@@ -137,6 +169,7 @@ export default {
     progress_style() {
       var style = {
         background: this.bgColor,
+        position: 'relative'
       };
 
       if (this.textPosition == "middle" || this.textPosition == "inside") {
@@ -150,9 +183,17 @@ export default {
       return style;
     },
     bar_style() {
+      let barColor = this.barColor;
+      if (this.status === 'error') {
+        barColor = '#f44336';
+      } else if (this.status === 'conflict') {
+        barColor = '#ff9800';
+      }
+
       var style = {
         width: this.pct + "%",
         height: this.size_px + "px",
+        background: barColor,
         transition: this.barTransition,
       };
 
@@ -160,33 +201,43 @@ export default {
         style["border-radius"] = this.barBorderRadius + "px";
       }
 
-      if (this.textPosition == "middle" || this.textPosition == "inside") {
-        //style["position"] = "absolute";
+      if (this.textPosition == "middle") {
+        style["position"] = "absolute";
         style["top"] = "0";
         style["height"] = "100%";
         style["min-width"] = "1.5em";
-        (style["min-height"] = this.size_px + "px"), (style["z-index"] = "-1");
+        style["min-height"] = this.size_px + "px";
+        style["z-index"] = "-1";
       }
 
       return style;
     },
     text_style() {
       var style = {
-        color: this.textFgColor,
+        "color": this.textFgColor,
         "font-size": this.text_font_size + "px",
         "text-align": this.textAlign,
       };
 
+      if (this.textPosition === 'inside') {
+        style['position'] = 'absolute';
+        style['left'] = '0';
+        style['right'] = '0';
+        style['top'] = '50%';
+        style['transform'] = 'translateY(-50%)';
+        style['width'] = '100%';
+        style['padding'] = '0 0.5em';
+        style['box-sizing'] = 'border-box';
+      }
+
       if (
         this.textPosition == "top" ||
-        this.textPosition == "middle" ||
-        this.textPosition == "inside"
+        this.textPosition == "middle"
       )
         style["padding-bottom"] = this.text_padding + "px";
       if (
         this.textPosition == "bottom" ||
-        this.textPosition == "middle" ||
-        this.textPosition == "inside"
+        this.textPosition == "middle"
       )
         style["padding-top"] = this.text_padding + "px";
       return style;
@@ -203,6 +254,12 @@ export default {
 .vue-simple-progress,
 .vue-simple-progress-bar {
   border-radius: 0.5em;
+}
+
+.vue-simple-progress {
   background: var(--primaryColor);
+}
+.vue-simple-progress-text {
+  color: black;
 }
 </style>

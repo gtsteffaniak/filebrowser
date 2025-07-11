@@ -204,13 +204,15 @@ input.sizeInput:disabled {
 }
 
 .sizeInput {
-  height: 100%;
   text-align: center;
-  width: 5em;
   border-radius: 1em;
-  padding: 1em;
-  backdrop-filter: invert(0.1);
+  padding: .5em;
   border: none !important;
+  margin-right: 0.5em;
+  -webkit-backdrop-filter: invert(.1);
+  backdrop-filter: invert(.1);
+  height: 2em;
+  width: 5em;
 }
 
 .roundedInputLeft {

@@ -25,6 +25,14 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "User Logout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT token",
+                        "name": "auth",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{\"logoutUrl\": \"http://...\"}",
@@ -468,6 +476,98 @@ const docTemplate = `{
             }
         },
         "/api/preview": {
+            "get": {
+                "description": "Returns a preview image based on the requested path and size.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get image preview",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File path of the image to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preview image content",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "202": {
+                        "description": "Download permissions required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported file type for preview",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Preview generation not implemented",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/public/preview": {
             "get": {
                 "description": "Returns a preview image based on the requested path and size.",
                 "consumes": [
@@ -2144,6 +2244,10 @@ const docTemplate = `{
                     "description": "whether to enable OIDC authentication",
                     "type": "boolean"
                 },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
+                },
                 "issuerUrl": {
                     "description": "authorization URL of the OIDC provider",
                     "type": "string"
@@ -2459,6 +2563,18 @@ const docTemplate = `{
                     "description": "disable update notifications banner for admin users",
                     "type": "boolean"
                 },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
+                    "type": "boolean"
+                },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
+                },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
@@ -2558,6 +2674,17 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "users.FileLoading": {
+            "type": "object",
+            "properties": {
+                "maxConcurrentUpload": {
+                    "type": "integer"
+                },
+                "uploadChunkSizeMb": {
+                    "type": "integer"
                 }
             }
         },
@@ -2696,6 +2823,18 @@ const docTemplate = `{
                 "disableUpdateNotifications": {
                     "description": "disable update notifications",
                     "type": "boolean"
+                },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
+                    "type": "boolean"
+                },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
                 },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",

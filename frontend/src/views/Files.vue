@@ -34,6 +34,7 @@ import { notify } from "@/notify";
 import router from "@/router";
 import { baseURL } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
+import { extractSourceFromPath } from "@/utils/url";
 
 export default {
   name: "files",
@@ -124,10 +125,15 @@ export default {
       // lets redirect if multiple sources and user went to /files/
       if (state.serverHasMultipleSources && rootRoute) {
         const urlEncodedSource = encodeURIComponent(state.sources.current)
-        router.push(`${routePath}/${urlEncodedSource}`);
-        return;
+        const targetPath = `${routePath}/${urlEncodedSource}`;
+        // Prevent infinite loop by checking if we're already at the target path
+        if (this.$route.path !== targetPath) {
+          router.push(targetPath);
+          return;
+        }
       }
-      if (state.sources.current === "") {
+      const result = extractSourceFromPath(getters.routePath());
+      if (result.source === "") {
         notify.showError($t("index.noSources"));
         return;
       }
@@ -140,12 +146,14 @@ export default {
 
       let data = {};
       try {
+        const fetchSource = decodeURIComponent(result.source);
+        const fetchPath = decodeURIComponent(result.path);
         // Fetch initial data
-        let res = await filesApi.fetchFiles(getters.routePath());
+        let res = await filesApi.fetchFiles(fetchSource,fetchPath );
         // If not a directory, fetch content
         if (res.type != "directory") {
           const content = !getters.onlyOfficeEnabled();
-          res = await filesApi.fetchFiles(getters.routePath(), content);
+          res = await filesApi.fetchFiles(res.source, res.path, content);
         }
         data = res;
         if (state.sources.count > 1) {

@@ -47,6 +47,9 @@ type Index struct {
 	mock                       bool
 	mu                         sync.RWMutex
 	hasIndex                   bool
+	FoundHardLinks             map[string]uint64 `json:"-"` // hardlink path -> size
+	processedInodes            map[uint64]bool   `json:"-"`
+	totalSize                  uint64            `json:"-"`
 }
 
 var (
@@ -73,6 +76,8 @@ func Initialize(source settings.Source, mock bool) {
 		Source:            source,
 		Directories:       make(map[string]*iteminfo.FileInfo),
 		DirectoriesLedger: make(map[string]bool),
+		processedInodes:   make(map[uint64]bool),
+		FoundHardLinks:    make(map[string]uint64),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:     "indexing",
@@ -289,10 +294,13 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			dirInfos = append(dirInfos, *itemInfo)
 			idx.NumDirs++
 		} else {
+			size, shouldCountSize := idx.handleFile(file, fullCombined)
 			itemInfo.DetectType(fullCombined, false)
-			itemInfo.Size = file.Size()
+			itemInfo.Size = int64(size)
 			fileInfos = append(fileInfos, *itemInfo)
-			totalSize += itemInfo.Size
+			if shouldCountSize {
+				totalSize += itemInfo.Size
+			}
 			idx.NumFiles++
 		}
 	}
@@ -536,4 +544,41 @@ func (idx *Index) SetStatus(status IndexStatus) {
 	}
 	idx.mu.Unlock()
 	idx.SendSourceUpdateEvent()
+}
+
+func (idx *Index) handleFile(file os.FileInfo, fullCombined string) (size uint64, shouldCountSize bool) {
+	var realSize uint64
+	var nlink uint64 = 1
+	var ino uint64 = 0
+	canUseSyscall := false
+
+	if sys := file.Sys(); sys != nil {
+		realSize, nlink, ino, canUseSyscall = getFileDetails(sys)
+	}
+
+	if !canUseSyscall {
+		// Fallback for non-unix systems or if syscall info is unavailable
+		realSize = uint64(file.Size())
+	}
+
+	if nlink > 1 {
+		// It's a hard link
+		idx.mu.Lock()
+		defer idx.mu.Unlock()
+		if _, exists := idx.processedInodes[ino]; exists {
+			// Already seen, don't count towards global total, or directory total.
+			return realSize, false
+		}
+		// First time seeing this inode.
+		idx.processedInodes[ino] = true
+		idx.FoundHardLinks[fullCombined] = realSize
+		idx.totalSize += realSize
+		return realSize, true // Count size for directory total.
+	}
+
+	// It's a regular file.
+	idx.mu.Lock()
+	idx.totalSize += realSize
+	idx.mu.Unlock()
+	return realSize, true // Count size.
 }

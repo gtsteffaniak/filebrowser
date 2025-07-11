@@ -31,17 +31,33 @@
     "switchView": "切換顯示方式",
     "toggleSidebar": "切換側邊欄",
     "update": "更新",
-    "upload": "上傳"
+    "upload": "上傳",
+    "generateNewOtp": "重設並產生新的雙重因素代碼",
+    "verify": "驗證",
+    "copyDownloadLinkToClipboard": "複製下載連結到剪貼簿",
+    "file": "檔案",
+    "folder": "資料夾",
+    "submit": "提交",
+    "openFile": "開啟檔案",
+    "continue": "繼續",
+    "edit": "編輯",
+    "pause": "暫停",
+    "resume": "簡歷",
+    "retry": "重試",
+    "pauseAll": "全部暫停",
+    "resumeAll": "所有履歷",
+    "clearCompleted": "清除完成"
   },
   "download": {
     "downloadFile": "下載檔案",
     "downloadFolder": "下載資料夾",
-    "downloadSelected": ""
+    "downloadSelected": "下載精選"
   },
   "errors": {
     "forbidden": "您無權訪問。",
     "internal": "伺服器出了點問題。",
-    "notFound": "找不到檔案。"
+    "notFound": "找不到檔案。",
+    "connection": "伺服器無法連線。"
   },
   "files": {
     "body": "内容",
@@ -59,7 +75,8 @@
     "size": "大小",
     "sortByLastModified": "按最後修改時間排序",
     "sortByName": "按名稱排序",
-    "sortBySize": "按大小排序"
+    "sortBySize": "按大小排序",
+    "noPreview": "此檔案無法預覽。"
   },
   "help": {
     "click": "選擇檔案或目錄",
@@ -80,6 +97,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -87,18 +105,19 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch（Belgium）",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
     "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "Swedish（Sweden）",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "新建賬戶",
@@ -110,7 +129,8 @@
     "submit": "登入",
     "username": "帳號",
     "usernameTaken": "用戶名已存在",
-    "wrongCredentials": "帳號或密碼錯誤"
+    "wrongCredentials": "帳號或密碼錯誤",
+    "or": "或"
   },
   "permanent": "永久",
   "prompts": {
@@ -145,7 +165,18 @@
     "size": "大小",
     "upload": "上傳",
     "uploadMessage": "選擇上傳項。",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
+    "destinationSource": "目的地來源：",
+    "deleteUserMessage": "您確定要刪除此使用者嗎？",
+    "dragAndDrop": "將檔案拖放至此",
+    "completed": "已完成",
+    "selected": "選定",
+    "filesSelected": "選取的檔案",
+    "uploadFiles": "Uploading {files} files...",
+    "optionalPassword": "選購密碼",
+    "typeName": "類型：",
+    "deleted": "已成功刪除！",
+    "conflictsDetected": "偵測到衝突"
   },
   "search": {
     "images": "影像",
@@ -155,7 +186,12 @@
     "search": "搜尋...",
     "typeToSearch": "輸入以搜尋...",
     "types": "類型",
-    "video": "影片"
+    "video": "影片",
+    "path": "路徑：",
+    "smallerThan": "小於：",
+    "largerThan": "大於：",
+    "helpText1": "您輸入的每個字元都會進行搜尋（搜尋字詞最少 3 個字元）。",
+    "helpText2": "索引：搜尋會使用索引，該索引會在設定的間隔 (預設值：5 分鐘) 自動更新。當程式剛開始搜尋時，可能會導致結果不完整。"
   },
   "settings": {
     "admin": "管理員",
@@ -194,7 +230,7 @@
     "newUser": "建立使用者",
     "password": "密碼",
     "passwordUpdated": "密碼已更新！",
-    "path": "",
+    "path": "路徑",
     "permissions": {
       "create": "建立檔案和資料夾",
       "delete": "刪除檔案和資料夾",
@@ -202,7 +238,10 @@
       "execute": "執行命令",
       "modify": "編輯檔案",
       "rename": "重命名或移動檔案/資料夾",
-      "share": "分享檔案"
+      "share": "分享檔案",
+      "admin": "管理員",
+      "api": "建立與管理長效 API 金鑰",
+      "realtime": "啟用即時連線與更新"
     },
     "permissions-name": "權限",
     "permissionsHelp": "您可以將該使用者設置為管理員，也可以單獨選擇各項權限。如果選擇了“管理員”，則其他的選項會被自動勾上，同時該使用者可以管理其他使用者。",
@@ -213,8 +252,8 @@
     "rulesHelp": "您可以為該使用者製定一組黑名單或白名單式的規則，被屏蔽的檔案將不會顯示在清單中，使用者也無權限存取,支持相對於目錄範圍的路徑。",
     "scope": "目錄範圍",
     "settingsUpdated": "設定已更新！",
-    "shareManagement": "",
-    "singleClick": "",
+    "shareManagement": "股份管理",
+    "singleClick": "使用單擊開啟檔案和目錄",
     "themes": {
       "dark": "深色",
       "light": "淺色",
@@ -229,7 +268,37 @@
     "userManagement": "使用者管理",
     "userUpdated": "使用者已更新！",
     "username": "使用者名稱",
-    "users": "使用者"
+    "users": "使用者",
+    "enterPassword": "輸入密碼",
+    "enterPasswordAgain": "再次輸入密碼",
+    "passwordsDoNotMatch": "密碼不匹配",
+    "loginMethod": "登入方法",
+    "loginMethodDescription": "使用者允許的登入方式。",
+    "modifyOtherUser": "修改使用者：",
+    "modifyCurrentUser": "修改目前使用者",
+    "themeColor": "主題顏色",
+    "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，以停用 OnlyOffice 檢視器。(例如：'.txt .html'）。",
+    "disableOfficeEditor": "停用特定檔案副檔名的 Office 檢視器",
+    "disableOfficePreviews": "停用特定檔案副檔名的辦公室預覽",
+    "disableOfficePreviewsDescription": "以空格分隔的檔案副檔名清單，以停用辦公室預覽。(例如：'.txt .html'）。",
+    "listingOptions": "列名選項",
+    "searchOptions": "搜尋選項",
+    "emptyGlobal": "目前沒有全局設定選項，您可以編輯設定 yaml 來調整系統設定。",
+    "scopes": "定義允許的來源和其中的使用者範圍",
+    "UserManagement": "使用者管理",
+    "userNotAdmin": "使用者不是管理員",
+    "tusUploads": "分塊上載",
+    "tusUploadsHelp": "File Browser 支援分塊檔案上傳，即使在不可靠的網路中，也能建立有效率、可靠、可恢復和分塊的檔案上傳。",
+    "tusUploadsChunkSize": "表示請求的最大大小（直接上傳會用於較小的上傳）。您可以輸入表示輸入位元組的純整數或字串，如 10MB、1GB 等。",
+    "tusUploadsRetryCount": "若資料塊上傳失敗，則執行重試的次數。",
+    "userHomeBasePath": "使用者主目錄的基本路徑",
+    "userScopeGenerationPlaceholder": "範圍會自動產生",
+    "createUserHomeDirectory": "建立使用者主目錄",
+    "shareSettings": "分享設定",
+    "api": "API 金鑰",
+    "shareDuration": "到期",
+    "shareDeleted": "分享已刪除！",
+    "adminOptions": "管理員使用者選項"
   },
   "sidebar": {
     "help": "幫助",
@@ -242,7 +311,10 @@
     "preview": "預覽",
     "settings": "設定",
     "signup": "註冊",
-    "siteSettings": "網站設定"
+    "siteSettings": "網站設定",
+    "sources": "來源",
+    "updateIsAvailable": "可提供更新！",
+    "fileActions": "檔案動作"
   },
   "success": {
     "linkCopied": "連結已複製！"
@@ -254,8 +326,91 @@
     "seconds": "秒",
     "unit": "時間單位"
   },
-  "upload": {},
-  "share": {},
-  "api": {},
-  "index": {}
+  "upload": {
+    "abortUpload": "你確定要流產嗎？"
+  },
+  "share": {
+    "notice": "請注意：任何能夠存取連結（以及可選密碼）的人都可以存取共用檔案。無需登入。"
+  },
+  "api": {
+    "title": "API 金鑰",
+    "keyName": "API 金鑰名稱：",
+    "createdAt": "創建於",
+    "expiresAt": "到期日：：",
+    "permissions": "權限：",
+    "createTitle": "建立 API 金鑰",
+    "keyNamePlaceholder": "輸入唯一的 API 金鑰名稱：",
+    "tokenDuration": "代幣持續時間：",
+    "durationNumberPlaceholder": "數量",
+    "days": "天數",
+    "months": "月數",
+    "permissionNote": "為金鑰選擇至少一個權限。您的使用者也必須擁有該權限。",
+    "createKeyFailed": "建立 API 金鑰失敗。",
+    "createKeySuccess": "API 金鑰已成功建立。",
+    "description": "API 金鑰以建立金鑰的使用者為基礎。請參閱",
+    "swaggerLinkText": "跩頁",
+    "name": "名稱",
+    "created": "創建",
+    "expires": "到期",
+    "actions": "行動",
+    "enabled": "已啟用",
+    "disabled": "殘障"
+  },
+  "index": {
+    "status": "狀態",
+    "assessment": "評估",
+    "files": "檔案",
+    "folders": "資料夾",
+    "lastScanned": "最後一次掃描",
+    "quickScan": "快速掃描秒數",
+    "fullScan": "完整掃描秒數",
+    "settingsHover": "使用者設定",
+    "logout": "登出",
+    "toggleClick": "切換單擊",
+    "toggleDark": "切換黑暗模式",
+    "toggleSticky": "切換黏貼模式",
+    "of": "的",
+    "used": "中古",
+    "noSources": "此使用者沒有可用的來源。請為此使用者新增來源，或設定預設啟用：true 的來源。"
+  },
+  "profileSettings": {
+    "setDateFormat": "設定精確的日期格式",
+    "showHiddenFiles": "顯示隱藏的檔案",
+    "showQuickDownload": "顯示下載圖示以便快速存取",
+    "previewImages": "預覽圖片",
+    "previewVideos": "預覽影片",
+    "previewMotionVideos": "影片動態預覽",
+    "highQualityPreview": "圖庫影像的高品質預覽",
+    "editOffice": "編輯/檢視辦公室檔案",
+    "popupPreview": "啟用彈出預覽",
+    "filePreviewOptions": "檔案預覽選項",
+    "disableUpdateNotifications": "停用在側邊欄顯示通知更新橫幅。",
+    "disableHideSidebar": "當預覽或編輯檔案時，停用自動隱藏側邊列。",
+    "autoplayMedia": "在預覽中自動播放媒體檔案",
+    "deleteWithoutConfirming": "刪除檔案無須確認提示",
+    "sidebarOptions": "側邊欄選項",
+    "disableQuickToggles": "停用快速切換",
+    "disableSearchOptions": "停用搜尋選項",
+    "hideSidebarFileActions": "隱藏側邊列中的檔案動作",
+    "editorViewerOptions": "編輯器和檢視器選項",
+    "editorQuickSave": "在編輯器中顯示快速儲存按鈕"
+  },
+  "otp": {
+    "name": "雙因素驗證",
+    "verifyInstructions": "從驗證器應用程式輸入驗證碼",
+    "generate": "使用驗證器應用程式掃描 QR 代碼",
+    "codeInputPlaceholder": "6 位數字代碼",
+    "invalidCodeType": "驗證碼應為 6 位英文數字",
+    "enabledSuccessfully": "成功啟用 OTP",
+    "verificationFailed": "驗證失敗",
+    "verificationSucceed": "驗證成功",
+    "generationFailed": "世代失敗"
+  },
+  "fileLoading": {
+    "title": "上傳與下載",
+    "maxConcurrentUpload": "最大同時上傳數量",
+    "maxConcurrentUploadHelp": "最大同時上傳數量。較高的值通常效能較佳，但這取決於許多因素。",
+    "uploadChunkSizeMb": "上傳區塊大小（以 MB 為單位",
+    "uploadChunkSizeMbHelp": "通常為 5 到 50 MB，對於不穩定或受限制的連線，越小越好。設定為 0 會停用上傳分塊。"
+  }
 }

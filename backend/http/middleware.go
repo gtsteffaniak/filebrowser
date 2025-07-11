@@ -186,7 +186,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if auth.IsRevokedApiKey(tk.Key) || tk.Expires < time.Now().Unix() {
+		if auth.IsRevokedApiKey(data.token) || tk.Expires < time.Now().Unix() {
 			return http.StatusUnauthorized, fmt.Errorf("token expired or revoked")
 		}
 		// Check if the token is about to expire and send a header to renew it

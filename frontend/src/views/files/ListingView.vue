@@ -106,7 +106,7 @@
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type == 'directory'"
-            v-bind:url="item.url"
+            v-bind:source="req.source"
             v-bind:modified="item.modified"
             v-bind:type="item.type"
             v-bind:size="item.size"
@@ -126,8 +126,8 @@
             v-bind:index="item.index"
             v-bind:name="item.name"
             v-bind:isDir="item.type == 'directory'"
-            v-bind:url="item.url"
             v-bind:modified="item.modified"
+            v-bind:source="req.source"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -156,7 +156,7 @@
 </template>
 
 <script>
-import download from "@/utils/download";
+import downloadFiles from "@/utils/download";
 import { filesApi } from "@/api";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
@@ -616,7 +616,9 @@ export default {
       switch (key) {
         case "Enter":
           if (this.selectedCount === 1) {
-            router.push({ path: getters.getFirstSelected().url });
+            const selected = getters.getFirstSelected();
+            const selectedUrl = url.buildItemUrl(selected.source, selected.path)
+            router.push({ path: selectedUrl });
           }
           break;
 
@@ -667,7 +669,7 @@ export default {
           break;
         case "s":
           event.preventDefault();
-          download();
+          downloadFiles(state.selected);
           break;
       }
     },
@@ -738,7 +740,8 @@ export default {
       }
 
       let items = state.selected.map((i) => ({
-        from: state.req.items[i].url,
+        from: state.req.items[i].path,
+        fromSource: state.req.items[i].source,
         name: state.req.items[i].name,
       }));
 
@@ -759,8 +762,9 @@ export default {
 
       let items = this.clipboard.items.map((item) => ({
         from: item.from,
-        to: state.route.path + encodeURIComponent(item.name),
-        name: item.name,
+        fromSource: item.fromSource,
+        to: state.route.path + item.name,
+        toSource: item.toSource
       }));
 
       if (items.length === 0) {
@@ -774,7 +778,7 @@ export default {
 
       if (this.clipboard.key === "x") {
         action = async (overwrite, rename) => {
-          await filesApi.moveCopy(items, "copy", overwrite, rename);
+          await filesApi.moveCopy(items, "move", overwrite, rename);
 
           this.clipboard = {};
           mutations.setLoading("listing", false);
@@ -820,109 +824,39 @@ export default {
         document.documentElement.style.setProperty("--item-height", `auto`);
       }
     },
-    dragEnter() {
+    dragEnter(event) {
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+      if (isInternal) {
+        return;
+      }
       this.dragCounter++;
     },
-    dragLeave() {
+    dragLeave(event) {
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
+      if (isInternal) {
+        return;
+      }
+      if (this.dragCounter == 0) {
+        return;
+      }
       this.dragCounter--;
     },
     async drop(event) {
-      event.preventDefault();
-      this.dragCounter = 0;
+      const isInternal = Array.from(event.dataTransfer.types).includes(
+        "application/x-filebrowser-internal-drag"
+      );
 
-      let dt = event.dataTransfer;
-      let el = event.target;
-
-      if (dt.files.length <= 0) {
+      if (isInternal) {
         return;
       }
-
-      for (let i = 0; i < 5; i++) {
-        if (el !== null && !el.classList.contains("item")) {
-          el = el.parentElement;
-        }
-      }
-
-      let rawFiles = await upload.scanFiles(dt);
-      let items = state.req.items;
-      let path = state.req.path;
-
-      if (el !== null && el.classList.contains("item") && el.dataset.dir === "true") {
-        const response = await filesApi.fetchFiles(el.__vue__.url);
-        path = decodeURIComponent(el.__vue__.url);
-        items = response.items;
-      }
-
-      const uploadFiles = rawFiles.map((file) => {
-        // Here we construct a path that handleFiles will use
-        const filePath = file.fullPath || file.webkitRelativePath || file.name;
-        return {
-          file,
-          name: file.name,
-          size: file.size,
-          path: filePath.replace("//", "/"), // Ensure no double slashes
-          fullPath: filePath.replace("//", "/"), // Ensure no double slashes
-          source: state.req.source,
-        };
-      });
-
-      const conflict = upload.checkConflict(uploadFiles, items);
-
-      try {
-        if (conflict) {
-          mutations.showHover({
-            name: "replace",
-            confirm: async (event) => {
-              event.preventDefault();
-              mutations.closeHovers();
-              await upload.handleFiles(uploadFiles, path, true);
-            },
-          });
-        } else {
-          await upload.handleFiles(uploadFiles, path);
-        }
-        mutations.setReload(true);
-      } catch (e) {
-        console.error("failed to upload files", e);
-      }
+      this.handleDrop(event);
     },
-
     async uploadInput(event) {
-      mutations.closeHovers();
-      const rawFiles = event.currentTarget.files;
-      if (!rawFiles || rawFiles.length === 0) return;
-
-      const uploadFiles = [];
-
-      for (let i = 0; i < rawFiles.length; i++) {
-        const file = rawFiles[i];
-        const fullPath = file.webkitRelativePath || file.name;
-        uploadFiles.push({
-          file,
-          name: file.name,
-          size: file.size,
-          path: fullPath,
-          fullPath: fullPath,
-          source: state.req.source,
-        });
-      }
-
-      const path = state.req.path;
-      const conflict = upload.checkConflict(uploadFiles, state.req.items);
-
-      if (conflict) {
-        mutations.showHover({
-          name: "replace",
-          confirm: async (event) => {
-            event.preventDefault();
-            mutations.closeHovers();
-            await upload.handleFiles(uploadFiles, path, true);
-          },
-        });
-      } else {
-        await upload.handleFiles(uploadFiles, path);
-      }
-      mutations.setReload(true);
+      this.handleDrop(event);
     },
     sort(field) {
       let asc = false;
@@ -936,6 +870,7 @@ export default {
       // Commit the updateSort mutation
       mutations.updateListingSortConfig({ field, asc });
       mutations.updateListingItems();
+      this.lastSelected = state.selected;
     },
     setMultiple(val) {
       mutations.setMultiple(val == true);
@@ -950,16 +885,6 @@ export default {
       // Listing element is not displayed
       if (this.$refs.listingView == null) return;
     }, 100),
-    upload() {
-      if (
-        typeof window.DataTransferItem !== "undefined" &&
-        typeof DataTransferItem.prototype.webkitGetAsEntry !== "undefined"
-      ) {
-        mutations.closeHovers();
-      } else {
-        document.getElementById("upload-input").click();
-      }
-    },
     openContext(event) {
       event.preventDefault();
       event.stopPropagation();
@@ -980,6 +905,33 @@ export default {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;
+    },
+    async handleDrop(event) {
+      event.preventDefault();
+      this.dragCounter = 0;
+
+      if (event.type === "drop") {
+        mutations.showHover({
+          name: "upload",
+          props: {
+            initialItems: event.dataTransfer.items,
+          },
+        });
+      } else {
+        // This is for the <input type="file"> fallback
+        const files = event.target.files;
+        if (!files || files.length === 0) {
+          return;
+        }
+
+        mutations.showHover({
+          name: "upload",
+          props: {
+            // we send it as an array-like object so that it can be processed like a FileList by the Upload component
+            initialItems: Array.from(files),
+          },
+        });
+      }
     },
   },
 };
@@ -1014,4 +966,10 @@ export default {
 #listingView {
   min-height: 90vh !important;
 }
+
+.folder-items a {
+  border-color: #d1d1d1;
+  border-style: solid;
+}
+
 </style>

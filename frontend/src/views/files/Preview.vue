@@ -55,7 +55,7 @@
 </template>
 <script>
 import { filesApi } from "@/api";
-import url from "@/utils/url.js";
+import { url } from "@/utils";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
@@ -183,11 +183,13 @@ export default {
         size: state.req.size,
         type: state.req.type,
         source: state.req.source,
-        url: state.req.url,
       });
     },
   },
   async mounted() {
+    if (state.req.items) {
+      this.listing = state.req.items;
+    }
     mutations.setDeletedItem(false);
     window.addEventListener("keydown", this.keyEvent);
     this.subtitlesList = await this.subtitles();
@@ -199,7 +201,6 @@ export default {
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
-      url: state.req.url,
     });
   },
   beforeUnmount() {
@@ -213,8 +214,8 @@ export default {
       let subs = [];
       for (const subtitleFile of state.req.subtitles) {
         const ext = getFileExtension(subtitleFile);
-        const subUrl = url.removeLastDir(state.req.url) + "/" + subtitleFile;
-        const resp = await filesApi.fetchFiles(subUrl, true); // Fetch .srt file
+        const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
+        const resp = await filesApi.fetchFiles(state.req.source, path, true); // Fetch .srt file
         let vttContent = resp.content;
         // Convert SRT to VTT (assuming srt2vtt() does this)
         vttContent = convertToVTT(ext, resp.content);
@@ -283,8 +284,8 @@ export default {
       }
 
       if (!this.listing) {
-        const path = url.removeLastDir(getters.routePath());
-        const res = await filesApi.fetchFiles(path);
+        const path = url.removeLastDir(state.req.path);
+        const res = await filesApi.fetchFiles(state.req.source, path);
         this.listing = res.items;
       }
       this.name = state.req.name;
@@ -293,9 +294,6 @@ export default {
       const path = state.req.path;
 
       let directoryPath = path.substring(0, path.lastIndexOf("/"));
-      if (directoryPath == "") {
-        directoryPath = "/";
-      }
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
           continue;
@@ -303,7 +301,7 @@ export default {
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
-          this.previousLink = composedListing.url;
+          this.previousLink = url.buildItemUrl(composedListing.source, composedListing.path);
           if (getTypeInfo(composedListing.type).simpleType == "image") {
             this.previousRaw = this.prefetchUrl(composedListing);
           }
@@ -312,7 +310,7 @@ export default {
         for (let j = i + 1; j < this.listing.length; j++) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
-          this.nextLink = composedListing.url;
+          this.nextLink = url.buildItemUrl(composedListing.source, composedListing.path);
           if (getTypeInfo(composedListing.type).simpleType == "image") {
             this.nextRaw = this.prefetchUrl(composedListing);
           }
@@ -353,7 +351,8 @@ export default {
       this.$router.push({ path: uri });
     },
     download() {
-      window.open(this.downloadUrl);
+      const items = [state.req];
+      downloadFiles(items);
     },
   },
 };

@@ -40,7 +40,13 @@
     "continue": "Folytatás",
     "edit": "Szerkesztés",
     "generateNewOtp": "Új kétfaktoros kód visszaállítása és generálása",
-    "verify": "Ellenőrizze a  címet."
+    "verify": "Ellenőrizze a  címet.",
+    "pause": "Szünet",
+    "resume": "Önéletrajz",
+    "retry": "Retry",
+    "pauseAll": "Szünet minden",
+    "resumeAll": "Folytassa az összes",
+    "clearCompleted": "Tiszta befejezve"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -91,6 +97,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -109,7 +116,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Fiók létrehozása",
@@ -164,7 +172,11 @@
     "filesSelected": "kiválasztott fájlok",
     "typeName": "Típus:",
     "selected": "kiválasztott",
-    "deleted": "Sikeresen törölve!"
+    "deleted": "Sikeresen törölve!",
+    "destinationSource": "Célforrás:",
+    "dragAndDrop": "Húzza ide a fájlokat",
+    "completed": "Befejezett",
+    "conflictsDetected": "Feltárt konfliktusok"
   },
   "search": {
     "images": "Képek",
@@ -362,7 +374,8 @@
     "toggleDark": "Sötét üzemmód átkapcsolása",
     "toggleSticky": "Ragadós mód átkapcsolása",
     "of": "a",
-    "used": "használt"
+    "used": "használt",
+    "noSources": "Ehhez a felhasználóhoz nem állnak rendelkezésre források. Vagy adjon hozzá egy forrást ehhez a felhasználóhoz, vagy konfiguráljon egy forrást a defaultEnabled: true beállítással."
   },
   "profileSettings": {
     "setDateFormat": "Pontos dátumformátum beállítása",
@@ -383,7 +396,9 @@
     "sidebarOptions": "Oldalsáv beállítások",
     "disableQuickToggles": "Gyorskapcsolók letiltása",
     "disableSearchOptions": "Keresési lehetőségek letiltása",
-    "hideSidebarFileActions": "Fájlműveletek elrejtése az oldalsávban"
+    "hideSidebarFileActions": "Fájlműveletek elrejtése az oldalsávban",
+    "editorViewerOptions": "Szerkesztési és megjelenítési lehetőségek",
+    "editorQuickSave": "Gyors mentés gomb megjelenítése a szerkesztőben"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",
@@ -395,5 +410,12 @@
     "verificationFailed": "Ellenőrzés sikertelen",
     "verificationSucceed": "Ellenőrzés Succeed",
     "generationFailed": "Nemzedék sikertelen"
+  },
+  "fileLoading": {
+    "title": "Feltöltések és letöltések",
+    "maxConcurrentUpload": "Maximális egyidejű feltöltés",
+    "maxConcurrentUploadHelp": "Az egyidejű feltöltések maximális száma. A magasabb értékek általában jobban teljesítenek, de ez sok tényezőtől függ.",
+    "uploadChunkSizeMb": "Feltöltési csomag mérete MB-ban",
+    "uploadChunkSizeMbHelp": "Általában 5 és 50 MB között, instabil vagy korlátozott kapcsolatok esetén a kisebb méret jobb. A 0 értékre állítás kikapcsolja a feltöltési darabolás funkciót."
   }
 }

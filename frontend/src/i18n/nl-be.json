@@ -40,7 +40,13 @@
     "submit": "Stuur  in",
     "openFile": "Bestand openen",
     "continue": "Ga verder",
-    "edit": "Bewerk"
+    "edit": "Bewerk",
+    "pause": "Pauze",
+    "resume": "CV",
+    "retry": "Opnieuw proberen",
+    "pauseAll": "Alles onderbreken",
+    "resumeAll": "Alles hervatten",
+    "clearCompleted": "Gereed"
   },
   "download": {
     "downloadFile": "Bestand downloaden",
@@ -89,27 +95,29 @@
   "languages": {
     "he": "עברית",
     "hu": "Magyar",
-    "ar": "Arabisch",
-    "de": "Duits",
-    "en": "Engels",
-    "es": "Spaans",
-    "fr": "Frans",
-    "is": "",
-    "it": "Italiaans",
-    "ja": "Japans",
-    "ko": "Koreaans",
-    "nlBE": "",
-    "pl": "Pools",
-    "pt": "Portugees",
-    "ptBR": "Portugees (Brazilië)",
-    "ro": "",
-    "ru": "Russisch",
+    "ar": "العربية",
+    "de": "Deutsch",
+    "el": "Ελληνικά",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "is": "Icelandic",
+    "it": "Italiano",
+    "ja": "日本語",
+    "ko": "한국어",
+    "nlBE": "Dutch (Belgium)",
+    "pl": "Polski",
+    "pt": "Português",
+    "ptBR": "Português (Brasil)",
+    "ro": "Romanian",
+    "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
-    "zhCN": "Chinees (vereenvoudigd)",
-    "zhTW": "Chinees (traditioneel)"
+    "zhCN": "中文 (简体)",
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Account aanmaken",
@@ -164,7 +172,11 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Optioneel wachtwoord",
     "typeName": "Type:",
-    "deleted": "Met succes verwijderd!"
+    "deleted": "Met succes verwijderd!",
+    "destinationSource": "Bestemming Bron:",
+    "dragAndDrop": "Sleep bestanden hier naartoe",
+    "completed": "Voltooid",
+    "conflictsDetected": "Gedetecteerde conflicten"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -358,7 +370,8 @@
     "toggleDark": "Donkere modus inschakelen",
     "toggleSticky": "Kleefmodus schakelen",
     "of": "van",
-    "used": "tweedehands"
+    "used": "tweedehands",
+    "noSources": "Geen bronnen beschikbaar voor deze gebruiker. Voeg een bron toe voor deze gebruiker of configureer een bron met defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Exact datumformaat instellen",
@@ -378,7 +391,9 @@
     "sidebarOptions": "Zijbalk opties",
     "disableQuickToggles": "Snel wisselen uitschakelen",
     "disableSearchOptions": "Zoekopties uitschakelen",
-    "hideSidebarFileActions": "Verberg bestandsacties in de zijbalk"
+    "hideSidebarFileActions": "Verberg bestandsacties in de zijbalk",
+    "editorViewerOptions": "Opties voor editor en viewer",
+    "editorQuickSave": "Snel opslaan knop tonen in editor"
   },
   "otp": {
     "name": "Authenticatie met twee factoren",
@@ -390,5 +405,12 @@
     "verificationFailed": "Verificatie mislukt",
     "verificationSucceed": "Verificatie slagen",
     "generationFailed": "Generatie mislukt"
+  },
+  "fileLoading": {
+    "title": "Uploaden en downloads",
+    "maxConcurrentUpload": "Max. gelijktijdige uploads",
+    "maxConcurrentUploadHelp": "Het maximum aantal gelijktijdige uploads. Hogere waarden presteren meestal beter, maar dit hangt van veel factoren af.",
+    "uploadChunkSizeMb": "Upload brokgrootte in MB",
+    "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit."
   }
 }

@@ -40,7 +40,13 @@
     "submit": "Enviar",
     "openFile": "Abrir ficheiro",
     "continue": "Continuar",
-    "edit": "Editar"
+    "edit": "Editar",
+    "pause": "Pausa",
+    "resume": "Currículo",
+    "retry": "Repetir",
+    "pauseAll": "Pausa tudo",
+    "resumeAll": "Retomar tudo",
+    "clearCompleted": "Limpar concluído"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -89,27 +95,29 @@
   "languages": {
     "he": "עברית",
     "hu": "Magyar",
-    "ar": "Árabe",
-    "de": "Alemão",
-    "en": "Inglês",
-    "es": "Espanhol",
-    "fr": "Francês",
-    "is": "",
+    "ar": "العربية",
+    "de": "Deutsch",
+    "el": "Ελληνικά",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "is": "Icelandic",
     "it": "Italiano",
-    "ja": "Japonês",
-    "ko": "Coreano",
-    "nlBE": "",
-    "pl": "Polaco",
+    "ja": "日本語",
+    "ko": "한국어",
+    "nlBE": "Dutch (Belgium)",
+    "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
-    "ru": "Russo",
+    "ro": "Romanian",
+    "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
-    "zhCN": "Chinês simplificado",
-    "zhTW": "Chinês tradicional"
+    "zhCN": "中文 (简体)",
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Criar uma conta",
@@ -164,7 +172,11 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Palavra-passe opcional",
     "typeName": "Tipo:",
-    "deleted": "Eliminado com êxito!"
+    "deleted": "Eliminado com êxito!",
+    "destinationSource": "Fonte de destino:",
+    "dragAndDrop": "Arrastar e largar ficheiros aqui",
+    "completed": "Concluído",
+    "conflictsDetected": "Conflitos detectados"
   },
   "search": {
     "images": "Imagens",
@@ -358,7 +370,8 @@
     "toggleDark": "Alternar o modo escuro",
     "toggleSticky": "Alternar o modo de aderência",
     "of": "de",
-    "used": "utilizado"
+    "used": "utilizado",
+    "noSources": "Não existem fontes disponíveis para este utilizador. Adicione uma fonte para este utilizador ou configure uma fonte com defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Definir o formato exato da data",
@@ -378,7 +391,9 @@
     "sidebarOptions": "Opções da barra lateral",
     "disableQuickToggles": "Desativar as alternâncias rápidas",
     "disableSearchOptions": "Desativar opções de pesquisa",
-    "hideSidebarFileActions": "Ocultar acções de ficheiros na barra lateral"
+    "hideSidebarFileActions": "Ocultar acções de ficheiros na barra lateral",
+    "editorViewerOptions": "Opções do editor e do visualizador",
+    "editorQuickSave": "Mostrar botão de gravação rápida no editor"
   },
   "otp": {
     "name": "Autenticação de dois factores",
@@ -390,5 +405,12 @@
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
     "generationFailed": "Geração falhada"
+  },
+  "fileLoading": {
+    "title": "Carregamentos e transferências",
+    "maxConcurrentUpload": "Máximo de carregamentos simultâneos",
+    "maxConcurrentUploadHelp": "O número máximo de carregamentos simultâneos. Os valores mais elevados têm normalmente um melhor desempenho, mas isto depende de muitos factores.",
+    "uploadChunkSizeMb": "Tamanho do bloco de carregamento em MB",
+    "uploadChunkSizeMbHelp": "Tipicamente, 5 a 50 MB, mas um valor mais pequeno é melhor para ligações instáveis ou restritas. Definir como 0 desactivará a fragmentação do carregamento."
   }
 }

@@ -24,7 +24,7 @@ const (
 )
 
 func Initialize(configFile string) {
-	err := loadConfigWithDefaults(configFile)
+	err := loadConfigWithDefaults(configFile, false)
 	if err != nil {
 		logger.Error("unable to load config, waiting 5 seconds before exiting...")
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
@@ -162,9 +162,9 @@ func setupAuth(generate bool) {
 		logger.Warning("Configured with no authentication, this is not recommended.")
 		Config.Auth.AuthMethods = []string{"disabled"}
 	}
-	if Config.Auth.Methods.OidcAuth.Enabled {
+	if Config.Auth.Methods.OidcAuth.Enabled || generate {
 		err := validateOidcAuth()
-		if err != nil {
+		if err != nil && !generate {
 			logger.Fatalf("Error validating OIDC auth: %v", err)
 		}
 		logger.Info("OIDC Auth configured successfully")
@@ -203,8 +203,8 @@ func setupLogging() {
 	}
 }
 
-func loadConfigWithDefaults(configFile string) error {
-	Config = setDefaults()
+func loadConfigWithDefaults(configFile string, generate bool) error {
+	Config = setDefaults(generate)
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
@@ -299,10 +299,11 @@ func loadEnvConfig() {
 
 }
 
-func setDefaults() Settings {
+func setDefaults(generate bool) Settings {
 	// get number of CPUs available
 	numCpus := 4 // default to 4 CPUs if runtime.NumCPU() fails or is not available
-	if cpus := runtime.NumCPU(); cpus > 0 {
+	cpus := runtime.NumCPU()
+	if cpus > 0 && !generate {
 		numCpus = cpus
 	}
 	database := os.Getenv("FILEBROWSER_DATABASE")
@@ -350,6 +351,10 @@ func setDefaults() Settings {
 				Share:  false,
 				Admin:  false,
 				Api:    false,
+			},
+			FileLoading: users.FileLoading{
+				MaxConcurrent: 10,
+				ChunkSize:     10, // 10MB
 			},
 		},
 	}

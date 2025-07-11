@@ -40,7 +40,13 @@
     "submit": "Skicka in",
     "openFile": "Öppna fil",
     "continue": "Fortsätt",
-    "edit": "Redigera"
+    "edit": "Redigera",
+    "pause": "Paus",
+    "resume": "Meritförteckning",
+    "retry": "Försök igen",
+    "pauseAll": "Pausa alla",
+    "resumeAll": "Återuppta alla",
+    "clearCompleted": "Klart avslutat"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -91,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Skapa ett konto",
@@ -164,7 +172,11 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Valfritt lösenord",
     "typeName": "Typ:",
-    "deleted": "Raderad framgångsrikt!"
+    "deleted": "Raderad framgångsrikt!",
+    "destinationSource": "Destination Källa:",
+    "dragAndDrop": "Dra och släpp filer här",
+    "completed": "Färdigställd",
+    "conflictsDetected": "Konflikter upptäckta"
   },
   "search": {
     "images": "Bilder",
@@ -358,7 +370,8 @@
     "toggleDark": "Växla till mörkt läge",
     "toggleSticky": "Växla klisterläge",
     "of": "av",
-    "used": "används"
+    "used": "används",
+    "noSources": "Inga källor tillgängliga för den här användaren. Lägg antingen till en källa för den här användaren eller konfigurera en källa med defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Ange exakt datumformat",
@@ -378,7 +391,9 @@
     "sidebarOptions": "Alternativ för sidofält",
     "disableQuickToggles": "Inaktivera snabba växlingar",
     "disableSearchOptions": "Inaktivera sökalternativ",
-    "hideSidebarFileActions": "Dölj filåtgärder i sidofältet"
+    "hideSidebarFileActions": "Dölj filåtgärder i sidofältet",
+    "editorViewerOptions": "Redigerings- och visningsalternativ",
+    "editorQuickSave": "Visa knappen för snabbsparande i redigeraren"
   },
   "otp": {
     "name": "Tvåfaktorsautentisering",
@@ -390,5 +405,12 @@
     "verificationFailed": "Verifiering misslyckades",
     "verificationSucceed": "Verifiering lyckas",
     "generationFailed": "Generation misslyckad"
+  },
+  "fileLoading": {
+    "title": "Uppladdningar och nedladdningar",
+    "maxConcurrentUpload": "Max samtidiga uppladdningar",
+    "maxConcurrentUploadHelp": "Det maximala antalet samtidiga uppladdningar. Högre värden ger normalt bättre prestanda, men detta beror på många faktorer.",
+    "uploadChunkSizeMb": "Ladda upp chunkstorlek i MB",
+    "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning."
   }
 }

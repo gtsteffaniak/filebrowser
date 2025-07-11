@@ -85,7 +85,7 @@ const actions = {
       context.commit("moveJob");
 
       if (item.file.type == "directory") {
-        await filesApi.post(item.path).catch(Vue.prototype.$showError);
+        await filesApi.post(item.source, item.path).catch(Vue.prototype.$showError);
       } else {
         let onUpload = throttle(
           (event) =>
@@ -98,7 +98,7 @@ const actions = {
         );
 
         await filesApi
-          .post(item.path, item.file, item.overwrite, onUpload)
+          .post(item.source, item.path, item.file, item.overwrite, onUpload)
           .catch(Vue.prototype.$showError);
       }
 

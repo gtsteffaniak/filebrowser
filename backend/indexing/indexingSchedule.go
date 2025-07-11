@@ -137,8 +137,12 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		logger.Debugf("Starting quick scan for [%v]", idx.Name)
 	} else {
 		logger.Debugf("Starting full scan for [%v]", idx.Name)
+		idx.mu.Lock()
 		idx.NumDirs = 0
 		idx.NumFiles = 0
+		idx.processedInodes = make(map[uint64]bool)
+		idx.FoundHardLinks = make(map[string]uint64)
+		idx.mu.Unlock()
 	}
 	startTime := time.Now()
 	idx.FilesChangedDuringIndexing = false
@@ -156,6 +160,9 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, idx.QuickScanTime)
 	} else {
 		idx.FullScanTime = int(time.Since(startTime).Seconds())
+		idx.mu.Lock()
+		idx.DiskUsed = idx.totalSize
+		idx.mu.Unlock()
 		// update smart indexing
 		if idx.FullScanTime < 3 || idx.NumDirs < 10000 {
 			idx.Assessment = "simple"

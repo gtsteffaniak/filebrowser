@@ -121,6 +121,7 @@ type ExternalLink struct {
 // UserDefaults is a type that holds the default values
 // for some fields on User.
 type UserDefaults struct {
+	EditorQuickSave            bool                `json:"editorQuickSave"`           // show quick save button in editor
 	HideSidebarFileActions     bool                `json:"hideSidebarFileActions"`    // hide the file actions in the sidebar
 	DisableQuickToggles        bool                `json:"disableQuickToggles"`       // disable the quick toggles in the sidebar
 	DisableSearchOptions       bool                `json:"disableSearchOptions"`      // disable the search options in the search bar
@@ -144,5 +145,5 @@ type UserDefaults struct {
 	LoginMethod                string              `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	DeleteWithoutConfirming    bool                `json:"deleteWithoutConfirming"`    // delete files without confirmation
-
+	FileLoading                users.FileLoading   `json:"fileLoading"`                // upload and download settings
 }

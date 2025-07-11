@@ -72,7 +72,7 @@ export default {
       try {
         const currentView = getters.currentView()
         if (state.isSearchActive || currentView == "preview") {
-          await filesApi.remove(state.selected[0].url);
+          await filesApi.remove(state.selected[0].source, state.selected[0].path);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
           mutations.closeHovers();
@@ -80,7 +80,7 @@ export default {
           return;
         }
         if (!this.isListing) {
-          await filesApi.remove(state.req.items[state.selected[0]].url);
+          await filesApi.remove(state.req.items.source, state.req.items[state.selected[0]].path);
           buttons.success("delete");
           notify.showSuccess("Deleted item successfully");
 
@@ -97,7 +97,7 @@ export default {
 
         let promises = [];
         for (let index of state.selected) {
-          promises.push(filesApi.remove(state.req.items[index].url));
+          promises.push(filesApi.remove(state.req.source, state.req.items[index].path));
         }
         mutations.resetSelected();
         await Promise.all(promises);

@@ -23,7 +23,8 @@ if (!DEEPL_API_KEY) {
 const translator = new deepl.Translator(DEEPL_API_KEY);
 
 const deeplLangMap = {
-  'zh-cn': 'ZH',
+  'zh-cn': 'ZH-HANS',
+  'zh-tw': 'ZH-HANT',
   'pt': 'PT-PT',      // or 'PT-BR' if you want Brazilian Portuguese
   'pt-br': 'PT-BR',
   'en': 'EN',
@@ -32,6 +33,8 @@ const deeplLangMap = {
   'sv-se': 'SV',
   'ua': 'UK',
   'nl-be': 'NL',
+  'is': 'IS',
+  'cz': 'CS',
   // Add more as needed
 };
 
@@ -77,9 +80,16 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
     if (Object.prototype.hasOwnProperty.call(masterObj, key)) {
       const currentPathPartsNext = [...currentPathParts, key];
       const currentKeyPath = currentPathPartsNext.join('.');
-      if (currentPathParts[0] === 'languages') continue;
 
       const masterValue = masterObj[key];
+
+      // Special handling for "languages" key - always copy the entire object from master
+      if (key === 'languages' && currentPathParts.length === 0) {
+        console.log(`Copying entire "languages" object from master to ${targetLangCode}.json`);
+        targetObj[key] = JSON.parse(JSON.stringify(masterValue)); // Deep copy
+        changesMade = true;
+        continue;
+      }
 
       if (typeof masterValue === 'object' && masterValue !== null && !Array.isArray(masterValue)) {
         if (!targetObj[key] || typeof targetObj[key] !== 'object') {

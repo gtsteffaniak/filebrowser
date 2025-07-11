@@ -80,7 +80,6 @@ export default {
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
-      url: state.req.url,
     });
     this.setHighlightTheme(state.user.darkMode);
     // Set initial content. The `watch` will trigger the first highlight.

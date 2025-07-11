@@ -40,7 +40,13 @@
     "continue": "Devam et",
     "edit": "Düzenle",
     "generateNewOtp": "Sıfırlama ve yeni iki faktörlü kod oluşturma",
-    "verify": "Doğrulama"
+    "verify": "Doğrulama",
+    "pause": "Duraklat",
+    "resume": "Özgeçmiş",
+    "retry": "Yeniden Dene",
+    "pauseAll": "Tümünü duraklat",
+    "resumeAll": "Tümünü devam ettir",
+    "clearCompleted": "Temizleme tamamlandı"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -91,6 +97,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -109,7 +116,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Bir hesap oluşturun",
@@ -164,7 +172,11 @@
     "uploadFiles": "Uploading {files} files...",
     "typeName": "Tip:",
     "selected": "seçilmiş",
-    "deleted": "Başarıyla silindi!"
+    "deleted": "Başarıyla silindi!",
+    "destinationSource": "Hedef Kaynak:",
+    "dragAndDrop": "Dosyaları buraya sürükleyip bırakın",
+    "completed": "Tamamlandı",
+    "conflictsDetected": "Tespit edilen çatışmalar"
   },
   "search": {
     "images": "Görseller",
@@ -362,7 +374,8 @@
     "toggleDark": "Karanlık Modu Aç / Kapat",
     "toggleSticky": "Yapışkan Modunu Değiştir",
     "of": ".",
-    "used": "kullanılmış"
+    "used": "kullanılmış",
+    "noSources": "Bu kullanıcı için kullanılabilir kaynak yok. Ya bu kullanıcı için bir kaynak ekleyin ya da defaultEnabled: true ile bir kaynak yapılandırın"
   },
   "profileSettings": {
     "setDateFormat": "Tam tarih biçimini ayarlama",
@@ -383,7 +396,9 @@
     "sidebarOptions": "Kenar çubuğu seçenekleri",
     "disableQuickToggles": "Hızlı geçişleri devre dışı bırakma",
     "disableSearchOptions": "Arama seçeneklerini devre dışı bırak",
-    "hideSidebarFileActions": "Kenar çubuğundaki dosya eylemlerini gizle"
+    "hideSidebarFileActions": "Kenar çubuğundaki dosya eylemlerini gizle",
+    "editorViewerOptions": "Editör ve görüntüleyici seçenekleri",
+    "editorQuickSave": "Düzenleyicide hızlı kaydet düğmesini göster"
   },
   "otp": {
     "name": "İki Faktörlü Kimlik Doğrulama",
@@ -395,5 +410,12 @@
     "verificationFailed": "Doğrulama Başarısız",
     "verificationSucceed": "Doğrulama Başarılı",
     "generationFailed": "Nesil Başarısız"
+  },
+  "fileLoading": {
+    "title": "Yüklemeler & İndirmeler",
+    "maxConcurrentUpload": "Maksimum eşzamanlı yükleme",
+    "maxConcurrentUploadHelp": "Eşzamanlı yüklemelerin maksimum sayısı. Daha yüksek değerler genellikle daha iyi performans gösterir, ancak bu birçok faktöre bağlıdır.",
+    "uploadChunkSizeMb": "MB cinsinden yığın boyutu yükleme",
+    "uploadChunkSizeMbHelp": "Tipik olarak 5 ila 50 MB, daha küçük kararsız veya kısıtlı bağlantılar için daha iyidir. 0 olarak ayarlandığında yükleme yığınlaması devre dışı bırakılır."
   }
 }

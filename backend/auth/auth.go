@@ -12,6 +12,10 @@ var (
 	revokeMu          sync.Mutex
 )
 
+func init() {
+	revokedApiKeyList = make(map[string]bool)
+}
+
 // Auther is the authentication interface.
 type Auther interface {
 	// Auth is called to authenticate a request.
@@ -27,6 +31,6 @@ func IsRevokedApiKey(key string) bool {
 
 func RevokeAPIKey(key string) {
 	revokeMu.Lock()
-	delete(revokedApiKeyList, key)
-	revokeMu.Unlock()
+	defer revokeMu.Unlock()
+	revokedApiKeyList[key] = true
 }

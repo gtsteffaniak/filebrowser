@@ -40,7 +40,13 @@
     "continue": "계속하기",
     "edit": "편집",
     "generateNewOtp": "새로운 2단계 인증 코드 재설정 및 생성",
-    "verify": "확인"
+    "verify": "확인",
+    "pause": "일시 중지",
+    "resume": "이력서",
+    "retry": "다시 시도",
+    "pauseAll": "모두 일시 중지",
+    "resumeAll": "모두 다시 시작",
+    "clearCompleted": "완료 지우기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -91,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "계정 생성",
@@ -164,7 +172,11 @@
     "optionalPassword": "선택적 비밀번호",
     "typeName": "유형:",
     "selected": "선택",
-    "deleted": "성공적으로 삭제되었습니다!"
+    "deleted": "성공적으로 삭제되었습니다!",
+    "destinationSource": "대상 소스:",
+    "dragAndDrop": "파일을 여기로 끌어다 놓기",
+    "completed": "완료",
+    "conflictsDetected": "충돌 감지"
   },
   "search": {
     "images": "이미지",
@@ -362,7 +374,8 @@
     "toggleDark": "다크 모드 전환",
     "toggleSticky": "고정 모드 토글",
     "of": "의",
-    "used": "사용됨"
+    "used": "사용됨",
+    "noSources": "이 사용자에 대해 사용할 수 있는 소스가 없습니다. 이 사용자에 대한 소스를 추가하거나 defaultEnabled: true로 소스를 구성하세요."
   },
   "profileSettings": {
     "setDateFormat": "정확한 날짜 형식 설정",
@@ -383,7 +396,9 @@
     "sidebarOptions": "사이드바 옵션",
     "disableQuickToggles": "빠른 토글 비활성화",
     "disableSearchOptions": "검색 옵션 비활성화",
-    "hideSidebarFileActions": "사이드바에서 파일 작업 숨기기"
+    "hideSidebarFileActions": "사이드바에서 파일 작업 숨기기",
+    "editorViewerOptions": "편집기 및 뷰어 옵션",
+    "editorQuickSave": "편집기에 빠른 저장 버튼 표시"
   },
   "otp": {
     "name": "2단계 인증",
@@ -395,5 +410,12 @@
     "verificationFailed": "인증 실패",
     "verificationSucceed": "인증 성공",
     "generationFailed": "세대 실패"
+  },
+  "fileLoading": {
+    "title": "업로드 및 다운로드",
+    "maxConcurrentUpload": "최대 동시 업로드 수",
+    "maxConcurrentUploadHelp": "최대 동시 업로드 수입니다. 일반적으로 값이 높을수록 성능이 향상되지만, 이는 여러 요인에 따라 달라집니다.",
+    "uploadChunkSizeMb": "업로드 청크 크기(MB)",
+    "uploadChunkSizeMbHelp": "일반적으로 5~50MB이며, 연결이 불안정하거나 제한적인 경우에는 이보다 작을수록 좋습니다. 0으로 설정하면 업로드 청킹이 비활성화됩니다."
   }
 }

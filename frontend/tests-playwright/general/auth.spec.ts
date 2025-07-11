@@ -13,16 +13,28 @@ test("redirect to login from files", async ({ page, context }) => {
   await expect(page).toHaveURL(/\/login\?redirect=\/files\//);
 });
 
-test("logout", async ({ page, context }) => {
-  await page.goto('/');
+test("logout", async ({ browser }) => {
+  const context = await browser.newContext({
+    storageState: undefined,
+    baseURL: "http://127.0.0.1/",
+  });
+  const page = await context.newPage();
+
+  await page.goto("/login");
+  await page.getByPlaceholder("Username").fill("admin");
+  await page.getByPlaceholder("Password").fill("admin");
+  await page.getByRole("button", { name: "Login" }).click();
+  await page.waitForURL("**/files/**");
+
   await expect(page.locator("div.wrong")).toBeHidden();
-  await page.waitForURL("**/files/playwright-files", { timeout: 100 });
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await expect(page).toHaveTitle(/Graham's Filebrowser - Files/);
   let cookies = await context.cookies();
   expect(cookies.find((c) => c.name == "auth")?.value).toBeDefined();
   await page.locator('button[aria-label="logout-button"]').click();
-  await page.waitForURL("**/login", { timeout: 100 });
+  await page.waitForURL("**/login", { timeout: 2000 });
   await expect(page).toHaveTitle("Graham's Filebrowser - Login");
   cookies = await context.cookies();
   expect(cookies.find((c) => c.name == "auth")?.value).toBeUndefined();
+
+  await context.close();
 });

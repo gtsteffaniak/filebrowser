@@ -40,7 +40,13 @@
     "continue": "Continua",
     "edit": "Modifica",
     "generateNewOtp": "Reimpostare e generare un nuovo codice a due fattori",
-    "verify": "Verifica"
+    "verify": "Verifica",
+    "pause": "Pausa",
+    "resume": "Il curriculum",
+    "retry": "Riprova",
+    "pauseAll": "Mettere in pausa tutti",
+    "resumeAll": "Riprendete tutti",
+    "clearCompleted": "Completato il lavoro di pulizia"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -91,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Crea un account",
@@ -164,7 +172,11 @@
     "optionalPassword": "Password opzionale",
     "typeName": "Tipo:",
     "selected": "selezionato",
-    "deleted": "Eliminato con successo!"
+    "deleted": "Eliminato con successo!",
+    "destinationSource": "Sorgente di destinazione:",
+    "dragAndDrop": "Trascinare e rilasciare i file qui",
+    "completed": "Completato",
+    "conflictsDetected": "Conflitti rilevati"
   },
   "search": {
     "images": "Immagini",
@@ -362,7 +374,8 @@
     "toggleDark": "Alterna la modalità scura",
     "toggleSticky": "Alterna la modalità appiccicosa",
     "of": "di",
-    "used": "usato"
+    "used": "usato",
+    "noSources": "Non ci sono fonti disponibili per questo utente. Aggiungere una fonte per questo utente o configurare una fonte con defaultEnabled: true."
   },
   "profileSettings": {
     "setDateFormat": "Impostare il formato esatto della data",
@@ -383,7 +396,9 @@
     "sidebarOptions": "Opzioni della barra laterale",
     "disableQuickToggles": "Disattivare i toggle rapidi",
     "disableSearchOptions": "Disattivare le opzioni di ricerca",
-    "hideSidebarFileActions": "Nascondere le azioni dei file nella barra laterale"
+    "hideSidebarFileActions": "Nascondere le azioni dei file nella barra laterale",
+    "editorViewerOptions": "Opzioni dell'editor e del visualizzatore",
+    "editorQuickSave": "Mostra il pulsante di salvataggio rapido nell'editor"
   },
   "otp": {
     "name": "Autenticazione a due fattori",
@@ -395,5 +410,12 @@
     "verificationFailed": "Verifica fallita",
     "verificationSucceed": "Verifica riuscita",
     "generationFailed": "Generazione fallita"
+  },
+  "fileLoading": {
+    "title": "Caricamenti e download",
+    "maxConcurrentUpload": "Carichi massimi contemporanei",
+    "maxConcurrentUploadHelp": "Il numero massimo di upload contemporanei. I valori più alti sono in genere più performanti, ma ciò dipende da molti fattori.",
+    "uploadChunkSizeMb": "Dimensione dei pezzi caricati in MB",
+    "uploadChunkSizeMbHelp": "In genere da 5 a 50 MB, ma per connessioni instabili o limitate è meglio che sia più piccolo. Impostando 0 si disattiva il chunking del caricamento."
   }
 }

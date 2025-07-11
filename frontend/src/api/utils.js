@@ -54,24 +54,16 @@ export async function fetchJSON(url, opts) {
   }
 }
 
-export function adjustedData(data, url) {
-  data.url = url;
+export function adjustedData(data) {
   if (data.type === "directory") {
-    if (!data.url.endsWith("/")) data.url += "/";
-
     // Combine folders and files into items
     data.items = [...(data.folders || []), ...(data.files || [])];
-
     data.items = data.items.map((item) => {
-      item.url = `${data.url}${encodeURIComponent(item.name)}`;
       item.source = data.source
       if (data.path == "/") {
         item.path = `/${item.name}`
       } else {
         item.path = `${data.path}/${item.name}`
-      }
-      if (item.type === "directory") {
-        item.url += "/";
       }
       return item;
     });

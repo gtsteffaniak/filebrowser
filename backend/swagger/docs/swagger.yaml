@@ -304,6 +304,9 @@ definitions:
       enabled:
         description: whether to enable OIDC authentication
         type: boolean
+      groupsClaim:
+        description: the JSON field name to read groups from. Default is "groups"
+        type: string
       issuerUrl:
         description: authorization URL of the OIDC provider
         type: string
@@ -542,6 +545,13 @@ definitions:
       disableUpdateNotifications:
         description: disable update notifications banner for admin users
         type: boolean
+      editorQuickSave:
+        description: show quick save button in editor
+        type: boolean
+      fileLoading:
+        allOf:
+        - $ref: '#/definitions/users.FileLoading'
+        description: upload and download settings
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
@@ -618,6 +628,13 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  users.FileLoading:
+    properties:
+      maxConcurrentUpload:
+        type: integer
+      uploadChunkSizeMb:
+        type: integer
     type: object
   users.LoginMethod:
     enum:
@@ -718,6 +735,13 @@ definitions:
       disableUpdateNotifications:
         description: disable update notifications
         type: boolean
+      editorQuickSave:
+        description: show quick save button in editor
+        type: boolean
+      fileLoading:
+        allOf:
+        - $ref: '#/definitions/users.FileLoading'
+        description: upload and download settings
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
@@ -788,6 +812,11 @@ paths:
   /api/auth/logout:
     post:
       description: Returns a logout URL for the frontend to redirect to.
+      parameters:
+      - description: JWT token
+        in: query
+        name: auth
+        type: string
       produces:
       - application/json
       responses:
@@ -1083,6 +1112,68 @@ paths:
       tags:
       - Auth
   /api/preview:
+    get:
+      consumes:
+      - application/json
+      description: Returns a preview image based on the requested path and size.
+      parameters:
+      - description: File path of the image to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Preview size ('small' or 'large'). Default is based on server
+          config.
+        in: query
+        name: size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Preview image content
+          schema:
+            type: file
+        "202":
+          description: Download permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: Unsupported file type for preview
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Preview generation not implemented
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image preview
+      tags:
+      - Resources
+  /api/public/preview:
     get:
       consumes:
       - application/json

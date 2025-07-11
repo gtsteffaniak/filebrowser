@@ -40,7 +40,13 @@
     "verify": "验证",
     "copyDownloadLinkToClipboard": "将下载链接复制到剪贴板",
     "continue": "继续",
-    "edit": "编辑"
+    "edit": "编辑",
+    "pause": "暂停",
+    "resume": "简历",
+    "retry": "重试",
+    "pauseAll": "全部暂停",
+    "resumeAll": "全部简历",
+    "clearCompleted": "清除完毕"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -91,6 +97,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -98,18 +105,19 @@
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Dutch（Belgium）",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
-    "ptBR": "Português（Brasil）",
+    "ptBR": "Português (Brasil)",
     "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "Swedish（Sweden）",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
-    "zhCN": "中文（简体）",
-    "zhTW": "中文（繁體）"
+    "zhCN": "中文 (简体)",
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "创建用户",
@@ -164,7 +172,11 @@
     "filesSelected": "所选文件",
     "uploadFiles": "Uploading {files} files...",
     "typeName": "类型",
-    "deleted": "已成功删除！"
+    "deleted": "已成功删除！",
+    "destinationSource": "目的地来源：",
+    "dragAndDrop": "在此处拖放文件",
+    "completed": "已完成",
+    "conflictsDetected": "检测到冲突"
   },
   "search": {
     "images": "图像",
@@ -359,7 +371,8 @@
     "toggleDark": "切换黑暗模式",
     "toggleSticky": "切换粘贴模式",
     "of": "的",
-    "used": "中古"
+    "used": "中古",
+    "noSources": "该用户没有可用的信息源。要么为该用户添加一个信息源，要么配置一个默认为 true 的信息源。"
   },
   "profileSettings": {
     "setDateFormat": "设置准确的日期格式",
@@ -379,7 +392,9 @@
     "sidebarOptions": "侧边栏选项",
     "disableQuickToggles": "禁用快速切换",
     "disableSearchOptions": "禁用搜索选项",
-    "hideSidebarFileActions": "隐藏侧边栏中的文件操作"
+    "hideSidebarFileActions": "隐藏侧边栏中的文件操作",
+    "editorViewerOptions": "编辑器和查看器选项",
+    "editorQuickSave": "在编辑器中显示快速保存按钮"
   },
   "otp": {
     "name": "双因素验证",
@@ -391,5 +406,12 @@
     "verificationFailed": "验证失败",
     "verificationSucceed": "验证成功",
     "generationFailed": "一代失败"
+  },
+  "fileLoading": {
+    "title": "上传和下载",
+    "maxConcurrentUpload": "最大并发上传",
+    "maxConcurrentUploadHelp": "最大并发上传次数。数值越大，性能通常越好，但这取决于很多因素。",
+    "uploadChunkSizeMb": "上传块大小（以 MB 为单位",
+    "uploadChunkSizeMbHelp": "通常为 5 至 50 MB，对于不稳定或受限制的连接，越小越好。设置为 0 将禁用上传分块。"
   }
 }

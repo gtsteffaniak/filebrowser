@@ -40,6 +40,7 @@
 import { filesApi } from "@/api";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import { notify } from "@/notify";
+import { goToItem } from "@/utils/url";
 
 export default {
   name: "new-dir",
@@ -74,12 +75,8 @@ export default {
       try {
         event.preventDefault();
         if (this.name === "") return;
-
-        // Build the path of the new directory.
-        let uri = decodeURIComponent(state.req.url);
-        uri += this.name + "/"; // Ensure the path ends with a slash
-        await filesApi.post(uri);
-        this.$router.push({ path: state.route.path + encodeURIComponent(this.name) });
+        await filesApi.post(state.req.source, state.req.path + "/" + this.name + "/");
+        goToItem(state.req.source, state.req.path + "/" + this.name);
       } catch (error) {
         notify.showError(error);
       }

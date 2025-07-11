@@ -522,17 +522,12 @@ export default {
       if (this.getContext === "/") {
         path = s.path;
       }
-      let urlPath = "/files/" + state.sources.current + path;
-      if (!state.serverHasMultipleSources) {
-        urlPath = "/files" + path;
-      }
       const modifiedItem = {
         name: pathParts.pop(),
         path: path,
         size: s.size,
         type: s.type,
-        source: this.selectedSource,
-        url: urlPath,
+        source: this.selectedSource || state.sources.current,
         fullPath: path,
       };
       mutations.resetSelected();

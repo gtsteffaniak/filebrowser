@@ -165,26 +165,14 @@
                 <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
               </svg>
               <span>{{ name }}</span>
-              <i class="no-select material-symbols-outlined source-info-icon"
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
                 @mouseenter="updateSourceTooltip($event, info)"
                 @mouseleave="resetSourceTooltip">
                 info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </i>
             </div>
             <div v-if="hasSourceInfo" class="usage-info">
-              <ProgressBar
-                :val="info.usedPercentage"
-                text-position="inside"
-                :text="info.usedPercentage + '%'"
-                size="large"
-                text-fg-color="white"
-              ></ProgressBar>
-              <div class="usage-info">
-                <span>
-                  {{ getHumanReadableFilesize(info.used) }} {{ $t("index.of") }}
-                  {{ getHumanReadableFilesize(info.total) }} {{ $t("index.used") }}
-                </span>
-              </div>
+              <ProgressBar :val="info.used" :max="info.total" unit="bytes"></ProgressBar>
             </div>
           </button>
         </transition-group>
@@ -305,6 +293,10 @@ export default {
       mutations.toggleDarkMode();
     },
     toggleSticky() {
+      // keep sidebar open if disabling sticky sidebar
+      if (!state.showSidebar && state.user.stickySidebar) {
+        mutations.toggleSidebar();
+      }
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     navigateTo(path) {
@@ -653,9 +645,5 @@ button.action {
   opacity: 0;
 }
 
-.source-info-icon {
-  font-size: 1em !important;
-  padding: 0.1em !important;
-  padding-left: 0.5em !important;
-}
+
 </style>

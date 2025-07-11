@@ -116,7 +116,9 @@
               v-bind:index="item.index"
               v-bind:name="item.name"
               v-bind:isDir="item.type == 'directory'"
-              v-bind:url="item.url"
+              v-bind:path="item.path"
+              v-bind:source="req.source"
+              v-bind:hash="hash"
               v-bind:modified="item.modified"
               v-bind:type="item.type"
               v-bind:size="item.size"
@@ -303,35 +305,7 @@ export default {
       mutations.setMultiple(!state.multiple);
     },
     download() {
-      if (getters.isSingleFileSelected()) {
-        const share = {
-          path: this.subPath,
-          hash: this.hash,
-          token: this.token,
-          format: null,
-        };
-        publicApi.download(share, getters.selectedDownloadUrl());
-        return;
-      }
-      mutations.showHover({
-        name: "download",
-        confirm: (format) => {
-          mutations.closeHovers();
-
-          let files = [];
-
-          for (let i of this.selected) {
-            files.push(state.req.items[i].path);
-          }
-          const share = {
-            path: this.subPath,
-            hash: this.hash,
-            token: this.token,
-            format: format,
-          };
-          publicApi.download(share, files);
-        },
-      });
+      downloadFiles(state.selected);
     },
   },
 };

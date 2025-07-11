@@ -61,6 +61,7 @@ type OidcConfig struct {
 	LogoutRedirectUrl string                `json:"logoutRedirectUrl"` // if provider logout url is provided, filebrowser will also redirect to logout url. Custom logout query params are respected.
 	CreateUser        bool                  `json:"createUser"`        // create user if not exists
 	AdminGroup        string                `json:"adminGroup"`        // if set, users in this group will be granted admin privileges.
+	GroupsClaim       string                `json:"groupsClaim"`       // the JSON field name to read groups from. Default is "groups"
 	Provider          *oidc.Provider        `json:"-"`                 // OIDC provider
 	Verifier          *oidc.IDTokenVerifier `json:"-"`                 // OIDC verifier
 }
@@ -68,11 +69,18 @@ type OidcConfig struct {
 // ValidateOidcAuth processes the OIDC callback and retrieves user identity
 func validateOidcAuth() error {
 	oidcCfg := &Config.Auth.Methods.OidcAuth // Use a pointer to modify the original config
-	if !oidcCfg.Enabled {
-		return errors.New("OIDC is not enabled")
+	if oidcCfg.GroupsClaim == "" {
+		oidcCfg.GroupsClaim = "groups"
 	}
 	if oidcCfg.UserIdentifier == "" {
 		oidcCfg.UserIdentifier = "preferred_username"
+	}
+	if oidcCfg.Scopes == "" {
+		oidcCfg.Scopes = "openid email profile"
+	}
+
+	if !oidcCfg.Enabled {
+		return errors.New("OIDC is not enabled")
 	}
 
 	ctx := context.Background()
@@ -99,9 +107,6 @@ func validateOidcAuth() error {
 	}
 	oidcCfg.Provider = provider
 	oidcCfg.Verifier = provider.Verifier(&oidc.Config{ClientID: oidcCfg.ClientID})
-	if oidcCfg.Scopes == "" {
-		oidcCfg.Scopes = "openid email profile"
-	}
 
 	return nil
 }

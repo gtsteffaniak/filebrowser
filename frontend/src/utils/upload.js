@@ -1,173 +1,383 @@
-import { state, mutations } from '@/store'
-import { filesApi } from '@/api'
-import { notify } from '@/notify'
-import { serverHasMultipleSources } from './constants'
+import { reactive } from "vue";
+import { filesApi } from "@/api";
+import { state } from "@/store";
 
-export function checkConflict (files, items) {
-  if (typeof items === 'undefined' || items === null) {
-    items = []
+class UploadManager {
+  constructor() {
+    this.queue = reactive([]);
+    this.activeUploads = 0;
+    this.nextId = 0;
+    this.overwriteAll = null; // null: ask, true: overwrite, false: skip
+    this.isPausedForConflict = false;
+    this.isOverallPaused = false;
+    this.onConflict = () => {}; // Callback for UI
   }
 
-  let folder_upload = files[0].path !== undefined
+  setOnConflict(handler) {
+    this.onConflict = handler;
+  }
 
-  let conflict = false
-  for (let i = 0; i < files.length; i++) {
-    let file = files[i]
-    let name = file.name
+  async add(basePath, items, overwrite = false) {
 
-    if (folder_upload) {
-      let dirs = file.path.split('/')
-      if (dirs.length > 1) {
-        name = dirs[0]
+    if (basePath.slice(-1) !== "/") {
+      basePath += "/";
+    }
+    const dirs = new Set();
+    for (const item of items) {
+      if (item.relativePath) {
+        const pathParts = item.relativePath.split("/");
+        pathParts.pop(); // Grab the directory path by removing the filename.
+
+        let currentPath = "";
+        for (const part of pathParts) {
+          currentPath += part + "/";
+          dirs.add(currentPath);
+        }
       }
     }
 
-    let res = items.findIndex(function hasConflict (element) {
-      return element.name === this
-    }, name)
+    const newUploads = [];
 
-    if (res >= 0) {
-      conflict = true
-      break
+    if (dirs.size > 0) {
+      // Sort paths to ensure parent directories are created before children.
+      const sortedDirs = [...dirs].sort();
+
+      for (const dir of sortedDirs) {
+        const pathParts = dir.slice(0, -1).split("/");
+        const dirName = pathParts[pathParts.length - 1];
+
+        const upload = {
+          id: this.nextId++,
+          name: dirName,
+          size: 0,
+          progress: 0,
+          status: "pending",
+          type: "directory",
+          path: `${basePath}${dir}`,
+          source: state.req.source,
+          overwrite: overwrite,
+        };
+
+        newUploads.push(upload);
+      }
+    }
+
+    const fileUploads = Array.from(items).map((item) => {
+      const id = this.nextId++;
+      const file = item.file;
+      const relativePath = item.relativePath || file.name;
+      let destinationPath = `${basePath}${relativePath}`;
+      const upload = {
+        id,
+        file,
+        name: file.name,
+        size: file.size,
+        progress: 0,
+        chunkOffset: 0,
+        status: "pending", // pending, uploading, paused, completed, error
+        xhr: null,
+        path: destinationPath, // Full destination path
+        source: state.req.source,
+        overwrite: overwrite,
+      };
+      return upload;
+    });
+
+    this.queue.push(...newUploads, ...fileUploads);
+
+    this.processQueue();
+    return newUploads;
+  }
+
+  async processQueue() {
+    if (this.isPausedForConflict) {
+      return;
+    }
+
+    if (this.isOverallPaused) {
+      return;
+    }
+
+    while (
+      this.activeUploads < state.user.fileLoading.maxConcurrentUpload &&
+      this.hasPending()
+    ) {
+      const upload = this.queue.find((item) => item.status === "pending");
+      if (upload) {
+        if (this.overwriteAll) {
+          upload.overwrite = true;
+        }
+        this.start(upload.id);
+      }
     }
   }
 
-  return conflict
-}
+  start(id) {
+    const upload = this.findById(id);
+    if (!upload || upload.status !== "pending") {
+      console.log(
+        `upload.js: Cannot start upload for id ${id}. Status is not 'pending' or upload not found.`,
+        upload
+      );
+      return;
+    }
 
-export function scanFiles (dt) {
-  return new Promise(resolve => {
-    let reading = 0
-    const contents = []
+    if (upload.type === "directory") {
+      this.startDirectoryUpload(upload);
+    } else {
+      this.startFileUpload(upload);
+    }
+  }
 
-    if (dt.items !== undefined) {
-      for (let item of dt.items) {
-        if (
-          item.kind === 'file' &&
-          typeof item.webkitGetAsEntry === 'function'
-        ) {
-          const entry = item.webkitGetAsEntry()
-          readEntry(entry)
+  async startDirectoryUpload(upload) {
+    this.activeUploads++;
+    upload.status = "uploading";
+
+    try {
+      const { promise } = filesApi.post(
+        upload.source,
+        upload.path,
+        new Blob([]),
+        upload.overwrite
+      );
+      await promise;
+
+      upload.status = "completed";
+      upload.progress = 100;
+    } catch (err) {
+      await this.handleUploadError(upload, err);
+    } finally {
+      this.activeUploads--;
+      this.processQueue();
+    }
+  }
+
+  async startFileUpload(upload) {
+    this.activeUploads++;
+    upload.status = "uploading";
+
+    const chunkSize = state.user.fileLoading.uploadChunkSizeMb * 1024 * 1024;
+    if (chunkSize === 0) {
+      const progress = (percent) => {
+        upload.progress = percent;
+      };
+
+      try {
+        const { xhr, promise } = filesApi.post(
+          upload.source,
+          upload.path,
+          upload.file,
+          upload.overwrite,
+          progress,
+          {
+            "X-File-Total-Size": upload.size,
+          }
+        );
+
+        upload.xhr = xhr;
+        await promise;
+
+        upload.status = "completed";
+        upload.progress = 100;
+      } catch (err) {
+        await this.handleUploadError(upload, err);
+      } finally {
+        this.activeUploads--;
+        upload.xhr = null;
+        this.processQueue();
+      }
+      return;
+    }
+
+    while (upload.chunkOffset < upload.size && upload.status === "uploading") {
+      const chunk = upload.file.slice(
+        upload.chunkOffset,
+        upload.chunkOffset + chunkSize
+      );
+
+      const chunkProgress = (percent) => {
+        const chunkLoaded = (percent / 100) * chunk.size;
+        const totalLoaded = upload.chunkOffset + chunkLoaded;
+        const progress = (totalLoaded / upload.size) * 100;
+        upload.progress = Math.round(progress * 10) / 10;
+      };
+
+      try {
+        const { xhr, promise } = filesApi.post(
+          upload.source,
+          upload.path,
+          chunk,
+          upload.overwrite,
+          chunkProgress,
+          {
+            "X-File-Chunk-Offset": upload.chunkOffset,
+            "X-File-Total-Size": upload.size,
+          }
+        );
+
+        upload.xhr = xhr;
+        await promise;
+
+        upload.chunkOffset += chunk.size;
+      } catch (err) {
+        await this.handleUploadError(upload, err);
+        break; // Exit loop on error or pause
+      }
+    }
+
+    if (upload.status === "uploading") {
+      // If the loop finished without being paused/errored
+      upload.status = "completed";
+      upload.progress = 100;
+    }
+
+    this.activeUploads--;
+    upload.xhr = null;
+    this.processQueue();
+  }
+
+  pauseAll() {
+    this.isOverallPaused = true;
+    this.queue.forEach((upload) => {
+      if (upload.status === "uploading") {
+        this.pause(upload.id);
+      }
+    });
+  }
+
+  resumeAll() {
+    this.isOverallPaused = false;
+    this.queue.forEach((upload) => {
+      if (upload.status === "paused") {
+        this.resume(upload.id);
+      }
+    });
+  }
+
+  pause(id) {
+    const upload = this.findById(id);
+    if (upload && upload.status === "uploading" && upload.xhr) {
+      upload.xhr.abort();
+      upload.status = "paused";
+    }
+  }
+
+  resume(id) {
+    const upload = this.findById(id);
+    if (upload && upload.status === "paused") {
+      this.isOverallPaused = false;
+      upload.status = "pending";
+      const progress =
+        upload.size > 0 ? (upload.chunkOffset / upload.size) * 100 : 0;
+      upload.progress = Math.round(progress * 10) / 10;
+      this.processQueue();
+    }
+  }
+
+  cancel(id) {
+    this.pause(id); // Abort if in progress
+    const index = this.queue.findIndex((item) => item.id === id);
+    if (index !== -1) {
+      this.queue.splice(index, 1);
+    }
+  }
+
+  retry(id, overwrite = false) {
+    const upload = this.findById(id);
+    if (upload && ["error", "conflict"].includes(upload.status)) {
+      upload.overwrite = overwrite;
+      upload.status = "pending";
+      if (upload.type !== 'directory') {
+          upload.chunkOffset = 0; // Reset chunk offset for retries
+      }
+      upload.progress = 0;
+      this.processQueue();
+    }
+  }
+
+  clearCompleted() {
+    for (let i = this.queue.length - 1; i >= 0; i--) {
+      if (this.queue[i].status === "completed") {
+        this.queue.splice(i, 1);
+      }
+    }
+  }
+
+  findById(id) {
+    return this.queue.find((item) => item.id === id);
+  }
+
+  hasPending() {
+    return this.queue.some((item) => item.status === "pending");
+  }
+
+  async handleUploadError(upload, err) {
+    // Check if the error is a 409 Conflict
+    if (err?.response?.status === 409) {
+      upload.status = "conflict";
+    } else if (err.message !== "Upload aborted") {
+      upload.status = "error";
+    } else {
+      console.log(`upload.js: Upload aborted for id ${upload.id}`, upload);
+    }
+  }
+
+  resolveConflict(overwrite) {
+    this.overwriteAll = overwrite;
+    this.isPausedForConflict = false;
+
+    if (overwrite) {
+      // Find all items that hit a conflict and requeue them.
+      for (const item of this.queue) {
+        if (item.status === "conflict") {
+          item.status = "pending";
+          item.overwrite = true;
+          if (item.type !== 'directory') {
+            item.chunkOffset = 0; // Reset progress for resume
+          }
         }
       }
     } else {
-      resolve(dt.files)
-    }
-
-    function readEntry (entry, directory = '') {
-      if (entry.isFile) {
-        reading++
-        entry.file(file => {
-          reading--
-
-          file.fullPath = directory + file.name
-          contents.push(file)
-
-          if (reading === 0) {
-            resolve(contents)
-          }
-        })
-      } else if (entry.isDirectory) {
-        const dir = {
-          isDir: true,
-          size: 0,
-          fullPath: directory + entry.name + '/',
-          name: entry.name
-        }
-        contents.push(dir)
-
-        readReaderContent(entry.createReader(), directory + entry.name + '/')
+      // Cancel all uploads in the queue.
+      for (let i = this.queue.length - 1; i >= 0; i--) {
+        this.cancel(this.queue[i].id)
       }
     }
 
-    function readReaderContent (reader, directory) {
-      reading++
-
-      reader.readEntries(function (entries) {
-        reading--
-        if (entries.length > 0) {
-          for (const entry of entries) {
-            readEntry(entry, `${directory}/`)
-          }
-
-          readReaderContent(reader, `${directory}/`)
-        }
-
-        if (reading === 0) {
-          resolve(contents)
-        }
-      })
-    }
-  })
+    this.processQueue();
+  }
 }
 
-export async function handleFiles(files, base, overwrite = false) {
-  console.log('handleFiles called with base:', base, 'and overwrite:', overwrite)
-  console.log('Files to upload:', files)
-  let blockUpdates = false
-  let c = 0
-  const count = files.length
+export const uploadManager = new UploadManager();
 
-  for (const file of files) {
-    c += 1
-    const id = state.upload.id
-
-    // Inside handleFiles
-    let basePath = base
-    let relativePath = file.fullPath || file.webkitRelativePath || file.name
-
-    // Do not allow paths to go backwards
-    if (relativePath.includes('../')) {
-        console.error('Path traversal detected, upload blocked for file:', relativePath);
-        return; // or throw an error
-    }
-
-    if (basePath.endsWith('/')) basePath = basePath.slice(0, -1)
-    if (relativePath.startsWith('/')) relativePath = relativePath.slice(1)
-
-    const path = basePath + '/' + relativePath
-
-    // If it's a directory entry (from scanFiles)
-    const isDirectory = file.type === 'directory' || file.isDir
-
-    const item = {
-      id,
-      path: isDirectory ? path + '/' : path,
-      file: isDirectory ? new Blob([]) : file.file || file, // support both wrapped and raw files
-      overwrite
-    }
-
-    let last = 0
-    notify.showPopup(
-      'success',
-      `(${c} of ${count}) Uploading ${relativePath}`,
-      false
-    )
-    if (serverHasMultipleSources) {
-      item.path = `/files/${file.source}${item.path}`
-    }
-    console.log(`(${c} of ${count}) Uploading ${relativePath} to ${item.path}`)
-    await filesApi
-      .post(item.path, item.file, item.overwrite, percentComplete => {
-        if (blockUpdates) return
-        blockUpdates = true
-        notify.startLoading(last, percentComplete)
-        last = percentComplete
-        setTimeout(() => {
-          blockUpdates = false
-        }, 250)
-      })
-      .then(response => {
-        const spinner = document.querySelector('.notification-spinner')
-        if (spinner) spinner.classList.add('hidden')
-        console.log('Upload successful!', response)
-      })
-      .catch(error => {
-        const spinner = document.querySelector('.notification-spinner')
-        if (spinner) spinner.classList.add('hidden')
-        notify.showError('Error uploading file: ' + error)
-        throw error
-      })
+export function checkConflict(files, items) {
+  if (typeof items === 'undefined' || items === null) {
+    items = [];
   }
-  mutations.setReload(true);
+
+  let folder_upload = files[0].path !== undefined;
+
+  let conflict = false;
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    let name = file.name;
+
+    if (folder_upload) {
+      let dirs = file.path.split('/');
+      if (dirs.length > 1) {
+        name = dirs[0];
+      }
+    }
+
+    let res = items.findIndex(function hasConflict(element) {
+      return element.name === this;
+    }, name);
+
+    if (res >= 0) {
+      conflict = true;
+      break;
+    }
+  }
+
+  return conflict;
 }

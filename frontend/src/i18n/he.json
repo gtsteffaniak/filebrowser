@@ -40,7 +40,13 @@
     "verify": "אמת",
     "copyDownloadLinkToClipboard": "העתק את קישור ההורדה ללוח",
     "continue": "המשך",
-    "edit": "ערוך"
+    "edit": "ערוך",
+    "pause": "השהה",
+    "resume": "קורות חיים",
+    "retry": "נסה שוב",
+    "pauseAll": "השהה הכל",
+    "resumeAll": "המשך הכל",
+    "clearCompleted": "השלם"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -91,6 +97,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -109,7 +116,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "צור חשבון",
@@ -164,7 +172,11 @@
     "selected": "נבחר",
     "filesSelected": "קבצים שנבחרו",
     "typeName": "סוג:",
-    "deleted": "נמחק בהצלחה!"
+    "deleted": "נמחק בהצלחה!",
+    "destinationSource": "מקור היעד:",
+    "dragAndDrop": "גרור ושחרר קבצים לכאן",
+    "completed": "הושלם",
+    "conflictsDetected": "סכסוכים שזוהו"
   },
   "search": {
     "images": "תמונות",
@@ -359,7 +371,8 @@
     "toggleDark": "הפעל מצב כהה",
     "toggleSticky": "הפעל/כבה מצב דביק",
     "of": "של",
-    "used": "משומש"
+    "used": "משומש",
+    "noSources": "אין מקורות זמינים עבור משתמש זה. הוסף מקור עבור משתמש זה או הגדר מקור עם defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "הגדר פורמט תאריך מדויק",
@@ -379,7 +392,9 @@
     "sidebarOptions": "אפשרויות סרגל צד",
     "disableQuickToggles": "השבת מתגים מהירים",
     "disableSearchOptions": "השבת אפשרויות חיפוש",
-    "hideSidebarFileActions": "הסתר פעולות קובץ בסרגל הצד"
+    "hideSidebarFileActions": "הסתר פעולות קובץ בסרגל הצד",
+    "editorViewerOptions": "אפשרויות עורך וצופה",
+    "editorQuickSave": "הצג כפתור שמירה מהירה בעורך"
   },
   "otp": {
     "name": "אימות דו-גורמי",
@@ -391,5 +406,12 @@
     "verificationFailed": "האימות נכשל",
     "verificationSucceed": "האימות הצליח",
     "generationFailed": "דור שנכשל"
+  },
+  "fileLoading": {
+    "title": "העלאות והורדות",
+    "maxConcurrentUpload": "העלאות מקסימליות בו-זמנית",
+    "maxConcurrentUploadHelp": "המספר המרבי של העלאות בו-זמנית. ערכים גבוהים יותר בדרך כלל מספקים ביצועים טובים יותר, אך הדבר תלוי בגורמים רבים.",
+    "uploadChunkSizeMb": "גודל הקובץ להעלאה במגה-בייט",
+    "uploadChunkSizeMbHelp": "בדרך כלל 5 עד 50 MB, קטן יותר עדיף עבור חיבורים לא יציבים או מוגבלים. הגדרה ל-0 תשבית את חלוקת הקבצים להעלאה."
   }
 }

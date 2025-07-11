@@ -6,6 +6,7 @@ import { filesApi } from '@/api'
 let eventSrc = null
 let reconnectTimeout = null
 let isManuallyClosed = false
+let authenticationFailed = false
 
 async function updateSourceInfo () {
   try {
@@ -25,6 +26,12 @@ function cleanup () {
 }
 
 function scheduleReconnect () {
+  // Don't reconnect if authentication has failed
+  if (authenticationFailed) {
+    console.log('🚫 Not reconnecting due to authentication failure')
+    return
+  }
+
   reconnectTimeout = setTimeout(() => {
     console.log('🔁 Attempting SSE reconnect...')
     setupSSE()
@@ -38,7 +45,46 @@ function clearReconnect () {
   }
 }
 
-function setupSSE () {
+// Test the events endpoint to check for authentication before setting up EventSource
+async function testEventsEndpoint() {
+  const url = `${baseURL}api/events?sessionId=${state.sessionId}`
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/event-stream',
+        'Cache-Control': 'no-cache'
+      }
+    })
+    
+    if (response.status === 401) {
+      console.log('🚫 Events endpoint returned 401, authentication failed')
+      authenticationFailed = true
+      return false
+    }
+    
+    // Close the test connection immediately
+    response.body?.cancel()
+    return true
+  } catch (error) {
+    // For network errors (like ERR_CONNECTION_REFUSED), we'll try the EventSource anyway
+    // Only actual 401 responses should stop reconnection
+    return true
+  }
+}
+
+async function setupSSE () {
+  // Only test authentication if we haven't already failed
+  if (!authenticationFailed) {
+    const isAuthenticated = await testEventsEndpoint()
+    if (!isAuthenticated) {
+      console.log('🚫 Authentication failed, not setting up EventSource')
+      authenticationFailed = true
+      notify.showError('Authentication failed. Please refresh the page to log in again.')
+      return
+    }
+  }
+
   const url = `${baseURL}api/events?sessionId=${state.sessionId}`
   eventSrc = new EventSource(url)
   isManuallyClosed = false
@@ -53,6 +99,8 @@ function setupSSE () {
     clearReconnect()
     mutations.setRealtimeActive(true)
     updateSourceInfo()
+    // Reset authentication failure flag on successful connection
+    authenticationFailed = false
   }
 
   eventSrc.onmessage = event => {
@@ -69,6 +117,14 @@ function setupSSE () {
     cleanup()
     mutations.setRealtimeActive(false)
     mutations.updateSourceInfo('error')
+
+    // Don't reconnect if authentication has failed
+    if (authenticationFailed) {
+      console.log('🚫 Not reconnecting due to authentication failure')
+      return
+    }
+
+    // Original notification logic - only show error after multiple failures
     if (state.realtimeDownCount == 2 && !isManuallyClosed) {
       notify.showError('The connection to server was lost. Trying to reconnect...')
     }
@@ -77,6 +133,8 @@ function setupSSE () {
 }
 
 export function startSSE () {
+  // Reset authentication failure flag when starting SSE
+  authenticationFailed = false
   setupSSE()
 }
 
