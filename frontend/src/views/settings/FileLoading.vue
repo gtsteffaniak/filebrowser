@@ -57,13 +57,10 @@
 import { notify } from "@/notify";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
-import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "fileLoading",
-  components: {
-    ToggleSwitch,
-  },
+
   data() {
     return {
       localuser: { fileLoading: {} },
