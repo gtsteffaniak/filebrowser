@@ -410,5 +410,12 @@
     "verificationFailed": "Overenie sa nepodarilo",
     "verificationSucceed": "Overovanie Úspech",
     "generationFailed": "Generácia zlyhala"
+  },
+  "fileLoading": {
+    "title": "Nahrávanie a sťahovanie",
+    "maxConcurrentUpload": "Maximálne súbežné nahrávanie",
+    "maxConcurrentUploadHelp": "Maximálny počet súbežných odosielaní. Vyššie hodnoty sú zvyčajne výkonnejšie, ale závisí to od mnohých faktorov.",
+    "uploadChunkSizeMb": "Veľkosť nahraného úseku v MB",
+    "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní."
   }
 }

@@ -410,5 +410,12 @@
     "verificationFailed": "Weryfikacja nie powiodła się",
     "verificationSucceed": "Sukces weryfikacji",
     "generationFailed": "Generacja nieudana"
+  },
+  "fileLoading": {
+    "title": "Przesyłanie i pobieranie",
+    "maxConcurrentUpload": "Maksymalne jednoczesne przesyłanie",
+    "maxConcurrentUploadHelp": "Maksymalna liczba jednocześnie przesyłanych plików. Wyższe wartości zazwyczaj działają lepiej, ale zależy to od wielu czynników.",
+    "uploadChunkSizeMb": "Rozmiar przesyłanego fragmentu w MB",
+    "uploadChunkSizeMbHelp": "Zazwyczaj od 5 do 50 MB, mniejsze są lepsze dla niestabilnych lub ograniczonych połączeń. Ustawienie wartości 0 spowoduje wyłączenie podziału na fragmenty."
   }
 }
