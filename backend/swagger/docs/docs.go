@@ -1886,12 +1886,6 @@ const docTemplate = `{
                 "assessment": {
                     "type": "string"
                 },
-                "foundHardLinks": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
-                },
                 "fullScanDurationSeconds": {
                     "type": "integer"
                 },

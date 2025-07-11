@@ -23,19 +23,18 @@ var RealPathCache = cache.NewCache(48*time.Hour, 72*time.Hour)
 
 // reduced index is json exposed to the client
 type ReducedIndex struct {
-	IdxName         string            `json:"name"`
-	DiskUsed        uint64            `json:"used"`
-	DiskTotal       uint64            `json:"total"`
-	Status          IndexStatus       `json:"status"`
-	NumDirs         uint64            `json:"numDirs"`
-	NumFiles        uint64            `json:"numFiles"`
-	NumDeleted      uint64            `json:"numDeleted"`
-	LastIndexed     time.Time         `json:"-"`
-	LastIndexedUnix int64             `json:"lastIndexedUnixTime"`
-	QuickScanTime   int               `json:"quickScanDurationSeconds"`
-	FullScanTime    int               `json:"fullScanDurationSeconds"`
-	Assessment      string            `json:"assessment"`
-	FoundHardLinks  map[string]uint64 `json:"foundHardLinks"`
+	IdxName         string      `json:"name"`
+	DiskUsed        uint64      `json:"used"`
+	DiskTotal       uint64      `json:"total"`
+	Status          IndexStatus `json:"status"`
+	NumDirs         uint64      `json:"numDirs"`
+	NumFiles        uint64      `json:"numFiles"`
+	NumDeleted      uint64      `json:"numDeleted"`
+	LastIndexed     time.Time   `json:"-"`
+	LastIndexedUnix int64       `json:"lastIndexedUnixTime"`
+	QuickScanTime   int         `json:"quickScanDurationSeconds"`
+	FullScanTime    int         `json:"fullScanDurationSeconds"`
+	Assessment      string      `json:"assessment"`
 }
 type Index struct {
 	ReducedIndex
@@ -49,7 +48,7 @@ type Index struct {
 	mock                       bool
 	mu                         sync.RWMutex
 	hasIndex                   bool
-	DiscoveredHardLinks        map[string]uint64 `json:"-"` // hardlink path -> size
+	FoundHardLinks             map[string]uint64 `json:"-"` // hardlink path -> size
 	processedInodes            map[uint64]bool   `json:"-"`
 	totalSize                  uint64            `json:"-"`
 }
@@ -74,18 +73,17 @@ func init() {
 func Initialize(source settings.Source, mock bool) {
 	indexesMutex.Lock()
 	newIndex := Index{
-		mock:                mock,
-		Source:              source,
-		Directories:         make(map[string]*iteminfo.FileInfo),
-		DirectoriesLedger:   make(map[string]bool),
-		processedInodes:     make(map[uint64]bool),
-		DiscoveredHardLinks: make(map[string]uint64),
+		mock:              mock,
+		Source:            source,
+		Directories:       make(map[string]*iteminfo.FileInfo),
+		DirectoriesLedger: make(map[string]bool),
+		processedInodes:   make(map[uint64]bool),
+		FoundHardLinks:    make(map[string]uint64),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
-		Status:         "indexing",
-		IdxName:        source.Name,
-		Assessment:     "unknown",
-		FoundHardLinks: make(map[string]uint64),
+		Status:     "indexing",
+		IdxName:    source.Name,
+		Assessment: "unknown",
 	}
 	indexes[newIndex.Name] = &newIndex
 	indexesMutex.Unlock()
