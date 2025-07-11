@@ -13,6 +13,7 @@ import (
 	"github.com/golang-jwt/jwt/v4/request"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -91,14 +92,7 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 		}
 	}
 	if data.user.LoginMethod != users.LoginMethodProxy {
-		logger.Warningf("user %s is not allowed to login with proxy authentication, bypassing and updating login method", data.user.Username)
-		data.user.LoginMethod = users.LoginMethodProxy
-		// Perform the user update
-		err := store.Users.Update(data.user, true, "LoginMethod")
-		if err != nil {
-			logger.Debug(err.Error())
-		}
-		//return nil, fmt.Errorf("user %s is not allowed to login with proxy authentication", proxyUser)
+		return nil, errors.ErrWrongLoginMethod
 	}
 	return data.user, nil
 }
@@ -123,14 +117,16 @@ func loginHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (in
 	return printToken(w, r, d.user) // Pass the data object
 }
 
-// logoutHandler handles user logout, specifically used for OIDC or proxy users.
+// logoutHandler handles user logout
 // @Summary User Logout
 // @Description Returns a logout URL for the frontend to redirect to.
 // @Tags Auth
 // @Produce json
+// @Param auth query string false "JWT token"
 // @Success 200 {object} map[string]string "{"logoutUrl": "http://..."}"
 // @Router /api/auth/logout [post]
 func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	defer auth.RevokeAPIKey(d.token)
 	logoutUrl := fmt.Sprintf("%vlogin", config.Server.BaseURL) // Default fallback
 	if d.user.LoginMethod == users.LoginMethodProxy {
 		proxyRedirectUrl := config.Auth.Methods.ProxyAuth.LogoutRedirectUrl
@@ -143,7 +139,10 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 			logoutUrl = oidcRedirectUrl
 		}
 	}
-
+	if logoutUrl == "" {
+		logger.Debug("no logout url found, using default")
+		logoutUrl = fmt.Sprintf("%vlogin", config.Server.BaseURL)
+	}
 	response := map[string]string{
 		"logoutUrl": logoutUrl,
 	}

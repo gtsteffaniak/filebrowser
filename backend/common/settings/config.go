@@ -24,7 +24,7 @@ const (
 )
 
 func Initialize(configFile string) {
-	err := loadConfigWithDefaults(configFile)
+	err := loadConfigWithDefaults(configFile, false)
 	if err != nil {
 		logger.Error("unable to load config, waiting 5 seconds before exiting...")
 		time.Sleep(5 * time.Second) // allow sleep time before exiting to give docker/kubernetes time before restarting
@@ -95,9 +95,6 @@ func setupSources(generate bool) {
 				} else {
 					source.Name = name
 				}
-				if Config.Server.DefaultSource.Path == "" {
-					Config.Server.DefaultSource = source
-				}
 			}
 			modifyExcludeInclude(&source)
 
@@ -112,8 +109,6 @@ func setupSources(generate bool) {
 	sourceList := []Source{}
 	defaultScopes := []users.SourceScope{}
 	allSourceNames := []string{}
-	first := true
-	potentialDefaultSource := Config.Server.DefaultSource
 	for _, sourcePathOnly := range Config.Server.Sources {
 		realPath := getRealPath(sourcePathOnly.Path)
 		if generate {
@@ -121,15 +116,8 @@ func setupSources(generate bool) {
 		}
 		source, ok := Config.Server.SourceMap[realPath]
 		if ok && !slices.Contains(allSourceNames, source.Name) {
-			if first {
-				potentialDefaultSource = source
-			}
-			first = false
 			sourceList = append(sourceList, source)
 			if source.Config.DefaultEnabled {
-				if Config.Server.DefaultSource.Path == "" {
-					Config.Server.DefaultSource = source
-				}
 				defaultScopes = append(defaultScopes, users.SourceScope{
 					Name:  source.Path,
 					Scope: source.Config.DefaultUserScope,
@@ -140,19 +128,6 @@ func setupSources(generate bool) {
 			logger.Warningf("source %v is not configured correctly, skipping", sourcePathOnly.Path)
 		}
 	}
-	if Config.Server.DefaultSource.Path == "" {
-		Config.Server.DefaultSource = potentialDefaultSource
-	}
-	sourceList2 := []Source{}
-	for _, s := range sourceList {
-		if s.Path == Config.Server.DefaultSource.Path {
-			s.Config.DefaultEnabled = true
-			Config.Server.SourceMap[s.Path] = s
-			Config.Server.NameToSource[s.Name] = s
-		}
-		sourceList2 = append(sourceList2, s)
-	}
-	sourceList = sourceList2
 	Config.UserDefaults.DefaultScopes = defaultScopes
 	Config.Server.Sources = sourceList
 }
@@ -187,9 +162,9 @@ func setupAuth(generate bool) {
 		logger.Warning("Configured with no authentication, this is not recommended.")
 		Config.Auth.AuthMethods = []string{"disabled"}
 	}
-	if Config.Auth.Methods.OidcAuth.Enabled {
+	if Config.Auth.Methods.OidcAuth.Enabled || generate {
 		err := validateOidcAuth()
-		if err != nil {
+		if err != nil && !generate {
 			logger.Fatalf("Error validating OIDC auth: %v", err)
 		}
 		logger.Info("OIDC Auth configured successfully")
@@ -228,8 +203,8 @@ func setupLogging() {
 	}
 }
 
-func loadConfigWithDefaults(configFile string) error {
-	Config = setDefaults()
+func loadConfigWithDefaults(configFile string, generate bool) error {
+	Config = setDefaults(generate)
 	// Open and read the YAML file
 	yamlFile, err := os.Open(configFile)
 	if err != nil {
@@ -324,10 +299,11 @@ func loadEnvConfig() {
 
 }
 
-func setDefaults() Settings {
+func setDefaults(generate bool) Settings {
 	// get number of CPUs available
 	numCpus := 4 // default to 4 CPUs if runtime.NumCPU() fails or is not available
-	if cpus := runtime.NumCPU(); cpus > 0 {
+	cpus := runtime.NumCPU()
+	if cpus > 0 && !generate {
 		numCpus = cpus
 	}
 	database := os.Getenv("FILEBROWSER_DATABASE")
@@ -375,6 +351,10 @@ func setDefaults() Settings {
 				Share:  false,
 				Admin:  false,
 				Api:    false,
+			},
+			FileLoading: users.FileLoading{
+				MaxConcurrent: 10,
+				ChunkSize:     10, // 10MB
 			},
 		},
 	}

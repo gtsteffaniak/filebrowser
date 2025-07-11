@@ -68,9 +68,6 @@ func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 func shareGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	encodedPath := r.URL.Query().Get("path")
 	source := r.URL.Query().Get("source")
-	if source == "" {
-		source = settings.Config.Server.DefaultSource.Name
-	}
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
 	if err != nil {
@@ -197,9 +194,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	sourceName := r.URL.Query().Get("source")
-	if sourceName == "" {
-		sourceName = config.Server.DefaultSource.Name
-	}
 	source := config.Server.NameToSource[sourceName]
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
 	if err != nil {

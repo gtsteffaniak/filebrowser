@@ -40,7 +40,13 @@
     "continue": "Continuați",
     "edit": "Editare",
     "generateNewOtp": "Resetați și generați un nou cod cu doi factori",
-    "verify": "Verificare"
+    "verify": "Verificare",
+    "pause": "Pauză",
+    "resume": "CV",
+    "retry": "Reîncercare",
+    "pauseAll": "Pauză toate",
+    "resumeAll": "CV toate",
+    "clearCompleted": "Golire finalizată"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -91,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Crează cont",
@@ -163,7 +171,12 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Parolă opțională",
     "typeName": "Tip:",
-    "selected": "selectat"
+    "selected": "selectat",
+    "deleted": "Șterse cu succes!",
+    "destinationSource": "Sursa de destinație:",
+    "dragAndDrop": "Drag and drop fișiere aici",
+    "completed": "Completat",
+    "conflictsDetected": "Conflicte detectate"
   },
   "search": {
     "images": "Imagini",
@@ -239,7 +252,6 @@
     "rulesHelp": "Aici poți defini un set de reguli pentru acest utilizator. Fișierele blocate nu vor apărea in lista și nici nu vor putea fi accesate de utilizator. Expresiile regulate si căile relative la domeniul utilizatorului sunt permise.\n",
     "scope": "Domeniu",
     "settingsUpdated": "Setări actualizate!",
-    "shareDuration": "Acțiune Durată",
     "shareManagement": "Gestionarea acțiunilor",
     "singleClick": "Utilizați un singur clic pentru a deschide fișiere și directoare",
     "themes": {
@@ -288,7 +300,9 @@
     "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
     "disableOfficePreviews": "Dezactivați previzualizările office pentru anumite extensii de fișiere",
     "disableOfficePreviewsDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările office. (de exemplu, \".txt .html\").",
-    "adminOptions": "Opțiuni utilizator administrator"
+    "adminOptions": "Opțiuni utilizator administrator",
+    "shareDuration": "Expiră",
+    "searchOptions": "Opțiuni de căutare"
   },
   "sidebar": {
     "help": "Ajutor",
@@ -303,7 +317,8 @@
     "signup": "Înregistrare",
     "siteSettings": "Setări site",
     "sources": "Surse",
-    "updateIsAvailable": "O actualizare este disponibilă!"
+    "updateIsAvailable": "O actualizare este disponibilă!",
+    "fileActions": "Acțiuni de fișier"
   },
   "success": {
     "linkCopied": "Legătură copiată!"
@@ -359,7 +374,8 @@
     "toggleDark": "Comutarea modului întunecat",
     "toggleSticky": "Schimbarea modului lipicios",
     "of": "de",
-    "used": "utilizate"
+    "used": "utilizate",
+    "noSources": "Nu există surse disponibile pentru acest utilizator. Adăugați o sursă pentru acest utilizator sau configurați o sursă cu defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Setați formatul exact al datei",
@@ -375,7 +391,14 @@
     "editOffice": "Editarea/vizualizarea fișierelor office",
     "disableUpdateNotifications": "Dezactivați afișarea bannerului de actualizare a notificărilor în bara laterală.",
     "disableHideSidebar": "Dezactivați ascunderea automată a barei laterale la previzualizarea sau editarea fișierelor.",
-    "autoplayMedia": "Redarea automată a fișierelor media în previzualizare"
+    "autoplayMedia": "Redarea automată a fișierelor media în previzualizare",
+    "deleteWithoutConfirming": "Ștergeți fișiere fără solicitare de confirmare",
+    "sidebarOptions": "Opțiuni pentru bara laterală",
+    "disableQuickToggles": "Dezactivați comutatoarele rapide",
+    "disableSearchOptions": "Dezactivați opțiunile de căutare",
+    "hideSidebarFileActions": "Ascundeți acțiunile fișierelor în bara laterală",
+    "editorViewerOptions": "Opțiuni pentru editor și vizualizator",
+    "editorQuickSave": "Afișați butonul de salvare rapidă în editor"
   },
   "otp": {
     "name": "Autentificare cu doi factori",
@@ -416,5 +439,12 @@
     "added": "Regula de acces adăugată!",
     "name": "Nume și prenume",
     "accessManagement": "Gestionarea accesului"
+  },
+  "fileLoading": {
+    "title": "Încărcări și descărcări",
+    "maxConcurrentUpload": "Încărcări simultane maxime",
+    "maxConcurrentUploadHelp": "Numărul maxim de încărcări simultane. Valorile mai mari au de obicei performanțe mai bune, dar acest lucru depinde de mai mulți factori.",
+    "uploadChunkSizeMb": "Mărimea pachetului de încărcare în MB",
+    "uploadChunkSizeMbHelp": "De obicei între 5 și 50 MB, mai mic este mai bine pentru conexiunile instabile sau restricționate. Setarea la 0 va dezactiva fragmentarea încărcării."
   }
 }

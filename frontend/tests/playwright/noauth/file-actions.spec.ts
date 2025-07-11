@@ -75,7 +75,7 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
   await page.locator('button[aria-label="Copy file"]').click();
-  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder/');
+  await expect(page.locator('div[aria-label="filelist-path"]')).toHaveText('Path: /myfolder');
   await page.locator('li[aria-label="newfolder"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   await expect(page.locator('#popup-notification-content')).toHaveText("Resources copied successfully");
@@ -97,7 +97,7 @@ test("delete file", async({ page, checkForErrors, context }) => {
   await page.locator('button[aria-label="Confirm-Delete"]').click();
   const popup = page.locator('#popup-notification-content');
   await popup.waitFor({ state: 'visible' });
-  await expect(popup).toHaveText("Deleted item successfully! reloading...");
+  await expect(popup).toHaveText("Deleted successfully!");
   checkForErrors();
 
 })

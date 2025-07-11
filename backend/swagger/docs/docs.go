@@ -246,6 +246,14 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "User Logout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT token",
+                        "name": "auth",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{\"logoutUrl\": \"http://...\"}",
@@ -704,6 +712,98 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "File path of the image to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Preview size ('small' or 'large'). Default is based on server config.",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preview image content",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "202": {
+                        "description": "Download permissions required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported file type for preview",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Preview generation not implemented",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/public/preview": {
+            "get": {
+                "description": "Returns a preview image based on the requested path and size.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get image preview",
+                "parameters": [
+                    {
+                        "type": "string",
                         "description": "source hash",
                         "name": "hash",
                         "in": "query",
@@ -924,7 +1024,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -990,7 +1091,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1059,7 +1161,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Name for the desired filebrowser destination source name, default is used if not provided",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "boolean",
@@ -1134,7 +1237,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Source name for the desired source, default is used if not provided",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1278,6 +1382,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search query",
                         "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name for the desired source",
+                        "name": "source",
                         "in": "query",
                         "required": true
                     },
@@ -1675,10 +1786,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
+                        "description": "user ID to update",
                         "name": "id",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "usename to update",
+                        "name": "id",
+                        "in": "query"
                     },
                     {
                         "description": "User data to update",
@@ -2244,6 +2360,10 @@ const docTemplate = `{
                     "description": "disable default links in the sidebar",
                     "type": "boolean"
                 },
+                "disableNavButtons": {
+                    "description": "disable the nav buttons in the sidebar",
+                    "type": "boolean"
+                },
                 "disableUsedPercentage": {
                     "description": "disable used percentage for the sources in the sidebar",
                     "type": "boolean"
@@ -2373,6 +2493,10 @@ const docTemplate = `{
                     "description": "whether to enable OIDC authentication",
                     "type": "boolean"
                 },
+                "groupsClaim": {
+                    "description": "the JSON field name to read groups from. Default is \"groups\"",
+                    "type": "string"
+                },
                 "issuerUrl": {
                     "description": "authorization URL of the OIDC provider",
                     "type": "string"
@@ -2422,9 +2546,8 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "minLength": {
-                    "description": "minimum pasword length required.",
-                    "type": "integer",
-                    "minimum": 5
+                    "description": "minimum pasword length required, default is 5.",
+                    "type": "integer"
                 },
                 "recaptcha": {
                     "description": "recaptcha config, only used if signup is enabled",
@@ -2661,6 +2784,10 @@ const docTemplate = `{
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
+                "deleteWithoutConfirming": {
+                    "description": "delete files without confirmation",
+                    "type": "boolean"
+                },
                 "disableOfficePreviewExt": {
                     "description": "comma separated list of file extensions to disable office preview for",
                     "type": "string"
@@ -2668,6 +2795,14 @@ const docTemplate = `{
                 "disableOnlyOfficeExt": {
                     "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
+                },
+                "disableQuickToggles": {
+                    "description": "disable the quick toggles in the sidebar",
+                    "type": "boolean"
+                },
+                "disableSearchOptions": {
+                    "description": "disable the search options in the search bar",
+                    "type": "boolean"
                 },
                 "disableSettings": {
                     "description": "disable the user from viewing the settings page",
@@ -2677,9 +2812,25 @@ const docTemplate = `{
                     "description": "disable update notifications banner for admin users",
                     "type": "boolean"
                 },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
+                    "type": "boolean"
+                },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
+                },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideSidebarFileActions": {
+                    "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
                 },
                 "locale": {
                     "description": "language to use: eg. de, en, or fr",
@@ -2772,6 +2923,17 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "users.FileLoading": {
+            "type": "object",
+            "properties": {
+                "maxConcurrentUpload": {
+                    "type": "integer"
+                },
+                "uploadChunkSizeMb": {
+                    "type": "integer"
                 }
             }
         },
@@ -2884,6 +3046,10 @@ const docTemplate = `{
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
                     "type": "boolean"
                 },
+                "deleteWithoutConfirming": {
+                    "description": "delete files without confirmation",
+                    "type": "boolean"
+                },
                 "disableOfficePreviewExt": {
                     "description": "comma separated list of file extensions to disable office preview for",
                     "type": "string"
@@ -2892,6 +3058,14 @@ const docTemplate = `{
                     "description": "comma separated list of file extensions to disable onlyoffice preview for",
                     "type": "string"
                 },
+                "disableQuickToggles": {
+                    "description": "disable the quick toggles in the sidebar",
+                    "type": "boolean"
+                },
+                "disableSearchOptions": {
+                    "description": "disable the search options in the search bar",
+                    "type": "boolean"
+                },
                 "disableSettings": {
                     "type": "boolean"
                 },
@@ -2899,9 +3073,25 @@ const docTemplate = `{
                     "description": "disable update notifications",
                     "type": "boolean"
                 },
+                "editorQuickSave": {
+                    "description": "show quick save button in editor",
+                    "type": "boolean"
+                },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
+                },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
+                },
+                "hideSidebarFileActions": {
+                    "description": "hide the file actions in the sidebar",
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "integer"

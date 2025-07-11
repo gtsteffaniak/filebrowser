@@ -31,17 +31,33 @@
     "switchView": "Byt vy",
     "toggleSidebar": "Växla sidofält",
     "update": "Uppdatera",
-    "upload": "Ladda upp"
+    "upload": "Ladda upp",
+    "generateNewOtp": "Återställ och skapa ny tvåfaktorkod",
+    "verify": "Verifiera",
+    "copyDownloadLinkToClipboard": "Kopiera nedladdningslänken till urklipp",
+    "file": "Fil",
+    "folder": "Mapp",
+    "submit": "Skicka in",
+    "openFile": "Öppna fil",
+    "continue": "Fortsätt",
+    "edit": "Redigera",
+    "pause": "Paus",
+    "resume": "Meritförteckning",
+    "retry": "Försök igen",
+    "pauseAll": "Pausa alla",
+    "resumeAll": "Återuppta alla",
+    "clearCompleted": "Klart avslutat"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
     "downloadFolder": "Ladda ner mapp",
-    "downloadSelected": ""
+    "downloadSelected": "Ladda ner Valda"
   },
   "errors": {
     "forbidden": "Du saknar rättigheter till detta",
     "internal": "Något gick fel",
-    "notFound": "Det går inte att nå den här platsen."
+    "notFound": "Det går inte att nå den här platsen.",
+    "connection": "Det går inte att nå servern."
   },
   "files": {
     "body": "Huvud",
@@ -59,7 +75,8 @@
     "size": "Storlek",
     "sortByLastModified": "Sortera på senast ändrad",
     "sortByName": "Sortera på namn",
-    "sortBySize": "Sortera på storlek"
+    "sortBySize": "Sortera på storlek",
+    "noPreview": "Förhandsgranskning är inte tillgänglig för den här filen."
   },
   "help": {
     "click": "välj fil eller mapp",
@@ -80,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Skapa ett konto",
@@ -110,7 +129,8 @@
     "submit": "Logga in",
     "username": "Användarnamn",
     "usernameTaken": "Användarnamn upptaget",
-    "wrongCredentials": "Fel inloggning"
+    "wrongCredentials": "Fel inloggning",
+    "or": "ELLER"
   },
   "permanent": "Permanent",
   "prompts": {
@@ -143,9 +163,20 @@
     "scheduleMessage": "Pick a date and time to schedule the publication of this post.",
     "show": "Visa",
     "size": "Storlek",
-    "upload": "",
-    "uploadMessage": "",
-    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?"
+    "upload": "Ladda upp",
+    "uploadMessage": "Välj ett alternativ att ladda upp.",
+    "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
+    "deleteUserMessage": "Är du säker på att du vill ta bort den här användaren?",
+    "selected": "utvalda",
+    "filesSelected": "valda filer",
+    "uploadFiles": "Uploading {files} files...",
+    "optionalPassword": "Valfritt lösenord",
+    "typeName": "Typ:",
+    "deleted": "Raderad framgångsrikt!",
+    "destinationSource": "Destination Källa:",
+    "dragAndDrop": "Dra och släpp filer här",
+    "completed": "Färdigställd",
+    "conflictsDetected": "Konflikter upptäckta"
   },
   "search": {
     "images": "Bilder",
@@ -155,7 +186,12 @@
     "search": "Sök...",
     "typeToSearch": "Skriv för att söka....",
     "types": "Typ",
-    "video": "Video"
+    "video": "Video",
+    "path": "Väg:",
+    "smallerThan": "Mindre än:",
+    "largerThan": "Större än:",
+    "helpText1": "Sökningen sker på varje tecken du skriver (minst 3 tecken för sökbegrepp).",
+    "helpText2": "Indexet: Sökningen använder indexet som automatiskt uppdateras med det inställda intervallet (standard: 5 minuter). Om du söker när programmet precis har startat kan det leda till ofullständiga resultat."
   },
   "settings": {
     "admin": "Admin",
@@ -194,7 +230,7 @@
     "newUser": "Ny användare",
     "password": "Lösenord",
     "passwordUpdated": "Lösenord uppdaterat",
-    "path": "",
+    "path": "Väg",
     "permissions": {
       "create": "Skapa filer och mappar",
       "delete": "Ta bort filer och mappar",
@@ -202,7 +238,10 @@
       "execute": "Exekvera kommandon",
       "modify": "Ändra fil",
       "rename": "Byta namn på eller flytta filer och kataloger",
-      "share": "Dela filer"
+      "share": "Dela filer",
+      "admin": "Administratör",
+      "api": "Skapa och hantera API-nycklar med lång livslängd",
+      "realtime": "Möjliggör anslutningar och uppdateringar i realtid"
     },
     "permissions-name": "Rättigheter",
     "permissionsHelp": "Du kan ange att användaren ska vara administratör eller välja behörigheterna individuellt. Om du väljer \"administratör \" kommer alla andra alternativ att kontrolleras automatiskt. Hanteringen av användare är fortfarande ett privilegium för en administratör.\n",
@@ -213,13 +252,12 @@
     "rulesHelp": "Här kan du definiera en uppsättning regler för godkänna och neka för den här specifika användaren. Den blockerade filen kommer inte upp i listningarna och kommer inte att vara tillgänglig till användaren. Vi stöder regex och sökvägar i förhållande till användarnas omfång.\n",
     "scope": "Omfattning",
     "settingsUpdated": "Inställning uppdaterad!",
-    "shareDuration": "",
-    "shareManagement": "",
-    "singleClick": "",
+    "shareManagement": "Aktieförvaltning",
+    "singleClick": "Öppna filer och kataloger med ett enda klick",
     "themes": {
-      "dark": "",
-      "light": "",
-      "title": ""
+      "dark": "Mörk",
+      "light": "Ljus",
+      "title": "Tema"
     },
     "user": "Användare",
     "userCommands": "Kommandon",
@@ -230,7 +268,37 @@
     "userManagement": "Användarehantering",
     "userUpdated": "Användare uppdaterad!",
     "username": "Användarnamn",
-    "users": "Användare"
+    "users": "Användare",
+    "enterPassword": "Ange lösenord",
+    "enterPasswordAgain": "Ange lösenordet igen",
+    "passwordsDoNotMatch": "Lösenorden stämmer inte överens",
+    "loginMethod": "Inloggningsmetod",
+    "loginMethodDescription": "tillåten inloggningsmetod för användaren.",
+    "modifyOtherUser": "Ändra användare:",
+    "modifyCurrentUser": "Ändra nuvarande användare",
+    "themeColor": "Tema Färg",
+    "disableOfficeEditorDescription": "En mellanslagsseparerad lista över filändelser som OnlyOffice-visaren ska inaktiveras för. (t.ex. '.txt .html').",
+    "disableOfficeEditor": "Avaktivera Office Viewer för vissa filtillägg",
+    "disableOfficePreviews": "Inaktivera Office-förhandsgranskningar för vissa filtillägg",
+    "disableOfficePreviewsDescription": "En mellanslagsseparerad lista över filändelser för vilka Office-förhandsgranskningar ska inaktiveras. (t.ex. '.txt .html').",
+    "listingOptions": "Listningsalternativ",
+    "emptyGlobal": "För närvarande finns det inga globala konfigurationsalternativ, men du kan redigera konfigurationen i yaml för att justera systeminställningarna.",
+    "scopes": "Definiera tillåtna källor och användarens omfattning inom dem",
+    "UserManagement": "Användarhantering",
+    "userNotAdmin": "Användaren är inte administratör",
+    "tusUploads": "Uppladdningar i bitar",
+    "tusUploadsHelp": "File Browser har stöd för chunked file uploads, vilket gör det möjligt att skapa effektiva, tillförlitliga, återupptagbara och chunked file uploads även i opålitliga nätverk.",
+    "tusUploadsChunkSize": "Anger maximal storlek på en begäran (direkta uppladdningar kommer att användas för mindre uppladdningar). Du kan ange ett vanligt heltal som anger en bytesinmatning eller en sträng som 10MB, 1GB etc.",
+    "tusUploadsRetryCount": "Antal försök som ska göras om en chunk inte kan laddas upp.",
+    "userHomeBasePath": "Basväg för användares hemkataloger",
+    "userScopeGenerationPlaceholder": "Omfattningen kommer att genereras automatiskt",
+    "createUserHomeDirectory": "Skapa användarens hemkatalog",
+    "shareSettings": "Dela inställningar",
+    "api": "API-nycklar",
+    "shareDeleted": "Dela borttaget!",
+    "adminOptions": "Alternativ för administratörsanvändare",
+    "shareDuration": "Upphör att gälla",
+    "searchOptions": "Sökalternativ"
   },
   "sidebar": {
     "help": "Hjälp",
@@ -243,7 +311,10 @@
     "preview": "Visa",
     "settings": "Inställningar",
     "signup": "Registrera",
-    "siteSettings": "System inställningar"
+    "siteSettings": "System inställningar",
+    "sources": "Källor",
+    "updateIsAvailable": "En uppdatering är tillgänglig!",
+    "fileActions": "Filåtgärder"
   },
   "success": {
     "linkCopied": "Länk kopierad"
@@ -255,8 +326,91 @@
     "seconds": "Sekunder",
     "unit": "Tidsenhet"
   },
-  "upload": {},
-  "share": {},
-  "api": {},
-  "index": {}
+  "upload": {
+    "abortUpload": "Är du säker på att du vill göra abort?"
+  },
+  "share": {
+    "notice": "Observera: alla som har tillgång till länken (och valfritt lösenord) kan komma åt de delade filerna. Det finns inget krav på att vara inloggad."
+  },
+  "api": {
+    "title": "API-nycklar",
+    "keyName": "Namn på API-nyckel:",
+    "createdAt": "Skapad på:",
+    "expiresAt": "Upphör att gälla kl:",
+    "permissions": "Behörighet:",
+    "createTitle": "Skapa API-nyckel",
+    "keyNamePlaceholder": "Ange ett unikt namn på API-nyckeln:",
+    "tokenDuration": "Token Varaktighet:",
+    "durationNumberPlaceholder": "Antal",
+    "days": "Dagar",
+    "months": "Månader",
+    "permissionNote": "Välj minst en behörighet för nyckeln. Din användare måste också ha behörigheten.",
+    "createKeyFailed": "Misslyckades med att skapa API-nyckel.",
+    "createKeySuccess": "API-nyckel skapad framgångsrikt.",
+    "description": "API-nycklar baseras på den användare som skapar dem. Se även",
+    "swaggerLinkText": "swagger-sida",
+    "name": "Namn",
+    "created": "Skapad",
+    "expires": "Upphör att gälla",
+    "actions": "Åtgärder",
+    "enabled": "Aktiverad",
+    "disabled": "Inaktiverad"
+  },
+  "index": {
+    "status": "Status",
+    "assessment": "Bedömning",
+    "files": "Filer",
+    "folders": "Mappar",
+    "lastScanned": "Senast skannad",
+    "quickScan": "Snabbsökning Sekunder",
+    "fullScan": "Fullständig skanning Sekunder",
+    "settingsHover": "Inställningar för användare",
+    "logout": "Logga ut",
+    "toggleClick": "Toggle Enkelklick",
+    "toggleDark": "Växla till mörkt läge",
+    "toggleSticky": "Växla klisterläge",
+    "of": "av",
+    "used": "används",
+    "noSources": "Inga källor tillgängliga för den här användaren. Lägg antingen till en källa för den här användaren eller konfigurera en källa med defaultEnabled: true"
+  },
+  "profileSettings": {
+    "setDateFormat": "Ange exakt datumformat",
+    "showHiddenFiles": "Visa dolda filer",
+    "showQuickDownload": "Visa nedladdningsikon för snabb åtkomst",
+    "previewImages": "Förhandsgranska bilder",
+    "previewVideos": "Förhandsgranska videor",
+    "previewMotionVideos": "Förhandsgranskning av rörelse för videor",
+    "highQualityPreview": "Förhandsgranskning av galleribilder i hög kvalitet",
+    "editOffice": "Redigera/visa kontorsfiler",
+    "popupPreview": "Aktivera popup-förhandsgranskning",
+    "filePreviewOptions": "Alternativ för förhandsgranskning av filer",
+    "disableUpdateNotifications": "Inaktivera visning av banner för uppdatering av meddelanden i sidofältet.",
+    "disableHideSidebar": "Inaktivera automatisk döljning av sidofältet när du förhandsgranskar eller redigerar filer.",
+    "autoplayMedia": "Autoplay av mediefiler i förhandsgranskningen",
+    "deleteWithoutConfirming": "Radera filer utan bekräftelseprompt",
+    "sidebarOptions": "Alternativ för sidofält",
+    "disableQuickToggles": "Inaktivera snabba växlingar",
+    "disableSearchOptions": "Inaktivera sökalternativ",
+    "hideSidebarFileActions": "Dölj filåtgärder i sidofältet",
+    "editorViewerOptions": "Redigerings- och visningsalternativ",
+    "editorQuickSave": "Visa knappen för snabbsparande i redigeraren"
+  },
+  "otp": {
+    "name": "Tvåfaktorsautentisering",
+    "verifyInstructions": "Ange koden från din autentiseringsapp",
+    "generate": "Skanna QR-koden med din autentiseringsapp",
+    "codeInputPlaceholder": "6-siffrig kod",
+    "invalidCodeType": "Verifieringskoden ska vara 6 engelska siffror",
+    "enabledSuccessfully": "OTP aktiverat framgångsrikt",
+    "verificationFailed": "Verifiering misslyckades",
+    "verificationSucceed": "Verifiering lyckas",
+    "generationFailed": "Generation misslyckad"
+  },
+  "fileLoading": {
+    "title": "Uppladdningar och nedladdningar",
+    "maxConcurrentUpload": "Max samtidiga uppladdningar",
+    "maxConcurrentUploadHelp": "Det maximala antalet samtidiga uppladdningar. Högre värden ger normalt bättre prestanda, men detta beror på många faktorer.",
+    "uploadChunkSizeMb": "Ladda upp chunkstorlek i MB",
+    "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning."
+  }
 }

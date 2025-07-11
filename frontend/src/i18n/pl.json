@@ -40,7 +40,13 @@
     "continue": "Kontynuuj",
     "edit": "Edytuj",
     "generateNewOtp": "Resetowanie i generowanie nowego kodu dwuskładnikowego",
-    "verify": "Weryfikacja"
+    "verify": "Weryfikacja",
+    "pause": "Pauza",
+    "resume": "Wznowienie",
+    "retry": "Ponów próbę",
+    "pauseAll": "Wstrzymaj wszystko",
+    "resumeAll": "Resume all",
+    "clearCompleted": "Czyszczenie zakończone"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -91,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "Íslenska",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "Nederlands (België)",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "Română",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "Svenska (Sverige)",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Utwórz konto",
@@ -163,7 +171,12 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Hasło opcjonalne",
     "typeName": "Typ:",
-    "selected": "wybrany"
+    "selected": "wybrany",
+    "deleted": "Usunięto pomyślnie!",
+    "destinationSource": "Źródło docelowe:",
+    "dragAndDrop": "Przeciągnij i upuść pliki tutaj",
+    "completed": "Zakończono",
+    "conflictsDetected": "Wykryte konflikty"
   },
   "search": {
     "images": "Zdjęcia",
@@ -239,7 +252,6 @@
     "rulesHelp": "Tu możesz zdefiniować zestawienie reguł zezwalających i zabraniających dla tego konkretnego użytkownika. Zablokowane pliki nie będą widoczne na listach i nie będą dostępne dla użytkownika. Wspierane są wyrażenia regularne i ścieżki względne wobec zakresu użytkownika.\n",
     "scope": "Zakres",
     "settingsUpdated": "Uprawnienia Zapisane!",
-    "shareDuration": "Okres udostępniania",
     "shareManagement": "Zarządzanie udostępnianiem",
     "singleClick": "Pojedyncze kliknięcie",
     "themes": {
@@ -288,7 +300,9 @@
     "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
     "disableOfficePreviews": "Wyłącz podglądy Office dla niektórych rozszerzeń plików",
     "disableOfficePreviewsDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych. (np. \".txt .html\").",
-    "adminOptions": "Opcje użytkownika administratora"
+    "adminOptions": "Opcje użytkownika administratora",
+    "shareDuration": "Wygasa",
+    "searchOptions": "Opcje wyszukiwania"
   },
   "sidebar": {
     "help": "Pomoc",
@@ -303,7 +317,8 @@
     "signup": "Rejestracja",
     "siteSettings": "Ustawienia Strony",
     "sources": "Źródła",
-    "updateIsAvailable": "Aktualizacja jest już dostępna!"
+    "updateIsAvailable": "Aktualizacja jest już dostępna!",
+    "fileActions": "Działania na plikach"
   },
   "success": {
     "linkCopied": "Link Skopiowany!"
@@ -359,7 +374,8 @@
     "toggleDark": "Przełączanie trybu ciemnego",
     "toggleSticky": "Przełączanie trybu samoprzylepnego",
     "of": "z",
-    "used": "używany"
+    "used": "używany",
+    "noSources": "Brak dostępnych źródeł dla tego użytkownika. Dodaj źródło dla tego użytkownika lub skonfiguruj źródło z defaultEnabled: true."
   },
   "profileSettings": {
     "setDateFormat": "Ustaw dokładny format daty",
@@ -375,7 +391,14 @@
     "editOffice": "Edycja/przeglądanie plików biurowych",
     "disableUpdateNotifications": "Wyłącz wyświetlanie banera aktualizacji powiadomień na pasku bocznym.",
     "disableHideSidebar": "Wyłącz automatyczne ukrywanie paska bocznego podczas podglądu lub edycji plików.",
-    "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych w podglądzie"
+    "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych w podglądzie",
+    "deleteWithoutConfirming": "Usuwanie plików bez monitu o potwierdzenie",
+    "sidebarOptions": "Opcje paska bocznego",
+    "disableQuickToggles": "Wyłączanie szybkich przełączników",
+    "disableSearchOptions": "Wyłącz opcje wyszukiwania",
+    "hideSidebarFileActions": "Ukryj akcje związane z plikami na pasku bocznym",
+    "editorViewerOptions": "Opcje edytora i przeglądarki",
+    "editorQuickSave": "Pokaż przycisk szybkiego zapisu w edytorze"
   },
   "otp": {
     "name": "Uwierzytelnianie dwuskładnikowe",
@@ -416,5 +439,12 @@
     "added": "Dodano regułę dostępu!",
     "name": "Nazwa",
     "accessManagement": "Zarządzanie dostępem"
+  },
+  "fileLoading": {
+    "title": "Przesyłanie i pobieranie",
+    "maxConcurrentUpload": "Maksymalne jednoczesne przesyłanie",
+    "maxConcurrentUploadHelp": "Maksymalna liczba jednocześnie przesyłanych plików. Wyższe wartości zazwyczaj działają lepiej, ale zależy to od wielu czynników.",
+    "uploadChunkSizeMb": "Rozmiar przesyłanego fragmentu w MB",
+    "uploadChunkSizeMbHelp": "Zazwyczaj od 5 do 50 MB, mniejsze są lepsze dla niestabilnych lub ograniczonych połączeń. Ustawienie wartości 0 spowoduje wyłączenie podziału na fragmenty."
   }
 }

@@ -40,7 +40,13 @@
     "continue": "Folytatás",
     "edit": "Szerkesztés",
     "generateNewOtp": "Új kétfaktoros kód visszaállítása és generálása",
-    "verify": "Ellenőrizze a  címet."
+    "verify": "Ellenőrizze a  címet.",
+    "pause": "Szünet",
+    "resume": "Önéletrajz",
+    "retry": "Retry",
+    "pauseAll": "Szünet minden",
+    "resumeAll": "Folytassa az összes",
+    "clearCompleted": "Tiszta befejezve"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -91,6 +97,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -109,7 +116,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Fiók létrehozása",
@@ -163,7 +171,12 @@
     "deleteUserMessage": "Biztos, hogy törölni szeretné ezt a felhasználót?",
     "filesSelected": "kiválasztott fájlok",
     "typeName": "Típus:",
-    "selected": "kiválasztott"
+    "selected": "kiválasztott",
+    "deleted": "Sikeresen törölve!",
+    "destinationSource": "Célforrás:",
+    "dragAndDrop": "Húzza ide a fájlokat",
+    "completed": "Befejezett",
+    "conflictsDetected": "Feltárt konfliktusok"
   },
   "search": {
     "images": "Képek",
@@ -242,7 +255,6 @@
     "scope": "Hatókör",
     "setDateFormat": "Pontos dátumformátum beállítása",
     "settingsUpdated": "Beállítások frissítve!",
-    "shareDuration": "Megosztás időtartama",
     "shareManagement": "Megosztáskezelés",
     "shareDeleted": "Megosztás törölve!",
     "singleClick": "Fájlok és könyvtárak megnyitása egyetlen kattintással",
@@ -288,7 +300,9 @@
     "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
     "disableOfficePreviews": "Office előnézet letiltása bizonyos fájlkiterjesztésekhez",
     "disableOfficePreviewsDescription": "Az irodai előnézetek letiltásának szóközzel elválasztott fájlkiterjesztések listája. (pl. '.txt .html').",
-    "adminOptions": "Admin felhasználói beállítások"
+    "adminOptions": "Admin felhasználói beállítások",
+    "shareDuration": "Lejárat:",
+    "searchOptions": "Keresési lehetőségek"
   },
   "sidebar": {
     "help": "Súgó",
@@ -303,7 +317,8 @@
     "signup": "Regisztráció",
     "siteSettings": "Oldalbeállítások",
     "sources": "Források",
-    "updateIsAvailable": "Elérhető a frissítés!"
+    "updateIsAvailable": "Elérhető a frissítés!",
+    "fileActions": "Fájl műveletek"
   },
   "success": {
     "linkCopied": "Link másolva!"
@@ -359,7 +374,8 @@
     "toggleDark": "Sötét üzemmód átkapcsolása",
     "toggleSticky": "Ragadós mód átkapcsolása",
     "of": "a",
-    "used": "használt"
+    "used": "használt",
+    "noSources": "Ehhez a felhasználóhoz nem állnak rendelkezésre források. Vagy adjon hozzá egy forrást ehhez a felhasználóhoz, vagy konfiguráljon egy forrást a defaultEnabled: true beállítással."
   },
   "profileSettings": {
     "setDateFormat": "Pontos dátumformátum beállítása",
@@ -375,7 +391,14 @@
     "editOffice": "Office fájlok szerkesztése/megjelenítése",
     "disableUpdateNotifications": "Értesítési frissítés banner megjelenítésének kikapcsolása az oldalsávban.",
     "disableHideSidebar": "Az oldalsáv automatikus elrejtésének kikapcsolása fájlok előnézeténél vagy szerkesztésénél.",
-    "autoplayMedia": "Médiafájlok automatikus lejátszása előnézetben"
+    "autoplayMedia": "Médiafájlok automatikus lejátszása előnézetben",
+    "deleteWithoutConfirming": "Fájlok törlése megerősítés nélkül",
+    "sidebarOptions": "Oldalsáv beállítások",
+    "disableQuickToggles": "Gyorskapcsolók letiltása",
+    "disableSearchOptions": "Keresési lehetőségek letiltása",
+    "hideSidebarFileActions": "Fájlműveletek elrejtése az oldalsávban",
+    "editorViewerOptions": "Szerkesztési és megjelenítési lehetőségek",
+    "editorQuickSave": "Gyors mentés gomb megjelenítése a szerkesztőben"
   },
   "otp": {
     "name": "Kétfaktoros hitelesítés",
@@ -416,5 +439,12 @@
     "added": "Hozzáférési szabály hozzáadva!",
     "name": "Név",
     "accessManagement": "Hozzáférés-kezelés"
+  },
+  "fileLoading": {
+    "title": "Feltöltések és letöltések",
+    "maxConcurrentUpload": "Maximális egyidejű feltöltés",
+    "maxConcurrentUploadHelp": "Az egyidejű feltöltések maximális száma. A magasabb értékek általában jobban teljesítenek, de ez sok tényezőtől függ.",
+    "uploadChunkSizeMb": "Feltöltési csomag mérete MB-ban",
+    "uploadChunkSizeMbHelp": "Általában 5 és 50 MB között, instabil vagy korlátozott kapcsolatok esetén a kisebb méret jobb. A 0 értékre állítás kikapcsolja a feltöltési darabolás funkciót."
   }
 }

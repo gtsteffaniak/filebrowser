@@ -1,8 +1,7 @@
 import { mutations, getters,state } from "@/store";
-import router from "@/router";
 import { usersApi } from "@/api";
 import { getApiPath } from "@/utils/url.js";
-import { recaptcha, loginPage } from "@/utils/constants";
+import { recaptcha, loginPage, baseURL } from "@/utils/constants";
 
 export async function setNewToken(token) {
   document.cookie = `auth=${token}; path=/`;
@@ -57,44 +56,31 @@ export function generateRandomCode(length) {
 }
 
 export async function logout() {
-  if (state.user.loginMethod === "oidc" || state.user.loginMethod === "proxy") {
-    try {
-      const res = await fetch(getApiPath("api/auth/logout"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", // Good practice
-          "Authorization": `Bearer ${state.jwt}`,
-        },
-      });
-
-      // --- CHANGE IS HERE ---
-      // Check if the request was successful and handle the JSON response
-      if (res.ok) {
-        const data = await res.json(); // Parse the JSON body
-        const logoutUrl = data.logoutUrl;
-
-        if (logoutUrl) {
-          // Clean up local state *before* navigating away
-          document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
-          mutations.setCurrentUser(null);
-          // Redirect the browser window
-          window.location.href = logoutUrl;
-          return; // Stop execution
-        }
-      } else {
-        // Handle potential errors from the API, e.g., res.status 401, 500
-        console.error("Logout API call failed:", res.status, res.statusText);
+  try {
+    const res = await fetch(getApiPath("api/auth/logout"), { method: "POST" });
+    if (res.ok) {
+      const data = await res.json();
+      let logoutUrl = data.logoutUrl;
+      document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+      mutations.setCurrentUser(null);
+      mutations.setJWT("");
+      if (!logoutUrl) {
+        logoutUrl = baseURL+"login";
       }
-
-    } catch (e) {
-      console.error("An error occurred during logout:", e);
+      // Add a small delay to ensure cookie deletion completes before redirect
+      setTimeout(() => {
+        window.location.href = logoutUrl;
+      }, 100);
+      return; // Stop execution
+    } else {
+      // Handle potential errors from the API, e.g., res.status 401, 500
+      console.error("Logout API call failed:", res.status, res.statusText);
     }
+
+  } catch (e) {
+    console.error("An error occurred during logout:", e);
   }
 
-  // Fallback for non-oidc/proxy users or if the above logic fails
-  document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
-  mutations.setCurrentUser(null);
-  router.push({ path: "/login" });
 }
 
 // Helper function to retrieve the value of a specific cookie

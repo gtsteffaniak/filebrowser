@@ -41,7 +41,6 @@ export default defineComponent({
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
-      url: state.req.url,
     });
   },
   methods: {

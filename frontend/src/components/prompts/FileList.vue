@@ -1,5 +1,18 @@
 <template>
   <div>
+    <!-- Source Selection Dropdown (only show if multiple sources available) -->
+    <div v-if="availableSources.length > 1" class="source-selector" style="margin-bottom: 1rem;">
+      <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+        {{ $t("prompts.destinationSource") }}
+      </label>
+      <select id="destinationSource" v-model="currentSource" @change="onSourceChange"
+          class="input input--block">
+        <option v-for="source in availableSources" :key="source" :value="source">
+          {{ source }}
+        </option>
+      </select>
+    </div>
+
     <div>Source: {{ sourcePath.source }} </div> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
     <div aria-label="filelist-path" class="searchContext">{{$t('search.path')}} {{ sourcePath.path }}</div>
     <ul class="file-list">
@@ -10,10 +23,10 @@
         role="button"
         tabindex="0"
         :aria-label="item.name"
-        :aria-selected="selected == item.url"
+        :aria-selected="selected == item.path"
         :key="item.name"
         v-for="item in items"
-        :data-url="item.url"
+        :data-path="item.path"
       >
         {{ item.name }}
       </li>
@@ -23,47 +36,113 @@
 
 <script>
 import { state, mutations } from "@/store";
-import url from "@/utils/url.js";
-import { extractSourceFromPath } from "@/utils/url.js";
+import { url } from "@/utils";
 import { filesApi } from "@/api";
 
 export default {
   name: "file-list",
+  props: {
+    browseSource: {
+      type: String,
+      default: null,
+    },
+  },
   data: function () {
+    const initialSource = this.browseSource || state.req.source;
+    // Use current path if browsing the same source as current, otherwise start at root
+    const initialPath = this.browseSource && this.browseSource !== state.req.source ? "/" : state.req.path;
+    
     return {
       items: [],
+      path: initialPath,
+      source: initialSource,
       touches: {
         id: "",
         count: 0,
       },
       selected: null,
+      selectedSource: null,
       current: window.location.pathname,
+      currentSource: initialSource,
     };
   },
   computed: {
     sourcePath() {
-      return extractSourceFromPath(decodeURIComponent(this.current), "files");
+      return { source: this.source, path: this.path };
+    },
+    effectiveSource() {
+      return this.browseSource || state.req.source;
+    },
+    availableSources() {
+      // Get all available sources from state.sources.info
+      return state.sources && state.sources.info ? Object.keys(state.sources.info) : [state.req.source];
+    },
+  },
+  watch: {
+    browseSource(newSource) {
+      if (newSource && newSource !== this.source) {
+        this.currentSource = newSource;
+        this.resetToSource(newSource);
+      }
+    },
+    currentSource(newSource) {
+      if (newSource && newSource !== this.source) {
+        this.resetToSource(newSource);
+      }
     },
   },
   mounted() {
-    this.fillOptions(state.req);
+    // Use currentSource if provided, otherwise use state.req
+    const sourceToUse = this.currentSource;
+    const pathToUse = this.currentSource !== state.req.source ? "/" : state.req.path;
+    
+    const initialReq = {
+      ...state.req,
+      source: sourceToUse,
+      path: pathToUse,
+    };
+    
+    // Fetch the initial data for the source
+    if (this.currentSource !== state.req.source) {
+      filesApi.fetchFiles(sourceToUse, pathToUse).then(this.fillOptions);
+    } else {
+      this.fillOptions(initialReq);
+    }
   },
   methods: {
+    resetToSource(newSource) {
+      // Use current path if browsing the same source as current, otherwise start at root
+      const newPath = newSource === state.req.source ? state.req.path : "/";
+      
+      // Reset to the appropriate path for the new source
+      this.path = newPath;
+      this.source = newSource;
+      this.selected = null;
+      this.selectedSource = null;
+      // Fetch files for the new source
+      filesApi.fetchFiles(newSource, newPath).then(this.fillOptions);
+    },
     fillOptions(req) {
       // Sets the current path and resets
       // the current items.
-      this.current = req.url;
+      this.current = req.path;
+      this.source = req.source;
       this.items = [];
 
-      this.$emit("update:selected", this.current);
+      // Emit both path and source
+      this.$emit("update:selected", {
+        path: this.current,
+        source: this.source
+      });
 
       // If the path isn't the root path,
       // show a button to navigate to the previous
       // directory.
-      if (req.url !== "/files/") {
+      if (req.path !== "/") {
         this.items.push({
           name: "..",
-          url: url.removeLastDir(req.url) + "/",
+          path: url.removeLastDir(req.path) + "/",
+          source: req.source,
         });
       }
 
@@ -76,7 +155,8 @@ export default {
         if (item.type != "directory") continue;
         this.items.push({
           name: item.name,
-          url: item.url,
+          path: item.path,
+          source: item.source || req.source,
         });
       }
     },
@@ -84,11 +164,16 @@ export default {
       // Retrieves the URL of the directory the user
       // just clicked in and fill the options with its
       // content.
-      let uri = event.currentTarget.dataset.url;
-      filesApi.fetchFiles(uri).then(this.fillOptions);
+      let path = event.currentTarget.dataset.path;
+      let clickedItem = this.items.find(item => item.path === path);
+      let sourceToUse = clickedItem ? clickedItem.source : this.source;
+      
+      this.path = path;
+      this.source = sourceToUse;
+      filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions);
     },
     touchstart(event) {
-      let url = event.currentTarget.dataset.url;
+      let url = event.currentTarget.dataset.path;
 
       // In 300 milliseconds, we shall reset the count.
       setTimeout(() => {
@@ -117,16 +202,28 @@ export default {
       else this.select(event);
     },
     select: function (event) {
+      let path = event.currentTarget.dataset.path;
+      
       // If the element is already selected, unselect it.
-      if (this.selected === event.currentTarget.dataset.url) {
+      if (this.selected === path) {
         this.selected = null;
-        this.$emit("update:selected", this.current);
+        this.selectedSource = null;
+        this.$emit("update:selected", {
+          path: this.current,
+          source: this.source
+        });
         return;
       }
 
       // Otherwise select the element.
-      this.selected = event.currentTarget.dataset.url;
-      this.$emit("update:selected", this.selected);
+      this.selected = path;
+      let clickedItem = this.items.find(item => item.path === path);
+      this.selectedSource = clickedItem ? clickedItem.source : this.source;
+      
+      this.$emit("update:selected", {
+        path: this.selected,
+        source: this.selectedSource
+      });
     },
     createDir: async function () {
       mutations.showHover({
@@ -135,9 +232,12 @@ export default {
         confirm: null,
         props: {
           redirect: false,
-          base: this.current === state.route.path ? null : this.current,
+          base: this.current === this.path ? null : this.current,
         },
       });
+    },
+    onSourceChange() {
+      this.resetToSource(this.currentSource);
     },
   },
 };

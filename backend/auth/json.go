@@ -10,7 +10,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // JSONAuth is a json implementation of an Auther.
@@ -59,15 +58,7 @@ func (auther JSONAuth) Auth(r *http.Request, userStore *users.Storage) (*users.U
 	}
 
 	if user.LoginMethod != users.LoginMethodPassword {
-		logger.Warningf("user %s is not allowed to login with password authentication, bypassing and updating login method", user.Username)
-		user.LoginMethod = users.LoginMethodPassword
-		// Perform the user update
-		err = userStore.Update(user, true, "LoginMethod")
-		if err != nil {
-			logger.Debug(err.Error())
-		}
-		//http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		//return
+		return nil, errors.ErrWrongLoginMethod
 	}
 
 	return user, nil

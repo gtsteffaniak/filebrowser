@@ -40,7 +40,13 @@
     "copyDownloadLinkToClipboard": "Download-Link in die Zwischenablage kopieren",
     "edit": "bearbeiten",
     "generateNewOtp": "Zurücksetzen und Generieren eines neuen Zwei-Faktor-Codes",
-    "verify": "Überprüfen Sie"
+    "verify": "Überprüfen Sie",
+    "pause": "Pause",
+    "resume": "Lebenslauf",
+    "retry": "Wiederholung",
+    "pauseAll": "Pause alle",
+    "resumeAll": "Alle zusammenfassen",
+    "clearCompleted": "Löschen abgeschlossen"
   },
   "download": {
     "downloadFile": "Datei herunterladen",
@@ -91,6 +97,7 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
@@ -109,7 +116,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Konto erstellen",
@@ -163,7 +171,12 @@
     "deleteUserMessage": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?",
     "filesSelected": "ausgewählte Dateien",
     "typeName": "Art:",
-    "selected": "ausgewählt"
+    "selected": "ausgewählt",
+    "deleted": "Erfolgreich gelöscht!",
+    "destinationSource": "Ziel Quelle:",
+    "dragAndDrop": "Dateien hierher ziehen und ablegen",
+    "completed": "Abgeschlossen",
+    "conflictsDetected": "Erkannte Widersprüche"
   },
   "search": {
     "images": "Bilder",
@@ -244,7 +257,6 @@
     "scope": "Scope",
     "setDateFormat": "Exaktes Datumsformat setzen",
     "settingsUpdated": "Einstellungen aktualisiert!",
-    "shareDuration": "Dauer",
     "shareManagement": "Freigaben verwalten",
     "shareDeleted": "Freigabe gelöscht!",
     "singleClick": "Einfacher Klick zum Öffnen von Dateien und Ordnern",
@@ -288,7 +300,9 @@
     "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren",
     "disableOfficePreviews": "Office-Vorschauen für bestimmte Dateierweiterungen deaktivieren",
     "disableOfficePreviewsDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Vorschau deaktiviert werden soll. (z. B. '.txt .html').",
-    "adminOptions": "Optionen für Verwaltungsbenutzer"
+    "adminOptions": "Optionen für Verwaltungsbenutzer",
+    "shareDuration": "Abgelaufen",
+    "searchOptions": "Suchoptionen"
   },
   "sidebar": {
     "help": "Hilfe",
@@ -303,7 +317,8 @@
     "signup": "Registrieren",
     "siteSettings": "Seiteneinstellungen",
     "sources": "Quellen",
-    "updateIsAvailable": "Ein Update ist verfügbar!"
+    "updateIsAvailable": "Ein Update ist verfügbar!",
+    "fileActions": "Datei-Aktionen"
   },
   "success": {
     "linkCopied": "Link wurde kopiert!"
@@ -359,7 +374,8 @@
     "toggleDark": "Dunkelmodus umschalten",
     "toggleSticky": "Sticky-Modus umschalten",
     "of": "von",
-    "used": "belegt"
+    "used": "belegt",
+    "noSources": "Für diesen Benutzer sind keine Quellen verfügbar. Entweder eine Quelle für diesen Benutzer hinzufügen oder eine Quelle mit defaultEnabled: true konfigurieren"
   },
   "profileSettings": {
     "setDateFormat": "Genaues Datumsformat einstellen",
@@ -375,7 +391,14 @@
     "editOffice": "Office-Dateien bearbeiten/anzeigen",
     "disableUpdateNotifications": "Deaktivieren Sie die Anzeige des Banners für Benachrichtigungsaktualisierungen in der Seitenleiste.",
     "disableHideSidebar": "Deaktivieren Sie das automatische Ausblenden der Seitenleiste bei der Vorschau oder Bearbeitung von Dateien.",
-    "autoplayMedia": "Autoplay von Mediendateien in der Vorschau"
+    "autoplayMedia": "Autoplay von Mediendateien in der Vorschau",
+    "deleteWithoutConfirming": "Dateien ohne Sicherheitsabfrage löschen",
+    "sidebarOptions": "Optionen für die Seitenleiste",
+    "disableQuickToggles": "Quick Toggles deaktivieren",
+    "disableSearchOptions": "Suchoptionen deaktivieren",
+    "hideSidebarFileActions": "Datei-Aktionen in der Seitenleiste ausblenden",
+    "editorViewerOptions": "Editor- und Viewer-Optionen",
+    "editorQuickSave": "Schaltfläche zum schnellen Speichern im Editor anzeigen"
   },
   "otp": {
     "name": "Zwei-Faktoren-Authentifizierung",
@@ -416,5 +439,12 @@
     "added": "Zugangsregel hinzugefügt!",
     "name": "Name",
     "accessManagement": "Zugangsverwaltung"
+  },
+  "fileLoading": {
+    "title": "Uploads & Downloads",
+    "maxConcurrentUpload": "Max. gleichzeitige Uploads",
+    "maxConcurrentUploadHelp": "Die maximale Anzahl der gleichzeitigen Uploads. Höhere Werte führen in der Regel zu einer besseren Leistung, aber dies hängt von vielen Faktoren ab.",
+    "uploadChunkSizeMb": "Größe des hochzuladenden Pakets in MB",
+    "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen."
   }
 }

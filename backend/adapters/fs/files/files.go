@@ -29,9 +29,6 @@ import (
 
 func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error) {
 	response := iteminfo.ExtendedFileInfo{}
-	if opts.Source == "" {
-		opts.Source = settings.Config.Server.DefaultSource.Name
-	}
 	index := indexing.GetIndex(opts.Source)
 	if index == nil {
 		return response, fmt.Errorf("could not get index: %v ", opts.Source)
@@ -139,6 +136,9 @@ func DeleteFiles(source, absPath string, absDirPath string) error {
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
+	if index.Config.DisableIndexing {
+		return nil
+	}
 	refreshConfig := iteminfo.FileOptions{Path: index.MakeIndexPath(absDirPath), IsDir: true}
 	err = index.RefreshFileInfo(refreshConfig)
 	if err != nil {
@@ -147,38 +147,28 @@ func DeleteFiles(source, absPath string, absDirPath string) error {
 	return nil
 }
 
+func RefreshIndex(source string, path string, isDir bool) error {
+	idx := indexing.GetIndex(source)
+	if idx == nil {
+		return fmt.Errorf("could not get index: %v ", source)
+	}
+	if idx.Config.DisableIndexing {
+		return nil
+	}
+	path = idx.MakeIndexPath(path)
+	return idx.RefreshFileInfo(iteminfo.FileOptions{Path: path, IsDir: isDir})
+}
+
 func MoveResource(sourceIndex, destIndex, realsrc, realdst string) error {
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	idxSrc := indexing.GetIndex(sourceIndex)
-	if idxSrc == nil {
-		return fmt.Errorf("could not get index: %v ", sourceIndex)
-	}
-	idxDst := indexing.GetIndex(destIndex)
-	if idxDst == nil {
-		return fmt.Errorf("could not get index: %v ", sourceIndex)
-	}
-	refreshSourceDir := idxSrc.MakeIndexPath(filepath.Dir(realsrc))
-	refreshDestDir := idxDst.MakeIndexPath(filepath.Dir(realdst))
-	// refresh info for source and dest
-	err = idxSrc.RefreshFileInfo(iteminfo.FileOptions{
-		Path:  refreshSourceDir,
-		IsDir: true,
-	})
+	err = RefreshIndex(sourceIndex, filepath.Dir(realsrc), true)
 	if err != nil {
-		return fmt.Errorf("could not refresh index for source: %v", err)
+		return err
 	}
-	if refreshSourceDir == refreshDestDir {
-		return nil
-	}
-	refreshConfig := iteminfo.FileOptions{Path: refreshDestDir, IsDir: true}
-	err = idxDst.RefreshFileInfo(refreshConfig)
-	if err != nil {
-		return fmt.Errorf("could not refresh index for dest: %v", err)
-	}
-	return nil
+	return RefreshIndex(destIndex, filepath.Dir(realdst), true)
 }
 
 func CopyResource(sourceIndex, destIndex, realsrc, realdst string) error {
@@ -186,33 +176,11 @@ func CopyResource(sourceIndex, destIndex, realsrc, realdst string) error {
 	if err != nil {
 		return err
 	}
-	idxSrc := indexing.GetIndex(sourceIndex)
-	if idxSrc == nil {
-		return fmt.Errorf("could not get index: %v ", sourceIndex)
-	}
-	idxDst := indexing.GetIndex(destIndex)
-	if idxDst == nil {
-		return fmt.Errorf("could not get index: %v ", sourceIndex)
-	}
-	refreshSourceDir := idxSrc.MakeIndexPath(filepath.Dir(realsrc))
-	refreshDestDir := idxDst.MakeIndexPath(filepath.Dir(realdst))
-	index := indexing.GetIndex(sourceIndex)
-	if index == nil {
-		return fmt.Errorf("could not get index: %v ", sourceIndex)
-	}
-	refreshConfig := iteminfo.FileOptions{Path: refreshSourceDir, IsDir: true}
-	// refresh info for source and dest
-	err = index.RefreshFileInfo(refreshConfig)
+	err = RefreshIndex(sourceIndex, filepath.Dir(realsrc), true)
 	if err != nil {
-		return fmt.Errorf("could not refresh index for source: %v", err)
+		return err
 	}
-	refreshConfig.Path = refreshDestDir
-	err = index.RefreshFileInfo(refreshConfig)
-	if err != nil {
-		return errors.ErrEmptyKey
-	}
-
-	return nil
+	return RefreshIndex(destIndex, filepath.Dir(realdst), true)
 }
 
 func WriteDirectory(opts iteminfo.FileOptions) error {
@@ -226,11 +194,7 @@ func WriteDirectory(opts iteminfo.FileOptions) error {
 	if err != nil {
 		return err
 	}
-	err = idx.RefreshFileInfo(opts)
-	if err != nil {
-		return errors.ErrEmptyKey
-	}
-	return nil
+	return RefreshIndex(idx.Name, opts.Path, true)
 }
 
 func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
@@ -239,13 +203,11 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
 	dst, _, _ := idx.GetRealPath(opts.Path)
-	parentDir := filepath.Dir(dst)
-	// Create the directory and all necessary parents
-	err := os.MkdirAll(parentDir, 0775)
+	// Ensure the parent directories exist
+	err := os.MkdirAll(filepath.Dir(dst), 0775)
 	if err != nil {
 		return err
 	}
-
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
 	file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0775)
 	if err != nil {
@@ -258,9 +220,7 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	if err != nil {
 		return err
 	}
-	opts.Path = idx.MakeIndexPath(parentDir)
-	opts.IsDir = true
-	return idx.RefreshFileInfo(opts)
+	return RefreshIndex(opts.Source, opts.Path, false)
 }
 
 // getContent reads and returns the file content if it's considered an editable text file.

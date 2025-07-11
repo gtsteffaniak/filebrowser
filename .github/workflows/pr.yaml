@@ -3,10 +3,9 @@ name: PR Request
 on:
   pull_request:
     branches:
-      - "dev/v[0-9]+.[0-9]+.[0-9]+"
-      - "beta/v[0-9]+.[0-9]+.[0-9]+"
-      - "stable/v[0-9]+.[0-9]+.[0-9]+"
-
+      - "dev/v*.*.*"
+      - "beta/v*.*.*"
+      - "stable/v*.*.*"
 jobs:
   test_playwright:
     name: Test Playwright - general
@@ -81,6 +80,7 @@ jobs:
           file: ./_docker/Dockerfile.playwright-noauth
           push: false
   push_pr_to_registry:
+    if: github.event.pull_request.head.repo.fork == false
     name: Build docker image
     runs-on: ubuntu-latest
     steps:

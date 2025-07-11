@@ -113,6 +113,7 @@ export default {
         await usersApi.createApiKey(params);
         notify.showSuccess($t("api.createKeySuccess"));
         window.location.reload();
+        mutations.closeHovers();
       } catch (error) {
         notify.showError($t("api.createKeyFailed"));
       }

@@ -22,7 +22,6 @@ import (
 
 type requestContext struct {
 	user     *users.User
-	raw      interface{}
 	fileInfo iteminfo.ExtendedFileInfo
 	path     string
 	token    string
@@ -84,7 +83,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
 		// Set the file info in the `data` object
-		data.raw = file
+		data.fileInfo = file
 		// Call the next handler with the data
 		return fn(w, r, data)
 	}
@@ -187,7 +186,7 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if !token.Valid {
 			return http.StatusUnauthorized, fmt.Errorf("invalid token")
 		}
-		if auth.IsRevokedApiKey(tk.Key) || tk.Expires < time.Now().Unix() {
+		if auth.IsRevokedApiKey(data.token) || tk.Expires < time.Now().Unix() {
 			return http.StatusUnauthorized, fmt.Errorf("token expired or revoked")
 		}
 		// Check if the token is about to expire and send a header to renew it

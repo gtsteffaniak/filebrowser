@@ -40,7 +40,13 @@
     "continue": "Continuar",
     "edit": "Editar",
     "generateNewOtp": "Redefinir e gerar um novo código de dois fatores",
-    "verify": "Verificar"
+    "verify": "Verificar",
+    "pause": "Pausa",
+    "resume": "Currículo",
+    "retry": "Repetir",
+    "pauseAll": "Pausar tudo",
+    "resumeAll": "Retomar tudo",
+    "clearCompleted": "Limpar concluído"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -91,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Criar uma conta",
@@ -163,7 +171,12 @@
     "deleteUserMessage": "Tem certeza de que deseja excluir esse usuário?",
     "filesSelected": "arquivos selecionados",
     "typeName": "Tipo:",
-    "selected": "selecionado"
+    "selected": "selecionado",
+    "deleted": "Excluído com sucesso!",
+    "destinationSource": "Origem do destino:",
+    "dragAndDrop": "Arraste e solte os arquivos aqui",
+    "completed": "Concluído",
+    "conflictsDetected": "Conflitos detectados"
   },
   "search": {
     "images": "Imagens",
@@ -243,7 +256,6 @@
     "scope": "Escopo",
     "setDateFormat": "Definir formato exato de data",
     "settingsUpdated": "Configurações atualizadas!",
-    "shareDuration": "Duração do compartilhamento",
     "shareManagement": "Gerenciamento do compartilhamento",
     "shareDeleted": "Compartilhamento apagado!",
     "singleClick": "Usar clique único para abrir arquivos e diretórios",
@@ -288,7 +300,9 @@
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
     "disableOfficePreviews": "Desativar as visualizações do Office para determinadas extensões de arquivo",
     "disableOfficePreviewsDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações do Office. (por exemplo, '.txt .html').",
-    "adminOptions": "Opções do usuário administrador"
+    "adminOptions": "Opções do usuário administrador",
+    "shareDuration": "Expirações",
+    "searchOptions": "Opções de pesquisa"
   },
   "sidebar": {
     "help": "Ajuda",
@@ -303,7 +317,8 @@
     "signup": "Cadastrar",
     "siteSettings": "Configurações do site",
     "sources": "Fontes",
-    "updateIsAvailable": "Uma atualização está disponível!"
+    "updateIsAvailable": "Uma atualização está disponível!",
+    "fileActions": "Ações de arquivo"
   },
   "success": {
     "linkCopied": "Link copiado!"
@@ -359,7 +374,8 @@
     "toggleDark": "Alternar o modo escuro",
     "toggleSticky": "Alternar o modo de aderência",
     "of": "de",
-    "used": "usado"
+    "used": "usado",
+    "noSources": "Não há fontes disponíveis para esse usuário. Adicione uma fonte para esse usuário ou configure uma fonte com defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "Definir o formato exato da data",
@@ -375,7 +391,14 @@
     "editOffice": "Editar/visualizar arquivos de escritório",
     "disableUpdateNotifications": "Desativar a exibição do banner de atualização de notificação na barra lateral.",
     "disableHideSidebar": "Desative a ocultação automática da barra lateral ao visualizar ou editar arquivos.",
-    "autoplayMedia": "Reprodução automática de arquivos de mídia na visualização"
+    "autoplayMedia": "Reprodução automática de arquivos de mídia na visualização",
+    "deleteWithoutConfirming": "Excluir arquivos sem prompt de confirmação",
+    "sidebarOptions": "Opções da barra lateral",
+    "disableQuickToggles": "Desativar as alternâncias rápidas",
+    "disableSearchOptions": "Desativar opções de pesquisa",
+    "hideSidebarFileActions": "Ocultar ações de arquivo na barra lateral",
+    "editorViewerOptions": "Opções de editor e visualizador",
+    "editorQuickSave": "Mostrar o botão de salvamento rápido no editor"
   },
   "otp": {
     "name": "Autenticação de dois fatores",
@@ -416,5 +439,12 @@
     "added": "Regra de acesso adicionada!",
     "name": "Nome",
     "accessManagement": "Gerenciamento de acesso"
+  },
+  "fileLoading": {
+    "title": "Uploads e downloads",
+    "maxConcurrentUpload": "Máximo de uploads simultâneos",
+    "maxConcurrentUploadHelp": "O número máximo de uploads simultâneos. Valores mais altos costumam ter melhor desempenho, mas isso depende de muitos fatores.",
+    "uploadChunkSizeMb": "Tamanho do bloco de upload em MB",
+    "uploadChunkSizeMbHelp": "Normalmente, de 5 a 50 MB; quanto menor, melhor para conexões instáveis ou restritas. A configuração como 0 desabilitará o chunking de upload."
   }
 }

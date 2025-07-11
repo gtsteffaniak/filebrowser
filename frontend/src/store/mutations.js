@@ -10,6 +10,9 @@ import { serverHasMultipleSources } from "@/utils/constants.js";
 export const mutations = {
   setHasContextItems: (value) => {
     state.contextMenuItems = value;
+  },
+  setDeletedItem: (value) => {
+    state.deletedItem = value;
     emitStateChanged();
   },
   setSeenUpdate: (value) => {
@@ -142,13 +145,7 @@ export const mutations = {
     emitStateChanged();
   },
   toggleSidebar() {
-    if (state.user.stickySidebar) {
-      localStorage.setItem("stickySidebar", "false");
-      mutations.updateCurrentUser({ "stickySidebar": false }); // turn off sticky when closed
-      state.showSidebar = false;
-    } else {
-      state.showSidebar = !state.showSidebar;
-    }
+    state.showSidebar = !state.showSidebar;
     if (state.showSidebar) {
       state.multiButtonState = "back";
     } else {
@@ -172,11 +169,23 @@ export const mutations = {
   },
   closeHovers: () => {
     const previousState = state.multiButtonLastState;
-    state.multiButtonLastState = mutations.multiButtonState;
+    state.multiButtonLastState = state.multiButtonState;
     state.multiButtonState = previousState;
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
+    }
+    emitStateChanged();
+  },
+  closeTopHover: () => {
+    state.prompts.pop();
+    if (state.prompts.length === 0) {
+      const previousState = state.multiButtonLastState;
+      state.multiButtonLastState = state.multiButtonState;
+      state.multiButtonState = previousState;
+      if (!state.stickySidebar) {
+        state.showSidebar = false;
+      }
     }
     emitStateChanged();
   },
@@ -228,6 +237,8 @@ export const mutations = {
         i18n.setLocale(value.locale);
       }
       state.user = value;
+      state.user.sorting.by = "name";
+      state.user.sorting.asc = true;
     } catch (error) {
       console.log(error);
     }
@@ -263,6 +274,10 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
+  setLastSelectedIndex: (index) => {
+    state.lastSelectedIndex = index;
+    emitStateChanged();
+  },
   setRaw: (value) => {
     state.previewRaw = value;
     emitStateChanged();
@@ -290,31 +305,37 @@ export const mutations = {
     }
 
     // Update localStorage if stickySidebar exists
-    if ('stickySidebar' in state.user) {
-      localStorage.setItem("stickySidebar", state.user.stickySidebar);
-      if (state.user.stickySidebar && getters.currentView() == "listingView") {
-        state.multiButtonState = "menu";
-      } else if (state.showSidebar) {
-        state.multiButtonState = "back";
-      }
+    if (state.user.stickySidebar && getters.currentView() == "listingView") {
+      state.multiButtonState = "menu";
+    } else if (state.showSidebar) {
+      state.multiButtonState = "back";
     }
 
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
-      usersApi.update(state.user, [
-        "locale",
-        "dateFormat",
-        "themeColor",
-        "quickDownload",
-        "disableOnlyOfficeExt",
-        "preview",
-        "stickySidebar",
-        "darkMode",
-        "showHidden",
-        "sorting",
-        "gallerySize",
-        "viewMode",
-      ]);
+      // Only update the properties that were actually provided in the input
+      const updatedProperties = Object.keys(value).filter(key =>
+        [
+          "locale",
+          "dateFormat",
+          "themeColor",
+          "quickDownload",
+          "disableOnlyOfficeExt",
+          "preview",
+          "stickySidebar",
+          "singleClick",
+          "darkMode",
+          "showHidden",
+          "sorting",
+          "gallerySize",
+          "viewMode",
+        ].includes(key)
+      );
+      value.id = state.user.id;
+      value.username = state.user.username;
+      if (updatedProperties.length > 0) {
+        usersApi.update(value, updatedProperties);
+      }
     }
 
     // Emit state change event
@@ -330,6 +351,23 @@ export const mutations = {
     if (!state.user.showHidden) {
       value.items = value.items.filter((item) => !item.hidden);
     }
+    let sortby = "name"
+    let asc = true
+    if (state.user.username && state.user?.username != "publicUser") {
+      sortby = state.user.sorting.by;
+      asc = state.user.sorting.asc;
+    }
+
+    // Separate directories and files
+    const dirs = value.items.filter((item) => item.type === 'directory');
+    const files = value.items.filter((item) => item.type !== 'directory');
+
+    // Sort them separately
+    const sortedDirs = sortedItems(dirs, sortby, asc);
+    const sortedFiles = sortedItems(files, sortby, asc);
+
+    // Combine them and assign indices
+    value.items = [...sortedDirs, ...sortedFiles];
     value.items.map((item, index) => {
       item.index = index;
       return item;
@@ -347,7 +385,6 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingItems: () => {
-    state.req.items = sortedItems(state.req.items, state.user.sorting.by)
     mutations.replaceRequest(state.req);
     emitStateChanged();
   },
@@ -370,5 +407,19 @@ export const mutations = {
     state.isSearchActive = value;
     emitStateChanged();
   },
+  showTooltip(value) {
+    state.tooltip.content = value.content;
+    state.tooltip.x = value.x;
+    state.tooltip.y = value.y;
+    state.tooltip.show = true;
+    emitStateChanged();
+  },
+  hideTooltip() {
+    state.tooltip.show = false;
+    emitStateChanged();
+  },
+  setMaxConcurrentUpload: (value) => {
+    state.user.fileLoading.maxConcurrentUpload = value;
+    emitStateChanged();
+  },
 };
-

@@ -3,40 +3,17 @@
     <div class="preview">
       <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw">
       </ExtendedImage>
-      <audio
-        v-else-if="previewType == 'audio'"
-        ref="player"
-        :src="raw"
-        controls
-        :autoplay="autoPlay"
-        @play="autoPlay = true"
-      ></audio>
-      <video
-        v-else-if="previewType == 'video'"
-        ref="player"
-        :src="raw"
-        controls
-        :autoplay="autoPlay"
-        @play="autoPlay = true"
-      >
-        <track
-          kind="captions"
-          v-for="(sub, index) in subtitlesList"
-          :key="index"
-          :src="sub.src"
-          :label="'Subtitle ' + sub.name"
-          :default="index === 0"
-        />
+      <audio v-else-if="previewType == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
+        @play="autoPlay = true"></audio>
+      <video v-else-if="previewType == 'video'" ref="player" :src="raw" controls :autoplay="autoPlay"
+        @play="autoPlay = true">
+        <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
+          :label="'Subtitle ' + sub.name" :default="index === 0" />
       </video>
 
       <div v-else-if="previewType == 'pdf'" class="pdf-wrapper">
         <iframe class="pdf" :src="raw"></iframe>
-        <a
-          v-if="isMobileSafari"
-          :href="raw"
-          target="_blank"
-          class="button button--flat floating-btn"
-        >
+        <a v-if="isMobileSafari" :href="raw" target="_blank" class="button button--flat floating-btn">
           <div>
             <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
           </div>
@@ -54,12 +31,7 @@
               <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
             </div>
           </a>
-          <a
-            target="_blank"
-            :href="raw"
-            class="button button--flat"
-            v-if="req.type != 'directory'"
-          >
+          <a target="_blank" :href="raw" class="button button--flat" v-if="req.type != 'directory'">
             <div>
               <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
             </div>
@@ -68,24 +40,13 @@
       </div>
     </div>
 
-    <button
-      @click="prev"
-      @mouseover="hoverNav = true"
-      @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasPrevious || !showNav }"
-      :aria-label="$t('buttons.previous')"
-      :title="$t('buttons.previous')"
-    >
+    <button @click="prev" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasPrevious || !showNav }" :aria-label="$t('buttons.previous')"
+      :title="$t('buttons.previous')">
       <i class="material-icons">chevron_left</i>
     </button>
-    <button
-      @click="next"
-      @mouseover="hoverNav = true"
-      @mouseleave="hoverNav = false"
-      :class="{ hidden: !hasNext || !showNav }"
-      :aria-label="$t('buttons.next')"
-      :title="$t('buttons.next')"
-    >
+    <button @click="next" @mouseover="hoverNav = true" @mouseleave="hoverNav = false"
+      :class="{ hidden: !hasNext || !showNav }" :aria-label="$t('buttons.next')" :title="$t('buttons.next')">
       <i class="material-icons">chevron_right</i>
     </button>
     <link rel="prefetch" :href="previousRaw" />
@@ -94,7 +55,7 @@
 </template>
 <script>
 import { filesApi } from "@/api";
-import url from "@/utils/url.js";
+import { url } from "@/utils";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
@@ -191,18 +152,46 @@ export default {
     req() {
       return state.req;
     },
+    deletedItem() {
+      return state.deletedItem;
+    },
   },
   watch: {
+    deletedItem() {
+      if (!state.deletedItem) {
+        return;
+      }
+      if (this.hasNext) {
+        this.next();
+      } else if (!this.hasPrevious && !this.hasNext) {
+        this.close();
+      } else {
+        this.prev();
+      }
+      mutations.setDeletedItem(false);
+    },
     req() {
       if (!getters.isLoggedIn()) {
         return;
       }
       this.updatePreview();
       this.toggleNavigation();
+      mutations.resetSelected();
+      mutations.addSelected({
+        name: state.req.name,
+        path: state.req.path,
+        size: state.req.size,
+        type: state.req.type,
+        source: state.req.source,
+      });
     },
   },
   async mounted() {
-    window.addEventListener("keydown", this.key);
+    if (state.req.items) {
+      this.listing = state.req.items;
+    }
+    mutations.setDeletedItem(false);
+    window.addEventListener("keydown", this.keyEvent);
     this.subtitlesList = await this.subtitles();
     this.updatePreview();
     mutations.resetSelected();
@@ -212,11 +201,10 @@ export default {
       size: state.req.size,
       type: state.req.type,
       source: state.req.source,
-      url: state.req.url,
     });
   },
   beforeUnmount() {
-    window.removeEventListener("keydown", this.key);
+    window.removeEventListener("keydown", this.keyEvent);
   },
   methods: {
     async subtitles() {
@@ -226,8 +214,8 @@ export default {
       let subs = [];
       for (const subtitleFile of state.req.subtitles) {
         const ext = getFileExtension(subtitleFile);
-        const subUrl = url.removeLastDir(state.req.url) + "/" + subtitleFile;
-        const resp = await filesApi.fetchFiles(subUrl, true); // Fetch .srt file
+        const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
+        const resp = await filesApi.fetchFiles(state.req.source, path, true); // Fetch .srt file
         let vttContent = resp.content;
         // Convert SRT to VTT (assuming srt2vtt() does this)
         vttContent = convertToVTT(ext, resp.content);
@@ -241,21 +229,6 @@ export default {
       }
       return subs;
     },
-    deleteFile() {
-      this.currentPrompt = {
-        name: "delete",
-        confirm: () => {
-          this.listing = this.listing.filter((item) => item.name !== this.name);
-          if (this.hasNext) {
-            this.next();
-          } else if (!this.hasPrevious && !this.hasNext) {
-            this.close();
-          } else {
-            this.prev();
-          }
-        },
-      };
-    },
     prev() {
       this.hoverNav = false;
       this.$router.replace({ path: this.previousLink });
@@ -264,7 +237,7 @@ export default {
       this.hoverNav = false;
       this.$router.replace({ path: this.nextLink });
     },
-    async key(event) {
+    async keyEvent(event) {
       if (getters.currentPromptName() != null) {
         return;
       }
@@ -281,6 +254,9 @@ export default {
           if (this.hasPrevious) {
             this.prev();
           }
+          break;
+        case "Delete":
+          mutations.showHover("delete")
           break;
         case "Escape":
         case "Backspace":
@@ -308,8 +284,8 @@ export default {
       }
 
       if (!this.listing) {
-        const path = url.removeLastDir(getters.routePath());
-        const res = await filesApi.fetchFiles(path);
+        const path = url.removeLastDir(state.req.path);
+        const res = await filesApi.fetchFiles(state.req.source, path);
         this.listing = res.items;
       }
       this.name = state.req.name;
@@ -318,9 +294,6 @@ export default {
       const path = state.req.path;
 
       let directoryPath = path.substring(0, path.lastIndexOf("/"));
-      if (directoryPath == "") {
-        directoryPath = "/";
-      }
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
           continue;
@@ -328,7 +301,7 @@ export default {
         for (let j = i - 1; j >= 0; j--) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
-          this.previousLink = composedListing.url;
+          this.previousLink = url.buildItemUrl(composedListing.source, composedListing.path);
           if (getTypeInfo(composedListing.type).simpleType == "image") {
             this.previousRaw = this.prefetchUrl(composedListing);
           }
@@ -337,7 +310,7 @@ export default {
         for (let j = i + 1; j < this.listing.length; j++) {
           let composedListing = this.listing[j];
           composedListing.path = directoryPath + "/" + composedListing.name;
-          this.nextLink = composedListing.url;
+          this.nextLink = url.buildItemUrl(composedListing.source, composedListing.path);
           if (getTypeInfo(composedListing.type).simpleType == "image") {
             this.nextRaw = this.prefetchUrl(composedListing);
           }
@@ -378,7 +351,8 @@ export default {
       this.$router.push({ path: uri });
     },
     download() {
-      window.open(this.downloadUrl);
+      const items = [state.req];
+      downloadFiles(items);
     },
   },
 };
@@ -401,6 +375,7 @@ export default {
   background: rgba(0, 0, 0, 0.5);
   color: white;
 }
+
 .pdf-wrapper .floating-btn:hover {
   background: rgba(0, 0, 0, 0.7);
 }

@@ -40,7 +40,13 @@
     "continue": "続ける",
     "edit": "編集",
     "generateNewOtp": "リセットして新しい2ファクタコードを生成する",
-    "verify": "ベリファイ"
+    "verify": "ベリファイ",
+    "pause": "ポーズ",
+    "resume": "履歴書",
+    "retry": "リトライ",
+    "pauseAll": "一時停止",
+    "resumeAll": "すべての履歴書",
+    "clearCompleted": "クリア完了"
   },
   "download": {
     "downloadFile": "Download File",
@@ -91,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Create an account",
@@ -163,7 +171,12 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "任意のパスワード",
     "typeName": "タイプ",
-    "selected": "選ばれた"
+    "selected": "選ばれた",
+    "deleted": "正常に削除されました！",
+    "destinationSource": "デスティネーション・ソース",
+    "dragAndDrop": "ここにファイルをドラッグ＆ドロップする",
+    "completed": "完成",
+    "conflictsDetected": "コンフリクト検出"
   },
   "search": {
     "images": "画像",
@@ -239,7 +252,6 @@
     "rulesHelp": "ここに、あなたはこのユーザーの許可または拒否規則を設定できます。ブロックされたファイルはリストに表示されません、それではアクセスも制限されます。正規表現(regex)のサポートと範囲に相対のパスが提供されています。",
     "scope": "範囲",
     "settingsUpdated": "設定は更新されました！",
-    "shareDuration": "シェア期間",
     "shareManagement": "シェア・マネジメント",
     "singleClick": "シングルクリックでファイルやディレクトリを開く",
     "themes": {
@@ -288,7 +300,9 @@
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
     "disableOfficePreviews": "特定のファイル拡張子でオフィスのプレビューを無効にする",
     "disableOfficePreviewsDescription": "オフィスプレビューを無効にするファイル拡張子をスペースで区切ったリスト。(例: '.txt .html')。",
-    "adminOptions": "管理者ユーザーオプション"
+    "adminOptions": "管理者ユーザーオプション",
+    "shareDuration": "期限切れ",
+    "searchOptions": "検索オプション"
   },
   "sidebar": {
     "help": "ヘルプ",
@@ -303,7 +317,8 @@
     "signup": "Signup",
     "siteSettings": "サイト設定",
     "sources": "情報源",
-    "updateIsAvailable": "アップデートがある！"
+    "updateIsAvailable": "アップデートがある！",
+    "fileActions": "ファイル操作"
   },
   "success": {
     "linkCopied": "リンクがコピーされました！"
@@ -359,7 +374,8 @@
     "toggleDark": "ダークモードの切り替え",
     "toggleSticky": "スティッキーモードの切り替え",
     "of": "の",
-    "used": "中古"
+    "used": "中古",
+    "noSources": "このユーザが使用できるソースはありません。このユーザのソースを追加するか、defaultEnabled: true でソースを構成します。"
   },
   "profileSettings": {
     "setDateFormat": "正確な日付書式を設定する",
@@ -375,7 +391,14 @@
     "editOffice": "オフィスファイルの編集/閲覧",
     "disableUpdateNotifications": "サイドバーに通知更新バナーを表示しないようにしました。",
     "disableHideSidebar": "ファイルのプレビューや編集時にサイドバーを自動的に非表示にします。",
-    "autoplayMedia": "プレビューでメディアファイルを自動再生"
+    "autoplayMedia": "プレビューでメディアファイルを自動再生",
+    "deleteWithoutConfirming": "確認プロンプトなしでファイルを削除する",
+    "sidebarOptions": "サイドバーオプション",
+    "disableQuickToggles": "クイックトグルを無効にする",
+    "disableSearchOptions": "検索オプションを無効にする",
+    "hideSidebarFileActions": "サイドバーにファイルアクションを隠す",
+    "editorViewerOptions": "エディターとビューアーのオプション",
+    "editorQuickSave": "エディタにクイック保存ボタンを表示"
   },
   "otp": {
     "name": "二要素認証",
@@ -416,5 +439,12 @@
     "added": "アクセスルールが追加された！",
     "name": "名称",
     "accessManagement": "アクセス管理"
+  },
+  "fileLoading": {
+    "title": "アップロードとダウンロード",
+    "maxConcurrentUpload": "最大同時アップロード数",
+    "maxConcurrentUploadHelp": "同時アップロードの最大数。一般的に高い値の方がパフォーマンスが良いですが、これは多くの要因に依存します。",
+    "uploadChunkSizeMb": "アップロードチャンクサイズ（MB",
+    "uploadChunkSizeMbHelp": "通常5～50MBですが、不安定な接続や制限のある接続の場合は小さい方が良いでしょう。0に設定するとアップロードチャンキングが無効になります。"
   }
 }

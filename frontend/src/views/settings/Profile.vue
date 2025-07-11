@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div class="card-title">
     <h2>{{ $t("settings.profileSettings") }}</h2>
   </div>
@@ -41,6 +42,181 @@
               {{ $t("buttons.save") }}
             </button>
           </div>
+=======
+  <div class="card" :class="{ active: active }">
+    <div class="card-title">
+      <h2>{{ $t("settings.profileSettings") }}</h2>
+    </div>
+    <div class="card-content">
+      <form>
+        <div class="card-content">
+          <h3>{{ $t("profileSettings.sidebarOptions") }}</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.disableQuickToggles"
+              :name="$t('profileSettings.disableQuickToggles')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.disableHideSidebar"
+              :name="$t('profileSettings.disableHideSidebar')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.hideSidebarFileActions"
+              :name="$t('profileSettings.hideSidebarFileActions')"
+            />
+
+          </div>
+        </div>
+        <div class="card-content">
+          <h3>{{ $t("settings.listingOptions") }}</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.deleteWithoutConfirming"
+              :name="$t('profileSettings.deleteWithoutConfirming')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.dateFormat"
+              :name="$t('profileSettings.setDateFormat')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.showHidden"
+              :name="$t('profileSettings.showHiddenFiles')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.quickDownload"
+              :name="$t('profileSettings.showQuickDownload')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.image"
+              :name="$t('profileSettings.previewImages')"
+            />
+            <ToggleSwitch
+              v-if="mediaEnabled"
+              class="item"
+              v-model="localuser.preview.video"
+              :name="$t('profileSettings.previewVideos')"
+            />
+            <ToggleSwitch
+              v-if="mediaEnabled"
+              class="item"
+              v-model="localuser.preview.motionVideoPreview"
+              :name="$t('profileSettings.previewMotionVideos')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.highQuality"
+              :name="$t('profileSettings.highQualityPreview')"
+            />
+            <ToggleSwitch
+              v-if="hasOnlyOfficeEnabled"
+              class="item"
+              v-model="localuser.preview.office"
+              :name="$t('profileSettings.previewOffice')"
+            />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.preview.popup"
+              :name="$t('profileSettings.popupPreview')"
+            />
+          </div>
+          <h3>{{ $t("profileSettings.editorViewerOptions") }}</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+                class="item"
+                v-model="localuser.preview.autoplayMedia"
+                :name="$t('profileSettings.autoplayMedia')"
+              />
+              <ToggleSwitch
+                class="item"
+                v-model="localuser.editorQuickSave"
+                :name="$t('profileSettings.editorQuickSave')"
+              />
+          </div>
+          <h3>{{ $t("settings.searchOptions") }}</h3>
+          <div class="settings-items">
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.disableSearchOptions"
+              :name="$t('profileSettings.disableSearchOptions')"
+            />
+           </div>
+           <h3 v-if="user.permissions.admin">{{ $t("settings.adminOptions") }}</h3>
+          <div v-if="user.permissions.admin" class="settings-items">
+            <ToggleSwitch
+                v-if="localuser.permissions?.admin"
+                class="item"
+                v-model="localuser.disableUpdateNotifications"
+                :name="$t('profileSettings.disableUpdateNotifications')"
+              />
+          </div>
+          <div v-if="hasOnlyOfficeEnabled">
+            <h3>{{ $t("settings.disableOfficePreview") }}</h3>
+            <p>
+              {{ $t("settings.disableOfficePreviewDescription") }}
+            </p>
+            <div class="form-group">
+              <input
+                class="input input--block form-form flat-right"
+                :class="{ 'invalid-form': !formValidation() }"
+                type="text"
+                placeholder="enter file extensions"
+                id="onlyofficeExt"
+                v-model="formOnlyOfficeExt"
+              />
+              <button
+                type="button"
+                class="button form-button"
+                @click="submitOnlyOfficeChange"
+              >
+                {{ $t("buttons.save") }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="muPdfAvailable">
+            <h3>{{ $t("settings.disableOfficePreviews") }}</h3>
+            <p>
+              {{ $t("settings.disableOfficePreviewsDescription") }}
+            </p>
+            <div class="form-group">
+              <input
+                class="input input--block form-form flat-right"
+                :class="{ 'invalid-form': !formValidationOfficePreviews() }"
+                type="text"
+                placeholder="enter file extensions"
+                id="officePreviewExt"
+                v-model="formOfficePreviewExt"
+              />
+              <button
+                type="button"
+                class="button form-button"
+                @click="submitOfficePreviewsChange"
+              >
+                {{ $t("buttons.save") }}
+              </button>
+            </div>
+          </div>
+          <h3>{{ $t("settings.themeColor") }}</h3>
+          <ButtonGroup
+            :buttons="colorChoices"
+            @button-clicked="setColor"
+            :initialActive="localuser.themeColor"
+          />
+          <h3>{{ $t("settings.language") }}</h3>
+          <Languages
+            class="input input--block"
+            :locale="localuser.locale"
+            @update:locale="updateLocale"
+          ></Languages>
+>>>>>>> main
         </div>
 
         <div v-if="muPdfAvailable">
@@ -194,7 +370,12 @@ export default {
           "quickDownload",
           "disableOnlyOfficeExt",
           "disableOfficePreviewExt",
+          "deleteWithoutConfirming",
           "preview",
+          "disableQuickToggles",
+          "disableSearchOptions",
+          "hideSidebarFileActions",
+          "editorQuickSave",
         ]);
         notify.showSuccess(this.$t("settings.settingsUpdated"));
       } catch (e) {

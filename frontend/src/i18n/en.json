@@ -40,7 +40,13 @@
     "upload": "Upload",
     "openFile": "Open file",
     "continue": "Continue",
-    "edit": "Edit"
+    "edit": "Edit",
+    "pause": "Pause",
+    "resume": "Resume",
+    "retry": "Retry",
+    "pauseAll": "Pause all",
+    "resumeAll": "Resume all",
+    "clearCompleted": "Clear completed"
   },
   "download": {
     "downloadFile": "Download File",
@@ -111,7 +117,8 @@
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Create an account",
@@ -127,6 +134,7 @@
     "notice": "Note: anyone who has access to the link (and optional password) can access the shared files. There is no requirement to be logged in."
   },
   "prompts": {
+    "destinationSource": "Destination Source:",
     "copy": "Copy",
     "copyMessage": "Choose the place to copy your files:",
     "currentlyNavigating": "Currently navigating on:",
@@ -138,7 +146,9 @@
     "displayName": "Display Name:",
     "download": "Download files",
     "downloadMessage": "Choose the format you want to download.",
+    "dragAndDrop": "Drag and drop files here",
     "error": "Something went wrong",
+    "completed": "Completed",
     "fileInfo": "File information",
     "selected": "selected",
     "filesSelected": "files selected",
@@ -164,7 +174,9 @@
     "uploadFiles": "Uploading {files} files...",
     "uploadMessage": "Select an option to upload.",
     "optionalPassword": "Optional password",
-    "typeName": "Type:"
+    "typeName": "Type:",
+    "deleted": "Deleted successfully!",
+    "conflictsDetected": "Conflicts detected"
   },
   "search": {
     "images": "Images",
@@ -194,7 +206,14 @@
     "filePreviewOptions": "File preview options",
     "disableUpdateNotifications": "Disable showing notification update banner in sidebar.",
     "disableHideSidebar": "Disable automatically hiding sidebar when previewing or editing files.",
-    "autoplayMedia": "Autoplay media files in preview"
+    "autoplayMedia": "Autoplay media files in preview",
+    "deleteWithoutConfirming": "Delete files without confirmation prompt",
+    "sidebarOptions": "Sidebar options",
+    "disableQuickToggles": "Disable quick toggles",
+    "disableSearchOptions": "Disable search options",
+    "hideSidebarFileActions": "Hide file actions in sidebar",
+    "editorViewerOptions": "Editor and viewer options",
+    "editorQuickSave": "Show quick save button in editor"
   },
   "settings": {
     "enterPassword": "Enter password",
@@ -210,6 +229,7 @@
     "disableOfficePreviews": "Disable office previews for certain file extensions",
     "disableOfficePreviewsDescription": "A space-separated list of file extensions to disable office previews for. (e.g., '.txt .html').",
     "listingOptions": "Listing options",
+    "searchOptions": "Search options",
     "emptyGlobal": "Currently there are no global config options, You can edit the configuration yaml to adjust system settings.",
     "scopes": "Define allowed sources and the user scope within them",
     "UserManagement": "User Management",
@@ -276,7 +296,7 @@
     "rulesHelp": "Here you can define a set of allow and disallow rules for this specific user. The blocked files won't show up in the listings and they wont be accessible to the user. We support regex and paths relative to the users scope.\n",
     "scope": "Scope",
     "settingsUpdated": "Settings updated!",
-    "shareDuration": "Share Duration",
+    "shareDuration": "Expires",
     "shareManagement": "Share Management",
     "shareDeleted": "Share deleted!",
     "singleClick": "Use single clicks to open files and directories",
@@ -310,7 +330,8 @@
     "sources": "Sources",
     "signup": "Signup",
     "siteSettings": "Site Settings",
-    "updateIsAvailable": "An update is available!"
+    "updateIsAvailable": "An update is available!",
+    "fileActions": "File actions"
   },
   "success": {
     "linkCopied": "Link copied!"
@@ -358,7 +379,8 @@
     "toggleDark": "Toggle Dark Mode",
     "toggleSticky": "Toggle Sticky Mode",
     "of": "of",
-    "used": "used"
+    "used": "used",
+    "noSources": "No sources available for this user. Either add a source for this user or configure a source with defaultEnabled: true"
   },
   "otp": {
     "name": "Two-Factor Authentication",
@@ -399,5 +421,12 @@
     "added": "Access rule added!",
     "name": "Name",
     "accessManagement": "Access Management"
+  },
+  "fileLoading": {
+    "title": "Uploads & Downloads",
+    "maxConcurrentUpload": "Max concurrent uploads",
+    "maxConcurrentUploadHelp": "The maximum number of concurrent uploads. Higher values typically perform better, but this depends on many factors.",
+    "uploadChunkSizeMb": "Upload chunk size in MB",
+    "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking."
   }
 }

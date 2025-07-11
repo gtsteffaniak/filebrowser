@@ -37,7 +37,10 @@ func validateUserInfo() {
 		if updateLoginType(user) {
 			updateUser = true
 		}
-		if user.Username == settings.Config.Auth.AdminUsername && settings.Config.Auth.AdminPassword != "" {
+		adminUser := settings.Config.Auth.AdminUsername
+		adminPass := settings.Config.Auth.AdminPassword
+		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
+		if user.Username == adminUser && adminPass != "" && passwordEnabled {
 			logger.Info("Resetting admin user to default username and password.")
 			user.Permissions.Admin = true
 			user.Password = settings.Config.Auth.AdminPassword

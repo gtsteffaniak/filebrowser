@@ -225,6 +225,9 @@ definitions:
       disableDefaultLinks:
         description: disable default links in the sidebar
         type: boolean
+      disableNavButtons:
+        description: disable the nav buttons in the sidebar
+        type: boolean
       disableUsedPercentage:
         description: disable used percentage for the sources in the sidebar
         type: boolean
@@ -319,6 +322,9 @@ definitions:
       enabled:
         description: whether to enable OIDC authentication
         type: boolean
+      groupsClaim:
+        description: the JSON field name to read groups from. Default is "groups"
+        type: string
       issuerUrl:
         description: authorization URL of the OIDC provider
         type: string
@@ -360,8 +366,7 @@ definitions:
           Otherwise, users can choose to enable TOTP.
         type: boolean
       minLength:
-        description: minimum pasword length required.
-        minimum: 5
+        description: minimum pasword length required, default is 5.
         type: integer
       recaptcha:
         allOf:
@@ -535,6 +540,9 @@ definitions:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
         type: boolean
+      deleteWithoutConfirming:
+        description: delete files without confirmation
+        type: boolean
       disableOfficePreviewExt:
         description: comma separated list of file extensions to disable office preview
           for
@@ -543,15 +551,31 @@ definitions:
         description: comma separated list of file extensions to disable onlyoffice
           preview for
         type: string
+      disableQuickToggles:
+        description: disable the quick toggles in the sidebar
+        type: boolean
+      disableSearchOptions:
+        description: disable the search options in the search bar
+        type: boolean
       disableSettings:
         description: disable the user from viewing the settings page
         type: boolean
       disableUpdateNotifications:
         description: disable update notifications banner for admin users
         type: boolean
+      editorQuickSave:
+        description: show quick save button in editor
+        type: boolean
+      fileLoading:
+        allOf:
+        - $ref: '#/definitions/users.FileLoading'
+        description: upload and download settings
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideSidebarFileActions:
+        description: hide the file actions in the sidebar
+        type: boolean
       locale:
         description: 'language to use: eg. de, en, or fr'
         type: string
@@ -622,6 +646,13 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  users.FileLoading:
+    properties:
+      maxConcurrentUpload:
+        type: integer
+      uploadChunkSizeMb:
+        type: integer
     type: object
   users.LoginMethod:
     enum:
@@ -700,6 +731,9 @@ definitions:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
         type: boolean
+      deleteWithoutConfirming:
+        description: delete files without confirmation
+        type: boolean
       disableOfficePreviewExt:
         description: comma separated list of file extensions to disable office preview
           for
@@ -708,14 +742,30 @@ definitions:
         description: comma separated list of file extensions to disable onlyoffice
           preview for
         type: string
+      disableQuickToggles:
+        description: disable the quick toggles in the sidebar
+        type: boolean
+      disableSearchOptions:
+        description: disable the search options in the search bar
+        type: boolean
       disableSettings:
         type: boolean
       disableUpdateNotifications:
         description: disable update notifications
         type: boolean
+      editorQuickSave:
+        description: show quick save button in editor
+        type: boolean
+      fileLoading:
+        allOf:
+        - $ref: '#/definitions/users.FileLoading'
+        description: upload and download settings
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
+      hideSidebarFileActions:
+        description: hide the file actions in the sidebar
+        type: boolean
       id:
         type: integer
       locale:
@@ -931,6 +981,11 @@ paths:
   /api/auth/logout:
     post:
       description: Returns a logout URL for the frontend to redirect to.
+      parameters:
+      - description: JWT token
+        in: query
+        name: auth
+        type: string
       produces:
       - application/json
       responses:
@@ -1231,6 +1286,68 @@ paths:
       - application/json
       description: Returns a preview image based on the requested path and size.
       parameters:
+      - description: File path of the image to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Preview size ('small' or 'large'). Default is based on server
+          config.
+        in: query
+        name: size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Preview image content
+          schema:
+            type: file
+        "202":
+          description: Download permissions required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: Unsupported file type for preview
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Preview generation not implemented
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image preview
+      tags:
+      - Resources
+  /api/public/preview:
+    get:
+      consumes:
+      - application/json
+      description: Returns a preview image based on the requested path and size.
+      parameters:
       - description: source hash
         in: query
         name: hash
@@ -1384,6 +1501,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       produces:
       - application/json
@@ -1425,6 +1543,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       - description: Include file content if true
         in: query
@@ -1532,6 +1651,7 @@ paths:
           is used if not provided
         in: query
         name: source
+        required: true
         type: string
       - description: Override existing file if true
         in: query
@@ -1583,6 +1703,7 @@ paths:
       - description: Source name for the desired source, default is used if not provided
         in: query
         name: source
+        required: true
         type: string
       produces:
       - application/json
@@ -1626,6 +1747,11 @@ paths:
       - description: Search query
         in: query
         name: query
+        required: true
+        type: string
+      - description: Source name for the desired source
+        in: query
+        name: source
         required: true
         type: string
       - description: path within user scope to search, for example '/first/second'
@@ -1957,10 +2083,13 @@ paths:
       - application/json
       description: Updates the details of a user identified by ID.
       parameters:
-      - description: User ID
+      - description: user ID to update
         in: query
         name: id
-        required: true
+        type: string
+      - description: usename to update
+        in: query
+        name: id
         type: string
       - description: User data to update
         in: body

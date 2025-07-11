@@ -4,7 +4,7 @@
       v-if="showOverlay"
       :ref="currentPromptName"
       :is="currentPromptName"
-      v-bind="currentPrompt.props"
+      v-bind="currentPromptProps"
     />
   </div>
 </template>
@@ -15,8 +15,7 @@ import Info from "./Info.vue";
 import Delete from "./Delete.vue";
 import Rename from "./Rename.vue";
 import Download from "./Download.vue";
-import Move from "./Move.vue";
-import Copy from "./Copy.vue";
+import MoveCopy from "./MoveCopy.vue";
 import NewFile from "./NewFile.vue";
 import NewDir from "./NewDir.vue";
 import Replace from "./Replace.vue";
@@ -42,8 +41,8 @@ export default {
     Delete,
     Rename,
     Download,
-    Move,
-    Copy,
+    Move: MoveCopy,
+    Copy: MoveCopy,
     Share,
     NewFile,
     NewDir,
@@ -89,10 +88,8 @@ export default {
             prompt.submit();
             break;
           case "copy":
-            prompt.copy(event);
-            break;
           case "move":
-            prompt.move(event);
+            prompt.performOperation(event);
             break;
           case "replace":
             prompt.showConfirm(event);
@@ -115,6 +112,18 @@ export default {
         };
       }
       return getters.currentPrompt();
+    },
+    currentPromptProps() {
+      const prompt = this.currentPrompt;
+      const promptName = this.currentPromptName;
+      // For move and copy prompts, add the operation prop
+      if (promptName === "move" || promptName === "copy") {
+        return {
+          ...prompt.props,
+          operation: promptName,
+        };
+      }
+      return prompt.props;
     },
     plugins() {
       return state.plugins;

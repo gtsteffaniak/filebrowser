@@ -40,7 +40,13 @@
     "continue": "تابع",
     "edit": "تحرير",
     "generateNewOtp": "إعادة تعيين وإنشاء رمز ثنائي العامل الجديد",
-    "verify": "تحقق"
+    "verify": "تحقق",
+    "pause": "وقفة",
+    "resume": "السيرة الذاتية",
+    "retry": "إعادة المحاولة",
+    "pauseAll": "إيقاف الكل مؤقتاً",
+    "resumeAll": "استئناف الكل",
+    "clearCompleted": "اكتمل المسح"
   },
   "download": {
     "downloadFile": "Download File",
@@ -91,25 +97,27 @@
     "hu": "Magyar",
     "ar": "العربية",
     "de": "Deutsch",
+    "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
     "fr": "Français",
-    "is": "",
+    "is": "Icelandic",
     "it": "Italiano",
     "ja": "日本語",
     "ko": "한국어",
-    "nlBE": "",
+    "nlBE": "Dutch (Belgium)",
     "pl": "Polski",
     "pt": "Português",
     "ptBR": "Português (Brasil)",
-    "ro": "",
+    "ro": "Romanian",
     "ru": "Русский",
     "sk": "Slovenčina",
-    "svSE": "",
+    "svSE": "Swedish (Sweden)",
     "tr": "Türkçe",
     "ua": "Українська",
     "zhCN": "中文 (简体)",
-    "zhTW": "中文 (繁體)"
+    "zhTW": "中文 (繁體)",
+    "cz": "Čeština"
   },
   "login": {
     "createAnAccount": "Create an account",
@@ -163,7 +171,12 @@
     "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "كلمة مرور اختيارية",
     "typeName": "النوع:",
-    "selected": "مختارة"
+    "selected": "مختارة",
+    "deleted": "تم الحذف بنجاح!",
+    "destinationSource": "مصدر الوجهة:",
+    "dragAndDrop": "سحب الملفات وإفلاتها هنا",
+    "completed": "مكتمل",
+    "conflictsDetected": "التعارضات المكتشفة"
   },
   "search": {
     "images": "الصور",
@@ -239,7 +252,6 @@
     "rulesHelp": "يمكنك هنا تحديد مجموعة من شروط السماح والمنع لهذا المستخدم. الملفات الممنوعة لن تظهر ضمن القائمة لهذا المستخدم ولن يستطيع الوصول لها. هنا ندعم الـ regex والـ relative path لنطاق المستخدمين.\n",
     "scope": "نطاق",
     "settingsUpdated": "تم تعديل الإعدادات",
-    "shareDuration": "مدة المشاركة",
     "shareManagement": "إدارة المشاركة",
     "singleClick": "استخدام نقرات واحدة لفتح الملفات والدلائل",
     "themes": {
@@ -288,7 +300,13 @@
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
     "disableOfficePreviews": "تعطيل معاينات المكتب لامتدادات ملفات معينة",
     "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\").",
+<<<<<<< HEAD
     "adminOptions": "خيارات المستخدم المسؤول"
+=======
+    "adminOptions": "خيارات المستخدم المسؤول",
+    "shareDuration": "تنتهي صلاحيتها",
+    "searchOptions": "خيارات البحث"
+>>>>>>> main
   },
   "sidebar": {
     "help": "مساعدة",
@@ -303,7 +321,8 @@
     "signup": "Signup",
     "siteSettings": "إعدادات الموقع",
     "sources": "المصادر",
-    "updateIsAvailable": "يتوفر تحديث!"
+    "updateIsAvailable": "يتوفر تحديث!",
+    "fileActions": "إجراءات الملف"
   },
   "success": {
     "linkCopied": "تم نسخ الملف"
@@ -359,7 +378,8 @@
     "toggleDark": "تبديل الوضع الداكن",
     "toggleSticky": "تبديل الوضع اللاصق",
     "of": "من",
-    "used": "مستعمل"
+    "used": "مستعمل",
+    "noSources": "لا توجد مصادر متاحة لهذا المستخدم. إما أن تقوم بإضافة مصدر لهذا المستخدم أو تكوين مصدر مع defaultEnabled: true"
   },
   "profileSettings": {
     "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
@@ -375,7 +395,14 @@
     "editOffice": "تحرير/عرض ملفات المكتب",
     "disableUpdateNotifications": "تعطيل إظهار شعار تحديث الإشعارات في الشريط الجانبي.",
     "disableHideSidebar": "تعطيل إخفاء الشريط الجانبي تلقائيًا عند معاينة الملفات أو تحريرها.",
-    "autoplayMedia": "التشغيل التلقائي لملفات الوسائط في المعاينة"
+    "autoplayMedia": "التشغيل التلقائي لملفات الوسائط في المعاينة",
+    "deleteWithoutConfirming": "حذف الملفات بدون مطالبة التأكيد",
+    "sidebarOptions": "خيارات الشريط الجانبي",
+    "disableQuickToggles": "تعطيل التبديل السريع",
+    "disableSearchOptions": "تعطيل خيارات البحث",
+    "hideSidebarFileActions": "إخفاء إجراءات الملف في الشريط الجانبي",
+    "editorViewerOptions": "خيارات المحرر والعارض",
+    "editorQuickSave": "إظهار زر الحفظ السريع في المحرر"
   },
   "otp": {
     "name": "المصادقة الثنائية",
@@ -416,5 +443,12 @@
     "added": "تمت إضافة قاعدة الوصول!",
     "name": "الاسم",
     "accessManagement": "إدارة الوصول"
+  },
+  "fileLoading": {
+    "title": "التحميلات والتنزيلات",
+    "maxConcurrentUpload": "الحد الأقصى للتحميلات المتزامنة",
+    "maxConcurrentUploadHelp": "الحد الأقصى لعدد التحميلات المتزامنة. عادةً ما يكون أداء القيم الأعلى أفضل، ولكن هذا يعتمد على العديد من العوامل.",
+    "uploadChunkSizeMb": "حجم قطعة التحميل بالميجابايت",
+    "uploadChunkSizeMbHelp": "عادةً من 5 إلى 50 ميغابايت، والأصغر هو الأفضل للاتصالات غير المستقرة أو المقيدة. سيؤدي التعيين إلى 0 إلى تعطيل تقطيع التحميل."
   }
 }

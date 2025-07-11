@@ -87,7 +87,7 @@
       </div>
     </div>
 
-    <div class="card-wrapper" @mouseleave="resetHoverTextToDefault">
+    <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="resetHoverTextToDefault">
       <div class="quick-toggles">
         <div
           :class="{ active: user?.singleClick }"
@@ -116,57 +116,69 @@
         </div>
       </div>
     </div>
-  </div>
-  <!-- Section for logged-in users -->
-  <div v-if="loginCheck" class="sidebar-scroll-list">
-    <div class="sources card">
-      <span> {{ $t("sidebar.sources") }}</span>
-      <div class="inner-card">
-        <!-- My Files button -->
-        <button
-          v-for="(info, name) in sourceInfo"
-          :key="name"
-          class="action source-button"
-          :class="{ active: activeSource == name }"
-          @click="navigateTo('/files/' + info.pathPrefix)"
-          @mouseenter="updateSourceTooltip($event, info)"
-          @mouseleave="resetSourceTooltip"
-          :aria-label="$t('sidebar.myFiles')"
-        >
-          <div class="source-container">
-            <svg
-              class="realtime-pulse"
-              :class="{
-                active: realtimeActive,
-                danger: info.status != 'indexing' && info.status != 'ready',
-                warning: info.status == 'indexing',
-                ready: info.status == 'ready',
-              }"
-            >
-              <circle class="center" cx="50%" cy="50%" r="7px"></circle>
-              <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
-            </svg>
-            <span>{{ name }}</span>
-          </div>
-          <div v-if="hasSourceInfo" class="usage-info">
-            <ProgressBar
-              :val="info.usedPercentage"
-              text-position="inside"
-              :text="info.usedPercentage + '%'"
-              size="large"
-              text-fg-color="white"
-            ></ProgressBar>
-            <div class="usage-info">
-              <span>
-                {{ getHumanReadableFilesize(info.used) }} {{ $t("index.of") }}
-                {{ getHumanReadableFilesize(info.total) }} {{ $t("index.used") }}
-              </span>
-            </div>
-          </div>
+
+    <!-- Sidebar file actions -->
+    <transition
+      name="expand"
+      @before-enter="beforeEnter"
+      @enter="enter"
+      @leave="leave"
+    >
+      <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
+        <button @click="openContextMenu" aria-label="File-Actions" class="action file-actions">
+          <i class="material-icons">add</i>
+          {{ $t("sidebar.fileActions") }}
         </button>
       </div>
-    </div>
+    </transition>
   </div>
+  <!-- Section for logged-in users -->
+  <transition
+    name="expand"
+    @before-enter="beforeEnter"
+    @enter="enter"
+    @leave="leave"
+  >
+    <div v-if="loginCheck" class="sidebar-scroll-list">
+      <div class="sources card">
+        <span> {{ $t("sidebar.sources") }}</span>
+        <transition-group name="expand" tag="div" class="inner-card">
+          <button
+            v-for="(info, name) in sourceInfo"
+            :key="name"
+            class="action source-button"
+            :class="{ active: activeSource == name }"
+            @click="navigateTo('/files/' + info.pathPrefix)"
+            :aria-label="$t('sidebar.myFiles')"
+          >
+            <div class="source-container">
+              <svg
+                class="realtime-pulse"
+                :class="{
+                  active: realtimeActive,
+                  danger: info.status != 'indexing' && info.status != 'ready',
+                  warning: info.status == 'indexing',
+                  ready: info.status == 'ready',
+                }"
+              >
+                <circle class="center" cx="50%" cy="50%" r="7px"></circle>
+                <circle class="pulse" cx="50%" cy="50%" r="10px"></circle>
+              </svg>
+              <span>{{ name }}</span>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="updateSourceTooltip($event, info)"
+                @mouseleave="resetSourceTooltip">
+                info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+              </i>
+            </div>
+            <div v-if="hasSourceInfo" class="usage-info">
+              <ProgressBar :val="info.used" :max="info.total" unit="bytes"></ProgressBar>
+            </div>
+          </button>
+        </transition-group>
+      </div>
+    </div>
+  </transition>
 </template>
 
 <script>
@@ -190,14 +202,14 @@ export default {
     };
   },
   computed: {
-    hasSourceInfo() {
-      return state.sources.hasSourceInfo;
-    },
+    disableQuickToggles: () => state.user.disableQuickToggles,
+    hasSourceInfo: () => state.sources.hasSourceInfo,
+    hideSidebarFileActions: () => state.user.hideSidebarFileActions,
     settingsAllowed: () => !state.user.disableSettings,
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
     isMobile: () => getters.isMobile(),
-    isFiles: () => getters.isFiles(),
+    isListingView: () => getters.currentView() == "listingView",
     user: () => (getters.isLoggedIn() ? state.user : {}),
     isDarkMode: () => getters.isDarkMode(),
     loginCheck: () => getters.isLoggedIn() && !getters.routePath().startsWith("/share"),
@@ -243,6 +255,15 @@ export default {
     },
   },
   methods: {
+    openContextMenu() {
+      mutations.resetSelected();
+      mutations.showHover({
+        name: "ContextMenu",
+        props: {
+          showCentered: true,
+        },
+      });
+    },
     getHumanReadableFilesize(size) {
       return getHumanReadableFilesize(size);
     },
@@ -272,6 +293,10 @@ export default {
       mutations.toggleDarkMode();
     },
     toggleSticky() {
+      // keep sidebar open if disabling sticky sidebar
+      if (!state.showSidebar && state.user.stickySidebar) {
+        mutations.toggleSidebar();
+      }
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     navigateTo(path) {
@@ -295,6 +320,32 @@ export default {
 
     // Logout the user
     logout: auth.logout,
+    beforeEnter(el) {
+      el.style.height = '0';
+      el.style.opacity = '0';
+    },
+    enter(el, done) {
+      el.style.transition = '';
+      el.style.height = '0';
+      el.style.opacity = '0';
+      // Force reflow
+      void el.offsetHeight;
+      el.style.transition = 'height 0.3s, opacity 0.3s';
+      el.style.height = el.scrollHeight + 'px';
+      el.style.opacity = '1';
+      setTimeout(() => {
+        el.style.height = 'auto';
+        done();
+      }, 300);
+    },
+    leave(el, done) {
+      el.style.transition = 'height 0.3s, opacity 0.3s';
+      el.style.height = el.scrollHeight + 'px';
+      void el.offsetHeight;
+      el.style.height = '0';
+      el.style.opacity = '0';
+      setTimeout(done, 300);
+    },
   },
 };
 </script>
@@ -570,4 +621,29 @@ button.action {
   max-width: 13em;
   padding-right: 1em !important;
 }
+
+.file-actions {
+  padding: 0.25em !important;
+  margin-top: 0.5em !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-actions i {
+  padding: 0em !important;
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.expand-enter,
+.expand-leave-to {
+  height: 0 !important;
+  opacity: 0;
+}
+
+
 </style>

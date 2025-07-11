@@ -31,3 +31,23 @@ func CheckWindowsHidden(realpath string) bool {
 	}
 	return false
 }
+
+func getPartitionSize(path string) (uint64, error) {
+	pathPtr, err := windows.UTF16PtrFromString(path)
+	if err != nil {
+		return 0, err
+	}
+	var freeBytes, totalBytes, totalFreeBytes uint64
+	err = windows.GetDiskFreeSpaceEx(pathPtr, &freeBytes, &totalBytes, &totalFreeBytes)
+	if err != nil {
+		return 0, err
+	}
+	return totalBytes, nil
+}
+
+func getFileDetails(sys any) (uint64, uint64, uint64, bool) {
+	// On Windows, os.FileInfo.Sys() returns *syscall.Win32FileAttributeData,
+	// which does not contain inode or link count information.
+	// We return false to indicate that we should use the fallback mechanism.
+	return 0, 1, 0, false
+}

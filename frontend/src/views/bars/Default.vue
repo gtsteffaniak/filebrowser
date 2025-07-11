@@ -1,37 +1,48 @@
 <template>
   <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
     <action
-      v-if="!isShare"
+      v-if="!isShare && !(disableNavButtons && isListingView)"
       icon="close_back"
       :label="$t('buttons.close')"
-      :disabled="isSearchActive"
+      :disabled="isDisabledMultiAction"
       @action="multiAction"
     />
     <search v-if="showSearch" />
     <title v-else-if="isSettings" class="topTitle">{{ $t("sidebar.settings") }}</title>
     <title v-else class="topTitle">{{ req.name }}</title>
     <action
-      v-if="isListingView"
+      v-if="isListingView && !disableNavButtons"
       class="menu-button"
       :icon="viewIcon"
       :label="$t('buttons.switchView')"
       @action="switchView"
-      :disabled="isSearchActive"
+      :disabled="isDisabled"
     />
     <action
-      v-else-if="!isShare"
+      v-else-if="!isShare && !isListingView && !showQuickSave"
       :icon="iconName"
       :disabled="noItems"
       @click="toggleOverflow"
+    />
+    <action
+      v-else-if="showQuickSave"
+      id="save-button"
+      icon="save"
+      :label="$t('buttons.save')"
+      @action="save()"
     />
   </header>
 </template>
 
 <script>
 import router from "@/router";
+import buttons from "@/utils/buttons";
+import { notify } from "@/notify";
+import { eventBus } from "@/store/eventBus";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
+import { disableNavButtons } from "@/utils/constants";
 
 export default {
   name: "UnifiedHeader",
@@ -45,6 +56,16 @@ export default {
     };
   },
   computed: {
+    showQuickSave() {
+      console.log("showQuickSave", getters.currentView());
+      if (getters.currentView() != "editor" || !state.user.permissions.modify) {
+        return false;
+      }
+      return state.user.editorQuickSave;
+    },
+    disableNavButtons() {
+      return disableNavButtons && !state.user.permissions.admin;
+    },
     isOnlyOffice() {
       return getters.currentView() === "onlyOfficeEditor";
     },
@@ -83,8 +104,11 @@ export default {
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() === "listingView";
     },
-    isSearchActive() {
-      return state.isSearchActive;
+    isDisabled() {
+      return state.isSearchActive || getters.currentPromptName() != null;
+    },
+    isDisabledMultiAction() {
+      return this.isDisabled || (getters.isStickySidebar() && state.multiButtonState === "menu");
     },
     showSwitchView() {
       return getters.currentView() === "listingView";
@@ -103,6 +127,18 @@ export default {
     },
   },
   methods: {
+    async save() {
+      const button = "save";
+      buttons.loading("save");
+      try {
+        eventBus.emit("handleEditorValueRequest", "data");
+        buttons.success(button);
+        notify.showSuccess("File Saved!");
+      } catch (e) {
+        buttons.done(button);
+        notify.showError("Error saving file: ", e);
+      }
+    },
     toggleOverflow() {
       if (getters.currentPromptName() === "OverflowMenu") {
         mutations.closeHovers();

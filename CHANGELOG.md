@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.13-beta
+
+ **New Features**:
+ - copy and Move files between sources https://github.com/gtsteffaniak/filebrowser/issues/689
+ - new enhanced upload prompt
+   - uses chunked uploads https://github.com/gtsteffaniak/filebrowser/issues/770
+   - all or individual uploads can be paused/resumed
+   - individual uploads can be retried
+   - individual file upload progress https://github.com/gtsteffaniak/filebrowser/issues/871
+   - keeps screen on https://github.com/gtsteffaniak/filebrowser/issues/900
+
+ **Notes**:
+ - lots of UI improvements
+ - reworked a lot of the frontend path/source logic to be more consistent.
+ - updated sort behavior to be natural sort https://github.com/gtsteffaniak/filebrowser/issues/551
+ - optional quick save icon https://github.com/gtsteffaniak/filebrowser/issues/918
+ - improved language support: zh-tw chinese traditional (tawain)
+
+ **BugFixes**:
+ - more accurate disk used calculation -- accounting for hard links and sparse files. https://github.com/gtsteffaniak/filebrowser/issues/921
+ - fix api key revoking mechanism
+ - fixed shift-select https://github.com/gtsteffaniak/filebrowser/issues/929
+ - video preview images on safari https://github.com/gtsteffaniak/filebrowser/issues/932
+ - sticky mode isn't sticky https://github.com/gtsteffaniak/filebrowser/issues/916
+
+## v0.7.12-beta
+
+Happy 4th of July!
+
+The most noteworthy change is that no sources will be automatically enabled for any user. In order for a user to use a source, it needs to be added for that user. Or to keep a source available for all users, you can specify `defaultEnabled` in the source config to maintain the same behavior. See the wiki
+
+ **New Features**:
+ - setting added `deleteWithoutConfirming`, useful for quickly deleting files -- does not apply to folders.
+ - more options for minimal UI https://github.com/gtsteffaniak/filebrowser/issues/745
+ - dedicated section for sidebar customization in profile settings https://github.com/gtsteffaniak/filebrowser/issues/437
+
+ **Notes**:
+ - Filebrowser no longer requires a default source, users can be created without any sources.
+ - Disables changing login type fallback behavior https://github.com/gtsteffaniak/filebrowser/issues/620
+ - Uses calculated index size as "used" and total partition size as "total" https://github.com/gtsteffaniak/filebrowser/issues/875
+ - Select multiple won't show up in context menu when using a desktop browser (with keyboard), opting for keyboard shortcuts
+ - Updated translations that were not complete, such as simplified chinese https://github.com/gtsteffaniak/filebrowser/issues/895
+ - larger min drop target size https://github.com/gtsteffaniak/filebrowser/issues/902
+ - refresh page after file actions https://github.com/gtsteffaniak/filebrowser/issues/894
+ - improved user PUT handler for easier user modification via API https://github.com/gtsteffaniak/filebrowser/issues/897
+ - optional sidebar actions for upload/create https://github.com/gtsteffaniak/filebrowser/issues/885
+
+ **BugFixes**:
+ - fix delete in preview when moving between pictures. https://github.com/gtsteffaniak/filebrowser/issues/456
+ - getting file info issue when indexing is disabled.
+ - fixed initial sort order https://github.com/gtsteffaniak/filebrowser/issues/551
+ - incorrect filename Drag and Drop fixes https://github.com/gtsteffaniak/filebrowser/issues/880
+ - fix share duration always showing just now https://github.com/gtsteffaniak/filebrowser/issues/896
+
 ## v0.7.11-beta
 
  **Breaking Changes**:
