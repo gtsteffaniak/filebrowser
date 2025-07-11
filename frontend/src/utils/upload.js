@@ -57,7 +57,7 @@ class UploadManager {
           type: "directory",
           path: `${basePath}${dir}`,
           source: storeState.req.source,
-          overwrite: false, // Initially false, will be updated by conflict handler
+          overwrite: overwrite,
         };
 
         newUploads.push(upload);
@@ -80,7 +80,7 @@ class UploadManager {
         xhr: null,
         path: destinationPath, // Full destination path
         source: storeState.req.source,
-        overwrite: false, // Initially false, will be updated by conflict handler
+        overwrite: overwrite,
       };
       return upload;
     });

@@ -194,7 +194,6 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { uploadManager } from "@/utils/upload";
 import { mutations, state } from "@/store";
 import ProgressBar from "@/components/ProgressBar.vue";
-import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export default {
   name: "UploadFiles",
@@ -221,21 +220,6 @@ export default {
     let conflictResolver = null;
 
     let wakeLock = null;
-
-    const getProgressDetails = (file) => {
-      if (
-        file.size === 0 ||
-        typeof file.progress !== "number" ||
-        file.progress === 0
-      ) {
-        return `${file.progress || 0}%`;
-      }
-
-      const totalSizeFormatted = getHumanReadableFilesize(file.size);
-      const [size, unit] = totalSizeFormatted.split(" ");
-      const uploadedSize = size * (file.progress / 100);
-      return `${uploadedSize} ${unit} / ${totalSizeFormatted} ${unit} (${file.progress.toFixed(1)}%)`;
-    };
 
     const handleConflict = (resolver) => {
       showConflictPrompt.value = true;
