@@ -86,26 +86,28 @@ func quickSetup(store *Storage) {
 	utils.CheckErr("store.Settings.Save", err)
 	err = store.Settings.SaveServer(&settings.Config.Server)
 	utils.CheckErr("store.Settings.SaveServer", err)
-	user := &users.User{}
-	settings.ApplyUserDefaults(user)
-	user.Username = settings.Config.Auth.AdminUsername
-	if settings.Config.Auth.AdminPassword == "" {
-		settings.Config.Auth.AdminPassword = "admin"
+	if settings.Config.Auth.Methods.PasswordAuth.Enabled {
+		user := &users.User{}
+		settings.ApplyUserDefaults(user)
+		user.Username = settings.Config.Auth.AdminUsername
+		if settings.Config.Auth.AdminPassword == "" {
+			settings.Config.Auth.AdminPassword = "admin"
+		}
+		user.Password = settings.Config.Auth.AdminPassword
+		user.Permissions.Admin = true
+		user.Scopes = []users.SourceScope{}
+		for _, val := range settings.Config.Server.Sources {
+			user.Scopes = append(user.Scopes, users.SourceScope{
+				Name:  val.Path, // backend name is path
+				Scope: "",
+			})
+		}
+		user.LockPassword = false
+		user.Permissions = settings.AdminPerms()
+		logger.Debugf("Creating user as admin: %v %v", user.Username, user.Password)
+		err = store.Users.Save(user, true, true)
+		utils.CheckErr("store.Users.Save", err)
 	}
-	user.Password = settings.Config.Auth.AdminPassword
-	user.Permissions.Admin = true
-	user.Scopes = []users.SourceScope{}
-	for _, val := range settings.Config.Server.Sources {
-		user.Scopes = append(user.Scopes, users.SourceScope{
-			Name:  val.Path, // backend name is path
-			Scope: "",
-		})
-	}
-	user.LockPassword = false
-	user.Permissions = settings.AdminPerms()
-	logger.Debugf("Creating user as admin: %v %v", user.Username, user.Password)
-	err = store.Users.Save(user, true, true)
-	utils.CheckErr("store.Users.Save", err)
 }
 
 // create new user
