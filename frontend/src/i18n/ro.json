@@ -410,5 +410,12 @@
     "verificationFailed": "Verificarea a eșuat",
     "verificationSucceed": "Verificarea reușită",
     "generationFailed": "Generație eșuată"
+  },
+  "fileLoading": {
+    "title": "Încărcări și descărcări",
+    "maxConcurrentUpload": "Încărcări simultane maxime",
+    "maxConcurrentUploadHelp": "Numărul maxim de încărcări simultane. Valorile mai mari au de obicei performanțe mai bune, dar acest lucru depinde de mai mulți factori.",
+    "uploadChunkSizeMb": "Mărimea pachetului de încărcare în MB",
+    "uploadChunkSizeMbHelp": "De obicei între 5 și 50 MB, mai mic este mai bine pentru conexiunile instabile sau restricționate. Setarea la 0 va dezactiva fragmentarea încărcării."
   }
 }

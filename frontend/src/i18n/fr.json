@@ -410,5 +410,12 @@
     "verificationFailed": "Échec de la vérification",
     "verificationSucceed": "Vérification réussie",
     "generationFailed": "Génération échouée"
+  },
+  "fileLoading": {
+    "title": "Chargements et téléchargements",
+    "maxConcurrentUpload": "Nombre maximum de téléchargements simultanés",
+    "maxConcurrentUploadHelp": "Nombre maximal de téléchargements simultanés. Des valeurs plus élevées sont généralement plus performantes, mais cela dépend de nombreux facteurs.",
+    "uploadChunkSizeMb": "Taille de la zone de téléchargement en Mo",
+    "uploadChunkSizeMbHelp": "Généralement de 5 à 50 Mo, une taille inférieure est préférable pour les connexions instables ou restreintes. La valeur 0 désactive le fractionnement de l'upload."
   }
 }

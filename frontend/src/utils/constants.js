@@ -26,6 +26,7 @@ const origin = window.location.origin;
 
 const settings = [
   { id: 'profile', label: 'settings.profileSettings', component: 'ProfileSettings' },
+  { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading' },
   { id: 'shares', label: 'settings.shareSettings', component: 'SharesSettings', permissions: { share: true } },
   { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }  },
   //{ id: 'global', label: 'Global', component: 'GlobalSettings', permissions: { admin: true } },

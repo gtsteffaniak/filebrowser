@@ -2,6 +2,12 @@ import { reactive } from 'vue';
 import { detectLocale } from "@/i18n";
 
 export const state = reactive({
+  tooltip: {
+    show: false,
+    content: "",
+    x: 0,
+    y: 0,
+  },
   deletedItem: false,
   previousHash: "",
   multiButtonState: "menu",

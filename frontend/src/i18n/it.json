@@ -410,5 +410,12 @@
     "verificationFailed": "Verifica fallita",
     "verificationSucceed": "Verifica riuscita",
     "generationFailed": "Generazione fallita"
+  },
+  "fileLoading": {
+    "title": "Caricamenti e download",
+    "maxConcurrentUpload": "Carichi massimi contemporanei",
+    "maxConcurrentUploadHelp": "Il numero massimo di upload contemporanei. I valori più alti sono in genere più performanti, ma ciò dipende da molti fattori.",
+    "uploadChunkSizeMb": "Dimensione dei pezzi caricati in MB",
+    "uploadChunkSizeMbHelp": "In genere da 5 a 50 MB, ma per connessioni instabili o limitate è meglio che sia più piccolo. Impostando 0 si disattiva il chunking del caricamento."
   }
 }

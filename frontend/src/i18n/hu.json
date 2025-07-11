@@ -410,5 +410,12 @@
     "verificationFailed": "Ellenőrzés sikertelen",
     "verificationSucceed": "Ellenőrzés Succeed",
     "generationFailed": "Nemzedék sikertelen"
+  },
+  "fileLoading": {
+    "title": "Feltöltések és letöltések",
+    "maxConcurrentUpload": "Maximális egyidejű feltöltés",
+    "maxConcurrentUploadHelp": "Az egyidejű feltöltések maximális száma. A magasabb értékek általában jobban teljesítenek, de ez sok tényezőtől függ.",
+    "uploadChunkSizeMb": "Feltöltési csomag mérete MB-ban",
+    "uploadChunkSizeMbHelp": "Általában 5 és 50 MB között, instabil vagy korlátozott kapcsolatok esetén a kisebb méret jobb. A 0 értékre állítás kikapcsolja a feltöltési darabolás funkciót."
   }
 }

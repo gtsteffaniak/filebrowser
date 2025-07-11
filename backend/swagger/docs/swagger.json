@@ -2556,6 +2556,14 @@
                     "description": "show quick save button in editor",
                     "type": "boolean"
                 },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
+                },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
@@ -2655,6 +2663,17 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "users.FileLoading": {
+            "type": "object",
+            "properties": {
+                "maxConcurrentUpload": {
+                    "type": "integer"
+                },
+                "uploadChunkSizeMb": {
+                    "type": "integer"
                 }
             }
         },
@@ -2797,6 +2816,14 @@
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
+                },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
                 },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",

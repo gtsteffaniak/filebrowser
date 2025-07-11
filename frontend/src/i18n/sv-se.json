@@ -405,5 +405,12 @@
     "verificationFailed": "Verifiering misslyckades",
     "verificationSucceed": "Verifiering lyckas",
     "generationFailed": "Generation misslyckad"
+  },
+  "fileLoading": {
+    "title": "Uppladdningar och nedladdningar",
+    "maxConcurrentUpload": "Max samtidiga uppladdningar",
+    "maxConcurrentUploadHelp": "Det maximala antalet samtidiga uppladdningar. Högre värden ger normalt bättre prestanda, men detta beror på många faktorer.",
+    "uploadChunkSizeMb": "Ladda upp chunkstorlek i MB",
+    "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning."
   }
 }

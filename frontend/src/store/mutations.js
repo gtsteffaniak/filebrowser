@@ -404,5 +404,19 @@ export const mutations = {
     state.isSearchActive = value;
     emitStateChanged();
   },
+  showTooltip(value) {
+    state.tooltip.content = value.content;
+    state.tooltip.x = value.x;
+    state.tooltip.y = value.y;
+    state.tooltip.show = true;
+    emitStateChanged();
+  },
+  hideTooltip() {
+    state.tooltip.show = false;
+    emitStateChanged();
+  },
+  setMaxConcurrentUpload: (value) => {
+    state.user.fileLoading.maxConcurrentUpload = value;
+    emitStateChanged();
+  },
 };
-

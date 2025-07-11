@@ -410,5 +410,12 @@
     "verificationFailed": "Falha na verificação",
     "verificationSucceed": "Verificação de sucesso",
     "generationFailed": "Falha na geração"
+  },
+  "fileLoading": {
+    "title": "Uploads e downloads",
+    "maxConcurrentUpload": "Máximo de uploads simultâneos",
+    "maxConcurrentUploadHelp": "O número máximo de uploads simultâneos. Valores mais altos costumam ter melhor desempenho, mas isso depende de muitos fatores.",
+    "uploadChunkSizeMb": "Tamanho do bloco de upload em MB",
+    "uploadChunkSizeMbHelp": "Normalmente, de 5 a 50 MB; quanto menor, melhor para conexões instáveis ou restritas. A configuração como 0 desabilitará o chunking de upload."
   }
 }
