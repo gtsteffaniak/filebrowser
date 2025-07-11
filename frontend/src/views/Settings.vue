@@ -32,12 +32,9 @@ import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
 import UserManagement from "@/views/settings/Users.vue";
-<<<<<<< HEAD
 import AccessSettings from "@/views/settings/Access.vue";
-=======
-import UserSettings from "@/views/settings/User.vue";
+import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
->>>>>>> main
 import ApiKeys from "@/views/settings/Api.vue";
 export default {
   name: "settings",
@@ -47,11 +44,9 @@ export default {
     ProfileSettings,
     SharesSettings,
     ApiKeys,
-<<<<<<< HEAD
     AccessSettings,
-=======
     FileLoading,
->>>>>>> main
+    UserSettings,
   },
   data() {
     return {

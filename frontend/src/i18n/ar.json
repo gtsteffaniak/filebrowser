@@ -300,13 +300,9 @@
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
     "disableOfficePreviews": "تعطيل معاينات المكتب لامتدادات ملفات معينة",
     "disableOfficePreviewsDescription": "قائمة مفصولة بمسافة من امتدادات الملفات لتعطيل المعاينات المكتبية لها. (على سبيل المثال، \".txt .html\").",
-<<<<<<< HEAD
-    "adminOptions": "خيارات المستخدم المسؤول"
-=======
     "adminOptions": "خيارات المستخدم المسؤول",
     "shareDuration": "تنتهي صلاحيتها",
     "searchOptions": "خيارات البحث"
->>>>>>> main
   },
   "sidebar": {
     "help": "مساعدة",

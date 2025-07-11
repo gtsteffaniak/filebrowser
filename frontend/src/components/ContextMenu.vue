@@ -101,6 +101,12 @@
         :label="$t('buttons.delete')"
         show="delete"
       />
+      <action
+        v-if="showAccess"
+        icon="lock"
+        :label="$t('access.rules')"
+        @action="showAccessHover"
+      />
     </div>
   </transition>
   <transition
@@ -193,6 +199,9 @@ export default {
     showOverflow() {
       return getters.currentPromptName() == "OverflowMenu";
     },
+    showAccess() {
+      return state.user.permissions.admin && this.showCreate;
+    },
     showShare() {
       return (
         state.user?.permissions &&
@@ -256,7 +265,7 @@ export default {
     }
   },
   methods: {
-    showAccess() {
+    showAccessHover() {
       mutations.showHover({
         name: "access",
         props: {
