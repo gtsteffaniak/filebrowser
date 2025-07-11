@@ -27,6 +27,7 @@
   </div>
   <Notifications />
   <ContextMenu></ContextMenu>
+  <Tooltip />
 </template>
 
 <script>
@@ -36,6 +37,7 @@ import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
 import Notifications from "@/components/Notifications.vue";
 import Scrollbar from "@/components/files/Scrollbar.vue";
+import Tooltip from "@/components/Tooltip.vue";
 import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events } from "@/notify";
@@ -50,6 +52,7 @@ export default {
     Sidebar,
     Prompts,
     Scrollbar,
+    Tooltip,
   },
   data() {
     return {
@@ -68,7 +71,7 @@ export default {
       mutations.setSession(generateRandomCode(8));
     }
     this.reEval()
-    this.updateSourceInfo();
+    this.initialize();
   },
   computed: {
     isOnlyOffice() {
@@ -134,12 +137,16 @@ export default {
         }
       }
     },
-    async updateSourceInfo() {
+    async initialize() {
       if (getters.isLoggedIn()) {
         const sourceinfo = await filesApi.sources();
         mutations.updateSourceInfo(sourceinfo);
         if (state.user.permissions.realtime) {
           events.startSSE();
+        }
+        const maxUploads = state.user.fileLoading.maxConcurrentUpload;
+        if (maxUploads > 10 || maxUploads < 1) {
+          mutations.setMaxConcurrentUpload(1);
         }
       }
     },

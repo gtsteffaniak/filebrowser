@@ -127,6 +127,9 @@ userDefaults:
   loginMethod: "password"                 # login method to use: eg. password, proxy, oidc
   disableUpdateNotifications: false       # disable update notifications banner for admin users
   deleteWithoutConfirming: false          # delete files without confirmation
+  fileLoading:                            # upload and download settings
+    maxConcurrentUpload: 10
+    uploadChunkSizeMb: 10
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

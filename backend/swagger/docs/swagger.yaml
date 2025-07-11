@@ -548,6 +548,10 @@ definitions:
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
+      fileLoading:
+        allOf:
+        - $ref: '#/definitions/users.FileLoading'
+        description: upload and download settings
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
@@ -624,6 +628,13 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  users.FileLoading:
+    properties:
+      maxConcurrentUpload:
+        type: integer
+      uploadChunkSizeMb:
+        type: integer
     type: object
   users.LoginMethod:
     enum:
@@ -727,6 +738,10 @@ definitions:
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
+      fileLoading:
+        allOf:
+        - $ref: '#/definitions/users.FileLoading'
+        description: upload and download settings
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer

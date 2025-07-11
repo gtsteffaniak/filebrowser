@@ -2567,6 +2567,14 @@ const docTemplate = `{
                     "description": "show quick save button in editor",
                     "type": "boolean"
                 },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
+                },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",
                     "type": "integer"
@@ -2666,6 +2674,17 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "users.FileLoading": {
+            "type": "object",
+            "properties": {
+                "maxConcurrentUpload": {
+                    "type": "integer"
+                },
+                "uploadChunkSizeMb": {
+                    "type": "integer"
                 }
             }
         },
@@ -2808,6 +2827,14 @@ const docTemplate = `{
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
                     "type": "boolean"
+                },
+                "fileLoading": {
+                    "description": "upload and download settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.FileLoading"
+                        }
+                    ]
                 },
                 "gallerySize": {
                     "description": "0-9 - the size of the gallery thumbnails",

@@ -352,6 +352,10 @@ func setDefaults(generate bool) Settings {
 				Admin:  false,
 				Api:    false,
 			},
+			FileLoading: users.FileLoading{
+				MaxConcurrent: 10,
+				ChunkSize:     10, // 10MB
+			},
 		},
 	}
 }

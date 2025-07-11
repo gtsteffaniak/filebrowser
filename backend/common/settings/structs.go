@@ -145,5 +145,5 @@ type UserDefaults struct {
 	LoginMethod                string              `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	DeleteWithoutConfirming    bool                `json:"deleteWithoutConfirming"`    // delete files without confirmation
-
+	FileLoading                users.FileLoading   `json:"fileLoading"`                // upload and download settings
 }

@@ -400,5 +400,12 @@
     "verificationFailed": "Verification Failed",
     "verificationSucceed": "Verification Succeed",
     "generationFailed": "Generation Failed"
+  },
+  "fileLoading": {
+    "title": "Uploads & Downloads",
+    "maxConcurrentUpload": "Max concurrent uploads",
+    "maxConcurrentUploadHelp": "The maximum number of concurrent uploads. Higher values typically perform better, but this depends on many factors.",
+    "uploadChunkSizeMb": "Upload chunk size in MB",
+    "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking."
   }
 }

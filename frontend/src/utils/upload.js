@@ -1,8 +1,6 @@
 import { reactive } from "vue";
 import { filesApi } from "@/api";
-import { state as storeState } from "@/store";
-
-const MAX_CONCURRENT_UPLOADS = 10;
+import { state } from "@/store";
 
 class UploadManager {
   constructor() {
@@ -56,7 +54,7 @@ class UploadManager {
           status: "pending",
           type: "directory",
           path: `${basePath}${dir}`,
-          source: storeState.req.source,
+          source: state.req.source,
           overwrite: overwrite,
         };
 
@@ -79,7 +77,7 @@ class UploadManager {
         status: "pending", // pending, uploading, paused, completed, error
         xhr: null,
         path: destinationPath, // Full destination path
-        source: storeState.req.source,
+        source: state.req.source,
         overwrite: overwrite,
       };
       return upload;
@@ -101,7 +99,7 @@ class UploadManager {
     }
 
     while (
-      this.activeUploads < MAX_CONCURRENT_UPLOADS &&
+      this.activeUploads < state.user.fileLoading.maxConcurrentUpload &&
       this.hasPending()
     ) {
       const upload = this.queue.find((item) => item.status === "pending");
@@ -158,12 +156,43 @@ class UploadManager {
     this.activeUploads++;
     upload.status = "uploading";
 
-    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
+    const chunkSize = state.user.fileLoading.uploadChunkSizeMb * 1024 * 1024;
+    if (chunkSize === 0) {
+      const progress = (percent) => {
+        upload.progress = percent;
+      };
+
+      try {
+        const { xhr, promise } = filesApi.post(
+          upload.source,
+          upload.path,
+          upload.file,
+          upload.overwrite,
+          progress,
+          {
+            "X-File-Total-Size": upload.size,
+          }
+        );
+
+        upload.xhr = xhr;
+        await promise;
+
+        upload.status = "completed";
+        upload.progress = 100;
+      } catch (err) {
+        await this.handleUploadError(upload, err);
+      } finally {
+        this.activeUploads--;
+        upload.xhr = null;
+        this.processQueue();
+      }
+      return;
+    }
 
     while (upload.chunkOffset < upload.size && upload.status === "uploading") {
       const chunk = upload.file.slice(
         upload.chunkOffset,
-        upload.chunkOffset + CHUNK_SIZE
+        upload.chunkOffset + chunkSize
       );
 
       const chunkProgress = (percent) => {
