@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.14-beta
 
+ **Notes**:
+ - Updated translations https://github.com/gtsteffaniak/filebrowser/issues/957
+
  **BugFixes**:
  - noauth user issue https://github.com/gtsteffaniak/filebrowser/issues/955
  - error 403 on source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/952
  
-
 ## v0.7.13-beta
 
  **New Features**:
