@@ -1,14 +1,15 @@
 <template>
-  <div class="card floating">
+  <div class="card floating" >
     <div class="card-title">
       <h2>{{ $t("prompts.upload") }}</h2>
     </div>
     <div
       class="upload-prompt"
+      :class="{ dropping: isDragging }"
       @dragenter.prevent="onDragEnter"
       @dragover.prevent="onDragOver"
       @dragleave.prevent="onDragLeave"
-      :class="{ 'drag-over': isDragging }"
+      @drop.prevent="onDrop"
     >
       <div class="upload-prompt-container">
         <i v-if="files.length === 0" class="material-icons">cloud_upload</i>
@@ -30,7 +31,6 @@
     <div
       class="card-content"
       @drop.prevent="onDrop"
-      :class="{ 'drag-over': isDragging }"
     >
       <div v-if="showConflictPrompt" class="conflict-overlay">
         <div class="card">
@@ -298,6 +298,14 @@ export default {
       }
     };
 
+    const processItems = async (items) => {
+      if (Array.isArray(items)) {
+        processFileList(items);
+      } else if (items) {
+        await processDroppedItems(Array.from(items));
+      }
+    };
+
     onMounted(async () => {
       document.addEventListener("visibilitychange", handleVisibilityChange);
       uploadManager.setOnConflict(handleConflict);
@@ -344,7 +352,10 @@ export default {
         await processDroppedItems(items);
       } else {
         const droppedFiles = event.dataTransfer.files;
-        console.log("Upload.vue: Processing dropped files (fallback):", droppedFiles);
+        console.log(
+          "Upload.vue: Processing dropped files (fallback):",
+          droppedFiles
+        );
         processFileList(droppedFiles);
       }
     };
@@ -461,9 +472,10 @@ export default {
   margin: 0 1em;
 }
 
-.upload-prompt.drag-over {
-  background-color: #f0f0f0;
-  border-color: #333;
+.dropping {
+  transform: scale(0.97);
+  border-radius: 1em;
+  box-shadow: var(--primaryColor) 0 0 1em;
 }
 
 .upload-prompt-container {
@@ -489,6 +501,7 @@ export default {
 
 .upload-item {
   display: flex;
+  align-items: center;
 }
 
 .file-icon {
@@ -520,11 +533,6 @@ export default {
 
 .file-actions .action i {
   font-size: 1.2em;
-}
-
-.drag-over {
-  border-color: #2196f3;
-  background: #f4f4f4;
 }
 
 .card-actions {
