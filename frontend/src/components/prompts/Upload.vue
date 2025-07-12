@@ -211,7 +211,6 @@ export default {
     },
   },
   setup(props) {
-    console.log("Upload.vue: setup started. Props:", props);
     const fileInput = ref(null);
     const folderInput = ref(null);
     const files = computed(() => uploadManager.queue);
@@ -348,7 +347,6 @@ export default {
       isDragging.value = false;
       if (event.dataTransfer.items) {
         const items = Array.from(event.dataTransfer.items);
-        console.log("Upload.vue: Processing dropped items:", items);
         await processDroppedItems(items);
       } else {
         const droppedFiles = event.dataTransfer.files;

@@ -113,6 +113,9 @@ export default {
       }
     },
     async fetchData() {
+      if (state.deletedItem) {
+        return
+      }
       if (!getters.isLoggedIn()) {
         return;
       }
