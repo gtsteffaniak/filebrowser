@@ -6,10 +6,13 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - Updated translations https://github.com/gtsteffaniak/filebrowser/issues/957
+ - enabled more doc types for onlyoffice https://github.com/gtsteffaniak/filebrowser/discussions/945
 
  **BugFixes**:
  - noauth user issue https://github.com/gtsteffaniak/filebrowser/issues/955
  - error 403 on source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/952
+ - delete pictures in previewer issue https://github.com/gtsteffaniak/filebrowser/issues/456
+ - trailing slash source name issue https://github.com/gtsteffaniak/filebrowser/issues/920
  
 ## v0.7.13-beta
 
