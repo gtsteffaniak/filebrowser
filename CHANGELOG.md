@@ -13,6 +13,8 @@ All notable changes to this project will be documented in this file. For commit 
  - error 403 on source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/952
  - delete pictures in previewer issue https://github.com/gtsteffaniak/filebrowser/issues/456
  - trailing slash source name issue https://github.com/gtsteffaniak/filebrowser/issues/920
+ - image lazy loading issue causing all items to get previews at one time, not just whats in view.
+
  
 ## v0.7.13-beta
 
