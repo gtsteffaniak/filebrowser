@@ -21,7 +21,7 @@
       <action
         v-if="!showCreate && !isSearchActive && userPerms.modify"
         icon="add"
-        label="New"
+        :label="$t('buttons.new')"
         @action="startShowCreate"
       />
 
@@ -92,7 +92,7 @@
       <action
         v-if="!showCreate && selectedCount > 0 && userPerms.modify"
         icon="file_upload"
-        :label="$t('buttons.replace')"
+        :label="$t('buttons.upload')"
         @action="showUpload"
       />
       <action

@@ -1,6 +1,6 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
-    <div class="preview">
+    <div class="preview" v-if="!isDeleted">
       <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw">
       </ExtendedImage>
       <audio v-else-if="previewType == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
@@ -82,6 +82,7 @@ export default {
       nextRaw: "",
       currentPrompt: null, // Replaces Vuex getter `currentPrompt`
       subtitlesList: [],
+      isDeleted: false,
     };
   },
   computed: {
@@ -161,6 +162,10 @@ export default {
       if (!state.deletedItem) {
         return;
       }
+      this.isDeleted = true;
+      this.listing = null; // Invalidate the listing to force a refresh
+      this.nextRaw = "";
+      this.previousRaw = "";
       if (this.hasNext) {
         this.next();
       } else if (!this.hasPrevious && !this.hasNext) {
@@ -174,6 +179,7 @@ export default {
       if (!getters.isLoggedIn()) {
         return;
       }
+      this.isDeleted = false;
       this.updatePreview();
       this.toggleNavigation();
       mutations.resetSelected();
@@ -282,18 +288,15 @@ export default {
           }
         });
       }
-
+      const directoryPath = url.removeLastDir(state.req.path);
       if (!this.listing) {
-        const path = url.removeLastDir(state.req.path);
-        const res = await filesApi.fetchFiles(state.req.source, path);
+        const res = await filesApi.fetchFiles(state.req.source, directoryPath);
         this.listing = res.items;
       }
       this.name = state.req.name;
       this.previousLink = "";
       this.nextLink = "";
-      const path = state.req.path;
 
-      let directoryPath = path.substring(0, path.lastIndexOf("/"));
       for (let i = 0; i < this.listing.length; i++) {
         if (this.listing[i].name !== this.name) {
           continue;

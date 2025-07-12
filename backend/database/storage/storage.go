@@ -86,7 +86,9 @@ func quickSetup(store *Storage) {
 	utils.CheckErr("store.Settings.Save", err)
 	err = store.Settings.SaveServer(&settings.Config.Server)
 	utils.CheckErr("store.Settings.SaveServer", err)
-	if settings.Config.Auth.Methods.PasswordAuth.Enabled {
+	passwordAuth := settings.Config.Auth.Methods.PasswordAuth.Enabled
+	noAuth := settings.Config.Auth.Methods.NoAuth
+	if passwordAuth || noAuth {
 		user := &users.User{}
 		settings.ApplyUserDefaults(user)
 		user.Username = settings.Config.Auth.AdminUsername

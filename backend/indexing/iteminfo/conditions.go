@@ -104,14 +104,27 @@ var documentTypes = []string{
 }
 
 var onlyOfficeSupported = []string{
+	// Word Processing Documents
 	".doc", ".docm", ".docx", ".dot", ".dotm", ".dotx", ".epub",
 	".fb2", ".fodt", ".htm", ".html", ".mht", ".mhtml", ".odt",
 	".ott", ".rtf", ".stw", ".sxw", ".txt", ".wps", ".wpt", ".xml",
+	".hwp", ".hwpx", ".md", ".pages", // Added missing Word extensions
+
+	// Spreadsheet Documents
 	".csv", ".et", ".ett", ".fods", ".ods", ".ots", ".sxc", ".xls",
-	".xlsb", ".xlsm", ".xlsx", ".xlt", ".xltm", ".xltx", ".dps",
-	".dpt", ".fodp", ".odp", ".otp", ".pot", ".potm", ".potx",
+	".xlsb", ".xlsm", ".xlsx", ".xlt", ".xltm", ".xltx",
+	".numbers", // Added missing Spreadsheet extension
+
+	// Presentation Documents
+	".dps", ".dpt", ".fodp", ".odp", ".otp", ".pot", ".potm", ".potx",
 	".pps", ".ppsm", ".ppsx", ".ppt", ".pptm", ".pptx", ".sxi",
+	".key", ".odg", // Added missing Presentation extensions
+
+	// Other Office-Related Formats
 	".djvu", ".docxf", ".oform", ".oxps", ".pdf", ".xps",
+
+	// Diagram Documents (New category from List 2)
+	".vsdm", ".vsdx", ".vssm", ".vssx", ".vstm", ".vstx",
 }
 
 // Text-based file extensions
