@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.14-beta
+
+ **BugFixes**:
+ - noauth user issue https://github.com/gtsteffaniak/filebrowser/issues/955
+ - error 403 on source name with special characters https://github.com/gtsteffaniak/filebrowser/issues/952
+ 
+
 ## v0.7.13-beta
 
  **New Features**:
