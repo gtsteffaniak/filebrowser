@@ -417,5 +417,13 @@
     "maxConcurrentUploadHelp": "Eşzamanlı yüklemelerin maksimum sayısı. Daha yüksek değerler genellikle daha iyi performans gösterir, ancak bu birçok faktöre bağlıdır.",
     "uploadChunkSizeMb": "MB cinsinden yığın boyutu yükleme",
     "uploadChunkSizeMbHelp": "Tipik olarak 5 ila 50 MB, daha küçük kararsız veya kısıtlı bağlantılar için daha iyidir. 0 olarak ayarlandığında yükleme yığınlaması devre dışı bırakılır."
+  },
+  "colors": {
+    "red": "kırmızı",
+    "green": "yeşil",
+    "blue": "mavi",
+    "yellow": "sarı",
+    "violet": "menekşe",
+    "orange": "turuncu"
   }
 }

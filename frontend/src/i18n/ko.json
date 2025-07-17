@@ -417,5 +417,13 @@
     "maxConcurrentUploadHelp": "최대 동시 업로드 수입니다. 일반적으로 값이 높을수록 성능이 향상되지만, 이는 여러 요인에 따라 달라집니다.",
     "uploadChunkSizeMb": "업로드 청크 크기(MB)",
     "uploadChunkSizeMbHelp": "일반적으로 5~50MB이며, 연결이 불안정하거나 제한적인 경우에는 이보다 작을수록 좋습니다. 0으로 설정하면 업로드 청킹이 비활성화됩니다."
+  },
+  "colors": {
+    "red": "빨간색",
+    "green": "녹색",
+    "blue": "파란색",
+    "yellow": "노란색",
+    "violet": "바이올렛",
+    "orange": "오렌지"
   }
 }

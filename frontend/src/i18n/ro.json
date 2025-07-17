@@ -417,5 +417,13 @@
     "maxConcurrentUploadHelp": "Numărul maxim de încărcări simultane. Valorile mai mari au de obicei performanțe mai bune, dar acest lucru depinde de mai mulți factori.",
     "uploadChunkSizeMb": "Mărimea pachetului de încărcare în MB",
     "uploadChunkSizeMbHelp": "De obicei între 5 și 50 MB, mai mic este mai bine pentru conexiunile instabile sau restricționate. Setarea la 0 va dezactiva fragmentarea încărcării."
+  },
+  "colors": {
+    "red": "roșu",
+    "green": "verde",
+    "blue": "albastru",
+    "yellow": "galben",
+    "violet": "violet",
+    "orange": "portocaliu"
   }
 }

@@ -412,5 +412,13 @@
     "maxConcurrentUploadHelp": "O número máximo de carregamentos simultâneos. Os valores mais elevados têm normalmente um melhor desempenho, mas isto depende de muitos factores.",
     "uploadChunkSizeMb": "Tamanho do bloco de carregamento em MB",
     "uploadChunkSizeMbHelp": "Tipicamente, 5 a 50 MB, mas um valor mais pequeno é melhor para ligações instáveis ou restritas. Definir como 0 desactivará a fragmentação do carregamento."
+  },
+  "colors": {
+    "red": "vermelho",
+    "green": "verde",
+    "blue": "azul",
+    "yellow": "amarelo",
+    "violet": "violeta",
+    "orange": "laranja"
   }
 }
