@@ -29,8 +29,9 @@ RUN apk --no-cache add ca-certificates mailcap tzdata
 RUN adduser -D -s /bin/true -u 1000 filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
-COPY --from=base --chown=filebrowser:1000 /app/filebrowser ./
-COPY --from=base --chown=filebrowser:1000 /app/config.yaml ./data/config.yaml
+# copy config to two locations for compatibility
+COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "/app/config.yaml", "./" ]
+COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
 COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/
 ## sanity checks
 RUN [ "filebrowser", "version" ]

@@ -220,7 +220,7 @@ export default {
       if (serverHasMultipleSources) {
         return baseURL + "files/" + this.source + this.path;
       }
-      return baseURL + "files/" + this.path;
+      return baseURL + "files" + this.path;
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu

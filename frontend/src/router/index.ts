@@ -125,6 +125,13 @@ const router = createRouter({
 function isSameRoute(to: RouteLocation, from: RouteLocation) {
   return to.path === from.path && JSON.stringify(to.params) === JSON.stringify(from.params);
 }
+
+function routeToObject(route: RouteLocation) {
+  if (!route) return null;
+  const { matched, ...rest } = route;
+  return rest;
+}
+
 router.beforeResolve(async (to, from, next) => {
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
@@ -181,7 +188,7 @@ router.beforeResolve(async (to, from, next) => {
   next();
 });
 
-router.afterEach((to) => {
+router.afterEach((to, from) => {
   // Only postMessage if running in an iframe
   if (window.self !== window.top) {
     window.parent.postMessage(

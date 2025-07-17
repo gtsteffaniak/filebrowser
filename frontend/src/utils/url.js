@@ -162,9 +162,9 @@ export function goToItem(source, path, previousHash, shareHash) {
     return;
   }
   if (state.serverHasMultipleSources) {
-    fullPath = `/${encodeURIComponent(source)}${newPath}`;
+    fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   } else {
-    fullPath = `${newPath}`;
+    fullPath = `/files${newPath}`;
   }
 
   router.push({ path: fullPath });

@@ -407,5 +407,13 @@
     "maxConcurrentUploadHelp": "The maximum number of concurrent uploads. Higher values typically perform better, but this depends on many factors.",
     "uploadChunkSizeMb": "Upload chunk size in MB",
     "uploadChunkSizeMbHelp": "Typically 5 to 50 MB, smaller is better for unstable or restricted connections. Setting to 0 will disable upload chunking."
+  },
+  "colors": {
+    "red": "red",
+    "green": "green",
+    "blue": "blue",
+    "yellow": "yellow",
+    "purple": "violet",
+    "orange": "orange"
   }
 }
