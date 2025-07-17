@@ -36,7 +36,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { extractSourceFromPath, encodedPath } from "@/utils/url.js";
+import { encodedPath } from "@/utils/url.js";
 
 export default {
   name: "breadcrumbs",
