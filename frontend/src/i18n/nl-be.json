@@ -412,5 +412,13 @@
     "maxConcurrentUploadHelp": "Het maximum aantal gelijktijdige uploads. Hogere waarden presteren meestal beter, maar dit hangt van veel factoren af.",
     "uploadChunkSizeMb": "Upload brokgrootte in MB",
     "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt chunking uit."
+  },
+  "colors": {
+    "red": "rood",
+    "green": "groen",
+    "blue": "blauw",
+    "yellow": "geel",
+    "violet": "violet",
+    "orange": "oranje"
   }
 }

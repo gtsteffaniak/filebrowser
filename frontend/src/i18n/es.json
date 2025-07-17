@@ -417,5 +417,13 @@
     "maxConcurrentUploadHelp": "El número máximo de cargas simultáneas. Los valores más altos suelen dar mejores resultados, pero esto depende de muchos factores.",
     "uploadChunkSizeMb": "Tamaño del chunk de subida en MB",
     "uploadChunkSizeMbHelp": "Típicamente 5 a 50 MB, más pequeño es mejor para conexiones inestables o restringidas. Si se pone a 0, se desactiva la carga en trozos."
+  },
+  "colors": {
+    "red": "rojo",
+    "green": "verde",
+    "blue": "azul",
+    "yellow": "amarillo",
+    "violet": "violeta",
+    "orange": "naranja"
   }
 }

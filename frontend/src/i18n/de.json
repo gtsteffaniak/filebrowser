@@ -417,5 +417,13 @@
     "maxConcurrentUploadHelp": "Die maximale Anzahl der gleichzeitigen Uploads. Höhere Werte führen in der Regel zu einer besseren Leistung, aber dies hängt von vielen Faktoren ab.",
     "uploadChunkSizeMb": "Größe des hochzuladenden Pakets in MB",
     "uploadChunkSizeMbHelp": "Normalerweise 5 bis 50 MB, kleiner ist besser für instabile oder eingeschränkte Verbindungen. Die Einstellung 0 deaktiviert das Chunking beim Hochladen."
+  },
+  "colors": {
+    "red": "rot",
+    "green": "grün",
+    "blue": "blau",
+    "yellow": "gelb",
+    "violet": "violett",
+    "orange": "orange"
   }
 }

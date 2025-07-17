@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.15-beta
+
+ **BugFixes**:
+ - fix chinese and other language error (#972, #969)
+ - fix docker dockerfile for `docker run` (#973)
+ - fix double slash href on single source (#968)
+ - fix sources named "files" or "share" issue (#949, #574)
+
 ## v0.7.14-beta
 
  **Notes**:
@@ -15,7 +23,6 @@ All notable changes to this project will be documented in this file. For commit 
  - trailing slash source name issue https://github.com/gtsteffaniak/filebrowser/issues/920
  - image lazy loading issue causing all items to get previews at one time, not just whats in view.
 
- 
 ## v0.7.13-beta
 
  **New Features**:

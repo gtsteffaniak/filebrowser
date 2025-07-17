@@ -412,5 +412,13 @@
     "maxConcurrentUploadHelp": "Det maximala antalet samtidiga uppladdningar. Högre värden ger normalt bättre prestanda, men detta beror på många faktorer.",
     "uploadChunkSizeMb": "Ladda upp chunkstorlek i MB",
     "uploadChunkSizeMbHelp": "Vanligtvis 5 till 50 MB, men mindre är bättre för instabila eller begränsade anslutningar. Om du ställer in 0 inaktiveras chunking för uppladdning."
+  },
+  "colors": {
+    "red": "röd",
+    "green": "grön",
+    "blue": "blå",
+    "yellow": "gul",
+    "violet": "violett",
+    "orange": "apelsin"
   }
 }

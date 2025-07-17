@@ -417,5 +417,13 @@
     "maxConcurrentUploadHelp": "Maximálny počet súbežných odosielaní. Vyššie hodnoty sú zvyčajne výkonnejšie, ale závisí to od mnohých faktorov.",
     "uploadChunkSizeMb": "Veľkosť nahraného úseku v MB",
     "uploadChunkSizeMbHelp": "Zvyčajne 5 až 50 MB, v prípade nestabilných alebo obmedzených pripojení je vhodnejšie použiť menšiu veľkosť. Nastavením na hodnotu 0 sa vypne zoskupovanie pri odosielaní."
+  },
+  "colors": {
+    "red": "červená",
+    "green": "zelená",
+    "blue": "modrá",
+    "yellow": "žltá",
+    "violet": "fialová",
+    "orange": "oranžová"
   }
 }
