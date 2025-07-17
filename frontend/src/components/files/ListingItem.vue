@@ -31,7 +31,12 @@
     @mouseup="cancelContext($event)"
   >
     <div @click="toggleClick" :class="{ 'gallery-div': galleryView }">
-      <Icon :mimetype="type" :active="isSelected" :thumbnailUrl="thumbnailUrl" :filename="name" />
+      <Icon
+        :mimetype="type"
+        :active="isSelected"
+        :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
+        :filename="name"
+      />
     </div>
 
     <div class="text" :class="{ activecontent: isMaximized && isSelected }">
@@ -158,23 +163,16 @@ export default {
     isThumbsEnabled() {
       return enableThumbs;
     },
-    isInView() {
-      return enableThumbs;
-    },
   },
   mounted() {
     // Prevent default navigation for left-clicks
     const observer = new IntersectionObserver(this.handleIntersect, {
       root: null,
       rootMargin: "0px",
-      threshold: 0.5, // Adjust threshold as needed
+      threshold: 0.1, // Adjust threshold as needed
     });
 
-    // Get the thumbnail element and start observing
-    const thumbnailElement = this.$refs.thumbnail; // Add ref="thumbnail" to the <img> tag
-    if (thumbnailElement) {
-      observer.observe(thumbnailElement);
-    }
+    observer.observe(this.$el);
   },
   methods: {
     downloadFile(event) {

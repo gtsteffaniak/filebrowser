@@ -77,6 +77,7 @@ export default {
           notify.showSuccess("Deleted item successfully");
           mutations.closeHovers();
           mutations.setDeletedItem(true);
+          mutations.setReload(true);
           return;
         }
         if (!this.isListing) {

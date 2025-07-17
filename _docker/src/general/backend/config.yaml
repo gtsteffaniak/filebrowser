@@ -5,6 +5,7 @@ server:
     - levels: "info|error|debug"
   sources:
     - path: "../frontend/tests/playwright-files"
+      name: "playwright + files"
       config:
         defaultEnabled: true
     - path: "."
