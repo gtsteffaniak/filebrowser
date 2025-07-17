@@ -214,12 +214,11 @@ export default {
       window.location.href = this.getRelative(path);
     },
     getUrl() {
-      console.log(this.path,url.encodedPath(this.path));
       if (this.hash) {
-        return baseURL + "share/" + this.hash + this.path;
+        return baseURL + "share/" + this.hash + url.encodedPath(this.path);
       }
       if (serverHasMultipleSources) {
-        return baseURL + "files/" + this.source + url.encodedPath(this.path);
+        return baseURL + "files/" + encodeURIComponent(this.source) + url.encodedPath(this.path);
       }
       return baseURL + "files" + url.encodedPath(this.path);
     },
