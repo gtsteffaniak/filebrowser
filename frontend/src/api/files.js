@@ -96,8 +96,8 @@ export function post(
 ) {
   try {
     const apiPath = getApiPath("api/resources", {
-      path: encodeURIComponent(path),
-      source: encodeURIComponent(source),
+      path: doubleEncode(path),
+      source: doubleEncode(source),
       override: overwrite,
     });
 

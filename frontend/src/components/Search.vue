@@ -395,7 +395,8 @@ export default {
       if (path.startsWith("/")) {
         path = path.slice(1); // remove leading slash
       }
-      const encodedPath = encodeURIComponent(this.getContext + path).replaceAll("%2F", "/");
+      const context = url.removeTrailingSlash(this.getContext)
+      const encodedPath = encodeURIComponent(context + "/" + path).replaceAll("%2F", "/");
       let fullpath = encodedPath;
       if (serverHasMultipleSources) {
         fullpath = baseURL+"files/" + this.selectedSource + encodedPath;

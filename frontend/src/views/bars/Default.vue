@@ -57,7 +57,6 @@ export default {
   },
   computed: {
     showQuickSave() {
-      console.log("showQuickSave", getters.currentView());
       if (getters.currentView() != "editor" || !state.user.permissions.modify) {
         return false;
       }

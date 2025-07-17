@@ -112,6 +112,9 @@ export default {
       }
     },
     async fetchData() {
+      if (state.deletedItem) {
+        return
+      }
       if (!getters.isLoggedIn()) {
         return;
       }
@@ -123,8 +126,7 @@ export default {
         routePath == "/";
       // lets redirect if multiple sources and user went to /files/
       if (state.serverHasMultipleSources && rootRoute) {
-        const urlEncodedSource = encodeURIComponent(state.sources.current)
-        const targetPath = `${routePath}/${urlEncodedSource}`;
+        const targetPath = `${routePath}/${state.sources.current}`;
         // Prevent infinite loop by checking if we're already at the target path
         if (this.$route.path !== targetPath) {
           router.push(targetPath);

@@ -46,6 +46,10 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
+	source, err = url.QueryUnescape(source)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+	}
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -172,6 +176,11 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	if err != nil {
 		logger.Debugf("invalid source encoding: %v", err)
 		return http.StatusBadRequest, fmt.Errorf("invalid source encoding: %v", err)
+	}
+	path, err = url.QueryUnescape(path)
+	if err != nil {
+		logger.Debugf("invalid path encoding: %v", err)
+		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	if !d.user.Permissions.Modify {
 		logger.Debugf("user is not allowed to create or modify")
