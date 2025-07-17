@@ -214,13 +214,14 @@ export default {
       window.location.href = this.getRelative(path);
     },
     getUrl() {
+      console.log(this.path,url.encodedPath(this.path));
       if (this.hash) {
         return baseURL + "share/" + this.hash + this.path;
       }
       if (serverHasMultipleSources) {
-        return baseURL + "files/" + this.source + this.path;
+        return baseURL + "files/" + this.source + url.encodedPath(this.path);
       }
-      return baseURL + "files" + this.path;
+      return baseURL + "files" + url.encodedPath(this.path);
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
