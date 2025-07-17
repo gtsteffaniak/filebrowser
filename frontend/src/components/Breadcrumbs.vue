@@ -116,7 +116,7 @@ export default {
         this.base = getters.sharePathBase();
         this.path = getters.routePath(this.base);
       } else {
-        this.path = state.req.path;
+        this.path = encodedPath(state.req.path);
         this.base = "/";
         if (state.serverHasMultipleSources) {
           this.base = `/files/${state.req.source}/`;
