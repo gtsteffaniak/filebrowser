@@ -4,11 +4,15 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.15-beta
 
+ **Notes**:
+ - replaced `disableOfficePreviewExt` and `disableOnlyOfficeExt` with more generally applicable `sisablePreviewExt` and `disabledViewingExt`. The new properties apply to all files, not just office.
+
  **BugFixes**:
  - fix chinese and other language error (#972, #969)
  - fix docker dockerfile for `docker run` (#973)
  - fix double slash href on single source (#968)
  - fix sources named "files" or "share" issue (#949, #574)
+ - Focus input field on popups (#976)
 
 ## v0.7.14-beta
 

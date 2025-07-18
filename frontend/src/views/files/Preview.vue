@@ -112,7 +112,7 @@ export default {
         ".hwp": true,
         ".hwpx": true,
       };
-      if (state.user.disableOfficePreviewExt.includes(ext)) {
+      if (state.user.disabledViewingExt.includes(ext)) {
         return false;
       }
       return !!pdfConvertCompatibleFileExtensions[ext] ;

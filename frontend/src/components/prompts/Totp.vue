@@ -13,6 +13,7 @@
       </div>
       <p>{{ $t("otp.verifyInstructions") }}</p>
       <input
+        v-focus
         class="input input--block"
         type="text"
         v-model="code"
@@ -79,11 +80,6 @@ export default {
       type: String,
       default: "",
     },
-  },
-  async mounted() {
-    if (this.generate) {
-      this.generateNewCode();
-    }
   },
   methods: {
     async generateNewCode() {

@@ -2539,12 +2539,8 @@ const docTemplate = `{
                     "description": "delete files without confirmation",
                     "type": "boolean"
                 },
-                "disableOfficePreviewExt": {
-                    "description": "comma separated list of file extensions to disable office preview for",
-                    "type": "string"
-                },
-                "disableOnlyOfficeExt": {
-                    "description": "comma separated list of file extensions to disable onlyoffice preview for",
+                "disablePreviewExt": {
+                    "description": "comma separated list of file extensions to disable preview for",
                     "type": "string"
                 },
                 "disableQuickToggles": {
@@ -2562,6 +2558,10 @@ const docTemplate = `{
                 "disableUpdateNotifications": {
                     "description": "disable update notifications banner for admin users",
                     "type": "boolean"
+                },
+                "disabledViewingExt": {
+                    "description": "comma separated list of file extensions to disable viewing for",
+                    "type": "string"
                 },
                 "editorQuickSave": {
                     "description": "show quick save button in editor",
@@ -2801,12 +2801,8 @@ const docTemplate = `{
                     "description": "delete files without confirmation",
                     "type": "boolean"
                 },
-                "disableOfficePreviewExt": {
-                    "description": "comma separated list of file extensions to disable office preview for",
-                    "type": "string"
-                },
-                "disableOnlyOfficeExt": {
-                    "description": "comma separated list of file extensions to disable onlyoffice preview for",
+                "disablePreviewExt": {
+                    "description": "comma separated list of file extensions to disable preview for",
                     "type": "string"
                 },
                 "disableQuickToggles": {
@@ -2823,6 +2819,10 @@ const docTemplate = `{
                 "disableUpdateNotifications": {
                     "description": "disable update notifications",
                     "type": "boolean"
+                },
+                "disabledViewingExt": {
+                    "description": "comma separated list of file extensions to disable viewing for",
+                    "type": "string"
                 },
                 "editorQuickSave": {
                     "description": "show quick save button in editor",

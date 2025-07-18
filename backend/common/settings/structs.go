@@ -135,8 +135,8 @@ type UserDefaults struct {
 	GallerySize                int                 `json:"gallerySize"`               // 0-9 - the size of the gallery thumbnails
 	ThemeColor                 string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
 	QuickDownload              bool                `json:"quickDownload"`             // show icon to download in one click
-	DisableOnlyOfficeExt       string              `json:"disableOnlyOfficeExt"`      // comma separated list of file extensions to disable onlyoffice preview for
-	DisableOfficePreviewExt    string              `json:"disableOfficePreviewExt"`   // comma separated list of file extensions to disable office preview for
+	DisablePreviewExt          string              `json:"disablePreviewExt"`         // comma separated list of file extensions to disable preview for
+	DisabledViewingExt         string              `json:"disabledViewingExt"`        // comma separated list of file extensions to disable viewing for
 	LockPassword               bool                `json:"lockPassword"`              // disable the user from changing their password
 	DisableSettings            bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
 	Preview                    users.Preview       `json:"preview"`

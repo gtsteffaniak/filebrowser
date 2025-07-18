@@ -1,9 +1,10 @@
 <template>
   <div
+    ref="tooltipRef"
     v-show="tooltip.show"
     class="floating-tooltip"
     :class="{ 'dark-mode': isDarkMode }"
-    :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }"
+    :style="tooltipStyle"
     v-html="tooltip.content"
   ></div>
 </template>
@@ -13,12 +14,67 @@ import { state } from "@/store";
 
 export default {
   name: "Tooltip",
+  data() {
+    return {
+      adjustedX: 0,
+      adjustedY: 0,
+      margin: 15,
+    };
+  },
   computed: {
     tooltip() {
       return state.tooltip;
     },
     isDarkMode() {
       return state.user.darkMode;
+    },
+    tooltipStyle() {
+      return {
+        top: `${this.adjustedY}px`,
+        left: `${this.adjustedX}px`,
+      };
+    },
+  },
+  watch: {
+    tooltip: {
+      handler(newTooltip) {
+        if (newTooltip.show) {
+          this.updatePosition(newTooltip.x, newTooltip.y);
+        }
+      },
+      deep: true,
+    },
+  },
+  methods: {
+    updatePosition(x, y) {
+      this.$nextTick(() => {
+        const tooltipEl = this.$refs.tooltipRef;
+        if (!tooltipEl) return;
+
+        const tooltipRect = tooltipEl.getBoundingClientRect();
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        if (x + this.margin + tooltipRect.width > windowWidth) {
+          this.adjustedX = x - this.margin - tooltipRect.width;
+        } else {
+          this.adjustedX = x + this.margin;
+        }
+
+        if (this.adjustedX < 0) {
+          this.adjustedX = this.margin;
+        }
+
+        if (y + this.margin + tooltipRect.height > windowHeight) {
+          this.adjustedY = y - this.margin - tooltipRect.height;
+        } else {
+          this.adjustedY = y + this.margin;
+        }
+
+        if (this.adjustedY < 0) {
+          this.adjustedY = this.margin;
+        }
+      });
     },
   },
 };
@@ -34,7 +90,6 @@ export default {
   box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.2);
   z-index: 9999;
   pointer-events: none;
-  transform: translate(15px, 15px); /* Offset from cursor */
   max-width: 20em;
   white-space: normal;
   overflow-wrap: break-word;

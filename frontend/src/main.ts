@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, nextTick } from 'vue';
 import router from './router'; // Adjust the path as per your setup
 import App from './App.vue'; // Adjust the path as per your setup
 import { state } from '@/store'; // Adjust the path as per your setup
@@ -8,14 +8,6 @@ import VueLazyload from "vue-lazyload";
 import './css/styles.css';
 
 const app = createApp(App);
-
-// provide v-focus for components
-app.directive("focus", {
-  mounted: async (el) => {
-    // initiate focus for the element
-    el.focus();
-  },
-});
 
 // Install additionals
 app.use(VueLazyload);
@@ -27,9 +19,12 @@ app.provide('state', state);
 
 // provide v-focus for components
 app.directive("focus", {
-  mounted: async (el) => {
-    // initiate focus for the element
-    el.focus();
+  mounted: (el) => {
+    // A longer timeout is sometimes needed to win a "focus race"
+    // against other parts of the app that might be managing focus.
+    setTimeout(() => {
+      el.focus();
+    }, 100);
   },
 });
 
