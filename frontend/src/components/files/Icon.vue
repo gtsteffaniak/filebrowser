@@ -68,7 +68,7 @@ export default {
   computed: {
     disablePreviewExt() {
       const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
-      return state.user.disablePreviewExt?.includes(ext);;
+      return state.user.disablePreviewExt?.includes(ext);
     },
     imageTargetSrc() {
       if (this.showLargeIcon) {

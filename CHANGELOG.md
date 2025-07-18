@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - replaced `disableOfficePreviewExt` and `disableOnlyOfficeExt` with more generally applicable `sisablePreviewExt` and `disabledViewingExt`. The new properties apply to all files, not just office.
+ - more tooltip descriptions for settings options
 
  **BugFixes**:
  - fix chinese and other language error (#972, #969)
