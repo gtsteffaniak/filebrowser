@@ -147,5 +147,5 @@ type UserDefaults struct {
 	DeleteWithoutConfirming    bool                `json:"deleteWithoutConfirming"`    // delete files without confirmation
 	FileLoading                users.FileLoading   `json:"fileLoading"`                // upload and download settings
 	DisableOfficePreviewExt    string              `json:"disableOfficePreviewExt"`    // deprecated: use disablePreviewExt instead
-	DisableOnlyOfficeExt       string              `json:"disableOnlyOfficeExt"`       // deprecated: use disableViewingExt instead
+	DisableOnlyOfficeExt       string              `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for
 }

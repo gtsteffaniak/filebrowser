@@ -106,7 +106,7 @@ userDefaults:
   themeColor: "var(--blue)"               # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
   quickDownload: false                    # show icon to download in one click
   disablePreviewExt: ""                   # comma separated list of file extensions to disable preview for
-  disableViewingExt: ".txt .csv .html .pdf" # comma separated list of file extensions to disable viewing for
+  disableViewingExt: ""                   # comma separated list of file extensions to disable viewing for
   lockPassword: false                     # disable the user from changing their password
   disableSettings: false                  # disable the user from viewing the settings page
   preview:
@@ -130,8 +130,8 @@ userDefaults:
   fileLoading:                            # upload and download settings
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
-  disableOfficePreviewExt: ""             # deprecated
-  disableOnlyOfficeExt: ""                # deprecated
+  disableOfficePreviewExt: ""             # deprecated: use disablePreviewExt instead
+  disableOnlyOfficeExt: ""                # list of file extensions to disable onlyoffice editor for
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

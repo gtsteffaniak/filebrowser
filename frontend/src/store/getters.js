@@ -213,7 +213,7 @@ export const getters = {
         }
         if (state.req.type == 'directory') {
           listingView = 'listingView'
-        } else if (state.req.onlyOfficeId && getters.fileViewingEnabled(state.req.name)) {
+        } else if (state.req.onlyOfficeId && !getters.fileViewingDisabled(state.req.name)) {
           listingView = 'onlyOfficeEditor'
         } else if (
           'content' in state.req &&
@@ -328,16 +328,20 @@ export const getters = {
 
     return files.sort((a, b) => a.progress - b.progress)
   },
-  fileViewingEnabled: filename => {
+  fileViewingDisabled: filename => {
+    const ext = ' .' + getFileExtension(filename)
+    if (state.user.disableViewingExt) {
+      const disabledExts = ' ' + state.user.disableViewingExt.toLowerCase()
+      if (disabledExts.includes(ext.toLowerCase())) {
+        return true
+      }
+    }
     if (!state.req?.onlyOfficeId) {
       return false
     }
-    const ext = '.' + getFileExtension(filename)
-    if (state.user.disableViewingExt) {
-      const disabledList = state.user.disableViewingExt.split(' ')
-      if (
-        disabledList.some(e => e.trim().toLowerCase() === ext.toLowerCase())
-      ) {
+    if (state.user.disableOfficePreviewExt) {
+      const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()
+      if (disabledExts.includes(ext.toLowerCase())) {
         return false
       }
     }

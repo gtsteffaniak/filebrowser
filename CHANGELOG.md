@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.15-beta
 
+ **New Features**:
+ - added userDefault `disableViewingExt`. The new properties apply to all files, not just office.
+ - code blocks in markdown viewer have line numbers and each line is highlightable
+
  **Notes**:
- - replaced `disableOfficePreviewExt` and `disableOnlyOfficeExt` with more generally applicable `disablePreviewExt` and `disableViewingExt`. The new properties apply to all files, not just office.
+ - replaced `disableOfficePreviewExt` with more generally applicable `disablePreviewExt` to disable preview for any specific file type.
  - more tooltip descriptions for settings options
 
  **BugFixes**:

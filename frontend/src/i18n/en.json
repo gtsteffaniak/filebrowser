@@ -242,7 +242,9 @@
     "disableViewingFiles": "Disable file viewer/editor for certain file extensions",
     "disableViewingFilesDescription": "A space-separated list of file extensions to disable the file viewer/editor for (e.g., '.txt .pdf').",
     "disablePreviewExt": "Disable office file previews for certain file extensions",
-    "disablePreviewExtDescription": "A space-separated list of file extensions to disable office file previews for (e.g., '.docx .pptx')."
+    "disablePreviewExtDescription": "A space-separated list of file extensions to disable office file previews for (e.g., '.docx .pptx').",
+    "disableOfficeEditorDescription": "A space-separated list of file extensions to disable the OnlyOffice editor and viewer for. (e.g., '.txt .html .pdf').",
+    "disableOfficeEditor": "Disable office editor and viewer for certain file extensions to default back to default viewer/editor, very useful for pdf and txt files."
   },
   "settings": {
     "enterPassword": "Enter password",

@@ -71,10 +71,6 @@ func updateUserDefaults(user *users.User) bool {
 		user.DisablePreviewExt = user.DisableOfficePreviewExt
 		return true
 	}
-	if user.DisableOnlyOfficeExt != "" && user.DisablePreviewExt == "" {
-		user.DisablePreviewExt = user.DisableOnlyOfficeExt
-		return true
-	}
 	return false
 }
 

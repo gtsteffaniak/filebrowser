@@ -2540,11 +2540,11 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "disableOfficePreviewExt": {
-                    "description": "deprecated",
+                    "description": "deprecated: use disablePreviewExt instead",
                     "type": "string"
                 },
                 "disableOnlyOfficeExt": {
-                    "description": "deprecated",
+                    "description": "list of file extensions to disable onlyoffice editor for",
                     "type": "string"
                 },
                 "disablePreviewExt": {

@@ -179,6 +179,32 @@
               </button>
             </div>
           </div>
+          <div>
+            <div class="centered-with-tooltip">
+              <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('profileSettings.disableOfficeEditorDescription'))" @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
+            <div class="form-group">
+              <input
+                class="input input--block form-form flat-right"
+                :class="{ 'invalid-form': !validateExtensions(formDisableOfficePreview) }"
+                type="text"
+                placeholder="enter file extensions"
+                id="disableOfficePreview"
+                v-model="formDisableOfficePreview"
+              />
+              <button
+                type="button"
+                class="button form-button"
+                @click="submitDisableOfficePreviewChange"
+              >
+                {{ $t("buttons.save") }}
+              </button>
+            </div>
+          </div>
           <h3>{{ $t("settings.themeColor") }}</h3>
           <ButtonGroup
             :buttons="colorChoices"
@@ -219,6 +245,7 @@ export default {
       initialized: false,
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
+      formDisableOfficePreview: "", // holds temporary input before saving
       colorChoices: [
         { label: this.$t("colors.blue"), value: "var(--blue)" },
         { label: this.$t("colors.red"), value: "var(--red)" },
@@ -261,6 +288,7 @@ export default {
     this.localuser = { ...state.user };
     this.formDisablePreviews = this.localuser.disablePreviewExt;
     this.formDisabledViewing = this.localuser.disableViewingExt;
+    this.formDisableOfficePreview = this.localuser.disableOfficePreviewExt;
   },
   methods: {
     showTooltip(event, text) {
@@ -294,6 +322,13 @@ export default {
       }
       this.localuser.disableViewingExt = this.formDisabledViewing;
     },
+    submitDisableOfficePreviewChange() {
+      if (!this.validateExtensions(this.formDisableOfficePreview)) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
+      this.localuser.disableOfficePreviewExt = this.formDisableOfficePreview;
+    },
     setColor(string) {
       this.localuser.themeColor = string;
     },
@@ -318,6 +353,7 @@ export default {
           "quickDownload",
           "disablePreviewExt",
           "disableViewingExt",
+          "disableOfficePreviewExt",
           "deleteWithoutConfirming",
           "preview",
           "disableQuickToggles",
@@ -341,8 +377,10 @@ export default {
 .card-content h3 {
   text-align: center;
 }
+
 #disablePreviews,
-#disableViewing {
+#disableViewing,
+#disableOfficePreview {
   width: 80%;
 }
 
