@@ -17,7 +17,9 @@ All notable changes to this project will be documented in this file. For commit 
  - fix docker dockerfile for `docker run` (#973)
  - fix double slash href on single source (#968)
  - fix sources named "files" or "share" issue (#949, #574)
- - Focus input field on popups (#976)
+ - focus input field on popups (#976)
+ - hopeful fix for size calculation (#982)
+ - edit button is not working on .md files (#983)
 
 ## v0.7.14-beta
 
