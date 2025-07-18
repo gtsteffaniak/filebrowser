@@ -260,7 +260,7 @@ export default {
   mounted() {
     this.localuser = { ...state.user };
     this.formDisablePreviews = this.localuser.disablePreviewExt;
-    this.formDisabledViewing = this.localuser.disabledViewingExt;
+    this.formDisabledViewing = this.localuser.disableViewingExt;
   },
   methods: {
     showTooltip(event, text) {
@@ -292,7 +292,7 @@ export default {
         notify.showError("Invalid input, does not match requirement.");
         return;
       }
-      this.localuser.disabledViewingExt = this.formDisabledViewing;
+      this.localuser.disableViewingExt = this.formDisabledViewing;
     },
     setColor(string) {
       this.localuser.themeColor = string;
@@ -317,7 +317,7 @@ export default {
           "themeColor",
           "quickDownload",
           "disablePreviewExt",
-          "disabledViewingExt",
+          "disableViewingExt",
           "deleteWithoutConfirming",
           "preview",
           "disableQuickToggles",

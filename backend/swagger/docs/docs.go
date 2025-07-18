@@ -2559,7 +2559,7 @@ const docTemplate = `{
                     "description": "disable update notifications banner for admin users",
                     "type": "boolean"
                 },
-                "disabledViewingExt": {
+                "disableViewingExt": {
                     "description": "comma separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
@@ -2820,7 +2820,7 @@ const docTemplate = `{
                     "description": "disable update notifications",
                     "type": "boolean"
                 },
-                "disabledViewingExt": {
+                "disableViewingExt": {
                     "description": "comma separated list of file extensions to disable viewing for",
                     "type": "string"
                 },

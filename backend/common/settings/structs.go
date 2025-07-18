@@ -136,7 +136,7 @@ type UserDefaults struct {
 	ThemeColor                 string              `json:"themeColor"`                // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
 	QuickDownload              bool                `json:"quickDownload"`             // show icon to download in one click
 	DisablePreviewExt          string              `json:"disablePreviewExt"`         // comma separated list of file extensions to disable preview for
-	DisabledViewingExt         string              `json:"disabledViewingExt"`        // comma separated list of file extensions to disable viewing for
+	DisableViewingExt          string              `json:"disableViewingExt"`         // comma separated list of file extensions to disable viewing for
 	LockPassword               bool                `json:"lockPassword"`              // disable the user from changing their password
 	DisableSettings            bool                `json:"disableSettings,omitempty"` // disable the user from viewing the settings page
 	Preview                    users.Preview       `json:"preview"`

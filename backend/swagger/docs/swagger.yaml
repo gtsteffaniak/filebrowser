@@ -540,7 +540,7 @@ definitions:
       disableUpdateNotifications:
         description: disable update notifications banner for admin users
         type: boolean
-      disabledViewingExt:
+      disableViewingExt:
         description: comma separated list of file extensions to disable viewing for
         type: string
       editorQuickSave:
@@ -728,7 +728,7 @@ definitions:
       disableUpdateNotifications:
         description: disable update notifications
         type: boolean
-      disabledViewingExt:
+      disableViewingExt:
         description: comma separated list of file extensions to disable viewing for
         type: string
       editorQuickSave:

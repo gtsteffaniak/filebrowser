@@ -123,7 +123,7 @@ const router = createRouter({
 
 // Helper function to check if a route resolves to itself
 function isSameRoute(to: RouteLocation, from: RouteLocation) {
-  return to.path === from.path && JSON.stringify(to.params) === JSON.stringify(from.params);
+  return to.path === from.path && to.hash === from.hash;
 }
 
 router.beforeResolve(async (to, from, next) => {

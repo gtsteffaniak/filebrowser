@@ -2,7 +2,7 @@
   <span
     @mouseenter="handleMouseEnter($event)"
     @mouseleave="handleMouseLeave($event)"
-    v-if="isPreviewImg && imageState !== 'error' && !disablePreviewExt"
+    v-if="isPreviewImg && imageState !== 'error' && !disablePreviewExt && !officeFileDisabled"
   >
     <i
       v-if="hasMotion"
@@ -70,6 +70,10 @@ export default {
       const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
       return state.user.disablePreviewExt?.includes(ext);
     },
+    officeFileDisabled() {
+      const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
+      return state.user.disablePreviewExt?.includes(ext);
+    },
     imageTargetSrc() {
       if (this.showLargeIcon) {
         // Use the large version of the thumbnail if available
@@ -98,7 +102,7 @@ export default {
         ".hwpx": true,
         ".md": true,
       };
-      return (!!pdfConvertCompatibleFileExtensions[ext] || textType);
+      return (!!pdfConvertCompatibleFileExtensions[ext]);
     },
     // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
@@ -135,7 +139,7 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      if (this.pdfConvertable) {
+      if (this.pdfConvertable && state.user.preview?.office) {
         return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {

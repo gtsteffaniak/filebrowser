@@ -207,6 +207,10 @@ export const getters = {
       listingView = 'share'
     } else if (pathname.startsWith(`/files`)) {
       if (state.req.type !== undefined) {
+        const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
+        if (state.user.disableViewingExt?.includes(ext)) {
+          return 'preview'
+        }
         if (state.req.type == 'directory') {
           listingView = 'listingView'
         } else if (state.req.onlyOfficeId && getters.fileViewingEnabled(state.req.name)) {
