@@ -9,14 +9,6 @@ import './css/styles.css';
 
 const app = createApp(App);
 
-// provide v-focus for components
-app.directive("focus", {
-  mounted: async (el) => {
-    // initiate focus for the element
-    el.focus();
-  },
-});
-
 // Install additionals
 app.use(VueLazyload);
 app.use(i18n);
@@ -27,9 +19,12 @@ app.provide('state', state);
 
 // provide v-focus for components
 app.directive("focus", {
-  mounted: async (el) => {
-    // initiate focus for the element
-    el.focus();
+  mounted: (el) => {
+    // A longer timeout is sometimes needed to win a "focus race"
+    // against other parts of the app that might be managing focus.
+    setTimeout(() => {
+      el.focus();
+    }, 100);
   },
 });
 

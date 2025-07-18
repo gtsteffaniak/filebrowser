@@ -160,9 +160,6 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		logger.Debugf("Time spent indexing [%v]: %v seconds", idx.Name, idx.QuickScanTime)
 	} else {
 		idx.FullScanTime = int(time.Since(startTime).Seconds())
-		idx.mu.Lock()
-		idx.DiskUsed = idx.totalSize
-		idx.mu.Unlock()
 		// update smart indexing
 		if idx.FullScanTime < 3 || idx.NumDirs < 10000 {
 			idx.Assessment = "simple"

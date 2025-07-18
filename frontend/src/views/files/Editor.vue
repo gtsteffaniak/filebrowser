@@ -93,6 +93,8 @@ export default {
         mode: modelist.getModeForPath(state.req.name).mode,
         value: fileContent,
         showPrintMargin: false,
+        showGutter: true,
+        showLineNumbers: true,
         theme: this.isDarkMode ? "ace/theme/twilight" : "ace/theme/chrome",
         readOnly: state.req.type === "textImmutable",
         wrap: false,

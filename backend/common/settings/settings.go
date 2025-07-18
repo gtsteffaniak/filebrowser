@@ -49,7 +49,7 @@ func ApplyUserDefaults(u *users.User) {
 	u.Preview = Config.UserDefaults.Preview
 	u.ShowHidden = Config.UserDefaults.ShowHidden
 	u.DateFormat = Config.UserDefaults.DateFormat
-	u.DisableOnlyOfficeExt = Config.UserDefaults.DisableOnlyOfficeExt
+	u.DisableViewingExt = Config.UserDefaults.DisableViewingExt
 	u.ThemeColor = Config.UserDefaults.ThemeColor
 	u.GallerySize = Config.UserDefaults.GallerySize
 	u.QuickDownload = Config.UserDefaults.QuickDownload

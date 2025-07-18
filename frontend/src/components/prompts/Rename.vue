@@ -26,7 +26,7 @@
       </button>
       <button
         @click="submit"
-        class="button busubmittton--flat"
+        class="button button--flat"
         type="submit"
         :aria-label="$t('buttons.rename')"
         :title="$t('buttons.rename')"

@@ -14,7 +14,6 @@ export const state = reactive({
   multiButtonLastState: "menu",
   showOverflowMenu: false,
   sessionId: "",
-  disableOnlyOfficeExt: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   activeSettingsView: "",
   isMobile: window.innerWidth <= 800,

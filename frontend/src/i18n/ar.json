@@ -377,29 +377,6 @@
     "used": "مستعمل",
     "noSources": "لا توجد مصادر متاحة لهذا المستخدم. إما أن تقوم بإضافة مصدر لهذا المستخدم أو تكوين مصدر مع defaultEnabled: true"
   },
-  "profileSettings": {
-    "setDateFormat": "تعيين تنسيق التاريخ الدقيق",
-    "showHiddenFiles": "إظهار الملفات المخفية",
-    "showQuickDownload": "إظهار أيقونة التنزيل للوصول السريع",
-    "previewImages": "معاينة الصور",
-    "previewVideos": "معاينة مقاطع الفيديو",
-    "previewMotionVideos": "معاينة الحركة لمقاطع الفيديو",
-    "highQualityPreview": "معاينة عالية الجودة",
-    "previewOffice": "معاينة الملفات المكتبية",
-    "popupPreview": "تمكين المعاينة المنبثقة",
-    "filePreviewOptions": "خيارات معاينة الملف",
-    "editOffice": "تحرير/عرض ملفات المكتب",
-    "disableUpdateNotifications": "تعطيل إظهار شعار تحديث الإشعارات في الشريط الجانبي.",
-    "disableHideSidebar": "تعطيل إخفاء الشريط الجانبي تلقائيًا عند معاينة الملفات أو تحريرها.",
-    "autoplayMedia": "التشغيل التلقائي لملفات الوسائط في المعاينة",
-    "deleteWithoutConfirming": "حذف الملفات بدون مطالبة التأكيد",
-    "sidebarOptions": "خيارات الشريط الجانبي",
-    "disableQuickToggles": "تعطيل التبديل السريع",
-    "disableSearchOptions": "تعطيل خيارات البحث",
-    "hideSidebarFileActions": "إخفاء إجراءات الملف في الشريط الجانبي",
-    "editorViewerOptions": "خيارات المحرر والعارض",
-    "editorQuickSave": "إظهار زر الحفظ السريع في المحرر"
-  },
   "otp": {
     "name": "المصادقة الثنائية",
     "verifyInstructions": "أدخل الرمز من تطبيق المصادقة الخاص بك",
@@ -417,13 +394,5 @@
     "maxConcurrentUploadHelp": "الحد الأقصى لعدد التحميلات المتزامنة. عادةً ما يكون أداء القيم الأعلى أفضل، ولكن هذا يعتمد على العديد من العوامل.",
     "uploadChunkSizeMb": "حجم قطعة التحميل بالميجابايت",
     "uploadChunkSizeMbHelp": "عادةً من 5 إلى 50 ميغابايت، والأصغر هو الأفضل للاتصالات غير المستقرة أو المقيدة. سيؤدي التعيين إلى 0 إلى تعطيل تقطيع التحميل."
-  },
-  "colors": {
-    "red": "أحمر",
-    "green": "أخضر",
-    "blue": "أزرق",
-    "yellow": "أصفر",
-    "violet": "البنفسجي",
-    "orange": "برتقالي"
   }
 }

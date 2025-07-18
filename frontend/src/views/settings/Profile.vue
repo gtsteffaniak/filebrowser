@@ -12,11 +12,13 @@
               class="item"
               v-model="localuser.disableQuickToggles"
               :name="$t('profileSettings.disableQuickToggles')"
+              :description="$t('profileSettings.disableQuickTogglesDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.disableHideSidebar"
               :name="$t('profileSettings.disableHideSidebar')"
+              :description="$t('profileSettings.disableHideSidebarDescription')"
             />
             <ToggleSwitch
               class="item"
@@ -33,6 +35,7 @@
               class="item"
               v-model="localuser.deleteWithoutConfirming"
               :name="$t('profileSettings.deleteWithoutConfirming')"
+              :description="$t('profileSettings.deleteWithoutConfirmingDescription')"
             />
             <ToggleSwitch
               class="item"
@@ -43,44 +46,51 @@
               class="item"
               v-model="localuser.showHidden"
               :name="$t('profileSettings.showHiddenFiles')"
+              :description="$t('profileSettings.showHiddenFilesDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.quickDownload"
               :name="$t('profileSettings.showQuickDownload')"
+              :description="$t('profileSettings.showQuickDownloadDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.image"
               :name="$t('profileSettings.previewImages')"
+              :description="$t('profileSettings.previewImagesDescription')"
             />
             <ToggleSwitch
               v-if="mediaEnabled"
               class="item"
               v-model="localuser.preview.video"
               :name="$t('profileSettings.previewVideos')"
+              :description="$t('profileSettings.previewVideosDescription')"
             />
             <ToggleSwitch
               v-if="mediaEnabled"
               class="item"
               v-model="localuser.preview.motionVideoPreview"
               :name="$t('profileSettings.previewMotionVideos')"
+              :description="$t('profileSettings.previewMotionVideosDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.highQuality"
               :name="$t('profileSettings.highQualityPreview')"
+              :description="$t('profileSettings.highQualityPreviewDescription')"
             />
             <ToggleSwitch
-              v-if="hasOnlyOfficeEnabled"
               class="item"
               v-model="localuser.preview.office"
               :name="$t('profileSettings.previewOffice')"
+              :description="$t('profileSettings.previewOfficeDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.popup"
               :name="$t('profileSettings.popupPreview')"
+              :description="$t('profileSettings.popupPreviewDescription')"
             />
           </div>
           <h3>{{ $t("profileSettings.editorViewerOptions") }}</h3>
@@ -89,11 +99,13 @@
                 class="item"
                 v-model="localuser.preview.autoplayMedia"
                 :name="$t('profileSettings.autoplayMedia')"
+                :description="$t('profileSettings.autoplayMediaDescription')"
               />
               <ToggleSwitch
                 class="item"
                 v-model="localuser.editorQuickSave"
                 :name="$t('profileSettings.editorQuickSave')"
+                :description="$t('profileSettings.editorQuickSaveDescription')"
               />
           </div>
           <h3>{{ $t("settings.searchOptions") }}</h3>
@@ -102,6 +114,7 @@
               class="item"
               v-model="localuser.disableSearchOptions"
               :name="$t('profileSettings.disableSearchOptions')"
+              :description="$t('profileSettings.disableSearchOptionsDescription')"
             />
            </div>
            <h3 v-if="user.permissions.admin">{{ $t("settings.adminOptions") }}</h3>
@@ -111,50 +124,82 @@
                 class="item"
                 v-model="localuser.disableUpdateNotifications"
                 :name="$t('profileSettings.disableUpdateNotifications')"
+                :description="$t('profileSettings.disableUpdateNotificationsDescription')"
               />
           </div>
-          <div v-if="hasOnlyOfficeEnabled">
-            <h3>{{ $t("settings.disableOfficePreview") }}</h3>
-            <p>
-              {{ $t("settings.disableOfficePreviewDescription") }}
-            </p>
+          <div>
+            <div class="centered-with-tooltip">
+              <h3>{{ $t("profileSettings.disableThumbnailPreviews") }}</h3>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('profileSettings.disableThumbnailPreviewsDescription'))" @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
             <div class="form-group">
               <input
                 class="input input--block form-form flat-right"
-                :class="{ 'invalid-form': !formValidation() }"
+                :class="{ 'invalid-form': !validateExtensions(formDisablePreviews) }"
                 type="text"
                 placeholder="enter file extensions"
-                id="onlyofficeExt"
-                v-model="formOnlyOfficeExt"
+                id="disablePreviews"
+                v-model="formDisablePreviews"
               />
               <button
                 type="button"
                 class="button form-button"
-                @click="submitOnlyOfficeChange"
+                @click="submitDisablePreviewsChange"
               >
                 {{ $t("buttons.save") }}
               </button>
             </div>
           </div>
-
-          <div v-if="muPdfAvailable">
-            <h3>{{ $t("settings.disableOfficePreviews") }}</h3>
-            <p>
-              {{ $t("settings.disableOfficePreviewsDescription") }}
-            </p>
+          <div>
+            <div class="centered-with-tooltip">
+              <h3>{{ $t("profileSettings.disableViewingFiles") }}</h3>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('profileSettings.disableViewingFilesDescription'))" @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
             <div class="form-group">
               <input
                 class="input input--block form-form flat-right"
-                :class="{ 'invalid-form': !formValidationOfficePreviews() }"
+                :class="{ 'invalid-form': !validateExtensions(formDisabledViewing) }"
                 type="text"
                 placeholder="enter file extensions"
-                id="officePreviewExt"
-                v-model="formOfficePreviewExt"
+                id="disableViewing"
+                v-model="formDisabledViewing"
               />
               <button
                 type="button"
                 class="button form-button"
-                @click="submitOfficePreviewsChange"
+                @click="submitDisabledViewingChange"
+              >
+                {{ $t("buttons.save") }}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="centered-with-tooltip">
+              <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
+              <i class="no-select material-symbols-outlined tooltip-info-icon"
+                @mouseenter="showTooltip($event, $t('profileSettings.disableOfficeEditorDescription'))" @mouseleave="hideTooltip">
+                help
+              </i>
+            </div>
+            <div class="form-group">
+              <input
+                class="input input--block form-form flat-right"
+                :class="{ 'invalid-form': !validateExtensions(formDisableOfficePreview) }"
+                type="text"
+                placeholder="enter file extensions"
+                id="disableOfficePreview"
+                v-model="formDisableOfficePreview"
+              />
+              <button
+                type="button"
+                class="button form-button"
+                @click="submitDisableOfficePreviewChange"
               >
                 {{ $t("buttons.save") }}
               </button>
@@ -180,7 +225,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { onlyOfficeUrl, mediaAvailable, muPdfAvailable } from "@/utils/constants.js";
+import { mediaAvailable, muPdfAvailable } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -198,8 +243,9 @@ export default {
     return {
       localuser: { preview: {}, permissions: {} }, // Initialize localuser with empty objects to avoid undefined errors
       initialized: false,
-      formOnlyOfficeExt: "", // holds temporary input before saving
-      formOfficePreviewExt: "", // holds temporary input before saving
+      formDisablePreviews: "", // holds temporary input before saving
+      formDisabledViewing: "", // holds temporary input before saving
+      formDisableOfficePreview: "", // holds temporary input before saving
       colorChoices: [
         { label: this.$t("colors.blue"), value: "var(--blue)" },
         { label: this.$t("colors.red"), value: "var(--red)" },
@@ -228,9 +274,6 @@ export default {
     muPdfAvailable() {
       return muPdfAvailable;
     },
-    hasOnlyOfficeEnabled() {
-      return onlyOfficeUrl != "";
-    },
     mediaEnabled() {
       return mediaAvailable;
     },
@@ -243,37 +286,48 @@ export default {
   },
   mounted() {
     this.localuser = { ...state.user };
-    this.formOnlyOfficeExt = this.localuser.disableOnlyOfficeExt;
-    this.formOfficePreviewExt = this.localuser.disableOfficePreviewExt;
+    this.formDisablePreviews = this.localuser.disablePreviewExt;
+    this.formDisabledViewing = this.localuser.disableViewingExt;
+    this.formDisableOfficePreview = this.localuser.disableOfficePreviewExt;
   },
   methods: {
-    formValidation() {
-      if (this.formOnlyOfficeExt == "") {
+    showTooltip(event, text) {
+      mutations.showTooltip({
+        content: text,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    hideTooltip() {
+      mutations.hideTooltip();
+    },
+    validateExtensions(value) {
+      if (value === "") {
         return true;
       }
-      let regex = /^\.\w+(?: \.\w+)*$/;
-      return regex.test(this.formOnlyOfficeExt);
+      const regex = /^\.\w+(?: \.\w+)*$/;
+      return regex.test(value);
     },
-    submitOnlyOfficeChange() {
-      if (!this.formValidation()) {
+    submitDisablePreviewsChange() {
+      if (!this.validateExtensions(this.formDisablePreviews)) {
         notify.showError("Invalid input, does not match requirement.");
         return;
       }
-      this.localuser.disableOnlyOfficeExt = this.formOnlyOfficeExt;
+      this.localuser.disablePreviewExt = this.formDisablePreviews;
     },
-    formValidationOfficePreviews() {
-      if (this.formOfficePreviewExt == "") {
-        return true;
-      }
-      let regex = /^\.\w+(?: \.\w+)*$/;
-      return regex.test(this.formOfficePreviewExt);
-    },
-    submitOfficePreviewsChange() {
-      if (!this.formValidationOfficePreviews()) {
+    submitDisabledViewingChange() {
+      if (!this.validateExtensions(this.formDisabledViewing)) {
         notify.showError("Invalid input, does not match requirement.");
         return;
       }
-      this.localuser.disableOfficePreviewExt = this.formOfficePreviewExt;
+      this.localuser.disableViewingExt = this.formDisabledViewing;
+    },
+    submitDisableOfficePreviewChange() {
+      if (!this.validateExtensions(this.formDisableOfficePreview)) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
+      this.localuser.disableOfficePreviewExt = this.formDisableOfficePreview;
     },
     setColor(string) {
       this.localuser.themeColor = string;
@@ -297,7 +351,8 @@ export default {
           "dateFormat",
           "themeColor",
           "quickDownload",
-          "disableOnlyOfficeExt",
+          "disablePreviewExt",
+          "disableViewingExt",
           "disableOfficePreviewExt",
           "deleteWithoutConfirming",
           "preview",
@@ -322,7 +377,16 @@ export default {
 .card-content h3 {
   text-align: center;
 }
-#officePreviewExt {
+
+#disablePreviews,
+#disableViewing,
+#disableOfficePreview {
   width: 80%;
+}
+
+.centered-with-tooltip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

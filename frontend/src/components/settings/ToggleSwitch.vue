@@ -1,6 +1,16 @@
 <template>
   <div class="toggle-container">
-    <span class="toggle-name">{{ name }}</span>
+    <div class="toggle-name-container">
+      <span class="toggle-name">{{ name }}</span>
+      <i
+        v-if="description"
+        class="no-select material-symbols-outlined tooltip-info-icon"
+        @mouseenter="showTooltip"
+        @mouseleave="hideTooltip"
+      >
+        help
+      </i>
+    </div>
     <label class="switch">
       <input type="checkbox" :checked="modelValue" @change="updateValue" />
       <span class="slider round"></span>
@@ -9,6 +19,8 @@
 </template>
 
 <script>
+import { mutations } from "@/store";
+
 export default {
   name: "ToggleSwitch",
   props: {
@@ -20,10 +32,27 @@ export default {
       type: String,
       required: true,
     },
+    description: {
+      type: String,
+      required: false,
+      default: "",
+    },
   },
   methods: {
     updateValue(event) {
       this.$emit("update:modelValue", event.target.checked);
+    },
+    showTooltip(event) {
+      if (this.description) {
+        mutations.showTooltip({
+          content: this.description,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
+    },
+    hideTooltip() {
+      mutations.hideTooltip();
     },
   },
 };
@@ -37,8 +66,14 @@ export default {
   font-size: 1rem;
 }
 
-.toggle-name {
-  margin-right: 10px;
+.toggle-name-container {
+  display: flex;
+  align-items: center;
+}
+
+.tooltip-info-icon {
+  font-size: 1.2rem;
+  cursor: pointer;
 }
 
 .switch {
