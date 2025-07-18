@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.7.15-beta
 
  **Notes**:
- - replaced `disableOfficePreviewExt` and `disableOnlyOfficeExt` with more generally applicable `sisablePreviewExt` and `disabledViewingExt`. The new properties apply to all files, not just office.
+ - replaced `disableOfficePreviewExt` and `disableOnlyOfficeExt` with more generally applicable `disablePreviewExt` and `disabledViewingExt`. The new properties apply to all files, not just office.
  - more tooltip descriptions for settings options
 
  **BugFixes**:

@@ -138,16 +138,16 @@
             <div class="form-group">
               <input
                 class="input input--block form-form flat-right"
-                :class="{ 'invalid-form': !validateExtensions(localuser.disablePreviewExt) }"
+                :class="{ 'invalid-form': !validateExtensions(formDisablePreviews) }"
                 type="text"
                 placeholder="enter file extensions"
                 id="disablePreviews"
-                v-model="localuser.disablePreviewExt"
+                v-model="formDisablePreviews"
               />
               <button
                 type="button"
                 class="button form-button"
-                @click="updateSettings"
+                @click="submitDisablePreviewsChange"
               >
                 {{ $t("buttons.save") }}
               </button>
@@ -164,16 +164,16 @@
             <div class="form-group">
               <input
                 class="input input--block form-form flat-right"
-                :class="{ 'invalid-form': !validateExtensions(localuser.disabledViewingExt) }"
+                :class="{ 'invalid-form': !validateExtensions(formDisabledViewing) }"
                 type="text"
                 placeholder="enter file extensions"
                 id="disableViewing"
-                v-model="localuser.disabledViewingExt"
+                v-model="formDisabledViewing"
               />
               <button
                 type="button"
                 class="button form-button"
-                @click="updateSettings"
+                @click="submitDisabledViewingChange"
               >
                 {{ $t("buttons.save") }}
               </button>
@@ -191,9 +191,6 @@
             :locale="localuser.locale"
             @update:locale="updateLocale"
           ></Languages>
-        </div>
-        <div class="card-action">
-          <button class="button button--flat" @click="updateSettings">{{ $t("buttons.save") }}</button>
         </div>
       </form>
     </div>
@@ -220,6 +217,8 @@ export default {
     return {
       localuser: { preview: {}, permissions: {} }, // Initialize localuser with empty objects to avoid undefined errors
       initialized: false,
+      formDisablePreviews: "", // holds temporary input before saving
+      formDisabledViewing: "", // holds temporary input before saving
       colorChoices: [
         { label: this.$t("colors.blue"), value: "var(--blue)" },
         { label: this.$t("colors.red"), value: "var(--red)" },
@@ -229,6 +228,17 @@ export default {
         { label: this.$t("colors.orange"), value: "var(--icon-orange)" },
       ],
     };
+  },
+  watch: {
+    localuser: {
+      handler: function () {
+        if (this.initialized) {
+          this.updateSettings(); // Ensure updateSettings() is called when localuser changes
+        }
+        this.initialized = true;
+      },
+      deep: true, // Watch nested properties of localuser
+    },
   },
   computed: {
     user() {
@@ -248,7 +258,9 @@ export default {
     },
   },
   mounted() {
-    this.localuser = JSON.parse(JSON.stringify(state.user));
+    this.localuser = { ...state.user };
+    this.formDisablePreviews = this.localuser.disablePreviewExt;
+    this.formDisabledViewing = this.localuser.disabledViewingExt;
   },
   methods: {
     showTooltip(event, text) {
@@ -267,6 +279,20 @@ export default {
       }
       const regex = /^\.\w+(?: \.\w+)*$/;
       return regex.test(value);
+    },
+    submitDisablePreviewsChange() {
+      if (!this.validateExtensions(this.formDisablePreviews)) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
+      this.localuser.disablePreviewExt = this.formDisablePreviews;
+    },
+    submitDisabledViewingChange() {
+      if (!this.validateExtensions(this.formDisabledViewing)) {
+        notify.showError("Invalid input, does not match requirement.");
+        return;
+      }
+      this.localuser.disabledViewingExt = this.formDisabledViewing;
     },
     setColor(string) {
       this.localuser.themeColor = string;
