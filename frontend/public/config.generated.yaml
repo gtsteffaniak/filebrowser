@@ -130,6 +130,8 @@ userDefaults:
   fileLoading:                            # upload and download settings
     maxConcurrentUpload: 10
     uploadChunkSizeMb: 10
+  disableOfficePreviewExt: ""             # deprecated
+  disableOnlyOfficeExt: ""                # deprecated
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

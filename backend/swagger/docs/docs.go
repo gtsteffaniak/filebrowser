@@ -2539,6 +2539,14 @@ const docTemplate = `{
                     "description": "delete files without confirmation",
                     "type": "boolean"
                 },
+                "disableOfficePreviewExt": {
+                    "description": "deprecated",
+                    "type": "string"
+                },
+                "disableOnlyOfficeExt": {
+                    "description": "deprecated",
+                    "type": "string"
+                },
                 "disablePreviewExt": {
                     "description": "comma separated list of file extensions to disable preview for",
                     "type": "string"
@@ -2800,6 +2808,14 @@ const docTemplate = `{
                 "deleteWithoutConfirming": {
                     "description": "delete files without confirmation",
                     "type": "boolean"
+                },
+                "disableOfficePreviewExt": {
+                    "description": "deprecated",
+                    "type": "string"
+                },
+                "disableOnlyOfficeExt": {
+                    "description": "deprecated",
+                    "type": "string"
                 },
                 "disablePreviewExt": {
                     "description": "comma separated list of file extensions to disable preview for",

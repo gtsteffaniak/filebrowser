@@ -37,6 +37,9 @@ func validateUserInfo() {
 		if updateLoginType(user) {
 			updateUser = true
 		}
+		if updateUserDefaults(user) {
+			updateUser = true
+		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
 		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
@@ -61,6 +64,18 @@ func validateUserInfo() {
 			}
 		}
 	}
+}
+
+func updateUserDefaults(user *users.User) bool {
+	if user.DisableOfficePreviewExt != "" && user.DisablePreviewExt == "" {
+		user.DisablePreviewExt = user.DisableOfficePreviewExt
+		return true
+	}
+	if user.DisableOnlyOfficeExt != "" && user.DisablePreviewExt == "" {
+		user.DisablePreviewExt = user.DisableOnlyOfficeExt
+		return true
+	}
+	return false
 }
 
 func updateUserScopes(user *users.User) bool {

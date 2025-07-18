@@ -146,4 +146,6 @@ type UserDefaults struct {
 	DisableUpdateNotifications bool                `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	DeleteWithoutConfirming    bool                `json:"deleteWithoutConfirming"`    // delete files without confirmation
 	FileLoading                users.FileLoading   `json:"fileLoading"`                // upload and download settings
+	DisableOfficePreviewExt    string              `json:"disableOfficePreviewExt"`    // deprecated: use disablePreviewExt instead
+	DisableOnlyOfficeExt       string              `json:"disableOnlyOfficeExt"`       // deprecated: use disableViewingExt instead
 }
