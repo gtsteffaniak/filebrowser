@@ -442,7 +442,7 @@
     "disableViewingFilesDescription": "以空格分隔的文件扩展名列表，用于禁用文件查看器/编辑器（如\".txt .pdf\"）。",
     "disablePreviewExt": "禁用某些文件扩展名的 Office 文件预览功能",
     "disablePreviewExtDescription": "用空格分隔的文件扩展名列表，用于禁用办公文件预览（如\".docx .pptx\"）。",
-    "disableOfficeEditorDescription": "以空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器。(例如，\".txt .html .pdf\"）。",
-    "disableOfficeEditor": "禁用某些文件扩展名的 Office 编辑器和查看器，默认恢复为默认查看器/编辑器，对 pdf 和 txt 文件非常有用。"
+    "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器。(例如，\".txt .html .pdf\"）。",
+    "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器"
   }
 }

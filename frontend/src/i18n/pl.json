@@ -446,6 +446,6 @@
     "disablePreviewExt": "Wyłącz podgląd plików pakietu Office dla niektórych rozszerzeń plików",
     "disablePreviewExtDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych (np. \".docx .pptx\").",
     "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których edytor i przeglądarka OnlyOffice mają zostać wyłączone. (np. \".txt .html .pdf\").",
-    "disableOfficeEditor": "Wyłączenie edytora i przeglądarki Office dla niektórych rozszerzeń plików, aby przywrócić domyślną przeglądarkę/edytor, bardzo przydatne w przypadku plików pdf i txt."
+    "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików"
   }
 }

@@ -446,6 +446,6 @@
     "disablePreviewExt": "Dezactivați previzualizarea fișierelor office pentru anumite extensii de fișiere",
     "disablePreviewExtDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările fișierelor office (de exemplu, '.docx .pptx').",
     "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice. (de exemplu, \".txt .html .pdf\").",
-    "disableOfficeEditor": "Dezactivați editorul și vizualizatorul office pentru anumite extensii de fișiere pentru a reveni implicit la vizualizatorul/editorul implicit, foarte util pentru fișierele pdf și txt."
+    "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere"
   }
 }

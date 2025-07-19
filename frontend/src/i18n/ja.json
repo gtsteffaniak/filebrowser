@@ -446,6 +446,6 @@
     "disablePreviewExt": "特定のファイル拡張子でオフィスファイルのプレビューを無効にする",
     "disablePreviewExtDescription": "オフィスファイルのプレビューを無効にするファイル拡張子をスペースで区切ったリスト (例: '.docx .pptx')。",
     "disableOfficeEditorDescription": "OnlyOfficeエディタおよびビューアを無効にするファイル拡張子のスペース区切りリスト。(例: '.txt .html .pdf')。",
-    "disableOfficeEditor": "特定のファイル拡張子のOfficeエディタとビューアを無効にし、デフォルトのビューア/エディタに戻す。"
+    "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする"
   }
 }

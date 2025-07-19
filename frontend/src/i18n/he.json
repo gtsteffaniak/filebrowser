@@ -443,6 +443,6 @@
     "disablePreviewExt": "השבת תצוגה מקדימה של קבצי Office עבור סיומות קבצים מסוימות",
     "disablePreviewExtDescription": "רשימה מופרדת ברווחים של סיומות קבצים שצריך להשבית את תצוגה מקדימה של קבצי Office עבורן (לדוגמה, '.docx .pptx').",
     "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית את עורך ומציג OnlyOffice. (לדוגמה, '.txt .html .pdf').",
-    "disableOfficeEditor": "השבת את עורך ומציג Office עבור סיומות קבצים מסוימות כדי לחזור למציג/עורך ברירת המחדל, שימושי מאוד עבור קבצי PDF ו-txt."
+    "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות"
   }
 }

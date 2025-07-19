@@ -416,7 +416,7 @@
     "disablePreviewExt": "停用特定檔案副檔名的 Office 檔案預覽",
     "disablePreviewExtDescription": "以空格分隔的檔案副檔名清單，以停用 Office 檔案預覽 (例如 '.docx .pptx')。",
     "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器。(例如，'.txt .html .pdf'）。",
-    "disableOfficeEditor": "停用某些檔案副檔名的 Office 編輯器和檢視器，預設回預設檢視器/編輯器，對 pdf 和 txt 檔案非常有用。"
+    "disableOfficeEditor": "停用特定檔案副檔名的 Office 檢視器"
   },
   "otp": {
     "name": "雙因素驗證",

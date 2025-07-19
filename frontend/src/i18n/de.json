@@ -446,6 +446,6 @@
     "disablePreviewExt": "Office-Dateivorschau für bestimmte Dateierweiterungen deaktivieren",
     "disablePreviewExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Dateivorschau deaktiviert werden soll (z. B. '.docx .pptx').",
     "disableOfficeEditorDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der Editor und der Viewer von OnlyOffice deaktiviert werden sollen. (z. B. '.txt .html .pdf').",
-    "disableOfficeEditor": "Deaktivieren Sie den Office-Editor und -Viewer für bestimmte Dateierweiterungen, um zum Standard-Viewer/-Editor zurückzukehren; sehr nützlich für pdf- und txt-Dateien."
+    "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren"
   }
 }

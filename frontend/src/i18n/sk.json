@@ -446,6 +446,6 @@
     "disablePreviewExt": "Zakázanie náhľadov kancelárskych súborov pre určité prípony súborov",
     "disablePreviewExtDescription": "Zoznam prípon súborov oddelených medzerou, pre ktoré sa majú vypnúť náhľady kancelárskych súborov (napr. \".docx .pptx\").",
     "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má vypnúť editor a prehliadač OnlyOffice. (napr. \".txt .html .pdf\").",
-    "disableOfficeEditor": "Zakázanie editora a prehliadača Office pre určité prípony súborov, aby sa predvolene vrátil na predvolený prehliadač/editor, veľmi užitočné pre súbory pdf a txt."
+    "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov"
   }
 }

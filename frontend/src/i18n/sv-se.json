@@ -442,6 +442,6 @@
     "disablePreviewExt": "Avaktivera förhandsgranskning av Office-filer för vissa filtillägg",
     "disablePreviewExtDescription": "En mellanslagsseparerad lista över filtillägg för vilka förhandsgranskningar av Office-filer ska inaktiveras (t.ex. '.docx .pptx').",
     "disableOfficeEditorDescription": "En mellanslagsseparerad lista över filtillägg som OnlyOffice redigerare och visare ska inaktiveras för. (t.ex. '.txt .html .pdf').",
-    "disableOfficeEditor": "Inaktivera Office Editor och Viewer för vissa filtillägg för att återgå till standardvisare / redigerare, mycket användbart för pdf- och txt-filer."
+    "disableOfficeEditor": "Avaktivera Office Viewer för vissa filtillägg"
   }
 }

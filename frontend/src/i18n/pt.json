@@ -442,6 +442,6 @@
     "disablePreviewExt": "Desativar as pré-visualizações de ficheiros do Office para determinadas extensões de ficheiros",
     "disablePreviewExtDescription": "Uma lista de extensões de ficheiros, separada por espaços, para desativar as pré-visualizações de ficheiros do Office (por exemplo, '.docx .pptx').",
     "disableOfficeEditorDescription": "Uma lista de extensões de ficheiros separada por espaços para desativar o editor e visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
-    "disableOfficeEditor": "Desativar o editor e o visualizador do Office para determinadas extensões de ficheiros para voltar a utilizar o visualizador/editor predefinido, muito útil para ficheiros pdf e txt."
+    "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de ficheiros"
   }
 }
