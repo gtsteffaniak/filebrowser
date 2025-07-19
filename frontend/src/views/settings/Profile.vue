@@ -179,7 +179,7 @@
               </button>
             </div>
           </div>
-          <div>
+          <div v-if="onlyOfficeAvailable">
             <div class="centered-with-tooltip">
               <h3>{{ $t("profileSettings.disableOfficeEditor") }}</h3>
               <i class="no-select material-symbols-outlined tooltip-info-icon"
@@ -225,7 +225,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { mediaAvailable, muPdfAvailable } from "@/utils/constants.js";
+import { mediaAvailable, muPdfAvailable, onlyOfficeUrl } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -268,6 +268,9 @@ export default {
     },
   },
   computed: {
+    onlyOfficeAvailable() {
+      return onlyOfficeUrl !== "";
+    },
     user() {
       return state.user;
     },

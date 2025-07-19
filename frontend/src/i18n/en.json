@@ -179,6 +179,8 @@
     "upload": "Upload",
     "uploadFiles": "Uploading {files} files...",
     "uploadMessage": "Select an option to upload.",
+    "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "optionalPassword": "Optional password",
     "typeName": "Type:",
     "deleted": "Deleted successfully!",
@@ -244,7 +246,7 @@
     "disablePreviewExt": "Disable office file previews for certain file extensions",
     "disablePreviewExtDescription": "A space-separated list of file extensions to disable office file previews for (e.g., '.docx .pptx').",
     "disableOfficeEditorDescription": "A space-separated list of file extensions to disable the OnlyOffice editor and viewer for. (e.g., '.txt .html .pdf').",
-    "disableOfficeEditor": "Disable office editor and viewer for certain file extensions to default back to default viewer/editor, very useful for pdf and txt files."
+    "disableOfficeEditor": "Disable office viewer for certain file extensions"
   },
   "settings": {
     "enterPassword": "Enter password",

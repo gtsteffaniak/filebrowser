@@ -54,28 +54,28 @@ export default {
     addLineNumbers(codeBlock: HTMLElement) {
       const code = codeBlock.textContent || '';
       const lines = code.split('\n');
-      
+
       // Don't add line numbers if there's only one line or if already added
       if (lines.length <= 1 || codeBlock.classList.contains('line-numbers-added')) {
         return;
       }
-      
+
       // Create a wrapper div
       const wrapper = document.createElement('div');
       wrapper.className = 'code-block-wrapper';
-      
+
       // Create line numbers container
       const lineNumbers = document.createElement('div');
       lineNumbers.className = 'line-numbers';
-      
+
       // Create code content container
       const codeContent = document.createElement('div');
       codeContent.className = 'code-content';
-      
+
       // Get the highlighted HTML content and split it into lines
       const highlightedHTML = codeBlock.innerHTML;
       const htmlLines = this.splitHighlightedHTML(highlightedHTML, lines.length);
-      
+
       // Create code lines with preserved highlighting
       const codeLines = htmlLines.map((lineHTML, index) => {
         const lineElement = document.createElement('div');
@@ -84,19 +84,19 @@ export default {
         lineElement.innerHTML = lineHTML;
         return lineElement;
       });
-      
+
       // Generate line numbers with click handlers
       for (let i = 1; i <= lines.length; i++) {
         const lineNumber = document.createElement('span');
         lineNumber.className = 'line-number';
         lineNumber.textContent = i.toString();
         lineNumber.setAttribute('data-line', i.toString());
-        
+
         // Add click handler for line highlighting
         lineNumber.addEventListener('click', () => {
           // Check if this line is already active
           const isCurrentlyActive = lineNumber.classList.contains('active');
-          
+
           // Remove previous highlights
           wrapper.querySelectorAll('.code-line.highlighted').forEach(el => {
             el.classList.remove('highlighted');
@@ -104,7 +104,7 @@ export default {
           wrapper.querySelectorAll('.line-number.active').forEach(el => {
             el.classList.remove('active');
           });
-          
+
           // If the line wasn't already active, highlight it
           if (!isCurrentlyActive) {
             const targetLine = wrapper.querySelector(`.code-line[data-line="${i}"]`);
@@ -115,60 +115,60 @@ export default {
           }
           // If it was already active, we've already cleared it above
         });
-        
+
         lineNumbers.appendChild(lineNumber);
       }
-      
+
       // Create new code block with individual lines
       const newCodeBlock = document.createElement('code');
       newCodeBlock.className = codeBlock.className;
       newCodeBlock.classList.add('line-numbers-added');
-      
+
       // Add all code lines to the new code block
       codeLines.forEach(line => {
         newCodeBlock.appendChild(line);
       });
-      
+
       // Create new pre element
       const newPre = document.createElement('pre');
       newPre.appendChild(newCodeBlock);
       codeContent.appendChild(newPre);
-      
+
       // Insert wrapper before the original code block
       codeBlock.parentNode?.insertBefore(wrapper, codeBlock);
-      
+
       // Add line numbers and code content to wrapper
       wrapper.appendChild(lineNumbers);
       wrapper.appendChild(codeContent);
-      
+
       // Remove the original code block
       codeBlock.remove();
     },
-    
+
     // Helper method to split highlighted HTML while preserving syntax highlighting
     splitHighlightedHTML(html: string, expectedLines: number): string[] {
       // Create a temporary element to parse the HTML
       const temp = document.createElement('div');
       temp.innerHTML = html;
-      
+
       // Get the text content to count actual line breaks
       const textContent = temp.textContent || '';
       const textLines = textContent.split('\n');
-      
+
       // If there's a mismatch in line counts, fall back to simple split
       if (textLines.length !== expectedLines) {
         return textLines.map(line => this.escapeHtml(line));
       }
-      
+
       // Try to split the HTML while preserving tags
       const htmlLines: string[] = [];
       let currentHTML = html;
       let currentLineIndex = 0;
-      
+
       // For each line, try to extract the corresponding HTML
       for (let i = 0; i < textLines.length; i++) {
         const lineText = textLines[i];
-        
+
         if (i === textLines.length - 1) {
           // Last line - take remaining HTML
           htmlLines.push(currentHTML);
@@ -184,10 +184,10 @@ export default {
           }
         }
       }
-      
+
       return htmlLines;
     },
-    
+
     // Helper method to escape HTML
     escapeHtml(text: string): string {
       const div = document.createElement('div');
