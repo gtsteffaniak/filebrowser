@@ -151,10 +151,10 @@ export default {
         const fetchSource = decodeURIComponent(result.source);
         const fetchPath = decodeURIComponent(result.path);
         // Fetch initial data
-        let res = await filesApi.fetchFiles(fetchSource,fetchPath );
+        let res = await filesApi.fetchFiles(fetchSource, fetchPath );
         // If not a directory, fetch content
         if (res.type != "directory") {
-          const content = !getters.onlyOfficeEnabled();
+          const content = !getters.fileViewingDisabled(res.name);
           res = await filesApi.fetchFiles(res.source, res.path, content);
         }
         data = res;

@@ -51,7 +51,6 @@ export default {
     const initialSource = this.browseSource || state.req.source;
     // Use current path if browsing the same source as current, otherwise start at root
     const initialPath = this.browseSource && this.browseSource !== state.req.source ? "/" : state.req.path;
-    
     return {
       items: [],
       path: initialPath,
@@ -95,13 +94,11 @@ export default {
     // Use currentSource if provided, otherwise use state.req
     const sourceToUse = this.currentSource;
     const pathToUse = this.currentSource !== state.req.source ? "/" : state.req.path;
-    
     const initialReq = {
       ...state.req,
       source: sourceToUse,
       path: pathToUse,
     };
-    
     // Fetch the initial data for the source
     if (this.currentSource !== state.req.source) {
       filesApi.fetchFiles(sourceToUse, pathToUse).then(this.fillOptions);
@@ -113,7 +110,6 @@ export default {
     resetToSource(newSource) {
       // Use current path if browsing the same source as current, otherwise start at root
       const newPath = newSource === state.req.source ? state.req.path : "/";
-      
       // Reset to the appropriate path for the new source
       this.path = newPath;
       this.source = newSource;
@@ -167,7 +163,6 @@ export default {
       let path = event.currentTarget.dataset.path;
       let clickedItem = this.items.find(item => item.path === path);
       let sourceToUse = clickedItem ? clickedItem.source : this.source;
-      
       this.path = path;
       this.source = sourceToUse;
       filesApi.fetchFiles(sourceToUse, path).then(this.fillOptions);
@@ -203,7 +198,6 @@ export default {
     },
     select: function (event) {
       let path = event.currentTarget.dataset.path;
-      
       // If the element is already selected, unselect it.
       if (this.selected === path) {
         this.selected = null;
@@ -219,7 +213,6 @@ export default {
       this.selected = path;
       let clickedItem = this.items.find(item => item.path === path);
       this.selectedSource = clickedItem ? clickedItem.source : this.source;
-      
       this.$emit("update:selected", {
         path: this.selected,
         source: this.selectedSource

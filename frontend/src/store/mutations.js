@@ -317,7 +317,6 @@ export const mutations = {
           "dateFormat",
           "themeColor",
           "quickDownload",
-          "disableOnlyOfficeExt",
           "preview",
           "stickySidebar",
           "singleClick",

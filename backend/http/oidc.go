@@ -307,7 +307,7 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 		}
 	} else {
 		// update user admin perms
-		if isAdmin != user.Permissions.Admin {
+		if isAdmin != user.Permissions.Admin && config.Auth.Methods.OidcAuth.AdminGroup != "" {
 			user.Permissions.Admin = isAdmin
 			err = store.Users.Update(user, true, "Permissions")
 			if err != nil {

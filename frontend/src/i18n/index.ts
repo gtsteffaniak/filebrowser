@@ -29,6 +29,20 @@ import cz from './cz.json';
 
 type LocaleMap = { [key: string]: string };
 
+export const internalToStandardLocaleMap: { [key: string]: string } = {
+  nlBE: 'nl-be',
+  ptBR: 'pt-br',
+  svSE: 'sv-se',
+  zhCN: 'zh-cn',
+  zhTW: 'zh-tw',
+  cz: 'cs',
+  ua: 'uk',
+};
+
+export function toStandardLocale(locale: string): string {
+  return internalToStandardLocaleMap[locale] || locale;
+}
+
 export function detectLocale(): string {
   const locale = navigator.language.toLowerCase();
   const localeMap: LocaleMap = {

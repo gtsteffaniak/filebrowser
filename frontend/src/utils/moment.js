@@ -1,3 +1,5 @@
+import { toStandardLocale } from "../i18n";
+
 export function fromNow(date, locale) {
     date = normalizeDate(date);
     const now = new Date();
@@ -11,7 +13,7 @@ export function fromNow(date, locale) {
         { label: 'minute', seconds: 60 },
         { label: 'second', seconds: 1 },
     ];
-    const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    const formatter = new Intl.RelativeTimeFormat(toStandardLocale(locale), { numeric: 'auto' });
     // Use absolute value for calculations
     const absDiffInSeconds = Math.abs(diffInSeconds);
     for (let interval of intervals) {
@@ -35,6 +37,8 @@ export function formatTimestamp(date, locale = 'en-us') {
         return 'Invalid Date';
     }
 
+    const standardLocale = toStandardLocale(locale);
+
     // Define options for formatting
     const dateOptions = {
         day: '2-digit',
@@ -49,8 +53,8 @@ export function formatTimestamp(date, locale = 'en-us') {
     };
 
     // Format date and time using locale
-    const dateFormatter = new Intl.DateTimeFormat(locale, dateOptions);
-    const timeFormatter = new Intl.DateTimeFormat(locale, timeOptions);
+    const dateFormatter = new Intl.DateTimeFormat(standardLocale, dateOptions);
+    const timeFormatter = new Intl.DateTimeFormat(standardLocale, timeOptions);
 
     try {
         // Extract date and time components
@@ -61,7 +65,7 @@ export function formatTimestamp(date, locale = 'en-us') {
         const dateMap = new Map(dateParts.map(part => [part.type, part.value]));
         const timeMap = new Map(timeParts.map(part => [part.type, part.value]));
 
-        const formattedDate = locale.includes('en')
+        const formattedDate = standardLocale.includes('en')
             ? `${dateMap.get('month')}/${dateMap.get('day')}/${dateMap.get('year')}`
             : `${dateMap.get('day')}/${dateMap.get('month')}/${dateMap.get('year')}`;
 

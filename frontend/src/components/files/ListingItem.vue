@@ -215,12 +215,12 @@ export default {
     },
     getUrl() {
       if (this.hash) {
-        return baseURL + "share/" + this.hash + this.path;
+        return baseURL + "share/" + this.hash + url.encodedPath(this.path);
       }
       if (serverHasMultipleSources) {
-        return baseURL + "files/" + this.source + this.path;
+        return baseURL + "files/" + encodeURIComponent(this.source) + url.encodedPath(this.path);
       }
-      return baseURL + "files/" + this.path;
+      return baseURL + "files" + url.encodedPath(this.path);
     },
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu

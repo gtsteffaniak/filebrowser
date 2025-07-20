@@ -2,6 +2,7 @@
   <div class="card floating" >
     <div class="card-title">
       <h2>{{ $t("prompts.upload") }}</h2>
+      <p>{{ uploadSettingsDescription }}</p>
     </div>
     <div
       class="upload-prompt"
@@ -209,6 +210,22 @@ export default {
       type: Array,
       default: () => [],
     },
+  },
+  computed: {
+    uploadSettingsDescription() {
+      const maxConcurrentUpload = state.user.fileLoading?.maxConcurrentUpload || 3;
+      const uploadChunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb || 0;
+      if (uploadChunkSizeMb > 0) {
+        return this.$t("prompts.uploadSettingsChunked", {
+          maxConcurrentUpload,
+          uploadChunkSizeMb
+        });
+      } else {
+        return this.$t("prompts.uploadSettingsNoChunk", {
+          maxConcurrentUpload
+        });
+      }
+    }
   },
   setup(props) {
     const fileInput = ref(null);
