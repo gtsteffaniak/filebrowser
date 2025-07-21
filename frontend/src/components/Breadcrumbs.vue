@@ -36,7 +36,7 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { extractSourceFromPath, encodedPath } from "@/utils/url.js";
+import { encodedPath } from "@/utils/url.js";
 
 export default {
   name: "breadcrumbs",
@@ -55,8 +55,14 @@ export default {
     $route() {
       this.updatePaths();
     },
+    req() {
+      this.updatePaths();
+    },
   },
   computed: {
+    req() {
+      return state.req;
+    },
     hasUpdate() {
       return state.req.hasUpdate;
     },
@@ -106,15 +112,14 @@ export default {
   },
   methods: {
     updatePaths() {
-      const result = extractSourceFromPath(getters.routePath());
       if (getters.currentView() == "share") {
         this.base = getters.sharePathBase();
         this.path = getters.routePath(this.base);
       } else {
-        this.path = decodeURIComponent(result.path);
+        this.path = encodedPath(state.req.path);
         this.base = "/";
         if (state.serverHasMultipleSources) {
-          this.base = `${this.base}${result.source}/`;
+          this.base = `/files/${state.req.source}/`;
         }
       }
     },

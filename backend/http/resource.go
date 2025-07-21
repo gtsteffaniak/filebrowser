@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
@@ -201,11 +202,13 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 	idx := indexing.GetIndex(source)
 	if idx == nil {
+		logger.Debugf("source %s not found", source)
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
 	realPath, _, _ := idx.GetRealPath(userscope, path)
+	isDir := strings.HasSuffix(path, "/")
 	// Directories creation on POST.
-	if strings.HasSuffix(path, "/") {
+	if isDir {
 		err = files.WriteDirectory(fileOpts)
 		if err != nil {
 			logger.Debugf("error writing directory: %v", err)
@@ -220,6 +223,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		var offset int64
 		offset, err = strconv.ParseInt(chunkOffsetStr, 10, 64)
 		if err != nil {
+			logger.Debugf("invalid chunk offset: %v", err)
 			return http.StatusBadRequest, fmt.Errorf("invalid chunk offset: %v", err)
 		}
 
@@ -227,6 +231,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		totalSizeStr := r.Header.Get("X-File-Total-Size")
 		totalSize, err = strconv.ParseInt(totalSizeStr, 10, 64)
 		if err != nil {
+			logger.Debugf("invalid total size: %v", err)
 			return http.StatusBadRequest, fmt.Errorf("invalid total size: %v", err)
 		}
 		// On the first chunk, check for conflicts or handle override
@@ -235,6 +240,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			fileInfo, err = files.FileInfoFaster(fileOpts)
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
+					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
 					logger.Debugf("Resource already exists: %v", fileInfo.RealPath)
 					return http.StatusConflict, nil
 				}
@@ -251,12 +257,14 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		tempFilePath := filepath.Join(settings.Config.Server.CacheDir, "uploads", uploadID)
 
 		if err = os.MkdirAll(filepath.Dir(tempFilePath), 0755); err != nil {
+			logger.Debugf("could not create temp dir: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("could not create temp dir: %v", err)
 		}
 		// Create or open the temporary file
 		var outFile *os.File
 		outFile, err = os.OpenFile(tempFilePath, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
+			logger.Debugf("could not open temp file: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("could not open temp file: %v", err)
 		}
 		defer outFile.Close()
@@ -264,6 +272,7 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		// Seek to the correct offset to write the chunk
 		_, err = outFile.Seek(offset, 0)
 		if err != nil {
+			logger.Debugf("could not seek in temp file: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("could not seek in temp file: %v", err)
 		}
 
@@ -271,47 +280,26 @@ func resourcePostHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		var chunkSize int64
 		chunkSize, err = io.Copy(outFile, r.Body)
 		if err != nil {
+			logger.Debugf("could not write chunk to temp file: %v", err)
 			return http.StatusInternalServerError, fmt.Errorf("could not write chunk to temp file: %v", err)
 		}
 		// check if the file is complete
 		if (offset + chunkSize) >= totalSize {
-			// close file before renaming
+			// close file before moving
 			outFile.Close()
-
 			// Move the completed file from the temp location to the final destination
-			err = os.Rename(tempFilePath, fileOpts.Path)
+			err = fileutils.MoveFile(tempFilePath, realPath)
 			if err != nil {
-				// If rename fails (e.g., cross-device link), fall back to copy and delete.
-				var in *os.File
-				in, err = os.Open(tempFilePath)
-				if err != nil {
-					return http.StatusInternalServerError, fmt.Errorf("could not open temp file for copying: %v", err)
-				}
-				defer in.Close()
-				var out *os.File
-				out, err = os.Create(realPath)
-				if err != nil {
-					return http.StatusInternalServerError, fmt.Errorf("could not create destination file for copying: %v", err)
-				}
-				defer out.Close()
-
-				if _, err = io.Copy(out, in); err != nil {
-					return http.StatusInternalServerError, fmt.Errorf("could not copy temp file to destination: %v", err)
-				}
-
-				// Manually close files before removing source
-				in.Close()
-				out.Close()
-
-				if err = os.Remove(tempFilePath); err != nil {
-					logger.Errorf("failed to remove temporary upload file: %s", tempFilePath)
-				}
+				logger.Debugf("could not move temp file to destination: %v", err)
+				return http.StatusInternalServerError, fmt.Errorf("could not move temp file to destination: %v", err)
 			}
+			go files.RefreshIndex(source, realPath, false) //nolint:errcheck
 		}
 
 		return http.StatusOK, nil
 	}
 
+	logger.Debugf("non-chunked upload logic for %s", realPath)
 	// Non-chunked upload logic (original code)
 	fileInfo, err := files.FileInfoFaster(fileOpts)
 	if err == nil {
@@ -450,7 +438,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 		return http.StatusNotFound, fmt.Errorf("source %s not found", dstIndex)
 	}
 	// check target dir exists
-	parentDir, _, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
+	parentDir, isDstDir, err := idx.GetRealPath(userscopeDst, filepath.Dir(dst))
 	if err != nil {
 		logger.Debugf("Could not get real path for parent dir: %v %v %v", userscopeDst, filepath.Dir(dst), err)
 		return http.StatusNotFound, err
@@ -475,7 +463,16 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if overwrite && !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
-	err = patchAction(r.Context(), action, realSrc, realDest, d, isSrcDir, srcIndex, dstIndex)
+	err = patchAction(r.Context(), patchActionParams{
+		action:   action,
+		srcIndex: srcIndex,
+		dstIndex: dstIndex,
+		src:      realSrc,
+		dst:      realDest,
+		d:        d,
+		isSrcDir: isSrcDir,
+		isDstDir: isDstDir,
+	})
 	if err != nil {
 		logger.Debugf("Could not run patch action. src=%v dst=%v err=%v", realSrc, realDest, err)
 	}
@@ -498,21 +495,32 @@ func addVersionSuffix(source string) string {
 	return source
 }
 
-func patchAction(ctx context.Context, action, src, dst string, d *requestContext, isSrcDir bool, srcIndex, destIndex string) error {
-	switch action {
+type patchActionParams struct {
+	action   string
+	srcIndex string
+	dstIndex string
+	src      string
+	dst      string
+	d        *requestContext
+	isSrcDir bool
+	isDstDir bool
+}
+
+func patchAction(ctx context.Context, params patchActionParams) error {
+	switch params.action {
 	case "copy":
-		err := files.CopyResource(srcIndex, destIndex, src, dst)
+		err := files.CopyResource(params.isSrcDir, params.isDstDir, params.srcIndex, params.dstIndex, params.src, params.dst)
 		return err
 	case "rename", "move":
-		idx := indexing.GetIndex(srcIndex)
-		srcPath := idx.MakeIndexPath(src)
+		idx := indexing.GetIndex(params.srcIndex)
+		srcPath := idx.MakeIndexPath(params.src)
 		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 			Access:     store.Access,
 			Username:   d.user.Username,
 			Path:       srcPath,
-			Source:     srcIndex,
-			IsDir:      isSrcDir,
-			Modify:     d.user.Permissions.Modify,
+			Source:     params.srcIndex,
+			IsDir:      params.isSrcDir,
+			Modify:     params.d.user.Permissions.Modify,
 			Expand:     false,
 			ReadHeader: false,
 		})
@@ -523,9 +531,9 @@ func patchAction(ctx context.Context, action, src, dst string, d *requestContext
 
 		// delete thumbnails
 		preview.DelThumbs(ctx, fileInfo)
-		return files.MoveResource(srcIndex, destIndex, src, dst)
+		return files.MoveResource(params.isSrcDir, params.isDstDir, params.srcIndex, params.dstIndex, params.src, params.dst)
 	default:
-		return fmt.Errorf("unsupported action %s: %w", action, errors.ErrInvalidRequestParams)
+		return fmt.Errorf("unsupported action %s: %w", params.action, errors.ErrInvalidRequestParams)
 	}
 }
 

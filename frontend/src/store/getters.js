@@ -204,9 +204,13 @@ export const getters = {
       listingView = 'share'
     } else if (pathname.startsWith(`/files`)) {
       if (state.req.type !== undefined) {
+        const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
+        if (state.user.disableViewingExt?.includes(ext)) {
+          return 'preview'
+        }
         if (state.req.type == 'directory') {
           listingView = 'listingView'
-        } else if (getters.onlyOfficeEnabled(state.req.name)) {
+        } else if (state.req.onlyOfficeId && !getters.fileViewingDisabled(state.req.name)) {
           listingView = 'onlyOfficeEditor'
         } else if (
           'content' in state.req &&
@@ -321,19 +325,20 @@ export const getters = {
 
     return files.sort((a, b) => a.progress - b.progress)
   },
-  onlyOfficeEnabled: filename => {
-    if (!state.req?.onlyOfficeId) {
-      return false
-    }
-    const ext = getFileExtension(filename)
-    if (state.user.disableOnlyOfficeExt) {
-      const disabledList = state.user.disableOnlyOfficeExt.split(' ')
-      for (const e of disabledList) {
-        if (e.trim().toLowerCase() === ext.toLowerCase()) {
-          return false
-        }
+  fileViewingDisabled: filename => {
+    const ext = ' ' + getFileExtension(filename)
+    if (state.user.disableViewingExt) {
+      const disabledExts = ' ' + state.user.disableViewingExt.toLowerCase()
+      if (disabledExts.includes(ext.toLowerCase())) {
+        return true
       }
     }
-    return true
+    if (state.req?.onlyOfficeId && state.user.disableOfficePreviewExt) {
+        const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()
+        if (disabledExts.includes(ext.toLowerCase())) {
+          return true
+        }
+    }
+    return false
   }
 }

@@ -95,10 +95,12 @@ type NonAdminEditable struct {
 	GallerySize                int         `json:"gallerySize"`                // 0-9 - the size of the gallery thumbnails
 	ThemeColor                 string      `json:"themeColor"`                 // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
 	QuickDownload              bool        `json:"quickDownload"`              // show icon to download in one click
-	DisableOnlyOfficeExt       string      `json:"disableOnlyOfficeExt"`       // comma separated list of file extensions to disable onlyoffice preview for
-	DisableOfficePreviewExt    string      `json:"disableOfficePreviewExt"`    // comma separated list of file extensions to disable office preview for
 	DisableUpdateNotifications bool        `json:"disableUpdateNotifications"` // disable update notifications
 	FileLoading                FileLoading `json:"fileLoading"`                // upload and download settings
+	DisableOfficePreviewExt    string      `json:"disableOfficePreviewExt"`    // deprecated
+	DisableOnlyOfficeExt       string      `json:"disableOnlyOfficeExt"`       // deprecated
+	DisablePreviewExt          string      `json:"disablePreviewExt"`          // comma separated list of file extensions to disable preview for
+	DisableViewingExt          string      `json:"disableViewingExt"`          // comma separated list of file extensions to disable viewing for
 }
 
 type FileLoading struct {

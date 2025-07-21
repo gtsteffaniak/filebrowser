@@ -544,12 +544,13 @@ definitions:
         description: delete files without confirmation
         type: boolean
       disableOfficePreviewExt:
-        description: comma separated list of file extensions to disable office preview
-          for
+        description: 'deprecated: use disablePreviewExt instead'
         type: string
       disableOnlyOfficeExt:
-        description: comma separated list of file extensions to disable onlyoffice
-          preview for
+        description: list of file extensions to disable onlyoffice editor for
+        type: string
+      disablePreviewExt:
+        description: comma separated list of file extensions to disable preview for
         type: string
       disableQuickToggles:
         description: disable the quick toggles in the sidebar
@@ -563,6 +564,9 @@ definitions:
       disableUpdateNotifications:
         description: disable update notifications banner for admin users
         type: boolean
+      disableViewingExt:
+        description: comma separated list of file extensions to disable viewing for
+        type: string
       editorQuickSave:
         description: show quick save button in editor
         type: boolean
@@ -735,12 +739,13 @@ definitions:
         description: delete files without confirmation
         type: boolean
       disableOfficePreviewExt:
-        description: comma separated list of file extensions to disable office preview
-          for
+        description: deprecated
         type: string
       disableOnlyOfficeExt:
-        description: comma separated list of file extensions to disable onlyoffice
-          preview for
+        description: deprecated
+        type: string
+      disablePreviewExt:
+        description: comma separated list of file extensions to disable preview for
         type: string
       disableQuickToggles:
         description: disable the quick toggles in the sidebar
@@ -753,6 +758,9 @@ definitions:
       disableUpdateNotifications:
         description: disable update notifications
         type: boolean
+      disableViewingExt:
+        description: comma separated list of file extensions to disable viewing for
+        type: string
       editorQuickSave:
         description: show quick save button in editor
         type: boolean

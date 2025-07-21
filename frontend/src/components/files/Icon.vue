@@ -2,7 +2,7 @@
   <span
     @mouseenter="handleMouseEnter($event)"
     @mouseleave="handleMouseLeave($event)"
-    v-if="isPreviewImg && imageState !== 'error'"
+    v-if="isPreviewImg && imageState !== 'error' && !disablePreviewExt && !officeFileDisabled"
   >
     <i
       v-if="hasMotion"
@@ -66,6 +66,14 @@ export default {
     };
   },
   computed: {
+    disablePreviewExt() {
+      const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
+      return state.user.disablePreviewExt?.includes(ext);
+    },
+    officeFileDisabled() {
+      const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
+      return state.user.disablePreviewExt?.includes(ext);
+    },
     imageTargetSrc() {
       if (this.showLargeIcon) {
         // Use the large version of the thumbnail if available
@@ -94,9 +102,7 @@ export default {
         ".hwpx": true,
         ".md": true,
       };
-      const textType = this.mimetype.startsWith("text/");
-      const disabled = state.user.disableOfficePreviewExt?.includes(ext);
-      return (!!pdfConvertCompatibleFileExtensions[ext] || textType) && !disabled;
+      return (!!pdfConvertCompatibleFileExtensions[ext]);
     },
     // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
@@ -133,7 +139,7 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
-      if (this.pdfConvertable) {
+      if (this.pdfConvertable && state.user.preview?.office) {
         return true;
       }
       if (this.getIconForType().simpleType === "image" && state.user.preview?.image) {

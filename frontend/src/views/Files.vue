@@ -126,9 +126,9 @@ export default {
         routePath == "/";
       // lets redirect if multiple sources and user went to /files/
       if (state.serverHasMultipleSources && rootRoute) {
-        const targetPath = `${routePath}/${state.sources.current}`;
+        const targetPath = `/files/${state.sources.current}`;
         // Prevent infinite loop by checking if we're already at the target path
-        if (this.$route.path !== targetPath) {
+        if (routePath !== targetPath) {
           router.push(targetPath);
           return;
         }
@@ -150,10 +150,10 @@ export default {
         const fetchSource = decodeURIComponent(result.source);
         const fetchPath = decodeURIComponent(result.path);
         // Fetch initial data
-        let res = await filesApi.fetchFiles(fetchSource,fetchPath );
+        let res = await filesApi.fetchFiles(fetchSource, fetchPath );
         // If not a directory, fetch content
         if (res.type != "directory") {
-          const content = !getters.onlyOfficeEnabled();
+          const content = !getters.fileViewingDisabled(res.name);
           res = await filesApi.fetchFiles(res.source, res.path, content);
         }
         data = res;

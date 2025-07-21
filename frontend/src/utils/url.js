@@ -142,14 +142,13 @@ export function encodedPath(path) {
   if (path === undefined) {
     return "";
   }
-  path = path.replace(/#/g, "%23"); // preseve # in path
   // break apart path into parts and url encode each part
   const parts = path.split("/");
   const encodedParts = parts.map(part => encodeURIComponent(part));
   return encodedParts.join("/").replace("//", "/");
 }
 
-
+// assume non-encoded input path and source
 export function goToItem(source, path, previousHash, shareHash) {
   if (previousHash) {
     location.hash = previousHash;
@@ -162,9 +161,9 @@ export function goToItem(source, path, previousHash, shareHash) {
     return;
   }
   if (state.serverHasMultipleSources) {
-    fullPath = `/${encodeURIComponent(source)}${newPath}`;
+    fullPath = `/files/${encodeURIComponent(source)}${newPath}`;
   } else {
-    fullPath = `${newPath}`;
+    fullPath = `/files${newPath}`;
   }
 
   router.push({ path: fullPath });
