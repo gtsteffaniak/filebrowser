@@ -84,6 +84,11 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if d.user.DarkMode {
 		theme = "dark"
 	}
+	canEdit := iteminfo.CanEditOnlyOffice(d.user.Permissions.Modify, fileType)
+	mode := "view"
+	if canEdit {
+		mode = "edit"
+	}
 	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, encodedPath, d.token)
 	clientConfig := map[string]interface{}{
 		"document": map[string]interface{}{
@@ -92,7 +97,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 			"title":    fileInfo.Name,
 			"url":      url + "&auth=" + d.token,
 			"permissions": map[string]interface{}{
-				"edit":     d.user.Permissions.Modify,
+				"edit":     canEdit,
 				"download": true,
 				"print":    true,
 			},
@@ -109,7 +114,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 				"uiTheme":   theme,
 			},
 			"lang": d.user.Locale,
-			"mode": "edit",
+			"mode": mode,
 		},
 	}
 	if settings.Config.Integrations.OnlyOffice.Secret != "" {

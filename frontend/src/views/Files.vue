@@ -127,9 +127,9 @@ export default {
         routePath == "/";
       // lets redirect if multiple sources and user went to /files/
       if (state.serverHasMultipleSources && rootRoute) {
-        const targetPath = `${routePath}/${state.sources.current}`;
+        const targetPath = `/files/${state.sources.current}`;
         // Prevent infinite loop by checking if we're already at the target path
-        if (this.$route.path !== targetPath) {
+        if (routePath !== targetPath) {
           router.push(targetPath);
           return;
         }
