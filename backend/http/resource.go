@@ -516,7 +516,7 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 		srcPath := idx.MakeIndexPath(params.src)
 		fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 			Access:     store.Access,
-			Username:   d.user.Username,
+			Username:   params.d.user.Username,
 			Path:       srcPath,
 			Source:     params.srcIndex,
 			IsDir:      params.isSrcDir,
