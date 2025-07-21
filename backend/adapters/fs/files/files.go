@@ -156,28 +156,24 @@ func RefreshIndex(source string, path string, isDir bool) error {
 	return idx.RefreshFileInfo(iteminfo.FileOptions{Path: path, IsDir: isDir})
 }
 
-func MoveResource(sourceIndex, destIndex, realsrc, realdst string) error {
+func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	err = RefreshIndex(sourceIndex, filepath.Dir(realsrc), true)
-	if err != nil {
-		return err
-	}
-	return RefreshIndex(destIndex, filepath.Dir(realdst), true)
+	go RefreshIndex(sourceIndex, realsrc, isSrcDir)  //nolint:errcheck
+	go RefreshIndex(sourceIndex, realdst, isDestDir) //nolint:errcheck
+	return nil
 }
 
-func CopyResource(sourceIndex, destIndex, realsrc, realdst string) error {
+func CopyResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
 		return err
 	}
-	err = RefreshIndex(sourceIndex, filepath.Dir(realsrc), true)
-	if err != nil {
-		return err
-	}
-	return RefreshIndex(destIndex, filepath.Dir(realdst), true)
+	go RefreshIndex(sourceIndex, realsrc, isSrcDir)  //nolint:errcheck
+	go RefreshIndex(sourceIndex, realdst, isDestDir) //nolint:errcheck
+	return nil
 }
 
 func WriteDirectory(opts iteminfo.FileOptions) error {
@@ -187,7 +183,7 @@ func WriteDirectory(opts iteminfo.FileOptions) error {
 	}
 	realPath, _, _ := idx.GetRealPath(opts.Path)
 	// Ensure the parent directories exist
-	err := os.MkdirAll(realPath, 0775)
+	err := os.MkdirAll(realPath, fileutils.PermDir)
 	if err != nil {
 		return err
 	}
@@ -201,12 +197,12 @@ func WriteFile(opts iteminfo.FileOptions, in io.Reader) error {
 	}
 	dst, _, _ := idx.GetRealPath(opts.Path)
 	// Ensure the parent directories exist
-	err := os.MkdirAll(filepath.Dir(dst), 0775)
+	err := os.MkdirAll(filepath.Dir(dst), fileutils.PermDir)
 	if err != nil {
 		return err
 	}
 	// Open the file for writing (create if it doesn't exist, truncate if it does)
-	file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0775)
+	file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileutils.PermFile)
 	if err != nil {
 		return err
 	}

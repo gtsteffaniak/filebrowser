@@ -1,6 +1,6 @@
 import { reactive } from "vue";
 import { filesApi } from "@/api";
-import { state } from "@/store";
+import { state,mutations } from "@/store";
 
 class UploadManager {
   constructor() {
@@ -11,6 +11,7 @@ class UploadManager {
     this.isPausedForConflict = false;
     this.isOverallPaused = false;
     this.onConflict = () => {}; // Callback for UI
+    this.hadActiveUploads = false; // Track if we've had active uploads
   }
 
   setOnConflict(handler) {
@@ -110,6 +111,14 @@ class UploadManager {
         this.start(upload.id);
       }
     }
+
+    // Only reload when we transition from having active uploads to having none
+    const hasNoActiveOrPending = this.activeUploads === 0 && !this.hasPending();
+    if (this.hadActiveUploads && hasNoActiveOrPending) {
+      console.log("all uploads processed  ", this.queue);
+      mutations.setReload(true);
+      this.hadActiveUploads = false; // Reset the flag
+    }
   }
 
   start(id) {
@@ -131,6 +140,7 @@ class UploadManager {
 
   async startDirectoryUpload(upload) {
     this.activeUploads++;
+    this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
 
     try {
@@ -154,6 +164,7 @@ class UploadManager {
 
   async startFileUpload(upload) {
     this.activeUploads++;
+    this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
 
     const chunkSize = state.user.fileLoading.uploadChunkSizeMb * 1024 * 1024;

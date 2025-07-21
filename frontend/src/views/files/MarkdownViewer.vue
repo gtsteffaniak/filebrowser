@@ -163,7 +163,7 @@ export default {
       // Try to split the HTML while preserving tags
       const htmlLines: string[] = [];
       let currentHTML = html;
-      let currentLineIndex = 0;
+      //let currentLineIndex = 0;
 
       // For each line, try to extract the corresponding HTML
       for (let i = 0; i < textLines.length; i++) {

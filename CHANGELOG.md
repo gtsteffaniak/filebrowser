@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.16-beta
+
+ **Notes**:
+ - more server logging for uploads when debug logging is enabled
+
+ **BugFixes**:
+ - fix onlyoffice integration viewing bug (#990)
+ - fix uploading files with exec permissions (#984)
+ - fix redirect on no source path (#989)
+ - refresh file info on rename (#989)
+ - listing refreshes when uploads finish (#989)
+ - disable edit mode for certain onlyoffice files (#971)
+
 ## v0.7.15-beta
 
  **New Features**:
