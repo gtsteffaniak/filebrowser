@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -409,6 +410,18 @@ func HasDocConvertableExtension(name, mimetype string) bool {
 		if ext == e {
 			return true
 		}
+	}
+	return false
+}
+
+var ONLYOFFICE_EDIT_FILE_EXTENSIONS = []string{"doc", "docx", "pptx", "xls", "xlsx", "csv", "txt", "rtf", "md"}
+
+func CanEditOnlyOffice(modify bool, extention string) bool {
+	if !modify {
+		return false
+	}
+	if slices.Contains(ONLYOFFICE_EDIT_FILE_EXTENSIONS, strings.ToLower(extention)) {
+		return true
 	}
 	return false
 }

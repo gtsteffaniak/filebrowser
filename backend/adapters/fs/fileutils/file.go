@@ -10,6 +10,9 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+const PermFile = 0640
+const PermDir = 0750
+
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,
 // the file copy is used as a fallback.
@@ -63,13 +66,13 @@ func copySingleFile(source, dest string) error {
 	defer src.Close()
 
 	// Create the destination directory if needed.
-	err = os.MkdirAll(filepath.Dir(dest), 0775) //nolint:gomnd
+	err = os.MkdirAll(filepath.Dir(dest), PermDir)
 	if err != nil {
 		return err
 	}
 
 	// Create the destination file.
-	dst, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666) //nolint:gomnd
+	dst, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_TRUNC, PermFile)
 	if err != nil {
 		return err
 	}
@@ -97,7 +100,7 @@ func copySingleFile(source, dest string) error {
 // copyDirectory handles copying directories recursively.
 func copyDirectory(source, dest string) error {
 	// Create the destination directory.
-	err := os.MkdirAll(dest, 0775) //nolint:gomnd
+	err := os.MkdirAll(dest, PermDir)
 	if err != nil {
 		return err
 	}

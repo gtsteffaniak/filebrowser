@@ -329,22 +329,19 @@ export const getters = {
     return files.sort((a, b) => a.progress - b.progress)
   },
   fileViewingDisabled: filename => {
-    const ext = ' .' + getFileExtension(filename)
+    const ext = ' ' + getFileExtension(filename)
     if (state.user.disableViewingExt) {
       const disabledExts = ' ' + state.user.disableViewingExt.toLowerCase()
       if (disabledExts.includes(ext.toLowerCase())) {
         return true
       }
     }
-    if (!state.req?.onlyOfficeId) {
-      return false
+    if (state.req?.onlyOfficeId && state.user.disableOfficePreviewExt) {
+        const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()
+        if (disabledExts.includes(ext.toLowerCase())) {
+          return true
+        }
     }
-    if (state.user.disableOfficePreviewExt) {
-      const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()
-      if (disabledExts.includes(ext.toLowerCase())) {
-        return false
-      }
-    }
-    return true
+    return false
   }
 }
