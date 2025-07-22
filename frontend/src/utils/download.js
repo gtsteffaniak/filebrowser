@@ -12,11 +12,8 @@ export default function downloadFiles(items) {
     items = items.map(i => state.req.items[i]);
   }
   if (getters.isShare()) {
-    let urlPath = getters.routePath("share");
-    let parts = urlPath.split("/");
-    const hash = parts[1];
     // Perform download without opening a new window
-    startDownload(null, items, hash);
+    startDownload(null, items, state.share.hash);
     return;
   }
 

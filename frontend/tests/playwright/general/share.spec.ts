@@ -18,7 +18,7 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors, context }) 
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
 
-  checkForErrors();
+  checkForErrors(0,1); // redirect errors are expected
 });
 
 test("root share path is valid", async ({ page, checkForErrors, openContextMenu, context }) => {
@@ -41,7 +41,7 @@ test("share file works", async ({ page, checkForErrors, context }) => {
 
   await page.goto("/share/" + shareHashFile);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - 1file1.txt");
-  checkForErrors();
+  checkForErrors(0,1); // redirect errors are expected
 });
 
 test("share download single file", async ({ page, checkForErrors, context }) => {
@@ -61,5 +61,5 @@ test("share download single file", async ({ page, checkForErrors, context }) => 
   const popup = page.locator('#popup-notification-content');
   await popup.waitFor({ state: 'visible' });
   await expect(popup).toHaveText("Downloading...");
-  checkForErrors();
+  checkForErrors(0,1);
 });

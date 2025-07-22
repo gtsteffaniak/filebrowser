@@ -1,5 +1,14 @@
 <template>
   <div class="no-select">
+
+      <!-- Share Info Component -->
+      <ShareInfo
+      v-if="showShareInfo"
+      :hash="state.share.hash"
+      :token="state.share.token"
+      :subPath="state.share.subPath"
+    />
+
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -168,12 +177,15 @@ import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 
+
 import Item from "@/components/files/ListingItem.vue";
+import ShareInfo from "@/components/files/ShareInfo.vue";
 
 export default {
   name: "listingView",
   components: {
     Item,
+    ShareInfo,
   },
   data() {
     return {
@@ -230,6 +242,9 @@ export default {
     },
   },
   computed: {
+    showShareInfo() {
+      return this.isShare && state.share.hash && state.isMobile;
+    },
     isShare() {
       return getters.isShare();
     },

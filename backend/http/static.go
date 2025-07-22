@@ -108,5 +108,4 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	handleWithStaticData(w, r, "index.html", "text/html")
-
 }

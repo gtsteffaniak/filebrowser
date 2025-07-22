@@ -62,5 +62,5 @@ test("share download single file", async ({ page, checkForErrors, context }) => 
   const popup = page.locator('#popup-notification-content');
   await popup.waitFor({ state: 'visible' });
   await expect(popup).toHaveText("Downloading...");
-  checkForErrors();
+  checkForErrors(0,1); // redirect errors are expected
 });

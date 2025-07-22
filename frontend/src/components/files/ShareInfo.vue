@@ -1,26 +1,6 @@
 <template>
-  <div class="share">
-    <div class="share__box share__box__info">
-      <div class="share__box__header">
-        {{
-          req.type == "directory"
-            ? $t("download.downloadFolder")
-            : $t("download.downloadFile")
-        }}
-      </div>
-
-      <div v-if="isImage" class="share__box__element share__box__center share__box__icon">
-        <img :src="getLink(true)" width="500px" />
-      </div>
-      <div v-else-if="isMedia" class="share__box__element share__box__center share__box__icon">
-        <video width="500" height="500" controls>
-          <source :src="getLink(true)" type="video/mp4" />
-        </video>
-      </div>
-      <div v-else class="share__box__element share__box__center share__box__icon">
-        <i class="material-icons">{{ icon }}</i>
-      </div>
-
+  <div class="share card">
+    <div class="share__box">
       <div class="share__box__element">
         <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
       </div>
@@ -34,7 +14,7 @@
       <div class="share__box__element share__box__center">
         <a target="_blank" :href="getLink(false)" class="button button--flat">
           <div>
-            <i class="material-icons">file_download</i>{{ $t("buttons.download") }}
+            <i aria-label="share-download-all" class="material-icons">file_download</i>{{ $t("buttons.download") }}
           </div>
         </a>
         <a target="_blank" :href="getLink(true)" class="button button--flat" v-if="req.type != 'directory'">
@@ -44,7 +24,7 @@
         </a>
       </div>
 
-      <div class="share__box__element share__box__center">
+      <div v-if="req.type" class="share__box__element share__box__center">
         <qrcode-vue :value="getLink(false)" size="200" level="M"></qrcode-vue>
       </div>
     </div>
@@ -81,20 +61,15 @@ export default {
     req() {
       return state.req;
     },
-    icon() {
-      if (state.req.type == "directory") return "folder";
-      if (getTypeInfo(state.req.type).simpleType == "image") return "insert_photo";
-      if (getTypeInfo(state.req.type).simpleType == "audio") return "volume_up";
-      if (getTypeInfo(state.req.type).simpleType == "video") return "movie";
-      return "insert_drive_file";
-    },
     humanSize() {
+      if (!state.req.modified) return "";
       if (state.req.type == "directory") {
-        return state.req.items ? state.req.items.length : 0;
+        return state.req.items.length + " items (" + getHumanReadableFilesize(state.req.size) + ")";
       }
       return getHumanReadableFilesize(state.req.size);
     },
     humanTime() {
+      if (!state.req.modified) return "";
       return getters.getTime(state.req.modified);
     },
     modTime() {
@@ -114,9 +89,9 @@ export default {
   methods: {
     getLink(inline = false) {
       return publicApi.getDownloadURL({
-        path: this.subPath,
-        hash: this.hash,
-        token: this.token,
+        path: "/",
+        hash: state.share.hash,
+        token: state.share.token,
         inline: inline,
       });
     },
@@ -126,15 +101,11 @@ export default {
 
 <style scoped>
 .share {
-  margin: 1em 0;
+  display: flex;
 }
 
 .share__box {
-  background: white;
-  border-radius: 0.3em;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  margin: 1em;
-  padding: 1em;
+  width: 100%;
 }
 
 .share__box__header {

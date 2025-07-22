@@ -149,7 +149,7 @@ export const getters = {
     ]
     let visible =
       (state.showSidebar || getters.isStickySidebar())
-    if (getters.isShare()) {
+    if (getters.isShare() && !state.isMobile) {
       visible = true
     }
     if (

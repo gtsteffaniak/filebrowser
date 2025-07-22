@@ -9,8 +9,8 @@ import { externalUrl, baseURL } from "@/utils/constants";
 
 // Fetch public share data
 export async function fetchPub(path, hash, password = "", content = false) {
-  const params = { 
-    path, 
+  const params = {
+    path,
     hash,
     ...(content && { content: 'true' })
   }

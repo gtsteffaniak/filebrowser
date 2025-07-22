@@ -70,7 +70,7 @@ export function download(format, files, shareHash = "") {
     }
   }
   fileargs = fileargs.slice(0, -2) // remove trailing "||"
-  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'api/public/dl', {
+  const apiPath = getApiPath(shareHash == "" ? 'api/raw' : 'public/api/raw', {
     files: fileargs,
     algo: format,
     hash: shareHash

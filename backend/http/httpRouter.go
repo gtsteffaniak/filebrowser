@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"strings"
 	"text/template"
 	"time"
 
@@ -199,9 +200,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
-	router.HandleFunc(fmt.Sprintf("GET %vshare/{hash}", config.Server.BaseURL), func(w http.ResponseWriter, r *http.Request) {
-		hash := r.PathValue("hash")
-		newURL := config.Server.BaseURL + "public/share/" + hash
+	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), func(w http.ResponseWriter, r *http.Request) {
+		// Remove the base URL and "/share/" prefix to get the full path after share
+		sharePath := strings.TrimPrefix(r.URL.Path, config.Server.BaseURL+"share/")
+		newURL := config.Server.BaseURL + "public/share/" + sharePath
 		if r.URL.RawQuery != "" {
 			newURL += "?" + r.URL.RawQuery
 		}

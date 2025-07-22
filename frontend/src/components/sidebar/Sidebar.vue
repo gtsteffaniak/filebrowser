@@ -8,8 +8,8 @@
       <i @click="setSeenUpdate" aria-label="close-banner" class="material-icons">close</i>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
-    <SidebarShare v-else-if="isShare"></SidebarShare>
-    <SidebarGeneral v-else-if="isLoggedIn"></SidebarGeneral>
+    <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
+    <SidebarShare v-if="isShare"></SidebarShare>
 
     <div class="buffer"></div>
     <div class="credits">
