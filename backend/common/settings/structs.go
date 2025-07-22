@@ -110,6 +110,8 @@ type Frontend struct {
 	DisableUsedPercentage bool           `json:"disableUsedPercentage"` // disable used percentage for the sources in the sidebar
 	ExternalLinks         []ExternalLink `json:"externalLinks"`
 	DisableNavButtons     bool           `json:"disableNavButtons"` // disable the nav buttons in the sidebar
+	LightBackground       string         `json:"lightBackground"`   // light mode background
+	DarkBackground        string         `json:"darkBackground"`    // light mode background
 }
 
 type ExternalLink struct {

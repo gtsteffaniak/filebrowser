@@ -204,6 +204,9 @@ definitions:
     type: object
   settings.Frontend:
     properties:
+      darkBackground:
+        description: light mode background
+        type: string
       disableDefaultLinks:
         description: disable default links in the sidebar
         type: boolean
@@ -217,6 +220,9 @@ definitions:
         items:
           $ref: '#/definitions/settings.ExternalLink'
         type: array
+      lightBackground:
+        description: light mode background
+        type: string
       name:
         description: display name
         type: string

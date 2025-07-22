@@ -226,27 +226,35 @@ func formatLine(line string) string {
 	const targetCol = 42
 	const defaultPadding = 1
 
-	idx := strings.Index(line, "#")
-	// If there's no comment, do nothing.
-	if idx == -1 {
-		return line
+	// Find the first # character that is NOT inside double or single quotes.
+	inSingle, inDouble := false, false
+	for i := 0; i < len(line); i++ {
+		c := line[i]
+		switch c {
+		case '\'':
+			if !inDouble {
+				inSingle = !inSingle
+			}
+		case '"':
+			if !inSingle {
+				inDouble = !inDouble
+			}
+		case '#':
+			if !inSingle && !inDouble {
+				// found a comment
+				contentPart := line[:i]
+				commentPart := line[i:]
+				trimmedContent := strings.TrimRight(contentPart, " ")
+				if len(trimmedContent) >= targetCol {
+					return trimmedContent + strings.Repeat(" ", defaultPadding) + commentPart
+				}
+				paddingNeeded := targetCol - len(trimmedContent)
+				return trimmedContent + strings.Repeat(" ", paddingNeeded) + commentPart
+			}
+		}
 	}
-
-	// Separate the content (before #) from the comment (from # onwards).
-	contentPart := line[:idx]
-	commentPart := line[idx:]
-
-	// The YAML encoder adds a space; trim it so we measure only the content length.
-	trimmedContent := strings.TrimRight(contentPart, " ")
-
-	// If the content already extends past our target column, just add a single space.
-	if len(trimmedContent) >= targetCol {
-		return trimmedContent + strings.Repeat(" ", defaultPadding) + commentPart
-	}
-
-	// Otherwise, calculate the needed padding to reach the target column and add it.
-	paddingNeeded := targetCol - len(trimmedContent)
-	return trimmedContent + strings.Repeat(" ", paddingNeeded) + commentPart
+	// No comment found
+	return line
 }
 
 // alignComments formats each line of the YAML string independently.

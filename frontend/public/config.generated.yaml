@@ -90,6 +90,8 @@ frontend:
       title: ""                           # the title to display on hover
       url: "https://github.com/gtsteffaniak/filebrowser/wiki" # the url to link to  validate:required
   disableNavButtons: false                # disable the nav buttons in the sidebar
+  lightBackground: ""                     # light mode background
+  darkBackground: ""                      # light mode background
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar

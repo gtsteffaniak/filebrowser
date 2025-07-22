@@ -2107,6 +2107,10 @@ const docTemplate = `{
         "settings.Frontend": {
             "type": "object",
             "properties": {
+                "darkBackground": {
+                    "description": "light mode background",
+                    "type": "string"
+                },
                 "disableDefaultLinks": {
                     "description": "disable default links in the sidebar",
                     "type": "boolean"
@@ -2124,6 +2128,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/settings.ExternalLink"
                     }
+                },
+                "lightBackground": {
+                    "description": "light mode background",
+                    "type": "string"
                 },
                 "name": {
                     "description": "display name",

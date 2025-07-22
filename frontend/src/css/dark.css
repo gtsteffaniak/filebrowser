@@ -1,6 +1,5 @@
 /* Define a class .dark-mode for dark mode styles */
 .dark-mode {
-  --background: #141D24;
   --alt-background: #283136;
   --surfacePrimary: #20292F;
   --surfaceSecondary: #3A4147;
