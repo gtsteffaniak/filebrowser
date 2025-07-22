@@ -154,6 +154,12 @@ export default {
         return
       }
 
+      if (!state.user.sorting) {
+        mutations.updateListingSortConfig({
+          field: "name",
+          asc: true,
+        });
+      }
       // Set loading and reset error
       mutations.setLoading(this.isShare ? "share" : "files", true);
       this.error = null;
@@ -162,10 +168,12 @@ export default {
       try {
         if (this.isShare) {
           await this.fetchShareData();
+          console.log('Share data after fetch:')
         } else {
           await this.fetchFilesData();
         }
       } catch (e) {
+        notify.showError(e.message);
         this.error = e;
         mutations.replaceRequest({});
         if (e.status === 404) {
@@ -201,13 +209,19 @@ export default {
         password: this.sharePassword
       });
 
+      // Store share data in state for use by components
+      mutations.setShareData({
+        hash: this.shareHash,
+        token: this.shareToken,
+        subPath: this.shareSubPath,
+      });
+
       // Handle password
       if (this.sharePassword === "" || this.sharePassword === null) {
         this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
       } else {
         localStorage.setItem("sharepass:" + this.shareHash, this.sharePassword);
       }
-
       // Get public user if not logged in
       if (!getters.isLoggedIn()) {
         let userData = await publicApi.getPublicUser();
@@ -245,13 +259,6 @@ export default {
           contentPreview: file.content ? file.content.substring(0, 50) + '...' : null
         });
       }
-
-      // Store share data in state for use by components
-      mutations.setShareData({
-        hash: this.shareHash,
-        token: this.shareToken,
-        subPath: this.shareSubPath,
-      });
 
       mutations.replaceRequest(file);
       document.title = `${document.title} - ${file.name}`;

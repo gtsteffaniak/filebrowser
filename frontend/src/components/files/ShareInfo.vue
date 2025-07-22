@@ -121,6 +121,9 @@ export default {
   margin: 0.5em 0;
 }
 
+.share__box__element canvas {
+  border-style: solid;
+}
 .share__box__center {
   text-align: center;
 }

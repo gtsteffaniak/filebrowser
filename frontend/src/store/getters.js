@@ -1,4 +1,4 @@
-import { removePrefix, buildItemUrl } from '@/utils/url.js'
+import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
 import { noAuth } from '@/utils/constants.js'
@@ -200,6 +200,11 @@ export const getters = {
   },
   sharePathBase: () => {
     return '/public/share/' + getters.shareHash() + '/'
+  },
+  getSharePath: () => {
+    let urlPath = getters.routePath('public/share')
+    let parts = urlPath.split('/')
+    return "/" + removeLeadingSlash(parts.slice(2).join('/'))
   },
   currentView: () => {
     let listingView = null

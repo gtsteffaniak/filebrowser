@@ -220,6 +220,7 @@ export const mutations = {
     emitStateChanged();
   },
   setCurrentUser: (value) => {
+    console.log('setCurrentUser', value);
     try {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
@@ -388,6 +389,9 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingSortConfig: ({ field, asc }) => {
+    if (!state.user.sorting) {
+      state.user.sorting = {};
+    }
     state.user.sorting.by = field;
     state.user.sorting.asc = asc;
     emitStateChanged();
@@ -427,6 +431,9 @@ export const mutations = {
     emitStateChanged();
   },
   setMaxConcurrentUpload: (value) => {
+    if (!state.user.fileLoading) {
+      state.user.fileLoading = {};
+    }
     state.user.fileLoading.maxConcurrentUpload = value;
     emitStateChanged();
   },
