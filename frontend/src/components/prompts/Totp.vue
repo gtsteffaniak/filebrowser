@@ -8,7 +8,7 @@
     <div v-if="!succeeded" class="card-content">
       <p v-if="generate">{{ $t("otp.generate") }}</p>
       <div v-if="generate" class="share__box__element share__box__center">
-        <p>{{ this.url }}</p>
+        <p aria-label="otp-url">{{ this.url }}</p>
         <qrcode-vue class="qrcode" :value="this.url" size="200" level="M"></qrcode-vue>
       </div>
       <p>{{ $t("otp.verifyInstructions") }}</p>
@@ -80,6 +80,11 @@ export default {
       type: String,
       default: "",
     },
+  },
+  async mounted() {
+    if (this.generate) {
+      this.generateNewCode();
+    }
   },
   methods: {
     async generateNewCode() {
