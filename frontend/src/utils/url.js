@@ -156,7 +156,7 @@ export function goToItem(source, path, previousHash, shareHash) {
   let newPath = encodedPath(path);
   let fullPath;
   if (shareHash) {
-    fullPath = `/share/${shareHash}${newPath}`;
+    fullPath = `/public/share/${shareHash}${newPath}`;
     router.push({ path: fullPath });
     return;
   }

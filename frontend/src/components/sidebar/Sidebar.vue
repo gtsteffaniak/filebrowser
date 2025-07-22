@@ -8,6 +8,7 @@
       <i @click="setSeenUpdate" aria-label="close-banner" class="material-icons">close</i>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
+    <SidebarShare v-else-if="isShare"></SidebarShare>
     <SidebarGeneral v-else-if="isLoggedIn"></SidebarGeneral>
 
     <div class="buffer"></div>
@@ -27,12 +28,14 @@ import { externalLinks, name, updateAvailable } from "@/utils/constants";
 import { getters, mutations, state } from "@/store"; // Import your custom store
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
+import SidebarShare from "./Share.vue";
 
 export default {
   name: "sidebar",
   components: {
     SidebarGeneral,
     SidebarSettings,
+    SidebarShare,
   },
   data() {
     return {
@@ -45,6 +48,7 @@ export default {
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
   },
   computed: {
+    isShare: () => getters.isShare(),
     releaseUrl: () => updateAvailable,
     isDarkMode: () => getters.isDarkMode(),
     isLoggedIn: () => getters.isLoggedIn(),

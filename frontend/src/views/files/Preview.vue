@@ -54,7 +54,7 @@
   </div>
 </template>
 <script>
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 import { url } from "@/utils";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
@@ -125,10 +125,21 @@ export default {
     },
     raw() {
       if (this.pdfConvertable) {
+        if (getters.isShare()) {
+          return publicApi.getPreviewURL(state.share.hash, state.share.subPath) + "&size=original";
+        }
         return (
           filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) +
           "&size=original"
         );
+      }
+      if (getters.isShare()) {
+        return publicApi.getDownloadURL({
+          path: state.share.subPath,
+          hash: state.share.hash,
+          token: state.share.token,
+          inline: true,
+        });
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
@@ -142,6 +153,13 @@ export default {
       return this.nextLink !== "";
     },
     downloadUrl() {
+      if (getters.isShare()) {
+        return publicApi.getDownloadURL({
+          path: state.share.subPath,
+          hash: state.share.hash,
+          token: state.share.token,
+        });
+      }
       return filesApi.getDownloadURL(state.req.source, state.req.path);
     },
     showMore() {
@@ -221,7 +239,16 @@ export default {
       for (const subtitleFile of state.req.subtitles) {
         const ext = getFileExtension(subtitleFile);
         const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
-        const resp = await filesApi.fetchFiles(state.req.source, path, true); // Fetch .srt file
+        
+        let resp;
+        if (getters.isShare()) {
+          // Use public API for shared files
+          resp = await publicApi.fetchPub(path, state.share.hash, "", true);
+        } else {
+          // Use regular files API for authenticated users
+          resp = await filesApi.fetchFiles(state.req.source, path, true);
+        }
+        
         let vttContent = resp.content;
         // Convert SRT to VTT (assuming srt2vtt() does this)
         vttContent = convertToVTT(ext, resp.content);
@@ -290,7 +317,14 @@ export default {
       }
       const directoryPath = url.removeLastDir(state.req.path);
       if (!this.listing) {
-        const res = await filesApi.fetchFiles(state.req.source, directoryPath);
+        let res;
+        if (getters.isShare()) {
+          // Use public API for shared files
+          res = await publicApi.fetchPub(directoryPath, state.share.hash);
+        } else {
+          // Use regular files API for authenticated users
+          res = await filesApi.fetchFiles(state.req.source, directoryPath);
+        }
         this.listing = res.items;
       }
       this.name = state.req.name;
@@ -323,6 +357,16 @@ export default {
       }
     },
     prefetchUrl(item) {
+      if (getters.isShare()) {
+        return this.fullSize
+          ? publicApi.getDownloadURL({
+              path: item.path,
+              hash: state.share.hash,
+              token: state.share.token,
+              inline: true,
+            })
+          : publicApi.getPreviewURL(state.share.hash, item.path);
+      }
       return this.fullSize
         ? filesApi.getDownloadURL(state.req.source, item.path, true)
         : filesApi.getPreviewURL(state.req.source, item.path, item.modified);

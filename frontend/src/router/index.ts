@@ -2,7 +2,6 @@ import { RouteLocation, createRouter, createWebHistory } from "vue-router";
 import Login from "@/views/Login.vue";
 import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
-import Share from "@/views/Share.vue";
 import Settings from "@/views/Settings.vue";
 import Errors from "@/views/Errors.vue";
 import { baseURL, name, oidcAvailable, passwordAvailable } from "@/utils/constants";
@@ -15,6 +14,7 @@ import i18n from "@/i18n";
 const titles = {
   Login: "sidebar.login",
   Share: "buttons.share",
+  PublicShare: "buttons.share",
   Files: "general.files",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",
@@ -40,7 +40,18 @@ const routes = [
       {
         path: ":path*",
         name: "Share",
-        component: Share,
+        component: Files,
+      },
+    ],
+  },
+  {
+    path: "/public/share",
+    component: Layout,
+    children: [
+      {
+        path: ":path*",
+        name: "PublicShare",
+        component: Files,
       },
     ],
   },

@@ -152,7 +152,7 @@ export default {
         return "";
       }
       let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
-      if (getters.currentView() == "share") {
+      if (getters.isShare()) {
         let urlPath = getters.routePath("share");
         // Step 1: Split the path by '/'
         const hash = urlPath.split("/")[1];

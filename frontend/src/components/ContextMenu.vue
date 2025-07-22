@@ -207,7 +207,7 @@ export default {
         state.user?.permissions &&
         state.user?.permissions.share &&
         state.user.username != "publicUser" &&
-        getters.currentView() != "share" &&
+        !getters.isShare() &&
         !this.isSearchActive
       );
     },

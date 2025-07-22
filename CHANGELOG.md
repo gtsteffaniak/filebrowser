@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.8.0-beta
+
+ **Notes**:
+ - changed partition calculations on linux for total disk size (#982)
+
 ## v0.7.16-beta
 
  **Notes**:

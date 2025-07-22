@@ -248,6 +248,18 @@ export const mutations = {
     state.jwt = value;
     emitStateChanged();
   },
+  setShareData: (shareData) => {
+    state.share = { ...state.share, ...shareData };
+    emitStateChanged();
+  },
+  clearShareData: () => {
+    state.share = {
+      hash: null,
+      token: "",
+      subPath: "",
+    };
+    emitStateChanged();
+  },
   setSession: (value) => {
     state.sessionId = value;
     emitStateChanged();
@@ -352,11 +364,8 @@ export const mutations = {
     }
     let sortby = "name"
     let asc = true
-    if (state.user.username && state.user?.username != "publicUser") {
-      sortby = state.user.sorting.by;
-      asc = state.user.sorting.asc;
-    }
-
+    sortby = state.user.sorting.by;
+    asc = state.user.sorting.asc;
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
