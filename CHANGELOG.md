@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.17-beta
 
+ **Notes**:
+ - changed partition calculations on linux for total disk size (#982)
+
  **BugFixes**:
  - TOTP prompt not showing generated code issue https://github.com/gtsteffaniak/filebrowser/issues/996
- - 
 
 ## v0.7.16-beta
 

@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -18,6 +19,10 @@ func CheckWindowsHidden(realpath string) bool {
 }
 
 func getPartitionSize(path string) (uint64, error) {
+	if runtime.GOOS == "darwin" {
+		return getFilesystemSize(path)
+	}
+
 	// Get the device containing the path
 	var stat syscall.Stat_t
 	err := syscall.Stat(path, &stat)
