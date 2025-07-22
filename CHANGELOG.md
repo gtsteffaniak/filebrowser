@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.17-beta
+
+ **BugFixes**:
+ - TOTP prompt not showing generated code issue https://github.com/gtsteffaniak/filebrowser/issues/996
+ - 
+
 ## v0.7.16-beta
 
  **Notes**:
