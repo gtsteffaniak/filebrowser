@@ -12,6 +12,8 @@ class UploadManager {
     this.isOverallPaused = false;
     this.onConflict = () => {}; // Callback for UI
     this.hadActiveUploads = false; // Track if we've had active uploads
+    this.conflictingFolder = null; // Track the folder name that caused conflict
+    this.pendingItems = null; // Store pending items during conflict resolution
   }
 
   setOnConflict(handler) {
@@ -37,12 +39,24 @@ class UploadManager {
         const conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
 
         if (conflictingDirs.length > 0) {
-          this.onConflict(userChoseOverwrite => {
-            if (userChoseOverwrite) {
+          // Store the conflicting folder name (take the first one for now)
+          this.conflictingFolder = conflictingDirs[0];
+          this.pendingItems = items;
+
+          this.onConflict(resolution => {
+            if (resolution === true) {
+              // User chose overwrite
               this.overwriteAll = true;
               this.add(basePath, items, true);
+            } else if (resolution && resolution.rename) {
+              // User chose rename - continue with renamed items
+              this.conflictingFolder = null;
+              this.add(basePath, this.pendingItems, false);
             } else {
+              // User cancelled
               this.overwriteAll = null;
+              this.conflictingFolder = null;
+              this.pendingItems = null;
             }
           });
           return;
@@ -114,6 +128,10 @@ class UploadManager {
     });
 
     this.queue.push(...newUploads, ...fileUploads);
+
+    // Clean up pending items after successful add
+    this.pendingItems = null;
+    this.conflictingFolder = null;
 
     this.processQueue();
     return newUploads;
@@ -351,6 +369,36 @@ class UploadManager {
     return this.queue.some((item) => item.status === "pending");
   }
 
+  getConflictingFolder() {
+    return this.conflictingFolder;
+  }
+
+  async renameFolder(oldName, newName) {
+    if (!oldName || !newName || !this.pendingItems) {
+      throw new Error("Invalid parameters for folder rename");
+    }
+
+    // Update all items in the pending items that reference the old folder name
+    const updatedItems = this.pendingItems.map(item => {
+      if (item.relativePath) {
+        const pathParts = item.relativePath.split("/");
+        if (pathParts[0] === oldName) {
+          // Replace the first part of the path with the new name
+          pathParts[0] = newName;
+          return {
+            ...item,
+            relativePath: pathParts.join("/")
+          };
+        }
+      }
+      return item;
+    });
+
+    // Store the updated items for processing
+    this.pendingItems = updatedItems;
+    return true;
+  }
+
   async handleUploadError(upload, err) {
     // Check if the error is a 409 Conflict
     if (err?.response?.status === 409) {
@@ -364,3 +412,17 @@ class UploadManager {
 }
 
 export const uploadManager = new UploadManager();
+
+// Check for conflicts between items to be uploaded/moved and existing items
+export function checkConflict(newItems, existingItems) {
+  if (!newItems || !existingItems) {
+    return false;
+  }
+
+  const existingNames = new Set(existingItems.map(item => item.name));
+
+  return newItems.some(item => {
+    const itemName = item.name || item.file?.name;
+    return itemName && existingNames.has(itemName);
+  });
+}

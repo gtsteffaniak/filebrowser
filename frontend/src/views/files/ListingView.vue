@@ -818,7 +818,7 @@ export default {
       if (state.user.viewMode == "gallery") {
         document.documentElement.style.setProperty(
           "--item-height",
-          `calc(${this.columnWidth / 25}em)`
+          `calc(${this.columnWidth / 20}em)`
         );
       } else {
         document.documentElement.style.setProperty("--item-height", `auto`);

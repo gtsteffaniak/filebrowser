@@ -82,7 +82,6 @@ export default {
   watch: {
     $route: "fetchData",
     reload(value) {
-      console.log(" files reload", value);
       if (value) {
         this.fetchData();
       }
@@ -110,6 +109,12 @@ export default {
             behavior: "instant",
             block: "center",
           });
+          // Add glow effect
+          element.classList.add('scroll-glow');
+          // Remove glow effect after animation completes
+          setTimeout(() => {
+            element.classList.remove('scroll-glow');
+          }, 1000);
         }
       }
     },
@@ -155,7 +160,6 @@ export default {
         let res = await filesApi.fetchFiles(fetchSource, fetchPath );
         // If not a directory, fetch content
         if (res.type != "directory") {
-          console.log("fetching files", res.source, res.path, res.name,getters.fileViewingDisabled(res.name));
           const content = !getters.fileViewingDisabled(res.name);
           res = await filesApi.fetchFiles(res.source, res.path, content);
         }
@@ -187,3 +191,21 @@ export default {
   },
 };
 </script>
+
+<style>
+.scroll-glow {
+  animation: scrollGlowAnimation 1s ease-out;
+}
+
+@keyframes scrollGlowAnimation {
+  0% {
+    color: inherit;
+  }
+  50% {
+    color: var(--primaryColor);
+  }
+  100% {
+    color: inherit;
+  }
+}
+</style>
