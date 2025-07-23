@@ -9,8 +9,8 @@
 <script>
 import { defineComponent } from "vue";
 import * as mammoth from "mammoth";
-import { filesApi } from "@/api";
-import { state,mutations } from "@/store";
+import { filesApi, publicApi } from "@/api";
+import { state, mutations, getters } from "@/store";
 
 export default defineComponent({
   name: "DocxViewer",
@@ -72,13 +72,19 @@ export default defineComponent({
         this.error = "";
         this.docxHtml = "";
 
-        console.log("[4] Getting download URL from filesApi...");
-        const downloadUrl = filesApi.getDownloadURL(
-          state.req.source,
-          state.req.path,
-          false,
-          true
-        );
+        console.log("[4] Getting download URL from API...");
+        const downloadUrl = getters.isShare() 
+          ? publicApi.getDownloadURL({
+              path: state.share.subPath,
+              hash: state.share.hash,
+              token: state.share.token,
+            })
+          : filesApi.getDownloadURL(
+              state.req.source,
+              state.req.path,
+              false,
+              true
+            );
 
         if (!downloadUrl) {
           throw new Error("Could not retrieve a valid download URL from the API.");

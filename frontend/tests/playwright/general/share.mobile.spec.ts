@@ -11,7 +11,20 @@ test("share download multiple files", async ({ page, checkForErrors, context }) 
     throw new Error("Share hash not found in localStorage");
   }
 
+  // Test explicit redirect behavior
+  const responsePromise = page.waitForResponse(response =>
+    response.url().includes("/share/" + shareHash + "/testdata/") &&
+    response.status() === 301
+  );
+
   await page.goto("/share/" + shareHash + "/testdata/");
+
+  // Wait for and verify the redirect response
+  const response = await responsePromise;
+  expect(response.status()).toBe(301); // Moved Permanently
+
+  // Verify final URL and title after redirect
+  await expect(page).toHaveURL(new RegExp(`/public/share/${shareHash}/testdata/`));
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
   await page.locator('a[aria-label="gray-sample.jpg"]').click({ button: "right" });
   await page.locator('button[aria-label="Select multiple"]').waitFor({ state: 'visible' });
@@ -33,5 +46,5 @@ test("share download multiple files", async ({ page, checkForErrors, context }) 
   const popup2 = page.locator('#popup-notification-content');
   await popup2.waitFor({ state: 'visible' });
   await expect(popup2).toHaveText("Downloading...");
-  checkForErrors();
+  checkForErrors(0,1); // redirect errors are expected
 });

@@ -1,7 +1,7 @@
 <template>
   <header v-if="!isOnlyOffice" :class="['flexbar', { 'dark-mode-header': isDarkMode }]">
     <action
-      v-if="!isShare && !(disableNavButtons && isListingView)"
+      v-if="!(disableNavButtons && isListingView)"
       icon="close_back"
       :label="$t('buttons.close')"
       :disabled="isDisabledMultiAction"
@@ -19,7 +19,7 @@
       :disabled="isDisabled"
     />
     <action
-      v-else-if="!isShare && !isListingView && !showQuickSave"
+      v-else-if="!isListingView && !showQuickSave"
       :icon="iconName"
       :disabled="noItems"
       @click="toggleOverflow"
@@ -86,7 +86,7 @@ export default {
       return icons[state.user.viewMode] || "grid_view";
     },
     isShare() {
-      return getters.currentView() == "share";
+      return getters.isShare();
     },
     noItems() {
       return !state.contextMenuItems;

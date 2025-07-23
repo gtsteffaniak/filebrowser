@@ -144,7 +144,7 @@ export default {
         if (state.user.permissions.realtime) {
           events.startSSE();
         }
-        const maxUploads = state.user.fileLoading.maxConcurrentUpload;
+        const maxUploads = state.user.fileLoading?.maxConcurrentUpload || 0;
         if (maxUploads > 10 || maxUploads < 1) {
           mutations.setMaxConcurrentUpload(1);
         }

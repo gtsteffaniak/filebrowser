@@ -220,6 +220,7 @@ export const mutations = {
     emitStateChanged();
   },
   setCurrentUser: (value) => {
+    console.log('setCurrentUser', value);
     try {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
@@ -246,6 +247,18 @@ export const mutations = {
   },
   setJWT: (value) => {
     state.jwt = value;
+    emitStateChanged();
+  },
+  setShareData: (shareData) => {
+    state.share = { ...state.share, ...shareData };
+    emitStateChanged();
+  },
+  clearShareData: () => {
+    state.share = {
+      hash: null,
+      token: "",
+      subPath: "",
+    };
     emitStateChanged();
   },
   setSession: (value) => {
@@ -352,11 +365,8 @@ export const mutations = {
     }
     let sortby = "name"
     let asc = true
-    if (state.user.username && state.user?.username != "publicUser") {
-      sortby = state.user.sorting.by;
-      asc = state.user.sorting.asc;
-    }
-
+    sortby = state.user.sorting.by;
+    asc = state.user.sorting.asc;
     // Separate directories and files
     const dirs = value.items.filter((item) => item.type === 'directory');
     const files = value.items.filter((item) => item.type !== 'directory');
@@ -379,6 +389,9 @@ export const mutations = {
     emitStateChanged();
   },
   updateListingSortConfig: ({ field, asc }) => {
+    if (!state.user.sorting) {
+      state.user.sorting = {};
+    }
     state.user.sorting.by = field;
     state.user.sorting.asc = asc;
     emitStateChanged();
@@ -418,6 +431,9 @@ export const mutations = {
     emitStateChanged();
   },
   setMaxConcurrentUpload: (value) => {
+    if (!state.user.fileLoading) {
+      state.user.fileLoading = {};
+    }
     state.user.fileLoading.maxConcurrentUpload = value;
     emitStateChanged();
   },

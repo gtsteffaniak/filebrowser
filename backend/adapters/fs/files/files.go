@@ -50,7 +50,7 @@ func FileInfoFaster(opts iteminfo.FileOptions) (iteminfo.ExtendedFileInfo, error
 			if err != nil {
 				return response, err
 			}
-		} else {
+		} else if err == errors.ErrNotIndexed {
 			return response, fmt.Errorf("could not refresh file info: %v", err)
 		}
 	} else {

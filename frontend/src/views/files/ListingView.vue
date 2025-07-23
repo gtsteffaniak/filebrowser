@@ -1,5 +1,14 @@
 <template>
   <div class="no-select">
+
+      <!-- Share Info Component -->
+      <ShareInfo
+      v-if="showShareInfo"
+      :hash="state.share.hash"
+      :token="state.share.token"
+      :subPath="state.share.subPath"
+    />
+
     <div v-if="loading">
       <h2 class="message delayed">
         <div class="spinner">
@@ -112,6 +121,8 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:hash="isShare ? state.share.hash : undefined"
+            :readOnly="isShare ? true : undefined"
           />
         </div>
         <div v-if="numFiles > 0">
@@ -132,6 +143,7 @@
             v-bind:size="item.size"
             v-bind:path="item.path"
             v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:hash="isShare ? state.share.hash : undefined"
           />
         </div>
 
@@ -158,17 +170,22 @@
 <script>
 import downloadFiles from "@/utils/download";
 import { filesApi } from "@/api";
+import { notify } from "@/notify";
 import { router } from "@/router";
 import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
 
+
 import Item from "@/components/files/ListingItem.vue";
+import ShareInfo from "@/components/files/ShareInfo.vue";
+
 export default {
   name: "listingView",
   components: {
     Item,
+    ShareInfo,
   },
   data() {
     return {
@@ -225,6 +242,15 @@ export default {
     },
   },
   computed: {
+    showShareInfo() {
+      return this.isShare && state.share.hash && state.isMobile;
+    },
+    isShare() {
+      return getters.isShare();
+    },
+    state() {
+      return state;
+    },
     isDragging() {
       return this.dragCounter > 0;
     },
@@ -771,6 +797,13 @@ export default {
         return;
       }
       mutations.setLoading("listing", true);
+      if (getters.isShare()) {
+        // Shared files don't support move/copy operations
+        mutations.setLoading("listing", false);
+        notify.showError("Move/copy operations are not supported for shared files.");
+        return;
+      }
+
       let action = async (overwrite, rename) => {
         await filesApi.moveCopy(items, "copy", overwrite, rename);
         mutations.setLoading("listing", false);
@@ -779,7 +812,6 @@ export default {
       if (this.clipboard.key === "x") {
         action = async (overwrite, rename) => {
           await filesApi.moveCopy(items, "move", overwrite, rename);
-
           this.clipboard = {};
           mutations.setLoading("listing", false);
         };

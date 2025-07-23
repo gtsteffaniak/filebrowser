@@ -104,7 +104,7 @@ export default {
         notify.showError("Failed to initialize the editor. Please reload.");
       }
     },
-    handleEditorValueRequest() {
+    async handleEditorValueRequest() {
       // Safety Check 2: Final verification before saving
       if (state.req.name !== this.filename) {
         // Corrected the error message to be more accurate
@@ -114,7 +114,14 @@ export default {
       }
       try {
         if (this.editor) {
-          filesApi.put(state.req.source, state.req.path, this.editor.getValue());
+          if (getters.isShare()) {
+            // Shared files are read-only
+            notify.showError("Cannot save changes to shared files - they are read-only.");
+            return;
+          } else {
+            // Use regular files API for authenticated users
+            await filesApi.put(state.req.source, state.req.path, this.editor.getValue());
+          }
         } else {
           notify.showError("Editor instance is not initialized.");
           return;

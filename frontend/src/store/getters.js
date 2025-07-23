@@ -1,4 +1,4 @@
-import { removePrefix, buildItemUrl } from '@/utils/url.js'
+import { removePrefix, buildItemUrl, removeLeadingSlash } from '@/utils/url.js'
 import { getFileExtension } from '@/utils/files.js'
 import { state, mutations } from '@/store'
 import { noAuth } from '@/utils/constants.js'
@@ -40,7 +40,10 @@ export const getters = {
   isMobile: () => state.isMobile,
   isLoading: () => Object.keys(state.loading).length > 0,
   isSettings: () => getters.currentView() === 'settings',
-  isShare: () => getters.currentView() === 'share',
+  isShare: () => {
+    const pathname = getters.routePath()
+    return pathname.startsWith(`/share`) || pathname.startsWith(`/public/share`)
+  },
   isDarkMode: () => {
     if (state.user == null) {
       return true
@@ -145,10 +148,9 @@ export const getters = {
       'editor'
     ]
     let visible =
-      (state.showSidebar || getters.isStickySidebar()) &&
-      state.user.username != 'publicUser'
-    if (currentView == 'share') {
-      visible = false
+      (state.showSidebar || getters.isStickySidebar())
+    if (getters.isShare() && !state.isMobile) {
+      visible = true
     }
     if (
       typeof getters.currentPromptName() === 'string' &&
@@ -167,7 +169,10 @@ export const getters = {
     if (currentView == 'settings') {
       sticky = true
     }
-    if (currentView == null && !getters.isLoading() && getters.isShare()) {
+    if (currentView == null && !getters.isLoading()) {
+      sticky = true
+    }
+    if (getters.isShare()) {
       sticky = true
     }
     if (getters.isMobile()) {
@@ -188,21 +193,25 @@ export const getters = {
   routePath: (trimModifier = '') => {
     return removePrefix(state.route.path, trimModifier)
   },
-  sharePathBase: () => {
-    let urlPath = getters.routePath('share')
-    // Step 1: Split the path by '/'
+  shareHash: () => {
+    let urlPath = getters.routePath('public/share')
     let parts = urlPath.split('/')
-    // Step 2: Assign hash to the second part (index 2) and join the rest for subPath
-    return '/share/' + parts[1] + '/'
+    return parts[1]
+  },
+  sharePathBase: () => {
+    return '/public/share/' + getters.shareHash() + '/'
+  },
+  getSharePath: () => {
+    let urlPath = getters.routePath('public/share')
+    let parts = urlPath.split('/')
+    return "/" + removeLeadingSlash(parts.slice(2).join('/'))
   },
   currentView: () => {
     let listingView = null
     const pathname = getters.routePath()
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
-    } else if (pathname.startsWith(`/share`)) {
-      listingView = 'share'
-    } else if (pathname.startsWith(`/files`)) {
+    } else {
       if (state.req.type !== undefined) {
         const ext = "." + state.req.name.split(".").pop().toLowerCase(); // Ensure lowercase and dot
         if (state.user.disableViewingExt?.includes(ext)) {

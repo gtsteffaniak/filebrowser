@@ -152,11 +152,9 @@ export default {
         return "";
       }
       let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
-      if (getters.currentView() == "share") {
-        let urlPath = getters.routePath("share");
-        // Step 1: Split the path by '/'
-        const hash = urlPath.split("/")[1];
-        return shareApi.getPreviewURL(hash, path, state.req.modified);
+      if (getters.isShare()) {
+        let urlPath = getters.getSharePath() + "/" + this.name;
+        return shareApi.getPreviewURL(state.share.hash, urlPath, state.req.modified);
       }
       return filesApi.getPreviewURL(state.req.source, path, state.req.modified);
     },

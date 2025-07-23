@@ -199,9 +199,10 @@ func withUserHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-
 		setUserInResponseWriter(w, data.user)
-
+		if data.user.Username == "" || data.user.Username == "publicUser" {
+			return http.StatusForbidden, fmt.Errorf("preview is disabled for public users")
+		}
 		// Call the handler function, passing in the context
 		return fn(w, r, data)
 	}

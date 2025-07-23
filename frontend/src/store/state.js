@@ -25,6 +25,11 @@ export const state = reactive({
   realtimeActive: undefined,
   realtimeDownCount: 0,
   popupPreviewSource: "",
+  share: {
+    hash: null,
+    token: "",
+    subPath: "",
+  },
   sources: {
     current: "",
     count: 1,
