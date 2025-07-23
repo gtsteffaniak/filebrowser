@@ -4,8 +4,8 @@
       <h2>{{ $t("prompts.rename") }}</h2>
     </div>
 
-    <div class="card-content">
-      <p>{{ $t("prompts.renameMessage") }} <code>{{ oldName() }}</code>:</p> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <div class="card-content">
+        <p>{{ $t("prompts.renameMessage", { filename: oldName() }) }}</p>
       <input
         class="input input--block"
         v-focus
@@ -67,24 +67,40 @@ export default {
     closeHovers() {
       return mutations.closeHovers;
     },
+    currentPrompt() {
+      return getters.currentPrompt();
+    },
   },
   methods: {
     cancel() {
       mutations.closeHovers();
     },
     oldName() {
+      // Check if this is being called from upload context with props
+      if (this.currentPrompt && this.currentPrompt.props && this.currentPrompt.props.folderName) {
+        return this.currentPrompt.props.folderName;
+      }
+
       if (!this.isListing) {
         return state.req.name;
       }
 
       if (getters.selectedCount() === 0 || getters.selectedCount() > 1) {
-        return;
+        return "";
       }
-
+      
       return state.req.items[this.selected[0]].name;
     },
     async submit() {
       try {
+        // Check if this is being called from upload context with custom confirm handler
+        if (this.currentPrompt && this.currentPrompt.confirm) {
+          // This is for upload rename - call the custom confirm handler
+          this.currentPrompt.confirm(this.name);
+          return;
+        }
+
+        // Default file rename operation
         const items = [{
           from: state.req.path + "/" + state.req.items[this.selected[0]].name,
           fromSource: state.req.source,

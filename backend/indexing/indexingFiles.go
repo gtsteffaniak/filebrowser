@@ -40,16 +40,16 @@ type Index struct {
 	CurrentSchedule            int `json:"-"`
 	settings.Source            `json:"-"`
 	Directories                map[string]*iteminfo.FileInfo `json:"-"`
-	DirectoriesLedger          map[string]bool               `json:"-"`
+	DirectoriesLedger          map[string]struct{}           `json:"-"`
 	runningScannerCount        int                           `json:"-"`
 	SmartModifier              time.Duration                 `json:"-"`
 	FilesChangedDuringIndexing bool                          `json:"-"`
 	mock                       bool
 	mu                         sync.RWMutex
 	hasIndex                   bool
-	FoundHardLinks             map[string]uint64 `json:"-"` // hardlink path -> size
-	processedInodes            map[uint64]bool   `json:"-"`
-	totalSize                  uint64            `json:"-"`
+	FoundHardLinks             map[string]uint64   `json:"-"` // hardlink path -> size
+	processedInodes            map[uint64]struct{} `json:"-"`
+	totalSize                  uint64              `json:"-"`
 }
 
 var (
@@ -75,8 +75,8 @@ func Initialize(source settings.Source, mock bool) {
 		mock:              mock,
 		Source:            source,
 		Directories:       make(map[string]*iteminfo.FileInfo),
-		DirectoriesLedger: make(map[string]bool),
-		processedInodes:   make(map[uint64]bool),
+		DirectoriesLedger: make(map[string]struct{}),
+		processedInodes:   make(map[uint64]struct{}),
 		FoundHardLinks:    make(map[string]uint64),
 	}
 	newIndex.ReducedIndex = ReducedIndex{
@@ -123,7 +123,7 @@ func (idx *Index) indexDirectory(adjustedPath string, quick, recursive bool) err
 	if recursive {
 		// Prevent race conditions if scanning becomes concurrent in the future.
 		idx.mu.Lock()
-		idx.DirectoriesLedger[adjustedPath] = true
+		idx.DirectoriesLedger[adjustedPath] = struct{}{}
 		idx.mu.Unlock()
 	}
 	combinedPath := adjustedPath + "/"
@@ -570,7 +570,7 @@ func (idx *Index) handleFile(file os.FileInfo, fullCombined string) (size uint64
 			return realSize, false
 		}
 		// First time seeing this inode.
-		idx.processedInodes[ino] = true
+		idx.processedInodes[ino] = struct{}{}
 		idx.FoundHardLinks[fullCombined] = realSize
 		idx.totalSize += realSize
 		return realSize, true // Count size for directory total.

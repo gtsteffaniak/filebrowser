@@ -74,7 +74,7 @@ func (idx *Index) garbageCollection() {
 		}
 	}
 	// Reset the ledger for the next scan.
-	idx.DirectoriesLedger = make(map[string]bool)
+	idx.DirectoriesLedger = make(map[string]struct{})
 }
 
 func (idx *Index) UpdateSchedule() {
@@ -140,7 +140,7 @@ func (idx *Index) RunIndexing(origin string, quick bool) {
 		idx.mu.Lock()
 		idx.NumDirs = 0
 		idx.NumFiles = 0
-		idx.processedInodes = make(map[uint64]bool)
+		idx.processedInodes = make(map[uint64]struct{})
 		idx.FoundHardLinks = make(map[string]uint64)
 		idx.mu.Unlock()
 	}

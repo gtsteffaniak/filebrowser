@@ -12,6 +12,8 @@ class UploadManager {
     this.isOverallPaused = false;
     this.onConflict = () => {}; // Callback for UI
     this.hadActiveUploads = false; // Track if we've had active uploads
+    this.conflictingFolder = null; // Track the folder name that caused conflict
+    this.pendingItems = null; // Store pending items during conflict resolution
   }
 
   setOnConflict(handler) {
@@ -19,10 +21,50 @@ class UploadManager {
   }
 
   async add(basePath, items, overwrite = false) {
-
     if (basePath.slice(-1) !== "/") {
       basePath += "/";
     }
+
+    // Pre-upload conflict check for top-level directories
+    if (this.overwriteAll === null && !overwrite) {
+      const topLevelDirs = new Set();
+      for (const item of items) {
+        if (item.relativePath && item.relativePath.includes('/')) {
+          topLevelDirs.add(item.relativePath.split('/')[0]);
+        }
+      }
+
+      if (topLevelDirs.size > 0) {
+        const existingItems = new Set(state.req.items.map(i => i.name));
+        const conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
+
+        if (conflictingDirs.length > 0) {
+          // Store the conflicting folder name (take the first one for now)
+          this.conflictingFolder = conflictingDirs[0];
+          this.pendingItems = items;
+
+          this.onConflict(resolution => {
+            if (resolution === true) {
+              // User chose overwrite
+              this.overwriteAll = true;
+              this.add(basePath, items, true);
+            } else if (resolution && resolution.rename) {
+              // User chose rename - continue with renamed items
+              this.conflictingFolder = null;
+              this.add(basePath, this.pendingItems, false);
+            } else {
+              // User cancelled
+              this.overwriteAll = null;
+              this.conflictingFolder = null;
+              this.pendingItems = null;
+            }
+          });
+          return;
+        }
+      }
+    }
+
+    const effectiveOverwrite = this.overwriteAll || overwrite;
     const dirs = new Set();
     for (const item of items) {
       if (item.relativePath) {
@@ -54,9 +96,10 @@ class UploadManager {
           progress: 0,
           status: "pending",
           type: "directory",
+          isToplevelDir: pathParts.length === 1,
           path: `${basePath}${dir}`,
           source: state.req.source,
-          overwrite: overwrite,
+          overwrite: effectiveOverwrite,
         };
 
         newUploads.push(upload);
@@ -79,12 +122,16 @@ class UploadManager {
         xhr: null,
         path: destinationPath, // Full destination path
         source: state.req.source,
-        overwrite: overwrite,
+        overwrite: effectiveOverwrite,
       };
       return upload;
     });
 
     this.queue.push(...newUploads, ...fileUploads);
+
+    // Clean up pending items after successful add
+    this.pendingItems = null;
+    this.conflictingFolder = null;
 
     this.processQueue();
     return newUploads;
@@ -118,6 +165,7 @@ class UploadManager {
       console.log("all uploads processed  ", this.queue);
       mutations.setReload(true);
       this.hadActiveUploads = false; // Reset the flag
+      this.overwriteAll = null; // Reset for next batch of uploads
     }
   }
 
@@ -144,13 +192,12 @@ class UploadManager {
     upload.status = "uploading";
 
     try {
-      const { promise } = filesApi.post(
+      await filesApi.post(
         upload.source,
         upload.path,
         new Blob([]),
         upload.overwrite
       );
-      await promise;
 
       upload.status = "completed";
       upload.progress = 100;
@@ -174,7 +221,7 @@ class UploadManager {
       };
 
       try {
-        const { xhr, promise } = filesApi.post(
+        const promise = filesApi.post(
           upload.source,
           upload.path,
           upload.file,
@@ -185,7 +232,7 @@ class UploadManager {
           }
         );
 
-        upload.xhr = xhr;
+        upload.xhr = promise.xhr;
         await promise;
 
         upload.status = "completed";
@@ -214,7 +261,7 @@ class UploadManager {
       };
 
       try {
-        const { xhr, promise } = filesApi.post(
+        const promise = filesApi.post(
           upload.source,
           upload.path,
           chunk,
@@ -226,7 +273,7 @@ class UploadManager {
           }
         );
 
-        upload.xhr = xhr;
+        upload.xhr = promise.xhr;
         await promise;
 
         upload.chunkOffset += chunk.size;
@@ -322,6 +369,36 @@ class UploadManager {
     return this.queue.some((item) => item.status === "pending");
   }
 
+  getConflictingFolder() {
+    return this.conflictingFolder;
+  }
+
+  async renameFolder(oldName, newName) {
+    if (!oldName || !newName || !this.pendingItems) {
+      throw new Error("Invalid parameters for folder rename");
+    }
+
+    // Update all items in the pending items that reference the old folder name
+    const updatedItems = this.pendingItems.map(item => {
+      if (item.relativePath) {
+        const pathParts = item.relativePath.split("/");
+        if (pathParts[0] === oldName) {
+          // Replace the first part of the path with the new name
+          pathParts[0] = newName;
+          return {
+            ...item,
+            relativePath: pathParts.join("/")
+          };
+        }
+      }
+      return item;
+    });
+
+    // Store the updated items for processing
+    this.pendingItems = updatedItems;
+    return true;
+  }
+
   async handleUploadError(upload, err) {
     // Check if the error is a 409 Conflict
     if (err?.response?.status === 409) {
@@ -332,63 +409,20 @@ class UploadManager {
       console.log(`upload.js: Upload aborted for id ${upload.id}`, upload);
     }
   }
-
-  resolveConflict(overwrite) {
-    this.overwriteAll = overwrite;
-    this.isPausedForConflict = false;
-
-    if (overwrite) {
-      // Find all items that hit a conflict and requeue them.
-      for (const item of this.queue) {
-        if (item.status === "conflict") {
-          item.status = "pending";
-          item.overwrite = true;
-          if (item.type !== 'directory') {
-            item.chunkOffset = 0; // Reset progress for resume
-          }
-        }
-      }
-    } else {
-      // Cancel all uploads in the queue.
-      for (let i = this.queue.length - 1; i >= 0; i--) {
-        this.cancel(this.queue[i].id)
-      }
-    }
-
-    this.processQueue();
-  }
 }
 
 export const uploadManager = new UploadManager();
 
-export function checkConflict(files, items) {
-  if (typeof items === 'undefined' || items === null) {
-    items = [];
+// Check for conflicts between items to be uploaded/moved and existing items
+export function checkConflict(newItems, existingItems) {
+  if (!newItems || !existingItems) {
+    return false;
   }
 
-  let folder_upload = files[0].path !== undefined;
+  const existingNames = new Set(existingItems.map(item => item.name));
 
-  let conflict = false;
-  for (let i = 0; i < files.length; i++) {
-    let file = files[i];
-    let name = file.name;
-
-    if (folder_upload) {
-      let dirs = file.path.split('/');
-      if (dirs.length > 1) {
-        name = dirs[0];
-      }
-    }
-
-    let res = items.findIndex(function hasConflict(element) {
-      return element.name === this;
-    }, name);
-
-    if (res >= 0) {
-      conflict = true;
-      break;
-    }
-  }
-
-  return conflict;
+  return newItems.some(item => {
+    const itemName = item.name || item.file?.name;
+    return itemName && existingNames.has(itemName);
+  });
 }
