@@ -141,6 +141,12 @@ func StartHttp(ctx context.Context, storage *storage.Storage, shutdownComplete c
 	// Swagger
 	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL), withUser(swaggerHandler))
 
+	//	if config.Server.BaseURL != "/" {
+	//		router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	//			http.Redirect(w, r, config.Server.BaseURL, http.StatusMovedPermanently)
+	//		})
+	//	}
+
 	var scheme string
 	port := ""
 	srv := &http.Server{

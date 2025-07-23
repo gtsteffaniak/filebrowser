@@ -238,16 +238,21 @@ export default {
     let wakeLock = null;
 
     const handleConflict = (resolver) => {
-      showConflictPrompt.value = true;
       conflictResolver = resolver;
+      mutations.showHover({
+        name: "replace-rename",
+        confirm: (event, option) => {
+          let overwrite = option === "overwrite";
+          resolveConflict(overwrite);
+        },
+      });
     };
 
     const resolveConflict = (overwrite) => {
       if (conflictResolver) {
         conflictResolver(overwrite);
       }
-      showConflictPrompt.value = false;
-      conflictResolver = null;
+      mutations.closeHovers();
     };
 
     const acquireWakeLock = async () => {

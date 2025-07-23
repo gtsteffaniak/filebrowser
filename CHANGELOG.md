@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Notes**:
  - changed partition calculations on linux for total disk size (#982)
+ - upload conflict detection for folders offers "replace all" if the folder already exists in target location.
 
  **BugFixes**:
  - TOTP prompt not showing generated code issue https://github.com/gtsteffaniak/filebrowser/issues/996

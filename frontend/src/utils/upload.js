@@ -19,10 +19,38 @@ class UploadManager {
   }
 
   async add(basePath, items, overwrite = false) {
-
     if (basePath.slice(-1) !== "/") {
       basePath += "/";
     }
+
+    // Pre-upload conflict check for top-level directories
+    if (this.overwriteAll === null && !overwrite) {
+      const topLevelDirs = new Set();
+      for (const item of items) {
+        if (item.relativePath && item.relativePath.includes('/')) {
+          topLevelDirs.add(item.relativePath.split('/')[0]);
+        }
+      }
+
+      if (topLevelDirs.size > 0) {
+        const existingItems = new Set(state.req.items.map(i => i.name));
+        const conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
+
+        if (conflictingDirs.length > 0) {
+          this.onConflict(userChoseOverwrite => {
+            if (userChoseOverwrite) {
+              this.overwriteAll = true;
+              this.add(basePath, items, true);
+            } else {
+              this.overwriteAll = null;
+            }
+          });
+          return;
+        }
+      }
+    }
+
+    const effectiveOverwrite = this.overwriteAll || overwrite;
     const dirs = new Set();
     for (const item of items) {
       if (item.relativePath) {
@@ -54,9 +82,10 @@ class UploadManager {
           progress: 0,
           status: "pending",
           type: "directory",
+          isToplevelDir: pathParts.length === 1,
           path: `${basePath}${dir}`,
           source: state.req.source,
-          overwrite: overwrite,
+          overwrite: effectiveOverwrite,
         };
 
         newUploads.push(upload);
@@ -79,7 +108,7 @@ class UploadManager {
         xhr: null,
         path: destinationPath, // Full destination path
         source: state.req.source,
-        overwrite: overwrite,
+        overwrite: effectiveOverwrite,
       };
       return upload;
     });
@@ -118,6 +147,7 @@ class UploadManager {
       console.log("all uploads processed  ", this.queue);
       mutations.setReload(true);
       this.hadActiveUploads = false; // Reset the flag
+      this.overwriteAll = null; // Reset for next batch of uploads
     }
   }
 
@@ -144,13 +174,12 @@ class UploadManager {
     upload.status = "uploading";
 
     try {
-      const { promise } = filesApi.post(
+      await filesApi.post(
         upload.source,
         upload.path,
         new Blob([]),
         upload.overwrite
       );
-      await promise;
 
       upload.status = "completed";
       upload.progress = 100;
@@ -174,7 +203,7 @@ class UploadManager {
       };
 
       try {
-        const { xhr, promise } = filesApi.post(
+        const promise = filesApi.post(
           upload.source,
           upload.path,
           upload.file,
@@ -185,7 +214,7 @@ class UploadManager {
           }
         );
 
-        upload.xhr = xhr;
+        upload.xhr = promise.xhr;
         await promise;
 
         upload.status = "completed";
@@ -214,7 +243,7 @@ class UploadManager {
       };
 
       try {
-        const { xhr, promise } = filesApi.post(
+        const promise = filesApi.post(
           upload.source,
           upload.path,
           chunk,
@@ -226,7 +255,7 @@ class UploadManager {
           }
         );
 
-        upload.xhr = xhr;
+        upload.xhr = promise.xhr;
         await promise;
 
         upload.chunkOffset += chunk.size;
@@ -332,63 +361,6 @@ class UploadManager {
       console.log(`upload.js: Upload aborted for id ${upload.id}`, upload);
     }
   }
-
-  resolveConflict(overwrite) {
-    this.overwriteAll = overwrite;
-    this.isPausedForConflict = false;
-
-    if (overwrite) {
-      // Find all items that hit a conflict and requeue them.
-      for (const item of this.queue) {
-        if (item.status === "conflict") {
-          item.status = "pending";
-          item.overwrite = true;
-          if (item.type !== 'directory') {
-            item.chunkOffset = 0; // Reset progress for resume
-          }
-        }
-      }
-    } else {
-      // Cancel all uploads in the queue.
-      for (let i = this.queue.length - 1; i >= 0; i--) {
-        this.cancel(this.queue[i].id)
-      }
-    }
-
-    this.processQueue();
-  }
 }
 
 export const uploadManager = new UploadManager();
-
-export function checkConflict(files, items) {
-  if (typeof items === 'undefined' || items === null) {
-    items = [];
-  }
-
-  let folder_upload = files[0].path !== undefined;
-
-  let conflict = false;
-  for (let i = 0; i < files.length; i++) {
-    let file = files[i];
-    let name = file.name;
-
-    if (folder_upload) {
-      let dirs = file.path.split('/');
-      if (dirs.length > 1) {
-        name = dirs[0];
-      }
-    }
-
-    let res = items.findIndex(function hasConflict(element) {
-      return element.name === this;
-    }, name);
-
-    if (res >= 0) {
-      conflict = true;
-      break;
-    }
-  }
-
-  return conflict;
-}
