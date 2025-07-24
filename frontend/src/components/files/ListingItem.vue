@@ -177,7 +177,6 @@ export default {
     downloadFile(event) {
       event.preventDefault();
       event.stopPropagation();
-      console.log("downloading file");
       mutations.resetSelected();
       mutations.addSelected(this.index);
       downloadFiles(state.selected);
@@ -226,7 +225,6 @@ export default {
       event.preventDefault(); // Prevent default context menu
       // If one or fewer items are selected, reset the selection
       if (!state.multiple && getters.selectedCount() < 2) {
-        console.log("resetting selected3");
         mutations.resetSelected();
         mutations.addSelected(this.index);
       }
@@ -260,7 +258,6 @@ export default {
     },
     dragStart(event) {
       if (this.selected.indexOf(this.index) === -1) {
-        console.log("resetting selected4");
         mutations.resetSelected();
         mutations.addSelected(this.index);
       }
@@ -336,7 +333,6 @@ export default {
       }
       this.contextTimeout = setTimeout(() => {
         if (!this.isSwipe) {
-          console.log("resetting selected5");
           mutations.resetSelected();
           mutations.addSelected(this.index);
         }
@@ -378,7 +374,6 @@ export default {
           la = state.lastSelectedIndex;
         }
 
-        console.log("resetting selected6");
         mutations.resetSelected();
 
         for (; fi <= la; fi++) {
@@ -404,7 +399,6 @@ export default {
         }
 
         if (state.selected.length > 1) {
-          console.log("resetting selected7");
           mutations.resetSelected();
           mutations.addSelected(this.index);
           mutations.setLastSelectedIndex(this.index);
@@ -418,10 +412,8 @@ export default {
         !event.metaKey &&
         !state.multiple
       ) {
-        console.log("resetting selected");
         mutations.resetSelected();
       }
-      console.log("adding selected");
       mutations.addSelected(this.index);
       mutations.setLastSelectedIndex(this.index);
     },
