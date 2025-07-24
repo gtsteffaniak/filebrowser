@@ -2,13 +2,14 @@
   #listingView .header .name,
   #listingView.list .item .name,
   #listingView.compact .item .name {
-    width: 25%;
+    width: 50%;
   }
 
   #listingView.list .item div:last-of-type{
     display:block;
     width:100%;
   }
+
   body {
     padding-bottom: 5em;
   }

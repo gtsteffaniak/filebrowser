@@ -5,7 +5,7 @@
       item: true,
       'no-select': true,
       'listing-item': true,
-      activebutton: isMaximized && isSelected,
+      activebutton: isSelected,
       hiddenFile: isHiddenNotSelected && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
@@ -30,7 +30,7 @@
     @touchend="cancelContext($event)"
     @mouseup="cancelContext($event)"
   >
-    <div @click="toggleClick" :class="{ 'gallery-div': galleryView }">
+    <div :class="{ 'gallery-div': galleryView }">
       <Icon
         :mimetype="type"
         :active="isSelected"
@@ -39,7 +39,7 @@
       />
     </div>
 
-    <div class="text" :class="{ activecontent: isMaximized && isSelected }">
+    <div class="text">
       <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ name }}</p>
       <p
         class="size"
@@ -82,7 +82,6 @@ export default {
   data() {
     return {
       isThumbnailInView: false,
-      isMaximized: false,
       touches: 0,
       touchStartX: 0,
       touchStartY: 0,
@@ -130,7 +129,7 @@ export default {
       if (state.user.singleClick || !this.allowedView) {
         return false;
       }
-      return !this.isMaximized;
+      return this.isSelected;
     },
     isSelected() {
       return this.selected.indexOf(this.index) !== -1;
@@ -246,9 +245,6 @@ export default {
         }
       });
     },
-    toggleClick() {
-      this.isMaximized = this.isClicked;
-    },
     humanSize() {
       return this.type == "invalid_link"
         ? "invalid link"
@@ -321,23 +317,26 @@ export default {
       action(false, false);
     },
     addSelected(event) {
-      if (state.isSafari) {
-        if (event.type === "touchstart") {
-          const touch = event.touches[0];
-          this.touchStartX = touch.clientX;
-          this.touchStartY = touch.clientY;
-          this.isLongPress = false; // Reset state
-          this.isSwipe = false; // Reset swipe detection
-          if (!state.multiple) {
-            this.contextTimeout = setTimeout(() => {
-              if (!this.isSwipe) {
-                mutations.resetSelected();
-                mutations.addSelected(this.index);
-              }
-            }, 500);
-          }
-        }
+      if (!state.isSafari) {
+        return;
       }
+      if (event.type !== "touchstart") {
+        return;
+      }
+      const touch = event.touches[0];
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+      this.isLongPress = false; // Reset state
+      this.isSwipe = false; // Reset swipe detection
+      if (state.multiple) {
+        return;
+      }
+      this.contextTimeout = setTimeout(() => {
+        if (!this.isSwipe) {
+          mutations.resetSelected();
+          mutations.addSelected(this.index);
+        }
+      }, 500);
     },
     click(event) {
       if (event.button === 0) {
@@ -392,6 +391,13 @@ export default {
           return;
         }
 
+        // In multiple selection mode, clicking an already selected item should deselect it
+        if (state.multiple) {
+          mutations.removeSelected(this.index);
+          mutations.setLastSelectedIndex(this.index);
+          return;
+        }
+
         if (state.selected.length > 1) {
           mutations.resetSelected();
           mutations.addSelected(this.index);
@@ -438,16 +444,6 @@ export default {
 }
 .activebutton {
   height: 10em;
-}
-
-.activecontent {
-  height: 5em !important;
-  display: grid !important;
-}
-
-.activeimg {
-  width: 8em !important;
-  height: 8em !important;
 }
 
 .iconActive {
