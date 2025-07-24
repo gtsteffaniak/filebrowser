@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **BugFixes**:
  - TOTP prompt not showing generated code issue https://github.com/gtsteffaniak/filebrowser/issues/996
+ - select mulitple deselect on mobile (#1002)
 
 ## v0.7.16-beta
 
