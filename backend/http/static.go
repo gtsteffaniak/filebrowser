@@ -64,6 +64,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"DisableNavButtons": settings.Config.Frontend.DisableNavButtons,
 		"LightBackground":   config.Frontend.LightBackground,
 		"DarkBackground":    config.Frontend.DarkBackground,
+		"CustomCSS":         config.CustomCSS,
 	}
 
 	b, err := json.Marshal(data)

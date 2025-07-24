@@ -2447,6 +2447,9 @@ const docTemplate = `{
                 "auth": {
                     "$ref": "#/definitions/settings.Auth"
                 },
+                "customCSS": {
+                    "type": "string"
+                },
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
                 },
