@@ -18,6 +18,7 @@ type Settings struct {
 	Frontend     Frontend     `json:"frontend"`
 	UserDefaults UserDefaults `json:"userDefaults"`
 	Integrations Integrations `json:"integrations"`
+	CustomCSS    string       `json:"customCSS"`
 }
 
 type Server struct {

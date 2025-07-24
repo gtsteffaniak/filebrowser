@@ -143,3 +143,4 @@ integrations:
     secret: ""                            #  validate:required
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+customCSS: "body { background: purple !important; }"
