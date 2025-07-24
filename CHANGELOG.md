@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v0.7.17-beta
 
  **New Features**:
- - custom background and css options possible. Provided an example `reduce-rounded-corners.css` available by default in docker.
+ - custom background and css options possible. Provided an example `reduce-rounded-corners.css` available by default in docker. (#986, #837)
 
  **Notes**:
  - changed partition calculations on linux for total disk size (#982)

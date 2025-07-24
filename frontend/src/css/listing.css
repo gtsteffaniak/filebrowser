@@ -5,6 +5,7 @@
   transition: width 0.25s, height 0.25s, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
   user-select: none;
   min-height: 75vh;
+  padding-bottom: 0.5em;
 }
 
 body.rtl #listingView {
@@ -42,6 +43,7 @@ body.rtl #listingView {
   overflow: hidden;
   width: var(--item-width);
   height: var(--item-height);
+  border-radius: 1em;
 }
 
 #listingView .item div:last-of-type {
@@ -264,9 +266,14 @@ body.rtl #listingView {
   border-bottom-right-radius: 0px;
 }
 
-#listingView.compact .header,
-#listingView.list .header {
-  border: 1px solid rgba(0, 0, 0, .1);
+#listingView.compact .item:first-child {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+#listingView.compact .header {
+  margin: 0;
+  border-bottom: unset;
+  box-shadow: unset;
 }
 
 #listingView.compact .header>div:first-child {
@@ -323,7 +330,6 @@ body.rtl #listingView {
 
 #listingView.gallery .item[aria-selected=true] {
   border: 1em solid var(--primaryColor) !important;
-  border-radius: 1em;
   padding: 0;
 }
 
@@ -376,6 +382,7 @@ body.rtl #listingView {
 #listingView.list .header {
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
+  border: unset;
 }
 
 #listingView.list .item:first-child {

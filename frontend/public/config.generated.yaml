@@ -92,8 +92,8 @@ frontend:
   disableNavButtons: false                # disable the nav buttons in the sidebar
   styling:
     customCSS: ""
-    lightBackground: ""                   # specify a valid CSS color property value to use as the background color in light mode
-    darkBackground: ""                    # Specify a valid CSS color property value to use as the background color in dark mode
+    lightBackground: "white"              # specify a valid CSS color property value to use as the background color in light mode
+    darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar

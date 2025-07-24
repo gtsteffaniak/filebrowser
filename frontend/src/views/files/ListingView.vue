@@ -959,7 +959,6 @@ export default {
 
 #listingView.dropping {
   transform: scale(0.97);
-  border-radius: 1em;
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 

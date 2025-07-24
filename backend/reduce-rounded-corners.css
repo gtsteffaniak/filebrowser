@@ -8,19 +8,23 @@
 .sizeInputWrapper,
 .sizeInput,
 #search #input,
+.floating-tooltip,
 .button-group {
     border-radius: 0.25em !important;
 }
 
+#listingView.compact .header {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
 #listingView.list .item:last-child,
-#listingView.compact .item:last-child,
 #results {
     border-bottom-left-radius: 0.25em !important;
     border-bottom-right-radius: 0.25em !important;
 }
 
-#listingView.list .item:first-child,
-#listingView.compact .item:first-child {
+#listingView.list .item:first-child {
     border-top-left-radius: 0.25em !important;
     border-top-right-radius: 0.25em !important;
 }

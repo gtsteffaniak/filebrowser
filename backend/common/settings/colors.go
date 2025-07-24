@@ -45,10 +45,10 @@ var cssNamedColors = map[string]struct{}{
 	"transparent": {}, "currentcolor": {},
 }
 
-func FallbackColor(val, def string) string {
+func FallbackColor(val, defaultColor string) string {
 	val = strings.TrimSpace(val)
 	if val == "" {
-		return def
+		return defaultColor
 	}
 	if hexColorRE.MatchString(val) {
 		return val
@@ -68,6 +68,6 @@ func FallbackColor(val, def string) string {
 		return val
 	}
 	// Log a warning if the color is invalid
-	logger.Warningf("Invalid CSS color value provided: '%s'. Falling back to default: '%s'", val, def)
-	return def
+	logger.Warningf("Invalid CSS color value provided: '%s'. Falling back to default: '%s'", val, defaultColor)
+	return defaultColor
 }

@@ -40,7 +40,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 	}
 
 	data := map[string]interface{}{
-		"CustomCSS":       config.Frontend.Styling.Outputs.CustomCSS,
+		"CustomCSS":       config.Frontend.Styling.CustomCSS,
 		"LightBackground": config.Frontend.Styling.LightBackground,
 		"DarkBackground":  config.Frontend.Styling.DarkBackground,
 		"StaticURL":       config.Server.BaseURL + "static",

@@ -61,7 +61,7 @@
   <style>
     /* Basic Styles */
     :root {
-      --background: {{ if .LightBackground }}{{ .LightBackground }}{{ else }}white{{ end }};
+      --background: {{ .LightBackground }};
       --alt-background: #ddd;
       --surfacePrimary: gray;
       --surfaceSecondary: lightgray;
@@ -71,7 +71,7 @@
       --activeWhiteIcon: gray;
     }
     .dark-mode {
-      --background: {{ if .DarkBackground }}{{ .DarkBackground }}{{ else }}#141D24{{ end }};
+      --background: {{ .DarkBackground }};
       --alt-background: #283136;
       --surfacePrimary: #20292F;
       --surfaceSecondary: #3A4147;
