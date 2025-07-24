@@ -5,7 +5,7 @@
       item: true,
       'no-select': true,
       'listing-item': true,
-      activebutton: isMaximized && isSelected,
+      activebutton: isSelected,
       hiddenFile: isHiddenNotSelected && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
@@ -30,7 +30,7 @@
     @touchend="cancelContext($event)"
     @mouseup="cancelContext($event)"
   >
-    <div @click="toggleClick" :class="{ 'gallery-div': galleryView }">
+    <div :class="{ 'gallery-div': galleryView }">
       <Icon
         :mimetype="type"
         :active="isSelected"
@@ -39,7 +39,7 @@
       />
     </div>
 
-    <div class="text" :class="{ activecontent: isMaximized && isSelected }">
+    <div class="text">
       <p :class="{ adjustment: quickDownloadEnabled }" class="name">{{ name }}</p>
       <p
         class="size"
@@ -82,7 +82,6 @@ export default {
   data() {
     return {
       isThumbnailInView: false,
-      isMaximized: false,
       touches: 0,
       touchStartX: 0,
       touchStartY: 0,
@@ -130,7 +129,7 @@ export default {
       if (state.user.singleClick || !this.allowedView) {
         return false;
       }
-      return !this.isMaximized;
+      return this.isSelected;
     },
     isSelected() {
       return this.selected.indexOf(this.index) !== -1;
@@ -178,6 +177,7 @@ export default {
     downloadFile(event) {
       event.preventDefault();
       event.stopPropagation();
+      console.log("downloading file");
       mutations.resetSelected();
       mutations.addSelected(this.index);
       downloadFiles(state.selected);
@@ -226,6 +226,7 @@ export default {
       event.preventDefault(); // Prevent default context menu
       // If one or fewer items are selected, reset the selection
       if (!state.multiple && getters.selectedCount() < 2) {
+        console.log("resetting selected3");
         mutations.resetSelected();
         mutations.addSelected(this.index);
       }
@@ -246,9 +247,6 @@ export default {
         }
       });
     },
-    toggleClick() {
-      this.isMaximized = this.isClicked;
-    },
     humanSize() {
       return this.type == "invalid_link"
         ? "invalid link"
@@ -262,6 +260,7 @@ export default {
     },
     dragStart(event) {
       if (this.selected.indexOf(this.index) === -1) {
+        console.log("resetting selected4");
         mutations.resetSelected();
         mutations.addSelected(this.index);
       }
@@ -321,23 +320,27 @@ export default {
       action(false, false);
     },
     addSelected(event) {
-      if (state.isSafari) {
-        if (event.type === "touchstart") {
-          const touch = event.touches[0];
-          this.touchStartX = touch.clientX;
-          this.touchStartY = touch.clientY;
-          this.isLongPress = false; // Reset state
-          this.isSwipe = false; // Reset swipe detection
-          if (!state.multiple) {
-            this.contextTimeout = setTimeout(() => {
-              if (!this.isSwipe) {
-                mutations.resetSelected();
-                mutations.addSelected(this.index);
-              }
-            }, 500);
-          }
-        }
+      if (!state.isSafari) {
+        return;
       }
+      if (event.type !== "touchstart") {
+        return;
+      }
+      const touch = event.touches[0];
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+      this.isLongPress = false; // Reset state
+      this.isSwipe = false; // Reset swipe detection
+      if (state.multiple) {
+        return;
+      }
+      this.contextTimeout = setTimeout(() => {
+        if (!this.isSwipe) {
+          console.log("resetting selected5");
+          mutations.resetSelected();
+          mutations.addSelected(this.index);
+        }
+      }, 500);
     },
     click(event) {
       if (event.button === 0) {
@@ -375,6 +378,7 @@ export default {
           la = state.lastSelectedIndex;
         }
 
+        console.log("resetting selected6");
         mutations.resetSelected();
 
         for (; fi <= la; fi++) {
@@ -392,7 +396,15 @@ export default {
           return;
         }
 
+        // In multiple selection mode, clicking an already selected item should deselect it
+        if (state.multiple) {
+          mutations.removeSelected(this.index);
+          mutations.setLastSelectedIndex(this.index);
+          return;
+        }
+
         if (state.selected.length > 1) {
+          console.log("resetting selected7");
           mutations.resetSelected();
           mutations.addSelected(this.index);
           mutations.setLastSelectedIndex(this.index);
@@ -406,8 +418,10 @@ export default {
         !event.metaKey &&
         !state.multiple
       ) {
+        console.log("resetting selected");
         mutations.resetSelected();
       }
+      console.log("adding selected");
       mutations.addSelected(this.index);
       mutations.setLastSelectedIndex(this.index);
     },
@@ -438,16 +452,6 @@ export default {
 }
 .activebutton {
   height: 10em;
-}
-
-.activecontent {
-  height: 5em !important;
-  display: grid !important;
-}
-
-.activeimg {
-  width: 8em !important;
-  height: 8em !important;
 }
 
 .iconActive {

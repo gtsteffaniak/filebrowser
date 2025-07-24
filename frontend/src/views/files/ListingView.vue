@@ -445,6 +445,7 @@ export default {
     },
     // Helper method to select the first item if nothing is selected
     selectFirstItem() {
+      console.log("selecting first item");
       mutations.resetSelected();
       const allItems = [...this.items.dirs, ...this.items.files];
       if (allItems.length > 0) {
@@ -453,6 +454,7 @@ export default {
     },
     // Helper method to select an item by index
     selectItem(index) {
+      console.log("selecting item", index);
       mutations.resetSelected();
       mutations.addSelected(index);
     },
@@ -902,6 +904,7 @@ export default {
       if (this.ctrKeyPressed || event.shiftKey) return;
       const sameAsBefore = state.selected == this.lastSelected;
       if (sameAsBefore && !state.multiple && getters.currentPromptName() == null) {
+        console.log("resetting selected2");
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;
