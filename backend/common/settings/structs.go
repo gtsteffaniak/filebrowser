@@ -114,7 +114,7 @@ type Frontend struct {
 }
 
 type StylingConfig struct {
-	CustomCSS       string `json:"customCSS"`
+	CustomCSS       string `json:"customCSS"`       // if a valid path to a css file is provided, it will be applied on startup. (eg. "reduce-rounded-corners.css")
 	LightBackground string `json:"lightBackground"` // specify a valid CSS color property value to use as the background color in light mode
 	DarkBackground  string `json:"darkBackground"`  // Specify a valid CSS color property value to use as the background color in dark mode
 }
