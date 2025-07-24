@@ -204,10 +204,6 @@ definitions:
     type: object
   settings.Frontend:
     properties:
-      darkBackground:
-        description: Specify a valid CSS color property value to use as the background
-          color in dark mode
-        type: string
       disableDefaultLinks:
         description: disable default links in the sidebar
         type: boolean
@@ -221,10 +217,6 @@ definitions:
         items:
           $ref: '#/definitions/settings.ExternalLink'
         type: array
-      lightBackground:
-        description: specify a valid CSS color property value to use as the background
-          color in light mode
-        type: string
       name:
         description: display name
         type: string
@@ -528,6 +520,8 @@ definitions:
   settings.StylingConfig:
     properties:
       customCSS:
+        description: if a valid path to a css file is provided, it will be applied
+          on startup. (eg. "reduce-rounded-corners.css")
         type: string
       darkBackground:
         description: Specify a valid CSS color property value to use as the background

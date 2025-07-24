@@ -91,7 +91,7 @@ frontend:
       url: "https://github.com/gtsteffaniak/filebrowser/wiki" # the url to link to  validate:required
   disableNavButtons: false                # disable the nav buttons in the sidebar
   styling:
-    customCSS: ""
+    customCSS: ""                         # if a valid path to a css file is provided, it will be applied on startup. (eg. "reduce-rounded-corners.css")
     lightBackground: "white"              # specify a valid CSS color property value to use as the background color in light mode
     darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode
 userDefaults:
@@ -143,4 +143,4 @@ integrations:
     secret: ""                            #  validate:required
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-customCSS: "body { background: purple !important; }"
+customCSS: ""

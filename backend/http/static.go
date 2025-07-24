@@ -67,11 +67,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"MuPdfAvailable":    config.Server.MuPdfAvailable,
 		"UpdateAvailable":   utils.GetUpdateAvailableUrl(),
 		"DisableNavButtons": settings.Config.Frontend.DisableNavButtons,
-		"LightBackground":   config.Frontend.LightBackground,
-		"DarkBackground":    config.Frontend.DarkBackground,
-		"CustomCSS":         config.CustomCSS,
 	}
-
 	jsonVars, err := json.Marshal(data["globalVars"])
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

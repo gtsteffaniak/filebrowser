@@ -336,9 +336,7 @@ func setDefaults(generate bool) Settings {
 			},
 		},
 		Frontend: Frontend{
-			Name:            "FileBrowser Quantum",
-			LightBackground: "#f5f5f5",
-			DarkBackground:  "#141D24",
+			Name: "FileBrowser Quantum",
 		},
 
 		UserDefaults: UserDefaults{

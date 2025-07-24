@@ -2,7 +2,10 @@
 #listingView.gallery .item,
 #listingView.normal .item,
 .button,
+button,
+.button-action,
 .input,
+input,
 #listingView.gallery .item img,
 #listingView .item img,
 .sizeInputWrapper,
@@ -27,4 +30,21 @@
 #listingView.list .item:first-child {
     border-top-left-radius: 0.25em !important;
     border-top-right-radius: 0.25em !important;
+}
+
+#breadcrumbs ul li:last-child a {
+    border-top-right-radius: 0.25em !important;
+    border-bottom-right-radius: 0.25em !important;
+}
+#breadcrumbs ul li:first-child a {
+    border-top-left-radius: 0.25em !important;
+    border-bottom-left-radius: 0.25em !important;
+}
+
+.button-group button {
+    border-radius: 0 !important;
+}
+
+.icon {
+    border-radius: 0.1em !important;
 }
