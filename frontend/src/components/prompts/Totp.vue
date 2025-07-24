@@ -3,7 +3,7 @@
     <div class="card-title">
       <h2>{{ $t("otp.name") }}</h2>
     </div>
-    <div v-if="error !== ''" class="wrong-login">{{ error }}</div>
+    <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
     <div v-if="succeeded" >{{ $t("otp.verificationSucceed") }}</div>
     <div v-if="!succeeded" class="card-content">
       <p v-if="generate">{{ $t("otp.generate") }}</p>

@@ -90,8 +90,10 @@ frontend:
       title: ""                           # the title to display on hover
       url: "https://github.com/gtsteffaniak/filebrowser/wiki" # the url to link to  validate:required
   disableNavButtons: false                # disable the nav buttons in the sidebar
-  lightBackground: "#f5f5f5"              # specify a valid CSS color property value to use as the background color in light mode
-  darkBackground: "#141D24"               # Specify a valid CSS color property value to use as the background color in dark mode
+  styling:
+    customCSS: ""                         # if a valid path to a css file is provided, it will be applied on startup. (eg. "reduce-rounded-corners.css")
+    lightBackground: "white"              # specify a valid CSS color property value to use as the background color in light mode
+    darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar
@@ -141,4 +143,4 @@ integrations:
     secret: ""                            #  validate:required
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-customCSS: "body { background: purple !important; }"
+customCSS: ""

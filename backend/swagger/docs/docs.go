@@ -2136,6 +2136,9 @@ const docTemplate = `{
                 "name": {
                     "description": "display name",
                     "type": "string"
+                },
+                "styling": {
+                    "$ref": "#/definitions/settings.StylingConfig"
                 }
             }
         },
@@ -2532,6 +2535,23 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "settings.StylingConfig": {
+            "type": "object",
+            "properties": {
+                "customCSS": {
+                    "description": "if a valid path to a css file is provided, it will be applied on startup. (eg. \"reduce-rounded-corners.css\")",
+                    "type": "string"
+                },
+                "darkBackground": {
+                    "description": "Specify a valid CSS color property value to use as the background color in dark mode",
+                    "type": "string"
+                },
+                "lightBackground": {
+                    "description": "specify a valid CSS color property value to use as the background color in light mode",
+                    "type": "string"
                 }
             }
         },

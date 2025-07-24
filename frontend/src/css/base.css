@@ -1,14 +1,4 @@
-/* Basic Styles */
-:root {
-  --background: white;
-  --alt-background: #ddd;
-  --surfacePrimary: gray;
-  --surfaceSecondary: lightgray;
-  --textPrimary: #546e7a;
-  --textSecondary: gray;
-  --iconBackground: #dddddd;
-  --activeWhiteIcon: gray;
-}
+
 
 body {
   font-family: "Roboto", sans-serif;

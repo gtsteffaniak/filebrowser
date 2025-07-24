@@ -228,6 +228,8 @@ definitions:
       name:
         description: display name
         type: string
+      styling:
+        $ref: '#/definitions/settings.StylingConfig'
     type: object
   settings.IncludeIndexFilter:
     properties:
@@ -522,6 +524,21 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  settings.StylingConfig:
+    properties:
+      customCSS:
+        description: if a valid path to a css file is provided, it will be applied
+          on startup. (eg. "reduce-rounded-corners.css")
+        type: string
+      darkBackground:
+        description: Specify a valid CSS color property value to use as the background
+          color in dark mode
+        type: string
+      lightBackground:
+        description: specify a valid CSS color property value to use as the background
+          color in light mode
+        type: string
     type: object
   settings.UserDefaults:
     properties:
