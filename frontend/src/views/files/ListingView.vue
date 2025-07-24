@@ -50,7 +50,7 @@
         class="file-icons"
       >
         <div>
-          <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }">
+          <div class="header card" :class="{ 'dark-mode-item-header': isDarkMode }">
             <p
               :class="{ active: nameSorted }"
               class="name"

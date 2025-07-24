@@ -40,17 +40,22 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 	}
 
 	data := map[string]interface{}{
+		"CustomCSS":       config.Frontend.Styling.Outputs.CustomCSS,
+		"LightBackground": config.Frontend.Styling.LightBackground,
+		"DarkBackground":  config.Frontend.Styling.DarkBackground,
+		"StaticURL":       config.Server.BaseURL + "static",
+	}
+	// variables consumed by frontend as json
+	data["globalVars"] = map[string]interface{}{
 		"Name":              config.Frontend.Name,
 		"DisableExternal":   config.Frontend.DisableDefaultLinks,
 		"darkMode":          settings.Config.UserDefaults.DarkMode,
 		"BaseURL":           config.Server.BaseURL,
 		"Version":           version.Version,
 		"CommitSHA":         version.CommitSHA,
-		"StaticURL":         config.Server.BaseURL + "static",
 		"Signup":            settings.Config.Auth.Methods.PasswordAuth.Signup,
 		"NoAuth":            config.Auth.Methods.NoAuth,
 		"LoginPage":         auther.LoginPage(),
-		"CSS":               false,
 		"EnableThumbs":      !config.Server.DisablePreviews,
 		"ExternalLinks":     config.Frontend.ExternalLinks,
 		"ExternalUrl":       strings.TrimSuffix(config.Server.ExternalUrl, "/"),
@@ -62,18 +67,14 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"MuPdfAvailable":    config.Server.MuPdfAvailable,
 		"UpdateAvailable":   utils.GetUpdateAvailableUrl(),
 		"DisableNavButtons": settings.Config.Frontend.DisableNavButtons,
-		"LightBackground":   config.Frontend.LightBackground,
-		"DarkBackground":    config.Frontend.DarkBackground,
-		"CustomCSS":         config.CustomCSS,
 	}
 
-	b, err := json.Marshal(data)
+	jsonVars, err := json.Marshal(data["globalVars"])
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
-	data["globalVars"] = strings.ReplaceAll(string(b), `'`, `\'`)
+	data["globalVars"] = strings.ReplaceAll(string(jsonVars), `'`, `\'`)
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {

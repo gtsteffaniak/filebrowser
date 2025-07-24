@@ -2107,10 +2107,6 @@ const docTemplate = `{
         "settings.Frontend": {
             "type": "object",
             "properties": {
-                "darkBackground": {
-                    "description": "Specify a valid CSS color property value to use as the background color in dark mode",
-                    "type": "string"
-                },
                 "disableDefaultLinks": {
                     "description": "disable default links in the sidebar",
                     "type": "boolean"
@@ -2129,13 +2125,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/settings.ExternalLink"
                     }
                 },
-                "lightBackground": {
-                    "description": "specify a valid CSS color property value to use as the background color in light mode",
-                    "type": "string"
-                },
                 "name": {
                     "description": "display name",
                     "type": "string"
+                },
+                "styling": {
+                    "$ref": "#/definitions/settings.StylingConfig"
                 }
             }
         },
@@ -2447,9 +2442,6 @@ const docTemplate = `{
                 "auth": {
                     "$ref": "#/definitions/settings.Auth"
                 },
-                "customCSS": {
-                    "type": "string"
-                },
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
                 },
@@ -2532,6 +2524,22 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "settings.StylingConfig": {
+            "type": "object",
+            "properties": {
+                "customCSS": {
+                    "type": "string"
+                },
+                "darkBackground": {
+                    "description": "Specify a valid CSS color property value to use as the background color in dark mode",
+                    "type": "string"
+                },
+                "lightBackground": {
+                    "description": "specify a valid CSS color property value to use as the background color in light mode",
+                    "type": "string"
                 }
             }
         },

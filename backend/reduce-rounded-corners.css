@@ -1,0 +1,26 @@
+.card,
+#listingView.gallery .item,
+#listingView.normal .item,
+.button,
+.input,
+#listingView.gallery .item img,
+#listingView .item img,
+.sizeInputWrapper,
+.sizeInput,
+#search #input,
+.button-group {
+    border-radius: 0.25em !important;
+}
+
+#listingView.list .item:last-child,
+#listingView.compact .item:last-child,
+#results {
+    border-bottom-left-radius: 0.25em !important;
+    border-bottom-right-radius: 0.25em !important;
+}
+
+#listingView.list .item:first-child,
+#listingView.compact .item:first-child {
+    border-top-left-radius: 0.25em !important;
+    border-top-right-radius: 0.25em !important;
+}

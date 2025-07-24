@@ -59,12 +59,9 @@ func setupFrontend() {
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
 	}
-	// Validate and set final background colors at startup:
-	defaults := setDefaults(false)
-	Config.Frontend.LightBackground = FallbackColor(Config.Frontend.LightBackground, defaults.Frontend.LightBackground)
-	Config.Frontend.DarkBackground = FallbackColor(Config.Frontend.DarkBackground, defaults.Frontend.DarkBackground)
-	// Load custom CSS
-	Config.CustomCSS = readCustomCSS()
+	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "")
+	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "")
+	Config.Frontend.Styling.CustomCSS = readCustomCSS(Config.Frontend.Styling.CustomCSS)
 }
 
 func getRealPath(path string) string {
@@ -339,9 +336,7 @@ func setDefaults(generate bool) Settings {
 			},
 		},
 		Frontend: Frontend{
-			Name:            "FileBrowser Quantum",
-			LightBackground: "#f5f5f5",
-			DarkBackground:  "#141D24",
+			Name: "FileBrowser Quantum",
 		},
 
 		UserDefaults: UserDefaults{
@@ -501,27 +496,22 @@ func modifyExcludeInclude(config *Source) {
 	normalize(config.Config.NeverWatchPaths, true)
 }
 
-func readCustomCSS() string {
-	paths := []string{
-		"/home/filebrowser/data/custom.css", // For docker
-		"./custom.css",                      // For standalone/dev
+func readCustomCSS(path string) string {
+	if path == "" {
+		return ""
 	}
-	for _, path := range paths {
-		content, err := os.ReadFile(path)
-		if err != nil {
-			// Only log if the file exists but cannot be read (e.g., permission error)
-			if !os.IsNotExist(err) {
-				logger.Warningf("Could not read custom CSS file %s: %v", path, err)
-			}
-			continue
-		}
-		if len(content) > 128*1024 {
-			logger.Warningf("Custom CSS file %s is too large (%d bytes), ignoring", path, len(content))
+	content, err := os.ReadFile(path)
+	if err != nil {
+		// Only log if the file exists but cannot be read (e.g., permission error)
+		if !os.IsNotExist(err) {
+			logger.Warningf("Could not read custom CSS file %s: %v", path, err)
 			return ""
 		}
-		logger.Infof("Loaded custom CSS from: %s (%d bytes)", path, len(content))
-		return string(content)
 	}
-	logger.Info("No custom CSS file found")
-	return ""
+	if len(content) > 128*1024 {
+		logger.Warningf("Custom CSS file %s is too large (%d bytes), ignoring", path, len(content))
+		return ""
+	}
+	logger.Infof("Loaded custom CSS from: %s (%d bytes)", path, len(content))
+	return string(content)
 }
