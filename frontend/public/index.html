@@ -133,6 +133,21 @@
       }
     }
   </style>
+  <!-- style section for config css injection -->
+  <style>
+    body {
+      background-color: {{ .LightBackground }} !important;
+    }
+    .dark-mode {
+      --background: {{ .DarkBackground }} !important;
+    }
+  </style>
+  <!-- style section for custom css file injection -->
+  {{ if .CustomCSS }}
+    <style id="custom-css">
+      {{ .CustomCSS }}
+    </style>
+  {{ end }}
 </head>
 
 <body>

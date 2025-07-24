@@ -3,6 +3,7 @@ name: PR Request
 on:
   pull_request:
     branches:
+      - "main"
       - "dev/v*.*.*"
       - "beta/v*.*.*"
       - "stable/v*.*.*"
