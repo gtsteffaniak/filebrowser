@@ -3,6 +3,8 @@ package settings
 import (
 	"regexp"
 	"strings"
+
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // Strict hex color regex: #RGB, #RGBA, #RRGGBB, #RRGGBBAA
@@ -65,5 +67,7 @@ func FallbackColor(val, def string) string {
 	if _, ok := cssNamedColors[lc]; ok {
 		return val
 	}
+	// Log a warning if the color is invalid
+	logger.Warningf("Invalid CSS color value provided: '%s'. Falling back to default: '%s'", val, def)
 	return def
 }

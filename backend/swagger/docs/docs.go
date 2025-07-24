@@ -2108,7 +2108,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "darkBackground": {
-                    "description": "light mode background",
+                    "description": "Specify a valid CSS color property value to use as the background color in dark mode",
                     "type": "string"
                 },
                 "disableDefaultLinks": {
@@ -2130,7 +2130,7 @@ const docTemplate = `{
                     }
                 },
                 "lightBackground": {
-                    "description": "light mode background",
+                    "description": "specify a valid CSS color property value to use as the background color in light mode",
                     "type": "string"
                 },
                 "name": {

@@ -59,6 +59,10 @@ func setupFrontend() {
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
 	}
+	// Validate and set final background colors at startup:
+	defaults := setDefaults(false)
+	Config.Frontend.LightBackground = FallbackColor(Config.Frontend.LightBackground, defaults.Frontend.LightBackground)
+	Config.Frontend.DarkBackground = FallbackColor(Config.Frontend.DarkBackground, defaults.Frontend.DarkBackground)
 }
 
 func getRealPath(path string) string {
@@ -333,7 +337,9 @@ func setDefaults(generate bool) Settings {
 			},
 		},
 		Frontend: Frontend{
-			Name: "FileBrowser Quantum",
+			Name:            "FileBrowser Quantum",
+			LightBackground: "#f5f5f5",
+			DarkBackground:  "#141D24",
 		},
 		UserDefaults: UserDefaults{
 			StickySidebar:   true,

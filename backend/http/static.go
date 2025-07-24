@@ -62,8 +62,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"MuPdfAvailable":    config.Server.MuPdfAvailable,
 		"UpdateAvailable":   utils.GetUpdateAvailableUrl(),
 		"DisableNavButtons": settings.Config.Frontend.DisableNavButtons,
-		"LightBackground":   settings.FallbackColor(config.Frontend.LightBackground, "#f5f5f5"),
-		"DarkBackground":    settings.FallbackColor(config.Frontend.DarkBackground, "#141D24"),
+		"LightBackground":   config.Frontend.LightBackground,
+		"DarkBackground":    config.Frontend.DarkBackground,
 	}
 
 	b, err := json.Marshal(data)
