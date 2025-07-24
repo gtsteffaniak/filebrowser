@@ -18,7 +18,7 @@
         </router-link>
       </li>
     </ul>
-    <div v-if="isCardView" class="gallery-size">
+    <div v-if="isCardView" class="gallery-size card">
       {{ $t("files.size") }}<span class="sr-only">:</span>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <input
         v-model="gallerySize"
@@ -225,10 +225,8 @@ export default {
 
 .gallery-size {
   display: flex;
-  background: var(--alt-background);
   width: fit-content;
   padding: 0.5em;
-  border-radius: 1em;
   margin-bottom: 0.5em;
 }
 input[type="range"] {

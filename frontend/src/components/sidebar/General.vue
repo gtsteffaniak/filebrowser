@@ -1,56 +1,4 @@
 <template>
-  <div class="tooltip">
-    <span class="tooltiptext-first" :class="{ visible: hoverText != '' }">
-      {{ hoverText }}
-    </span>
-  </div>
-
-  <div v-if="hasSourceInfo" class="tooltip-sources">
-    <div
-      class="tooltiptext-sources"
-      :style="{ top: mouseY - 500 + 'px' }"
-      :class="{ visible: sourceInfoTooltip != '' }"
-    >
-      <table class="tooltip-table">
-        <thead>
-          <tr>
-            <th colspan="2">{{ sourceInfoTooltip.name }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ $t("index.status") }}</td>
-            <td>{{ sourceInfoTooltip.status }}</td>
-          </tr>
-          <tr>
-            <td>{{ $t("index.assessment") }}</td>
-            <td>{{ sourceInfoTooltip.assessment }}</td>
-          </tr>
-          <tr>
-            <td>{{ $t("index.files") }}</td>
-            <td>{{ sourceInfoTooltip.files }}</td>
-          </tr>
-          <tr>
-            <td>{{ $t("index.folders") }}</td>
-            <td>{{ sourceInfoTooltip.folders }}</td>
-          </tr>
-          <tr>
-            <td>{{ $t("index.lastScanned") }}</td>
-            <td>{{ gethumanReadable }}</td>
-          </tr>
-          <tr>
-            <td>{{ $t("index.quickScan") }}</td>
-            <td>{{ humanReadableQuickScan }}</td>
-          </tr>
-          <tr>
-            <td>{{ $t("index.fullScan") }}</td>
-            <td>{{ humanReadableFullScan }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
   <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div
@@ -60,8 +8,8 @@
       >
         <button
           class="person-button action"
-          @mouseover="updateHoverText($t('index.settingsHover'))"
-          @mouseleave="resetHoverTextToDefault"
+          @mouseenter="showTooltip($event, $t('index.settingsHover'))"
+          @mouseleave="hideTooltip"
         >
           <i class="material-icons">person</i>
           {{ user.username }}
@@ -79,37 +27,37 @@
         <button
           aria-label="logout-button"
           class="logout-button action"
-          @mouseover="updateHoverText($t('index.logout'))"
-          @mouseleave="resetHoverTextToDefault"
+          @mouseenter="showTooltip($event, $t('index.logout'))"
+          @mouseleave="hideTooltip"
         >
           <i v-if="canLogout" class="material-icons">exit_to_app</i>
         </button>
       </div>
     </div>
 
-    <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="resetHoverTextToDefault">
+    <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
       <div class="quick-toggles">
         <div
           :class="{ active: user?.singleClick }"
           @click="toggleClick"
-          @mouseover="updateHoverText($t('index.toggleClick'))"
-          @mouseleave="resetHoverTextToDefault"
+          @mouseenter="showTooltip($event, $t('index.toggleClick'))"
+          @mouseleave="hideTooltip"
         >
           <i class="material-icons">ads_click</i>
         </div>
         <div
           :class="{ active: user?.darkMode }"
           @click="toggleDarkMode"
-          @mouseover="updateHoverText($t('index.toggleDark'))"
-          @mouseleave="resetHoverTextToDefault"
+          @mouseenter="showTooltip($event, $t('index.toggleDark'))"
+          @mouseleave="hideTooltip"
         >
           <i class="material-icons">dark_mode</i>
         </div>
         <div
           :class="{ active: isStickySidebar }"
           @click="toggleSticky"
-          @mouseover="updateHoverText($t('index.toggleSticky'))"
-          @mouseleave="resetHoverTextToDefault"
+          @mouseenter="showTooltip($event, $t('index.toggleSticky'))"
+          @mouseleave="hideTooltip"
           v-if="!isMobile"
         >
           <i class="material-icons">push_pin</i>
@@ -166,8 +114,8 @@
               </svg>
               <span>{{ name }}</span>
               <i class="no-select material-symbols-outlined tooltip-info-icon"
-                @mouseenter="updateSourceTooltip($event, info)"
-                @mouseleave="resetSourceTooltip">
+                @mouseenter="showSourceTooltip($event, info)"
+                @mouseleave="hideTooltip">
                 info <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </i>
             </div>
@@ -195,11 +143,7 @@ export default {
     ProgressBar,
   },
   data() {
-    return {
-      mouseY: 0,
-      hoverText: "", // Initially empty
-      sourceInfoTooltip: "",
-    };
+    return {};
   },
   computed: {
     disableQuickToggles: () => state.user.disableQuickToggles,
@@ -224,25 +168,7 @@ export default {
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
-    humanReadableQuickScan() {
-      const tooltip = this.getTooltipInfo();
-      if (!tooltip || isNaN(Number(tooltip.quickScanDurationSeconds))) return "";
-      return Number(tooltip.quickScanDurationSeconds);
-    },
-    humanReadableFullScan() {
-      const tooltip = this.getTooltipInfo();
-      if (!tooltip || isNaN(Number(tooltip.fullScanDurationSeconds))) return "";
-      return Number(tooltip.fullScanDurationSeconds);
-    },
-    gethumanReadable() {
-      const tooltip = this.getTooltipInfo();
-      if (!tooltip || isNaN(Number(tooltip.lastIndex))) return "";
-      let val = Number(tooltip.lastIndex);
-      if (val === 0) {
-        return "now";
-      }
-      return fromNow(val, state.user.locale);
-    },
+
   },
   watch: {
     route() {
@@ -267,24 +193,8 @@ export default {
     getHumanReadableFilesize(size) {
       return getHumanReadableFilesize(size);
     },
-    getTooltipInfo() {
-      return this.sourceInfoTooltip || null;
-    },
     checkLogin() {
       return getters.isLoggedIn() && !getters.routePath().startsWith("/share");
-    },
-    updateSourceTooltip(event, text) {
-      this.mouseY = event.clientY;
-      this.sourceInfoTooltip = text;
-    },
-    resetSourceTooltip() {
-      this.sourceInfoTooltip = ""; // Reset to default hover text
-    },
-    updateHoverText(text) {
-      this.hoverText = text;
-    },
-    resetHoverTextToDefault() {
-      this.hoverText = ""; // Reset to default hover text
     },
     toggleClick() {
       mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
@@ -300,7 +210,6 @@ export default {
       mutations.updateCurrentUser({ stickySidebar: !state.user.stickySidebar });
     },
     navigateTo(path) {
-      this.sourceInfoTooltip = ""; // Reset tooltip when navigating
       const hashIndex = path.indexOf("#");
       if (hashIndex !== -1) {
         // Extract the hash
@@ -346,111 +255,83 @@ export default {
       el.style.opacity = '0';
       setTimeout(done, 300);
     },
+          showTooltip(event, text) {
+        if (text) {
+          mutations.showTooltip({
+            content: text,
+            x: event.clientX,
+            y: event.clientY,
+          });
+        }
+      },
+      hideTooltip() {
+        mutations.hideTooltip();
+      },
+      showSourceTooltip(event, info) {
+        if (info) {
+          const tooltipContent = this.buildSourceTooltipContent(info);
+          mutations.showTooltip({
+            content: tooltipContent,
+            x: event.clientX,
+            y: event.clientY,
+          });
+        }
+      },
+      buildSourceTooltipContent(info) {
+        const getHumanReadable = (lastIndex) => {
+          if (isNaN(Number(lastIndex))) return "";
+          let val = Number(lastIndex);
+          if (val === 0) {
+            return "now";
+          }
+          return fromNow(val, state.user.locale);
+        };
+
+        return `
+          <table style="border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr>
+                <th colspan="2" style="text-align: center; font-weight: bold; font-size: 1.1em; padding-bottom: 0.3em; border-bottom: 1px solid #888;">${info.name || 'Source'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.status")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || ''}</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.assessment")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.assessment || ''}</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.files")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.files || ''}</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.folders")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.folders || ''}</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.lastScanned")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${getHumanReadable(info.lastIndex)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.quickScan")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${isNaN(Number(info.quickScanDurationSeconds)) ? '' : Number(info.quickScanDurationSeconds)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.2em 0.5em;">${this.$t("index.fullScan")}</td>
+                <td style="padding: 0.2em 0.5em;">${isNaN(Number(info.fullScanDurationSeconds)) ? '' : Number(info.fullScanDurationSeconds)}</td>
+              </tr>
+            </tbody>
+          </table>
+        `;
+      },
   },
 };
 </script>
 
 <style>
-.tooltip {
-  position: absolute;
-  display: inline-block;
-  left: 50%;
-  top: 2em;
-}
-
-.tooltiptext-first {
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  position: absolute;
-  width: max-content;
-  max-width: 20em;
-  background-color: var(--alt-background);
-  color: var(--textPrimary);
-  text-align: center;
-  border-radius: 1em;
-  padding: 0.5em;
-  z-index: 1000;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.2);
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.tooltiptext-first.visible {
-  visibility: visible;
-  opacity: 1;
-}
-
-.tooltiptext-sources.visible {
-  visibility: visible;
-  opacity: 1;
-}
-
-.tooltip-sources {
-  position: absolute;
-  display: inline-block;
-  left: 50%;
-  top: 20em;
-}
-
-.tooltiptext-sources {
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  position: absolute;
-  width: max-content;
-  height: fit-content;
-  max-width: 20em;
-  background-color: var(--alt-background);
-  color: var(--textPrimary);
-  text-align: center;
-  border-radius: 1em;
-  padding: 0.5em;
-  z-index: 1000;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.2);
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.tooltiptext-sources .tooltip-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.tooltiptext-sources .tooltip-table th {
-  text-align: center;
-  font-weight: bold;
-  font-size: 1.1em;
-  padding-bottom: 0.3em;
-  border-bottom: 1px solid #888;
-}
-
-.tooltiptext-sources .tooltip-table td {
-  padding: 0.2em 0.5em;
-  vertical-align: top;
-  border-bottom: 1px solid #ccc !important; /* force apply thin gray lines */
-  border-style: hidden;
-}
-
-.tooltiptext-sources .tooltip-table tr {
-  border-style: hidden;
-}
-
-.tooltiptext-sources .tooltip-table tr:last-child td {
-  border-bottom: none !important;
-}
-
-.tooltiptext-first,
-.tooltiptext-sources {
-  pointer-events: none;
-}
 
 .user-card {
   flex-direction: row !important;

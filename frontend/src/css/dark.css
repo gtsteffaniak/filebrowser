@@ -1,15 +1,4 @@
 /* Define a class .dark-mode for dark mode styles */
-.dark-mode {
-  --background: #141D24;
-  --alt-background: #283136;
-  --surfacePrimary: #20292F;
-  --surfaceSecondary: #3A4147;
-  --divider: rgba(255, 255, 255, 0.12);
-  --textPrimary: rgba(255, 255, 255, 0.87);
-  --textSecondary: rgba(255, 255, 255, 0.6);
-  --iconBackground: #1e1f20;
-  --activeWhiteIcon: white;
-}
 
 .dark-mode #loading {
   background: var(--background);

@@ -50,7 +50,7 @@
         class="file-icons"
       >
         <div>
-          <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }">
+          <div class="header card" :class="{ 'dark-mode-item-header': isDarkMode }">
             <p
               :class="{ active: nameSorted }"
               class="name"
@@ -959,7 +959,6 @@ export default {
 
 #listingView.dropping {
   transform: scale(0.97);
-  border-radius: 1em;
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 

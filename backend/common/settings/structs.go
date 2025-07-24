@@ -111,8 +111,13 @@ type Frontend struct {
 	DisableUsedPercentage bool           `json:"disableUsedPercentage"` // disable used percentage for the sources in the sidebar
 	ExternalLinks         []ExternalLink `json:"externalLinks"`
 	DisableNavButtons     bool           `json:"disableNavButtons"` // disable the nav buttons in the sidebar
-	LightBackground       string         `json:"lightBackground"`   // specify a valid CSS color property value to use as the background color in light mode
-	DarkBackground        string         `json:"darkBackground"`    // Specify a valid CSS color property value to use as the background color in dark mode
+	Styling               StylingConfig  `json:"styling"`
+}
+
+type StylingConfig struct {
+	CustomCSS       string `json:"customCSS"`       // if a valid path to a css file is provided, it will be applied on startup. (eg. "reduce-rounded-corners.css")
+	LightBackground string `json:"lightBackground"` // specify a valid CSS color property value to use as the background color in light mode
+	DarkBackground  string `json:"darkBackground"`  // Specify a valid CSS color property value to use as the background color in dark mode
 }
 
 type ExternalLink struct {

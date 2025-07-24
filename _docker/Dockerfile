@@ -32,7 +32,8 @@ WORKDIR /home/filebrowser
 # copy config to two locations for compatibility
 COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "/app/config.yaml", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
-COPY --from=nbuild --chown=filebrowser:1000 /app/dist/ ./http/dist/
+COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./http/dist/custom.css" ]
+COPY --from=nbuild --chown=filebrowser:1000 [ "/app/dist/", "./http/dist/" ]
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]
