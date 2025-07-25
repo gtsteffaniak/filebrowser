@@ -44,6 +44,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"LightBackground": config.Frontend.Styling.LightBackground,
 		"DarkBackground":  config.Frontend.Styling.DarkBackground,
 		"StaticURL":       config.Server.BaseURL + "static",
+		"BaseURL":         config.Server.BaseURL,
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
@@ -67,9 +68,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 		"MuPdfAvailable":    config.Server.MuPdfAvailable,
 		"UpdateAvailable":   utils.GetUpdateAvailableUrl(),
 		"DisableNavButtons": settings.Config.Frontend.DisableNavButtons,
-		"LightBackground":   config.Frontend.LightBackground,
-		"DarkBackground":    config.Frontend.DarkBackground,
-		"CustomCSS":         config.CustomCSS,
 	}
 	jsonVars, err := json.Marshal(data["globalVars"])
 	if err != nil {

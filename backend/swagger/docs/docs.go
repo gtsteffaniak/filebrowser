@@ -2107,10 +2107,6 @@ const docTemplate = `{
         "settings.Frontend": {
             "type": "object",
             "properties": {
-                "darkBackground": {
-                    "description": "Specify a valid CSS color property value to use as the background color in dark mode",
-                    "type": "string"
-                },
                 "disableDefaultLinks": {
                     "description": "disable default links in the sidebar",
                     "type": "boolean"
@@ -2128,10 +2124,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/settings.ExternalLink"
                     }
-                },
-                "lightBackground": {
-                    "description": "specify a valid CSS color property value to use as the background color in light mode",
-                    "type": "string"
                 },
                 "name": {
                     "description": "display name",
