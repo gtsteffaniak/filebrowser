@@ -37,21 +37,21 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	customCSS := config.Frontend.Styling.CustomCSS
-
+	userSelectedTheme := ""
 	if d.user != nil {
 		theme, ok := config.Frontend.Styling.CustomThemes[d.user.CustomTheme]
 		if ok {
-			customCSS = theme.CSS
+			userSelectedTheme = theme.CSS
 		}
 	}
 
 	data := map[string]interface{}{
-		"CustomCSS":       customCSS,
-		"LightBackground": config.Frontend.Styling.LightBackground,
-		"DarkBackground":  config.Frontend.Styling.DarkBackground,
-		"StaticURL":       config.Server.BaseURL + "static",
-		"BaseURL":         config.Server.BaseURL,
+		"CustomCSS":         config.Frontend.Styling.CustomCSS,
+		"userSelectedTheme": userSelectedTheme,
+		"LightBackground":   config.Frontend.Styling.LightBackground,
+		"DarkBackground":    config.Frontend.Styling.DarkBackground,
+		"StaticURL":         config.Server.BaseURL + "static",
+		"BaseURL":           config.Server.BaseURL,
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{

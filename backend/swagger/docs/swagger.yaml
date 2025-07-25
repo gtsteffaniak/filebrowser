@@ -528,7 +528,7 @@ definitions:
     properties:
       customCSS:
         description: if a valid path to a css file is provided, it will be applied
-          on startup. (eg. "reduce-rounded-corners.css")
+          for all users. (eg. "reduce-rounded-corners.css")
         type: string
       customThemes:
         additionalProperties:

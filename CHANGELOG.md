@@ -4,8 +4,25 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.17-beta
 
+See an example of custom css styling that uses the reduce-rounded-corners.css by default and allows users to choose other themes. You can add your own themes as well that users can choose from in profile settings:
+
+```
+frontend:
+  styling:
+    lightBackground: "#f0f0f0"
+    darkBackground: "#121212"
+    customCSS: "custom.css" # default always applies for all users
+    customThemes:
+      "alternative theme":
+        description: "Reduce rounded corners"
+        css: "reduce-rounded-corners.css"
+```
+
  **New Features**:
- - custom background and css options possible. Provided an example `reduce-rounded-corners.css` available by default in docker. (#986, #837)
+ - more custom styling options (thanks @mordilloSan for #997)
+   - background colors can be easily set in config
+   - provided an example `reduce-rounded-corners.css` available by default in docker. (#986, #837)
+   - added feature to specify multiple css themes that users can choose from in profile settings
 
  **Notes**:
  - changed partition calculations on linux for total disk size (#982)
