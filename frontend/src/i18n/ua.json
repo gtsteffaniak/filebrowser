@@ -435,7 +435,6 @@
     "disablePreviewExtDescription": "Список розширень файлів через пробіл, для яких слід вимкнути попередній перегляд офісних файлів (наприклад, '.docx .pptx).",
     "disableOfficeEditorDescription": "Список розділених пробілами розширень файлів, для яких слід вимкнути редактор і переглядач OnlyOffice. (наприклад, '.txt .html .pdf').",
     "disableOfficeEditor": "Вимкнути офісний переглядач для певних розширень файлів",
-    "customTheme": "Спеціальна тема",
     "defaultThemeDescription": "default - тема за замовчуванням"
   }
 }

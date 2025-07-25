@@ -435,7 +435,6 @@
     "disablePreviewExtDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările fișierelor office (de exemplu, '.docx .pptx').",
     "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice. (de exemplu, \".txt .html .pdf\").",
     "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
-    "customTheme": "Temă personalizată",
     "defaultThemeDescription": "default - Tema implicită"
   }
 }

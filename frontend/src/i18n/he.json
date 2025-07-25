@@ -435,7 +435,6 @@
     "disablePreviewExtDescription": "רשימה מופרדת ברווחים של סיומות קבצים שצריך להשבית את תצוגה מקדימה של קבצי Office עבורן (לדוגמה, '.docx .pptx').",
     "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית את עורך ומציג OnlyOffice. (לדוגמה, '.txt .html .pdf').",
     "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות",
-    "customTheme": "ערכת נושא מותאמת אישית",
     "defaultThemeDescription": "ברירת מחדל - ערכת הנושא המוגדרת כברירת מחדל"
   }
 }

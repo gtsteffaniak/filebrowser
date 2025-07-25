@@ -435,7 +435,6 @@
     "disablePreviewExtDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor Office-bestandsvoorvertoningen moeten worden uitgeschakeld (bijvoorbeeld '.docx .pptx').",
     "disableOfficeEditorDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor de OnlyOffice editor en viewer uitgeschakeld moeten worden. (bijv. '.txt .html .pdf').",
     "disableOfficeEditor": "Office Viewer uitschakelen voor bepaalde bestandsextensies",
-    "customTheme": "Aangepast thema",
     "defaultThemeDescription": "standaard - Het standaardthema"
   }
 }

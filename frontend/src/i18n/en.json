@@ -199,7 +199,7 @@
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },
   "profileSettings": {
-    "customTheme": "Custom Theme",
+    "customTheme": "Choose your theme",
     "defaultThemeDescription": "default - The default theme",
     "setDateFormat": "Set exact date format",
     "showHiddenFiles": "Show hidden files",

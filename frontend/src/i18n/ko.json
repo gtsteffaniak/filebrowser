@@ -435,7 +435,6 @@
     "disablePreviewExtDescription": "Office 파일 미리 보기를 사용하지 않도록 설정할 파일 확장명 목록(예: '.docx .pptx')을 공백으로 구분하여 표시합니다.",
     "disableOfficeEditorDescription": "OnlyOffice 편집기 및 뷰어를 비활성화할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html .pdf').",
     "disableOfficeEditor": "특정 파일 확장자에 대해 Office 뷰어 사용 안 함",
-    "customTheme": "사용자 지정 테마",
     "defaultThemeDescription": "default - 기본 테마"
   }
 }

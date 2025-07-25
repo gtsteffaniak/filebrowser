@@ -409,7 +409,6 @@
     "disablePreviewExtDescription": "以空格分隔的檔案副檔名清單，以停用 Office 檔案預覽 (例如 '.docx .pptx')。",
     "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器。(例如，'.txt .html .pdf'）。",
     "disableOfficeEditor": "停用特定檔案副檔名的 Office 檢視器",
-    "customTheme": "自訂主題",
     "defaultThemeDescription": "default - 預設主題"
   },
   "otp": {

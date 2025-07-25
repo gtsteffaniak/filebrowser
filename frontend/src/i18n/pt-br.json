@@ -435,7 +435,6 @@
     "disablePreviewExtDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações de arquivos do Office (por exemplo, '.docx .pptx').",
     "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
-    "customTheme": "Tema personalizado",
     "defaultThemeDescription": "default - O tema padrão"
   }
 }

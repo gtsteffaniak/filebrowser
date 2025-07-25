@@ -435,7 +435,6 @@
     "disablePreviewExtDescription": "用空格分隔的文件扩展名列表，用于禁用办公文件预览（如\".docx .pptx\"）。",
     "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器。(例如，\".txt .html .pdf\"）。",
     "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器",
-    "customTheme": "自定义主题",
     "defaultThemeDescription": "default - 默认主题"
   }
 }
