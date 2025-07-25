@@ -8,11 +8,15 @@
         <p>{{ $t("prompts.renameMessage", { filename: oldName() }) }}</p>
       <input
         class="input input--block"
+        :class="{ 'invalid-form': !validateFileName(name) }"
         v-focus
         type="text"
         @keyup.enter="submit"
         v-model.trim="name"
       />
+      <p v-if="!validateFileName(name) && name.length > 0" class="validation-error">
+        {{ $t("prompts.invalidFileName") }}
+      </p>
     </div>
 
     <div class="card-action">
@@ -27,6 +31,7 @@
       <button
         @click="submit"
         class="button button--flat"
+        :disabled="!validateFileName(name) || name.length === 0"
         type="submit"
         :aria-label="$t('buttons.rename')"
         :title="$t('buttons.rename')"
@@ -72,6 +77,14 @@ export default {
     },
   },
   methods: {
+    validateFileName(value) {
+      if (value === "") {
+        return false;
+      }
+      // Check for forbidden characters: forward slash and backslash
+      const forbiddenChars = /[\/\\]/;
+      return !forbiddenChars.test(value);
+    },
     cancel() {
       mutations.closeHovers();
     },
@@ -92,6 +105,12 @@ export default {
       return state.req.items[this.selected[0]].name;
     },
     async submit() {
+      // Validate before submitting
+      if (!this.validateFileName(this.name) || this.name.length === 0) {
+        notify.showError(this.$t("prompts.invalidFileName"));
+        return;
+      }
+
       try {
         // Check if this is being called from upload context with custom confirm handler
         if (this.currentPrompt && this.currentPrompt.confirm) {
@@ -121,3 +140,21 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.invalid-form {
+  border-color: var(--red) !important;
+}
+
+.validation-error {
+  color: var(--red);
+  font-size: 0.9em;
+  margin-top: 0.5em;
+  margin-bottom: 0;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

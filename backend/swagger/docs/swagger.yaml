@@ -534,7 +534,8 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/settings.CustomTheme'
         description: A list of custom css files that each user can select to override
-          the default styling.
+          the default styling. if "default" is key name then it will be the default
+          option.
         type: object
       darkBackground:
         description: Specify a valid CSS color property value to use as the background

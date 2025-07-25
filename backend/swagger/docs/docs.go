@@ -2548,7 +2548,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "customThemes": {
-                    "description": "A list of custom css files that each user can select to override the default styling.",
+                    "description": "A list of custom css files that each user can select to override the default styling. if \"default\" is key name then it will be the default option.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/settings.CustomTheme"
