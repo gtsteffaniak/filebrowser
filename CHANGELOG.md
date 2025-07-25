@@ -13,11 +13,11 @@ frontend:
     darkBackground: "#121212"
     customCSS: "custom.css"  # customCSS always ao
     customThemes:
-      "alternative":
+      "default": # if "default" is specified as the name, it will be the default option
         description: "Reduce rounded corners"
         css: "reduce-rounded-corners.css" # path to css file to use
-      "default":  # if "default" is specified as the name, it will be the default option
-        description: "default theme"
+      "original":
+        description: "Original rounded theme"
         css: ""  # you could default to no styling changes this way.
 ```
 
@@ -26,6 +26,7 @@ frontend:
    - background colors can be easily set in config
    - provided an example `reduce-rounded-corners.css` available by default in docker. (#986, #837)
    - added feature to specify multiple css themes that users can choose from in profile settings
+ - swipe between photos on mobile (#825)
 
  **Notes**:
  - changed partition calculations on linux for total disk size (#982)
