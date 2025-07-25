@@ -487,7 +487,7 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 
 	// Validate move/rename operation to prevent circular references
 	if action == "rename" || action == "move" {
-		if err := validateMoveOperation(realSrc, realDest, isSrcDir); err != nil {
+		if err = validateMoveOperation(realSrc, realDest, isSrcDir); err != nil {
 			return http.StatusBadRequest, err
 		}
 	}

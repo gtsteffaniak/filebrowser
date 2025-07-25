@@ -82,7 +82,7 @@ export default {
         return false;
       }
       // Check for forbidden characters: forward slash and backslash
-      const forbiddenChars = /[\/\\]/;
+      const forbiddenChars = /[/\\]/;
       return !forbiddenChars.test(value);
     },
     cancel() {
@@ -107,7 +107,7 @@ export default {
     async submit() {
       // Validate before submitting
       if (!this.validateFileName(this.name) || this.name.length === 0) {
-        notify.showError(this.$t("prompts.invalidFileName"));
+        notify.showError(this.$t("prompts.invalidName"));
         return;
       }
 
