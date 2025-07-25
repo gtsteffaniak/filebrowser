@@ -62,6 +62,34 @@ func setupFrontend() {
 	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "white")
 	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
 	Config.Frontend.Styling.CustomCSS = readCustomCSS(Config.Frontend.Styling.CustomCSS)
+	Config.Frontend.Styling.CustomThemeOptions = map[string]CustomTheme{}
+	for name, theme := range Config.Frontend.Styling.CustomThemes {
+		thisTheme := CustomTheme{
+			Description: theme.Description,
+			CSS:         theme.CSS, // Copy the CSS file path from the original theme
+		}
+		Config.Frontend.Styling.CustomThemeOptions[name] = thisTheme
+		thisTheme.CSS = readCustomCSS(theme.CSS) // Now read the CSS file content and replace the path
+		Config.Frontend.Styling.CustomThemes[name] = thisTheme
+	}
+	noThemes := len(Config.Frontend.Styling.CustomThemes) == 0
+	_, ok := Config.Frontend.Styling.CustomThemes["default"]
+	if noThemes || !ok {
+		theme := CustomTheme{
+			Description: "The default theme",
+			CSS:         "",
+		}
+		if noThemes {
+			// If there are no themes at all, initialize the map with just default
+			Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{
+				"default": theme,
+			}
+		} else {
+			// If there are themes but no default, add default to existing themes
+			Config.Frontend.Styling.CustomThemes["default"] = theme
+		}
+		Config.Frontend.Styling.CustomThemeOptions["default"] = theme
+	}
 }
 
 func getRealPath(path string) string {

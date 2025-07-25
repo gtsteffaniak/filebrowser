@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "复制",
     "copyMessage": "请选择欲复制至的目录：",
-    "currentlyNavigating": "当前目录：",
     "deleteMessageMultiple": "你确定要删除这 {count} 个文件吗？",
     "deleteMessageSingle": "你确定要删除这个文件/文件夹吗？",
     "deleteMessageShare": "你确定要删除这个分享（{path}）吗？",
@@ -165,12 +164,10 @@
     "show": "点击以显示",
     "size": "大小",
     "upload": "上传",
-    "uploadMessage": "选择上传选项。",
     "optionalPassword": "密码（选填，不填即无密码）",
     "deleteUserMessage": "您确定要删除该用户吗？",
     "selected": "选定的",
     "filesSelected": "所选文件",
-    "uploadFiles": "Uploading {files} files...",
     "typeName": "类型",
     "deleted": "已成功删除！",
     "destinationSource": "目的地来源：",
@@ -235,12 +232,7 @@
     "passwordUpdated": "密码已更新！",
     "path": "路径",
     "permissions": {
-      "create": "创建文件和文件夹",
-      "delete": "删除文件和文件夹",
-      "download": "下载",
-      "execute": "执行命令",
       "modify": "编辑",
-      "rename": "重命名或移动文件和文件夹",
       "share": "分享文件",
       "admin": "管理员",
       "api": "创建和管理长效 API 密钥",
@@ -254,7 +246,6 @@
     "rules": "规则",
     "rulesHelp": "您可以为该用户制定一组黑名单或白名单式的规则，被屏蔽的文件将不会显示在列表中，用户也无权限访问，支持正则表达式和相对于用户范围的路径。\n",
     "scope": "目录范围",
-    "setDateFormat": "显示精确的日期格式",
     "settingsUpdated": "设置已更新！",
     "shareManagement": "分享管理",
     "shareDeleted": "分享已删除！",
@@ -443,6 +434,8 @@
     "disablePreviewExt": "禁用某些文件扩展名的 Office 文件预览功能",
     "disablePreviewExtDescription": "用空格分隔的文件扩展名列表，用于禁用办公文件预览（如\".docx .pptx\"）。",
     "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器。(例如，\".txt .html .pdf\"）。",
-    "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器"
+    "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器",
+    "customTheme": "自定义主题",
+    "defaultThemeDescription": "default - 默认主题"
   }
 }

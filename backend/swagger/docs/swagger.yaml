@@ -142,6 +142,15 @@ definitions:
         description: secret used to encrypt TOTP secrets
         type: string
     type: object
+  settings.CustomTheme:
+    properties:
+      css:
+        description: The css file path and filename to use for the theme.
+        type: string
+      description:
+        description: The description of the theme to display in the UI.
+        type: string
+    type: object
   settings.ExcludeIndexFilter:
     properties:
       fileEndsWith:
@@ -457,8 +466,6 @@ definitions:
     properties:
       auth:
         $ref: '#/definitions/settings.Auth'
-      customCSS:
-        type: string
       frontend:
         $ref: '#/definitions/settings.Frontend'
       integrations:
@@ -519,10 +526,20 @@ definitions:
     type: object
   settings.StylingConfig:
     properties:
+      allowUserSelectTheme:
+        description: allow users to select a custom theme from the list of custom
+          themes.
+        type: boolean
       customCSS:
         description: if a valid path to a css file is provided, it will be applied
           on startup. (eg. "reduce-rounded-corners.css")
         type: string
+      customThemes:
+        additionalProperties:
+          $ref: '#/definitions/settings.CustomTheme'
+        description: A list of custom css files that each user can select to override
+          the default styling.
+        type: object
       darkBackground:
         description: Specify a valid CSS color property value to use as the background
           color in dark mode
@@ -534,6 +551,9 @@ definitions:
     type: object
   settings.UserDefaults:
     properties:
+      customTheme:
+        description: Name of theme to use chosen from custom themes config.
+        type: string
       darkMode:
         description: should dark mode be enabled
         type: boolean
@@ -729,6 +749,9 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/users.AuthToken'
         type: object
+      customTheme:
+        description: Name of theme to use chosen from custom themes config.
+        type: string
       darkMode:
         description: should dark mode be enabled
         type: boolean

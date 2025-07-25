@@ -91,9 +91,14 @@ frontend:
       url: "https://github.com/gtsteffaniak/filebrowser/wiki" # the url to link to  validate:required
   disableNavButtons: false                # disable the nav buttons in the sidebar
   styling:
+    allowUserSelectTheme: false           # allow users to select a custom theme from the list of custom themes.
     customCSS: ""                         # if a valid path to a css file is provided, it will be applied on startup. (eg. "reduce-rounded-corners.css")
     lightBackground: "white"              # specify a valid CSS color property value to use as the background color in light mode
     darkBackground: "#141D24"             # Specify a valid CSS color property value to use as the background color in dark mode
+    customThemes:                         # A list of custom css files that each user can select to override the default styling.
+      default:
+        description: The default theme
+        css: ""
 userDefaults:
   editorQuickSave: false                  # show quick save button in editor
   hideSidebarFileActions: false           # hide the file actions in the sidebar
@@ -136,6 +141,7 @@ userDefaults:
     uploadChunkSizeMb: 10
   disableOfficePreviewExt: ""             # deprecated: use disablePreviewExt instead
   disableOnlyOfficeExt: ""                # list of file extensions to disable onlyoffice editor for
+  customTheme: ""                         # Name of theme to use chosen from custom themes config.
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
@@ -143,4 +149,3 @@ integrations:
     secret: ""                            #  validate:required
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-customCSS: ""

@@ -18,7 +18,6 @@ type Settings struct {
 	Frontend     Frontend     `json:"frontend"`
 	UserDefaults UserDefaults `json:"userDefaults"`
 	Integrations Integrations `json:"integrations"`
-	CustomCSS    string       `json:"customCSS"`
 }
 
 type Server struct {
@@ -115,9 +114,17 @@ type Frontend struct {
 }
 
 type StylingConfig struct {
-	CustomCSS       string `json:"customCSS"`       // if a valid path to a css file is provided, it will be applied on startup. (eg. "reduce-rounded-corners.css")
-	LightBackground string `json:"lightBackground"` // specify a valid CSS color property value to use as the background color in light mode
-	DarkBackground  string `json:"darkBackground"`  // Specify a valid CSS color property value to use as the background color in dark mode
+	AllowUserSelectTheme bool                   `json:"allowUserSelectTheme"` // allow users to select a custom theme from the list of custom themes.
+	CustomCSS            string                 `json:"customCSS"`            // if a valid path to a css file is provided, it will be applied on startup. (eg. "reduce-rounded-corners.css")
+	LightBackground      string                 `json:"lightBackground"`      // specify a valid CSS color property value to use as the background color in light mode
+	DarkBackground       string                 `json:"darkBackground"`       // Specify a valid CSS color property value to use as the background color in dark mode
+	CustomThemes         map[string]CustomTheme `json:"customThemes"`         // A list of custom css files that each user can select to override the default styling.
+	CustomThemeOptions   map[string]CustomTheme `json:"-"`                    // not exposed
+}
+
+type CustomTheme struct {
+	Description string `json:"description"`   // The description of the theme to display in the UI.
+	CSS         string `json:"css,omitempty"` // The css file path and filename to use for the theme.
 }
 
 type ExternalLink struct {
@@ -156,4 +163,5 @@ type UserDefaults struct {
 	FileLoading                users.FileLoading   `json:"fileLoading"`                // upload and download settings
 	DisableOfficePreviewExt    string              `json:"disableOfficePreviewExt"`    // deprecated: use disablePreviewExt instead
 	DisableOnlyOfficeExt       string              `json:"disableOnlyOfficeExt"`       // list of file extensions to disable onlyoffice editor for
+	CustomTheme                string              `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 }

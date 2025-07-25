@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Copia",
     "copyMessage": "Seleziona la cartella in cui copiare i file:",
-    "currentlyNavigating": "Attualmente navigando su:",
     "deleteMessageMultiple": "Sei sicuro di voler eliminare {count} file?",
     "deleteMessageSingle": "Sei sicuro di voler eliminare questo file/cartella?",
     "deleteTitle": "Elimina",
@@ -164,11 +163,9 @@
     "show": "Mostra",
     "size": "Dimensione",
     "upload": "Carica",
-    "uploadMessage": "Seleziona un'opzione per il caricamento.",
     "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "Siete sicuri di voler eliminare questo utente?",
     "filesSelected": "file selezionati",
-    "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Password opzionale",
     "typeName": "Tipo:",
     "selected": "selezionato",
@@ -234,12 +231,7 @@
     "passwordUpdated": "Password aggiornata!",
     "path": "Percorso",
     "permissions": {
-      "create": "Creare file e cartelle",
-      "delete": "Eliminare file e cartelle",
-      "download": "Scaricare",
-      "execute": "Eseguire comandi",
       "modify": "Modificare file",
-      "rename": "Rinominare o spostare file e cartelle",
       "share": "Condividere file",
       "admin": "Amministratore",
       "api": "Creare e gestire chiavi API a lunga durata",
@@ -274,9 +266,6 @@
     "modifyOtherUser": "Modificare l'utente:",
     "modifyCurrentUser": "Modificare l'utente corrente",
     "themeColor": "Colore del tema",
-    "disableOfficePreviewDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare il visualizzatore di OnlyOffice. (ad esempio, '.txt .html').",
-    "disableOfficePreview": "Disabilitare il visualizzatore onlyoffice per alcune estensioni di file",
-    "filePreviewOptions": "Opzioni di anteprima dei file",
     "listingOptions": "Opzioni di quotazione",
     "emptyGlobal": "Attualmente non ci sono opzioni di configurazione globale, ma è possibile modificare lo yaml di configurazione per regolare le impostazioni del sistema.",
     "scopes": "Definire le fonti consentite e l'ambito dell'utente all'interno di esse",
@@ -289,7 +278,6 @@
     "userScopeGenerationPlaceholder": "L'ambito sarà generato automaticamente",
     "createUserHomeDirectory": "Creare la directory home dell'utente",
     "api": "Chiavi API",
-    "setDateFormat": "Impostare il formato esatto della data",
     "shareDeleted": "Condividi cancellato!",
     "loginMethodDescription": "metodo di accesso consentito per l'utente.",
     "userNotAdmin": "L'utente non è un amministratore",
@@ -446,6 +434,8 @@
     "disablePreviewExt": "Disattivare le anteprime dei file di Office per alcune estensioni di file",
     "disablePreviewExtDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare le anteprime dei file di Office (ad esempio, '.docx .pptx').",
     "disableOfficeEditorDescription": "Un elenco separato da spazi di estensioni di file per cui disabilitare l'editor e il visualizzatore di OnlyOffice. (ad esempio, '.txt .html .pdf').",
-    "disableOfficeEditor": "Disattivare il visualizzatore di Office per alcune estensioni di file"
+    "disableOfficeEditor": "Disattivare il visualizzatore di Office per alcune estensioni di file",
+    "customTheme": "Tema personalizzato",
+    "defaultThemeDescription": "default - Il tema predefinito"
   }
 }

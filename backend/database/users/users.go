@@ -101,6 +101,7 @@ type NonAdminEditable struct {
 	DisableOnlyOfficeExt       string      `json:"disableOnlyOfficeExt"`       // deprecated
 	DisablePreviewExt          string      `json:"disablePreviewExt"`          // comma separated list of file extensions to disable preview for
 	DisableViewingExt          string      `json:"disableViewingExt"`          // comma separated list of file extensions to disable viewing for
+	CustomTheme                string      `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 }
 
 type FileLoading struct {

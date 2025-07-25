@@ -30,17 +30,24 @@ func (t *TemplateRenderer) Render(w http.ResponseWriter, name string, data inter
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
-func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentType string) {
+func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestContext, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
 
 	auther, err := store.Auth.Get("password")
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
+	}
+	customCSS := config.Frontend.Styling.CustomCSS
+
+	if d.user != nil {
+		theme, ok := config.Frontend.Styling.CustomThemes[d.user.CustomTheme]
+		if ok {
+			customCSS = theme.CSS
+		}
 	}
 
 	data := map[string]interface{}{
-		"CustomCSS":       config.Frontend.Styling.CustomCSS,
+		"CustomCSS":       customCSS,
 		"LightBackground": config.Frontend.Styling.LightBackground,
 		"DarkBackground":  config.Frontend.Styling.DarkBackground,
 		"StaticURL":       config.Server.BaseURL + "static",
@@ -48,38 +55,39 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, file, contentT
 	}
 	// variables consumed by frontend as json
 	data["globalVars"] = map[string]interface{}{
-		"Name":              config.Frontend.Name,
-		"DisableExternal":   config.Frontend.DisableDefaultLinks,
-		"darkMode":          settings.Config.UserDefaults.DarkMode,
-		"BaseURL":           config.Server.BaseURL,
-		"Version":           version.Version,
-		"CommitSHA":         version.CommitSHA,
-		"Signup":            settings.Config.Auth.Methods.PasswordAuth.Signup,
-		"NoAuth":            config.Auth.Methods.NoAuth,
-		"LoginPage":         auther.LoginPage(),
-		"EnableThumbs":      !config.Server.DisablePreviews,
-		"ExternalLinks":     config.Frontend.ExternalLinks,
-		"ExternalUrl":       strings.TrimSuffix(config.Server.ExternalUrl, "/"),
-		"OnlyOfficeUrl":     settings.Config.Integrations.OnlyOffice.Url,
-		"SourceCount":       len(config.Server.SourceMap),
-		"OidcAvailable":     config.Auth.Methods.OidcAuth.Enabled,
-		"PasswordAvailable": config.Auth.Methods.PasswordAuth.Enabled,
-		"MediaAvailable":    config.Integrations.Media.FfmpegPath != "",
-		"MuPdfAvailable":    config.Server.MuPdfAvailable,
-		"UpdateAvailable":   utils.GetUpdateAvailableUrl(),
-		"DisableNavButtons": settings.Config.Frontend.DisableNavButtons,
+		"Name":                 config.Frontend.Name,
+		"DisableExternal":      config.Frontend.DisableDefaultLinks,
+		"darkMode":             settings.Config.UserDefaults.DarkMode,
+		"BaseURL":              config.Server.BaseURL,
+		"Version":              version.Version,
+		"CommitSHA":            version.CommitSHA,
+		"Signup":               settings.Config.Auth.Methods.PasswordAuth.Signup,
+		"NoAuth":               config.Auth.Methods.NoAuth,
+		"LoginPage":            auther.LoginPage(),
+		"EnableThumbs":         !config.Server.DisablePreviews,
+		"ExternalLinks":        config.Frontend.ExternalLinks,
+		"ExternalUrl":          strings.TrimSuffix(config.Server.ExternalUrl, "/"),
+		"OnlyOfficeUrl":        settings.Config.Integrations.OnlyOffice.Url,
+		"SourceCount":          len(config.Server.SourceMap),
+		"OidcAvailable":        config.Auth.Methods.OidcAuth.Enabled,
+		"PasswordAvailable":    config.Auth.Methods.PasswordAuth.Enabled,
+		"MediaAvailable":       config.Integrations.Media.FfmpegPath != "",
+		"MuPdfAvailable":       config.Server.MuPdfAvailable,
+		"UpdateAvailable":      utils.GetUpdateAvailableUrl(),
+		"DisableNavButtons":    settings.Config.Frontend.DisableNavButtons,
+		"UserSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
 	}
 	jsonVars, err := json.Marshal(data["globalVars"])
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 	data["globalVars"] = strings.ReplaceAll(string(jsonVars), `'`, `\'`)
 
 	// Render the template with global variables
 	if err := templateRenderer.Render(w, file, data); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return http.StatusInternalServerError, err
 	}
+	return http.StatusOK, nil
 }
 
 func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,11 +114,9 @@ func staticFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
+func indexHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	if r.Method != http.MethodGet {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
+		return http.StatusNotFound, nil
 	}
-	handleWithStaticData(w, r, "index.html", "text/html")
-
+	return handleWithStaticData(w, r, d, "index.html", "text/html")
 }
