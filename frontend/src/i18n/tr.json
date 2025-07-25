@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Kopyala",
     "copyMessage": "Dosyalarınızı kopyalayacağınız yeri seçin:",
-    "currentlyNavigating": "Şu anki lokasyon:",
     "deleteMessageMultiple": "{count} dosyayı/dosyaları silmek istediğinizden emin misiniz?",
     "deleteMessageSingle": "Bu dosyayı/klasörü silmek istediğinizden emin misiniz?",
     "deleteMessageShare": "Bu paylaşımı({path}) silmek istediğinizden emin misiniz?",
@@ -165,11 +164,9 @@
     "show": "Göster",
     "size": "Boyut",
     "upload": "Gönder",
-    "uploadMessage": "Yüklemek için bir seçenek belirleyin.",
     "optionalPassword": "İsteğe bağlı şifre",
     "deleteUserMessage": "Bu kullanıcıyı silmek istediğinizden emin misiniz?",
     "filesSelected": "seçilen dosyalar",
-    "uploadFiles": "Uploading {files} files...",
     "typeName": "Tip:",
     "selected": "seçilmiş",
     "deleted": "Başarıyla silindi!",
@@ -234,12 +231,7 @@
     "passwordUpdated": "Şifre güncellendi",
     "path": "Yol",
     "permissions": {
-      "create": "Dosyalar ve dizinler oluşturun",
-      "delete": "Dosyalar ve dizinleri silin",
-      "download": "İndir",
-      "execute": "Komutları çalıştır",
       "modify": "Dosyaları değiştir",
-      "rename": "Dosyaları ve dizinleri yeniden adlandırın veya taşıyın",
       "share": "Dosyaları paylaş",
       "admin": "Yönetici",
       "api": "Uzun ömürlü API anahtarları oluşturma ve yönetme",
@@ -275,9 +267,6 @@
     "modifyOtherUser": "Kullanıcıyı değiştir:",
     "modifyCurrentUser": "Geçerli kullanıcıyı değiştir",
     "themeColor": "Tema Rengi",
-    "disableOfficePreviewDescription": "OnlyOffice görüntüleyicisinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html').",
-    "disableOfficePreview": "Belirli dosya uzantıları için onlyoffice görüntüleyiciyi devre dışı bırakma",
-    "filePreviewOptions": "Dosya önizleme seçenekleri",
     "listingOptions": "Listeleme seçenekleri",
     "emptyGlobal": "Şu anda global yapılandırma seçenekleri yoktur, sistem ayarlarını yapmak için yapılandırma yaml'ını düzenleyebilirsiniz.",
     "scopes": "İzin verilen kaynakları ve bunlar içindeki kullanıcı kapsamını tanımlama",
@@ -290,7 +279,6 @@
     "userScopeGenerationPlaceholder": "Kapsam otomatik olarak oluşturulacaktır",
     "createUserHomeDirectory": "Kullanıcı ev dizini oluşturma",
     "api": "API Anahtarları",
-    "setDateFormat": "Tam tarih biçimini ayarlama",
     "loginMethodDescription": "kullanıcı için izin verilen oturum açma yöntemi.",
     "userNotAdmin": "Kullanıcı yönetici değil",
     "enterPassword": "Şifre girin",
@@ -446,6 +434,8 @@
     "disablePreviewExt": "Belirli dosya uzantıları için ofis dosyası önizlemelerini devre dışı bırakma",
     "disablePreviewExtDescription": "Ofis dosyası önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış listesi (örn. '.docx .pptx').",
     "disableOfficeEditorDescription": "OnlyOffice düzenleyicisini ve görüntüleyicisini devre dışı bırakmak için dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html .pdf').",
-    "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma"
+    "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
+    "customTheme": "Özel Tema",
+    "defaultThemeDescription": "default - Varsayılan tema"
   }
 }

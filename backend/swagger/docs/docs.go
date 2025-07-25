@@ -2028,6 +2028,19 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.CustomTheme": {
+            "type": "object",
+            "properties": {
+                "css": {
+                    "description": "The css file path and filename to use for the theme.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The description of the theme to display in the UI.",
+                    "type": "string"
+                }
+            }
+        },
         "settings.ExcludeIndexFilter": {
             "type": "object",
             "properties": {
@@ -2107,10 +2120,6 @@ const docTemplate = `{
         "settings.Frontend": {
             "type": "object",
             "properties": {
-                "darkBackground": {
-                    "description": "Specify a valid CSS color property value to use as the background color in dark mode",
-                    "type": "string"
-                },
                 "disableDefaultLinks": {
                     "description": "disable default links in the sidebar",
                     "type": "boolean"
@@ -2128,10 +2137,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/settings.ExternalLink"
                     }
-                },
-                "lightBackground": {
-                    "description": "specify a valid CSS color property value to use as the background color in light mode",
-                    "type": "string"
                 },
                 "name": {
                     "description": "display name",
@@ -2450,9 +2455,6 @@ const docTemplate = `{
                 "auth": {
                     "$ref": "#/definitions/settings.Auth"
                 },
-                "customCSS": {
-                    "type": "string"
-                },
                 "frontend": {
                     "$ref": "#/definitions/settings.Frontend"
                 },
@@ -2542,8 +2544,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "customCSS": {
-                    "description": "if a valid path to a css file is provided, it will be applied on startup. (eg. \"reduce-rounded-corners.css\")",
+                    "description": "if a valid path to a css file is provided, it will be applied for all users. (eg. \"reduce-rounded-corners.css\")",
                     "type": "string"
+                },
+                "customThemes": {
+                    "description": "A list of custom css files that each user can select to override the default styling.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/settings.CustomTheme"
+                    }
                 },
                 "darkBackground": {
                     "description": "Specify a valid CSS color property value to use as the background color in dark mode",
@@ -2558,6 +2567,10 @@ const docTemplate = `{
         "settings.UserDefaults": {
             "type": "object",
             "properties": {
+                "customTheme": {
+                    "description": "Name of theme to use chosen from custom themes config.",
+                    "type": "string"
+                },
                 "darkMode": {
                     "description": "should dark mode be enabled",
                     "type": "boolean"
@@ -2827,6 +2840,10 @@ const docTemplate = `{
                     "additionalProperties": {
                         "$ref": "#/definitions/users.AuthToken"
                     }
+                },
+                "customTheme": {
+                    "description": "Name of theme to use chosen from custom themes config.",
+                    "type": "string"
                 },
                 "darkMode": {
                     "description": "should dark mode be enabled",

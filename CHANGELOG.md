@@ -4,8 +4,29 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.7.17-beta
 
+See an example of custom css styling that uses the reduce-rounded-corners.css by default and allows users to choose other themes. You can add your own themes as well that users can choose from in profile settings:
+
+```
+frontend:
+  styling:
+    lightBackground: "#f0f0f0"   # or names of css colors
+    darkBackground: "#121212"
+    customCSS: "custom.css"  # custom css file always applies first, then user themes on top of that.
+    customThemes:
+      "default": # if "default" is specified as the name, it will be the default option
+        description: "Reduce rounded corners"
+        css: "reduce-rounded-corners.css" # path to css file to use
+      "original":
+        description: "Original rounded theme"
+        css: ""  # you could default to no styling changes this way.
+```
+
  **New Features**:
- - custom background and css options possible. Provided an example `reduce-rounded-corners.css` available by default in docker. (#986, #837)
+ - more custom styling options (thanks @mordilloSan for #997)
+   - background colors can be easily set in config
+   - provided an example `reduce-rounded-corners.css` available by default in docker. (#986, #837)
+   - added feature to specify multiple css themes that users can choose from in profile settings
+ - swipe between photos on mobile (#825)
 
  **Notes**:
  - changed partition calculations on linux for total disk size (#982)
@@ -14,6 +35,7 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - TOTP prompt not showing generated code issue https://github.com/gtsteffaniak/filebrowser/issues/996
  - select mulitple deselect on mobile (#1002)
+ - viewing svg images.
 
 ## v0.7.16-beta
 

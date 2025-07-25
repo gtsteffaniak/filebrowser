@@ -31,8 +31,6 @@ body.rtl #listingView {
 }
 
 #listingView .item {
-  background-color: #fff;
-  position: relative;
   display: flex;
   flex-wrap: nowrap;
   color: #6f6f6f;

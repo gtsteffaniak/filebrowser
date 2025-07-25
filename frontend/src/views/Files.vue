@@ -159,7 +159,7 @@ export default {
         // Fetch initial data
         let res = await filesApi.fetchFiles(fetchSource, fetchPath );
         // If not a directory, fetch content
-        if (res.type != "directory") {
+        if (res.type != "directory" && !res.type.startsWith("image")) {
           const content = !getters.fileViewingDisabled(res.name);
           res = await filesApi.fetchFiles(res.source, res.path, content);
         }

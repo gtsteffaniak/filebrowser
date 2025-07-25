@@ -100,6 +100,26 @@ func withAdminHelper(fn handleFunc) handleFunc {
 	})
 }
 
+// if withUserHelper fails, try without user
+func withOrWithoutUserHelper(fn handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		// Try to authenticate user first
+		status, err := withUserHelper(fn)(w, r, data)
+		// If user authentication succeeded, return the result
+		if err == nil {
+			return status, nil
+		}
+
+		// If user authentication failed, call the handler without user context
+		// Clear any user data that might have been partially set
+		data.user = nil
+		data.token = ""
+
+		// Call the handler function without user context
+		return fn(w, r, data)
+	}
+}
+
 func withoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// This middleware is used when no user authentication is required
@@ -283,6 +303,10 @@ func withAdmin(fn handleFunc) http.HandlerFunc {
 
 func withUser(fn handleFunc) http.HandlerFunc {
 	return wrapHandler(withUserHelper(fn))
+}
+
+func withOrWithoutUser(fn handleFunc) http.HandlerFunc {
+	return wrapHandler(withOrWithoutUserHelper(fn))
 }
 
 func withoutUser(fn handleFunc) http.HandlerFunc {
