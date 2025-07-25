@@ -175,7 +175,8 @@
     "completed": "Завершено",
     "conflictsDetected": "Обнаруженные конфликты",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Неверное имя: не может содержать \"/\" или \"\\\"."
   },
   "search": {
     "images": "Изображения",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Список расширений файлов, для которых нужно отключить предварительный просмотр офисных файлов (например, '.docx .pptx'), разделенный пробелами.",
     "disableOfficeEditorDescription": "Список расширений файлов, для которых необходимо отключить редактор и просмотрщик OnlyOffice, разделенный пробелами. (например, '.txt .html .pdf').",
     "disableOfficeEditor": "Отключение просмотра офисных файлов для определенных расширений файлов",
-    "defaultThemeDescription": "default - Тема по умолчанию"
+    "defaultThemeDescription": "default - Тема по умолчанию",
+    "customTheme": "Выберите тему"
   }
 }

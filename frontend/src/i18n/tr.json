@@ -175,7 +175,8 @@
     "completed": "Tamamlandı",
     "conflictsDetected": "Tespit edilen çatışmalar",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Geçersiz ad sağlandı: \"/\" veya \"\\\" kapsayıcı olamaz"
   },
   "search": {
     "images": "Görseller",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Ofis dosyası önizlemelerinin devre dışı bırakılacağı dosya uzantılarının boşluk bırakılarak ayrılmış listesi (örn. '.docx .pptx').",
     "disableOfficeEditorDescription": "OnlyOffice düzenleyicisini ve görüntüleyicisini devre dışı bırakmak için dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html .pdf').",
     "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
-    "defaultThemeDescription": "default - Varsayılan tema"
+    "defaultThemeDescription": "default - Varsayılan tema",
+    "customTheme": "Temanızı seçin"
   }
 }

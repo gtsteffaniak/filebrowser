@@ -175,7 +175,8 @@
     "completed": "Completado",
     "conflictsDetected": "Conflictos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Nombre no válido proporcionado: no puede contener \"/\" o \"\\\"."
   },
   "search": {
     "images": "Imágenes",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Una lista separada por espacios de las extensiones de archivo para las que se desactivará la vista previa de los archivos de Office (por ejemplo, '.docx .pptx').",
     "disableOfficeEditorDescription": "Una lista separada por espacios de las extensiones de archivo para las que desea desactivar el editor y el visor de OnlyOffice. (por ejemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desactivar el visor de office para determinadas extensiones de archivo",
-    "defaultThemeDescription": "default - El tema por defecto"
+    "defaultThemeDescription": "default - El tema por defecto",
+    "customTheme": "Elija su tema"
   }
 }

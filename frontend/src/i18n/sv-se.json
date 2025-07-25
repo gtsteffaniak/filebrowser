@@ -175,7 +175,8 @@
     "completed": "Färdigställd",
     "conflictsDetected": "Konflikter upptäckta",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\""
   },
   "search": {
     "images": "Bilder",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "En mellanslagsseparerad lista över filtillägg för vilka förhandsgranskningar av Office-filer ska inaktiveras (t.ex. '.docx .pptx').",
     "disableOfficeEditorDescription": "En mellanslagsseparerad lista över filtillägg som OnlyOffice redigerare och visare ska inaktiveras för. (t.ex. '.txt .html .pdf').",
     "disableOfficeEditor": "Avaktivera Office Viewer för vissa filtillägg",
-    "defaultThemeDescription": "default - Standardtema"
+    "defaultThemeDescription": "default - Standardtema",
+    "customTheme": "Välj ditt tema"
   }
 }

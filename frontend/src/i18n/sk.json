@@ -175,7 +175,8 @@
     "completed": "Dokončené",
     "conflictsDetected": "Zistené konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Zadaný neplatný názov: nemôže byť kontajner \"/\" alebo \"\\\""
   },
   "search": {
     "images": "Obrázky",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Zoznam prípon súborov oddelených medzerou, pre ktoré sa majú vypnúť náhľady kancelárskych súborov (napr. \".docx .pptx\").",
     "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má vypnúť editor a prehliadač OnlyOffice. (napr. \".txt .html .pdf\").",
     "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
-    "defaultThemeDescription": "default - Predvolená téma"
+    "defaultThemeDescription": "default - Predvolená téma",
+    "customTheme": "Vyberte si tému"
   }
 }

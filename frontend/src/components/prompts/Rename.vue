@@ -15,7 +15,7 @@
         v-model.trim="name"
       />
       <p v-if="!validateFileName(name) && name.length > 0" class="validation-error">
-        {{ $t("prompts.invalidFileName") }}
+        {{ $t("prompts.invalidName") }}
       </p>
     </div>
 
@@ -101,7 +101,7 @@ export default {
       if (getters.selectedCount() === 0 || getters.selectedCount() > 1) {
         return "";
       }
-      
+
       return state.req.items[this.selected[0]].name;
     },
     async submit() {

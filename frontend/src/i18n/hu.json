@@ -175,7 +175,8 @@
     "completed": "Befejezett",
     "conflictsDetected": "Feltárt konfliktusok",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Érvénytelen név: nem lehet \"/\" vagy \"\\\" konténer"
   },
   "search": {
     "images": "Képek",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Az irodai fájlok előnézetének letiltására szolgáló fájlkiterjesztések szóközzel elválasztott listája (pl. '.docx .pptx').",
     "disableOfficeEditorDescription": "Az OnlyOffice szerkesztő és megjelenítő letiltandó fájlkiterjesztések szóközzel elválasztott listája. (pl. \".txt .html .pdf\").",
     "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
-    "defaultThemeDescription": "default - Az alapértelmezett téma"
+    "defaultThemeDescription": "default - Az alapértelmezett téma",
+    "customTheme": "Válasszon témát"
   }
 }

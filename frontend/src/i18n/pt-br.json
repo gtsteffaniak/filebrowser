@@ -175,7 +175,8 @@
     "completed": "Concluído",
     "conflictsDetected": "Conflitos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\""
   },
   "search": {
     "images": "Imagens",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações de arquivos do Office (por exemplo, '.docx .pptx').",
     "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
-    "defaultThemeDescription": "default - O tema padrão"
+    "defaultThemeDescription": "default - O tema padrão",
+    "customTheme": "Escolha seu tema"
   }
 }

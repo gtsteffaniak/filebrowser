@@ -175,7 +175,8 @@
     "completed": "Zakończono",
     "conflictsDetected": "Wykryte konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Nieprawidłowa nazwa: nie można użyć kontenera \"/\" lub \"\\\""
   },
   "search": {
     "images": "Zdjęcia",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Rozdzielana spacjami lista rozszerzeń plików do wyłączenia podglądu plików biurowych (np. \".docx .pptx\").",
     "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których edytor i przeglądarka OnlyOffice mają zostać wyłączone. (np. \".txt .html .pdf\").",
     "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
-    "defaultThemeDescription": "default - domyślny motyw"
+    "defaultThemeDescription": "default - domyślny motyw",
+    "customTheme": "Wybierz motyw"
   }
 }

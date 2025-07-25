@@ -175,7 +175,8 @@
     "completed": "已完成",
     "conflictsDetected": "检测到冲突",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "提供的名称无效：不能包含\"/\"或\"\\\"。"
   },
   "search": {
     "images": "图像",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "用空格分隔的文件扩展名列表，用于禁用办公文件预览（如\".docx .pptx\"）。",
     "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器。(例如，\".txt .html .pdf\"）。",
     "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器",
-    "defaultThemeDescription": "default - 默认主题"
+    "defaultThemeDescription": "default - 默认主题",
+    "customTheme": "选择主题"
   }
 }

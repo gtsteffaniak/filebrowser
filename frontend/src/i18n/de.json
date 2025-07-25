@@ -175,7 +175,8 @@
     "completed": "Abgeschlossen",
     "conflictsDetected": "Erkannte Widersprüche",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Ungültiger Name angegeben: kann nicht Container \"/\" oder \"\\\""
   },
   "search": {
     "images": "Bilder",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Dateivorschau deaktiviert werden soll (z. B. '.docx .pptx').",
     "disableOfficeEditorDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der Editor und der Viewer von OnlyOffice deaktiviert werden sollen. (z. B. '.txt .html .pdf').",
     "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren",
-    "defaultThemeDescription": "default - Das Standardthema"
+    "defaultThemeDescription": "default - Das Standardthema",
+    "customTheme": "Wählen Sie Ihr Thema"
   }
 }

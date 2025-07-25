@@ -175,7 +175,8 @@
     "completed": "مكتمل",
     "conflictsDetected": "التعارضات المكتشفة",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "الاسم المقدم غير صالح: لا يمكن أن يحتوي على \"/\" أو \"\\\""
   },
   "search": {
     "images": "الصور",
@@ -427,7 +428,8 @@
     "disablePreviewExtDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل معاينات ملفات المكتب (على سبيل المثال، '.docx .pptx').",
     "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل محرر وعارض OnlyOffice لها. (على سبيل المثال، \".txt .html .pdf\").",
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
-    "defaultThemeDescription": "افتراضي - السمة الافتراضية"
+    "defaultThemeDescription": "افتراضي - السمة الافتراضية",
+    "customTheme": "اختر المظهر الخاص بك"
   },
   "colors": {
     "red": "أحمر",

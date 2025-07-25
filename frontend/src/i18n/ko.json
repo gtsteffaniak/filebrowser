@@ -175,7 +175,8 @@
     "completed": "완료",
     "conflictsDetected": "충돌 감지",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "제공된 이름이 잘못되었습니다: \"/\" 또는 \"\\\"를 포함할 수 없습니다."
   },
   "search": {
     "images": "이미지",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "Office 파일 미리 보기를 사용하지 않도록 설정할 파일 확장명 목록(예: '.docx .pptx')을 공백으로 구분하여 표시합니다.",
     "disableOfficeEditorDescription": "OnlyOffice 편집기 및 뷰어를 비활성화할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html .pdf').",
     "disableOfficeEditor": "특정 파일 확장자에 대해 Office 뷰어 사용 안 함",
-    "defaultThemeDescription": "default - 기본 테마"
+    "defaultThemeDescription": "default - 기본 테마",
+    "customTheme": "테마 선택"
   }
 }

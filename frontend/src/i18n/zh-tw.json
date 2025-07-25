@@ -175,7 +175,8 @@
     "deleted": "已成功刪除！",
     "conflictsDetected": "偵測到衝突",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "提供的名稱無效：不能包含 \"/「 或 」\\\" 的容器"
   },
   "search": {
     "images": "影像",
@@ -409,7 +410,8 @@
     "disablePreviewExtDescription": "以空格分隔的檔案副檔名清單，以停用 Office 檔案預覽 (例如 '.docx .pptx')。",
     "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器。(例如，'.txt .html .pdf'）。",
     "disableOfficeEditor": "停用特定檔案副檔名的 Office 檢視器",
-    "defaultThemeDescription": "default - 預設主題"
+    "defaultThemeDescription": "default - 預設主題",
+    "customTheme": "選擇您的主題"
   },
   "otp": {
     "name": "雙因素驗證",

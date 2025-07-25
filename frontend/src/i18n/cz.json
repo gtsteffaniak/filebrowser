@@ -181,7 +181,8 @@
     "completed": "Dokončeno",
     "conflictsDetected": "Zjištěné konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Nesprávný zadaný název: nelze použít kontejner \"/\" nebo \"\\\"."
   },
   "search": {
     "images": "Obrázky",
@@ -244,7 +245,8 @@
     "disablePreviewExtDescription": "Seznam přípon souborů oddělených mezerou, pro které chcete zakázat náhledy kancelářských souborů (např. '.docx .pptx').",
     "disableOfficeEditorDescription": "Seznam přípon souborů oddělených mezerou, pro které se má vypnout editor a prohlížeč OnlyOffice. (např. '.txt .html .pdf').",
     "disableOfficeEditor": "Zakázat editor a prohlížeč Office pro určité přípony souborů a vrátit se k výchozímu prohlížeči/editoru, velmi užitečné pro soubory pdf a txt.",
-    "defaultThemeDescription": "default - Výchozí téma"
+    "defaultThemeDescription": "default - Výchozí téma",
+    "customTheme": "Vyberte si téma"
   },
   "settings": {
     "enterPassword": "Zadejte heslo",

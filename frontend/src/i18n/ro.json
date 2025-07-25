@@ -175,7 +175,8 @@
     "completed": "Completat",
     "conflictsDetected": "Conflicte detectate",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Nume invalid furnizat: nu poate conține \"/\" sau \"\\\""
   },
   "search": {
     "images": "Imagini",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează previzualizările fișierelor office (de exemplu, '.docx .pptx').",
     "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice. (de exemplu, \".txt .html .pdf\").",
     "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
-    "defaultThemeDescription": "default - Tema implicită"
+    "defaultThemeDescription": "default - Tema implicită",
+    "customTheme": "Alege-ți tema"
   }
 }

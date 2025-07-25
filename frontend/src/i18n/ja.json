@@ -175,7 +175,8 @@
     "completed": "完成",
     "conflictsDetected": "コンフリクト検出",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "無効な名前が指定されました：\"/\"または\"˶\"をコンテナに入れることはできません。"
   },
   "search": {
     "images": "画像",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "オフィスファイルのプレビューを無効にするファイル拡張子をスペースで区切ったリスト (例: '.docx .pptx')。",
     "disableOfficeEditorDescription": "OnlyOfficeエディタおよびビューアを無効にするファイル拡張子のスペース区切りリスト。(例: '.txt .html .pdf')。",
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
-    "defaultThemeDescription": "default - デフォルトのテーマ"
+    "defaultThemeDescription": "default - デフォルトのテーマ",
+    "customTheme": "テーマを選ぶ"
   }
 }

@@ -175,7 +175,8 @@
     "completed": "הושלם",
     "conflictsDetected": "סכסוכים שזוהו",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "שם לא חוקי: לא ניתן להכיל \"/\" או \"\\\""
   },
   "search": {
     "images": "תמונות",
@@ -435,6 +436,7 @@
     "disablePreviewExtDescription": "רשימה מופרדת ברווחים של סיומות קבצים שצריך להשבית את תצוגה מקדימה של קבצי Office עבורן (לדוגמה, '.docx .pptx').",
     "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית את עורך ומציג OnlyOffice. (לדוגמה, '.txt .html .pdf').",
     "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות",
-    "defaultThemeDescription": "ברירת מחדל - ערכת הנושא המוגדרת כברירת מחדל"
+    "defaultThemeDescription": "ברירת מחדל - ערכת הנושא המוגדרת כברירת מחדל",
+    "customTheme": "בחר את הנושא שלך"
   }
 }
