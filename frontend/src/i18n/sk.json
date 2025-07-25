@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Kopírovať",
     "copyMessage": "Zvoľte miesto, kde chcete kopírovať súbory:",
-    "currentlyNavigating": "Aktuálna cesta:",
     "deleteMessageMultiple": "Naozaj chcete odstrániť {count} súbor(ov)?",
     "deleteMessageSingle": "Naozaj chcete odstrániť tento súbor/priečinok?",
     "deleteMessageShare": "Naozaj chcete odstrániť toto zdieľanie({path})?",
@@ -165,11 +164,9 @@
     "show": "Zobraziť",
     "size": "Veľkosť",
     "upload": "Nahrať",
-    "uploadMessage": "Zvoľte možnosť nahrávania.",
     "optionalPassword": "Voliteľné heslo",
     "deleteUserMessage": "Ste si istí, že chcete odstrániť tohto používateľa?",
     "filesSelected": "vybrané súbory",
-    "uploadFiles": "Uploading {files} files...",
     "typeName": "Typ:",
     "selected": "vybrané",
     "deleted": "Úspešne vymazané!",
@@ -178,7 +175,8 @@
     "completed": "Dokončené",
     "conflictsDetected": "Zistené konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Zadaný neplatný názov: nemôže byť kontajner \"/\" alebo \"\\\""
   },
   "search": {
     "images": "Obrázky",
@@ -234,12 +232,7 @@
     "passwordUpdated": "Heslo zmenené!",
     "path": "Cesta",
     "permissions": {
-      "create": "Vytvárať súbory a priečinky",
-      "delete": "Odstraňovať súbory a priečinky",
-      "download": "Stiahnuť",
-      "execute": "Vykonávať príkazy",
       "modify": "Upravovať súbory",
-      "rename": "Premenovať a presúvať súbory a priečinky",
       "share": "Zdieľať súbory",
       "admin": "Správca",
       "api": "Vytváranie a správa kľúčov API s dlhou životnosťou",
@@ -275,9 +268,6 @@
     "modifyOtherUser": "Upravte používateľa:",
     "modifyCurrentUser": "Úprava aktuálneho používateľa",
     "themeColor": "Farba témy",
-    "disableOfficePreviewDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má prehliadač OnlyOffice vypnúť. (napr. \".txt .html\").",
-    "disableOfficePreview": "Zakázať prehliadač OnlyOffice pre určité prípony súborov",
-    "filePreviewOptions": "Možnosti náhľadu súborov",
     "listingOptions": "Možnosti uvedenia v zozname",
     "emptyGlobal": "V súčasnosti neexistujú žiadne globálne konfiguračné možnosti, Môžete upraviť konfiguračný yaml upraviť nastavenia systému.",
     "scopes": "Definovanie povolených zdrojov a používateľského rozsahu v rámci nich",
@@ -290,7 +280,6 @@
     "userScopeGenerationPlaceholder": "Rozsah sa vygeneruje automaticky",
     "createUserHomeDirectory": "Vytvorenie domovského adresára používateľa",
     "api": "Kľúče API",
-    "setDateFormat": "Nastavenie presného formátu dátumu",
     "loginMethodDescription": "povolená metóda prihlásenia pre používateľa.",
     "userNotAdmin": "Používateľ nie je správca",
     "enterPassword": "Zadajte heslo",
@@ -446,6 +435,8 @@
     "disablePreviewExt": "Zakázanie náhľadov kancelárskych súborov pre určité prípony súborov",
     "disablePreviewExtDescription": "Zoznam prípon súborov oddelených medzerou, pre ktoré sa majú vypnúť náhľady kancelárskych súborov (napr. \".docx .pptx\").",
     "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má vypnúť editor a prehliadač OnlyOffice. (napr. \".txt .html .pdf\").",
-    "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov"
+    "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
+    "defaultThemeDescription": "default - Predvolená téma",
+    "customTheme": "Vyberte si tému"
   }
 }

@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "複製",
     "copyMessage": "請選擇欲複製至的目錄：",
-    "currentlyNavigating": "目前目錄：",
     "deleteMessageMultiple": "你確定要刪除這 {count} 個檔案嗎?",
     "deleteMessageSingle": "你確定要刪除這個檔案/資料夾嗎?",
     "deleteTitle": "刪除檔案",
@@ -164,7 +163,6 @@
     "show": "顯示",
     "size": "大小",
     "upload": "上傳",
-    "uploadMessage": "選擇上傳項。",
     "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "destinationSource": "目的地來源：",
     "deleteUserMessage": "您確定要刪除此使用者嗎？",
@@ -172,13 +170,13 @@
     "completed": "已完成",
     "selected": "選定",
     "filesSelected": "選取的檔案",
-    "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "選購密碼",
     "typeName": "類型：",
     "deleted": "已成功刪除！",
     "conflictsDetected": "偵測到衝突",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "提供的名稱無效：不能包含 \"/「 或 」\\\" 的容器"
   },
   "search": {
     "images": "影像",
@@ -234,12 +232,7 @@
     "passwordUpdated": "密碼已更新！",
     "path": "路徑",
     "permissions": {
-      "create": "建立檔案和資料夾",
-      "delete": "刪除檔案和資料夾",
-      "download": "下載",
-      "execute": "執行命令",
       "modify": "編輯檔案",
-      "rename": "重命名或移動檔案/資料夾",
       "share": "分享檔案",
       "admin": "管理員",
       "api": "建立與管理長效 API 金鑰",
@@ -416,7 +409,9 @@
     "disablePreviewExt": "停用特定檔案副檔名的 Office 檔案預覽",
     "disablePreviewExtDescription": "以空格分隔的檔案副檔名清單，以停用 Office 檔案預覽 (例如 '.docx .pptx')。",
     "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器。(例如，'.txt .html .pdf'）。",
-    "disableOfficeEditor": "停用特定檔案副檔名的 Office 檢視器"
+    "disableOfficeEditor": "停用特定檔案副檔名的 Office 檢視器",
+    "defaultThemeDescription": "default - 預設主題",
+    "customTheme": "選擇您的主題"
   },
   "otp": {
     "name": "雙因素驗證",

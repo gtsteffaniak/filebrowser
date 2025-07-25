@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Kopieren",
     "copyMessage": "Wählen Sie einen Zielort zum Kopieren:",
-    "currentlyNavigating": "Aktueller Ort:",
     "deleteMessageMultiple": "Sind Sie sicher, dass Sie {count} Datei(en) löschen möchten?",
     "deleteMessageSingle": "Sind Sie sicher, dass Sie diesen Ordner/diese Datei löschen möchten?",
     "deleteMessageShare": "Sind Sie sicher, dass Sie diese Freigabe löschen möchten ({path})?",
@@ -165,8 +164,6 @@
     "show": "Anzeigen",
     "size": "Größe",
     "upload": "Hochladen",
-    "uploadFiles": "Hochladen von {files} Dateien...",
-    "uploadMessage": "Wählen Sie eine Hochladen-Methode",
     "optionalPassword": "Optionales Kennwort",
     "deleteUserMessage": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?",
     "filesSelected": "ausgewählte Dateien",
@@ -178,7 +175,8 @@
     "completed": "Abgeschlossen",
     "conflictsDetected": "Erkannte Widersprüche",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Ungültiger Name angegeben: kann nicht Container \"/\" oder \"\\\""
   },
   "search": {
     "images": "Bilder",
@@ -238,12 +236,7 @@
     "passwordUpdated": "Kennwort aktualisiert!",
     "path": "Pfad",
     "permissions": {
-      "create": "Dateien und Ordner erstellen",
-      "delete": "Dateien und Ordner löschen",
-      "download": "Download",
-      "execute": "Befehle ausführen",
       "modify": "Dateien bearbeiten",
-      "rename": "Umbenennen oder Verschieben von Dateien oder Ordnern",
       "share": "Datei teilen",
       "admin": "Verwalter",
       "api": "Erstellen und Verwalten von API-Schlüsseln mit langer Lebensdauer",
@@ -257,7 +250,6 @@
     "rules": "Regeln",
     "rulesHelp": "Hier können Sie erlaubte und verbotene Aktionen für einen einzelnen Benutzer festlegen. Blockierte Dateien werden nicht gelistet und sind für den Nutzer nicht erreichbar. Reguläre Ausdrücke (Regex) und Pfade relativ zum Benutzerordner werden unterstützt. \n",
     "scope": "Scope",
-    "setDateFormat": "Exaktes Datumsformat setzen",
     "settingsUpdated": "Einstellungen aktualisiert!",
     "shareManagement": "Freigaben verwalten",
     "shareDeleted": "Freigabe gelöscht!",
@@ -280,9 +272,6 @@
     "modifyOtherUser": "Benutzer ändern:",
     "modifyCurrentUser": "Aktuellen Benutzer ändern",
     "themeColor": "Designfarbe",
-    "disableOfficePreviewDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der OnlyOffice-Viewer deaktiviert werden soll. (z. B. '.txt .html').",
-    "disableOfficePreview": "Onlyoffice-Viewer für bestimmte Dateierweiterungen deaktivieren",
-    "filePreviewOptions": "Optionen für die Dateivorschau",
     "listingOptions": "Auflistung der Optionen",
     "emptyGlobal": "Derzeit gibt es keine globalen Konfigurationsoptionen. Sie können die Konfigurations-Yaml bearbeiten, um die Systemeinstellungen anzupassen.",
     "scopes": "Definition der zulässigen Quellen und des Benutzerbereichs innerhalb dieser Quellen",
@@ -446,6 +435,8 @@
     "disablePreviewExt": "Office-Dateivorschau für bestimmte Dateierweiterungen deaktivieren",
     "disablePreviewExtDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die die Office-Dateivorschau deaktiviert werden soll (z. B. '.docx .pptx').",
     "disableOfficeEditorDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der Editor und der Viewer von OnlyOffice deaktiviert werden sollen. (z. B. '.txt .html .pdf').",
-    "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren"
+    "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren",
+    "defaultThemeDescription": "default - Das Standardthema",
+    "customTheme": "Wählen Sie Ihr Thema"
   }
 }

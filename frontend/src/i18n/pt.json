@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Copiar",
     "copyMessage": "Escolha um lugar para onde copiar os ficheiros:",
-    "currentlyNavigating": "A navegar em:",
     "deleteMessageMultiple": "Quer eliminar {count} ficheiro(s)?",
     "deleteMessageSingle": "Quer eliminar esta pasta/ficheiro?",
     "deleteTitle": "Eliminar ficheiros",
@@ -164,12 +163,10 @@
     "show": "Mostrar",
     "size": "Tamanho",
     "upload": "Carregar",
-    "uploadMessage": "Selecione uma opção para carregar.",
     "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "Tem a certeza de que pretende apagar este utilizador?",
     "selected": "selecionado",
     "filesSelected": "ficheiros selecionados",
-    "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Palavra-passe opcional",
     "typeName": "Tipo:",
     "deleted": "Eliminado com êxito!",
@@ -178,7 +175,8 @@
     "completed": "Concluído",
     "conflictsDetected": "Conflitos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\""
   },
   "search": {
     "images": "Imagens",
@@ -234,12 +232,7 @@
     "passwordUpdated": "Palavra-passe atualizada!",
     "path": "Caminho",
     "permissions": {
-      "create": "Criar ficheiros e pastas",
-      "delete": "Eliminar ficheiros e pastas",
-      "download": "Descarregar",
-      "execute": "Executar comandos",
       "modify": "Editar ficheiros",
-      "rename": "Alterar o nome ou mover ficheiros e pastas",
       "share": "Partilhar ficheiros",
       "admin": "Administrador",
       "api": "Criar e gerir chaves de API de longa duração",
@@ -442,6 +435,8 @@
     "disablePreviewExt": "Desativar as pré-visualizações de ficheiros do Office para determinadas extensões de ficheiros",
     "disablePreviewExtDescription": "Uma lista de extensões de ficheiros, separada por espaços, para desativar as pré-visualizações de ficheiros do Office (por exemplo, '.docx .pptx').",
     "disableOfficeEditorDescription": "Uma lista de extensões de ficheiros separada por espaços para desativar o editor e visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
-    "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de ficheiros"
+    "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de ficheiros",
+    "defaultThemeDescription": "default - O tema predefinido",
+    "customTheme": "Escolha o seu tema"
   }
 }

@@ -43,7 +43,7 @@
       <div class="settings-items">
         <ToggleSwitch class="item" v-model="user.otpEnabled" :name="$t('otp.name')" />
       </div>
-      <button class="button" type="button" v-if="user.otpEnabled" :onclick="newOTP">
+      <button class="button" type="button" v-if="user.otpEnabled" :onclick="newOTP" aria-label="Generate Code">
         {{ $t("buttons.generateNewOtp") }}
       </button>
     </div>

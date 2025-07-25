@@ -37,9 +37,6 @@ func validateUserInfo() {
 		if updateLoginType(user) {
 			updateUser = true
 		}
-		if updateUserDefaults(user) {
-			updateUser = true
-		}
 		adminUser := settings.Config.Auth.AdminUsername
 		adminPass := settings.Config.Auth.AdminPassword
 		passwordEnabled := settings.Config.Auth.Methods.PasswordAuth.Enabled
@@ -66,17 +63,9 @@ func validateUserInfo() {
 	}
 }
 
-func updateUserDefaults(user *users.User) bool {
-	if user.DisableOfficePreviewExt != "" && user.DisablePreviewExt == "" {
-		user.DisablePreviewExt = user.DisableOfficePreviewExt
-		return true
-	}
-	return false
-}
-
 func updateUserScopes(user *users.User) bool {
 	newScopes := []users.SourceScope{}
-	seen := make(map[string]bool)
+	seen := make(map[string]struct{})
 
 	// Build map for existing scopes by Name
 	existing := make(map[string]users.SourceScope)
@@ -106,12 +95,12 @@ func updateUserScopes(user *users.User) bool {
 			Name:  realsource.Path,
 			Scope: existingScope.Scope,
 		})
-		seen[realsource.Path] = true
+		seen[realsource.Path] = struct{}{}
 	}
 
 	// Preserve user-defined scopes not matching current sources, append to end
 	for _, s := range user.Scopes {
-		if !seen[s.Name] {
+		if _, ok := seen[s.Name]; !ok {
 			newScopes = append(newScopes, s)
 		}
 	}

@@ -59,6 +59,29 @@
   </script>
 
   <style>
+    /* Basic Styles */
+    :root {
+      --background: {{ .LightBackground }};
+      --alt-background: #ddd;
+      --surfacePrimary: gray;
+      --surfaceSecondary: lightgray;
+      --textPrimary: #546e7a;
+      --textSecondary: gray;
+      --iconBackground: #dddddd;
+      --activeWhiteIcon: gray;
+    }
+    .dark-mode {
+      --background: {{ .DarkBackground }};
+      --alt-background: #283136;
+      --surfacePrimary: #20292F;
+      --surfaceSecondary: #3A4147;
+      --divider: rgba(255, 255, 255, 0.12);
+      --textPrimary: rgba(255, 255, 255, 0.87);
+      --textSecondary: rgba(255, 255, 255, 0.6);
+      --iconBackground: #1e1f20;
+      --activeWhiteIcon: white;
+    }
+
     #loading {
       position: fixed;
       top: 0;
@@ -132,6 +155,8 @@
         transform: scale(1.0);
       }
     }
+    {{ .CustomCSS }}
+    {{ .userSelectedTheme }}
   </style>
 </head>
 
@@ -157,9 +182,6 @@
   {{end}}
   <script type="module" src="/src/main.ts"></script>
 
-  {{ if .CSS }}
-  <link rel="stylesheet" href="{{ .StaticURL }}/custom.css">
-  {{ end }}
 </body>
 
 </html>

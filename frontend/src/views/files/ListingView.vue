@@ -50,7 +50,7 @@
         class="file-icons"
       >
         <div>
-          <div class="header" :class="{ 'dark-mode-item-header': isDarkMode }">
+          <div class="header card" :class="{ 'dark-mode-item-header': isDarkMode }">
             <p
               :class="{ active: nameSorted }"
               class="name"
@@ -818,7 +818,7 @@ export default {
       if (state.user.viewMode == "gallery") {
         document.documentElement.style.setProperty(
           "--item-height",
-          `calc(${this.columnWidth / 25}em)`
+          `calc(${this.columnWidth / 20}em)`
         );
       } else {
         document.documentElement.style.setProperty("--item-height", `auto`);
@@ -959,7 +959,6 @@ export default {
 
 #listingView.dropping {
   transform: scale(0.97);
-  border-radius: 1em;
   box-shadow: var(--primaryColor) 0 0 1em;
 }
 

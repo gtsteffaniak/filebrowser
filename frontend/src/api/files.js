@@ -147,14 +147,12 @@ export function post(
       }
     });
 
-    return { xhr: request, promise };
+    promise.xhr = request;
+    return promise;
   } catch (err) {
     notify.showError(err.message || "Error posting resource");
     // We are returning a promise, so we should return a rejected promise on error.
-    return {
-      xhr: null,
-      promise: Promise.reject(err),
-    };
+    return Promise.reject(err);
   }
 }
 

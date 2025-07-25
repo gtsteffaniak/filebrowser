@@ -8,7 +8,7 @@
         <h3>{{ loginName }}</h3>
       </div>
       <div v-if="passwordAvailable" class="password-entry">
-        <div v-if="error !== ''" class="wrong-login">{{ error }}</div>
+        <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
         <input
           autofocus
           class="input input--block"

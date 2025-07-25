@@ -1,5 +1,5 @@
 <template>
-  <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove="touchMove" @dblclick="zoomAuto"
+  <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd" @dblclick="zoomAuto"
     @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
     <div v-if="!isLoaded">{{ $t('files.loading') }}</div>
 
@@ -46,6 +46,18 @@ export default {
       maxScale: 4,
       minScale: 0.25,
       isTiff: false, // Determine if the image is a TIFF
+      // Swipe navigation properties
+      swipeStartTime: null,
+      swipeStartX: 0,
+      swipeStartY: 0,
+      swipeCurrentX: 0,
+      swipeCurrentY: 0,
+      isSwipeGesture: false,
+      hasStartedSwipe: false,
+      gestureDecided: false, // Track if we've made a decision about this gesture
+      swipeMinDistance: 150, // Minimum horizontal distance for swipe
+      swipeMaxTime: 500, // Maximum time for swipe in milliseconds
+      swipeMaxVerticalDistance: 50, // Maximum vertical movement to still be considered horizontal swipe
     };
   },
   mounted() {
@@ -90,6 +102,7 @@ export default {
       this.scale = 1; // Reset zoom level
       this.position.relative = { x: 0, y: 0 }; // Reset position
       this.showSpinner = true; // Show spinner while loading
+      this.resetSwipeTracking(); // Reset swipe tracking for new image
     },
   },
   methods: {
@@ -164,6 +177,24 @@ export default {
       this.lastX = null;
       this.lastY = null;
       this.lastTouchDistance = null;
+
+      // Initialize swipe tracking for single touch
+      if (event.targetTouches.length === 1) {
+        const touch = event.targetTouches[0];
+        this.swipeStartTime = Date.now();
+        this.swipeStartX = touch.pageX;
+        this.swipeStartY = touch.pageY;
+        this.swipeCurrentX = touch.pageX;
+        this.swipeCurrentY = touch.pageY;
+        this.isSwipeGesture = false;
+        this.hasStartedSwipe = false;
+        this.gestureDecided = false; // Reset decision for new touch
+
+      } else {
+        // Reset swipe tracking for multi-touch (zoom gestures)
+        this.resetSwipeTracking();
+      }
+
       if (event.targetTouches.length < 2) {
         setTimeout(() => {
           this.touches = 0;
@@ -194,6 +225,39 @@ export default {
     },
     touchMove(event) {
       event.preventDefault();
+
+      // Update current swipe position for single touch
+      if (event.targetTouches.length === 1) {
+        const touch = event.targetTouches[0];
+        this.swipeCurrentX = touch.pageX;
+        this.swipeCurrentY = touch.pageY;
+
+        // Only make gesture decision once per touch sequence
+        if (!this.gestureDecided) {
+          const deltaX = Math.abs(this.swipeCurrentX - this.swipeStartX);
+          const deltaY = Math.abs(this.swipeCurrentY - this.swipeStartY);
+          
+          // Only decide after some meaningful movement
+          if (deltaX > 10 || deltaY > 10) {
+            this.gestureDecided = true; // Mark that we've made a decision
+            
+            if (deltaX > deltaY * 2) { 
+              // Horizontal movement is significantly more than vertical - it's a swipe
+              this.isSwipeGesture = true;
+            } else {
+              // Not horizontal enough - it's a pan gesture
+              this.isSwipeGesture = false;
+            }
+          }
+        }
+
+        // If we've decided it's a swipe gesture, don't do normal panning
+        if (this.gestureDecided && this.isSwipeGesture) {
+          return; // Block normal pan behavior for swipes
+        }
+      }
+
+      // Normal touch move logic for pan/zoom (only runs if not a swipe gesture)
       if (this.lastX === null) {
         this.lastX = event.targetTouches[0].pageX;
         this.lastY = event.targetTouches[0].pageY;
@@ -249,6 +313,44 @@ export default {
     },
     pxStringToNumber(style) {
       return +style.replace("px", "");
+    },
+    touchEnd(event) {
+      event.preventDefault();
+
+      // Only process swipe if it was a single touch and we detected a swipe gesture
+      if (this.isSwipeGesture && this.swipeStartTime) {
+        const swipeEndTime = Date.now();
+        const swipeDuration = swipeEndTime - this.swipeStartTime;
+        const deltaX = this.swipeCurrentX - this.swipeStartX;
+        const deltaY = Math.abs(this.swipeCurrentY - this.swipeStartY);
+        const absDelataX = Math.abs(deltaX);
+
+        // Check if swipe meets criteria: fast, horizontal, and long enough
+        if (
+          swipeDuration <= this.swipeMaxTime &&
+          absDelataX >= this.swipeMinDistance &&
+          deltaY <= this.swipeMaxVerticalDistance
+        ) {
+          if (deltaX > 0) {
+            this.$emit('navigate-previous');
+          } else {
+            this.$emit('navigate-next');
+          }
+        }
+      }
+      
+      // Reset swipe tracking
+      this.resetSwipeTracking();
+    },
+    resetSwipeTracking() {
+      this.swipeStartTime = null;
+      this.swipeStartX = 0;
+      this.swipeStartY = 0;
+      this.swipeCurrentX = 0;
+      this.swipeCurrentY = 0;
+      this.isSwipeGesture = false;
+      this.hasStartedSwipe = false;
+      this.gestureDecided = false; // Reset decision state
     },
   },
 };

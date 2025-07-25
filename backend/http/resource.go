@@ -25,6 +25,35 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+// validateMoveOperation checks if a move/rename operation is valid at the HTTP level
+// It prevents moving a directory into itself or its subdirectories
+func validateMoveOperation(src, dst string, isSrcDir bool) error {
+	// Clean and normalize paths
+	src = filepath.Clean(src)
+	dst = filepath.Clean(dst)
+
+	// If source is a directory, check if destination is within source
+	if isSrcDir {
+		// Get the parent directory of the destination
+		dstParent := filepath.Dir(dst)
+
+		// Check if destination parent is the source directory or a subdirectory of it
+		if strings.HasPrefix(dstParent+string(filepath.Separator), src+string(filepath.Separator)) || dstParent == src {
+			return fmt.Errorf("cannot move directory '%s' to a location within itself: '%s'", src, dst)
+		}
+	}
+
+	// Check if destination parent directory exists
+	dstParent := filepath.Dir(dst)
+	if dstParent != "." && dstParent != "/" {
+		if _, err := os.Stat(dstParent); os.IsNotExist(err) {
+			return fmt.Errorf("destination directory does not exist: '%s'", dstParent)
+		}
+	}
+
+	return nil
+}
+
 // resourceGetHandler retrieves information about a resource.
 // @Summary Get resource information
 // @Description Returns metadata and optionally file contents for a specified resource path.
@@ -455,6 +484,14 @@ func resourcePatchHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if overwrite && !d.user.Permissions.Modify {
 		return http.StatusForbidden, fmt.Errorf("forbidden: user does not have permission to overwrite file")
 	}
+
+	// Validate move/rename operation to prevent circular references
+	if action == "rename" || action == "move" {
+		if err = validateMoveOperation(realSrc, realDest, isSrcDir); err != nil {
+			return http.StatusBadRequest, err
+		}
+	}
+
 	err = patchAction(r.Context(), patchActionParams{
 		action:   action,
 		srcIndex: srcIndex,

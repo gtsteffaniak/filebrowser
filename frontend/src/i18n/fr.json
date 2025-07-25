@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Copier",
     "copyMessage": "Choisissez l'emplacement où copier la sélection :",
-    "currentlyNavigating": "Dossier courant :",
     "deleteMessageMultiple": "Êtes-vous sûr de vouloir supprimer ces {count} élément(s) ?",
     "deleteMessageSingle": "Êtes-vous sûr de vouloir supprimer cet élément ?",
     "deleteMessageShare": "Êtes-vous sûr de vouloir supprimer ce partage ({path}) ?",
@@ -165,8 +164,6 @@
     "show": "Montrer",
     "size": "Taille",
     "upload": "Importer",
-    "uploadFiles": "Importation de {files} fichiers...",
-    "uploadMessage": "Sélectionnez une option d'import.",
     "optionalPassword": "Mot de passe optionnel",
     "deleteUserMessage": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
     "filesSelected": "fichiers sélectionnés",
@@ -178,7 +175,8 @@
     "completed": "Terminé",
     "conflictsDetected": "Conflits détectés",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Nom invalide fourni : ne peut contenir \"/\" ou \"\\\"."
   },
   "search": {
     "images": "Images",
@@ -235,12 +233,7 @@
     "passwordUpdated": "Mot de passe mis à jour !",
     "path": "Chemin",
     "permissions": {
-      "create": "Créer des fichiers et des dossiers",
-      "delete": "Supprimer des fichiers et des dossiers",
-      "download": "Télécharger",
-      "execute": "Exécuter des commandes",
       "modify": "Modifier des fichiers",
-      "rename": "Renommer ou déplacer des fichiers ou des dossiers",
       "share": "Partager des fichiers",
       "admin": "Administrateur",
       "api": "Créer et gérer des clés API à longue durée de vie",
@@ -254,7 +247,6 @@
     "rules": "Règles",
     "rulesHelp": "Vous pouvez définir ici un ensemble de règles pour cet utilisateur. Les fichiers bloqués ne seront pas affichés et ne seront pas accessibles par l'utilisateur. Les expressions régulières sont supportées et les chemins d'accès sont relatifs par rapport au dossier de l'utilisateur.\n",
     "scope": "Portée du dossier utilisateur",
-    "setDateFormat": "Définir le format de la date",
     "settingsUpdated": "Les paramètres ont été mis à jour !",
     "shareManagement": "Gestion des partages",
     "shareDeleted": "Partage supprimé !",
@@ -277,9 +269,6 @@
     "modifyOtherUser": "Modifier l'utilisateur :",
     "modifyCurrentUser": "Modifier l'utilisateur actuel",
     "themeColor": "Couleur du thème",
-    "disableOfficePreviewDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles le visualisateur OnlyOffice doit être désactivé. (par exemple, '.txt .html').",
-    "disableOfficePreview": "Désactiver la visionneuse d'Office pour certaines extensions de fichiers",
-    "filePreviewOptions": "Options de prévisualisation des fichiers",
     "listingOptions": "Options d'inscription",
     "emptyGlobal": "Actuellement, il n'y a pas d'options de configuration globale. Vous pouvez éditer le fichier de configuration yaml pour ajuster les paramètres du système.",
     "UserManagement": "Gestion des utilisateurs",
@@ -446,6 +435,8 @@
     "disablePreviewExt": "Désactiver les aperçus de fichiers Office pour certaines extensions de fichiers",
     "disablePreviewExtDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles les aperçus de fichiers Office doivent être désactivés (par exemple, '.docx .pptx').",
     "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles l'éditeur et la visionneuse OnlyOffice doivent être désactivés. (par exemple, '.txt .html .pdf').",
-    "disableOfficeEditor": "Désactiver la visionneuse d'office pour certaines extensions de fichiers"
+    "disableOfficeEditor": "Désactiver la visionneuse d'office pour certaines extensions de fichiers",
+    "defaultThemeDescription": "default - Le thème par défaut",
+    "customTheme": "Choisissez votre thème"
   }
 }

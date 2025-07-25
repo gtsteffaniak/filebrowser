@@ -10,8 +10,8 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-const PermFile = 0640
-const PermDir = 0750
+const PermFile = 0644
+const PermDir = 0755
 
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst point to different volumes,

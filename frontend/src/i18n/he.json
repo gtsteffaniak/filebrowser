@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "העתק",
     "copyMessage": "בחר לאן להעתיק את הקבצים:",
-    "currentlyNavigating": "כרגע מנווט ב:",
     "deleteMessageMultiple": "האם אתה בטוח שברצונך למחוק {count} קבצים?",
     "deleteMessageSingle": "האם אתה בטוח שברצונך למחוק את הקובץ או התקייה?",
     "deleteMessageShare": "האם אתה בטוח שברצונך למחוק את השיתוף הזה?({path})?",
@@ -165,8 +164,6 @@
     "show": "הצג",
     "size": "גודל",
     "upload": "העלאה",
-    "uploadFiles": "מעלה {files} קבצים...",
-    "uploadMessage": "בחר אפשרות העלאה.",
     "optionalPassword": "סיסמא אופציונלית",
     "deleteUserMessage": "האם אתה בטוח שברצונך למחוק משתמש זה?",
     "selected": "נבחר",
@@ -178,7 +175,8 @@
     "completed": "הושלם",
     "conflictsDetected": "סכסוכים שזוהו",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "שם לא חוקי: לא ניתן להכיל \"/\" או \"\\\""
   },
   "search": {
     "images": "תמונות",
@@ -236,12 +234,7 @@
     "passwordUpdated": "הסיסמא עודכנה!",
     "path": "נתיב",
     "permissions": {
-      "create": "יצירת קבצים ותקיות",
-      "delete": "מחיקת קבצים ותקיות",
-      "download": "הורדת קבצים ותקיות",
-      "execute": "ביצוע פקודות",
       "modify": "עריכת קבצים קבצים",
-      "rename": "שינוי שם או העברת קבצים ותקיות",
       "share": "שיתוף קבצים",
       "admin": "מנהל",
       "api": "יצירת מפתחות API ארוכי טווח וניהולם",
@@ -255,7 +248,6 @@
     "rules": "חוקים",
     "rulesHelp": "כאן אתה יכול להגדיר רשימה של כללים למשתמש ספציפי, רשימה שחורה ולבנה. הקבצים החסומים לא יופיעו ברשימת הקבצים ולא יהיו נגישים למשתמש. יש תמיכה בנתיבים (ביחס לתקייה הראשית של המשתמש), וגם בביטוי רגולרי.\n",
     "scope": "תחום",
-    "setDateFormat": "הגדר פורמט תאריך",
     "settingsUpdated": "ההגדרות עודכנו!",
     "shareManagement": "ניהול שיתוף",
     "shareDeleted": "שיתוף נמחק!",
@@ -443,6 +435,8 @@
     "disablePreviewExt": "השבת תצוגה מקדימה של קבצי Office עבור סיומות קבצים מסוימות",
     "disablePreviewExtDescription": "רשימה מופרדת ברווחים של סיומות קבצים שצריך להשבית את תצוגה מקדימה של קבצי Office עבורן (לדוגמה, '.docx .pptx').",
     "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית את עורך ומציג OnlyOffice. (לדוגמה, '.txt .html .pdf').",
-    "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות"
+    "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות",
+    "defaultThemeDescription": "ברירת מחדל - ערכת הנושא המוגדרת כברירת מחדל",
+    "customTheme": "בחר את הנושא שלך"
   }
 }

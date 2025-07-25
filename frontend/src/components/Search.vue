@@ -754,8 +754,8 @@ body.rtl #search #result ul > * {
   border-color: black;
   border-style: solid;
   border-bottom-style: none;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 
 /* Search Input Placeholder */
