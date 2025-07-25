@@ -9,13 +9,16 @@ See an example of custom css styling that uses the reduce-rounded-corners.css by
 ```
 frontend:
   styling:
-    lightBackground: "#f0f0f0"
+    lightBackground: "#f0f0f0"   # or names of css colors
     darkBackground: "#121212"
-    customCSS: "custom.css" # default always applies for all users
+    customCSS: "custom.css"  # customCSS always ao
     customThemes:
-      "alternative theme":
+      "alternative":
         description: "Reduce rounded corners"
-        css: "reduce-rounded-corners.css"
+        css: "reduce-rounded-corners.css" # path to css file to use
+      "default":  # if "default" is specified as the name, it will be the default option
+        description: "default theme"
+        css: ""  # you could default to no styling changes this way.
 ```
 
  **New Features**:
