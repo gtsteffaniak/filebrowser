@@ -11,7 +11,7 @@ frontend:
   styling:
     lightBackground: "#f0f0f0"   # or names of css colors
     darkBackground: "#121212"
-    customCSS: "custom.css"  # customCSS always ao
+    customCSS: "custom.css"  # custom css file always applies first, then user themes on top of that.
     customThemes:
       "default": # if "default" is specified as the name, it will be the default option
         description: "Reduce rounded corners"
