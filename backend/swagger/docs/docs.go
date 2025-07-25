@@ -2543,10 +2543,6 @@ const docTemplate = `{
         "settings.StylingConfig": {
             "type": "object",
             "properties": {
-                "allowUserSelectTheme": {
-                    "description": "allow users to select a custom theme from the list of custom themes.",
-                    "type": "boolean"
-                },
                 "customCSS": {
                     "description": "if a valid path to a css file is provided, it will be applied on startup. (eg. \"reduce-rounded-corners.css\")",
                     "type": "string"
