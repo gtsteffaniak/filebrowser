@@ -61,7 +61,7 @@
   <style>
     /* Basic Styles */
     :root {
-      --background: white;
+      --background: {{ .LightBackground }};
       --alt-background: #ddd;
       --surfacePrimary: gray;
       --surfaceSecondary: lightgray;
@@ -80,9 +80,6 @@
       --textSecondary: rgba(255, 255, 255, 0.6);
       --iconBackground: #1e1f20;
       --activeWhiteIcon: white;
-    }
-    body {
-      background-color: {{ .LightBackground }};
     }
 
     #loading {
