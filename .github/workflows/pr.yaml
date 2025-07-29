@@ -20,7 +20,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.base
+          file: ./_docker/Dockerfile.primecache
           push: false
           cache-to: type=gha,mode=max
   build_frontend:
