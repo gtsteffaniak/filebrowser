@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file. For commit 
  **BugFixes**:
  - fix lightBackground issue (#1021)
  - fix user save issues (#1020, #1027)
+ - fix image preview cache issue (#989)
+ - fix file/folder count issue (#989)
 
 ## v0.7.17-beta
 

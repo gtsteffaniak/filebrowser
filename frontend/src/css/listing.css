@@ -141,11 +141,9 @@ body.rtl #listingView {
 
 #listingView.gallery .item .text {
   text-shadow: 0 0 2px white;
-  position: absolute;
-  transform: translate(0, 5.5em);
-  text-shadow: 0 0 2px white;
   pointer-events: none;
   font-weight: bold;
+  margin-top: -1em;
 }
 
 #listingView.gallery .item .text .name {
@@ -164,8 +162,6 @@ body.rtl #listingView {
 
 #listingView.gallery .item span {
   display: flex;
-  height: 100%;
-  width: 100%;
 }
 
 

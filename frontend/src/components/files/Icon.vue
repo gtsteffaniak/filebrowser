@@ -2,7 +2,8 @@
   <span
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
-    v-if="isPreviewImg && imageState !== 'error' && !disablePreviewExt && !officeFileDisabled"
+    v-if="hasPreviewImage"
+    :class="{ 'image-preview': hasPreviewImage }"
   >
     <i
       v-if="hasMotion"
@@ -69,6 +70,9 @@ export default {
     };
   },
   computed: {
+    hasPreviewImage() {
+      return this.isPreviewImg && this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled 
+    },
     disablePreviewExt() {
       const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
       // @ts-ignore
@@ -406,5 +410,10 @@ export default {
 .simple-icons {
   color: white;
   font-size: 1.5em !important;
+}
+
+.image-preview {
+  height: 100%;
+  width: 100%;
 }
 </style>
