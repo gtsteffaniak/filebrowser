@@ -55,7 +55,6 @@ async function globalSetup() {
     localStorage.setItem('shareHashFile', hash);
   }, shareHashFile);
 
-
   await context.storageState({ path: "./loginAuth.json" });
   await browser.close();
 }
