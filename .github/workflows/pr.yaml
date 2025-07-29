@@ -34,7 +34,7 @@ jobs:
           go-version: 'stable'
       - name: Build backend
         working-directory: backend
-        run: FILEBROWSER_NO_EMBEDED=true go build -o filebrowser .
+        run: go build -o filebrowser .
       - name: Upload backend build artifact
         uses: actions/upload-artifact@v4
         with:
