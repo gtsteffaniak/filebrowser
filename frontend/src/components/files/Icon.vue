@@ -1,7 +1,7 @@
 <template>
   <span
-    @mouseenter="handleMouseEnter($event)"
-    @mouseleave="handleMouseLeave($event)"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
     v-if="isPreviewImg && imageState !== 'error' && !disablePreviewExt && !officeFileDisabled"
   >
     <i
@@ -63,29 +63,27 @@ export default {
       previewTimeouts: [],
       // UPDATED: Manage image state directly
       imageState: "loading", // Can be 'loading', 'loaded', or 'error'
+      imageTargetSrc: "", // This is now a data property
+      currentThumbnail: "", // Add currentThumbnail to data
+      color: "", // Add color to data
     };
   },
   computed: {
     disablePreviewExt() {
-      const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
-      return state.user.disablePreviewExt?.includes(ext);
+      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
+      // @ts-ignore
+      return state.user?.disablePreviewExt?.includes(ext);
     },
     officeFileDisabled() {
-      const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
-      return state.user.disablePreviewExt?.includes(ext);
-    },
-    imageTargetSrc() {
-      if (this.showLargeIcon) {
-        // Use the large version of the thumbnail if available
-        return this.thumbnailUrl + "&size=large" || PLACEHOLDER_URL;
-      }
-      return this.thumbnailUrl || PLACEHOLDER_URL;
+      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
+      // @ts-ignore
+      return state.user?.disablePreviewExt?.includes(ext);
     },
     pdfConvertable() {
       if (!muPdfAvailable) {
         return false; // If muPDF is not available
       }
-      const ext = "." + this.filename.split(".").pop().toLowerCase(); // Ensure lowercase and dot
+      const ext = "." + (this.filename.split(".").pop() || "").toLowerCase(); // Ensure lowercase and dot
       const pdfConvertCompatibleFileExtensions = {
         ".pdf": true,
         ".xps": true,
@@ -102,7 +100,7 @@ export default {
         ".hwpx": true,
         ".md": true,
       };
-      return (!!pdfConvertCompatibleFileExtensions[ext]);
+      return ext in pdfConvertCompatibleFileExtensions;
     },
     // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
@@ -110,7 +108,7 @@ export default {
         return ERROR_URL;
       }
       // Show placeholder only for the initial load, not during hover animations
-      if (this.imageState === "loading" && this.imageTargetSrc === this.thumbnailUrl) {
+      if (this.imageState === "loading") {
         return PLACEHOLDER_URL;
       }
       return this.imageTargetSrc;
@@ -126,6 +124,7 @@ export default {
         this.getIconForType().simpleType === "video" &&
         state.user.preview?.video &&
         mediaAvailable &&
+        // @ts-ignore
         state.user.preview.motionVideoPreview
       );
     },
@@ -139,6 +138,7 @@ export default {
       if (this.mimetype == "text/csv") {
         return false;
       }
+      // @ts-ignore
       if (this.pdfConvertable && state.user.preview?.office) {
         return true;
       }
@@ -154,6 +154,7 @@ export default {
       }
       if (
         this.getIconForType().simpleType === "document" &&
+        // @ts-ignore
         state.user.preview?.office &&
         onlyOfficeUrl != ""
       ) {
@@ -164,6 +165,9 @@ export default {
   },
   methods: {
     // NEW: Centralized method to load any image and handle its state
+    /**
+     * @param {string} url
+     */
     loadImage(url) {
       if (!url) {
         this.imageState = "error";
@@ -194,6 +198,7 @@ export default {
       if (this.imageState == "loaded") {
         mutations.setPreviewSource(imageUrl);
       }
+      // @ts-ignore
       if (!state.user.preview.motionVideoPreview || !this.hasMotion) {
         return;
       }
@@ -227,6 +232,7 @@ export default {
         // Schedule next update
         index = nextIndex;
         const timeoutId = setTimeout(updateThumbnail, 750);
+        // @ts-ignore
         this.previewTimeouts.push(timeoutId);
       };
       updateThumbnail();
@@ -236,13 +242,28 @@ export default {
       this.previewTimeouts = [];
       mutations.setPreviewSource("");
       // UPDATED: Reset to the base thumbnail URL. The watcher will handle reloading it.
-      this.imageTargetSrc = this.thumbnailUrl;
+      this.updateImageTargetSrc();
     },
     getIconForType() {
       return getTypeInfo(this.mimetype);
     },
+    updateImageTargetSrc() {
+      let newSrc = this.thumbnailUrl || PLACEHOLDER_URL;
+      if (this.showLargeIcon) {
+        newSrc = (this.thumbnailUrl ? this.thumbnailUrl + "&size=large" : "") || PLACEHOLDER_URL;
+      }
+      if (this.imageTargetSrc !== newSrc) {
+        this.imageTargetSrc = newSrc;
+      }
+    },
   },
   watch: {
+    thumbnailUrl() {
+      this.updateImageTargetSrc();
+    },
+    showLargeIcon() {
+      this.updateImageTargetSrc();
+    },
     // UPDATED: Added a check for isPreviewImg
     imageTargetSrc: {
       handler(newSrc) {
@@ -257,9 +278,12 @@ export default {
   mounted() {
     const result = this.getIconForType();
     this.classes = result.classes || "material-icons";
+    // @ts-ignore
     this.color = result.color || "lightgray";
     this.materialIcon = result.materialIcon || "";
+    // @ts-ignore
     this.svgPath = result.svgPath || "";
+    this.updateImageTargetSrc();
   },
 };
 </script>
