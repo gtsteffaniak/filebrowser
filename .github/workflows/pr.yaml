@@ -20,7 +20,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.primecache
+          file: ./_docker/Dockerfile.base
           push: false
           cache-to: type=gha,mode=max
   build_frontend:
@@ -39,14 +39,11 @@ jobs:
           name: frontend-dist
           path: frontend/dist
   build_backend:
-    needs: build_frontend
     name: Build backend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - working-directory: frontend
-        run: npm i && npm run build
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
@@ -59,7 +56,7 @@ jobs:
           name: filebrowser
           path: backend/filebrowser
   test_playwright:
-    needs: [build_backend, prime-docker-cache]
+    needs: [build_backend, build_frontend, prime-docker-cache]
     name: Test Playwright - ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
