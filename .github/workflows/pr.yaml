@@ -9,20 +9,22 @@ on:
       - "stable/v*.*.*"
 jobs:
   prime_docker_cache:
-    name: Prime Docker Cache
+    name: Prime docker cache
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Build and cache
+      - name: Prime Cache
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.primecache
+          file: _docker/Dockerfile.primecache
           push: false
-          cache-to: type=gha,mode=max,scope=playwright-base-image
+          load: false
+          cache-to: |
+            type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
   build_frontend:
     name: Build frontend
     runs-on: ubuntu-latest
@@ -91,14 +93,19 @@ jobs:
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.0.0
-      - name: Build
+      - name: Build and Test
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           push: false
-          cache-from: type=gha,scope=playwright-base-image
-          cache-to: type=gha,mode=max,scope=playwright-base-image
+          load: true
+          cache-from: |
+            type=gha,scope=${{ github.ref_name }}-playwright-base
+            type=gha,scope=main-playwright-base
+          cache-to: |
+            type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
   push_pr_to_registry:
     if: github.event.pull_request.head.repo.fork == false
     name: Build docker image
