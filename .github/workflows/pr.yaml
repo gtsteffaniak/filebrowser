@@ -8,77 +8,69 @@ on:
       - "beta/v*.*.*"
       - "stable/v*.*.*"
 jobs:
+  build:
+    name: Build assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - name: Build frontend
+        working-directory: frontend
+        run: npm i && npm run build
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - name: Build backend
+        working-directory: backend
+        run: go build -o filebrowser .
+      - name: Upload backend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-binary
+          path: backend/filebrowser
   test_playwright:
-    name: Test Playwright - general
+    needs: build
+    name: Test Playwright - ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: general
+            dockerfile: ./_docker/Dockerfile.playwright-general
+          - name: proxy
+            dockerfile: ./_docker/Dockerfile.playwright-proxy
+          - name: noauth
+            dockerfile: ./_docker/Dockerfile.playwright-noauth
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+      - name: Download backend build
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-binary
+          path: backend/
+      - name: Make backend executable
+        run: chmod +x backend/filebrowser
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.0.0
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i && npm run build
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go build -o filebrowser .
       - name: Build
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.playwright-general
-          push: false
-  test_playwright_proxy:
-    name: Test Playwright - proxy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i && npm run build
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go build -o filebrowser .
-      - name: Build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./_docker/Dockerfile.playwright-proxy
-          push: false
-  test_playwright_noauth:
-    name: Test Playwright - noauth
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i && npm run build
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go build -o filebrowser .
-      - name: Build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./_docker/Dockerfile.playwright-noauth
+          file: ${{ matrix.dockerfile }}
           push: false
   push_pr_to_registry:
     if: github.event.pull_request.head.repo.fork == false
