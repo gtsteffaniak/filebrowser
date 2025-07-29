@@ -11,7 +11,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   globalSetup: "./tests-playwright/noauth-setup",
-  timeout: 5000,
+  timeout: 3000,
   testDir: "./tests-playwright/noauth",
   /* Run tests in files in parallel */
   fullyParallel: false,
@@ -20,13 +20,13 @@ export default defineConfig({
   /* Retry on CI only */
   retries: 2,
   /* Opt out of parallel tests on CI. */
-  workers: 1, // required for now! todo parallel some tests
+  workers: 5, // required for now! todo parallel some tests
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "line",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     storageState: "noauth.json",
-    actionTimeout: 5000,
+    actionTimeout: 3000,
     //storageState: "loginAuth.json",
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: "http://127.0.0.1",
