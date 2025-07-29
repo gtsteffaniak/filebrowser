@@ -8,8 +8,8 @@ on:
       - "beta/v*.*.*"
       - "stable/v*.*.*"
 jobs:
-  build:
-    name: Build assets
+  build_frontend:
+    name: Build frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,19 +23,25 @@ jobs:
         with:
           name: frontend-dist
           path: frontend/dist
+  build_backend:
+    name: Build backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
       - name: Build backend
         working-directory: backend
-        run: go build -o filebrowser .
+        run: FILEBROWSER_NO_EMBEDED=true go build -o filebrowser .
       - name: Upload backend build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: backend-binary
+          name: filebrowser
           path: backend/filebrowser
   test_playwright:
-    needs: build
+    needs: [build_frontend, build_backend]
     name: Test Playwright - ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
@@ -58,7 +64,7 @@ jobs:
       - name: Download backend build
         uses: actions/download-artifact@v4
         with:
-          name: backend-binary
+          name: filebrowser
           path: backend/
       - name: Make backend executable
         run: chmod +x backend/filebrowser
@@ -72,6 +78,8 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   push_pr_to_registry:
     if: github.event.pull_request.head.repo.fork == false
     name: Build docker image
@@ -104,3 +112,5 @@ jobs:
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
             REVISION=${{ steps.meta.outputs.revision }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
