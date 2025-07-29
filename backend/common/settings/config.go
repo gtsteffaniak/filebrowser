@@ -73,8 +73,20 @@ func setupFrontend() {
 		Config.Frontend.Styling.CustomThemes[name] = thisTheme
 	}
 	noThemes := len(Config.Frontend.Styling.CustomThemes) == 0
+	if noThemes {
+		Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{
+			"default": {
+				Description: "The default theme",
+				CSS:         "",
+			},
+			"alternative": {
+				Description: "Reduce rounded corners",
+				CSS:         "reduce-rounded-corners.css",
+			},
+		}
+	}
 	_, ok := Config.Frontend.Styling.CustomThemes["default"]
-	if noThemes || !ok {
+	if !ok {
 		theme := CustomTheme{
 			Description: "The default theme",
 			CSS:         "",
