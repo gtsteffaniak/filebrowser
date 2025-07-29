@@ -295,10 +295,7 @@ func buildClientConfig(urlInfo *ParsedURLInfo, fileInfo iteminfo.ExtendedFileInf
 	if d.user.DarkMode {
 		theme = "dark"
 	}
-
-	// Determine editing permissions
-	canEdit := determineEditPermissions(urlInfo.IsPublicShare, d.user.Permissions.Modify, fileType)
-
+	canEdit := iteminfo.CanEditOnlyOffice(d.user.Permissions.Modify, fileType)
 	mode := "view"
 	if canEdit {
 		mode = "edit"

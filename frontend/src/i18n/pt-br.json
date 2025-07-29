@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Copiar",
     "copyMessage": "Escolha um lugar para copiar os arquivos:",
-    "currentlyNavigating": "Navegando em:",
     "deleteMessageMultiple": "Deseja apagar {count} arquivo(s)?",
     "deleteMessageSingle": "Deseja apagar esta pasta/arquivo?",
     "deleteMessageShare": "Deseja apagar este compartilhamento ({path})?",
@@ -165,8 +164,6 @@
     "show": "Mostrar",
     "size": "Tamanho",
     "upload": "Enviar",
-    "uploadFiles": "Enviando {files} arquivos...",
-    "uploadMessage": "Selecione uma opção para enviar.",
     "optionalPassword": "Senha opcional",
     "deleteUserMessage": "Tem certeza de que deseja excluir esse usuário?",
     "filesSelected": "arquivos selecionados",
@@ -178,7 +175,8 @@
     "completed": "Concluído",
     "conflictsDetected": "Conflitos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\""
   },
   "search": {
     "images": "Imagens",
@@ -237,12 +235,7 @@
     "passwordUpdated": "Senha atualizada!",
     "path": "Caminho",
     "permissions": {
-      "create": "Criar arquivos e diretórios",
-      "delete": "Apagar arquivos e diretórios",
-      "download": "Baixar",
-      "execute": "Executar comandos",
       "modify": "Editar arquivos",
-      "rename": "Renomear ou mover arquivos e diretórios",
       "share": "Compartilhar arquivos",
       "admin": "Administrador",
       "api": "Criar e gerenciar chaves de API de longa duração",
@@ -256,7 +249,6 @@
     "rules": "Regras",
     "rulesHelp": "Aqui você pode definir um conjunto de regras para permitir ou bloquear o acesso do usuário a determinados arquivos ou pastas. Os arquivos bloqueados não irão aparecer durante a navegação. Suportamos expressões regulares e os caminhos dos arquivos devem ser relativos à base do usuário.\n",
     "scope": "Escopo",
-    "setDateFormat": "Definir formato exato de data",
     "settingsUpdated": "Configurações atualizadas!",
     "shareManagement": "Gerenciamento do compartilhamento",
     "shareDeleted": "Compartilhamento apagado!",
@@ -279,9 +271,6 @@
     "modifyOtherUser": "Modificar usuário:",
     "modifyCurrentUser": "Modificar o usuário atual",
     "themeColor": "Cor do tema",
-    "disableOfficePreviewDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o visualizador do OnlyOffice. (por exemplo, '.txt .html').",
-    "disableOfficePreview": "Desativar o visualizador do onlyoffice para determinadas extensões de arquivo",
-    "filePreviewOptions": "Opções de visualização de arquivos",
     "listingOptions": "Opções de listagem",
     "emptyGlobal": "Atualmente, não há opções de configuração global. Você pode editar o yaml de configuração para ajustar as configurações do sistema.",
     "scopes": "Definir fontes permitidas e o escopo do usuário dentro delas",
@@ -475,6 +464,8 @@
     "disablePreviewExt": "Desativar as visualizações prévias de arquivos do Office para determinadas extensões de arquivos",
     "disablePreviewExtDescription": "Uma lista de extensões de arquivo separada por espaços para desativar as visualizações de arquivos do Office (por exemplo, '.docx .pptx').",
     "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
-    "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo"
+    "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
+    "defaultThemeDescription": "default - O tema padrão",
+    "customTheme": "Escolha seu tema"
   }
 }

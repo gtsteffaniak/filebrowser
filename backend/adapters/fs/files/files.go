@@ -159,7 +159,41 @@ func RefreshIndex(source string, path string, isDir bool) error {
 	return idx.RefreshFileInfo(iteminfo.FileOptions{Path: path, IsDir: isDir})
 }
 
+// validateMoveDestination checks if a move/rename operation is valid
+// It prevents moving a directory into itself or its subdirectories
+func validateMoveDestination(src, dst string, isSrcDir bool) error {
+	// Clean and normalize paths
+	src = filepath.Clean(src)
+	dst = filepath.Clean(dst)
+
+	// If source is a directory, check if destination is within source
+	if isSrcDir {
+		// Get the parent directory of the destination
+		dstParent := filepath.Dir(dst)
+
+		// Check if destination parent is the source directory or a subdirectory of it
+		if strings.HasPrefix(dstParent+string(filepath.Separator), src+string(filepath.Separator)) || dstParent == src {
+			return fmt.Errorf("cannot move directory '%s' to a location within itself: '%s'", src, dst)
+		}
+	}
+
+	// Check if destination parent directory exists
+	dstParent := filepath.Dir(dst)
+	if dstParent != "." && dstParent != "/" {
+		if _, err := os.Stat(dstParent); os.IsNotExist(err) {
+			return fmt.Errorf("destination directory does not exist: '%s'", dstParent)
+		}
+	}
+
+	return nil
+}
+
 func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
+	// Validate the move operation before executing
+	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
+		return err
+	}
+
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
@@ -170,6 +204,11 @@ func MoveResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, rea
 }
 
 func CopyResource(isSrcDir, isDestDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
+	// Validate the copy operation before executing
+	if err := validateMoveDestination(realsrc, realdst, isSrcDir); err != nil {
+		return err
+	}
+
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
 		return err

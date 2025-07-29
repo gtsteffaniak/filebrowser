@@ -210,6 +210,22 @@
             @button-clicked="setColor"
             :initialActive="localuser.themeColor"
           />
+          <h3 v-if="Object.keys(availableThemes).length > 0">{{ $t("profileSettings.customTheme") }}</h3>
+          <div v-if="Object.keys(availableThemes).length > 0" class="form-group">
+            <select
+              class="input input--block"
+              v-model="selectedTheme"
+              @change="updateCustomTheme"
+            >
+              <option
+                v-for="(theme, key) in availableThemes"
+                :key="key"
+                :value="key"
+              >
+                {{ key === 'default' ? $t('profileSettings.defaultThemeDescription') : `${key} - ${theme.description}` }}
+              </option>
+            </select>
+          </div>
           <h3>{{ $t("settings.language") }}</h3>
           <Languages
             class="input input--block"
@@ -223,7 +239,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { mediaAvailable, muPdfAvailable, onlyOfficeUrl } from "@/utils/constants.js";
+import { mediaAvailable, muPdfAvailable, onlyOfficeUrl, userSelectableThemes } from "@/utils/constants.js";
 import { state, mutations } from "@/store";
 import { usersApi } from "@/api";
 import Languages from "@/components/settings/Languages.vue";
@@ -266,6 +282,9 @@ export default {
     },
   },
   computed: {
+    availableThemes() {
+      return userSelectableThemes || {};
+    },
     onlyOfficeAvailable() {
       return onlyOfficeUrl !== "";
     },
@@ -283,6 +302,14 @@ export default {
     },
     active() {
       return state.activeSettingsView === "profile-main";
+    },
+    selectedTheme: {
+      get() {
+        return this.localuser.customTheme || "default";
+      },
+      set(value) {
+        this.localuser.customTheme = value;
+      }
     },
   },
   mounted() {
@@ -345,12 +372,14 @@ export default {
       }
       try {
         const data = this.localuser;
+        const themeChanged = state.user.customTheme != this.localuser.customTheme;
         mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "locale",
           "showHidden",
           "dateFormat",
           "themeColor",
+          "customTheme",
           "quickDownload",
           "disablePreviewExt",
           "disableViewingExt",
@@ -362,7 +391,11 @@ export default {
           "hideSidebarFileActions",
           "editorQuickSave",
         ]);
+        if (themeChanged) {
+          window.location.reload();
+        }
         notify.showSuccess(this.$t("settings.settingsUpdated"));
+
       } catch (e) {
         notify.showError(e);
       }

@@ -219,7 +219,7 @@ export const getters = {
         }
         if (state.req.type == 'directory') {
           listingView = 'listingView'
-        } else if (state.req.onlyOfficeId && !getters.fileViewingDisabled(state.req.name)) {
+        } else if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) {
           listingView = 'onlyOfficeEditor'
         } else if (
           'content' in state.req &&
@@ -342,11 +342,15 @@ export const getters = {
         return true
       }
     }
-    if (state.req?.onlyOfficeId && state.user.disableOfficePreviewExt) {
-        const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()
-        if (disabledExts.includes(ext.toLowerCase())) {
-          return true
-        }
+    return false
+  },
+  officeViewingDisabled: filename => {
+    const ext = ' ' + getFileExtension(filename)
+    if (state.user.disableOfficePreviewExt) {
+      const disabledExts = ' ' + state.user.disableOfficePreviewExt.toLowerCase()
+      if (disabledExts.includes(ext.toLowerCase())) {
+        return true
+      }
     }
     return false
   }

@@ -146,6 +146,12 @@ export default {
             behavior: "instant",
             block: "center",
           });
+          // Add glow effect
+          element.classList.add('scroll-glow');
+          // Remove glow effect after animation completes
+          setTimeout(() => {
+            element.classList.remove('scroll-glow');
+          }, 1000);
         }
       }
     },
@@ -300,14 +306,28 @@ export default {
       mutations.resetSelected();
 
       let data = {};
-      const fetchSource = decodeURIComponent(result.source);
-      const fetchPath = decodeURIComponent(result.path);
-      // Fetch initial data
-      let res = await filesApi.fetchFiles(fetchSource, fetchPath);
-      // If not a directory, fetch content
-      if (res.type != "directory") {
-        const content = !getters.fileViewingDisabled(res.name);
-        res = await filesApi.fetchFiles(res.source, res.path, content);
+      try {
+        const fetchSource = decodeURIComponent(result.source);
+        const fetchPath = decodeURIComponent(result.path);
+        // Fetch initial data
+        let res = await filesApi.fetchFiles(fetchSource, fetchPath );
+        // If not a directory, fetch content
+        if (res.type != "directory" && !res.type.startsWith("image")) {
+          const content = !getters.fileViewingDisabled(res.name);
+          res = await filesApi.fetchFiles(res.source, res.path, content);
+        }
+        data = res;
+        if (state.sources.count > 1) {
+          mutations.setCurrentSource(data.source);
+        }
+        document.title = `${document.title} - ${res.name}`;
+      } catch (e) {
+        notify.showError(e);
+        this.error = e;
+        mutations.replaceRequest({});
+      } finally {
+        mutations.replaceRequest(data);
+        mutations.setLoading("files", false);
       }
       data = res;
       if (state.sources.count > 1) {
@@ -347,4 +367,19 @@ export default {
   margin: 2em auto;
 }
 
+.scroll-glow {
+  animation: scrollGlowAnimation 1s ease-out;
+}
+
+@keyframes scrollGlowAnimation {
+  0% {
+    color: inherit;
+  }
+  50% {
+    color: var(--primaryColor);
+  }
+  100% {
+    color: inherit;
+  }
+}
 </style>

@@ -8,12 +8,12 @@ import (
 )
 
 var (
-	revokedApiKeyList map[string]bool
+	revokedApiKeyList map[string]struct{}
 	revokeMu          sync.Mutex
 )
 
 func init() {
-	revokedApiKeyList = make(map[string]bool)
+	revokedApiKeyList = make(map[string]struct{})
 }
 
 // Auther is the authentication interface.
@@ -32,5 +32,5 @@ func IsRevokedApiKey(key string) bool {
 func RevokeAPIKey(key string) {
 	revokeMu.Lock()
 	defer revokeMu.Unlock()
-	revokedApiKeyList[key] = true
+	revokedApiKeyList[key] = struct{}{}
 }

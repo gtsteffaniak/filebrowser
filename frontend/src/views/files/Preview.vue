@@ -1,7 +1,9 @@
 <template>
   <div id="previewer" @mousemove="toggleNavigation" @touchstart="toggleNavigation">
     <div class="preview" v-if="!isDeleted">
-      <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw">
+      <ExtendedImage v-if="previewType == 'image' || pdfConvertable" :src="raw" 
+        @navigate-previous="prev" 
+        @navigate-next="next">
       </ExtendedImage>
       <audio v-else-if="previewType == 'audio'" ref="player" :src="raw" controls :autoplay="autoPlay"
         @play="autoPlay = true"></audio>

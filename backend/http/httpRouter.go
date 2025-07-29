@@ -221,13 +221,16 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 
 	// Static and index file handlers
 	router.HandleFunc(fmt.Sprintf("GET %vstatic/", config.Server.BaseURL), staticFilesHandler)
-	router.HandleFunc(config.Server.BaseURL, indexHandler)
-
-	// health
+	router.HandleFunc(config.Server.BaseURL, withOrWithoutUser(indexHandler))
 	router.HandleFunc(fmt.Sprintf("GET %vhealth", config.Server.BaseURL), healthHandler)
-
-	// Swagger
 	router.Handle(fmt.Sprintf("%vswagger/", config.Server.BaseURL), withUser(swaggerHandler))
+
+	// redirect to baseUrl if not root
+	if config.Server.BaseURL != "/" {
+		router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, config.Server.BaseURL, http.StatusMovedPermanently)
+		})
+	}
 
 	var scheme string
 	port := ""

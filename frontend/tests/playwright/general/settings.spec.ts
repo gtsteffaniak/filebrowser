@@ -34,3 +34,35 @@ test('create and delete testuser', async ({
   await editButton.click()
   checkForErrors()
 })
+
+
+
+test("two factor auth check", async ({ page, checkForErrors, context }) => {
+  // go to settings
+  await page.goto("/settings");
+  await expect(page).toHaveURL(/\/settings/);
+  // click the edit button for testuser
+  const userRow = page.locator('tr.item', { hasText: 'admin' })
+  const editLink = await userRow
+    .locator('td[aria-label="Edit User"] a')
+    .getAttribute('href')
+  await page.goto(editLink!)
+
+  // Toggle the two factor authentication switch
+  const twoFactorCheckbox = page.locator('.toggle-container:has-text("Two-Factor Authentication") input[type="checkbox"]');
+  const twoFactorToggle = page.locator('.toggle-container:has-text("Two-Factor Authentication") label.switch');
+  // Check if it's currently enabled
+  const isChecked = await twoFactorCheckbox.isChecked();
+  // Toggle it by clicking the label (since checkbox is hidden)
+  await twoFactorToggle.click();
+  // Verify it changed state
+  await expect(twoFactorCheckbox).toBeChecked();
+  await page.locator('button[aria-label="Generate Code"]').click();
+  // check for the otp url
+  await expect(page.locator('p[aria-label="otp-url"]')).toBeVisible();
+
+  // check that the otp-url is not empty
+  const otpUrl = await page.locator('p[aria-label="otp-url"]').textContent();
+  expect(otpUrl).not.toBe("");
+  checkForErrors();
+});

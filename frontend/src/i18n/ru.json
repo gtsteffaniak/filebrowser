@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Копировать",
     "copyMessage": "Копировать в:",
-    "currentlyNavigating": "Текущий каталог:",
     "deleteMessageMultiple": "Удалить эти файлы ({count})?",
     "deleteMessageSingle": "Удалить этот файл/каталог?",
     "deleteMessageShare": "Удалить этот общий файл/каталог ({path})?",
@@ -165,11 +164,9 @@
     "show": "Показать",
     "size": "Размер",
     "upload": "Загрузить",
-    "uploadMessage": "Выберите вариант для загрузки.",
     "optionalPassword": "Необязательный пароль",
     "deleteUserMessage": "Вы уверены, что хотите удалить этого пользователя?",
     "filesSelected": "выбранные файлы",
-    "uploadFiles": "Uploading {files} files...",
     "typeName": "Тип:",
     "selected": "выбранные",
     "deleted": "Удалено успешно!",
@@ -178,7 +175,8 @@
     "completed": "Завершено",
     "conflictsDetected": "Обнаруженные конфликты",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Неверное имя: не может содержать \"/\" или \"\\\"."
   },
   "search": {
     "images": "Изображения",
@@ -234,12 +232,7 @@
     "passwordUpdated": "Пароль обновлен!",
     "path": "Путь",
     "permissions": {
-      "create": "Создавать файлы и каталоги",
-      "delete": "Удалять файлы и каталоги",
-      "download": "Скачивать",
-      "execute": "Выполнять команды",
       "modify": "Редактировать файлы",
-      "rename": "Переименовывать или перемещать файлы и каталоги",
       "share": "Делиться файлами",
       "admin": "Администратор",
       "api": "Создание и управление долгоживущими ключами API",
@@ -253,7 +246,6 @@
     "rules": "Права",
     "rulesHelp": "Здесь вы можете определить набор разрешающих и запрещающих правил для этого конкретного пользователь. Блокированные файлы не будут отображаться в списках, и не будут доступны для пользователя. Есть поддержка регулярных выражений и относительных путей.\n",
     "scope": "Корень",
-    "setDateFormat": "Установить точный формат даты",
     "settingsUpdated": "Настройки применены!",
     "shareManagement": "Управление расшаренными ссылками",
     "shareDeleted": "Расшаренная ссылка удалена!",
@@ -276,9 +268,6 @@
     "modifyOtherUser": "Измените пользователя:",
     "modifyCurrentUser": "Изменить текущего пользователя",
     "themeColor": "Цвет темы",
-    "disableOfficePreviewDescription": "Список расширений файлов, для которых необходимо отключить программу просмотра OnlyOffice, разделенный пробелами. (например, '.txt .html').",
-    "disableOfficePreview": "Отключите просмотрщик Onlyoffice для определенных расширений файлов",
-    "filePreviewOptions": "Параметры предварительного просмотра файлов",
     "listingOptions": "Варианты листинга",
     "emptyGlobal": "В настоящее время нет глобальных опций конфигурации, вы можете редактировать конфигурационный yaml для настройки параметров системы.",
     "scopes": "Определите разрешенные источники и область действия пользователей в них",
@@ -475,6 +464,8 @@
     "disablePreviewExt": "Отключение предварительного просмотра офисных файлов для определенных расширений файлов",
     "disablePreviewExtDescription": "Список расширений файлов, для которых нужно отключить предварительный просмотр офисных файлов (например, '.docx .pptx'), разделенный пробелами.",
     "disableOfficeEditorDescription": "Список расширений файлов, для которых необходимо отключить редактор и просмотрщик OnlyOffice, разделенный пробелами. (например, '.txt .html .pdf').",
-    "disableOfficeEditor": "Отключение просмотра офисных файлов для определенных расширений файлов"
+    "disableOfficeEditor": "Отключение просмотра офисных файлов для определенных расширений файлов",
+    "defaultThemeDescription": "default - Тема по умолчанию",
+    "customTheme": "Выберите тему"
   }
 }

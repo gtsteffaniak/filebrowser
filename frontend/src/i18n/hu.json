@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Másolása",
     "copyMessage": "Válassza ki a másolás célját:",
-    "currentlyNavigating": "Jelenlegi helyzet:",
     "deleteMessageMultiple": "Biztosan törölni szeretne {count} fájlt?",
     "deleteMessageSingle": "Biztosan törölni szeretné ezt a fájl vagy mappát?",
     "deleteMessageShare": "Biztosan törölni szeretné ezt a megosztást ({path})?",
@@ -165,8 +164,6 @@
     "show": "Megjelenítés",
     "size": "Méret",
     "upload": "Feltöltés",
-    "uploadFiles": "{files} fájl feltöltése…",
-    "uploadMessage": "Válasszon egy feltöltési módot.",
     "optionalPassword": "Választható jelszó",
     "deleteUserMessage": "Biztos, hogy törölni szeretné ezt a felhasználót?",
     "filesSelected": "kiválasztott fájlok",
@@ -178,7 +175,8 @@
     "completed": "Befejezett",
     "conflictsDetected": "Feltárt konfliktusok",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Érvénytelen név: nem lehet \"/\" vagy \"\\\" konténer"
   },
   "search": {
     "images": "Képek",
@@ -236,12 +234,7 @@
     "passwordUpdated": "Jelszó frissítve!",
     "path": "Elérési útvonal",
     "permissions": {
-      "create": "Fájlok és mappák létrehozása",
-      "delete": "Fájlok és mappák törlése",
-      "download": "Letöltése",
-      "execute": "Parancsok futtatása",
       "modify": "Fájlok szerkesztése",
-      "rename": "Fájlok és mappák átnevezése vagy mozgatása",
       "share": "Fájlok megosztása",
       "admin": "Adminisztrátor",
       "api": "Hosszú élettartamú API-kulcsok létrehozása és kezelése",
@@ -255,7 +248,6 @@
     "rules": "Szabályok",
     "rulesHelp": "Meghatározhat egy sor engedélyezési és tiltási szabályt az adott felhasználó számára. A letiltott fájlok nem jelennek meg a listákban, és nem lesznek elérhetőek a felhasználó számára. A reguláris kifejezések és a felhasználói hatókörhöz viszonyított elérési utak támogatottak.\n",
     "scope": "Hatókör",
-    "setDateFormat": "Pontos dátumformátum beállítása",
     "settingsUpdated": "Beállítások frissítve!",
     "shareManagement": "Megosztáskezelés",
     "shareDeleted": "Megosztás törölve!",
@@ -278,9 +270,6 @@
     "modifyOtherUser": "Felhasználó módosítása:",
     "modifyCurrentUser": "Jelenlegi felhasználó módosítása",
     "themeColor": "Téma színe",
-    "disableOfficePreviewDescription": "Azon fájlkiterjesztések szóközzel elválasztott listája, amelyek esetében az OnlyOffice megjelenítőjét le kell tiltani. (pl. '.txt .html').",
-    "disableOfficePreview": "Letiltja a onlyoffice viewer-t bizonyos fájlkiterjesztések esetén",
-    "filePreviewOptions": "Fájl előnézeti beállítások",
     "listingOptions": "Listázási lehetőségek",
     "emptyGlobal": "Jelenleg nincsenek globális konfigurációs beállítások, A rendszerbeállítások módosításához szerkesztheti a konfigurációs yaml-t.",
     "scopes": "Az engedélyezett források és az azokon belüli felhasználói hatókörök meghatározása",
@@ -475,6 +464,8 @@
     "disablePreviewExt": "Office-fájlok előnézetének letiltása bizonyos fájlkiterjesztések esetében",
     "disablePreviewExtDescription": "Az irodai fájlok előnézetének letiltására szolgáló fájlkiterjesztések szóközzel elválasztott listája (pl. '.docx .pptx').",
     "disableOfficeEditorDescription": "Az OnlyOffice szerkesztő és megjelenítő letiltandó fájlkiterjesztések szóközzel elválasztott listája. (pl. \".txt .html .pdf\").",
-    "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t"
+    "disableOfficeEditor": "Bizonyos fájlkiterjesztéseknél letilthatja az Office Viewer-t",
+    "defaultThemeDescription": "default - Az alapértelmezett téma",
+    "customTheme": "Válasszon témát"
   }
 }

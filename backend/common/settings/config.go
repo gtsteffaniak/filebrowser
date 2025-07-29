@@ -59,6 +59,37 @@ func setupFrontend() {
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
 	}
+	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "white")
+	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
+	Config.Frontend.Styling.CustomCSS = readCustomCSS(Config.Frontend.Styling.CustomCSS)
+	Config.Frontend.Styling.CustomThemeOptions = map[string]CustomTheme{}
+	for name, theme := range Config.Frontend.Styling.CustomThemes {
+		thisTheme := CustomTheme{
+			Description: theme.Description,
+			CSS:         theme.CSS, // Copy the CSS file path from the original theme
+		}
+		Config.Frontend.Styling.CustomThemeOptions[name] = thisTheme
+		thisTheme.CSS = readCustomCSS(theme.CSS) // Now read the CSS file content and replace the path
+		Config.Frontend.Styling.CustomThemes[name] = thisTheme
+	}
+	noThemes := len(Config.Frontend.Styling.CustomThemes) == 0
+	_, ok := Config.Frontend.Styling.CustomThemes["default"]
+	if noThemes || !ok {
+		theme := CustomTheme{
+			Description: "The default theme",
+			CSS:         "",
+		}
+		if noThemes {
+			// If there are no themes at all, initialize the map with just default
+			Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{
+				"default": theme,
+			}
+		} else {
+			// If there are themes but no default, add default to existing themes
+			Config.Frontend.Styling.CustomThemes["default"] = theme
+		}
+		Config.Frontend.Styling.CustomThemeOptions["default"] = theme
+	}
 }
 
 func getRealPath(path string) string {
@@ -335,6 +366,7 @@ func setDefaults(generate bool) Settings {
 		Frontend: Frontend{
 			Name: "FileBrowser Quantum",
 		},
+
 		UserDefaults: UserDefaults{
 			StickySidebar:   true,
 			LockPassword:    false,
@@ -490,4 +522,24 @@ func modifyExcludeInclude(config *Source) {
 	normalize(config.Config.Include.RootFolders, true)
 	normalize(config.Config.Include.RootFiles, true)
 	normalize(config.Config.NeverWatchPaths, true)
+}
+
+func readCustomCSS(path string) string {
+	if path == "" {
+		return ""
+	}
+	content, err := os.ReadFile(path)
+	if err != nil {
+		// Only log if the file exists but cannot be read (e.g., permission error)
+		if !os.IsNotExist(err) {
+			logger.Warningf("Could not read custom CSS file %s: %v", path, err)
+			return ""
+		}
+	}
+	if len(content) > 128*1024 {
+		logger.Warningf("Custom CSS file %s is too large (%d bytes), ignoring", path, len(content))
+		return ""
+	}
+	logger.Infof("Loaded custom CSS from: %s (%d bytes)", path, len(content))
+	return string(content)
 }

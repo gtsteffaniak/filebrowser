@@ -136,7 +136,6 @@
   "prompts": {
     "copy": "Kopiera",
     "copyMessage": "Välj var dina filer skall sparas:",
-    "currentlyNavigating": "För närvarande navigerar du på:",
     "deleteMessageMultiple": "Är du säker på att du vill radera {count} filer(na)?",
     "deleteMessageSingle": "Är du säker på att du vill radera denna fil/mapp",
     "deleteTitle": "Ta bort filer",
@@ -164,12 +163,10 @@
     "show": "Visa",
     "size": "Storlek",
     "upload": "Ladda upp",
-    "uploadMessage": "Välj ett alternativ att ladda upp.",
     "deleteMessageShare": "Are you sure you want to delete this share: {path} ?",
     "deleteUserMessage": "Är du säker på att du vill ta bort den här användaren?",
     "selected": "utvalda",
     "filesSelected": "valda filer",
-    "uploadFiles": "Uploading {files} files...",
     "optionalPassword": "Valfritt lösenord",
     "typeName": "Typ:",
     "deleted": "Raderad framgångsrikt!",
@@ -178,7 +175,8 @@
     "completed": "Färdigställd",
     "conflictsDetected": "Konflikter upptäckta",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
-    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled"
+    "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\""
   },
   "search": {
     "images": "Bilder",
@@ -234,12 +232,7 @@
     "passwordUpdated": "Lösenord uppdaterat",
     "path": "Väg",
     "permissions": {
-      "create": "Skapa filer och mappar",
-      "delete": "Ta bort filer och mappar",
-      "download": "Ladda ner",
-      "execute": "Exekvera kommandon",
       "modify": "Ändra fil",
-      "rename": "Byta namn på eller flytta filer och kataloger",
       "share": "Dela filer",
       "admin": "Administratör",
       "api": "Skapa och hantera API-nycklar med lång livslängd",
@@ -442,6 +435,8 @@
     "disablePreviewExt": "Avaktivera förhandsgranskning av Office-filer för vissa filtillägg",
     "disablePreviewExtDescription": "En mellanslagsseparerad lista över filtillägg för vilka förhandsgranskningar av Office-filer ska inaktiveras (t.ex. '.docx .pptx').",
     "disableOfficeEditorDescription": "En mellanslagsseparerad lista över filtillägg som OnlyOffice redigerare och visare ska inaktiveras för. (t.ex. '.txt .html .pdf').",
-    "disableOfficeEditor": "Avaktivera Office Viewer för vissa filtillägg"
+    "disableOfficeEditor": "Avaktivera Office Viewer för vissa filtillägg",
+    "defaultThemeDescription": "default - Standardtema",
+    "customTheme": "Välj ditt tema"
   }
 }

@@ -22,6 +22,7 @@ const mediaAvailable = window.FileBrowser.MediaAvailable;
 const muPdfAvailable = window.FileBrowser.MuPdfAvailable;
 const updateAvailable = window.FileBrowser.UpdateAvailable;
 const disableNavButtons = window.FileBrowser.DisableNavButtons;
+const userSelectableThemes = window.FileBrowser.UserSelectableThemes;
 const origin = window.location.origin;
 
 const settings = [
@@ -35,6 +36,7 @@ const settings = [
 ];
 
 export {
+  userSelectableThemes,
   disableNavButtons,
   updateAvailable,
   muPdfAvailable,

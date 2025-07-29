@@ -76,6 +76,8 @@ async function translateText(text, targetLanguage, keyPath = '') {
 // --- Recursive key processor ---
 async function processKeys(masterObj, targetObj, targetLangCode, currentPathParts = []) {
   let changesMade = false;
+
+  // First pass: Add/update keys from master to target
   for (const key in masterObj) {
     if (Object.prototype.hasOwnProperty.call(masterObj, key)) {
       const currentPathPartsNext = [...currentPathParts, key];
@@ -123,6 +125,24 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
       }
     }
   }
+
+  // Second pass: Remove obsolete keys that exist in target but not in master
+  const keysToRemove = [];
+  for (const key in targetObj) {
+    if (Object.prototype.hasOwnProperty.call(targetObj, key)) {
+      if (!masterObj.hasOwnProperty(key)) {
+        keysToRemove.push(key);
+      }
+    }
+  }
+
+  for (const key of keysToRemove) {
+    const currentKeyPath = [...currentPathParts, key].join('.');
+    console.log(`🗑️  Removing obsolete key "${currentKeyPath}" from ${targetLangCode}.json`);
+    delete targetObj[key];
+    changesMade = true;
+  }
+
   return changesMade;
 }
 
