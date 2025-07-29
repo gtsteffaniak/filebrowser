@@ -5,5 +5,6 @@ WORKDIR /app/frontend
 COPY [ "./frontend/", "./" ]
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser", "./"]
-COPY [ "./backend/http/dist", "./http/dist/"]
+RUN mkdir -p ./http/dist
+COPY [ "./backend/http/embed/", "./http/dist/"]
 RUN  FILEBROWSER_NO_EMBEDED=true ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
