@@ -19,6 +19,7 @@ test('create, check settings, and delete testuser2', async ({
 
     // Just create the user first
     await page.locator('input[aria-label="Save User"]').click();
+    await page.waitForResponse((resp) => resp.url().includes('/api/users') && resp.status() === 201)
 
     // We should be back on the settings page
     await expect(page.locator('tr.item', { hasText: 'testuser2' })).toBeVisible();
@@ -50,8 +51,7 @@ test('create, check settings, and delete testuser2', async ({
     await page.locator('input[aria-label="Save User"]').click();
 
     // The app might show a notification and stay on the page. Let's reload to ensure we have the latest state.
-    await page.reload();
-
+    await page.reload({ waitUntil: 'networkidle' });
 
     for (const settingName of settingsToToggle) {
         const checkbox = page.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
@@ -62,8 +62,7 @@ test('create, check settings, and delete testuser2', async ({
     await page.locator('button[aria-label="Delete User"]').click();
     await page.locator('button[aria-label="Confirm Delete"]').click();
 
-    // After deletion, we should be back on the settings page. A reload should confirm the user is gone.
-    await page.reload();
+    // After deletion, we should be back on the settings page.
     await expect(page.locator('tr.item', { hasText: 'testuser2' })).not.toBeVisible();
     checkForErrors()
 })
