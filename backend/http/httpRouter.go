@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
-	"strings"
 	"text/template"
 	"time"
 
@@ -200,21 +199,10 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	router.Handle(publicPath+"/", http.StripPrefix(publicPath, publicRoutes))
 
 	// Frontend share route redirect (DEPRECATED - maintain for backwards compatibility)
-	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), func(w http.ResponseWriter, r *http.Request) {
-		// Remove the base URL and "/share/" prefix to get the full path after share
-		sharePath := strings.TrimPrefix(r.URL.Path, config.Server.BaseURL+"share/")
-		newURL := config.Server.BaseURL + "public/share/" + sharePath
-		if r.URL.RawQuery != "" {
-			newURL += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, newURL, http.StatusMovedPermanently)
-	})
+	router.HandleFunc(fmt.Sprintf("GET %vshare/", config.Server.BaseURL), withOrWithoutUser(redirectToShare))
 
 	// New frontend share route handler - handle share page and any subpaths
-	publicRoutes.HandleFunc("GET /share/", func(w http.ResponseWriter, r *http.Request) {
-		// This serves the HTML page for shared content and any subpaths within shares
-		indexHandler(w, r)
-	})
+	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 
 	// Public static assets (needed for shared pages to load CSS/JS/images)
 	publicRoutes.HandleFunc("GET /static/", staticFilesHandler)
