@@ -291,10 +291,15 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 			if config.Auth.Methods.OidcAuth.AdminGroup == "" {
 				isAdmin = config.UserDefaults.Permissions.Admin
 			}
-			err = storage.CreateUser(users.User{
+			newUser := users.User{
 				LoginMethod: users.LoginMethodOidc,
 				Username:    username,
-			}, isAdmin)
+				Permissions: settings.Config.UserDefaults.Permissions,
+			}
+			if isAdmin {
+				newUser.Permissions.Admin = true
+			}
+			err = storage.CreateUser(newUser)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

@@ -4,6 +4,7 @@
     "allowJs": true,
     "target": "ESNext",
     "useDefineForClassFields": true,
+    "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Node10",
     "strict": true,
@@ -18,8 +19,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "checkJs": false, // check later
+    "checkJs": true,
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.vue", "tests-playwright/general/auth.spec.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests-playwright/**/*.ts", "../_docker/src/proxy/frontend/playwright.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v0.7.18-beta
+
+ **BugFixes**:
+ - fix lightBackground issue (#1021)
+ - fix user save issues (#1020, #1027)
+
 ## v0.7.17-beta
 
 See an example of custom css styling that uses the reduce-rounded-corners.css by default and allows users to choose other themes. You can add your own themes as well that users can choose from in profile settings:

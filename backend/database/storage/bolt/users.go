@@ -234,10 +234,11 @@ func parseFields(user *users.User, fields []string, actorIsAdmin bool) ([]string
 			field := t.Field(i)
 			// which=all can't update password
 			switch strings.ToLower(field.Name) {
-			case "id", "username", "loginmethod", "password", "apikeys", "totpenabled", "totpsecret", "totpnonce":
+			case "id", "username", "password", "apikeys", "totpenabled", "totpsecret", "totpnonce":
 				// Skip these fields
 				continue
 			}
+
 			fields = append(fields, field.Name)
 		}
 	}

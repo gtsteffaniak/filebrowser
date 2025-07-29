@@ -164,7 +164,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, errors.ErrEmptyPassword
 	}
 
-	err = storage.CreateUser(req.User, req.User.Permissions.Admin)
+	err = storage.CreateUser(req.User)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
