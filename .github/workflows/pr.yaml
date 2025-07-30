@@ -62,6 +62,7 @@ jobs:
     name: Test Playwright - ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: general
@@ -70,6 +71,8 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-proxy
           - name: noauth
             dockerfile: ./_docker/Dockerfile.playwright-noauth
+          - name: oidc
+            dockerfile: ./_docker/Dockerfile.playwright-oidc
     steps:
       - name: Checkout
         uses: actions/checkout@v4
