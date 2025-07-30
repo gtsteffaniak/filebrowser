@@ -62,6 +62,7 @@ jobs:
     name: Test Playwright - ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: general
