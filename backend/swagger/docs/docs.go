@@ -2404,11 +2404,11 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "externalUrl": {
-                    "description": "used by share links if set",
+                    "description": "used by share links if set (eg. http://mydomain.com)",
                     "type": "string"
                 },
                 "internalUrl": {
-                    "description": "used by integrations if set, this is the url that an integration service will use to communicate with filebrowser",
+                    "description": "used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)",
                     "type": "string"
                 },
                 "logging": {

@@ -230,7 +230,7 @@ export function getDownloadURL(source, path, inline, useExternal) {
     }
     const apiPath = getApiPath('api/raw', params)
     if (externalUrl && useExternal) {
-      return externalUrl + removePrefix(apiPath, baseURL)
+      return externalUrl + apiPath
     }
     return window.origin + apiPath
   } catch (err) {

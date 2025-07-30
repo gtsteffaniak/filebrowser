@@ -44,7 +44,7 @@ export async function create(path, source, password = "", expires = "", unit = "
 export function getShareURL(share) {
   if (externalUrl) {
     const apiPath = getApiPath(`share/${share.hash}`)
-    return externalUrl + removePrefix(apiPath, baseURL);
+    return externalUrl + apiPath
   }
   return window.origin+getApiPath(`share/${share.hash}`);
 }

@@ -182,6 +182,10 @@ func setupUrls() {
 	} else {
 		Config.Server.BaseURL = "/" + baseurl + "/"
 	}
+	if Config.Server.BaseURL != "/" {
+		Config.Server.InternalUrl = strings.TrimSuffix(Config.Server.InternalUrl, Config.Server.BaseURL)
+		Config.Server.ExternalUrl = strings.TrimSuffix(Config.Server.ExternalUrl, Config.Server.BaseURL)
+	}
 	Config.Server.InternalUrl = strings.Trim(Config.Server.InternalUrl, "/")
 	Config.Server.ExternalUrl = strings.Trim(Config.Server.ExternalUrl, "/")
 	Config.Integrations.OnlyOffice.Url = strings.Trim(Config.Integrations.OnlyOffice.Url, "/")
