@@ -5,7 +5,9 @@ WORKDIR /app
 COPY [ "./_docker/src/general/", "./" ]
 
 WORKDIR /app/frontend
-COPY [ "./frontend/", "./" ]
+COPY [ "./_docker/src/general/frontend/", "./" ]
+COPY [ "./frontend/tests-playwright/", "./tests-playwright" ]
+COPY [ "./frontend/tests/", "./tests" ]
 
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser*", "./"]

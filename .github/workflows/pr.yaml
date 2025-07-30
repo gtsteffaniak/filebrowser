@@ -70,6 +70,8 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-proxy
           - name: noauth
             dockerfile: ./_docker/Dockerfile.playwright-noauth
+          - name: oidc
+            dockerfile: ./_docker/Dockerfile.playwright-oidc
     steps:
       - name: Checkout
         uses: actions/checkout@v4

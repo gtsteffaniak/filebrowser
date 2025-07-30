@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -82,7 +83,7 @@ func validateOidcAuth() error {
 	if !oidcCfg.Enabled {
 		return errors.New("OIDC is not enabled")
 	}
-
+	oidcCfg.IssuerUrl = strings.Trim(oidcCfg.IssuerUrl, "/")
 	ctx := context.Background()
 
 	// If disableVerifyTLS is true, create a custom HTTP client
