@@ -37,7 +37,7 @@ export default {
   },
   watch: {
     $route: {
-      handler(newRoute) {
+      handler() {
         // hide tooltip when route changes
         this.tooltip.show = false;
         this.tooltip.content = "";

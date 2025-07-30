@@ -40,26 +40,26 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 	encodedUrl := r.URL.Query().Get("url")
 	// Decode the URL-encoded path
-	url, err := url.QueryUnescape(encodedUrl)
+	givenUrl, err := url.QueryUnescape(encodedUrl)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	// get path from url
-	pathParts := strings.Split(url, "/api/raw?files=")
+	pathParts := strings.Split(givenUrl, "/api/raw?files=")
 	origPathParts := strings.Split(encodedUrl, "/api/raw?files=")
 	encodedPath := origPathParts[len(origPathParts)-1]
 	sourceFile := pathParts[len(pathParts)-1]
 	sourceSplit := strings.Split(sourceFile, "::")
 	if len(sourceSplit) != 2 {
-		return http.StatusBadRequest, fmt.Errorf("invalid url path %v", url)
+		return http.StatusBadRequest, fmt.Errorf("invalid url path %v", givenUrl)
 	}
 	source := sourceSplit[0]
 	path := sourceSplit[1]
 	urlFirst := pathParts[0]
 	if settings.Config.Server.InternalUrl != "" {
-		urlFirst = settings.Config.Server.InternalUrl
-		replacement := strings.Split(url, "/api/raw")[0]
-		url = strings.Replace(url, replacement, settings.Config.Server.InternalUrl, 1)
+		urlFirst = settings.Config.Server.InternalUrl + settings.Config.Server.BaseURL
+		whatToReplace := strings.Split(givenUrl, "/api/raw")[0] + "/"
+		givenUrl = strings.Replace(givenUrl, whatToReplace, urlFirst, 1)
 	}
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source)
 	if err != nil {
@@ -72,10 +72,12 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 		Expand: false,
 	})
 	if err != nil {
+		logger.Debugf("onlyofficeClientConfigGetHandler: failed to get file info for file source %v, path %v: %v", source, path, err)
 		return errToStatus(err), err
 	}
 	id, err := getOnlyOfficeId(source, fileInfo.Path)
 	if err != nil {
+		logger.Debugf("getOnlyOfficeId failed for file source %v, path %v: %v", source, fileInfo.Path, err)
 		return http.StatusNotFound, err
 	}
 	split := strings.Split(fileInfo.Name, ".")
@@ -89,13 +91,13 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	if canEdit {
 		mode = "edit"
 	}
-	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?path=%v&auth=%v", urlFirst, encodedPath, d.token)
+	callbackURL := fmt.Sprintf("%v/api/onlyoffice/callback?files=%v&auth=%v", strings.TrimSuffix(urlFirst, "/"), encodedPath, d.token)
 	clientConfig := map[string]interface{}{
 		"document": map[string]interface{}{
 			"fileType": fileType,
 			"key":      id,
 			"title":    fileInfo.Name,
-			"url":      url + "&auth=" + d.token,
+			"url":      givenUrl + "&auth=" + d.token,
 			"permissions": map[string]interface{}{
 				"edit":     canEdit,
 				"download": true,
@@ -139,7 +141,7 @@ func onlyofficeCallbackHandler(w http.ResponseWriter, r *http.Request, d *reques
 		return http.StatusInternalServerError, err
 	}
 
-	encodedPath := r.URL.Query().Get("path")
+	encodedPath := r.URL.Query().Get("files")
 	pathParts := strings.Split(encodedPath, "::")
 	if len(pathParts) < 2 {
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
