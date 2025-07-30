@@ -1,8 +1,8 @@
 import { fetchURL, adjustedData } from './utils'
-import { getApiPath, removePrefix, doubleEncode } from '@/utils/url.js'
+import { getApiPath, doubleEncode } from '@/utils/url.js'
 import { mutations } from '@/store'
 import { notify } from '@/notify'
-import { externalUrl,baseURL } from '@/utils/constants'
+import { externalUrl } from '@/utils/constants'
 
 // Notify if errors occur
 export async function fetchFiles(source, path, content = false) {
