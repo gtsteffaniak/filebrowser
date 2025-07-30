@@ -79,7 +79,8 @@ func setupProxyUser(r *http.Request, data *requestContext, proxyUser string) (*u
 			err = storage.CreateUser(users.User{
 				LoginMethod: users.LoginMethodProxy,
 				Username:    proxyUser,
-			}, false)
+				Permissions: settings.Config.UserDefaults.Permissions,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -194,7 +195,8 @@ func signupHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (i
 		},
 		LoginMethod: users.LoginMethodPassword,
 	}
-	err = storage.CreateUser(user, false)
+	user.Permissions = settings.Config.UserDefaults.Permissions
+	err = storage.CreateUser(user)
 	if err != nil {
 		logger.Debug(err.Error())
 		w.WriteHeader(http.StatusConflict)

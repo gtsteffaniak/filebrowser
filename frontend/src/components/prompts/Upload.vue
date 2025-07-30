@@ -366,9 +366,19 @@ export default {
     };
 
     const processItems = async (items) => {
+      // When items are passed as a prop from ListingView, they can be either
+      // an array of DataTransferItem (from drag and drop) or an array of File (from input).
       if (Array.isArray(items)) {
-        processFileList(items);
+        if (items.length > 0 && items[0] instanceof File) {
+          // This is an array of File objects from the input fallback in ListingView
+          processFileList(items);
+        } else {
+          // This is an array of DataTransferItem from drag and drop in ListingView
+          await processDroppedItems(items);
+        }
       } else if (items) {
+        // This case handles a FileList object from the upload prompt's own input fields.
+        // It is not an array, so we convert it.
         await processDroppedItems(Array.from(items));
       }
     };
@@ -464,13 +474,16 @@ export default {
 
     const processDroppedItems = async (items) => {
       const filesToUpload = [];
-      for (const item of items) {
+      const promises = items.map(item => {
         const entry = item.webkitGetAsEntry();
         if (entry) {
-          const files = await getFilesFromDirectoryEntry(entry);
-          filesToUpload.push(...files);
+          return getFilesFromDirectoryEntry(entry);
         }
-      }
+        return Promise.resolve([]);
+      });
+
+      const allFiles = await Promise.all(promises);
+      allFiles.forEach(files => filesToUpload.push(...files));
 
       if (filesToUpload.length > 0) {
         uploadManager.add(state.req.path, filesToUpload);

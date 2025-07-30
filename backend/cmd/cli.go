@@ -85,10 +85,7 @@ func runCLI() bool {
 			}
 			username := userInfo[0]
 			password := userInfo[1]
-			ok := getStore(dbConfig)
-			if !ok {
-				logger.Fatal("could not load db info")
-			}
+			_ = getStore(dbConfig) // ignore bool check
 			user, err := store.Users.Get(username)
 			if err != nil {
 				newUser := users.User{
@@ -113,7 +110,9 @@ func runCLI() bool {
 				} else {
 					logger.Infof("Creating non-admin user: %s\n", username)
 				}
-				err = storage.CreateUser(newUser, asAdmin)
+				newUser.Permissions = settings.Config.UserDefaults.Permissions
+				newUser.Permissions.Admin = asAdmin
+				err = storage.CreateUser(newUser)
 				if err != nil {
 					logger.Errorf("could not create user: %v", err)
 				}

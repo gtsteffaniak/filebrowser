@@ -92,6 +92,12 @@
               :name="$t('profileSettings.popupPreview')"
               :description="$t('profileSettings.popupPreviewDescription')"
             />
+            <ToggleSwitch
+              class="item"
+              v-model="localuser.showSelectMultiple"
+              :name="$t('profileSettings.showSelectMultiple')"
+              :description="$t('profileSettings.showSelectMultipleDescription')"
+            />
           </div>
           <h3>{{ $t("profileSettings.editorViewerOptions") }}</h3>
           <div class="settings-items">
@@ -392,6 +398,7 @@ export default {
           "disableSearchOptions",
           "hideSidebarFileActions",
           "editorQuickSave",
+          "showSelectMultiple",
         ]);
         if (themeChanged) {
           window.location.reload();

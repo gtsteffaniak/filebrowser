@@ -914,7 +914,7 @@ export default {
         mutations.showHover({
           name: "upload",
           props: {
-            initialItems: event.dataTransfer.items,
+            initialItems: Array.from(event.dataTransfer.items),
           },
         });
       } else {

@@ -200,6 +200,8 @@
     "helpText2": "The index: Search utilizes the index which automatically gets updated on the configured interval (default: 5 minutes). Searching when the program has just started may result in incomplete results."
   },
   "profileSettings": {
+    "showSelectMultiple": "Show select multiple in context menu on desktop",
+    "showSelectMultipleDescription": "By default, desktop context menu does not have \"select multiple\" option like mobile. This option always shows it in the context menu.",
     "customTheme": "Choose your theme",
     "defaultThemeDescription": "default - The default theme",
     "setDateFormat": "Set exact date format",

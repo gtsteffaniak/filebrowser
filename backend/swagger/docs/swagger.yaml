@@ -425,11 +425,11 @@ definitions:
         description: disable type detection by header, useful if filesystem is slow.
         type: boolean
       externalUrl:
-        description: used by share links if set
+        description: used by share links if set (eg. http://mydomain.com)
         type: string
       internalUrl:
-        description: used by integrations if set, this is the url that an integration
-          service will use to communicate with filebrowser
+        description: used by integrations if set, this is the base domain that an
+          integration service will use to communicate with filebrowser (eg. http://localhost:8080)
         type: string
       logging:
         items:
@@ -617,6 +617,9 @@ definitions:
       showHidden:
         description: show hidden files in the UI. On windows this includes files starting
           with a dot and windows hidden files
+        type: boolean
+      showSelectMultiple:
+        description: show select multiple files on desktop
         type: boolean
       singleClick:
         description: open directory on single click, also enables middle click to
@@ -829,6 +832,9 @@ definitions:
       showHidden:
         description: show hidden files in the UI. On windows this includes files starting
           with a dot and windows hidden files
+        type: boolean
+      showSelectMultiple:
+        description: show select multiple files on desktop
         type: boolean
       singleClick:
         description: open directory on single click, also enables middle click to

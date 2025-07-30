@@ -82,7 +82,6 @@ func validateOidcAuth() error {
 	if !oidcCfg.Enabled {
 		return errors.New("OIDC is not enabled")
 	}
-
 	ctx := context.Background()
 
 	// If disableVerifyTLS is true, create a custom HTTP client
