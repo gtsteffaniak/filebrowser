@@ -144,6 +144,7 @@ userDefaults:
   disableOfficePreviewExt: ""             # deprecated: use disablePreviewExt instead
   disableOnlyOfficeExt: ""                # list of file extensions to disable onlyoffice editor for
   customTheme: ""                         # Name of theme to use chosen from custom themes config.
+  showSelectMultiple: false               # show select multiple files on desktop
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required

@@ -2661,6 +2661,10 @@ const docTemplate = `{
                     "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
+                "showSelectMultiple": {
+                    "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
                 "singleClick": {
                     "description": "open directory on single click, also enables middle click to open in new tab",
                     "type": "boolean"
@@ -2957,6 +2961,10 @@ const docTemplate = `{
                 },
                 "showHidden": {
                     "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
+                    "type": "boolean"
+                },
+                "showSelectMultiple": {
+                    "description": "show select multiple files on desktop",
                     "type": "boolean"
                 },
                 "singleClick": {
