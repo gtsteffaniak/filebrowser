@@ -292,7 +292,9 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			totalSize += itemInfo.Size
 			itemInfo.Type = "directory"
 			dirInfos = append(dirInfos, *itemInfo)
-			idx.NumDirs++
+			if recursive {
+				idx.NumDirs++
+			}
 		} else {
 			size, shouldCountSize := idx.handleFile(file, fullCombined)
 			itemInfo.DetectType(fullCombined, false)
@@ -301,7 +303,9 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, realPath, adjus
 			if shouldCountSize {
 				totalSize += itemInfo.Size
 			}
-			idx.NumFiles++
+			if recursive {
+				idx.NumFiles++
+			}
 		}
 	}
 

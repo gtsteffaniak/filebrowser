@@ -6,7 +6,7 @@
       'no-select': true,
       'listing-item': true,
       activebutton: isSelected,
-      hiddenFile: isHiddenNotSelected && !this.isDraggedOver,
+      hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
     }"
@@ -23,12 +23,12 @@
     :data-name="name"
     :aria-label="name"
     :aria-selected="isSelected"
-    @contextmenu="onRightClick($event)"
-    @click="click($event)"
-    @touchstart="addSelected($event)"
-    @touchmove="handleTouchMove($event)"
-    @touchend="cancelContext($event)"
-    @mouseup="cancelContext($event)"
+    @contextmenu="onRightClick"
+    @click="click"
+    @touchstart="addSelected"
+    @touchmove="handleTouchMove"
+    @touchend="cancelContext"
+    @mouseup="cancelContext"
   >
     <div :class="{ 'gallery-div': galleryView }">
       <Icon
@@ -88,6 +88,7 @@ export default {
       isLongPress: false,
       isSwipe: false,
       isDraggedOver: false,
+      contextTimeout: null,
     };
   },
   props: [
@@ -108,6 +109,7 @@ export default {
       return state.user.viewMode === "gallery";
     },
     quickDownloadEnabled() {
+      // @ts-ignore
       return state.user?.quickDownload && !this.galleryView && !this.isDir;
     },
     isHiddenNotSelected() {
@@ -126,6 +128,7 @@ export default {
       return state.selected;
     },
     isClicked() {
+      // @ts-ignore
       if (state.user.singleClick || !this.allowedView) {
         return false;
       }
@@ -135,12 +138,18 @@ export default {
       return this.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
+      // @ts-ignore
       return this.readOnly == undefined && state.user.permissions?.modify;
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
       for (let i of this.selected) {
-        if (state.req.items[i].path === this.path && state.req.source === this.source) {
+        if (
+          // @ts-ignore
+          state.req.items[i].path === this.path &&
+          // @ts-ignore
+          state.req.source === this.source
+        ) {
           return false;
         }
       }
@@ -150,12 +159,14 @@ export default {
       if (!enableThumbs) {
         return "";
       }
+      // @ts-ignore
       let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
       if (getters.isShare()) {
         let urlPath = getters.getSharePath() + "/" + this.name;
         return shareApi.getPreviewURL(state.share.hash, urlPath, state.req.modified);
       }
-      return filesApi.getPreviewURL(state.req.source, path, state.req.modified);
+      // @ts-ignore
+      return filesApi.getPreviewURL(state.req.source, path, this.modified);
     },
     isThumbsEnabled() {
       return enableThumbs;
@@ -172,13 +183,16 @@ export default {
     observer.observe(this.$el);
   },
   methods: {
+    /** @param {MouseEvent} event */
     downloadFile(event) {
       event.preventDefault();
       event.stopPropagation();
       mutations.resetSelected();
+      // @ts-ignore
       mutations.addSelected(this.index);
       downloadFiles(state.selected);
     },
+    /** @param {TouchEvent} event */
     handleTouchMove(event) {
       if (!state.isSafari) return;
       const touch = event.touches[0];
@@ -188,11 +202,13 @@ export default {
       const movementThreshold = 10; // Adjust as needed
       if (deltaX > movementThreshold || deltaY > movementThreshold) {
         this.isSwipe = true;
+        // @ts-ignore
         this.cancelContext(); // Cancel long press if swipe is detected
       }
     },
     handleTouchEnd() {
       if (!state.isSafari) return;
+      // @ts-ignore
       this.cancelContext(); // Clear timeout
       this.isSwipe = false; // Reset swipe state
     },
@@ -203,12 +219,10 @@ export default {
       }
       this.isLongPress = false;
     },
+    /** @param {string} path */
     updateHashAndNavigate(path) {
       // Update hash in the browser without full page reload
       window.location.hash = path;
-
-      // Optional: Trigger native navigation
-      window.location.href = this.getRelative(path);
     },
     getUrl() {
       if (this.hash) {
@@ -219,11 +233,13 @@ export default {
       }
       return baseURL + "files" + url.encodedPath(this.path);
     },
+    /** @param {MouseEvent} event */
     onRightClick(event) {
       event.preventDefault(); // Prevent default context menu
       // If one or fewer items are selected, reset the selection
       if (!state.multiple && getters.selectedCount() < 2) {
         mutations.resetSelected();
+        // @ts-ignore
         mutations.addSelected(this.index);
       }
       mutations.showHover({
@@ -234,6 +250,10 @@ export default {
         },
       });
     },
+    /**
+     * @param {IntersectionObserverEntry[]} entries
+     * @param {IntersectionObserver} observer
+     */
     handleIntersect(entries, observer) {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -249,26 +269,33 @@ export default {
         : getHumanReadableFilesize(this.size);
     },
     getTime() {
+      // @ts-ignore
       return getters.getTime(this.modified);
     },
     dragLeave() {
       this.isDraggedOver = false;
     },
+    /** @param {DragEvent} event */
     dragStart(event) {
       if (this.selected.indexOf(this.index) === -1) {
         mutations.resetSelected();
+        // @ts-ignore
         mutations.addSelected(this.index);
       }
-      event.dataTransfer.setData(
-        "application/x-filebrowser-internal-drag",
-        "true"
-      );
+      if (event.dataTransfer) {
+        event.dataTransfer.setData(
+          "application/x-filebrowser-internal-drag",
+          "true"
+        );
+      }
     },
+    /** @param {DragEvent} event */
     dragOver(event) {
       if (!this.canDrop) return;
       event.preventDefault();
       this.isDraggedOver = true;
     },
+    /** @param {DragEvent} event */
     async drop(event) {
       event.preventDefault();
       event.stopPropagation();
@@ -281,8 +308,11 @@ export default {
       let items = [];
       for (let i of state.selected) {
         items.push({
+          // @ts-ignore
           from: state.req.items[i].path,
+          // @ts-ignore
           fromSource: state.req.items[i].source,
+          // @ts-ignore
           to: this.path + "/" + state.req.items[i].name,
           toSource: this.source,
         });
@@ -290,9 +320,14 @@ export default {
 
       const conflict = upload.checkConflict(
         items,
+        // @ts-ignore
         (await filesApi.fetchFiles(this.source, this.path)).items
       );
 
+      /**
+       * @param {boolean} overwrite
+       * @param {boolean} rename
+       */
       let action = async (overwrite, rename) => {
         await filesApi.moveCopy(items, "move", overwrite, rename);
       };
@@ -300,6 +335,10 @@ export default {
       if (conflict) {
         mutations.showHover({
           name: "replace-rename",
+          /**
+           * @param {Event} event
+           * @param {string} option
+           */
           confirm: (event, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
@@ -314,6 +353,7 @@ export default {
 
       action(false, false);
     },
+    /** @param {TouchEvent} event */
     addSelected(event) {
       if (!state.isSafari) {
         return;
@@ -329,13 +369,16 @@ export default {
       if (state.multiple) {
         return;
       }
+      // @ts-ignore
       this.contextTimeout = setTimeout(() => {
         if (!this.isSwipe) {
           mutations.resetSelected();
+          // @ts-ignore
           mutations.addSelected(this.index);
         }
       }, 500);
     },
+    /** @param {MouseEvent} event */
     click(event) {
       if (event.button === 0) {
         // Left-click
@@ -364,18 +407,21 @@ export default {
         let fi = 0;
         let la = 0;
 
-        if (this.index > state.lastSelectedIndex) {
-          fi = state.lastSelectedIndex;
-          la = this.index;
-        } else {
-          fi = this.index;
-          la = state.lastSelectedIndex;
+        if (state.lastSelectedIndex !== null) {
+          if (this.index > state.lastSelectedIndex) {
+            fi = state.lastSelectedIndex;
+            la = this.index;
+          } else {
+            fi = this.index;
+            la = state.lastSelectedIndex;
+          }
         }
 
         mutations.resetSelected();
 
         for (; fi <= la; fi++) {
           if (state.selected.indexOf(fi) === -1) {
+            // @ts-ignore
             mutations.addSelected(fi);
           }
         }
@@ -398,6 +444,7 @@ export default {
 
         if (state.selected.length > 1) {
           mutations.resetSelected();
+          // @ts-ignore
           mutations.addSelected(this.index);
           mutations.setLastSelectedIndex(this.index);
         }
@@ -412,6 +459,7 @@ export default {
       ) {
         mutations.resetSelected();
       }
+      // @ts-ignore
       mutations.addSelected(this.index);
       mutations.setLastSelectedIndex(this.index);
     },
@@ -421,6 +469,7 @@ export default {
         url.goToItem(this.source, this.path, "", shareHash);
         return;
       }
+      // @ts-ignore
       const previousHash = state.req.items[this.index].name;
       url.goToItem(this.source, this.path, previousHash);
     },

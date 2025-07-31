@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
 ## v0.8.0-beta
+## v0.7.18-beta
+
+ **Notes**:
+ - desktop context menu "select multiple" enabled as optional user default (#1000)
+ - onlyoffice readonly document types (".pages", ".numbers", ".key") list (#1018)
+ - onlyoffice tweaks to make more consistent, added logging (#1015)
+
+ **BugFixes**:
+ - fix lightBackground issue (#1021)
+ - fix user save issues (#1020, #1027)
+ - fix image preview cache issue (#989)
+ - fix file/folder count issue (#989)
+ - only first file was upload on drag-n-drop (#1024)
 
 ## v0.7.17-beta
 

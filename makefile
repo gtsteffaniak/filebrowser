@@ -62,11 +62,9 @@ test-frontend:
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
-	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
-	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
 	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
-	docker run --rm --name filebrowser-playwright-tests filebrowser-playwright-tests
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
 
 run-proxy: build-frontend
 	cd _docker && docker compose up -d --build

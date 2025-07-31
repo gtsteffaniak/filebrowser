@@ -1,9 +1,7 @@
-
-
-body {
+  body {
   font-family: "Roboto", sans-serif;
   padding-top: 4em;
-  background-color: #f5f5f5;
+  background-color: var(--background);
   color: #333333;
   overflow:auto;
   overflow:initial;

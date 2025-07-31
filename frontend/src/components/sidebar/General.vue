@@ -297,19 +297,19 @@ export default {
             <tbody>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.status")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || ''}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.status || 'unknown'}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.assessment")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.assessment || ''}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.assessment || 'unknown'}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.files")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.files || ''}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.files || 0}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.folders")}</td>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.folders || ''}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.folders || 0}</td>
               </tr>
               <tr>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.lastScanned")}</td>

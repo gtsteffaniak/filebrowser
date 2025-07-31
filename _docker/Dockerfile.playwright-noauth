@@ -1,8 +1,16 @@
 FROM gtstef/playwright-base
 WORKDIR /app
+
+# Copy setup scripts first to leverage caching
 COPY [ "./_docker/src/noauth/", "./" ]
+
 WORKDIR /app/frontend
 COPY [ "./frontend/", "./" ]
+
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser", "./"]
-RUN ./filebrowser & sleep 2 && cd ../frontend && npx playwright test
+RUN mkdir -p ./http/dist
+COPY [ "./backend/http/embed/", "./http/dist/"]
+
+# Run tests
+RUN  FILEBROWSER_NO_EMBEDED=true ./filebrowser & sleep 2 && cd ../frontend && npx playwright test

@@ -8,12 +8,12 @@
         class="button button--flat button--grey"
         @click="closeHovers"
         v-focus
-        :aria-label="$t('buttons.cancel')"
+        aria-label="Cancel"
         :title="$t('buttons.cancel')"
       >
         {{ $t("buttons.cancel") }}
       </button>
-      <button class="button button--flat" @click="deleteUser">
+      <button class="button button--flat"  aria-label="Confirm Delete" @click="deleteUser">
         {{ $t("buttons.delete") }}
       </button>
     </div>

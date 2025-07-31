@@ -36,6 +36,13 @@ export default {
     },
   },
   watch: {
+    $route: {
+      handler() {
+        // hide tooltip when route changes
+        this.tooltip.show = false;
+        this.tooltip.content = "";
+      },
+    },
     tooltip: {
       handler(newTooltip) {
         if (newTooltip.show) {

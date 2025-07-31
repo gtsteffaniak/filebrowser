@@ -8,78 +8,107 @@ on:
       - "beta/v*.*.*"
       - "stable/v*.*.*"
 jobs:
+  prime_docker_cache:
+    name: Prime docker cache
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Prime Cache
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: _docker/Dockerfile.primecache
+          push: false
+          load: false
+          cache-to: |
+            type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
+  build_frontend:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - name: Build frontend
+        working-directory: frontend
+        run: npm i && npm run build
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: frontend/dist
+  build_backend:
+    name: Build backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - name: Build backend
+        working-directory: backend
+        run: go build -o filebrowser .
+      - name: Upload backend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: filebrowser
+          path: backend/filebrowser
   test_playwright:
-    name: Test Playwright - general
+    needs: [build_backend, build_frontend, prime_docker_cache]
+    name: Test Playwright - ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: general
+            dockerfile: ./_docker/Dockerfile.playwright-general
+          - name: proxy
+            dockerfile: ./_docker/Dockerfile.playwright-proxy
+          - name: noauth
+            dockerfile: ./_docker/Dockerfile.playwright-noauth
+          - name: oidc
+            dockerfile: ./_docker/Dockerfile.playwright-oidc
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: frontend/dist
+      - name: Download backend build
+        uses: actions/download-artifact@v4
+        with:
+          name: filebrowser
+          path: backend/
+      - name: Make backend executable
+        run: chmod +x backend/filebrowser
+      - name: Copy frontend build to backend
+        run: |
+          mkdir -p backend/http/embed
+          cp -r frontend/dist/* backend/http/embed
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.0.0
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i && npm run build
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go build -o filebrowser .
-      - name: Build
+      - name: Build and Test
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./_docker/Dockerfile.playwright-general
+          file: ${{ matrix.dockerfile }}
           push: false
-  test_playwright_proxy:
-    name: Test Playwright - proxy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i && npm run build
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go build -o filebrowser .
-      - name: Build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./_docker/Dockerfile.playwright-proxy
-          push: false
-  test_playwright_noauth:
-    name: Test Playwright - noauth
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
-      - uses: actions/setup-node@v4
-      - working-directory: frontend
-        run: npm i && npm run build
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-      - working-directory: backend
-        run: go build -o filebrowser .
-      - name: Build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./_docker/Dockerfile.playwright-noauth
-          push: false
+          load: true
+          cache-from: |
+            type=gha,scope=${{ github.ref_name }}-playwright-base
+            type=gha,scope=main-playwright-base
+          cache-to: |
+            type=gha,mode=max,scope=${{ github.ref_name }}-playwright-base
   push_pr_to_registry:
     if: github.event.pull_request.head.repo.fork == false
     name: Build docker image
@@ -112,3 +141,5 @@ jobs:
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
             REVISION=${{ steps.meta.outputs.revision }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

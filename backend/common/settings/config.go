@@ -59,7 +59,7 @@ func setupFrontend() {
 			Url:  "https://github.com/gtsteffaniak/filebrowser/wiki",
 		})
 	}
-	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "white")
+	Config.Frontend.Styling.LightBackground = FallbackColor(Config.Frontend.Styling.LightBackground, "#f5f5f5")
 	Config.Frontend.Styling.DarkBackground = FallbackColor(Config.Frontend.Styling.DarkBackground, "#141D24")
 	Config.Frontend.Styling.CustomCSS = readCustomCSS(Config.Frontend.Styling.CustomCSS)
 	Config.Frontend.Styling.CustomThemeOptions = map[string]CustomTheme{}
@@ -73,8 +73,20 @@ func setupFrontend() {
 		Config.Frontend.Styling.CustomThemes[name] = thisTheme
 	}
 	noThemes := len(Config.Frontend.Styling.CustomThemes) == 0
+	if noThemes {
+		Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{
+			"default": {
+				Description: "The default theme",
+				CSS:         "",
+			},
+			"alternative": {
+				Description: "Reduce rounded corners",
+				CSS:         "reduce-rounded-corners.css",
+			},
+		}
+	}
 	_, ok := Config.Frontend.Styling.CustomThemes["default"]
-	if noThemes || !ok {
+	if !ok {
 		theme := CustomTheme{
 			Description: "The default theme",
 			CSS:         "",
@@ -169,6 +181,10 @@ func setupUrls() {
 		Config.Server.BaseURL = "/"
 	} else {
 		Config.Server.BaseURL = "/" + baseurl + "/"
+	}
+	if Config.Server.BaseURL != "/" {
+		Config.Server.InternalUrl = strings.TrimSuffix(Config.Server.InternalUrl, Config.Server.BaseURL)
+		Config.Server.ExternalUrl = strings.TrimSuffix(Config.Server.ExternalUrl, Config.Server.BaseURL)
 	}
 	Config.Server.InternalUrl = strings.Trim(Config.Server.InternalUrl, "/")
 	Config.Server.ExternalUrl = strings.Trim(Config.Server.ExternalUrl, "/")

@@ -304,7 +304,6 @@ export default {
       this.lastHash = "";
       // Reset view information using mutations
       mutations.resetSelected();
-
       let data = {};
       try {
         const fetchSource = decodeURIComponent(result.source);
@@ -329,14 +328,7 @@ export default {
         mutations.replaceRequest(data);
         mutations.setLoading("files", false);
       }
-      data = res;
-      if (state.sources.count > 1) {
-        mutations.setCurrentSource(data.source);
-      }
-      document.title = `${document.title} - ${res.name}`;
-      mutations.replaceRequest(data);
     },
-
     keyEvent(event) {
       // F1!
       if (event.keyCode === 112) {

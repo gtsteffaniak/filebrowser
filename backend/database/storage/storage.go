@@ -100,7 +100,7 @@ func quickSetup(store *bolt.BoltStore) {
 }
 
 // create new user
-func CreateUser(userInfo users.User, asAdmin bool) error {
+func CreateUser(userInfo users.User) error {
 	newUser := &userInfo
 	if userInfo.LoginMethod == "password" {
 		if userInfo.Password == "" {
@@ -113,16 +113,11 @@ func CreateUser(userInfo users.User, asAdmin bool) error {
 		}
 		userInfo.Password = hashpass
 	}
-	userInfo.Permissions = settings.Config.UserDefaults.Permissions
 	// must have username
 	if userInfo.Username == "" {
 		return fmt.Errorf("username is required to create a user")
 	}
 	logger.Debugf("Creating user: %v %v", userInfo.Username, userInfo.Scopes)
-	settings.ApplyUserDefaults(newUser)
-	if asAdmin {
-		userInfo.Permissions = settings.AdminPerms()
-	}
 	// create new home directories
 	err := userStore.Save(newUser, true, false)
 	if err != nil {

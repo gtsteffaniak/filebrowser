@@ -414,14 +414,11 @@ func HasDocConvertableExtension(name, mimetype string) bool {
 	return false
 }
 
-var ONLYOFFICE_EDIT_FILE_EXTENSIONS = []string{"doc", "docx", "pptx", "xls", "xlsx", "csv", "txt", "rtf", "md"}
+var ONLYOFFICE_READONLY_FILE_EXTENSIONS = []string{"pages", "numbers", "key"}
 
 func CanEditOnlyOffice(modify bool, extention string) bool {
 	if !modify {
 		return false
 	}
-	if slices.Contains(ONLYOFFICE_EDIT_FILE_EXTENSIONS, strings.ToLower(extention)) {
-		return true
-	}
-	return false
+	return !slices.Contains(ONLYOFFICE_READONLY_FILE_EXTENSIONS, strings.ToLower(extention))
 }
