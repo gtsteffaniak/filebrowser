@@ -1,1 +1,1 @@
-declare module 'oauth2-mock-server'; 
+declare module 'oauth2-mock-server';

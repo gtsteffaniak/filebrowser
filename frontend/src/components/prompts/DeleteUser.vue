@@ -22,8 +22,7 @@
 <script>
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
-import buttons from "@/utils/buttons";
-import { state, mutations, getters } from "@/store";
+import { mutations, getters } from "@/store";
 
 export default {
   name: "delete",
@@ -40,8 +39,8 @@ export default {
       event.preventDefault();
       try {
         await usersApi.remove(this.user.id);
-        this.$router.push({ path: "/settings",hash:"#users-main" });
         notify.showSuccess(this.$t("settings.userDeleted"));
+        window.location.reload();
       } catch (e) {
         e.message === "403"
           ? notify.showError(this.$t("errors.forbidden"), false)
@@ -50,37 +49,7 @@ export default {
     },
     closeHovers() {
       mutations.closeHovers();
-    },
-    submit: async function () {
-      buttons.loading("delete");
-
-      try {
-        if (!this.isListing) {
-          await usersApi.remove(this.$route.path);
-          buttons.success("delete");
-          window.location.reload();
-          return;
-        }
-
-        this.closeHovers();
-
-        if (getters.selectedCount() === 0) {
-          return;
-        }
-
-        let promises = [];
-        for (let index of this.selected) {
-          promises.push(usersApi.remove(state.req.items[index].path));
-        }
-
-        await Promise.all(promises);
-        buttons.success("delete");
-        window.location.reload();
-      } catch (e) {
-        buttons.done("delete");
-        notify.showError(e);
-      }
-    },
+    }
   },
 };
 </script>

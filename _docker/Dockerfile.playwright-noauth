@@ -5,7 +5,7 @@ WORKDIR /app
 COPY [ "./_docker/src/noauth/", "./" ]
 
 WORKDIR /app/frontend
-COPY [ "./frontend/", "./" ]
+COPY [ "./frontend/tests", "./tests" ]
 
 WORKDIR /app/backend/
 COPY [ "./backend/filebrowser", "./"]

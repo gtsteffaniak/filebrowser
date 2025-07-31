@@ -7,6 +7,7 @@ test('create, check settings, and delete testuser2', async ({
 }) => {
     await page.goto('/settings')
     await expect(page).toHaveTitle("Graham's Filebrowser - Settings")
+    await page.locator('#users-sidebar').click();
     await page.locator('button[aria-label="Add New User"]').click()
     await page.locator('#username').fill('testuser2')
     await page.locator('input[aria-label="Password1"]').fill('testpassword')
@@ -25,13 +26,12 @@ test('create, check settings, and delete testuser2', async ({
     await expect(page.locator('tr.item', { hasText: 'testuser2' })).toBeVisible();
 
     // Now, click the edit button for testuser2
-    const userRow = page.locator('tr.item', { hasText: 'testuser2' })
-    const editLink = await userRow
-        .locator('td[aria-label="Edit User"] a')
-        .getAttribute('href')
-    await page.goto(editLink!)
+    await page.locator('tr.item', { hasText: 'testuser2' }).getByLabel('Edit User').click();
 
     // Now on the edit page, toggle the settings
+    await expect(page.locator('.card.floating')).toBeVisible();
+    const modal = page.locator('.card.floating');
+
     const settingsToToggle = [
         "Administrator",
         "Prevent the user from changing the password",
@@ -42,24 +42,26 @@ test('create, check settings, and delete testuser2', async ({
     ];
 
     for (const settingName of settingsToToggle) {
-        const toggleContainer = page.locator(".toggle-container", { hasText: settingName });
+        const toggleContainer = modal.locator(".toggle-container", { hasText: settingName });
         const toggleSwitch = toggleContainer.locator("label.switch");
         await toggleSwitch.click();
     }
 
     // Save the updated settings
-    await page.locator('input[aria-label="Save User"]').click();
+    await modal.locator('input[aria-label="Save User"]').click();
+    await expect(modal).not.toBeVisible();
 
-    // The app might show a notification and stay on the page. Let's reload to ensure we have the latest state.
-    await page.reload({ waitUntil: 'networkidle' });
+    // Re-open the modal to check the settings
+    await page.locator('tr.item', { hasText: 'testuser2' }).getByLabel('Edit User').click();
+    await expect(page.locator('.card.floating')).toBeVisible();
 
     for (const settingName of settingsToToggle) {
-        const checkbox = page.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
         await expect(checkbox).toBeChecked();
     }
 
     // Delete the user
-    await page.locator('button[aria-label="Delete User"]').click();
+    await modal.locator('button[aria-label="Delete User"]').click();
     await page.locator('button[aria-label="Confirm Delete"]').click();
 
     // After deletion, we should be back on the settings page.
@@ -71,107 +73,126 @@ test("two factor auth check", async ({ page, checkForErrors, context }) => {
     // go to settings
     await page.goto("/settings");
     await expect(page).toHaveURL(/\/settings/);
+    await page.locator('#users-sidebar').click();
     // click the edit button for testuser
     const userRow = page.locator('tr.item', { hasText: 'admin' })
-    const editLink = await userRow
-        .locator('td[aria-label="Edit User"] a')
-        .getAttribute('href')
-    await page.goto(editLink!)
+    await userRow.getByLabel('Edit User').click();
+    await expect(page.locator('.card.floating')).toBeVisible();
+
+    const modal = page.locator('.card.floating');
 
     // Toggle the two factor authentication switch
-    const twoFactorCheckbox = page.locator('.toggle-container:has-text("Two-Factor Authentication") input[type="checkbox"]');
-    const twoFactorToggle = page.locator('.toggle-container:has-text("Two-Factor Authentication") label.switch');
+    const twoFactorCheckbox = modal.locator('.toggle-container:has-text("Two-Factor Authentication") input[type="checkbox"]');
+    const twoFactorToggle = modal.locator('.toggle-container:has-text("Two-Factor Authentication") label.switch');
     // Check if it's currently enabled
     const isChecked = await twoFactorCheckbox.isChecked();
     // Toggle it by clicking the label (since checkbox is hidden)
     await twoFactorToggle.click();
     // Verify it changed state
     await expect(twoFactorCheckbox).toBeChecked();
-    await page.locator('button[aria-label="Generate Code"]').click();
+    await modal.locator('button[aria-label="Generate Code"]').click();
     // check for the otp url
-    await expect(page.locator('p[aria-label="otp-url"]')).toBeVisible();
+    await expect(modal.locator('p[aria-label="otp-url"]')).toBeVisible();
 
     // check that the otp-url is not empty
-    const otpUrl = await page.locator('p[aria-label="otp-url"]').textContent();
+    const otpUrl = await modal.locator('p[aria-label="otp-url"]').textContent();
     expect(otpUrl).not.toBe("");
     checkForErrors();
 });
 
 test.describe("User Settings Persistence", () => {
+    const username = "testuser1";
     test.beforeEach(async ({ page }) => {
         await page.goto("/settings");
-        const userRow = page.locator("tr.item", { hasText: "testuser1" });
-        const editLink = await userRow
-            .locator('td[aria-label="Edit User"] a')
-            .getAttribute("href");
-        await page.goto(editLink!);
+        await page.locator('#users-sidebar').click();
     });
 
-    async function toggleSettingAndSave(page: Page, settingName: string) {
-        const toggleContainer = page.locator(".toggle-container", { hasText: settingName });
-        const toggleSwitch = toggleContainer.locator("label.switch");
+    async function checkTogglePersistence(page: Page, settingName: string) {
+        const userRow = page.locator("tr.item", { hasText: username });
+        const modal = page.locator('.card.floating');
+
+        // --- Open modal and check initial state (should be OFF) ---
+        // Now, click the edit button for testuser1
+        await userRow.getByLabel('Edit User').click()
+
+        await expect(modal).toBeVisible();
+        const checkbox = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await expect(checkbox).not.toBeChecked();
+
+        // --- Toggle ON and save ---
+        const toggleSwitch = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
         await toggleSwitch.click();
-        await page.locator('input[aria-label="Save User"]').click();
-        await page.reload();
+        await modal.locator('input[aria-label="Save User"]').click();
+        await expect(modal).not.toBeVisible();
+
+        // --- Re-open and check persisted state (should be ON) ---
+        await userRow.getByLabel('Edit User').click();
+        await expect(modal).toBeVisible();
+        const checkboxOn = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await expect(checkboxOn).toBeChecked();
+
+        // --- Toggle OFF to restore state and save ---
+        const toggleSwitchOn = modal.locator(".toggle-container", { hasText: settingName }).locator("label.switch");
+        await toggleSwitchOn.click();
+        await modal.locator('input[aria-label="Save User"]').click();
+        await expect(modal).not.toBeVisible();
+
+        // --- Re-open and check state is restored (should be OFF) ---
+        await userRow.getByLabel('Edit User').click();
+        await expect(modal).toBeVisible();
+        const checkboxOff = modal.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
+        await expect(checkboxOff).not.toBeChecked();
+
+        // --- Close modal to finish ---
+        await modal.locator('button[aria-label="Cancel"]').click();
     }
 
     test('should persist "Prevent the user from changing the password" setting', async ({ page }) => {
-        const settingName = "Prevent the user from changing the password";
-        const checkbox = page.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).not.toBeChecked();
-        await toggleSettingAndSave(page, settingName);
-        await expect(checkbox).toBeChecked();
+        await checkTogglePersistence(page, "Prevent the user from changing the password");
     });
 
     test('should persist "Administrator" setting', async ({ page }) => {
-        const settingName = "Administrator";
-        const checkbox = page.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).not.toBeChecked(); // Admin user should have this on
-        await toggleSettingAndSave(page, settingName);
-        await expect(checkbox).toBeChecked();
+        await checkTogglePersistence(page, "Administrator");
     });
 
     test('should persist "Edit files" setting', async ({ page }) => {
-        const settingName = "Edit files";
-        const checkbox = page.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).not.toBeChecked();
-        await toggleSettingAndSave(page, settingName);
-        await expect(checkbox).toBeChecked();
-        await toggleSettingAndSave(page, settingName); // Revert
+        await checkTogglePersistence(page, "Edit files");
     });
 
     test('should persist "Share files" setting', async ({ page }) => {
-        const settingName = "Share files";
-        const checkbox = page.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).not.toBeChecked();
-        await toggleSettingAndSave(page, settingName);
-        await expect(checkbox).toBeChecked();
+        await checkTogglePersistence(page, "Share files");
     });
 
     test('should persist "Create and manage long-live API keys" setting', async ({ page }) => {
-        const settingName = "Create and manage long-live API keys";
-        const checkbox = page.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).not.toBeChecked();
-        await toggleSettingAndSave(page, settingName);
-        await expect(checkbox).toBeChecked();
+        await checkTogglePersistence(page, "Create and manage long-live API keys");
     });
 
     test('should persist "Enable real-time connections and updates" setting', async ({ page }) => {
-        const settingName = "Enable real-time connections and updates";
-        const checkbox = page.locator(`.toggle-container:has-text("${settingName}") input[type="checkbox"]`);
-        await expect(checkbox).not.toBeChecked();
-        await toggleSettingAndSave(page, settingName);
-        await expect(checkbox).toBeChecked();
+        await checkTogglePersistence(page, "Enable real-time connections and updates");
     });
 
     test('should persist "allowed login method" setting', async ({ page }) => {
-        const loginMethodSelector = page.locator("#loginMethod");
+        const userRow = page.locator("tr.item", { hasText: username });
+        await userRow.getByLabel('Edit User').click();
+        const modal = page.locator('.card.floating');
+        await expect(modal).toBeVisible();
+
+        const loginMethodSelector = modal.locator("#loginMethod");
         await expect(loginMethodSelector).toHaveValue("password");
 
         await loginMethodSelector.selectOption({ label: "Proxy" });
-        await page.locator('input[aria-label="Save User"]').click();
-        await page.reload();
+        await modal.locator('input[aria-label="Save User"]').click();
+        await expect(modal).not.toBeVisible();
 
-        await expect(page.locator("#loginMethod")).toHaveValue("proxy");
+        await userRow.getByLabel('Edit User').click();
+        await expect(modal).toBeVisible();
+
+        await expect(modal.locator("#loginMethod")).toHaveValue("proxy");
+
+        // Revert change
+        const loginMethodSelector2 = modal.locator("#loginMethod");
+        await loginMethodSelector2.selectOption({ label: "Password" });
+        await modal.locator('input[aria-label="Save User"]').click();
+        await expect(modal).not.toBeVisible();
     });
 });
