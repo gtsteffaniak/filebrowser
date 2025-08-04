@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/asdine/storm/v3"
+	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -149,6 +150,9 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 	rule := s.getOrCreateRule(sourcePath, indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	if _, ok := rule.Deny.Users[username]; ok {
+		return errors.ErrExist
+	}
 	rule.Deny.Users[username] = struct{}{}
 	return s.SaveToDB()
 }
@@ -164,6 +168,9 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 	rule := s.getOrCreateRule(sourcePath, indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	if _, ok := rule.Allow.Users[username]; ok {
+		return errors.ErrExist
+	}
 	rule.Allow.Users[username] = struct{}{}
 	return s.SaveToDB()
 }
@@ -173,6 +180,9 @@ func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
 	rule := s.getOrCreateRule(sourcePath, indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	if _, ok := rule.Deny.Groups[groupname]; ok {
+		return errors.ErrExist
+	}
 	rule.Deny.Groups[groupname] = struct{}{}
 	return s.SaveToDB()
 }
@@ -182,6 +192,9 @@ func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
 	rule := s.getOrCreateRule(sourcePath, indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	if _, ok := rule.Allow.Groups[groupname]; ok {
+		return errors.ErrExist
+	}
 	rule.Allow.Groups[groupname] = struct{}{}
 	return s.SaveToDB()
 }
@@ -308,7 +321,6 @@ func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccess
 func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule, error) {
 	value, ok := accessCache.Get(accessChangedKey + sourcePath).(map[string]FrontendAccessRule)
 	if ok {
-		fmt.Println("Returning cached rules for source:", sourcePath)
 		return value, nil
 	}
 
@@ -318,7 +330,7 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 	frontendRules := make(map[string]FrontendAccessRule, len(s.AllRules))
 	rules, ok := s.AllRules[sourcePath]
 	if !ok {
-		return nil, fmt.Errorf("access: source not found: %s", sourcePath)
+		return frontendRules, nil
 	}
 	for indexPath, rule := range rules {
 		// Convert AccessRule to FrontendAccessRule
@@ -482,4 +494,185 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
+}
+
+// RemoveAllRulesForUser removes a user from all allow and deny lists.
+func (s *Storage) RemoveAllRulesForUser(username string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	changedSourcePaths := make(map[string]struct{})
+	for sourcePath, rulesBySource := range s.AllRules {
+		for indexPath, rule := range rulesBySource {
+			if _, exists := rule.Allow.Users[username]; exists {
+				delete(rule.Allow.Users, username)
+				changedSourcePaths[sourcePath] = struct{}{}
+			}
+			if _, exists := rule.Deny.Users[username]; exists {
+				delete(rule.Deny.Users, username)
+				changedSourcePaths[sourcePath] = struct{}{}
+			}
+			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
+				delete(s.AllRules[sourcePath], indexPath)
+				if len(s.AllRules[sourcePath]) == 0 {
+					delete(s.AllRules, sourcePath)
+				}
+			}
+		}
+	}
+	for sp := range changedSourcePaths {
+		accessCache.Set(accessChangedKey+sp, false)
+	}
+	return s.SaveToDB()
+}
+
+// RemoveAllRulesForGroup removes a group from all allow and deny lists.
+func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	changedSourcePaths := make(map[string]struct{})
+	for sourcePath, rulesBySource := range s.AllRules {
+		for indexPath, rule := range rulesBySource {
+			if _, exists := rule.Allow.Groups[groupname]; exists {
+				delete(rule.Allow.Groups, groupname)
+				changedSourcePaths[sourcePath] = struct{}{}
+			}
+			if _, exists := rule.Deny.Groups[groupname]; exists {
+				delete(rule.Deny.Groups, groupname)
+				changedSourcePaths[sourcePath] = struct{}{}
+			}
+			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
+				delete(s.AllRules[sourcePath], indexPath)
+				if len(s.AllRules[sourcePath]) == 0 {
+					delete(s.AllRules, sourcePath)
+				}
+			}
+		}
+	}
+	for sp := range changedSourcePaths {
+		accessCache.Set(accessChangedKey+sp, false)
+	}
+	return s.SaveToDB()
+}
+
+type PrincipalRule struct {
+	SourcePath string `json:"sourcePath"`
+	Path       string `json:"path"`
+	RuleType   string `json:"ruleType"` // "allow" or "deny"
+}
+
+// GetRulesForUser returns all rules for a specific user for a given sourcePath. If sourcePath is empty, it checks all sources.
+func (s *Storage) GetRulesForUser(sourcePath, username string) []PrincipalRule {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	userRules := make([]PrincipalRule, 0)
+
+	processSource := func(sp string, rulesBySource map[string]*AccessRule) {
+		for indexPath, rule := range rulesBySource {
+			if _, ok := rule.Allow.Users[username]; ok {
+				userRules = append(userRules, PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "allow"})
+			}
+			if _, ok := rule.Deny.Users[username]; ok {
+				userRules = append(userRules, PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "deny"})
+			}
+		}
+	}
+
+	if sourcePath != "" {
+		if rulesBySource, ok := s.AllRules[sourcePath]; ok {
+			processSource(sourcePath, rulesBySource)
+		}
+	} else {
+		for sp, rulesBySource := range s.AllRules {
+			processSource(sp, rulesBySource)
+		}
+	}
+	return userRules
+}
+
+// GetRulesForGroup returns all rules for a specific group for a given sourcePath. If sourcePath is empty, it checks all sources.
+func (s *Storage) GetRulesForGroup(sourcePath, groupname string) []PrincipalRule {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	groupRules := make([]PrincipalRule, 0)
+	processSource := func(sp string, rulesBySource map[string]*AccessRule) {
+		for indexPath, rule := range rulesBySource {
+			if _, ok := rule.Allow.Groups[groupname]; ok {
+				groupRules = append(groupRules, PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "allow"})
+			}
+			if _, ok := rule.Deny.Groups[groupname]; ok {
+				groupRules = append(groupRules, PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "deny"})
+			}
+		}
+	}
+
+	if sourcePath != "" {
+		if rulesBySource, ok := s.AllRules[sourcePath]; ok {
+			processSource(sourcePath, rulesBySource)
+		}
+	} else {
+		for sp, rulesBySource := range s.AllRules {
+			processSource(sp, rulesBySource)
+		}
+	}
+	return groupRules
+}
+
+// GetAllRulesByUsers returns a map of usernames to their rules for a given sourcePath. If sourcePath is empty, it checks all sources.
+func (s *Storage) GetAllRulesByUsers(sourcePath string) map[string][]PrincipalRule {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	allUserRules := make(map[string][]PrincipalRule)
+	processSource := func(sp string, rulesBySource map[string]*AccessRule) {
+		for indexPath, rule := range rulesBySource {
+			for user := range rule.Allow.Users {
+				allUserRules[user] = append(allUserRules[user], PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "allow"})
+			}
+			for user := range rule.Deny.Users {
+				allUserRules[user] = append(allUserRules[user], PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "deny"})
+			}
+		}
+	}
+
+	if sourcePath != "" {
+		if rulesBySource, ok := s.AllRules[sourcePath]; ok {
+			processSource(sourcePath, rulesBySource)
+		}
+	} else {
+		for sp, rulesBySource := range s.AllRules {
+			processSource(sp, rulesBySource)
+		}
+	}
+	return allUserRules
+}
+
+// GetAllRulesByGroups returns a map of groupnames to their rules for a given sourcePath. If sourcePath is empty, it checks all sources.
+func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string][]PrincipalRule {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	allGroupRules := make(map[string][]PrincipalRule)
+	processSource := func(sp string, rulesBySource map[string]*AccessRule) {
+		for indexPath, rule := range rulesBySource {
+			for group := range rule.Allow.Groups {
+				allGroupRules[group] = append(allGroupRules[group], PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "allow"})
+			}
+			for group := range rule.Deny.Groups {
+				allGroupRules[group] = append(allGroupRules[group], PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "deny"})
+			}
+		}
+	}
+
+	if sourcePath != "" {
+		if rulesBySource, ok := s.AllRules[sourcePath]; ok {
+			processSource(sourcePath, rulesBySource)
+		}
+	} else {
+		for sp, rulesBySource := range s.AllRules {
+			processSource(sp, rulesBySource)
+		}
+	}
+	return allGroupRules
 }

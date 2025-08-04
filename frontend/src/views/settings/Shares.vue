@@ -49,7 +49,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { shareApi, usersApi } from "@/api";
+import { shareApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
@@ -71,12 +71,9 @@ export default {
     mutations.setLoading("shares", true);
     try {
       let links = await shareApi.list();
-      if (state.user.permissions.admin) {
-        let userMap = new Map();
-        for (let user of await usersApi.getAllUsers())
-          userMap.set(user.id, user.username);
-        for (let link of links)
-          link.username = userMap.has(link.userID) ? userMap.get(link.userID) : "";
+      if (links.length === 0) {
+        this.links = [];
+        return;
       }
       this.links = links;
     } catch (e) {

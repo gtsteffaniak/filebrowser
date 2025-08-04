@@ -30,29 +30,25 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/shares [get]
 func shareListHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	var (
-		s   []*share.Link
-		err error
-	)
+	var err error
+	var shares []*share.Link
 	if d.user.Permissions.Admin {
-		s, err = store.Share.All()
+		shares, err = store.Share.All()
 	} else {
-		s, err = store.Share.FindByUserID(d.user.ID)
-	}
-	if err == errors.ErrNotExist {
-		return renderJSON(w, r, []*share.Link{})
-	}
-	if err != nil {
-		return http.StatusInternalServerError, err
+		shares, err = store.Share.FindByUserID(d.user.ID)
 	}
 
-	sort.Slice(s, func(i, j int) bool {
-		if s[i].UserID != s[j].UserID {
-			return s[i].UserID < s[j].UserID
+	if err != nil && err != errors.ErrNotExist {
+		return http.StatusInternalServerError, err
+	}
+	shares = utils.NonNilSlice(shares)
+	sort.Slice(shares, func(i, j int) bool {
+		if shares[i].UserID != shares[j].UserID {
+			return shares[i].UserID < shares[j].UserID
 		}
-		return s[i].Expire < s[j].Expire
+		return shares[i].Expire < shares[j].Expire
 	})
-	return renderJSON(w, r, s)
+	return renderJSON(w, r, shares)
 }
 
 // shareGetsHandler retrieves share links for a specific resource path.

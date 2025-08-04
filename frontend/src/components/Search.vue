@@ -5,7 +5,7 @@
     @click="clearContext"
   >
     <!-- Search input section -->
-    <div id="input" @click="open">
+    <div id="search-input" @click="open">
       <!-- Close button visible when search is active -->
       <button
         v-if="active"
@@ -633,7 +633,7 @@ export default {
   transform: translateX(-50%);
 }
 
-#search #input {
+#search-input {
   background-color: rgba(100, 100, 100, 0.2);
   display: flex;
   height: 100%;
@@ -749,7 +749,7 @@ body.rtl #search #result ul > * {
   display: block;
 }
 
-#search.active #input {
+#search.active #search-input {
   background-color: var(--background);
   border-color: black;
   border-style: solid;

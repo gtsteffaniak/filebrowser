@@ -1,22 +1,4 @@
 definitions:
-  access.AccessRule:
-    properties:
-      allow:
-        $ref: '#/definitions/access.RuleSet'
-      deny:
-        $ref: '#/definitions/access.RuleSet'
-    type: object
-  access.RuleSet:
-    properties:
-      groups:
-        additionalProperties:
-          type: object
-        type: object
-      users:
-        additionalProperties:
-          type: object
-        type: object
-    type: object
   http.AuthTokenMin:
     properties:
       Permissions:
@@ -945,26 +927,39 @@ paths:
     get:
       consumes:
       - application/json
-      description: List all access rules or retrieve a specific rule by sourcePath
-        and indexPath.
+      description: Lists access rules. Can be filtered by source, path, user, or group.
+        Can also be grouped by user or group.
       parameters:
-      - description: Source path prefix (e.g. mnt/storage)
+      - description: Source name (e.g. 'default')
         in: query
-        name: sourcePath
+        name: source
         type: string
       - description: Index path (e.g. /secret)
         in: query
-        name: indexPath
+        name: path
+        type: string
+      - description: Username to filter rules for
+        in: query
+        name: user
+        type: string
+      - description: Group name to filter rules for
+        in: query
+        name: group
+        type: string
+      - description: Group results by 'user' or 'group'
+        in: query
+        name: groupBy
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: List of access rules or specific rule details
+          description: Varies based on query. Can be access.FrontendAccessRule, []access.PrincipalRule,
+            map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule
           schema:
-            $ref: '#/definitions/access.AccessRule'
-        "404":
-          description: Not found
+            type: object
+        "400":
+          description: Bad request
           schema:
             additionalProperties:
               type: string
