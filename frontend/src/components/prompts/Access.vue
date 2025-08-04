@@ -1,69 +1,68 @@
 <template>
-  <div class="share__promt__card" id="access">
-    <div class="card-title">
-      <h2>{{ $t("access.accessManagement") }}</h2>
+  <div class="card-title">
+    <h2>{{ $t("access.accessManagement") }}</h2>
+  </div>
+  <div class="card-content">
+    <div v-if="isEditingPath">
+      <file-list @update:selected="updateTempPath" :browse-source="sourceName"></file-list>
+      <div style="margin-top: 1em; text-align: right;">
+        <button class="button button--flat" @click="cancelPathChange">
+          {{ $t("buttons.cancel") }}
+        </button>
+        <button class="button button--flat" @click="confirmPathChange">
+          {{ $t("buttons.ok") }}
+        </button>
+      </div>
     </div>
-    <div class="card-content">
-      <div v-if="isEditingPath">
-        <file-list @update:selected="updateTempPath" :browse-source="sourceName"></file-list>
-        <div style="margin-top: 1em; text-align: right;">
-            <button class="button button--flat" @click="cancelPathChange">
-              {{ $t("buttons.cancel") }}
-            </button>
-            <button class="button button--flat" @click="confirmPathChange">
-              {{ $t("buttons.ok") }}
-            </button>
-        </div>
+    <div v-else>
+      <p>{{ $t("prompts.source", { suffix: ":" }) }} {{ currentSource }}</p>
+      <div aria-label="access-path" class="searchContext" @click="startPathEdit" style="cursor: pointer;">
+        {{ $t("search.path") }} {{ currentPath }}
       </div>
-      <div v-else>
-        <p>{{ $t("prompts.source", { suffix: ":" }) }} {{ currentSource }}</p>
-        <div aria-label="access-path" class="searchContext" @click="startPathEdit" style="cursor: pointer;">
-          {{ $t("search.path") }} {{ currentPath }}
-        </div>
-        <!-- Add Form -->
-        <div class="add-form" style="margin-bottom: 1em; margin-top: 1em">
-          <select v-model="addType">
-            <option value="user">{{ $t("general.user") }}</option>
-            <option value="group">{{ $t("general.group") }}</option>
-          </select>
-          <select v-model="addListType">
-            <option value="deny">{{ $t("access.deny") }}</option>
-            <option value="allow">{{ $t("access.allow") }}</option>
-          </select>
-          <input class="group-user-add-input" v-model="addName" :placeholder="$t('access.enterName')" />
-          <button class="action add-rule-button" @click="submitAdd">
-            <i class="material-icons">add</i>
-          </button>
-        </div>
-        <table v-if="entries.length > 0">
-          <tbody>
-            <tr>
-              <th>{{ $t("access.allowDeny") }}</th>
-              <th>{{ $t("access.userGroup") }}</th>
-              <th>{{ $t("general.name") }}</th>
-              <th>{{ $t("buttons.edit") }}</th>
-            </tr>
-            <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
-              <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
-              <td>{{ entry.type == "user" ? $t("general.user") : $t("general.group") }}</td>
-              <td>{{ entry.name }}</td>
-              <td>
-                <button @click="deleteAccess(entry)" class="action" :aria-label="$t('buttons.delete')" :title="$t('buttons.delete')">
-                  <i class="material-icons">delete</i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <!-- Cancel Button -->
-        <div style="margin-top: 1em; text-align: right;">
-          <button class="action button button--flat" @click="closePrompt">
-            {{ $t("buttons.cancel") }}
-          </button>
-        </div>
+      <!-- Add Form -->
+      <div class="add-form" style="margin-bottom: 1em; margin-top: 1em">
+        <select v-model="addType">
+          <option value="user">{{ $t("general.user") }}</option>
+          <option value="group">{{ $t("general.group") }}</option>
+        </select>
+        <select v-model="addListType">
+          <option value="deny">{{ $t("access.deny") }}</option>
+          <option value="allow">{{ $t("access.allow") }}</option>
+        </select>
+        <input class="group-user-add-input" v-model="addName" :placeholder="$t('access.enterName')" />
+        <button class="action add-rule-button" @click="submitAdd">
+          <i class="material-icons">add</i>
+        </button>
       </div>
+      <table v-if="entries.length > 0">
+        <tbody>
+          <tr>
+            <th>{{ $t("access.allowDeny") }}</th>
+            <th>{{ $t("access.userGroup") }}</th>
+            <th>{{ $t("general.name") }}</th>
+            <th>{{ $t("buttons.edit") }}</th>
+          </tr>
+          <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
+            <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
+            <td>{{ entry.type == "user" ? $t("general.user") : $t("general.group") }}</td>
+            <td>{{ entry.name }}</td>
+            <td>
+              <button @click="deleteAccess(entry)" class="action" :aria-label="$t('buttons.delete')"
+                :title="$t('buttons.delete')">
+                <i class="material-icons">delete</i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
+  <div class="card-action">
+      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.close')"
+        :title="$t('buttons.close')">
+        {{ $t("buttons.close") }}
+      </button>
+    </div>
 </template>
 
 <script>
@@ -128,6 +127,9 @@ export default {
     }
   },
   methods: {
+    closeHovers() {
+      mutations.closeHovers();
+    },
     startPathEdit() {
       this.tempPath = this.currentPath;
       this.isEditingPath = true;
@@ -215,9 +217,11 @@ export default {
 .add-form {
   display: flex;
 }
+
 .add-rule-button {
   max-width: 3em;
 }
+
 .group-user-add-input {
   flex-grow: 1;
 }

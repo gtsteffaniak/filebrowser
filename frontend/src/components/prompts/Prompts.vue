@@ -1,5 +1,5 @@
 <template>
-   <div class="card floating fb-shadow" v-if="showOverlay" >
+   <div class="card floating fb-shadow" v-if="showOverlay" :aria-label="promptLabel">
     <component
       :ref="currentPromptName"
       :is="currentPromptName"
@@ -98,6 +98,9 @@ export default {
     });
   },
   computed: {
+    promptLabel() {
+      return getters.currentPromptName() + "-prompt";
+    },
     currentPromptName() {
       return getters.currentPromptName();
     },
