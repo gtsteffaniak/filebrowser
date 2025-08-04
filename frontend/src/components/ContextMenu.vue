@@ -10,7 +10,7 @@
       ref="contextMenu"
       v-if="showContext"
       :style="centered ? {} : { top: posY + 'px', left: posX + 'px' }"
-      class="button no-select"
+      class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode, 'centered': centered }"
       :key="showCreate ? 'create-mode' : 'normal-mode'"
     >
@@ -123,7 +123,7 @@
         top: '3em',
         right: '1em',
       }"
-      class="button no-select"
+      class="button no-select fb-shadow"
       :class="{ 'dark-mode': isDarkMode }"
     >
       <action v-if="showGoToRaw" icon="open_in_new" :label="$t('buttons.openFile')" @action="goToRaw()" />
@@ -425,7 +425,6 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  box-shadow: 0px 0px 15px 0px #404040;
 }
 
 #context-menu.centered {

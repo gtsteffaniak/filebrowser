@@ -63,8 +63,6 @@
     "body": "内容",
     "clear": "清空",
     "closePreview": "關閉預覽",
-    "files": "檔案",
-    "folders": "資料夾",
     "home": "主頁",
     "lastModified": "最後修改",
     "loading": "讀取中...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "新建賬戶",
     "loginInstead": "已有賬戶登錄",
-    "password": "密碼",
     "passwordConfirm": "確認密碼",
     "passwordsDontMatch": "密碼不匹配",
-    "signup": "註冊",
     "submit": "登入",
-    "username": "帳號",
     "usernameTaken": "用戶名已存在",
     "wrongCredentials": "帳號或密碼錯誤",
     "or": "或"
   },
-  "permanent": "永久",
   "prompts": {
     "copy": "複製",
     "copyMessage": "請選擇欲複製至的目錄：",
@@ -144,7 +138,7 @@
     "downloadMessage": "請選擇要下載的壓縮格式。",
     "error": "發出了一點錯誤...",
     "fileInfo": "檔案資訊",
-    "lastModified": "最後修改",
+    "lastModified": "最後修改{suffix}",
     "move": "移動",
     "moveMessage": "請選擇欲移動至的目錄：",
     "newArchetype": "建立一個基於原型的新貼文。您的檔案將會建立在內容資料夾中。",
@@ -152,8 +146,8 @@
     "newDirMessage": "請輸入新目錄的名稱。",
     "newFile": "建立檔案",
     "newFileMessage": "請輸入新檔案的名稱。",
-    "numberDirs": "目錄數",
-    "numberFiles": "檔案數",
+    "numberDirs": "目錄數{suffix}",
+    "numberFiles": "檔案數{suffix}",
     "rename": "重新命名",
     "renameMessage": "請輸入新名稱，舊名稱為：",
     "replace": "替換",
@@ -176,7 +170,8 @@
     "conflictsDetected": "偵測到衝突",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "提供的名稱無效：不能包含 \"/「 或 」\\\" 的容器"
+    "invalidName": "提供的名稱無效：不能包含 \"/「 或 」\\\" 的容器",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "影像",
@@ -350,8 +345,6 @@
   "index": {
     "status": "狀態",
     "assessment": "評估",
-    "files": "檔案",
-    "folders": "資料夾",
     "lastScanned": "最後一次掃描",
     "quickScan": "快速掃描秒數",
     "fullScan": "完整掃描秒數",
@@ -411,7 +404,9 @@
     "disableOfficeEditorDescription": "以空格分隔的檔案副檔名清單，用來停用 OnlyOffice 編輯器和檢視器。(例如，'.txt .html .pdf'）。",
     "disableOfficeEditor": "停用特定檔案副檔名的 Office 檢視器",
     "defaultThemeDescription": "default - 預設主題",
-    "customTheme": "選擇您的主題"
+    "customTheme": "選擇您的主題",
+    "showSelectMultiple": "在桌面的上下文功能表中顯示多重選擇",
+    "showSelectMultipleDescription": "預設情況下，桌上型電腦的上下文功能表不像行動裝置一樣有「選取多個」選項。此選項總是在上下文功能表中顯示。"
   },
   "otp": {
     "name": "雙因素驗證",
@@ -438,5 +433,36 @@
     "yellow": "黃色",
     "violet": "紫色",
     "orange": "橙色"
+  },
+  "general": {
+    "name": "名稱",
+    "path": "路徑",
+    "user": "使用者",
+    "group": "集團",
+    "signup": "註冊",
+    "password": "密碼",
+    "username": "帳號",
+    "files": "檔案",
+    "folders": "資料夾",
+    "exit": "離開",
+    "permanent": "長期"
+  },
+  "access": {
+    "rules": "存取規則",
+    "deny": "拒絕",
+    "deniedUsers": "被拒使用者",
+    "deniedGroups": "拒絕群組",
+    "allowedUsers": "允許使用者",
+    "allowedGroups": "允許的群組",
+    "totalDenied": "拒絕",
+    "totalAllowed": "允許",
+    "allow": "允許",
+    "allowDeny": "允許/拒絕",
+    "userGroup": "使用者/群組",
+    "enterName": "輸入使用者或群組名稱",
+    "deleted": "存取規則已刪除！",
+    "added": "已新增存取規則！",
+    "name": "名稱",
+    "accessManagement": "存取管理"
   }
 }

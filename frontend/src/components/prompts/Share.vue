@@ -1,125 +1,89 @@
 <template>
-  <div class="card floating share__promt__card" id="share">
-    <div class="card-title">
-      <h2>{{ $t("buttons.share") }}</h2>
-    </div>
-    <div aria-label="share-path" class="searchContext"> {{$t('search.path')}} {{ subpath }}</div>
-    <p> {{ $t('share.notice') }} </p>
-    <template v-if="listing">
-      <div class="card-content">
-        <table>
-          <tbody>
-            <tr>
-              <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-              <th>{{ $t("settings.shareDuration") }}</th>
-              <th></th>
-              <th></th>
-            </tr>
-
-            <tr v-for="link in links" :key="link.hash">
-              <td>{{ link.hash }}</td>
-              <td>
-                <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
-                <template v-else>{{ $t("permanent") }}</template>
-              </td>
-              <td class="small">
-                <button
-                  class="action copy-clipboard"
-                  :data-clipboard-text="buildLink(link)"
-                  :aria-label="$t('buttons.copyToClipboard')"
-                  :title="$t('buttons.copyToClipboard')"
-                >
-                  <i class="material-icons">content_paste</i>
-                </button>
-              </td>
-              <td class="small" v-if="hasDownloadLink()">
-                <button
-                  class="action copy-clipboard"
-                  :data-clipboard-text="buildDownloadLink(link)"
-                  :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
-                  :title="$t('buttons.copyDownloadLinkToClipboard')"
-                >
-                  <i class="material-icons">content_paste_go</i>
-                </button>
-              </td>
-              <td class="small">
-                <button
-                  class="action"
-                  @click="deleteLink($event, link)"
-                  :aria-label="$t('buttons.delete')"
-                  :title="$t('buttons.delete')"
-                >
-                  <i class="material-icons">delete</i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card-action">
-        <button
-          class="button button--flat button--grey"
-          @click="closeHovers"
-          :aria-label="$t('buttons.close')"
-          :title="$t('buttons.close')"
-        >
-          {{ $t("buttons.close") }}
-        </button>
-        <button
-          class="button button--flat button--blue"
-          @click="() => switchListing()"
-          :aria-label="$t('buttons.new')"
-          :title="$t('buttons.new')"
-        >
-          {{ $t("buttons.new") }}
-        </button>
-      </div>
-    </template>
-
-    <template v-else>
-      <div class="card-content">
-        <p>{{ $t("settings.shareDuration") }}</p>
-        <div class="input-group input">
-          <input
-            v-focus
-            type="number"
-            max="2147483647"
-            min="1"
-            @keyup.enter="submit"
-            v-model.trim="time"
-          />
-          <select class="right" v-model="unit" :aria-label="$t('time.unit')">
-            <option value="seconds">{{ $t("time.seconds") }}</option>
-            <option value="minutes">{{ $t("time.minutes") }}</option>
-            <option value="hours">{{ $t("time.hours") }}</option>
-            <option value="days">{{ $t("time.days") }}</option>
-          </select>
-        </div>
-        <p>{{ $t("prompts.optionalPassword") }}</p>
-        <input class="input input--block" type="password" v-model.trim="password" />
-      </div>
-
-      <div class="card-action">
-        <button
-          class="button button--flat button--grey"
-          @click="() => switchListing()"
-          :aria-label="$t('buttons.cancel')"
-          :title="$t('buttons.cancel')"
-        >
-          {{ $t("buttons.cancel") }}
-        </button>
-        <button
-          class="button button--flat button--blue"
-          @click="submit"
-          aria-label="Share-Confirm"
-          :title="$t('buttons.share')"
-        >
-          {{ $t("buttons.share") }}
-        </button>
-      </div>
-    </template>
+  <div class="card-title">
+    <h2>{{ $t("buttons.share") }}</h2>
   </div>
+  <div aria-label="share-path" class="searchContext"> {{ $t('search.path') }} {{ subpath }}</div>
+  <p> {{ $t('share.notice') }} </p>
+  <template v-if="listing">
+    <div class="card-content">
+      <table>
+        <tbody>
+          <tr>
+            <th>#</th> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <th>{{ $t("settings.shareDuration") }}</th>
+            <th></th>
+            <th></th>
+          </tr>
+
+          <tr v-for="link in links" :key="link.hash">
+            <td>{{ link.hash }}</td>
+            <td>
+              <template v-if="link.expire !== 0">{{ humanTime(link.expire) }}</template>
+              <template v-else>{{ $t("permanent") }}</template>
+            </td>
+            <td class="small">
+              <button class="action copy-clipboard" :data-clipboard-text="buildLink(link)"
+                :aria-label="$t('buttons.copyToClipboard')" :title="$t('buttons.copyToClipboard')">
+                <i class="material-icons">content_paste</i>
+              </button>
+            </td>
+            <td class="small" v-if="hasDownloadLink()">
+              <button class="action copy-clipboard" :data-clipboard-text="buildDownloadLink(link)"
+                :aria-label="$t('buttons.copyDownloadLinkToClipboard')"
+                :title="$t('buttons.copyDownloadLinkToClipboard')">
+                <i class="material-icons">content_paste_go</i>
+              </button>
+            </td>
+            <td class="small">
+              <button class="action" @click="deleteLink($event, link)" :aria-label="$t('buttons.delete')"
+                :title="$t('buttons.delete')">
+                <i class="material-icons">delete</i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-action">
+      <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.close')"
+        :title="$t('buttons.close')">
+        {{ $t("buttons.close") }}
+      </button>
+      <button class="button button--flat button--blue" @click="() => switchListing()" :aria-label="$t('buttons.new')"
+        :title="$t('buttons.new')">
+        {{ $t("buttons.new") }}
+      </button>
+    </div>
+  </template>
+
+  <template v-else>
+    <div class="card-content">
+      <p>{{ $t("settings.shareDuration") }}</p>
+      <div class="input-group input">
+        <input v-focus type="number" max="2147483647" min="1" @keyup.enter="submit" v-model.trim="time" />
+        <select class="right" v-model="unit" :aria-label="$t('time.unit')">
+          <option value="seconds">{{ $t("time.seconds") }}</option>
+          <option value="minutes">{{ $t("time.minutes") }}</option>
+          <option value="hours">{{ $t("time.hours") }}</option>
+          <option value="days">{{ $t("time.days") }}</option>
+        </select>
+      </div>
+      <p>{{ $t("prompts.optionalPassword") }}</p>
+      <input class="input input--block" type="password" v-model.trim="password" />
+    </div>
+
+    <div class="card-action">
+      <button class="button button--flat button--grey" @click="() => switchListing()" :aria-label="$t('buttons.cancel')"
+        :title="$t('buttons.cancel')">
+        {{ $t("buttons.cancel") }}
+      </button>
+      <button class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
+        :title="$t('buttons.share')">
+        {{ $t("buttons.share") }}
+      </button>
+    </div>
+  </template>
 </template>
 <script>
 import { notify } from "@/notify";

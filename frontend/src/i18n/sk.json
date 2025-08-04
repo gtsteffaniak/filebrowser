@@ -63,8 +63,6 @@
     "body": "Telo",
     "clear": "Zrušiť výber",
     "closePreview": "Zavrieť náhľad",
-    "files": "Súbory",
-    "folders": "Priečinky",
     "home": "Domov",
     "lastModified": "Posledná zmena",
     "loading": "Načítanie...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Vytvoriť účet",
     "loginInstead": "Už mám účet",
-    "password": "Heslo",
     "passwordConfirm": "Potvrdenie hesla",
     "passwordsDontMatch": "Heslá nesúhlasia",
-    "signup": "Registrovať",
     "submit": "Prihlásiť",
-    "username": "Používateľské meno",
     "usernameTaken": "Meno je už obsadené",
     "wrongCredentials": "Nesprávne prihlasovacie údaje",
     "or": "ALEBO"
   },
-  "permanent": "Trvalé",
   "prompts": {
     "copy": "Kopírovať",
     "copyMessage": "Zvoľte miesto, kde chcete kopírovať súbory:",
@@ -145,7 +139,7 @@
     "downloadMessage": "Vyberte formát, ktorý chcete stiahnuť.",
     "error": "Niečo sa pokazilo",
     "fileInfo": "Informácie o súbore",
-    "lastModified": "Dátum zmeny",
+    "lastModified": "Dátum zmeny{suffix}",
     "move": "Presunúť",
     "moveMessage": "Zvoľte nový domov pre vaše súbory/priečinky:",
     "newArchetype": "Vytvorí nový príspevok z archetypu. Nový súbor sa vytvorí v priečinku s obsahom.",
@@ -153,8 +147,8 @@
     "newDirMessage": "Napíšte názov nového priečinka.",
     "newFile": "Nový súbor",
     "newFileMessage": "Napíšte názov nového súboru.",
-    "numberDirs": "Počet priečinkov",
-    "numberFiles": "Počet súborov",
+    "numberDirs": "Počet priečinkov{suffix}",
+    "numberFiles": "Počet súborov{suffix}",
     "rename": "Premenovať",
     "renameMessage": "Zadajte nový názov pre",
     "replace": "Nahradiť",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Zistené konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Zadaný neplatný názov: nemôže byť kontajner \"/\" alebo \"\\\""
+    "invalidName": "Zadaný neplatný názov: nemôže byť kontajner \"/\" alebo \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Obrázky",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Stav",
     "assessment": "Hodnotenie",
-    "files": "Súbory",
-    "folders": "Priečinky",
     "lastScanned": "Posledné skenovanie",
     "quickScan": "Sekundy rýchleho skenovania",
     "fullScan": "Sekundy úplného skenovania",
@@ -402,7 +395,9 @@
     "deleted": "Prístupové pravidlo odstránené!",
     "added": "Pridané pravidlo prístupu!",
     "name": "Názov",
-    "accessManagement": "Správa prístupu"
+    "accessManagement": "Správa prístupu",
+    "totalDenied": "Odmietnuté",
+    "totalAllowed": "Povolené"
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "Medzerou oddelený zoznam prípon súborov, pre ktoré sa má vypnúť editor a prehliadač OnlyOffice. (napr. \".txt .html .pdf\").",
     "disableOfficeEditor": "Zakázanie prehliadača Office pre určité prípony súborov",
     "defaultThemeDescription": "default - Predvolená téma",
-    "customTheme": "Vyberte si tému"
+    "customTheme": "Vyberte si tému",
+    "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
+    "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy."
   }
 }

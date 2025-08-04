@@ -1,35 +1,33 @@
 <template>
-    <div class="card floating">
-        <div class="card-title">
-            <h2>{{ $t(`prompts.${operation}`) }}</h2>
-        </div>
+  <div class="card-title">
+    <h2>{{ $t(`prompts.${operation}`) }}</h2>
+  </div>
 
-        <div class="card-content">
-            <p v-if="operation === 'copy'">{{ $t("prompts.copyMessage") }}</p>
+  <div class="card-content">
+    <p v-if="operation === 'copy'">{{ $t("prompts.copyMessage") }}</p>
 
-            <file-list ref="fileList" @update:selected="updateDestination">
-            </file-list>
-        </div>
+    <file-list ref="fileList" @update:selected="updateDestination">
+    </file-list>
+  </div>
 
-        <div class="card-action" style="display: flex; align-items: center; justify-content: space-between">
-            <template v-if="user.permissions.modify">
-                <button class="button button--flat" @click="$refs.fileList.createDir()"
-                    :aria-label="$t('sidebar.newFolder')" :title="$t('sidebar.newFolder')" style="justify-self: left">
-                    <span>{{ $t("sidebar.newFolder") }}</span>
-                </button>
-            </template>
-            <div>
-                <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
-                    :title="$t('buttons.cancel')">
-                    {{ $t("buttons.cancel") }}
-                </button>
-                <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
-                    :aria-label="$t(`buttons.${operation}`)" :title="$t(`buttons.${operation}`)">
-                    {{ $t(`buttons.${operation}`) }}
-                </button>
-            </div>
-        </div>
+  <div class="card-action" style="display: flex; align-items: center; justify-content: space-between">
+    <template v-if="user.permissions.modify">
+      <button class="button button--flat" @click="$refs.fileList.createDir()" :aria-label="$t('sidebar.newFolder')"
+        :title="$t('sidebar.newFolder')" style="justify-self: left">
+        <span>{{ $t("sidebar.newFolder") }}</span>
+      </button>
+    </template>
+    <div>
+      <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
+        :title="$t('buttons.cancel')">
+        {{ $t("buttons.cancel") }}
+      </button>
+      <button :disabled="destContainsSrc" class="button button--flat" @click="performOperation"
+        :aria-label="$t(`buttons.${operation}`)" :title="$t(`buttons.${operation}`)">
+        {{ $t(`buttons.${operation}`) }}
+      </button>
     </div>
+  </div>
 </template>
 
 <script>

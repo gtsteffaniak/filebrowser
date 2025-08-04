@@ -164,9 +164,6 @@ export default {
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path);
     },
-    showMore() {
-      return getters.currentPromptName() === "more";
-    },
     getSubtitles() {
       return this.subtitles();
     },
@@ -273,7 +270,7 @@ export default {
       this.$router.replace({ path: this.nextLink });
     },
     async keyEvent(event) {
-      if (getters.currentPromptName() != null) {
+      if (getters.currentPromptName()) {
         return;
       }
 
@@ -372,9 +369,6 @@ export default {
       return this.fullSize
         ? filesApi.getDownloadURL(state.req.source, item.path, true)
         : filesApi.getPreviewURL(state.req.source, item.path, item.modified);
-    },
-    openMore() {
-      this.currentPrompt = "more";
     },
     resetPrompts() {
       this.currentPrompt = null;

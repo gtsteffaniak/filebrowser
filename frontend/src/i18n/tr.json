@@ -63,8 +63,6 @@
     "body": "Sayfa",
     "clear": "Temizle",
     "closePreview": "Önizlemeyi kapat",
-    "files": "Dosyalar",
-    "folders": "Klasörler",
     "home": "Ana dizin",
     "lastModified": "Son güncellenme",
     "loading": "Yükleniyor...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Bir hesap oluşturun",
     "loginInstead": "Zaten hesabınız var mı",
-    "password": "Şifre",
     "passwordConfirm": "Şifre tekrarı",
     "passwordsDontMatch": "Şifreler uyuşmuyor",
-    "signup": "Üye Ol",
     "submit": "Giriş",
-    "username": "Kullanıcı adı",
     "usernameTaken": "Kullanıcı adı mevcut",
     "wrongCredentials": "Yanlış hesap bilgileri",
     "or": "VEYA"
   },
-  "permanent": "Kalıcı",
   "prompts": {
     "copy": "Kopyala",
     "copyMessage": "Dosyalarınızı kopyalayacağınız yeri seçin:",
@@ -145,7 +139,7 @@
     "downloadMessage": "İndirmek istediğiniz formatı seçin.",
     "error": "Bir şeyler yanlış gitti",
     "fileInfo": "Dosya bilgisi",
-    "lastModified": "Son güncellenme",
+    "lastModified": "Son güncellenme{suffix}",
     "move": "Taşı",
     "moveMessage": "Dosya(lar)ınız/klasör(ler)iniz için yeni ana dizin seçin:",
     "newArchetype": "Bir prototip temelinde yeni bir gönderi oluşturun. Dosyanız içerik klasöründe oluşturulacaktır.",
@@ -153,8 +147,8 @@
     "newDirMessage": "Yeni dizinin adını yazın.",
     "newFile": "Yeni dosya",
     "newFileMessage": "Yeni dosyanın adını yazın.",
-    "numberDirs": "Dizin sayısı",
-    "numberFiles": "Dosya sayısı",
+    "numberDirs": "Dizin sayısı{suffix}",
+    "numberFiles": "Dosya sayısı{suffix}",
     "rename": "Yeniden adlandır",
     "renameMessage": "için yeni bir ad girin",
     "replace": "Değiştir",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Tespit edilen çatışmalar",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Geçersiz ad sağlandı: \"/\" veya \"\\\" kapsayıcı olamaz"
+    "invalidName": "Geçersiz ad sağlandı: \"/\" veya \"\\\" kapsayıcı olamaz",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Görseller",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Durum",
     "assessment": "Değerlendirme",
-    "files": "Dosyalar",
-    "folders": "Klasörler",
     "lastScanned": "Son Taranan",
     "quickScan": "Hızlı Tarama Saniyeleri",
     "fullScan": "Tam Tarama Saniyeleri",
@@ -402,7 +395,9 @@
     "deleted": "Erişim kuralı silindi!",
     "added": "Erişim kuralı eklendi!",
     "name": "İsim",
-    "accessManagement": "Erişim Yönetimi"
+    "accessManagement": "Erişim Yönetimi",
+    "totalDenied": "Reddedildi",
+    "totalAllowed": "İzin verildi"
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "OnlyOffice düzenleyicisini ve görüntüleyicisini devre dışı bırakmak için dosya uzantılarının boşluk bırakılarak ayrılmış bir listesi. (örneğin, '.txt .html .pdf').",
     "disableOfficeEditor": "Belirli dosya uzantıları için ofis görüntüleyiciyi devre dışı bırakma",
     "defaultThemeDescription": "default - Varsayılan tema",
-    "customTheme": "Temanızı seçin"
+    "customTheme": "Temanızı seçin",
+    "showSelectMultiple": "Masaüstündeki bağlam menüsünde çoklu seçmeyi göster",
+    "showSelectMultipleDescription": "Varsayılan olarak, masaüstü içerik menüsünde mobil cihazlardaki gibi \"çoklu seç\" seçeneği yoktur. Bu seçenek her zaman içerik menüsünde gösterilir."
   }
 }

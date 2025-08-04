@@ -1,5 +1,4 @@
 <template>
-  <div class="card floating" id="download">
     <div class="card-title">
       <h2>{{ $t("prompts.download") }}</h2>
     </div>
@@ -14,8 +13,7 @@
         v-focus
       >
         {{ ext }}
-      </button>
-    </div>
+    </button>
   </div>
 </template>
 

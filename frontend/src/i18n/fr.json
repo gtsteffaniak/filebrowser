@@ -63,8 +63,6 @@
     "body": "Corps",
     "clear": "Fermer",
     "closePreview": "Fermer la prévisualisation",
-    "files": "Fichiers",
-    "folders": "Dossiers",
     "home": "Accueil",
     "lastModified": "Dernière modification",
     "loading": "Chargement...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Créer un compte",
     "loginInstead": "Vous avez déjà un compte",
-    "password": "Mot de passe",
     "passwordConfirm": "Confirmation de mot de passe",
     "passwordsDontMatch": "Les mots de passe ne concordent pas",
-    "signup": "S'inscrire",
     "submit": "Se connecter",
-    "username": "Utilisateur",
     "usernameTaken": "Le nom d'utilisateur est déjà pris",
     "wrongCredentials": "Identifiants incorrects !",
     "or": "OU"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Copier",
     "copyMessage": "Choisissez l'emplacement où copier la sélection :",
@@ -145,7 +139,7 @@
     "downloadMessage": "Choisissez le format de téléchargement :",
     "error": "Quelque chose s'est mal passé",
     "fileInfo": "Informations",
-    "lastModified": "Dernière modification",
+    "lastModified": "Dernière modification{suffix}",
     "move": "Déplacer",
     "moveMessage": "Choisissez l'emplacement où déplacer la sélection :",
     "newArchetype": "Créer un nouveau post basé sur un archétype. Votre fichier sera créé dans le dossier de contenu.",
@@ -153,8 +147,8 @@
     "newDirMessage": "Nom du nouveau dossier :",
     "newFile": "Nouveau fichier",
     "newFileMessage": "Nom du nouveau fichier :",
-    "numberDirs": "Nombre de dossiers",
-    "numberFiles": "Nombre de fichiers",
+    "numberDirs": "Nombre de dossiers{suffix}",
+    "numberFiles": "Nombre de fichiers{suffix}",
     "rename": "Renommer",
     "renameMessage": "Nouveau nom pour",
     "replace": "Remplacer",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Conflits détectés",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nom invalide fourni : ne peut contenir \"/\" ou \"\\\"."
+    "invalidName": "Nom invalide fourni : ne peut contenir \"/\" ou \"\\\".",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Images",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Statut",
     "assessment": "Évaluation",
-    "files": "Fichiers",
-    "folders": "Dossiers",
     "lastScanned": "Dernier balayage",
     "quickScan": "secondes pour un balayage rapide",
     "fullScan": "secondes pour un balayage complet",
@@ -402,7 +395,9 @@
     "deleted": "Règle d'accès supprimée !",
     "added": "Règle d'accès ajoutée !",
     "name": "Nom",
-    "accessManagement": "Gestion de l'accès"
+    "accessManagement": "Gestion de l'accès",
+    "totalDenied": "Refusé",
+    "totalAllowed": "Autorisé"
   },
   "fileLoading": {
     "title": "Chargements et téléchargements",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "Une liste d'extensions de fichiers séparées par des espaces pour lesquelles l'éditeur et la visionneuse OnlyOffice doivent être désactivés. (par exemple, '.txt .html .pdf').",
     "disableOfficeEditor": "Désactiver la visionneuse d'office pour certaines extensions de fichiers",
     "defaultThemeDescription": "default - Le thème par défaut",
-    "customTheme": "Choisissez votre thème"
+    "customTheme": "Choisissez votre thème",
+    "showSelectMultiple": "Afficher la sélection multiple dans le menu contextuel sur le bureau",
+    "showSelectMultipleDescription": "Par défaut, le menu contextuel de l'ordinateur de bureau n'a pas l'option \"sélectionner plusieurs\" comme celui de l'ordinateur mobile. Cette option apparaît toujours dans le menu contextuel."
   }
 }

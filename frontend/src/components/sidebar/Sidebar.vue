@@ -190,5 +190,12 @@ body.rtl .action {
 
 #sidebar.scrollable {
   overflow: auto;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
+
+#sidebar.scrollable::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
 </style>

@@ -63,8 +63,6 @@
     "body": "Huvud",
     "clear": "Rensa",
     "closePreview": "Stäng förhands granskningen",
-    "files": "Filer",
-    "folders": "Mappar",
     "home": "Hem",
     "lastModified": "Senast ändrad",
     "loading": "Laddar.....",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Skapa ett konto",
     "loginInstead": "Du har redan ett konto",
-    "password": "Lösenord",
     "passwordConfirm": "Bekräfta lösenord",
     "passwordsDontMatch": "Lösenord matchar inte",
-    "signup": "Registrera",
     "submit": "Logga in",
-    "username": "Användarnamn",
     "usernameTaken": "Användarnamn upptaget",
     "wrongCredentials": "Fel inloggning",
     "or": "ELLER"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Kopiera",
     "copyMessage": "Välj var dina filer skall sparas:",
@@ -144,7 +138,7 @@
     "downloadMessage": "Välj format på det du vill lada ner.",
     "error": "Något gick fel",
     "fileInfo": "Fil information",
-    "lastModified": "Senast ändrad",
+    "lastModified": "Senast ändrad{suffix}",
     "move": "Flytta",
     "moveMessage": "Välj ny plats för din fil (er)/mapp (ar):",
     "newArchetype": "Skapa ett nytt inlägg baserat på en arketyp. Din fil kommer att skapas på innehållsmapp.",
@@ -152,8 +146,8 @@
     "newDirMessage": "Ange namn på din nya mapp.",
     "newFile": "Ny fil",
     "newFileMessage": "Ange namn på din nya fil.",
-    "numberDirs": "Antal kataloger",
-    "numberFiles": "Antal filer",
+    "numberDirs": "Antal kataloger{suffix}",
+    "numberFiles": "Antal filer{suffix}",
     "rename": "Ändra namn",
     "renameMessage": "Infoga ett nytt namn för",
     "replace": "Ersätt",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Konflikter upptäckta",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\""
+    "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Bilder",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Status",
     "assessment": "Bedömning",
-    "files": "Filer",
-    "folders": "Mappar",
     "lastScanned": "Senast skannad",
     "quickScan": "Snabbsökning Sekunder",
     "fullScan": "Fullständig skanning Sekunder",
@@ -437,6 +430,39 @@
     "disableOfficeEditorDescription": "En mellanslagsseparerad lista över filtillägg som OnlyOffice redigerare och visare ska inaktiveras för. (t.ex. '.txt .html .pdf').",
     "disableOfficeEditor": "Avaktivera Office Viewer för vissa filtillägg",
     "defaultThemeDescription": "default - Standardtema",
-    "customTheme": "Välj ditt tema"
+    "customTheme": "Välj ditt tema",
+    "showSelectMultiple": "Visa markera flera i snabbmenyn på skrivbordet",
+    "showSelectMultipleDescription": "Som standard har snabbmenyn på skrivbordet inte alternativet \"välj flera\" som på mobilen. Det här alternativet visas alltid i snabbmenyn."
+  },
+  "general": {
+    "name": "Namn",
+    "path": "Väg",
+    "user": "Användare",
+    "group": "Grupp",
+    "signup": "Registrera dig",
+    "password": "Lösenord",
+    "username": "Användarnamn",
+    "files": "Filer",
+    "folders": "Mappar",
+    "exit": "Avsluta",
+    "permanent": "Permanent"
+  },
+  "access": {
+    "rules": "Regler för åtkomst",
+    "deny": "Förneka",
+    "deniedUsers": "Nekade användare",
+    "deniedGroups": "Nekade grupper",
+    "allowedUsers": "Tillåtna användare",
+    "allowedGroups": "Tillåtna grupper",
+    "totalDenied": "Avslås",
+    "totalAllowed": "Tillåtet",
+    "allow": "Tillåt",
+    "allowDeny": "Tillåt/avslå",
+    "userGroup": "Användare/Grupp",
+    "enterName": "Ange användar- eller gruppnamn",
+    "deleted": "Åtkomstregel raderad!",
+    "added": "Tillträdesregel tillagd!",
+    "name": "Namn",
+    "accessManagement": "Hantering av åtkomst"
   }
 }

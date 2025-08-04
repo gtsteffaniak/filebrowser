@@ -63,8 +63,6 @@
     "body": "Body",
     "clear": "Schließen",
     "closePreview": "Vorschau schließen",
-    "files": "Dateien",
-    "folders": "Ordner",
     "home": "Home",
     "lastModified": "Zuletzt geändert",
     "loading": "Laden...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Konto erstellen",
     "loginInstead": "Bei bestehendem Konto anmelden",
-    "password": "Kennwort",
     "passwordConfirm": "Kennwort bestätigen",
     "passwordsDontMatch": "Kennwörter stimmen nicht überein",
-    "signup": "Registrieren",
     "submit": "Anmelden",
-    "username": "Benutzername",
     "usernameTaken": "Benutzername ist bereits vergeben",
     "wrongCredentials": "Falsche Zugangsdaten",
     "or": "OR"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Kopieren",
     "copyMessage": "Wählen Sie einen Zielort zum Kopieren:",
@@ -145,7 +139,7 @@
     "downloadMessage": "Wählen Sie ein Format zum Herunterladen aus.",
     "error": "Etwas ist schief gelaufen",
     "fileInfo": "Dateiinformation",
-    "lastModified": "Zuletzt geändert",
+    "lastModified": "Zuletzt geändert{suffix}",
     "move": "Verschieben",
     "moveMessage": "Wählen Sie einen neuen Ort für ihre Datei(en)/Ordner:",
     "newArchetype": "Erstelle neuen Beitrag auf Basis eines Archetyps. Ihre Datei wird im Inhalteordner erstellt.",
@@ -153,8 +147,8 @@
     "newDirMessage": "Geben Sie den Namen des neuen Ordners an.",
     "newFile": "Neue Datei",
     "newFileMessage": "Geben Sie den Namen der neuen Datei an.",
-    "numberDirs": "Anzahl der Ordner",
-    "numberFiles": "Anzahl der Dateien",
+    "numberDirs": "Anzahl der Ordner{suffix}",
+    "numberFiles": "Anzahl der Dateien{suffix}",
     "rename": "Umbenennen",
     "renameMessage": "Geben Sie einen Namen ein für",
     "replace": "Ersetzen",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Erkannte Widersprüche",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ungültiger Name angegeben: kann nicht Container \"/\" oder \"\\\""
+    "invalidName": "Ungültiger Name angegeben: kann nicht Container \"/\" oder \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Bilder",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Status",
     "assessment": "Bewertung",
-    "files": "Dateien",
-    "folders": "Ordner",
     "lastScanned": "Zuletzt gescannt",
     "quickScan": "Schnell-Scan (Sekunden)",
     "fullScan": "Vollständiger Scan (Sekunden)",
@@ -402,7 +395,9 @@
     "deleted": "Zugriffsregel gelöscht!",
     "added": "Zugangsregel hinzugefügt!",
     "name": "Name",
-    "accessManagement": "Zugangsverwaltung"
+    "accessManagement": "Zugangsverwaltung",
+    "totalDenied": "Verweigert",
+    "totalAllowed": "Erlaubt"
   },
   "fileLoading": {
     "title": "Uploads & Downloads",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "Eine durch Leerzeichen getrennte Liste von Dateierweiterungen, für die der Editor und der Viewer von OnlyOffice deaktiviert werden sollen. (z. B. '.txt .html .pdf').",
     "disableOfficeEditor": "Office Viewer für bestimmte Dateierweiterungen deaktivieren",
     "defaultThemeDescription": "default - Das Standardthema",
-    "customTheme": "Wählen Sie Ihr Thema"
+    "customTheme": "Wählen Sie Ihr Thema",
+    "showSelectMultiple": "Mehrfachauswahl im Kontextmenü auf dem Desktop anzeigen",
+    "showSelectMultipleDescription": "Standardmäßig verfügt das Desktop-Kontextmenü nicht über die Option \"Mehrere auswählen\" wie bei mobilen Geräten. Diese Option wird immer im Kontextmenü angezeigt."
   }
 }

@@ -63,8 +63,6 @@
     "body": "Тіло",
     "clear": "Очистити",
     "closePreview": "Закрити",
-    "files": "Файли",
-    "folders": "Папки",
     "home": "Домівка",
     "lastModified": "Останній раз змінено",
     "loading": "Завантаження...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Створити обліковий запис",
     "loginInstead": "Вже є обліковий запис",
-    "password": "Пароль",
     "passwordConfirm": "Підтвердження паролю",
     "passwordsDontMatch": "Паролі не співпадають",
-    "signup": "Зареєструватися",
     "submit": "Увійти",
-    "username": "Ім'я користувача",
     "usernameTaken": "Ім'я користувача вже використовується",
     "wrongCredentials": "Невірне ім'я користувача або пароль",
     "or": "АБО"
   },
-  "permanent": "Постійний",
   "prompts": {
     "copy": "Копіювати",
     "copyMessage": "Копіювати в:",
@@ -145,7 +139,7 @@
     "downloadMessage": "Виберіть формат, в якому хочете завантажити.",
     "error": "Помилка",
     "fileInfo": "Інформація про файл",
-    "lastModified": "Останній раз змінено",
+    "lastModified": "Останній раз змінено{suffix}",
     "move": "Перемістити",
     "moveMessage": "Перемістити в:",
     "newArchetype": "Створіть новий запис на основі архетипу. Файл буде створено у каталозі.",
@@ -153,8 +147,8 @@
     "newDirMessage": "Ім'я нового каталогу.",
     "newFile": "Новий файл",
     "newFileMessage": "Ім'я нового файлу.",
-    "numberDirs": "Кількість каталогів",
-    "numberFiles": "Кількість файлів",
+    "numberDirs": "Кількість каталогів{suffix}",
+    "numberFiles": "Кількість файлів{suffix}",
     "rename": "Перейменувати",
     "renameMessage": "Нове ім'я",
     "replace": "Замінити",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Виявлені конфлікти",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Вказано невірне ім'я: не можна використовувати символи \"/\" або \"\\\""
+    "invalidName": "Вказано невірне ім'я: не можна використовувати символи \"/\" або \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Зображення",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Статус",
     "assessment": "Оцінка",
-    "files": "Файли",
-    "folders": "Папки",
     "lastScanned": "Останнє сканування",
     "quickScan": "Секунди швидкого сканування",
     "fullScan": "Секунди повного сканування",
@@ -437,6 +430,39 @@
     "disableOfficeEditorDescription": "Список розділених пробілами розширень файлів, для яких слід вимкнути редактор і переглядач OnlyOffice. (наприклад, '.txt .html .pdf').",
     "disableOfficeEditor": "Вимкнути офісний переглядач для певних розширень файлів",
     "defaultThemeDescription": "default - тема за замовчуванням",
-    "customTheme": "Виберіть свою тему"
+    "customTheme": "Виберіть свою тему",
+    "showSelectMultiple": "Показувати вибране кілька в контекстному меню на робочому столі",
+    "showSelectMultipleDescription": "За замовчуванням, контекстне меню десктопа не має опції \"вибрати декілька\", як у мобільному. Ця опція завжди відображається у контекстному меню."
+  },
+  "general": {
+    "name": "Ім'я",
+    "path": "Шлях",
+    "user": "Користувач",
+    "group": "Група",
+    "signup": "Реєстрація",
+    "password": "Пароль",
+    "username": "Ім'я користувача",
+    "files": "Файли",
+    "folders": "Папки",
+    "exit": "Виходьте.",
+    "permanent": "Постійний"
+  },
+  "access": {
+    "rules": "Правила доступу",
+    "deny": "Відхилити",
+    "deniedUsers": "Заборонені користувачі",
+    "deniedGroups": "Заборонені групи",
+    "allowedUsers": "Дозволені користувачі",
+    "allowedGroups": "Дозволені групи",
+    "totalDenied": "Відмовлено",
+    "totalAllowed": "Дозволено",
+    "allow": "Дозвольте",
+    "allowDeny": "Дозволити/Заборонити",
+    "userGroup": "Користувач/група",
+    "enterName": "Введіть ім'я користувача або групи",
+    "deleted": "Правило доступу видалено!",
+    "added": "Додано правило доступу!",
+    "name": "Ім'я",
+    "accessManagement": "Керування доступом"
   }
 }

@@ -291,12 +291,12 @@ export const getters = {
   currentPromptName: () => {
     // Ensure state.prompts is an array
     if (!Array.isArray(state.prompts) || state.prompts.length === 0) {
-      return null
+      return ""
     }
     // Check if the name property is a string
     const lastPrompt = state.prompts[state.prompts.length - 1]
     if (typeof lastPrompt?.name !== 'string') {
-      return null
+      return ""
     }
     return lastPrompt.name
   },

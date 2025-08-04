@@ -304,11 +304,11 @@ export default {
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.assessment || 'unknown'}</td>
               </tr>
               <tr>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.files")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.files")}</td>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.files || 0}</td>
               </tr>
               <tr>
-                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("index.folders")}</td>
+                <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${this.$t("general.folders")}</td>
                 <td style="padding: 0.2em 0.5em; border-bottom: 1px solid #ccc;">${info.folders || 0}</td>
               </tr>
               <tr>

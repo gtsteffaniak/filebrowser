@@ -63,8 +63,6 @@
     "body": "Тело",
     "clear": "Очистить",
     "closePreview": "Закрыть",
-    "files": "Файлы",
-    "folders": "Папки",
     "home": "Главная",
     "lastModified": "Последнее изменение",
     "loading": "Загрузка...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Создать аккаунт",
     "loginInstead": "Уже есть аккаунт",
-    "password": "Пароль",
     "passwordConfirm": "Подтверждение пароля",
     "passwordsDontMatch": "Пароли не совпадают",
-    "signup": "Зарегистрироваться",
     "submit": "Войти",
-    "username": "Имя пользователя",
     "usernameTaken": "Данное имя пользователя уже занято",
     "wrongCredentials": "Неверные данные",
     "or": "ИЛИ"
   },
-  "permanent": "Постоянный",
   "prompts": {
     "copy": "Копировать",
     "copyMessage": "Копировать в:",
@@ -145,7 +139,7 @@
     "downloadMessage": "Выберите формат в котором хотите скачать.",
     "error": "Ошибка",
     "fileInfo": "Информация о файле",
-    "lastModified": "Последнее изменение",
+    "lastModified": "Последнее изменение{suffix}",
     "move": "Переместить",
     "moveMessage": "Переместить в:",
     "newArchetype": "Создайте новую запись на основе архетипа. Файл будет создан в каталоге.",
@@ -153,8 +147,8 @@
     "newDirMessage": "Имя нового каталога.",
     "newFile": "Новый файл",
     "newFileMessage": "Имя нового файла.",
-    "numberDirs": "Количество каталогов",
-    "numberFiles": "Количество файлов",
+    "numberDirs": "Количество каталогов{suffix}",
+    "numberFiles": "Количество файлов{suffix}",
     "rename": "Переименовать",
     "renameMessage": "Новое имя",
     "replace": "Заменить",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Обнаруженные конфликты",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Неверное имя: не может содержать \"/\" или \"\\\"."
+    "invalidName": "Неверное имя: не может содержать \"/\" или \"\\\".",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Изображения",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Статус",
     "assessment": "Оценка",
-    "files": "Файлы",
-    "folders": "Папки",
     "lastScanned": "Последнее сканирование",
     "quickScan": "Секунды быстрого сканирования",
     "fullScan": "Секунды полного сканирования",
@@ -402,7 +395,9 @@
     "deleted": "Правило доступа удалено!",
     "added": "Правило доступа добавлено!",
     "name": "Имя",
-    "accessManagement": "Управление доступом"
+    "accessManagement": "Управление доступом",
+    "totalDenied": "Отказано",
+    "totalAllowed": "Разрешено"
   },
   "fileLoading": {
     "title": "Загрузка и скачивание",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "Список расширений файлов, для которых необходимо отключить редактор и просмотрщик OnlyOffice, разделенный пробелами. (например, '.txt .html .pdf').",
     "disableOfficeEditor": "Отключение просмотра офисных файлов для определенных расширений файлов",
     "defaultThemeDescription": "default - Тема по умолчанию",
-    "customTheme": "Выберите тему"
+    "customTheme": "Выберите тему",
+    "showSelectMultiple": "Отображение выбора нескольких в контекстном меню на рабочем столе",
+    "showSelectMultipleDescription": "По умолчанию в контекстном меню рабочего стола нет опции \"выбрать несколько\", как в мобильном. Эта опция всегда отображается в контекстном меню."
   }
 }

@@ -133,7 +133,7 @@ export default {
     },
     keyEvent(event) {
       const { key, ctrlKey, metaKey } = event;
-      if (getters.currentPromptName() != null) return;
+      if (getters.currentPromptName()) return;
       if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
         event.preventDefault();
         this.handleEditorValueRequest();

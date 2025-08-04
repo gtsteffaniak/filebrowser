@@ -66,8 +66,6 @@
     "body": "Περιεχόμενο",
     "clear": "Καθαρισμός",
     "closePreview": "Κλείσιμο προεπισκόπησης",
-    "files": "Αρχεία",
-    "folders": "Φάκελοι",
     "home": "Αρχική",
     "lastModified": "Τελευταία τροποποίηση",
     "loading": "Φορτώνει…",
@@ -125,17 +123,13 @@
   "login": {
     "createAnAccount": "Δημιουργία λογαριασμού",
     "loginInstead": "Έχετε ήδη λογαριασμό",
-    "password": "Κωδικός πρόσβασης",
     "passwordConfirm": "Επιβεβαίωση κωδικού πρόσβασης",
     "passwordsDontMatch": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
-    "signup": "Εγγραφή",
     "submit": "Είσοδος",
-    "username": "Όνομα χρήστη",
     "usernameTaken": "Το όνομα χρήστη χρησιμοποιείται ήδη",
     "wrongCredentials": "Λάθος όνομα ή/και κωδικός πρόσβασης",
     "or": "Ή"
   },
-  "permanent": "Μόνιμο",
   "prompts": {
     "copy": "Αντιγραφή",
     "copyMessage": "Επιλέξτε τοποθεσία για αντιγραφή των αρχείων σας:",
@@ -148,7 +142,7 @@
     "downloadMessage": "Επιλέξτε τη μορφή που θέλετε να λάβετε.",
     "error": "Προέκυψε κάποιο σφάλμα",
     "fileInfo": "Πληροφορίες αρχείου",
-    "lastModified": "Τελευταία τροποποίηση",
+    "lastModified": "Τελευταία τροποποίηση{suffix}",
     "move": "Μετακίνηση",
     "moveMessage": "Επιλέξτε νέα τοποθεσία για τα αρχεία / τους φακέλους σας:",
     "newArchetype": "Δημιουργία νέας ανάρτησης με βάση έναν αρχέτυπο. Το αρχείο σας θα δημιουργηθεί στο φάκελο περιεχομένου.",
@@ -156,8 +150,8 @@
     "newDirMessage": "Γράψτε το όνομα του νέου φακέλου.",
     "newFile": "Νέο αρχείο",
     "newFileMessage": "Γράψτε το όνομα του νέου αρχείου.",
-    "numberDirs": "Αριθμός φακέλων",
-    "numberFiles": "Αριθμός αρχείων",
+    "numberDirs": "Αριθμός φακέλων{suffix}",
+    "numberFiles": "Αριθμός αρχείων{suffix}",
     "rename": "Μετονομασία",
     "renameMessage": "Εισαγάγετε ένα νέο όνομα για το",
     "replace": "Αντικατάσταση",
@@ -179,7 +173,8 @@
     "conflictsDetected": "Ανιχνεύονται συγκρούσεις",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Μη έγκυρο όνομα: δεν μπορεί να γίνει container \"/\" ή \"\\\""
+    "invalidName": "Μη έγκυρο όνομα: δεν μπορεί να γίνει container \"/\" ή \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Εικόνες",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Κατάσταση",
     "assessment": "Αξιολόγηση",
-    "files": "Αρχεία",
-    "folders": "Φάκελοι",
     "lastScanned": "Τελευταία σάρωση",
     "quickScan": "Δευτερόλεπτα γρήγορης σάρωσης",
     "fullScan": "Δευτερόλεπτα πλήρους σάρωσης",
@@ -402,7 +395,9 @@
     "deleted": "Ο κανόνας πρόσβασης διαγράφηκε!",
     "added": "Προστέθηκε κανόνας πρόσβασης!",
     "name": "Όνομα",
-    "accessManagement": "Διαχείριση πρόσβασης"
+    "accessManagement": "Διαχείριση πρόσβασης",
+    "totalDenied": "Απορρίπτεται",
+    "totalAllowed": "Επιτρεπόμενο"
   },
   "fileLoading": {
     "title": "Ανεβάσματα & λήψεις",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "Μια λίστα επεκτάσεων αρχείων με διαχωρισμό διαστήματος για την απενεργοποίηση του επεξεργαστή και της προβολής του OnlyOffice. (π.χ. '.txt .html .pdf').",
     "disableOfficeEditor": "Απενεργοποίηση της προβολής γραφείου για ορισμένες επεκτάσεις αρχείων",
     "defaultThemeDescription": "default - Το προεπιλεγμένο θέμα",
-    "customTheme": "Επιλέξτε το θέμα σας"
+    "customTheme": "Επιλέξτε το θέμα σας",
+    "showSelectMultiple": "Εμφάνιση πολλαπλών επιλογών στο μενού περιβάλλοντος στην επιφάνεια εργασίας",
+    "showSelectMultipleDescription": "Από προεπιλογή, το μενού περιβάλλοντος της επιφάνειας εργασίας δεν διαθέτει την επιλογή \"επιλογή πολλαπλών\" όπως το κινητό. Αυτή η επιλογή εμφανίζεται πάντα στο μενού περιβάλλοντος."
   }
 }

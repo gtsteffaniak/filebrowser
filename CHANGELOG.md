@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v0.8.0-beta
 
-  This is a major release, including many new features and changes that could introduce breaking changes. Here are the known potentially breaking changes:
+  This is a major release, new features and changes could introduce breaking behavior. Here are the known potentially breaking changes:
 
   - all public api and share url's get a `/public` prefix, making it easier to use with a reverse proxy. Any existing share link will still work but get redirected.
   - a small change to styling you may need to update your custom styling, for example the id `#input` was renamed `#search-input`

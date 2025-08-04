@@ -104,7 +104,7 @@ export default {
       return getters.isLoggedIn() && getters.currentView() === "listingView";
     },
     isDisabled() {
-      return state.isSearchActive || getters.currentPromptName() != null;
+      return state.isSearchActive || getters.currentPromptName() != "";
     },
     isDisabledMultiAction() {
       return this.isDisabled || (getters.isStickySidebar() && state.multiButtonState === "menu");
@@ -170,3 +170,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+header button:hover {
+  box-shadow: unset !important;
+  -webkit-box-shadow: unset !important;
+}
+</style>

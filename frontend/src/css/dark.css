@@ -60,10 +60,6 @@
   color: var(--textPrimary) !important;
 }
 
-.dark-mode .action:hover {
-  background-color: rgba(255, 255, 255, .1);
-}
-
 /* Action counter */
 .dark-mode .action .counter {
   border-color: var(--surfacePrimary);
@@ -107,19 +103,11 @@
   color: var(--textPrimary);
 }
 
-/* Flat button hover */
-.dark-mode .button--flat:hover {
-  background: var(--surfaceSecondary);
-}
-
 /* Dashboard navigation */
 .dark-mode .dashboard #nav ul li {
   color: var(--textSecondary);
 }
 
-.dark-mode .dashboard #nav ul li:hover {
-  background: var(--surfaceSecondary);
-}
 #search.active.dark-mode #result {
   background-color: black;
 }

@@ -161,7 +161,7 @@ table tr>*:last-child {
 .card {
   position: relative;
   margin: 0 0 1rem 0;
-  background-color: #fff;
+  background-color: var(--background);
   border-radius: 2px;
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
   overflow: auto;
@@ -173,13 +173,10 @@ table tr>*:last-child {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
-  box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
-  z-index: 99999;
+  z-index: 10;
   max-width: 40em;
   width: 90%;
   max-height: 95%;
-  z-index: 99999;
   animation: .1s show forwards;
 }
 

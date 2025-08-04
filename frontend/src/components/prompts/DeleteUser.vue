@@ -1,22 +1,15 @@
 <template>
-  <div class="card floating">
-    <div class="card-content">
-      <p>{{$t('prompts.deleteUserMessage')}}</p>
-    </div>
-    <div class="card-action">
-      <button
-        class="button button--flat button--grey"
-        @click="closeHovers"
-        v-focus
-        aria-label="Cancel"
-        :title="$t('buttons.cancel')"
-      >
-        {{ $t("buttons.cancel") }}
-      </button>
-      <button class="button button--flat"  aria-label="Confirm Delete" @click="deleteUser">
-        {{ $t("buttons.delete") }}
-      </button>
-    </div>
+  <div class="card-content">
+    <p>{{ $t('prompts.deleteUserMessage') }}</p>
+  </div>
+  <div class="card-action">
+    <button class="button button--flat button--grey" @click="closeHovers" v-focus aria-label="Cancel"
+      :title="$t('buttons.cancel')">
+      {{ $t("buttons.cancel") }}
+    </button>
+    <button class="button button--flat" aria-label="Confirm Delete" @click="deleteUser">
+      {{ $t("buttons.delete") }}
+    </button>
   </div>
 </template>
 <script>

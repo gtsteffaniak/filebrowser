@@ -63,8 +63,6 @@
     "body": "本文",
     "clear": "クリアー",
     "closePreview": "プレビューを閉じる",
-    "files": "ファイル",
-    "folders": "フォルダ",
     "home": "ホーム",
     "lastModified": "最終変更",
     "loading": "ローディング...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Create an account",
     "loginInstead": "Already have an account",
-    "password": "パスワード",
     "passwordConfirm": "Password Confirmation",
     "passwordsDontMatch": "Passwords don't match",
-    "signup": "Signup",
     "submit": "ログイン",
-    "username": "ユーザ名",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "ユーザ名またはパスワードが間違っています。",
     "or": "または"
   },
-  "permanent": "永久",
   "prompts": {
     "copy": "コピー",
     "copyMessage": "コピーの目標ディレクトリを選択してください：",
@@ -144,7 +138,7 @@
     "downloadMessage": "圧縮形式を選択してください。",
     "error": "あるエラーが発生しました。",
     "fileInfo": "ファイル情報",
-    "lastModified": "最終変更",
+    "lastModified": "最終変更{suffix}",
     "move": "移動",
     "moveMessage": "移動の目標ディレクトリを選択してください：",
     "newArchetype": "ある元型に基づいて新しいポストを作成します。ファイルは  コンテンツフォルダに作成されます。",
@@ -152,8 +146,8 @@
     "newDirMessage": "新しいディレクトリの名前を入力してください。",
     "newFile": "新しいファイルを作成",
     "newFileMessage": "新しいファイルの名前を入力してください。",
-    "numberDirs": "ディレクトリ個数",
-    "numberFiles": "ファイル個数",
+    "numberDirs": "ディレクトリ個数{suffix}",
+    "numberFiles": "ファイル個数{suffix}",
     "rename": "名前を変更",
     "renameMessage": "名前を変更しようファイルは：",
     "replace": "置き換える",
@@ -176,7 +170,8 @@
     "conflictsDetected": "コンフリクト検出",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "無効な名前が指定されました：\"/\"または\"˶\"をコンテナに入れることはできません。"
+    "invalidName": "無効な名前が指定されました：\"/\"または\"˶\"をコンテナに入れることはできません。",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "画像",
@@ -350,8 +345,6 @@
   "index": {
     "status": "ステータス",
     "assessment": "評価",
-    "files": "ファイル",
-    "folders": "フォルダ",
     "lastScanned": "最終スキャン",
     "quickScan": "クイックスキャン秒数",
     "fullScan": "フルスキャン秒数",
@@ -402,7 +395,9 @@
     "deleted": "アクセスルールが削除された！",
     "added": "アクセスルールが追加された！",
     "name": "名称",
-    "accessManagement": "アクセス管理"
+    "accessManagement": "アクセス管理",
+    "totalDenied": "却下",
+    "totalAllowed": "可"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "OnlyOfficeエディタおよびビューアを無効にするファイル拡張子のスペース区切りリスト。(例: '.txt .html .pdf')。",
     "disableOfficeEditor": "特定のファイル拡張子のオフィスビューアを無効にする",
     "defaultThemeDescription": "default - デフォルトのテーマ",
-    "customTheme": "テーマを選ぶ"
+    "customTheme": "テーマを選ぶ",
+    "showSelectMultiple": "デスクトップのコンテキストメニューに複数選択を表示する",
+    "showSelectMultipleDescription": "デフォルトでは、デスクトップのコンテキストメニューには、モバイルのような「複数選択」オプションはありません。このオプションは常にコンテキストメニューに表示されます。"
   }
 }

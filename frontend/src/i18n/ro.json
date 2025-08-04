@@ -63,8 +63,6 @@
     "body": "Corp",
     "clear": "Curăță",
     "closePreview": "Închide previzualizarea",
-    "files": "Fișiere",
-    "folders": "Directoare",
     "home": "Acasă",
     "lastModified": "Ultima modificare",
     "loading": "Se încarcă...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Crează cont",
     "loginInstead": "Am deja cont",
-    "password": "Parola",
     "passwordConfirm": "Confirmă parola",
     "passwordsDontMatch": "Parolele nu se potrivesc",
-    "signup": "Înregistrare",
     "submit": "Autentificare",
-    "username": "Utilizator",
     "usernameTaken": "Utilizatorul există",
     "wrongCredentials": "Informații greșite",
     "or": "SAU"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Copiază",
     "copyMessage": "Alege unde vrei să copiezi fișierele:",
@@ -144,7 +138,7 @@
     "downloadMessage": "Alege formatul în care vrei să descarci.",
     "error": "Ceva n-a funcționat cum trebuie",
     "fileInfo": "Informații fișier",
-    "lastModified": "Ultima modificare",
+    "lastModified": "Ultima modificare{suffix}",
     "move": "Mută",
     "moveMessage": "Alege destinația:",
     "newArchetype": "Crează o nouă postare pe baza unui șablon. Fișierul va fi creat in directorul conținut.",
@@ -152,8 +146,8 @@
     "newDirMessage": "Scrie numele noului director.",
     "newFile": "Fișier nou",
     "newFileMessage": "Scrie numele noului fișier.",
-    "numberDirs": "Numărul directoarelor",
-    "numberFiles": "Numărul fișierelor",
+    "numberDirs": "Numărul directoarelor{suffix}",
+    "numberFiles": "Numărul fișierelor{suffix}",
     "rename": "Redenumește",
     "renameMessage": "Redactează un nou nume pentru",
     "replace": "Înlocuiește",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Conflicte detectate",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nume invalid furnizat: nu poate conține \"/\" sau \"\\\""
+    "invalidName": "Nume invalid furnizat: nu poate conține \"/\" sau \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Imagini",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Statut",
     "assessment": "Evaluare",
-    "files": "Fișiere",
-    "folders": "Dosare",
     "lastScanned": "Ultima scanare",
     "quickScan": "Scanare rapidă secunde",
     "fullScan": "Scanare completă secunde",
@@ -402,7 +395,9 @@
     "deleted": "Regula de acces ștearsă!",
     "added": "Regula de acces adăugată!",
     "name": "Nume și prenume",
-    "accessManagement": "Gestionarea accesului"
+    "accessManagement": "Gestionarea accesului",
+    "totalDenied": "Refuzat",
+    "totalAllowed": "Permise"
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "O listă de extensii de fișiere separate prin spațiu pentru care se dezactivează editorul și vizualizatorul OnlyOffice. (de exemplu, \".txt .html .pdf\").",
     "disableOfficeEditor": "Dezactivați vizualizatorul office pentru anumite extensii de fișiere",
     "defaultThemeDescription": "default - Tema implicită",
-    "customTheme": "Alege-ți tema"
+    "customTheme": "Alege-ți tema",
+    "showSelectMultiple": "Afișarea selecției multiple în meniul contextual de pe desktop",
+    "showSelectMultipleDescription": "În mod implicit, meniul contextual de pe desktop nu are opțiunea \"select multiple\", ca pe mobil. Această opțiune se afișează întotdeauna în meniul contextual."
   }
 }
