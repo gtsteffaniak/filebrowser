@@ -1,7 +1,6 @@
 <template>
-  <div>
+   <div class="card floating fb-shadow" v-if="showOverlay" >
     <component
-      v-if="showOverlay"
       :ref="currentPromptName"
       :is="currentPromptName"
       v-bind="currentPromptProps"
@@ -100,9 +99,6 @@ export default {
   },
   computed: {
     currentPromptName() {
-      if (getters.currentPromptName() == null) {
-        return "";
-      }
       return getters.currentPromptName();
     },
     currentPrompt() {
@@ -129,7 +125,7 @@ export default {
       return state.plugins;
     },
     showOverlay() {
-      return getters.currentPromptName() !== "more";
+      return getters.currentPromptName() !== "" && getters.currentPromptName() !== "ContextMenu";
     },
   },
   methods: {},

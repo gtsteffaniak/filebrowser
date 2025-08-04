@@ -1,193 +1,108 @@
 <template>
-  <div class="card floating" >
-    <div class="card-title">
-      <h2>{{ $t("prompts.upload") }}</h2>
-      <p>{{ uploadSettingsDescription }}</p>
+  <div class="card-title">
+    <h2>{{ $t("prompts.upload") }}</h2>
+    <p>{{ uploadSettingsDescription }}</p>
+  </div>
+  <div class="upload-prompt" :class="{ dropping: isDragging }" @dragenter.prevent="onDragEnter"
+    @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
+    <div class="upload-prompt-container">
+      <i v-if="files.length === 0" class="material-icons">cloud_upload</i>
+      <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
+      <div class="button-group">
+        <button @click="triggerFilePicker" class="button button--flat">
+          {{ $t("buttons.file") }}
+        </button>
+        <button style="margin-left: 1em" @click="triggerFolderPicker" class="button button--flat">
+          {{ $t("buttons.folder") }}
+        </button>
+      </div>
     </div>
-    <div
-      class="upload-prompt"
-      :class="{ dropping: isDragging }"
-      @dragenter.prevent="onDragEnter"
-      @dragover.prevent="onDragOver"
-      @dragleave.prevent="onDragLeave"
-      @drop.prevent="onDrop"
-    >
-      <div class="upload-prompt-container">
-        <i v-if="files.length === 0" class="material-icons">cloud_upload</i>
-        <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
-        <div class="button-group">
-          <button @click="triggerFilePicker" class="button button--flat">
-            {{ $t("buttons.file") }}
+  </div>
+  <div class="card-content" @drop.prevent="onDrop">
+    <div v-if="showConflictPrompt" class="conflict-overlay">
+      <div class="card">
+        <div class="card-content">
+          <p>{{ $t("prompts.conflictsDetected") }}</p>
+        </div>
+        <div class="card-actions">
+          <button @click="resolveConflict(false)" class="button button--flat button--grey">
+            {{ $t("buttons.cancel") }}
           </button>
-          <button
-            style="margin-left: 1em"
-            @click="triggerFolderPicker"
-            class="button button--flat"
-          >
-            {{ $t("buttons.folder") }}
+          <button @click="resolveConflict(true)" class="button button--flat button--red">
+            {{ $t("buttons.replace") }}
           </button>
         </div>
       </div>
     </div>
-    <div
-      class="card-content"
-      @drop.prevent="onDrop"
-    >
-      <div v-if="showConflictPrompt" class="conflict-overlay">
-        <div class="card">
-          <div class="card-content">
-            <p>{{ $t("prompts.conflictsDetected") }}</p>
-          </div>
-          <div class="card-actions">
-            <button
-              @click="resolveConflict(false)"
-              class="button button--flat button--grey"
-            >
-              {{ $t("buttons.cancel") }}
-            </button>
-            <button
-              @click="resolveConflict(true)"
-              class="button button--flat button--red"
-            >
-              {{ $t("buttons.replace") }}
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <div v-if="files.length > 0" class="upload-list">
-        <div v-for="file in files" :key="file.id" class="upload-item">
-          <i class="material-icons file-icon">{{file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <div class="file-info">
-            <p class="file-name">{{ file.name }}</p>
-            <progress-bar
-              v-if="file.type !== 'directory'"
-              :val="
-                file.status === 'completed'
-                  ? $t('prompts.completed')
-                  : file.status === 'error'
-                  ? $t('prompts.error')
-                  : file.status === 'conflict'
+    <div v-if="files.length > 0" class="upload-list">
+      <div v-for="file in files" :key="file.id" class="upload-item">
+        <i class="material-icons file-icon">{{ file.type === "directory" ? "folder" : "insert_drive_file" }}</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <div class="file-info">
+          <p class="file-name">{{ file.name }}</p>
+          <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
+              ? $t('prompts.completed')
+              : file.status === 'error'
+                ? $t('prompts.error')
+                : file.status === 'conflict'
                   ? $t('prompts.conflictsDetected')
                   : (file.progress / 100) * file.size
-              "
-              :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'"
-              :max="file.size"
-              :status="file.status"
-              text-position="inside"
-              size="20"
-            >
-            </progress-bar>
-            <div v-else class="status-label">
-              <span>{{ $t(`prompts.${file.status}`) }}</span>
-            </div>
+            " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
+            :status="file.status" text-position="inside" size="20">
+          </progress-bar>
+          <div v-else class="status-label">
+            <span>{{ $t(`prompts.${file.status}`) }}</span>
           </div>
-          <div class="file-actions">
-            <button
-              v-if="file.status === 'uploading'"
-              @click="uploadManager.pause(file.id)"
-              class="action"
-              :aria-label="$t('buttons.pause')"
-              :title="$t('buttons.pause')"
-            >
-              <i class="material-icons">pause</i>
-            </button>
-            <button
-              v-if="file.status === 'paused'"
-              @click="uploadManager.resume(file.id)"
-              class="action"
-              :aria-label="$t('buttons.resume')"
-              :title="$t('buttons.resume')"
-            >
-              <i class="material-icons">play_arrow</i>
-            </button>
-            <button
-              v-if="file.status === 'error'"
-              @click="uploadManager.retry(file.id)"
-              class="action"
-              :aria-label="$t('buttons.retry')"
-              :title="$t('buttons.retry')"
-            >
-              <i class="material-icons">replay</i>
-            </button>
-            <button
-              v-if="file.status === 'conflict'"
-              @click="handleConflictAction(file)"
-              class="action"
-              :aria-label="$t('buttons.replace')"
-              :title="$t('buttons.replace')"
-            >
-              <i class="material-icons">sync_problem</i>
-            </button>
-            <button
-              @click="cancelUpload(file.id)"
-              class="action"
-              :aria-label="$t('buttons.cancel')"
-              :title="$t('buttons.cancel')"
-            >
-              <i class="material-icons">close</i>
-            </button>
-          </div>
+        </div>
+        <div class="file-actions">
+          <button v-if="file.status === 'uploading'" @click="uploadManager.pause(file.id)" class="action"
+            :aria-label="$t('buttons.pause')" :title="$t('buttons.pause')">
+            <i class="material-icons">pause</i>
+          </button>
+          <button v-if="file.status === 'paused'" @click="uploadManager.resume(file.id)" class="action"
+            :aria-label="$t('buttons.resume')" :title="$t('buttons.resume')">
+            <i class="material-icons">play_arrow</i>
+          </button>
+          <button v-if="file.status === 'error'" @click="uploadManager.retry(file.id)" class="action"
+            :aria-label="$t('buttons.retry')" :title="$t('buttons.retry')">
+            <i class="material-icons">replay</i>
+          </button>
+          <button v-if="file.status === 'conflict'" @click="handleConflictAction(file)" class="action"
+            :aria-label="$t('buttons.replace')" :title="$t('buttons.replace')">
+            <i class="material-icons">sync_problem</i>
+          </button>
+          <button @click="cancelUpload(file.id)" class="action" :aria-label="$t('buttons.cancel')"
+            :title="$t('buttons.cancel')">
+            <i class="material-icons">close</i>
+          </button>
         </div>
       </div>
     </div>
-
-    <div class="card-actions">
-      <button
-        @click="close"
-        class="button button--flat button--grey"
-        :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')"
-      >
-        {{ $t("buttons.close") }}
-      </button>
-      <div class="spacer"></div>
-      <button
-        v-if="canPauseAll"
-        @click="uploadManager.pauseAll"
-        class="button button--flat"
-        :aria-label="$t('buttons.pauseAll')"
-        :title="$t('buttons.pauseAll')"
-      >
-        {{ $t("buttons.pauseAll") }}
-      </button>
-      <button
-        v-if="canResumeAll"
-        @click="uploadManager.resumeAll"
-        class="button button--flat"
-        :aria-label="$t('buttons.resumeAll')"
-        :title="$t('buttons.resumeAll')"
-      >
-        {{ $t("buttons.resumeAll") }}
-      </button>
-      <button
-        @click="clearCompleted"
-        class="button button--flat"
-        :disabled="!hasCompleted"
-        :aria-label="$t('buttons.clearCompleted')"
-        :title="$t('buttons.clearCompleted')"
-      >
-        {{ $t("buttons.clearCompleted") }}
-      </button>
-    </div>
-
-    <input
-      ref="fileInput"
-      @change="onFilePicked"
-      type="file"
-      multiple
-      style="display: none"
-    />
-    <input
-      ref="folderInput"
-      @change="onFolderPicked"
-      type="file"
-      webkitdirectory
-      directory
-      multiple
-      style="display: none"
-    />
   </div>
+
+  <div class="card-actions">
+    <button @click="close" class="button button--flat button--grey" :aria-label="$t('buttons.cancel')"
+      :title="$t('buttons.cancel')">
+      {{ $t("buttons.close") }}
+    </button>
+    <div class="spacer"></div>
+    <button v-if="canPauseAll" @click="uploadManager.pauseAll" class="button button--flat"
+      :aria-label="$t('buttons.pauseAll')" :title="$t('buttons.pauseAll')">
+      {{ $t("buttons.pauseAll") }}
+    </button>
+    <button v-if="canResumeAll" @click="uploadManager.resumeAll" class="button button--flat"
+      :aria-label="$t('buttons.resumeAll')" :title="$t('buttons.resumeAll')">
+      {{ $t("buttons.resumeAll") }}
+    </button>
+    <button @click="clearCompleted" class="button button--flat" :disabled="!hasCompleted"
+      :aria-label="$t('buttons.clearCompleted')" :title="$t('buttons.clearCompleted')">
+      {{ $t("buttons.clearCompleted") }}
+    </button>
+  </div>
+
+  <input ref="fileInput" @change="onFilePicked" type="file" multiple style="display: none" />
+  <input ref="folderInput" @change="onFolderPicked" type="file" webkitdirectory directory multiple
+    style="display: none" />
 </template>
 
 <script>
@@ -573,7 +488,8 @@ export default {
 
 .upload-list {
   overflow-y: auto;
-  padding-right: 0.5em; /* To avoid scrollbar overlapping content */
+  padding-right: 0.5em;
+  /* To avoid scrollbar overlapping content */
   flex-grow: 1;
   display: flex;
   flex-direction: column-reverse;

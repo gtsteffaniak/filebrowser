@@ -603,18 +603,18 @@ export default {
       }
     },
     keyEvent(event) {
-      if (state.isSearchActive || getters.currentView() != "listingView" || getters.currentPromptName() != null) {
+      if (state.isSearchActive || getters.currentView() != "listingView" || getters.currentPromptName()) {
         return;
       }
       const { key, ctrlKey, metaKey, which } = event;
       // Check if the key is alphanumeric
       const isAlphanumeric = /^[a-z0-9]$/i.test(key);
       const modifierKeys = ctrlKey || metaKey;
-      if (isAlphanumeric && !modifierKeys && getters.currentPromptName() == null) {
+      if (isAlphanumeric && !modifierKeys && getters.currentPromptName()) {
         this.alphanumericKeyPress(key); // Call the alphanumeric key press function
         return;
       }
-      if (!modifierKeys && getters.currentPromptName() != null) {
+      if (!modifierKeys && getters.currentPromptName()) {
         return;
       }
       // Handle the space bar key
@@ -627,7 +627,7 @@ export default {
           mutations.setSearch(true);
         }
       }
-      if (getters.currentPromptName() != null) {
+      if (getters.currentPromptName()) {
         return;
       }
       let currentPath = state.route.path.replace(/\/+$/, ""); // Remove trailing slashes
@@ -649,7 +649,7 @@ export default {
           break;
 
         case "Backspace":
-          if (getters.CurrentPromptName !== null) {
+          if (getters.currentPromptName()) {
             return;
           }
           // go back
@@ -933,7 +933,7 @@ export default {
       // if control or shift is pressed, do not clear the selection
       if (this.ctrKeyPressed || event.shiftKey) return;
       const sameAsBefore = state.selected == this.lastSelected;
-      if (sameAsBefore && !state.multiple && getters.currentPromptName() == null) {
+      if (sameAsBefore && !state.multiple && getters.currentPromptName()) {
         mutations.resetSelected();
       }
       this.lastSelected = state.selected;

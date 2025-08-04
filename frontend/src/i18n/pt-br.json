@@ -63,8 +63,6 @@
     "body": "Corpo",
     "clear": "Limpar",
     "closePreview": "Fechar pré-visualização",
-    "files": "Arquivos",
-    "folders": "Pastas",
     "home": "Início",
     "lastModified": "Última modificação",
     "loading": "Carregando. Aguarde, por favor.",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Criar uma conta",
     "loginInstead": "Já possui uma conta",
-    "password": "Senha",
     "passwordConfirm": "Confirmação de senha",
     "passwordsDontMatch": "As senhas não coincidem",
-    "signup": "Cadastrar",
     "submit": "Login",
-    "username": "Nome do usuário",
     "usernameTaken": "Nome de usuário já existe",
     "wrongCredentials": "Ops! Dados incorretos.",
     "or": "OU"
   },
-  "permanent": "Permanente",
   "prompts": {
     "copy": "Copiar",
     "copyMessage": "Escolha um lugar para copiar os arquivos:",
@@ -145,7 +139,7 @@
     "downloadMessage": "Escolha o formato do arquivo.",
     "error": "Algo de errado ocorreu",
     "fileInfo": "Informação do arquivo",
-    "lastModified": "Última modificação",
+    "lastModified": "Última modificação{suffix}",
     "move": "Mover",
     "moveMessage": "Escolha uma nova pasta para os seus arquivos:",
     "newArchetype": "Criar um novo post baseado num \"archetype\". O seu arquivo será criado na pasta \"content\".",
@@ -153,8 +147,8 @@
     "newDirMessage": "Escreva o nome da nova pasta.",
     "newFile": "Novo arquivo",
     "newFileMessage": "Escreva o nome do novo arquivo.",
-    "numberDirs": "Número de pastas",
-    "numberFiles": "Número de arquivos",
+    "numberDirs": "Número de pastas{suffix}",
+    "numberFiles": "Número de arquivos{suffix}",
     "rename": "Renomear",
     "renameMessage": "Insira um novo nome para",
     "replace": "Substituir",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Conflitos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\""
+    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Imagens",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Status",
     "assessment": "Avaliação",
-    "files": "Arquivos",
-    "folders": "Pastas",
     "lastScanned": "Última varredura",
     "quickScan": "Segundos de varredura rápida",
     "fullScan": "Segundos de varredura completa",
@@ -402,7 +395,9 @@
     "deleted": "Regra de acesso excluída!",
     "added": "Regra de acesso adicionada!",
     "name": "Nome",
-    "accessManagement": "Gerenciamento de acesso"
+    "accessManagement": "Gerenciamento de acesso",
+    "totalDenied": "Negado",
+    "totalAllowed": "Permitido"
   },
   "fileLoading": {
     "title": "Uploads e downloads",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "Uma lista de extensões de arquivo separada por espaços para desativar o editor e o visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de arquivo",
     "defaultThemeDescription": "default - O tema padrão",
-    "customTheme": "Escolha seu tema"
+    "customTheme": "Escolha seu tema",
+    "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto na área de trabalho",
+    "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto."
   }
 }

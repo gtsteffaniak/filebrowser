@@ -63,8 +63,6 @@
     "body": "Body",
     "clear": "Wissen",
     "closePreview": "Voorvertoon sluiten",
-    "files": "Bestanden",
-    "folders": "Mappen",
     "home": "Home",
     "lastModified": "Laatst bewerkt",
     "loading": "Laden...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Account aanmaken",
     "loginInstead": "Heeft al een account",
-    "password": "Wachtwoord",
     "passwordConfirm": "Wachtwoordbevestiging ",
     "passwordsDontMatch": "Wachtwoorden komen niet overeen",
-    "signup": "Registeren",
     "submit": "Log in",
-    "username": "Gebruikersnaam",
     "usernameTaken": "Gebruikersnaam reeds in gebruik",
     "wrongCredentials": "Verkeerde inloggegevens",
     "or": "OF"
   },
-  "permanent": "Permanent",
   "prompts": {
     "copy": "Kopiëren",
     "copyMessage": "Kies een locatie om uw bestanden te kopiëren: ",
@@ -144,7 +138,7 @@
     "downloadMessage": "Kies het vermat dat u wilt downloaden. ",
     "error": "Er ging iets fout",
     "fileInfo": "Bestandinformatie",
-    "lastModified": "Laatst Bewerkt",
+    "lastModified": "Laatst Bewerkt{suffix}",
     "move": "Verplaatsen",
     "moveMessage": "Kies een nieuwe locatie voor je bestand(en)/map(pen)",
     "newArchetype": "Maak een nieuw bericht op basis van een archetype. Uw bestand wordt aangemaakt in de inhoudsmap.",
@@ -152,8 +146,8 @@
     "newDirMessage": "Schrijf de naam van de nieuwe map",
     "newFile": "Nieuw bestand",
     "newFileMessage": "Schrijf de naam van het nieuwe bestand",
-    "numberDirs": "Aantal mappen",
-    "numberFiles": "Aantal bestanden",
+    "numberDirs": "Aantal mappen{suffix}",
+    "numberFiles": "Aantal bestanden{suffix}",
     "rename": "Hernoemen",
     "renameMessage": "Voer een nieuwe naam in voor",
     "replace": "Vervangen",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Gedetecteerde conflicten",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Ongeldige naam opgegeven: kan geen \"/\" of \"˜\" bevatten."
+    "invalidName": "Ongeldige naam opgegeven: kan geen \"/\" of \"˜\" bevatten.",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Status",
     "assessment": "Beoordeling",
-    "files": "Bestanden",
-    "folders": "Mappen",
     "lastScanned": "Laatst gescand",
     "quickScan": "Snelle scan Seconden",
     "fullScan": "Seconden voor volledig scannen",
@@ -437,6 +430,39 @@
     "disableOfficeEditorDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor de OnlyOffice editor en viewer uitgeschakeld moeten worden. (bijv. '.txt .html .pdf').",
     "disableOfficeEditor": "Office Viewer uitschakelen voor bepaalde bestandsextensies",
     "defaultThemeDescription": "standaard - Het standaardthema",
-    "customTheme": "Kies je thema"
+    "customTheme": "Kies je thema",
+    "showSelectMultiple": "Meerdere selecteren tonen in contextmenu op bureaublad",
+    "showSelectMultipleDescription": "Standaard heeft het contextmenu op de desktop geen optie \"meerdere selecteren\" zoals mobiel. Deze optie wordt altijd weergegeven in het contextmenu."
+  },
+  "general": {
+    "name": "Naam",
+    "path": "Pad",
+    "user": "Gebruiker",
+    "group": "Groep",
+    "signup": "Aanmelden",
+    "password": "Wachtwoord",
+    "username": "Gebruikersnaam",
+    "files": "Bestanden",
+    "folders": "Mappen",
+    "exit": "Ga naar",
+    "permanent": "Permanent"
+  },
+  "access": {
+    "rules": "Toegangsregels",
+    "deny": "Weigeren",
+    "deniedUsers": "Geweigerde gebruikers",
+    "deniedGroups": "Geweigerde groepen",
+    "allowedUsers": "Toegestane gebruikers",
+    "allowedGroups": "Toegestane groepen",
+    "totalDenied": "Geweigerd",
+    "totalAllowed": "Toegestaan",
+    "allow": "Sta  toe.",
+    "allowDeny": "Toestaan/weigeren",
+    "userGroup": "Gebruiker/Groep",
+    "enterName": "Voer de naam van de gebruiker of groep in",
+    "deleted": "Toegangsregel verwijderd!",
+    "added": "Toegangsregel toegevoegd!",
+    "name": "Naam",
+    "accessManagement": "Toegangsbeheer"
   }
 }

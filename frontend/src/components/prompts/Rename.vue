@@ -1,44 +1,26 @@
 <template>
-  <div class="card floating">
-    <div class="card-title">
-      <h2>{{ $t("prompts.rename") }}</h2>
-    </div>
+  <div class="card-title">
+    <h2>{{ $t("prompts.rename") }}</h2>
+  </div>
 
-          <div class="card-content">
-        <p>{{ $t("prompts.renameMessage", { filename: oldName() }) }}</p>
-      <input
-        class="input input--block"
-        :class="{ 'invalid-form': !validateFileName(name) }"
-        v-focus
-        type="text"
-        @keyup.enter="submit"
-        v-model.trim="name"
-      />
-      <p v-if="!validateFileName(name) && name.length > 0" class="validation-error">
-        {{ $t("prompts.invalidName") }}
-      </p>
-    </div>
+  <div class="card-content">
+    <p>{{ $t("prompts.renameMessage", { filename: oldName() }) }}</p>
+    <input class="input input--block" :class="{ 'invalid-form': !validateFileName(name) }" v-focus type="text"
+      @keyup.enter="submit" v-model.trim="name" />
+    <p v-if="!validateFileName(name) && name.length > 0" class="validation-error">
+      {{ $t("prompts.invalidName") }}
+    </p>
+  </div>
 
-    <div class="card-action">
-      <button
-        class="button button--flat button--grey"
-        @click="closeHovers"
-        :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')"
-      >
-        {{ $t("buttons.cancel") }}
-      </button>
-      <button
-        @click="submit"
-        class="button button--flat"
-        :disabled="!validateFileName(name) || name.length === 0"
-        type="submit"
-        :aria-label="$t('buttons.rename')"
-        :title="$t('buttons.rename')"
-      >
-        {{ $t("buttons.rename") }}
-      </button>
-    </div>
+  <div class="card-action">
+    <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
+      :title="$t('buttons.cancel')">
+      {{ $t("buttons.cancel") }}
+    </button>
+    <button @click="submit" class="button button--flat" :disabled="!validateFileName(name) || name.length === 0"
+      type="submit" :aria-label="$t('buttons.rename')" :title="$t('buttons.rename')">
+      {{ $t("buttons.rename") }}
+    </button>
   </div>
 </template>
 <script>

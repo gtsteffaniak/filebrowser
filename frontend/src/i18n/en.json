@@ -134,6 +134,7 @@
     "notice": "Note: anyone who has access to the link (and optional password) can access the shared files. There is no requirement to be logged in."
   },
   "prompts": {
+    "source": "Source{suffix}",
     "invalidName": "Invalid name provided: cannot container \"/\" or \"\\\"",
     "destinationSource": "Destination Source:",
     "copy": "Copy",
@@ -152,7 +153,7 @@
     "fileInfo": "File information",
     "selected": "selected",
     "filesSelected": "files selected",
-    "lastModified": "Last Modified",
+    "lastModified": "Last Modified{suffix}",
     "move": "Move",
     "moveMessage": "Choose new house for your file(s)/folder(s):",
     "newArchetype": "Create a new post based on an archetype. Your file will be created on content folder.",
@@ -160,8 +161,8 @@
     "newDirMessage": "Write the name of the new directory.",
     "newFile": "New file",
     "newFileMessage": "Write the name of the new file.",
-    "numberDirs": "Number of directories",
-    "numberFiles": "Number of files",
+    "numberDirs": "Number of directories{suffix}",
+    "numberFiles": "Number of files{suffix}",
     "rename": "Rename",
     "renameMessage": "An item named \"{filename}\" already exists! Enter a new name:",
     "replace": "Replace",

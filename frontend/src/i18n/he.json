@@ -63,8 +63,6 @@
     "body": "גוף",
     "clear": "נקה",
     "closePreview": "סגירת תצוגה מקדימה",
-    "files": "קבצים",
-    "folders": "תקיות",
     "home": "ראשי",
     "lastModified": "שונה לאחרונה",
     "loading": "טוען...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "צור חשבון",
     "loginInstead": "חשבון קיים",
-    "password": "סיסמא",
     "passwordConfirm": "אימות סיסמא",
     "passwordsDontMatch": "סיסמאות אינן תואמות",
-    "signup": "הרשמה",
     "submit": "התחברות",
-    "username": "שם משתמש",
     "usernameTaken": "שם משתמש כבר קיים",
     "wrongCredentials": "פרטי התחברות שגויים",
     "or": "או"
   },
-  "permanent": "קבוע",
   "prompts": {
     "copy": "העתק",
     "copyMessage": "בחר לאן להעתיק את הקבצים:",
@@ -145,7 +139,7 @@
     "downloadMessage": "בחר את הפורמט שברצונך להוריד",
     "error": "משהו השתבש",
     "fileInfo": "מידע על הקובץ",
-    "lastModified": "שונה לאחרונה",
+    "lastModified": "שונה לאחרונה{suffix}",
     "move": "העבר",
     "moveMessage": "בחר מיקום חדש לקובץ / תקייה:",
     "newArchetype": "צור פוסט חדש. הקובץ יווצר בתקיית התוכן",
@@ -153,8 +147,8 @@
     "newDirMessage": "כתוב את שם התקייה החדשה",
     "newFile": "קובץ חדש",
     "newFileMessage": "כתוב את שם הקובץ החדש",
-    "numberDirs": "מספר התקיות",
-    "numberFiles": "מספר הקבצים",
+    "numberDirs": "מספר התקיות{suffix}",
+    "numberFiles": "מספר הקבצים{suffix}",
     "rename": "שנה שם",
     "renameMessage": "הכנס שם חדש עבור",
     "replace": "החלף",
@@ -176,7 +170,8 @@
     "conflictsDetected": "סכסוכים שזוהו",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "שם לא חוקי: לא ניתן להכיל \"/\" או \"\\\""
+    "invalidName": "שם לא חוקי: לא ניתן להכיל \"/\" או \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "תמונות",
@@ -350,8 +345,6 @@
   "index": {
     "status": "סטטוס",
     "assessment": "הערכה",
-    "files": "קבצים",
-    "folders": "תיקיות",
     "lastScanned": "נסרק לאחרונה",
     "quickScan": "סריקה מהירה בשניות",
     "fullScan": "שניות סריקה מלאה",
@@ -402,7 +395,9 @@
     "deleted": "כלל הגישה נמחק!",
     "added": "כלל גישה נוסף!",
     "name": "שם",
-    "accessManagement": "ניהול גישה"
+    "accessManagement": "ניהול גישה",
+    "totalDenied": "נדחה",
+    "totalAllowed": "מותר"
   },
   "fileLoading": {
     "title": "העלאות והורדות",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "רשימה מופרדת ברווחים של סיומות קבצים עבורן יש להשבית את עורך ומציג OnlyOffice. (לדוגמה, '.txt .html .pdf').",
     "disableOfficeEditor": "השבת תצוגת Office עבור סיומות קבצים מסוימות",
     "defaultThemeDescription": "ברירת מחדל - ערכת הנושא המוגדרת כברירת מחדל",
-    "customTheme": "בחר את הנושא שלך"
+    "customTheme": "בחר את הנושא שלך",
+    "showSelectMultiple": "הצג בחירה מרובה בתפריט ההקשר בשולחן העבודה",
+    "showSelectMultipleDescription": "כברירת מחדל, בתפריט ההקשר של שולחן העבודה אין אפשרות \"בחר מספר פריטים\" כמו במכשירים ניידים. אפשרות זו תמיד מוצגת בתפריט ההקשר."
   }
 }

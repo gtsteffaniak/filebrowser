@@ -63,8 +63,6 @@
     "body": "Corpo",
     "clear": "Limpar",
     "closePreview": "Fechar pré-visualização",
-    "files": "Ficheiros",
-    "folders": "Pastas",
     "home": "Início",
     "lastModified": "Última alteração",
     "loading": "A carregar...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Criar uma conta",
     "loginInstead": "Já tenho uma conta",
-    "password": "Palavra-passe",
     "passwordConfirm": "Confirmação da palavra-passe",
     "passwordsDontMatch": "As palavras-passe não coincidem",
-    "signup": "Registar",
     "submit": "Entrar na conta",
-    "username": "Nome de utilizador",
     "usernameTaken": "O nome de utilizador já está registado",
     "wrongCredentials": "Dados errados",
     "or": "OU"
   },
-  "permanent": "Permanente",
   "prompts": {
     "copy": "Copiar",
     "copyMessage": "Escolha um lugar para onde copiar os ficheiros:",
@@ -144,7 +138,7 @@
     "downloadMessage": "Escolha o formato do ficheiro que quer descarregar.",
     "error": "Algo correu mal",
     "fileInfo": "Informação do ficheiro",
-    "lastModified": "Última alteração",
+    "lastModified": "Última alteração{suffix}",
     "move": "Mover",
     "moveMessage": "Escolha uma nova casa para os seus ficheiros/pastas:",
     "newArchetype": "Criar um novo post baseado num \"archetype\". O seu ficheiro será criado na pasta \"content\".",
@@ -152,8 +146,8 @@
     "newDirMessage": "Escreva o nome da nova pasta.",
     "newFile": "Novo ficheiro",
     "newFileMessage": "Escreva o nome do novo ficheiro.",
-    "numberDirs": "Número de pastas",
-    "numberFiles": "Número de ficheiros",
+    "numberDirs": "Número de pastas{suffix}",
+    "numberFiles": "Número de ficheiros{suffix}",
     "rename": "Alterar nome",
     "renameMessage": "Insira um novo nome para",
     "replace": "Substituir",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Conflitos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\""
+    "invalidName": "Nome inválido fornecido: não pode conter \"/\" ou \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Imagens",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Estado",
     "assessment": "Avaliação",
-    "files": "Ficheiros",
-    "folders": "Pastas",
     "lastScanned": "Última digitalização",
     "quickScan": "Segundos de leitura rápida",
     "fullScan": "Segundos de varrimento completo",
@@ -437,6 +430,39 @@
     "disableOfficeEditorDescription": "Uma lista de extensões de ficheiros separada por espaços para desativar o editor e visualizador do OnlyOffice. (por exemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desativar o visualizador do Office para determinadas extensões de ficheiros",
     "defaultThemeDescription": "default - O tema predefinido",
-    "customTheme": "Escolha o seu tema"
+    "customTheme": "Escolha o seu tema",
+    "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto no ambiente de trabalho",
+    "showSelectMultipleDescription": "Por predefinição, o menu de contexto do ambiente de trabalho não tem a opção \"selecionar vários\" como no telemóvel. Esta opção mostra-a sempre no menu de contexto."
+  },
+  "general": {
+    "name": "Nome",
+    "path": "Caminho",
+    "user": "Utilizador",
+    "group": "Grupo",
+    "signup": "Registo",
+    "password": "Palavra-passe",
+    "username": "Nome de utilizador",
+    "files": "Ficheiros",
+    "folders": "Pastas",
+    "exit": "Sair",
+    "permanent": "Permanente"
+  },
+  "access": {
+    "rules": "Regras de acesso",
+    "deny": "Recusar",
+    "deniedUsers": "Utilizadores recusados",
+    "deniedGroups": "Grupos recusados",
+    "allowedUsers": "Utilizadores permitidos",
+    "allowedGroups": "Grupos permitidos",
+    "totalDenied": "Recusado",
+    "totalAllowed": "Permitido",
+    "allow": "Permitir",
+    "allowDeny": "Permitir/Negar",
+    "userGroup": "Utilizador/Grupo",
+    "enterName": "Introduzir o nome do utilizador ou do grupo",
+    "deleted": "Regra de acesso eliminada!",
+    "added": "Regra de acesso adicionada!",
+    "name": "Nome",
+    "accessManagement": "Gestão do acesso"
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="card floating share__promt__card" id="access">
+  <div class="share__promt__card" id="access">
     <div class="card-title">
       <h2>{{ $t("access.accessManagement") }}</h2>
     </div>
@@ -16,6 +16,7 @@
         </div>
       </div>
       <div v-else>
+        <p>{{ $t("prompts.source", { suffix: ":" }) }} {{ currentSource }}</p>
         <div aria-label="access-path" class="searchContext" @click="startPathEdit" style="cursor: pointer;">
           {{ $t("search.path") }} {{ currentPath }}
         </div>
@@ -83,6 +84,8 @@ export default {
       isEditingPath: false,
       tempPath: this.path,
       currentPath: this.path,
+      currentSource: this.sourceName,
+      tempSource: this.sourceName,
       rule: { deny: { users: [], groups: [] }, allow: { users: [], groups: [] } },
       addType: "user",
       addListType: "deny",
@@ -112,7 +115,11 @@ export default {
     await this.fetchRule();
   },
   watch: {
-    sourceName: 'fetchRule',
+    sourceName(newSourceName) {
+      this.currentSource = newSourceName;
+      this.tempSource = newSourceName;
+      this.fetchRule();
+    },
     path(newPath) {
       this.currentPath = newPath;
       this.tempPath = newPath;
@@ -126,15 +133,17 @@ export default {
       this.isEditingPath = true;
     },
     /**
-     * @param {{path: string}} pathOrData
+     * @param {{path: string, source: string}} pathOrData
      */
     updateTempPath(pathOrData) {
       if (pathOrData && pathOrData.path) {
         this.tempPath = pathOrData.path;
+        this.tempSource = pathOrData.source;
       }
     },
     confirmPathChange() {
       this.currentPath = this.tempPath;
+      this.currentSource = this.tempSource;
       this.isEditingPath = false;
       this.fetchRule();
     },
@@ -143,7 +152,7 @@ export default {
     },
     async fetchRule() {
       try {
-        this.rule = await accessApi.get(this.sourceName, this.currentPath);
+        this.rule = await accessApi.get(this.currentSource, this.currentPath);
       } catch (e) {
         notify.showError(e);
         this.rule = { deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
@@ -159,7 +168,7 @@ export default {
           ruleCategory: entry.type,
           value: entry.name
         };
-        await accessApi.del(this.sourceName, this.currentPath, body);
+        await accessApi.del(this.currentSource, this.currentPath, body);
         notify.showSuccess(this.$t("access.deleted"));
         await this.fetchRule();
         this.$emit('updated');
@@ -179,7 +188,7 @@ export default {
           value: this.addName.trim()
         };
         await accessApi.add(
-          this.sourceName,
+          this.currentSource,
           this.currentPath,
           body
         );

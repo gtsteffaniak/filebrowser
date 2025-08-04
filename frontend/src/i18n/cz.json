@@ -66,8 +66,6 @@
     "body": "Tělo",
     "clear": "Vymazat",
     "closePreview": "Zavřít náhled",
-    "files": "Soubory",
-    "folders": "Složky",
     "home": "Domů",
     "lastModified": "Poslední změna",
     "loading": "Načítání...",
@@ -125,17 +123,13 @@
   "login": {
     "createAnAccount": "Vytvořit účet",
     "loginInstead": "Už máte účet",
-    "password": "Heslo",
     "passwordConfirm": "Potvrzení hesla",
     "passwordsDontMatch": "Hesla se neshodují",
-    "signup": "Registrovat se",
     "submit": "Přihlásit se",
-    "username": "Uživatelské jméno",
     "usernameTaken": "Uživatelské jméno je již obsazeno",
     "wrongCredentials": "Nesprávné přihlašovací údaje",
     "or": "NEBO"
   },
-  "permanent": "Trvalé",
   "share": {
     "notice": "Poznámka: Každý, kdo má přístup k odkazu (a volitelnému heslu), může zobrazit sdílené soubory. Není nutné být přihlášen."
   },
@@ -162,8 +156,8 @@
     "newDirMessage": "Zadejte název nové složky.",
     "newFile": "Nový soubor",
     "newFileMessage": "Zadejte název nového souboru.",
-    "numberDirs": "Počet složek",
-    "numberFiles": "Počet souborů",
+    "numberDirs": "Počet složek{suffix}",
+    "numberFiles": "Počet souborů{suffix}",
     "rename": "Přejmenovat",
     "renameMessage": "Zadejte nový název pro",
     "replace": "Nahradit",
@@ -182,7 +176,8 @@
     "conflictsDetected": "Zjištěné konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nesprávný zadaný název: nelze použít kontejner \"/\" nebo \"\\\"."
+    "invalidName": "Nesprávný zadaný název: nelze použít kontejner \"/\" nebo \"\\\".",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Obrázky",
@@ -246,7 +241,9 @@
     "disableOfficeEditorDescription": "Seznam přípon souborů oddělených mezerou, pro které se má vypnout editor a prohlížeč OnlyOffice. (např. '.txt .html .pdf').",
     "disableOfficeEditor": "Zakázat editor a prohlížeč Office pro určité přípony souborů a vrátit se k výchozímu prohlížeči/editoru, velmi užitečné pro soubory pdf a txt.",
     "defaultThemeDescription": "default - Výchozí téma",
-    "customTheme": "Vyberte si téma"
+    "customTheme": "Vyberte si téma",
+    "showSelectMultiple": "Zobrazení výběru více položek v kontextové nabídce na ploše",
+    "showSelectMultipleDescription": "Ve výchozím nastavení nemá kontextová nabídka na ploše možnost \"vybrat více\" jako v mobilním telefonu. Tato možnost se v kontextové nabídce zobrazuje vždy."
   },
   "settings": {
     "enterPassword": "Zadejte heslo",
@@ -399,8 +396,6 @@
   "index": {
     "status": "Stav",
     "assessment": "Vyhodnocení",
-    "files": "Soubory",
-    "folders": "Složky",
     "lastScanned": "Poslední skenování",
     "quickScan": "Rychlý sken (s)",
     "fullScan": "Plný sken (s)",
@@ -438,5 +433,36 @@
     "yellow": "žlutá",
     "violet": "fialová",
     "orange": "oranžová"
+  },
+  "general": {
+    "name": "Název",
+    "path": "Cesta",
+    "user": "Uživatel",
+    "group": "Skupina",
+    "signup": "Registrace",
+    "password": "Heslo",
+    "username": "Uživatelské jméno",
+    "files": "Soubory",
+    "folders": "Složky",
+    "exit": "Exit",
+    "permanent": "Permanentní"
+  },
+  "access": {
+    "rules": "Pravidla přístupu",
+    "deny": "Odmítnout",
+    "deniedUsers": "Odmítnutí uživatelé",
+    "deniedGroups": "Odmítnuté skupiny",
+    "allowedUsers": "Povolení uživatelé",
+    "allowedGroups": "Povolené skupiny",
+    "totalDenied": "Odmítnuto",
+    "totalAllowed": "Povolené",
+    "allow": "Povolit",
+    "allowDeny": "Povolit/odmítnout",
+    "userGroup": "Uživatel/skupina",
+    "enterName": "Zadejte jméno uživatele nebo skupiny",
+    "deleted": "Přístupové pravidlo odstraněno!",
+    "added": "Přidáno pravidlo přístupu!",
+    "name": "Název",
+    "accessManagement": "Správa přístupu"
   }
 }

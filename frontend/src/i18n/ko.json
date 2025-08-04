@@ -63,8 +63,6 @@
     "body": "본문",
     "clear": "지우기",
     "closePreview": "미리보기 닫기",
-    "files": "파일",
-    "folders": "폴더",
     "home": "홈",
     "lastModified": "최종 수정",
     "loading": "로딩중...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "계정 생성",
     "loginInstead": "이미 계정이 있습니다",
-    "password": "비밀번호",
     "passwordConfirm": "비밀번호 확인",
     "passwordsDontMatch": "비밀번호가 일치하지 않습니다",
-    "signup": "가입하기",
     "submit": "로그인",
-    "username": "사용자 이름",
     "usernameTaken": "사용자 이름이 존재합니다",
     "wrongCredentials": "사용자 이름 또는 비밀번호를 확인하십시오",
     "or": "또는"
   },
-  "permanent": "영구",
   "prompts": {
     "copy": "복사",
     "copyMessage": "복사할 디렉토리:",
@@ -144,7 +138,7 @@
     "downloadMessage": "다운로드 포맷 설정.",
     "error": "에러 발생!",
     "fileInfo": "파일 정보",
-    "lastModified": "최종 수정",
+    "lastModified": "최종 수정{suffix}",
     "move": "이동",
     "moveMessage": "이동할 화일 또는 디렉토리를 선택하세요:",
     "newArchetype": "원형을 유지하는 포스트를 생성합니다. 파일은 컨텐트 폴더에 생성됩니다.",
@@ -152,8 +146,8 @@
     "newDirMessage": "새 디렉토리 이름을 입력해주세요.",
     "newFile": "새 파일",
     "newFileMessage": "새 파일 이름을 입력해주세요.",
-    "numberDirs": "디렉토리 수",
-    "numberFiles": "파일 수",
+    "numberDirs": "디렉토리 수{suffix}",
+    "numberFiles": "파일 수{suffix}",
     "rename": "이름 변경",
     "renameMessage": "새로운 이름을 입력하세요.",
     "replace": "대체하기",
@@ -176,7 +170,8 @@
     "conflictsDetected": "충돌 감지",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "제공된 이름이 잘못되었습니다: \"/\" 또는 \"\\\"를 포함할 수 없습니다."
+    "invalidName": "제공된 이름이 잘못되었습니다: \"/\" 또는 \"\\\"를 포함할 수 없습니다.",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "이미지",
@@ -350,8 +345,6 @@
   "index": {
     "status": "상태",
     "assessment": "평가",
-    "files": "파일",
-    "folders": "폴더",
     "lastScanned": "마지막 스캔",
     "quickScan": "빠른 스캔 초",
     "fullScan": "전체 스캔 시간(초)",
@@ -402,7 +395,9 @@
     "deleted": "액세스 규칙이 삭제되었습니다!",
     "added": "액세스 규칙이 추가되었습니다!",
     "name": "이름",
-    "accessManagement": "액세스 관리"
+    "accessManagement": "액세스 관리",
+    "totalDenied": "거부됨",
+    "totalAllowed": "허용됨"
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "OnlyOffice 편집기 및 뷰어를 비활성화할 파일 확장명을 공백으로 구분한 목록입니다. (예: '.txt .html .pdf').",
     "disableOfficeEditor": "특정 파일 확장자에 대해 Office 뷰어 사용 안 함",
     "defaultThemeDescription": "default - 기본 테마",
-    "customTheme": "테마 선택"
+    "customTheme": "테마 선택",
+    "showSelectMultiple": "데스크톱의 컨텍스트 메뉴에서 여러 개 선택 표시",
+    "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다."
   }
 }

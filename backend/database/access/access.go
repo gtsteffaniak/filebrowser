@@ -554,124 +554,153 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	return s.SaveToDB()
 }
 
-type PrincipalRule struct {
-	SourcePath string `json:"sourcePath"`
-	Path       string `json:"path"`
-	RuleType   string `json:"ruleType"` // "allow" or "deny"
-}
-
-// GetRulesForUser returns all rules for a specific user for a given sourcePath. If sourcePath is empty, it checks all sources.
-func (s *Storage) GetRulesForUser(sourcePath, username string) []PrincipalRule {
+// GetRulesForUser returns all rules for a specific user for a given sourcePath.
+func (s *Storage) GetRulesForUser(sourcePath, username string) map[string]FrontendAccessRule {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
-
-	userRules := make([]PrincipalRule, 0)
-
-	processSource := func(sp string, rulesBySource map[string]*AccessRule) {
-		for indexPath, rule := range rulesBySource {
-			if _, ok := rule.Allow.Users[username]; ok {
-				userRules = append(userRules, PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "allow"})
-			}
-			if _, ok := rule.Deny.Users[username]; ok {
-				userRules = append(userRules, PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "deny"})
-			}
-		}
+	userRules := make(map[string]FrontendAccessRule)
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return userRules
 	}
-
-	if sourcePath != "" {
-		if rulesBySource, ok := s.AllRules[sourcePath]; ok {
-			processSource(sourcePath, rulesBySource)
+	for indexPath, rule := range rulesBySource {
+		userHasRule := false
+		if _, ok := rule.Allow.Users[username]; ok {
+			userHasRule = true
 		}
-	} else {
-		for sp, rulesBySource := range s.AllRules {
-			processSource(sp, rulesBySource)
+		if !userHasRule {
+			if _, ok := rule.Deny.Users[username]; ok {
+				userHasRule = true
+			}
+		}
+		if userHasRule {
+			userRules[indexPath] = FrontendAccessRule{
+				Deny: FrontendRuleSet{
+					Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
+					Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
+				},
+				Allow: FrontendRuleSet{
+					Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Users))),
+					Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Groups))),
+				},
+			}
 		}
 	}
 	return userRules
 }
 
-// GetRulesForGroup returns all rules for a specific group for a given sourcePath. If sourcePath is empty, it checks all sources.
-func (s *Storage) GetRulesForGroup(sourcePath, groupname string) []PrincipalRule {
+// GetRulesForGroup returns all rules for a specific group for a given sourcePath.
+func (s *Storage) GetRulesForGroup(sourcePath, groupname string) map[string]FrontendAccessRule {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
-
-	groupRules := make([]PrincipalRule, 0)
-	processSource := func(sp string, rulesBySource map[string]*AccessRule) {
-		for indexPath, rule := range rulesBySource {
-			if _, ok := rule.Allow.Groups[groupname]; ok {
-				groupRules = append(groupRules, PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "allow"})
-			}
-			if _, ok := rule.Deny.Groups[groupname]; ok {
-				groupRules = append(groupRules, PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "deny"})
-			}
-		}
+	groupRules := make(map[string]FrontendAccessRule)
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return groupRules
 	}
-
-	if sourcePath != "" {
-		if rulesBySource, ok := s.AllRules[sourcePath]; ok {
-			processSource(sourcePath, rulesBySource)
+	for indexPath, rule := range rulesBySource {
+		groupHasRule := false
+		if _, ok := rule.Allow.Groups[groupname]; ok {
+			groupHasRule = true
 		}
-	} else {
-		for sp, rulesBySource := range s.AllRules {
-			processSource(sp, rulesBySource)
+		if !groupHasRule {
+			if _, ok := rule.Deny.Groups[groupname]; ok {
+				groupHasRule = true
+			}
+		}
+		if groupHasRule {
+			groupRules[indexPath] = FrontendAccessRule{
+				Deny: FrontendRuleSet{
+					Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
+					Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
+				},
+				Allow: FrontendRuleSet{
+					Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Users))),
+					Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Groups))),
+				},
+			}
 		}
 	}
 	return groupRules
 }
 
-// GetAllRulesByUsers returns a map of usernames to their rules for a given sourcePath. If sourcePath is empty, it checks all sources.
-func (s *Storage) GetAllRulesByUsers(sourcePath string) map[string][]PrincipalRule {
+// GetAllRulesByUsers returns a map of usernames to their rules for a given sourcePath.
+func (s *Storage) GetAllRulesByUsers(sourcePath string) map[string]map[string]FrontendAccessRule {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
-
-	allUserRules := make(map[string][]PrincipalRule)
-	processSource := func(sp string, rulesBySource map[string]*AccessRule) {
-		for indexPath, rule := range rulesBySource {
-			for user := range rule.Allow.Users {
-				allUserRules[user] = append(allUserRules[user], PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "allow"})
-			}
-			for user := range rule.Deny.Users {
-				allUserRules[user] = append(allUserRules[user], PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "deny"})
-			}
-		}
+	allUserRules := make(map[string]map[string]FrontendAccessRule)
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return allUserRules
 	}
-
-	if sourcePath != "" {
-		if rulesBySource, ok := s.AllRules[sourcePath]; ok {
-			processSource(sourcePath, rulesBySource)
+	for indexPath, rule := range rulesBySource {
+		hasAllowUsers := len(rule.Allow.Users) > 0
+		hasDenyUsers := len(rule.Deny.Users) > 0
+		if !hasAllowUsers && !hasDenyUsers {
+			continue
 		}
-	} else {
-		for sp, rulesBySource := range s.AllRules {
-			processSource(sp, rulesBySource)
+		frontendRule := FrontendAccessRule{
+			Deny: FrontendRuleSet{
+				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
+				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
+			},
+			Allow: FrontendRuleSet{
+				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Users))),
+				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Groups))),
+			},
+		}
+		for user := range rule.Allow.Users {
+			if _, ok := allUserRules[user]; !ok {
+				allUserRules[user] = make(map[string]FrontendAccessRule)
+			}
+			allUserRules[user][indexPath] = frontendRule
+		}
+		for user := range rule.Deny.Users {
+			if _, ok := allUserRules[user]; !ok {
+				allUserRules[user] = make(map[string]FrontendAccessRule)
+			}
+			allUserRules[user][indexPath] = frontendRule
 		}
 	}
 	return allUserRules
 }
 
-// GetAllRulesByGroups returns a map of groupnames to their rules for a given sourcePath. If sourcePath is empty, it checks all sources.
-func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string][]PrincipalRule {
+// GetAllRulesByGroups returns a map of groupnames to their rules for a given sourcePath.
+func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]FrontendAccessRule {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
-
-	allGroupRules := make(map[string][]PrincipalRule)
-	processSource := func(sp string, rulesBySource map[string]*AccessRule) {
-		for indexPath, rule := range rulesBySource {
-			for group := range rule.Allow.Groups {
-				allGroupRules[group] = append(allGroupRules[group], PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "allow"})
-			}
-			for group := range rule.Deny.Groups {
-				allGroupRules[group] = append(allGroupRules[group], PrincipalRule{SourcePath: sp, Path: indexPath, RuleType: "deny"})
-			}
-		}
+	allGroupRules := make(map[string]map[string]FrontendAccessRule)
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return allGroupRules
 	}
-
-	if sourcePath != "" {
-		if rulesBySource, ok := s.AllRules[sourcePath]; ok {
-			processSource(sourcePath, rulesBySource)
+	for indexPath, rule := range rulesBySource {
+		hasAllowGroups := len(rule.Allow.Groups) > 0
+		hasDenyGroups := len(rule.Deny.Groups) > 0
+		if !hasAllowGroups && !hasDenyGroups {
+			continue
 		}
-	} else {
-		for sp, rulesBySource := range s.AllRules {
-			processSource(sp, rulesBySource)
+		frontendRule := FrontendAccessRule{
+			Deny: FrontendRuleSet{
+				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
+				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
+			},
+			Allow: FrontendRuleSet{
+				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Users))),
+				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Groups))),
+			},
+		}
+		for group := range rule.Allow.Groups {
+			if _, ok := allGroupRules[group]; !ok {
+				allGroupRules[group] = make(map[string]FrontendAccessRule)
+			}
+			allGroupRules[group][indexPath] = frontendRule
+		}
+		for group := range rule.Deny.Groups {
+			if _, ok := allGroupRules[group]; !ok {
+				allGroupRules[group] = make(map[string]FrontendAccessRule)
+			}
+			allGroupRules[group][indexPath] = frontendRule
 		}
 	}
 	return allGroupRules

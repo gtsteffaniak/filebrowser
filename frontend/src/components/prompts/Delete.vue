@@ -1,5 +1,4 @@
 <template>
-  <div class="card floating">
     <div class="card-content">
       <p v-if="selectedCount === 1">
         {{ $t("prompts.deleteMessageSingle") }}
@@ -21,7 +20,6 @@
         {{ $t("buttons.delete") }}
       </button>
     </div>
-  </div>
 </template>
 
 <script>

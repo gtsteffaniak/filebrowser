@@ -63,8 +63,6 @@
     "body": "الصفحة",
     "clear": "مسح",
     "closePreview": "إغلاق العرض",
-    "files": "الملفات",
-    "folders": "المجلدات",
     "home": "الصفحة الاولى",
     "lastModified": "آخر تعديل",
     "loading": "جاري التحميل...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Create an account",
     "loginInstead": "Already have an account",
-    "password": "كلمة المرور",
     "passwordConfirm": "Password Confirmation",
     "passwordsDontMatch": "Passwords don't match",
-    "signup": "Signup",
     "submit": "تسجيل دخول",
-    "username": "إسم المستخدم",
     "usernameTaken": "Username already taken",
     "wrongCredentials": "بيانات دخول خاطئة",
     "or": "أو"
   },
-  "permanent": "دائم",
   "prompts": {
     "copy": "نسخ",
     "copyMessage": "رجاء حدد المكان لنسخ ملفاتك فيه:",
@@ -144,7 +138,7 @@
     "downloadMessage": "حدد إمتداد الملف المراد تحميله.",
     "error": "لقد حدث خطأ ما",
     "fileInfo": "معلومات الملف",
-    "lastModified": "آخر تعديل",
+    "lastModified": "آخر تعديل{suffix}",
     "move": "نقل",
     "moveMessage": "إختر مكان جديد للملفات أو المجلدات المراد نقلها:",
     "newArchetype": "إنشاء منشور من المنشور الأصلي. الملف سيتم انشاءه في مجلد المحتويات.",
@@ -152,8 +146,8 @@
     "newDirMessage": "رجاء أدخل اسم المجلد الجديد.",
     "newFile": "ملف جديد",
     "newFileMessage": "رجاء ادخل اسم الملف الجديد.",
-    "numberDirs": "عدد المجلدات",
-    "numberFiles": "عدد الملفات",
+    "numberDirs": "عدد المجلدات{suffix}",
+    "numberFiles": "عدد الملفات{suffix}",
     "rename": "إعادة تسمية",
     "renameMessage": "إدراج اسم جديد لـ",
     "replace": "إستبدال",
@@ -176,7 +170,8 @@
     "conflictsDetected": "التعارضات المكتشفة",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "الاسم المقدم غير صالح: لا يمكن أن يحتوي على \"/\" أو \"\\\""
+    "invalidName": "الاسم المقدم غير صالح: لا يمكن أن يحتوي على \"/\" أو \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "الصور",
@@ -350,8 +345,6 @@
   "index": {
     "status": "الحالة",
     "assessment": "التقييم",
-    "files": "الملفات",
-    "folders": "المجلدات",
     "lastScanned": "آخر مسح ضوئي",
     "quickScan": "ثواني المسح السريع",
     "fullScan": "كامل ثواني المسح الضوئي",
@@ -402,7 +395,9 @@
     "deleted": "تم حذف قاعدة الوصول",
     "added": "تمت إضافة قاعدة الوصول!",
     "name": "الاسم",
-    "accessManagement": "إدارة الوصول"
+    "accessManagement": "إدارة الوصول",
+    "totalDenied": "مرفوض",
+    "totalAllowed": "المسموح به"
   },
   "fileLoading": {
     "title": "التحميلات والتنزيلات",
@@ -458,7 +453,9 @@
     "disableOfficeEditorDescription": "قائمة مفصولة بمسافات لامتدادات الملفات لتعطيل محرر وعارض OnlyOffice لها. (على سبيل المثال، \".txt .html .pdf\").",
     "disableOfficeEditor": "تعطيل عارض المكتب لامتدادات ملفات معينة",
     "defaultThemeDescription": "افتراضي - السمة الافتراضية",
-    "customTheme": "اختر المظهر الخاص بك"
+    "customTheme": "اختر المظهر الخاص بك",
+    "showSelectMultiple": "إظهار تحديد متعدد في قائمة السياق على سطح المكتب",
+    "showSelectMultipleDescription": "بشكل افتراضي، لا تحتوي قائمة سياق سطح المكتب على خيار \"تحديد متعدد\" مثل الهاتف المحمول. يظهر هذا الخيار دائمًا في قائمة السياق."
   },
   "colors": {
     "red": "أحمر",

@@ -63,8 +63,6 @@
     "body": "Cuerpo",
     "clear": "Limpiar",
     "closePreview": "Cerrar vista previa",
-    "files": "Archivos",
-    "folders": "Carpetas",
     "home": "Inicio",
     "lastModified": "Última modificación",
     "loading": "Cargando...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Crear una cuenta",
     "loginInstead": "Usuario ya existente",
-    "password": "Contraseña",
     "passwordConfirm": "Confirmación de contraseña",
     "passwordsDontMatch": "Las contraseñas no coinciden",
-    "signup": "Registrate",
     "submit": "Iniciar sesión",
-    "username": "Usuario",
     "usernameTaken": "Nombre usuario no disponible",
     "wrongCredentials": "Usuario y/o contraseña incorrectos",
     "or": "O"
   },
-  "permanent": "Permanente",
   "prompts": {
     "copy": "Copiar",
     "copyMessage": "Elige el lugar donde quieres copiar tus archivos:",
@@ -145,7 +139,7 @@
     "downloadMessage": "Elige el formato de descarga.",
     "error": "Algo ha fallado",
     "fileInfo": "Información del archivo",
-    "lastModified": "Última modificación",
+    "lastModified": "Última modificación{suffix}",
     "move": "Mover",
     "moveMessage": "Elige una nueva casa para tus archivo(s)/carpeta(s):",
     "newArchetype": "Crea un nuevo post basado en un arquetipo. Tu archivo será creado en la carpeta de contenido.",
@@ -153,8 +147,8 @@
     "newDirMessage": "Escribe el nombre de la nueva carpeta.",
     "newFile": "Nuevo archivo",
     "newFileMessage": "Escribe el nombre del nuevo archivo.",
-    "numberDirs": "Número de carpetas",
-    "numberFiles": "Número de archivos",
+    "numberDirs": "Número de carpetas{suffix}",
+    "numberFiles": "Número de archivos{suffix}",
     "rename": "Renombrar",
     "renameMessage": "Escribe el nuevo nombre para",
     "replace": "Reemplazar",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Conflictos detectados",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nombre no válido proporcionado: no puede contener \"/\" o \"\\\"."
+    "invalidName": "Nombre no válido proporcionado: no puede contener \"/\" o \"\\\".",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Imágenes",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Estado",
     "assessment": "Evaluación",
-    "files": "Archivos",
-    "folders": "Carpetas",
     "lastScanned": "Último escaneado",
     "quickScan": "Segundos de exploración rápida",
     "fullScan": "Segundos de exploración completa",
@@ -402,7 +395,9 @@
     "deleted": "Regla de acceso eliminada",
     "added": "Regla de acceso añadida",
     "name": "Nombre",
-    "accessManagement": "Gestión de accesos"
+    "accessManagement": "Gestión de accesos",
+    "totalDenied": "Denegado",
+    "totalAllowed": "Permitido"
   },
   "fileLoading": {
     "title": "Cargas y descargas",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "Una lista separada por espacios de las extensiones de archivo para las que desea desactivar el editor y el visor de OnlyOffice. (por ejemplo, '.txt .html .pdf').",
     "disableOfficeEditor": "Desactivar el visor de office para determinadas extensiones de archivo",
     "defaultThemeDescription": "default - El tema por defecto",
-    "customTheme": "Elija su tema"
+    "customTheme": "Elija su tema",
+    "showSelectMultiple": "Mostrar selección múltiple en el menú contextual del escritorio",
+    "showSelectMultipleDescription": "Por defecto, el menú contextual del escritorio no tiene la opción \"seleccionar múltiples\" como el móvil. Esta opción siempre se muestra en el menú contextual."
   }
 }

@@ -63,8 +63,6 @@
     "body": "内容",
     "clear": "清空",
     "closePreview": "关闭预览",
-    "files": "文件",
-    "folders": "文件夹",
     "home": "主页",
     "lastModified": "最后修改",
     "loading": "加载中...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "创建用户",
     "loginInstead": "已有用户登录",
-    "password": "密码",
     "passwordConfirm": "确认密码",
     "passwordsDontMatch": "密码不一致",
-    "signup": "注册",
     "submit": "登录",
-    "username": "用户名",
     "usernameTaken": "用户名已经被使用",
     "wrongCredentials": "用户名或密码错误",
     "or": "或"
   },
-  "permanent": "永久",
   "prompts": {
     "copy": "复制",
     "copyMessage": "请选择欲复制至的目录：",
@@ -145,7 +139,7 @@
     "downloadMessage": "请选择要下载的压缩格式。",
     "error": "出了一点问题...",
     "fileInfo": "文件信息",
-    "lastModified": "最后修改",
+    "lastModified": "最后修改{suffix}",
     "move": "移动",
     "moveMessage": "请选择欲移动至的目录：",
     "newArchetype": "创建一个基于原型的新帖子。您的文件将会创建在内容文件夹中。",
@@ -153,8 +147,8 @@
     "newDirMessage": "请输入新目录的名称。",
     "newFile": "新建文件",
     "newFileMessage": "请输入新文件的名称。",
-    "numberDirs": "目录数",
-    "numberFiles": "文件数",
+    "numberDirs": "目录数{suffix}",
+    "numberFiles": "文件数{suffix}",
     "rename": "重命名",
     "renameMessage": "请输入新名称，旧名称为：",
     "replace": "替换",
@@ -176,7 +170,8 @@
     "conflictsDetected": "检测到冲突",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "提供的名称无效：不能包含\"/\"或\"\\\"。"
+    "invalidName": "提供的名称无效：不能包含\"/\"或\"\\\"。",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "图像",
@@ -350,8 +345,6 @@
   "index": {
     "status": "现状",
     "assessment": "评估",
-    "files": "文件",
-    "folders": "文件夹",
     "lastScanned": "上次扫描",
     "quickScan": "快速扫描秒数",
     "fullScan": "完整扫描秒数",
@@ -437,6 +430,39 @@
     "disableOfficeEditorDescription": "用空格分隔的文件扩展名列表，用于禁用 OnlyOffice 编辑器和查看器。(例如，\".txt .html .pdf\"）。",
     "disableOfficeEditor": "禁用某些文件扩展名的 Office 查看器",
     "defaultThemeDescription": "default - 默认主题",
-    "customTheme": "选择主题"
+    "customTheme": "选择主题",
+    "showSelectMultiple": "在桌面右键菜单中显示多个选择",
+    "showSelectMultipleDescription": "默认情况下，桌面右键菜单不像手机那样有 \"选择多个 \"选项。该选项始终显示在右键菜单中。"
+  },
+  "general": {
+    "name": "名称",
+    "path": "路径",
+    "user": "用户",
+    "group": "组别",
+    "signup": "注册",
+    "password": "密码",
+    "username": "用户名",
+    "files": "文件",
+    "folders": "文件夹",
+    "exit": "退出",
+    "permanent": "永久性"
+  },
+  "access": {
+    "rules": "访问规则",
+    "deny": "拒绝",
+    "deniedUsers": "被拒绝的用户",
+    "deniedGroups": "被拒群体",
+    "allowedUsers": "允许用户",
+    "allowedGroups": "允许组别",
+    "totalDenied": "拒绝",
+    "totalAllowed": "允许",
+    "allow": "允许",
+    "allowDeny": "允许/拒绝",
+    "userGroup": "用户/组",
+    "enterName": "输入用户或组名称",
+    "deleted": "访问规则已删除！",
+    "added": "已添加访问规则！",
+    "name": "名称",
+    "accessManagement": "访问管理"
   }
 }

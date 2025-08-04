@@ -63,8 +63,6 @@
     "body": "Body",
     "clear": "Wyczyść",
     "closePreview": "Zamknij poprzednie",
-    "files": "Pliki",
-    "folders": "Foldery",
     "home": "Katalog domowy",
     "lastModified": "Ostatnio modyfikowane",
     "loading": "Ładowanie...",
@@ -122,17 +120,13 @@
   "login": {
     "createAnAccount": "Utwórz konto",
     "loginInstead": "Takie konto już istnieje",
-    "password": "Hasło",
     "passwordConfirm": "Potwierdzenie hasła",
     "passwordsDontMatch": "Hasła różnią się",
-    "signup": "Rejestracja",
     "submit": "Logowanie",
-    "username": "Nazwa użytkownika",
     "usernameTaken": "Nazwa użytkownika już zajęta",
     "wrongCredentials": "Błędne dane logowania",
     "or": "LUB"
   },
-  "permanent": "Permanentny",
   "prompts": {
     "copy": "Kopiuj",
     "copyMessage": "Wybierz lokalizację do której mają być skopiowane wybrane pliki",
@@ -144,7 +138,7 @@
     "downloadMessage": "Wybierz format, jaki chesz pobrać.",
     "error": "Pojawił się nieznany błąd",
     "fileInfo": "Informacje o pliku",
-    "lastModified": "Osatnio Zmodyfikowane",
+    "lastModified": "Ostatnio Zmodyfikowane{suffix}",
     "move": "Przenieś",
     "moveMessage": "Wybierz nową lokalizację dla swoich plik(ów)/folder(ów):",
     "newArchetype": "Utwórz nowy wpis na bazie wybranego wzorca. Twój plik będzie utworzony w wybranym folderze.",
@@ -152,8 +146,8 @@
     "newDirMessage": "Podaj nazwę tworzonego folderu.",
     "newFile": "Nowy plik",
     "newFileMessage": "Podaj nazwętworzonego pliku.",
-    "numberDirs": "Ilość katalogów",
-    "numberFiles": "Ilość plików",
+    "numberDirs": "Ilość katalogów{suffix}",
+    "numberFiles": "Ilość plików{suffix}",
     "rename": "Zmień nazwę",
     "renameMessage": "Podaj nową nazwę dla",
     "replace": "Zamień",
@@ -176,7 +170,8 @@
     "conflictsDetected": "Wykryte konflikty",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
-    "invalidName": "Nieprawidłowa nazwa: nie można użyć kontenera \"/\" lub \"\\\""
+    "invalidName": "Nieprawidłowa nazwa: nie można użyć kontenera \"/\" lub \"\\\"",
+    "source": "Source{suffix}"
   },
   "search": {
     "images": "Zdjęcia",
@@ -350,8 +345,6 @@
   "index": {
     "status": "Status",
     "assessment": "Ocena",
-    "files": "Pliki",
-    "folders": "Foldery",
     "lastScanned": "Ostatnio skanowane",
     "quickScan": "Sekundy szybkiego skanowania",
     "fullScan": "Sekundy pełnego skanowania",
@@ -402,7 +395,9 @@
     "deleted": "Reguła dostępu usunięta!",
     "added": "Dodano regułę dostępu!",
     "name": "Nazwa",
-    "accessManagement": "Zarządzanie dostępem"
+    "accessManagement": "Zarządzanie dostępem",
+    "totalDenied": "Odmowa",
+    "totalAllowed": "Dozwolone"
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",
@@ -466,6 +461,8 @@
     "disableOfficeEditorDescription": "Rozdzielana spacjami lista rozszerzeń plików, dla których edytor i przeglądarka OnlyOffice mają zostać wyłączone. (np. \".txt .html .pdf\").",
     "disableOfficeEditor": "Wyłącz przeglądarkę Office dla niektórych rozszerzeń plików",
     "defaultThemeDescription": "default - domyślny motyw",
-    "customTheme": "Wybierz motyw"
+    "customTheme": "Wybierz motyw",
+    "showSelectMultiple": "Wyświetlanie wyboru wielokrotnego w menu kontekstowym na pulpicie",
+    "showSelectMultipleDescription": "Domyślnie menu kontekstowe pulpitu nie ma opcji \"wybierz wiele\", tak jak w przypadku urządzeń mobilnych. Opcja ta jest zawsze widoczna w menu kontekstowym."
   }
 }

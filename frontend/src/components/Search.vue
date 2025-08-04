@@ -34,7 +34,7 @@
     </div>
 
     <!-- Search results for desktop -->
-    <div v-show="active" id="results" ref="result">
+    <div v-show="active" id="results" class="fb-shadow" ref="result">
       <div class="inputWrapper" style="display: flex">
         <select
           v-if="multipleSources"
@@ -589,7 +589,6 @@ export default {
   border-top-right-radius: 0px;
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
-  -webkit-box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   box-shadow: 0px 2em 50px 10px rgba(0, 0, 0, 0.3);
   background-color: lightgray;
   max-height: 80vh;
@@ -675,10 +674,6 @@ export default {
 }
 
 .search-entry.active {
-  background-color: var(--surfacePrimary);
-}
-
-.search-entry:hover {
   background-color: var(--surfacePrimary);
 }
 
