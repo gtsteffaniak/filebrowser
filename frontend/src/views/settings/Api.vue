@@ -82,14 +82,14 @@ export default {
     };
   },
   async created() {
-    mutations.setLoading("shares", true);
+    mutations.setLoading("api", true);
     try {
       // Fetch the API keys from the specified endpoint
       this.links = await usersApi.getApiKeys(); // Updated to the correct API endpoint
     } catch (e) {
       this.error = e;
     } finally {
-      mutations.setLoading("shares", false);
+      mutations.setLoading("api", false);
     }
   },
   mounted() {

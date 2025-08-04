@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"os"
 	"regexp"
 	"strings"
 
@@ -70,4 +71,39 @@ func FallbackColor(val, defaultColor string) string {
 	// Log a warning if the color is invalid
 	logger.Warningf("Invalid CSS color value provided: '%s'. Falling back to default: '%s'", val, defaultColor)
 	return defaultColor
+}
+
+func addCustomTheme(name, description, cssFilePath string) {
+	cssContent := ""
+	if cssFilePath != "" {
+		cssContent = readCustomCSS(cssFilePath)
+	}
+	Config.Frontend.Styling.CustomThemes[name] = CustomTheme{
+		Description: description,
+		CSS:         cssContent,
+	}
+	Config.Frontend.Styling.CustomThemeOptions[name] = CustomTheme{
+		Description: description,
+		CSS:         cssFilePath,
+	}
+}
+
+func readCustomCSS(path string) string {
+	if path == "" {
+		return ""
+	}
+	content, err := os.ReadFile(path)
+	if err != nil {
+		// Only log if the file exists but cannot be read (e.g., permission error)
+		if !os.IsNotExist(err) {
+			logger.Warningf("Could not read custom CSS file %s: %v", path, err)
+			return ""
+		}
+	}
+	if len(content) > 128*1024 {
+		logger.Warningf("Custom CSS file %s is too large (%d bytes), ignoring", path, len(content))
+		return ""
+	}
+	logger.Infof("Loaded custom CSS from: %s (%d bytes)", path, len(content))
+	return string(content)
 }

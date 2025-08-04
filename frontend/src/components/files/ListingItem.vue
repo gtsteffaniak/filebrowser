@@ -489,6 +489,7 @@ export default {
 .hiddenFile {
   opacity: 0.5;
 }
+
 .activebutton {
   height: 10em;
 }

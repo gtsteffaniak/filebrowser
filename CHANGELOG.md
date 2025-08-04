@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
 ## v0.8.0-beta
+
+  This is a major release, including many new features and changes that could introduce breaking changes. Here are the known potentially breaking changes:
+
+  - all public api and share url's get a `/public` prefix, making it easier to use with a reverse proxy. Any existing share link will still work but get redirected.
+  - a small change to styling you may need to update your custom styling, for example the id `#input` was renamed `#search-input`
+
+ **New Features**:
+ - New access control system that works like shares. You can add new allow / deny rules for users/groups for specific paths on specific sources.
+ - The concept of 'groups', either automatically from OIDC groups claim or defined https://github.com/gtsteffaniak/filebrowser/issues/545
+ - share view changes -- now aligns with the standard listing view. This means files can be viewed and edited (if permission allows) just like a normal listing.
+ - many share links customization enhancements
+   - only share to certain authenticated users https://github.com/gtsteffaniak/filebrowser/issues/656 https://github.com/gtsteffaniak/filebrowser/issues/985
+   - one-time download links
+   - customize share theme, banner image, and icons https://github.com/gtsteffaniak/filebrowser/issues/827 https://github.com/gtsteffaniak/filebrowser/issues/1029
+   - share link info customization https://github.com/gtsteffaniak/filebrowser/issues/792 https://github.com/gtsteffaniak/filebrowser/issues/841 https://github.com/gtsteffaniak/filebrowser/issues/520
+   - "shared with me" and "share history" https://github.com/gtsteffaniak/filebrowser/issues/943
+   - upload to share links https://github.com/gtsteffaniak/filebrowser/issues/661
+   - share link public changes https://github.com/gtsteffaniak/filebrowser/issues/473
+ - public/private folder logic https://github.com/gtsteffaniak/filebrowser/issues/505
+
 ## v0.7.18-beta
 
  **Notes**:

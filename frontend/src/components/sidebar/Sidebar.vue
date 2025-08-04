@@ -1,7 +1,7 @@
 <template>
   <nav
     id="sidebar"
-    :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay }"
+    :class="{ active: active, 'dark-mode': isDarkMode, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
   >
     <div v-if="shouldShow" class="button release-banner">
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
@@ -12,7 +12,7 @@
     <SidebarShare v-if="isShare"></SidebarShare>
 
     <div class="buffer"></div>
-    <div class="credits">
+    <div v-if="!isSettings" class="credits">
       <span v-for="item in externalLinks" :key="item.title">
         <a :href="item.url" target="_blank" :title="item.title">{{ item.text }}</a>
       </span>
@@ -186,5 +186,9 @@ body.rtl .action {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
+}
+
+#sidebar.scrollable {
+  overflow: auto;
 }
 </style>

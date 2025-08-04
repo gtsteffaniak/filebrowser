@@ -1,16 +1,16 @@
 <template>
-  <div v-if="isMobile" class="card clickable" @click="closeSettings">
-    <div class="settings-card">
+  <div v-if="isMobile" class="card item clickable settings-card" @click="closeSettings">
+    <span>
       <span class="material-symbols-outlined">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       {{ $t("general.exit") }}
-    </div>
+    </span>
   </div>
-  <div v-for="setting in settings" :key="setting.id + '-sidebar'" :id="setting.id + '-sidebar'" class="card clickable"
+  <div v-for="setting in settings" :key="setting.id + '-sidebar'" :id="setting.id + '-sidebar'" class="card item clickable settings-card"
     @click="setView(setting.id + '-main')" :class="{
       hidden: !shouldShow(setting),
       'active-settings': active(setting.id + '-main'),
     }">
-    <div v-if="shouldShow(setting)" class="settings-card">{{ $t(setting.label) }}</div>
+    <span v-if="shouldShow(setting)" >{{ $t(setting.label) }}</span>
   </div>
 </template>
 
@@ -52,13 +52,15 @@ export default {
 </script>
 <style>
 .active-settings {
-  font-weight: bold;
-  /* border-color: white; */
-  border-style: solid;
+  background: var(--primaryColor) !important;
+  color: var(--item-selected) !important;
 }
 
 .settings-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: unset !important;
   padding: 1em;
-  text-align: center;
 }
 </style>

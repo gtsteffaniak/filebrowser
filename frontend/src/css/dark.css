@@ -21,21 +21,21 @@
   color:white
 }
 
-#search.active.dark-mode #input {
+#search.active.dark-mode #search-input {
   border-color: white;
 }
 /* Search input */
-.dark-mode #search #input {
+.dark-mode #search #search-input {
   background: var(--surfaceSecondary);
   border-color: var(--surfaceSecondary);
 }
 
-.dark-mode #search #input input::placeholder {
+.dark-mode #search #search-input input::placeholder {
   color: var(--textSecondary);
 }
 
 /* Active Search input */
-.dark-mode #search.active #input {
+.dark-mode #search.active #search-input {
   background: var(--surfacePrimary);
   border-color: white;
 }

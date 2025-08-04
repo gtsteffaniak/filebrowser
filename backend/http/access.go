@@ -11,31 +11,64 @@ import (
 
 // accessGetHandler lists all access rules or retrieves a specific rule.
 // @Summary List access rules
-// @Description List all access rules or retrieve a specific rule by sourcePath and indexPath.
+// @Description Lists access rules. Can be filtered by source, path, user, or group. Can also be grouped by user or group.
 // @Tags Access
 // @Accept json
 // @Produce json
-// @Param sourcePath query string false "Source path prefix (e.g. mnt/storage)"
-// @Param indexPath query string false "Index path (e.g. /secret)"
-// @Success 200 {object} access.AccessRule "List of access rules or specific rule details"
-// @Failure 404 {object} map[string]string "Not found"
+// @Param source query string false "Source name (e.g. 'default')"
+// @Param path query string false "Index path (e.g. /secret)"
+// @Param user query string false "Username to filter rules for"
+// @Param group query string false "Group name to filter rules for"
+// @Param groupBy query string false "Group results by 'user' or 'group'"
+// @Success 200 {object} object "Varies based on query. Can be access.FrontendAccessRule, []access.PrincipalRule, map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule"
+// @Failure 400 {object} map[string]string "Bad request"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/access [get]
 func accessGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	sourceName := r.URL.Query().Get("source")
 	indexPath := r.URL.Query().Get("path")
-	index := indexing.GetIndex(sourceName)
-	if index == nil {
-		return 500, fmt.Errorf("source not found: %s", sourceName)
+	user := r.URL.Query().Get("user")
+	group := r.URL.Query().Get("group")
+	groupBy := r.URL.Query().Get("groupBy")
+
+	var sourcePath string
+	if sourceName != "" {
+		index := indexing.GetIndex(sourceName)
+		if index == nil {
+			return http.StatusBadRequest, fmt.Errorf("source not found: %s", sourceName)
+		}
+		sourcePath = index.Path
+	}
+
+	// Return rules based on input parameters
+	if user != "" {
+		rules := store.Access.GetRulesForUser(sourcePath, user)
+		return renderJSON(w, r, rules)
+	}
+	if group != "" {
+		rules := store.Access.GetRulesForGroup(sourcePath, group)
+		return renderJSON(w, r, rules)
+	}
+	if groupBy == "user" {
+		rules := store.Access.GetAllRulesByUsers(sourcePath)
+		return renderJSON(w, r, rules)
+	}
+	if groupBy == "group" {
+		rules := store.Access.GetAllRulesByGroups(sourcePath)
+		return renderJSON(w, r, rules)
+	}
+
+	if sourceName == "" {
+		return http.StatusBadRequest, fmt.Errorf("source parameter is required for this query")
 	}
 
 	if indexPath != "" {
-		rule, _ := store.Access.GetFrontendRules(index.Path, indexPath)
+		rule, _ := store.Access.GetFrontendRules(sourcePath, indexPath)
 		return renderJSON(w, r, rule)
 	}
 
-	// List all rules
-	all, err := store.Access.GetAllRules(index.Path)
+	// List all rules for the source by default
+	all, err := store.Access.GetAllRules(sourcePath)
 	if err != nil {
 		logger.Errorf("failed to retrieve access rules: %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("failed to retrieve access rules: %w", err)

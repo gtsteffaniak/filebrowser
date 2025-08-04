@@ -6,7 +6,7 @@
     "paths": {
         "/api/access": {
             "get": {
-                "description": "List all access rules or retrieve a specific rule by sourcePath and indexPath.",
+                "description": "Lists access rules. Can be filtered by source, path, user, or group. Can also be grouped by user or group.",
                 "consumes": [
                     "application/json"
                 ],
@@ -20,26 +20,44 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Source path prefix (e.g. mnt/storage)",
-                        "name": "sourcePath",
+                        "description": "Source name (e.g. 'default')",
+                        "name": "source",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Index path (e.g. /secret)",
-                        "name": "indexPath",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username to filter rules for",
+                        "name": "user",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Group name to filter rules for",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Group results by 'user' or 'group'",
+                        "name": "groupBy",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of access rules or specific rule details",
+                        "description": "Varies based on query. Can be access.FrontendAccessRule, []access.PrincipalRule, map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule",
                         "schema": {
-                            "$ref": "#/definitions/access.AccessRule"
+                            "type": "object"
                         }
                     },
-                    "404": {
-                        "description": "Not found",
+                    "400": {
+                        "description": "Bad request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2032,34 +2050,6 @@
         }
     },
     "definitions": {
-        "access.AccessRule": {
-            "type": "object",
-            "properties": {
-                "allow": {
-                    "$ref": "#/definitions/access.RuleSet"
-                },
-                "deny": {
-                    "$ref": "#/definitions/access.RuleSet"
-                }
-            }
-        },
-        "access.RuleSet": {
-            "type": "object",
-            "properties": {
-                "groups": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "object"
-                    }
-                },
-                "users": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "object"
-                    }
-                }
-            }
-        },
         "http.AuthTokenMin": {
             "type": "object",
             "properties": {
