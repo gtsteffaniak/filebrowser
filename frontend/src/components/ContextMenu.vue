@@ -373,6 +373,7 @@ export default {
     },
     startDownload() {
       downloadFiles(state.selected);
+      mutations.closeHovers();
     },
     goToRaw() {
       const downloadUrl = filesApi.getDownloadURL(

@@ -353,5 +353,47 @@ export const getters = {
       }
     }
     return false
+  },
+  publicUser: () => {
+    return {
+      id: 0,
+      username: "publicUser",
+      locale: i18n.detectLocale(),
+      sorting: {
+        by: "name",
+        asc: true
+      },
+      viewMode: "normal",
+      singleClick: true,
+      quickDownload: true,
+      gallerySize: 5,
+      permissions: {
+        share: true,
+        modify: false,
+        api: true,
+        admin: false,
+        realtime: false
+      },
+      preview: {
+        video: true,
+        image: true,
+        popup: true,
+        highQuality: true
+      },
+      disableSettings: false,
+      disableQuickToggles: false,
+      disableSearchOptions: false,
+      deleteWithoutConfirming: false,
+      stickySidebar: true,
+      darkMode: true,
+      dateFormat: false,
+      disableViewingExt: "",
+      disableOfficePreviewExt: "",
+      disablePreviewExt: "",
+      fileLoading: {
+        maxConcurrent: 1,
+        chunkSizeMb: 15,
+      }
+    }
   }
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 
@@ -57,10 +56,6 @@ func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 	return renderJSON(w, r, d.fileInfo)
 }
 
-func publicUserGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	return renderJSON(w, r, users.PublicUser)
-}
-
 // health godoc
 // @Summary Health Check
 // @Schemes
@@ -106,7 +101,7 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	}
 	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
 		Path:   utils.JoinPathAsUnix(d.share.Path, path),
-		Modify: d.user.Permissions.Modify,
+		Modify: false, // TODO make this configurable
 		Source: d.fileInfo.Source,
 		Expand: true,
 	})

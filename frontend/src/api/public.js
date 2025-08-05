@@ -31,18 +31,6 @@ export async function fetchPub(path, hash, password = "", content = false) {
   return adjusted
 }
 
-// Get the public user data
-export async function getPublicUser() {
-  try {
-    const apiPath = getApiPath("public/api/user");
-    const response = await fetch(apiPath);
-    return response.json();
-  } catch (err) {
-    notify.showError(err.message || "Error fetching public user");
-    throw err;
-  }
-}
-
 // Generate a download URL
 export function getDownloadURL(share, files) {
   const params = {

@@ -127,6 +127,7 @@ export default {
   mounted() {
     window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
+    console.log('Files mounted', state.user.username);
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
@@ -156,6 +157,8 @@ export default {
       }
     },
     async fetchData() {
+      console.log('Fetching data', state.user.username);
+
       if (state.deletedItem) {
         return
       }
@@ -227,11 +230,6 @@ export default {
         this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
       } else {
         localStorage.setItem("sharepass:" + this.shareHash, this.sharePassword);
-      }
-      // Get public user if not logged in
-      if (!getters.isLoggedIn()) {
-        let userData = await publicApi.getPublicUser();
-        mutations.setCurrentUser(userData);
       }
 
       mutations.resetSelected();

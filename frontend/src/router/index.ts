@@ -47,6 +47,9 @@ const routes = [
   {
     path: "/public/share",
     component: Layout,
+    meta: {
+      optionalAuth: true,
+    },
     children: [
       {
         path: ":path*",
@@ -147,7 +150,10 @@ router.beforeResolve(async (to, from, next) => {
   document.title = name + " - " + title;
   mutations.setRoute(to);
 
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
+  if (
+    to.matched.some((record) => record.meta.requiresAuth) ||
+    to.matched.some((record) => record.meta.optionalAuth)
+  ) {
     if (!state?.user?.username) {
       try {
         await validateLogin();
@@ -156,7 +162,9 @@ router.beforeResolve(async (to, from, next) => {
       }
     }
 
-    if (!getters.isLoggedIn()) {
+    if (getters.isLoggedIn() || to.matched.some((record) => record.meta.optionalAuth)) {
+      // do nothing
+    } else {
       if (passwordAvailable) {
         next({ path: "/login", query: { redirect: to.fullPath } });
         return;
@@ -168,7 +176,6 @@ router.beforeResolve(async (to, from, next) => {
         return;
       }
     }
-
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
       if (!getters.isAdmin()) {

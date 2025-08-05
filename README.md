@@ -22,7 +22,7 @@
 
 ## About
 
-FileBrowser Quantum provides an easy way to access and manage your files from the web. It has has a web page interface that allows you to create secure shared links, users with their own specific permissions and settings, and offers a great viewing experience for many file types.
+FileBrowser Quantum provides an easy way to access and manage your files from the web. It has has a modern responsive interface that has many advanced features to manage users, access, sharing, and file preview and editing.
 
 This version is called "Quantum" because it packs tons of advanced features into a tiny easy to run file. Unlike the majority of alternative options, FileBrowser Quantum is simple to install and easy to configure.
 
@@ -36,7 +36,7 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
 
   1. ✅ Multiple sources support
   2. ✅ Login support for OIDC, password + 2FA, and proxy.
-  3. ✅ Revamped UI
+  3. ✅ Beautiful, Responsive, and Customizable user interface.
   4. ✅ Simplified configuration via `config.yaml` config file.
   5. ✅ Ultra-efficient [indexing](https://github.com/gtsteffaniak/filebrowser/wiki/Indexing) and real-time updates
      - Real-time search results as you type.
@@ -47,14 +47,19 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
      - Instantly switches view modes and sort order without reloading data.
      - Folder sizes are displayed.
      - Navigating remembers the last scroll position.
-  7. ✅ Developer API support
+  7. ✅ Highly configurable and customizable sharing options, incuding:
+     - share expiration time
+     - users who can access share (including anonymous)
+     - styling and themes
+     - file viewing, editing, and uploading permissions
+  8. ✅ Directory-level access control that can be scoped to user or group.
+  8. ✅ Developer API support
      - Ability to create long-lived API Tokens.
      - A helpful Swagger page is available at `/swagger` endpoint for API enabled users.
 
 Notable features that this fork *does not* have (removed):
 
  - :construction: jobs are not supported yet.
- - :construction: rules are not supported yet.
  - ❌ shell commands are completely removed and will not be returned.
 
 > [!WARNING]

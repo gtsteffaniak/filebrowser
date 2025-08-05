@@ -12,20 +12,11 @@
       </div>
 
       <div class="share__box__element share__box__center">
-        <a target="_blank" :href="getLink(false)" class="button button--flat">
-          <div>
-            <i aria-label="share-download-all" class="material-icons">file_download</i>{{ $t("buttons.download") }}
-          </div>
-        </a>
-        <a target="_blank" :href="getLink(true)" class="button button--flat" v-if="req.type != 'directory'">
-          <div>
-            <i class="material-icons">open_in_new</i>{{ $t("buttons.openFile") }}
-          </div>
-        </a>
+        <button class="button button--flat" @click="goToLink()"> {{ $t("buttons.download") }} </button>
       </div>
 
       <div v-if="req.type" class="share__box__element share__box__center">
-        <qrcode-vue :value="getLink(false)" size="200" level="M"></qrcode-vue>
+        <qrcode-vue class="qrcode" :value="getLink(false)" size="200" level="M"></qrcode-vue>
       </div>
     </div>
   </div>
@@ -87,6 +78,9 @@ export default {
     },
   },
   methods: {
+    goToLink() {
+      window.open(this.getLink(false), "_blank");
+    },
     getLink(inline = false) {
       return publicApi.getDownloadURL({
         path: "/",

@@ -111,13 +111,7 @@ type FileLoading struct {
 }
 
 var PublicUser = User{
-	NonAdminEditable: NonAdminEditable{
-		Password: "publicUser", // temp user not registered
-		ViewMode: "normal",
-	},
-	Username:     "publicUser", // temp user not registered
-	LockPassword: true,
-	Permissions:  Permissions{},
+	Username: "publicUser", // temp user not registered
 }
 
 func CleanUsername(s string) string {

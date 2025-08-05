@@ -60,14 +60,13 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	path = splitFile[1]
 
 	var err error
-	if d.user.Username != "publicUser" {
-		var userScope string
-		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
-		if d.share == nil && err != nil {
-			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
-		}
-		path = utils.JoinPathAsUnix(userScope, path)
+
+	var userScope string
+	userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+	if d.share == nil && err != nil {
+		return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 	}
+	path = utils.JoinPathAsUnix(userScope, path)
 
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -195,13 +194,11 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFilePath := splitFile[1]
 	// decode url encoded source name
 	var err error
+	var userscope string
 	fileName := filepath.Base(firstFilePath)
-	userscope := "/"
-	if d.user.Username != "publicUser" {
-		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
-		if err != nil {
-			return http.StatusForbidden, err
-		}
+	userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
+	if err != nil {
+		return http.StatusForbidden, err
 	}
 	idx := indexing.GetIndex(firstFileSource)
 	if idx == nil {
@@ -334,12 +331,10 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
-		userScope := "/"
-		if d.user.Username != "publicUser" {
-			userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
-			if d.share == nil && err != nil {
-				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
-			}
+		var userScope string
+		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if d.share == nil && err != nil {
+			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
 		}
 		realPath, isDir, err := idx.GetRealPath(userScope, path)
 		if err != nil {
