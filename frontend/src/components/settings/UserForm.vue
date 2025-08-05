@@ -11,7 +11,7 @@
     <div class="form-group">
       <input
         class="input input--block form-form"
-        :class="{ 'invalid-form': invalidPassword }"
+        :class="{ 'form-invalid': invalidPassword }"
         aria-label="Password1"
         type="password"
         :placeholder="$t('settings.enterPassword')"
@@ -21,7 +21,7 @@
     <div class="form-group">
       <input
         class="input input--block form-form"
-        :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+        :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
         aria-label="Password2"
         type="password"
         :placeholder="$t('settings.enterPasswordAgain')"
@@ -31,7 +31,7 @@
       <button
         v-if="!isNew"
         type="button"
-        class="button form-button"
+        class="button form-button flat-left"
         @click="submitUpdatePassword"
       >
         {{ $t("buttons.update") }}
@@ -66,7 +66,7 @@
       <div class="form-group">
         <input
           class="input input--block form-form"
-          :class="{ 'invalid-form': invalidPassword }"
+          :class="{ 'form-invalid': invalidPassword }"
           aria-label="Password1"
           type="password"
           :placeholder="$t('settings.enterPassword')"
@@ -76,7 +76,7 @@
       <div class="form-group">
         <input
           class="input input--block form-form"
-          :class="{ 'flat-right': !isNew, 'invalid-form': invalidPassword }"
+          :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
           type="password"
           :placeholder="$t('settings.enterPasswordAgain')"
           aria-label="Password2"
@@ -86,7 +86,7 @@
         <button
           v-if="!isNew"
           type="button"
-          class="button form-button"
+          class="button form-button flat-left"
           @click="submitUpdatePassword"
         >
           {{ $t("buttons.update") }}
@@ -111,7 +111,7 @@
       <label for="scopes">{{ $t("settings.scopes") }}</label>
       <div
         class="scope-list"
-        :class="{ 'invalid-form': duplicateSources.includes(source.name) }"
+        :class="{ 'form-invalid': duplicateSources.includes(source.name) }"
         v-for="(source, index) in selectedSources"
         :key="index"
       >

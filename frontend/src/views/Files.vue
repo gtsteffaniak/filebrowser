@@ -107,7 +107,7 @@ export default {
       return getters.currentView();
     },
     currentViewLoaded() {
-      return getters.currentView() !== null;
+      return getters.currentView() != "";
     },
     reload() {
       return state.reload;

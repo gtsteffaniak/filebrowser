@@ -169,7 +169,7 @@ export const getters = {
     if (currentView == 'settings') {
       sticky = true
     }
-    if (currentView == null && !getters.isLoading()) {
+    if (currentView == '' && !getters.isLoading()) {
       sticky = true
     }
     if (getters.isShare()) {
@@ -207,7 +207,7 @@ export const getters = {
     return "/" + removeLeadingSlash(parts.slice(2).join('/'))
   },
   currentView: () => {
-    let listingView = null
+    let listingView = ''
     const pathname = getters.routePath()
     if (pathname.startsWith(`/settings`)) {
       listingView = 'settings'
