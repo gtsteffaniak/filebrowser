@@ -112,7 +112,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	publicRoutes.HandleFunc("POST /share", withPermShare(sharePostHandler))
 	publicRoutes.HandleFunc("DELETE /share", withPermShare(shareDeleteHandler))
 	// Public API routes (hash-based authentication)
-	publicAPI.HandleFunc("GET /user", withoutUser(publicUserGetHandler))
 	publicAPI.HandleFunc("GET /raw", withHashFile(publicRawHandler))
 	publicAPI.HandleFunc("GET /preview", withHashFile(publicPreviewHandler))
 	publicAPI.HandleFunc("GET /shared", withHashFile(publicShareHandler))
@@ -163,10 +162,6 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 		http.Redirect(w, r, newURL, http.StatusPermanentRedirect)
 	})
 
-	// Legacy public routes (DEPRECATED - maintain for backwards compatibility)
-	api.HandleFunc("GET /public/publicUser", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, config.Server.BaseURL+"public/api/user", http.StatusMovedPermanently)
-	})
 	api.HandleFunc("GET /public/raw", func(w http.ResponseWriter, r *http.Request) {
 		newURL := config.Server.BaseURL + "public/api/raw"
 		if r.URL.RawQuery != "" {

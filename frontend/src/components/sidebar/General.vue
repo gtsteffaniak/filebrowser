@@ -154,7 +154,7 @@ export default {
     isStickySidebar: () => getters.isStickySidebar(),
     isMobile: () => getters.isMobile(),
     isListingView: () => getters.currentView() == "listingView",
-    user: () => (getters.isLoggedIn() ? state.user : {}),
+    user: () => (state.user),
     isDarkMode: () => getters.isDarkMode(),
     loginCheck: () => getters.isLoggedIn() && !getters.routePath().startsWith("/share"),
     currentPrompt: () => getters.currentPrompt(),
@@ -168,7 +168,6 @@ export default {
     sourceInfo: () => state.sources.info,
     activeSource: () => state.sources.current,
     realtimeActive: () => state.realtimeActive,
-
   },
   watch: {
     route() {

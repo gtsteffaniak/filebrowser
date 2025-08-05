@@ -230,8 +230,7 @@ export default {
       }
       // Get public user if not logged in
       if (!getters.isLoggedIn()) {
-        let userData = await publicApi.getPublicUser();
-        mutations.setCurrentUser(userData);
+        mutations.setCurrentUser(getters.publicUser());
       }
 
       mutations.resetSelected();

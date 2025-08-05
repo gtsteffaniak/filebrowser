@@ -42,11 +42,9 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 
 // Middleware to handle file requests by hash and pass it to the handler
 func withHashFileHelper(fn handleFunc) handleFunc {
-	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		path := r.URL.Query().Get("path")
 		hash := r.URL.Query().Get("hash")
-		// Retrieve the user (using the public user by default)
-		data.user = &users.PublicUser
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -86,7 +84,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		data.fileInfo = file
 		// Call the next handler with the data
 		return fn(w, r, data)
-	}
+	})
 }
 
 // Middleware to ensure the user is an admin
@@ -100,7 +98,9 @@ func withAdminHelper(fn handleFunc) handleFunc {
 	})
 }
 
-// if withUserHelper fails, try without user
+// withOrWithoutUserHelper is a middleware that tries to authenticate a user.
+// If authentication is successful, the user is added to the request context.
+// If authentication fails, the request continues without a user.
 func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
 		// Try to authenticate user first
@@ -109,12 +109,10 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		if err == nil {
 			return status, nil
 		}
-
 		// If user authentication failed, call the handler without user context
 		// Clear any user data that might have been partially set
 		data.user = nil
 		data.token = ""
-
 		// Call the handler function without user context
 		return fn(w, r, data)
 	}
@@ -220,8 +218,8 @@ func withUserHelper(fn handleFunc) handleFunc {
 			return http.StatusInternalServerError, err
 		}
 		setUserInResponseWriter(w, data.user)
-		if data.user.Username == "" || data.user.Username == "publicUser" {
-			return http.StatusForbidden, fmt.Errorf("preview is disabled for public users")
+		if data.user.Username == "" {
+			return http.StatusForbidden, errors.ErrUnauthorized
 		}
 		// Call the handler function, passing in the context
 		return fn(w, r, data)

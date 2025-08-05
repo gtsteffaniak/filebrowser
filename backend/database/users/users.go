@@ -110,16 +110,6 @@ type FileLoading struct {
 	ChunkSize     int `json:"uploadChunkSizeMb"`
 }
 
-var PublicUser = User{
-	NonAdminEditable: NonAdminEditable{
-		Password: "publicUser", // temp user not registered
-		ViewMode: "normal",
-	},
-	Username:     "publicUser", // temp user not registered
-	LockPassword: true,
-	Permissions:  Permissions{},
-}
-
 func CleanUsername(s string) string {
 	// Remove any trailing space to avoid ending on -
 	s = strings.Trim(s, " ")
