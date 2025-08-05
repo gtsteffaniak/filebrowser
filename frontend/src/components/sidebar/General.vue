@@ -2,7 +2,7 @@
   <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div
-        v-if="settingsAllowed"
+        v-if="settingsAllowed && user.username !== 'publicUser'"
         @click="navigateTo('/settings#profile-main')"
         class="inner-card"
       >
@@ -16,6 +16,11 @@
           <i aria-label="settings" class="material-icons">settings</i>
         </button>
       </div>
+      <div v-else-if="user.username === 'publicUser' && canLogout" @click="navigateToLogin" class="inner-card">
+        <button class="person-button action">
+          <i class="material-symbols-outlined">login</i> {{ $t("sidebar.login") }}
+        </button>
+      </div>
       <div v-else class="inner-card">
         <button class="person-button action">
           <i class="material-icons">person</i>
@@ -23,7 +28,7 @@
         </button>
       </div>
 
-      <div class="inner-card" @click="logout">
+      <div class="inner-card" v-if="user.username !== 'publicUser'" @click="logout">
         <button
           aria-label="logout-button"
           class="logout-button action"
@@ -87,7 +92,7 @@
     @enter="enter"
     @leave="leave"
   >
-    <div v-if="loginCheck" class="sidebar-scroll-list">
+    <div v-if="showSources" class="sidebar-scroll-list">
       <div class="sources card">
         <span> {{ $t("sidebar.sources") }}</span>
         <transition-group name="expand" tag="div" class="inner-card">
@@ -156,7 +161,7 @@ export default {
     isListingView: () => getters.currentView() == "listingView",
     user: () => (state.user),
     isDarkMode: () => getters.isDarkMode(),
-    loginCheck: () => getters.isLoggedIn() && !getters.routePath().startsWith("/share"),
+    showSources: () => !getters.isShare(),
     currentPrompt: () => getters.currentPrompt(),
     active: () => getters.isSidebarVisible(),
     signup: () => signup,
@@ -220,6 +225,9 @@ export default {
         this.$router.push({ path: path }, () => {});
       }
       mutations.closeHovers();
+    },
+    navigateToLogin() {
+      this.$router.push({ path: "/login", query: { redirect: this.$route.path } });
     },
     // Show the help overlay
     help() {

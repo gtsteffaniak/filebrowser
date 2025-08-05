@@ -15,7 +15,7 @@
           type="text"
           autocapitalize="off"
           v-model="username"
-          :placeholder="$t('login.username')"
+          :placeholder="$t('general.username')"
         />
         <input
           class="input input--block"

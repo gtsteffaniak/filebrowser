@@ -194,8 +194,8 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	firstFilePath := splitFile[1]
 	// decode url encoded source name
 	var err error
+	var userscope string
 	fileName := filepath.Base(firstFilePath)
-	userscope := "/"
 	userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -331,7 +331,7 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 		if idx == nil {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
-		userScope := "/"
+		var userScope string
 		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
 		if d.share == nil && err != nil {
 			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)

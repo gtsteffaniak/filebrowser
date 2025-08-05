@@ -51,6 +51,12 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			return http.StatusNotFound, fmt.Errorf("share not found")
 		}
 		data.share = link
+		data.user.Scopes = []users.SourceScope{
+			{
+				Name:  link.Source,
+				Scope: "/",
+			},
+		}
 		// Authenticate the share request if needed
 		var status int
 		if link.Hash != "" {
@@ -111,7 +117,7 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		}
 		// If user authentication failed, call the handler without user context
 		// Clear any user data that might have been partially set
-		data.user = nil
+		data.user = &users.PublicUser
 		data.token = ""
 		// Call the handler function without user context
 		return fn(w, r, data)
