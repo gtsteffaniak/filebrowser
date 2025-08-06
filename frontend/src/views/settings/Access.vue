@@ -70,7 +70,6 @@ export default {
     } catch (e) {
       this.error = e;
     }
-    console.log(this.rules);
   },
   computed: {
   },

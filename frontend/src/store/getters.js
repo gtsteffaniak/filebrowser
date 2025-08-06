@@ -289,6 +289,7 @@ export const getters = {
   },
 
   currentPromptName: () => {
+    console.log("currentPromptName", state.prompts);
     // Ensure state.prompts is an array
     if (!Array.isArray(state.prompts) || state.prompts.length === 0) {
       return ""

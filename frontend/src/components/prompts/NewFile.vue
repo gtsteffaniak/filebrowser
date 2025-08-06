@@ -53,6 +53,7 @@ export default {
         await filesApi.post(
           state.req.source,
           state.req.path + "/" + this.name,
+          "",
           true
         );
         goToItem(
