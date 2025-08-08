@@ -23,6 +23,10 @@ All notable changes to this project will be documented in this file. For commit 
    - share link public changes https://github.com/gtsteffaniak/filebrowser/issues/473
  - public/private folder logic https://github.com/gtsteffaniak/filebrowser/issues/505
 
+ **BugFixes**:
+ - fix new file "true" content issue https://github.com/gtsteffaniak/filebrowser/issues/1048
+ - editor allows device default popup https://github.com/gtsteffaniak/filebrowser/issues/1049
+
 ## v0.7.18-beta
 
  **Notes**:

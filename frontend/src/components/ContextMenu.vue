@@ -169,7 +169,7 @@ export default {
       if (this.isMultiple || this.isSearchActive) {
         return false;
       }
-      if (state.user.showSelectMultiple) {
+      if (state.user?.showSelectMultiple) {
         return true;
       }
       if (getters.isMobile()) {
@@ -177,20 +177,18 @@ export default {
       }
       return false
     },
-    noItems() {
-      const hasItems = this.showEdit || this.showDelete || this.showSave || this.showGoToRaw;
-      mutations.setHasContextItems(!hasItems)
-      return !hasItems;
+    hasOverflowItems() {
+      return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw;
     },
     showGoToRaw() {
-      return getters.currentView() == "preview" || 
-        getters.currentView() == "markdownViewer"
+      const cv = getters.currentView();
+      return cv == "preview" || cv == "markdownViewer" || cv == "editor";
     },
     showEdit() {
-      return getters.currentView() == "markdownViewer" && state.user.permissions.modify;
+      return getters.currentView() == "markdownViewer" && state.user?.permissions?.modify;
     },
     showDelete() {
-      return state.user.permissions.modify && this.isPreview;
+      return state.user?.permissions?.modify && this.isPreview;
     },
     isPreview() {
       const cv = getters.currentView();
@@ -199,17 +197,18 @@ export default {
         cv == "onlyOfficeEditor" ||
         cv == "markdownViewer" ||
         cv == "epubViewer" ||
-        cv == "docViewer"
+        cv == "docViewer" ||
+        cv == "editor"
       );
     },
     showSave() {
-      return getters.currentView() == "editor" && state.user.permissions.modify;
+      return getters.currentView() == "editor" && state.user?.permissions?.modify;
     },
     showOverflow() {
       return getters.currentPromptName() == "OverflowMenu";
     },
     showAccess() {
-      return state.user.permissions.admin && this.showCreate;
+      return state.user?.permissions?.admin && this.showCreate;
     },
     showShare() {
       return (
@@ -238,6 +237,9 @@ export default {
     centered() {
       return this.showCentered || this.isMobileDevice || !this.posX || !this.posY;
     },
+    isMobileDevice() {
+      return state.isMobile;
+    },
     isDarkMode() {
       return getters.isDarkMode();
     },
@@ -246,13 +248,19 @@ export default {
     },
     userPerms() {
       return {
-        upload: state.user.permissions?.modify && state.selected.length > 0,
-        share: state.user.permissions.share,
-        modify: state.user.permissions.modify,
+        upload: state.user?.permissions?.modify && state.selected.length > 0,
+        share: state.user?.permissions?.share,
+        modify: state.user?.permissions?.modify,
       };
     },
   },
   watch: {
+    hasOverflowItems: {
+      handler(hasItems) {
+        mutations.setContextMenuHasItems(hasItems);
+      },
+      immediate: true,
+    },
     showContext: {
       handler(newVal) {
         if (newVal) {
@@ -279,8 +287,8 @@ export default {
         name: "access",
         props: {
           sourceName: state.sources.current,
-          path: state.req.path
-        }
+          path: state.req?.path || "",
+        },
       });
     },
     // Animation methods
@@ -373,17 +381,16 @@ export default {
     },
     startDownload() {
       downloadFiles(state.selected);
-      mutations.closeHovers();
     },
     goToRaw() {
       const downloadUrl = filesApi.getDownloadURL(
-          state.req.source,
-          state.req.path,
-          true,
-          false
-        );
-        window.open(downloadUrl, "_blank");
-        mutations.closeHovers();
+        state.req?.source || "",
+        state.req?.path || "",
+        true,
+        false
+      );
+      window.open(downloadUrl, "_blank");
+      mutations.closeHovers();
     },
     async edit() {
       window.location.hash = "#edit";
@@ -397,7 +404,7 @@ export default {
         notify.showSuccess("File Saved!");
       } catch (e) {
         buttons.done(button);
-        notify.showError("Error saving file: ", e);
+        notify.showError(`Error saving file: ${e}`);
       }
 
       mutations.closeHovers();
@@ -406,7 +413,7 @@ export default {
       mutations.showHover({
         name: "upload",
         props: {
-          filesToReplace: state.selected.map((item) => item.name),
+          filesToReplace: state.selected.map((item) => item.name || ""),
         },
       });
     },

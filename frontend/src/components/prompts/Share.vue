@@ -60,9 +60,9 @@
   <template v-else>
     <div class="card-content">
       <p>{{ $t("settings.shareDuration") }}</p>
-      <div class="input-group input">
-        <input v-focus type="number" max="2147483647" min="1" @keyup.enter="submit" v-model.trim="time" />
-        <select class="right" v-model="unit" :aria-label="$t('time.unit')">
+      <div class="form-flex-group">
+        <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="1" @keyup.enter="submit" v-model.trim="time" />
+        <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
           <option value="seconds">{{ $t("time.seconds") }}</option>
           <option value="minutes">{{ $t("time.minutes") }}</option>
           <option value="hours">{{ $t("time.hours") }}</option>
@@ -70,7 +70,7 @@
         </select>
       </div>
       <p>{{ $t("prompts.optionalPassword") }}</p>
-      <input class="input input--block" type="password" v-model.trim="password" />
+      <input class="input" type="password" v-model.trim="password" />
     </div>
 
     <div class="card-action">
@@ -139,14 +139,12 @@ export default {
   },
   async beforeMount() {
     let path = state.req.path;
-    console.log("state.req", state.req);
     this.source = state.req.source;
     if (state.isSearchActive) {
       path = state.selected[0].path;
       this.source = state.selected[0].source;
     } else if (getters.selectedCount() === 1) {
       const selected = getters.getFirstSelected();
-      console.log("selected", selected);
       path = selected.path;
       this.source = selected.source;
       this.source = state.req.items[state.selected[0]].source;

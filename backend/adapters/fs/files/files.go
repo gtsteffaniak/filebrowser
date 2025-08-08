@@ -331,7 +331,6 @@ func getContent(realPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	// Handle empty file (original logic - returns specific string)
 	if len(content) == 0 {
 		return "empty-file-x6OlSil", nil

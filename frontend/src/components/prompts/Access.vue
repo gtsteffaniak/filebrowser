@@ -20,17 +20,17 @@
         {{ $t("search.path") }} {{ currentPath }}
       </div>
       <!-- Add Form -->
-      <div class="add-form" style="margin-bottom: 1em; margin-top: 1em">
-        <select v-model="addType">
+      <div class="form-flex-group" >
+        <select class="input flat-right form-compact" v-model="addType">
           <option value="user">{{ $t("general.user") }}</option>
           <option value="group">{{ $t("general.group") }}</option>
         </select>
-        <select v-model="addListType">
+        <select class="input flat-right flat-left form-compact" v-model="addListType">
           <option value="deny">{{ $t("access.deny") }}</option>
           <option value="allow">{{ $t("access.allow") }}</option>
         </select>
-        <input class="group-user-add-input" v-model="addName" :placeholder="$t('access.enterName')" />
-        <button class="action add-rule-button" @click="submitAdd">
+        <input class="input flat-right flat-left form-grow form-compact" v-model="addName" :placeholder="$t('access.enterName')" />
+        <button class="button form-button flat-left form-compact" @click="submitAdd">
           <i class="material-icons">add</i>
         </button>
       </div>
@@ -212,17 +212,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.add-form {
-  display: flex;
-}
-
-.add-rule-button {
-  max-width: 3em;
-}
-
-.group-user-add-input {
-  flex-grow: 1;
-}
-</style>

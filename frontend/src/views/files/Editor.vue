@@ -4,6 +4,12 @@
   </div>
 </template>
 
+<style>
+.ace_mobile-menu {
+  display: none !important;
+}
+</style>
+
 <script>
 import { eventBus } from "@/store/eventBus";
 import { state, getters } from "@/store";
@@ -87,8 +93,8 @@ export default {
         "basePath",
         `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
       );
-      const fileContent =
-        state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
+
+      const fileContent = state.req.content == "empty-file-x6OlSil" ? "" : state.req.content || "";
       this.editor = ace.edit(editorEl, {
         mode: modelist.getModeForPath(state.req.name).mode,
         value: fileContent,
@@ -99,6 +105,12 @@ export default {
         readOnly: state.req.type === "textImmutable",
         wrap: false,
       });
+
+      this.editor.container.addEventListener("contextmenu", (event) => {
+        event.stopPropagation();
+      }, true);
+
+
       this.filename = decodeURIComponent(this.$route.path.split("/").pop());
       } catch (error) {
         notify.showError("Failed to initialize the editor. Please reload.");

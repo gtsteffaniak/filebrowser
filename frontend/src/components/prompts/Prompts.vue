@@ -105,7 +105,7 @@ export default {
       return getters.currentPromptName();
     },
     currentPrompt() {
-      if (getters.currentPrompt() == null) {
+      if (!getters.currentPrompt()) {
         return {
           props: {},
         };
@@ -128,7 +128,7 @@ export default {
       return state.plugins;
     },
     showOverlay() {
-      return getters.currentPromptName() !== "" && getters.currentPromptName() !== "ContextMenu";
+      return getters.currentPromptName() !== "" && getters.currentPromptName() !== "ContextMenu" && getters.currentPromptName() !== "OverflowMenu";
     },
   },
   methods: {},

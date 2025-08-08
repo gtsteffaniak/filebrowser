@@ -6,7 +6,7 @@
   <div class="card-content">
     <!-- API Key Name Input -->
     <p>{{ $t('api.keyName') }}</p>
-    <input v-focus class="input input--block" type="text" v-model.trim="apiName"
+    <input v-focus class="input" type="text" v-model.trim="apiName"
       :placeholder="$t('api.keyNamePlaceholder')" />
 
     <!-- Duration Input -->

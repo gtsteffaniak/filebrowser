@@ -11,7 +11,7 @@
       <qrcode-vue class="qrcode" :value="this.url" size="200" level="M"></qrcode-vue>
     </div>
     <p>{{ $t("otp.verifyInstructions") }}</p>
-    <input v-focus class="input input--block" type="text" v-model="code" @keyup.enter="verifyCode"
+    <input v-focus class="input" type="text" v-model="code" @keyup.enter="verifyCode"
       :placeholder="$t('otp.codeInputPlaceholder')" />
   </div>
 

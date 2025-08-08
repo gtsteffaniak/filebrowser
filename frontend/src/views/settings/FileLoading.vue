@@ -27,7 +27,7 @@
           </i>
         </div>
         <div class="no-padding">
-          <input class="sizeInput" v-model.number="localuser.fileLoading.uploadChunkSizeMb" type="number" min="0"
+          <input class="sizeInput input" v-model.number="localuser.fileLoading.uploadChunkSizeMb" type="number" min="0"
             placeholder="number" />
         </div>
       </div>

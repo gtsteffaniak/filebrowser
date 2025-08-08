@@ -74,7 +74,6 @@ export default {
       return state.settings;
     },
     isNew() {
-      console.log("userId", this.userId);
       return !this.userId;
     },
   },
