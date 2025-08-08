@@ -8,9 +8,9 @@
   </h2>
   <div v-if="user.loginMethod == 'password' && passwordAvailable && !isNew">
     <label for="password">{{ $t("settings.password") }}</label>
-    <div class="form-group">
+    <div class="form-flex-group">
       <input
-        class="input input--block form-form"
+        class="input form-form"
         :class="{ 'form-invalid': invalidPassword }"
         aria-label="Password1"
         type="password"
@@ -18,9 +18,9 @@
         v-model="passwordRef"
       />
     </div>
-    <div class="form-group">
+    <div class="form-flex-group">
       <input
-        class="input input--block form-form"
+        class="input form-form"
         :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
         aria-label="Password2"
         type="password"
@@ -53,7 +53,7 @@
     <p v-if="isNew">
       <label for="username">{{ $t("settings.username") }}</label>
       <input
-        class="input input--block"
+        class="input"
         type="text"
         v-model="user.username"
         id="username"
@@ -63,9 +63,9 @@
 
     <div v-if="user.loginMethod == 'password' && passwordAvailable && isNew">
       <label for="password">{{ $t("settings.password") }}</label>
-      <div class="form-group">
+      <div class="form-flex-group">
         <input
-          class="input input--block form-form"
+          class="input form-form"
           :class="{ 'form-invalid': invalidPassword }"
           aria-label="Password1"
           type="password"
@@ -73,9 +73,9 @@
           v-model="passwordRef"
         />
       </div>
-      <div class="form-group">
+      <div class="form-flex-group">
         <input
-          class="input input--block form-form"
+          class="input form-form"
           :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
           type="password"
           :placeholder="$t('settings.enterPasswordAgain')"
@@ -158,7 +158,7 @@
     <p v-if="stateUser.username !== user.username">
       <label for="locale">{{ $t("settings.language") }}</label>
       <languages
-        class="input input--block"
+        class="input"
         id="locale"
         v-model:locale="user.locale"
         @input="emitUpdate"
@@ -166,7 +166,7 @@
     </p>
     <div v-if="stateUser.permissions.admin">
       <label for="loginMethod">{{ $t("settings.loginMethodDescription") }}</label>
-      <select v-model="user.loginMethod" class="input input--block" id="loginMethod">
+      <select v-model="user.loginMethod" class="input" id="loginMethod">
         <option value="password">Password</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <option value="oidc">OIDC</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         <option value="proxy">Proxy</option> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->

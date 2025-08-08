@@ -158,9 +158,9 @@
                 help
               </i>
             </div>
-            <div class="form-group">
+            <div class="form-flex-group">
               <input
-                class="input input--block form-form flat-right"
+                class="input form-form flat-right"
                 :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }"
                 type="text"
                 placeholder="enter file extensions"
@@ -184,9 +184,9 @@
                 help
               </i>
             </div>
-            <div class="form-group">
+            <div class="form-flex-group">
               <input
-                class="input input--block form-form flat-right"
+                class="input form-form flat-right"
                 :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }"
                 type="text"
                 placeholder="enter file extensions"
@@ -210,9 +210,9 @@
                 help
               </i>
             </div>
-            <div class="form-group">
+            <div class="form-flex-group">
               <input
-                class="input input--block form-form flat-right"
+                class="input form-form flat-right"
                 :class="{ 'form-invalid': !validateExtensions(formDisableOfficePreview) }"
                 type="text"
                 placeholder="enter file extensions"
@@ -235,9 +235,9 @@
             :initialActive="localuser.themeColor"
           />
           <h3 v-if="Object.keys(availableThemes).length > 0">{{ $t("profileSettings.customTheme") }}</h3>
-          <div v-if="Object.keys(availableThemes).length > 0" class="form-group">
+          <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
             <select
-              class="input input--block"
+              class="input"
               v-model="selectedTheme"
               @change="updateCustomTheme"
             >
@@ -252,7 +252,7 @@
           </div>
           <h3>{{ $t("settings.language") }}</h3>
           <Languages
-            class="input input--block"
+            class="input"
             :locale="localuser.locale"
             @update:locale="updateLocale"
           ></Languages>

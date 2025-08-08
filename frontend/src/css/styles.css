@@ -395,3 +395,8 @@ button:hover,
 .form-compact {
   padding: 0em;
 }
+
+.form-dropdown {
+  width: unset !important;
+  height: -webkit-fill-available;
+}

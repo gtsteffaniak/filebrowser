@@ -53,7 +53,7 @@
     </table>
   </div>
 
-  <h2 class="message" v-else>
+  <h2 class="message" v-else-if="!loading">
     <i class="material-icons">sentiment_dissatisfied</i>
     <span>{{ $t("files.lonely") }}</span>
   </h2>

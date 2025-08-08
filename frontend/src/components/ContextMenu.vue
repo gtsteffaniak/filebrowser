@@ -181,8 +181,8 @@ export default {
       return this.showEdit || this.showDelete || this.showSave || this.showGoToRaw;
     },
     showGoToRaw() {
-      return getters.currentView() == "preview" || 
-        getters.currentView() == "markdownViewer"
+      const cv = getters.currentView();
+      return cv == "preview" || cv == "markdownViewer" || cv == "editor";
     },
     showEdit() {
       return getters.currentView() == "markdownViewer" && state.user?.permissions?.modify;
@@ -197,7 +197,8 @@ export default {
         cv == "onlyOfficeEditor" ||
         cv == "markdownViewer" ||
         cv == "epubViewer" ||
-        cv == "docViewer"
+        cv == "docViewer" ||
+        cv == "editor"
       );
     },
     showSave() {

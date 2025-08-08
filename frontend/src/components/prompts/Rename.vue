@@ -5,7 +5,7 @@
 
   <div class="card-content">
     <p>{{ $t("prompts.renameMessage", { filename: oldName() }) }}</p>
-    <input class="input input--block" :class="{ 'form-invalid': !validateFileName(name) }" v-focus type="text"
+    <input class="input" :class="{ 'form-invalid': !validateFileName(name) }" v-focus type="text"
       @keyup.enter="submit" v-model.trim="name" />
     <p v-if="!validateFileName(name) && name.length > 0" class="validation-error">
       {{ $t("prompts.invalidName") }}

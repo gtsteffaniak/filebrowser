@@ -14,7 +14,7 @@ test('create, check settings, and delete testuser2', async ({
     await page.locator('input[aria-label="Password2"]').fill('testpass')
     // check that the invalid-field class is added properly
     await expect(page.locator('input[aria-label="Password2"]')).toHaveClass(
-        'input input--block form-form invalid-form'
+        'input form-form form-invalid'
     )
     await page.locator('input[aria-label="Password2"]').fill('testpassword')
 

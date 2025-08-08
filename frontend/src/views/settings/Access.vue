@@ -29,7 +29,7 @@
         </tr>
       </tbody>
     </table>
-    <div v-if="Object.keys(rules).length === 0">
+    <div v-if="Object.keys(rules).length === 0 && !loading">
       <h2 class="message" v-if="Object.keys(rules).length === 0">
       <i class="material-icons">sentiment_dissatisfied</i>
       <span>{{ $t("files.lonely") }}</span>
@@ -72,6 +72,9 @@ export default {
     }
   },
   computed: {
+    loading() {
+      return state.loading;
+    },
   },
   methods: {
     addAccess() {

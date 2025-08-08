@@ -124,13 +124,6 @@
   color: var(--textPrimary);
 }
 
-.dark-mode .card#share input,
-.dark-mode .card#share select,
-.dark-mode .input {
-  background: var(--surfaceSecondary);
-  color: var(--textPrimary);
-}
-
 /* Input hover and focus */
 .dark-mode .input:hover,
 .dark-mode .input:focus {
