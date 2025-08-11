@@ -107,7 +107,7 @@ export default {
       return getters.currentView();
     },
     currentViewLoaded() {
-      return getters.currentView() !== null;
+      return getters.currentView() != "";
     },
     reload() {
       return state.reload;
@@ -127,7 +127,6 @@ export default {
   mounted() {
     window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
-    console.log('Files mounted', state.user.username);
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.keyEvent);
@@ -157,8 +156,6 @@ export default {
       }
     },
     async fetchData() {
-      console.log('Fetching data', state.user.username);
-
       if (state.deletedItem) {
         return
       }
@@ -177,7 +174,6 @@ export default {
       try {
         if (this.isShare) {
           await this.fetchShareData();
-          console.log('Share data after fetch:')
         } else {
           await this.fetchFilesData();
         }
@@ -212,12 +208,6 @@ export default {
       this.shareHash = parts[1]
       this.shareSubPath = "/" + parts.slice(2).join("/");
 
-      console.log('Share data:', {
-        hash: this.shareHash,
-        subPath: this.shareSubPath,
-        password: this.sharePassword
-      });
-
       // Store share data in state for use by components
       mutations.setShareData({
         hash: this.shareHash,
@@ -244,24 +234,10 @@ export default {
       // If not a directory, fetch content for preview components
       if (file.type != "directory") {
         const content = !getters.fileViewingDisabled(file.name);
-        console.log('Share file content fetch debug:', {
-          name: file.name,
-          type: file.type,
-          fileViewingDisabled: getters.fileViewingDisabled(file.name),
-          content: content,
-          disableViewingExt: state.user.disableViewingExt,
-          disableOfficePreviewExt: state.user.disableOfficePreviewExt
-        });
 
         file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content);
         file.hash = this.shareHash;
         this.shareToken = file.token;
-
-        console.log('Share file after content fetch:', {
-          hasContent: 'content' in file,
-          contentLength: file.content ? file.content.length : 0,
-          contentPreview: file.content ? file.content.substring(0, 50) + '...' : null
-        });
       }
 
       mutations.replaceRequest(file);

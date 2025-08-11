@@ -8,6 +8,7 @@ export const state = reactive({
     x: 0,
     y: 0,
   },
+  contextMenuHasItems: false,
   deletedItem: false,
   previousHash: "",
   multiButtonState: "menu",

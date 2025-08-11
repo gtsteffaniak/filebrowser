@@ -89,7 +89,7 @@ export default {
       return getters.isShare();
     },
     noItems() {
-      return !state.contextMenuItems;
+      return !state.contextMenuHasItems;
     },
     showEdit() {
       return window.location.hash != "#edit" && state.user.permissions.modify;

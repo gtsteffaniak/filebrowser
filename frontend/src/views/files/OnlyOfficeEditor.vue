@@ -42,9 +42,6 @@ export default {
   async mounted() {
     // Perform the setup and update the config
     try {
-      if (getters.isShare()) {
-        console.log("state.share", state.share);
-      }
       const refUrl = getters.isShare()
         ? publicApi.getDownloadURL({
           path: state.share.subPath,
@@ -57,7 +54,6 @@ export default {
           false,
           true
         );
-      console.log("refUrl", refUrl);
       let configData;
       let configUrl = `api/onlyoffice/config?url=${encodeURIComponent(refUrl)}`;
       if (getters.isShare()) {

@@ -8,8 +8,9 @@ import { sortedItems } from "@/utils/sort.js";
 import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
-  setHasContextItems: (value) => {
-    state.contextMenuItems = value;
+  setContextMenuHasItems: (value) => {
+    state.contextMenuHasItems = value;
+    emitStateChanged();
   },
   setDeletedItem: (value) => {
     state.deletedItem = value;
@@ -190,6 +191,7 @@ export const mutations = {
     emitStateChanged();
   },
   showHover: (value) => {
+    console.log("showHover", value);
     if (typeof value === "object") {
       state.prompts.push({
         name: value?.name,
@@ -205,6 +207,7 @@ export const mutations = {
         props: value?.props,
       });
     }
+    console.log("showHover", state.prompts);
     emitStateChanged();
   },
   setLoading: (loadType, status) => {
@@ -350,7 +353,6 @@ export const mutations = {
         usersApi.update(value, updatedProperties);
       }
     }
-    console.log('updateCurrentUser4', state.user);
     // Emit state change event
     emitStateChanged();
   },

@@ -1,22 +1,18 @@
 .input {
   border-radius: 1em;
   padding: .5em 1em;
-  background: white;
   border: 1px solid rgba(0, 0, 0, 0.1);
   transition: .2s ease all;
-  color: #333;
   margin: 0;
+  width: 100%;
+  background: var(--surfaceSecondary);
+  color: var(--textPrimary);
+  height: -webkit-fill-available;
 }
 
 .input:hover,
 .input:focus {
   border-color: rgba(0, 0, 0, 0.2);
-}
-
-.input--block {
-  margin-bottom: .5em;
-  display: block;
-  width: 100%;
 }
 
 .input--textarea {
@@ -32,4 +28,14 @@
 
 .input--green {
   background: #c9f2da;
+}
+
+
+/* Autofill hack to maintain style */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px var(--surfaceSecondary) inset !important;
+  -webkit-text-fill-color: var(--textPrimary) !important; /* Optional: Change text color to contrast */
 }

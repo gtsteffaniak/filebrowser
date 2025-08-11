@@ -6,7 +6,7 @@
         {{ $t("prompts.destinationSource") }}
       </label>
       <select id="destinationSource" v-model="currentSource" @change="onSourceChange"
-          class="input input--block">
+          class="input">
         <option v-for="source in availableSources" :key="source" :value="source">
           {{ source }}
         </option>

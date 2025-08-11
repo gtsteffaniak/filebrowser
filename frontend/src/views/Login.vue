@@ -11,20 +11,20 @@
         <div v-if="error !== ''" class="wrong-login card">{{ error }}</div>
         <input
           autofocus
-          class="input input--block"
+          class="input"
           type="text"
           autocapitalize="off"
           v-model="username"
           :placeholder="$t('general.username')"
         />
         <input
-          class="input input--block"
+          class="input"
           type="password"
           v-model="password"
           :placeholder="$t('general.password')"
         />
         <input
-          class="input input--block"
+          class="input"
           v-if="createMode"
           type="password"
           v-model="passwordConfirm"

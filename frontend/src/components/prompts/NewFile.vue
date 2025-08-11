@@ -5,7 +5,7 @@
 
   <div class="card-content">
     <p>{{ $t("prompts.newFileMessage") }}</p>
-    <input class="input input--block" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
+    <input class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
       v-model.trim="name" />
   </div>
 
@@ -53,6 +53,7 @@ export default {
         await filesApi.post(
           state.req.source,
           state.req.path + "/" + this.name,
+          "",
           true
         );
         goToItem(

@@ -10,18 +10,21 @@
             <ToggleSwitch
               class="item"
               v-model="localuser.disableQuickToggles"
+              @change="updateSettings"
               :name="$t('profileSettings.disableQuickToggles')"
               :description="$t('profileSettings.disableQuickTogglesDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.disableHideSidebar"
+              @change="updateSettings"
               :name="$t('profileSettings.disableHideSidebar')"
               :description="$t('profileSettings.disableHideSidebarDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.hideSidebarFileActions"
+              @change="updateSettings"
               :name="$t('profileSettings.hideSidebarFileActions')"
             />
 
@@ -33,29 +36,34 @@
             <ToggleSwitch
               class="item"
               v-model="localuser.deleteWithoutConfirming"
+              @change="updateSettings"
               :name="$t('profileSettings.deleteWithoutConfirming')"
               :description="$t('profileSettings.deleteWithoutConfirmingDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.dateFormat"
+              @change="updateSettings"
               :name="$t('profileSettings.setDateFormat')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.showHidden"
+              @change="updateSettings"
               :name="$t('profileSettings.showHiddenFiles')"
               :description="$t('profileSettings.showHiddenFilesDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.quickDownload"
+              @change="updateSettings"
               :name="$t('profileSettings.showQuickDownload')"
               :description="$t('profileSettings.showQuickDownloadDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.image"
+              @change="updateSettings"
               :name="$t('profileSettings.previewImages')"
               :description="$t('profileSettings.previewImagesDescription')"
             />
@@ -63,6 +71,7 @@
               v-if="mediaEnabled"
               class="item"
               v-model="localuser.preview.video"
+              @change="updateSettings"
               :name="$t('profileSettings.previewVideos')"
               :description="$t('profileSettings.previewVideosDescription')"
             />
@@ -70,30 +79,35 @@
               v-if="mediaEnabled"
               class="item"
               v-model="localuser.preview.motionVideoPreview"
+              @change="updateSettings"
               :name="$t('profileSettings.previewMotionVideos')"
               :description="$t('profileSettings.previewMotionVideosDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.highQuality"
+              @change="updateSettings"
               :name="$t('profileSettings.highQualityPreview')"
               :description="$t('profileSettings.highQualityPreviewDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.office"
+              @change="updateSettings"
               :name="$t('profileSettings.previewOffice')"
               :description="$t('profileSettings.previewOfficeDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.preview.popup"
+              @change="updateSettings"
               :name="$t('profileSettings.popupPreview')"
               :description="$t('profileSettings.popupPreviewDescription')"
             />
             <ToggleSwitch
               class="item"
               v-model="localuser.showSelectMultiple"
+              @change="updateSettings"
               :name="$t('profileSettings.showSelectMultiple')"
               :description="$t('profileSettings.showSelectMultipleDescription')"
             />
@@ -103,12 +117,14 @@
             <ToggleSwitch
                 class="item"
                 v-model="localuser.preview.autoplayMedia"
+                @change="updateSettings"
                 :name="$t('profileSettings.autoplayMedia')"
                 :description="$t('profileSettings.autoplayMediaDescription')"
               />
               <ToggleSwitch
                 class="item"
                 v-model="localuser.editorQuickSave"
+                @change="updateSettings"
                 :name="$t('profileSettings.editorQuickSave')"
                 :description="$t('profileSettings.editorQuickSaveDescription')"
               />
@@ -118,6 +134,7 @@
             <ToggleSwitch
               class="item"
               v-model="localuser.disableSearchOptions"
+              @change="updateSettings"
               :name="$t('profileSettings.disableSearchOptions')"
               :description="$t('profileSettings.disableSearchOptionsDescription')"
             />
@@ -128,6 +145,7 @@
                 v-if="localuser.permissions?.admin"
                 class="item"
                 v-model="localuser.disableUpdateNotifications"
+                @change="updateSettings"
                 :name="$t('profileSettings.disableUpdateNotifications')"
                 :description="$t('profileSettings.disableUpdateNotificationsDescription')"
               />
@@ -140,10 +158,10 @@
                 help
               </i>
             </div>
-            <div class="form-group">
+            <div class="form-flex-group">
               <input
-                class="input input--block form-form flat-right"
-                :class="{ 'invalid-form': !validateExtensions(formDisablePreviews) }"
+                class="input form-form flat-right"
+                :class="{ 'form-invalid': !validateExtensions(formDisablePreviews) }"
                 type="text"
                 placeholder="enter file extensions"
                 id="disablePreviews"
@@ -151,7 +169,7 @@
               />
               <button
                 type="button"
-                class="button form-button"
+                class="button form-button flat-left"
                 @click="submitDisablePreviewsChange"
               >
                 {{ $t("buttons.save") }}
@@ -166,10 +184,10 @@
                 help
               </i>
             </div>
-            <div class="form-group">
+            <div class="form-flex-group">
               <input
-                class="input input--block form-form flat-right"
-                :class="{ 'invalid-form': !validateExtensions(formDisabledViewing) }"
+                class="input form-form flat-right"
+                :class="{ 'form-invalid': !validateExtensions(formDisabledViewing) }"
                 type="text"
                 placeholder="enter file extensions"
                 id="disableViewing"
@@ -177,7 +195,7 @@
               />
               <button
                 type="button"
-                class="button form-button"
+                class="button form-button flat-left"
                 @click="submitDisabledViewingChange"
               >
                 {{ $t("buttons.save") }}
@@ -192,10 +210,10 @@
                 help
               </i>
             </div>
-            <div class="form-group">
+            <div class="form-flex-group">
               <input
-                class="input input--block form-form flat-right"
-                :class="{ 'invalid-form': !validateExtensions(formDisableOfficePreview) }"
+                class="input form-form flat-right"
+                :class="{ 'form-invalid': !validateExtensions(formDisableOfficePreview) }"
                 type="text"
                 placeholder="enter file extensions"
                 id="disableOfficePreview"
@@ -203,7 +221,7 @@
               />
               <button
                 type="button"
-                class="button form-button"
+                class="button form-button flat-left"
                 @click="submitDisableOfficePreviewChange"
               >
                 {{ $t("buttons.save") }}
@@ -217,9 +235,9 @@
             :initialActive="localuser.themeColor"
           />
           <h3 v-if="Object.keys(availableThemes).length > 0">{{ $t("profileSettings.customTheme") }}</h3>
-          <div v-if="Object.keys(availableThemes).length > 0" class="form-group">
+          <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
             <select
-              class="input input--block"
+              class="input"
               v-model="selectedTheme"
               @change="updateCustomTheme"
             >
@@ -234,7 +252,7 @@
           </div>
           <h3>{{ $t("settings.language") }}</h3>
           <Languages
-            class="input input--block"
+            class="input"
             :locale="localuser.locale"
             @update:locale="updateLocale"
           ></Languages>
@@ -262,7 +280,7 @@ export default {
   data() {
     return {
       localuser: { preview: {}, permissions: {} }, // Initialize localuser with empty objects to avoid undefined errors
-      initialized: false,
+      
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
       formDisableOfficePreview: "", // holds temporary input before saving
@@ -276,17 +294,7 @@ export default {
       ],
     };
   },
-  watch: {
-    localuser: {
-      handler: function () {
-        if (this.initialized) {
-          this.updateSettings(); // Ensure updateSettings() is called when localuser changes
-        }
-        this.initialized = true;
-      },
-      deep: true, // Watch nested properties of localuser
-    },
-  },
+  
   computed: {
     availableThemes() {
       return userSelectableThemes || {};
@@ -348,6 +356,7 @@ export default {
         return;
       }
       this.localuser.disablePreviewExt = this.formDisablePreviews;
+      this.updateSettings();
     },
     submitDisabledViewingChange() {
       if (!this.validateExtensions(this.formDisabledViewing)) {
@@ -355,6 +364,7 @@ export default {
         return;
       }
       this.localuser.disableViewingExt = this.formDisabledViewing;
+      this.updateSettings();
     },
     submitDisableOfficePreviewChange() {
       if (!this.validateExtensions(this.formDisableOfficePreview)) {
@@ -362,9 +372,11 @@ export default {
         return;
       }
       this.localuser.disableOfficePreviewExt = this.formDisableOfficePreview;
+      this.updateSettings();
     },
     setColor(string) {
       this.localuser.themeColor = string;
+      this.updateSettings();
     },
     async updateSettings(event) {
       if (event !== undefined) {
@@ -409,6 +421,7 @@ export default {
     },
     updateLocale(updatedLocale) {
       this.localuser.locale = updatedLocale;
+      this.updateSettings();
     },
   },
 };
