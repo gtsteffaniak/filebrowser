@@ -231,7 +231,7 @@ export const mutations = {
         emitStateChanged();
         return;
       }
-      if (value.username != "publicUser") {
+      if (value.username != "anonymous") {
         mutations.setSources(value);
       }
       // Ensure locale exists and is valid

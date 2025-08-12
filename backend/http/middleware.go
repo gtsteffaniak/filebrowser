@@ -51,11 +51,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			return http.StatusNotFound, fmt.Errorf("share not found")
 		}
 		data.share = link
-		data.user.Scopes = []users.SourceScope{
-			{
-				Name:  link.Source,
-				Scope: "/",
-			},
+		if link.DisableAnonymous {
+			if data.user == nil {
+				return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
+			}
 		}
 		// Authenticate the share request if needed
 		var status int
@@ -109,15 +108,27 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // If authentication fails, the request continues without a user.
 func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		hash := r.URL.Query().Get("hash")
+		var link *share.Link
+		if hash != "" {
+			// Get the file link by hash
+			link, _ = store.Share.GetByHash(hash)
+		}
+		if link != nil {
+			defer func() {
+				data.share = link
+				data.user.CustomTheme = link.ShareTheme
+			}()
+		}
 		// Try to authenticate user first
 		status, err := withUserHelper(fn)(w, r, data)
 		// If user authentication succeeded, return the result
 		if err == nil {
 			return status, nil
 		}
+		data.user = &users.AnonymousUser
 		// If user authentication failed, call the handler without user context
 		// Clear any user data that might have been partially set
-		data.user = &users.PublicUser
 		data.token = ""
 		// Call the handler function without user context
 		return fn(w, r, data)

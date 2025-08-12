@@ -110,8 +110,8 @@ type FileLoading struct {
 	ChunkSize     int `json:"uploadChunkSizeMb"`
 }
 
-var PublicUser = User{
-	Username: "publicUser", // temp user not registered
+var AnonymousUser = User{
+	Username: "anonymous", // temp user not registered
 }
 
 func CleanUsername(s string) string {

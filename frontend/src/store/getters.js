@@ -67,7 +67,7 @@ export const getters = {
     if (
       state.user !== null &&
       state.user?.username != '' &&
-      state.user?.username != 'publicUser'
+      state.user?.username != 'anonymous'
     ) {
       return true
     }
@@ -355,10 +355,10 @@ export const getters = {
     }
     return false
   },
-  publicUser: () => {
+  anonymous: () => {
     return {
       id: 0,
-      username: "publicUser",
+      username: "anonymous",
       locale: i18n.detectLocale(),
       sorting: {
         by: "name",

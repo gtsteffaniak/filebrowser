@@ -17,11 +17,12 @@ type Link struct {
 	// Token is a random value that will only be set when PasswordHash is set. It is
 	// URL-Safe and is used to download links in password-protected shares via a
 	// query arg.
-	Token            string `json:"token,omitempty"`
-	ReadOnly         bool   `json:"readOnly,omitempty"`
-	DownloadsLimit   int    `json:"downloadsLimit,omitempty"`
-	ShareTheme       string `json:"shareTheme,omitempty"`
-	DisableAnonymous bool   `json:"disableAnonymous,omitempty"`
-	AllowUpload      bool   `json:"allowUpload,omitempty"`
-	MaxBandwidth     int    `json:"maxBandwidth,omitempty"`
+	Token               string `json:"token,omitempty"`
+	ReadOnly            bool   `json:"readOnly,omitempty"`
+	DisablingFileViewer bool   `json:"disableFileViewer,omitempty"`
+	DownloadsLimit      int    `json:"downloadsLimit,omitempty"`
+	ShareTheme          string `json:"shareTheme,omitempty"`
+	DisableAnonymous    bool   `json:"disableAnonymous,omitempty"`
+	AllowUpload         bool   `json:"allowUpload,omitempty"`
+	MaxBandwidth        int    `json:"maxBandwidth,omitempty"`
 }

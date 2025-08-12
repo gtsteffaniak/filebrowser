@@ -214,7 +214,7 @@ export default {
       return (
         state.user?.permissions &&
         state.user?.permissions.share &&
-        state.user.username != "publicUser" &&
+        state.user.username != "anonymous" &&
         !getters.isShare() &&
         !this.isSearchActive
       );

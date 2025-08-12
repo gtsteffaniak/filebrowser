@@ -642,6 +642,8 @@ definitions:
         type: boolean
       disableAnonymous:
         type: boolean
+      disableFileViewer:
+        type: boolean
       downloadsLimit:
         type: integer
       expire:

@@ -2931,6 +2931,9 @@ const docTemplate = `{
                 "disableAnonymous": {
                     "type": "boolean"
                 },
+                "disableFileViewer": {
+                    "type": "boolean"
+                },
                 "downloadsLimit": {
                     "type": "integer"
                 },

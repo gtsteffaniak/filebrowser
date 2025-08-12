@@ -154,11 +154,13 @@ router.beforeResolve(async (to, from, next) => {
     to.matched.some((record) => record.meta.requiresAuth) ||
     to.matched.some((record) => record.meta.optionalAuth)
   ) {
-    if (!state?.user?.username) {
+    if (state?.user?.username) {
+      // do nothing, user is already set
+    } else {
       try {
         await validateLogin();
       } catch (error) {
-        console.error("Error validating login:",error);
+        mutations.setCurrentUser(getters.anonymous());
       }
     }
 

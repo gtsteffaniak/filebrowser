@@ -101,7 +101,7 @@ export default {
       return getters.currentView() == "editor" && state.user.permissions.modify;
     },
     showSearch() {
-      return getters.isLoggedIn() && getters.currentView() === "listingView";
+      return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
     },
     isDisabled() {
       return state.isSearchActive || getters.currentPromptName() != "";

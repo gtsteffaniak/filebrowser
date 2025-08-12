@@ -76,6 +76,7 @@
         <ToggleSwitch class="item" v-model="readOnly" :name="'Read-only access'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="'Disable anonymous access'" />
+        <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
       </div>
 
       <p>{{ $t("prompts.downloadsLimit") }}</p>
@@ -135,6 +136,7 @@ export default {
       disableAnonymous: false,
       allowUpload: false,
       maxBandwidth: "",
+      disablingFileViewer: false,
     };
   },
   computed: {
