@@ -71,6 +71,25 @@
       </div>
       <p>{{ $t("prompts.optionalPassword") }}</p>
       <input class="input" type="password" v-model.trim="password" />
+
+      <div class="settings-items">
+        <ToggleSwitch class="item" v-model="readOnly" :name="'Read-only access'" />
+        <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
+        <ToggleSwitch class="item" v-model="disableAnonymous" :name="'Disable anonymous access'" />
+      </div>
+
+      <p>Number of downloads limit</p>
+      <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
+      <p>Max download bandwidth (kb/s)</p>
+      <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
+      <p>Share theme</p>
+      <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
+        <select class="input" v-model="shareTheme">
+          <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
+            {{ key === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <div class="card-action">
@@ -92,9 +111,14 @@ import { shareApi, publicApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { userSelectableThemes } from "@/utils/constants";
 
 export default {
   name: "share",
+  components: {
+    ToggleSwitch,
+  },
   data() {
     return {
       time: "",
@@ -105,9 +129,18 @@ export default {
       source: "",
       password: "",
       listing: true,
+      readOnly: false,
+      downloadsLimit: "",
+      shareTheme: "default",
+      disableAnonymous: false,
+      allowUpload: false,
+      maxBandwidth: "",
     };
   },
   computed: {
+    availableThemes() {
+      return userSelectableThemes || {};
+    },
     closeHovers() {
       return mutations.closeHovers;
     },

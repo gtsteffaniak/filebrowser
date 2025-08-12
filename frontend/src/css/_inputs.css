@@ -8,6 +8,7 @@
   background: var(--surfaceSecondary);
   color: var(--textPrimary);
   height: -webkit-fill-available;
+  margin-bottom: .5em;
 }
 
 .input:hover,
@@ -38,4 +39,5 @@ input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0px 1000px var(--surfaceSecondary) inset !important;
   -webkit-text-fill-color: var(--textPrimary) !important; /* Optional: Change text color to contrast */
+  border-color: unset !important;
 }

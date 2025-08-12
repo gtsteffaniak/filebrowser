@@ -2925,16 +2925,34 @@ const docTemplate = `{
         "share.Link": {
             "type": "object",
             "properties": {
+                "allowUpload": {
+                    "type": "boolean"
+                },
+                "disableAnonymous": {
+                    "type": "boolean"
+                },
+                "downloadsLimit": {
+                    "type": "integer"
+                },
                 "expire": {
                     "type": "integer"
                 },
                 "hash": {
                     "type": "string"
                 },
+                "maxBandwidth": {
+                    "type": "integer"
+                },
                 "password_hash": {
                     "type": "string"
                 },
                 "path": {
+                    "type": "string"
+                },
+                "readOnly": {
+                    "type": "boolean"
+                },
+                "shareTheme": {
                     "type": "string"
                 },
                 "source": {
