@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "Ogiltigt namn anges: kan inte innehålla \"/\" eller \"\\\"",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "Begränsning av antal nedladdningar",
+    "maxBandwidth": "Max bandbredd för nedladdning (kbps)",
+    "shareTheme": "Dela tema"
   },
   "search": {
     "images": "Bilder",

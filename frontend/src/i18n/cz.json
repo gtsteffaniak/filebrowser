@@ -177,7 +177,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "Nesprávný zadaný název: nelze použít kontejner \"/\" nebo \"\\\".",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limit počtu stažení",
+    "maxBandwidth": "Maximální šířka pásma stahování (kbps)",
+    "shareTheme": "Sdílet téma"
   },
   "search": {
     "images": "Obrázky",

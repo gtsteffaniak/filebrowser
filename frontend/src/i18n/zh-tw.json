@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "提供的名稱無效：不能包含 \"/「 或 」\\\" 的容器",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "下載次數限制",
+    "maxBandwidth": "最大下載頻寬 (kbps)",
+    "shareTheme": "分享主題"
   },
   "search": {
     "images": "影像",

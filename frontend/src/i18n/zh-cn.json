@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "提供的名称无效：不能包含\"/\"或\"\\\"。",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "下载次数限制",
+    "maxBandwidth": "最大下载带宽（千字节/秒）",
+    "shareTheme": "分享主题"
   },
   "search": {
     "images": "图像",

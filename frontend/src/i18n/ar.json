@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "الاسم المقدم غير صالح: لا يمكن أن يحتوي على \"/\" أو \"\\\"",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "حد عدد التنزيلات",
+    "maxBandwidth": "أقصى نطاق ترددي للتنزيل (كيلو بايت/ثانية)",
+    "shareTheme": "سمة المشاركة"
   },
   "search": {
     "images": "الصور",

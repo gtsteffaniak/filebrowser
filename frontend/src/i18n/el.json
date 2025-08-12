@@ -174,7 +174,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "Μη έγκυρο όνομα: δεν μπορεί να γίνει container \"/\" ή \"\\\"",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "Όριο αριθμού λήψεων",
+    "maxBandwidth": "Μέγιστο εύρος ζώνης λήψης (kbps)",
+    "shareTheme": "Μοιραστείτε το θέμα"
   },
   "search": {
     "images": "Εικόνες",

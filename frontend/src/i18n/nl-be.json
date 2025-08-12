@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "Ongeldige naam opgegeven: kan geen \"/\" of \"˜\" bevatten.",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limiet aantal downloads",
+    "maxBandwidth": "Max. downloadbandbreedte (kbps)",
+    "shareTheme": "Thema delen"
   },
   "search": {
     "images": "Afbeeldingen",

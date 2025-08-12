@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "Nieprawidłowa nazwa: nie można użyć kontenera \"/\" lub \"\\\"",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limit liczby pobrań",
+    "maxBandwidth": "Maksymalna przepustowość pobierania (kbps)",
+    "shareTheme": "Udostępnij temat"
   },
   "search": {
     "images": "Zdjęcia",

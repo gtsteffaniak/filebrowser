@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "Geçersiz ad sağlandı: \"/\" veya \"\\\" kapsayıcı olamaz",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "İndirme sayısı sınırı",
+    "maxBandwidth": "Maksimum indirme bant genişliği (kbps)",
+    "shareTheme": "Temayı paylaş"
   },
   "search": {
     "images": "Görseller",

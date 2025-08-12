@@ -78,11 +78,11 @@
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="'Disable anonymous access'" />
       </div>
 
-      <p>Number of downloads limit</p>
+      <p>{{ $t("prompts.downloadsLimit") }}</p>
       <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-      <p>Max download bandwidth (kb/s)</p>
+      <p>{{ $t("prompts.maxBandwidth") }}</p>
       <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-      <p>Share theme</p>
+      <p>{{ $t("prompts.shareTheme") }}</p>
       <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
         <select class="input" v-model="shareTheme">
           <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
