@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -51,7 +52,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 		}
-		data.path = path
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -77,16 +77,17 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		}
 		// Get file information with options
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
-			Path:   data.path,
+			Path:   utils.JoinPathAsUnix(link.Path, path),
 			Source: source.Name,
 			Modify: false,
 			Expand: true,
 		})
 		file.Token = link.Token
 		if err != nil {
-			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err)
+			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
+		file.Path = strings.TrimPrefix(file.Path, link.Path)
 		// Set the file info in the `data` object
 		data.fileInfo = file
 		// Call the next handler with the data

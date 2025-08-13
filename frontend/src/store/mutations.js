@@ -9,23 +9,25 @@ import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
   setContextMenuHasItems: (value) => {
+    if (value == state.contextMenuHasItems) {
+      return;
+    }
     state.contextMenuHasItems = value;
     emitStateChanged();
   },
   setDeletedItem: (value) => {
+    if (value == state.deletedItem) {
+      return;
+    }
     state.deletedItem = value;
     emitStateChanged();
   },
   setSeenUpdate: (value) => {
+    if (value == state.seenUpdate) {
+      return;
+    }
     state.seenUpdate = value
     localStorage.setItem("seenUpdate", value);
-    emitStateChanged();
-  },
-  setMultiButtonState: (value) => {
-    if (state.multiButtonLastState != value) {
-      state.multiButtonLastState = state.multiButtonState;
-    }
-    state.multiButtonState = value;
     emitStateChanged();
   },
   toggleOverflowMenu: () => {
@@ -43,10 +45,16 @@ export const mutations = {
     emitStateChanged();
   },
   updateListing: (value) => {
+    if (value == state.listing) {
+      return;
+    }
     state.listing = value;
     emitStateChanged();
   },
   setCurrentSource: (value) => {
+    if (value == state.sources.current) {
+      return;
+    }
     state.sources.current = value;
     emitStateChanged();
   },
@@ -111,11 +119,17 @@ export const mutations = {
     emitStateChanged();
   },
   setGallerySize: (value) => {
+    if (value == state.user.gallerySize) {
+      return;
+    }
     state.user.gallerySize = value
     emitStateChanged();
     usersApi.update(state.user, ['gallerySize']);
   },
   setActiveSettingsView: (value) => {
+    if (value == state.activeSettingsView) {
+      return;
+    }
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
     window.history.replaceState(null, "", "#" + value);
@@ -147,18 +161,14 @@ export const mutations = {
   },
   toggleSidebar() {
     state.showSidebar = !state.showSidebar;
-    if (state.showSidebar) {
-      state.multiButtonState = "back";
-    } else {
-      state.multiButtonState = "menu";
-    }
     emitStateChanged();
   },
   closeSidebar() {
-    if (state.showSidebar) {
-      state.showSidebar = false;
-      emitStateChanged();
+    if (!state.showSidebar) {
+      return;
     }
+    state.showSidebar = false;
+    emitStateChanged();
   },
   setUpload(value) {
     state.upload = value;
@@ -169,9 +179,6 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
-    const previousState = state.multiButtonLastState;
-    state.multiButtonLastState = state.multiButtonState;
-    state.multiButtonState = previousState;
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
@@ -181,9 +188,6 @@ export const mutations = {
   closeTopHover: () => {
     state.prompts.pop();
     if (state.prompts.length === 0) {
-      const previousState = state.multiButtonLastState;
-      state.multiButtonLastState = state.multiButtonState;
-      state.multiButtonState = previousState;
       if (!state.stickySidebar) {
         state.showSidebar = false;
       }
@@ -217,6 +221,9 @@ export const mutations = {
     emitStateChanged();
   },
   setReload: (value) => {
+    if (value == state.reload) {
+      return;
+    }
     state.reload = value;
     emitStateChanged();
   },
@@ -246,6 +253,9 @@ export const mutations = {
     emitStateChanged();
   },
   setJWT: (value) => {
+    if (value == state.jwt) {
+      return;
+    }
     state.jwt = value;
     emitStateChanged();
   },
@@ -262,10 +272,16 @@ export const mutations = {
     emitStateChanged();
   },
   setSession: (value) => {
+    if (value == state.sessionId) {
+      return;
+    }
     state.sessionId = value;
     emitStateChanged();
   },
   setMultiple: (value) => {
+    if (value == state.multiple) {
+      return;
+    }
     state.multiple = value;
     if (value == true) {
       notify.showMultipleSelection()
@@ -317,9 +333,9 @@ export const mutations = {
     }
     // Update localStorage if stickySidebar exists
     if (state.user.stickySidebar && getters.currentView() == "listingView") {
-      state.multiButtonState = "menu";
+      // do nothing
     } else if (state.showSidebar) {
-      state.multiButtonState = "back";
+      // do nothing
     }
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
@@ -412,6 +428,9 @@ export const mutations = {
     emitStateChanged();
   },
   setSearch: (value) => {
+    if (value == state.isSearchActive) {
+      return;
+    }
     state.isSearchActive = value;
     emitStateChanged();
   },
@@ -423,6 +442,9 @@ export const mutations = {
     emitStateChanged();
   },
   hideTooltip() {
+    if (!state.tooltip.show) {
+      return;
+    }
     state.tooltip.show = false;
     emitStateChanged();
   },

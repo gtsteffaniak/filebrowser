@@ -551,16 +551,18 @@ export default {
   border-left: 1px solid gray;
   border-right: 1px solid gray;
   word-wrap: break-word;
+  height: -webkit-fill-available;
 }
 
 .searchContext.input {
   background-color: var(--primaryColor) !important;
-  border-radius: 0em;
+  border-radius: 0em !important;
   color: white;
   border: unset;
   width: 25%;
   min-width: 7em;
   max-width: 15em;
+  height: -webkit-fill-available;
 }
 
 #results > #result-list {

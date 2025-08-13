@@ -39,7 +39,9 @@ export async function fetchPub(path, hash, password = "", content = false) {
     throw error;
   }
   let data = await response.json()
+  console.log("fetchPub adjusted",data, `/public/share/${hash}${path}`)
   const adjusted = adjustedData(data, `/public/share/${hash}${path}`);
+  console.log("fetchPub adjusted2",adjusted)
   return adjusted
 }
 

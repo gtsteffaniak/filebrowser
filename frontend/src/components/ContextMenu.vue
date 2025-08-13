@@ -380,6 +380,7 @@ export default {
       mutations.closeHovers();
     },
     startDownload() {
+      mutations.closeHovers();
       downloadFiles(state.selected);
     },
     goToRaw() {

@@ -49,7 +49,6 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	d.fileInfo.Path = "/" + strings.TrimPrefix(d.fileInfo.Path, d.share.Path)
 	return renderJSON(w, r, d.fileInfo)
 }
 

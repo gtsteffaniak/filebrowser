@@ -115,6 +115,7 @@ export default {
       if (getters.isShare()) {
         this.base = getters.sharePathBase();
         this.path = getters.routePath(this.base);
+
       } else {
         this.path = encodedPath(state.req.path);
         this.base = "/";

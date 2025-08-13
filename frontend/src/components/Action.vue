@@ -49,17 +49,14 @@ export default {
       return state.req;
     },
     multistate() {
-      // hack for settings on hard reload... why is this needed?
-      if (!state.multiButtonState && getters.currentView() == "settings" && !state.isMobile) {
-        return "close";
-      } else if (!state.multiButtonState && getters.currentView() == "settings" && state.isMobile) {
-        return "menu";
-      }
-      return state.multiButtonState;
+      return getters.multibuttonState();
     },
     stickSidebar() {
       return state.stickSidebar;
     },
+    currentView() {
+      return getters.currentView();
+    }
   },
   mounted() {
     this.reEvalAction();
@@ -79,23 +76,7 @@ export default {
     reEvalAction() {
       const currentView = getters.currentView();
       if (currentView == "settings") {
-        if (state.isMobile) {
-          mutations.setMultiButtonState("menu");
-        } else {
-          mutations.setMultiButtonState("close");
-        }
         mutations.setActiveSettingsView(getters.currentHash());
-      } else if (
-        currentView == "editor" ||
-        currentView == "preview" ||
-        currentView == "onlyOfficeEditor" ||
-        currentView == "markdownViewer" ||
-        currentView == "epubViewer" ||
-        currentView == "docViewer"
-      ) {
-        mutations.setMultiButtonState("close");
-      } else {
-        mutations.setMultiButtonState("menu");
       }
     },
     actionMultiIcon() {

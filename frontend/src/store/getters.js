@@ -147,15 +147,11 @@ export const getters = {
       'onlyOfficeEditor',
       'editor'
     ]
-    let visible =
-      (state.showSidebar || getters.isStickySidebar())
+    let visible = (state.showSidebar || getters.isStickySidebar())
     if (getters.isShare() && !state.isMobile) {
       visible = true
     }
-    if (
-      typeof getters.currentPromptName() === 'string' &&
-      !getters.isStickySidebar()
-    ) {
+    if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false
     }
     if (previewViews.includes(currentView) && !state.user.preview?.disableHideSidebar) {
@@ -203,7 +199,9 @@ export const getters = {
   },
   getSharePath: (subPath = "") => {
     let urlPath = getters.routePath('public/share')
-    return "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1]) + "/" + subPath
+    const path =  "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1]) + subPath
+    console.log("getSharePath", path)
+    return path
   },
   currentView: () => {
     let listingView = ''
@@ -394,5 +392,33 @@ export const getters = {
         chunkSizeMb: 15,
       }
     }
-  }
-}
+  },
+  multibuttonState: () => {
+    const cv = getters.currentView()
+    const isSidebarVisible = getters.isSidebarVisible()
+    if (isSidebarVisible) {
+      if (cv == "settings") {
+        if (state.isMobile) {
+          return "back";
+        }
+        return "close";
+      }
+      if (state.user.stickySidebar) {
+        return "menu";
+      }
+      return "back";
+    }
+    if (cv == "settings") {
+      if (state.isMobile) {
+        return "menu";
+      }
+    }
+    if (cv == "listingView") {
+      return "menu";
+    }
+    if (cv == "listingView") {
+      return "menu";
+    }
+    return "close";
+  },
+};

@@ -107,7 +107,7 @@ export default {
       return state.isSearchActive || getters.currentPromptName() != "";
     },
     isDisabledMultiAction() {
-      return this.isDisabled || (getters.isStickySidebar() && state.multiButtonState === "menu");
+      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu");
     },
     showSwitchView() {
       return getters.currentView() === "listingView";
