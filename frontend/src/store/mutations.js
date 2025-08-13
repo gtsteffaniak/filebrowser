@@ -191,7 +191,6 @@ export const mutations = {
     emitStateChanged();
   },
   showHover: (value) => {
-    console.log("showHover", value);
     if (typeof value === "object") {
       state.prompts.push({
         name: value?.name,
@@ -207,7 +206,6 @@ export const mutations = {
         props: value?.props,
       });
     }
-    console.log("showHover", state.prompts);
     emitStateChanged();
   },
   setLoading: (loadType, status) => {
@@ -223,7 +221,6 @@ export const mutations = {
     emitStateChanged();
   },
   setCurrentUser: (value) => {
-    console.log('setCurrentUser', value);
     try {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
@@ -246,7 +243,6 @@ export const mutations = {
     } catch (error) {
       console.log(error);
     }
-    console.log('setCurrentUser', state.user);
     emitStateChanged();
   },
   setJWT: (value) => {
@@ -307,7 +303,6 @@ export const mutations = {
     if (!state.user) {
       state.user = {};
     }
-    console.log('updateCurrentUser', value);
     // Store previous state for comparison
     const previousUser = { ...state.user };
 
@@ -320,14 +315,12 @@ export const mutations = {
       i18n.default.locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
     }
-    console.log('updateCurrentUser2', state.user);
     // Update localStorage if stickySidebar exists
     if (state.user.stickySidebar && getters.currentView() == "listingView") {
       state.multiButtonState = "menu";
     } else if (state.showSidebar) {
       state.multiButtonState = "back";
     }
-    console.log('updateCurrentUser3', state.user);
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
       // Only update the properties that were actually provided in the input

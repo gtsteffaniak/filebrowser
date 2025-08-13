@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime"
 	"strings"
 	"time"
@@ -43,8 +44,14 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 // Middleware to handle file requests by hash and pass it to the handler
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		path := r.URL.Query().Get("path")
 		hash := r.URL.Query().Get("hash")
+		encodedPath := r.URL.Query().Get("path")
+		// Decode the URL-encoded path
+		path, err := url.QueryUnescape(encodedPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+		}
+		data.path = path
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
@@ -64,11 +71,6 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-		data.path = strings.TrimSuffix(link.Path, "/") + "/" + strings.TrimPrefix(path, "/")
-		if path == "" || path == "/" {
-			data.path = link.Path
-		}
-
 		source, ok := config.Server.SourceMap[link.Source]
 		if !ok {
 			return http.StatusNotFound, fmt.Errorf("source not found")

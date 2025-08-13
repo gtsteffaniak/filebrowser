@@ -226,6 +226,10 @@ body.rtl .card-title>*:first-child {
   overflow: auto;
 }
 
+.card-content h3 {
+  text-align: center;
+}
+
 .card h2 {
   font-weight: 500;
 }

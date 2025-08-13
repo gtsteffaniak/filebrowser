@@ -201,10 +201,9 @@ export const getters = {
   sharePathBase: () => {
     return '/public/share/' + getters.shareHash() + '/'
   },
-  getSharePath: () => {
+  getSharePath: (subPath = "") => {
     let urlPath = getters.routePath('public/share')
-    let parts = urlPath.split('/')
-    return "/" + removeLeadingSlash(parts.slice(2).join('/'))
+    return "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1]) + "/" + subPath
   },
   currentView: () => {
     let listingView = ''
@@ -289,7 +288,6 @@ export const getters = {
   },
 
   currentPromptName: () => {
-    console.log("currentPromptName", state.prompts);
     // Ensure state.prompts is an array
     if (!Array.isArray(state.prompts) || state.prompts.length === 0) {
       return ""

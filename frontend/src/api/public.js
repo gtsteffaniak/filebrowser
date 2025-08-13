@@ -2,6 +2,7 @@ import { fetchURL, fetchJSON, adjustedData } from "./utils";
 import { notify } from "@/notify";
 import { getApiPath, removePrefix } from "@/utils/url.js";
 import { externalUrl, baseURL } from "@/utils/constants";
+import { state } from "@/store";
 
 // ============================================================================
 // PUBLIC API ENDPOINTS (hash-based authentication)
@@ -12,7 +13,8 @@ export async function fetchPub(path, hash, password = "", content = false) {
   const params = {
     path,
     hash,
-    ...(content && { content: 'true' })
+    ...(content && { content: 'true' }),
+    ...(state.share.token && { token: state.share.token })
   }
   const apiPath = getApiPath("public/api/shared", params);
   const response = await fetch(apiPath, {
@@ -22,7 +24,17 @@ export async function fetchPub(path, hash, password = "", content = false) {
   });
 
   if (!response.ok) {
-    const error = new Error("Failed to connect to the server.");
+    const error = new Error(response.statusText);
+    // attempt to marshal json response
+    let data = null;
+    try {
+      data = await response.json()
+    } catch (e) {
+      // ignore
+    }
+    if (data) {
+      error.message = data.message;
+    }
     error.status = response.status;
     throw error;
   }
@@ -45,13 +57,14 @@ export function getDownloadURL(share, files) {
 }
 
 // Generate a preview URL for public shares
-export function getPreviewURL(hash, path) {
+export function getPreviewURL(path) {
   try {
     const params = {
       path: encodeURIComponent(path),
       size: 'small',
-      hash: hash,
-      inline: 'true'
+      hash: state.share.hash,
+      inline: 'true',
+      ...(state.share.token && { token: state.share.token })
     }
     const apiPath = getApiPath('public/api/preview', params)
     return window.origin + apiPath

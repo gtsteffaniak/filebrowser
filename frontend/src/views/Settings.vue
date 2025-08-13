@@ -122,7 +122,4 @@ export default {
   background-color: var(--surfaceSecondary);
 }
 
-.card-content {
-  padding: 1em;
-}
 </style>

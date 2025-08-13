@@ -159,7 +159,7 @@ export default {
     isStickySidebar: () => getters.isStickySidebar(),
     isMobile: () => getters.isMobile(),
     isListingView: () => getters.currentView() == "listingView",
-    user: () => (console.log(state.user), state.user),
+    user: () => (state.user),
     isDarkMode: () => getters.isDarkMode(),
     showSources: () => !getters.isShare(),
     currentPrompt: () => getters.currentPrompt(),

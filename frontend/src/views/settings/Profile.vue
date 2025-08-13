@@ -428,9 +428,6 @@ export default {
 </script>
 
 <style scoped>
-.card-content h3 {
-  text-align: center;
-}
 
 #disablePreviews,
 #disableViewing,

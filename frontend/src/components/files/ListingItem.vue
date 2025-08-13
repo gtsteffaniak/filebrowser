@@ -67,7 +67,7 @@ import { enableThumbs } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { filesApi, shareApi } from "@/api";
+import { filesApi,publicApi } from "@/api";
 import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
@@ -162,8 +162,8 @@ export default {
       // @ts-ignore
       let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
       if (getters.isShare()) {
-        let urlPath = getters.getSharePath() + "/" + this.name;
-        return shareApi.getPreviewURL(state.share.hash, urlPath, state.req.modified);
+        let urlPath = getters.getSharePath(this.name) ;
+        return publicApi.getPreviewURL(urlPath);
       }
       // @ts-ignore
       return filesApi.getPreviewURL(state.req.source, path, this.modified);
@@ -226,7 +226,7 @@ export default {
     },
     getUrl() {
       if (this.hash) {
-        return baseURL + "share/" + this.hash + url.encodedPath(this.path);
+        return baseURL + "public/share/" + this.hash + "/" + url.encodedPath(this.path);
       }
       if (serverHasMultipleSources) {
         return baseURL + "files/" + encodeURIComponent(this.source) + url.encodedPath(this.path);

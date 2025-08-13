@@ -49,7 +49,7 @@
 
 <script>
 import { notify } from "@/notify";
-import { shareApi } from "@/api";
+import { publicApi } from "@/api";
 import { state, mutations, getters } from "@/store";
 import Clipboard from "clipboard";
 import Errors from "@/views/Errors.vue";
@@ -70,7 +70,7 @@ export default {
   async created() {
     mutations.setLoading("shares", true);
     try {
-      let links = await shareApi.list();
+      let links = await publicApi.list();
       if (links.length === 0) {
         this.links = [];
         return;
@@ -115,7 +115,7 @@ export default {
           mutations.closeHovers();
 
           try {
-            shareApi.remove(link.hash);
+            publicApi.remove(link.hash);
             this.links = this.links.filter((item) => item.hash !== link.hash);
             notify.showSuccess(this.$t("settings.shareDeleted"));
           } catch (e) {
@@ -128,7 +128,7 @@ export default {
       return fromNow(time);
     },
     buildLink(share) {
-      return shareApi.getShareURL(share);
+      return publicApi.getShareURL(share);
     },
   },
 };
