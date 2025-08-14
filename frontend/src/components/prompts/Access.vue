@@ -212,3 +212,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.form-flex-group {
+  margin-top: 1em;
+}
+</style>

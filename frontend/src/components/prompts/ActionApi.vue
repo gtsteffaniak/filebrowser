@@ -90,20 +90,3 @@ export default {
   },
 };
 </script>
-
-<style>
-/* Basic styling for the prompt */
-.card.floating {
-  padding: 20px;
-}
-.card-content {
-  margin-bottom: 16px;
-}
-.card-action {
-  display: flex;
-  justify-content: flex-end;
-}
-.card-action .button {
-  margin-left: 8px;
-}
-</style>

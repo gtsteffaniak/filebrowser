@@ -9,8 +9,9 @@
       <div class="card-title">
         <h2>{{ $t("general.password") }}</h2>
       </div>
-      <div class="card-content">
+      <div class="card-content form-flex-group">
         <input
+          class="input share-password"
           v-focus
           type="password"
           :placeholder="$t('general.password')"
@@ -148,8 +149,10 @@ export default {
           });
           // Add glow effect
           element.classList.add('scroll-glow');
+          console.log("scrollToHash", element)
           // Remove glow effect after animation completes
           setTimeout(() => {
+            console.log("scrollToHash remove glow", element)
             element.classList.remove('scroll-glow');
           }, 1000);
         }
@@ -208,18 +211,14 @@ export default {
       this.shareHash = parts[1]
       this.shareSubPath = "/" + parts.slice(2).join("/");
 
-      // Store share data in state for use by components
-      mutations.setShareData({
-        hash: this.shareHash,
-        token: this.shareToken,
-        subPath: this.shareSubPath,
-      });
-
       // Handle password
-      if (this.sharePassword === "" || this.sharePassword === null) {
+      if (this.sharePassword === "") {
         this.sharePassword = localStorage.getItem("sharepass:" + this.shareHash);
       } else {
         localStorage.setItem("sharepass:" + this.shareHash, this.sharePassword);
+      }
+      if (this.sharePassword === null) {
+        this.sharePassword = "";
       }
 
       mutations.resetSelected();
@@ -230,11 +229,15 @@ export default {
       let file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword);
       file.hash = this.shareHash;
       this.shareToken = file.token;
-
+      // Store share data in state for use by components
+      mutations.setShareData({
+        hash: this.shareHash,
+        token: this.shareToken,
+        subPath: this.shareSubPath,
+      });
       // If not a directory, fetch content for preview components
       if (file.type != "directory") {
         const content = !getters.fileViewingDisabled(file.name);
-
         file = await publicApi.fetchPub(this.shareSubPath, this.shareHash, this.sharePassword, content);
         file.hash = this.shareHash;
         this.shareToken = file.token;
@@ -321,7 +324,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .share__wrong__password {
   color: #ff4757;
   text-align: center;
@@ -347,5 +350,9 @@ export default {
   100% {
     color: inherit;
   }
+}
+
+.share-password {
+  width: 100%;
 }
 </style>

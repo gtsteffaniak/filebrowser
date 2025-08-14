@@ -2,10 +2,11 @@
   <div class="card-title">
     <h2>{{ $t("buttons.share") }}</h2>
   </div>
-  <div aria-label="share-path" class="searchContext"> {{ $t('search.path') }} {{ subpath }}</div>
-  <p> {{ $t('share.notice') }} </p>
-  <template v-if="listing">
-    <div class="card-content">
+  <div class="card-content">
+    <div aria-label="share-path" class="searchContext"> {{ $t('search.path') }} {{ subpath }}</div>
+    <p> {{ $t('share.notice') }} </p>
+
+    <div v-if="listing">
       <table>
         <tbody>
           <tr>
@@ -45,20 +46,7 @@
       </table>
     </div>
 
-    <div class="card-action">
-      <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.close')"
-        :title="$t('buttons.close')">
-        {{ $t("buttons.close") }}
-      </button>
-      <button class="button button--flat button--blue" @click="() => switchListing()" :aria-label="$t('buttons.new')"
-        :title="$t('buttons.new')">
-        {{ $t("buttons.new") }}
-      </button>
-    </div>
-  </template>
-
-  <template v-else>
-    <div class="card-content">
+    <div v-else>
       <p>{{ $t("settings.shareDuration") }}</p>
       <div class="form-flex-group">
         <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="1" @keyup.enter="submit" v-model.trim="time" />
@@ -70,31 +58,65 @@
         </select>
       </div>
       <p>{{ $t("prompts.optionalPassword") }}</p>
-      <input class="input" type="password" v-model.trim="password" />
-    </div>
+      <input class="input" type="password" autocomplete="off" v-model.trim="password" />
 
-    <div class="card-action">
-      <button class="button button--flat button--grey" @click="() => switchListing()" :aria-label="$t('buttons.cancel')"
-        :title="$t('buttons.cancel')">
-        {{ $t("buttons.cancel") }}
-      </button>
-      <button class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
-        :title="$t('buttons.share')">
-        {{ $t("buttons.share") }}
-      </button>
+      <div class="settings-items">
+        <ToggleSwitch class="item" v-model="readOnly" :name="'Read-only access'" />
+        <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
+        <ToggleSwitch class="item" v-model="disableAnonymous" :name="'Disable anonymous access'" />
+        <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
+      </div>
+
+      <p>{{ $t("prompts.downloadsLimit") }}</p>
+      <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
+      <p>{{ $t("prompts.maxBandwidth") }}</p>
+      <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
+      <p>{{ $t("prompts.shareTheme") }}</p>
+      <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
+        <select class="input" v-model="shareTheme">
+          <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
+            {{ key === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
+          </option>
+        </select>
+      </div>
     </div>
-  </template>
+  </div>
+
+  <div class="card-action">
+    <button v-if="listing" class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.close')"
+      :title="$t('buttons.close')">
+      {{ $t("buttons.close") }}
+    </button>
+    <button v-if="listing" class="button button--flat button--blue" @click="() => switchListing()" :aria-label="$t('buttons.new')"
+      :title="$t('buttons.new')">
+      {{ $t("buttons.new") }}
+    </button>
+
+    <button v-if="!listing" class="button button--flat button--grey" @click="() => switchListing()" :aria-label="$t('buttons.cancel')"
+      :title="$t('buttons.cancel')">
+      {{ $t("buttons.cancel") }}
+    </button>
+    <button v-if="!listing" class="button button--flat button--blue" @click="submit" aria-label="Share-Confirm"
+      :title="$t('buttons.share')">
+      {{ $t("buttons.share") }}
+    </button>
+  </div>
 </template>
 <script>
 import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
-import { shareApi, publicApi } from "@/api";
+import { publicApi } from "@/api";
 import Clipboard from "clipboard";
 import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { userSelectableThemes } from "@/utils/constants";
 
 export default {
   name: "share",
+  components: {
+    ToggleSwitch,
+  },
   data() {
     return {
       time: "",
@@ -105,9 +127,19 @@ export default {
       source: "",
       password: "",
       listing: true,
+      readOnly: false,
+      downloadsLimit: "",
+      shareTheme: "default",
+      disableAnonymous: false,
+      allowUpload: false,
+      maxBandwidth: "",
+      disablingFileViewer: false,
     };
   },
   computed: {
+    availableThemes() {
+      return userSelectableThemes || {};
+    },
     closeHovers() {
       return mutations.closeHovers;
     },
@@ -156,7 +188,7 @@ export default {
 
     try {
       // get last element of the path
-      const links = await shareApi.get(this.subpath, this.source);
+      const links = await publicApi.get(this.subpath, this.source);
       this.links = links;
     } catch (err) {
       notify.showError(err);
@@ -183,9 +215,9 @@ export default {
         let isPermanent = !this.time || this.time == 0;
         let res = null;
         if (isPermanent) {
-          res = await shareApi.create(this.subpath, this.source, this.password);
+          res = await publicApi.create(this.subpath, this.source, this.password);
         } else {
-          res = await shareApi.create(
+          res = await publicApi.create(
             this.subpath,
             this.source,
             this.password,
@@ -209,7 +241,7 @@ export default {
     async deleteLink(event, link) {
       event.preventDefault();
       try {
-        await shareApi.remove(link.hash);
+        await publicApi.remove(link.hash);
         this.links = this.links.filter((item) => item.hash !== link.hash);
         if (this.links.length === 0) {
           this.listing = false;
@@ -222,7 +254,7 @@ export default {
       return fromNow(time, state.user.locale)
     },
     buildLink(share) {
-      return shareApi.getShareURL(share);
+      return publicApi.getShareURL(share);
     },
     hasDownloadLink() {
       if (state.isSearchActive) {

@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "Вказано невірне ім'я: не можна використовувати символи \"/\" або \"\\\"",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "Обмеження на кількість завантажень",
+    "maxBandwidth": "Максимальна швидкість завантаження (кбіт/с)",
+    "shareTheme": "Поділіться темою"
   },
   "search": {
     "images": "Зображення",

@@ -134,6 +134,9 @@
     "notice": "Note: anyone who has access to the link (and optional password) can access the shared files. There is no requirement to be logged in."
   },
   "prompts": {
+    "downloadsLimit": "Number of downloads limit",
+    "maxBandwidth": "Max download bandwidth (kbps)",
+    "shareTheme": "Share theme",
     "source": "Source{suffix}",
     "invalidName": "Invalid name provided: cannot container \"/\" or \"\\\"",
     "destinationSource": "Destination Source:",

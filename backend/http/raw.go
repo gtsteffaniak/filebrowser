@@ -60,13 +60,14 @@ func addFile(path string, d *requestContext, tarWriter *tar.Writer, zipWriter *z
 	path = splitFile[1]
 
 	var err error
-
-	var userScope string
-	userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
-	if d.share == nil && err != nil {
-		return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+	if d.share == nil {
+		var userScope string
+		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+		if err != nil {
+			return fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		}
+		path = utils.JoinPathAsUnix(userScope, path)
 	}
-	path = utils.JoinPathAsUnix(userScope, path)
 
 	idx := indexing.GetIndex(source)
 	if idx == nil {
@@ -196,15 +197,18 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	var err error
 	var userscope string
 	fileName := filepath.Base(firstFilePath)
-	userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
-	if err != nil {
-		return http.StatusForbidden, err
+	if d.share == nil {
+		userscope, err = settings.GetScopeFromSourceName(d.user.Scopes, firstFileSource)
+		if err != nil {
+			return http.StatusForbidden, err
+		}
+		firstFilePath = utils.JoinPathAsUnix(userscope, firstFilePath)
 	}
 	idx := indexing.GetIndex(firstFileSource)
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", firstFileSource)
 	}
-	realPath, isDir, err := idx.GetRealPath(userscope, firstFilePath)
+	realPath, isDir, err := idx.GetRealPath(firstFilePath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -332,11 +336,14 @@ func computeArchiveSize(fileList []string, d *requestContext) (int64, error) {
 			return 0, fmt.Errorf("source %s is not available", source)
 		}
 		var userScope string
-		userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
-		if d.share == nil && err != nil {
-			return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+		if d.share == nil {
+			userScope, err = settings.GetScopeFromSourceName(d.user.Scopes, source)
+			if err != nil {
+				return 0, fmt.Errorf("source %s is not available for user %s", source, d.user.Username)
+			}
+			path = utils.JoinPathAsUnix(userScope, path)
 		}
-		realPath, isDir, err := idx.GetRealPath(userScope, path)
+		realPath, isDir, err := idx.GetRealPath(path)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

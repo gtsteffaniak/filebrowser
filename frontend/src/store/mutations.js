@@ -1,6 +1,5 @@
 import * as i18n from "@/i18n";
 import { state } from "./state.js";
-import { getters } from "./getters.js";
 import { emitStateChanged } from './eventBus'; // Import the function from eventBus.js
 import { usersApi } from "@/api";
 import { notify } from "@/notify";
@@ -9,23 +8,25 @@ import { serverHasMultipleSources } from "@/utils/constants.js";
 
 export const mutations = {
   setContextMenuHasItems: (value) => {
+    if (value == state.contextMenuHasItems) {
+      return;
+    }
     state.contextMenuHasItems = value;
     emitStateChanged();
   },
   setDeletedItem: (value) => {
+    if (value == state.deletedItem) {
+      return;
+    }
     state.deletedItem = value;
     emitStateChanged();
   },
   setSeenUpdate: (value) => {
+    if (value == state.seenUpdate) {
+      return;
+    }
     state.seenUpdate = value
     localStorage.setItem("seenUpdate", value);
-    emitStateChanged();
-  },
-  setMultiButtonState: (value) => {
-    if (state.multiButtonLastState != value) {
-      state.multiButtonLastState = state.multiButtonState;
-    }
-    state.multiButtonState = value;
     emitStateChanged();
   },
   toggleOverflowMenu: () => {
@@ -43,10 +44,16 @@ export const mutations = {
     emitStateChanged();
   },
   updateListing: (value) => {
+    if (value == state.listing) {
+      return;
+    }
     state.listing = value;
     emitStateChanged();
   },
   setCurrentSource: (value) => {
+    if (value == state.sources.current) {
+      return;
+    }
     state.sources.current = value;
     emitStateChanged();
   },
@@ -111,11 +118,17 @@ export const mutations = {
     emitStateChanged();
   },
   setGallerySize: (value) => {
+    if (value == state.user.gallerySize) {
+      return;
+    }
     state.user.gallerySize = value
     emitStateChanged();
     usersApi.update(state.user, ['gallerySize']);
   },
   setActiveSettingsView: (value) => {
+    if (value == state.activeSettingsView) {
+      return;
+    }
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
     window.history.replaceState(null, "", "#" + value);
@@ -147,18 +160,14 @@ export const mutations = {
   },
   toggleSidebar() {
     state.showSidebar = !state.showSidebar;
-    if (state.showSidebar) {
-      state.multiButtonState = "back";
-    } else {
-      state.multiButtonState = "menu";
-    }
     emitStateChanged();
   },
   closeSidebar() {
-    if (state.showSidebar) {
-      state.showSidebar = false;
-      emitStateChanged();
+    if (!state.showSidebar) {
+      return;
     }
+    state.showSidebar = false;
+    emitStateChanged();
   },
   setUpload(value) {
     state.upload = value;
@@ -169,9 +178,6 @@ export const mutations = {
     emitStateChanged();
   },
   closeHovers: () => {
-    const previousState = state.multiButtonLastState;
-    state.multiButtonLastState = state.multiButtonState;
-    state.multiButtonState = previousState;
     state.prompts = [];
     if (!state.stickySidebar) {
       state.showSidebar = false;
@@ -181,9 +187,6 @@ export const mutations = {
   closeTopHover: () => {
     state.prompts.pop();
     if (state.prompts.length === 0) {
-      const previousState = state.multiButtonLastState;
-      state.multiButtonLastState = state.multiButtonState;
-      state.multiButtonState = previousState;
       if (!state.stickySidebar) {
         state.showSidebar = false;
       }
@@ -191,7 +194,6 @@ export const mutations = {
     emitStateChanged();
   },
   showHover: (value) => {
-    console.log("showHover", value);
     if (typeof value === "object") {
       state.prompts.push({
         name: value?.name,
@@ -207,7 +209,6 @@ export const mutations = {
         props: value?.props,
       });
     }
-    console.log("showHover", state.prompts);
     emitStateChanged();
   },
   setLoading: (loadType, status) => {
@@ -219,11 +220,13 @@ export const mutations = {
     emitStateChanged();
   },
   setReload: (value) => {
+    if (value == state.reload) {
+      return;
+    }
     state.reload = value;
     emitStateChanged();
   },
   setCurrentUser: (value) => {
-    console.log('setCurrentUser', value);
     try {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
@@ -231,7 +234,7 @@ export const mutations = {
         emitStateChanged();
         return;
       }
-      if (value.username != "publicUser") {
+      if (value.username != "anonymous") {
         mutations.setSources(value);
       }
       // Ensure locale exists and is valid
@@ -246,10 +249,12 @@ export const mutations = {
     } catch (error) {
       console.log(error);
     }
-    console.log('setCurrentUser', state.user);
     emitStateChanged();
   },
   setJWT: (value) => {
+    if (value == state.jwt) {
+      return;
+    }
     state.jwt = value;
     emitStateChanged();
   },
@@ -266,10 +271,16 @@ export const mutations = {
     emitStateChanged();
   },
   setSession: (value) => {
+    if (value == state.sessionId) {
+      return;
+    }
     state.sessionId = value;
     emitStateChanged();
   },
   setMultiple: (value) => {
+    if (value == state.multiple) {
+      return;
+    }
     state.multiple = value;
     if (value == true) {
       notify.showMultipleSelection()
@@ -307,7 +318,6 @@ export const mutations = {
     if (!state.user) {
       state.user = {};
     }
-    console.log('updateCurrentUser', value);
     // Store previous state for comparison
     const previousUser = { ...state.user };
 
@@ -320,14 +330,6 @@ export const mutations = {
       i18n.default.locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
     }
-    console.log('updateCurrentUser2', state.user);
-    // Update localStorage if stickySidebar exists
-    if (state.user.stickySidebar && getters.currentView() == "listingView") {
-      state.multiButtonState = "menu";
-    } else if (state.showSidebar) {
-      state.multiButtonState = "back";
-    }
-    console.log('updateCurrentUser3', state.user);
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
       // Only update the properties that were actually provided in the input
@@ -419,6 +421,9 @@ export const mutations = {
     emitStateChanged();
   },
   setSearch: (value) => {
+    if (value == state.isSearchActive) {
+      return;
+    }
     state.isSearchActive = value;
     emitStateChanged();
   },
@@ -430,6 +435,9 @@ export const mutations = {
     emitStateChanged();
   },
   hideTooltip() {
+    if (!state.tooltip.show) {
+      return;
+    }
     state.tooltip.show = false;
     emitStateChanged();
   },

@@ -7,9 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -40,7 +38,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
-		fileList = append(fileList, d.fileInfo.Source+"::"+d.fileInfo.Path+file)
+		filePath := utils.JoinPathAsUnix(d.share.Path, file)
+		fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
 	}
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
@@ -52,7 +51,6 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	d.fileInfo.Path = strings.TrimPrefix(d.fileInfo.Path, d.share.Path)
 	return renderJSON(w, r, d.fileInfo)
 }
 
@@ -94,24 +92,5 @@ func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestCont
 	if config.Server.DisablePreviews {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
-	path := r.URL.Query().Get("path")
-	var err error
-	if path == "" {
-		return http.StatusBadRequest, fmt.Errorf("invalid request path")
-	}
-	fileInfo, err := files.FileInfoFaster(iteminfo.FileOptions{
-		Path:   utils.JoinPathAsUnix(d.share.Path, path),
-		Modify: false, // TODO make this configurable
-		Source: d.fileInfo.Source,
-		Expand: true,
-	})
-	if err != nil {
-		logger.Debugf("public preview handler: error getting file info: %v", err)
-		return 400, fmt.Errorf("file not found")
-	}
-	if fileInfo.Type == "directory" {
-		return http.StatusBadRequest, fmt.Errorf("can't create preview for directory")
-	}
-	d.fileInfo = fileInfo
 	return previewHelperFunc(w, r, d)
 }

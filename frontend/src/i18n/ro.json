@@ -171,7 +171,10 @@
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
     "invalidName": "Nume invalid furnizat: nu poate conține \"/\" sau \"\\\"",
-    "source": "Source{suffix}"
+    "source": "Source{suffix}",
+    "downloadsLimit": "Limita numărului de descărcări",
+    "maxBandwidth": "Lățime de bandă maximă de descărcare (kbps)",
+    "shareTheme": "Temă de partajare"
   },
   "search": {
     "images": "Imagini",

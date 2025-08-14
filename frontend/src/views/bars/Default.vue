@@ -101,13 +101,13 @@ export default {
       return getters.currentView() == "editor" && state.user.permissions.modify;
     },
     showSearch() {
-      return getters.isLoggedIn() && getters.currentView() === "listingView";
+      return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
     },
     isDisabled() {
       return state.isSearchActive || getters.currentPromptName() != "";
     },
     isDisabledMultiAction() {
-      return this.isDisabled || (getters.isStickySidebar() && state.multiButtonState === "menu");
+      return this.isDisabled || (getters.isStickySidebar() && getters.multibuttonState() === "menu");
     },
     showSwitchView() {
       return getters.currentView() === "listingView";

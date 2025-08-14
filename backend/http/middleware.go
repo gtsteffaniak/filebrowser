@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
@@ -23,7 +25,6 @@ import (
 type requestContext struct {
 	user     *users.User
 	fileInfo iteminfo.ExtendedFileInfo
-	path     string
 	token    string
 	share    *share.Link
 	ctx      context.Context
@@ -43,19 +44,23 @@ type handleFunc func(w http.ResponseWriter, r *http.Request, data *requestContex
 // Middleware to handle file requests by hash and pass it to the handler
 func withHashFileHelper(fn handleFunc) handleFunc {
 	return withOrWithoutUserHelper(func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		path := r.URL.Query().Get("path")
 		hash := r.URL.Query().Get("hash")
+		encodedPath := r.URL.Query().Get("path")
+		// Decode the URL-encoded path
+		path, err := url.QueryUnescape(encodedPath)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
+		}
 		// Get the file link by hash
 		link, err := store.Share.GetByHash(hash)
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("share not found")
 		}
 		data.share = link
-		data.user.Scopes = []users.SourceScope{
-			{
-				Name:  link.Source,
-				Scope: "/",
-			},
+		if link.DisableAnonymous {
+			if data.user == nil {
+				return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
+			}
 		}
 		// Authenticate the share request if needed
 		var status int
@@ -65,27 +70,23 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 				return status, fmt.Errorf("could not authenticate share request")
 			}
 		}
-		data.path = strings.TrimSuffix(link.Path, "/") + "/" + strings.TrimPrefix(path, "/")
-		if path == "" || path == "/" {
-			data.path = link.Path
-		}
-
 		source, ok := config.Server.SourceMap[link.Source]
 		if !ok {
 			return http.StatusNotFound, fmt.Errorf("source not found")
 		}
 		// Get file information with options
 		file, err := FileInfoFasterFunc(iteminfo.FileOptions{
-			Path:   data.path,
+			Path:   utils.JoinPathAsUnix(link.Path, path),
 			Source: source.Name,
 			Modify: false,
 			Expand: true,
 		})
 		file.Token = link.Token
 		if err != nil {
-			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, data.path, err)
+			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
+		file.Path = "/" + strings.TrimPrefix(strings.TrimPrefix(file.Path, link.Path), "/")
 		// Set the file info in the `data` object
 		data.fileInfo = file
 		// Call the next handler with the data
@@ -109,15 +110,27 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // If authentication fails, the request continues without a user.
 func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
+		hash := r.URL.Query().Get("hash")
+		var link *share.Link
+		if hash != "" {
+			// Get the file link by hash
+			link, _ = store.Share.GetByHash(hash)
+		}
+		if link != nil {
+			defer func() {
+				data.share = link
+				data.user.CustomTheme = link.ShareTheme
+			}()
+		}
 		// Try to authenticate user first
 		status, err := withUserHelper(fn)(w, r, data)
 		// If user authentication succeeded, return the result
 		if err == nil {
 			return status, nil
 		}
+		data.user = &users.AnonymousUser
 		// If user authentication failed, call the handler without user context
 		// Clear any user data that might have been partially set
-		data.user = &users.PublicUser
 		data.token = ""
 		// Call the handler function without user context
 		return fn(w, r, data)

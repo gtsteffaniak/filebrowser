@@ -11,8 +11,6 @@ export const state = reactive({
   contextMenuHasItems: false,
   deletedItem: false,
   previousHash: "",
-  multiButtonState: "menu",
-  multiButtonLastState: "menu",
   showOverflowMenu: false,
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),

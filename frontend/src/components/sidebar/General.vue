@@ -2,7 +2,7 @@
   <div class="card headline-card">
     <div class="card-wrapper user-card">
       <div
-        v-if="settingsAllowed && user.username !== 'publicUser'"
+        v-if="settingsAllowed && user.username !== 'anonymous'"
         @click="navigateTo('/settings#profile-main')"
         class="inner-card"
       >
@@ -16,7 +16,7 @@
           <i aria-label="settings" class="material-icons">settings</i>
         </button>
       </div>
-      <div v-else-if="user.username === 'publicUser' && canLogout" @click="navigateToLogin" class="inner-card">
+      <div v-else-if="user.username === 'anonymous' && canLogout" @click="navigateToLogin" class="inner-card">
         <button class="person-button action">
           <i class="material-symbols-outlined">login</i> {{ $t("sidebar.login") }}
         </button>
@@ -28,7 +28,7 @@
         </button>
       </div>
 
-      <div class="inner-card" v-if="user.username !== 'publicUser'" @click="logout">
+      <div class="inner-card" v-if="user.username !== 'anonymous'" @click="logout">
         <button
           aria-label="logout-button"
           class="logout-button action"

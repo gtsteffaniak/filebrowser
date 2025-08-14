@@ -7,6 +7,3 @@ import search from "./search";
 
 // Note: shareApi has been consolidated into publicApi
 export { filesApi, publicApi, usersApi, settingsApi, search, accessApi };
-
-// For backward compatibility, export publicApi as shareApi as well
-export { publicApi as shareApi };

@@ -156,6 +156,20 @@ func TestPublicShareHandlerAuthentication(t *testing.T) {
 			expectedStatusCode: 0, // zero means 200 on helpers
 		},
 		{
+			name: "Private share, valid password when token exists",
+			share: &share.Link{
+				Hash:         "pw_and_token_hash",
+				UserID:       1,
+				PasswordHash: passwordBcrypt,
+				Token:        "some_random_token",
+				Source:       "/srv",
+			},
+			extraHeaders: map[string]string{
+				"X-SHARE-PASSWORD": "password",
+			},
+			expectedStatusCode: 0, // zero means 200 on helpers
+		},
+		{
 			name: "Private share, no auth provided",
 			share: &share.Link{
 				Hash:         "private_hash",

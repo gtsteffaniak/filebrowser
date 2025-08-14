@@ -67,7 +67,7 @@ export const getters = {
     if (
       state.user !== null &&
       state.user?.username != '' &&
-      state.user?.username != 'publicUser'
+      state.user?.username != 'anonymous'
     ) {
       return true
     }
@@ -147,15 +147,11 @@ export const getters = {
       'onlyOfficeEditor',
       'editor'
     ]
-    let visible =
-      (state.showSidebar || getters.isStickySidebar())
+    let visible = (state.showSidebar || getters.isStickySidebar())
     if (getters.isShare() && !state.isMobile) {
       visible = true
     }
-    if (
-      typeof getters.currentPromptName() === 'string' &&
-      !getters.isStickySidebar()
-    ) {
+    if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false
     }
     if (previewViews.includes(currentView) && !state.user.preview?.disableHideSidebar) {
@@ -201,10 +197,11 @@ export const getters = {
   sharePathBase: () => {
     return '/public/share/' + getters.shareHash() + '/'
   },
-  getSharePath: () => {
+  getSharePath: (subPath = "") => {
     let urlPath = getters.routePath('public/share')
-    let parts = urlPath.split('/')
-    return "/" + removeLeadingSlash(parts.slice(2).join('/'))
+    const path =  "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1]) + subPath
+    console.log("getSharePath", path)
+    return path
   },
   currentView: () => {
     let listingView = ''
@@ -289,7 +286,6 @@ export const getters = {
   },
 
   currentPromptName: () => {
-    console.log("currentPromptName", state.prompts);
     // Ensure state.prompts is an array
     if (!Array.isArray(state.prompts) || state.prompts.length === 0) {
       return ""
@@ -355,10 +351,10 @@ export const getters = {
     }
     return false
   },
-  publicUser: () => {
+  anonymous: () => {
     return {
       id: 0,
-      username: "publicUser",
+      username: "anonymous",
       locale: i18n.detectLocale(),
       sorting: {
         by: "name",
@@ -396,5 +392,33 @@ export const getters = {
         chunkSizeMb: 15,
       }
     }
-  }
-}
+  },
+  multibuttonState: () => {
+    const cv = getters.currentView()
+    const isSidebarVisible = getters.isSidebarVisible()
+    if (isSidebarVisible) {
+      if (cv == "settings") {
+        if (state.isMobile) {
+          return "back";
+        }
+        return "close";
+      }
+      if (state.user.stickySidebar) {
+        return "menu";
+      }
+      return "back";
+    }
+    if (cv == "settings") {
+      if (state.isMobile) {
+        return "menu";
+      }
+    }
+    if (cv == "listingView") {
+      return "menu";
+    }
+    if (cv == "listingView") {
+      return "menu";
+    }
+    return "close";
+  },
+};
