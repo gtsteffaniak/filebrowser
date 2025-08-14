@@ -331,12 +331,6 @@ export const mutations = {
       i18n.default.locale = state.user.locale;
       localStorage.setItem("userLocale", state.user.locale);
     }
-    // Update localStorage if stickySidebar exists
-    if (state.user.stickySidebar && getters.currentView() == "listingView") {
-      // do nothing
-    } else if (state.showSidebar) {
-      // do nothing
-    }
     // Update users if there's any change in state.user
     if (JSON.stringify(state.user) !== JSON.stringify(previousUser)) {
       // Only update the properties that were actually provided in the input
