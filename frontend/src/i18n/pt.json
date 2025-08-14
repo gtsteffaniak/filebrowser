@@ -319,7 +319,13 @@
     "abortUpload": "Tens a certeza que queres abortar?"
   },
   "share": {
-    "notice": "Nota: qualquer pessoa que tenha acesso à ligação (e à palavra-passe opcional) pode aceder aos ficheiros partilhados. Não é necessário ter sessão iniciada."
+    "notice": "Nota: quando uma partilha é criada, fica mais exposta ao público e tem regras de acesso diferentes. Se a sua partilha não estiver configurada de forma segura, pode ser acedida por qualquer pessoa.",
+    "disableAnonymousDescription": "Quando ativado, apenas os utilizadores autenticados podem aceder à partilha. O utilizador tem de ter acesso à fonte da partilha.",
+    "disableThumbnailsDescription": "Quando activada, as miniaturas de pré-visualização não serão mostradas na partilha.",
+    "enableAllowedUsernamesDescription": "Quando ativado, apenas os utilizadores especificados podem aceder à partilha. O utilizador tem de ter acesso à fonte da partilha.",
+    "downloadsLimitDescription": "O número máximo de vezes que qualquer ficheiro/pasta da partilha pode ser descarregado. Deixar em branco para ilimitado.",
+    "maxBandwidthDescription": "A largura de banda máxima de transferência em kilobytes por segundo. Deixar vazio para ilimitado.",
+    "shareThemeDescription": "O tema a utilizar para a ligação de partilha."
   },
   "api": {
     "title": "Chaves da API",

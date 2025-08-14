@@ -2925,13 +2925,20 @@ const docTemplate = `{
         "share.Link": {
             "type": "object",
             "properties": {
-                "allowUpload": {
-                    "type": "boolean"
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "disableAnonymous": {
                     "type": "boolean"
                 },
                 "disableFileViewer": {
+                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
                     "type": "boolean"
                 },
                 "downloadsLimit": {
@@ -2943,7 +2950,11 @@ const docTemplate = `{
                 "hash": {
                     "type": "string"
                 },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
                 "maxBandwidth": {
+                    "description": "AllowUpload         bool   ` + "`" + `json:\"allowUpload,omitempty\"` + "`" + `",
                     "type": "integer"
                 },
                 "password_hash": {
@@ -2951,9 +2962,6 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
-                },
-                "readOnly": {
-                    "type": "boolean"
                 },
                 "shareTheme": {
                     "type": "string"

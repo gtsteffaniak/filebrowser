@@ -58,20 +58,57 @@
         </select>
       </div>
       <p>{{ $t("prompts.optionalPassword") }}</p>
-      <input class="input" type="password" autocomplete="off" v-model.trim="password" />
+      <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
 
       <div class="settings-items">
-        <ToggleSwitch class="item" v-model="readOnly" :name="'Read-only access'" />
+        <!--
+        <ToggleSwitch class="item" v-model="allowEdit" :name="'Allow modifications'" />
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
-        <ToggleSwitch class="item" v-model="disableAnonymous" :name="'Disable anonymous access'" />
         <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
+        -->
+        <ToggleSwitch class="item" v-model="disableAnonymous" :name="'Disable anonymous access'" />
+        <i class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.disableAnonymousDescription'))" @mouseleave="hideTooltip">
+          help
+        </i>
+        <ToggleSwitch class="item" v-model="disableThumbnails" :name="'Disable Thumbnails'" />
+        <i class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.disableThumbnailsDescription'))" @mouseleave="hideTooltip">
+          help
+        </i>
+        <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="'Only share to certain users'" />
+        <i class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.enableAllowedUsernamesDescription'))" @mouseleave="hideTooltip">
+          help
+        </i>
+        <div v-if="enableAllowedUsernames" class="item">
+          <input class="input" type="text" v-model.trim="allowedUsernames" placeholder="Enter usernames, comma-separated" />
+        </div>
       </div>
 
-      <p>{{ $t("prompts.downloadsLimit") }}</p>
+      <div class="centered-with-tooltip">
+        <p>{{ $t("prompts.downloadsLimit") }}</p>
+        <i class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))" @mouseleave="hideTooltip">
+          help
+        </i>
+      </div>
       <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-      <p>{{ $t("prompts.maxBandwidth") }}</p>
+      <div class="centered-with-tooltip">
+        <p>{{ $t("prompts.maxBandwidth") }}</p>
+        <i class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))" @mouseleave="hideTooltip">
+          help
+        </i>
+      </div>
       <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-      <p>{{ $t("prompts.shareTheme") }}</p>
+      <div class="centered-with-tooltip">
+        <p>{{ $t("prompts.shareTheme") }}</p>
+        <i class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
+          help
+        </i>
+      </div>
       <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
         <select class="input" v-model="shareTheme">
           <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
@@ -127,13 +164,16 @@ export default {
       source: "",
       password: "",
       listing: true,
-      readOnly: false,
+      allowEdit: false,
       downloadsLimit: "",
       shareTheme: "default",
       disableAnonymous: false,
       allowUpload: false,
       maxBandwidth: "",
       disablingFileViewer: false,
+      disableThumbnails: false,
+      enableAllowedUsernames: false,
+      allowedUsernames: "",
     };
   },
   computed: {
@@ -167,6 +207,13 @@ export default {
         return state.route.path;
       }
       return buildItemUrl(state.req.items[this.selected[0]].source,state.req.items[this.selected[0]].path)
+    },
+  },
+  watch: {
+    listing(isListing) {
+      if (!isListing) {
+        this.password = "";
+      }
     },
   },
   async beforeMount() {
@@ -210,19 +257,37 @@ export default {
     this.clip.destroy();
   },
   methods: {
+    showTooltip(event, text) {
+      mutations.showTooltip({
+        content: text,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    hideTooltip() {
+      mutations.hideTooltip();
+    },
     async submit() {
       try {
         let isPermanent = !this.time || this.time == 0;
         let res = null;
         if (isPermanent) {
-          res = await publicApi.create(this.subpath, this.source, this.password);
+          res = await publicApi.create(this.subpath, this.source, this.password, "", "", this.disableAnonymous, this.allowUpload, this.maxBandwidth, this.downloadsLimit, this.shareTheme, this.disablingFileViewer, this.disableThumbnails, this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : []);
         } else {
           res = await publicApi.create(
             this.subpath,
             this.source,
             this.password,
             this.time.toString(),
-            this.unit
+            this.unit,
+            this.disableAnonymous,
+            this.allowUpload,
+            this.maxBandwidth,
+            this.downloadsLimit,
+            this.shareTheme,
+            this.disablingFileViewer,
+            this.disableThumbnails,
+            this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : []
           );
         }
 

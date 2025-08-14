@@ -319,7 +319,13 @@
     "abortUpload": "Êtes-vous sûre de vouloir annuler ?"
   },
   "share": {
-    "notice": "Remarque : toute personne ayant accès au lien (et au mot de passe facultatif) peut accéder aux fichiers partagés. Il n'est pas nécessaire d'être connecté."
+    "notice": "Remarque : lorsqu'un partage est créé, il est davantage exposé au public et les règles d'accès sont différentes. Si votre partage n'est pas configuré de manière sécurisée, n'importe qui peut y accéder.",
+    "disableAnonymousDescription": "Lorsque cette option est activée, seuls les utilisateurs authentifiés peuvent accéder au partage. L'utilisateur doit avoir accès à la source du partage.",
+    "disableThumbnailsDescription": "Lorsque cette option est activée, les vignettes de prévisualisation ne sont pas affichées dans le partage.",
+    "enableAllowedUsernamesDescription": "Lorsque cette option est activée, seuls les utilisateurs spécifiés peuvent accéder au partage. L'utilisateur doit avoir accès à la source du partage.",
+    "downloadsLimitDescription": "Nombre maximum de fois qu'un fichier/dossier du partage peut être téléchargé. Laisser vide pour un nombre illimité.",
+    "maxBandwidthDescription": "Largeur de bande maximale de téléchargement en kilo-octets par seconde. Laissez vide pour un débit illimité.",
+    "shareThemeDescription": "Le thème à utiliser pour le lien de partage."
   },
   "api": {
     "title": "Clés API :",

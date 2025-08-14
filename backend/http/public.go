@@ -29,6 +29,13 @@ import (
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /public/dl [get]
 func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if d.share.Downloads > d.share.DownloadsLimit {
+		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
+	}
+	d.share.Mu.Lock()
+	d.share.Downloads++
+	d.share.Mu.Unlock()
+
 	encodedFiles := r.URL.Query().Get("files")
 	// Decode the URL-encoded path
 	f, err := url.QueryUnescape(encodedFiles)
@@ -41,6 +48,18 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		filePath := utils.JoinPathAsUnix(d.share.Path, file)
 		fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
 	}
+	if d.share != nil {
+		// Public share link, so we check if the user is the owner of the share
+		if d.user != nil && d.user.ID == d.share.UserID {
+			d.user.Permissions.Modify = true
+		} else {
+			// for public shares, we assume the user has no modify permissions
+			if d.user != nil {
+				d.user.Permissions.Modify = false
+			}
+		}
+	}
+
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
 	if err != nil {
@@ -89,7 +108,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/public/preview [get]
 func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
-	if config.Server.DisablePreviews {
+	if config.Server.DisablePreviews || d.share.DisableThumbnails {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	return previewHelperFunc(w, r, d)

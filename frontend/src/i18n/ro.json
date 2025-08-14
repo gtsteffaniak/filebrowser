@@ -319,7 +319,13 @@
     "abortUpload": "Ești sigură că vrei să avortezi?"
   },
   "share": {
-    "notice": "Notă: orice persoană care are acces la link (și parola opțională) poate accesa fișierele partajate. Nu este necesar să fiți autentificat."
+    "notice": "Notă: atunci când este creată o partajare, aceasta devine mai expusă publicului și are reguli diferite de acces. Dacă partajul dvs. nu este configurat în siguranță, acesta poate fi accesat de oricine.",
+    "disableAnonymousDescription": "Atunci când este activat, numai utilizatorii autentificați pot accesa partajarea. Utilizatorul trebuie să aibă acces la sursa partajului.",
+    "disableThumbnailsDescription": "Atunci când este activat, miniaturile de previzualizare nu vor fi afișate în partajare.",
+    "enableAllowedUsernamesDescription": "Atunci când este activat, numai utilizatorii specificați pot accesa partajarea. Utilizatorul trebuie să aibă acces la sursa partajului.",
+    "downloadsLimitDescription": "Numărul maxim de ori în care poate fi descărcat orice fișier/folder din partajare. Lăsați gol pentru nelimitat.",
+    "maxBandwidthDescription": "Lățimea de bandă maximă de descărcare în kilobiți pe secundă. Lăsați gol pentru nelimitat.",
+    "shareThemeDescription": "Tema de utilizat pentru link-ul de partajare."
   },
   "api": {
     "title": "Chei API:",

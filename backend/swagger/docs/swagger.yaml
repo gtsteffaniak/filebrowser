@@ -638,11 +638,16 @@ definitions:
     type: object
   share.Link:
     properties:
-      allowUpload:
-        type: boolean
+      allowedUsernames:
+        items:
+          type: string
+        type: array
       disableAnonymous:
         type: boolean
       disableFileViewer:
+        description: AllowEdit           bool   `json:"allowEdit,omitempty"`
+        type: boolean
+      disableThumbnails:
         type: boolean
       downloadsLimit:
         type: integer
@@ -650,14 +655,15 @@ definitions:
         type: integer
       hash:
         type: string
+      keepAfterExpiration:
+        type: boolean
       maxBandwidth:
+        description: AllowUpload         bool   `json:"allowUpload,omitempty"`
         type: integer
       password_hash:
         type: string
       path:
         type: string
-      readOnly:
-        type: boolean
       shareTheme:
         type: string
       source:
