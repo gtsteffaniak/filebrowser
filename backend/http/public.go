@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/common/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 
 	_ "github.com/gtsteffaniak/filebrowser/backend/swagger/docs"
@@ -37,7 +38,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 
 	fileList := []string{}
 	for _, file := range strings.Split(f, "||") {
-		fileList = append(fileList, d.fileInfo.Source+"::"+d.fileInfo.Path+file)
+		filePath := utils.JoinPathAsUnix(d.share.Path, file)
+		fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
 	}
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)

@@ -25,7 +25,6 @@ import (
 type requestContext struct {
 	user     *users.User
 	fileInfo iteminfo.ExtendedFileInfo
-	path     string
 	token    string
 	share    *share.Link
 	ctx      context.Context
@@ -87,7 +86,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			logger.Errorf("error fetching file info for share. hash=%v path=%v error=%v", hash, path, err)
 			return errToStatus(err), fmt.Errorf("error fetching share from server")
 		}
-		file.Path = strings.TrimPrefix(file.Path, link.Path)
+		file.Path = "/" + strings.TrimPrefix(strings.TrimPrefix(file.Path, link.Path), "/")
 		// Set the file info in the `data` object
 		data.fileInfo = file
 		// Call the next handler with the data
