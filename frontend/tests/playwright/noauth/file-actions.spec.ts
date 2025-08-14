@@ -79,6 +79,8 @@ test("2x copy from listing to new folder", async({ page, checkForErrors, context
   await page.locator('li[aria-label="newfolder"]').click();
   await page.locator('button[aria-label="Copy"]').click();
   await expect(page.locator('#popup-notification-content')).toHaveText("Resources copied successfully");
+  // give time for copy to complete
+  await page.waitForTimeout(1000);
   await page.goto("/files/myfolder/newfolder/");
   await expect(page).toHaveTitle(/.* - newfolder/);
   checkForErrors();
