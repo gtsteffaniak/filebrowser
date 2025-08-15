@@ -254,6 +254,152 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/access/group": {
+            "post": {
+                "description": "Adds a user to a group.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Add a user to a group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group name",
+                        "name": "group",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User name",
+                        "name": "user",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User added to group successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Removes a user from a group.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Remove a user from a group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group name",
+                        "name": "group",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User name",
+                        "name": "user",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User removed from group successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/access/groups": {
+            "get": {
+                "description": "Returns a list of all groups or the groups for a specific user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Get all groups or groups for a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User name",
+                        "name": "user",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Object containing a list of groups",
+                        "schema": {
+                            "$ref": "#/definitions/http.GroupListResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/logout": {
             "post": {
                 "description": "Returns a logout URL for the frontend to redirect to.",
@@ -2081,6 +2227,17 @@ const docTemplate = `{
                 }
             }
         },
+        "http.GroupListResponse": {
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "http.HttpResponse": {
             "type": "object",
             "properties": {
@@ -2925,13 +3082,20 @@ const docTemplate = `{
         "share.Link": {
             "type": "object",
             "properties": {
-                "allowUpload": {
-                    "type": "boolean"
+                "allowedUsernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "disableAnonymous": {
                     "type": "boolean"
                 },
                 "disableFileViewer": {
+                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                    "type": "boolean"
+                },
+                "disableThumbnails": {
                     "type": "boolean"
                 },
                 "downloadsLimit": {
@@ -2943,7 +3107,11 @@ const docTemplate = `{
                 "hash": {
                     "type": "string"
                 },
+                "keepAfterExpiration": {
+                    "type": "boolean"
+                },
                 "maxBandwidth": {
+                    "description": "AllowUpload         bool   ` + "`" + `json:\"allowUpload,omitempty\"` + "`" + `",
                     "type": "integer"
                 },
                 "password_hash": {
@@ -2951,9 +3119,6 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
-                },
-                "readOnly": {
-                    "type": "boolean"
                 },
                 "shareTheme": {
                     "type": "string"

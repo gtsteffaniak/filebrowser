@@ -319,7 +319,13 @@
     "abortUpload": "你确定要流产吗？"
   },
   "share": {
-    "notice": "注意：任何可以访问链接（和可选密码）的人都可以访问共享文件。无需登录。"
+    "notice": "注意：创建共享后，它将更多地向公众开放，并有不同的访问规则。如果未对共享进行安全配置，任何人都可以访问它。",
+    "disableAnonymousDescription": "启用后，只有经过身份验证的用户才能访问共享。用户必须有访问共享源的权限。",
+    "disableThumbnailsDescription": "启用后，共享中将不显示预览缩略图。",
+    "enableAllowedUsernamesDescription": "启用后，只有指定的用户才能访问共享。用户必须有访问共享源的权限。",
+    "downloadsLimitDescription": "共享中任何文件/文件夹的最大下载次数。留空表示无限制。",
+    "maxBandwidthDescription": "最大下载带宽（千字节/秒）。留空表示无限制。",
+    "shareThemeDescription": "用于共享链接的主题。"
   },
   "api": {
     "title": "应用程序接口密钥",

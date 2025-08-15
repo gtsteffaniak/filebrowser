@@ -26,7 +26,7 @@
             <i v-if="user.permissions.admin" class="material-icons">done</i>
             <i v-else class="material-icons">close</i>
           </td>
-          <td>{{ user.scopes }}</td>
+          <td>{{ formatScopes(user.scopes) }}</td>
           <td class="small" aria-label="Edit User">
             <div @click="openPrompt(user.id)" class="clickable">
               <i class="material-icons">mode_edit</i>
@@ -74,6 +74,14 @@ export default {
     },
   },
   methods: {
+    formatScopes(scopes) {
+      if (!Array.isArray(scopes)) {
+        return scopes;
+      }
+      return scopes
+        .map((scope) => `"${scope.name}": "${scope.scope}"`)
+        .join(", ");
+    },
     openPrompt(userId) {
       if (userId) {
         mutations.showHover({ name: "user-edit", props: { userId } });

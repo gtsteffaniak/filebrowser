@@ -319,7 +319,13 @@
     "abortUpload": "Weet je zeker dat je wilt aborteren?"
   },
   "share": {
-    "notice": "Opmerking: iedereen die toegang heeft tot de link (en optioneel wachtwoord) kan de gedeelde bestanden openen. Je hoeft niet ingelogd te zijn."
+    "notice": "Opmerking: wanneer een share wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als je share niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
+    "disableAnonymousDescription": "Indien ingeschakeld, hebben alleen geauthenticeerde gebruikers toegang tot de share. De gebruiker moet toegang hebben tot de bron van de share.",
+    "disableThumbnailsDescription": "Als deze optie is ingeschakeld, worden er geen voorbeeldminiaturen weergegeven in de share.",
+    "enableAllowedUsernamesDescription": "Indien ingeschakeld, hebben alleen de opgegeven gebruikers toegang tot de share. De gebruiker moet toegang hebben tot de bron van de share.",
+    "downloadsLimitDescription": "Het maximum aantal keren dat een bestand/map van de share kan worden gedownload. Laat leeg voor onbeperkt.",
+    "maxBandwidthDescription": "De maximale downloadbandbreedte in kilobytes per seconde. Leeg laten voor onbeperkt.",
+    "shareThemeDescription": "Het thema dat moet worden gebruikt voor de link delen."
   },
   "api": {
     "title": "API-sleutels",

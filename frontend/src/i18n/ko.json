@@ -319,7 +319,13 @@
     "abortUpload": "취소하시겠습니까?"
   },
   "share": {
-    "notice": "참고: 링크(및 선택 사항인 비밀번호)에 액세스할 수 있는 사람은 누구나 공유 파일에 액세스할 수 있습니다. 로그인할 필요는 없습니다."
+    "notice": "참고: 공유가 생성되면 공개에 더 많이 노출되고 액세스 규칙이 달라집니다. 공유를 안전하게 구성하지 않으면 누구나 액세스할 수 있습니다.",
+    "disableAnonymousDescription": "이 옵션을 활성화하면 인증된 사용자만 공유에 액세스할 수 있습니다. 사용자는 공유 소스에 대한 액세스 권한이 있어야 합니다.",
+    "disableThumbnailsDescription": "활성화하면 미리보기 미리보기 이미지가 공유에 표시되지 않습니다.",
+    "enableAllowedUsernamesDescription": "이 옵션을 활성화하면 지정된 사용자만 공유에 액세스할 수 있습니다. 해당 사용자는 공유 소스에 대한 액세스 권한이 있어야 합니다.",
+    "downloadsLimitDescription": "공유에서 파일/폴더를 다운로드할 수 있는 최대 횟수입니다. 무제한으로 사용하려면 비워 두세요.",
+    "maxBandwidthDescription": "최대 다운로드 대역폭(초당 킬로바이트)입니다. 무제한을 원하시면 비워 두세요.",
+    "shareThemeDescription": "공유 링크에 사용할 테마입니다."
   },
   "api": {
     "title": "API 키:",

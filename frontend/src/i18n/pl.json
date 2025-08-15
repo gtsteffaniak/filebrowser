@@ -319,7 +319,13 @@
     "abortUpload": "Czy na pewno chcesz przerwać ciążę?"
   },
   "share": {
-    "notice": "Uwaga: każdy, kto ma dostęp do linku (i opcjonalnie hasło), może uzyskać dostęp do udostępnionych plików. Nie ma wymogu bycia zalogowanym."
+    "notice": "Uwaga: po utworzeniu folderu udostępnionego staje się on bardziej dostępny publicznie i ma inne zasady dostępu. Jeśli udział nie jest bezpiecznie skonfigurowany, może być dostępny dla każdego.",
+    "disableAnonymousDescription": "Po włączeniu tej opcji tylko uwierzytelnieni użytkownicy mogą uzyskać dostęp do folderu udostępnionego. Użytkownik musi mieć dostęp do źródła folderu udostępnionego.",
+    "disableThumbnailsDescription": "Po włączeniu tej opcji miniatury podglądu nie będą wyświetlane w folderze udostępnionym.",
+    "enableAllowedUsernamesDescription": "Gdy ta opcja jest włączona, tylko określeni użytkownicy mogą uzyskać dostęp do folderu udostępnionego. Użytkownik musi mieć dostęp do źródła folderu udostępnionego.",
+    "downloadsLimitDescription": "Maksymalna liczba pobrań dowolnego pliku/folderu z folderu udostępnionego. Pozostaw puste dla nieograniczonej liczby.",
+    "maxBandwidthDescription": "Maksymalna przepustowość pobierania w kilobajtach na sekundę. Pozostaw puste dla nieograniczonej.",
+    "shareThemeDescription": "Motyw używany dla linku udostępniania."
   },
   "api": {
     "title": "Klucze API:",

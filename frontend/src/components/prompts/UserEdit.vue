@@ -1,6 +1,6 @@
 <template>
   <errors v-if="error" :errorCode="error.status" />
-  <form @submit="save" v-if="loaded">
+  <form @submit.prevent="save" v-if="loaded">
     <div class="card-title">
       <h2 v-if="isNew">{{ $t("settings.newUser") }}</h2>
       <h2 v-else-if="actor.id == user.id">
@@ -8,12 +8,10 @@
       </h2>
       <h2 v-else>{{ $t("settings.modifyOtherUser") }} {{ user.username }}</h2>
     </div>
-
     <div class="card-content minimal-card">
       <user-form v-model:user="user" :createUserDir="createUserDir" :isNew="isNew"
         @update:createUserDir="(updatedDir) => (createUserDir = updatedDir)" />
     </div>
-
     <div v-if="actor.permissions.admin" class="card-action">
       <button class="button button--flat button--grey" @click="closeHovers" :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')">

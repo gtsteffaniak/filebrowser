@@ -319,7 +319,13 @@
     "abortUpload": "Sei sicura di voler abortire?"
   },
   "share": {
-    "notice": "Nota: chiunque abbia accesso al link (e alla password opzionale) può accedere ai file condivisi. Non è necessario effettuare il login."
+    "notice": "Nota: quando una condivisione viene creata, diventa più esposta al pubblico e ha regole di accesso diverse. Se la condivisione non è configurata in modo sicuro, può essere accessibile a chiunque.",
+    "disableAnonymousDescription": "Se abilitato, solo gli utenti autenticati possono accedere alla condivisione. L'utente deve avere accesso all'origine della condivisione.",
+    "disableThumbnailsDescription": "Quando è attivata, le miniature di anteprima non vengono visualizzate nella condivisione.",
+    "enableAllowedUsernamesDescription": "Quando è abilitato, solo gli utenti specificati possono accedere alla condivisione. L'utente deve avere accesso all'origine della condivisione.",
+    "downloadsLimitDescription": "Il numero massimo di volte in cui un file/cartella della condivisione può essere scaricato. Lasciare vuoto per avere un numero illimitato di volte.",
+    "maxBandwidthDescription": "La larghezza di banda massima di download in kilobyte al secondo. Lasciare vuoto per avere una larghezza di banda illimitata.",
+    "shareThemeDescription": "Il tema da utilizzare per il link di condivisione."
   },
   "api": {
     "title": "Chiavi API:",

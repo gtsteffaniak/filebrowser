@@ -319,7 +319,13 @@
     "abortUpload": "Biztos, hogy meg akarja szakítani?"
   },
   "share": {
-    "notice": "Megjegyzés: bárki, aki hozzáfér a linkhez (és opcionális jelszóval), hozzáférhet a megosztott fájlokhoz. Nem szükséges bejelentkezni."
+    "notice": "Megjegyzés: amikor egy megosztás létrejön, akkor az jobban ki van téve a nyilvánosságnak, és más hozzáférési szabályok vonatkoznak rá. Ha a megosztás nincs biztonságosan konfigurálva, bárki hozzáférhet hozzá.",
+    "disableAnonymousDescription": "Ha engedélyezve van, csak a hitelesített felhasználók férhetnek hozzá a megosztáshoz. A felhasználónak hozzáféréssel kell rendelkeznie a megosztás forrásához.",
+    "disableThumbnailsDescription": "Ha engedélyezve van, az előnézeti miniatűrök nem jelennek meg a megosztásban.",
+    "enableAllowedUsernamesDescription": "Ha engedélyezve van, csak a megadott felhasználók férhetnek hozzá a megosztáshoz. A felhasználónak hozzáféréssel kell rendelkeznie a megosztás forrásához.",
+    "downloadsLimitDescription": "A megosztáson lévő fájlok/mappák maximálisan letölthető száma. Ha üresen hagyja, akkor korlátlan.",
+    "maxBandwidthDescription": "A maximális letöltési sávszélesség másodpercenkénti kilobájtban. Ha korlátlan, hagyja üresen.",
+    "shareThemeDescription": "A megosztási linkhez használandó téma."
   },
   "api": {
     "title": "API-kulcsok:",

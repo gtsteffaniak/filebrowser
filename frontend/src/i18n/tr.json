@@ -319,7 +319,13 @@
     "abortUpload": "Aldırmak istediğine emin misin?"
   },
   "share": {
-    "notice": "Not: Bağlantıya (ve isteğe bağlı şifreye) erişimi olan herkes paylaşılan dosyalara erişebilir. Oturum açma zorunluluğu yoktur."
+    "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",
+    "disableAnonymousDescription": "Etkinleştirildiğinde, paylaşıma yalnızca kimliği doğrulanmış kullanıcılar erişebilir. Kullanıcının paylaşımın kaynağına erişimi olmalıdır.",
+    "disableThumbnailsDescription": "Etkinleştirildiğinde, önizleme küçük resimleri paylaşımda gösterilmeyecektir.",
+    "enableAllowedUsernamesDescription": "Etkinleştirildiğinde, paylaşıma yalnızca belirtilen kullanıcılar erişebilir. Kullanıcının paylaşımın kaynağına erişimi olmalıdır.",
+    "downloadsLimitDescription": "Paylaşımdaki herhangi bir dosya/klasörün en fazla kaç kez indirilebileceği. Sınırsız için boş bırakın.",
+    "maxBandwidthDescription": "Saniye başına kilobayt cinsinden maksimum indirme bant genişliği. Sınırsız için boş bırakın.",
+    "shareThemeDescription": "Paylaşım bağlantısı için kullanılacak tema."
   },
   "api": {
     "title": "API Anahtarları:",

@@ -103,6 +103,9 @@ func StartHttp(ctx context.Context, storage *bolt.BoltStore, shutdownComplete ch
 	api.HandleFunc("GET /access", withAdmin(accessGetHandler))
 	api.HandleFunc("POST /access", withAdmin(accessPostHandler))
 	api.HandleFunc("DELETE /access", withAdmin(accessDeleteHandler))
+	api.HandleFunc("GET /access/groups", withAdmin(groupGetHandler))
+	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
+	api.HandleFunc("DELETE /access/group", withAdmin(groupDeleteHandler))
 	// Create API sub-router for public API endpoints
 	publicAPI := http.NewServeMux()
 	// NEW PUBLIC ROUTES - All publicly accessible endpoints

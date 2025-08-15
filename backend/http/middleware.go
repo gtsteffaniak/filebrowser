@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -23,11 +24,12 @@ import (
 )
 
 type requestContext struct {
-	user     *users.User
-	fileInfo iteminfo.ExtendedFileInfo
-	token    string
-	share    *share.Link
-	ctx      context.Context
+	user         *users.User
+	fileInfo     iteminfo.ExtendedFileInfo
+	token        string
+	share        *share.Link
+	ctx          context.Context
+	MaxBandwidth int
 }
 
 type HttpResponse struct {
@@ -56,12 +58,15 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		if err != nil {
 			return http.StatusNotFound, fmt.Errorf("share not found")
 		}
-		data.share = link
-		if link.DisableAnonymous {
-			if data.user == nil {
-				return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
+		if link.DisableAnonymous && data.user.Username == "anonymous" {
+			return http.StatusForbidden, fmt.Errorf("share is not available to anonymous users")
+		}
+		if len(link.AllowedUsernames) > 0 {
+			if !slices.Contains(link.AllowedUsernames, data.user.Username) {
+				return http.StatusForbidden, fmt.Errorf("share is not available to this user")
 			}
 		}
+		data.share = link
 		// Authenticate the share request if needed
 		var status int
 		if link.Hash != "" {

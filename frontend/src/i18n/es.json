@@ -319,7 +319,13 @@
     "abortUpload": "¿Cancelar subida?"
   },
   "share": {
-    "notice": "Nota: Cualquiera con el enlace puede acceder a los archivos (no requiere inicio de sesión)."
+    "notice": "Nota: cuando se crea un recurso compartido, queda más expuesto al público y tiene diferentes normas de acceso. Si su recurso compartido no está configurado de forma segura, cualquiera puede acceder a él.",
+    "disableAnonymousDescription": "Cuando está activada, sólo los usuarios autenticados pueden acceder al recurso compartido. El usuario debe tener acceso al origen del recurso compartido.",
+    "disableThumbnailsDescription": "Si está activada, las miniaturas de previsualización no se mostrarán en la acción.",
+    "enableAllowedUsernamesDescription": "Cuando se activa, sólo los usuarios especificados pueden acceder al recurso compartido. El usuario debe tener acceso al origen del recurso compartido.",
+    "downloadsLimitDescription": "Número máximo de veces que se puede descargar un archivo/carpeta del recurso compartido. Dejar vacío para ilimitado.",
+    "maxBandwidthDescription": "El ancho de banda máximo de descarga en kilobytes por segundo. Dejar vacío para ilimitado.",
+    "shareThemeDescription": "El tema que se utilizará para el enlace compartido."
   },
   "api": {
     "title": "Crear API:",

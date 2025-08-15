@@ -29,7 +29,10 @@
           <option value="deny">{{ $t("access.deny") }}</option>
           <option value="allow">{{ $t("access.allow") }}</option>
         </select>
-        <input class="input flat-right flat-left form-grow form-compact" v-model="addName" :placeholder="$t('access.enterName')" />
+        <input class="input flat-right flat-left form-grow form-compact" v-model="addName" :placeholder="$t('access.enterName')" list="group-suggestions" />
+        <datalist id="group-suggestions">
+          <option v-for="group in groups" :key="group" :value="group"></option>
+        </datalist>
         <button class="button form-button flat-left form-compact" @click="submitAdd">
           <i class="material-icons">add</i>
         </button>
@@ -58,7 +61,7 @@
     </div>
   </div>
   <div class="card-action">
-      <button @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.close')"
+      <button v-if="!isEditingPath" @click="closeHovers" class="button button--flat button--grey" :aria-label="$t('buttons.close')"
         :title="$t('buttons.close')">
         {{ $t("buttons.close") }}
       </button>
@@ -88,7 +91,8 @@ export default {
       rule: { deny: { users: [], groups: [] }, allow: { users: [], groups: [] } },
       addType: "user",
       addListType: "deny",
-      addName: ""
+      addName: "",
+      groups: []
     };
   },
   computed: {
@@ -112,6 +116,7 @@ export default {
   },
   async mounted() {
     await this.fetchRule();
+    await this.fetchGroups();
   },
   watch: {
     sourceName(newSourceName) {
@@ -151,6 +156,14 @@ export default {
     },
     cancelPathChange() {
       this.isEditingPath = false;
+    },
+    async fetchGroups() {
+      try {
+        const response = await accessApi.getGroups();
+        this.groups = response.groups;
+      } catch (e) {
+        notify.showError(e);
+      }
     },
     async fetchRule() {
       try {

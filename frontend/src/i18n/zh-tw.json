@@ -319,7 +319,13 @@
     "abortUpload": "你確定要流產嗎？"
   },
   "share": {
-    "notice": "請注意：任何能夠存取連結（以及可選密碼）的人都可以存取共用檔案。無需登入。"
+    "notice": "請注意：建立共用後，共用會更容易暴露於大眾，且有不同的存取規則。如果您的共用未經安全設定，任何人都可能存取。",
+    "disableAnonymousDescription": "啟用時，只有經過驗證的使用者才能存取共用。使用者必須有存取共用來源的權限。",
+    "disableThumbnailsDescription": "啟用時，分享中不會顯示預覽縮圖。",
+    "enableAllowedUsernamesDescription": "啟用時，只有指定的使用者可以存取共用。使用者必須有存取共用來源的權限。",
+    "downloadsLimitDescription": "共用中任何檔案/資料夾的最大下載次數。留空表示無限制。",
+    "maxBandwidthDescription": "最大下載頻寬，單位為每秒千位元組。留空表示無限制。",
+    "shareThemeDescription": "分享連結要使用的主題。"
   },
   "api": {
     "title": "API 金鑰",

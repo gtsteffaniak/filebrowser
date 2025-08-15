@@ -120,7 +120,7 @@ func (s *Storage) Delete(hash string) error {
 func (s *Storage) filterExpired(links []*Link) ([]*Link, error) {
 	var filtered []*Link
 	for _, link := range links {
-		if link.Expire != 0 && link.Expire <= time.Now().Unix() {
+		if link.Expire != 0 && link.Expire <= time.Now().Unix() && !link.KeepAfterExpiration {
 			_ = s.back.Delete(link.Hash)
 			continue
 		}

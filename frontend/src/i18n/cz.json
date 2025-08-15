@@ -131,7 +131,13 @@
     "or": "NEBO"
   },
   "share": {
-    "notice": "Poznámka: Každý, kdo má přístup k odkazu (a volitelnému heslu), může zobrazit sdílené soubory. Není nutné být přihlášen."
+    "notice": "Poznámka: po vytvoření sdílené složky je tato složka více vystavena veřejnosti a platí pro ni jiná pravidla přístupu. Pokud není sdílená složka bezpečně nakonfigurována, může k ní mít přístup kdokoli.",
+    "disableAnonymousDescription": "Je-li tato možnost povolena, mohou ke sdílené složce přistupovat pouze ověření uživatelé. Uživatel musí mít přístup ke zdroji sdílené složky.",
+    "disableThumbnailsDescription": "Pokud je tato možnost povolena, náhledy se ve sdílené složce nezobrazují.",
+    "enableAllowedUsernamesDescription": "Pokud je tato možnost povolena, mohou ke sdílené složce přistupovat pouze zadaní uživatelé. Uživatel musí mít přístup ke zdroji sdílené složky.",
+    "downloadsLimitDescription": "Maximální počet stažení libovolného souboru/složky ze sdílené složky. Nechte prázdné pro neomezený počet.",
+    "maxBandwidthDescription": "Maximální šířka pásma pro stahování v kilobajtech za sekundu. Nechte prázdné pro neomezené.",
+    "shareThemeDescription": "Motiv, který se použije pro odkaz na sdílení."
   },
   "prompts": {
     "copy": "Kopírovat",

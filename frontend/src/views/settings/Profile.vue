@@ -239,7 +239,7 @@
             <select
               class="input"
               v-model="selectedTheme"
-              @change="updateCustomTheme"
+              @change="updateSettings"
             >
               <option
                 v-for="(theme, key) in availableThemes"
@@ -258,6 +258,7 @@
           ></Languages>
         </div>
       </form>
+      <br/>
   </div>
 </template>
 
@@ -280,7 +281,6 @@ export default {
   data() {
     return {
       localuser: { preview: {}, permissions: {} }, // Initialize localuser with empty objects to avoid undefined errors
-      
       formDisablePreviews: "", // holds temporary input before saving
       formDisabledViewing: "", // holds temporary input before saving
       formDisableOfficePreview: "", // holds temporary input before saving
@@ -294,7 +294,6 @@ export default {
       ],
     };
   },
-  
   computed: {
     availableThemes() {
       return userSelectableThemes || {};
@@ -379,6 +378,7 @@ export default {
       this.updateSettings();
     },
     async updateSettings(event) {
+      console.log("updateSettings", this.localuser.customTheme);
       if (event !== undefined) {
         event.preventDefault();
       }
@@ -391,6 +391,7 @@ export default {
       try {
         const data = this.localuser;
         const themeChanged = state.user.customTheme != this.localuser.customTheme;
+        console.log("themeChanged", state.user.customTheme, this.localuser.customTheme);
         mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "locale",
