@@ -150,11 +150,11 @@ export async function remove(hash) {
  * @param {string[]} allowedUsernames
  * @returns {Promise<any>}
  */
-export async function create(path, source, password = "", expires = "", unit = "hours", disableAnonymous, allowUpload, maxBandwidth, downloadsLimit, shareTheme, disableFileViewer, disableThumbnails, allowedUsernames = []) {
+export async function create(path, source, password = "", expires = "", unit = "hours", disableAnonymous, allowUpload, maxBandwidth, downloadsLimit, shareTheme, disableFileViewer, disableThumbnails, allowedUsernames = [], hash = "") {
   const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
   const apiPath = getApiPath("public/share", params);
   let body = "{}";
-  if (password != "" || expires !== "" || unit !== "hours" || disableAnonymous || allowUpload || maxBandwidth !== "" || downloadsLimit !== "" || shareTheme !== "default" || disableFileViewer || disableThumbnails || (allowedUsernames && allowedUsernames.length > 0)) {
+  if (password != "" || expires !== "" || unit !== "hours" || disableAnonymous || allowUpload || maxBandwidth !== "" || downloadsLimit !== "" || shareTheme !== "default" || disableFileViewer || disableThumbnails || (allowedUsernames && allowedUsernames.length > 0) || hash !== "") {
     body = JSON.stringify({
       password: password,
       expires: expires,
@@ -167,6 +167,7 @@ export async function create(path, source, password = "", expires = "", unit = "
       disableFileViewer: disableFileViewer,
       disableThumbnails: disableThumbnails,
       allowedUsernames: allowedUsernames,
+      hash: hash,
     });
   }
   return fetchJSON(apiPath, {

@@ -49,7 +49,7 @@
     <div v-else>
       <p>{{ $t("settings.shareDuration") }}</p>
       <div class="form-flex-group">
-        <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="1" @keyup.enter="submit" v-model.trim="time" />
+        <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0" @keyup.enter="submit" v-model.trim="time" />
         <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
           <option value="seconds">{{ $t("time.seconds") }}</option>
           <option value="minutes">{{ $t("time.minutes") }}</option>
@@ -66,27 +66,33 @@
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
         -->
-        <ToggleSwitch class="item" v-model="disableAnonymous" :name="'Disable anonymous access'" />
-        <i class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.disableAnonymousDescription'))" @mouseleave="hideTooltip">
-          help
-        </i>
-        <ToggleSwitch class="item" v-model="disableThumbnails" :name="'Disable Thumbnails'" />
-        <i class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.disableThumbnailsDescription'))" @mouseleave="hideTooltip">
-          help
-        </i>
-        <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="'Only share to certain users'" />
-        <i class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.enableAllowedUsernamesDescription'))" @mouseleave="hideTooltip">
-          help
-        </i>
+        <div class="setting-item item">
+          <div class="label-with-tooltip">
+            <span>{{ $t('share.disableAnonymous') }}</span>
+            <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.disableAnonymousDescription'))" @mouseleave="hideTooltip">help</i>
+          </div>
+          <ToggleSwitch v-model="disableAnonymous" />
+        </div>
+        <div class="setting-item item">
+          <div class="label-with-tooltip">
+            <span>{{ $t('share.disableThumbnails') }}</span>
+            <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.disableThumbnailsDescription'))" @mouseleave="hideTooltip">help</i>
+          </div>
+          <ToggleSwitch v-model="disableThumbnails" />
+        </div>
+        <div class="setting-item item">
+          <div class="label-with-tooltip">
+            <span>{{ $t('share.enableAllowedUsernames') }}</span>
+            <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.enableAllowedUsernamesDescription'))" @mouseleave="hideTooltip">help</i>
+          </div>
+          <ToggleSwitch v-model="enableAllowedUsernames" />
+        </div>
         <div v-if="enableAllowedUsernames" class="item">
-          <input class="input" type="text" v-model.trim="allowedUsernames" placeholder="Enter usernames, comma-separated" />
+          <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
         </div>
       </div>
 
-      <div class="centered-with-tooltip">
+      <div class="label-with-tooltip">
         <p>{{ $t("prompts.downloadsLimit") }}</p>
         <i class="no-select material-symbols-outlined tooltip-info-icon"
           @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))" @mouseleave="hideTooltip">
@@ -94,7 +100,7 @@
         </i>
       </div>
       <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-      <div class="centered-with-tooltip">
+      <div class="label-with-tooltip">
         <p>{{ $t("prompts.maxBandwidth") }}</p>
         <i class="no-select material-symbols-outlined tooltip-info-icon"
           @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))" @mouseleave="hideTooltip">
@@ -102,7 +108,7 @@
         </i>
       </div>
       <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-      <div class="centered-with-tooltip">
+      <div class="label-with-tooltip">
         <p>{{ $t("prompts.shareTheme") }}</p>
         <i class="no-select material-symbols-outlined tooltip-info-icon"
           @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
@@ -153,6 +159,16 @@ export default {
   name: "share",
   components: {
     ToggleSwitch,
+  },
+  props: {
+    editing: {
+      type: Boolean,
+      default: false,
+    },
+    link: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   data() {
     return {
@@ -208,6 +224,9 @@ export default {
       }
       return buildItemUrl(state.req.items[this.selected[0]].source,state.req.items[this.selected[0]].path)
     },
+    isEditMode() {
+      return this.editing && this.link && Object.keys(this.link).length > 0;
+    }
   },
   watch: {
     listing(isListing) {
@@ -215,8 +234,33 @@ export default {
         this.password = "";
       }
     },
+    isEditMode: {
+      immediate: true,
+      handler(isEditMode) {
+        if (isEditMode) {
+          this.listing = false;
+          this.time = this.link.expire
+            ? Math.round((new Date(this.link.expire * 1000) - new Date()) / 3600000)
+            : 0;
+          this.unit = "hours";
+          this.password = "";
+          this.downloadsLimit = this.link.downloadsLimit || "";
+          this.maxBandwidth = this.link.maxBandwidth || "";
+          this.shareTheme = this.link.shareTheme || "default";
+          this.disableAnonymous = this.link.disableAnonymous || false;
+          this.disableThumbnails = this.link.disableThumbnails || false;
+          this.enableAllowedUsernames = Array.isArray(this.link.allowedUsernames) && this.link.allowedUsernames.length > 0;
+          this.allowedUsernames = this.enableAllowedUsernames ? this.link.allowedUsernames.join(", ") : "";
+        }
+      },
+    },
   },
   async beforeMount() {
+    if (this.isEditMode) {
+      this.subpath = this.link.path;
+      this.source = this.link.source;
+      return;
+    }
     let path = state.req.path;
     this.source = state.req.source;
     if (state.isSearchActive) {
@@ -270,29 +314,55 @@ export default {
     async submit() {
       try {
         let isPermanent = !this.time || this.time == 0;
+        const payload = {
+          path: this.subpath,
+          sourceName: this.source,
+          source: this.source,
+          password: this.password,
+          expires: isPermanent ? "" : this.time.toString(),
+          unit: this.unit,
+          disableAnonymous: this.disableAnonymous,
+          allowUpload: this.allowUpload,
+          maxBandwidth: this.maxBandwidth,
+          downloadsLimit: this.downloadsLimit,
+          shareTheme: this.shareTheme,
+          disablingFileViewer: this.disablingFileViewer,
+          disableThumbnails: this.disableThumbnails,
+          allowedUsernames: this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : [],
+        };
+        if (this.isEditMode) {
+          payload.hash = this.link.hash;
+        }
+
         let res = null;
         if (isPermanent) {
-          res = await publicApi.create(this.subpath, this.source, this.password, "", "", this.disableAnonymous, this.allowUpload, this.maxBandwidth, this.downloadsLimit, this.shareTheme, this.disablingFileViewer, this.disableThumbnails, this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : []);
+          res = await publicApi.create(payload.path, payload.source, payload.password, "", "", payload.disableAnonymous, payload.allowUpload, payload.maxBandwidth, payload.downloadsLimit, payload.shareTheme, payload.disablingFileViewer, payload.disableThumbnails, payload.allowedUsernames, payload.hash);
         } else {
           res = await publicApi.create(
-            this.subpath,
-            this.source,
-            this.password,
-            this.time.toString(),
-            this.unit,
-            this.disableAnonymous,
-            this.allowUpload,
-            this.maxBandwidth,
-            this.downloadsLimit,
-            this.shareTheme,
-            this.disablingFileViewer,
-            this.disableThumbnails,
-            this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : []
+            payload.path,
+            payload.source,
+            payload.password,
+            payload.expires,
+            payload.unit,
+            payload.disableAnonymous,
+            payload.allowUpload,
+            payload.maxBandwidth,
+            payload.downloadsLimit,
+            payload.shareTheme,
+            payload.disablingFileViewer,
+            payload.disableThumbnails,
+            payload.allowedUsernames,
+            payload.hash
           );
         }
 
-        this.links.push(res);
-        this.sort();
+        if (!this.isEditMode) {
+          this.links.push(res);
+          this.sort();
+        } else {
+          // reload page to see changes
+          window.location.reload();
+        }
 
         this.time = "";
         this.unit = "hours";
@@ -350,3 +420,22 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tooltip-info-icon {
+  font-size: 1em;
+  cursor: pointer;
+}
+</style>

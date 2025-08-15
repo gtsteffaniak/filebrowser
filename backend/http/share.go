@@ -133,17 +133,21 @@ func shareDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContex
 // @Router /api/shares [post]
 func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
 	var s *share.Link
+	var err error
 	var body share.CreateBody
 	if r.Body != nil {
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		if err = json.NewDecoder(r.Body).Decode(&body); err != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
 		}
 		defer r.Body.Close()
 	}
 
-	secure_hash, err := generateShortUUID()
-	if err != nil {
-		return http.StatusInternalServerError, err
+	// check if body.Hash is a valid hash
+	if body.Hash != "" {
+		s, err = store.Share.GetByHash(body.Hash)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("invalid hash provided")
+		}
 	}
 
 	var expire int64 = 0
@@ -184,6 +188,31 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 		stringHash = string(hash)
 	}
+	if s != nil {
+		s.Expire = expire
+		s.PasswordHash = stringHash
+		s.Token = token
+		s.DisableAnonymous = body.DisableAnonymous
+		s.MaxBandwidth = body.MaxBandwidth
+		s.DownloadsLimit = body.DownloadsLimit
+		s.ShareTheme = body.ShareTheme
+		s.DisablingFileViewer = body.DisablingFileViewer
+		s.DisableThumbnails = body.DisableThumbnails
+		s.KeepAfterExpiration = body.KeepAfterExpiration
+		s.AllowedUsernames = body.AllowedUsernames
+		if err = store.Share.Save(s); err != nil {
+			return http.StatusInternalServerError, err
+		}
+		s.Source = body.SourceName
+		return renderJSON(w, r, s)
+	}
+
+	// create a new share link
+	secure_hash, err := generateShortUUID()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	encodedPath := r.URL.Query().Get("path")
 	// Decode the URL-encoded path
 	path, err := url.QueryUnescape(encodedPath)
@@ -191,7 +220,21 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		return http.StatusBadRequest, fmt.Errorf("invalid path encoding: %v", err)
 	}
 	sourceName := r.URL.Query().Get("source")
-	source := config.Server.NameToSource[sourceName]
+	source, ok := config.Server.NameToSource[sourceName]
+	if !ok {
+		// try to find source by path
+		for _, s := range config.Server.Sources {
+			if s.Path == sourceName {
+				source = s
+				ok = true
+				break
+			}
+		}
+	}
+	if !ok {
+		return http.StatusForbidden, fmt.Errorf("source with name not found")
+	}
+
 	userscope, err := settings.GetScopeFromSourceName(d.user.Scopes, source.Name)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -199,10 +242,10 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	scopePath := utils.JoinPathAsUnix(userscope, path)
 	s = &share.Link{
 		Path:         scopePath,
-		Hash:         secure_hash,
 		Source:       source.Path, // path instead to persist accoss name change
 		Expire:       expire,
 		UserID:       d.user.ID,
+		Hash:         secure_hash,
 		PasswordHash: stringHash,
 		Token:        token,
 		CommonShare: share.CommonShare{
@@ -218,12 +261,16 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 			AllowedUsernames:    body.AllowedUsernames,
 		},
 	}
+
 	if err := store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	// Overwrite the Source field with the source name from the query for each link
 	s.Source = sourceName
+	if body.Hash != "" {
+		return renderJSON(w, r, s)
+	}
 	return renderJSON(w, r, s)
 }
 

@@ -3,10 +3,21 @@
   <div class="card-title">
     <h2>{{ $t("access.accessManagement") }}</h2>
     <button class="button" @click="addAccess">{{ $t("buttons.new") }}</button>
-  </div>
-  <div class="card-content full" >
+    <div class="form-flex-group">
+      <label for="source-select">{{ $t("prompts.source",{suffix: ":"})  }}</label>
+      <select class="input" id="source-select" v-model="selectedSource" @change="fetchRules">
+        <option v-for="source in availableSources" :key="source" :value="source">
+          {{ source }}
+        </option>
+      </select>
+    </div>
 
-    <table aria-label="Access Rules">
+  </div>
+  <div class="card-content full">
+    <div v-if="loading" class="loading-spinner">
+      <i class="material-icons spin">sync</i>
+    </div>
+    <table v-else aria-label="Access Rules">
       <thead>
         <tr>
           <th>{{$t('settings.path')}}</th>
@@ -50,38 +61,43 @@ export default {
   },
   data: function () {
     return {
-      rules: {
-        // Initialize rules with a structure that includes deny and allow properties
-        // This helps the linter understand the shape of the `rule` object in the template.
-        // The actual data will be populated by the API call.
-        somePath: { // This is just an example key to define the structure
-          deny: { users: [], groups: [] },
-          allow: { users: [], groups: [] },
-        },
-      },
+      rules: {},
       accessPath: "",
       error: null,
+      selectedSource: "",
+      loading: false,
     };
   },
   async mounted() {
-    this.accessPath = state.req.path || '/';
-    try {
-      this.rules = await accessApi.getAll(state.sources.current);
-    } catch (e) {
-      this.error = e;
-    }
+    this.selectedSource = state.sources.current;
+    await this.fetchRules();
   },
   computed: {
-    loading() {
+    /*loading() {
       return state.loading;
+    },*/
+    availableSources() {
+      return Object.keys(state.sources.info);
     },
   },
   methods: {
+    async fetchRules() {
+      this.loading = true;
+      this.error = null;
+      this.accessPath = state.req.path || '/';
+      try {
+        this.rules = await accessApi.getAll(this.selectedSource);
+      } catch (e) {
+        this.error = e;
+      } finally {
+        this.loading = false;
+      }
+    },
     addAccess() {
       mutations.showHover({
         name: "access",
         props: {
-          sourceName: state.sources.current,
+          sourceName: this.selectedSource,
           path: "/"
         }
       });
@@ -90,7 +106,7 @@ export default {
       mutations.showHover({
         name: "access",
         props: {
-          sourceName: state.sources.current,
+          sourceName: this.selectedSource,
           path: path
         }
       });
@@ -98,3 +114,23 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>

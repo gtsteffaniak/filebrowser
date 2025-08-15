@@ -48,17 +48,6 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		filePath := utils.JoinPathAsUnix(d.share.Path, file)
 		fileList = append(fileList, d.fileInfo.Source+"::"+filePath)
 	}
-	if d.share != nil {
-		// Public share link, so we check if the user is the owner of the share
-		if d.user != nil && d.user.ID == d.share.UserID {
-			d.user.Permissions.Modify = true
-		} else {
-			// for public shares, we assume the user has no modify permissions
-			if d.user != nil {
-				d.user.Permissions.Modify = false
-			}
-		}
-	}
 
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)

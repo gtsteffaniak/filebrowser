@@ -131,7 +131,11 @@
     "or": "OR"
   },
   "share": {
-    "notice": "Note: when a share is created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
+    "notice": "Note: when a share is a created, it becomes more exposed to the public and has different rules for access. If your share is not securely configured, it may be accessed by anyone.",
+    "disableAnonymous": "Disable anonymous access",
+    "disableThumbnails": "Disable Thumbnails",
+    "enableAllowedUsernames": "Only share to certain users",
+    "allowedUsernamesPlaceholder": "Enter usernames, comma-separated",
     "disableAnonymousDescription": "When enabled, only authenticated users can access the share. The user must have access to the source of the share.",
     "disableThumbnailsDescription": "When enabled, preview thumbnails will not be shown in the share.",
     "enableAllowedUsernamesDescription": "When enabled, only the specified users can access the share. The user must have access to the source of the share.",
@@ -439,7 +443,8 @@
     "files": "Files",
     "folders": "Folders",
     "exit": "Exit",
-    "permanent": "Permanent"
+    "permanent": "Permanent",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Access rules",

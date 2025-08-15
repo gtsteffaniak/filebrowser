@@ -12,6 +12,13 @@ definitions:
       name:
         type: string
     type: object
+  http.GroupListResponse:
+    properties:
+      groups:
+        items:
+          type: string
+        type: array
+    type: object
   http.HttpResponse:
     properties:
       message:
@@ -1044,6 +1051,103 @@ paths:
               type: string
             type: object
       summary: Add or update access rule
+      tags:
+      - Access
+  /api/access/group:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a user from a group.
+      parameters:
+      - description: Group name
+        in: query
+        name: group
+        required: true
+        type: string
+      - description: User name
+        in: query
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User removed from group successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Remove a user from a group
+      tags:
+      - Access
+    post:
+      consumes:
+      - application/json
+      description: Adds a user to a group.
+      parameters:
+      - description: Group name
+        in: query
+        name: group
+        required: true
+        type: string
+      - description: User name
+        in: query
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User added to group successfully
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add a user to a group
+      tags:
+      - Access
+  /api/access/groups:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of all groups or the groups for a specific user.
+      parameters:
+      - description: User name
+        in: query
+        name: user
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Object containing a list of groups
+          schema:
+            $ref: '#/definitions/http.GroupListResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all groups or groups for a user
       tags:
       - Access
   /api/auth/logout:

@@ -75,7 +75,7 @@ func TestPermitted_GroupBlacklist(t *testing.T) {
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)
 	}
-	s.AddUserToGroup("admins", "alice")
+	_ = s.AddUserToGroup("admins", "alice")
 	if err := s.DenyGroup("mnt/storage", "/admin", "admins"); err != nil {
 		t.Errorf("DenyGroup failed: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestPermitted_GroupWhitelist(t *testing.T) {
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)
 	}
-	s.AddUserToGroup("vip", "bob")
+	_ = s.AddUserToGroup("vip", "bob")
 	if err := s.AllowGroup("mnt/storage", "/vip", "vip"); err != nil {
 		t.Errorf("AllowGroup failed: %v", err)
 	}
@@ -128,8 +128,14 @@ func TestPermitted_CombinedRules(t *testing.T) {
 	if err != nil && err != storm.ErrNotFound {
 		t.Errorf("unexpected error loading from DB: %v", err)
 	}
-	s.AddUserToGroup("vip", "bob")
-	s.AddUserToGroup("admins", "alice")
+	err = s.AddUserToGroup("vip", "bob")
+	if err != nil {
+		t.Errorf("AddUserToGroup failed: %v", err)
+	}
+	err = s.AddUserToGroup("admins", "alice")
+	if err != nil {
+		t.Errorf("AddUserToGroup failed: %v", err)
+	}
 	if err := s.DenyUser("mnt/storage", "/combo", "eve"); err != nil {
 		t.Errorf("DenyUser failed: %v", err)
 	}

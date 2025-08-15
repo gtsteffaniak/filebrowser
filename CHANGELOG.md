@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For commit 
    - one-time download links
    - customize share theme https://github.com/gtsteffaniak/filebrowser/issues/827 https://github.com/gtsteffaniak/filebrowser/issues/1029
    - share link public changes https://github.com/gtsteffaniak/filebrowser/issues/473
+   - shares can be modified/configured after creation.
  - public/private folder logic https://github.com/gtsteffaniak/filebrowser/issues/505
 
  **BugFixes**:
