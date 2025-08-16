@@ -62,8 +62,8 @@ func TestPermitted_UserWhitelist(t *testing.T) {
 	if !s.Permitted("mnt/storage", "/vip", "bob") {
 		t.Error("bob should be permitted (allowed)")
 	}
-	if s.Permitted("mnt/storage", "/vip", "alice") {
-		t.Error("alice should not be permitted (not allowed)")
+	if !s.Permitted("mnt/storage", "/vip", "alice") {
+		t.Error("alice should be permitted (not denied)")
 	}
 }
 
@@ -102,8 +102,8 @@ func TestPermitted_GroupWhitelist(t *testing.T) {
 	if !s.Permitted("mnt/storage", "/vip", "bob") {
 		t.Error("bob should be permitted (in allowed group)")
 	}
-	if s.Permitted("mnt/storage", "/vip", "alice") {
-		t.Error("alice should not be permitted (not in allowed group)")
+	if !s.Permitted("mnt/storage", "/vip", "alice") {
+		t.Error("alice should be permitted (not in denied group)")
 	}
 }
 

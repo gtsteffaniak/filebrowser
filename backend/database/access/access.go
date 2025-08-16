@@ -23,15 +23,20 @@ const accessRulesBucket = "access_rules"
 const accessRulesKey = "rules"
 const accessChangedKey = "newRule:"
 
+type RuleMap map[string]*AccessRule
+type SourceRuleMap map[string]RuleMap
+
+type StringSet map[string]struct{}
+
 type dbStorage struct {
-	AllRules map[string]map[string]*AccessRule `json:"all_rules"`
-	Groups   GroupMap                          `json:"groups"`
+	AllRules SourceRuleMap `json:"all_rules"`
+	Groups   GroupMap      `json:"groups"`
 }
 
 // RuleSet groups users and groups for allow/deny lists.
 type RuleSet struct {
-	Users  map[string]struct{}
-	Groups map[string]struct{}
+	Users  StringSet
+	Groups StringSet
 }
 
 // AccessRule defines allow/deny lists for a path.
@@ -51,15 +56,15 @@ type FrontendAccessRule struct {
 }
 
 // GroupMap maps group names to a set of usernames.
-type GroupMap map[string]map[string]struct{}
+type GroupMap map[string]StringSet
 
 // Storage manages access rules and group membership.
 type Storage struct {
 	mux      sync.RWMutex
-	AllRules map[string]map[string]*AccessRule // AllRules[sourcePath][indexPath]
-	Groups   GroupMap                          // key: group name, value: set of usernames
-	DB       *storm.DB                         // Optional: DB for persistence
-	Users    *users.Storage                    // Reference to users storage
+	AllRules SourceRuleMap  // AllRules[sourcePath][indexPath]
+	Groups   GroupMap       // key: group name, value: set of usernames
+	DB       *storm.DB      // Optional: DB for persistence
+	Users    *users.Storage // Reference to users storage
 }
 
 // SaveToDB persists all rules to the DB if DB is set.
@@ -89,26 +94,12 @@ func (s *Storage) LoadFromDB() error {
 	}
 	var storage dbStorage
 	if err := json.Unmarshal(data, &storage); err != nil {
-		// Fallback for old format
-		var rules map[string]map[string]*AccessRule
-		if err := json.Unmarshal(data, &rules); err != nil {
-			return err
-		}
-		s.mux.Lock()
-		s.AllRules = rules
-		if s.AllRules == nil {
-			s.AllRules = make(map[string]map[string]*AccessRule)
-		}
-		if s.Groups == nil {
-			s.Groups = make(GroupMap)
-		}
-		s.mux.Unlock()
-		return nil
+		return err
 	}
 	s.mux.Lock()
 	s.AllRules = storage.AllRules
 	if s.AllRules == nil {
-		s.AllRules = make(map[string]map[string]*AccessRule)
+		s.AllRules = make(SourceRuleMap)
 	}
 	s.Groups = storage.Groups
 	if s.Groups == nil {
@@ -127,7 +118,7 @@ func (s *Storage) LoadFromDB() error {
 //	if err != nil { /* handle error */ }
 func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 	var s = &Storage{
-		AllRules: make(map[string]map[string]*AccessRule),
+		AllRules: make(SourceRuleMap),
 		Groups:   make(GroupMap),
 		DB:       db,
 		Users:    usersStore,
@@ -140,29 +131,15 @@ func (s *Storage) getOrCreateRule(sourcePath, indexPath string) *AccessRule {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if _, ok := s.AllRules[sourcePath]; !ok {
-		s.AllRules[sourcePath] = make(map[string]*AccessRule)
+		s.AllRules[sourcePath] = make(RuleMap)
 	}
 	rule, ok := s.AllRules[sourcePath][indexPath]
 	if !ok {
 		rule = &AccessRule{
-			Deny:  RuleSet{Users: make(map[string]struct{}), Groups: make(map[string]struct{})},
-			Allow: RuleSet{Users: make(map[string]struct{}), Groups: make(map[string]struct{})},
+			Deny:  RuleSet{Users: make(StringSet), Groups: make(StringSet)},
+			Allow: RuleSet{Users: make(StringSet), Groups: make(StringSet)},
 		}
 		s.AllRules[sourcePath][indexPath] = rule
-	} else {
-		// Defensive: ensure maps are initialized
-		if rule.Deny.Users == nil {
-			rule.Deny.Users = make(map[string]struct{})
-		}
-		if rule.Deny.Groups == nil {
-			rule.Deny.Groups = make(map[string]struct{})
-		}
-		if rule.Allow.Users == nil {
-			rule.Allow.Users = make(map[string]struct{})
-		}
-		if rule.Allow.Groups == nil {
-			rule.Allow.Groups = make(map[string]struct{})
-		}
 	}
 	logger.Debugf("Created rule for source: %s and index: %s", sourcePath, indexPath)
 	accessCache.Set(accessChangedKey+sourcePath, false)
@@ -310,7 +287,17 @@ func (s *Storage) permittedRule(rule *AccessRule, username string) bool {
 				}
 			}
 		}
+	} else {
+		return true
+	}
+	// Fallback to deny rules
+	if _, found := rule.Deny.Users[username]; found {
 		return false
+	}
+	for group := range rule.Deny.Groups {
+		if s.isUserInGroup(username, group) {
+			return false
+		}
 	}
 	return true
 }
@@ -397,7 +384,7 @@ func (s *Storage) AddUserToGroup(group, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if _, ok := s.Groups[group]; !ok {
-		s.Groups[group] = make(map[string]struct{})
+		s.Groups[group] = make(StringSet)
 	}
 	if _, ok := s.Groups[group][username]; ok {
 		return nil
@@ -439,7 +426,7 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 	changed := false
 
 	// Create a set of new groups for efficient lookup
-	newGroupsSet := make(map[string]struct{}, len(newGroups))
+	newGroupsSet := make(StringSet, len(newGroups))
 	for _, g := range newGroups {
 		newGroupsSet[g] = struct{}{}
 	}
@@ -459,7 +446,7 @@ func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
 	// Add user to new groups
 	for group := range newGroupsSet {
 		if _, ok := s.Groups[group]; !ok {
-			s.Groups[group] = make(map[string]struct{})
+			s.Groups[group] = make(StringSet)
 		}
 		if _, ok := s.Groups[group][username]; !ok {
 			s.Groups[group][username] = struct{}{}

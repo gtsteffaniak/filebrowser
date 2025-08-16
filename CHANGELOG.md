@@ -21,6 +21,9 @@ All notable changes to this project will be documented in this file. For commit 
    - shares can be modified/configured after creation.
  - public/private folder logic https://github.com/gtsteffaniak/filebrowser/issues/505
 
+ **Notes**:
+ - hover effect on list/compact view https://github.com/gtsteffaniak/filebrowser/issues/1036
+
  **BugFixes**:
  - fix new file "true" content issue https://github.com/gtsteffaniak/filebrowser/issues/1048
  - editor allows device default popup https://github.com/gtsteffaniak/filebrowser/issues/1049
