@@ -9,6 +9,10 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+type GroupListResponse struct {
+	Groups []string `json:"groups"`
+}
+
 // accessGetHandler lists all access rules or retrieves a specific rule.
 // @Summary List access rules
 // @Description Lists access rules. Can be filtered by source, path, user, or group. Can also be grouped by user or group.
@@ -159,34 +163,30 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		return 500, fmt.Errorf("source not found: %s", sourceName)
 	}
 
-	var body struct {
-		Allow        bool   `json:"allow"`
-		RuleCategory string `json:"ruleCategory"`
-		Value        string `json:"value"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid request body: %w", err)
-	}
+	ruleType := r.URL.Query().Get("ruleType")
+	ruleCategory := r.URL.Query().Get("ruleCategory")
+	value := r.URL.Query().Get("value")
+	allow := ruleType == "allow"
 
-	if indexPath == "" || body.RuleCategory == "" || body.Value == "" {
+	if indexPath == "" || ruleCategory == "" || value == "" {
 		return http.StatusBadRequest, fmt.Errorf("all parameters (path, ruleCategory, value) are required")
 	}
 
 	var found bool
 	var err error
-	if body.Allow {
-		switch body.RuleCategory {
+	if allow {
+		switch ruleCategory {
 		case "user":
-			found, err = store.Access.RemoveAllowUser(index.Path, indexPath, body.Value)
+			found, err = store.Access.RemoveAllowUser(index.Path, indexPath, value)
 		case "group":
-			found, err = store.Access.RemoveAllowGroup(index.Path, indexPath, body.Value)
+			found, err = store.Access.RemoveAllowGroup(index.Path, indexPath, value)
 		}
 	} else {
-		switch body.RuleCategory {
+		switch ruleCategory {
 		case "user":
-			found, err = store.Access.RemoveDenyUser(index.Path, indexPath, body.Value)
+			found, err = store.Access.RemoveDenyUser(index.Path, indexPath, value)
 		case "group":
-			found, err = store.Access.RemoveDenyGroup(index.Path, indexPath, body.Value)
+			found, err = store.Access.RemoveDenyGroup(index.Path, indexPath, value)
 		}
 	}
 	if !found {
@@ -197,4 +197,77 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	}
 
 	return renderJSON(w, r, map[string]string{"message": "rule entry deleted"})
+}
+
+// groupGetHandler retrieves all groups or groups for a specific user.
+// @Summary Get all groups or groups for a user
+// @Description Returns a list of all groups or the groups for a specific user.
+// @Tags Access
+// @Accept json
+// @Produce json
+// @Param user query string false "User name"
+// @Success 200 {object} GroupListResponse "Object containing a list of groups"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Router /api/access/groups [get]
+func groupGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Permissions.Admin {
+		return http.StatusForbidden, nil
+	}
+	user := r.URL.Query().Get("user")
+	if user != "" {
+		groups := store.Access.GetUserGroups(user)
+		return renderJSON(w, r, &GroupListResponse{Groups: groups})
+	}
+	groups := store.Access.GetAllGroups()
+	return renderJSON(w, r, &GroupListResponse{Groups: groups})
+}
+
+// groupPostHandler adds a user to a group.
+// @Summary Add a user to a group
+// @Description Adds a user to a group.
+// @Tags Access
+// @Accept json
+// @Produce json
+// @Param group query string true "Group name"
+// @Param user query string true "User name"
+// @Success 200 "User added to group successfully"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /api/access/group [post]
+func groupPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Permissions.Admin {
+		return http.StatusForbidden, nil
+	}
+	group := r.URL.Query().Get("group")
+	user := r.URL.Query().Get("user")
+	err := store.Access.AddUserToGroup(group, user)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
+}
+
+// groupDeleteHandler removes a user from a group.
+// @Summary Remove a user from a group
+// @Description Removes a user from a group.
+// @Tags Access
+// @Accept json
+// @Produce json
+// @Param group query string true "Group name"
+// @Param user query string true "User name"
+// @Success 200 "User removed from group successfully"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /api/access/group [delete]
+func groupDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	if !d.user.Permissions.Admin {
+		return http.StatusForbidden, nil
+	}
+	group := r.URL.Query().Get("group")
+	user := r.URL.Query().Get("user")
+	err := store.Access.RemoveUserFromGroup(group, user)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
 }

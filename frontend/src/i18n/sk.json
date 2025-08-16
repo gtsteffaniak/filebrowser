@@ -319,7 +319,13 @@
     "abortUpload": "Ste si istí, že chcete prerušiť tehotenstvo?"
   },
   "share": {
-    "notice": "Poznámka: prístup k zdieľaným súborom má každý, kto má prístup k odkazu (a voliteľnému heslu). Nie je potrebné byť prihlásený."
+    "notice": "Poznámka: po vytvorení zdieľanej zložky sa táto stáva verejne prístupnou a platia pre ňu iné pravidlá prístupu. Ak vaša zdieľaná zložka nie je bezpečne nakonfigurovaná, môže k nej mať prístup ktokoľvek.",
+    "disableAnonymousDescription": "Ak je táto možnosť povolená, prístup k zdieľanej zložke majú len overení používatelia. Používateľ musí mať prístup k zdroju zdieľanej zložky.",
+    "disableThumbnailsDescription": "Ak je táto funkcia zapnutá, miniatúry náhľadov sa v zdieľanej zložke nezobrazia.",
+    "enableAllowedUsernamesDescription": "Ak je táto možnosť povolená, prístup k zdieľanej zložke majú len zadaní používatelia. Používateľ musí mať prístup k zdroju zdieľanej zložky.",
+    "downloadsLimitDescription": "Maximálny počet stiahnutí akéhokoľvek súboru/priečinka zo zdieľanej zložky. Pre neobmedzený počet nechajte prázdne.",
+    "maxBandwidthDescription": "Maximálna šírka pásma sťahovania v kilobajtoch za sekundu. Nechajte prázdne pre neobmedzené.",
+    "shareThemeDescription": "Téma, ktorá sa má použiť pre odkaz na zdieľanie."
   },
   "api": {
     "title": "Kľúče API:",

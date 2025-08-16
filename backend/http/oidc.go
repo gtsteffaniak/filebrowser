@@ -264,22 +264,23 @@ func oidcCallbackHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 		logger.Errorf("No valid username found for identifier '%v' in ID token or UserInfo response.", oidcCfg.UserIdentifier)
 		return http.StatusInternalServerError, fmt.Errorf("no valid username found in ID token or UserInfo response from claims")
 	}
-	isAdmin := false // Default to non-admin user
-	if config.Auth.Methods.OidcAuth.AdminGroup != "" {
-		if slices.Contains(userdata.Groups, config.Auth.Methods.OidcAuth.AdminGroup) {
-			isAdmin = true // User is in the admin group, grant admin privileges
-			logger.Debugf("User %s is in admin group %s, granting admin privileges.", loginUsername, config.Auth.Methods.OidcAuth.AdminGroup)
-		}
-	}
+
 	// Proceed to log the user in with the OIDC data
 	// userdata struct now contains info from either verified ID token or UserInfo endpoint
-	return loginWithOidcUser(w, r, loginUsername, isAdmin)
+	return loginWithOidcUser(w, r, loginUsername, userdata.Groups)
 }
 
 // loginWithOidcUser extracts the username from the user claims (userInfo)
 // based on the configured UserIdentifier and logs the user into the application.
 // It creates a new user if one doesn't exist.
-func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, isAdmin bool) (int, error) {
+func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, groups []string) (int, error) {
+	isAdmin := false // Default to non-admin user
+	if config.Auth.Methods.OidcAuth.AdminGroup != "" {
+		if slices.Contains(groups, config.Auth.Methods.OidcAuth.AdminGroup) {
+			isAdmin = true // User is in the admin group, grant admin privileges
+			logger.Debugf("User %s is in admin group %s, granting admin privileges.", username, config.Auth.Methods.OidcAuth.AdminGroup)
+		}
+	}
 	logger.Debugf("Successfully authenticated OIDC username: %s isAdmin: %v", username, isAdmin)
 	// Retrieve the user from the store and store it in the context
 	user, err := store.Users.Get(username)
@@ -323,11 +324,17 @@ func loginWithOidcUser(w http.ResponseWriter, r *http.Request, username string, 
 	if user.LoginMethod != users.LoginMethodOidc {
 		return http.StatusForbidden, errors.ErrWrongLoginMethod
 	}
-	signed, err := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
-	if err != nil {
+
+	// Sync OIDC groups with access control system
+	if err = store.Access.SyncUserGroups(username, groups); err != nil {
+		logger.Warningf("failed to sync oidc user %s groups: %v", username, err)
+	}
+	// Generate a signed token for the user
+	signed, err2 := makeSignedTokenAPI(user, "WEB_TOKEN_"+utils.InsecureRandomIdentifier(4), time.Hour*time.Duration(config.Auth.TokenExpirationHours), user.Permissions)
+	if err2 != nil {
 		// Handle potential errors during token generation
-		if strings.Contains(err.Error(), "key already exists with same name") {
-			return http.StatusConflict, fmt.Errorf("token name conflict: %v", err)
+		if strings.Contains(err2.Error(), "key already exists with same name") {
+			return http.StatusConflict, fmt.Errorf("token name conflict: %v", err2)
 		}
 		return http.StatusInternalServerError, fmt.Errorf("failed to generate authentication token for user %s: %v", username, err)
 	}

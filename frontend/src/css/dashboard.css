@@ -1,5 +1,5 @@
 .dashboard {
-  margin: 1em 0;
+  margin: 1em;
 }
 
 .dashboard .row {
@@ -201,15 +201,18 @@ body.rtl .card-title>*:first-child {
   text-align: right;
 }
 
-.card>div {
+.card>div,
+.card>form>div {
   padding: 1em 1em;
 }
 
-.card>div:first-child {
+.card>div:first-child,
+.card>form>div:first-child {
   padding-top: 1.5em;
 }
 
-.card>div:last-child {
+.card>div:last-child,
+.card>form>div:last-child {
   padding-bottom: 1.5em;
 }
 

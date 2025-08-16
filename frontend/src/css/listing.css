@@ -98,6 +98,13 @@ body.rtl #listingView {
   box-shadow: rgba(0, 0, 0, 0.06) 0px 1px 3px, rgba(0, 0, 0, 0.12) 0px 1px 2px;
 }
 
+#listingView.compact .item:hover,
+#listingView.list .item:hover {
+  width: 98% !important;
+  margin-left: 0.5em !important;
+  padding-left: 0.5em !important;
+}
+
 #listingView.list .item,
 #listingView.compact .item {
   max-width: 100%;

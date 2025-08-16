@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -19,7 +20,42 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"golang.org/x/time/rate"
 )
+
+// throttledReadSeeker is a wrapper around an io.ReadSeeker that throttles the reading speed.
+type throttledReadSeeker struct {
+	rs      io.ReadSeeker
+	limiter *rate.Limiter
+	ctx     context.Context
+}
+
+// newThrottledReadSeeker creates a new throttledReadSeeker.
+func newThrottledReadSeeker(rs io.ReadSeeker, limit rate.Limit, burst int, ctx context.Context) *throttledReadSeeker {
+	return &throttledReadSeeker{
+		rs:      rs,
+		limiter: rate.NewLimiter(limit, burst),
+		ctx:     ctx,
+	}
+}
+
+func (r *throttledReadSeeker) Read(p []byte) (n int, err error) {
+	n, err = r.rs.Read(p)
+	if n > 0 {
+		if waitErr := r.limiter.WaitN(r.ctx, n); waitErr != nil {
+			// The original error (like io.EOF) is potentially more important
+			// than the context error.
+			if err == nil {
+				err = waitErr
+			}
+		}
+	}
+	return
+}
+
+func (r *throttledReadSeeker) Seek(offset int64, whence int) (int64, error) {
+	return r.rs.Seek(offset, whence)
+}
 
 func setContentDisposition(w http.ResponseWriter, r *http.Request, fileName string) {
 	if r.URL.Query().Get("inline") == "true" {
@@ -243,7 +279,15 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 		}
 		// serve content allows for range requests.
 		// video scrubbing, etc.
-		http.ServeContent(w, r, fileName, fileInfo.ModTime(), fd)
+		var reader io.ReadSeeker = fd
+		if d.share != nil && d.share.MaxBandwidth > 0 {
+			// convert KB/s to B/s
+			limit := rate.Limit(d.share.MaxBandwidth * 1024)
+			// burst size can be the same as limit
+			burst := d.share.MaxBandwidth * 1024
+			reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
+		}
+		http.ServeContent(w, r, fileName, fileInfo.ModTime(), reader)
 		return 200, nil
 	}
 
@@ -311,7 +355,15 @@ func rawFilesHandler(w http.ResponseWriter, r *http.Request, d *requestContext, 
 	w.Header().Set("Content-Type", "application/octet-stream")
 
 	// Stream the file
-	_, err = io.Copy(w, fd)
+	var reader io.Reader = fd
+	if d.share != nil && d.share.MaxBandwidth > 0 {
+		// convert KB/s to B/s
+		limit := rate.Limit(d.share.MaxBandwidth * 1024)
+		// burst size can be the same as limit
+		burst := d.share.MaxBandwidth * 1024
+		reader = newThrottledReadSeeker(fd, limit, burst, r.Context())
+	}
+	_, err = io.Copy(w, reader)
 	os.Remove(archiveData) // Remove the file after streaming
 	if err != nil {
 		logger.Errorf("Failed to copy archive data to response: %v", err)

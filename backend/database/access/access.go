@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"sort"
 	"sync"
 	"time"
 
@@ -22,10 +23,20 @@ const accessRulesBucket = "access_rules"
 const accessRulesKey = "rules"
 const accessChangedKey = "newRule:"
 
+type RuleMap map[string]*AccessRule
+type SourceRuleMap map[string]RuleMap
+
+type StringSet map[string]struct{}
+
+type dbStorage struct {
+	AllRules SourceRuleMap `json:"all_rules"`
+	Groups   GroupMap      `json:"groups"`
+}
+
 // RuleSet groups users and groups for allow/deny lists.
 type RuleSet struct {
-	Users  map[string]struct{}
-	Groups map[string]struct{}
+	Users  StringSet
+	Groups StringSet
 }
 
 // AccessRule defines allow/deny lists for a path.
@@ -45,15 +56,15 @@ type FrontendAccessRule struct {
 }
 
 // GroupMap maps group names to a set of usernames.
-type GroupMap map[string]map[string]struct{}
+type GroupMap map[string]StringSet
 
 // Storage manages access rules and group membership.
 type Storage struct {
 	mux      sync.RWMutex
-	AllRules map[string]map[string]*AccessRule // AllRules[sourcePath][indexPath]
-	Groups   GroupMap                          // key: group name, value: set of usernames
-	DB       *storm.DB                         // Optional: DB for persistence
-	Users    *users.Storage                    // Reference to users storage
+	AllRules SourceRuleMap  // AllRules[sourcePath][indexPath]
+	Groups   GroupMap       // key: group name, value: set of usernames
+	DB       *storm.DB      // Optional: DB for persistence
+	Users    *users.Storage // Reference to users storage
 }
 
 // SaveToDB persists all rules to the DB if DB is set.
@@ -61,7 +72,10 @@ func (s *Storage) SaveToDB() error {
 	if s.DB == nil {
 		return nil
 	}
-	data, err := json.Marshal(s.AllRules)
+	data, err := json.Marshal(&dbStorage{
+		AllRules: s.AllRules,
+		Groups:   s.Groups,
+	})
 	if err != nil {
 		return err
 	}
@@ -78,12 +92,19 @@ func (s *Storage) LoadFromDB() error {
 	if err != nil {
 		return err
 	}
-	var rules map[string]map[string]*AccessRule
-	if err := json.Unmarshal(data, &rules); err != nil {
+	var storage dbStorage
+	if err := json.Unmarshal(data, &storage); err != nil {
 		return err
 	}
 	s.mux.Lock()
-	s.AllRules = rules
+	s.AllRules = storage.AllRules
+	if s.AllRules == nil {
+		s.AllRules = make(SourceRuleMap)
+	}
+	s.Groups = storage.Groups
+	if s.Groups == nil {
+		s.Groups = make(GroupMap)
+	}
 	s.mux.Unlock()
 	return nil
 }
@@ -97,7 +118,7 @@ func (s *Storage) LoadFromDB() error {
 //	if err != nil { /* handle error */ }
 func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 	var s = &Storage{
-		AllRules: make(map[string]map[string]*AccessRule),
+		AllRules: make(SourceRuleMap),
 		Groups:   make(GroupMap),
 		DB:       db,
 		Users:    usersStore,
@@ -110,29 +131,15 @@ func (s *Storage) getOrCreateRule(sourcePath, indexPath string) *AccessRule {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if _, ok := s.AllRules[sourcePath]; !ok {
-		s.AllRules[sourcePath] = make(map[string]*AccessRule)
+		s.AllRules[sourcePath] = make(RuleMap)
 	}
 	rule, ok := s.AllRules[sourcePath][indexPath]
 	if !ok {
 		rule = &AccessRule{
-			Deny:  RuleSet{Users: make(map[string]struct{}), Groups: make(map[string]struct{})},
-			Allow: RuleSet{Users: make(map[string]struct{}), Groups: make(map[string]struct{})},
+			Deny:  RuleSet{Users: make(StringSet), Groups: make(StringSet)},
+			Allow: RuleSet{Users: make(StringSet), Groups: make(StringSet)},
 		}
 		s.AllRules[sourcePath][indexPath] = rule
-	} else {
-		// Defensive: ensure maps are initialized
-		if rule.Deny.Users == nil {
-			rule.Deny.Users = make(map[string]struct{})
-		}
-		if rule.Deny.Groups == nil {
-			rule.Deny.Groups = make(map[string]struct{})
-		}
-		if rule.Allow.Users == nil {
-			rule.Allow.Users = make(map[string]struct{})
-		}
-		if rule.Allow.Groups == nil {
-			rule.Allow.Groups = make(map[string]struct{})
-		}
 	}
 	logger.Debugf("Created rule for source: %s and index: %s", sourcePath, indexPath)
 	accessCache.Set(accessChangedKey+sourcePath, false)
@@ -177,6 +184,12 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 
 // DenyGroup adds a group to the deny list for a given source and index path.
 func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
+	s.mux.RLock()
+	_, ok := s.Groups[groupname]
+	s.mux.RUnlock()
+	if !ok {
+		return fmt.Errorf("group '%s' does not exist", groupname)
+	}
 	rule := s.getOrCreateRule(sourcePath, indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -189,6 +202,12 @@ func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
 
 // AllowGroup adds a group to the allow list for a given source and index path.
 func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
+	s.mux.RLock()
+	_, ok := s.Groups[groupname]
+	s.mux.RUnlock()
+	if !ok {
+		return fmt.Errorf("group '%s' does not exist", groupname)
+	}
 	rule := s.getOrCreateRule(sourcePath, indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -268,7 +287,17 @@ func (s *Storage) permittedRule(rule *AccessRule, username string) bool {
 				}
 			}
 		}
+	} else {
+		return true
+	}
+	// Fallback to deny rules
+	if _, found := rule.Deny.Users[username]; found {
 		return false
+	}
+	for group := range rule.Deny.Groups {
+		if s.isUserInGroup(username, group) {
+			return false
+		}
 	}
 	return true
 }
@@ -351,22 +380,101 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 }
 
 // AddUserToGroup adds a username to a group.
-func (s *Storage) AddUserToGroup(group, username string) {
+func (s *Storage) AddUserToGroup(group, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if _, ok := s.Groups[group]; !ok {
-		s.Groups[group] = make(map[string]struct{})
+		s.Groups[group] = make(StringSet)
+	}
+	if _, ok := s.Groups[group][username]; ok {
+		return nil
 	}
 	s.Groups[group][username] = struct{}{}
+	return s.SaveToDB()
+}
+
+// GetAllGroups returns all group names.
+func (s *Storage) GetAllGroups() []string {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	groups := make([]string, 0, len(s.Groups))
+	for group := range s.Groups {
+		groups = append(groups, group)
+	}
+	sort.Strings(groups)
+	return groups
+}
+
+// GetUserGroups returns all groups for a specific user.
+func (s *Storage) GetUserGroups(username string) []string {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	var groups []string
+	for group, users := range s.Groups {
+		if _, ok := users[username]; ok {
+			groups = append(groups, group)
+		}
+	}
+	return utils.NonNilSlice(groups)
+}
+
+// SyncUserGroups updates a user's group memberships.
+// It removes the user from groups not in the new list and adds them to new ones.
+func (s *Storage) SyncUserGroups(username string, newGroups []string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	changed := false
+
+	// Create a set of new groups for efficient lookup
+	newGroupsSet := make(StringSet, len(newGroups))
+	for _, g := range newGroups {
+		newGroupsSet[g] = struct{}{}
+	}
+
+	// Iterate over all existing groups to find the user's current memberships
+	for group, users := range s.Groups {
+		_, userIsInGroup := users[username]
+		_, groupIsInNewSet := newGroupsSet[group]
+
+		// If user is in a group that is not in their new set of groups, remove them.
+		if userIsInGroup && !groupIsInNewSet {
+			delete(s.Groups[group], username)
+			changed = true
+		}
+	}
+
+	// Add user to new groups
+	for group := range newGroupsSet {
+		if _, ok := s.Groups[group]; !ok {
+			s.Groups[group] = make(StringSet)
+		}
+		if _, ok := s.Groups[group][username]; !ok {
+			s.Groups[group][username] = struct{}{}
+			changed = true
+		}
+	}
+	if changed {
+		return s.SaveToDB()
+	}
+	return nil
 }
 
 // RemoveUserFromGroup removes a username from a group.
-func (s *Storage) RemoveUserFromGroup(group, username string) {
+func (s *Storage) RemoveUserFromGroup(group, username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	if users, ok := s.Groups[group]; ok {
-		delete(users, username)
+	users, ok := s.Groups[group]
+	if !ok {
+		return nil
 	}
+	if _, ok := users[username]; !ok {
+		return nil
+	}
+	delete(users, username)
+	if len(s.Groups[group]) == 0 {
+		delete(s.Groups, group)
+	}
+	return s.SaveToDB()
 }
 
 // RemoveAllowUser removes a user from the allow list for a given source and index path.
@@ -500,16 +608,19 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 func (s *Storage) RemoveAllRulesForUser(username string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	changed := false
 	changedSourcePaths := make(map[string]struct{})
 	for sourcePath, rulesBySource := range s.AllRules {
 		for indexPath, rule := range rulesBySource {
 			if _, exists := rule.Allow.Users[username]; exists {
 				delete(rule.Allow.Users, username)
 				changedSourcePaths[sourcePath] = struct{}{}
+				changed = true
 			}
 			if _, exists := rule.Deny.Users[username]; exists {
 				delete(rule.Deny.Users, username)
 				changedSourcePaths[sourcePath] = struct{}{}
+				changed = true
 			}
 			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
 				delete(s.AllRules[sourcePath], indexPath)
@@ -522,23 +633,29 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 	for sp := range changedSourcePaths {
 		accessCache.Set(accessChangedKey+sp, false)
 	}
-	return s.SaveToDB()
+	if changed {
+		return s.SaveToDB()
+	}
+	return nil
 }
 
 // RemoveAllRulesForGroup removes a group from all allow and deny lists.
 func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	changed := false
 	changedSourcePaths := make(map[string]struct{})
 	for sourcePath, rulesBySource := range s.AllRules {
 		for indexPath, rule := range rulesBySource {
 			if _, exists := rule.Allow.Groups[groupname]; exists {
 				delete(rule.Allow.Groups, groupname)
 				changedSourcePaths[sourcePath] = struct{}{}
+				changed = true
 			}
 			if _, exists := rule.Deny.Groups[groupname]; exists {
 				delete(rule.Deny.Groups, groupname)
 				changedSourcePaths[sourcePath] = struct{}{}
+				changed = true
 			}
 			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
 				delete(s.AllRules[sourcePath], indexPath)
@@ -551,7 +668,10 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	for sp := range changedSourcePaths {
 		accessCache.Set(accessChangedKey+sp, false)
 	}
-	return s.SaveToDB()
+	if changed {
+		return s.SaveToDB()
+	}
+	return nil
 }
 
 // GetRulesForUser returns all rules for a specific user for a given sourcePath.

@@ -319,7 +319,13 @@
     "abortUpload": "Sind Sie sicher, dass Sie abbrechen wollen?"
   },
   "share": {
-    "notice": "Hinweis: Jeder, der Zugang zum Link (und optional zum Passwort) hat, kann auf die gemeinsamen Dateien zugreifen. Es ist kein Login erforderlich."
+    "notice": "Hinweis: Wenn eine Freigabe erstellt wird, ist sie der Öffentlichkeit stärker ausgesetzt und unterliegt anderen Zugriffsregeln. Wenn Ihre Freigabe nicht sicher konfiguriert ist, kann jeder auf sie zugreifen.",
+    "disableAnonymousDescription": "Wenn diese Option aktiviert ist, können nur authentifizierte Benutzer auf die Freigabe zugreifen. Der Benutzer muss Zugriff auf die Quelle der Freigabe haben.",
+    "disableThumbnailsDescription": "Wenn diese Option aktiviert ist, werden die Vorschaubilder in der Freigabe nicht angezeigt.",
+    "enableAllowedUsernamesDescription": "Wenn diese Option aktiviert ist, können nur die angegebenen Benutzer auf die Freigabe zugreifen. Der Benutzer muss Zugriff auf die Quelle der Freigabe haben.",
+    "downloadsLimitDescription": "Die maximale Anzahl, wie oft eine Datei/Ordner von der Freigabe heruntergeladen werden kann. Leer lassen für unbegrenzt.",
+    "maxBandwidthDescription": "Die maximale Download-Bandbreite in Kilobytes pro Sekunde. Leer lassen für unbegrenzt.",
+    "shareThemeDescription": "Das für den Freigabelink zu verwendende Thema."
   },
   "api": {
     "title": "API-Schlüssel:",

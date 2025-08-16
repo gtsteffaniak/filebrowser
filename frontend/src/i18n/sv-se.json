@@ -319,7 +319,13 @@
     "abortUpload": "Är du säker på att du vill göra abort?"
   },
   "share": {
-    "notice": "Observera: alla som har tillgång till länken (och valfritt lösenord) kan komma åt de delade filerna. Det finns inget krav på att vara inloggad."
+    "notice": "Observera: När en andel skapas blir den mer exponerad för allmänheten och har andra regler för åtkomst. Om din andel inte är säkert konfigurerad kan vem som helst komma åt den.",
+    "disableAnonymousDescription": "När den är aktiverad kan endast autentiserade användare få åtkomst till delningen. Användaren måste ha tillgång till källan till delningen.",
+    "disableThumbnailsDescription": "När den är aktiverad visas inte förhandsgranskningens miniatyrer i delningen.",
+    "enableAllowedUsernamesDescription": "När funktionen är aktiverad kan endast de angivna användarna få åtkomst till delningen. Användaren måste ha tillgång till källan till delningen.",
+    "downloadsLimitDescription": "Det maximala antalet gånger som en fil/mapp från delningen kan laddas ner. Lämna tomt för obegränsat.",
+    "maxBandwidthDescription": "Den maximala bandbredden för nedladdning i kilobyte per sekund. Lämna tomt för obegränsat.",
+    "shareThemeDescription": "Det tema som ska användas för delningslänken."
   },
   "api": {
     "title": "API-nycklar",

@@ -14,15 +14,15 @@ All notable changes to this project will be documented in this file. For commit 
  #- The concept of 'groups', either automatically from OIDC groups claim or defined https://github.com/gtsteffaniak/filebrowser/issues/545
  - share view changes -- now aligns with the standard listing view. This means files can be viewed and edited (if permission allows) just like a normal listing.
  - many share links customization enhancements
-   #- only share to certain authenticated users https://github.com/gtsteffaniak/filebrowser/issues/656 https://github.com/gtsteffaniak/filebrowser/issues/985
-   #- one-time download links
-   #- customize share theme, banner image, and icons https://github.com/gtsteffaniak/filebrowser/issues/827 https://github.com/gtsteffaniak/filebrowser/issues/1029
-   #- share link info customization https://github.com/gtsteffaniak/filebrowser/issues/792 https://github.com/gtsteffaniak/filebrowser/issues/841 https://github.com/gtsteffaniak/filebrowser/issues/520
-   #- "shared with me" and "share history" https://github.com/gtsteffaniak/filebrowser/issues/943
-   - upload to share links https://github.com/gtsteffaniak/filebrowser/issues/661
+   - only share to certain authenticated users https://github.com/gtsteffaniak/filebrowser/issues/656 https://github.com/gtsteffaniak/filebrowser/issues/985
+   - one-time download links
+   - customize share theme https://github.com/gtsteffaniak/filebrowser/issues/827 https://github.com/gtsteffaniak/filebrowser/issues/1029
    - share link public changes https://github.com/gtsteffaniak/filebrowser/issues/473
-   - 
+   - shares can be modified/configured after creation.
  - public/private folder logic https://github.com/gtsteffaniak/filebrowser/issues/505
+
+ **Notes**:
+ - hover effect on list/compact view https://github.com/gtsteffaniak/filebrowser/issues/1036
 
  **BugFixes**:
  - fix new file "true" content issue https://github.com/gtsteffaniak/filebrowser/issues/1048

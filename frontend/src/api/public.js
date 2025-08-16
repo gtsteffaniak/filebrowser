@@ -9,6 +9,13 @@ import { state } from "@/store";
 // ============================================================================
 
 // Fetch public share data
+/**
+ * @param {string} path
+ * @param {string} hash
+ * @param {string} password
+ * @param {boolean} content
+ * @returns {Promise<any>}
+ */
 export async function fetchPub(path, hash, password = "", content = false) {
   const params = {
     path,
@@ -35,17 +42,22 @@ export async function fetchPub(path, hash, password = "", content = false) {
     if (data) {
       error.message = data.message;
     }
-    error.status = response.status;
+    (/** @type {any} */ (error)).status = response.status;
     throw error;
   }
   let data = await response.json()
   console.log("fetchPub adjusted",data, `/public/share/${hash}${path}`)
-  const adjusted = adjustedData(data, `/public/share/${hash}${path}`);
+  const adjusted = adjustedData(data);
   console.log("fetchPub adjusted2",adjusted)
   return adjusted
 }
 
 // Generate a download URL
+/**
+ * @param {{ path: string; hash: string; token: string; inline?: boolean }} share
+ * @param {string[]} files
+ * @returns {string}
+ */
 export function getDownloadURL(share, files) {
   const params = {
     path: share.path,
@@ -59,6 +71,10 @@ export function getDownloadURL(share, files) {
 }
 
 // Generate a preview URL for public shares
+/**
+ * @param {string} path
+ * @returns {string}
+ */
 export function getPreviewURL(path) {
   try {
     const params = {
@@ -70,7 +86,7 @@ export function getPreviewURL(path) {
     }
     const apiPath = getApiPath('public/api/preview', params)
     return window.origin + apiPath
-  } catch (err) {
+  } catch (/** @type {any} */ err) {
     notify.showError(err.message || 'Error getting preview URL')
     throw err
   }
@@ -87,19 +103,28 @@ export async function list() {
 }
 
 // Get share information
+/**
+ * @param {string} path
+ * @param {string} source
+ * @returns {Promise<any>}
+ */
 export async function get(path, source) {
   try {
     const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
     const apiPath = getApiPath("public/share", params);
-    let data = fetchJSON(apiPath);
-    return adjustedData(data, path);
-  } catch (err) {
+    let data = await fetchJSON(apiPath);
+    return adjustedData(data);
+  } catch (/** @type {any} */ err) {
     notify.showError(err.message || "Error fetching data");
     throw err;
   }
 }
 
 // Remove/delete a share
+/**
+ * @param {string} hash
+ * @returns {Promise<void>}
+ */
 export async function remove(hash) {
   const params = { hash };
   const apiPath = getApiPath("public/share", params);
@@ -109,12 +134,41 @@ export async function remove(hash) {
 }
 
 // Create a new share
-export async function create(path, source, password = "", expires = "", unit = "hours") {
+/**
+ * @param {string} path
+ * @param {string} source
+ * @param {string} password
+ * @param {string} expires
+ * @param {string} unit
+ * @param {boolean} disableAnonymous
+ * @param {boolean} allowUpload
+ * @param {number | string} maxBandwidth
+ * @param {number | string} downloadsLimit
+ * @param {string} shareTheme
+ * @param {boolean} disableFileViewer
+ * @param {boolean} disableThumbnails
+ * @param {string[]} allowedUsernames
+ * @returns {Promise<any>}
+ */
+export async function create(path, source, password = "", expires = "", unit = "hours", disableAnonymous, allowUpload, maxBandwidth, downloadsLimit, shareTheme, disableFileViewer, disableThumbnails, allowedUsernames = [], hash = "") {
   const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
   const apiPath = getApiPath("public/share", params);
   let body = "{}";
-  if (password != "" || expires !== "" || unit !== "hours") {
-    body = JSON.stringify({ password: password, expires: expires, unit: unit });
+  if (password != "" || expires !== "" || unit !== "hours" || disableAnonymous || allowUpload || maxBandwidth !== "" || downloadsLimit !== "" || shareTheme !== "default" || disableFileViewer || disableThumbnails || (allowedUsernames && allowedUsernames.length > 0) || hash !== "") {
+    body = JSON.stringify({
+      password: password,
+      expires: expires,
+      unit: unit,
+      disableAnonymous: disableAnonymous,
+      allowUpload: allowUpload,
+      maxBandwidth: Number(maxBandwidth) || 0,
+      downloadsLimit: Number(downloadsLimit) || 0,
+      shareTheme: shareTheme,
+      disableFileViewer: disableFileViewer,
+      disableThumbnails: disableThumbnails,
+      allowedUsernames: allowedUsernames,
+      hash: hash,
+    });
   }
   return fetchJSON(apiPath, {
     method: "POST",
@@ -123,6 +177,10 @@ export async function create(path, source, password = "", expires = "", unit = "
 }
 
 // Get the shareable URL for a share
+/**
+ * @param {{ hash: string }} share
+ * @returns {string}
+ */
 export function getShareURL(share) {
   if (externalUrl) {
     const apiPath = getApiPath(`public/share/${share.hash}`)

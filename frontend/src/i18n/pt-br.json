@@ -319,7 +319,13 @@
     "abortUpload": "Tem certeza de que quer abortar?"
   },
   "share": {
-    "notice": "Observação: qualquer pessoa que tenha acesso ao link (e à senha opcional) pode acessar os arquivos compartilhados. Não é necessário estar conectado."
+    "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",
+    "disableAnonymousDescription": "Quando ativado, somente usuários autenticados podem acessar o compartilhamento. O usuário deve ter acesso à origem do compartilhamento.",
+    "disableThumbnailsDescription": "Quando ativada, as miniaturas de visualização não serão mostradas no compartilhamento.",
+    "enableAllowedUsernamesDescription": "Quando ativado, somente os usuários especificados podem acessar o compartilhamento. O usuário deve ter acesso à origem do compartilhamento.",
+    "downloadsLimitDescription": "O número máximo de vezes que qualquer arquivo/pasta do compartilhamento pode ser baixado. Deixe em branco para ilimitado.",
+    "maxBandwidthDescription": "A largura de banda máxima de download em kilobytes por segundo. Deixe em branco para ilimitado.",
+    "shareThemeDescription": "O tema a ser usado para o link de compartilhamento."
   },
   "api": {
     "title": "Chaves de API:",

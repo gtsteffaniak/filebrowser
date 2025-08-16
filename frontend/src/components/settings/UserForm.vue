@@ -14,6 +14,7 @@
         :class="{ 'form-invalid': invalidPassword }"
         aria-label="Password1"
         type="password"
+        autocomplete="new-password"
         :placeholder="$t('settings.enterPassword')"
         v-model="passwordRef"
       />
@@ -24,6 +25,7 @@
         :class="{ 'flat-right': !isNew, 'form-invalid': invalidPassword }"
         aria-label="Password2"
         type="password"
+        autocomplete="new-password"
         :placeholder="$t('settings.enterPasswordAgain')"
         v-model="user.password"
         id="password"
