@@ -58,6 +58,8 @@
 <script>
 import { filesApi } from "@/api";
 import { url } from "@/utils";
+import { getApiPath, doubleEncode } from "@/utils/url";
+import { fetchURL } from "@/api/utils";
 import throttle from "@/utils/throttle";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import { state, getters, mutations } from "@/store";
@@ -220,18 +222,39 @@ export default {
         return [];
       }
       let subs = [];
-      for (const subtitleFile of state.req.subtitles) {
-        const ext = getFileExtension(subtitleFile);
-        const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
-        const resp = await filesApi.fetchFiles(state.req.source, path, true); // Fetch .srt file
-        let vttContent = resp.content;
-        // Convert SRT to VTT (assuming srt2vtt() does this)
-        vttContent = convertToVTT(ext, resp.content);
+      for (const subtitleTrack of state.req.subtitles) {
+        let vttContent = "";
+        let vttURL = "";
+        
+        if (subtitleTrack.isFile) {
+          // Handle external subtitle files
+          const ext = getFileExtension(subtitleTrack.name);
+          const path = url.removeLastDir(state.req.path) + "/" + subtitleTrack.name;
+          const resp = await filesApi.fetchFiles(state.req.source, path, true);
+          vttContent = convertToVTT(ext, resp.content);
+        } else {
+          // Handle embedded subtitles - call subtitles API directly
+          try {
+            const params = {
+              path: doubleEncode(state.req.path),
+              source: doubleEncode(state.req.source),
+              index: subtitleTrack.index
+            };
+            const apiPath = getApiPath('api/subtitles', params);
+            const res = await fetchURL(apiPath);
+            vttContent = await res.text(); // Get raw VTT content
+          } catch (err) {
+            console.warn("Failed to fetch embedded subtitle:", err);
+            continue; // Skip this subtitle track
+          }
+        }
+        
         // Create a virtual file (Blob) and get a URL for it
         const blob = new Blob([vttContent], { type: "text/vtt" });
-        const vttURL = URL.createObjectURL(blob);
+        vttURL = URL.createObjectURL(blob);
+        
         subs.push({
-          name: ext,
+          name: subtitleTrack.name,
           src: vttURL,
         });
       }
