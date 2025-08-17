@@ -141,7 +141,9 @@
     "enableAllowedUsernamesDescription": "When enabled, only the specified users can access the share. The user must have access to the source of the share.",
     "downloadsLimitDescription": "The maximum number of times any file/folder from the share can be downloaded. Leave empty for unlimited.",
     "maxBandwidthDescription": "The maximum download bandwidth in kilobytes per second. Leave empty for unlimited.",
-    "shareThemeDescription": "The theme to use for the share link."
+    "shareThemeDescription": "The theme to use for the share link",
+    "keepAfterExpiration": "Do not delete share after it expires",
+    "keepAfterExpirationDescription": "The share will not be deleted after it expires. This is useful if you want to extend a share's expiration or edit it further after it expires."
   },
   "prompts": {
     "downloadsLimit": "Number of downloads limit",
@@ -447,6 +449,7 @@
     "hash": "Hash"
   },
   "access": {
+    "all": "Deny All",
     "rules": "Access rules",
     "deny": "Deny",
     "deniedUsers": "Denied Users",
