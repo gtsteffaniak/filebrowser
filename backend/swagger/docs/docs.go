@@ -52,12 +52,6 @@ const docTemplate = `{
                         "description": "Group name to filter rules for",
                         "name": "group",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Group results by 'user' or 'group'",
-                        "name": "groupBy",
-                        "in": "query"
                     }
                 ],
                 "responses": {

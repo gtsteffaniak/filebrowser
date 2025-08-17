@@ -148,13 +148,15 @@ export async function remove(hash) {
  * @param {boolean} disableFileViewer
  * @param {boolean} disableThumbnails
  * @param {string[]} allowedUsernames
- * @returns {Promise<any>}
+ * @param {string} hash
+ * @param {boolean} keepAfterExpiration
+ * @returns {Promise<Share>}
  */
-export async function create(path, source, password = "", expires = "", unit = "hours", disableAnonymous, allowUpload, maxBandwidth, downloadsLimit, shareTheme, disableFileViewer, disableThumbnails, allowedUsernames = [], hash = "") {
+export async function create(path, source, password = "", expires = "", unit = "hours", disableAnonymous, allowUpload, maxBandwidth, downloadsLimit, shareTheme, disableFileViewer, disableThumbnails, allowedUsernames = [], hash = "", keepAfterExpiration = false) {
   const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
   const apiPath = getApiPath("public/share", params);
   let body = "{}";
-  if (password != "" || expires !== "" || unit !== "hours" || disableAnonymous || allowUpload || maxBandwidth !== "" || downloadsLimit !== "" || shareTheme !== "default" || disableFileViewer || disableThumbnails || (allowedUsernames && allowedUsernames.length > 0) || hash !== "") {
+  if (password != "" || expires !== "" || unit !== "hours" || disableAnonymous || allowUpload || maxBandwidth !== "" || downloadsLimit !== "" || shareTheme !== "default" || disableFileViewer || disableThumbnails || (allowedUsernames && allowedUsernames.length > 0) || hash !== "" || keepAfterExpiration) {
     body = JSON.stringify({
       password: password,
       expires: expires,
@@ -168,6 +170,7 @@ export async function create(path, source, password = "", expires = "", unit = "
       disableThumbnails: disableThumbnails,
       allowedUsernames: allowedUsernames,
       hash: hash,
+      keepAfterExpiration: keepAfterExpiration,
     });
   }
   return fetchJSON(apiPath, {
@@ -188,3 +191,20 @@ export function getShareURL(share) {
   }
   return window.origin + getApiPath(`public/share/${share.hash}`);
 }
+
+/**
+ * @typedef {object} Share
+ * @property {string} hash
+ * @property {string} path
+ * @property {string} source
+ * @property {number} expire
+ * @property {number} downloadsLimit
+ * @property {number} maxBandwidth
+ * @property {string} shareTheme
+ * @property {boolean} disableAnonymous
+ * @property {boolean} disableThumbnails
+ * @property {boolean} keepAfterExpiration
+ * @property {string[]} allowedUsernames
+ * @property {string} token
+ * @property {boolean} inline
+ */

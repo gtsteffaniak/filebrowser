@@ -24,12 +24,13 @@
         <select class="input flat-right form-compact" v-model="addType">
           <option value="user">{{ $t("general.user") }}</option>
           <option value="group">{{ $t("general.group") }}</option>
+          <option value="all">{{ $t("access.all") }}</option>
         </select>
-        <select class="input flat-right flat-left form-compact" v-model="addListType">
+        <select v-if="addType !== 'all'" class="input flat-right flat-left form-compact" v-model="addListType">
           <option value="deny">{{ $t("access.deny") }}</option>
           <option value="allow">{{ $t("access.allow") }}</option>
         </select>
-        <input class="input flat-right flat-left form-grow form-compact" v-model="addName" :placeholder="$t('access.enterName')" list="group-suggestions" />
+        <input v-if="addType !== 'all'" class="input flat-right flat-left form-grow form-compact" v-model="addName" :placeholder="$t('access.enterName')" list="group-suggestions" />
         <datalist id="group-suggestions">
           <option v-for="group in groups" :key="group" :value="group"></option>
         </datalist>
@@ -47,7 +48,7 @@
           </tr>
           <tr v-for="entry in entries" :key="entry.type + '-' + entry.name">
             <td>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</td>
-            <td>{{ entry.type == "user" ? $t("general.user") : $t("general.group") }}</td>
+            <td>{{ entry.type === 'user' ? $t("general.user") : (entry.type === 'group' ? $t("general.group") : $t('access.all')) }}</td>
             <td>{{ entry.name }}</td>
             <td>
               <button @click="deleteAccess(entry)" class="action" :aria-label="$t('buttons.delete')"
@@ -88,7 +89,7 @@ export default {
       currentPath: this.path,
       currentSource: this.sourceName,
       tempSource: this.sourceName,
-      rule: { deny: { users: [], groups: [] }, allow: { users: [], groups: [] } },
+      rule: { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } },
       addType: "user",
       addListType: "deny",
       addName: "",
@@ -97,8 +98,11 @@ export default {
   },
   computed: {
     entries() {
-      /** @type {{allow: boolean, type: "user" | "group", name: string}[]} */
+      /** @type {{allow: boolean, type: "user" | "group" | "all", name: string}[]} */
       const entries = [];
+      if (this.rule.denyAll) {
+        entries.push({ allow: false, type: "all", name: this.$t("access.all") });
+      }
       (this.rule.deny?.users || []).forEach(name => {
         entries.push({ allow: false, type: "user", name });
       });
@@ -170,7 +174,7 @@ export default {
         this.rule = await accessApi.get(this.currentSource, this.currentPath);
       } catch (e) {
         notify.showError(e);
-        this.rule = { deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
+        this.rule = { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
       }
     },
     /**
@@ -181,7 +185,7 @@ export default {
         const body = {
           allow: entry.allow,
           ruleCategory: entry.type,
-          value: entry.name
+          value: entry.type === 'all' ? '' : entry.name,
         };
         await accessApi.del(this.currentSource, this.currentPath, body);
         notify.showSuccess(this.$t("access.deleted"));
@@ -192,13 +196,13 @@ export default {
       }
     },
     async submitAdd() {
-      if (!this.addName.trim()) {
+      if (!this.addName.trim() && this.addType !== "all") {
         notify.showError(this.$t("access.enterName"));
         return;
       }
       try {
         const body = {
-          allow: this.addListType === 'allow',
+          allow: this.addListType === 'allow' && this.addType !== 'all',
           ruleCategory: this.addType,
           value: this.addName.trim()
         };

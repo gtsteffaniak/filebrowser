@@ -29,7 +29,7 @@
       <tbody class="settings-items">
         <tr class="item" v-for="(rule, path) in rules" :key="path">
           <td>{{ path }}</td>
-          <td>{{ rule.deny.users.length + rule.deny.groups.length }}</td>
+          <td>{{ (rule.deny.users.length + rule.deny.groups.length) + (rule.denyAll ? 1 : 0) }}</td>
           <td>{{ rule.allow.users.length + rule.allow.groups.length }}</td>
           <td class="small">
             <button class="action" @click="editAccess(path)" :aria-label="$t('buttons.edit')"

@@ -973,10 +973,6 @@ paths:
         in: query
         name: group
         type: string
-      - description: Group results by 'user' or 'group'
-        in: query
-        name: groupBy
-        type: string
       produces:
       - application/json
       responses:

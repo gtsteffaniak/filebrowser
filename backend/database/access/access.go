@@ -41,8 +41,9 @@ type RuleSet struct {
 
 // AccessRule defines allow/deny lists for a path.
 type AccessRule struct {
-	Deny  RuleSet
-	Allow RuleSet
+	DenyAll bool `json:"denyAll,omitempty"`
+	Deny    RuleSet
+	Allow   RuleSet
 }
 
 type FrontendRuleSet struct {
@@ -51,8 +52,9 @@ type FrontendRuleSet struct {
 }
 
 type FrontendAccessRule struct {
-	Deny  FrontendRuleSet `json:"deny"`
-	Allow FrontendRuleSet `json:"allow"`
+	DenyAll bool            `json:"denyAll,omitempty"`
+	Deny    FrontendRuleSet `json:"deny"`
+	Allow   FrontendRuleSet `json:"allow"`
 }
 
 // GroupMap maps group names to a set of usernames.
@@ -126,10 +128,9 @@ func NewStorage(db *storm.DB, usersStore *users.Storage) *Storage {
 	return s
 }
 
-// getOrCreateRule ensures a rule exists for the given source and index path.
-func (s *Storage) getOrCreateRule(sourcePath, indexPath string) *AccessRule {
-	s.mux.Lock()
-	defer s.mux.Unlock()
+// getOrCreateRuleNL ensures a rule exists for the given source and index path.
+// The caller must hold the lock.
+func (s *Storage) getOrCreateRuleNL(sourcePath, indexPath string) *AccessRule {
 	if _, ok := s.AllRules[sourcePath]; !ok {
 		s.AllRules[sourcePath] = make(RuleMap)
 	}
@@ -142,7 +143,6 @@ func (s *Storage) getOrCreateRule(sourcePath, indexPath string) *AccessRule {
 		s.AllRules[sourcePath][indexPath] = rule
 	}
 	logger.Debugf("Created rule for source: %s and index: %s", sourcePath, indexPath)
-	accessCache.Set(accessChangedKey+sourcePath, false)
 	return rule
 }
 
@@ -154,13 +154,14 @@ func (s *Storage) DenyUser(sourcePath, indexPath, username string) error {
 			return fmt.Errorf("user '%s' does not exist: %w", username, err)
 		}
 	}
-	rule := s.getOrCreateRule(sourcePath, indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Deny.Users[username]; ok {
 		return errors.ErrExist
 	}
 	rule.Deny.Users[username] = struct{}{}
+	s.incrementSourceVersion(sourcePath)
 	return s.SaveToDB()
 }
 
@@ -172,65 +173,92 @@ func (s *Storage) AllowUser(sourcePath, indexPath, username string) error {
 			return fmt.Errorf("user '%s' does not exist: %w", username, err)
 		}
 	}
-	rule := s.getOrCreateRule(sourcePath, indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Allow.Users[username]; ok {
 		return errors.ErrExist
 	}
 	rule.Allow.Users[username] = struct{}{}
+	s.incrementSourceVersion(sourcePath)
 	return s.SaveToDB()
 }
 
 // DenyGroup adds a group to the deny list for a given source and index path.
 func (s *Storage) DenyGroup(sourcePath, indexPath, groupname string) error {
-	s.mux.RLock()
+	s.mux.Lock()
+	defer s.mux.Unlock()
 	_, ok := s.Groups[groupname]
-	s.mux.RUnlock()
 	if !ok {
 		return fmt.Errorf("group '%s' does not exist", groupname)
 	}
-	rule := s.getOrCreateRule(sourcePath, indexPath)
-	s.mux.Lock()
-	defer s.mux.Unlock()
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Deny.Groups[groupname]; ok {
 		return errors.ErrExist
 	}
 	rule.Deny.Groups[groupname] = struct{}{}
+	s.incrementSourceVersion(sourcePath)
 	return s.SaveToDB()
 }
 
 // AllowGroup adds a group to the allow list for a given source and index path.
 func (s *Storage) AllowGroup(sourcePath, indexPath, groupname string) error {
-	s.mux.RLock()
+	s.mux.Lock()
+	defer s.mux.Unlock()
 	_, ok := s.Groups[groupname]
-	s.mux.RUnlock()
 	if !ok {
 		return fmt.Errorf("group '%s' does not exist", groupname)
 	}
-	rule := s.getOrCreateRule(sourcePath, indexPath)
-	s.mux.Lock()
-	defer s.mux.Unlock()
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
 	if _, ok := rule.Allow.Groups[groupname]; ok {
 		return errors.ErrExist
 	}
 	rule.Allow.Groups[groupname] = struct{}{}
+	s.incrementSourceVersion(sourcePath)
+	return s.SaveToDB()
+}
+
+// DenyAll sets a rule to deny all access for a given source and index path.
+func (s *Storage) DenyAll(sourcePath, indexPath string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
+	if rule.DenyAll {
+		return errors.ErrExist
+	}
+	rule.DenyAll = true
+	s.incrementSourceVersion(sourcePath)
 	return s.SaveToDB()
 }
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
 	logger.Debugf("Checking if user: %s is permitted for source: %s and index: %s", username, sourcePath, indexPath)
-	_, newRules := accessCache.Get(accessChangedKey + sourcePath).(map[string]FrontendAccessRule)
-	val, ok := accessCache.Get(sourcePath + indexPath + username).(bool)
-	if ok && !newRules {
-		logger.Debugf("Returning cached rule for source: %s and index: %s for user: %s", sourcePath, indexPath, username)
-		return val
+
+	// Get current version for the sourcePath
+	versionKey := "version:" + sourcePath
+	version := 0
+	if v, ok := accessCache.Get(versionKey).(int); ok {
+		version = v
 	}
+
+	// Check cache with versioned key
+	permKey := fmt.Sprintf("perm:%s:%d:%s:%s", sourcePath, version, indexPath, username)
+	if p, ok := accessCache.Get(permKey).(bool); ok {
+		logger.Debugf("Returning cached rule for source: %s and index: %s for user: %s", sourcePath, indexPath, username)
+		return p
+	}
+
+	// Not in cache, compute, then cache it.
+	result := s.computePermitted(sourcePath, indexPath, username)
+	accessCache.Set(permKey, result)
+	return result
+}
+
+func (s *Storage) computePermitted(sourcePath, indexPath, username string) bool {
 	for {
 		permitted, found := s.permittedAtExactPath(sourcePath, indexPath, username)
 		if found {
-			accessCache.Set(sourcePath+indexPath+username, permitted)
 			return permitted
 		}
 		indexPath = utils.GetParentDirectoryPath(indexPath)
@@ -238,7 +266,6 @@ func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
 			break
 		}
 	}
-	accessCache.Set(sourcePath+indexPath+username, true)
 	return true
 }
 
@@ -263,6 +290,9 @@ func (s *Storage) permittedAtExactPath(sourcePath, indexPath, username string) (
 func (s *Storage) permittedRule(rule *AccessRule, username string) bool {
 	// Check user deny
 	if _, found := rule.Deny.Users[username]; found {
+		return false
+	}
+	if rule.DenyAll {
 		return false
 	}
 	// Check group deny
@@ -337,6 +367,7 @@ func (s *Storage) GetFrontendRules(sourcePath, indexPath string) (FrontendAccess
 		return frontendRules, false
 	}
 	// Convert AccessRule to FrontendAccessRule
+	frontendRules.DenyAll = rule.DenyAll
 	frontendRules.Deny.Users = utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users)))
 	frontendRules.Deny.Groups = utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups)))
 	frontendRules.Allow.Users = utils.NonNilSlice(slices.Collect(maps.Keys(rule.Allow.Users)))
@@ -364,6 +395,7 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 	for indexPath, rule := range rules {
 		// Convert AccessRule to FrontendAccessRule
 		frontendRules[indexPath] = FrontendAccessRule{
+			DenyAll: rule.DenyAll,
 			Deny: FrontendRuleSet{
 				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -494,7 +526,7 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 	removed := false
 	if exists {
 		logger.Debugf("Removing allow user: %s for source: %s and index: %s", username, sourcePath, indexPath)
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
 	// If rule is now empty, remove it
@@ -525,7 +557,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 	removed := false
 	if exists {
 		logger.Debugf("Removing allow group: %s for source: %s and index: %s", groupname, sourcePath, indexPath)
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
 	// If rule is now empty, remove it
@@ -557,7 +589,7 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 	removed := false
 	if exists {
 		logger.Debugf("Removing deny user: %s for source: %s and index: %s", username, sourcePath, indexPath)
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
 	// If rule is now empty, remove it
@@ -588,7 +620,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 	removed := false
 	if exists {
 		logger.Debugf("Removing deny group: %s for source: %s and index: %s", groupname, sourcePath, indexPath)
-		accessCache.Set(accessChangedKey+sourcePath, false)
+		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
 	// If rule is now empty, remove it
@@ -602,6 +634,34 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
+}
+
+// RemoveDenyAll removes the deny all rule for a given source and index path.
+func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	rule, ok := s.AllRules[sourcePath][indexPath]
+	if !ok {
+		return false, nil
+	}
+	removed := false
+	if rule.DenyAll {
+		rule.DenyAll = false
+		logger.Debugf("Removing deny all for source: %s and index: %s", sourcePath, indexPath)
+		s.incrementSourceVersion(sourcePath)
+		removed = true
+	}
+	// If rule is now empty, remove it
+	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
+		delete(s.AllRules[sourcePath], indexPath)
+		if len(s.AllRules[sourcePath]) == 0 {
+			delete(s.AllRules, sourcePath)
+		}
+	}
+	if removed {
+		return true, s.SaveToDB()
+	}
+	return false, nil
 }
 
 // RemoveAllRulesForUser removes a user from all allow and deny lists.
@@ -631,7 +691,7 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 		}
 	}
 	for sp := range changedSourcePaths {
-		accessCache.Set(accessChangedKey+sp, false)
+		s.incrementSourceVersion(sp)
 	}
 	if changed {
 		return s.SaveToDB()
@@ -666,7 +726,7 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 		}
 	}
 	for sp := range changedSourcePaths {
-		accessCache.Set(accessChangedKey+sp, false)
+		s.incrementSourceVersion(sp)
 	}
 	if changed {
 		return s.SaveToDB()
@@ -695,6 +755,7 @@ func (s *Storage) GetRulesForUser(sourcePath, username string) map[string]Fronte
 		}
 		if userHasRule {
 			userRules[indexPath] = FrontendAccessRule{
+				DenyAll: rule.DenyAll,
 				Deny: FrontendRuleSet{
 					Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 					Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -730,6 +791,7 @@ func (s *Storage) GetRulesForGroup(sourcePath, groupname string) map[string]Fron
 		}
 		if groupHasRule {
 			groupRules[indexPath] = FrontendAccessRule{
+				DenyAll: rule.DenyAll,
 				Deny: FrontendRuleSet{
 					Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 					Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -760,6 +822,7 @@ func (s *Storage) GetAllRulesByUsers(sourcePath string) map[string]map[string]Fr
 			continue
 		}
 		frontendRule := FrontendAccessRule{
+			DenyAll: rule.DenyAll,
 			Deny: FrontendRuleSet{
 				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -801,6 +864,7 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 			continue
 		}
 		frontendRule := FrontendAccessRule{
+			DenyAll: rule.DenyAll,
 			Deny: FrontendRuleSet{
 				Users:  utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Users))),
 				Groups: utils.NonNilSlice(slices.Collect(maps.Keys(rule.Deny.Groups))),
@@ -824,4 +888,15 @@ func (s *Storage) GetAllRulesByGroups(sourcePath string) map[string]map[string]F
 		}
 	}
 	return allGroupRules
+}
+
+// incrementSourceVersion increments the version of a sourcePath to invalidate caches.
+// The caller MUST hold the mutex lock.
+func (s *Storage) incrementSourceVersion(sourcePath string) {
+	key := "version:" + sourcePath
+	version := 0
+	if v, ok := accessCache.Get(key).(int); ok {
+		version = v
+	}
+	accessCache.Set(key, version+1)
 }

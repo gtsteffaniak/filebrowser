@@ -161,3 +161,51 @@ func TestPermitted_CombinedRules(t *testing.T) {
 		t.Error("bob should be permitted (in group allowed)")
 	}
 }
+
+func TestPermitted_DenyAll(t *testing.T) {
+	s, userStore := createTestStorage(t)
+	createTestUser(t, userStore, "alice")
+	createTestUser(t, userStore, "bob")
+	err := s.LoadFromDB()
+	if err != nil && err != storm.ErrNotFound {
+		t.Errorf("unexpected error loading from DB: %v", err)
+	}
+
+	// Test DenyAll
+	if err = s.DenyAll("mnt/storage", "/private"); err != nil {
+		t.Errorf("DenyAll failed: %v", err)
+	}
+	if s.Permitted("mnt/storage", "/private", "alice") {
+		t.Error("alice should not be permitted (deny all)")
+	}
+	if s.Permitted("mnt/storage", "/private", "bob") {
+		t.Error("bob should not be permitted (deny all)")
+	}
+
+	// Test that Allow rule is overridden by DenyAll
+	if err = s.AllowUser("mnt/storage", "/private", "alice"); err != nil {
+		t.Errorf("AllowUser failed: %v", err)
+	}
+	if s.Permitted("mnt/storage", "/private", "alice") {
+		t.Error("alice should not be permitted (deny all overrides allow)")
+	}
+
+	// Test removing DenyAll
+	removed, err := s.RemoveDenyAll("mnt/storage", "/private")
+	if err != nil {
+		t.Errorf("RemoveDenyAll failed: %v", err)
+	}
+	if !removed {
+		t.Error("RemoveDenyAll should have removed the rule")
+	}
+
+	// After removing DenyAll, alice should be permitted due to the Allow rule
+	if !s.Permitted("mnt/storage", "/private", "alice") {
+		t.Error("alice should be permitted after removing deny all")
+	}
+
+	// Bob should be permitted as he is not on any list, and there is an allow list which he is not on, but he is not on deny either.
+	if !s.Permitted("mnt/storage", "/private", "bob") {
+		t.Error("bob should be permitted after removing deny all (not on allow list but not denied)")
+	}
+}

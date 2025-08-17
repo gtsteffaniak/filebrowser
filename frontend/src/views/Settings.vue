@@ -108,6 +108,12 @@ export default {
   width: 100%;
 }
 
+.settings-views .card-title {
+  background: var(--surfacePrimary);
+  padding: 0.5em;
+  border-radius: 1em;
+}
+
 .settings-views .card {
   border-style: solid;
   opacity: 1;
@@ -121,5 +127,7 @@ export default {
 .settings-items > .item:hover {
   background-color: var(--surfaceSecondary);
 }
+
+
 
 </style>

@@ -71,24 +71,31 @@
             <span>{{ $t('share.disableAnonymous') }}</span>
             <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.disableAnonymousDescription'))" @mouseleave="hideTooltip">help</i>
           </div>
-          <ToggleSwitch v-model="disableAnonymous" />
+          <ToggleSwitch v-model="disableAnonymous" :name="'Disable Anonymous'" />
         </div>
         <div class="setting-item item">
           <div class="label-with-tooltip">
             <span>{{ $t('share.disableThumbnails') }}</span>
             <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.disableThumbnailsDescription'))" @mouseleave="hideTooltip">help</i>
           </div>
-          <ToggleSwitch v-model="disableThumbnails" />
+          <ToggleSwitch v-model="disableThumbnails" :name="'Disable Thumbnails'" />
         </div>
         <div class="setting-item item">
           <div class="label-with-tooltip">
             <span>{{ $t('share.enableAllowedUsernames') }}</span>
             <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.enableAllowedUsernamesDescription'))" @mouseleave="hideTooltip">help</i>
           </div>
-          <ToggleSwitch v-model="enableAllowedUsernames" />
+          <ToggleSwitch v-model="enableAllowedUsernames" :name="'Enable Allowed Usernames'" />
         </div>
         <div v-if="enableAllowedUsernames" class="item">
           <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
+        </div>
+        <div class="setting-item item">
+          <div class="label-with-tooltip">
+            <span>{{ $t('share.keepAfterExpiration') }}</span>
+            <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.keepAfterExpirationDescription'))" @mouseleave="hideTooltip">help</i>
+          </div>
+          <ToggleSwitch v-model="keepAfterExpiration" :name="'Keep After Expiration'" />
         </div>
       </div>
 
@@ -155,6 +162,29 @@ import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { userSelectableThemes } from "@/utils/constants";
 
+/**
+ * @typedef {import('@/api/public').Share} Share
+ */
+
+/**
+ * @typedef {object} FilebrowserFile
+ * @property {string} name
+ * @property {string} path
+ * @property {string} source
+ * @property {boolean} isDir
+ * @property {string} type
+ */
+
+/**
+ * @typedef {object} FilebrowserRequest
+ * @property {FilebrowserFile[]} items
+ * @property {number} numDirs
+ * @property {number} numFiles
+ * @property {{by: string, asc: boolean}} sorting
+ * @property {string} path
+ * @property {string} source
+ */
+
 export default {
   name: "share",
   components: {
@@ -174,7 +204,9 @@ export default {
     return {
       time: "",
       unit: "hours",
+      /** @type {Share[]} */
       links: [],
+      /** @type {Clipboard | null} */
       clip: null,
       subpath: "",
       source: "",
@@ -190,6 +222,7 @@ export default {
       disableThumbnails: false,
       enableAllowedUsernames: false,
       allowedUsernames: "",
+      keepAfterExpiration: false,
     };
   },
   computed: {
@@ -200,10 +233,10 @@ export default {
       return mutations.closeHovers;
     },
     req() {
-      return state.req; // Access state directly
+      return /** @type {FilebrowserRequest} */ (/** @type {unknown} */ (state.req));
     },
     selected() {
-      return state.selected; // Access state directly
+      return /** @type {(number | FilebrowserFile)[]} */ (state.selected);
     },
     selectedCount() {
       return state.selected.length; // Compute selectedCount directly from state
@@ -213,16 +246,18 @@ export default {
     },
     url() {
       if (state.isSearchActive) {
-        return buildItemUrl(state.selected[0].source,state.selected[0].path)
+        const file = /** @type {FilebrowserFile} */ (this.selected[0]);
+        return buildItemUrl(file.source, file.path);
       }
       if (!this.isListing) {
-        return state.route.path;
+        return this.req.path;
       }
-      if (getters.selectedCount() !== 1) {
+      if (this.selectedCount !== 1) {
         // selecting current view image
-        return state.route.path;
+        return this.req.path;
       }
-      return buildItemUrl(state.req.items[this.selected[0]].source,state.req.items[this.selected[0]].path)
+      const index = /** @type {number} */ (this.selected[0]);
+      return buildItemUrl(this.req.items[index].source, this.req.items[index].path);
     },
     isEditMode() {
       return this.editing && this.link && Object.keys(this.link).length > 0;
@@ -240,17 +275,18 @@ export default {
         if (isEditMode) {
           this.listing = false;
           this.time = this.link.expire
-            ? Math.round((new Date(this.link.expire * 1000) - new Date()) / 3600000)
-            : 0;
+            ? String(Math.round((new Date(this.link.expire * 1000).getTime() - new Date().getTime()) / 3600000))
+            : "0";
           this.unit = "hours";
           this.password = "";
-          this.downloadsLimit = this.link.downloadsLimit || "";
-          this.maxBandwidth = this.link.maxBandwidth || "";
+          this.downloadsLimit = this.link.downloadsLimit ? String(this.link.downloadsLimit) : "";
+          this.maxBandwidth = this.link.maxBandwidth ? String(this.link.maxBandwidth) : "";
           this.shareTheme = this.link.shareTheme || "default";
           this.disableAnonymous = this.link.disableAnonymous || false;
           this.disableThumbnails = this.link.disableThumbnails || false;
           this.enableAllowedUsernames = Array.isArray(this.link.allowedUsernames) && this.link.allowedUsernames.length > 0;
           this.allowedUsernames = this.enableAllowedUsernames ? this.link.allowedUsernames.join(", ") : "";
+          this.keepAfterExpiration = this.link.keepAfterExpiration || false;
         }
       },
     },
@@ -261,22 +297,21 @@ export default {
       this.source = this.link.source;
       return;
     }
-    let path = state.req.path;
-    this.source = state.req.source;
+    let path = this.req.path;
+    this.source = this.req.source;
     if (state.isSearchActive) {
-      path = state.selected[0].path;
-      this.source = state.selected[0].source;
-    } else if (getters.selectedCount() === 1) {
-      const selected = getters.getFirstSelected();
+      const file = /** @type {FilebrowserFile} */ (this.selected[0]);
+      path = file.path;
+      this.source = file.source;
+    } else if (this.selectedCount === 1) {
+      const index = /** @type {number} */ (this.selected[0]);
+      const selected = this.req.items[index];
       path = selected.path;
       this.source = selected.source;
-      this.source = state.req.items[state.selected[0]].source;
-
     }
     // double encode # to fix issue with # in path
     // replace all # with %23
     this.subpath = path.replace(/#/g, "%23");
-
     try {
       // get last element of the path
       const links = await publicApi.get(this.subpath, this.source);
@@ -297,10 +332,11 @@ export default {
       notify.showSuccess(this.$t("success.linkCopied"));
     });
   },
-  beforeUnmount() {
-    this.clip.destroy();
-  },
   methods: {
+    /**
+     * @param {MouseEvent} event
+     * @param {string} text
+     */
     showTooltip(event, text) {
       mutations.showTooltip({
         content: text,
@@ -313,7 +349,7 @@ export default {
     },
     async submit() {
       try {
-        let isPermanent = !this.time || this.time == 0;
+        let isPermanent = !this.time || this.time === "0";
         const payload = {
           path: this.subpath,
           sourceName: this.source,
@@ -329,6 +365,8 @@ export default {
           disablingFileViewer: this.disablingFileViewer,
           disableThumbnails: this.disableThumbnails,
           allowedUsernames: this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : [],
+          keepAfterExpiration: this.keepAfterExpiration,
+          hash: '',
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
@@ -336,7 +374,7 @@ export default {
 
         let res = null;
         if (isPermanent) {
-          res = await publicApi.create(payload.path, payload.source, payload.password, "", "", payload.disableAnonymous, payload.allowUpload, payload.maxBandwidth, payload.downloadsLimit, payload.shareTheme, payload.disablingFileViewer, payload.disableThumbnails, payload.allowedUsernames, payload.hash);
+          res = await publicApi.create(payload.path, payload.source, payload.password, "", "", payload.disableAnonymous, payload.allowUpload, payload.maxBandwidth, payload.downloadsLimit, payload.shareTheme, payload.disablingFileViewer, payload.disableThumbnails, payload.allowedUsernames, payload.hash, payload.keepAfterExpiration);
         } else {
           res = await publicApi.create(
             payload.path,
@@ -352,7 +390,8 @@ export default {
             payload.disablingFileViewer,
             payload.disableThumbnails,
             payload.allowedUsernames,
-            payload.hash
+            payload.hash,
+            payload.keepAfterExpiration
           );
         }
 
@@ -373,6 +412,10 @@ export default {
         notify.showError(err);
       }
     },
+    /**
+     * @param {Event} event
+     * @param {Share} link
+     */
     async deleteLink(event, link) {
       event.preventDefault();
       try {
@@ -385,28 +428,40 @@ export default {
         notify.showError(err);
       }
     },
+    /**
+     * @param {number} time
+     */
     humanTime(time) {
       return fromNow(time, state.user.locale)
     },
+    /**
+     * @param {Share} share
+     */
     buildLink(share) {
       return publicApi.getShareURL(share);
     },
     hasDownloadLink() {
       if (state.isSearchActive) {
-        return state.selected[0].type != "directory";
+        const file = /** @type {FilebrowserFile} */ (this.selected[0]);
+        return file.type !== "directory";
       }
-      return this.selected.length === 1 && !state.req.items[this.selected[0]].isDir;
+      const index = /** @type {number} */ (this.selected[0]);
+      return this.selected.length === 1 && !this.req.items[index].isDir;
     },
+    /**
+     * @param {Share} share
+     */
     buildDownloadLink(share) {
       share.source = this.source;
       share.path = "/";
-      return publicApi.getDownloadURL(share);
+      const index = /** @type {number} */ (this.selected[0]);
+      return publicApi.getDownloadURL(share, [this.req.items[index].name]);
     },
     sort() {
       this.links = this.links.sort((a, b) => {
         if (a.expire === 0) return -1;
         if (b.expire === 0) return 1;
-        return new Date(a.expire) - new Date(b.expire);
+        return a.expire - b.expire;
       });
     },
     switchListing() {

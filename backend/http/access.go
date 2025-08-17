@@ -23,7 +23,6 @@ type GroupListResponse struct {
 // @Param path query string false "Index path (e.g. /secret)"
 // @Param user query string false "Username to filter rules for"
 // @Param group query string false "Group name to filter rules for"
-// @Param groupBy query string false "Group results by 'user' or 'group'"
 // @Success 200 {object} object "Varies based on query. Can be access.FrontendAccessRule, []access.PrincipalRule, map[string][]access.PrincipalRule, or map[string]access.FrontendAccessRule"
 // @Failure 400 {object} map[string]string "Bad request"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -33,7 +32,6 @@ func accessGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	indexPath := r.URL.Query().Get("path")
 	user := r.URL.Query().Get("user")
 	group := r.URL.Query().Get("group")
-	groupBy := r.URL.Query().Get("groupBy")
 
 	var sourcePath string
 	if sourceName != "" {
@@ -51,14 +49,6 @@ func accessGetHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	}
 	if group != "" {
 		rules := store.Access.GetRulesForGroup(sourcePath, group)
-		return renderJSON(w, r, rules)
-	}
-	if groupBy == "user" {
-		rules := store.Access.GetAllRulesByUsers(sourcePath)
-		return renderJSON(w, r, rules)
-	}
-	if groupBy == "group" {
-		rules := store.Access.GetAllRulesByGroups(sourcePath)
 		return renderJSON(w, r, rules)
 	}
 
@@ -109,8 +99,8 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 		return http.StatusBadRequest, fmt.Errorf("invalid request body: %w", err)
 	}
 
-	if indexPath == "" || body.RuleCategory == "" || body.Value == "" {
-		return http.StatusBadRequest, fmt.Errorf("all parameters (path, ruleCategory, value) are required")
+	if indexPath == "" || body.RuleCategory == "" || (body.RuleCategory != "all" && body.Value == "") {
+		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
 	var err error
 	if body.Allow {
@@ -128,8 +118,10 @@ func accessPostHandler(w http.ResponseWriter, r *http.Request, d *requestContext
 			err = store.Access.DenyUser(index.Path, indexPath, body.Value)
 		case "group":
 			err = store.Access.DenyGroup(index.Path, indexPath, body.Value)
+		case "all":
+			err = store.Access.DenyAll(index.Path, indexPath)
 		default:
-			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory: must be 'user' or 'group'")
+			return http.StatusBadRequest, fmt.Errorf("invalid ruleCategory: must be 'user', 'group', or 'all'")
 		}
 	}
 	if err != nil {
@@ -168,8 +160,8 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 	value := r.URL.Query().Get("value")
 	allow := ruleType == "allow"
 
-	if indexPath == "" || ruleCategory == "" || value == "" {
-		return http.StatusBadRequest, fmt.Errorf("all parameters (path, ruleCategory, value) are required")
+	if indexPath == "" || ruleCategory == "" || (ruleCategory != "all" && value == "") {
+		return http.StatusBadRequest, fmt.Errorf("path, ruleCategory, and value are required, unless ruleCategory is 'all'")
 	}
 
 	var found bool
@@ -187,6 +179,8 @@ func accessDeleteHandler(w http.ResponseWriter, r *http.Request, d *requestConte
 			found, err = store.Access.RemoveDenyUser(index.Path, indexPath, value)
 		case "group":
 			found, err = store.Access.RemoveDenyGroup(index.Path, indexPath, value)
+		case "all":
+			found, err = store.Access.RemoveDenyAll(index.Path, indexPath)
 		}
 	}
 	if !found {
