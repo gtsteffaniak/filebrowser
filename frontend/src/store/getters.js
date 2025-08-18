@@ -200,7 +200,6 @@ export const getters = {
   getSharePath: (subPath = "") => {
     let urlPath = getters.routePath('public/share')
     const path =  "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1]) + subPath
-    console.log("getSharePath", path)
     return path
   },
   currentView: () => {

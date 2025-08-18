@@ -143,7 +143,8 @@
     "maxBandwidthDescription": "The maximum download bandwidth in kilobytes per second. Leave empty for unlimited.",
     "shareThemeDescription": "The theme to use for the share link",
     "keepAfterExpiration": "Do not delete share after it expires",
-    "keepAfterExpirationDescription": "The share will not be deleted after it expires. This is useful if you want to extend a share's expiration or edit it further after it expires."
+    "keepAfterExpirationDescription": "The share will not be deleted after it expires. This is useful if you want to extend a share's expiration or edit it further after it expires.",
+    "saveDisabled": "Cannot save changes to shared files."
   },
   "prompts": {
     "downloadsLimit": "Number of downloads limit",
@@ -481,5 +482,13 @@
     "yellow": "yellow",
     "violet": "violet",
     "orange": "orange"
+  },
+  "editor": {
+    "uninitialized":"Failed to initialize the editor. Please reload.",
+    "saveFailed":"Failed to save file. Please try again.",
+    "saveAborted":"Save aborted. The file name does not match the active file.",
+    "saveDisabled":"Saving shared files is not supported.",
+    "saveAbortedMessage":"Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed":"failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

@@ -537,6 +537,7 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return exists, s.SaveToDB()
 	}
 	return false, nil
@@ -568,6 +569,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
@@ -600,6 +602,7 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return exists, s.SaveToDB()
 	}
 	return false, nil
@@ -631,6 +634,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
@@ -659,6 +663,7 @@ func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return true, s.SaveToDB()
 	}
 	return false, nil
@@ -692,6 +697,7 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 	}
 	for sp := range changedSourcePaths {
 		s.incrementSourceVersion(sp)
+		accessCache.Set(accessChangedKey+sp, false)
 	}
 	if changed {
 		return s.SaveToDB()
@@ -727,6 +733,7 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	}
 	for sp := range changedSourcePaths {
 		s.incrementSourceVersion(sp)
+		accessCache.Set(accessChangedKey+sp, false)
 	}
 	if changed {
 		return s.SaveToDB()

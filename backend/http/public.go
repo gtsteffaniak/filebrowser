@@ -59,6 +59,8 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 }
 
 func publicShareHandler(w http.ResponseWriter, r *http.Request, d *requestContext) (int, error) {
+	// disable onlyoffice for public share
+	d.fileInfo.OnlyOfficeId = ""
 	return renderJSON(w, r, d.fileInfo)
 }
 

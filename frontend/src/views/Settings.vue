@@ -112,6 +112,7 @@ export default {
   background: var(--surfacePrimary);
   padding: 0.5em;
   border-radius: 1em;
+  color: white;
 }
 
 .settings-views .card {

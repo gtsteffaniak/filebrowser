@@ -46,9 +46,7 @@ export async function fetchPub(path, hash, password = "", content = false) {
     throw error;
   }
   let data = await response.json()
-  console.log("fetchPub adjusted",data, `/public/share/${hash}${path}`)
   const adjusted = adjustedData(data);
-  console.log("fetchPub adjusted2",adjusted)
   return adjusted
 }
 
@@ -187,7 +185,7 @@ export async function create(path, source, password = "", expires = "", unit = "
 export function getShareURL(share) {
   if (externalUrl) {
     const apiPath = getApiPath(`public/share/${share.hash}`)
-    return externalUrl + removePrefix(apiPath, baseURL);
+    return externalUrl + apiPath;
   }
   return window.origin + getApiPath(`public/share/${share.hash}`);
 }
