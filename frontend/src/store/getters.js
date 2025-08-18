@@ -42,7 +42,7 @@ export const getters = {
   isSettings: () => getters.currentView() === 'settings',
   isShare: () => {
     const pathname = getters.routePath()
-    return pathname.startsWith(`/share`) || pathname.startsWith(`/public/share`)
+    return pathname.startsWith(`/public/share`)
   },
   isDarkMode: () => {
     if (state.user == null) {
