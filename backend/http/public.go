@@ -37,6 +37,9 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	d.share.Mu.Unlock()
 
 	encodedFiles := r.URL.Query().Get("files")
+	if encodedFiles == "" {
+		return http.StatusBadRequest, fmt.Errorf("no file list provided, should be in the format '/path1||/path2||/path3'")
+	}
 	// Decode the URL-encoded path
 	f, err := url.QueryUnescape(encodedFiles)
 	if err != nil {
@@ -52,7 +55,7 @@ func publicRawHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 	var status int
 	status, err = rawFilesHandler(w, r, d, fileList)
 	if err != nil {
-		logger.Errorf("public share handler: error processing filelist: %v", err)
+		logger.Errorf("public share handler: error processing filelist: '%v' with error %v", f, err)
 		return status, fmt.Errorf("error processing filelist: %v", f)
 	}
 	return status, nil

@@ -158,6 +158,9 @@ func (st usersBackend) Save(user *users.User, changePass, disableScopeChange boo
 	if user.LoginMethod == "" {
 		user.LoginMethod = users.LoginMethodPassword
 	}
+	if user.Username == "anonymous" {
+		return fmt.Errorf("username cannot be 'anonymous'")
+	}
 	logger.Debugf("Saving user [%s] changepass: %v", user.Username, changePass)
 	if user.LoginMethod == users.LoginMethodPassword && changePass {
 		err := checkPassword(user.Password)

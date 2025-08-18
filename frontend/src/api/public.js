@@ -58,7 +58,6 @@ export async function fetchPub(path, hash, password = "", content = false) {
  */
 export function getDownloadURL(share, files) {
   const params = {
-    path: share.path,
     files: files,
     hash: share.hash,
     token: share.token,
@@ -73,11 +72,11 @@ export function getDownloadURL(share, files) {
  * @param {string} path
  * @returns {string}
  */
-export function getPreviewURL(path) {
+export function getPreviewURL(path,size="small") {
   try {
     const params = {
       path: encodeURIComponent(path),
-      size: 'small',
+      size: size,
       hash: state.share.hash,
       inline: 'true',
       ...(state.share.token && { token: state.share.token })

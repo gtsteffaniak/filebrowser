@@ -138,7 +138,10 @@ export const getters = {
     return { dirs, files }
   },
   isSidebarVisible: () => {
-    const currentView = getters.currentView()
+    const cv = getters.currentView()
+    if (cv == 'onlyOfficeEditor') {
+      return false
+    }
     const previewViews = [
       'preview',
       'markdownViewer',
@@ -147,6 +150,7 @@ export const getters = {
       'onlyOfficeEditor',
       'editor'
     ]
+
     let visible = (state.showSidebar || getters.isStickySidebar())
     if (getters.isShare() && !state.isMobile) {
       visible = true
@@ -154,7 +158,7 @@ export const getters = {
     if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false
     }
-    if (previewViews.includes(currentView) && !state.user.preview?.disableHideSidebar) {
+    if (previewViews.includes(cv) && !state.user.preview?.disableHideSidebar) {
       visible = false
     }
     return visible
@@ -199,7 +203,10 @@ export const getters = {
   },
   getSharePath: (subPath = "") => {
     let urlPath = getters.routePath('public/share')
-    const path =  "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1]) + subPath
+    let path =  "/" + removeLeadingSlash(urlPath.split(state.share.hash)[1])
+    if (subPath != "") {
+      path += "/" + removeLeadingSlash(subPath)
+    }
     return path
   },
   currentView: () => {
@@ -402,10 +409,13 @@ export const getters = {
         }
         return "close";
       }
-      if (state.user.stickySidebar) {
-        return "menu";
+      if (cv == "listingView") {
+        if (state.user.stickySidebar) {
+          return "menu";
+        }
+        return "back";
       }
-      return "back";
+      return "close";
     }
     if (cv == "settings") {
       if (state.isMobile) {

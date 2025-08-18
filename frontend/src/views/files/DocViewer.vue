@@ -63,12 +63,12 @@ export default defineComponent({
         this.docxHtml = "";
 
         console.log("[4] Getting download URL from API...");
-        const downloadUrl = getters.isShare() 
+        const downloadUrl = getters.isShare()
           ? publicApi.getDownloadURL({
               path: state.share.subPath,
               hash: state.share.hash,
               token: state.share.token,
-            })
+            }, [state.req.path])
           : filesApi.getDownloadURL(
               state.req.source,
               state.req.path,

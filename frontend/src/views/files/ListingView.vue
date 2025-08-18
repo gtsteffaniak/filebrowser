@@ -243,7 +243,7 @@ export default {
   },
   computed: {
     showShareInfo() {
-      return this.isShare && state.share.hash && state.isMobile;
+      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/";
     },
     isShare() {
       return getters.isShare();

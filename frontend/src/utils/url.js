@@ -1,5 +1,5 @@
 import { baseURL } from "@/utils/constants.js";
-import { state } from "@/store";
+import { state, mutations } from "@/store";
 import { router } from "@/router";
 
 export function removeLastDir(url) {
@@ -150,6 +150,7 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHash, shareHash) {
+  mutations.replaceRequest({})
   if (previousHash) {
     location.hash = previousHash;
   }
