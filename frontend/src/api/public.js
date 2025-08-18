@@ -1,7 +1,7 @@
 import { fetchURL, fetchJSON, adjustedData } from "./utils";
 import { notify } from "@/notify";
-import { getApiPath, removePrefix } from "@/utils/url.js";
-import { externalUrl, baseURL } from "@/utils/constants";
+import { getApiPath } from "@/utils/url.js";
+import { externalUrl } from "@/utils/constants";
 import { state } from "@/store";
 
 // ============================================================================
