@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Gdy ta opcja jest włączona, tylko określeni użytkownicy mogą uzyskać dostęp do folderu udostępnionego. Użytkownik musi mieć dostęp do źródła folderu udostępnionego.",
     "downloadsLimitDescription": "Maksymalna liczba pobrań dowolnego pliku/folderu z folderu udostępnionego. Pozostaw puste dla nieograniczonej liczby.",
     "maxBandwidthDescription": "Maksymalna przepustowość pobierania w kilobajtach na sekundę. Pozostaw puste dla nieograniczonej.",
-    "shareThemeDescription": "Motyw używany dla linku udostępniania."
+    "shareThemeDescription": "Motyw używany dla linku udostępniania.",
+    "disableAnonymous": "Wyłącz anonimowy dostęp",
+    "disableThumbnails": "Wyłącz miniatury",
+    "enableAllowedUsernames": "Udostępnianie tylko określonym użytkownikom",
+    "allowedUsernamesPlaceholder": "Wprowadź nazwy użytkowników oddzielone przecinkami",
+    "keepAfterExpiration": "Nie usuwaj udziału po jego wygaśnięciu",
+    "keepAfterExpirationDescription": "Udział nie zostanie usunięty po wygaśnięciu. Jest to przydatne, jeśli chcesz przedłużyć wygaśnięcie udziału lub edytować go po wygaśnięciu.",
+    "saveDisabled": "Nie można zapisać zmian w plikach udostępnionych."
   },
   "api": {
     "title": "Klucze API:",
@@ -388,7 +395,8 @@
     "files": "Pliki",
     "folders": "Foldery",
     "exit": "Wyjście",
-    "permanent": "Na stałe"
+    "permanent": "Na stałe",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -406,7 +414,8 @@
     "name": "Nazwa",
     "accessManagement": "Zarządzanie dostępem",
     "totalDenied": "Odmowa",
-    "totalAllowed": "Dozwolone"
+    "totalAllowed": "Dozwolone",
+    "all": "Odmów wszystkim"
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",
@@ -473,5 +482,13 @@
     "customTheme": "Wybierz motyw",
     "showSelectMultiple": "Wyświetlanie wyboru wielokrotnego w menu kontekstowym na pulpicie",
     "showSelectMultipleDescription": "Domyślnie menu kontekstowe pulpitu nie ma opcji \"wybierz wiele\", tak jak w przypadku urządzeń mobilnych. Opcja ta jest zawsze widoczna w menu kontekstowym."
+  },
+  "editor": {
+    "uninitialized": "Nie udało się zainicjować edytora. Przeładuj ponownie.",
+    "saveFailed": "Nie udało się zapisać pliku. Spróbuj ponownie.",
+    "saveAborted": "Zapisywanie przerwane. Nazwa pliku nie pasuje do aktywnego pliku.",
+    "saveDisabled": "Zapisywanie udostępnionych plików nie jest obsługiwane.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

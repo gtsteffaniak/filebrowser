@@ -143,7 +143,7 @@ import { onlyOfficeUrl } from "@/utils/constants.js";
 import buttons from "@/utils/buttons";
 import { notify } from "@/notify";
 import { eventBus } from "@/store/eventBus";
-import { filesApi } from "@/api";
+import { filesApi, publicApi } from "@/api";
 export default {
   name: "ContextMenu",
   components: {
@@ -185,10 +185,20 @@ export default {
       return cv == "preview" || cv == "markdownViewer" || cv == "editor";
     },
     showEdit() {
-      return getters.currentView() == "markdownViewer" && state.user?.permissions?.modify;
+      const cv = getters.currentView();
+      if (getters.isShare()) {
+        // TODO: add support for editing shared files
+        return false;
+      }
+      return cv == "markdownViewer" && state.user?.permissions?.modify;
     },
     showDelete() {
-      return state.user?.permissions?.modify && this.isPreview;
+      const cv = getters.currentView();
+      if (getters.isShare()) {
+        // TODO: add support for deleting shared files
+        return false;
+      }
+      return state.user?.permissions?.modify && (cv == "preview" || cv == "onlyOfficeEditor" || cv == "markdownViewer" || cv == "epubViewer" || cv == "docViewer" || cv == "editor");
     },
     isPreview() {
       const cv = getters.currentView();
@@ -202,6 +212,10 @@ export default {
       );
     },
     showSave() {
+      if (getters.isShare()) {
+        // TODO: add support for saving shared files
+        return false;
+      }
       return getters.currentView() == "editor" && state.user?.permissions?.modify;
     },
     showOverflow() {
@@ -384,6 +398,11 @@ export default {
       downloadFiles(state.selected);
     },
     goToRaw() {
+      if (getters.isShare()) {
+        window.open(publicApi.getDownloadURL(state.share, state.req.path), "_blank");
+        mutations.closeHovers();
+        return;
+      }
       const downloadUrl = filesApi.getDownloadURL(
         state.req?.source || "",
         state.req?.path || "",

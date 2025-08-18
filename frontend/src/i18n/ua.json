@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Якщо цей параметр увімкнено, лише вказані користувачі зможуть отримати доступ до спільного ресурсу. Користувач повинен мати доступ до джерела ресурсу.",
     "downloadsLimitDescription": "Максимальна кількість разів, яку можна завантажити будь-який файл/папку зі спільного ресурсу. Залиште порожнім для необмеженої кількості.",
     "maxBandwidthDescription": "Максимальна швидкість завантаження в кілобайтах на секунду. Залиште порожнім для необмеженого.",
-    "shareThemeDescription": "Тема для посилання на спільний доступ."
+    "shareThemeDescription": "Тема для посилання на спільний доступ.",
+    "disableAnonymous": "Вимкнути анонімний доступ",
+    "disableThumbnails": "Вимкнути мініатюри",
+    "enableAllowedUsernames": "Ділитися лише з певними користувачами",
+    "allowedUsernamesPlaceholder": "Введіть імена користувачів через кому",
+    "keepAfterExpiration": "Не видаляйте спільний доступ після закінчення терміну його дії",
+    "keepAfterExpirationDescription": "Поширення не буде видалено після закінчення терміну дії. Це корисно, якщо ви хочете продовжити термін дії спільного доступу або відредагувати його після закінчення терміну дії.",
+    "saveDisabled": "Не вдається зберегти зміни до спільних файлів."
   },
   "api": {
     "title": "Ключі API",
@@ -454,7 +461,8 @@
     "files": "Файли",
     "folders": "Папки",
     "exit": "Виходьте.",
-    "permanent": "Постійний"
+    "permanent": "Постійний",
+    "hash": "Хеш"
   },
   "access": {
     "rules": "Правила доступу",
@@ -472,6 +480,15 @@
     "deleted": "Правило доступу видалено!",
     "added": "Додано правило доступу!",
     "name": "Ім'я",
-    "accessManagement": "Керування доступом"
+    "accessManagement": "Керування доступом",
+    "all": "Заперечувати все."
+  },
+  "editor": {
+    "uninitialized": "Не вдалося ініціалізувати редактор. Будь ласка, перезавантажте.",
+    "saveFailed": "Не вдалося зберегти файл. Спробуйте ще раз.",
+    "saveAborted": "Збереження перервано. Ім'я файлу не збігається з активним файлом.",
+    "saveDisabled": "Збереження спільних файлів не підтримується.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

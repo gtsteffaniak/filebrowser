@@ -233,8 +233,6 @@ func (s *Storage) DenyAll(sourcePath, indexPath string) error {
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
-	logger.Debugf("Checking if user: %s is permitted for source: %s and index: %s", username, sourcePath, indexPath)
-
 	// Get current version for the sourcePath
 	versionKey := "version:" + sourcePath
 	version := 0
@@ -245,7 +243,6 @@ func (s *Storage) Permitted(sourcePath, indexPath, username string) bool {
 	// Check cache with versioned key
 	permKey := fmt.Sprintf("perm:%s:%d:%s:%s", sourcePath, version, indexPath, username)
 	if p, ok := accessCache.Get(permKey).(bool); ok {
-		logger.Debugf("Returning cached rule for source: %s and index: %s for user: %s", sourcePath, indexPath, username)
 		return p
 	}
 
@@ -271,7 +268,6 @@ func (s *Storage) computePermitted(sourcePath, indexPath, username string) bool 
 
 // permittedAtExactPath checks if a rule exists at the given path and evaluates it if so.
 func (s *Storage) permittedAtExactPath(sourcePath, indexPath, username string) (bool, bool) {
-	logger.Debug("Checking rule for source:", sourcePath, "and index:", indexPath, "for user:", username)
 	s.mux.RLock()
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
@@ -516,7 +512,6 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 	defer s.mux.Unlock()
 	rule, ok := s.AllRules[sourcePath][indexPath]
 	if !ok {
-		fmt.Println("Rule not found for source:", sourcePath, "and index:", indexPath)
 		return false, nil
 	}
 	_, exists := rule.Allow.Users[username]
@@ -525,7 +520,6 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 	}
 	removed := false
 	if exists {
-		logger.Debugf("Removing allow user: %s for source: %s and index: %s", username, sourcePath, indexPath)
 		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
@@ -537,6 +531,7 @@ func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool,
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return exists, s.SaveToDB()
 	}
 	return false, nil
@@ -556,7 +551,6 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 	}
 	removed := false
 	if exists {
-		logger.Debugf("Removing allow group: %s for source: %s and index: %s", groupname, sourcePath, indexPath)
 		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
@@ -568,6 +562,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
@@ -575,7 +570,6 @@ func (s *Storage) RemoveAllowGroup(sourcePath, indexPath, groupname string) (boo
 
 // RemoveDenyUser removes a user from the deny list for a given source and index path.
 func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, error) {
-	fmt.Println("Removing deny user:", username, "for source:", sourcePath, "and index:", indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	rule, ok := s.AllRules[sourcePath][indexPath]
@@ -588,7 +582,6 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 	}
 	removed := false
 	if exists {
-		logger.Debugf("Removing deny user: %s for source: %s and index: %s", username, sourcePath, indexPath)
 		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
@@ -600,6 +593,7 @@ func (s *Storage) RemoveDenyUser(sourcePath, indexPath, username string) (bool, 
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return exists, s.SaveToDB()
 	}
 	return false, nil
@@ -619,7 +613,6 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 	}
 	removed := false
 	if exists {
-		logger.Debugf("Removing deny group: %s for source: %s and index: %s", groupname, sourcePath, indexPath)
 		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
@@ -631,6 +624,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath, indexPath, groupname string) (bool
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return exists, s.SaveToDB()
 	}
 	return exists, nil
@@ -647,7 +641,6 @@ func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
 	removed := false
 	if rule.DenyAll {
 		rule.DenyAll = false
-		logger.Debugf("Removing deny all for source: %s and index: %s", sourcePath, indexPath)
 		s.incrementSourceVersion(sourcePath)
 		removed = true
 	}
@@ -659,6 +652,7 @@ func (s *Storage) RemoveDenyAll(sourcePath, indexPath string) (bool, error) {
 		}
 	}
 	if removed {
+		accessCache.Set(accessChangedKey+sourcePath, false)
 		return true, s.SaveToDB()
 	}
 	return false, nil
@@ -692,6 +686,7 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 	}
 	for sp := range changedSourcePaths {
 		s.incrementSourceVersion(sp)
+		accessCache.Set(accessChangedKey+sp, false)
 	}
 	if changed {
 		return s.SaveToDB()
@@ -727,6 +722,7 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 	}
 	for sp := range changedSourcePaths {
 		s.incrementSourceVersion(sp)
+		accessCache.Set(accessChangedKey+sp, false)
 	}
 	if changed {
 		return s.SaveToDB()

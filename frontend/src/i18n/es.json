@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Cuando se activa, sólo los usuarios especificados pueden acceder al recurso compartido. El usuario debe tener acceso al origen del recurso compartido.",
     "downloadsLimitDescription": "Número máximo de veces que se puede descargar un archivo/carpeta del recurso compartido. Dejar vacío para ilimitado.",
     "maxBandwidthDescription": "El ancho de banda máximo de descarga en kilobytes por segundo. Dejar vacío para ilimitado.",
-    "shareThemeDescription": "El tema que se utilizará para el enlace compartido."
+    "shareThemeDescription": "El tema que se utilizará para el enlace compartido.",
+    "disableAnonymous": "Desactivar el acceso anónimo",
+    "disableThumbnails": "Desactivar miniaturas",
+    "enableAllowedUsernames": "Compartir sólo con determinados usuarios",
+    "allowedUsernamesPlaceholder": "Introduzca los nombres de usuario, separados por comas",
+    "keepAfterExpiration": "No eliminar la acción una vez caducada",
+    "keepAfterExpirationDescription": "La acción no se borrará después de que caduque. Esto resulta útil si desea ampliar el plazo de expiración de una acción o editarla después de que expire.",
+    "saveDisabled": "No se pueden guardar los cambios en los archivos compartidos."
   },
   "api": {
     "title": "Crear API:",
@@ -388,7 +395,8 @@
     "files": "Archivos",
     "folders": "Carpetas",
     "exit": "Salida",
-    "permanent": "Permanente"
+    "permanent": "Permanente",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Normas de acceso",
@@ -406,7 +414,8 @@
     "name": "Nombre",
     "accessManagement": "Gestión de accesos",
     "totalDenied": "Denegado",
-    "totalAllowed": "Permitido"
+    "totalAllowed": "Permitido",
+    "all": "Denegar todo"
   },
   "fileLoading": {
     "title": "Carga de archivos",
@@ -473,5 +482,13 @@
     "disableOfficeEditor": "Desactivar el visor y editor de office para las siguientes extensiones:",
     "defaultThemeDescription": "Predeterminado",
     "customTheme": "Cambiar tema"
+  },
+  "editor": {
+    "uninitialized": "Error al inicializar el editor. Por favor, vuelva a cargar.",
+    "saveFailed": "No se ha podido guardar el archivo. Por favor, inténtelo de nuevo.",
+    "saveAborted": "Guardado abortado. El nombre del fichero no coincide con el fichero activo.",
+    "saveDisabled": "No es posible guardar archivos compartidos.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

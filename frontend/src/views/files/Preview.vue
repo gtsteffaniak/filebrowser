@@ -128,11 +128,11 @@ export default {
     raw() {
       if (this.pdfConvertable) {
         if (getters.isShare()) {
-          return publicApi.getPreviewURL(state.share.hash, state.share.subPath) + "&size=original";
+          const path = publicApi.getPreviewURL(state.req.path,"original")
+          return path;
         }
         return (
-          filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) +
-          "&size=original"
+          filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) + "&size=original"
         );
       }
       if (getters.isShare()) {
@@ -141,7 +141,7 @@ export default {
           hash: state.share.hash,
           token: state.share.token,
           inline: true,
-        });
+        }, [state.req.path]);
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path, true);
     },
@@ -160,7 +160,7 @@ export default {
           path: state.share.subPath,
           hash: state.share.hash,
           token: state.share.token,
-        });
+        }, [state.req.path]);
       }
       return filesApi.getDownloadURL(state.req.source, state.req.path);
     },
@@ -238,7 +238,7 @@ export default {
       for (const subtitleFile of state.req.subtitles) {
         const ext = getFileExtension(subtitleFile);
         const path = url.removeLastDir(state.req.path) + "/" + subtitleFile;
-        
+
         let resp;
         if (getters.isShare()) {
           // Use public API for shared files
@@ -247,7 +247,7 @@ export default {
           // Use regular files API for authenticated users
           resp = await filesApi.fetchFiles(state.req.source, path, true);
         }
-        
+
         let vttContent = resp.content;
         // Convert SRT to VTT (assuming srt2vtt() does this)
         vttContent = convertToVTT(ext, resp.content);
@@ -363,7 +363,7 @@ export default {
               hash: state.share.hash,
               token: state.share.token,
               inline: true,
-            })
+            }, [item.path])
           : publicApi.getPreviewURL(state.share.hash, item.path);
       }
       return this.fullSize

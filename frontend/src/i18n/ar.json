@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "عند التمكين، يمكن للمستخدمين المحددين فقط الوصول إلى المشاركة. يجب أن يكون لدى المستخدم حق الوصول إلى مصدر المشاركة.",
     "downloadsLimitDescription": "الحد الأقصى لعدد المرات التي يمكن فيها تنزيل أي ملف/مجلد من المشاركة. اتركه فارغاً لعدد غير محدود.",
     "maxBandwidthDescription": "الحد الأقصى لعرض النطاق الترددي للتنزيل بالكيلو بايت في الثانية. اتركه فارغاً إذا كان غير محدود.",
-    "shareThemeDescription": "السمة التي يجب استخدامها لرابط المشاركة."
+    "shareThemeDescription": "السمة التي يجب استخدامها لرابط المشاركة.",
+    "disableAnonymous": "تعطيل الوصول المجهول",
+    "disableThumbnails": "تعطيل الصور المصغرة",
+    "enableAllowedUsernames": "المشاركة لمستخدمين معينين فقط",
+    "allowedUsernamesPlaceholder": "أدخل أسماء المستخدمين، مفصولة بفاصلة",
+    "keepAfterExpiration": "لا تحذف المشاركة بعد انتهاء صلاحيتها",
+    "keepAfterExpirationDescription": "لن يتم حذف المشاركة بعد انتهاء صلاحيتها. هذا مفيد إذا كنت ترغب في تمديد انتهاء صلاحية المشاركة أو تعديلها بعد انتهاء صلاحيتها.",
+    "saveDisabled": "يتعذر حفظ التغييرات على الملفات المشتركة."
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
@@ -388,7 +395,8 @@
     "files": "الملفات",
     "folders": "المجلدات",
     "exit": "الخروج",
-    "permanent": "دائم"
+    "permanent": "دائم",
+    "hash": "تجزئة"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -406,7 +414,8 @@
     "name": "الاسم",
     "accessManagement": "إدارة الوصول",
     "totalDenied": "مرفوض",
-    "totalAllowed": "المسموح به"
+    "totalAllowed": "المسموح به",
+    "all": "رفض الكل"
   },
   "fileLoading": {
     "title": "التحميلات والتنزيلات",
@@ -473,5 +482,13 @@
     "yellow": "أصفر",
     "violet": "البنفسجي",
     "orange": "برتقالي"
+  },
+  "editor": {
+    "uninitialized": "فشل في تهيئة المحرر. يرجى إعادة التحميل.",
+    "saveFailed": "فشل حفظ الملف. يرجى المحاولة مرة أخرى.",
+    "saveAborted": "تم إجهاض الحفظ. اسم الملف غير مطابق للملف النشط.",
+    "saveDisabled": "حفظ الملفات المشتركة غير مدعوم.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

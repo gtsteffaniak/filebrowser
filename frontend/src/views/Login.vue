@@ -201,7 +201,11 @@ export default {
 };
 </script>
 
-<style>
+<style >
+.password-entry .input {
+  margin-bottom: 0.5em;
+}
+
 .login-card {
   padding: 1em;
 }

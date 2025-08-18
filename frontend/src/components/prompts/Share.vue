@@ -66,66 +66,28 @@
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
         -->
-        <div class="setting-item item">
-          <div class="label-with-tooltip">
-            <span>{{ $t('share.disableAnonymous') }}</span>
-            <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.disableAnonymousDescription'))" @mouseleave="hideTooltip">help</i>
-          </div>
-          <ToggleSwitch v-model="disableAnonymous" :name="'Disable Anonymous'" />
-        </div>
-        <div class="setting-item item">
-          <div class="label-with-tooltip">
-            <span>{{ $t('share.disableThumbnails') }}</span>
-            <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.disableThumbnailsDescription'))" @mouseleave="hideTooltip">help</i>
-          </div>
-          <ToggleSwitch v-model="disableThumbnails" :name="'Disable Thumbnails'" />
-        </div>
-        <div class="setting-item item">
-          <div class="label-with-tooltip">
-            <span>{{ $t('share.enableAllowedUsernames') }}</span>
-            <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.enableAllowedUsernamesDescription'))" @mouseleave="hideTooltip">help</i>
-          </div>
-          <ToggleSwitch v-model="enableAllowedUsernames" :name="'Enable Allowed Usernames'" />
-        </div>
+        <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
+
+        <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
+        <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
         <div v-if="enableAllowedUsernames" class="item">
           <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
         </div>
-        <div class="setting-item item">
-          <div class="label-with-tooltip">
-            <span>{{ $t('share.keepAfterExpiration') }}</span>
-            <i class="no-select material-symbols-outlined tooltip-info-icon" @mouseenter="showTooltip($event, $t('share.keepAfterExpirationDescription'))" @mouseleave="hideTooltip">help</i>
-          </div>
-          <ToggleSwitch v-model="keepAfterExpiration" :name="'Keep After Expiration'" />
-        </div>
+        <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
       </div>
 
-      <div class="label-with-tooltip">
-        <p>{{ $t("prompts.downloadsLimit") }}</p>
-        <i class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))" @mouseleave="hideTooltip">
-          help
-        </i>
-      </div>
+      <p>{{ $t("prompts.downloadsLimit") }}</p>
+      <p class="description">{{ $t('share.downloadsLimitDescription') }}</p>
       <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-      <div class="label-with-tooltip">
-        <p>{{ $t("prompts.maxBandwidth") }}</p>
-        <i class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))" @mouseleave="hideTooltip">
-          help
-        </i>
-      </div>
+      <p>{{ $t("prompts.maxBandwidth") }}</p>
+      <p class="description">{{ $t('share.maxBandwidthDescription') }}</p>
       <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-      <div class="label-with-tooltip">
-        <p>{{ $t("prompts.shareTheme") }}</p>
-        <i class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))" @mouseleave="hideTooltip">
-          help
-        </i>
-      </div>
+      <p>{{ $t("prompts.shareTheme") }}</p>
+      <p class="description">{{ $t('share.shareThemeDescription') }}</p>
       <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
         <select class="input" v-model="shareTheme">
           <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
-            {{ key === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
+            {{ String(key) === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
           </option>
         </select>
       </div>
@@ -483,14 +445,10 @@ export default {
   align-items: center;
 }
 
-.label-with-tooltip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.tooltip-info-icon {
-  font-size: 1em;
-  cursor: pointer;
+.description {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 4px;
+  margin-bottom: 8px;
 }
 </style>

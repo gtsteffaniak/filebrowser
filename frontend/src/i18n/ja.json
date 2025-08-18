@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "有効にすると、指定したユーザーのみが共有にアクセスできるようになります。ユーザは、共有元へのアクセス権を持っている必要があります。",
     "downloadsLimitDescription": "共有ファイル/フォルダの最大ダウンロード回数。無制限の場合は空のままにします。",
     "maxBandwidthDescription": "ダウンロードの最大帯域幅をキロバイト/秒で指定します。無制限の場合は空のままにします。",
-    "shareThemeDescription": "共有リンクに使用するテーマ。"
+    "shareThemeDescription": "共有リンクに使用するテーマ。",
+    "disableAnonymous": "匿名アクセスを無効にする",
+    "disableThumbnails": "サムネイルを無効にする",
+    "enableAllowedUsernames": "特定のユーザーにのみ共有する",
+    "allowedUsernamesPlaceholder": "ユーザー名をカンマ区切りで入力する。",
+    "keepAfterExpiration": "期限切れ後も共有を削除しない",
+    "keepAfterExpirationDescription": "有効期限が切れても共有は削除されません。これは、共有の有効期限を延長したい場合や、有効期限が切れた後にさらに編集したい場合に便利です。",
+    "saveDisabled": "共有ファイルに変更を保存できない。"
   },
   "api": {
     "title": "APIキー：",
@@ -388,7 +395,8 @@
     "files": "ファイル",
     "folders": "フォルダ",
     "exit": "出口",
-    "permanent": "正社員"
+    "permanent": "正社員",
+    "hash": "ハッシュ"
   },
   "access": {
     "rules": "アクセス規則",
@@ -406,7 +414,8 @@
     "name": "名称",
     "accessManagement": "アクセス管理",
     "totalDenied": "却下",
-    "totalAllowed": "可"
+    "totalAllowed": "可",
+    "all": "すべて拒否"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",
@@ -473,5 +482,13 @@
     "customTheme": "テーマを選ぶ",
     "showSelectMultiple": "デスクトップのコンテキストメニューに複数選択を表示する",
     "showSelectMultipleDescription": "デフォルトでは、デスクトップのコンテキストメニューには、モバイルのような「複数選択」オプションはありません。このオプションは常にコンテキストメニューに表示されます。"
+  },
+  "editor": {
+    "uninitialized": "エディタの初期化に失敗しました。再読み込みしてください。",
+    "saveFailed": "ファイルの保存に失敗しました。もう一度お試しください。",
+    "saveAborted": "保存が中止された。ファイル名がアクティブなファイルと一致しません。",
+    "saveDisabled": "共有ファイルの保存はサポートされていません。",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

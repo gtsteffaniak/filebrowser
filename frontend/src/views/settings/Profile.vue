@@ -378,7 +378,6 @@ export default {
       this.updateSettings();
     },
     async updateSettings(event) {
-      console.log("updateSettings", this.localuser.customTheme);
       if (event !== undefined) {
         event.preventDefault();
       }
@@ -391,7 +390,6 @@ export default {
       try {
         const data = this.localuser;
         const themeChanged = state.user.customTheme != this.localuser.customTheme;
-        console.log("themeChanged", state.user.customTheme, this.localuser.customTheme);
         mutations.updateCurrentUser(data);
         await usersApi.update(data, [
           "locale",

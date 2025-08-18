@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Ha engedélyezve van, csak a megadott felhasználók férhetnek hozzá a megosztáshoz. A felhasználónak hozzáféréssel kell rendelkeznie a megosztás forrásához.",
     "downloadsLimitDescription": "A megosztáson lévő fájlok/mappák maximálisan letölthető száma. Ha üresen hagyja, akkor korlátlan.",
     "maxBandwidthDescription": "A maximális letöltési sávszélesség másodpercenkénti kilobájtban. Ha korlátlan, hagyja üresen.",
-    "shareThemeDescription": "A megosztási linkhez használandó téma."
+    "shareThemeDescription": "A megosztási linkhez használandó téma.",
+    "disableAnonymous": "Névtelen hozzáférés letiltása",
+    "disableThumbnails": "Miniatűrök letiltása",
+    "enableAllowedUsernames": "Csak bizonyos felhasználókkal való megosztás",
+    "allowedUsernamesPlaceholder": "Adja meg a felhasználóneveket, vesszővel elválasztva",
+    "keepAfterExpiration": "Ne törölje a megosztást a lejárat után",
+    "keepAfterExpirationDescription": "A megosztás nem törlődik a lejárta után. Ez akkor hasznos, ha meg szeretné hosszabbítani egy megosztás lejáratát, vagy tovább szeretné szerkeszteni azt a lejárat után.",
+    "saveDisabled": "A megosztott fájlok módosításait nem lehet elmenteni."
   },
   "api": {
     "title": "API-kulcsok:",
@@ -388,7 +395,8 @@
     "files": "Fájlok",
     "folders": "Mappák",
     "exit": "Kilépés",
-    "permanent": "Állandó"
+    "permanent": "Állandó",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -406,7 +414,8 @@
     "name": "Név",
     "accessManagement": "Hozzáférés-kezelés",
     "totalDenied": "Elutasítva",
-    "totalAllowed": "Engedélyezett"
+    "totalAllowed": "Engedélyezett",
+    "all": "Mindent megtagadni"
   },
   "fileLoading": {
     "title": "Feltöltések és letöltések",
@@ -473,5 +482,13 @@
     "customTheme": "Válasszon témát",
     "showSelectMultiple": "Többszörös kijelölés megjelenítése az asztali kontextusmenüben",
     "showSelectMultipleDescription": "Alapértelmezés szerint az asztali kontextusmenü nem rendelkezik a \"többszörös kiválasztás\" opcióval, mint a mobilon. Ez az opció mindig megjelenik a kontextusmenüben."
+  },
+  "editor": {
+    "uninitialized": "Nem sikerült inicializálni a szerkesztőt. Kérjük, töltse újra.",
+    "saveFailed": "A fájl mentése sikertelen. Kérjük, próbálja újra.",
+    "saveAborted": "A mentés megszakadt. A fájl neve nem egyezik az aktív fájléval.",
+    "saveDisabled": "A megosztott fájlok mentése nem támogatott.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Wenn diese Option aktiviert ist, können nur die angegebenen Benutzer auf die Freigabe zugreifen. Der Benutzer muss Zugriff auf die Quelle der Freigabe haben.",
     "downloadsLimitDescription": "Die maximale Anzahl, wie oft eine Datei/Ordner von der Freigabe heruntergeladen werden kann. Leer lassen für unbegrenzt.",
     "maxBandwidthDescription": "Die maximale Download-Bandbreite in Kilobytes pro Sekunde. Leer lassen für unbegrenzt.",
-    "shareThemeDescription": "Das für den Freigabelink zu verwendende Thema."
+    "shareThemeDescription": "Das für den Freigabelink zu verwendende Thema.",
+    "disableAnonymous": "Anonymen Zugang deaktivieren",
+    "disableThumbnails": "Thumbnails deaktivieren",
+    "enableAllowedUsernames": "Nur für bestimmte Benutzer freigeben",
+    "allowedUsernamesPlaceholder": "Benutzernamen eingeben, durch Komma getrennt",
+    "keepAfterExpiration": "Freigabe nicht löschen, nachdem sie abgelaufen ist",
+    "keepAfterExpirationDescription": "Die Freigabe wird nach Ablauf der Gültigkeit nicht gelöscht. Dies ist nützlich, wenn Sie die Gültigkeitsdauer einer Freigabe verlängern oder sie nach Ablauf weiter bearbeiten möchten.",
+    "saveDisabled": "Änderungen an freigegebenen Dateien können nicht gespeichert werden."
   },
   "api": {
     "title": "API-Schlüssel:",
@@ -388,7 +395,8 @@
     "files": "Dateien",
     "folders": "Ordner",
     "exit": "Ausfahrt",
-    "permanent": "Dauerhaft"
+    "permanent": "Dauerhaft",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -406,7 +414,8 @@
     "name": "Name",
     "accessManagement": "Zugangsverwaltung",
     "totalDenied": "Verweigert",
-    "totalAllowed": "Erlaubt"
+    "totalAllowed": "Erlaubt",
+    "all": "Alle ablehnen"
   },
   "fileLoading": {
     "title": "Uploads & Downloads",
@@ -473,5 +482,13 @@
     "customTheme": "Wählen Sie Ihr Thema",
     "showSelectMultiple": "Mehrfachauswahl im Kontextmenü auf dem Desktop anzeigen",
     "showSelectMultipleDescription": "Standardmäßig verfügt das Desktop-Kontextmenü nicht über die Option \"Mehrere auswählen\" wie bei mobilen Geräten. Diese Option wird immer im Kontextmenü angezeigt."
+  },
+  "editor": {
+    "uninitialized": "Der Editor konnte nicht initialisiert werden. Bitte neu laden.",
+    "saveFailed": "Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "saveAborted": "Speichern abgebrochen. Der Dateiname stimmt nicht mit der aktiven Datei überein.",
+    "saveDisabled": "Das Speichern von gemeinsam genutzten Dateien wird nicht unterstützt.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

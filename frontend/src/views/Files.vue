@@ -149,10 +149,8 @@ export default {
           });
           // Add glow effect
           element.classList.add('scroll-glow');
-          console.log("scrollToHash", element)
           // Remove glow effect after animation completes
           setTimeout(() => {
-            console.log("scrollToHash remove glow", element)
             element.classList.remove('scroll-glow');
           }, 1000);
         }

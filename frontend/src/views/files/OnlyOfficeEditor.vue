@@ -47,7 +47,7 @@ export default {
           path: state.share.subPath,
           hash: state.share.hash,
           token: state.share.token,
-        })
+        }, [state.req.path])
         : await filesApi.getDownloadURL(
           state.req.source,
           state.req.path,

@@ -87,7 +87,7 @@ export default {
         hash: state.share.hash,
         token: state.share.token,
         inline: inline,
-      });
+      }, [state.req.path]);
     },
   },
 };

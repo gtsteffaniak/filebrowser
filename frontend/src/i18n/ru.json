@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Если эта функция включена, доступ к ресурсу могут получить только указанные пользователи. Пользователь должен иметь доступ к источнику ресурса.",
     "downloadsLimitDescription": "Максимальное количество раз, которое может быть загружено любой файл/папка из общего ресурса. Оставьте пустым для неограниченного количества.",
     "maxBandwidthDescription": "Максимальная пропускная способность загрузки в килобайтах в секунду. Оставьте пустым для неограниченной.",
-    "shareThemeDescription": "Тема, которую следует использовать для ссылки на ресурс."
+    "shareThemeDescription": "Тема, которую следует использовать для ссылки на ресурс.",
+    "disableAnonymous": "Отключить анонимный доступ",
+    "disableThumbnails": "Отключить миниатюры",
+    "enableAllowedUsernames": "Предоставляйте доступ только определенным пользователям",
+    "allowedUsernamesPlaceholder": "Введите имена пользователей, разделенные запятыми",
+    "keepAfterExpiration": "Не удаляйте ресурс после истечения срока его действия",
+    "keepAfterExpirationDescription": "После истечения срока действия ресурс не будет удален. Это полезно, если вы хотите продлить срок действия ресурса или отредактировать его после истечения срока действия.",
+    "saveDisabled": "Невозможно сохранить изменения в общих файлах."
   },
   "api": {
     "title": "Ключи API:",
@@ -388,7 +395,8 @@
     "files": "Файлы",
     "folders": "Папки",
     "exit": "Выход",
-    "permanent": "Постоянно"
+    "permanent": "Постоянно",
+    "hash": "Хаш"
   },
   "access": {
     "rules": "Правила доступа",
@@ -406,7 +414,8 @@
     "name": "Имя",
     "accessManagement": "Управление доступом",
     "totalDenied": "Отказано",
-    "totalAllowed": "Разрешено"
+    "totalAllowed": "Разрешено",
+    "all": "Запретить все"
   },
   "fileLoading": {
     "title": "Загрузка и скачивание",
@@ -473,5 +482,13 @@
     "customTheme": "Выберите тему",
     "showSelectMultiple": "Отображение выбора нескольких в контекстном меню на рабочем столе",
     "showSelectMultipleDescription": "По умолчанию в контекстном меню рабочего стола нет опции \"выбрать несколько\", как в мобильном. Эта опция всегда отображается в контекстном меню."
+  },
+  "editor": {
+    "uninitialized": "Не удалось инициализировать редактор. Пожалуйста, перезагрузитесь.",
+    "saveFailed": "Не удалось сохранить файл. Пожалуйста, попробуйте еще раз.",
+    "saveAborted": "Сохранение прервано. Имя файла не совпадает с именем активного файла.",
+    "saveDisabled": "Сохранение общих файлов не поддерживается.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

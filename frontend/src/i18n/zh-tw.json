@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "啟用時，只有指定的使用者可以存取共用。使用者必須有存取共用來源的權限。",
     "downloadsLimitDescription": "共用中任何檔案/資料夾的最大下載次數。留空表示無限制。",
     "maxBandwidthDescription": "最大下載頻寬，單位為每秒千位元組。留空表示無限制。",
-    "shareThemeDescription": "分享連結要使用的主題。"
+    "shareThemeDescription": "分享連結要使用的主題。",
+    "disableAnonymous": "停用匿名存取",
+    "disableThumbnails": "停用縮圖",
+    "enableAllowedUsernames": "僅分享給特定使用者",
+    "allowedUsernamesPlaceholder": "輸入以逗號分隔的使用者名稱",
+    "keepAfterExpiration": "到期後請勿刪除共用",
+    "keepAfterExpirationDescription": "共用到期後不會刪除。如果您要延長共用的有效期或在有效期過後進一步編輯共用，這將非常有用。",
+    "saveDisabled": "無法儲存共用檔案的變更。"
   },
   "api": {
     "title": "API 金鑰",
@@ -454,7 +461,8 @@
     "files": "檔案",
     "folders": "資料夾",
     "exit": "離開",
-    "permanent": "長期"
+    "permanent": "長期",
+    "hash": "散列"
   },
   "access": {
     "rules": "存取規則",
@@ -472,6 +480,15 @@
     "deleted": "存取規則已刪除！",
     "added": "已新增存取規則！",
     "name": "名稱",
-    "accessManagement": "存取管理"
+    "accessManagement": "存取管理",
+    "all": "全部拒絕"
+  },
+  "editor": {
+    "uninitialized": "編輯器初始化失敗。請重新載入。",
+    "saveFailed": "儲存檔案失敗。請重試。",
+    "saveAborted": "儲存中止。檔案名稱與使用中的檔案不符。",
+    "saveDisabled": "不支援儲存共用檔案。",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

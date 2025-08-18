@@ -73,7 +73,7 @@ export default {
           );
           setTimeout(() => this.setupEditor(attempt + 1), 500);
         } else {
-          const errorMsg = `failed to sync state with the route for "${this.filename}" after 5 attempts. Aborting editor setup to prevent data corruption.`;
+          const errorMsg = `${this.$t("editor.syncFailed", { filename: this.filename })}`;
           console.error(errorMsg);
           notify.showError(errorMsg); // Using the custom notifier
         }
@@ -113,34 +113,33 @@ export default {
 
       this.filename = decodeURIComponent(this.$route.path.split("/").pop());
       } catch (error) {
-        notify.showError("Failed to initialize the editor. Please reload.");
+        notify.showError(this.$t("editor.uninitialized"));
       }
     },
     async handleEditorValueRequest() {
       // Safety Check 2: Final verification before saving
       if (state.req.name !== this.filename) {
         // Corrected the error message to be more accurate
-        const errorMsg = `Save operation aborted. The application's active file ("${state.req.name}") does not match the file you are trying to save ("${this.filename}").`;
-        notify.showError(errorMsg);
+        notify.showError(this.$t("editor.saveAbortedMessage", { activeFile: state.req.name, tryingToSave: this.filename }));
         return;
       }
       try {
         if (this.editor) {
           if (getters.isShare()) {
-            // Shared files are read-only
-            notify.showError("Cannot save changes to shared files - they are read-only.");
+            // TODO: add support for saving shared files
+            notify.showError(this.$t("share.saveDisabled"));
             return;
           } else {
             // Use regular files API for authenticated users
             await filesApi.put(state.req.source, state.req.path, this.editor.getValue());
           }
         } else {
-          notify.showError("Editor instance is not initialized.");
+          notify.showError(this.$t("editor.uninitialized"));
           return;
         }
         notify.showSuccess(`${this.filename} saved successfully.`);
       } catch (error) {
-        notify.showError("Failed to save file. Please try again.");
+        notify.showError(this.$t("editor.saveFailed"));
       }
     },
     keyEvent(event) {

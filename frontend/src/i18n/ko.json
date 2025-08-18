@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "이 옵션을 활성화하면 지정된 사용자만 공유에 액세스할 수 있습니다. 해당 사용자는 공유 소스에 대한 액세스 권한이 있어야 합니다.",
     "downloadsLimitDescription": "공유에서 파일/폴더를 다운로드할 수 있는 최대 횟수입니다. 무제한으로 사용하려면 비워 두세요.",
     "maxBandwidthDescription": "최대 다운로드 대역폭(초당 킬로바이트)입니다. 무제한을 원하시면 비워 두세요.",
-    "shareThemeDescription": "공유 링크에 사용할 테마입니다."
+    "shareThemeDescription": "공유 링크에 사용할 테마입니다.",
+    "disableAnonymous": "익명 액세스 비활성화",
+    "disableThumbnails": "썸네일 비활성화",
+    "enableAllowedUsernames": "특정 사용자에게만 공유",
+    "allowedUsernamesPlaceholder": "쉼표로 구분된 사용자 이름 입력",
+    "keepAfterExpiration": "공유가 만료된 후 삭제하지 마세요.",
+    "keepAfterExpirationDescription": "공유는 만료된 후에도 삭제되지 않습니다. 이 기능은 공유의 만료 기간을 연장하거나 만료된 후 추가로 수정하려는 경우에 유용합니다.",
+    "saveDisabled": "공유 파일에 변경 사항을 저장할 수 없습니다."
   },
   "api": {
     "title": "API 키:",
@@ -388,7 +395,8 @@
     "files": "파일",
     "folders": "폴더",
     "exit": "종료",
-    "permanent": "영구"
+    "permanent": "영구",
+    "hash": "해시"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -406,7 +414,8 @@
     "name": "이름",
     "accessManagement": "액세스 관리",
     "totalDenied": "거부됨",
-    "totalAllowed": "허용됨"
+    "totalAllowed": "허용됨",
+    "all": "모두 거부"
   },
   "fileLoading": {
     "title": "업로드 및 다운로드",
@@ -473,5 +482,13 @@
     "customTheme": "테마 선택",
     "showSelectMultiple": "데스크톱의 컨텍스트 메뉴에서 여러 개 선택 표시",
     "showSelectMultipleDescription": "기본적으로 데스크톱 컨텍스트 메뉴에는 모바일처럼 '여러 개 선택' 옵션이 없습니다. 이 옵션은 항상 컨텍스트 메뉴에 표시됩니다."
+  },
+  "editor": {
+    "uninitialized": "편집기를 초기화하지 못했습니다. 다시 로드하세요.",
+    "saveFailed": "파일을 저장하지 못했습니다. 다시 시도하세요.",
+    "saveAborted": "저장이 중단되었습니다. 파일 이름이 활성 파일과 일치하지 않습니다.",
+    "saveDisabled": "공유 파일 저장은 지원되지 않습니다.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }
