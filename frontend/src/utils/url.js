@@ -156,9 +156,7 @@ export function goToItem(source, path, previousHash, shareHash) {
   let newPath = encodedPath(path);
   let fullPath;
   if (shareHash) {
-    console.log("goToItem share", shareHash, newPath)
     fullPath = `/public/share/${shareHash}${newPath}`;
-    console.log("goToItem", fullPath)
     router.push({ path: fullPath });
     return;
   }
@@ -167,10 +165,10 @@ export function goToItem(source, path, previousHash, shareHash) {
   } else {
     fullPath = `/files${newPath}`;
   }
-  console.log("goToItem2", fullPath)
   router.push({ path: fullPath });
   return
 }
+
 export function doubleEncode(str) {
   return encodeURIComponent(encodeURIComponent(str));
 }

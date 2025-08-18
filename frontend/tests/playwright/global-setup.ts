@@ -55,6 +55,25 @@ async function globalSetup() {
     localStorage.setItem('shareHashFile', hash);
   }, shareHashFile);
 
+  // Create a share of folder "/share"
+  await page.goto("http://127.0.0.1/files/playwright%20%2B%20files", { timeout: 500 });
+  await page.locator('a[aria-label="share"]').waitFor({ state: 'visible' });
+  await page.locator('a[aria-label="share"]').click({ button: "right" });
+  await page.locator('.selected-count-header').waitFor({ state: 'visible' });
+  await expect(page.locator('.selected-count-header')).toHaveText('1 selected');
+  await page.locator('button[aria-label="Share"]').click();
+  await expect(page.locator('div[aria-label="share-path"]')).toHaveText('Path: /share');
+  await page.locator('button[aria-label="Share-Confirm"]').click();
+  await expect(page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th))")).toHaveCount(1);
+  const shareHashShare = await page.locator("div[aria-label='share-prompt'] .card-content table tbody tr:not(:has(th)) td").first().textContent();
+  if (!shareHashShare) {
+    throw new Error("Failed to retrieve shareHash");
+  }
+  // Store shareHash in localStorage
+  await page.evaluate((hash) => {
+    localStorage.setItem('shareHashShare', hash);
+  }, shareHashShare);
+
   await context.storageState({ path: "./loginAuth.json" });
   await browser.close();
 }

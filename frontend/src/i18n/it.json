@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Quando è abilitato, solo gli utenti specificati possono accedere alla condivisione. L'utente deve avere accesso all'origine della condivisione.",
     "downloadsLimitDescription": "Il numero massimo di volte in cui un file/cartella della condivisione può essere scaricato. Lasciare vuoto per avere un numero illimitato di volte.",
     "maxBandwidthDescription": "La larghezza di banda massima di download in kilobyte al secondo. Lasciare vuoto per avere una larghezza di banda illimitata.",
-    "shareThemeDescription": "Il tema da utilizzare per il link di condivisione."
+    "shareThemeDescription": "Il tema da utilizzare per il link di condivisione.",
+    "disableAnonymous": "Disattivare l'accesso anonimo",
+    "disableThumbnails": "Disattivare le anteprime",
+    "enableAllowedUsernames": "Condividere solo con determinati utenti",
+    "allowedUsernamesPlaceholder": "Inserire i nomi utente, separati da virgole",
+    "keepAfterExpiration": "Non eliminare la condivisione dopo la sua scadenza",
+    "keepAfterExpirationDescription": "La condivisione non verrà eliminata dopo la sua scadenza. Questo è utile se si vuole prolungare la scadenza di una condivisione o modificarla ulteriormente dopo la sua scadenza.",
+    "saveDisabled": "Impossibile salvare le modifiche ai file condivisi."
   },
   "api": {
     "title": "Chiavi API:",
@@ -388,7 +395,8 @@
     "files": "File",
     "folders": "Cartelle",
     "exit": "Uscita",
-    "permanent": "Permanente"
+    "permanent": "Permanente",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Regole di accesso",
@@ -406,7 +414,8 @@
     "name": "Nome",
     "accessManagement": "Gestione degli accessi",
     "totalDenied": "Negato",
-    "totalAllowed": "Consentito"
+    "totalAllowed": "Consentito",
+    "all": "Rifiuta tutto"
   },
   "fileLoading": {
     "title": "Caricamenti e download",
@@ -473,5 +482,13 @@
     "customTheme": "Scegliete il vostro tema",
     "showSelectMultiple": "Mostra selezione multipla nel menu contestuale sul desktop",
     "showSelectMultipleDescription": "Per impostazione predefinita, il menu contestuale del desktop non dispone dell'opzione \"seleziona più\" come quello del cellulare. Questa opzione viene sempre visualizzata nel menu contestuale."
+  },
+  "editor": {
+    "uninitialized": "Impossibile inizializzare l'editor. Ricaricare.",
+    "saveFailed": "Impossibile salvare il file. Riprovare.",
+    "saveAborted": "Salvataggio interrotto. Il nome del file non corrisponde al file attivo.",
+    "saveDisabled": "Il salvataggio di file condivisi non è supportato.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

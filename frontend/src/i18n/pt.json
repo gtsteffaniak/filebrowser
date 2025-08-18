@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Quando ativado, apenas os utilizadores especificados podem aceder à partilha. O utilizador tem de ter acesso à fonte da partilha.",
     "downloadsLimitDescription": "O número máximo de vezes que qualquer ficheiro/pasta da partilha pode ser descarregado. Deixar em branco para ilimitado.",
     "maxBandwidthDescription": "A largura de banda máxima de transferência em kilobytes por segundo. Deixar vazio para ilimitado.",
-    "shareThemeDescription": "O tema a utilizar para a ligação de partilha."
+    "shareThemeDescription": "O tema a utilizar para a ligação de partilha.",
+    "disableAnonymous": "Desativar o acesso anónimo",
+    "disableThumbnails": "Desativar miniaturas",
+    "enableAllowedUsernames": "Partilhar apenas com determinados utilizadores",
+    "allowedUsernamesPlaceholder": "Introduzir nomes de utilizador, separados por vírgulas",
+    "keepAfterExpiration": "Não eliminar a partilha após a sua expiração",
+    "keepAfterExpirationDescription": "A partilha não será eliminada depois de expirar. Isto é útil se pretender prolongar a expiração de uma partilha ou editá-la depois de expirar.",
+    "saveDisabled": "Não é possível guardar alterações em ficheiros partilhados."
   },
   "api": {
     "title": "Chaves da API",
@@ -454,7 +461,8 @@
     "files": "Ficheiros",
     "folders": "Pastas",
     "exit": "Sair",
-    "permanent": "Permanente"
+    "permanent": "Permanente",
+    "hash": "Haxixe"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -472,6 +480,15 @@
     "deleted": "Regra de acesso eliminada!",
     "added": "Regra de acesso adicionada!",
     "name": "Nome",
-    "accessManagement": "Gestão do acesso"
+    "accessManagement": "Gestão do acesso",
+    "all": "Recusar tudo"
+  },
+  "editor": {
+    "uninitialized": "Falha ao inicializar o editor. Por favor, recarregue.",
+    "saveFailed": "Falha ao guardar o ficheiro. Por favor, tente novamente.",
+    "saveAborted": "Gravação abortada. O nome do ficheiro não corresponde ao ficheiro ativo.",
+    "saveDisabled": "A gravação de ficheiros partilhados não é suportada.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

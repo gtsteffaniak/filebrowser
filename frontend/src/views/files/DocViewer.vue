@@ -45,18 +45,8 @@ export default defineComponent({
   },
   methods: {
     async loadFile() {
-      console.log("%c[1] loadFile triggered.", "font-weight: bold; color: blue;");
-
       try {
-        // Using JSON.stringify to snapshot the state object at this exact moment
-        console.log(
-          "[2] Current state.req object:",
-          JSON.parse(JSON.stringify(state.req))
-        );
-
         const filename = state.req.name;
-        console.log(`[3] Checking filename: "${filename}"`);
-
         // Check if the filename is valid and ends with .docx
         if (!filename || !filename.toLowerCase().endsWith(".docx")) {
           this.error = `This viewer only supports .docx files. Current file: "${

@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Quando ativado, somente os usuários especificados podem acessar o compartilhamento. O usuário deve ter acesso à origem do compartilhamento.",
     "downloadsLimitDescription": "O número máximo de vezes que qualquer arquivo/pasta do compartilhamento pode ser baixado. Deixe em branco para ilimitado.",
     "maxBandwidthDescription": "A largura de banda máxima de download em kilobytes por segundo. Deixe em branco para ilimitado.",
-    "shareThemeDescription": "O tema a ser usado para o link de compartilhamento."
+    "shareThemeDescription": "O tema a ser usado para o link de compartilhamento.",
+    "disableAnonymous": "Desativar o acesso anônimo",
+    "disableThumbnails": "Desativar miniaturas",
+    "enableAllowedUsernames": "Compartilhar apenas com determinados usuários",
+    "allowedUsernamesPlaceholder": "Digite os nomes de usuário, separados por vírgula",
+    "keepAfterExpiration": "Não exclua o compartilhamento após sua expiração",
+    "keepAfterExpirationDescription": "O compartilhamento não será excluído após a expiração. Isso é útil se você quiser estender a expiração de um compartilhamento ou editá-lo depois que ele expirar.",
+    "saveDisabled": "Não é possível salvar alterações em arquivos compartilhados."
   },
   "api": {
     "title": "Chaves de API:",
@@ -388,7 +395,8 @@
     "files": "Arquivos",
     "folders": "Pastas",
     "exit": "Sair",
-    "permanent": "Permanente"
+    "permanent": "Permanente",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Regras de acesso",
@@ -406,7 +414,8 @@
     "name": "Nome",
     "accessManagement": "Gerenciamento de acesso",
     "totalDenied": "Negado",
-    "totalAllowed": "Permitido"
+    "totalAllowed": "Permitido",
+    "all": "Negar tudo"
   },
   "fileLoading": {
     "title": "Uploads e downloads",
@@ -473,5 +482,13 @@
     "customTheme": "Escolha seu tema",
     "showSelectMultiple": "Mostrar seleção múltipla no menu de contexto na área de trabalho",
     "showSelectMultipleDescription": "Por padrão, o menu de contexto do desktop não tem a opção \"selecionar vários\" como no celular. Essa opção sempre a mostra no menu de contexto."
+  },
+  "editor": {
+    "uninitialized": "Falha ao inicializar o editor. Favor recarregar.",
+    "saveFailed": "Falha ao salvar o arquivo. Tente novamente.",
+    "saveAborted": "Salvamento abortado. O nome do arquivo não corresponde ao arquivo ativo.",
+    "saveDisabled": "Não há suporte para o salvamento de arquivos compartilhados.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Atunci când este activat, numai utilizatorii specificați pot accesa partajarea. Utilizatorul trebuie să aibă acces la sursa partajului.",
     "downloadsLimitDescription": "Numărul maxim de ori în care poate fi descărcat orice fișier/folder din partajare. Lăsați gol pentru nelimitat.",
     "maxBandwidthDescription": "Lățimea de bandă maximă de descărcare în kilobiți pe secundă. Lăsați gol pentru nelimitat.",
-    "shareThemeDescription": "Tema de utilizat pentru link-ul de partajare."
+    "shareThemeDescription": "Tema de utilizat pentru link-ul de partajare.",
+    "disableAnonymous": "Dezactivați accesul anonim",
+    "disableThumbnails": "Dezactivarea miniaturilor",
+    "enableAllowedUsernames": "Partajarea numai către anumiți utilizatori",
+    "allowedUsernamesPlaceholder": "Introduceți numele de utilizator, separate prin virgulă",
+    "keepAfterExpiration": "Nu ștergeți partajul după ce expiră",
+    "keepAfterExpirationDescription": "Partajul nu va fi șters după ce expiră. Acest lucru este util dacă doriți să prelungiți expirarea unei partaje sau să o editați în continuare după ce expiră.",
+    "saveDisabled": "Nu se pot salva modificările la fișierele partajate."
   },
   "api": {
     "title": "Chei API:",
@@ -388,7 +395,8 @@
     "files": "Fișiere",
     "folders": "Dosare",
     "exit": "Ieșire",
-    "permanent": "Permanent"
+    "permanent": "Permanent",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -406,7 +414,8 @@
     "name": "Nume și prenume",
     "accessManagement": "Gestionarea accesului",
     "totalDenied": "Refuzat",
-    "totalAllowed": "Permise"
+    "totalAllowed": "Permise",
+    "all": "Refuzați toate"
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",
@@ -473,5 +482,13 @@
     "customTheme": "Alege-ți tema",
     "showSelectMultiple": "Afișarea selecției multiple în meniul contextual de pe desktop",
     "showSelectMultipleDescription": "În mod implicit, meniul contextual de pe desktop nu are opțiunea \"select multiple\", ca pe mobil. Această opțiune se afișează întotdeauna în meniul contextual."
+  },
+  "editor": {
+    "uninitialized": "Nu s-a reușit inițializarea editorului. Vă rugăm să reîncărcați.",
+    "saveFailed": "Nu ați reușit să salvați fișierul. Vă rugăm să încercați din nou.",
+    "saveAborted": "Salvare întreruptă. Numele fișierului nu corespunde fișierului activ.",
+    "saveDisabled": "Salvarea fișierelor partajate nu este acceptată.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

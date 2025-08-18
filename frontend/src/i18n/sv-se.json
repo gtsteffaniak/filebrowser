@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "När funktionen är aktiverad kan endast de angivna användarna få åtkomst till delningen. Användaren måste ha tillgång till källan till delningen.",
     "downloadsLimitDescription": "Det maximala antalet gånger som en fil/mapp från delningen kan laddas ner. Lämna tomt för obegränsat.",
     "maxBandwidthDescription": "Den maximala bandbredden för nedladdning i kilobyte per sekund. Lämna tomt för obegränsat.",
-    "shareThemeDescription": "Det tema som ska användas för delningslänken."
+    "shareThemeDescription": "Det tema som ska användas för delningslänken.",
+    "disableAnonymous": "Inaktivera anonym åtkomst",
+    "disableThumbnails": "Inaktivera miniatyrbilder",
+    "enableAllowedUsernames": "Dela endast till vissa användare",
+    "allowedUsernamesPlaceholder": "Ange användarnamn, kommaseparerade",
+    "keepAfterExpiration": "Ta inte bort aktien efter att den har löpt ut",
+    "keepAfterExpirationDescription": "Aktien kommer inte att raderas efter att den har löpt ut. Detta är användbart om du vill förlänga giltighetstiden för en andel eller redigera den ytterligare efter att den har löpt ut.",
+    "saveDisabled": "Det går inte att spara ändringar i delade filer."
   },
   "api": {
     "title": "API-nycklar",
@@ -454,7 +461,8 @@
     "files": "Filer",
     "folders": "Mappar",
     "exit": "Avsluta",
-    "permanent": "Permanent"
+    "permanent": "Permanent",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -472,6 +480,15 @@
     "deleted": "Åtkomstregel raderad!",
     "added": "Tillträdesregel tillagd!",
     "name": "Namn",
-    "accessManagement": "Hantering av åtkomst"
+    "accessManagement": "Hantering av åtkomst",
+    "all": "Avvisa alla"
+  },
+  "editor": {
+    "uninitialized": "Redigeraren kunde inte initieras. Vänligen ladda om.",
+    "saveFailed": "Misslyckades med att spara filen. Vänligen försök igen.",
+    "saveAborted": "Spara avbröts. Filnamnet stämmer inte överens med den aktiva filen.",
+    "saveDisabled": "Sparande av delade filer stöds inte.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

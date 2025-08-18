@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "כאשר אפשרות זו מופעלת, רק המשתמשים שצוינו יכולים לגשת לשיתוף. על המשתמש להיות בעל גישה למקור השיתוף.",
     "downloadsLimitDescription": "המספר המרבי של פעמים שניתן להוריד כל קובץ/תיקיה מהשיתוף. השאר ריק ללא הגבלה.",
     "maxBandwidthDescription": "רוחב הפס המרבי להורדה בקילובייטים לשנייה. השאר ריק ללא הגבלה.",
-    "shareThemeDescription": "הנושא שיש להשתמש בו לקישור השיתוף."
+    "shareThemeDescription": "הנושא שיש להשתמש בו לקישור השיתוף.",
+    "disableAnonymous": "השבת גישה אנונימית",
+    "disableThumbnails": "השבת תמונות ממוזערות",
+    "enableAllowedUsernames": "שתף רק עם משתמשים מסוימים",
+    "allowedUsernamesPlaceholder": "הזן שמות משתמש, מופרדים בפסיקים",
+    "keepAfterExpiration": "אל תמחק את השיתוף לאחר שתוקפו יפוג",
+    "keepAfterExpirationDescription": "השיתוף לא יימחק לאחר שתוקפו יפוג. אפשרות זו שימושית אם ברצונך להאריך את תוקף השיתוף או לערוך אותו לאחר שתוקפו יפוג.",
+    "saveDisabled": "לא ניתן לשמור שינויים בקבצים משותפים."
   },
   "api": {
     "title": "מפתחות API",
@@ -388,7 +395,8 @@
     "files": "קבצים",
     "folders": "תיקיות",
     "exit": "יציאה",
-    "permanent": "קבוע"
+    "permanent": "קבוע",
+    "hash": "חשיש"
   },
   "access": {
     "rules": "כללי גישה",
@@ -406,7 +414,8 @@
     "name": "שם",
     "accessManagement": "ניהול גישה",
     "totalDenied": "נדחה",
-    "totalAllowed": "מותר"
+    "totalAllowed": "מותר",
+    "all": "דחה הכל"
   },
   "fileLoading": {
     "title": "העלאות והורדות",
@@ -473,5 +482,13 @@
     "customTheme": "בחר את הנושא שלך",
     "showSelectMultiple": "הצג בחירה מרובה בתפריט ההקשר בשולחן העבודה",
     "showSelectMultipleDescription": "כברירת מחדל, בתפריט ההקשר של שולחן העבודה אין אפשרות \"בחר מספר פריטים\" כמו במכשירים ניידים. אפשרות זו תמיד מוצגת בתפריט ההקשר."
+  },
+  "editor": {
+    "uninitialized": "לא ניתן לאתחל את העורך. אנא טען מחדש.",
+    "saveFailed": "לא ניתן לשמור את הקובץ. אנא נסה שוב.",
+    "saveAborted": "שמירה בוטלה. שם הקובץ אינו תואם לקובץ הפעיל.",
+    "saveDisabled": "שמירת קבצים משותפים אינה נתמכת.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

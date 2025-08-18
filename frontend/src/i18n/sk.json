@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Ak je táto možnosť povolená, prístup k zdieľanej zložke majú len zadaní používatelia. Používateľ musí mať prístup k zdroju zdieľanej zložky.",
     "downloadsLimitDescription": "Maximálny počet stiahnutí akéhokoľvek súboru/priečinka zo zdieľanej zložky. Pre neobmedzený počet nechajte prázdne.",
     "maxBandwidthDescription": "Maximálna šírka pásma sťahovania v kilobajtoch za sekundu. Nechajte prázdne pre neobmedzené.",
-    "shareThemeDescription": "Téma, ktorá sa má použiť pre odkaz na zdieľanie."
+    "shareThemeDescription": "Téma, ktorá sa má použiť pre odkaz na zdieľanie.",
+    "disableAnonymous": "Zakázanie anonymného prístupu",
+    "disableThumbnails": "Zakázanie miniatúr",
+    "enableAllowedUsernames": "Zdieľať len s určitými používateľmi",
+    "allowedUsernamesPlaceholder": "Zadajte používateľské mená oddelené čiarkami",
+    "keepAfterExpiration": "Neodstraňujte podiel po uplynutí jeho platnosti",
+    "keepAfterExpirationDescription": "Akcia sa po uplynutí jej platnosti neodstráni. To je užitočné, ak chcete predĺžiť platnosť zdieľanej zložky alebo ju ďalej upravovať po uplynutí jej platnosti.",
+    "saveDisabled": "Nie je možné uložiť zmeny do zdieľaných súborov."
   },
   "api": {
     "title": "Kľúče API:",
@@ -388,7 +395,8 @@
     "files": "Súbory",
     "folders": "Priečinky",
     "exit": "Exit",
-    "permanent": "Trvalé"
+    "permanent": "Trvalé",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -406,7 +414,8 @@
     "name": "Názov",
     "accessManagement": "Správa prístupu",
     "totalDenied": "Odmietnuté",
-    "totalAllowed": "Povolené"
+    "totalAllowed": "Povolené",
+    "all": "Odmietnuť všetko"
   },
   "fileLoading": {
     "title": "Nahrávanie a sťahovanie",
@@ -473,5 +482,13 @@
     "customTheme": "Vyberte si tému",
     "showSelectMultiple": "Zobrazenie výberu viacerých v kontextovom menu na ploche",
     "showSelectMultipleDescription": "V predvolenom nastavení kontextová ponuka na ploche nemá možnosť \"vybrať viacero\" ako v mobilných zariadeniach. Táto možnosť sa v kontextovej ponuke zobrazuje vždy."
+  },
+  "editor": {
+    "uninitialized": "Nepodarilo sa inicializovať editor. Prosím, načítajte ho znova.",
+    "saveFailed": "Nepodarilo sa uložiť súbor. Skúste to prosím znova.",
+    "saveAborted": "Uloženie prerušené. Názov súboru sa nezhoduje s aktívnym súborom.",
+    "saveDisabled": "Ukladanie zdieľaných súborov nie je podporované.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }

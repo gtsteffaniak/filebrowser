@@ -325,7 +325,14 @@
     "enableAllowedUsernamesDescription": "Etkinleştirildiğinde, paylaşıma yalnızca belirtilen kullanıcılar erişebilir. Kullanıcının paylaşımın kaynağına erişimi olmalıdır.",
     "downloadsLimitDescription": "Paylaşımdaki herhangi bir dosya/klasörün en fazla kaç kez indirilebileceği. Sınırsız için boş bırakın.",
     "maxBandwidthDescription": "Saniye başına kilobayt cinsinden maksimum indirme bant genişliği. Sınırsız için boş bırakın.",
-    "shareThemeDescription": "Paylaşım bağlantısı için kullanılacak tema."
+    "shareThemeDescription": "Paylaşım bağlantısı için kullanılacak tema.",
+    "disableAnonymous": "Anonim erişimi devre dışı bırakın",
+    "disableThumbnails": "Küçük Resimleri Devre Dışı Bırak",
+    "enableAllowedUsernames": "Yalnızca belirli kullanıcılarla paylaşın",
+    "allowedUsernamesPlaceholder": "Kullanıcı adlarını virgülle ayırarak girin",
+    "keepAfterExpiration": "Süresi dolduktan sonra paylaşımı silme",
+    "keepAfterExpirationDescription": "Paylaşım, süresi dolduktan sonra silinmeyecektir. Bu, bir paylaşımın süresini uzatmak veya süresi dolduktan sonra daha fazla düzenlemek istiyorsanız kullanışlıdır.",
+    "saveDisabled": "Paylaşılan dosyalardaki değişiklikler kaydedilemiyor."
   },
   "api": {
     "title": "API Anahtarları:",
@@ -388,7 +395,8 @@
     "files": "Dosyalar",
     "folders": "Klasörler",
     "exit": "Çıkış",
-    "permanent": "Daimi"
+    "permanent": "Daimi",
+    "hash": "Hash"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -406,7 +414,8 @@
     "name": "İsim",
     "accessManagement": "Erişim Yönetimi",
     "totalDenied": "Reddedildi",
-    "totalAllowed": "İzin verildi"
+    "totalAllowed": "İzin verildi",
+    "all": "Tümünü Reddet"
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",
@@ -473,5 +482,13 @@
     "customTheme": "Temanızı seçin",
     "showSelectMultiple": "Masaüstündeki bağlam menüsünde çoklu seçmeyi göster",
     "showSelectMultipleDescription": "Varsayılan olarak, masaüstü içerik menüsünde mobil cihazlardaki gibi \"çoklu seç\" seçeneği yoktur. Bu seçenek her zaman içerik menüsünde gösterilir."
+  },
+  "editor": {
+    "uninitialized": "Düzenleyici başlatılamadı. Lütfen yeniden yükleyin.",
+    "saveFailed": "Dosya kaydedilemedi. Lütfen tekrar deneyin.",
+    "saveAborted": "Kaydetme işlemi iptal edildi. Dosya adı etkin dosyayla eşleşmiyor.",
+    "saveDisabled": "Paylaşılan dosyaların kaydedilmesi desteklenmez.",
+    "saveAbortedMessage": "Save operation aborted. The application's active file ({activeFile}) does not match the file you are trying to save ({tryingToSave}).",
+    "syncFailed": "failed to sync state with the route for \"{filename}\" after 5 attempts. Aborting editor setup to prevent data corruption."
   }
 }
