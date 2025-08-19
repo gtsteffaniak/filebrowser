@@ -645,14 +645,20 @@ definitions:
     type: object
   share.Link:
     properties:
+      allowUpload:
+        description: AllowEdit           bool   `json:"allowEdit,omitempty"`
+        type: boolean
       allowedUsernames:
         items:
           type: string
         type: array
+      banner:
+        type: string
+      description:
+        type: string
       disableAnonymous:
         type: boolean
       disableFileViewer:
-        description: AllowEdit           bool   `json:"allowEdit,omitempty"`
         type: boolean
       disableThumbnails:
         type: boolean
@@ -660,20 +666,29 @@ definitions:
         type: integer
       expire:
         type: integer
+      favicon:
+        type: string
       hash:
         type: string
+      hideNavButtons:
+        type: boolean
       keepAfterExpiration:
         type: boolean
       maxBandwidth:
-        description: AllowUpload         bool   `json:"allowUpload,omitempty"`
         type: integer
       password_hash:
         type: string
       path:
         type: string
+      quickDownload:
+        type: boolean
       shareTheme:
         type: string
       source:
+        type: string
+      themeColor:
+        type: string
+      title:
         type: string
       token:
         description: |-
@@ -683,6 +698,8 @@ definitions:
         type: string
       userID:
         type: integer
+      viewMode:
+        type: string
     type: object
   users.AuthToken:
     properties:

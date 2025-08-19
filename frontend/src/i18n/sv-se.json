@@ -46,7 +46,9 @@
     "retry": "Försök igen",
     "pauseAll": "Pausa alla",
     "resumeAll": "Återuppta alla",
-    "clearCompleted": "Klart avslutat"
+    "clearCompleted": "Klart avslutat",
+    "showMore": "Visa mer",
+    "showLess": "Visa mindre"
   },
   "download": {
     "downloadFile": "Ladda ner fil",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Begränsning av antal nedladdningar",
     "maxBandwidth": "Max bandbredd för nedladdning (kbps)",
-    "shareTheme": "Dela tema"
+    "shareTheme": "Dela tema",
+    "shareThemeColor": "Dela temafärg (CSS-värde)",
+    "shareTitle": "Aktietitel",
+    "shareDescription": "Dela beskrivning",
+    "shareLogo": "Dela logotypens URL",
+    "shareBanner": "Dela bannerns URL",
+    "shareFavicon": "Dela URL för favicon",
+    "optionalPasswordHelp": "Om det är inställt måste användarna ange lösenordet för att visa det delade innehållet."
   },
   "search": {
     "images": "Bilder",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Ange användarnamn, kommaseparerade",
     "keepAfterExpiration": "Ta inte bort aktien efter att den har löpt ut",
     "keepAfterExpirationDescription": "Aktien kommer inte att raderas efter att den har löpt ut. Detta är användbart om du vill förlänga giltighetstiden för en andel eller redigera den ytterligare efter att den har löpt ut.",
-    "saveDisabled": "Det går inte att spara ändringar i delade filer."
+    "saveDisabled": "Det går inte att spara ändringar i delade filer.",
+    "shareDurationDescription": "Varaktighet innan aktien upphör att gälla. Lämna tomt för en permanent delning.",
+    "passwordDescription": "Valfritt lösenord som krävs för att komma åt denna andel, inklusive autentiserade användare.",
+    "allowedUsernamesListDescription": "Kommaseparerade användarnamn som har åtkomst till aktien (om aktiverat).",
+    "shareThemeColorDescription": "CSS-färgvärde som tillämpas på aktiens tema (t.ex. röd, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Anpassad sidtitel som visas på delningssidan.",
+    "shareDescriptionHelp": "Kort beskrivning som visas på aktiesidan (kan användas i metataggar).",
+    "shareLogoDescription": "URL eller sökväg för logotypbild som är tillgänglig för klienten - antingen abosolute- eller indexsökväg accepteras: t.ex. \"https://domain.com/logo.png\" eller \"/path/to/logo.png",
+    "shareBannerDescription": "URL eller sökväg för bannerbilden som är tillgänglig för klienten - antingen abosolute eller index path accepteras: t.ex. \"https://domain.com/banner.png\" eller \"/path/to/banner.png",
+    "shareFaviconDescription": "URL eller sökväg till Favicon som är tillgänglig för klienten - antingen abosolute eller indexsökväg accepteras: t.ex. \"https://domain.com/favicon.png\" eller \"/path/to/favicon.png"
   },
   "api": {
     "title": "API-nycklar",

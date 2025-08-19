@@ -1,5 +1,14 @@
 <template>
   <div>
+    <!-- Share Info Component -->
+    <ShareInfo
+      v-if="showShareInfo"
+      class="share-info-component"
+      :hash="share?.hash"
+      :token="share?.token"
+      :subPath="share?.subPath"
+    />
+
     <breadcrumbs v-if="showBreadCrumbs" :base="isShare ? `/share/${shareHash}` : undefined" />
     <!-- Share password prompt -->
     <div v-if="isShare && error && error.status === 401" class="card floating" id="password">
@@ -64,6 +73,7 @@ import router from "@/router";
 import { baseURL } from "@/utils/constants";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import { extractSourceFromPath } from "@/utils/url";
+import ShareInfo from "@/components/files/ShareInfo.vue";
 
 export default {
   name: "files",
@@ -78,6 +88,7 @@ export default {
     OnlyOfficeEditor,
     MarkdownViewer,
     PopupPreview,
+    ShareInfo,
   },
   data() {
     return {
@@ -95,6 +106,12 @@ export default {
     };
   },
   computed: {
+    share() {
+      return state.share;
+    },
+    showShareInfo() {
+      return this.isShare && state.share.hash && state.isMobile && state.req.path == "/";
+    },
     isShare() {
       return getters.isShare();
     },
@@ -352,5 +369,8 @@ export default {
 
 .share-password {
   width: 100%;
+}
+.share-info-component {
+  margin-top: 0.5em;
 }
 </style>

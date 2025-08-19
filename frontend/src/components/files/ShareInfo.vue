@@ -1,6 +1,16 @@
 <template>
   <div class="share card">
     <div class="share__box">
+      <div v-if="shareOverrides.banner" class="banner">
+        <img :src="getShareBanner" />
+      </div>
+      <div v-if="shareOverrides.title" class="share__box__element">
+        <h2>{{ shareOverrides.title }}</h2>
+      </div>
+      <div v-if="shareOverrides.description" class="share__box__element">
+        <p>{{ shareOverrides.description }}</p>
+      </div>
+      <hr v-if="shareOverrides.banner || shareOverrides.title || shareOverrides.description" />
       <div class="share__box__element">
         <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
       </div>
@@ -28,6 +38,7 @@ import { state, getters } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getTypeInfo } from "@/utils/mimetype";
 import QrcodeVue from "qrcode.vue";
+import { shareOverrides } from "@/utils/constants";
 
 export default {
   name: "ShareInfo",
@@ -49,6 +60,15 @@ export default {
     },
   },
   computed: {
+    getShareBanner() {
+      if (this.shareOverrides.banner.startsWith("http")) {
+        return this.shareOverrides.banner;
+      }
+      return publicApi.getDownloadURL(state.share, [this.shareOverrides.banner]);
+    },
+    shareOverrides() {
+      return shareOverrides;
+    },
     req() {
       return state.req;
     },
@@ -94,6 +114,14 @@ export default {
 </script>
 
 <style scoped>
+.banner {
+  width: 100%;
+  padding-bottom: 1em;
+}
+
+.banner img {
+  width: 100%;
+}
 .share {
   display: flex;
 }

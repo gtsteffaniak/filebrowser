@@ -46,7 +46,9 @@
     "retry": "Ponów próbę",
     "pauseAll": "Wstrzymaj wszystko",
     "resumeAll": "Resume all",
-    "clearCompleted": "Czyszczenie zakończone"
+    "clearCompleted": "Czyszczenie zakończone",
+    "showMore": "Pokaż więcej",
+    "showLess": "Pokaż mniej"
   },
   "download": {
     "downloadFile": "Pobierz plik",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Limit liczby pobrań",
     "maxBandwidth": "Maksymalna przepustowość pobierania (kbps)",
-    "shareTheme": "Udostępnij temat"
+    "shareTheme": "Udostępnij temat",
+    "shareThemeColor": "Udostępnij kolor motywu (wartość CSS)",
+    "shareTitle": "Udostępnij tytuł",
+    "shareDescription": "Udostępnij opis",
+    "shareLogo": "Udostępnij adres URL logo",
+    "shareBanner": "Udostępnij adres URL banera",
+    "shareFavicon": "Udostępnij adres URL favicon",
+    "optionalPasswordHelp": "Jeśli jest ustawione, użytkownicy muszą wprowadzić to hasło, aby wyświetlić udostępnioną zawartość."
   },
   "search": {
     "images": "Zdjęcia",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Wprowadź nazwy użytkowników oddzielone przecinkami",
     "keepAfterExpiration": "Nie usuwaj udziału po jego wygaśnięciu",
     "keepAfterExpirationDescription": "Udział nie zostanie usunięty po wygaśnięciu. Jest to przydatne, jeśli chcesz przedłużyć wygaśnięcie udziału lub edytować go po wygaśnięciu.",
-    "saveDisabled": "Nie można zapisać zmian w plikach udostępnionych."
+    "saveDisabled": "Nie można zapisać zmian w plikach udostępnionych.",
+    "shareDurationDescription": "Czas trwania przed wygaśnięciem udziału. Pozostaw puste dla stałego udziału.",
+    "passwordDescription": "Opcjonalne hasło wymagane do uzyskania dostępu do tego udziału, w tym dla uwierzytelnionych użytkowników.",
+    "allowedUsernamesListDescription": "Oddzielone przecinkami nazwy użytkowników, którzy mogą uzyskać dostęp do folderu udostępnionego (po włączeniu).",
+    "shareThemeColorDescription": "Wartość koloru CSS zastosowana do motywu akcji (np. czerwony, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Niestandardowy tytuł strony wyświetlany na stronie udostępniania.",
+    "shareDescriptionHelp": "Krótki opis wyświetlany na stronie udostępniania (może być użyty w metatagach).",
+    "shareLogoDescription": "Adres URL obrazka logo lub ścieżka dostępna dla klienta - akceptowana jest ścieżka bezwzględna lub indeksowa: np. \"https://domain.com/logo.png\" lub \"/path/to/logo.png\".",
+    "shareBannerDescription": "Adres URL obrazu baneru lub ścieżka dostępna dla klienta - akceptowana jest ścieżka bezwzględna lub indeksowa: np. \"https://domain.com/banner.png\" lub \"/path/to/banner.png\".",
+    "shareFaviconDescription": "Adres URL Favicon lub ścieżka dostępna dla klienta - akceptowana jest ścieżka bezwzględna lub indeksowa: np. \"https://domain.com/favicon.png\" lub \"/path/to/favicon.png\"."
   },
   "api": {
     "title": "Klucze API:",

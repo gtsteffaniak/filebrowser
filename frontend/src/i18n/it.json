@@ -46,7 +46,9 @@
     "retry": "Riprova",
     "pauseAll": "Mettere in pausa tutti",
     "resumeAll": "Riprendete tutti",
-    "clearCompleted": "Completato il lavoro di pulizia"
+    "clearCompleted": "Completato il lavoro di pulizia",
+    "showMore": "Mostra di più",
+    "showLess": "Mostra meno"
   },
   "download": {
     "downloadFile": "Scarica file",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Limite del numero di download",
     "maxBandwidth": "Larghezza di banda massima per il download (kbps)",
-    "shareTheme": "Tema della condivisione"
+    "shareTheme": "Tema della condivisione",
+    "shareThemeColor": "Condividere il colore del tema (valore CSS)",
+    "shareTitle": "Titolo della condivisione",
+    "shareDescription": "Condividi la descrizione",
+    "shareLogo": "Condividi l'URL del logo",
+    "shareBanner": "Condividi l'URL del banner",
+    "shareFavicon": "Condividere l'URL della favicon",
+    "optionalPasswordHelp": "Se impostata, gli utenti devono inserire questa password per visualizzare il contenuto condiviso."
   },
   "search": {
     "images": "Immagini",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Inserire i nomi utente, separati da virgole",
     "keepAfterExpiration": "Non eliminare la condivisione dopo la sua scadenza",
     "keepAfterExpirationDescription": "La condivisione non verrà eliminata dopo la sua scadenza. Questo è utile se si vuole prolungare la scadenza di una condivisione o modificarla ulteriormente dopo la sua scadenza.",
-    "saveDisabled": "Impossibile salvare le modifiche ai file condivisi."
+    "saveDisabled": "Impossibile salvare le modifiche ai file condivisi.",
+    "shareDurationDescription": "Durata prima della scadenza della quota. Lasciare vuoto per una condivisione permanente.",
+    "passwordDescription": "Password opzionale necessaria per accedere a questa condivisione, anche per gli utenti autenticati.",
+    "allowedUsernamesListDescription": "Nomi utente separati da virgola che possono accedere alla condivisione (se abilitati).",
+    "shareThemeColorDescription": "Valore del colore CSS applicato al tema della condivisione (ad esempio, rosso, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Titolo di pagina personalizzato mostrato nella pagina di condivisione.",
+    "shareDescriptionHelp": "Breve descrizione visualizzata nella pagina di condivisione (può essere utilizzata nei meta tag).",
+    "shareLogoDescription": "URL o percorso dell'immagine del logo accessibile dal client - sono accettati sia il percorso assoluto che quello indice: ad esempio 'https://domain.com/logo.png' o '/path/to/logo.png'.",
+    "shareBannerDescription": "URL o percorso dell'immagine del banner accessibile dal client - sono accettati sia il percorso assoluto che quello indice: ad esempio 'https://domain.com/banner.png' o '/path/to/banner.png'.",
+    "shareFaviconDescription": "URL o percorso della favicon accessibile dal client -- sono accettati sia il percorso assoluto che quello indice: ad esempio 'https://domain.com/favicon.png' o '/path/to/favicon.png'."
   },
   "api": {
     "title": "Chiavi API:",

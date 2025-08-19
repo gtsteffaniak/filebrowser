@@ -46,7 +46,9 @@
     "retry": "Yeniden Dene",
     "pauseAll": "Tümünü duraklat",
     "resumeAll": "Tümünü devam ettir",
-    "clearCompleted": "Temizleme tamamlandı"
+    "clearCompleted": "Temizleme tamamlandı",
+    "showMore": "Daha fazla göster",
+    "showLess": "Daha az göster"
   },
   "download": {
     "downloadFile": "Dosyayı indir",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "İndirme sayısı sınırı",
     "maxBandwidth": "Maksimum indirme bant genişliği (kbps)",
-    "shareTheme": "Temayı paylaş"
+    "shareTheme": "Temayı paylaş",
+    "shareThemeColor": "Tema rengini paylaş (CSS değeri)",
+    "shareTitle": "Başlığı paylaş",
+    "shareDescription": "Açıklama paylaş",
+    "shareLogo": "Logo URL'sini paylaş",
+    "shareBanner": "Banner URL'sini paylaş",
+    "shareFavicon": "Favicon URL'sini paylaş",
+    "optionalPasswordHelp": "Ayarlanırsa, kullanıcılar paylaşılan içeriği görüntülemek için bu parolayı girmelidir."
   },
   "search": {
     "images": "Görseller",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Kullanıcı adlarını virgülle ayırarak girin",
     "keepAfterExpiration": "Süresi dolduktan sonra paylaşımı silme",
     "keepAfterExpirationDescription": "Paylaşım, süresi dolduktan sonra silinmeyecektir. Bu, bir paylaşımın süresini uzatmak veya süresi dolduktan sonra daha fazla düzenlemek istiyorsanız kullanışlıdır.",
-    "saveDisabled": "Paylaşılan dosyalardaki değişiklikler kaydedilemiyor."
+    "saveDisabled": "Paylaşılan dosyalardaki değişiklikler kaydedilemiyor.",
+    "shareDurationDescription": "Paylaşımın sona ermesinden önceki süre. Kalıcı bir paylaşım için boş bırakın.",
+    "passwordDescription": "Kimliği doğrulanmış kullanıcılar da dahil olmak üzere bu paylaşıma erişmek için gereken isteğe bağlı parola.",
+    "allowedUsernamesListDescription": "Paylaşıma erişebilen virgülle ayrılmış kullanıcı adları (etkinleştirildiğinde).",
+    "shareThemeColorDescription": "Paylaşımın temasına uygulanan CSS renk değeri (örneğin, kırmızı, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Paylaşım sayfasında gösterilen özel sayfa başlığı.",
+    "shareDescriptionHelp": "Paylaşım sayfasında gösterilen kısa açıklama (meta etiketlerde kullanılabilir).",
+    "shareLogoDescription": "İstemci tarafından erişilebilen logo resmi URL'si veya yolu -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/logo.png' veya '/path/to/logo.png'",
+    "shareBannerDescription": "Banner resmi URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/banner.png' veya '/path/to/banner.png'",
+    "shareFaviconDescription": "Favicon URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/favicon.png' veya '/path/to/favicon.png'"
   },
   "api": {
     "title": "API Anahtarları:",

@@ -42,6 +42,7 @@ import { filesApi } from "@/api";
 import { state, getters, mutations } from "@/store";
 import { events } from "@/notify";
 import { generateRandomCode } from "@/utils/auth";
+import { shareOverrides } from "@/utils/constants";
 
 export default {
   name: "layout",
@@ -64,7 +65,9 @@ export default {
   },
   mounted() {
     window.addEventListener("resize", this.updateIsMobile);
-    if (state.user.themeColor) {
+    if (shareOverrides.themeColor != "") {
+      document.documentElement.style.setProperty("--primaryColor", shareOverrides.themeColor);
+    } else if (state.user.themeColor) {
       document.documentElement.style.setProperty("--primaryColor", state.user.themeColor);
     }
     if (!state.sessionId) {

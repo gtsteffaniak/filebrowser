@@ -4,15 +4,23 @@ import "sync"
 
 type CommonShare struct {
 	//AllowEdit           bool   `json:"allowEdit,omitempty"`
-	DisablingFileViewer bool   `json:"disableFileViewer,omitempty"`
-	DownloadsLimit      int    `json:"downloadsLimit,omitempty"`
-	ShareTheme          string `json:"shareTheme,omitempty"`
-	DisableAnonymous    bool   `json:"disableAnonymous,omitempty"`
-	//AllowUpload         bool   `json:"allowUpload,omitempty"`
+	AllowUpload         bool     `json:"allowUpload,omitempty"`
+	DisablingFileViewer bool     `json:"disableFileViewer,omitempty"`
+	DownloadsLimit      int      `json:"downloadsLimit,omitempty"`
+	ShareTheme          string   `json:"shareTheme,omitempty"`
+	DisableAnonymous    bool     `json:"disableAnonymous,omitempty"`
 	MaxBandwidth        int      `json:"maxBandwidth,omitempty"`
 	DisableThumbnails   bool     `json:"disableThumbnails,omitempty"`
 	KeepAfterExpiration bool     `json:"keepAfterExpiration,omitempty"`
 	AllowedUsernames    []string `json:"allowedUsernames,omitempty"`
+	ThemeColor          string   `json:"themeColor,omitempty"`
+	Banner              string   `json:"banner,omitempty"`
+	Title               string   `json:"title,omitempty"`
+	Description         string   `json:"description,omitempty"`
+	Favicon             string   `json:"favicon,omitempty"`
+	QuickDownload       bool     `json:"quickDownload,omitempty"`
+	HideNavButtons      bool     `json:"hideNavButtons,omitempty"`
+	ViewMode            string   `json:"viewMode,omitempty"`
 }
 type CreateBody struct {
 	CommonShare

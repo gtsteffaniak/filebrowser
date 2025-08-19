@@ -5,51 +5,51 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <title>{{ if .Name }}{{ .Name }}{{ else }}FileBrowser Quantum{{ end }}</title>
+  <title>{{ .title }}</title>
 
-  <link rel="icon" type="image/png" sizes="256x256" href="{{ .StaticURL }}/img/icons/favicon-256x256.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="{{ .favicon }}">
 
   <!--<link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Symbols+Outlined" rel="stylesheet">-->
 
   <!-- Add to home screen for Android and modern mobile browsers -->
   <link rel="manifest" id="manifestPlaceholder" crossorigin="use-credentials">
-  <meta name="theme-color" content="{{ if .Color }}{{ .Color }}{{ else }}#2979ff{{ end }}">
+  <meta name="theme-color" content="{{ .color }}">
 
   <!-- Add to home screen for Safari on iOS/iPadOS -->
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="assets">
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ .StaticURL }}/img/icons/android-chrome-256x256.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ .appIcon }}">
 
   <!-- Add to home screen for Windows -->
-  <meta name="msapplication-TileImage" content="{{ .StaticURL }}/img/icons/mstile-144x144.png">
-  <meta name="msapplication-TileColor" content="{{ if .Color }}{{ .Color }}{{ else }}#2979ff{{ end }}">
+  <meta name="msapplication-TileImage" content="{{ .winIcon }}">
+  <meta name="msapplication-TileColor" content="{{ .color }}">
 
-  <meta name="description" content="FileBrowser Quantum is a file manager for the web which can be used to manage files on your server">
+  <meta name="description" content="{{ .description }}">
   <link rel="canonical" href="https://github.com/gtsteffaniak/filebrowser">
   <link rel="canonical" href="https://github.com/gtsteffaniak">
   <link rel="canonical" href="https://github.com/quantumx-apps">
 
   <!-- Inject Some Variables and generate the manifest json -->
   <script>
-    window.FileBrowser = JSON.parse('{{ .globalVars }}');
+    window.filebrowser = JSON.parse('{{ .globalVars }}');
     var dynamicManifest = {
-      "name": window.FileBrowser.Name || 'FileBrowser Quantum',
+      "name": window.filebrowser.name || 'FileBrowser Quantum',
       "icons": [
         {
-          "src": window.location.origin + "{{ .StaticURL }}/img/icons/android-chrome-256x256.png",
+          "src": window.location.origin + "{{ .staticURL }}/img/icons/android-chrome-256x256.png",
           "sizes": "512x512",
           "type": "image/png"
         },
         {
-          "src": window.location.origin + "{{ .StaticURL }}/img/icons/android-chrome-192x192.png",
+          "src": window.location.origin + "{{ .staticURL }}/img/icons/android-chrome-192x192.png",
           "sizes": "192x192",
           "type": "image/png"
         },
       ],
-      "start_url": window.location.origin + "{{ .BaseURL }}",
+      "start_url": window.location.origin + "{{ .baseURL }}",
       "display": "standalone",
       "background_color": "#ffffff",
-      "theme_color": window.FileBrowser.Color || "#455a64"
+      "theme_color": "{{ .color }}"
     }
 
     const stringManifest = JSON.stringify(dynamicManifest);
@@ -61,7 +61,7 @@
   <style>
     /* Basic Styles */
     :root {
-      --background: {{ .LightBackground }};
+      --background: {{ .lightBackground }};
       --alt-background: #ddd;
       --surfacePrimary: gray;
       --surfaceSecondary: lightgray;
@@ -71,7 +71,7 @@
       --activeWhiteIcon: gray;
     }
     .dark-mode {
-      --background: {{ .DarkBackground }};
+      --background: {{ .darkBackground }};
       --alt-background: #283136;
       --surfacePrimary: #20292F;
       --surfaceSecondary: #3A4147;
@@ -155,7 +155,7 @@
         transform: scale(1.0);
       }
     }
-    {{ .CustomCSS }}
+    {{ .customCSS }}
     {{ .userSelectedTheme }}
   </style>
 </head>

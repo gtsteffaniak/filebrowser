@@ -46,7 +46,9 @@
     "retry": "Reintentar",
     "pauseAll": "Pausar todo",
     "resumeAll": "Reanudar todo",
-    "clearCompleted": "Limpiar lista"
+    "clearCompleted": "Limpiar lista",
+    "showMore": "Ver más",
+    "showLess": "Mostrar menos"
   },
   "download": {
     "downloadFile": "Descargar archivo",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Límite de descargas",
     "maxBandwidth": "Ancho de banda máximo de descarga (kbps)",
-    "shareTheme": "Compartir tema"
+    "shareTheme": "Compartir tema",
+    "shareThemeColor": "Compartir color del tema (valor CSS)",
+    "shareTitle": "Compartir título",
+    "shareDescription": "Compartir descripción",
+    "shareLogo": "Compartir URL del logotipo",
+    "shareBanner": "Compartir URL del banner",
+    "shareFavicon": "Compartir URL de favicon",
+    "optionalPasswordHelp": "Si se establece, los usuarios deben introducir esta contraseña para ver el contenido compartido."
   },
   "search": {
     "images": "Imágenes",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Introduzca los nombres de usuario, separados por comas",
     "keepAfterExpiration": "No eliminar la acción una vez caducada",
     "keepAfterExpirationDescription": "La acción no se borrará después de que caduque. Esto resulta útil si desea ampliar el plazo de expiración de una acción o editarla después de que expire.",
-    "saveDisabled": "No se pueden guardar los cambios en los archivos compartidos."
+    "saveDisabled": "No se pueden guardar los cambios en los archivos compartidos.",
+    "shareDurationDescription": "Duración antes de que caduque la acción. Dejar en blanco para una acción permanente.",
+    "passwordDescription": "Contraseña opcional necesaria para acceder a este recurso compartido, incluidos los usuarios autenticados.",
+    "allowedUsernamesListDescription": "Nombres de usuario separados por comas que pueden acceder al recurso compartido (si está activado).",
+    "shareThemeColorDescription": "Valor de color CSS aplicado al tema de la acción (por ejemplo, rojo, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Título de página personalizado que se muestra en la página de compartición.",
+    "shareDescriptionHelp": "Breve descripción mostrada en la página de compartición (puede utilizarse en las metaetiquetas).",
+    "shareLogoDescription": "URL o ruta de la imagen del logotipo accesible por el cliente -- se aceptan rutas abosolutas o de índice: por ejemplo, 'https://domain.com/logo.png' o '/ruta/a/logo.png'.",
+    "shareBannerDescription": "URL de la imagen del banner o ruta accesible por el cliente -- se aceptan rutas abosolutas o de índice: por ejemplo, 'https://domain.com/banner.png' o '/ruta/a/banner.png'.",
+    "shareFaviconDescription": "URL del favicon o ruta accesible por el cliente -- se aceptan rutas abosolutas o de índice: por ejemplo 'https://domain.com/favicon.png' o '/ruta/a/favicon.png'."
   },
   "api": {
     "title": "Crear API:",

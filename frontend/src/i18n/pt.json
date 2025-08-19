@@ -46,7 +46,9 @@
     "retry": "Repetir",
     "pauseAll": "Pausa tudo",
     "resumeAll": "Retomar tudo",
-    "clearCompleted": "Limpar concluído"
+    "clearCompleted": "Limpar concluído",
+    "showMore": "Mostrar mais",
+    "showLess": "Mostrar menos"
   },
   "download": {
     "downloadFile": "Descarregar ficheiro",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Limite do número de descarregamentos",
     "maxBandwidth": "Largura de banda máxima de descarregamento (kbps)",
-    "shareTheme": "Partilhar o tema"
+    "shareTheme": "Partilhar o tema",
+    "shareThemeColor": "Partilhar a cor do tema (valor CSS)",
+    "shareTitle": "Partilhar título",
+    "shareDescription": "Partilhar descrição",
+    "shareLogo": "Partilhar URL do logótipo",
+    "shareBanner": "Partilhar URL do banner",
+    "shareFavicon": "Partilhar URL do favicon",
+    "optionalPasswordHelp": "Se estiver definida, os utilizadores têm de introduzir esta palavra-passe para ver o conteúdo partilhado."
   },
   "search": {
     "images": "Imagens",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Introduzir nomes de utilizador, separados por vírgulas",
     "keepAfterExpiration": "Não eliminar a partilha após a sua expiração",
     "keepAfterExpirationDescription": "A partilha não será eliminada depois de expirar. Isto é útil se pretender prolongar a expiração de uma partilha ou editá-la depois de expirar.",
-    "saveDisabled": "Não é possível guardar alterações em ficheiros partilhados."
+    "saveDisabled": "Não é possível guardar alterações em ficheiros partilhados.",
+    "shareDurationDescription": "Duração antes da expiração da ação. Deixar em branco para uma partilha permanente.",
+    "passwordDescription": "Palavra-passe opcional necessária para aceder a esta partilha, incluindo utilizadores autenticados.",
+    "allowedUsernamesListDescription": "Nomes de utilizador separados por vírgulas que podem aceder à partilha (quando ativado).",
+    "shareThemeColorDescription": "Valor de cor CSS aplicado ao tema da ação (por exemplo, vermelho, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Título de página personalizado apresentado na página de partilha.",
+    "shareDescriptionHelp": "Descrição curta apresentada na página de partilha (pode ser utilizada em meta tags).",
+    "shareLogoDescription": "URL ou caminho da imagem do logótipo acessível pelo cliente - são aceites caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/logo.png\" ou \"/path/to/logo.png",
+    "shareBannerDescription": "URL ou caminho da imagem do banner acessível pelo cliente - são aceites caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/banner.png\" ou \"/path/to/banner.png",
+    "shareFaviconDescription": "URL ou caminho do Favicon acessível pelo cliente - são aceites caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png"
   },
   "api": {
     "title": "Chaves da API",

@@ -53,11 +53,15 @@
       </p>
     </div>
     <Icon
-      @click="downloadFile"
+      @click.stop="downloadFile"
       v-if="quickDownloadEnabled"
       :filename="name"
       mimetype="file_download"
       style="padding-right: 0.5em"
+      class="download-icon"
+      role="button"
+      aria-label="Download"
+      tabindex="0"
     />
   </a>
 </template>
@@ -72,7 +76,7 @@ import * as upload from "@/utils/upload";
 import { state, getters, mutations } from "@/store"; // Import your custom store
 import { url } from "@/utils";
 import Icon from "@/components/files/Icon.vue";
-import { baseURL, serverHasMultipleSources } from "@/utils/constants";
+import { baseURL, serverHasMultipleSources, shareOverrides } from "@/utils/constants";
 
 export default {
   name: "item",
@@ -110,6 +114,11 @@ export default {
     },
     quickDownloadEnabled() {
       // @ts-ignore
+      if (getters.isShare()) {
+        // @ts-ignore
+        return shareOverrides.quickDownload && !this.isDir;
+      }
+      // @ts-ignore
       return state.user?.quickDownload && !this.galleryView && !this.isDir;
     },
     isHiddenNotSelected() {
@@ -135,7 +144,7 @@ export default {
       return this.isSelected;
     },
     isSelected() {
-      return this.selected.indexOf(this.index) !== -1;
+      return state.selected.indexOf(this.index) !== -1;
     },
     isDraggable() {
       // @ts-ignore
@@ -143,7 +152,7 @@ export default {
     },
     canDrop() {
       if (!this.isDir || this.readOnly !== undefined) return false;
-      for (let i of this.selected) {
+      for (const i of this.selected) {
         if (
           // @ts-ignore
           state.req.items[i].path === this.path &&
@@ -159,14 +168,12 @@ export default {
       if (!enableThumbs) {
         return "";
       }
-      // @ts-ignore
-      let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
+      const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
       if (getters.isShare()) {
-        let urlPath = getters.getSharePath(this.name) ;
-        return publicApi.getPreviewURL(urlPath);
+        return publicApi.getPreviewURL(previewPath);
       }
       // @ts-ignore
-      return filesApi.getPreviewURL(state.req.source, path, this.modified);
+      return filesApi.getPreviewURL(state.req.source, previewPath, this.modified);
     },
     isThumbsEnabled() {
       return enableThumbs;
@@ -277,7 +284,7 @@ export default {
     },
     /** @param {DragEvent} event */
     dragStart(event) {
-      if (this.selected.indexOf(this.index) === -1) {
+      if (state.selected.indexOf(this.index) === -1) {
         mutations.resetSelected();
         // @ts-ignore
         mutations.addSelected(this.index);
@@ -321,7 +328,7 @@ export default {
       const conflict = upload.checkConflict(
         items,
         // @ts-ignore
-        (await filesApi.fetchFiles(this.source, this.path)).items
+        (await filesApi.fetchFiles(this.source, this.path)).items || []
       );
 
       /**
@@ -403,7 +410,7 @@ export default {
         this.open();
       }
 
-      if (event.shiftKey && state.selected.length > 0) {
+      if (event.shiftKey && this.selected.length > 0) {
         let fi = 0;
         let la = 0;
 
@@ -420,7 +427,7 @@ export default {
         mutations.resetSelected();
 
         for (; fi <= la; fi++) {
-          if (state.selected.indexOf(fi) === -1) {
+          if (this.selected.indexOf(fi) === -1) {
             // @ts-ignore
             mutations.addSelected(fi);
           }
@@ -428,7 +435,7 @@ export default {
         return;
       }
 
-      if (state.selected.indexOf(this.index) !== -1) {
+      if (this.selected.indexOf(this.index) !== -1) {
         if (event.ctrlKey || event.metaKey) {
           mutations.removeSelected(this.index);
           mutations.setLastSelectedIndex(this.index);
@@ -442,7 +449,7 @@ export default {
           return;
         }
 
-        if (state.selected.length > 1) {
+        if (this.selected.length > 1) {
           mutations.resetSelected();
           // @ts-ignore
           mutations.addSelected(this.index);
@@ -478,6 +485,12 @@ export default {
 </script>
 
 <style>
+.download-icon {
+  font-size: 1.5em;
+  cursor: pointer;
+  color: var(--secondaryColor);
+}
+
 .icon-download {
   font-size: 0.5em;
 }

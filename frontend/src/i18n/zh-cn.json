@@ -46,7 +46,9 @@
     "retry": "重试",
     "pauseAll": "全部暂停",
     "resumeAll": "全部简历",
-    "clearCompleted": "清除完毕"
+    "clearCompleted": "清除完毕",
+    "showMore": "显示更多",
+    "showLess": "显示更少"
   },
   "download": {
     "downloadFile": "下载文件",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "下载次数限制",
     "maxBandwidth": "最大下载带宽（千字节/秒）",
-    "shareTheme": "分享主题"
+    "shareTheme": "分享主题",
+    "shareThemeColor": "共享主题颜色（CSS 值）",
+    "shareTitle": "分享标题",
+    "shareDescription": "分享说明",
+    "shareLogo": "共享徽标 URL",
+    "shareBanner": "共享横幅 URL",
+    "shareFavicon": "共享图标 URL",
+    "optionalPasswordHelp": "如果设置了该密码，用户必须输入该密码才能查看共享内容。"
   },
   "search": {
     "images": "图像",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "输入以逗号分隔的用户名",
     "keepAfterExpiration": "过期后不删除共享",
     "keepAfterExpirationDescription": "过期后不会删除共享。如果您想延长共享的有效期或在过期后进一步编辑共享，这一点非常有用。",
-    "saveDisabled": "无法保存对共享文件的更改。"
+    "saveDisabled": "无法保存对共享文件的更改。",
+    "shareDurationDescription": "共享到期前的持续时间。如果是永久共享，则留空。",
+    "passwordDescription": "访问此共享（包括已通过身份验证的用户）所需的可选密码。",
+    "allowedUsernamesListDescription": "以逗号分隔的可访问共享的用户名（启用时）。",
+    "shareThemeColorDescription": "应用于共享主题的 CSS 颜色值（例如，红色，#0ea5e9，rgb(14,165,233)）。",
+    "shareTitleDescription": "共享页面上显示的自定义页面标题。",
+    "shareDescriptionHelp": "共享页面上显示的简短描述（可在元标签中使用）。",
+    "shareLogoDescription": "客户端可访问的徽标图像 URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/logo.png \"或\"/path/to/logo.png\"。",
+    "shareBannerDescription": "客户端可访问的横幅图片 URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/banner.png \"或\"/path/to/banner.png\"。",
+    "shareFaviconDescription": "客户端可访问的 Favicon URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/favicon.png \"或\"/path/to/favicon.png\"。"
   },
   "api": {
     "title": "应用程序接口密钥",

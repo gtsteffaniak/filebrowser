@@ -46,7 +46,9 @@
     "retry": "Réessayer",
     "pauseAll": "Pause tous",
     "resumeAll": "Curriculum vitae",
-    "clearCompleted": "Effacement terminé"
+    "clearCompleted": "Effacement terminé",
+    "showMore": "Afficher plus",
+    "showLess": "Montrer moins"
   },
   "download": {
     "downloadFile": "Télécharger le fichier",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Limite du nombre de téléchargements",
     "maxBandwidth": "Largeur de bande maximale de téléchargement (kbps)",
-    "shareTheme": "Thème de partage"
+    "shareTheme": "Thème de partage",
+    "shareThemeColor": "Partager la couleur du thème (valeur CSS)",
+    "shareTitle": "Titre de partage",
+    "shareDescription": "Partager la description",
+    "shareLogo": "Partager l'URL du logo",
+    "shareBanner": "Partager l'URL de la bannière",
+    "shareFavicon": "Partager l'URL de la favicon",
+    "optionalPasswordHelp": "S'il est défini, les utilisateurs doivent saisir ce mot de passe pour consulter le contenu partagé."
   },
   "search": {
     "images": "Images",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Saisir les noms d'utilisateur, séparés par des virgules",
     "keepAfterExpiration": "Ne pas supprimer le partage après son expiration",
     "keepAfterExpirationDescription": "Le partage ne sera pas supprimé après son expiration. Ceci est utile si vous souhaitez prolonger l'expiration d'un partage ou le modifier après son expiration.",
-    "saveDisabled": "Impossible d'enregistrer les modifications apportées aux fichiers partagés."
+    "saveDisabled": "Impossible d'enregistrer les modifications apportées aux fichiers partagés.",
+    "shareDurationDescription": "Durée avant l'expiration du partage. Laisser vide pour un partage permanent.",
+    "passwordDescription": "Mot de passe facultatif requis pour accéder à ce partage, y compris pour les utilisateurs authentifiés.",
+    "allowedUsernamesListDescription": "Noms d'utilisateurs séparés par des virgules qui peuvent accéder au partage (lorsque cette fonction est activée).",
+    "shareThemeColorDescription": "Valeur de la couleur CSS appliquée au thème du partage (par exemple, rouge, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Titre de page personnalisé affiché sur la page de partage.",
+    "shareDescriptionHelp": "Courte description affichée sur la page de partage (peut être utilisée dans les balises méta).",
+    "shareLogoDescription": "URL de l'image du logo ou chemin d'accès accessible par le client - les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/logo.png\" ou \"/path/to/logo.png\".",
+    "shareBannerDescription": "URL de l'image de la bannière ou chemin d'accès accessible par le client - les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/banner.png\" ou \"/path/to/banner.png\".",
+    "shareFaviconDescription": "URL du favicon ou chemin d'accès accessible par le client -- les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\"."
   },
   "api": {
     "title": "Clés API :",

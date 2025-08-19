@@ -368,12 +368,12 @@ export const getters = {
       },
       viewMode: "normal",
       singleClick: true,
-      quickDownload: true,
+      quickDownload: false,
       gallerySize: 5,
       permissions: {
-        share: true,
+        share: false,
         modify: false,
-        api: true,
+        api: false,
         admin: false,
         realtime: false
       },
@@ -381,9 +381,9 @@ export const getters = {
         video: true,
         image: true,
         popup: true,
-        highQuality: true
+        highQuality: false
       },
-      disableSettings: false,
+      disableSettings: true,
       disableQuickToggles: false,
       disableSearchOptions: false,
       deleteWithoutConfirming: false,

@@ -9,7 +9,7 @@
     />
     <search v-if="showSearch" />
     <title v-else-if="isSettings" class="topTitle">{{ $t("sidebar.settings") }}</title>
-    <title v-else class="topTitle">{{ req.name }}</title>
+    <title v-else class="topTitle">{{ getTopTitle }}</title>
     <action
       v-if="isListingView && !disableNavButtons"
       class="menu-button"
@@ -42,7 +42,7 @@ import { eventBus } from "@/store/eventBus";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import Search from "@/components/Search.vue";
-import { disableNavButtons } from "@/utils/constants";
+import { disableNavButtons, shareOverrides } from "@/utils/constants";
 
 export default {
   name: "UnifiedHeader",
@@ -56,6 +56,12 @@ export default {
     };
   },
   computed: {
+    getTopTitle() {
+      if (getters.isShare() && shareOverrides.title) {
+        return shareOverrides.title;
+      }
+      return state.req.name;
+    },
     showQuickSave() {
       if (getters.currentView() != "editor" || !state.user.permissions.modify) {
         return false;

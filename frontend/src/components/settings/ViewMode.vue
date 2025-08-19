@@ -1,9 +1,11 @@
 <template>
-  <select v-on:change="change" :value="viewMode">
-    <option v-for="mode in viewModes" :key="mode" :value="mode">
-      {{ mode }}
-    </option>
-  </select>
+  <div class="form-flex-group">
+    <select class="input" v-on:change="change" :value="viewMode">
+      <option v-for="mode in viewModes" :key="mode" :value="mode">
+        {{ mode }}
+      </option>
+    </select>
+  </div>
 </template>
 
 <script>

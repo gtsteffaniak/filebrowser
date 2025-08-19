@@ -46,7 +46,9 @@
     "retry": "Repetir",
     "pauseAll": "Pausar tudo",
     "resumeAll": "Retomar tudo",
-    "clearCompleted": "Limpar concluído"
+    "clearCompleted": "Limpar concluído",
+    "showMore": "Mostrar mais",
+    "showLess": "Mostrar menos"
   },
   "download": {
     "downloadFile": "Baixar arquivo",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Limite de número de downloads",
     "maxBandwidth": "Largura de banda máxima de download (kbps)",
-    "shareTheme": "Compartilhar tema"
+    "shareTheme": "Compartilhar tema",
+    "shareThemeColor": "Compartilhar a cor do tema (valor CSS)",
+    "shareTitle": "Compartilhar título",
+    "shareDescription": "Compartilhar descrição",
+    "shareLogo": "Compartilhar URL do logotipo",
+    "shareBanner": "Compartilhar URL do banner",
+    "shareFavicon": "Compartilhar URL do favicon",
+    "optionalPasswordHelp": "Se definida, os usuários deverão digitar essa senha para visualizar o conteúdo compartilhado."
   },
   "search": {
     "images": "Imagens",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Digite os nomes de usuário, separados por vírgula",
     "keepAfterExpiration": "Não exclua o compartilhamento após sua expiração",
     "keepAfterExpirationDescription": "O compartilhamento não será excluído após a expiração. Isso é útil se você quiser estender a expiração de um compartilhamento ou editá-lo depois que ele expirar.",
-    "saveDisabled": "Não é possível salvar alterações em arquivos compartilhados."
+    "saveDisabled": "Não é possível salvar alterações em arquivos compartilhados.",
+    "shareDurationDescription": "Duração antes da expiração do compartilhamento. Deixe em branco para um compartilhamento permanente.",
+    "passwordDescription": "Senha opcional necessária para acessar esse compartilhamento, incluindo usuários autenticados.",
+    "allowedUsernamesListDescription": "Nomes de usuário separados por vírgulas que podem acessar o compartilhamento (quando ativado).",
+    "shareThemeColorDescription": "Valor de cor CSS aplicado ao tema do compartilhamento (por exemplo, vermelho, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Título de página personalizado mostrado na página de compartilhamento.",
+    "shareDescriptionHelp": "Descrição curta exibida na página de compartilhamento (pode ser usada em meta tags).",
+    "shareLogoDescription": "URL ou caminho da imagem do logotipo acessível pelo cliente - são aceitos caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/logo.png\" ou \"/path/to/logo.png\".",
+    "shareBannerDescription": "URL ou caminho da imagem do banner acessível pelo cliente - são aceitos caminhos abosolutos ou de índice: por exemplo, 'https://domain.com/banner.png' ou '/path/to/banner.png'",
+    "shareFaviconDescription": "URL ou caminho do Favicon acessível pelo cliente - são aceitos caminhos abosolutos ou de índice: por exemplo, \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\"."
   },
   "api": {
     "title": "Chaves de API:",

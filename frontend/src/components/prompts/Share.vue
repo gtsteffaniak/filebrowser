@@ -45,19 +45,35 @@
         </tbody>
       </table>
     </div>
-
     <div v-else>
-      <p>{{ $t("settings.shareDuration") }}</p>
+      <p>
+        {{ $t("settings.shareDuration") }}
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.shareDurationDescription'))"
+          @mouseleave="hideTooltip"
+        >
+          help
+        </i>
+      </p>
       <div class="form-flex-group">
         <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0" @keyup.enter="submit" v-model.trim="time" />
         <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
-          <option value="seconds">{{ $t("time.seconds") }}</option>
           <option value="minutes">{{ $t("time.minutes") }}</option>
           <option value="hours">{{ $t("time.hours") }}</option>
           <option value="days">{{ $t("time.days") }}</option>
         </select>
       </div>
-      <p>{{ $t("prompts.optionalPassword") }}</p>
+      <p>
+        {{ $t("prompts.optionalPassword") }}
+        <i
+          class="no-select material-symbols-outlined tooltip-info-icon"
+          @mouseenter="showTooltip($event, $t('share.passwordDescription'))"
+          @mouseleave="hideTooltip"
+        >
+          help
+        </i>
+      </p>
       <input class="input" type="password" autocomplete="new-password" v-model.trim="password" />
 
       <div class="settings-items">
@@ -66,31 +82,147 @@
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
         -->
+        <ToggleSwitch
+          class="item"
+          v-model="quickDownload"
+          :name="$t('profileSettings.showQuickDownload')"
+          :description="$t('profileSettings.showQuickDownloadDescription')"
+        />
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
-
-        <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
         <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
         <div v-if="enableAllowedUsernames" class="item">
           <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
         </div>
-        <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
+      </div>
+        <!-- <ViewMode :viewMode="viewMode" @update:viewMode="viewMode = $event" /> -->
+        <p>
+          {{ $t("prompts.shareTheme") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
+          <select class="input" v-model="shareTheme">
+            <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
+              {{ String(key) === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
+            </option>
+          </select>
+        </div>
+      <div class="advanced-toggle">
+        <button
+          class="button button--flat button--block"
+          @click="showAdvanced = !showAdvanced"
+          :aria-expanded="showAdvanced ? 'true' : 'false'"
+          aria-controls="advanced-settings"
+          :aria-label="showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore')"
+          :title="showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore')"
+        >
+          {{ showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore') }}
+        </button>
       </div>
 
-      <p>{{ $t("prompts.downloadsLimit") }}</p>
-      <p class="description">{{ $t('share.downloadsLimitDescription') }}</p>
-      <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
-      <p>{{ $t("prompts.maxBandwidth") }}</p>
-      <p class="description">{{ $t('share.maxBandwidthDescription') }}</p>
-      <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-      <p>{{ $t("prompts.shareTheme") }}</p>
-      <p class="description">{{ $t('share.shareThemeDescription') }}</p>
-      <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-        <select class="input" v-model="shareTheme">
-          <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
-            {{ String(key) === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
-          </option>
-        </select>
+      <transition
+        name="expand"
+        @before-enter="beforeEnter"
+        @enter="enter"
+        @leave="leave"
+      >
+      <div id="advanced-settings" v-show="showAdvanced">
+        <div class="settings-items">
+          <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
+          <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
+          <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
+        </div>
+
+        <p>
+          {{ $t("prompts.downloadsLimit") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.downloadsLimitDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <input class="input" type="number" min="0" v-model.number="downloadsLimit" />
+        <p>
+          {{ $t("prompts.maxBandwidth") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.maxBandwidthDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
+
+
+        <p>
+          {{ $t("prompts.shareThemeColor") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareThemeColorDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <input class="input" type="text" v-model.trim="themeColor" />
+
+        <p>
+          {{ $t("prompts.shareTitle") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareTitleDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <input class="input" type="text" v-model.trim="title" />
+
+        <p>
+          {{ $t("prompts.shareDescription") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareDescriptionHelp'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <textarea class="input" v-model.trim="description"></textarea>
+
+        <p>
+          {{ $t("prompts.shareBanner") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareBannerDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <input class="input" type="text" v-model.trim="banner" />
+
+        <p>
+          {{ $t("prompts.shareFavicon") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareFaviconDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <input class="input" type="text" v-model.trim="favicon" />
       </div>
+      </transition>
     </div>
   </div>
 
@@ -123,6 +255,7 @@ import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { userSelectableThemes } from "@/utils/constants";
+//import ViewMode from "@/components/settings/ViewMode.vue";
 
 /**
  * @typedef {import('@/api/public').Share} Share
@@ -151,6 +284,7 @@ export default {
   name: "share",
   components: {
     ToggleSwitch,
+    //ViewMode,
   },
   props: {
     editing: {
@@ -185,6 +319,15 @@ export default {
       enableAllowedUsernames: false,
       allowedUsernames: "",
       keepAfterExpiration: false,
+      themeColor: "",
+      banner: "",
+      title: "",
+      description: "",
+      favicon: "",
+      showAdvanced: false,
+      quickDownload: false,
+      disableNavButtons: false,
+      //viewMode: "normal",
     };
   },
   computed: {
@@ -249,6 +392,14 @@ export default {
           this.enableAllowedUsernames = Array.isArray(this.link.allowedUsernames) && this.link.allowedUsernames.length > 0;
           this.allowedUsernames = this.enableAllowedUsernames ? this.link.allowedUsernames.join(", ") : "";
           this.keepAfterExpiration = this.link.keepAfterExpiration || false;
+          this.themeColor = this.link.themeColor || "";
+          this.banner = this.link.banner || "";
+          this.title = this.link.title || "";
+          this.description = this.link.description || "";
+          this.favicon = this.link.favicon || "";
+          this.quickDownload = this.link.quickDownload || false;
+          this.disableNavButtons = this.link.hideNavButtons || false;
+          this.viewMode = this.link.viewMode || "normal";
         }
       },
     },
@@ -296,6 +447,45 @@ export default {
   },
   methods: {
     /**
+     * @param {Element} el
+     */
+    beforeEnter(el) {
+      const element = /** @type {HTMLElement} */ (el);
+      element.style.height = '0';
+      element.style.opacity = '0';
+    },
+    /**
+     * @param {Element} el
+     * @param {() => void} done
+     */
+    enter(el, done) {
+      const element = /** @type {HTMLElement} */ (el);
+      element.style.transition = '';
+      element.style.height = '0';
+      element.style.opacity = '0';
+      void element.offsetHeight;
+      element.style.transition = 'height 0.3s, opacity 0.3s';
+      element.style.height = element.scrollHeight + 'px';
+      element.style.opacity = '1';
+      setTimeout(() => {
+        element.style.height = 'auto';
+        done();
+      }, 300);
+    },
+    /**
+     * @param {Element} el
+     * @param {() => void} done
+     */
+    leave(el, done) {
+      const element = /** @type {HTMLElement} */ (el);
+      element.style.transition = 'height 0.3s, opacity 0.3s';
+      element.style.height = element.scrollHeight + 'px';
+      void element.offsetHeight;
+      element.style.height = '0';
+      element.style.opacity = '0';
+      setTimeout(done, 300);
+    },
+    /**
      * @param {MouseEvent} event
      * @param {string} text
      */
@@ -329,33 +519,41 @@ export default {
           allowedUsernames: this.enableAllowedUsernames ? this.allowedUsernames.split(',').map(u => u.trim()) : [],
           keepAfterExpiration: this.keepAfterExpiration,
           hash: '',
+          themeColor: this.themeColor,
+          banner: this.banner,
+          title: this.title,
+          description: this.description,
+          favicon: this.favicon,
+          quickDownload: this.quickDownload,
+          hideNavButtons: this.disableNavButtons,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
         }
 
-        let res = null;
-        if (isPermanent) {
-          res = await publicApi.create(payload.path, payload.source, payload.password, "", "", payload.disableAnonymous, payload.allowUpload, payload.maxBandwidth, payload.downloadsLimit, payload.shareTheme, payload.disablingFileViewer, payload.disableThumbnails, payload.allowedUsernames, payload.hash, payload.keepAfterExpiration);
-        } else {
-          res = await publicApi.create(
-            payload.path,
-            payload.source,
-            payload.password,
-            payload.expires,
-            payload.unit,
-            payload.disableAnonymous,
-            payload.allowUpload,
-            payload.maxBandwidth,
-            payload.downloadsLimit,
-            payload.shareTheme,
-            payload.disablingFileViewer,
-            payload.disableThumbnails,
-            payload.allowedUsernames,
-            payload.hash,
-            payload.keepAfterExpiration
-          );
-        }
+        const res = await publicApi.create(payload.path, payload.source, {
+          password: payload.password,
+          expires: payload.expires,
+          unit: payload.unit,
+          disableAnonymous: payload.disableAnonymous,
+          allowUpload: payload.allowUpload,
+          maxBandwidth: Number(payload.maxBandwidth) || 0,
+          downloadsLimit: Number(payload.downloadsLimit) || 0,
+          shareTheme: payload.shareTheme,
+          disableFileViewer: payload.disablingFileViewer,
+          disableThumbnails: payload.disableThumbnails,
+          allowedUsernames: payload.allowedUsernames,
+          hash: payload.hash,
+          keepAfterExpiration: payload.keepAfterExpiration,
+          themeColor: payload.themeColor,
+          banner: payload.banner,
+          title: payload.title,
+          description: payload.description,
+          favicon: payload.favicon,
+          quickDownload: payload.quickDownload,
+          hideNavButtons: payload.hideNavButtons,
+          //viewMode: this.viewMode,
+        });
 
         if (!this.isEditMode) {
           this.links.push(res);
@@ -439,6 +637,10 @@ export default {
 </script>
 
 <style scoped>
+
+.advanced-toggle {
+  margin-top: 1em;
+}
 .setting-item {
   display: flex;
   justify-content: space-between;
@@ -450,5 +652,21 @@ export default {
   color: #666;
   margin-top: 4px;
   margin-bottom: 8px;
+}
+
+/* Prevent inputs from expanding to container height during expand transition */
+.input {
+  height: auto;
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.expand-enter,
+.expand-leave-to {
+  height: 0 !important;
+  opacity: 0;
 }
 </style>

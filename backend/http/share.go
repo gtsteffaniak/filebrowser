@@ -192,18 +192,10 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		s.Expire = expire
 		s.PasswordHash = stringHash
 		s.Token = token
-		s.DisableAnonymous = body.DisableAnonymous
-		s.MaxBandwidth = body.MaxBandwidth
-		s.DownloadsLimit = body.DownloadsLimit
-		s.ShareTheme = body.ShareTheme
-		s.DisablingFileViewer = body.DisablingFileViewer
-		s.DisableThumbnails = body.DisableThumbnails
-		s.KeepAfterExpiration = body.KeepAfterExpiration
-		s.AllowedUsernames = body.AllowedUsernames
+		s.CommonShare = body.CommonShare
 		if err = store.Share.Save(s); err != nil {
 			return http.StatusInternalServerError, err
 		}
-		s.Source = body.SourceName
 		return renderJSON(w, r, s)
 	}
 
@@ -248,18 +240,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *requestContext)
 		Hash:         secure_hash,
 		PasswordHash: stringHash,
 		Token:        token,
-		CommonShare: share.CommonShare{
-			DisableAnonymous: body.DisableAnonymous,
-			//AllowUpload:         body.AllowUpload,
-			MaxBandwidth:        body.MaxBandwidth,
-			DownloadsLimit:      body.DownloadsLimit,
-			ShareTheme:          body.ShareTheme,
-			DisablingFileViewer: body.DisablingFileViewer,
-			//AllowEdit:           body.AllowEdit,
-			DisableThumbnails:   body.DisableThumbnails,
-			KeepAfterExpiration: body.KeepAfterExpiration,
-			AllowedUsernames:    body.AllowedUsernames,
-		},
+		CommonShare:  body.CommonShare,
 	}
 
 	if err := store.Share.Save(s); err != nil {

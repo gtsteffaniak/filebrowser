@@ -46,7 +46,9 @@
     "retry": "Opakování",
     "pauseAll": "Pozastavení všech",
     "resumeAll": "Obnovit vše",
-    "clearCompleted": "Vymazání dokončeno"
+    "clearCompleted": "Vymazání dokončeno",
+    "showMore": "Zobrazit více",
+    "showLess": "Zobrazit méně"
   },
   "download": {
     "downloadFile": "Stáhnout soubor",
@@ -144,7 +146,16 @@
     "allowedUsernamesPlaceholder": "Zadejte uživatelská jména oddělená čárkou.",
     "keepAfterExpiration": "Neodstraňujte sdílenou složku po vypršení její platnosti",
     "keepAfterExpirationDescription": "Po vypršení platnosti nebude sdílená složka odstraněna. To je užitečné, pokud chcete prodloužit platnost sdílené složky nebo ji po vypršení platnosti dále upravovat.",
-    "saveDisabled": "Nelze uložit změny ve sdílených souborech."
+    "saveDisabled": "Nelze uložit změny ve sdílených souborech.",
+    "shareDurationDescription": "Doba trvání před vypršením platnosti akcie. V případě trvalé akcie ponechte prázdné.",
+    "passwordDescription": "Volitelné heslo vyžadované pro přístup k této sdílené složce, včetně ověřených uživatelů.",
+    "allowedUsernamesListDescription": "Uživatelská jména oddělená čárkou, která mohou přistupovat ke sdílené složce (je-li povolena).",
+    "shareThemeColorDescription": "Hodnota barvy CSS použitá na motiv sdílené položky (např. červená, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Vlastní název stránky zobrazený na stránce sdílení.",
+    "shareDescriptionHelp": "Krátký popis zobrazený na stránce sdílení (lze použít v metaznačkách).",
+    "shareLogoDescription": "Adresa URL nebo cesta k obrázku loga přístupná klientovi - akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/logo.png\" nebo \"/path/to/logo.png\".",
+    "shareBannerDescription": "Adresa URL nebo cesta k obrázku banneru přístupná klientovi - akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/banner.png\" nebo \"/path/to/banner.png\".",
+    "shareFaviconDescription": "Adresa URL nebo cesta k faviconě přístupná klientovi -- akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/favicon.png\" nebo \"/path/to/favicon.png\"."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -193,7 +204,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Limit počtu stažení",
     "maxBandwidth": "Maximální šířka pásma stahování (kbps)",
-    "shareTheme": "Sdílet téma"
+    "shareTheme": "Sdílet téma",
+    "shareThemeColor": "Sdílet barvu motivu (hodnota CSS)",
+    "shareTitle": "Sdílet název",
+    "shareDescription": "Sdílet popis",
+    "shareLogo": "Sdílet adresu URL loga",
+    "shareBanner": "Sdílet adresu URL banneru",
+    "shareFavicon": "Sdílet adresu URL favicon",
+    "optionalPasswordHelp": "Pokud je nastaveno, musí uživatelé toto heslo zadat, aby mohli sdílený obsah zobrazit."
   },
   "search": {
     "images": "Obrázky",

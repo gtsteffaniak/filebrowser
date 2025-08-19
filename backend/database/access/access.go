@@ -507,7 +507,6 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 
 // RemoveAllowUser removes a user from the allow list for a given source and index path.
 func (s *Storage) RemoveAllowUser(sourcePath, indexPath, username string) (bool, error) {
-	fmt.Println("Removing allow user:", username, "for source:", sourcePath, "and index:", indexPath)
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	rule, ok := s.AllRules[sourcePath][indexPath]

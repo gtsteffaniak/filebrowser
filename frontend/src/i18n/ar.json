@@ -46,7 +46,9 @@
     "retry": "إعادة المحاولة",
     "pauseAll": "إيقاف الكل مؤقتاً",
     "resumeAll": "استئناف الكل",
-    "clearCompleted": "اكتمل المسح"
+    "clearCompleted": "اكتمل المسح",
+    "showMore": "اعرض المزيد",
+    "showLess": "اعرض أقل"
   },
   "download": {
     "downloadFile": "Download File",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "حد عدد التنزيلات",
     "maxBandwidth": "أقصى نطاق ترددي للتنزيل (كيلو بايت/ثانية)",
-    "shareTheme": "سمة المشاركة"
+    "shareTheme": "سمة المشاركة",
+    "shareThemeColor": "مشاركة لون السمة (قيمة CSS)",
+    "shareTitle": "مشاركة العنوان",
+    "shareDescription": "وصف المشاركة",
+    "shareLogo": "مشاركة عنوان URL الشعار",
+    "shareBanner": "مشاركة عنوان URL للشعار",
+    "shareFavicon": "مشاركة عنوان URL المفضل",
+    "optionalPasswordHelp": "إذا تم تعيينها، يجب على المستخدمين إدخال كلمة المرور هذه لعرض المحتوى المشترك."
   },
   "search": {
     "images": "الصور",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "أدخل أسماء المستخدمين، مفصولة بفاصلة",
     "keepAfterExpiration": "لا تحذف المشاركة بعد انتهاء صلاحيتها",
     "keepAfterExpirationDescription": "لن يتم حذف المشاركة بعد انتهاء صلاحيتها. هذا مفيد إذا كنت ترغب في تمديد انتهاء صلاحية المشاركة أو تعديلها بعد انتهاء صلاحيتها.",
-    "saveDisabled": "يتعذر حفظ التغييرات على الملفات المشتركة."
+    "saveDisabled": "يتعذر حفظ التغييرات على الملفات المشتركة.",
+    "shareDurationDescription": "المدة قبل انتهاء صلاحية السهم. اتركها فارغة للحصة الدائمة.",
+    "passwordDescription": "كلمة المرور الاختيارية مطلوبة للوصول إلى هذه المشاركة، بما في ذلك المستخدمون الذين تمت مصادقتهم.",
+    "allowedUsernamesListDescription": "أسماء المستخدمين المفصولة بفواصل الذين يمكنهم الوصول إلى المشاركة (عند التمكين).",
+    "shareThemeColorDescription": "قيمة لون CSS المطبقة على سمة المشاركة (على سبيل المثال، أحمر، #0ea5e9، rgb(14,165,233)).",
+    "shareTitleDescription": "عنوان الصفحة المخصص الذي يظهر في صفحة المشاركة.",
+    "shareDescriptionHelp": "وصف قصير يظهر على صفحة المشاركة (يمكن استخدامه في العلامات الوصفية).",
+    "shareLogoDescription": "عنوان URL لصورة الشعار أو المسار الذي يمكن للعميل الوصول إليه - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/logo.png' أو '/path/to/logo.png'",
+    "shareBannerDescription": "عنوان URL لصورة الشعار أو المسار الذي يمكن للعميل الوصول إليه - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/banner.png' أو '/path/to/banner.png'",
+    "shareFaviconDescription": "عنوان URL أو المسار الذي يمكن للعميل الوصول إليه من قبل العميل - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/favicon.png' أو '/path/to/favicon.png'"
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
