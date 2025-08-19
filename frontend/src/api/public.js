@@ -56,12 +56,12 @@ export async function fetchPub(path, hash, password = "", content = false) {
  * @param {string[]} files
  * @returns {string}
  */
-export function getDownloadURL(share, files) {
+export function getDownloadURL(share, files, inline=false) {
   const params = {
     files: files,
     hash: share.hash,
     token: share.token,
-    ...(share.inline && { inline: 'true' })
+    ...(inline && { inline: 'true' })
   }
   const apiPath = getApiPath("public/api/raw", params);
   return window.origin + apiPath
