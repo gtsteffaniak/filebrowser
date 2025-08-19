@@ -65,14 +65,18 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"title":             "",
 		"quickDownload":     false,
 		"description":       "",
-		"color":             "var(--primaryColor)",
+		"themeColor":        "",
 		"disableThumbnails": false,
+		"viewMode":          "list",
 	}
+	disableNavButtons := settings.Config.Frontend.DisableNavButtons
 	if d.share != nil {
+		disableNavButtons = disableNavButtons || d.share.HideNavButtons
+		shareOverrides["viewMode"] = d.share.ViewMode
 		shareOverrides["banner"] = d.share.Banner
 		shareOverrides["title"] = d.share.Title
 		shareOverrides["description"] = d.share.Description
-		shareOverrides["color"] = d.share.ThemeColor
+		shareOverrides["themeColor"] = d.share.ThemeColor
 		shareOverrides["quickDownload"] = d.share.QuickDownload
 		shareOverrides["disableThumbnails"] = d.share.DisableThumbnails
 		if d.share.Favicon != "" {
@@ -110,7 +114,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"mediaAvailable":       config.Integrations.Media.FfmpegPath != "",
 		"muPdfAvailable":       config.Server.MuPdfAvailable,
 		"updateAvailable":      utils.GetUpdateAvailableUrl(),
-		"disableNavButtons":    settings.Config.Frontend.DisableNavButtons,
+		"disableNavButtons":    disableNavButtons,
 		"userSelectableThemes": config.Frontend.Styling.CustomThemeOptions,
 		"share":                shareOverrides,
 	}

@@ -670,6 +670,8 @@ definitions:
         type: string
       hash:
         type: string
+      hideNavButtons:
+        type: boolean
       keepAfterExpiration:
         type: boolean
       maxBandwidth:
@@ -696,6 +698,8 @@ definitions:
         type: string
       userID:
         type: integer
+      viewMode:
+        type: string
     type: object
   users.AuthToken:
     properties:

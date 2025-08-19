@@ -172,6 +172,7 @@ export function getShareURL(share) {
  * @property {boolean} disableThumbnails
  * @property {boolean} keepAfterExpiration
  * @property {string[]} allowedUsernames
+ * @property {string} viewMode
  * @property {string} token
  * @property {boolean} inline
  */

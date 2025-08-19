@@ -91,18 +91,27 @@
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
         <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
         <div v-if="enableAllowedUsernames" class="item">
-          <p>
-            <i
-              class="no-select material-symbols-outlined tooltip-info-icon"
-              @mouseenter="showTooltip($event, $t('share.allowedUsernamesListDescription'))"
-              @mouseleave="hideTooltip"
-            >
-              help
-            </i>
-          </p>
           <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
         </div>
       </div>
+        <!-- <ViewMode :viewMode="viewMode" @update:viewMode="viewMode = $event" /> -->
+        <p>
+          {{ $t("prompts.shareTheme") }}
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))"
+            @mouseleave="hideTooltip"
+          >
+            help
+          </i>
+        </p>
+        <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
+          <select class="input" v-model="shareTheme">
+            <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
+              {{ String(key) === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
+            </option>
+          </select>
+        </div>
       <div class="advanced-toggle">
         <button
           class="button button--flat button--block"
@@ -126,7 +135,9 @@
         <div class="settings-items">
           <ToggleSwitch class="item" v-model="keepAfterExpiration" :name="$t('share.keepAfterExpiration')" :description="$t('share.keepAfterExpirationDescription')" />
           <ToggleSwitch class="item" v-model="disableThumbnails" :name="$t('share.disableThumbnails')" :description="$t('share.disableThumbnailsDescription')" />
+          <ToggleSwitch class="item" v-model="disableNavButtons" :name="$t('share.hideNavButtons')" :description="$t('share.hideNavButtonsDescription')" />
         </div>
+
         <p>
           {{ $t("prompts.downloadsLimit") }}
           <i
@@ -149,23 +160,7 @@
           </i>
         </p>
         <input class="input" type="number" min="0" v-model.number="maxBandwidth" />
-        <p>
-          {{ $t("prompts.shareTheme") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareThemeDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <div v-if="Object.keys(availableThemes).length > 0" class="form-flex-group">
-          <select class="input" v-model="shareTheme">
-            <option v-for="(theme, key) in availableThemes" :key="key" :value="key">
-              {{ String(key) === "default" ? $t("profileSettings.defaultThemeDescription") : `${key} - ${theme.description}` }}
-            </option>
-          </select>
-        </div>
+
 
         <p>
           {{ $t("prompts.shareThemeColor") }}
@@ -260,6 +255,7 @@ import { fromNow } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { userSelectableThemes } from "@/utils/constants";
+//import ViewMode from "@/components/settings/ViewMode.vue";
 
 /**
  * @typedef {import('@/api/public').Share} Share
@@ -288,6 +284,7 @@ export default {
   name: "share",
   components: {
     ToggleSwitch,
+    //ViewMode,
   },
   props: {
     editing: {
@@ -329,6 +326,8 @@ export default {
       favicon: "",
       showAdvanced: false,
       quickDownload: false,
+      disableNavButtons: false,
+      //viewMode: "normal",
     };
   },
   computed: {
@@ -399,6 +398,8 @@ export default {
           this.description = this.link.description || "";
           this.favicon = this.link.favicon || "";
           this.quickDownload = this.link.quickDownload || false;
+          this.disableNavButtons = this.link.hideNavButtons || false;
+          this.viewMode = this.link.viewMode || "normal";
         }
       },
     },
@@ -445,29 +446,43 @@ export default {
     });
   },
   methods: {
+    /**
+     * @param {Element} el
+     */
     beforeEnter(el) {
-      el.style.height = '0';
-      el.style.opacity = '0';
+      const element = /** @type {HTMLElement} */ (el);
+      element.style.height = '0';
+      element.style.opacity = '0';
     },
+    /**
+     * @param {Element} el
+     * @param {() => void} done
+     */
     enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      void el.offsetHeight;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
-      el.style.opacity = '1';
+      const element = /** @type {HTMLElement} */ (el);
+      element.style.transition = '';
+      element.style.height = '0';
+      element.style.opacity = '0';
+      void element.offsetHeight;
+      element.style.transition = 'height 0.3s, opacity 0.3s';
+      element.style.height = element.scrollHeight + 'px';
+      element.style.opacity = '1';
       setTimeout(() => {
-        el.style.height = 'auto';
+        element.style.height = 'auto';
         done();
       }, 300);
     },
+    /**
+     * @param {Element} el
+     * @param {() => void} done
+     */
     leave(el, done) {
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = el.scrollHeight + 'px';
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
+      const element = /** @type {HTMLElement} */ (el);
+      element.style.transition = 'height 0.3s, opacity 0.3s';
+      element.style.height = element.scrollHeight + 'px';
+      void element.offsetHeight;
+      element.style.height = '0';
+      element.style.opacity = '0';
       setTimeout(done, 300);
     },
     /**
@@ -510,6 +525,7 @@ export default {
           description: this.description,
           favicon: this.favicon,
           quickDownload: this.quickDownload,
+          hideNavButtons: this.disableNavButtons,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
@@ -535,6 +551,8 @@ export default {
           description: payload.description,
           favicon: payload.favicon,
           quickDownload: payload.quickDownload,
+          hideNavButtons: payload.hideNavButtons,
+          //viewMode: this.viewMode,
         });
 
         if (!this.isEditMode) {
@@ -619,6 +637,10 @@ export default {
 </script>
 
 <style scoped>
+
+.advanced-toggle {
+  margin-top: 1em;
+}
 .setting-item {
   display: flex;
   justify-content: space-between;

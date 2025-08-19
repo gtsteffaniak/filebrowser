@@ -3102,6 +3102,9 @@
                 "hash": {
                     "type": "string"
                 },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
                 "keepAfterExpiration": {
                     "type": "boolean"
                 },
@@ -3135,6 +3138,9 @@
                 },
                 "userID": {
                     "type": "integer"
+                },
+                "viewMode": {
+                    "type": "string"
                 }
             }
         },

@@ -5,7 +5,6 @@ import { noAuth } from '@/utils/constants.js'
 import { getTypeInfo } from '@/utils/mimetype'
 import { fromNow } from '@/utils/moment'
 import * as i18n from '@/i18n'
-import { shareOverrides } from '@/utils/constants.js'
 
 export const getters = {
   getTime: timestamp => {

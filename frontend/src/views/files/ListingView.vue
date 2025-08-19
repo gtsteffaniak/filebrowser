@@ -176,7 +176,7 @@ import * as upload from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
 import { url } from "@/utils";
-
+import { shareOverrides } from "@/utils/constants";
 
 import Item from "@/components/files/ListingItem.vue";
 import ShareInfo from "@/components/files/ShareInfo.vue";

@@ -19,6 +19,8 @@ type CommonShare struct {
 	Description         string   `json:"description,omitempty"`
 	Favicon             string   `json:"favicon,omitempty"`
 	QuickDownload       bool     `json:"quickDownload,omitempty"`
+	HideNavButtons      bool     `json:"hideNavButtons,omitempty"`
+	ViewMode            string   `json:"viewMode,omitempty"`
 }
 type CreateBody struct {
 	CommonShare

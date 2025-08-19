@@ -3113,6 +3113,9 @@ const docTemplate = `{
                 "hash": {
                     "type": "string"
                 },
+                "hideNavButtons": {
+                    "type": "boolean"
+                },
                 "keepAfterExpiration": {
                     "type": "boolean"
                 },
@@ -3146,6 +3149,9 @@ const docTemplate = `{
                 },
                 "userID": {
                     "type": "integer"
+                },
+                "viewMode": {
+                    "type": "string"
                 }
             }
         },
