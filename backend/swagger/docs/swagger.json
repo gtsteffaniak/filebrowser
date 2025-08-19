@@ -3105,9 +3105,6 @@
                 "keepAfterExpiration": {
                     "type": "boolean"
                 },
-                "logo": {
-                    "type": "string"
-                },
                 "maxBandwidth": {
                     "type": "integer"
                 },
@@ -3116,6 +3113,9 @@
                 },
                 "path": {
                     "type": "string"
+                },
+                "quickDownload": {
+                    "type": "boolean"
                 },
                 "shareTheme": {
                     "type": "string"

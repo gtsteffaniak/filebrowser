@@ -47,7 +47,7 @@
     "pauseAll": "Pause all",
     "resumeAll": "Resume all",
     "clearCompleted": "Clear completed",
-    "showMore": "Show advanced",
+    "showMore": "Show more",
     "showLess": "Show less"
   },
   "download": {
@@ -147,7 +147,7 @@
     "keepAfterExpiration": "Do not delete share after it expires",
     "keepAfterExpirationDescription": "The share will not be deleted after it expires. This is useful if you want to extend a share's expiration or edit it further after it expires.",
     "saveDisabled": "Cannot save changes to shared files.",
-    "shareDurationDescription": "Duration before the share expires. Set to 0 for a permanent share.",
+    "shareDurationDescription": "Duration before the share expires. Leave blank for a permanent share.",
     "passwordDescription": "Optional password required to access this share, including authenticated users.",
     "allowedUsernamesListDescription": "Comma-separated usernames who can access the share (when enabled).",
     "shareThemeColorDescription": "CSS color value applied to the share's theme (e.g., red, #0ea5e9, rgb(14,165,233)).",

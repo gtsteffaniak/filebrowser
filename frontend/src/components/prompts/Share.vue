@@ -45,7 +45,6 @@
         </tbody>
       </table>
     </div>
-
     <div v-else>
       <p>
         {{ $t("settings.shareDuration") }}
@@ -60,7 +59,6 @@
       <div class="form-flex-group">
         <input class="form-grow input flat-right" v-focus type="number" max="2147483647" min="0" @keyup.enter="submit" v-model.trim="time" />
         <select class="flat-left input form-dropdown" v-model="unit" :aria-label="$t('time.unit')">
-          <option value="seconds">{{ $t("time.seconds") }}</option>
           <option value="minutes">{{ $t("time.minutes") }}</option>
           <option value="hours">{{ $t("time.hours") }}</option>
           <option value="days">{{ $t("time.days") }}</option>
@@ -84,6 +82,12 @@
         <ToggleSwitch class="item" v-model="allowUpload" :name="'Allow uploading'" />
         <ToggleSwitch class="item" v-model="disablingFileViewer" :name="'Disable File Viewer'" />
         -->
+        <ToggleSwitch
+          class="item"
+          v-model="quickDownload"
+          :name="$t('profileSettings.showQuickDownload')"
+          :description="$t('profileSettings.showQuickDownloadDescription')"
+        />
         <ToggleSwitch class="item" v-model="disableAnonymous" :name="$t('share.disableAnonymous')" :description="$t('share.disableAnonymousDescription')" />
         <ToggleSwitch class="item" v-model="enableAllowedUsernames" :name="$t('share.enableAllowedUsernames')" :description="$t('share.enableAllowedUsernamesDescription')" />
         <div v-if="enableAllowedUsernames" class="item">
@@ -99,17 +103,16 @@
           <input class="input" type="text" v-model.trim="allowedUsernames" :placeholder="$t('share.allowedUsernamesPlaceholder')" />
         </div>
       </div>
-
       <div class="advanced-toggle">
         <button
           class="button button--flat button--block"
           @click="showAdvanced = !showAdvanced"
           :aria-expanded="showAdvanced ? 'true' : 'false'"
           aria-controls="advanced-settings"
-          :aria-label="showAdvanced ? $t('buttons.close') : $t('buttons.more')"
-          :title="showAdvanced ? $t('buttons.close') : $t('buttons.more')"
+          :aria-label="showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore')"
+          :title="showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore')"
         >
-          {{ showAdvanced ? $t('buttons.close') : $t('buttons.more') }}
+          {{ showAdvanced ? $t('buttons.showLess') : $t('buttons.showMore') }}
         </button>
       </div>
 
@@ -199,18 +202,6 @@
           </i>
         </p>
         <textarea class="input" v-model.trim="description"></textarea>
-
-        <p>
-          {{ $t("prompts.shareLogo") }}
-          <i
-            class="no-select material-symbols-outlined tooltip-info-icon"
-            @mouseenter="showTooltip($event, $t('share.shareLogoDescription'))"
-            @mouseleave="hideTooltip"
-          >
-            help
-          </i>
-        </p>
-        <input class="input" type="text" v-model.trim="logo" />
 
         <p>
           {{ $t("prompts.shareBanner") }}
@@ -333,11 +324,11 @@ export default {
       keepAfterExpiration: false,
       themeColor: "",
       banner: "",
-      logo: "",
       title: "",
       description: "",
       favicon: "",
       showAdvanced: false,
+      quickDownload: false,
     };
   },
   computed: {
@@ -404,10 +395,10 @@ export default {
           this.keepAfterExpiration = this.link.keepAfterExpiration || false;
           this.themeColor = this.link.themeColor || "";
           this.banner = this.link.banner || "";
-          this.logo = this.link.logo || "";
           this.title = this.link.title || "";
           this.description = this.link.description || "";
           this.favicon = this.link.favicon || "";
+          this.quickDownload = this.link.quickDownload || false;
         }
       },
     },
@@ -515,10 +506,10 @@ export default {
           hash: '',
           themeColor: this.themeColor,
           banner: this.banner,
-          logo: this.logo,
           title: this.title,
           description: this.description,
           favicon: this.favicon,
+          quickDownload: this.quickDownload,
         };
         if (this.isEditMode) {
           payload.hash = this.link.hash;
@@ -540,10 +531,10 @@ export default {
           keepAfterExpiration: payload.keepAfterExpiration,
           themeColor: payload.themeColor,
           banner: payload.banner,
-          logo: payload.logo,
           title: payload.title,
           description: payload.description,
           favicon: payload.favicon,
+          quickDownload: payload.quickDownload,
         });
 
         if (!this.isEditMode) {

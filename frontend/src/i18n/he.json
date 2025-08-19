@@ -46,7 +46,9 @@
     "retry": "נסה שוב",
     "pauseAll": "השהה הכל",
     "resumeAll": "המשך הכל",
-    "clearCompleted": "השלם"
+    "clearCompleted": "השלם",
+    "showMore": "הצג עוד",
+    "showLess": "הצג פחות"
   },
   "download": {
     "downloadFile": "הורד קובץ",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "הגבלת מספר ההורדות",
     "maxBandwidth": "רוחב פס הורדה מרבי (kbps)",
-    "shareTheme": "שתף נושא"
+    "shareTheme": "שתף נושא",
+    "shareThemeColor": "שתף צבע נושא (ערך CSS)",
+    "shareTitle": "שתף כותרת",
+    "shareDescription": "שתף תיאור",
+    "shareLogo": "שתף כתובת URL של הלוגו",
+    "shareBanner": "שתף כתובת URL של באנר",
+    "shareFavicon": "שתף כתובת URL של סמל המועדפים",
+    "optionalPasswordHelp": "אם אפשרות זו מוגדרת, על המשתמשים להזין סיסמה זו כדי להציג את התוכן המשותף."
   },
   "search": {
     "images": "תמונות",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "הזן שמות משתמש, מופרדים בפסיקים",
     "keepAfterExpiration": "אל תמחק את השיתוף לאחר שתוקפו יפוג",
     "keepAfterExpirationDescription": "השיתוף לא יימחק לאחר שתוקפו יפוג. אפשרות זו שימושית אם ברצונך להאריך את תוקף השיתוף או לערוך אותו לאחר שתוקפו יפוג.",
-    "saveDisabled": "לא ניתן לשמור שינויים בקבצים משותפים."
+    "saveDisabled": "לא ניתן לשמור שינויים בקבצים משותפים.",
+    "shareDurationDescription": "משך הזמן עד לפקיעת תוקף השיתוף. השאר ריק לשיתוף קבוע.",
+    "passwordDescription": "סיסמה אופציונלית נדרשת כדי לגשת לשיתוף זה, כולל משתמשים מאומתים.",
+    "allowedUsernamesListDescription": "שמות משתמשים המופרדים בפסיקים שיכולים לגשת לשיתוף (כאשר האפשרות מופעלת).",
+    "shareThemeColorDescription": "ערך צבע CSS המוחל על ערכת הנושא של השיתוף (לדוגמה, אדום, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "כותרת דף מותאמת אישית המוצגת בדף השיתוף.",
+    "shareDescriptionHelp": "תיאור קצר המופיע בדף השיתוף (יכול לשמש בתגי מטא).",
+    "shareLogoDescription": "כתובת URL או נתיב של תמונת הלוגו הנגישים ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/logo.png' או '/path/to/logo.png'",
+    "shareBannerDescription": "כתובת URL או נתיב של תמונת הבאנר הנגישים ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/banner.png' או '/path/to/banner.png'",
+    "shareFaviconDescription": "כתובת URL או נתיב של סמל favicon הנגיש ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/favicon.png' או '/path/to/favicon.png'"
   },
   "api": {
     "title": "מפתחות API",

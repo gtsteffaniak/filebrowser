@@ -46,7 +46,9 @@
     "retry": "リトライ",
     "pauseAll": "一時停止",
     "resumeAll": "すべての履歴書",
-    "clearCompleted": "クリア完了"
+    "clearCompleted": "クリア完了",
+    "showMore": "もっと見る",
+    "showLess": "もっと見る"
   },
   "download": {
     "downloadFile": "Download File",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "ダウンロード数制限",
     "maxBandwidth": "最大ダウンロード帯域幅 (kbps)",
-    "shareTheme": "シェアテーマ"
+    "shareTheme": "シェアテーマ",
+    "shareThemeColor": "テーマカラーを共有する（CSS値）",
+    "shareTitle": "シェアタイトル",
+    "shareDescription": "説明文を共有する",
+    "shareLogo": "ロゴのURLを共有する",
+    "shareBanner": "共有バナーURL",
+    "shareFavicon": "ファビコンのURLを共有する",
+    "optionalPasswordHelp": "設定されている場合、ユーザーは共有コンテンツを見るためにこのパスワードを入力しなければならない。"
   },
   "search": {
     "images": "画像",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "ユーザー名をカンマ区切りで入力する。",
     "keepAfterExpiration": "期限切れ後も共有を削除しない",
     "keepAfterExpirationDescription": "有効期限が切れても共有は削除されません。これは、共有の有効期限を延長したい場合や、有効期限が切れた後にさらに編集したい場合に便利です。",
-    "saveDisabled": "共有ファイルに変更を保存できない。"
+    "saveDisabled": "共有ファイルに変更を保存できない。",
+    "shareDurationDescription": "シェアが失効するまでの期間。永続的な共有の場合は空白のままにします。",
+    "passwordDescription": "認証されたユーザーを含め、この共有にアクセスするために必要なオプションのパスワード。",
+    "allowedUsernamesListDescription": "共有にアクセスできるユーザ名をカンマ区切りで指定します (有効な場合)。",
+    "shareThemeColorDescription": "共有テーマに適用されるCSSカラー値（例：赤、#0ea5e9、rgb(14,165,233)）。",
+    "shareTitleDescription": "共有ページに表示されるカスタムページタイトル。",
+    "shareDescriptionHelp": "シェアページに表示される短い説明文（メタタグで使用される場合もあります）。",
+    "shareLogoDescription": "クライアントからアクセス可能なロゴ画像のURLまたはパス -- 絶対パスでもインデックスパスでも可: 'https://domain.com/logo.png'または'/path/to/logo.png'など。",
+    "shareBannerDescription": "クライアントがアクセス可能なバナー画像のURLまたはパス -- 絶対パスでもインデックスパスでもかまいません：例 'https://domain.com/banner.png' または '/path/to/banner.png'",
+    "shareFaviconDescription": "クライアントからアクセス可能なファビコンのURLまたはパス -- 絶対パスでもインデックスパスでも構いません: 'https://domain.com/favicon.png' または '/path/to/favicon.png' など。"
   },
   "api": {
     "title": "APIキー：",

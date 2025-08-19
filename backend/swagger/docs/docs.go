@@ -3116,9 +3116,6 @@ const docTemplate = `{
                 "keepAfterExpiration": {
                     "type": "boolean"
                 },
-                "logo": {
-                    "type": "string"
-                },
                 "maxBandwidth": {
                     "type": "integer"
                 },
@@ -3127,6 +3124,9 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
+                },
+                "quickDownload": {
+                    "type": "boolean"
                 },
                 "shareTheme": {
                     "type": "string"

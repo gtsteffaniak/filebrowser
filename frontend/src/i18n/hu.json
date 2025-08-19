@@ -46,7 +46,9 @@
     "retry": "Retry",
     "pauseAll": "Szünet minden",
     "resumeAll": "Folytassa az összes",
-    "clearCompleted": "Tiszta befejezve"
+    "clearCompleted": "Tiszta befejezve",
+    "showMore": "Többet mutasson",
+    "showLess": "Kevesebb mutatása"
   },
   "download": {
     "downloadFile": "Fájl letöltése",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Letöltések száma limit",
     "maxBandwidth": "Maximális letöltési sávszélesség (kbps)",
-    "shareTheme": "Megosztás témája"
+    "shareTheme": "Megosztás témája",
+    "shareThemeColor": "Téma színének megosztása (CSS érték)",
+    "shareTitle": "Cím megosztása",
+    "shareDescription": "Megosztás leírása",
+    "shareLogo": "Logó megosztása URL",
+    "shareBanner": "Banner URL megosztása",
+    "shareFavicon": "Favicon URL megosztása",
+    "optionalPasswordHelp": "Ha be van állítva, a felhasználóknak ezt a jelszót kell megadniuk a megosztott tartalom megtekintéséhez."
   },
   "search": {
     "images": "Képek",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Adja meg a felhasználóneveket, vesszővel elválasztva",
     "keepAfterExpiration": "Ne törölje a megosztást a lejárat után",
     "keepAfterExpirationDescription": "A megosztás nem törlődik a lejárta után. Ez akkor hasznos, ha meg szeretné hosszabbítani egy megosztás lejáratát, vagy tovább szeretné szerkeszteni azt a lejárat után.",
-    "saveDisabled": "A megosztott fájlok módosításait nem lehet elmenteni."
+    "saveDisabled": "A megosztott fájlok módosításait nem lehet elmenteni.",
+    "shareDurationDescription": "A részvény lejárta előtti időtartam. Állandó megosztás esetén hagyja üresen.",
+    "passwordDescription": "A megosztás eléréséhez szükséges opcionális jelszó, beleértve a hitelesített felhasználókat is.",
+    "allowedUsernamesListDescription": "vesszővel elválasztott felhasználónevek, amelyek hozzáférhetnek a megosztáshoz (ha engedélyezve van).",
+    "shareThemeColorDescription": "A megosztás témájára alkalmazott CSS színérték (pl. piros, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "A megosztási oldalon megjelenő egyéni oldalcím.",
+    "shareDescriptionHelp": "A megosztási oldalon megjelenő rövid leírás (a meta címkékben is használható).",
+    "shareLogoDescription": "A logó kép URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/logo.png' vagy '/path/to/logo.png'.",
+    "shareBannerDescription": "A banner kép URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/banner.png' vagy '/path/to/banner.png'.",
+    "shareFaviconDescription": "A favicon URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/favicon.png' vagy '/path/to/favicon.png'."
   },
   "api": {
     "title": "API-kulcsok:",

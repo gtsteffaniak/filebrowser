@@ -46,7 +46,9 @@
     "retry": "다시 시도",
     "pauseAll": "모두 일시 중지",
     "resumeAll": "모두 다시 시작",
-    "clearCompleted": "완료 지우기"
+    "clearCompleted": "완료 지우기",
+    "showMore": "자세히 보기",
+    "showLess": "덜 보기"
   },
   "download": {
     "downloadFile": "파일 다운로드",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "다운로드 횟수 제한",
     "maxBandwidth": "최대 다운로드 대역폭(kbps)",
-    "shareTheme": "테마 공유"
+    "shareTheme": "테마 공유",
+    "shareThemeColor": "테마 색상 공유(CSS 값)",
+    "shareTitle": "제목 공유",
+    "shareDescription": "설명 공유",
+    "shareLogo": "로고 URL 공유",
+    "shareBanner": "배너 URL 공유",
+    "shareFavicon": "파비콘 URL 공유",
+    "optionalPasswordHelp": "이 비밀번호를 설정하면 사용자가 공유 콘텐츠를 보려면 이 비밀번호를 입력해야 합니다."
   },
   "search": {
     "images": "이미지",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "쉼표로 구분된 사용자 이름 입력",
     "keepAfterExpiration": "공유가 만료된 후 삭제하지 마세요.",
     "keepAfterExpirationDescription": "공유는 만료된 후에도 삭제되지 않습니다. 이 기능은 공유의 만료 기간을 연장하거나 만료된 후 추가로 수정하려는 경우에 유용합니다.",
-    "saveDisabled": "공유 파일에 변경 사항을 저장할 수 없습니다."
+    "saveDisabled": "공유 파일에 변경 사항을 저장할 수 없습니다.",
+    "shareDurationDescription": "공유가 만료되기 전까지의 기간입니다. 영구 공유를 원하시면 비워 두세요.",
+    "passwordDescription": "인증된 사용자를 포함하여 이 공유에 액세스하는 데 필요한 비밀번호(선택 사항)입니다.",
+    "allowedUsernamesListDescription": "공유에 액세스할 수 있는 쉼표로 구분된 사용자 이름(활성화된 경우).",
+    "shareThemeColorDescription": "공유의 테마에 적용된 CSS 색상 값(예: 빨간색, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "공유 페이지에 표시되는 사용자 지정 페이지 제목.",
+    "shareDescriptionHelp": "공유 페이지에 표시되는 간단한 설명(메타 태그에 사용할 수 있음).",
+    "shareLogoDescription": "로고 이미지 URL 또는 클라이언트가 액세스할 수 있는 경로 - 절대 경로 또는 인덱스 경로 모두 허용됩니다(예: 'https://domain.com/logo.png' 또는 '/path/to/logo.png').",
+    "shareBannerDescription": "클라이언트가 액세스할 수 있는 배너 이미지 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/banner.png' 또는 '/path/to/banner.png')가 허용됩니다.",
+    "shareFaviconDescription": "클라이언트가 액세스할 수 있는 파비콘 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/favicon.png' 또는 '/path/to/favicon.png')가 허용됩니다."
   },
   "api": {
     "title": "API 키:",

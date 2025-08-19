@@ -46,7 +46,9 @@
     "retry": "Reîncercare",
     "pauseAll": "Pauză toate",
     "resumeAll": "CV toate",
-    "clearCompleted": "Golire finalizată"
+    "clearCompleted": "Golire finalizată",
+    "showMore": "Arată mai multe",
+    "showLess": "Arată mai puțin"
   },
   "download": {
     "downloadFile": "Descarcă fișier",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "Limita numărului de descărcări",
     "maxBandwidth": "Lățime de bandă maximă de descărcare (kbps)",
-    "shareTheme": "Temă de partajare"
+    "shareTheme": "Temă de partajare",
+    "shareThemeColor": "Partajați culoarea temei (valoare CSS)",
+    "shareTitle": "Titlu de partajare",
+    "shareDescription": "Trimiteți descrierea",
+    "shareLogo": "Share logo URL",
+    "shareBanner": "Partajați URL-ul bannerului",
+    "shareFavicon": "Partajați URL favicon",
+    "optionalPasswordHelp": "Dacă este setată, utilizatorii trebuie să introducă această parolă pentru a vizualiza conținutul partajat."
   },
   "search": {
     "images": "Imagini",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "Introduceți numele de utilizator, separate prin virgulă",
     "keepAfterExpiration": "Nu ștergeți partajul după ce expiră",
     "keepAfterExpirationDescription": "Partajul nu va fi șters după ce expiră. Acest lucru este util dacă doriți să prelungiți expirarea unei partaje sau să o editați în continuare după ce expiră.",
-    "saveDisabled": "Nu se pot salva modificările la fișierele partajate."
+    "saveDisabled": "Nu se pot salva modificările la fișierele partajate.",
+    "shareDurationDescription": "Durata înainte ca partajul să expire. Lăsați în alb pentru o partajare permanentă.",
+    "passwordDescription": "Parola opțională necesară pentru a accesa această partajare, inclusiv utilizatorii autentificați.",
+    "allowedUsernamesListDescription": "Nume de utilizator separate prin virgulă care pot accesa partajarea (atunci când este activată).",
+    "shareThemeColorDescription": "Valoarea culorii CSS aplicată temei acțiunii (de exemplu, roșu, #0ea5e9, rgb(14,165,233)).",
+    "shareTitleDescription": "Titlu de pagină personalizat afișat pe pagina de partajare.",
+    "shareDescriptionHelp": "Scurtă descriere afișată pe pagina de partajare (poate fi utilizată în metaetichete).",
+    "shareLogoDescription": "URL-ul imaginii logo-ului sau calea accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/logo.png\" sau \"/path/to/logo.png",
+    "shareBannerDescription": "URL-ul imaginii bannerului sau calea accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/banner.png\" sau \"/path/to/banner.png",
+    "shareFaviconDescription": "Favicon URL sau cale accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/favicon.png\" sau \"/path/to/favicon.png"
   },
   "api": {
     "title": "Chei API:",

@@ -15,10 +15,10 @@ type CommonShare struct {
 	AllowedUsernames    []string `json:"allowedUsernames,omitempty"`
 	ThemeColor          string   `json:"themeColor,omitempty"`
 	Banner              string   `json:"banner,omitempty"`
-	Logo                string   `json:"logo,omitempty"`
 	Title               string   `json:"title,omitempty"`
 	Description         string   `json:"description,omitempty"`
 	Favicon             string   `json:"favicon,omitempty"`
+	QuickDownload       bool     `json:"quickDownload,omitempty"`
 }
 type CreateBody struct {
 	CommonShare

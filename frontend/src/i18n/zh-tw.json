@@ -46,7 +46,9 @@
     "retry": "重試",
     "pauseAll": "全部暫停",
     "resumeAll": "所有履歷",
-    "clearCompleted": "清除完成"
+    "clearCompleted": "清除完成",
+    "showMore": "顯示更多",
+    "showLess": "顯示更少"
   },
   "download": {
     "downloadFile": "下載檔案",
@@ -174,7 +176,14 @@
     "source": "Source{suffix}",
     "downloadsLimit": "下載次數限制",
     "maxBandwidth": "最大下載頻寬 (kbps)",
-    "shareTheme": "分享主題"
+    "shareTheme": "分享主題",
+    "shareThemeColor": "分享主題顏色 (CSS 值)",
+    "shareTitle": "分享標題",
+    "shareDescription": "分享說明",
+    "shareLogo": "分享標誌 URL",
+    "shareBanner": "分享橫幅網址",
+    "shareFavicon": "分享圖示 URL",
+    "optionalPasswordHelp": "如果設定，使用者必須輸入此密碼才能檢視共用內容。"
   },
   "search": {
     "images": "影像",
@@ -332,7 +341,16 @@
     "allowedUsernamesPlaceholder": "輸入以逗號分隔的使用者名稱",
     "keepAfterExpiration": "到期後請勿刪除共用",
     "keepAfterExpirationDescription": "共用到期後不會刪除。如果您要延長共用的有效期或在有效期過後進一步編輯共用，這將非常有用。",
-    "saveDisabled": "無法儲存共用檔案的變更。"
+    "saveDisabled": "無法儲存共用檔案的變更。",
+    "shareDurationDescription": "共享到期前的時間。留空表示永久共用。",
+    "passwordDescription": "存取此共用（包括已驗證的使用者）所需的可選密碼。",
+    "allowedUsernamesListDescription": "可以存取共用的逗號分隔使用者名稱 (啟用時)。",
+    "shareThemeColorDescription": "套用至分享主題的 CSS 顏色值 (例如：紅色、#0ea5e9、rgb(14,165,233))。",
+    "shareTitleDescription": "分享頁面上顯示的自訂頁面標題。",
+    "shareDescriptionHelp": "顯示在分享頁面上的簡短描述（可在 meta 標籤中使用）。",
+    "shareLogoDescription": "客戶端可存取的標誌圖片 URL 或路徑 -- 絕對路徑或索引路徑均可：例如「https://domain.com/logo.png」或「/path/to/logo.png",
+    "shareBannerDescription": "客戶端可存取的旗幟圖片 URL 或路徑 -- 絕對路徑或索引路徑均可：例如「https://domain.com/banner.png」或「/path/to/banner.png",
+    "shareFaviconDescription": "用戶端可存取的 Favicon URL 或路徑 - 接受絕對路徑或索引路徑：例如「https://domain.com/favicon.png」或「/path/to/favicon.png"
   },
   "api": {
     "title": "API 金鑰",
