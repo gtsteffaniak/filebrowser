@@ -183,7 +183,8 @@
     "shareLogo": "ロゴのURLを共有する",
     "shareBanner": "共有バナーURL",
     "shareFavicon": "ファビコンのURLを共有する",
-    "optionalPasswordHelp": "設定されている場合、ユーザーは共有コンテンツを見るためにこのパスワードを入力しなければならない。"
+    "optionalPasswordHelp": "設定されている場合、ユーザーは共有コンテンツを見るためにこのパスワードを入力しなければならない。",
+    "viewMode": "ビューモード"
   },
   "search": {
     "images": "画像",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "シェアページに表示される短い説明文（メタタグで使用される場合もあります）。",
     "shareLogoDescription": "クライアントからアクセス可能なロゴ画像のURLまたはパス -- 絶対パスでもインデックスパスでも可: 'https://domain.com/logo.png'または'/path/to/logo.png'など。",
     "shareBannerDescription": "クライアントがアクセス可能なバナー画像のURLまたはパス -- 絶対パスでもインデックスパスでもかまいません：例 'https://domain.com/banner.png' または '/path/to/banner.png'",
-    "shareFaviconDescription": "クライアントからアクセス可能なファビコンのURLまたはパス -- 絶対パスでもインデックスパスでも構いません: 'https://domain.com/favicon.png' または '/path/to/favicon.png' など。"
+    "shareFaviconDescription": "クライアントからアクセス可能なファビコンのURLまたはパス -- 絶対パスでもインデックスパスでも構いません: 'https://domain.com/favicon.png' または '/path/to/favicon.png' など。",
+    "hideNavButtons": "ナビゲーションボタンを隠す",
+    "hideNavButtonsDescription": "シェア内のナビバーにあるナビゲーションボタンを非表示にして、ミニマルな外観を作る。",
+    "viewModeDescription": "共有ページのデフォルトレイアウト。"
   },
   "api": {
     "title": "APIキー：",

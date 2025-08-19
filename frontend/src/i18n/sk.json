@@ -183,7 +183,8 @@
     "shareLogo": "Zdieľanie adresy URL loga",
     "shareBanner": "Zdieľanie adresy URL banneru",
     "shareFavicon": "Zdieľanie adresy URL favicon",
-    "optionalPasswordHelp": "Ak je nastavené, používatelia musia zadať toto heslo, aby si mohli prezerať zdieľaný obsah."
+    "optionalPasswordHelp": "Ak je nastavené, používatelia musia zadať toto heslo, aby si mohli prezerať zdieľaný obsah.",
+    "viewMode": "Režim zobrazenia"
   },
   "search": {
     "images": "Obrázky",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "Krátky popis zobrazený na stránke zdieľania (môže sa použiť v meta značkách).",
     "shareLogoDescription": "Adresa URL alebo cesta k obrázku loga prístupná klientovi - akceptuje sa buď absolútna, alebo indexová cesta: napr. \"https://domain.com/logo.png\" alebo \"/path/to/logo.png\".",
     "shareBannerDescription": "Adresa URL alebo cesta k obrázku banneru prístupná klientovi - akceptuje sa buď absolútna, alebo indexová cesta: napr. \"https://domain.com/banner.png\" alebo \"/path/to/banner.png\".",
-    "shareFaviconDescription": "Adresa URL alebo cesta k ikone Favicon, ktorá je prístupná klientovi -- akceptuje sa buď absolútna, alebo indexová cesta: napr. \"https://domain.com/favicon.png\" alebo \"/path/to/favicon.png\"."
+    "shareFaviconDescription": "Adresa URL alebo cesta k ikone Favicon, ktorá je prístupná klientovi -- akceptuje sa buď absolútna, alebo indexová cesta: napr. \"https://domain.com/favicon.png\" alebo \"/path/to/favicon.png\".",
+    "hideNavButtons": "Skrytie navigačných tlačidiel",
+    "hideNavButtonsDescription": "Skryte navigačné tlačidlá na paneli navigácie v zdieľaní, aby ste vytvorili minimalistický vzhľad.",
+    "viewModeDescription": "Predvolené rozloženie zdieľanej stránky."
   },
   "api": {
     "title": "Kľúče API:",

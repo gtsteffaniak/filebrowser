@@ -183,7 +183,8 @@
     "shareLogo": "Share logo URL",
     "shareBanner": "Partajați URL-ul bannerului",
     "shareFavicon": "Partajați URL favicon",
-    "optionalPasswordHelp": "Dacă este setată, utilizatorii trebuie să introducă această parolă pentru a vizualiza conținutul partajat."
+    "optionalPasswordHelp": "Dacă este setată, utilizatorii trebuie să introducă această parolă pentru a vizualiza conținutul partajat.",
+    "viewMode": "Mod de vizualizare"
   },
   "search": {
     "images": "Imagini",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "Scurtă descriere afișată pe pagina de partajare (poate fi utilizată în metaetichete).",
     "shareLogoDescription": "URL-ul imaginii logo-ului sau calea accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/logo.png\" sau \"/path/to/logo.png",
     "shareBannerDescription": "URL-ul imaginii bannerului sau calea accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/banner.png\" sau \"/path/to/banner.png",
-    "shareFaviconDescription": "Favicon URL sau cale accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/favicon.png\" sau \"/path/to/favicon.png"
+    "shareFaviconDescription": "Favicon URL sau cale accesibilă de către client - sunt acceptate fie calea abosolută, fie calea index: de exemplu \"https://domain.com/favicon.png\" sau \"/path/to/favicon.png",
+    "hideNavButtons": "Ascundeți butoanele de navigare",
+    "hideNavButtonsDescription": "Ascundeți butoanele de navigare de pe bara de navigare din share pentru a crea un aspect minimalist.",
+    "viewModeDescription": "Layout implicit pentru pagina partajată."
   },
   "api": {
     "title": "Chei API:",

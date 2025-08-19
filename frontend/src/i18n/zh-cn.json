@@ -183,7 +183,8 @@
     "shareLogo": "共享徽标 URL",
     "shareBanner": "共享横幅 URL",
     "shareFavicon": "共享图标 URL",
-    "optionalPasswordHelp": "如果设置了该密码，用户必须输入该密码才能查看共享内容。"
+    "optionalPasswordHelp": "如果设置了该密码，用户必须输入该密码才能查看共享内容。",
+    "viewMode": "查看模式"
   },
   "search": {
     "images": "图像",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "共享页面上显示的简短描述（可在元标签中使用）。",
     "shareLogoDescription": "客户端可访问的徽标图像 URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/logo.png \"或\"/path/to/logo.png\"。",
     "shareBannerDescription": "客户端可访问的横幅图片 URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/banner.png \"或\"/path/to/banner.png\"。",
-    "shareFaviconDescription": "客户端可访问的 Favicon URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/favicon.png \"或\"/path/to/favicon.png\"。"
+    "shareFaviconDescription": "客户端可访问的 Favicon URL 或路径--接受绝对路径或索引路径：例如 \"https://domain.com/favicon.png \"或\"/path/to/favicon.png\"。",
+    "hideNavButtons": "隐藏导航按钮",
+    "hideNavButtonsDescription": "隐藏共享导航栏上的导航按钮，打造简约外观。",
+    "viewModeDescription": "共享页面的默认布局。"
   },
   "api": {
     "title": "应用程序接口密钥",

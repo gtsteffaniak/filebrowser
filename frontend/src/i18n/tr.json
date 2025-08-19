@@ -183,7 +183,8 @@
     "shareLogo": "Logo URL'sini paylaş",
     "shareBanner": "Banner URL'sini paylaş",
     "shareFavicon": "Favicon URL'sini paylaş",
-    "optionalPasswordHelp": "Ayarlanırsa, kullanıcılar paylaşılan içeriği görüntülemek için bu parolayı girmelidir."
+    "optionalPasswordHelp": "Ayarlanırsa, kullanıcılar paylaşılan içeriği görüntülemek için bu parolayı girmelidir.",
+    "viewMode": "Görünüm modu"
   },
   "search": {
     "images": "Görseller",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "Paylaşım sayfasında gösterilen kısa açıklama (meta etiketlerde kullanılabilir).",
     "shareLogoDescription": "İstemci tarafından erişilebilen logo resmi URL'si veya yolu -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/logo.png' veya '/path/to/logo.png'",
     "shareBannerDescription": "Banner resmi URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/banner.png' veya '/path/to/banner.png'",
-    "shareFaviconDescription": "Favicon URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/favicon.png' veya '/path/to/favicon.png'"
+    "shareFaviconDescription": "Favicon URL'si veya istemci tarafından erişilebilen yol -- mutlak veya dizin yolu kabul edilir: örneğin 'https://domain.com/favicon.png' veya '/path/to/favicon.png'",
+    "hideNavButtons": "Gezinme düğmelerini gizle",
+    "hideNavButtonsDescription": "Minimalist bir görünüm oluşturmak için paylaşımdaki gezinme çubuğundaki gezinme düğmelerini gizleyin.",
+    "viewModeDescription": "Paylaşılan sayfa için varsayılan düzen."
   },
   "api": {
     "title": "API Anahtarları:",

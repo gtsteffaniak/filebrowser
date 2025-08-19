@@ -183,7 +183,8 @@
     "shareLogo": "Condividi l'URL del logo",
     "shareBanner": "Condividi l'URL del banner",
     "shareFavicon": "Condividere l'URL della favicon",
-    "optionalPasswordHelp": "Se impostata, gli utenti devono inserire questa password per visualizzare il contenuto condiviso."
+    "optionalPasswordHelp": "Se impostata, gli utenti devono inserire questa password per visualizzare il contenuto condiviso.",
+    "viewMode": "Modalità di visualizzazione"
   },
   "search": {
     "images": "Immagini",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "Breve descrizione visualizzata nella pagina di condivisione (può essere utilizzata nei meta tag).",
     "shareLogoDescription": "URL o percorso dell'immagine del logo accessibile dal client - sono accettati sia il percorso assoluto che quello indice: ad esempio 'https://domain.com/logo.png' o '/path/to/logo.png'.",
     "shareBannerDescription": "URL o percorso dell'immagine del banner accessibile dal client - sono accettati sia il percorso assoluto che quello indice: ad esempio 'https://domain.com/banner.png' o '/path/to/banner.png'.",
-    "shareFaviconDescription": "URL o percorso della favicon accessibile dal client -- sono accettati sia il percorso assoluto che quello indice: ad esempio 'https://domain.com/favicon.png' o '/path/to/favicon.png'."
+    "shareFaviconDescription": "URL o percorso della favicon accessibile dal client -- sono accettati sia il percorso assoluto che quello indice: ad esempio 'https://domain.com/favicon.png' o '/path/to/favicon.png'.",
+    "hideNavButtons": "Nascondere i pulsanti di navigazione",
+    "hideNavButtonsDescription": "Nascondere i pulsanti di navigazione sulla navbar nella condivisione per creare un look minimalista.",
+    "viewModeDescription": "Layout predefinito per la pagina condivisa."
   },
   "api": {
     "title": "Chiavi API:",

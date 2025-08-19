@@ -183,7 +183,8 @@
     "shareLogo": "URL met logo delen",
     "shareBanner": "URL banner delen",
     "shareFavicon": "favicon URL delen",
-    "optionalPasswordHelp": "Indien ingesteld, moeten gebruikers dit wachtwoord invoeren om de gedeelde inhoud te bekijken."
+    "optionalPasswordHelp": "Indien ingesteld, moeten gebruikers dit wachtwoord invoeren om de gedeelde inhoud te bekijken.",
+    "viewMode": "Weergavemodus"
   },
   "search": {
     "images": "Afbeeldingen",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "Korte beschrijving die wordt weergegeven op de share-pagina (kan worden gebruikt in metatags).",
     "shareLogoDescription": "URL van logoafbeelding of pad dat toegankelijk is voor de client -- zowel abosolute als index path worden geaccepteerd: bijv. 'https://domain.com/logo.png' of '/path/to/logo.png'.",
     "shareBannerDescription": "URL van bannerafbeelding of pad dat toegankelijk is voor de client -- zowel abosolute als indexpath worden geaccepteerd: bijv. 'https://domain.com/banner.png' of '/path/to/banner.png'.",
-    "shareFaviconDescription": "Favicon URL of pad toegankelijk door de client -- zowel abosolute als index path worden geaccepteerd: bijv. 'https://domain.com/favicon.png' of '/path/to/favicon.png'."
+    "shareFaviconDescription": "Favicon URL of pad toegankelijk door de client -- zowel abosolute als index path worden geaccepteerd: bijv. 'https://domain.com/favicon.png' of '/path/to/favicon.png'.",
+    "hideNavButtons": "Navigatieknoppen verbergen",
+    "hideNavButtonsDescription": "Verberg de navigatieknoppen op de navigatiebalk in de share om een minimalistische look te creëren.",
+    "viewModeDescription": "Standaard lay-out voor de gedeelde pagina."
   },
   "api": {
     "title": "API-sleutels",

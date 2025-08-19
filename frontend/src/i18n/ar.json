@@ -183,7 +183,8 @@
     "shareLogo": "مشاركة عنوان URL الشعار",
     "shareBanner": "مشاركة عنوان URL للشعار",
     "shareFavicon": "مشاركة عنوان URL المفضل",
-    "optionalPasswordHelp": "إذا تم تعيينها، يجب على المستخدمين إدخال كلمة المرور هذه لعرض المحتوى المشترك."
+    "optionalPasswordHelp": "إذا تم تعيينها، يجب على المستخدمين إدخال كلمة المرور هذه لعرض المحتوى المشترك.",
+    "viewMode": "وضع العرض"
   },
   "search": {
     "images": "الصور",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "وصف قصير يظهر على صفحة المشاركة (يمكن استخدامه في العلامات الوصفية).",
     "shareLogoDescription": "عنوان URL لصورة الشعار أو المسار الذي يمكن للعميل الوصول إليه - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/logo.png' أو '/path/to/logo.png'",
     "shareBannerDescription": "عنوان URL لصورة الشعار أو المسار الذي يمكن للعميل الوصول إليه - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/banner.png' أو '/path/to/banner.png'",
-    "shareFaviconDescription": "عنوان URL أو المسار الذي يمكن للعميل الوصول إليه من قبل العميل - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/favicon.png' أو '/path/to/favicon.png'"
+    "shareFaviconDescription": "عنوان URL أو المسار الذي يمكن للعميل الوصول إليه من قبل العميل - يتم قبول إما المسار المطلق أو مسار الفهرس: على سبيل المثال 'https://domain.com/favicon.png' أو '/path/to/favicon.png'",
+    "hideNavButtons": "إخفاء أزرار التنقل",
+    "hideNavButtonsDescription": "قم بإخفاء أزرار التنقل على شريط التنقل في المشاركة لإضفاء مظهر بسيط.",
+    "viewModeDescription": "التخطيط الافتراضي للصفحة المشتركة."
   },
   "api": {
     "title": "مفاتيح واجهة برمجة التطبيقات (API):",
