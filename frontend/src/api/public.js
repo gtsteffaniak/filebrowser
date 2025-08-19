@@ -134,45 +134,15 @@ export async function remove(hash) {
 /**
  * @param {string} path
  * @param {string} source
- * @param {string} password
- * @param {string} expires
- * @param {string} unit
- * @param {boolean} disableAnonymous
- * @param {boolean} allowUpload
- * @param {number | string} maxBandwidth
- * @param {number | string} downloadsLimit
- * @param {string} shareTheme
- * @param {boolean} disableFileViewer
- * @param {boolean} disableThumbnails
- * @param {string[]} allowedUsernames
- * @param {string} hash
- * @param {boolean} keepAfterExpiration
+ * @param {Record<string, any>} bodyObj
  * @returns {Promise<Share>}
  */
-export async function create(path, source, password = "", expires = "", unit = "hours", disableAnonymous, allowUpload, maxBandwidth, downloadsLimit, shareTheme, disableFileViewer, disableThumbnails, allowedUsernames = [], hash = "", keepAfterExpiration = false) {
+export async function create(path, source, bodyObj = {}) {
   const params = { path: encodeURIComponent(path), source: encodeURIComponent(source) };
   const apiPath = getApiPath("public/share", params);
-  let body = "{}";
-  if (password != "" || expires !== "" || unit !== "hours" || disableAnonymous || allowUpload || maxBandwidth !== "" || downloadsLimit !== "" || shareTheme !== "default" || disableFileViewer || disableThumbnails || (allowedUsernames && allowedUsernames.length > 0) || hash !== "" || keepAfterExpiration) {
-    body = JSON.stringify({
-      password: password,
-      expires: expires,
-      unit: unit,
-      disableAnonymous: disableAnonymous,
-      allowUpload: allowUpload,
-      maxBandwidth: Number(maxBandwidth) || 0,
-      downloadsLimit: Number(downloadsLimit) || 0,
-      shareTheme: shareTheme,
-      disableFileViewer: disableFileViewer,
-      disableThumbnails: disableThumbnails,
-      allowedUsernames: allowedUsernames,
-      hash: hash,
-      keepAfterExpiration: keepAfterExpiration,
-    });
-  }
   return fetchJSON(apiPath, {
     method: "POST",
-    body: body,
+    body: JSON.stringify(bodyObj || {}),
   });
 }
 

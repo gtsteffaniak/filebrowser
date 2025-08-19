@@ -159,11 +159,9 @@ export default {
       if (!enableThumbs) {
         return "";
       }
-      // @ts-ignore
-      let path = url.removeTrailingSlash(state.req.path) + "/" + this.name;
       if (getters.isShare()) {
-        let urlPath = getters.getSharePath(this.name) ;
-        return publicApi.getPreviewURL(urlPath);
+        const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
+        return publicApi.getPreviewURL(previewPath);
       }
       // @ts-ignore
       return filesApi.getPreviewURL(state.req.source, path, this.modified);

@@ -128,8 +128,8 @@ export default {
     raw() {
       if (this.pdfConvertable) {
         if (getters.isShare()) {
-          const path = publicApi.getPreviewURL(state.req.path,"original")
-          return path;
+          const previewPath = url.removeTrailingSlash(state.req.path) + "/" + this.name;
+          return publicApi.getPreviewURL(previewPath,"original");
         }
         return (
           filesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified) + "&size=original"

@@ -83,6 +83,7 @@
           :placeholder="$t('settings.enterPasswordAgain')"
           aria-label="Password2"
           v-model="user.password"
+          autocomplete="new-password"
           id="password"
         />
         <button

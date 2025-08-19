@@ -3076,17 +3076,26 @@ const docTemplate = `{
         "share.Link": {
             "type": "object",
             "properties": {
+                "allowUpload": {
+                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
+                    "type": "boolean"
+                },
                 "allowedUsernames": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
+                "banner": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
                 "disableAnonymous": {
                     "type": "boolean"
                 },
                 "disableFileViewer": {
-                    "description": "AllowEdit           bool   ` + "`" + `json:\"allowEdit,omitempty\"` + "`" + `",
                     "type": "boolean"
                 },
                 "disableThumbnails": {
@@ -3098,14 +3107,19 @@ const docTemplate = `{
                 "expire": {
                     "type": "integer"
                 },
+                "favicon": {
+                    "type": "string"
+                },
                 "hash": {
                     "type": "string"
                 },
                 "keepAfterExpiration": {
                     "type": "boolean"
                 },
+                "logo": {
+                    "type": "string"
+                },
                 "maxBandwidth": {
-                    "description": "AllowUpload         bool   ` + "`" + `json:\"allowUpload,omitempty\"` + "`" + `",
                     "type": "integer"
                 },
                 "password_hash": {
@@ -3118,6 +3132,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "source": {
+                    "type": "string"
+                },
+                "themeColor": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "token": {

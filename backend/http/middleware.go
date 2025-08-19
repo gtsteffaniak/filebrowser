@@ -116,21 +116,42 @@ func withAdminHelper(fn handleFunc) handleFunc {
 // If authentication fails, the request continues without a user.
 func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, data *requestContext) (int, error) {
-		hash := r.URL.Query().Get("hash")
 		var link *share.Link
+		hash := r.URL.Query().Get("hash")
 		if hash != "" {
 			// Get the file link by hash
 			link, _ = store.Share.GetByHash(hash)
+		} else {
+			prefix := config.Server.BaseURL + "public/share/"
+			reconstructed := config.Server.BaseURL + "public" + r.URL.Path
+			fmt.Println("reconstructed", reconstructed)
+			if strings.HasPrefix(reconstructed, prefix) {
+				remaining := strings.TrimPrefix(reconstructed, prefix)
+				if remaining != "" {
+					if idx := strings.IndexByte(remaining, '/'); idx >= 0 {
+						remaining = remaining[:idx]
+					}
+					if remaining != "" {
+						var err error
+						link, err = store.Share.GetByHash(remaining)
+						if err != nil {
+							fmt.Println("error getting share by hash", err)
+						}
+						fmt.Println("link", link.Hash, link.Description)
+					}
+				}
+			}
 		}
-		if link != nil {
-			defer func() {
-				data.share = link
-				data.user.CustomTheme = link.ShareTheme
-			}()
-		}
+
 		// Try to authenticate user first
 		status, err := withUserHelper(nil)(w, r, data)
 		if err == nil && status < 400 {
+			if link != nil {
+				data.share = link
+				if data.user != nil {
+					data.user.CustomTheme = link.ShareTheme
+				}
+			}
 			return fn(w, r, data)
 		}
 		// Only fall back to anonymous if authentication actually failed
@@ -139,6 +160,11 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			// If user authentication failed, call the handler without user context
 			// Clear any user data that might have been partially set
 			data.token = ""
+			if link != nil {
+				data.share = link
+				data.user.CustomTheme = link.ShareTheme
+				fmt.Println("link", link)
+			}
 			// Call the handler function without user context
 			return fn(w, r, data)
 		}
