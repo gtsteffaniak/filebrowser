@@ -183,7 +183,8 @@
     "shareLogo": "로고 URL 공유",
     "shareBanner": "배너 URL 공유",
     "shareFavicon": "파비콘 URL 공유",
-    "optionalPasswordHelp": "이 비밀번호를 설정하면 사용자가 공유 콘텐츠를 보려면 이 비밀번호를 입력해야 합니다."
+    "optionalPasswordHelp": "이 비밀번호를 설정하면 사용자가 공유 콘텐츠를 보려면 이 비밀번호를 입력해야 합니다.",
+    "viewMode": "보기 모드"
   },
   "search": {
     "images": "이미지",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "공유 페이지에 표시되는 간단한 설명(메타 태그에 사용할 수 있음).",
     "shareLogoDescription": "로고 이미지 URL 또는 클라이언트가 액세스할 수 있는 경로 - 절대 경로 또는 인덱스 경로 모두 허용됩니다(예: 'https://domain.com/logo.png' 또는 '/path/to/logo.png').",
     "shareBannerDescription": "클라이언트가 액세스할 수 있는 배너 이미지 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/banner.png' 또는 '/path/to/banner.png')가 허용됩니다.",
-    "shareFaviconDescription": "클라이언트가 액세스할 수 있는 파비콘 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/favicon.png' 또는 '/path/to/favicon.png')가 허용됩니다."
+    "shareFaviconDescription": "클라이언트가 액세스할 수 있는 파비콘 URL 또는 경로 - 절대 경로 또는 인덱스 경로(예: 'https://domain.com/favicon.png' 또는 '/path/to/favicon.png')가 허용됩니다.",
+    "hideNavButtons": "탐색 버튼 숨기기",
+    "hideNavButtonsDescription": "공유의 탐색 모음에서 탐색 버튼을 숨겨 미니멀한 디자인을 만듭니다.",
+    "viewModeDescription": "공유 페이지의 기본 레이아웃입니다."
   },
   "api": {
     "title": "API 키:",

@@ -183,7 +183,8 @@
     "shareLogo": "שתף כתובת URL של הלוגו",
     "shareBanner": "שתף כתובת URL של באנר",
     "shareFavicon": "שתף כתובת URL של סמל המועדפים",
-    "optionalPasswordHelp": "אם אפשרות זו מוגדרת, על המשתמשים להזין סיסמה זו כדי להציג את התוכן המשותף."
+    "optionalPasswordHelp": "אם אפשרות זו מוגדרת, על המשתמשים להזין סיסמה זו כדי להציג את התוכן המשותף.",
+    "viewMode": "מצב תצוגה"
   },
   "search": {
     "images": "תמונות",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "תיאור קצר המופיע בדף השיתוף (יכול לשמש בתגי מטא).",
     "shareLogoDescription": "כתובת URL או נתיב של תמונת הלוגו הנגישים ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/logo.png' או '/path/to/logo.png'",
     "shareBannerDescription": "כתובת URL או נתיב של תמונת הבאנר הנגישים ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/banner.png' או '/path/to/banner.png'",
-    "shareFaviconDescription": "כתובת URL או נתיב של סמל favicon הנגיש ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/favicon.png' או '/path/to/favicon.png'"
+    "shareFaviconDescription": "כתובת URL או נתיב של סמל favicon הנגיש ללקוח - ניתן להשתמש בכתובת מוחלטת או בנתיב אינדקס: לדוגמה, 'https://domain.com/favicon.png' או '/path/to/favicon.png'",
+    "hideNavButtons": "הסתר כפתורי ניווט",
+    "hideNavButtonsDescription": "הסתר את כפתורי הניווט בסרגל הניווט בשיתוף כדי ליצור מראה מינימליסטי.",
+    "viewModeDescription": "פריסת ברירת המחדל עבור הדף המשותף."
   },
   "api": {
     "title": "מפתחות API",

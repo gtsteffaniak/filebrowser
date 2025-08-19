@@ -183,7 +183,8 @@
     "shareLogo": "Partager l'URL du logo",
     "shareBanner": "Partager l'URL de la bannière",
     "shareFavicon": "Partager l'URL de la favicon",
-    "optionalPasswordHelp": "S'il est défini, les utilisateurs doivent saisir ce mot de passe pour consulter le contenu partagé."
+    "optionalPasswordHelp": "S'il est défini, les utilisateurs doivent saisir ce mot de passe pour consulter le contenu partagé.",
+    "viewMode": "Mode d'affichage"
   },
   "search": {
     "images": "Images",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "Courte description affichée sur la page de partage (peut être utilisée dans les balises méta).",
     "shareLogoDescription": "URL de l'image du logo ou chemin d'accès accessible par le client - les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/logo.png\" ou \"/path/to/logo.png\".",
     "shareBannerDescription": "URL de l'image de la bannière ou chemin d'accès accessible par le client - les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/banner.png\" ou \"/path/to/banner.png\".",
-    "shareFaviconDescription": "URL du favicon ou chemin d'accès accessible par le client -- les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\"."
+    "shareFaviconDescription": "URL du favicon ou chemin d'accès accessible par le client -- les chemins d'accès absolus ou indexés sont acceptés : par exemple \"https://domain.com/favicon.png\" ou \"/path/to/favicon.png\".",
+    "hideNavButtons": "Masquer les boutons de navigation",
+    "hideNavButtonsDescription": "Masquez les boutons de navigation de la barre de navigation dans le partage pour créer une apparence minimaliste.",
+    "viewModeDescription": "Mise en page par défaut de la page partagée."
   },
   "api": {
     "title": "Clés API :",

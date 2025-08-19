@@ -183,7 +183,8 @@
     "shareLogo": "分享標誌 URL",
     "shareBanner": "分享橫幅網址",
     "shareFavicon": "分享圖示 URL",
-    "optionalPasswordHelp": "如果設定，使用者必須輸入此密碼才能檢視共用內容。"
+    "optionalPasswordHelp": "如果設定，使用者必須輸入此密碼才能檢視共用內容。",
+    "viewMode": "檢視模式"
   },
   "search": {
     "images": "影像",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "顯示在分享頁面上的簡短描述（可在 meta 標籤中使用）。",
     "shareLogoDescription": "客戶端可存取的標誌圖片 URL 或路徑 -- 絕對路徑或索引路徑均可：例如「https://domain.com/logo.png」或「/path/to/logo.png",
     "shareBannerDescription": "客戶端可存取的旗幟圖片 URL 或路徑 -- 絕對路徑或索引路徑均可：例如「https://domain.com/banner.png」或「/path/to/banner.png",
-    "shareFaviconDescription": "用戶端可存取的 Favicon URL 或路徑 - 接受絕對路徑或索引路徑：例如「https://domain.com/favicon.png」或「/path/to/favicon.png"
+    "shareFaviconDescription": "用戶端可存取的 Favicon URL 或路徑 - 接受絕對路徑或索引路徑：例如「https://domain.com/favicon.png」或「/path/to/favicon.png",
+    "hideNavButtons": "隱藏導覽按鈕",
+    "hideNavButtonsDescription": "隱藏分享中導覽列上的導覽按鈕，以創造簡約的外觀。",
+    "viewModeDescription": "共用頁面的預設版面。"
   },
   "api": {
     "title": "API 金鑰",

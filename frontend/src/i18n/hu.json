@@ -183,7 +183,8 @@
     "shareLogo": "Logó megosztása URL",
     "shareBanner": "Banner URL megosztása",
     "shareFavicon": "Favicon URL megosztása",
-    "optionalPasswordHelp": "Ha be van állítva, a felhasználóknak ezt a jelszót kell megadniuk a megosztott tartalom megtekintéséhez."
+    "optionalPasswordHelp": "Ha be van állítva, a felhasználóknak ezt a jelszót kell megadniuk a megosztott tartalom megtekintéséhez.",
+    "viewMode": "Nézet mód"
   },
   "search": {
     "images": "Képek",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "A megosztási oldalon megjelenő rövid leírás (a meta címkékben is használható).",
     "shareLogoDescription": "A logó kép URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/logo.png' vagy '/path/to/logo.png'.",
     "shareBannerDescription": "A banner kép URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/banner.png' vagy '/path/to/banner.png'.",
-    "shareFaviconDescription": "A favicon URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/favicon.png' vagy '/path/to/favicon.png'."
+    "shareFaviconDescription": "A favicon URL címe vagy az ügyfél által elérhető elérési útvonal -- abszolút vagy index útvonal is elfogadható: pl. 'https://domain.com/favicon.png' vagy '/path/to/favicon.png'.",
+    "hideNavButtons": "Navigációs gombok elrejtése",
+    "hideNavButtonsDescription": "Rejtse el a navigációs gombokat a megosztás navigációs sávján a minimalista megjelenés érdekében.",
+    "viewModeDescription": "A megosztott oldal alapértelmezett elrendezése."
   },
   "api": {
     "title": "API-kulcsok:",

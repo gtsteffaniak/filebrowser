@@ -183,7 +183,8 @@
     "shareLogo": "Dela logotypens URL",
     "shareBanner": "Dela bannerns URL",
     "shareFavicon": "Dela URL för favicon",
-    "optionalPasswordHelp": "Om det är inställt måste användarna ange lösenordet för att visa det delade innehållet."
+    "optionalPasswordHelp": "Om det är inställt måste användarna ange lösenordet för att visa det delade innehållet.",
+    "viewMode": "Visa läge"
   },
   "search": {
     "images": "Bilder",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "Kort beskrivning som visas på aktiesidan (kan användas i metataggar).",
     "shareLogoDescription": "URL eller sökväg för logotypbild som är tillgänglig för klienten - antingen abosolute- eller indexsökväg accepteras: t.ex. \"https://domain.com/logo.png\" eller \"/path/to/logo.png",
     "shareBannerDescription": "URL eller sökväg för bannerbilden som är tillgänglig för klienten - antingen abosolute eller index path accepteras: t.ex. \"https://domain.com/banner.png\" eller \"/path/to/banner.png",
-    "shareFaviconDescription": "URL eller sökväg till Favicon som är tillgänglig för klienten - antingen abosolute eller indexsökväg accepteras: t.ex. \"https://domain.com/favicon.png\" eller \"/path/to/favicon.png"
+    "shareFaviconDescription": "URL eller sökväg till Favicon som är tillgänglig för klienten - antingen abosolute eller indexsökväg accepteras: t.ex. \"https://domain.com/favicon.png\" eller \"/path/to/favicon.png",
+    "hideNavButtons": "Dölj navigeringsknappar",
+    "hideNavButtonsDescription": "Dölj navigeringsknapparna i navigeringsfältet i aktien för att skapa ett minimalistiskt utseende.",
+    "viewModeDescription": "Standardlayout för den delade sidan."
   },
   "api": {
     "title": "API-nycklar",

@@ -155,7 +155,10 @@
     "shareDescriptionHelp": "Krátký popis zobrazený na stránce sdílení (lze použít v metaznačkách).",
     "shareLogoDescription": "Adresa URL nebo cesta k obrázku loga přístupná klientovi - akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/logo.png\" nebo \"/path/to/logo.png\".",
     "shareBannerDescription": "Adresa URL nebo cesta k obrázku banneru přístupná klientovi - akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/banner.png\" nebo \"/path/to/banner.png\".",
-    "shareFaviconDescription": "Adresa URL nebo cesta k faviconě přístupná klientovi -- akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/favicon.png\" nebo \"/path/to/favicon.png\"."
+    "shareFaviconDescription": "Adresa URL nebo cesta k faviconě přístupná klientovi -- akceptována je buď absolutní, nebo indexová cesta: např. \"https://domain.com/favicon.png\" nebo \"/path/to/favicon.png\".",
+    "hideNavButtons": "Skrytí navigačních tlačítek",
+    "hideNavButtonsDescription": "Skryjte navigační tlačítka na panelu navigace ve sdíleném okně, abyste vytvořili minimalistický vzhled.",
+    "viewModeDescription": "Výchozí rozložení sdílené stránky."
   },
   "prompts": {
     "copy": "Kopírovat",
@@ -211,7 +214,8 @@
     "shareLogo": "Sdílet adresu URL loga",
     "shareBanner": "Sdílet adresu URL banneru",
     "shareFavicon": "Sdílet adresu URL favicon",
-    "optionalPasswordHelp": "Pokud je nastaveno, musí uživatelé toto heslo zadat, aby mohli sdílený obsah zobrazit."
+    "optionalPasswordHelp": "Pokud je nastaveno, musí uživatelé toto heslo zadat, aby mohli sdílený obsah zobrazit.",
+    "viewMode": "Režim zobrazení"
   },
   "search": {
     "images": "Obrázky",

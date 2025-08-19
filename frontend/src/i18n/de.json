@@ -183,7 +183,8 @@
     "shareLogo": "Logo-URL freigeben",
     "shareBanner": "Banner-URL freigeben",
     "shareFavicon": "Favicon-URL freigeben",
-    "optionalPasswordHelp": "Falls festgelegt, müssen die Benutzer dieses Kennwort eingeben, um die freigegebenen Inhalte anzuzeigen."
+    "optionalPasswordHelp": "Falls festgelegt, müssen die Benutzer dieses Kennwort eingeben, um die freigegebenen Inhalte anzuzeigen.",
+    "viewMode": "Ansichtsmodus"
   },
   "search": {
     "images": "Bilder",
@@ -350,7 +351,10 @@
     "shareDescriptionHelp": "Kurze Beschreibung, die auf der Freigabeseite angezeigt wird (kann in Meta-Tags verwendet werden).",
     "shareLogoDescription": "Logo-Bild-URL oder -Pfad, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. \"https://domain.com/logo.png\" oder \"/pfad/zu/logo.png\".",
     "shareBannerDescription": "URL oder Pfad des Bannerbildes, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. \"https://domain.com/banner.png\" oder \"/pfad/zu/banner.png\".",
-    "shareFaviconDescription": "Favicon-URL oder -Pfad, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. 'https://domain.com/favicon.png' oder '/path/to/favicon.png'."
+    "shareFaviconDescription": "Favicon-URL oder -Pfad, auf den der Client zugreifen kann - es wird entweder ein absoluter oder ein Indexpfad akzeptiert: z. B. 'https://domain.com/favicon.png' oder '/path/to/favicon.png'.",
+    "hideNavButtons": "Navigationsschaltflächen ausblenden",
+    "hideNavButtonsDescription": "Blenden Sie die Navigationsschaltflächen auf der Navigationsleiste in der Freigabe aus, um ein minimalistisches Aussehen zu erzielen.",
+    "viewModeDescription": "Standardlayout für die gemeinsame Seite."
   },
   "api": {
     "title": "API-Schlüssel:",
