@@ -403,7 +403,7 @@
     "previewVideos": "Mostrar miniatura de videos",
     "previewVideosDescription": "Mostrar vistas previas en las miniaturas de los vídeos, mostrará un icono genérico si está desactivado",
     "previewMotionVideos": "Previsualización de vídeos",
-    "previewMotionVideosDescription": "Recorre los fotogramas del vídeo. \n La previsulización de videos es en la vista previa emergente (tienes que tener activada es opción también).",
+    "previewMotionVideosDescription": "Recorre los fotogramas del vídeo. \n La previsulización de videos es en la vista previa emergente (tienes que tener activada esa opción también).",
     "highQualityPreview": "Miniaturas de alta calidad",
     "highQualityPreviewDescription": "Sólo afecta a la vista de galería. Puede tardar más en cargarse si la conexión es lenta",
     "editOffice": "Ver y editar archivos de ofimática con OnlyOffice",
