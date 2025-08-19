@@ -20,7 +20,6 @@ All notable changes to this project will be documented in this file. For commit 
    - share link public changes https://github.com/gtsteffaniak/filebrowser/issues/473
    - shares can be modified/configured after creation.
    - download throttling for shares
- - public/private folder logic https://github.com/gtsteffaniak/filebrowser/issues/505
 
  **Notes**:
  - hover effect on list/compact view https://github.com/gtsteffaniak/filebrowser/issues/1036
