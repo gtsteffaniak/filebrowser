@@ -399,7 +399,7 @@ export default {
     },
     goToRaw() {
       if (getters.isShare()) {
-        window.open(publicApi.getDownloadURL(state.share, state.req.path), "_blank");
+        window.open(publicApi.getDownloadURL(state.share, state.req.path, true), "_blank");
         mutations.closeHovers();
         return;
       }

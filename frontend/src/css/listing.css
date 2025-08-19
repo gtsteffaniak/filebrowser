@@ -67,7 +67,8 @@ body.rtl #listingView {
 #listingView .item img {
   padding: 0;
   height: 3.2em;
-  width: 4em;
+  min-width: 3.2em;
+  max-width: 3.2em;
   border-radius: 0.5em;
   object-fit: cover;
   vertical-align: bottom;
