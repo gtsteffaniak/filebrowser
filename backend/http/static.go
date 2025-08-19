@@ -68,6 +68,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"themeColor":        "",
 		"disableThumbnails": false,
 		"viewMode":          "list",
+		"disableFileViewer": false,
 	}
 	disableNavButtons := settings.Config.Frontend.DisableNavButtons
 	if d.share != nil {
@@ -79,6 +80,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		shareOverrides["themeColor"] = d.share.ThemeColor
 		shareOverrides["quickDownload"] = d.share.QuickDownload
 		shareOverrides["disableThumbnails"] = d.share.DisableThumbnails
+		shareOverrides["disableFileViewer"] = d.share.DisablingFileViewer
 		if d.share.Favicon != "" {
 			if strings.HasPrefix(d.share.Favicon, "http") {
 				data["favicon"] = d.share.Favicon

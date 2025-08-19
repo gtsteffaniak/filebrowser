@@ -124,7 +124,6 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 		} else {
 			prefix := config.Server.BaseURL + "public/share/"
 			reconstructed := config.Server.BaseURL + "public" + r.URL.Path
-			fmt.Println("reconstructed", reconstructed)
 			if strings.HasPrefix(reconstructed, prefix) {
 				remaining := strings.TrimPrefix(reconstructed, prefix)
 				if remaining != "" {
@@ -135,9 +134,8 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 						var err error
 						link, err = store.Share.GetByHash(remaining)
 						if err != nil {
-							fmt.Println("error getting share by hash", err)
+							logger.Debugf("error getting share by hash: %v", err)
 						}
-						fmt.Println("link", link.Hash, link.Description)
 					}
 				}
 			}
@@ -163,7 +161,6 @@ func withOrWithoutUserHelper(fn handleFunc) handleFunc {
 			if link != nil {
 				data.share = link
 				data.user.CustomTheme = link.ShareTheme
-				fmt.Println("link", link)
 			}
 			// Call the handler function without user context
 			return fn(w, r, data)

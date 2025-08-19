@@ -65,7 +65,6 @@ export default {
   },
   mounted() {
     window.addEventListener("resize", this.updateIsMobile);
-    console.log(shareOverrides);
     if (shareOverrides.themeColor != "") {
       document.documentElement.style.setProperty("--primaryColor", shareOverrides.themeColor);
     } else if (state.user.themeColor) {

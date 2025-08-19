@@ -2,7 +2,7 @@
   <div class="share card">
     <div class="share__box">
       <div v-if="shareOverrides.banner" class="banner">
-        <img :src="shareOverrides.banner" />
+        <img :src="getShareBanner" />
       </div>
       <div v-if="shareOverrides.title" class="share__box__element">
         <h2>{{ shareOverrides.title }}</h2>
@@ -60,6 +60,12 @@ export default {
     },
   },
   computed: {
+    getShareBanner() {
+      if (this.shareOverrides.banner.startsWith("http")) {
+        return this.shareOverrides.banner;
+      }
+      return publicApi.getDownloadURL(state.share, [this.shareOverrides.banner]);
+    },
     shareOverrides() {
       return shareOverrides;
     },
