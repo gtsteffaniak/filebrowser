@@ -35,13 +35,13 @@ type CreateBody struct {
 type Link struct {
 	CommonShare
 	Mu           sync.Mutex `json:"-"`
-	Downloads    int        `json:"-"`
-	Hash         string     `json:"hash" storm:"id,index"`
-	Path         string     `json:"path" storm:"index"`
-	Source       string     `json:"source" storm:"index"`
-	UserID       uint       `json:"userID"`
-	Expire       int64      `json:"expire"`
-	PasswordHash string     `json:"password_hash,omitempty"`
+	Downloads    int
+	Hash         string `json:"hash" storm:"id,index"`
+	Path         string `json:"path" storm:"index"`
+	Source       string `json:"source" storm:"index"`
+	UserID       uint   `json:"userID"`
+	Expire       int64  `json:"expire"`
+	PasswordHash string `json:"password_hash,omitempty"`
 	// Token is a random value that will only be set when PasswordHash is set. It is
 	// URL-Safe and is used to download links in password-protected shares via a
 	// query arg.

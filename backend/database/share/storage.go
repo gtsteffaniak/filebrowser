@@ -1,6 +1,7 @@
 package share
 
 import (
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/common/errors"
@@ -49,15 +50,18 @@ func (c *crudBackend) DeleteByID(id any) error {
 
 // Storage is a share storage using generics.
 type Storage struct {
-	Generic *crud.Storage[Link]
-	back    StorageBackend
+	Generic    *crud.Storage[Link]
+	back       StorageBackend
+	shareCache map[string]*Link
+	mu         sync.RWMutex
 }
 
 // NewStorage creates a share links storage from a backend.
 func NewStorage(back StorageBackend) *Storage {
 	return &Storage{
-		Generic: crud.NewStorage[Link](&crudBackend{back: back}),
-		back:    back,
+		Generic:    crud.NewStorage[Link](&crudBackend{back: back}),
+		back:       back,
+		shareCache: make(map[string]*Link),
 	}
 }
 
@@ -67,7 +71,19 @@ func (s *Storage) All() ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.filterExpired(links)
+	filtered, err := s.filterExpired(links)
+	if err != nil {
+		return nil, err
+	}
+	// warm cache
+	s.mu.Lock()
+	for _, l := range filtered {
+		if l != nil {
+			s.shareCache[l.Hash] = l
+		}
+	}
+	s.mu.Unlock()
+	return filtered, nil
 }
 
 // FindByUserID wraps StorageBackend.FindByUserID and handles expiry.
@@ -76,11 +92,37 @@ func (s *Storage) FindByUserID(id uint) ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.filterExpired(links)
+	filtered, err := s.filterExpired(links)
+	if err != nil {
+		return nil, err
+	}
+	s.mu.Lock()
+	for _, l := range filtered {
+		if l != nil {
+			s.shareCache[l.Hash] = l
+		}
+	}
+	s.mu.Unlock()
+	return filtered, nil
 }
 
 // GetByHash wraps StorageBackend.GetByHash and handles expiry.
 func (s *Storage) GetByHash(hash string) (*Link, error) {
+	// return stable in-memory pointer if available
+	s.mu.RLock()
+	if link, ok := s.shareCache[hash]; ok && link != nil {
+		s.mu.RUnlock()
+		if link.Expire != 0 && link.Expire <= time.Now().Unix() {
+			_ = s.back.Delete(hash)
+			s.mu.Lock()
+			delete(s.shareCache, hash)
+			s.mu.Unlock()
+			return nil, errors.ErrNotExist
+		}
+		return link, nil
+	}
+	s.mu.RUnlock()
+
 	link, err := s.back.GetByHash(hash)
 	if err != nil {
 		return nil, err
@@ -89,12 +131,21 @@ func (s *Storage) GetByHash(hash string) (*Link, error) {
 		_ = s.back.Delete(hash)
 		return nil, errors.ErrNotExist
 	}
+	s.mu.Lock()
+	s.shareCache[hash] = link
+	s.mu.Unlock()
 	return link, nil
 }
 
 // GetPermanent wraps StorageBackend.GetPermanent
 func (s *Storage) GetPermanent(path, source string, id uint) (*Link, error) {
-	return s.back.GetPermanent(path, source, id)
+	l, err := s.back.GetPermanent(path, source, id)
+	if err == nil && l != nil {
+		s.mu.Lock()
+		s.shareCache[l.Hash] = l
+		s.mu.Unlock()
+	}
+	return l, err
 }
 
 // Gets wraps StorageBackend.Gets and handles expiry.
@@ -103,17 +154,59 @@ func (s *Storage) Gets(sourcePath, source string, id uint) ([]*Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.filterExpired(links)
+	filtered, err := s.filterExpired(links)
+	if err != nil {
+		return nil, err
+	}
+	s.mu.Lock()
+	for _, l := range filtered {
+		if l != nil {
+			s.shareCache[l.Hash] = l
+		}
+	}
+	s.mu.Unlock()
+	return filtered, nil
 }
 
 // Save wraps StorageBackend.Save
 func (s *Storage) Save(l *Link) error {
-	return s.back.Save(l)
+	if err := s.back.Save(l); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	s.shareCache[l.Hash] = l
+	s.mu.Unlock()
+	return nil
 }
 
 // Delete wraps StorageBackend.Delete
 func (s *Storage) Delete(hash string) error {
-	return s.back.Delete(hash)
+	if err := s.back.Delete(hash); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	delete(s.shareCache, hash)
+	s.mu.Unlock()
+	return nil
+}
+
+// Flush persists the current in-memory state of all shares to the backing store.
+// Call during graceful shutdown to ensure DB matches memory.
+func (s *Storage) Flush() error {
+	s.mu.RLock()
+	links := make([]*Link, 0, len(s.shareCache))
+	for _, l := range s.shareCache {
+		if l != nil {
+			links = append(links, l)
+		}
+	}
+	s.mu.RUnlock()
+	for _, l := range links {
+		if err := s.back.Save(l); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // filterExpired removes expired links and deletes them from storage.
@@ -122,6 +215,9 @@ func (s *Storage) filterExpired(links []*Link) ([]*Link, error) {
 	for _, link := range links {
 		if link.Expire != 0 && link.Expire <= time.Now().Unix() && !link.KeepAfterExpiration {
 			_ = s.back.Delete(link.Hash)
+			s.mu.Lock()
+			delete(s.shareCache, link.Hash)
+			s.mu.Unlock()
 			continue
 		}
 		filtered = append(filtered, link)
